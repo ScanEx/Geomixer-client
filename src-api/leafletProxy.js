@@ -911,7 +911,7 @@
 				for (var i = from; i >= 0; i--)
 				{
 					var child = gmxAPI.map.layers[i];
-					if(!child.isVisible) continue;
+					if(!child || !child.isVisible) continue;
 					var mapNode = mapNodes[child.objectId];
 					if(mapNode.eventsCheck) {
 						var index = (mapNode.zIndexOffset || 0) + mapNode.zIndex;
@@ -1746,12 +1746,15 @@
 		}
 		,'bringToDepth': function(obj, zIndex)	{				// Перемещение ноды на глубину zIndex
 			if(!obj) return;
+			if('setZIndex' in obj) obj.setZIndex(zIndex);
+            else {
 //console.log('11111111111 bringToDepth ' , obj.id, obj['zIndex'], zIndex); 
 			//obj['zIndex'] = zIndex;
-			if(!obj['leaflet']) return;
-			var lObj = obj['leaflet'];
-			zIndex += obj['zIndexOffset'] ;
-			if(lObj._container && lObj._container.style.zIndex != zIndex) lObj._container.style.zIndex = zIndex;
+                if(!obj.leaflet) return;
+                var lObj = obj.leaflet;
+                zIndex += obj.zIndexOffset;
+                if(lObj._container && lObj._container.style.zIndex != zIndex) lObj._container.style.zIndex = zIndex;
+            }
 		}
 		,
 		'getLastIndex': function(pNode)	{			// Получить следующий zIndex в mapNode
@@ -2581,7 +2584,7 @@
 			var zIndex = ph.attr.zIndex;
 			var node = mapNodes[id];
 			if(node) {
-				node['zIndex'] = zIndex;
+				node.zIndex = zIndex;
 				utils.bringToDepth(node, zIndex);
 			}
 			return zIndex;

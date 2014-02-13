@@ -419,6 +419,7 @@
 
 		map.addLayers = function(layers, notMoveFlag, notVisible)
 		{
+			var reverse = false;
 			if(layers.properties.name === gmxAPI.currentMapName)	{  // Это основная карта
                 if(layers.properties.MinZoom) {	// установлен MinZoom карты
                     gmxAPI.mapMinZoom = layers.properties.MinZoom;
@@ -429,13 +430,20 @@
                         gmxAPI.mapMinZoom = 1;
                     }
                 }
+            } else if(layers.properties.name === gmxAPI.kosmosnimki_API) {
+                reverse = true;
             }
+            
 			var mapBounds = gmxAPI.getBounds();
 			var minLayerZoom = 20;
-			forEachLayer(layers, function(layer, isVisible) 
-			{
+			forEachLayer(layers, function(layer, isVisible) {
 				var visible = (layer.properties.visible ? true : isVisible);
 				var lObj = map.addLayer(layer, visible, true);
+                if(reverse) {
+                    map.layers.pop();
+                    map.layers.unshift(lObj);
+                }
+
 				if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
 					gmxAPI._layersVersion.chkVersionLayers(layers, layer);
 				}

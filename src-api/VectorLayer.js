@@ -29,7 +29,7 @@
 		
 		node['needParse'] = [];
 		node['parseTimer'] = 0;
-		node['filters'] = [];
+		node.filters = [];
 		//node['dataTiles'] = {};
 		
 		node['propHiden'] = {};					// Свойства внутренние
@@ -42,7 +42,7 @@
 		node.hoverItem = null;				// Обьект hover
 		node.listenerIDS = {};				// id прослушивателей событий
 		node['tilesLoaded'] = {};
-		node['tilesLoadProgress'] = {};
+		node.tilesLoadProgress = {};
 		node['loaderFlag'] = true;
 		node['badTiles'] = {};
 		node.badRastersURL = {};
@@ -56,7 +56,7 @@
         node.shiftY = 0;
 
 		node['zIndexOffset'] = 100000;
-		node['editedObjects'] = {};
+		node.editedObjects = {};
 		node['mousePos'] = {};					// позиция мыши в тайле
 //		node['tilesDrawing'] = {};				// список отрисованных тайлов в текущем Frame
 		node['zIndex'] = utils.getIndexLayer(nodeId);
@@ -763,7 +763,8 @@
                     var zoom = obj._map._zoom;
                     node.zIndexOffset = (zoom < node.quicklookZoomBounds.minZ || zoom > node.quicklookZoomBounds.maxZ ? 100000 : 0)
                 }
-                utils.bringToDepth(node, node.zIndex);
+                //utils.bringToDepth(node, node.zIndex);
+                obj.setZIndex(node.zIndex + node.zIndexOffset);
 			}
 		};
 
@@ -845,7 +846,7 @@
 				var geom = item.geom || item;
 				var propHiden = geom.propHiden;
 				//if(!propHiden && item.geom && item.geom.propHiden) propHiden = item.geom.propHiden;
-				var filters = propHiden['toFilters'];
+				var filters = propHiden.toFilters;
 				if(!filters || filters.length == 0) filters = chkObjectFilters(geom);
 				filter = (filters && filters.length ? mapNodes[filters[0]] : null);
 			}
@@ -1752,19 +1753,19 @@
 		var redrawTilesListTimer = null;								// Таймер
 		node.redrawTilesList = function(zd)	{						// пересоздание тайлов слоя с задержкой
 			if(redrawTilesListTimer) clearTimeout(redrawTilesListTimer);
-			if(node['waitStyle']) return false;
+			if(node.waitStyle) return false;
 			if(arguments.length == 0) zd = 0;
-			node['lastDrawTime'] = 1;		// старт отрисовки
+			node.lastDrawTime = 1;		// старт отрисовки
 			node.isIdle(-1);		// обнуление проверок окончания отрисовки
 			redrawTilesListTimer = setTimeout(function()
 			{
 				var onScene = (myLayer && myLayer._map ? true : false);
 				if(!onScene) {
-					delete node['lastDrawTime'];
+					delete node.lastDrawTime;
 					return;
 				}
-				for(var gmxTileID in node['tilesKeys']) {
-					var tKeys = node['tilesKeys'][gmxTileID];
+				for(var gmxTileID in node.tilesKeys) {
+					var tKeys = node.tilesKeys[gmxTileID];
 					for(var tKey in tKeys) {
 						var tilePoint = tKeys[tKey];
 						node.repaintTile(tilePoint, true);
@@ -2733,6 +2734,11 @@ if(observerTimer) clearTimeout(observerTimer);
                     node.waitRedrawFlips(zd, true);
                 }
             }
+            ,setZIndex: function(zIndex) {	// Переустановка zIndex
+                var resIndex = node.zIndex + node.zIndexOffset;
+                if(myLayer) myLayer.setZIndex(resIndex);
+                return resIndex;
+			}
         });
 
 		var refreshBounds = function() {	// Обновление лефлет слоя
