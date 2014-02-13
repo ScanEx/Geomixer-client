@@ -55,7 +55,8 @@
 				node.zIndexOffset = pNode.zIndexOffset;
 			}
 		}
-		if(!'zIndex' in node) node.zIndex = utils.getIndexLayer(id);
+		//if(!'zIndex' in node) 
+        node.zIndex = utils.getIndexLayer(id);
 		//node.zIndex += node.zIndexOffset;
 
 		node.getLayerBounds = function(flag) {				// Проверка границ растрового слоя
