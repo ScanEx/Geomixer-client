@@ -83,6 +83,13 @@ option
 	padding: 2px;
 	margin: 1px 3px;
 }
+
+.inputStyle:disabled
+{
+    color: #545454;
+    background-color: #EBEBE4;
+}
+
 .selectStyle
 {
 	border: 1px solid #AFC0D5;
