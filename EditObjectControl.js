@@ -88,16 +88,16 @@ var FieldsCollection = function() {
     var _asHash = {};
     
     this.append = function(field) {
-        field.origIndex = _asArray.length;
-        _asArray.push(field);
-        _asHash[field.name] = field;
-    }
-    
-    this.update = function(field) {
-        if (field.name in _asHash) {
+        if (_asHash[field.name]) {
             var origIndex = _asHash[field.name].origIndex;
             $.extend(true, _asHash[field.name], field);
             _asHash[field.name].origIndex = origIndex;
+        } else {
+            field.origIndex = _asArray.length;
+            _asArray.push(field);
+            if (field.name) {
+                _asHash[field.name] = field;
+            }
         }
     }
     
@@ -107,6 +107,14 @@ var FieldsCollection = function() {
     
     this.each = function(callback) {
         _asArray.forEach(callback);
+    }
+    
+    this.updateValue = function(name) {
+        var field = _asHash[name];
+        if (field && field.view) {
+            field.value = field.view.getValue();
+        }
+        return field.value;
     }
     
     //Сначала isRequired, потом identityField, потом в порядке добавления
@@ -261,6 +269,7 @@ var EditObjectControl = function(layerName, objectId, params)
     }
 
     var canvas = null;
+    var fieldsCollection = new FieldsCollection();
     
     var createDialog = function()
     {
@@ -299,35 +308,25 @@ var EditObjectControl = function(layerName, objectId, params)
             
             var properties = {};
             var anyErrors = false;
-            $(".edit-attr-value", canvas).each(function(index, elem)
-            {
-                if (elem.rowName === identityField)
+            
+            fieldsCollection.each(function(field) {
+                var name = field.name;
+                if (!name) {
                     return;
-                
-                var clientValue = 'value' in elem ? elem.value : $(elem).text();
-                var value = nsGmx.Utils.convertToServer(elem.rowType, clientValue);
-                var validationFunc = fieldsCollection.get(elem.rowName).validate || _params.validate[elem.rowName];
-                var isValid = !validationFunc || validationFunc(clientValue);
-                
-                if (isValid) {
-                    properties[elem.rowName] = value;
-                } else {
-                    anyErrors = true;
-                    inputError(elem);
                 }
-            });
+                
+                var isValid = field.view.checkValue();
+                if (isValid) {
+                    properties[name] = fieldsCollection.updateValue(name);
+                }
+                anyErrors = anyErrors || !isValid;
+            })
             
             if (anyErrors) return;
             
             var obj = { properties: properties };
             
-            var selectedGeom = null;
-            
-            if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
-                selectedGeom = geometryInfoRow.getDrawingObject().getGeometry();
-            } else if (geometryMapObject) {
-                selectedGeom = geometryMapObject.getGeometry();
-            }
+            var selectedGeom = _this.getGeometry();
             
             if (!selectedGeom)
             {
@@ -381,8 +380,6 @@ var EditObjectControl = function(layerName, objectId, params)
             $(_this).trigger('close');
         }
         
-        var fieldsCollection = new FieldsCollection();
-        
         //либо drawingObject либо geometry
         var drawAttrList = function(fields)
         {
@@ -414,31 +411,56 @@ var EditObjectControl = function(layerName, objectId, params)
                 var td = _td();
                 if (field.constant)
                 {
-                    if ('value' in field)
-                    {
-                        var span = _span(null,[['dir', 'className', 'edit-attr-value edit-obj-constant-value']]);
-                        // var span = _span(null,[['css','marginLeft','3px'],['css','fontSize','12px'], ['dir', 'className', 'edit-attr-value']]);
-                        span.rowName = field.name;
-                        span.rowType = field.type;
-                        _(span, [_t(nsGmx.Utils.convertFromServer(field.type, field.value))]);
+                    field.view = field.view || {
+                        getUI: function() {
+                            var span = _span(null,[['dir', 'className', 'edit-obj-constant-value']]);
+                            span.rowName = field.name;
+                            span.rowType = field.type;
+                            if ('value' in field) {
+                                _(span, [_t(nsGmx.Utils.convertFromServer(field.type, field.value))]);
+                            }
+                            return span;
+                        },
+                        getValue: function() {return field.value},
+                        setValue: function() {},
+                        checkValue: function() { return true; }
                     }
-                    _(td, [span])
                 }
                 else
                 {
-                    var input = getInputElement(field.type);
-                    input.rowName = field.name;
-                    input.rowType = field.type;
-                    
-                    firstInput = firstInput || input;
-                    
-                    if ('value' in field)
-                        input.value = nsGmx.Utils.convertFromServer(field.type, field.value);
-                        
-                    $(input).addClass('edit-attr-value');
-                        
-                    _(td, [input]);
+                    field.view = field.view || {
+                        getUI: function() {
+                            if (!this._input) {                            
+                                var input = this._input = getInputElement(field.type);
+                                input.rowName = field.name;
+                                input.rowType = field.type;
+                                
+                                firstInput = firstInput || input;
+                                
+                                if ('value' in field)
+                                    input.value = nsGmx.Utils.convertFromServer(field.type, field.value);
+                            }
+                            return this._input;
+                        },
+                        getValue: function() {
+                            return nsGmx.Utils.convertToServer(field.type, this._input.value);
+                        },
+                        setValue: function(value) {
+                            this._input.value = nsGmx.Utils.convertFromServer(field.type, value);
+                        },
+                        checkValue: function() {
+                            var validationFunc = field.validate || _params.validate[field.name];
+                            var isValid = !validationFunc || validationFunc(clientValue);
+                            if (!isValid) {
+                                inputError(this._input);
+                            }
+                            return isValid;
+                        },
+                        _input: null
+                    }
                 }
+                
+                _(td, [field.view.getUI(_this)]);
                 
                 var fieldHeader = _span([_t(field.title || field.name)],[['css','fontSize','12px']]);
                 if (field.isRequired) {
@@ -496,7 +518,7 @@ var EditObjectControl = function(layerName, objectId, params)
                         var field = {
                             value: geometryRow[i],
                             type: types[i], 
-                            name: columnNames[i], 
+                            name: columnNames[i],
                             constant: columnNames[i] === identityField,
                             identityField: columnNames[i] === identityField,
                             isRequired: false
@@ -506,7 +528,7 @@ var EditObjectControl = function(layerName, objectId, params)
                     }
                 }
                 
-                _params.fields.forEach(fieldsCollection.update);
+                _params.fields.forEach(fieldsCollection.append);
                 
                 drawAttrList(fieldsCollection);
                 
@@ -520,7 +542,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 fieldsCollection.append({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]})
             }
             
-            _params.fields.forEach(fieldsCollection.update);
+            _params.fields.forEach(fieldsCollection.append);
             
             if (_params.drawingObject) {
                 bindDrawingObject(_params.drawingObject);
@@ -531,7 +553,6 @@ var EditObjectControl = function(layerName, objectId, params)
             _this.initPromise.resolve();
         }
     }
-    
     
     /** Promise для отслеживания момента полной инициализации диалога. Только после полной инициализации можно полноценно пользоваться методами get/set
       * @memberOf nsGmx.EditObjectControl.prototype
@@ -545,14 +566,7 @@ var EditObjectControl = function(layerName, objectId, params)
       @method get
     */
     this.get = function(fieldName) {
-        var resValue = null;
-        $(".edit-attr-value", canvas).each(function(index, elem)
-        {
-            if (elem.rowName === fieldName) {
-                resValue = 'value' in elem ? elem.value : $(elem).text();
-            }
-        });
-        return resValue;
+        return fieldsCollection.updateValue(fieldName);
     }
     
     /** Задать значение атрибута объекта из контрола
@@ -562,16 +576,10 @@ var EditObjectControl = function(layerName, objectId, params)
       @param {String|Integer} value Значение в клиентском формате, который нужно установить для этого атрибута
     */
     this.set = function(fieldName, value) {
-        $(".edit-attr-value", canvas).each(function(index, elem)
-        {
-            if (elem.rowName === fieldName) {
-                if ('value' in elem) {
-                    elem.value = value;
-                } else {
-                    $(elem).text(value);
-                }
-            }
-        });
+        var field = fieldsCollection.get(fieldName);
+        if (field) {
+            field.view.setValue(value);
+        }
     }
     
     /** Задать геометрию для редактируемого объекта
@@ -582,6 +590,24 @@ var EditObjectControl = function(layerName, objectId, params)
     this.setGeometry = function(geometry) {
         bindGeometry(geometry);
     }
+    
+    this.getGeometryObj = function() {
+        return (geometryInfoRow && geometryInfoRow.getDrawingObject()) || geometryMapObject;
+    }
+    
+    this.getGeometry = function() {
+        var geom = null;
+            
+        if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
+            geom = geometryInfoRow.getDrawingObject().getGeometry();
+        } else if (geometryMapObject) {
+            geom = geometryMapObject.getGeometry();
+        }
+        
+        return geom;
+    }
+    
+    this.getLayer = function() { return layer; };
     
     createDialog();
 }
