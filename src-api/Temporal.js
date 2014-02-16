@@ -51,34 +51,34 @@
 		{
 			var tdata = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers, ph);
 			var currentData = this.temporalData.currentData;
-			var data = getDateIntervalTiles(currentData['dt1'], currentData['dt2'], tdata);
+			var data = getDateIntervalTiles(currentData.dt1, currentData.dt2, tdata);
 
 			var out = {'hash':{}, 'del': {}, 'add': [], 'count': 0 };
 			var ptAdd = {};
-			for (var key in data['TilesVersionHash']) {
-				if(!currentData['TilesVersionHash'][key]) {
+			for (var key in data.TilesVersionHash) {
+				if(!currentData.TilesVersionHash[key]) {
 					var arr = key.split('_');
 					var st = arr[0] + '_' + arr[1] + '_' + arr[2];
 					ptAdd[st] = true;
-					out['del'][arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
+					out.del[arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
 				}
 			}
-			for (var key in currentData['TilesVersionHash']) {
-				if(!data['TilesVersionHash'][key]) {
+			for (var key in currentData.TilesVersionHash) {
+				if(!data.TilesVersionHash[key]) {
 					var arr = key.split('_');
-					out['del'][arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
+					out.del[arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
 				}
 			}
 			for (var key in ptAdd) {
 				var arr = key.split('_');
-				out['add'].push([arr[0], arr[1], arr[2]]);
+				out.add.push([arr[0], arr[1], arr[2]]);
 			}
-			out['count'] = data['dtiles'].length / 3;
-			out['dtiles'] = data['dtiles'];
-			out['ut1'] = data['ut1'];
-			out['ut2'] = data['ut2'];
+			out.count = data.dtiles.length / 3;
+			out.dtiles = data.dtiles;
+			out.ut1 = data.ut1;
+			out.ut2 = data.ut2;
 			this.temporalData = tdata;						// Обновление temporalData
-			this.temporalData['currentData'] = data;
+			this.temporalData.currentData = data;
 			return out;
 		}
 		this.getTilesHash = getTilesHash;
@@ -150,15 +150,15 @@
 				var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'TilesVersionHash': {}, 'out': ''};
 				var mn = oneDay * daysDelta;
 				var zn = parseInt((dt1 - ZeroDate)/mn);
-				ph['beg'] = zn;
-				ph['begDate'] = new Date(ZeroDate.getTime() + daysDelta * zn * oneDay);
+				ph.beg = zn;
+				ph.begDate = new Date(ZeroDate.getTime() + daysDelta * zn * oneDay);
 				zn = parseInt(zn);
 				var zn1 = Math.floor((dt2 - ZeroDate)/mn);
-				ph['end'] = zn1;
-				ph['endDate'] = new Date(ZeroDate.getTime() + daysDelta * oneDay * (zn1 + 1) - 1000);
+				ph.end = zn1;
+				ph.endDate = new Date(ZeroDate.getTime() + daysDelta * oneDay * (zn1 + 1) - 1000);
 				zn1 = parseInt(zn1);
 				
-				var dHash = tdata['deltaHash'][daysDelta] || {};
+				var dHash = tdata.deltaHash[daysDelta] || {};
 				for (var dz in dHash) {
 					if(dz < zn || dz > zn1) continue;
 					var arr = dHash[dz] || [];
@@ -171,26 +171,26 @@
 						var v = pt[3];
 						var file = prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y + "&v=" + v;
 						//if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
-						if(!ph['tiles'][z]) ph['tiles'][z] = {};
-						if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
-						if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];
-						ph['tiles'][z][x][y].push(file);
-						ph['files'].push(file);
+						if(!ph.tiles[z]) ph.tiles[z] = {};
+						if(!ph.tiles[z][x]) ph.tiles[z][x] = {};
+						if(!ph.tiles[z][x][y]) ph.tiles[z][x][y] = [];
+						ph.tiles[z][x][y].push(file);
+						ph.files.push(file);
 						var st = x + '_' + y + '_' + z + '_' + daysDelta + '_' + dz + '_' + v;
-						ph['TilesVersionHash'][st] = true;
+						ph.TilesVersionHash[st] = true;
 					}
 				}
 				
 				var arr = [];
-				for (var z in ph['tiles'])
-					for (var i in ph['tiles'][z])
-						for (var j in ph['tiles'][z][i])
+				for (var z in ph.tiles)
+					for (var i in ph.tiles[z])
+						for (var j in ph.tiles[z][i])
 							arr.push(i, j, z);
-				ph['dtiles'] = arr;
+				ph.dtiles = arr;
 				return ph;
 			}
 
-			var deltaArr = tdata['deltaArr'];
+			var deltaArr = tdata.deltaArr;
 			var i = deltaArr.length - 1;
 			var curDaysDelta = deltaArr[i];
 			while (i>=0)
@@ -202,13 +202,13 @@
 				i--;
 			}
 			var ph = getFiles(curDaysDelta);
-			minFiles = ph['files'].length;
+			minFiles = ph.files.length;
 
 			var hash = prpTemporalFilter(dt1, dt2, TemporalColumnName);
 			
 			var tileDateFunction = function(i, j, z)
 			{ 
-				var filesHash = ph['tiles'] || {};
+				var filesHash = ph.tiles || {};
 				var outArr = [];
 				if(filesHash[z] && filesHash[z][i] && filesHash[z][i][j]) {
 					outArr = filesHash[z][i][j];
@@ -218,20 +218,20 @@
 
 			var out = {
 					'daysDelta': curDaysDelta
-					,'files': ph['files']
-					,'tiles': ph['tiles']
-					,'dtiles': ph['dtiles'] || []		// список тайлов для daysDelta
-					,'out': ph['out']
-					,'beg': ph['beg']
-					,'end': ph['end']
-					,'begDate': ph['begDate']
-					,'endDate': ph['endDate']
-					,'ut1': hash['ut1']
-					,'ut2': hash['ut2']
+					,'files': ph.files
+					,'tiles': ph.tiles
+					,'dtiles': ph.dtiles || []		// список тайлов для daysDelta
+					,'out': ph.out
+					,'beg': ph.beg
+					,'end': ph.end
+					,'begDate': ph.begDate
+					,'endDate': ph.endDate
+					,'ut1': hash.ut1
+					,'ut2': hash.ut2
 					,'dt1': dt1
 					,'dt2': dt2
 					,'tileDateFunction': tileDateFunction
-					,'TilesVersionHash': ph['TilesVersionHash']
+					,'TilesVersionHash': ph.TilesVersionHash
 				};
 
 			return out;
@@ -242,7 +242,7 @@
 		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
 		var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
 		ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
-		temporalData['currentData'] = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
+		temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
 
 		// 
 		var me = this;
@@ -250,38 +250,38 @@
 		var setDateInterval = function(dt1, dt2, tdata)
 		{
 			if(!tdata) tdata = mapObj._temporalTiles.temporalData;
-			var currentData = tdata['currentData'];
+			var currentData = tdata.currentData;
 			if(!dt1) {
-				dt1 = currentData['dt1'];
+				dt1 = currentData.dt1;
 			} else {
-				currentData['dt1'] = dt1; 
+				currentData.dt1 = dt1; 
 			}
 			if(!dt2) {
-				dt2 = currentData['dt2'];
+				dt2 = currentData.dt2;
 			} else {
-				currentData['dt2'] = dt2; 
+				currentData.dt2 = dt2; 
 			}
 
-			var oldDt1 = currentData['begDate'];
-			var oldDt2 = currentData['endDate'];
-			var oldDaysDelta = currentData['daysDelta'];
+			var oldDt1 = currentData.begDate;
+			var oldDt2 = currentData.endDate;
+			var oldDaysDelta = currentData.daysDelta;
 
 			var hash = prpTemporalFilter(dt1, dt2, TemporalColumnName);
-			var ddt1 = hash['dt1'];
-			var ddt2 = hash['dt2'];
+			var ddt1 = hash.dt1;
+			var ddt2 = hash.dt2;
 			var data = getDateIntervalTiles(ddt1, ddt2, tdata);
-			tdata['currentData'] = data;
+			tdata.currentData = data;
 			//mapObj._temporalTiles.temporalData['currentData'] = data;
 			if(!mapObj.isVisible) return;
 
 			var attr = {
-				'dtiles': (data['dtiles'] ? data['dtiles'] : []),
-				'ut1': data['ut1'],
-				'ut2': data['ut2']
+				dtiles: (data.dtiles ? data.dtiles : []),
+				ut1: data.ut1,
+				ut2: data.ut2
 			};
-			if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
+			if(oldDaysDelta == data.daysDelta && data.dt1 >= oldDt1 && data.dt2 <= oldDt2) {
 						// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
-				attr['notClear'] = true;
+				attr.notClear = true;
 			} else {
 				if(mapObj.tilesParent) {
 					mapObj.tilesParent.clearItems();
@@ -290,15 +290,15 @@
 
 			resetTiles(attr, mapObj);
 			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
-			return data['daysDelta'];
+			return data.daysDelta;
 		}
 		this.setDateInterval = setDateInterval;
 		
 		var tileDateFunction = function(i, j, z)
 		{ 
 			var tdata = mapObj._temporalTiles.temporalData;
-			var currentData = tdata['currentData']
-			var filesHash = currentData['tiles'] || {};
+			var currentData = tdata.currentData;
+			var filesHash = currentData.tiles || {};
 			var outArr = [];
 			if(filesHash[z] && filesHash[z][i] && filesHash[z][i][j]) {
 				outArr = filesHash[z][i][j];
@@ -308,17 +308,17 @@
 		var setVectorTiles = function()
 		{
 			var tdata = mapObj._temporalTiles.temporalData;
-			var currentData = tdata['currentData']
+			var currentData = tdata.currentData;
 			var ph = {
 				'tileDateFunction': tileDateFunction,
-				'dtiles': (currentData['dtiles'] ? currentData['dtiles'] : []),
+				'dtiles': (currentData.dtiles ? currentData.dtiles : []),
 				'temporal': {
 					'TemporalColumnName': TemporalColumnName
-					,'ut1': currentData['ut1']
-					,'ut2': currentData['ut2']
+					,'ut1': currentData.ut1
+					,'ut2': currentData.ut2
 				}
 			};
-			mapObj.setVectorTiles(ph['tileDateFunction'], identityField, ph['dtiles'], ph['temporal']);
+			mapObj.setVectorTiles(ph.tileDateFunction, identityField, ph.dtiles, ph.temporal);
 		}
 		this.setVectorTiles = setVectorTiles;
 
@@ -349,8 +349,8 @@
 			var tdata = this._temporalTiles.temporalData;
 			this._temporalTiles.setDateInterval(dt1, dt2, tdata);
 			if(!this.isVisible) {
-				delete tdata.currentData['begDate'];
-				delete tdata.currentData['endDate'];
+				delete tdata.currentData.begDate;
+				delete tdata.currentData.endDate;
 			}
 			gmxAPI._listeners.dispatchEvent('onChangeDateInterval', this, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
 		});
@@ -361,8 +361,8 @@
 			var thash = null;
 			if(this._temporalTiles) {
 				var pt = this._temporalTiles.getDateIntervalTiles(dt1, dt2, this._temporalTiles.temporalData);
-				tdata = pt['dtiles'];
-				thash = pt['tiles'];
+				tdata = pt.dtiles;
+				thash = pt.tiles;
 			}
 			return gmxAPI.filterVisibleTiles(tdata, thash);
 		});

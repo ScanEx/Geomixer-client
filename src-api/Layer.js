@@ -259,6 +259,7 @@
 		
 		var isRaster = (layer.properties.type == "Raster");
 		var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
+		if(!layer.properties.name) layer.properties.name = layerName;
 		//obj.geometry = layer.geometry;
 		//obj.mercGeometry = layer.mercGeometry;
 
@@ -912,12 +913,12 @@
 			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId});	// Проверка map Listeners на hideBalloons
 		}, -10);
 			
-		obj.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
-			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, obj.properties.name);	// Удален слой
+		obj.addListener('BeforeLayerRemove', function() {				// Удаляется слой
+			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, layerName);	// Удален слой
 		}, -10);
-		obj._clearLayer = function(layerName) {			// Чистка map.layers при удалении слоя
-			if(!layerName) layerName = obj.properties.name;
-			for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
+		obj._clearLayer = function() {			// Чистка map.layers при удалении слоя
+			//if(!layerName) layerName = obj.properties.name;
+			for(var i=0, len=gmxAPI.map.layers.length; i<len; i++) {			// Удаление слоя из массива
 				var prop = gmxAPI.map.layers[i].properties;
 				if(prop.name === layerName) {
 					gmxAPI.map.layers.splice(i, 1);
@@ -931,7 +932,7 @@
 				}
 			}
 		}
-		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
+		obj.addListener('AfterLayerRemove', function() {			// Удален слой
             obj._clearLayer(obj.properties.name);
 		}, 101);	// Перед всеми пользовательскими Listeners
 		if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;

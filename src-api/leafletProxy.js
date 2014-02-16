@@ -1642,16 +1642,18 @@
 		{
 			var out = null;
 			if(geom) {
-				if(geom['type'] === 'POINT') {
-					out = gmxAPI._leaflet['PointGeometry'](geom, tileBounds);
-				} else if(geom['type'] === 'MULTILINESTRING') {
-					out = gmxAPI._leaflet['MultiPolyline'](geom, tileBounds);
-				} else if(geom['type'] === 'LINESTRING') {
-					out = gmxAPI._leaflet['LineGeometry'](geom, tileBounds);
-				} else if(geom['type'] === 'POLYGON') {
-					out = gmxAPI._leaflet['PolygonGeometry'](geom, tileBounds);
-				} else if(geom['type'] === 'MULTIPOLYGON') {
-					out = gmxAPI._leaflet['MultiPolygonGeometry'](geom, tileBounds);
+                var type = geom.type,
+                    ut = gmxAPI._leaflet;
+				if(type === 'POINT') {
+					out = ut.PointGeometry(geom, tileBounds);
+				} else if(type === 'MULTILINESTRING') {
+					out = ut.MultiPolyline(geom, tileBounds);
+				} else if(type === 'LINESTRING') {
+					out = ut.LineGeometry(geom, tileBounds);
+				} else if(type === 'POLYGON') {
+					out = ut.PolygonGeometry(geom, tileBounds);
+				} else if(type === 'MULTIPOLYGON') {
+					out = ut.MultiPolygonGeometry(geom, tileBounds);
 				}
 			}
 			return out;

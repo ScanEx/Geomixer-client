@@ -10,13 +10,13 @@
 
 	var loadTile = function(item)	{		// загрузка тайла
 		//var layerID = item['layerID'];			// id слоя
-		var node = item['node'];				// node слоя
-		var tID = item['tID'];					// id тайла
-		var srcArr = item['srcArr'];			// массив URL тайла
-		var callback = item['callback'];		// callback обработки данных
-		var onerror = item['onerror'];			// onerror обработка
+		var node = item.node,				// node слоя
+            tID = item.tID,					// id тайла
+            srcArr = item.srcArr,			// массив URL тайла
+            callback = item.callback,		// callback обработки данных
+            onerror = item.onerror;			// onerror обработка
 		
-		if(!item['badTiles']) item['badTiles'] = {};
+		if(!item.badTiles) item.badTiles = {};
 		var counts = srcArr.length;
         curCount += counts;
 		var len = counts;
@@ -33,18 +33,18 @@
 						//delete node['tilesLoadProgress'][psrc];
 						counts--;
 						if(itemsHash[psrc]) {
-							if(itemsHash[psrc]['skip']) {
+							if(itemsHash[psrc].skip) {
 								delete itemsHash[psrc];
 								return;
 							}
 							delete itemsHash[psrc];
 						}
 
-						if(typeof(response) != 'object' || response['Status'] != 'ok') {
+						if(typeof(response) != 'object' || response.Status != 'ok') {
 							onerror({'url': psrc, 'Error': 'bad vector tile response'})
 							//return;
 						}
-						if(response['Result'] && response['Result'].length)	needParse = needParse.concat(response['Result']);
+						if(response.Result && response.Result.length)	needParse = needParse.concat(response.Result);
 						if(counts < 1) {
 					        curCount -= len;
 							callback(needParse, psrc);
@@ -65,8 +65,8 @@
 							var response = JSON.parse(st);
 							counts--;
 							if(itemsHash[psrc]) {
-								if(itemsHash[psrc]['skip']) {
-									if(itemsHash[psrc]['onerror']) itemsHash[psrc]['onerror']({'url': psrc, 'Error': 'skiped by clearLayer'});
+								if(itemsHash[psrc].skip) {
+									if(itemsHash[psrc].onerror) itemsHash[psrc].onerror({skip: true, 'url': psrc, 'Error': 'skiped by clearLayer'});
 									delete itemsHash[psrc];
 									return;
 								}
@@ -116,15 +116,15 @@
 		,'clearLayer': function(id)	{				// Удалить все запросы по слою id
 			for (var key in itemsHash) {
 				var item = itemsHash[key];
-				if(item['layer'] == id) {
-					itemsHash[key]['skip'] = true;
-					if(item['onerror']) item['onerror']({'url': item['srcArr'], 'Error': 'removed by clearLayer'});
+				if(item.layer == id) {
+					itemsHash[key].skip = true;
+					if(item.onerror) item.onerror({skip: true, url: item.srcArr, Error: 'removed by clearLayer'});
 				}
 			}
 			var arr = [];
-			for(var i=0; i<items.length; i++) {
+			for(var i=0, len=items.length; i<len; i++) {
 				var item = items[i];
-				if(item['layer'] != id) arr.push(item);
+				if(item.layer != id) arr.push(item);
 			}
 			items = arr;
 			return items.length;
