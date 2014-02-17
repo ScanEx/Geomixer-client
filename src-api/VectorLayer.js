@@ -2288,8 +2288,8 @@
                     node.temporal = attr;
                 }
                 if(myLayer) {	// Обновление лефлет слоя
-                    //node.upDateLayer();
-                    myLayer.redraw();
+                    node.upDateLayer();
+                    //myLayer.redraw();
                 }
                 return true;
             }
