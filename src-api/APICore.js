@@ -2891,8 +2891,8 @@ FlashMapObject.prototype.remove = function()
     }
 
 	if(this.properties) {
-		var layerID = this.properties.LayerID || this.properties.MultiLayerID;
-		if(layerID) {		// Это слой
+		//var layerID = this.properties.LayerID || this.properties.MultiLayerID;
+		if(this.propHiden && this.propHiden.isLayer) {		// Это слой
 			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
             if('_clearLayer' in this) this._clearLayer(this.properties.name);
         }
