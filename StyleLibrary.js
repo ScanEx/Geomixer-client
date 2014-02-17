@@ -430,10 +430,11 @@
                     
                     var categoryStyleCollection = category.get('styles');
                     
-                    _.each(styleContainers, function(container, type) {
-                        var view = new LibStyleCollectionView(container, categoryStyleCollection, type);
+                    _.each(styleContainers, function(styleContainer, type) {
+                        var view = new LibStyleCollectionView(styleContainer, categoryStyleCollection, type);
                         $(view).bind('select', function(event, style) {
-                            style && alert('Выбран стиль: ' + style.get('title'));
+                            container.dialog('destroy');
+                            $(retObject).change();
                         })
                         
                         view.model.on('change', function() {
@@ -603,8 +604,6 @@
             
             if (dialogMode === 'select') {
                 $('.stylelib-category-actions,.ui-tabs-nav,.stylelib-style-controls', container).hide();
-                // $('', container).hide();
-                // $('', container).hide();
             }
             
             getActiveStyle = function() {
