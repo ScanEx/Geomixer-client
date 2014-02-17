@@ -327,6 +327,12 @@
 				ret.updateCoordinates(coords);
 			},
 */
+			setGeometry: function(geo) {
+                if('setGeometry' in ret) {
+                    return ret.setGeometry(geo);
+                }
+                return false;
+            },
 			update: function(geometry, text)
 			{
 				if(!geometry) return;				// Если нет geometry ничего не делаем
@@ -872,6 +878,18 @@
 				if(addItemListenerID) gmxAPI.map.removeListener('onMouseUp', addItemListenerID); addItemListenerID = null;
 				obj.stopDrawing();
 			}
+            ,
+			setGeometry: function(geo) {
+                if(!geo || editType !== geo.type) return false;
+                coords = geo.coordinates;
+                if(coords.length == 1) coords = coords[0];
+                if(editType === 'POLYGON') {
+                    if(coords.length && coords[0].length != 2) coords = coords[0];
+                }
+                oBounds = gmxAPI.getBounds(coords);
+                repaint();
+                return true;
+            }
 		};
 
 		ret.setVisible(ret.isVisible);

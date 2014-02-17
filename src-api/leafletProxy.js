@@ -265,7 +265,7 @@
 		,
 		'chkIdle': function(flag, from)	{			// Проверка закончены или нет все команды отрисовки карты
 			var out = false;
-			if(gmxAPI._leaflet['moveInProgress']) return out;
+			//if(gmxAPI._leaflet['moveInProgress']) return out;
 			for (var id in gmxAPI._leaflet['renderingObjects']) {
 				return out;
 			}
@@ -4298,11 +4298,11 @@
 				if(propsBalloon) propsBalloon.setVisible(false);
 				gmxAPI._leaflet['isMouseOut'] = true;			// мышь покинула карту
 			});
-			LMap.on('movestart', function(e) {					// старт анимации
-				gmxAPI._leaflet.moveInProgress = true;
-			});
+			// LMap.on('movestart', function(e) {					// старт анимации
+				//gmxAPI._leaflet.moveInProgress = true;
+			// });
 			LMap.on('moveend', function(e) {
-				gmxAPI._leaflet.moveInProgress = false;
+				//gmxAPI._leaflet.moveInProgress = false;
 				if(gmxAPI.map.needMove) return;
 				//if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });

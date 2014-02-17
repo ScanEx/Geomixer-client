@@ -260,7 +260,7 @@
 			if(!node.isVisible 
 				|| gmxAPI._drawing.activeState
 				|| !onScene
-				|| gmxAPI._leaflet.moveInProgress
+				//|| gmxAPI._leaflet.moveInProgress
 				|| gmxAPI._leaflet.mousePressed
 				|| gmxAPI._leaflet.curDragState
 				|| gmxAPI._mouseOnBalloon) return false;
@@ -549,6 +549,7 @@
 		option.tileFunc = inpAttr.tileFunction;
 		node.dataTiles = inpAttr.dataTiles || [];
 		node.tilesVers = (node.subType === 'Temporal' ? null : layer.properties.tilesVers);
+		node.tiles = {};
 
 		var tilesRedrawImages = {						// Управление отрисовкой растров векторного тайла
 			'getHoverItemsByPoint': function(gmxTileID, mPoint)	{				// Получить обьекты под мышкой
@@ -1582,8 +1583,8 @@
                     node.checkWaitStyle();
                     if(!gmxAPI._leaflet.zoomstart
                         && !node.waitStyle
-                        && !gmxAPI._leaflet.moveInProgress
                         && !node.getLoaderFlag()
+                        //&& !gmxAPI._leaflet.moveInProgress
                         ) {
 
                         var drawTileID = node.tilesNeedRepaint.shift();
@@ -2554,7 +2555,7 @@
                 }
             }
             ,repaintTile: function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
-                if(!myLayer || !myLayer._map || gmxAPI._leaflet.moveInProgress) return;
+                if(!myLayer || !myLayer._map) return;
                 //if(node.getLoaderFlag()) return;
 
                 var zoom = LMap.getZoom();
@@ -2656,7 +2657,7 @@
                 return out;
             }
             ,redrawTile: function(tKey, zoom, redrawFlag)	{			// перерисовка 1 тайла
-                if(!myLayer || !myLayer._map || gmxAPI._leaflet.moveInProgress) return;
+                if(!myLayer || !myLayer._map) return;
                 if(!node.tilesRedrawImages[zoom]) return;		// ждем начала загрузки
 
                 var thash = node.tilesRedrawImages[zoom][tKey];
@@ -2714,9 +2715,8 @@
                 return true;
             }
             ,getTilesBounds: function(arr, vers) {  // получить bounds списка тайлов слоя
-                //if(!node.tiles) 
-                node.tiles = {};
-                node.tilesVers = {};
+                //if(!node.tiles) node.tiles = {};
+                //node.tilesVers = {};
                 var cnt = 0;
                 for (var i = 0, len = arr.length; i < len; i+=3)
                 {
