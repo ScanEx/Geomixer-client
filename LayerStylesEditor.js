@@ -773,6 +773,13 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
 		ulBalloon.style.display = 'none';
 		ulBalloon.className = 'hiddenTree';
 	}
+    
+    var bindChangeEvent = function() {
+        $(resObject).change(function()
+        {
+            nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+        })
+    }
 	
 	// common
     var symbolsTitle = _div();
@@ -793,6 +800,7 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
 
                         $(liStyle.lastChild).empty();
                         resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+                        bindChangeEvent();
                         nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
                     }
                 })
@@ -829,10 +837,7 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
 				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0;
 	var resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
     
-    $(resObject).change(function()
-    {
-        nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
-    })
+    bindChangeEvent();
 	
 	ulParent.parentNode.parentNode.parentNode.getStyle = function()
 	{
