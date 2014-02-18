@@ -115,6 +115,7 @@
                     if(opt.src) this._Image.src = opt.src;
                     L.DomUtil.removeClass(container, 'leaflet-control-Active');
                 }
+                if(!notToggle) gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
             }
             ,
             addTo: function (map) {
@@ -1045,17 +1046,22 @@
                 if(!gmxAPI._drawing.BoxZoom) {
                     gmxAPI._drawFunctions.zoom();
                     L.DomUtil.addClass(this._container, className);
+                    this.options.isActive = true;
                 } else {
+                    this.options.isActive = false;
                     gmxAPI._drawing.activeState = false;
                     gmxAPI._drawing.BoxZoom = false;
                     L.DomUtil.removeClass(this._container, className);
                 }
+                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
             }
             ,onAdd: function(cont) {
                 Controls.items[this.options.id] = this;
                 var my = this;
                 this._map.on('boxzoomend', function() {
                     L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.id + '-Active');
+                    my.options.isActive = false;
+                    gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
                 });
             }
 
@@ -1078,6 +1084,7 @@
                     my.options.isActive = false;
                     if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                     my.options.onFinishID = null;
+                    gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
                 };
                 if(!my.options.onFinishID) {
                     my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
@@ -1090,6 +1097,7 @@
                     gmxAPI._drawing.endDrawing();
                     stop();
                 }
+                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
             }
         });
         drawingPointControl.setActive = function (key) {
@@ -1191,6 +1199,7 @@
                             my.options.isActive = false;
                             if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                             my.options.onFinishID = null;
+                            gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
                         };
                         if(!my.options.onFinishID) {
                             my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
@@ -1206,6 +1215,7 @@
                             gmxAPI._drawing.endDrawing();
                             stop();
                         }
+                        gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
                     }
                     var resItem = my._createButton(item,  container, fn, my);
                     items[key] = resItem;

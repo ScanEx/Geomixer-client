@@ -155,7 +155,8 @@
                                 }
                             }
                         }
-                        gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name]);	// Изменились активные tool в контейнере
+                        gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name], {id: my.activeToolName, target: my});	// Изменились активные tool в контейнере
+                        gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI.map.controlsManager, {id: my.activeToolName, target: my});
                     }
                     ,stateListeners: {}
                     ,addListener: function(eventName, func) {
@@ -391,6 +392,7 @@
                                 this.isActive = false;
                                 my.activeToolName = '';
                                 attr.onCancel.call();
+                                gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI.map.controlsManager, {id: tn, target: my});
                             }
                             ,
                             select: function() { my.selectTool(tn); }
