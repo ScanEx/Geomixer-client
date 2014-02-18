@@ -23,7 +23,7 @@
         var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
             [
                 {icon: 'img/zoom_tool2.png', title: "Поиск снимков", href: 'http://search.kosmosnimki.ru'},
-                {icon: 'img/api2.png',       title: "Документация",  href: 'http://docs.geomixer.ru'     },
+                {icon: 'img/api2.png',       title: "Документация",  href: 'http://geomixer.ru/docs'     },
                 {icon: 'img/blog.png',       title: "Блог",          href: 'http://blog.kosmosnimki.ru'  }
             ];
         
