@@ -37,9 +37,9 @@ var EditObjectControlsManager = {
         this._paramsHooks.push(paramsHook);
     },
     
-    applyParamsHook: function(params) {
+    applyParamsHook: function(layerName, objectId, params) {
         for (var h = 0; h < this._paramsHooks.length; h++) {
-            params = this._paramsHooks[h](params);
+            params = this._paramsHooks[h](layerName, objectId, params);
         }
         
         return params;
@@ -114,7 +114,7 @@ var FieldsCollection = function() {
         if (field && field.view) {
             field.value = field.view.getValue();
         }
-        return field.value;
+        return field && field.value;
     }
     
     //Сначала isRequired, потом identityField, потом в порядке добавления
@@ -186,7 +186,7 @@ var EditObjectControl = function(layerName, objectId, params)
             afterPropertiesControl: _span()
         }, params);
         
-    _params = EditObjectControlsManager.applyParamsHook(_params);
+    _params = EditObjectControlsManager.applyParamsHook(layerName, objectId, _params);
         
     var _this = this;
     if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
@@ -402,7 +402,7 @@ var EditObjectControl = function(layerName, objectId, params)
                     _params.onGeometrySelection(bindGeometry);
                 } else {
                     nsGmx.Controls.chooseDrawingBorderDialog(
-                        'editObject', 
+                        'editObject',
                         bindDrawingObject,
                         { geomType: layer.properties.GeometryType }
                     );
