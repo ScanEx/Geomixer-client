@@ -275,7 +275,8 @@ var EditObjectControl = function(layerName, objectId, params)
     {
         var createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
             removeButton = makeLinkButton(_gtxt("Удалить")),
-            trs = [];
+            trs = [],
+            isSaving = false;
             
         var canvas = _div(null, [['dir', 'className', 'edit-obj']]);
         
@@ -304,6 +305,10 @@ var EditObjectControl = function(layerName, objectId, params)
 	
         createButton.onclick = function()
         {
+            if (isSaving) {
+                return;
+            }
+                        
             $(_this).trigger('premodify');
             
             var properties = {};
@@ -348,6 +353,8 @@ var EditObjectControl = function(layerName, objectId, params)
             {
                 obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
+            
+            isSaving = true;
             
             _mapHelper.modifyObjectLayer(layerName, [obj]).done(function()
             {
