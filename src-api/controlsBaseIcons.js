@@ -105,7 +105,8 @@
             */
             setActive: function(flag, notToggle) {
                 var container = this._container,
-                    opt = this.options;
+                    opt = this.options,
+                    isActive = opt.isActive || false;
                 if(flag) {
                     if(!notToggle) opt.isActive = true;
                     if(opt.srcHover) this._Image.src = opt.srcHover;
@@ -115,7 +116,7 @@
                     if(opt.src) this._Image.src = opt.src;
                     L.DomUtil.removeClass(container, 'leaflet-control-Active');
                 }
-                if(!notToggle) gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
+                if(!notToggle && isActive !== opt.isActive) gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, isActive: opt.isActive, target: this});
             }
             ,
             addTo: function (map) {
@@ -1076,17 +1077,19 @@
             ,onFinishID: null
             ,id: 'drawingPoint'
             ,className: 'leaflet-control-icons leaflet-control-drawingPoint'
-            ,onclick: function(e) {
+            ,onclick: function(e, pkey) {
                 var my = drawingPointControl;
                 var className = 'leaflet-control-' + my.options.id + '-Active';
                 var stop = function() {
+                    var isActive = my.options.isActive;
                     if(my.options._drawFunc) my.options._drawFunc.stopDrawing();
                     L.DomUtil.removeClass(my._container, className);
-                    my.options.isActive = false;
                     if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                     my.options.onFinishID = null;
-                    gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
+                    my.options.isActive = false;
+                    if(isActive) gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, isActive: false, target: my});
                 };
+                my.options.activeStop = stop;
                 if(!my.options.onFinishID) {
                     my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
                 }
@@ -1094,17 +1097,17 @@
                     my.options._drawFunc = gmxAPI._drawFunctions.POINT();
                     L.DomUtil.addClass(my._container, className);
                     my.options.isActive = true;
+                    gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, isActive: true, target: my});
                 } else {
                     //gmxAPI._drawing.endDrawing();
                     stop();
                 }
-                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
             }
         });
-        drawingPointControl.setActive = function (key) {
+        drawingPointControl.activeStop = function () {
             var opt = drawingPointControl.options;
-            if (key !== 'POINT') opt.isActive = true;
-            opt.onclick();
+            //if (key !== 'POINT') opt.isActive = true;
+            opt.activeStop();
         }
         
         drawingPointControl.addTo(gmxAPI._leaflet.LMap);
@@ -1211,12 +1214,15 @@
                             }
                             //gmxAPI._drawing.endDrawing();
                             L.DomUtil.removeClass(target, className);
-                            my.options.isActive = false;
                             if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                             my.options.onFinishID = null;
                             my.options.activeKey = null;
                             my.options.activeStop = null;
-                            gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
+                            if(my.options.isActive) {
+                                my.options.isActive = false;
+                                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, isActive: false, target: my});
+                            }
+                            my.options.isActive = false;
                         };
                         if(!my.options.onFinishID) {
                             my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
@@ -1230,11 +1236,11 @@
                             my.options.isActive = true;
                             my.options.activeStop = stop;
                             my.options.activeKey = key;
-                            drawingPointControl.setActive();
+                            drawingPointControl.activeStop();
+                            gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, isActive: true, target: my});
                         } else {
                             stop();
                         }
-                        gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
                     }
                     var resItem = my._createButton(item,  container, fn, my);
                     items[key] = resItem;
@@ -1254,7 +1260,7 @@
                         my.options.isActive = true;
                         target._setActive();
                     }
-                    drawingPointControl.setActive(key);
+                    drawingPointControl.activeStop();
                 }
             },
             setPosition: function (key, num) {
