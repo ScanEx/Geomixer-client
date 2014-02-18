@@ -105,19 +105,48 @@
     
     var menu, currentView;
     
-    var addFunc = function(dv) {
-        return function(v) {return v + dv;};
+    //geom в latlng, а dx и dy в меркаторе
+    var shiftMercGeometry = function(geom, dx, dy) {
+        var transformX = function(x) {
+            return gmxAPI.from_merc_x(gmxAPI.merc_x(x) + dx);
+        }
+        
+        var transformY = function(y) {
+            return gmxAPI.from_merc_y(gmxAPI.merc_y(y) + dy);
+        }
+        
+        return gmxAPI.transformGeometry(geom, transformX, transformY);
     }
-
 
     var publicInterface = {
         pluginName: 'Shift Rasters Plugin',
         afterViewer: function(params, map) {
         
             //объекты каталога растров
-            nsGmx.EditObjectControl.addParamsHook(function(params) {
+            nsGmx.EditObjectControl.addParamsHook(function(layerName, objectId, params) {
+                var metaProps = map.layers[layerName].properties.MetaProperties;
+                if (!metaProps.shiftXfield || !metaProps.shiftYfield) {
+                    return params;
+                }
+                
+                var shiftXfield = metaProps.shiftXfield.Value,
+                    shiftYfield = metaProps.shiftYfield.Value;
+                
                 params = params || {};
                 params.fields = params.fields || [];
+                
+                var hideField = function(name) {
+                    var fieldDescription = nsGmx._.findWhere(params.fields, {name: name});
+                    if (fieldDescription) {
+                        fieldDescription.hide = true;
+                    } else {
+                        params.fields.push({name: name, hide: true});
+                    }
+                }
+                
+                hideField(shiftXfield);
+                hideField(shiftYfield);
+                
                 params.fields.unshift({
                     title: "Сдвиг растра",
                     view: {
@@ -128,36 +157,50 @@
                             });
 
                             var canvas = $('<div/>'),
-                                dx = editDialog.get('shiftX'),
-                                dy = editDialog.get('shiftY'),
+                                dx = editDialog.get(shiftXfield),
+                                dy = editDialog.get(shiftYfield),
                                 shiftParams = new Backbone.Model({
                                     dx: dx,
                                     dy: dy
                                 }),
-                                originalShiftParams = shiftParams.clone(),
+                                originalShiftParams,
                                 shiftLayer = map.addLayer({properties: {
                                     IsRasterCatalog: true,
                                     RCMinZoomForRasters: 10
-                                }});
+                                }}),
+                                geomDx = dx,
+                                geomDy = dy;
 
                             var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, false);
                             
+                            shiftParams.on('change', function() {
+                                var ddx = shiftParams.get('dx') - geomDx,
+                                    ddy = shiftParams.get('dy') - geomDy,
+                                    shiftedGeom = shiftMercGeometry(editDialog.getGeometry(), ddx, ddy);
+                                    
+                                geomDx += ddx;
+                                geomDy += ddy;
+                                
+                                editDialog.getGeometryObj().setGeometry(shiftedGeom);
+                            })
+                            
                             $(shiftView).on('click:start', function() {
-                                dx = editDialog.get('shiftX');
-                                dy = editDialog.get('shiftY');
+                                dx = editDialog.get(shiftXfield);
+                                dy = editDialog.get(shiftYfield);
                                 
                                 shiftParams.set({
                                     dx: dx,
                                     dy: dy
                                 })
 
-                                var geom = gmxAPI.merc_geometry(editDialog.getGeometry());
+                                originalShiftParams = shiftParams.clone();
+
                                 shiftLayer.addItems([{
                                     id: 1,
                                     properties: {
                                         GMX_RasterCatalogID: editDialog.get('GMX_RasterCatalogID')
                                     },
-                                    geometry: gmxAPI.from_merc_geometry(gmxAPI.transformGeometry(geom, addFunc(-dx), addFunc(-dy)))
+                                    geometry: shiftMercGeometry(editDialog.getGeometry(), -dx, -dy)
                                 }]);
                             
                                 shiftView.setState(true);
@@ -167,28 +210,19 @@
                             })
                             
                             var stopShift = function() {
+                                editDialog.set(shiftXfield, shiftParams.get('dx'));
+                                editDialog.set(shiftYfield, shiftParams.get('dy'));
                                 shiftView.setState(false);
                             }
                             
-                            $(shiftView).on('click:save', function() {
-                                var cdx = shiftParams.get('dx') - dx,
-                                    cdy = shiftParams.get('dy') - dy,
-                                    geom = gmxAPI.merc_geometry(editDialog.getGeometry()),
-                                    shiftedGeometry = gmxAPI.from_merc_geometry(gmxAPI.transformGeometry(geom, addFunc(cdx), addFunc(cdy))),
-                                    prevGeometryObj = editDialog.getGeometryObj();
-                                
-                                prevGeometryObj.remove();
-                                editDialog.set('shiftX', shiftParams.get('dx'));
-                                editDialog.set('shiftY', shiftParams.get('dy'));
-                                editDialog.setGeometry(shiftedGeometry);
-                                
-                                stopShift();
-                            })
+                            $(shiftView).on('click:save', stopShift)
                             
                             $(shiftView).on('click:cancel', function() {
-                                editDialog.set('shiftX', originalShiftParams.get('dx'));
-                                editDialog.set('shiftY', originalShiftParams.get('dy'));
-                                shiftLayer.setPositionOffset(originalShiftParams.get('dx'), originalShiftParams.get('dy'));
+                                shiftParams.set({
+                                    dx: originalShiftParams.get('dx'),
+                                    dy: originalShiftParams.get('dy')
+                                })
+
                                 stopShift();
                             });
 
@@ -247,7 +281,7 @@
                         removeView();
                     })
 
-                    $(currentView).on('click:cancel', function(){
+                    $(currentView).on('click:cancel', function() {
                         layer.setPositionOffset(originalShiftParams.get('dx'), originalShiftParams.get('dy'));
                         removeView();
                     })
