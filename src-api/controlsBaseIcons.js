@@ -1080,6 +1080,7 @@
                 var my = drawingPointControl;
                 var className = 'leaflet-control-' + my.options.id + '-Active';
                 var stop = function() {
+                    if(my.options._drawFunc) my.options._drawFunc.stopDrawing();
                     L.DomUtil.removeClass(my._container, className);
                     my.options.isActive = false;
                     if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
@@ -1090,14 +1091,14 @@
                     my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
                 }
                 if(!my.options.isActive) {
-                    gmxAPI._drawFunctions.POINT();
+                    my.options._drawFunc = gmxAPI._drawFunctions.POINT();
                     L.DomUtil.addClass(my._container, className);
                     my.options.isActive = true;
                 } else {
-                    gmxAPI._drawing.endDrawing();
+                    //gmxAPI._drawing.endDrawing();
                     stop();
                 }
-                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
+                gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
             }
         });
         drawingPointControl.setActive = function (key) {
@@ -1123,6 +1124,7 @@
 
                 L.DomEvent
                     .on(link, 'click', stop)
+                    .on(link, 'mouseup', stop)
                     .on(link, 'mousedown', stop)
                     .on(link, 'dblclick', stop)
                     .on(link, 'click', L.DomEvent.preventDefault)
@@ -1154,8 +1156,8 @@
                     hoverStyle: {
                         backgroundPosition: '-503px -2px'
                     }
-                    ,onClick: gmxAPI._drawFunctions.POLYGON
-                    ,onCancel: gmxAPI._drawing.endDrawing
+                    // ,onClick: gmxAPI._drawFunctions.POLYGON
+                    // ,onCancel: gmxAPI._drawFunctions.POLYGON.stopDrawing
                     ,hint: titles.polygon
                 }
                 ,
@@ -1168,8 +1170,8 @@
                     hoverStyle: {
                         backgroundPosition: '-393px -2px'
                     }
-                    ,onClick: gmxAPI._drawFunctions.LINESTRING
-                    ,onCancel: gmxAPI._drawing.endDrawing
+                    // ,onClick: gmxAPI._drawFunctions.LINESTRING
+                    // ,onCancel: gmxAPI._drawFunctions.LINESTRING.stopDrawing
                     ,hint: titles.line
                 }
                 ,
@@ -1182,37 +1184,54 @@
                     hoverStyle: {
                         backgroundPosition: '-269px -2px'
                     }
-                    ,onClick: gmxAPI._drawFunctions.FRAME
-                    ,onCancel: gmxAPI._drawing.endDrawing
+                    // ,onClick: gmxAPI._drawFunctions.FRAME
+                    // ,onCancel: gmxAPI._drawFunctions.FRAME.stopDrawing
                     ,hint: titles.rectangle
                 }
                 ];
                 var my = this;
                 var items = {};
+                my.options.activeKey = null;
+                my.options.activeStop = null;
                 arr.forEach(function(item) {
                     var key = item.key;
                     var fn = function() {
+                        var activeKey = my.options.activeKey;
+                        if(activeKey && activeKey !== key) {
+                            my.options.activeStop();
+                            if(activeKey === key) {
+                                return;
+                            }
+                        }
                         var target = items[key];
                         var className = 'leaflet-control-Drawing-' + key + '-Active';
                         var stop = function() {
+                            if(target && target.drawFunc) {
+                                target.drawFunc.stopDrawing();
+                            }
+                            //gmxAPI._drawing.endDrawing();
                             L.DomUtil.removeClass(target, className);
                             my.options.isActive = false;
                             if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                             my.options.onFinishID = null;
+                            my.options.activeKey = null;
+                            my.options.activeStop = null;
                             gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
                         };
                         if(!my.options.onFinishID) {
                             my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
                         }
                         if(!my.options.isActive) {
-                            gmxAPI._drawFunctions[key]();
+                            items[key].drawFunc = gmxAPI._drawFunctions[key]();
                             if(target != target.parentNode.firstChild) {
                                 target.parentNode.insertBefore(target, target.parentNode.firstChild);
                             }
                             L.DomUtil.addClass(target, className);
                             my.options.isActive = true;
+                            my.options.activeStop = stop;
+                            my.options.activeKey = key;
+                            drawingPointControl.setActive();
                         } else {
-                            gmxAPI._drawing.endDrawing();
                             stop();
                         }
                         gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: key, target: my});
