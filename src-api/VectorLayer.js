@@ -1790,6 +1790,7 @@
             }
             ,remove: function(id)	{		// Удалить векторный слой
                 //if(!myLayer) return;
+                if(dragAttr) node.disableDragging();
                 mouseOut();
                 for(var key in node.timers) {
                     clearTimeout(node.timers[key]);
