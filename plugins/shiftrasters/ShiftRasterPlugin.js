@@ -157,8 +157,8 @@
                             });
 
                             var canvas = $('<div/>'),
-                                dx = editDialog.get(shiftXfield),
-                                dy = editDialog.get(shiftYfield),
+                                dx = parseFloat(editDialog.get(shiftXfield)) || 0,
+                                dy = parseFloat(editDialog.get(shiftYfield)) || 0,
                                 shiftParams = new Backbone.Model({
                                     dx: dx,
                                     dy: dy
@@ -174,6 +174,9 @@
                             var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, false);
                             
                             shiftParams.on('change', function() {
+                                editDialog.set(shiftXfield, shiftParams.get('dx'));
+                                editDialog.set(shiftYfield, shiftParams.get('dy'));
+                                
                                 var ddx = shiftParams.get('dx') - geomDx,
                                     ddy = shiftParams.get('dy') - geomDy,
                                     shiftedGeom = shiftMercGeometry(editDialog.getGeometry(), ddx, ddy);
@@ -185,8 +188,8 @@
                             })
                             
                             $(shiftView).on('click:start', function() {
-                                dx = editDialog.get(shiftXfield);
-                                dy = editDialog.get(shiftYfield);
+                                dx = parseFloat(editDialog.get(shiftXfield)) || 0;
+                                dy = parseFloat(editDialog.get(shiftYfield)) || 0;
                                 
                                 shiftParams.set({
                                     dx: dx,
@@ -210,8 +213,6 @@
                             })
                             
                             var stopShift = function() {
-                                editDialog.set(shiftXfield, shiftParams.get('dx'));
-                                editDialog.set(shiftYfield, shiftParams.get('dy'));
                                 shiftView.setState(false);
                             }
                             
@@ -244,8 +245,8 @@
                         layer = map.layers[layerName],
                         posOffset = layer.getPositionOffset(),
                         shiftParams = new Backbone.Model({
-                            dx: parseFloat(posOffset.shiftX),
-                            dy: parseFloat(posOffset.shiftY)
+                            dx: parseFloat(posOffset.shiftX) || 0,
+                            dy: parseFloat(posOffset.shiftY) || 0
                         }),
                         originalShiftParams = shiftParams.clone();
                     
