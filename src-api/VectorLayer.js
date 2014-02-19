@@ -1382,18 +1382,21 @@
                             ,hover: hover
                             ,id: geom.id
                             ,properties: geom.properties
-                            ,propHiden: geom.propHiden
+                            //,propHiden: geom.propHiden
                             //,filter: gmxAPI.mapNodes[filter.id]
                             //,layer: gmxNode
                         });
                     if(res) {
-                        var prevStyle = geom.propHiden.curStyle;
+                        var prevStyle = geom.propHiden.curStyle,
+                            iconUrl = res.marker.image;
                         res = utils.parseStyle(res);
+                        if(prevStyle.image && prevStyle.iconUrl === iconUrl) {
+                            res.iconUrl = prevStyle.iconUrl;
+                            res.image = prevStyle.image;
+                            if(prevStyle.imageWidth) res.imageWidth = prevStyle.imageWidth;
+                            if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
+                        }
                         res = utils.evalStyle(res, geom.properties);
-                        if(prevStyle.imageWidth) res.imageWidth = prevStyle.imageWidth;
-                        if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
-                        if(prevStyle.image) res.image = prevStyle.image;
-                        if(prevStyle.iconUrl) res.iconUrl = prevStyle.iconUrl;
                         node.prpStyle(geom, res);
                    }
                 }
