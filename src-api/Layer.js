@@ -135,8 +135,8 @@
 
 		var proxy = gmxAPI._cmdProxy;
         gmxAPI.extend(filter, {    // переопределение свойств после установки видимости
-            addStyleHook: function(func) {		// Установка стилевой функции пользователя
-                return proxy('addStyleHook', { obj: filter, attr:{data: func} });
+            setStyleHook: function(func) {		// Установка стилевой функции пользователя
+                return proxy('setStyleHook', { obj: filter, attr:{data: func} });
             }
             ,removeStyleHook: function() {		// удаление стилевой функции пользователя
                 return proxy('removeStyleHook', { obj: filter, attr:{data: attr} });
@@ -177,7 +177,7 @@
 			filter.setClusters(attr.clusters);
 		}
         gmxAPI.extend(filter, {         // определение свойств до установки видимости
-            addStyleHook: function(func) {
+            setStyleHook: function(func) {
                 attr.styleHook = func;
                 return true;
             }
@@ -472,8 +472,8 @@
             ,getPositionOffset: function() {
                 return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
             }
-            ,addStyleHook: function(func) {		// Установка стилевой функции пользователя
-                obj.filters.foreach(function(item) { item.addStyleHook(func); });
+            ,setStyleHook: function(func) {		// Установка стилевой функции пользователя
+                obj.filters.foreach(function(item) { item.setStyleHook(func); });
                 return true;
             }
             ,removeStyleHook: function() {		// удаление стилевой функции пользователя

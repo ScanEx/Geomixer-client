@@ -860,7 +860,7 @@
                 if(!isInit) {						// Отложенная инициализация фильтра
                     filterNode.isInit = true;
                     gmxAPI.extend(filterNode, {
-                        addStyleHook: function(func) {
+                        setStyleHook: function(func) {
                             filterNode.styleHook = func;
                             node.waitRedraw();
                         }
@@ -919,7 +919,7 @@
 				
                 var strokeStyle = '';
 				if(style.stroke) {
-					var lineWidth = style.weight || 0;
+					var lineWidth = style.weight || 0.001;
 					if(ctx.lineWidth != lineWidth) ctx.lineWidth = lineWidth;
 					var opacity = ('opacity' in style ? style.opacity : 0);
 					if(style.weight == 0) opacity = 0; // если 0 ширина линии скрываем через opacity
@@ -1867,7 +1867,7 @@
                 node.waitRedraw();
 			}
             ,
-            addStyleHook: function(func) {	// Установка стилевой функции пользователя
+            setStyleHook: function(func) {	// Установка стилевой функции пользователя
                 for (var i = 0, len = node.filters.length; i < len; i++) {
                     mapNodes[node.filters[i]].styleHook = func;
                 }

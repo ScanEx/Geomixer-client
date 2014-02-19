@@ -2886,11 +2886,11 @@
 		,'getMouseX':	function()	{ return utils.getMouseX(); }		// Позиция мыши X
 		,'getMouseY':	function()	{ return utils.getMouseY();	}		// Позиция мыши Y
         ,
-		'addStyleHook':	function(ph) {
+		'setStyleHook':	function(ph) {
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(node && 'addStyleHook' in node) {
-				node.addStyleHook(ph.attr.data);
+			if(node && 'setStyleHook' in node) {
+				node.setStyleHook(ph.attr.data);
 				return true;
 			}
 			return false;
