@@ -61,7 +61,6 @@
 		if (regularStyle.marker)
 			regularStyle.marker.center = true;
 
-		//var hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
 		var hoveredStyle = null;
 		if (typeof style.HoverStyle != 'undefined') hoveredStyle = style.HoverStyle;
 		else {
@@ -102,8 +101,8 @@
 			'style': style,
 			'sql': sql
 		};
-		if(style.Balloon) out['Balloon'] = style.Balloon;
-		if(style.clusters) out['clusters'] = style.clusters;
+		if(style.Balloon) out.Balloon = style.Balloon;
+		if(style.clusters) out.clusters = style.clusters;
 		return out;
 	}
 
@@ -115,17 +114,16 @@
 		filter.objectId = obj_.objectId;
 
 		var attr = filter._attr;
-		filter.setFilter(attr['sql'] || '');
+		filter.setFilter(attr.sql || '');
 
 		filter.getPatternIcon = function(size)
 		{
 			var ph = filter.getStyle(true);
-			return gmxAPI.getPatternIcon(ph['regular'], size);
+			return gmxAPI.getPatternIcon(ph.regular, size);
 		}
-			
-		filter.setZoomBounds(attr['MinZoom'], attr['MaxZoom']);
-		//filter.setStyle(attr['regularStyle'], attr['hoveredStyle']);
-		filter['_attr'] = attr;
+
+		filter.setZoomBounds(attr.MinZoom, attr.MaxZoom);
+		filter._attr = attr;
         
 		gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} );	// Проверка map Listeners на reSetStyles - для балунов
 
@@ -134,6 +132,16 @@
         }
 		prnt.filters[num] = filter;
 		gmxAPI.mapNodes[filter.objectId] = filter;
+
+		var proxy = gmxAPI._cmdProxy;
+        gmxAPI.extend(filter, {    // переопределение свойств после установки видимости
+            addStyleHook: function(func) {		// Установка стилевой функции пользователя
+                return proxy('addStyleHook', { obj: filter, attr:{data: func} });
+            }
+            ,removeStyleHook: function() {		// удаление стилевой функции пользователя
+                return proxy('removeStyleHook', { obj: filter, attr:{data: attr} });
+            }
+        });
 		return filter;
 	}
 
@@ -154,25 +162,34 @@
 		var num = prnt.filters.length;					// Номер фильтра в массиве фильтров
 		var lastFilter = (num > 0 ? prnt.filters[num - 1] : null);	// Последний существующий фильтр
 		if(!attr && lastFilter) {
-			attr = gmxAPI.clone(lastFilter['_attr']);
+			attr = gmxAPI.clone(lastFilter._attr);
 		}
-		if(!attr['MinZoom']) attr['MinZoom'] = gmxAPI.defaultMinZoom;
-		if(!attr['MaxZoom']) attr['MaxZoom'] = gmxAPI.defaultMaxZoom;
+		if(!attr.MinZoom) attr.MinZoom = gmxAPI.defaultMinZoom;
+		if(!attr.MaxZoom) attr.MaxZoom = gmxAPI.defaultMaxZoom;
 
-		filter['_attr'] = attr;
+		filter._attr = attr;
 		prnt.filters.push(filter);
-		if (attr['name'])
+		if (attr.name)
 			prnt.filters[attr.name] = filter;
 
-		if(!filter.clusters && attr['clusters'] && '_Clusters' in gmxAPI) {
+		if(!filter.clusters && attr.clusters && '_Clusters' in gmxAPI) {
 			filter.clusters = new gmxAPI._Clusters(filter);	// атрибуты кластеризации потомков по фильтру
-			//filter.clusters.setProperties(attr['clusters']);
-			filter.setClusters(attr['clusters']);
+			filter.setClusters(attr.clusters);
 		}
-		
+        gmxAPI.extend(filter, {         // определение свойств до установки видимости
+            addStyleHook: function(func) {
+                attr.styleHook = func;
+                return true;
+            }
+            ,removeStyleHook: function() {
+                delete attr.styleHook;
+                return true;
+            }
+		});
+
 		gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );			// Listeners на слое - произошло добавление фильтра
 		if(prnt.objectId) filter = initFilter(prnt, num);	// если слой виден - инициализация фильтра
-		
+
 		// Удаление фильтра
 		filter.remove = function()
 		{
@@ -302,10 +319,9 @@
 				];
 			}
 			// Добавление начальных фильтров
-			for (var i = 0; i < layer.properties.styles.length; i++)
-			{
-				var style = layer.properties.styles[i];
-				var attr = getFilterAttr(style);
+			for (var i = 0, len = layer.properties.styles.length; i < len; i++) {
+				var style = layer.properties.styles[i],
+                    attr = getFilterAttr(style);
 				addFilter(obj, attr);
 			}
 			obj.addFilter = function(attr) { return addFilter(obj, attr); };
@@ -447,7 +463,7 @@
 			}
 		}
 		var proxy = gmxAPI._cmdProxy;
-        gmxAPI.extend(obj, {
+        gmxAPI.extend(obj, {        // определение свойств до установки видимости
             setPositionOffset: function(dx, dy) {
                 obj.shiftX = dx || 0;
                 obj.shiftY = dy || 0;
@@ -455,6 +471,14 @@
             }
             ,getPositionOffset: function() {
                 return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
+            }
+            ,addStyleHook: function(func) {		// Установка стилевой функции пользователя
+                obj.filters.foreach(function(item) { item.addStyleHook(func); });
+                return true;
+            }
+            ,removeStyleHook: function() {		// удаление стилевой функции пользователя
+                obj.filters.foreach(function(item) { item.removeStyleHook(); });
+                return true;
             }
 		});
 		if(obj.properties) {
@@ -742,6 +766,8 @@
 				}
 			}
 			if(obj_['tilesParent']) obj['tilesParent'] = obj_['tilesParent'];
+            // gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
+            // });
 		}
 
 		//obj.mercGeometry = layer.mercGeometry;
@@ -828,6 +854,7 @@
 					obj.setVisible(false);
 				}
 */
+
 				obj.getFeatures = function(arg1, arg2, arg3)
 				{							
 					obj.setVisible(true, true);
@@ -842,8 +869,8 @@
 					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
 					//obj.setVisible(false);
 				}
-				for (var i = 0; i < layer.properties.styles.length; i++) (function(i)
-				{
+
+				for (var i = 0, len = layer.properties.styles.length; i < len; i++) (function(i) {
 					obj.filters[i].setZoomBounds = function(minZoom, maxZoom)
 					{
 						if(!obj.filters[i]['_attr']) obj.filters[i]['_attr'] = {};

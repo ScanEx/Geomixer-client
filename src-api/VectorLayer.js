@@ -225,6 +225,7 @@
                 }
                 propHiden.curStyle = regularStyle;
 
+				node.hoverItem = null;
 				var drawInTiles = propHiden.drawInTiles;
 				if(drawInTiles && drawInTiles[zoom]) {
 					var tilesNeed = {};
@@ -234,7 +235,6 @@
 				gmxAPI._div.style.cursor = '';
 				callHandler('onMouseOut', geom, gmxNode);
 				if(filter) callHandler('onMouseOut', geom, filter);
-				node.hoverItem = null;
                 prevID = 0;
 			}
 		}
@@ -854,6 +854,24 @@
                 };
                 return attr;
             }
+            ,
+            isInitFilter: function(filterNode) {
+                var isInit = filterNode.isInit || false;
+                if(!isInit) {						// Отложенная инициализация фильтра
+                    filterNode.isInit = true;
+                    gmxAPI.extend(filterNode, {
+                        addStyleHook: function(func) {
+                            filterNode.styleHook = func;
+                            node.waitRedraw();
+                        }
+                        ,removeStyleHook: function() {
+                            delete filterNode.styleHook;
+                            node.waitRedraw();
+                        }
+                    });
+                }
+                return filterNode.isInit;
+            }
         }
 
 		var observerTimer = null;										// Таймер
@@ -1301,6 +1319,13 @@
             ,refreshFilter: function(fid)	{		// обновить фильтр
                 var filterNode = mapNodes[fid];
                 if(!filterNode) return;						// Нода не была создана через addObject
+                var gmxFilter = gmxAPI.mapNodes[fid];
+                if(gmxFilter._attr) {						// Отложенные атрибуты фильтра
+                    if(!filterNode.styleHook && gmxFilter._attr.styleHook) {	// Есть styleHook
+                        filterNode.styleHook = gmxFilter._attr.styleHook;
+                        delete gmxFilter._attr.styleHook;
+                    }
+                }
                 node.reCheckFilters();
                 if(node.isVisible) node.waitRedrawFlips(0);
                 gmxAPI._leaflet.lastZoom = -1;
@@ -1332,6 +1357,7 @@
                     if(filter) {
                         if(!filter.maxZ) filter.maxZ = gmxAPI.defaultMaxZoom;
                         if(!filter.minZ) filter.minZ = gmxAPI.defaultMinZoom;
+                        if(!filter.isInit) vectorUtils.isInitFilter(filter);
                     }
                     node.reCheckFilters();
                     node.repaintTilesList();
@@ -1339,12 +1365,37 @@
             }
             ,
             chkCurStyle: function(geom)	{		// Проверка фильтра для обьекта
+                var filter = geom.currentFilter || null;
                 if(!geom.propHiden.curStyle) {
-                    var filter = node.getItemFilter(geom);
+                    filter = node.getItemFilter(geom);
                     if(!filter || filter.isVisible === false) return;		// если нет фильтра или он невидим пропускаем
                     if(filter) {
                         geom.propHiden.curStyle = (filter.regularStyle ? filter.regularStyle : null);
                     }
+                }
+				if(filter && filter.styleHook) {
+                    var gmxFilter = gmxAPI.mapNodes[filter.id],
+                        hover = (node.hoverItem && node.hoverItem.geom.id === geom.id ? true : false),
+                        style = hover ? gmxFilter._attr.hoveredStyle : gmxFilter._attr.regularStyle,
+                        res = filter.styleHook({
+                            style: gmxAPI.clone(style)
+                            ,hover: hover
+                            ,id: geom.id
+                            ,properties: geom.properties
+                            ,propHiden: geom.propHiden
+                            //,filter: gmxAPI.mapNodes[filter.id]
+                            //,layer: gmxNode
+                        });
+                    if(res) {
+                        var prevStyle = geom.propHiden.curStyle;
+                        res = utils.parseStyle(res);
+                        res = utils.evalStyle(res, geom.properties);
+                        if(prevStyle.imageWidth) res.imageWidth = prevStyle.imageWidth;
+                        if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
+                        if(prevStyle.image) res.image = prevStyle.image;
+                        if(prevStyle.iconUrl) res.iconUrl = prevStyle.iconUrl;
+                        node.prpStyle(geom, res);
+                   }
                 }
 			}
             ,checkWaitStyle: function()	{							// проверка ожидания обработки стилей по фильтрам
@@ -1412,6 +1463,7 @@
                     var filters = propHiden.toFilters;
                     if(!filters || filters.length == 0) filters = node.chkObjectFilters(geom);
                     filter = (filters && filters.length ? mapNodes[filters[0]] : null);
+                    geom.currentFilter = filter;
                 }
                 return filter;
             }
@@ -1426,37 +1478,31 @@
                 }
                 return false;
             }
+            ,prpStyle: function(geo, style)	{	// Получить фильтры для обьекта
+                var scale = style.scale || 1;
+                if(style.marker) {
+                    if(style.imageWidth && style.imageHeight) {
+                        geo.sx = style.imageWidth;
+                        geo.sy = style.imageHeight;
+                    }
+                }
+                if(typeof(scale) == 'string') {
+                    scale = (style.scaleFunction ? style.scaleFunction(geo.properties) : 1);
+                }
+                if('minScale' in style && scale < style.minScale) scale = style.minScale;
+                else if('maxScale' in style && scale > style.maxScale) scale = style.maxScale;
+                geo.propHiden.curStyle = style;
+                if('chkSize' in geo && !node.waitStyle) geo.chkSize(node, style);
+            }
             ,chkObjectFilters: function(geo, tileSize)	{	// Получить фильтры для обьекта
                 var zoom = LMap.getZoom();
                 var toFilters = [];
 
-                //delete geo.curStyle;
                 delete geo._cache;
                 for (var z in geo.propHiden.drawInTiles)
                 {
                     if(z != zoom) delete geo.propHiden.drawInTiles[z];
                 }
-
-                var isViewPoint = (geo.type == 'Point' ? true : false);
-
-                var prpStyle = function(style) {
-                    var scale = style.scale || 1;
-                    if(style.marker) {
-                        if(style.imageWidth && style.imageHeight) {
-                            geo.sx = style.imageWidth;
-                            geo.sy = style.imageHeight;
-                            isViewPoint = true;
-                        }
-                    }
-                    if(typeof(scale) == 'string') {
-                        scale = (style.scaleFunction ? style.scaleFunction(geo.properties) : 1);
-                    }
-                    if('minScale' in style && scale < style.minScale) scale = style.minScale;
-                    else if('maxScale' in style && scale > style.maxScale) scale = style.maxScale;
-                    //size *= scale;
-                    geo.propHiden.curStyle = style;
-                    if('chkSize' in geo && !node.waitStyle) geo.chkSize(node, style);
-                };
                 var curStyle = null;
                 if(geo.propHiden.subType === 'cluster') {
                     toFilters = node.filters;
@@ -1473,14 +1519,18 @@
                             toFilters.push(filterID);
                             if(filter.regularStyle) {
                                 curStyle = (filter.regularStyleIsAttr ? utils.evalStyle(filter.regularStyle, prop) : filter.regularStyle);
-                                prpStyle(curStyle);
+                                node.prpStyle(geo, curStyle);
                             }
                             break;						// Один обьект в один фильтр 
                         }
                     }
                 }
                 geo.propHiden.toFilters = toFilters;
-                geo.propHiden._isFilters = (toFilters.length ? true : false);
+                geo.propHiden._isFilters = false;
+                if(toFilters.length) {
+                    geo.currentFilter = mapNodes[toFilters[0]];
+                    geo.propHiden._isFilters = true;
+                }
                 return toFilters;
             }
             ,chkZoomBoundsFilters: function()	{	// Проверка видимости по Zoom фильтров
@@ -1513,6 +1563,7 @@
                 for (var z in node.tilesRedrawImages) {
                     if(z != currZ) delete node.tilesRedrawImages[z];
                 }
+                node.upDateLayer();
                 
                 node.reCheckFilters(gmxAPI._leaflet.zoomCurrent.tileSize);
                 chkVisible();
@@ -1522,17 +1573,12 @@
                 if(zd === -1) return;
                 if(arguments.length == 0) zd = 200;
                 node.timers.isIdleTimer = setTimeout(function() {
-                    // for(var tKey in node.screenTilesNeedRedraw) {
-                        // return;	// есть еще отрисовки
-                    // }
-
                     if(node.tilesNeedRepaint.length > 0) return;	// есть очередь отрисовки
                     if(node.getLoaderFlag()) return;				// загрузка данных еще не закончена
                     delete node.lastDrawTime;					    // обнуление старта последней отрисовки
                     utils.chkIdle(true, 'VectorLayer');				// Проверка закончены или нет все команды отрисовки карты
-                    // node._cache = {};
-                    // if(myLayer._clearBgBufferTimer) clearTimeout(myLayer._clearBgBufferTimer);
-                    // myLayer._clearBgBufferTimer = setTimeout(L.bind(myLayer._clearBgBuffer, myLayer), 500);
+                    if(myLayer._clearBgBufferTimer) clearTimeout(myLayer._clearBgBufferTimer);
+                    myLayer._clearBgBufferTimer = setTimeout(L.bind(myLayer._clearBgBuffer, myLayer), 100);
                 }, zd);
             }
             ,redrawTilesNeed: function(zd)	{			// перерисовка screen тайлов слоя с задержкой
@@ -1771,6 +1817,7 @@
                     var onScene = (myLayer && myLayer._map ? true : false);
                     if(!node.isVisible || !onScene) return;
                     node.timers.redrawTimer = null;
+                    node.reCheckFilters();
                     myLayer.redraw();
                 }, 10);
                 return false;
@@ -1816,6 +1863,20 @@
             setAPIProperties: function() {	// Произошла установка propHiden
                 if(node.propHiden.pointsFields) {       // Проверка pointsFields
                     node.pointsFields = node.propHiden.pointsFields.split(',');
+                }
+                node.waitRedraw();
+			}
+            ,
+            addStyleHook: function(func) {	// Установка стилевой функции пользователя
+                for (var i = 0, len = node.filters.length; i < len; i++) {
+                    mapNodes[node.filters[i]].styleHook = func;
+                }
+                node.waitRedraw();
+			}
+            ,
+            removeStyleHook: function() {	// удаление стилевой функции пользователя
+                for (var i = 0, len = node.filters.length; i < len; i++) {
+                    delete mapNodes[node.filters[i]].styleHook;
                 }
                 node.waitRedraw();
 			}
@@ -2557,6 +2618,10 @@
             }
             ,repaintTile: function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
                 if(!myLayer || !myLayer._map) return;
+                var tKey = tilePoint.x + ':' + tilePoint.y;
+                if(!myLayer._tilesKeysCurrent[tKey]) {
+                    return;
+                }
                 //if(node.getLoaderFlag()) return;
 
                 var zoom = LMap.getZoom();
@@ -2846,7 +2911,8 @@
 			,
 			_clearBgBuffer: function () {
 				if (!this._map) {
-					//console.log('_clearBgBuffer: ', this.id);
+                    if(this._clearBgBufferTimer) clearTimeout(this._clearBgBufferTimer);
+                    this._clearBgBufferTimer = setTimeout(L.bind(this._clearBgBuffer, this), 100);
 					return;
 				}
 				L.TileLayer.Canvas.prototype._clearBgBuffer.call(this);
