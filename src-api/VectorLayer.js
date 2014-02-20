@@ -999,7 +999,7 @@
 
 		var chkVisible = function() {
 			if(!gmxNode) return;
-			if(node.isVisible != false) {
+			if(node.isVisible !== false) {
 				var notOnScene = (myLayer && myLayer._map ? false : true);
 				//var notViewFlag = (!utils.chkVisibilityByZoom(id) || !utils.chkBoundsVisible(node['bounds']) ? true : false);
 				var notViewFlag = (!utils.chkVisibilityByZoom(nodeId) ? true : false);
@@ -1327,7 +1327,7 @@
                     }
                 }
                 node.reCheckFilters();
-                if(node.isVisible) node.waitRedrawFlips(0);
+                if(node.isVisible !== false) node.waitRedrawFlips(0);
                 gmxAPI._leaflet.lastZoom = -1;
                 return true;
             }
@@ -1352,7 +1352,7 @@
                 if(flag) node.filters.push(fid);
                 //node.refreshFilter(fid);
 
-                if(node.isVisible) {
+                if(node.isVisible !== false) {
                     var filter = mapNodes[fid];
                     if(filter) {
                         if(!filter.maxZ) filter.maxZ = gmxAPI.defaultMaxZoom;
@@ -1388,7 +1388,7 @@
                         });
                     if(res) {
                         var prevStyle = geom.propHiden.curStyle,
-                            iconUrl = res.marker.image;
+                            iconUrl = res.marker ? res.marker.image : '';
                         res = utils.parseStyle(res);
                         if(prevStyle.image && prevStyle.iconUrl === iconUrl) {
                             res.iconUrl = prevStyle.iconUrl;
@@ -1547,7 +1547,7 @@
                 if(maxZ != node.maxZ) node.maxZ = maxZ;
                 if(minZ != node.minZ) node.minZ = minZ;
                 
-                if(node.isVisible && myLayer) {
+                if(node.isVisible !== false && myLayer) {
                     if(myLayer.options.minZ != node.minZ || myLayer.options.maxZ != node.maxZ) {
                         myLayer.options.minZ = node.minZ;
                         myLayer.options.maxZ = node.maxZ;
@@ -1556,7 +1556,7 @@
                 }
             }
             ,onZoomend: function()	{				// Проверка видимости по Zoom
-                if(!node.isVisible || !myLayer) return false;
+                if(node.isVisible === false || !myLayer) return false;
                 if(node.clustersData) {
                     gmxAPI._leaflet.LabelsManager.remove(nodeId);	// Удалить Labels
                     node.clustersData.clear();
@@ -1818,7 +1818,7 @@
                 if(node.timers.redrawTimer) clearTimeout(node.timers.redrawTimer);
                 node.timers.redrawTimer = setTimeout(function() {
                     var onScene = (myLayer && myLayer._map ? true : false);
-                    if(!node.isVisible || !onScene) return;
+                    if(node.isVisible === false || !onScene) return;
                     node.timers.redrawTimer = null;
                     node.reCheckFilters();
                     myLayer.redraw();
