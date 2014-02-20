@@ -62,19 +62,29 @@ translationsHash.getLanguageFromCookies = function()
     return _parseLanguageCookie()[window.location.pathname];
 }
 
-translationsHash.prototype.addtext = function(lang, newHash)
-{
+translationsHash.prototype._addTextWithPrefix = function(prefix, lang, newHash) {
 	var res = true;
 	
 	if ( !(lang in this.hash) ) this.hash[lang] = {};
 
-	for ( var k in newHash )
-		if ( k in this.hash[lang] )
+	for ( var k in newHash ) {
+        var fullKey = prefix + k;
+		if ( fullKey in this.hash[lang] )
 			res = false;
-		else 
-			this.hash[lang][k] = newHash[k];
-			
+		else {
+            if (typeof newHash[k] === 'string') {
+                this.hash[lang][fullKey] = newHash[k];
+            } else {
+                this._addTextWithPrefix(fullKey + '.', lang, newHash[k]);
+            }
+        }
+	}
+    
 	return res;
+}
+
+translationsHash.prototype.addtext = function(lang, newHash) {
+    this._addTextWithPrefix('', lang, newHash);
 }
 
 translationsHash.prototype.showLanguages = function()
@@ -117,7 +127,11 @@ translationsHash.prototype.showLanguages = function()
 }
 
 translationsHash.prototype.getLanguage = function(){
-	return window.language || translationsHash.DEFAULT_LANGUAGE;
+	return this._language || window.language || translationsHash.DEFAULT_LANGUAGE;
+}
+
+translationsHash.prototype.setLanguage = function(lang){
+	this._language = lang;
 }
 
 translationsHash.prototype.gettext = function()
@@ -158,15 +172,69 @@ var _translationsHash = new translationsHash();
 
 function _gtxt()
 {
-	return _translationsHash.gettext.apply(_translationsHash, arguments)	
+	return _translationsHash.gettext.apply(_translationsHash, arguments)
 }
+
+var prev_gtxt = window._gtxt,
+    prev_translationsHash = window._translationsHash,
+    prevTranslationsHash = window.translationsHash;
 
 //Явно добавляем объекты в глобальную видимость
 window._gtxt = _gtxt;
 window._translationsHash = _translationsHash;
 window.translationsHash = translationsHash;
 
-window.gmxCore && gmxCore.addModule('translations', 
+/** Ф-ции для локализации пользовательского интерфейса
+ @namespace nsGmx.Translations
+*/
+
+window.nsGmx = window.nsGmx || {};
+window.nsGmx.Translations = window.nsGmx.Translations || {};
+
+/** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
+ @name noConflicts
+ @memberOf nsGmx.Translations
+*/
+window.nsGmx.Translations.noConflicts = function() {
+    window._gtxt = prev_gtxt;
+    window._translationsHash = prev_translationsHash;
+    window.translationsHash = prevTranslationsHash;
+}
+
+/** Добавить строки в словарь локализации
+ @func addText
+ @memberOf nsGmx.Translations
+ @param {String} lang Язык, к которому добавляются строки
+ @param {Object} strings Список добавляемых строк. Должен быть объектом, в котором атрибуты являются ключами перевода.
+                 Если значение атрибута - строка, то она записывается как результат локализации данного ключа.
+                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
+                 к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
+*/
+window.nsGmx.Translations.addText = _translationsHash.addtext.bind(_translationsHash);
+
+/** Получить локализованный текст по ключу для текущего языка
+ @func getText
+ @memberOf nsGmx.Translations
+ @param {String} key Ключ локализации
+ @return {String} Локализованный текст
+*/
+window.nsGmx.Translations.getText = _translationsHash.gettext.bind(_translationsHash);
+
+/** Установить текущий язык
+ @func setLanguage
+ @memberOf nsGmx.Translations
+ @param {String} lang Текущий язык (eng/rus/...)
+*/
+window.nsGmx.Translations.setLanguage = _translationsHash.setLanguage.bind(_translationsHash);
+
+/** Получить текущий язык локализации
+ @func getLanguage
+ @memberOf nsGmx.Translations
+ @return {String} Текущий язык (eng/rus/...)
+*/
+window.nsGmx.Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash);
+
+window.gmxCore && gmxCore.addModule('translations',
 {
     _translationsHash: _translationsHash
 })
