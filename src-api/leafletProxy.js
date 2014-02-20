@@ -1095,10 +1095,10 @@
 				}
 				pt.opacity = ('opacity' in ph ? ph.opacity : 100);
 				if('angle' in ph) pt.rotate = ph.angle;
-				if('image' in ph && callback) {
+				if('image' in ph) {
 					pt.iconUrl = ph.image;
 					try {
-						pt.waitStyle = callback;
+                        if(typeof(callback) === 'function') pt.waitStyle = callback;
 						utils.getImageSize(pt, true, id);
 					} catch(ev) {
 						gmxAPI.addDebugWarnings({'url': pt.iconUrl, 'func': 'getImageSize', 'alert': 'getImageSize error ' + pt.iconUrl});
