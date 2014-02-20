@@ -3,17 +3,17 @@
 */
 (function() {
 
-    _translationsHash.addtext("rus", {
-        'shiftRastersPlugin.saveBtnTitle': 'Готово',
-        'shiftRastersPlugin.cancelBtnTitle': 'Отмена',
-        'shiftRastersPlugin.startBtnTitle': 'Сместить'
-    });
+    _translationsHash.addtext("rus", { shiftRastersPlugin: {
+        saveBtnTitle: 'Готово',
+        cancelBtnTitle: 'Отмена',
+        startBtnTitle: 'Сместить'
+    }});
     
-    _translationsHash.addtext("eng", {
-        'shiftRastersPlugin.saveBtnTitle': 'Done',
-        'shiftRastersPlugin.cancelBtnTitle': 'Cancel',
-        'shiftRastersPlugin.startBtnTitle': 'Shift'
-    });
+    _translationsHash.addtext("eng", { shiftRastersPlugin: {
+        saveBtnTitle: 'Done',
+        cancelBtnTitle: 'Cancel',
+        startBtnTitle: 'Shift'
+    }});
     
     var rowUITemplate = '<span><span class = "shift-rasters-label">dx</span> \
             <input class="inputStyle shift-rasters-input" id="dx"></input> \
