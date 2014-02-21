@@ -161,7 +161,7 @@ var FieldsCollection = function() {
 * @param {nsGmx.EditObjectControl.FieldInfo[]} [params.fields] массив с описанием характеристик атрибутов для редактирования . Должен содержать только атрибуты, которые есть в слое.
 * @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
          По умолчанию для редактирования запрещено, а для создания нового разрешено.
-* @param {HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов
+* @param {HTMLNode | function(nsGmx.EditObjectControl): HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов или ф-ция, которая возвращает этот элемент
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
@@ -480,7 +480,9 @@ var EditObjectControl = function(layerName, objectId, params)
                 trs.push(tr);
             })
             
-            _(canvas, [_div([_table([_tbody(trs)], [['dir', 'className', 'obj-edit-proptable']]), _params.afterPropertiesControl],[['dir', 'className', 'obj-edit-canvas'], ['css','overflow','auto']])]);
+            var afterPropUI = typeof _params.afterPropertiesControl === 'function' ? _params.afterPropertiesControl(_this) : _params.afterPropertiesControl;
+            
+            _(canvas, [_div([_table([_tbody(trs)], [['dir', 'className', 'obj-edit-proptable']]), afterPropUI],[['dir', 'className', 'obj-edit-canvas'], ['css','overflow','auto']])]);
             
             _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
             
