@@ -9,7 +9,6 @@
     */
     var addHeaderLinks = function(container)
     {
-    
         var isHeaderLinks = false;
             if ( typeof window.headerLinks === 'boolean' ) isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
             if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' )
@@ -26,17 +25,17 @@
                 {icon: 'img/api2.png',       title: "Документация",  href: 'http://geomixer.ru/docs'     },
                 {icon: 'img/blog.png',       title: "Блог",          href: 'http://blog.kosmosnimki.ru'  }
             ];
-        
-        for (var i = 0; i < items.length; i++)
-        {
-            var elems = [];
-            if (items[i].icon)
-                elems.push(_img(null, [['attr','src',items[i].icon]]));
-            elems.push(_t(items[i].title));
             
-            _(container, [_a(elems,[['attr','href', items[i].href],['attr','target','_blank']])]);
-        }
+        var template = 
+            '<span>{{#links}}' + 
+                '<a href="{{href}}" target="{{target}}{{^target}}_blank{{/target}}">' + 
+                    '{{#icon}}<img src={{icon}}></img>{{/icon}}' + 
+                    '{{title}}' + 
+                '</a>' + 
+            '{{/links}}</span>';
         
+        $(Mustache.render(template, {links: items})).appendTo(container);
+
         addHeaderLinks.def.resolve();
     }
     
