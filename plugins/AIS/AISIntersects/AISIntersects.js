@@ -23,6 +23,7 @@
                 return;
             }
             
+            var cont = null;
             var mapListenerId = null;
             var toolContainer = new map.ToolsContainer('addObject', {style: {padding: '0px'}});
             var tool = toolContainer.addTool('addObject', {
@@ -32,7 +33,6 @@
                 regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
                 activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
                 onClick: function() {
-                    var cont = null;
                     function getActiveLayer() {
                         var out = null;
                         var active = $(_queryMapLayers.treeCanvas).find(".active");
