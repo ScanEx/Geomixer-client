@@ -2887,6 +2887,7 @@ FlashMapObject.prototype.remove = function()
 	}
     // чистка mapNodes
     for(id in this.childsID) {
+        gmxAPI.mapNodes[id].remove();
         delete gmxAPI.mapNodes[id];
     }
 
