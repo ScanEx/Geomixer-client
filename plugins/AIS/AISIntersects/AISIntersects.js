@@ -76,24 +76,25 @@
                     }
                     
                     function myClick(obj, div) {
-                        var ogc_fid = obj['properties'].ogc_fid;
-                        var layerProp = obj.layer['properties'];
-                        var layer = layerProp.name;
+                        var ogc_fid = obj.properties.ogc_fid,
+                            layerProp = obj.layer.properties,
+                            layer = layerProp.name,
+                            aisLayerID = '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
+                        
+                        var searchLayerAttr = getActiveLayer();
+                        if(searchLayerAttr && searchLayerAttr.layerID) {
+                            aisLayerID = searchLayerAttr.layerID;
+                        }
+                        var aisLayer = gmxAPI.map.layers[aisLayerID],
+                            dateInterval = aisLayer.getDateInterval(),
+                            TemporalColumnName = aisLayer.properties.TemporalColumnName;
+                        var dt1 = dateInterval.beginDate;
+                        var zn = gmxAPI.pad2(dt1.getDate()) + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + dt1.getFullYear() + ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
                         var layerSTR = gmxAPI.KOSMOSNIMKI_LOCALIZED('Слой', 'Layer') + ':&nbsp;<b>' + layerProp.title + '</b><br>';
                         layerSTR += gmxAPI.KOSMOSNIMKI_LOCALIZED('Контур', 'Polygon') + ':&nbsp;<b>' + ogc_fid + '</b><br>';
-                        var searchLayerAttr = getActiveLayer();
-                        if(!searchLayerAttr || !searchLayerAttr.layerID || !searchLayerAttr.TemporalColumnName) {
-                            var res = gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!');
-                            //alert(gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!'));
-                            return res;
-                        }
-
-                        var TemporalColumnName = searchLayerAttr.TemporalColumnName;
-                        var dt1 = searchLayerAttr.begDate;
-                        var zn = gmxAPI.pad2(dt1.getDate()) + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + dt1.getFullYear() + ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
                         layerSTR += gmxAPI.KOSMOSNIMKI_LOCALIZED('Период', 'Date') + ':&nbsp;<b>' + zn + '</b>';
                         var query = "((["+TemporalColumnName+"] >= '" + zn + "')";
-                        dt1 = searchLayerAttr.endDate;
+                        dt1 = dateInterval.endDate;
                         zn = gmxAPI.pad2(dt1.getDate()) + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + dt1.getFullYear() + ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
                         layerSTR += ' - <b>' + zn + '</b><br>';
                         query += " and (["+TemporalColumnName+"] < '" + zn + "')";
@@ -105,7 +106,7 @@
                                 ,'page': 0
                                 ,'pagesize': 1000
                                 ,'geometry': true
-                                ,'layer': searchLayerAttr.layerID			// слой в котором ищем обьекты
+                                ,'layer': aisLayerID			// слой в котором ищем обьекты
                                 ,'BorderFromLayer': layerProp.name	// слой в котором границы поиска
                                 ,'BorderId': ogc_fid		// id обьекта границы поиска
                                 ,'query': query				// Условие отбора
