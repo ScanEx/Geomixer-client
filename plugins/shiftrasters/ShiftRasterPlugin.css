@@ -4,15 +4,33 @@
 }
 
 .shift-rasters-input {
-    width: 40px;
-    margin-right: 15px;
+    width: 35px;
 }
 
 .shift-rasters-btn {
-    width: 80px;
+    width: 55px;
     margin: 0px 3px;
 }
 
 .shift-rasters-label {
-    margin-left: 3px;
+    margin-left: 2px;
+}
+
+.shift-rasters-slider {
+    display: inline-block;
+    position: absolute;
+    right: 11px;
+    margin-top: 7px;
+}
+
+/* для UI в левой панели отдельно настраиваем размеры */
+.workCanvas .shift-rasters-input {
+    width: 30px;
+}
+
+.workCanvas .shift-rasters-slider {
+    display: inline-block;
+    position: absolute;
+    right: 7px;
+    margin-top: 7px;
 }

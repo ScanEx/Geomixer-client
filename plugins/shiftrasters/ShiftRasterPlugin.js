@@ -15,13 +15,15 @@
         startBtnTitle: 'Shift'
     }});
     
-    var rowUITemplate = '<span><span class = "shift-rasters-label">dx</span> \
-            <input class="inputStyle shift-rasters-input" id="dx"></input> \
-            <span class = "shift-rasters-label">dy</span> \
-            <input class="inputStyle shift-rasters-input" id="dy"></input> \
-            <button class="shift-rasters-btn" id="btnStart">{{i+shiftRastersPlugin.startBtnTitle}}</button> \
-            <button class="shift-rasters-btn" id="btnSave">{{i+shiftRastersPlugin.saveBtnTitle}}</button> \
-            <button class="shift-rasters-btn" id="btnCancel">{{i+shiftRastersPlugin.cancelBtnTitle}}</button>\
+    var rowUITemplate = '<span>\
+                <div id="slider-placeholder" class="shift-rasters-slider"></div>\
+                <span class = "shift-rasters-label">dx</span> \
+                <input class="inputStyle shift-rasters-input" id="dx"></input> \
+                <span class = "shift-rasters-label">dy</span> \
+                <input class="inputStyle shift-rasters-input" id="dy"></input> \
+                <button class="shift-rasters-btn" id="btnStart">{{i+shiftRastersPlugin.startBtnTitle}}</button> \
+                <button class="shift-rasters-btn" id="btnSave">{{i+shiftRastersPlugin.saveBtnTitle}}</button> \
+                <button class="shift-rasters-btn" id="btnCancel">{{i+shiftRastersPlugin.cancelBtnTitle}}</button>\
             </span>';
             
     var uiTemplate = 
@@ -34,11 +36,21 @@
     var ShiftLayerView = function(canvas, shiftParams, layer, initState) {
         var _this = this;
         
+        var updateLayerOpacity = function(opacity) {
+            (layer.tilesParent || layer).setStyle({fill: {opacity: opacity}});
+        }
+        
         var isActiveState = initState;
         var updateState = function() {
-            $('#btnCancel, #btnSave', ui).toggle(isActiveState);
+            $('#btnCancel, #btnSave, #slider-placeholder', ui).toggle(isActiveState);
             $('#btnStart', ui).toggle(!isActiveState);
             $('.shift-rasters-input' ,ui).prop('disabled', !isActiveState);
+            
+            if (isActiveState) {
+                updateLayerOpacity($('#slider-placeholder > div', ui).slider('value'));
+            } else {
+                updateLayerOpacity(100);
+            }
             
             if (isActiveState) {
                 layer.enableDragging(drag, dragStart);
@@ -48,6 +60,13 @@
         }
 
         var ui = $(Mustache.render(rowUITemplate)).appendTo(canvas);
+        
+        var sliderUI = nsGmx.Controls.createSlider(80, function(event, ui) {
+            updateLayerOpacity(ui.value);
+        });
+        
+        $(sliderUI).appendTo($('#slider-placeholder', ui));
+        
         updateState();
         
         $('button', canvas).click(function() {
@@ -166,11 +185,12 @@
                                 originalShiftParams,
                                 shiftLayer = map.addLayer({properties: {
                                     IsRasterCatalog: true,
-                                    RCMinZoomForRasters: 10
+                                    RCMinZoomForRasters: 10,
+                                    styles: [{BalloonEnable: false}]
                                 }}),
                                 geomDx = dx,
                                 geomDy = dy;
-
+                                
                             var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, false);
                             
                             shiftParams.on('change', function() {
@@ -209,7 +229,7 @@
                                 shiftView.setState(true);
                                 var layer = editDialog.getLayer();
                                 var identityField = layer.properties.identityField;
-                                layer.setVisibilityFilter('"' + identityField + '" <> \'' + editDialog.get(identityField) + '\'' );
+                                layer.setVisibilityFilter('"' + identityField + '" <> \'' + editDialog.get(identityField) + '\'');
                             })
                             
                             var stopShift = function() {
