@@ -102,14 +102,14 @@
                         gmxAPI.sendCrossDomainPostRequest(
                             'http://maps.kosmosnimki.ru/VectorLayer/Search.ashx'
                             , {
-                                'WrapStyle': 'window'
-                                ,'page': 0
-                                ,'pagesize': 1000
-                                ,'geometry': true
-                                ,'layer': aisLayerID			// слой в котором ищем обьекты
-                                ,'BorderFromLayer': layerProp.name	// слой в котором границы поиска
-                                ,'BorderId': ogc_fid		// id обьекта границы поиска
-                                ,'query': query				// Условие отбора
+                                WrapStyle: 'window'
+                                ,page: 0
+                                ,pagesize: 1000
+                                ,geometry: true
+                                ,layer: aisLayerID			// слой в котором ищем обьекты
+                                ,BorderFromLayer: layerProp.name	// слой в котором границы поиска
+                                ,BorderId: ogc_fid		// id обьекта границы поиска
+                                ,query: query				// Условие отбора
                             }
                             ,function(ph) {
                                 var markers = [];
@@ -134,7 +134,7 @@
                                                 prop[fname] = it;
                                             }
                                         }
-                                        var mmsi = prop['MMSI'] || prop['mmsi'];
+                                        var mmsi = prop.MMSI || prop.mmsi;
                                         mmsiHash[mmsi] = {'prop': prop, 'geometry': item.geometry};
                                     }
                                     if(cont) cont.remove();
@@ -184,15 +184,11 @@
                         var layer = map.layers[i];
                         layer.enableHoverBalloon(null, {'disableOnMouseOver': true});
                     }
+                    if(cont) cont.remove();
+                    gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {removeAll: true});
                 }
             });
-            /*for (var i = 0, len = tool.row.childNodes.length; i < len; i++) {
-                var td = tool.row.childNodes[i];
-                td.style.padding = '0px';
-            }*/
-            
         }
     };
-    
     gmxCore.addModule('AISIntersects', publicInterface, {});
 })();
