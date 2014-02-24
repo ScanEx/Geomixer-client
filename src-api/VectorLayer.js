@@ -22,8 +22,8 @@
 		node['maxZ'] = gmxAPI.defaultMaxZoom;
 		node['flipEnabled'] = true;				// По умолчанию ротация обьектов слоя установлена
 
-		node['tilesVers'] = {};
-		node['tiles'] = null;
+		node.tilesVers = {};
+		node.tiles = null;
 		//node['observeVectorLayer'] = null;
 		node['observerNode'] = null;
 		
@@ -2210,6 +2210,7 @@
                 if('chkRemovedTiles' in node) node.chkRemovedTiles(key);
                 delete node.tilesGeometry[key];
                 delete node.tiles[key];
+                if(node.tilesVers) delete node.tilesVers[key];
                 return true;
             }
             ,addTile: function(arr)	{			// Добавить тайл
@@ -2350,6 +2351,9 @@
                 }
 
                 if('dtiles' in attr) {		// Для мультивременных слоев
+                    for(var key in node.tiles) {
+                        node.removeTile(key);	// Полная перезагрузка тайлов
+                    }
                     node.getTilesBounds(attr.dtiles);
                     node.temporal = attr;
                 }

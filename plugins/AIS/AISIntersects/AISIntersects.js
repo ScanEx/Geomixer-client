@@ -22,6 +22,27 @@
             if ( !map) {
                 return;
             }
+            var setText = function(o, div) {
+                var prop = o.properties;
+                var txt = '<p>';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Mmsi', 'mmsi') + ': <strong>' + prop.mmsi + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Имя судна', 'Ship') + ': <strong>' + prop.vessel_name + '</strong> <br />';
+                txt += '<img src="http://photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + prop.mmsi + '" alt="Ship icon" border="0" /> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Широта', 'Latitude') + ': <strong>' + prop.latitude + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Долгота', 'Longitude') + ': <strong>' + prop.longitude + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Курс', 'cog') + ': <strong>' + prop.cog + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Время точки', 'ts_pos_utc') + ': <strong>' + prop.ts_pos_utc + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Позывной', 'callsign') + ': <strong>' + prop.callsign + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Назначение', 'destination') + ': <strong>' + prop.destination + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Страна', 'flag_country') + ': <strong>' + prop.flag_country + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Тип Судна', 'vessel_type') + ': <strong>' + prop.vessel_type + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Статус', 'nav_status') + ': <strong>' + prop.nav_status + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Heading', 'heading') + ': <strong>' + prop.heading + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Imo', 'imo') + ': <strong>' + prop.imo + '</strong> <br />';
+                txt += '' + gmxAPI.KOSMOSNIMKI_LOCALIZED('Sog', 'sog') + ': <strong>' + prop.sog + '</strong> <br />';
+                txt += '</p>';
+                return txt;
+            };
             
             var cont = null;
             var mapListenerId = null;
@@ -62,8 +83,9 @@
                         layerSTR += gmxAPI.KOSMOSNIMKI_LOCALIZED('Контур', 'Polygon') + ':&nbsp;<b>' + ogc_fid + '</b><br>';
                         var searchLayerAttr = getActiveLayer();
                         if(!searchLayerAttr || !searchLayerAttr.layerID || !searchLayerAttr.TemporalColumnName) {
-                            alert(gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!'));
-                            return true;
+                            var res = gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!');
+                            //alert(gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!'));
+                            return res;
                         }
 
                         var TemporalColumnName = searchLayerAttr.TemporalColumnName;
@@ -126,7 +148,7 @@
                                             { marker: { image: "img/search.png", dx: -15, dy: -35 } }, 
                                             { marker: { image: "img/search_a.png", dx: -15, dy: -35 } }
                                         );
-                                        obj.enableHoverBalloon(null, {'disableOnMouseOver': true});	
+                                        obj.enableHoverBalloon(setText, {'disableOnMouseOver': true});	
                                         markers.push(obj);
                                     }
                                     arrMMSI = arrMMSI.sort();
