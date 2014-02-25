@@ -172,7 +172,7 @@
 			var latlng = e.latlng;
             LMap.off('mousemove', mousemove);
             LMap.off('mouseup', mouseup);
-            LMap.off('mouseout', mouseout);
+            //LMap.off('mouseout', mouseout);
             if(node.dragAttr && node.dragAttr.dragend) node.dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
             gmxAPI._leaflet.utils.unfreeze();
             gmxAPI.map.dragState = false;
@@ -181,12 +181,14 @@
             mouseup(e);
         }
         var dragOn = function(pt) {
+			if(pt.ctrlKey) return false;
 			var latlng = gmxAPI._leaflet.mousePos;
             if('isPointIn' in node && !node.isPointIn(latlng)) {
                 gmxAPI._leaflet.utils.unfreeze();
                 gmxAPI.map.dragState = false;
                 return false;
             }
+			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Убрать балуны
             if(!gmxAPI.map.dragState) {
                 gmxAPI._leaflet.utils.freeze();
                 gmxAPI.map.dragState = true;
@@ -196,7 +198,7 @@
             
             LMap.on('mousemove', mousemove);
             LMap.on('mouseup', mouseup);
-            LMap.on('mouseout', mouseout);
+            //LMap.on('mouseout', mouseout);
             if(node.dragAttr && node.dragAttr.dragstart) node.dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
         }
         gmxAPI.extend(node, {
