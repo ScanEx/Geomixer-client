@@ -2835,6 +2835,7 @@
 					node.upDateLayer();
 				} else {
 					gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: nodeId, remove: true});	// Проверка map Listeners на hideBalloons
+                    gmxAPI._leaflet.vectorTileLoader.clearLayer(nodeId);
 				}
 				gmxAPI._leaflet.LabelsManager.onChangeVisible(nodeId, flag);
 			}, -10)};

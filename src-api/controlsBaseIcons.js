@@ -1107,7 +1107,7 @@
         drawingPointControl.activeStop = function () {
             var opt = drawingPointControl.options;
             //if (key !== 'POINT') opt.isActive = true;
-            opt.activeStop();
+            if (opt && 'activeStop' in opt) opt.activeStop();
         }
         
         drawingPointControl.addTo(gmxAPI._leaflet.LMap);
