@@ -4,11 +4,67 @@
 */
 (function($){
 
+nsGmx.Translations.addText('rus', {
+    drawingObjects: {
+        editStyleTitle: 'Редактировать стиль',
+        removeObject: 'Удалить',
+        pointTitle: 'точка',
+        lineTitle: 'линия',
+        polygonTitle: 'многоугольник',
+        rectangleTitle: 'прямоугольник',
+        removeAll: 'Очистить',
+        downloadShp: 'shp-файл',
+        downloadGpx: 'gpx-файл',
+        downloadNameTitle: 'Введите имя файла для скачивания',
+        download: 'Скачать',
+        downloadRaster: 'Скачать фрагмент растра',
+        noRectangleError: 'Выберите область рамкой на карте',
+        noRasterError: 'К прямоугольнику не подходит ни одного растрового слоя',
+        
+        edit: {
+            border: 'Граница',
+            color: 'Цвет',
+            transparency: 'Прозрачность',
+            lineWidth: 'Толщина линии',
+            description: 'Описание',
+            title: 'Редактирование стиля объекта'
+        }
+    }
+})
+
+nsGmx.Translations.addText('eng', {
+    drawingObjects: {
+        editStyleTitle: 'Edit style',
+        removeObject: 'Delete',
+        pointTitle: 'point',
+        lineTitle: 'line',
+        polygonTitle: 'polygon',
+        rectangleTitle: 'rectangle',
+        removeAll: 'Delete',
+        downloadShp: 'shp-file',
+        downloadGpx: 'gpx-file',
+        downloadNameTitle: 'Enter file name to download',
+        download: 'Download',
+        downloadRaster: 'Download fragment of raster',
+        noRectangleError: 'Select region using frame',
+        noRasterError: 'No one raster layer fit the rectangle',
+        
+        edit: {
+            border: 'Outline',
+            color: 'Color',
+            transparency: 'Transparency',
+            lineWidth: 'Line thickness',
+            description: 'Description',
+            title: 'Object style editing'
+        }
+    }
+})
+
 var CreateDrawingStylesEditorIcon = function(style, type)
 {
 	var icon = nsGmx.Controls.createGeometryIcon(style, type);
 	
-	_title(icon, _gtxt("Редактировать стиль"));
+	_title(icon, _gtxt('drawingObjects.editStyleTitle'));
 	
 	return icon;
 }
@@ -26,7 +82,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 			outlineTitleTds = [],
 			outlineTds = [];
 		
-		outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
+		outlineTitleTds.push(_td([_t(_gtxt('drawingObjects.edit.border'))],[['css','width','70px']]));
 		
 		var outlineColor = nsGmx.Controls.createColorPicker(templateStyle.outline.color,
 			function (colpkr){
@@ -49,7 +105,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		
 		outlineColor.hex = templateStyle.outline.color;
 		
-		_title(outlineColor, _gtxt("Цвет"));
+		_title(outlineColor, _gtxt('drawingObjects.edit.color'));
 
 		outlineTds.push(_td([outlineColor],[['css','width','40px']]));
 			
@@ -61,7 +117,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
 				})
 		
-		_title(divSlider, _gtxt("Прозрачность"));
+		_title(divSlider, _gtxt('drawingObjects.edit.transparency'));
 
 		outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
 		
@@ -87,7 +143,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				});
 			};
 		
-		_title(outlineThick, _gtxt("Толщина линии"));
+		_title(outlineThick, _gtxt('drawingObjects.edit.lineWidth'));
 		
 		outlineTds.push(_td([outlineThick],[['css','width','30px']]));
 		
@@ -109,10 +165,10 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 			return true;
 		}
 		
-		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt("Описание"))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
+		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt('drawingObjects.edit.description'))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 		
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
-		var jQueryDialog = showDialog(_gtxt('Редактирование стилей объекта'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
+		var jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
 	}
 	
 	elemCanvas.getStyle = function()
@@ -289,7 +345,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
     if (_options.allowDelete)
     {
         remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
-        remove.setAttribute('title', _gtxt('Удалить'));
+        remove.setAttribute('title', _gtxt('drawingObjects.removeObject'));
         remove.className = 'removeGeometry';
         remove.onclick = function(){
             $(_this).triggerHandler('onRemove', [_drawingObject]);
@@ -324,17 +380,17 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		
 		if (type == "POINT")
 		{
-			_(_title, [_t(_gtxt("точка"))]);
+			_(_title, [_t(_gtxt('drawingObjects.pointTitle'))]);
 			_(_summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
 		}
 		else if (type == "LINESTRING")
 		{
-			_(_title, [_t(_gtxt("линия"))]);
+			_(_title, [_t(_gtxt('drawingObjects.lineTitle'))]);
 			_(_summary, [_t("(" + prettifyDistance(geoLength(coords)) + ")")]);
 		}
 		else if (type == "POLYGON")
 		{
-			_(_title, [_t(isRectangle(coords) ? _gtxt("прямоугольник") : _gtxt("многоугольник"))]);
+			_(_title, [_t(isRectangle(coords) ? _gtxt('drawingObjects.rectangleTitle') : _gtxt('drawingObjects.polygonTitle'))]);
 			_(_summary, [_t("(" + prettifyArea(geoArea(coords)) + ")")]);
 		}
 		
@@ -465,7 +521,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 		return _divButtons;
 	}
     
-    var delAll = makeLinkButton(_gtxt("Очистить"));
+    var delAll = makeLinkButton(_gtxt('drawingObjects.removeAll'));
 	delAll.onclick = this.Clear;
 	
 	_(_divButtons, [_div([delAll])]);
@@ -551,22 +607,22 @@ var DrawingObjectGeomixer = function() {
     
     var downloadFormat = null;
 	
-	var downloadShp = makeLinkButton(_gtxt("shp-файл"));
+	var downloadShp = makeLinkButton(_gtxt('drawingObjects.downloadShp'));
 	downloadShp.onclick = function(){ 
         downloadFormat = 'Shape';
         downloadNameContainer.toggle();
 	}
     downloadShp.style.margin = '0px 3px';
     
-    var downloadGpx = makeLinkButton(_gtxt("gpx-файл"));
+    var downloadGpx = makeLinkButton(_gtxt('drawingObjects.downloadGpx'));
 	downloadGpx.onclick = function(){ 
         downloadFormat = 'gpx';
         downloadNameContainer.toggle();
 	}
     downloadGpx.style.margin = '0px 3px';
     
-    var downloadNameInput = $('<input/>', {title: _gtxt("Введите имя файла для скачивания")}).val('markers').addClass('inputStyle');
-    var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('Скачать')).addClass('btn').click(function() {
+    var downloadNameInput = $('<input/>', {title: _gtxt('drawingObjects.downloadNameTitle')}).val('markers').addClass('inputStyle');
+    var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('drawingObjects.download')).addClass('btn').click(function() {
         downloadMarkers(downloadNameInput.val(), downloadFormat);
         downloadNameContainer.hide();
         downloadFormat = null;
@@ -577,7 +633,7 @@ var DrawingObjectGeomixer = function() {
         '<div class="drawingObjectsDownloadRaster">' + 
             '<label><input type="radio" name="rasterFormat" checked value="univers">jpeg + georefernce</label>' + 
             '<label><input type="radio" name="rasterFormat" value="garmin">kmz (Garmin Custom Maps)</label>' + 
-            '<button id="downloadRaster" class="btn">' + _gtxt("Скачать") + '</button>' +
+            '<button id="downloadRaster" class="btn">' + _gtxt('drawingObjects.download') + '</button>' +
         '</div>'
     ).hide();
     
@@ -612,7 +668,7 @@ var DrawingObjectGeomixer = function() {
         }
     })
 	
-	var downloadRaster = makeLinkButton(_gtxt("Скачать фрагмент растра"));
+	var downloadRaster = makeLinkButton(_gtxt('drawingObjects.downloadRaster'));
 	downloadRaster.onclick = function(){
         if (downloadRasterOptions.find(':visible').length || checkRasterLayer()) {
             downloadRasterOptions.toggle();
@@ -640,7 +696,7 @@ var DrawingObjectGeomixer = function() {
         
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
         _(downloadContainer, [
-            _div([_span([_t(_gtxt('Скачать'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), 
+            _div([_span([_t(_gtxt('drawingObjects.download'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), 
             downloadNameContainer[0], 
             _div([downloadRaster]),
             downloadRasterOptions[0]
@@ -697,7 +753,7 @@ var DrawingObjectGeomixer = function() {
 		
 		if (!obj)
 		{
-			showErrorMessage(_gtxt("Выберите область рамкой на карте"), true);
+			showErrorMessage(_gtxt('drawingObjects.noRectangleError'), true);
 			
 			return;
 		}
@@ -762,7 +818,7 @@ var DrawingObjectGeomixer = function() {
 		};
 		
         if (!layer) {
-            showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
+            showErrorMessage(_gtxt('drawingObjects.noRasterError'), true);
             return;
         }
         
