@@ -663,6 +663,21 @@ div.unit .unitInfo
     margin-right: 10px;
 }
 
+.attrs-table-active-row
+{
+    display: block;
+    width: 258px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    margin: 4px 0px 2px 3px;
+    font-size: 12px;
+}
+
+.attrs-table-active-checkbox
+{
+    margin-right: 3px;
+}
+
 .styleTitle
 {
 	width: 70px;

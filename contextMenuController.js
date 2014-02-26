@@ -265,7 +265,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-		_attrsTableHash.create(context.elem.name);
+		nsGmx.createAttributesTable(context.elem.name);
 	}
 }, 'Layer');
 

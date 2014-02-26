@@ -1,38 +1,11 @@
-/*
-
-1. Получение размера таблицы
--> Params:
-{
-	name: "name", // имя таблицы
-	query: "\"Attr1\" = 'abc' AND \"Attr2\" in (2,3)" // запрос
-}
-<- Result:
-1234 // число записей, удовлетворяющих запросу
-
-2. Получение содержимого таблицы
--> Params:
-{
-	name: "name", // имя таблицы
-	offset: 0, // начиная с какой записи
-	limit: 50, // сколько записей
-	query: "\"Attr1\" = 'abc' AND \"Attr2\" in (2,3)", // запрос
-	sortAttr: "Attr1", // имя атрибута, по которому производить сортировку (по умолчанию layer.properties.identityField || ogc_fid)
-	sortOrder: 0 // направление сортировки (по умолчанию - по возрастанию)
-}
-
-<- Result:
-{
-	fields: ["Attr1","Attr2", ..., "AttrN"], // заголовок таблицы, поле ogc_fid всегда идут первыми
-	data: [["Value01","Value02", ..., "Value0N"], ["Value11","Value12", ..., "Value1N"], ..., ["ValueK1","ValueK2", ..., "ValueKN"]] // сами данные
-}
-
-*/
-
 (function(){
 
 var ServerDataProvider = function(params)
 {
-    var _params = $.extend({defaultSortParam: 'ogc_fid'}, params);
+    var _params = $.extend({
+            defaultSortParam: 'ogc_fid',
+            titleToParams: {}
+        }, params);
     var _countURL = null,
         _dataURL = null,
         _countParams = null,
@@ -66,15 +39,12 @@ var ServerDataProvider = function(params)
             return;
         }
         
-        var offset = "&page=" + page,
-            limit = "&pagesize=" + pageSize,
-            sortAttr = "&orderby=" + (sortParam || _params.defaultSortParam),
-            sortOrder = "&orderdirection=" + (sortDec ? "DESC" : "ASC");
-            
+        var explicitSortParam = sortParam ? (_params.titleToParams[sortParam] || sortParam) : _params.defaultSortParam;
+
         var params = $.extend({
             page: page,
             pagesize: pageSize,
-            orderby: sortParam || _params.defaultSortParam,
+            orderby: explicitSortParam,
             orderdirection: sortDec ? "DESC" : "ASC"
         }, _dataParams);
             
@@ -141,7 +111,7 @@ var attrsTable = function(layerName, layerTitle)
 	
 	this.filterData = null;
 	
-	this.textarea = null;
+	this.queryTextarea = null;
 	this.activeColumns = null;
 	
 	this.resizeFunc = function(){};
@@ -149,6 +119,31 @@ var attrsTable = function(layerName, layerTitle)
     this._listenerId = null;
     
     this._isLayerOnMap = !!globalFlashMap.layers[this.layerName];
+    
+    this._tableFields = {
+        fieldsAsArray: [],
+        fieldsAsHash: {},
+        titleToField: {},
+        init: function(fieldParams, info) {
+            var _this = this;
+            this.fieldsAsHash = {};
+            this.titleToField = {};
+            this.fieldsAsArray = [];
+            if (!fieldParams) {
+                this.fieldsAsArray = [info.identityField].concat(info.attributes);
+                this.fieldsAsArray.forEach(function(name) {
+                    _this.fieldsAsHash[name] = true;
+                    _this.titleToField[name] = name;
+                })
+            } else {
+                fieldParams.forEach(function(field) {
+                    _this.fieldsAsArray.push(field.title);
+                    _this.fieldsAsHash[field.title] = true;
+                    _this.titleToField[field.title] = field.name;
+                })
+            }
+        }
+    }
 }
 
 attrsTable.prototype.getLayerInfo = function()
@@ -211,21 +206,173 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 	})
 }
 
+attrsTable.prototype._updateSearchString = function(tdParams, info) {
+    var query = this.queryTextarea ? this.queryTextarea.value : '';
+    this._serverDataProvider.setRequests(
+        serverBase + 'VectorLayer/Search.ashx', {layer: this.layerName, query: query, count: true},
+        serverBase + 'VectorLayer/Search.ashx', {layer: this.layerName, query: query}
+    );
+}
+
+attrsTable.prototype._drawSearchParamsUI = function(tdParams, info) {
+    var paramsWidth = 300,
+        searchButton = makeButton(_gtxt("Найти")),
+		cleanButton = makeButton(_gtxt("Очистить поиск")),
+        _this = this;
+        
+    this.columnsList = _div(null, [['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]);
+
+	searchButton.onclick = function()
+	{
+		_this.offset = 0;
+        _this._updateSearchString();
+	}
+	
+	cleanButton.onclick = function()
+	{
+		_this.queryTextarea.value = "";
+		_this.offset = 0;
+        _this._updateSearchString();
+	}
+    
+    this.queryTextarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
+    
+    var attrNames = [info.identityField].concat(info.attributes);
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) 
+        attrHash[attrNames[a]] = [];
+        
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.LayerID );
+	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.queryTextarea, "\"suggest\"", function(){}, attrProvider, true),
+		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.queryTextarea, "\"suggest\"", function(){}, attrProvider),
+		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this.queryTextarea, " suggest ", function(){});
+		
+	opsSuggest.style.width = '80px';
+	$(opsSuggest).children().css('width','60px');
+	
+	var divAttr = _div([_t(_gtxt("Атрибут >")), attrsSuggest], [['dir','className','attrsHelperCanvas']]),
+		divValue = _div([_t(_gtxt("Значение >")), valuesSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
+		divOp = _div([_t(_gtxt("Операция >")), opsSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
+		clickFunc = function(div)
+		{
+			if (document.selection)
+			{
+				_this.queryTextarea.focus();
+				var sel = document.selection.createRange();
+				div.sel = sel;
+				_this.queryTextarea.blur();
+			}
+			
+			$(divAttr.parentNode.parentNode.parentNode).find(".attrsHelperCanvas").children("[arr]").fadeOut(300, function()
+			{
+				$(this).remove();
+			})
+		};
+
+	divAttr.onclick = function()
+	{
+		clickFunc(attrsSuggest);
+		
+		$(attrsSuggest).fadeIn(300);
+		$(valuesSuggest).fadeOut(300);
+		$(opsSuggest).fadeOut(300);
+		
+		return true;
+	}
+	
+	divValue.onclick = function()
+	{
+		clickFunc(valuesSuggest);
+		
+		$(valuesSuggest).fadeIn(300);
+		$(attrsSuggest).fadeOut(300);
+		$(opsSuggest).fadeOut(300);
+		
+		return true;
+	}
+	
+	divOp.onclick = function()
+	{
+		clickFunc(opsSuggest);
+		
+		$(opsSuggest).fadeIn(300);
+		$(attrsSuggest).fadeOut(300);
+		$(valuesSuggest).fadeOut(300);
+		
+		return true;
+	}
+	
+	this.queryTextarea.onclick = function()
+	{
+		$(attrsSuggest).fadeOut(300);
+		$(valuesSuggest).fadeOut(300);
+		$(opsSuggest).fadeOut(300);
+		
+		if (divAttr.childNodes.length > 2)
+			divAttr.lastChild.removeNode(true);
+		if (divValue.childNodes.length > 2)
+			divValue.lastChild.removeNode(true);
+		
+		return true;
+	}
+	
+	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])]),
+											 _td([_div([divValue],[['css','position','relative']])]),
+											 _td([_div([divOp],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
+	_(tdParams, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this.queryTextarea, suggestCanvas],[['attr','filterTable',true]])])
+	
+	_(tdParams, [_div([_t(_gtxt("Показывать столбцы") + ":")],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']])])
+	
+    var attrTitles = this._tableFields.fieldsAsArray;
+	if (!this.activeColumns)
+	{
+		this.activeColumns = {};
+		
+		for (var i = 0; i < attrTitles.length; ++i)
+			this.activeColumns[attrTitles[i]] = true;
+	}
+
+    var rowTemplate = 
+        '<label title="{{name}}" class="attrs-table-active-row">' + 
+            '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
+            '{{name}}' + 
+        '</label>';
+        
+    attrTitles.forEach(function(columnName) {
+        var rowUI = $(Mustache.render(rowTemplate, {
+            active: _this.activeColumns[columnName],
+            name: columnName
+        })).appendTo(_this.columnsList);
+        
+        $('input', rowUI).click(function() {
+            _this.activeColumns[columnName] = this.checked;
+            _this.table2.activateField(columnName, this.checked);
+        })
+	});
+    
+	
+	_(tdParams, [this.columnsList]);
+	
+	searchButton.style.marginRight = '17px';
+	cleanButton.style.marginRight = '3px';
+	_(tdParams, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])]);
+}
+
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
     var _params = $.extend({
-        hideDownload: false, 
-        hideActions: false, 
+        hideDownload: false,
+        hideActions: false,
+        hideRowActions: false,
+        hideSearchParams: false,
         onClick: null
+        /*attributes: [] */
     }, params);
         
 	var paramsWidth = 300,
 		tdParams = _td(null,[['css','width',paramsWidth + 'px'],['attr','vAlign','top']]),
 		tdTable = _td(null, [['attr','vAlign','top']]),
-		columnsList = _div(null, [['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]),
 		paramsButton = makeLinkButton(_gtxt("Показать параметры поиска")),
-		searchButton = makeButton(_gtxt("Найти")),
-		cleanButton = makeButton(_gtxt("Очистить поиск")),
 		addObjectButton = makeLinkButton(_gtxt("Добавить объект")),
 		oldCanvasWidth = false,
 		_this = this;
@@ -240,23 +387,22 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         downloadLayer($(this).data('format'));
     });
 
-    this._serverDataProvider = new ServerDataProvider();
-    var updateSearchString = function()
-    {
-        _this._serverDataProvider.setRequests(
-            serverBase + 'VectorLayer/Search.ashx', {count: true, layer: _this.layerName, query: _this.textarea.value},
-            serverBase + 'VectorLayer/Search.ashx', {layer: _this.layerName, query: _this.textarea.value}
-        );
-    }
+    this._tableFields.init(_params.attributes, info);
+    
+    this._serverDataProvider = new ServerDataProvider({titleToParams: this._tableFields.titleToField});
     
     var hostName = serverBase.match(/^https?:\/\/(.*)\/$/)[1];
+    
+    _params.hideSearchParams || this._drawSearchParamsUI(tdParams, info);
+    
+    this._updateSearchString();
     
     var downloadLayer = function(format) {
         _layersTree.downloadVectorLayer(
             _this.layerName, 
             hostName,
             format,
-            _this.textarea.value
+            _this.queryTextarea.value
         );
     }
 
@@ -281,19 +427,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		
 		resizeFunc();
 	}
-	
-	searchButton.onclick = function()
-	{
-		_this.offset = 0;
-        updateSearchString();
-	}
-	
-	cleanButton.onclick = function()
-	{
-		_this.textarea.value = "";
-		_this.offset = 0;
-        updateSearchString();
-	}	
+    
+   _params.hideSearchParams && $(paramsButton).hide();
 	
 	addObjectButton.onclick = function()
 	{
@@ -308,15 +443,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	tdParams.style.display = 'none';
 	
 	var name = 'attrsTable' + info.name;
-                        
-	var attrNames = [info.identityField].concat(info.attributes);
-    var fielsWidth = _params.hideActions ? [] : [""];
-    var attrNamesHash = {};
-    for (var f = 0; f < attrNames.length; f++)
-    {
-        fielsWidth.push("");
-        attrNamesHash[attrNames[f]] = true;
-    }
+    
+    var attrNames = this._tableFields.fieldsAsArray;
+    var fielsWidth = new Array(_params.hideRowActions ? attrNames.length: attrNames.length + 1).join('0').split('0');
+    var attrNamesHash = this._tableFields.fieldsAsHash;
     
     _params.hideDownload && downloadSection.hide();
 
@@ -325,7 +455,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2 = new scrollTable({pagesCount: 10, limit: 20});
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
-        tds = [];
+        var tds = [];
 
         var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
             editButton = makeImageButton('img/edit.png'),
@@ -382,7 +512,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         _title(editButton, _gtxt("Редактировать"))
         _title(showButton, _gtxt("Показать"))
         
-        if (!_params.hideActions)
+        if (!_params.hideRowActions)
             tds.push(tdControl);
         
         for (var j = 0; j < activeHeaders.length; ++j)
@@ -390,14 +520,16 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             if (activeHeaders[j] == "")
                 continue;
                 
-            if (activeHeaders[j] in elem.fields)
+            var fieldName = _this._tableFields.titleToField[activeHeaders[j]];
+                
+            if (fieldName in elem.fields)
             {
-                var valIndex = elem.fields[activeHeaders[j]].index,
+                var valIndex = elem.fields[fieldName].index,
                     td = _td();
                 
-                _(td, [_t(nsGmx.Utils.convertFromServer(elem.fields[activeHeaders[j]].type, elem.values[valIndex]))])
+                _(td, [_t(nsGmx.Utils.convertFromServer(elem.fields[fieldName].type, elem.values[valIndex]))])
                 
-                if (elem.fields[activeHeaders[j]].type == 'integer')
+                if (elem.fields[fieldName].type == 'integer')
                     td.style.textAlign = 'right';
                 
                 tds.push(td);
@@ -424,11 +556,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         return tr;
     }
     
-	this.textarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
-    
-    updateSearchString();
-    
-    var tableFields = _params.hideActions ? attrNames : [""].concat(attrNames);
+    var tableFields = _params.hideRowActions ? attrNames : [""].concat(attrNames);
     
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, attrNamesHash, true);
@@ -436,131 +564,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	_(canvas, [_div([paramsButton, addObjectButton],[['css','margin','10px 0px 10px 1px']])])
 	_(canvas, [_table([_tbody([_tr([tdParams, tdTable2])])],['css','width','100%'])])
 	
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) 
-        attrHash[attrNames[a]] = [];
-        
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.LayerID );
-	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider, true),
-		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider),
-		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this.textarea, " suggest ", function(){});
-		
-	opsSuggest.style.width = '80px';
-	$(opsSuggest).children().css('width','60px');
-	
-	var divAttr = _div([_t(_gtxt("Атрибут >")), attrsSuggest], [['dir','className','attrsHelperCanvas']]),
-		divValue = _div([_t(_gtxt("Значение >")), valuesSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-		divOp = _div([_t(_gtxt("Операция >")), opsSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-		clickFunc = function(div)
-		{
-			if (document.selection)
-			{
-				_this.textarea.focus();
-				var sel = document.selection.createRange();
-				div.sel = sel;
-				_this.textarea.blur();
-			}
-			
-			$(divAttr.parentNode.parentNode.parentNode).find(".attrsHelperCanvas").children("[arr]").fadeOut(300, function()
-			{
-				$(this).remove();
-			})
-		};
-
-	divAttr.onclick = function()
-	{
-		clickFunc(attrsSuggest);
-		
-		$(attrsSuggest).fadeIn(300);
-		$(valuesSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	divValue.onclick = function()
-	{
-		clickFunc(valuesSuggest);
-		
-		$(valuesSuggest).fadeIn(300);
-		$(attrsSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	divOp.onclick = function()
-	{
-		clickFunc(opsSuggest);
-		
-		$(opsSuggest).fadeIn(300);
-		$(attrsSuggest).fadeOut(300);
-		$(valuesSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	this.textarea.onclick = function()
-	{
-		$(attrsSuggest).fadeOut(300);
-		$(valuesSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		if (divAttr.childNodes.length > 2)
-			divAttr.lastChild.removeNode(true);
-		if (divValue.childNodes.length > 2)
-			divValue.lastChild.removeNode(true);
-		
-		return true;
-	}
-	
-	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])]),
-											 _td([_div([divValue],[['css','position','relative']])]),
-											 _td([_div([divOp],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
-	_(tdParams, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this.textarea, suggestCanvas],[['attr','filterTable',true]])])
-	
-	_(tdParams, [_div([_t(_gtxt("Показывать столбцы") + ":")],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']])])
-	
-	var columnsNames = [].concat(attrNames);
-	
-	if (!this.activeColumns)
-	{
-		this.activeColumns = {};
-		
-		for (var i = 0; i < attrNames.length; ++i)
-			this.activeColumns[attrNames[i]] = true;
-	}
-		
-	for (var i = 0; i < columnsNames.length; ++i)
-	{
-		var box = _checkbox(this.activeColumns[columnsNames[i]], 'checkbox'),
-			columnName = _div([box, _span([_t(columnsNames[i])],[['css','margin','3px'],['css','fontSize','12px']])], [['css','width',paramsWidth - 42 + 'px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','margin','4px 0px 2px 3px']]);
-		
-		_title(columnName, columnsNames[i])
-		
-		box.className = 'box';
-		
-		(function(columnsName)
-		{
-			box.onclick = function()
-			{
-				_this.activeColumns[columnsName] = this.checked;
-				_this.table2.activateField(columnsName, this.checked);
-			}
-		})(columnsNames[i])
-		
-		_(columnsList, [columnName])
-	}	
-	
-	_(tdParams, [columnsList]);
-	
-	searchButton.style.marginRight = '17px';
-	cleanButton.style.marginRight = '3px';
-	_(tdParams, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])])
-	
 	var resizeFunc = function()
 	{
-        
 		var dialogWidth = oldCanvasWidth || outerSizeProvider().width;
 		
 		oldCanvasWidth = false;
@@ -571,7 +576,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		
         var dialogHeight = outerSizeProvider().height;
 		_this.divTable2.style.height = dialogHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
-		columnsList.style.height = _this.divTable2.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
+		
+        if (_this.columnsList) {
+            _this.columnsList.style.height = _this.divTable2.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
+        }
         
         _this.table2.updateHeight(parseInt(_this.divTable2.style.height));
 	}
@@ -579,8 +587,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	this.resizeFunc = resizeFunc;
 	
 	resizeFunc();
-	
-	this.columnsNames = columnsNames;
     
     if (this._isLayerOnMap)
     {
@@ -601,7 +607,7 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
 {
 	if (name in this.hash)
 	{
-		this.hash[name].getInfo(canvas, outerSizeProvider, params);
+        this.hash[name].getInfo(canvas, outerSizeProvider, params);
 	}
 	else
 	{
@@ -618,5 +624,26 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
 scrollTable.AttributesServerDataProvider = ServerDataProvider;
 
 window._attrsTableHash = new attrsTableHash();
+
+window.nsGmx = window.nsGmx || {};
+
+/** Показать таблицу атрибутов векторного слоя
+  @func createAttributesTable
+  @memberOf nsGmx
+  @param {String} layerName ID слоя
+  @param {DOMElement} canvas Контейнер, куда поместить таблицу атрибутов. Если не указано, будет создан новый диалог
+  @param {function} outerSizeProvider Ф-ция для определения текущих размеров контейнера. Должна возвращать объект с полями width и height. Применяется только если указан canvas.
+  @param {Object} params Дополнительные параметры
+  @param {Boolean} [params.hideDownload=false] Скрыть секцию с вариантами скачивания данных
+  @param {Boolean} [params.hideActions=false] Скрыть секцию с добавлением объекта
+  @param {Boolean} [params.hideRowActions=false] Скрыть столбец таблицы с действиями над отдельными объектами 
+  @param {Boolean} [params.hideSearchParams=false] Скрыть секцию с параметрами поиска
+  @param {function} [params.onClick] Ф-ция, которая будет вызываться при клике на строчке таблицы. Первым параметром передаётся объект, по которому кликнули
+  @param {Array} [params.attributes] Массив, определяющий, какие атрибуты показывать. Каждый элемент - объект с полями "name" (исходное название атрибута) и title (как отображать в таблице). 
+                 Если атрибута нет в массиве, он не будет показан в таблице. Если массив не указан, показываются все атрибуты
+  @return Интерфейс для управления таблицей атрибутов
+*/
+
+window.nsGmx.createAttributesTable = window._attrsTableHash.create.bind(window._attrsTableHash);
 
 })();

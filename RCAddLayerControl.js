@@ -142,8 +142,9 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             height: 300,
             onclick: function(clickContext) {
                 currRCName = clickContext.elem.name;
-                currAttrControl = window._attrsTableHash.create(currRCName, RCLayerObjectCanvas[0], sizeProvider, {
+                currAttrControl = nsGmx.createAttributesTable(currRCName, RCLayerObjectCanvas[0], sizeProvider, {
                     hideActions: true,
+                    hideRowActions: true,
                     hideDownload: true,
                     onClick: function(elem) {
                         var idfield = currAttrControl.getLayerInfo().identityField;
