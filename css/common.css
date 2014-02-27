@@ -455,6 +455,15 @@ div.unit .unitInfo
 	margin: 0px 5px;
 	color: #7D7D8D;
 }
+
+.layerInfoButton
+{
+    font-weight: bold;
+    font-style: italic;
+    margin: 0px 5px;
+    cursor: pointer;
+}
+
 .filterCanvas
 {
 	padding: 4px 0px;

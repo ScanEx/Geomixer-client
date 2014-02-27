@@ -201,6 +201,18 @@ var layersTree = function( renderParams )
 	this.groupLoadingFuncs = [];
     
     this._treeCanvas = null; //контейнер отрисованного дерева слоёв
+    
+    this._layerViewHooks = [];
+}
+
+layersTree.prototype.addLayerViewHook = function(hook) {
+    hook && this._layerViewHooks.push(hook);
+}
+
+layersTree.prototype._applyLayerViewHooks = function(div, layerProps) {
+    this._layerViewHooks.forEach(function(hook) {
+        hook(div, layerProps);
+    })
 }
 
 // layerManagerFlag == 0 для дерева слева
@@ -412,6 +424,8 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 		
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
+        
+        this._applyLayerViewHooks(div, elemProperties);
 	}
 	else
 	{
@@ -537,7 +551,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     }
     
     disableSelection(span);
-	// }
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
@@ -573,7 +586,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     
     if (count || elem.Legend)
     {
-        _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
+        _(borderDescr, [_t('i')], [['dir','className','layerInfoButton']]);
         borderDescr.onclick = function()
         {
             nsGmx.Controls.showLayerInfo({properties:elem}, {properties: props});
