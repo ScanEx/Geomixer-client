@@ -1143,7 +1143,12 @@
 
         var dragAttr = null;
         var dragOn = function(ev) {
-			if(ev.originalEvent.ctrlKey) return false;
+            if(!dragAttr) return false;
+            if(dragAttr.options && dragAttr.options.rightButton) {
+                if(ev.originalEvent.button !== 2) return false;
+			} else {
+                if(ev.originalEvent.button === 2) return false;
+			}
 			var latlng = gmxAPI._leaflet.mousePos;
 			var item = node.hoverItem;
 			var pt = getItemsByPoint(latlng, LMap.getZoom());
@@ -1173,8 +1178,8 @@
                 LMap.off('mouseup', mouseup);
                 LMap.off('mouseout', mouseout);
                 if(dragAttr && dragAttr.dragend) dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
-                gmxAPI.map.dragState = false;
                 setTimeout(function(e) {
+                    gmxAPI.map.dragState = false;
                     gmxAPI._leaflet.utils.unfreeze();
                     gmxAPI._leaflet.LabelsManager.setVisible(true);	// Показать Labels
                     node.waitRedrawFlips(0);

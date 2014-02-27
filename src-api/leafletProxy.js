@@ -293,11 +293,11 @@
 		}
 		,
 		'chkKeys': function(out, ev)	{		// Проверка нажатия спец.символов
-			if(ev.buttons || ev.button) out['buttons'] = ev.buttons || ev.button;
-			if(ev.ctrlKey)	out['ctrlKey'] = ev.ctrlKey;
-			if(ev.altKey)	out['altKey'] = ev.altKey;
-			if(ev.shiftKey)	out['shiftKey'] = ev.shiftKey;
-			if(ev.metaKey)	out['metaKey'] = ev.metaKey;
+			if(ev.buttons || ev.button) out.buttons = out.button = ev.buttons || ev.button;
+			if(ev.ctrlKey)	out.ctrlKey = ev.ctrlKey;
+			if(ev.altKey)	out.altKey = ev.altKey;
+			if(ev.shiftKey)	out.shiftKey = ev.shiftKey;
+			if(ev.metaKey)	out.metaKey = ev.metaKey;
 		}
 		,
 		'getCurrentBounds': function(zoom)	{		// Вычисление размеров тайла по zoom
@@ -4520,9 +4520,11 @@ var tt = 1;
 				gmxAPI._leaflet.utils.chkMapObjectsView();
 			});
 			LMap.on('contextmenu', function(e) {
-				var attr = parseEvent(e);
-				gmxAPI._leaflet.contextMenu.showMenu({obj:gmxAPI.map, attr: attr});	// Показать меню
-			});
+                if(!gmxAPI.map.dragState) {
+                    var attr = parseEvent(e);
+                    gmxAPI._leaflet.contextMenu.showMenu({obj:gmxAPI.map, attr: attr});	// Показать меню
+                }
+            });
 
 			// Обработчик события - mapInit
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});

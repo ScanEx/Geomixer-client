@@ -770,9 +770,9 @@
 		});
 
 		if(gmxAPI.proxyType === 'leaflet') {
-			gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
+			gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback, options)
 			{
-				var attr = { 'drag': dragCallback, 'dragstart':downCallback, 'dragend':upCallback };
+				var attr = { 'drag': dragCallback, 'dragstart':downCallback, 'dragend':upCallback, options: options };
 				gmxAPI._cmdProxy('enableDragging', { 'obj': this, 'attr':attr });
 			});
 			gmxAPI.extendFMO('disableDragging', function()
