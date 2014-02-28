@@ -215,11 +215,27 @@ div.user span
 	width: 360px;
 	overflow: hidden;
 }
+
+.leftPanelHeader
+{
+    position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
+.leftPanelFooter
+{
+    position: absolute;
+	left: 0px;
+	bottom: 0px;
+}
+
 .leftContent
 {
 	width: 100%;
 	overflow-x: hidden;
 	overflow-y: auto;
+    position: absolute;
 }
 .layerManager
 {

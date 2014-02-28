@@ -653,9 +653,7 @@ function translit(name)
 	return result;
 }
 
-var layersShown = true,
-	layerManagerShown = false,
-	leftContentHeightDecrease = 0; //насколько уменьшать высоту левой панели (для плагинов)
+var layersShown = true;
 
 function loadFunc(iframe, callback)
 {

@@ -587,7 +587,7 @@ window.resizeAll = function()
 	var top = 0,
 		bottom = 0,
 		right = 0,
-		left = Number(layersShown) * 360 + Number(layerManagerShown * 300);
+		left = Number(layersShown) * 360;
 	
 	$$("flash").style.left = left + 'px';
 	$$("flash").style.top = top + 'px';
@@ -603,7 +603,14 @@ window.resizeAll = function()
 		jQuery("#header").find("[hidable]").css("display",'');
 		$$('header').style.height = '95px';
 		
-		$$("leftContent").style.height = getWindowHeight() - top - bottom - leftContentHeightDecrease - 95 + 'px';
+        var baseHeight = getWindowHeight() - top - bottom - 95;
+        
+        $$("leftMenu").style.height = baseHeight + 'px'
+        
+        $$("leftContent").style.top = $$("leftPanelHeader").offsetHeight + 'px';
+		$$("leftContent").style.height = baseHeight -
+            $$("leftPanelHeader").offsetHeight - 
+            $$("leftPanelFooter").offsetHeight + 'px';
 	}
 	else
 	{
