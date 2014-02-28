@@ -2812,6 +2812,7 @@
                     node.tiles[st] = bounds;
                 
                     if(vers) {
+                        if (!node.tilesVers) node.tilesVers = {};
                         node.tilesVers[st] = vers[cnt];
                         cnt++;
                     }
