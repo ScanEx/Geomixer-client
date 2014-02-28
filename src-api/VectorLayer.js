@@ -1126,6 +1126,7 @@
 				if(node.objectsData[id] && tileID !== 'addItem') {		// Обьект уже имеется - нужна??? склейка геометрий
 					var pt = node.objectsData[id];
 					if(objData.type != 'POINT' && objData.type.indexOf('MULTI') == -1) pt.type = 'MULTI' + objData.type;
+					pt.properties = geo.properties;
 					pt.propHiden.fromTiles[tileID] = true;
 					geo.propHiden = pt.propHiden;
 					delete pt.mercGeo;
