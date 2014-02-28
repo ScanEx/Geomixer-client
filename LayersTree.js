@@ -21,8 +21,6 @@ nsGmx.LayersTree = function( tree )
                     return res;
             }
         }
-        
-        return false;
     }
     
     //public
@@ -51,9 +49,9 @@ nsGmx.LayersTree = function( tree )
             return this.findElem("MultiLayerID", gmxProperties.content.properties.MultiLayerID);
     }
     
-    this.forEachLayer = function(callback)
+    this.forEachLayer = function(callback, node)
     {
-        forEachLayer(_tree, callback);
+        forEachLayer(node || _tree, callback);
     }
     
     // клонирование дерева с возможностью его модификации
