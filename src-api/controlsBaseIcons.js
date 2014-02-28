@@ -656,36 +656,25 @@
 
         // HideControls - кнопка управления видимостью всех контролов
         L.Control.hideControls = L.Control.gmxControl.extend({
+            options: {
+                notHide: true
+            },
             setVisibility: function (flag, allFlag) {
                 this.options.isVisible = flag;
-                for(var key in Controls.items) {
+                for (var key in Controls.items) {
                     var item = Controls.items[key];
-                    if(item != this || allFlag) {
-                        //if('setVisible' in item) item.setVisible(flag);
-                        //else 
-                        if(item._container) item._container.style.display = flag && item.options.isVisible ? 'block' : 'none';
+                    if (!item.options.notHide || allFlag) {
+                        if (item._container) item._container.style.display = flag && item.options.isVisible ? 'block' : 'none';
                         else {
                             console.warn('hideControls', item);
                         }
                     }
                 }
-            }
-            ,
+            },
             _toggleVisible: function (e) {
                 L.DomEvent.stopPropagation(e);
                 var flag = !this.options.isVisible;
                 this.setVisibility(flag);
-                // this.options.isVisible = flag;
-                // for(var key in Controls.controlsHash) {
-                    // var item = Controls.controlsHash[key];
-                    // if(item != this) {
-                        // if('setVisible' in item) item.setVisible(flag);
-                        // else if(item._container) item._container.style.display = flag ? 'block' : 'none';
-                        // else {
-                            // console.warn('hideControls', item);
-                        // }
-                    // }
-                // }
             }
         });
         /**
@@ -723,6 +712,9 @@
 
         // BottomBG - подвал background
         L.Control.BottomBG = L.Control.gmxControl.extend({
+            options: {
+                notHide: true
+            },
             onAdd: function (map) {
                 Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
@@ -751,6 +743,9 @@
 
         // LocationControls - 
         L.Control.LocationControls = L.Control.gmxControl.extend({
+            options: {
+                notHide: true
+            },
             onAdd: function (map) {
                 Controls.items[this.options.id] = this;
                 var className = 'gmx_location',
@@ -886,6 +881,9 @@
 
         // CopyrightControls - Copyright
         L.Control.CopyrightControls = L.Control.gmxControl.extend({
+            options: {
+                notHide: true
+            },
             onAdd: function (map) {
                 Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
