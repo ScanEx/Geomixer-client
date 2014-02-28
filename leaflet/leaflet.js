@@ -8999,8 +8999,8 @@ L.TileLayer.include({
 
 	_clearBgBuffer: function () {
 		var map = this._map;
-
-		if (map && !map._animatingZoom && !map.touchZoom._zooming) {
+// Add by OriginalSin
+		if (this._bgBuffer && map && !map._animatingZoom && !map.touchZoom._zooming) {
 			this._bgBuffer.innerHTML = '';
 			this._bgBuffer.style[L.DomUtil.TRANSFORM] = '';
 		}
