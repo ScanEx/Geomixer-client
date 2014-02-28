@@ -452,7 +452,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     this.divTable2 = _div(null, [['css','overflow','auto'], ['dir', 'className', 'attrsTableBody']]);
     var tdTable2 = _td([this.divTable2, downloadSection[0]], [['attr','vAlign','top']]);
-    this.table2 = new scrollTable({pagesCount: 10, limit: 20});
+    this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
         var tds = [];
@@ -621,11 +621,11 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
     return this.hash[name];
 }
 
-scrollTable.AttributesServerDataProvider = ServerDataProvider;
+window.nsGmx = window.nsGmx || {};
+
+window.nsGmx.ScrollTable.AttributesServerDataProvider = ServerDataProvider;
 
 window._attrsTableHash = new attrsTableHash();
-
-window.nsGmx = window.nsGmx || {};
 
 /** Показать таблицу атрибутов векторного слоя
   @func createAttributesTable

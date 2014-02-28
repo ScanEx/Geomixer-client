@@ -72,11 +72,11 @@ var security = function()
 	this.propertyValue = null;
 	this.title = null;
     
-    this._securityTable = new scrollTable({limit:20, pagesCount: 5});
-    this._securityUsersProvider = new scrollTable.StaticDataProvider();
+    this._securityTable = new nsGmx.ScrollTable({limit:20, pagesCount: 5});
+    this._securityUsersProvider = new nsGmx.ScrollTable.StaticDataProvider();
     
-    this._securityTableSuggest = new scrollTable({limit:20, pagesCount: 5});
-    this._securitySuggestProvider = new scrollTable.StaticDataProvider();
+    this._securityTableSuggest = new nsGmx.ScrollTable({limit:20, pagesCount: 5});
+    this._securitySuggestProvider = new nsGmx.ScrollTable.StaticDataProvider();
 }
 
 var mapSecurity = function()
@@ -247,8 +247,8 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		var canvas = _div();
 		var tableSuggestParent = _div();
         
-		var usersTable = new scrollTable({limit: 20, pagesCount: 5});
-        var usersProvider = new scrollTable.StaticDataProvider();
+		var usersTable = new nsGmx.ScrollTable({limit: 20, pagesCount: 5});
+        var usersProvider = new nsGmx.ScrollTable.StaticDataProvider();
 		
 		if (isShowUserSuggest)
 		{

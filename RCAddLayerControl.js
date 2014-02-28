@@ -39,8 +39,8 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     var LayersToAddWidget = function(parent) {
         var objsByLayer = {};
-        var dataProvider = new scrollTable.StaticDataProvider();
-        var table = new scrollTable();
+        var dataProvider = new nsGmx.ScrollTable.StaticDataProvider();
+        var table = new nsGmx.ScrollTable();
         table.setDataProvider(dataProvider);
         
         table.createTable({

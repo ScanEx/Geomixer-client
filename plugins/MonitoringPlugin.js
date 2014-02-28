@@ -141,8 +141,8 @@ var publicInterface =
 
             sendCrossDomainPostRequest(serverBase + "SearchObject/SearchVector.ashx", requestParams, function(searchReq)
             {
-                var imagesTable = new scrollTable();
-                var dataProvider = new scrollTable.StaticDataProvider();
+                var imagesTable = new nsGmx.ScrollTable();
+                var dataProvider = new nsGmx.ScrollTable.StaticDataProvider();
                 dataProvider.setOriginalItems (searchReq.Result[0].SearchResult);
                 dataProvider.setSortFunctions({'Дата': [
                     function(a,b){
@@ -188,8 +188,8 @@ var publicInterface =
             showEventInfo(feature.obj.getGeometry());
         })
         
-        var eventsTable = new scrollTable();
-        var eventsDataProvider = new scrollTable.AttributesServerDataProvider();
+        var eventsTable = new nsGmx.ScrollTable();
+        var eventsDataProvider = new nsGmx.ScrollTable.AttributesServerDataProvider();
         
         var updateEventRequests = function(query)
         {

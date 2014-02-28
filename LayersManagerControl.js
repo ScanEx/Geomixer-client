@@ -345,7 +345,7 @@ var LayerManagerControl = function( parentDiv, name, params )
     });
     
     var layersListProvider = new LayersListProvider(LayersFilterParams);
-    var layersTable = new scrollTable({height: _params.height ? _params.height - 130 : ''});
+    var layersTable = new nsGmx.ScrollTable({height: _params.height ? _params.height - 130 : ''});
     layersTable.setDataProvider(layersListProvider);
     
 	layersTable.createTable(tableParent, name, 0, 
