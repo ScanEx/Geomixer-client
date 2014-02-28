@@ -856,9 +856,8 @@ scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
 //если есть вьюер, добавляем для него переменные в глобальный namespace
 if ('nsGmx' in window && 'GeomixerFramework' in window.nsGmx)
 {
-    window.scrollTable = scrollTable;
-    window._mapsTable = new scrollTable();
-	window._listTable = new scrollTable();
+    window.scrollTable = scrollTable; //Depricated - use nsGmx
+    window.nsGmx.ScrollTable = scrollTable;
 }
     
 if (typeof window.gmxCore !== 'undefined')

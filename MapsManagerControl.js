@@ -13,6 +13,8 @@ nsGmx.MapsManagerControl = function()
 
         _this._drawMapsDialog(response.Result);
     })
+    
+    this._mapsTable = new nsGmx.ScrollTable();
 }
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
@@ -20,6 +22,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	var canvas = _div(null, [['attr','id','mapsList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		name = 'maps',
+        mapsTable = this._mapsTable,
 		_this = this;
 	
 	var mapNameInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
@@ -54,16 +57,16 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
     
-    $(_mapsTable).bind('beforeRedraw', function() {
+    // $(mapsTable).bind('beforeRedraw', function() {
         //_this._activeIndex = 0;
-    })
+    // })
 	
-	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
+	mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
     {
         return _this._drawMaps.call(this, map, i, _this);
     }, sortFuncs);
     
-    _mapsTable.getDataProvider().setSortFunctions(sortFuncs);
+    mapsTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
     {
@@ -72,34 +75,29 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
     
         return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
     };
-	
+
     $(mapNameInput).bind('keydown', function(event) {
-        //console.log(event);
-        var numItems = _mapsTable.getVisibleItems().length;
+        var numItems = mapsTable.getVisibleItems().length;
         
         if (event.keyCode === 13) {
-            var firstItem = _mapsTable.getVisibleItems()[_this._activeIndex];
+            var firstItem = mapsTable.getVisibleItems()[_this._activeIndex];
             firstItem && window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + firstItem.Name);
         }
         
         if (event.keyCode === 38) {
             _this._activeIndex = Math.max(0, Math.min(_this._activeIndex - 1, numItems - 1));
-            $(_mapsTable.getDataProvider()).change();
+            $(mapsTable.getDataProvider()).change();
             event.preventDefault();
-            // event.stopImmediatePropagation();
-            // return true;
         }
         
         if (event.keyCode === 40) {
             _this._activeIndex = Math.max(0, Math.min(_this._activeIndex + 1, numItems - 1));
-            $(_mapsTable.getDataProvider()).change();
+            $(mapsTable.getDataProvider()).change();
             event.preventDefault();
-            // event.stopImmediatePropagation();
-            // return true;
         }
     })
     
-	_mapsTable.getDataProvider().attachFilterEvents(mapNameInput, 'Title', function(fieldName, fieldValue, vals)
+	mapsTable.getDataProvider().attachFilterEvents(mapNameInput, 'Title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -113,7 +111,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 		return local;
 	})
 	
-	_mapsTable.getDataProvider().attachFilterEvents(mapOwnerInput, 'Owner', function(fieldName, fieldValue, vals)
+	mapsTable.getDataProvider().attachFilterEvents(mapOwnerInput, 'Owner', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -135,14 +133,14 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	
 	var resize = function()
 	{
-		_mapsTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		_mapsTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		_mapsTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+		mapsTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+		mapsTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+		mapsTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 
-		_mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+		mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 
-		_mapsTable.tableParent.style.height = '200px';
-		_mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
+		mapsTable.tableParent.style.height = '200px';
+		mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
 		
 		_this._mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
 		_this._mapPreview.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
@@ -150,11 +148,11 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 		
 	showDialog(_gtxt("Список карт"), canvas, 571, 470, 535, 130, resize);
 	
-	_mapsTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
+	mapsTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 
 	resize();
 	
-	_mapsTable.getDataProvider().setOriginalItems(mapsList);
+	mapsTable.getDataProvider().setOriginalItems(mapsList);
 	
 	mapNameInput.focus();
 }
@@ -250,11 +248,13 @@ nsGmx.MapsManagerControl.prototype._deleteMapHandler = function(response, id)
 	if (!parseResponse(response))
 		return;
 	
+    var mapsTable = this._mapsTable;
+    
 	if (response.Result == 'deleted')
 	{
-        _mapsTable.start = 0;
-		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
-        _mapsTable.getDataProvider().filterOriginalItems(function(elem)
+        mapsTable.start = 0;
+		mapsTable.reportStart = mapsTable.start * mapsTable.limit;
+        mapsTable.getDataProvider().filterOriginalItems(function(elem)
 		{
 			return elem.MapID != id;
 		});
@@ -267,13 +267,8 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
 	loadMapJSON(host, name, function(layers)
 	{
-		//var previewMapHelper = new mapHelper();
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
-		
-		//previewMapHelper.mapTree = layers;
-        //previewMapHelper._treeView = previewLayersTree;
-		//previewLayersTree.mapHelper = previewMapHelper;
-        
+
         var ul = previewLayersTree.drawTree(layers, 2);
 		
 		$(ul).treeview();

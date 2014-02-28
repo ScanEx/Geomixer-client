@@ -11,6 +11,8 @@ var queryMapLayersList = function()
 	this.builded = false;
 	
 	this.mapEvent = false;
+    
+    this._listTable = new nsGmx.ScrollTable();
 }
 
 queryMapLayersList.prototype = new leftMenu();
@@ -22,6 +24,7 @@ queryMapLayersList.prototype.load = function()
 	var canvas = _div(null, [['attr','id','extendLayersList'],['css','marginLeft','10px']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		name = 'list',
+        listTable = this._listTable,
 		_this = this;
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
@@ -124,14 +127,14 @@ queryMapLayersList.prototype.load = function()
 				}
 			];
 	
-	_listTable.limit = 20;
-	_listTable.pagesCount = 5;
+	listTable.limit = 20;
+	listTable.pagesCount = 5;
     
-	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
-    _listTable.getDataProvider().setSortFunctions(sortFuncs);
+	listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+    listTable.getDataProvider().setSortFunctions(sortFuncs);
 	
-	$(_listTable).bind('sortChange', function(){ _this._updateSlider()} );
-	$(_listTable.getDataProvider()).change(function(){ _this._updateSlider()});
+	$(listTable).bind('sortChange', function(){ _this._updateSlider()} );
+	$(listTable.getDataProvider()).change(function(){ _this._updateSlider()});
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -172,7 +175,7 @@ queryMapLayersList.prototype.load = function()
 				return valueDate <= endDate;
 		};
 	
-	_listTable.getDataProvider().attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
+	listTable.getDataProvider().attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -186,7 +189,7 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})
 	
-	_listTable.getDataProvider().addFilter('DateBegin', function(fieldName, fieldValue, vals)
+	listTable.getDataProvider().addFilter('DateBegin', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -202,7 +205,7 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})	
 		
-	_listTable.getDataProvider().addFilter('DateEnd', function(fieldName, fieldValue, vals)
+	listTable.getDataProvider().addFilter('DateEnd', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -220,11 +223,11 @@ queryMapLayersList.prototype.load = function()
 	
 	$(dateIntervalControl).change(function()
 	{
-		_listTable.getDataProvider().setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
-		_listTable.getDataProvider().setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
+		listTable.getDataProvider().setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
+		listTable.getDataProvider().setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
 	});
 	
-	_listTable.getDataProvider().attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
+	listTable.getDataProvider().attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -240,34 +243,35 @@ queryMapLayersList.prototype.load = function()
 	
 	var resize = function()
 	{
-		_listTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		_listTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		_listTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+		listTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+		listTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+		listTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 
-		_listTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+		listTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 		
-		_listTable.tableParent.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 10 + 'px';
-		_listTable.tableBody.parentNode.parentNode.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 20 - 10 - 10 + 'px';
+		listTable.tableParent.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 10 + 'px';
+		listTable.tableBody.parentNode.parentNode.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 20 - 10 - 10 + 'px';
 	}
 	
 	_(canvas, [tableParent]);
 	_(this.workCanvas, [canvas]);
 	
-	_listTable.tableBody.parentNode.style.width = '100%';
-	_listTable.tableParent.style.width = '330px';
-	_listTable.tableBody.parentNode.parentNode.style.height = 'auto';
-	_listTable.tableBody.parentNode.parentNode.style.overflowY = 'auto';
-	_listTable.tableParent.style.height = 'auto';
-	_listTable.tableParent.parentNode.lastChild.style.width = '333px';
+	listTable.tableBody.parentNode.style.width = '100%';
+	listTable.tableParent.style.width = '330px';
+	listTable.tableBody.parentNode.parentNode.style.height = 'auto';
+	listTable.tableBody.parentNode.parentNode.style.overflowY = 'auto';
+	listTable.tableParent.style.height = 'auto';
+	listTable.tableParent.parentNode.lastChild.style.width = '333px';
 	
-	_listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
+	listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 }
 
 //делает видимым только один слой с индексом nVisible
 queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 {
-    // var curLayer = _listTable.getDataProvider().getOriginalItems()[nVisible];
-    var curLayer = _listTable.getDataProvider().getItemsDirect( nVisible, 1, _listTable.getSortType(), _listTable.getSortDirection() )[0];
+    var listTable = this._listTable;
+    // var curLayer = listTable.getDataProvider().getOriginalItems()[nVisible];
+    var curLayer = listTable.getDataProvider().getItemsDirect( nVisible, 1, listTable.getSortType(), listTable.getSortDirection() )[0];
 	if (!this._isLayersScrollActive || typeof curLayer === 'undefined') return;
 	
 	var layerName = curLayer.properties.name;
@@ -284,7 +288,8 @@ queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 
 queryMapLayersList.prototype._updateSlider = function()
 {
-	if (typeof _listTable.getDataProvider().getCountDirect() == 0)
+    var listTable = this._listTable;
+	if (typeof listTable.getDataProvider().getCountDirect() == 0)
 		return;
 
 	var container = $("#layersScrollSlider");
@@ -293,12 +298,12 @@ queryMapLayersList.prototype._updateSlider = function()
 	var slideFunction = function(value)
 		{
 		_this._updateSliderVisibility(value)
-		_listTable.setPage( Math.floor(value / (_listTable.limit)) );
+		listTable.setPage( Math.floor(value / (listTable.limit)) );
 	}
 	
 	this._scrollDiv = $("<div></div>");
 	this._scrollDiv.slider({
-		max: _listTable.getDataProvider().getCountDirect() - 1,
+		max: listTable.getDataProvider().getCountDirect() - 1,
 		slide: function(event, ui) { slideFunction(ui.value); }
 	});
 	
@@ -336,7 +341,7 @@ queryMapLayersList.prototype._updateSlider = function()
 	
 	container.append(table);
 	
-	if (_listTable.getDataProvider().getCountDirect() == 0)
+	if (listTable.getDataProvider().getCountDirect() == 0)
 		this._scrollDiv.slider('option', 'disabled', true);
 	else
 		this._updateSliderVisibility(0);
@@ -466,7 +471,8 @@ queryMapLayersList.prototype.detachMapChangeEvent = function()
 
 queryMapLayersList.prototype.reloadList = function()
 {
-	var extendLayers = [];
+	var extendLayers = [],
+        listTable = this._listTable;
 	
 	//window.baseMap.id будет принудительно выставлен API при инициализации, даже если его нет в config.js
 	var baseMapName = window.baseMap.id;
@@ -516,10 +522,10 @@ queryMapLayersList.prototype.reloadList = function()
 		}
 	}
 
-	_listTable.start = 0;
-	_listTable.reportStart = 0;
+	listTable.start = 0;
+	listTable.reportStart = 0;
 	
-	_listTable.getDataProvider().setOriginalItems(extendLayers);	
+	listTable.getDataProvider().setOriginalItems(extendLayers);	
 }
 
 var _queryMapLayersList = new queryMapLayersList();
