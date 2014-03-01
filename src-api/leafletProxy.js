@@ -3093,7 +3093,7 @@
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node || !node.removeItems) return false;
-			node.removeItems(ph.attr.data);
+			node.removeItems(ph.attr.data, true);
 			return true;
 		}
 		,		

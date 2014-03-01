@@ -2115,7 +2115,7 @@
                 node.observerNode = pt.obj.objectId;
                 var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false;		// отменить контроль фильтра видимости
                 var callback = pt.attr.func;
-                //console.log('setObserver ', ignoreVisibilityFilter, node.id, node['observerNode']);
+//console.log('setObserver ', ignoreVisibilityFilter, node.id, node['observerNode']);
 
                 var observerTiles = {};
                 var observerObj = {};
@@ -2123,12 +2123,12 @@
                     var out = [];
                     var items = node.tilesGeometry[dKey];
                     if(items && items.length > 0) {
-                        for (var i = 0; i < items.length; i++)
+                        for (var i = 0, len = items.length; i < len; i++)
                         {
-                            var item = items[i];
-                            var pid = item['id'];
+                            var item = items[i],
+                                pid = item.id;
                             if(observerObj[pid]) {
-                                var ph = {'layerID': nodeId, 'properties': node.getPropItem(item) };
+                                var ph = {layerID: nodeId, properties: node.getPropItem(item) };
                                 ph.onExtent = false;
                                 ph.geometry = node.getItemGeometry(pid);
                                 //ph.geometry = item.exportGeo();
@@ -2145,34 +2145,29 @@
                 node.chkObserver = function () {				// проверка изменений видимости обьектов векторного слоя
                     var currPosition = gmxAPI.currPosition;
                     if(!currPosition || !currPosition.extent) return;
-                    var ext = currPosition.extent;
-                    var out = [];
-
-                    var tiles = node.tiles;
+                    var ext = currPosition.extent,
+                        out = [],
+                        tiles = node.tiles;
                     for (var key in tiles)
                     {
-                        var tb = tiles[key];
-                        var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY);
+                        var tb = tiles[key],
+                            tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY);
                         if(tvFlag) {								// Тайл за границами видимости
                             if(!observerTiles[key]) continue;
                             delete observerTiles[key];
                         } else {
                             observerTiles[key] = true;
                         }
-                        var items = node['tilesGeometry'][key];
+                        var items = node.tilesGeometry[key];
                         if(items && items.length > 0) {
-                            for (var i = 0; i < items.length; i++)
-                            {
+                            for (var i = 0, len = items.length; i < len; i++) {
                                 var item = items[i];
-                                if(TemporalColumnName && !node.chkTemporalFilter(item)) continue;														// не прошел по мультивременному фильтру
+                                if(TemporalColumnName && !node.chkTemporalFilter(item)) continue;	// не прошел по мультивременному фильтру
                                 if(!item.propHiden || !item.propHiden.toFilters || item.propHiden.toFilters.length == 0) continue;	// обьект не виден по стилевым фильтрам
-                                
-                                var prop = node.getPropItem(item);
                                 if(!ignoreVisibilityFilter && !node.chkSqlFuncVisibility(item)) continue; 	// если фильтр видимости на слое не отменен
-                                
-                                var pid = item.id;
-                                var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY);
-                                var ph = {'layerID': nodeId, 'properties': prop };
+                                var pid = item.id,
+                                    vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY),
+                                    ph = {layerID: nodeId, properties: node.getPropItem(item) };
                                 if(vFlag) {					// Обьект за границами видимости
                                     if(observerObj[pid]) {
                                         ph.onExtent = false;
@@ -2189,7 +2184,7 @@
                                         out.push(ph);
                                         var tilesKeys = {};
                                         tilesKeys[key] = true;
-                                        observerObj[pid] = { 'tiles': tilesKeys , 'item': item };
+                                        observerObj[pid] = { tiles: tilesKeys , item: item };
                                     }
                                 }
                             }
@@ -2222,8 +2217,9 @@
             ,addTile: function(arr)	{			// Добавить тайл
                 return true;
             }
-            ,removeItems: function(data) {		// удаление обьектов векторного слоя 
-                node.clearItemsHash(data)
+            ,removeItems: function(data, arrFlag) {		// удаление обьектов векторного слоя 
+                if (arrFlag) node.clearItems(data);
+                else node.clearItemsHash(data);
                 if(node.clustersData) node.clustersData.clear();
                 node.repaintTilesList()
             }
@@ -2244,10 +2240,11 @@
             ,clearItems: function(data, inUpdate) {		// чистка обьектов векторного слоя 
                 var needRemove = {},
                     zoom = LMap.getZoom();
+                gmxAPI._leaflet.LabelsManager.removeArray(nodeId, data); // Переформировать Labels
                 for (var i = 0, len = data.length; i < len; i++) {
                     var pid = data[i];
                     needRemove[pid] = true;
-                    gmxAPI._leaflet.LabelsManager.remove(nodeId, pid);	// Переформировать Labels
+                    //gmxAPI._leaflet.LabelsManager.remove(nodeId, pid);	// Переформировать Labels
                     var item = node.objectsData[pid];
                     if(item && item.propHiden.drawInTiles) {
                         node.repaintHash(item.propHiden.drawInTiles[zoom], true);
@@ -2653,7 +2650,7 @@
                 var out = false;
                 if(node.observerNode) {
                     if(observerTimer) clearTimeout(observerTimer);
-                    observerTimer = setTimeout(node.chkObserver, 0);
+                    observerTimer = setTimeout(node.chkObserver, 10);
                 }
 
                 var cnt = 0;
