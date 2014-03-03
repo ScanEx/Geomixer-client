@@ -1,5 +1,10 @@
 (function(){
 
+/** Провайдер данных для {@link nsGmx.ScrollTable}. Получает данные от сервера в формате ГеоМиксера
+* @alias nsGmx.ScrollTable.AttributesServerDataProvider
+* @class
+* @extends nsGmx.ScrollTable.IDataProvider
+*/
 var ServerDataProvider = function(params)
 {
     var _params = $.extend({
@@ -75,7 +80,12 @@ var ServerDataProvider = function(params)
         })
     }
     
-    //Задание запросов
+    /** Задать endpoint для получения от сервера данных об объекта и их количестве
+     * @param {String} countURL URL скрипта для запроса общего количества объектов
+     * @param {Object} countParams Параметры запроса для количеством объектов
+     * @param {String} dataURL URL скрипта для запроса самих объектов
+     * @param {Object} dataParams Параметры запроса самих объектов. К этим параметрам будут добавлены параметры для текущей страницы в формате запросов ГеоМиксера
+    */
     this.setRequests = function(countURL, countParams, dataURL, dataParams)
     {
         _countURL = countURL;

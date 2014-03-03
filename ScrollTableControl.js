@@ -20,16 +20,58 @@ var appendTranslations = function()
     });
 }
 
-/**
-    Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
-    
-    События:
-    * beforeRedraw (перед перерисовкой данных)
-    * redraw (после перерисовки данных)
-    * sortChange (изменились параметры сортировки)
+/** Интерфейс провайдера данных таблицы {@link nsGmx.ScrollTable}
+ * @class nsGmx.ScrollTable.IDataProvider
+ * @abstract
+ */
+
+/** Получить общее количество объектов
+  @method nsGmx.ScrollTable.IDataProvider#getCount
+  @param {function(Number)} callback Ф-ция, которую нужно вызвать с общим количеством объектов
 */
+ 
+/** Это событие должно генерироваться при любом изменении набора данных. Приведёт к перерисовке таблицы
+  @event nsGmx.ScrollTable.IDataProvider#change
+*/
+
+/** Получить массив объектов для отрисовки на странице
+  @method nsGmx.ScrollTable.IDataProvider#getItems
+  @param {Number} page Номер страницы (нумерация с нуля)
+  @param {Number} pageSize Размер страницы
+  @param {String} sortParam По какому атрибуту сортировать
+  @param {Boolean} sortDec Направление сортировки (true - по убыванию)
+  @param {function(Array)} callback Ф-ция, которую нужно вызвать с результирующим массивом объектов. Структура самих объектов определяется провайдером
+*/
+
+/** Получить массив объектов для отрисовки на страницы и общее количество данных за один запрос. 
+    Альтернатива раздельным запросам getItems() и getCount(). Можно реализовать либо эту ф-цию, либо две другие
+  @method nsGmx.ScrollTable.IDataProvider#getCountAndItems
+  @param {Number} page Номер страницы (нумерация с нуля)
+  @param {Number} pageSize Размер страницы
+  @param {String} sortParam По какому атрибуту сортировать
+  @param {Boolean} sortDec Направление сортировки (true - по убыванию)
+  @param {function(count:Number, objs:Object[])} callback Ф-ция, которую нужно вызвать с полученным результатом. 
+         Первый параметр - общее количество объектов, второй - массив объектов для данной страницы.
+*/
+
+/** Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
+ * @class
+ * @alias nsGmx.ScrollTable
+ */
 var scrollTable = function( params )
 {
+    /** Перед перерисовкой данных
+     * @event nsGmx.ScrollTable#beforeRedraw
+     */
+     
+    /** После перерисовки данных
+     * @event nsGmx.ScrollTable#redraw
+     */
+     
+    /** Изменились параметры сортировки
+     * @event nsGmx.ScrollTable#sortChange
+     */
+
     this._params = $.extend(
     {
         limit: 50,
@@ -177,17 +219,27 @@ var scrollTable = function( params )
 							 _option([_t("500")], [['attr','value',500]])], [['dir','className','selectStyle floatRight'], ['css','width','60px']])
 }
 
+/** Установка провайдера данных
+ @param {nsGmx.ScrollTable.IDataProvider} dataProvider Провайдер данных
+ */
 scrollTable.prototype.setDataProvider = function( dataProvider )
 {
     this._dataProvider = dataProvider;
     this._drawTable();
 }
 
+/** Получить текущий провайдер данных
+ @return {nsGmx.ScrollTable.IDataProvider} Текущий провайдер данных
+ */
 scrollTable.prototype.getDataProvider = function()
 {
     return this._dataProvider;
 }
 
+/** Изменить активность (видимость) колонки в таблице
+  @param {String} name имя колонки
+  @param {Boolean} isActive активность (видимость) колонки
+*/
 scrollTable.prototype.activateField = function(name, isActive)
 {
     for (var f = 0; f < this._fields.length; f++)
@@ -440,6 +492,18 @@ scrollTable.prototype._drawHeader = function()
 }
 
 //Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
+
+/** Нарисовать таблицу
+* @param {Object} params
+* @param {DOMElement} params.parent Контейнер для помещения результата отрисовки
+* @param {String} params.name Уникальное имя таблицы
+* @param {Number} [params.baseWidth] Какой ширины должна быть таблица. Если не указано, будет занимать 100% контейнера
+* @param {String[]} params.fields массив имён колонок
+* @param {String[]} params.fieldsWidths массив с описанием ширины колонок. Описание даётся в терминах css
+* @param {function} params.drawFunc Ф-ция отрисовки одной строки таблицы. На вход - объект для отрисовки (полученный от провайдера). На выходе - "tr" элемент
+* @param {Object} [params.sortableFields] Хеш для указания возможности сортировки колонок (будет включена для всех ключей хеша)
+* @param {Boolean} [params.isWidthScroll] Трубется ли возможность прокрутки данных по горизонтали
+*/
 scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortableFields, isWidthScroll)
 {
     var params = null
@@ -582,6 +646,9 @@ scrollTable.prototype._drawTable = function()
     this._drawPagesRow();
 }
 
+/** Выбрать страницу для показа
+@param {Number} page Номер страницы (нумерация с нуля)
+*/
 scrollTable.prototype.setPage = function(iPage)
 {
 	if (this.limit*iPage >= this._currValsCount || iPage < 0 || this.reportStart == iPage * this.limit) 
@@ -596,16 +663,18 @@ scrollTable.prototype.setPage = function(iPage)
 	this.tableParent.scrollTop = 0;
 }
 
-scrollTable.prototype.getSortType = function()
-{
-    return this.currentSortType;
-}
-
+/** Получить массив объектов, которые нарисованы в данный момент
+ @return {Array} массив объектов в формате провайдера данных
+*/
 scrollTable.prototype.getVisibleItems = function()
 {
     return this._pageVals;
 }
 
+/** Задать параметры сортровки
+ @param {String} sortType Имя колонки для сортировки
+ @param {Boolean} sortDirection Направление сортровки (false - по возрастанию, true - по убыванию)
+*/
 scrollTable.prototype.setSortParams = function(sortType, sortDirection)
 {
     this.currentSortType = sortType;
@@ -619,13 +688,23 @@ scrollTable.prototype.setSortParams = function(sortType, sortDirection)
     $(this).triggerHandler('sortChange');
 }
 
-//false - по возрастанию, dec - по убыванию
+/** Получить текущее направление сортировки.
+ @return {Boolean} false - по возрастанию, true - по убыванию
+*/
 scrollTable.prototype.getSortDirection = function()
 {
     return this.currentSortIndex[this.currentSortType] == 1
 }
 
-//Не будет перезапрашивать данные у провайдера - просто перерисует текущую страницу
+/** Получить по какой колонке происходит сортровка
+ @return Имя колонки
+*/
+scrollTable.prototype.getSortType = function()
+{
+    return this.currentSortType;
+}
+
+/** Перерисовать текущую страницу без перезапроса данных у провайдера */
 scrollTable.prototype.repaint = function()
 {
     this._drawRows();
@@ -635,8 +714,10 @@ scrollTable.prototype.repaint = function()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-/** Провайдер данных для scrollTable. 
+/** Провайдер данных для {@link nsGmx.ScrollTable}.
 * Хранит статический массив данных, умеет их фильтровать и упорядочивать.
+* @class
+* @extends nsGmx.ScrollTable.IDataProvider
 */
 scrollTable.StaticDataProvider = function( originalData )
 {
@@ -726,7 +807,7 @@ scrollTable.StaticDataProvider = function( originalData )
     }
     
     /** Фильтруем исходные данные
-    * @param {function(val):bool} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
+    * @param {function(val:Object):Boolean} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
     */
     this.filterOriginalItems = function(filterFunction)
     {
@@ -808,18 +889,19 @@ scrollTable.StaticDataProvider = function( originalData )
         _update();
     }
     
-    //сортировка
-    //Хеш из ф-ций {Имя столбца -> ф-ция или массив из двух ф-ций}
-    //Если массив из двух ф-ций, то первая используется для сортировки по возрастанию, вторая - по убыванию
-    //Если просто ф-ция, то по убыванию используется инвертная к ней
-    //Формат ф-ции совпадает с ф-цией для sort()
+    /** Задать ф-ции сортировки
+     @param {Object} sortFunctions Хеш из ф-ций {Имя столбца -> ф-ция или массив из двух ф-ций}.
+        Если массив из двух ф-ций, то первая используется для сортировки по возрастанию, вторая - по убыванию. 
+        Если просто ф-ция, то по убыванию используется инвертная к ней. 
+        Формат ф-ции совпадает с ф-цией для sort().
+    */
     this.setSortFunctions = function(sortFunctions)
     {
         _sortFunctions = sortFunctions;
     }
 };
 
-// простое стравнение по атрибутам объекта. 
+// простое стравнение по атрибутам объекта.
 // Использование: genAttrSort(func(a)->value), genAttrSort(attrName), genAttrSort(attrName1, attrName2)
 scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
 {
