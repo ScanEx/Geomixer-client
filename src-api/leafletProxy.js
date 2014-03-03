@@ -2582,10 +2582,11 @@
 			var node = mapNodes[id];
 			//console.log('setVisible ', id, ph.attr);
 			if(!node) return false;
-			node.isVisible = ph.attr;
             if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
 			node.notView = ph.notView || false;
-			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, ph.attr);
+			if(node.isVisible === ph.attr) return false;
+			node.isVisible = ph.attr;
+			gmxAPI._leaflet.LabelsManager.onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
 		}
 		,
@@ -2724,6 +2725,7 @@
 			var node = mapNodes[id];
 			if(!node) return null;					// Нода не была создана через addObject
 			node.type = 'filter';
+			if(node.sql === ph.attr.sql) return true;	// sql не изменился
 			node.sql = ph.attr.sql;
 			node.sqlFunction = (node.sql ? gmxAPI.Parsers.parseSQL(ph.attr.sql) : null);
 

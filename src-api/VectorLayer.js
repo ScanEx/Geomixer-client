@@ -795,15 +795,13 @@
 					if(!node.chkTemporalFilter(geom)) continue;	// не прошел по мультивременному фильтру
 
 					if(geom.type !== 'Point' && geom.type !== 'Polygon' && geom.type !== 'MultiPolygon' && geom.type !== 'Polyline' && geom.type !== 'MultiPolyline') continue;
-					
 
 					if(node.flipHash[geom.id]) arrTop.push(geom); 	// Нарисовать поверх
 					else arr.push(geom);
 				}
 			}
 			var tiles = node.tiles;
-			for (var key in node.tilesGeometry)						// Перебрать все загруженные тайлы
-			{
+			for (var key in node.tilesGeometry) {	// Перебрать все загруженные тайлы
 				//node['objectCounts'] += node['tilesGeometry'][key].length;
 				var tb = tiles[key];
 				if(typeGeo === 'point') {
@@ -1585,6 +1583,7 @@
                     if(node.tilesNeedRepaint.length > 0) return;	// есть очередь отрисовки
                     if(node.getLoaderFlag()) return;				// загрузка данных еще не закончена
                     delete node.lastDrawTime;					    // обнуление старта последней отрисовки
+                    if(node.observerNode) node._sendObserver();
                     utils.chkIdle(true, 'VectorLayer');				// Проверка закончены или нет все команды отрисовки карты
                     if(myLayer._clearBgBufferTimer) clearTimeout(myLayer._clearBgBufferTimer);
                     myLayer._clearBgBufferTimer = setTimeout(L.bind(myLayer._clearBgBuffer, myLayer), 100);
@@ -2119,85 +2118,71 @@
 
                 var observerTiles = {};
                 var observerObj = {};
-                node.chkRemovedTiles = function(dKey) {		// проверка при удалении тайлов
-                    var out = [];
-                    var items = node.tilesGeometry[dKey];
-                    if(items && items.length > 0) {
-                        for (var i = 0, len = items.length; i < len; i++)
-                        {
-                            var item = items[i],
-                                pid = item.id;
-                            if(observerObj[pid]) {
-                                var ph = {layerID: nodeId, properties: node.getPropItem(item) };
-                                ph.onExtent = false;
-                                ph.geometry = node.getItemGeometry(pid);
-                                //ph.geometry = item.exportGeo();
-                                out.push(ph);
-                                delete observerObj[pid];
-                            }
+                var addObj = {};
+                var removeObj = {};
+                node._chkRemovedTiles = function(dKey) {		// проверка при удалении тайлов
+                    for (var id in observerObj) {
+                        var item = observerObj[id];
+                        if (item.fromTiles[dKey]) {
+                            item.onExtent = false;
+                            removeObj[id] = item;
                         }
                     }
-                    delete observerTiles[dKey];
-                    if(out.length) {
-                        callback(out);
-                    }
                 }
-                node.chkObserver = function () {				// проверка изменений видимости обьектов векторного слоя
+                node._addToObserver = function(geom, fromTiles) {		// добавить обьект в Observer
+                    var id = geom.id;
+                    addObj[id] = {
+                        layerID: nodeId
+                        ,bounds: geom.bounds
+                        ,properties: geom.properties
+                        ,geometry: node.getItemGeometry(id)
+                        ,onExtent: true
+                        ,fromTiles: fromTiles
+                    };
+                }
+                node._sendObserver = function() {		// передача изменений Observer
                     var currPosition = gmxAPI.currPosition;
                     if(!currPosition || !currPosition.extent) return;
-                    var ext = currPosition.extent,
-                        out = [],
-                        tiles = node.tiles;
-                    for (var key in tiles)
-                    {
-                        var tb = tiles[key],
-                            tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY);
-                        if(tvFlag) {								// Тайл за границами видимости
-                            if(!observerTiles[key]) continue;
-                            delete observerTiles[key];
-                        } else {
-                            observerTiles[key] = true;
+                    if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
+                    var zoomCurrent = gmxAPI._leaflet.zoomCurrent,
+                        tileSize = zoomCurrent.tileSize,
+                        ext = currPosition.extent,
+                        minX = ext.minX - tileSize,
+                        maxX = ext.maxX + tileSize,
+                        minY = ext.minY - tileSize,
+                        maxY = ext.maxY + tileSize,
+                        out = [];
+                    for (var id in removeObj) {
+                        if (observerObj[id]) {
+                            out.push(removeObj[id]);
+                            delete observerObj[id];
                         }
-                        var items = node.tilesGeometry[key];
-                        if(items && items.length > 0) {
-                            for (var i = 0, len = items.length; i < len; i++) {
-                                var item = items[i];
-                                if(TemporalColumnName && !node.chkTemporalFilter(item)) continue;	// не прошел по мультивременному фильтру
-                                if(!item.propHiden || !item.propHiden.toFilters || item.propHiden.toFilters.length == 0) continue;	// обьект не виден по стилевым фильтрам
-                                if(!ignoreVisibilityFilter && !node.chkSqlFuncVisibility(item)) continue; 	// если фильтр видимости на слое не отменен
-                                var pid = item.id,
-                                    vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY),
-                                    ph = {layerID: nodeId, properties: node.getPropItem(item) };
-                                if(vFlag) {					// Обьект за границами видимости
-                                    if(observerObj[pid]) {
-                                        ph.onExtent = false;
-                                        ph.geometry = node.getItemGeometry(pid);
-                                        //ph.geometry = item.exportGeo();
-                                        out.push(ph);
-                                        delete observerObj[pid];
-                                    }
-                                } else {
-                                    if(!observerObj[pid]) {
-                                        ph.onExtent = true;
-                                        //ph.geometry = item.exportGeo();
-                                        ph.geometry = node.getItemGeometry(pid);
-                                        out.push(ph);
-                                        var tilesKeys = {};
-                                        tilesKeys[key] = true;
-                                        observerObj[pid] = { tiles: tilesKeys , item: item };
-                                    }
-                                }
-                            }
+                    }
+                    for (var id in observerObj) {
+                        var it = observerObj[id],
+                            bounds = it.bounds;
+                        if (bounds.max.x < minX
+                            || bounds.min.x > maxX
+                            || bounds.max.y < minY
+                            || bounds.min.y > maxY) {
+
+                            observerObj[id].onExtent = false;
+                            out.push(observerObj[id]);
+                            delete observerObj[id];
                         }
+                    }
+                    for (var id in addObj) {
+                        out.push(addObj[id]);
+                        observerObj[id] = addObj[id];
                     }
                     if(out.length) {
-                        //callback(gmxAPI.clone(out));
                         callback(out);
                     }
+                    addObj = {};
+                    removeObj = {};
                 }
                 var key = 'onMoveEnd';
-                node.listenerIDS[key] = {obj: gmxNode.map, evID: gmxAPI.map.addListener(key, node.chkObserver, 11)};
-                //gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onMoveEnd', 'obj': gmxAPI.map, 'func': node['chkObserver']});
+                node.listenerIDS[key] = {obj: gmxNode.map, evID: gmxAPI.map.addListener(key, node._sendObserver, 11)};
             }
             ,getLoaderFlag: function()	{			// Проверка необходимости загрузки векторных тайлов
                 node.loaderFlag = false;
@@ -2208,7 +2193,7 @@
                 return node.loaderFlag;
             }
             ,removeTile: function(key)	{			// Удалить тайл
-                if('chkRemovedTiles' in node) node.chkRemovedTiles(key);
+                if(node.observerNode) node._chkRemovedTiles(key);
                 delete node.tilesGeometry[key];
                 delete node.tiles[key];
                 if(node.tilesVers) delete node.tilesVers[key];
@@ -2239,6 +2224,7 @@
             }
             ,clearItems: function(data, inUpdate) {		// чистка обьектов векторного слоя 
                 var needRemove = {},
+                    needRepaint = false,
                     zoom = LMap.getZoom();
                 gmxAPI._leaflet.LabelsManager.removeArray(nodeId, data); // Переформировать Labels
                 for (var i = 0, len = data.length; i < len; i++) {
@@ -2247,8 +2233,9 @@
                     //gmxAPI._leaflet.LabelsManager.remove(nodeId, pid);	// Переформировать Labels
                     var item = node.objectsData[pid];
                     if(item && item.propHiden.drawInTiles) {
-                        node.repaintHash(item.propHiden.drawInTiles[zoom], true);
+                        node.repaintHash(item.propHiden.drawInTiles[zoom]);
                         item.propHiden.drawInTiles[zoom] = {};
+                        needRepaint = true;
                     }                   
                     delete node.objectsData[pid];
                     delete node.addedItems[pid];
@@ -2268,6 +2255,7 @@
 
                 tilesRedrawImages.removeItems(needRemove);
                 needRemove = {};
+                if (needRepaint) node.repaintTilesNeed(10);
             }
             
             ,addItems: function(data) {			// добавление обьектов векторного слоя
@@ -2648,11 +2636,6 @@
                 var ctx = null;
 
                 var out = false;
-                if(node.observerNode) {
-                    if(observerTimer) clearTimeout(observerTimer);
-                    observerTimer = setTimeout(node.chkObserver, 10);
-                }
-
                 var cnt = 0;
                 var rasterNums = 0;
                 var ritemsArr = [];
@@ -2667,7 +2650,10 @@
                         if(!propHiden.drawInTiles) propHiden.drawInTiles = {};
                         if(!propHiden.drawInTiles[zoom]) propHiden.drawInTiles[zoom] = {};
 
-                        if(propHiden.subType != 'cluster') {						// для кластеров без проверки
+                        if(propHiden.subType != 'cluster') {			// для кластеров без проверки
+                            if(node.observerNode) {
+                                node._addToObserver(geom, propHiden.fromTiles);
+                            }
                             if(!node.chkSqlFuncVisibility(objData)) {	 // если фильтр видимости на слое
                                 continue;
                             }
@@ -2748,7 +2734,7 @@
                 var flagClear = true;
                 var out = {};
                 var item = null;
-                var arr = thash['arr'];
+                var arr = thash.arr;
                 for (var i = 0, len = arr.length; i < len; i++) {
                     item = arr[i];
                     //if(item['showRaster'] && !item['imageObj']) continue;	// обьект имеет растр который еще не загружен
