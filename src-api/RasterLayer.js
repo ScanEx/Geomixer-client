@@ -15,21 +15,21 @@
 		var node = mapNodes[id];
 		if(!node) return;						// Нода не определена
 		var gmxNode = null;						// Нода gmxAPI
-		node['type'] = 'RasterLayer';
+		node.type = 'RasterLayer';
 		node.isOverlay = false;
-		node['failedTiles'] = {};				// Hash тайлов 404
+		//node.failedTiles = {};				// Hash тайлов 404
 		node.zIndexOffset = 0;				    // Сдвиг zIndex
-		node['listenerIDS'] = {};				// id прослушивателей событий
-		node['leaflet'] = null;					// Нода leaflet
+		node.listenerIDS = {};				// id прослушивателей событий
+		node.leaflet = null;					// Нода leaflet
 		var myLayer = null;
 
 		var inpAttr = ph.attr;
-		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
+		node.subType = ('subType' in inpAttr ? inpAttr.subType : (inpAttr.projectionCode === 1 ? 'OSM' : ''));
 		var attr = {};
 
-		attr['mercGeom'] = layer.mercGeometry || {				// граница слоя в merc
-			'type': "POLYGON"
-			,'coordinates': [[
+		attr.mercGeom = layer.mercGeometry || {				// граница слоя в merc
+			type: 'POLYGON'
+			,coordinates: [[
 				[-20037500, -21133310]
 				,[-20037500, 21133310]
 				,[20037500, 21133310]
@@ -40,24 +40,22 @@
 		
 		if(node.propHiden) {
 			if(node.propHiden.geom) {
-				attr['geom'] = node.propHiden['geom'];					// Геометрия от обьекта векторного слоя
-				attr['bounds'] = attr['geom']['bounds'];				// Bounds слоя
+				attr.geom = node.propHiden.geom;					// Геометрия от обьекта векторного слоя
+				attr.bounds = attr.geom.bounds;				// Bounds слоя
 			}
 			if(node.propHiden.zIndexOffset) node.zIndexOffset = node.propHiden.zIndexOffset;
 		}
 		var pNode = mapNodes[node.parentId];					// Нода родителя
 		if(pNode && pNode.propHiden && pNode.propHiden.subType === 'tilesParent') {
-			attr['minZoom'] = pNode.minZ || 1;
-			attr['maxZoom'] = pNode.maxZ || 30;
+			attr.minZoom = pNode.minZ || 1;
+			attr.maxZoom = pNode.maxZ || 30;
 										// pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
 		} else {
 			if(pNode && pNode.zIndexOffset) {
 				node.zIndexOffset = pNode.zIndexOffset;
 			}
 		}
-		//if(!'zIndex' in node) 
         node.zIndex = utils.getIndexLayer(id);
-		//node.zIndex += node.zIndexOffset;
 
 		node.getLayerBounds = function(flag) {				// Проверка границ растрового слоя
 			if(!gmxNode || !attr.mercGeom) return;
@@ -123,11 +121,11 @@
 			}
 		}
 
-		node['remove'] = function() {				// Удалить растровый слой
+		node.remove = function() {				// Удалить растровый слой
 			if(myLayer) LMap.removeLayer(myLayer);
 		}
 
-		node['setStyle'] = function() {
+		node.setStyle = function() {
 			var newOpacity = node.regularStyle.fillOpacity;
 			if(newOpacity != myLayer.options.opacity) {			// Изменить opacity растрового слоя
 				myLayer.options.opacity = newOpacity;
@@ -144,14 +142,13 @@
 			redrawTimer = setTimeout(function()
 			{
 				chkVisible();
-				if(!node.isVisible || !node['leaflet'] || !node['leaflet']._map) return;
+				if(!node.isVisible || !node.leaflet || !node.leaflet._map) return;
 				redrawTimer = null;
 				myLayer._update();
-				//node['leaflet'].redraw();
 			}, 10);
 			return false;
 		}
-		node['waitRedraw'] = waitRedraw;
+		node.waitRedraw = waitRedraw;
 		node.isVisible = true;
 		if(layer.properties) {
             if('visible' in layer.properties) node.isVisible = layer.properties.visible;
@@ -298,13 +295,13 @@
 		var chkInitListeners = function()	{								// Требуется перерисовка с задержкой
 			var func = function(flag) {	// Изменилась видимость слоя
 				if(flag) {
-					if('nodeInit' in node) node['nodeInit']();
+					if('nodeInit' in node) node.nodeInit();
 					chkVisible();
 				}
 			};
 			var key = 'onChangeVisible';
-			if(!node['listenerIDS'][key]) {
-				node['listenerIDS'][key] = {'obj': gmxNode, 'evID': gmxNode.addListener(key, func, -10)};
+			if(!node.listenerIDS[key]) {
+				node.listenerIDS[key] = {'obj': gmxNode, 'evID': gmxNode.addListener(key, func, -10)};
 			}
 			if(node.isVisible) {
 				func(node.isVisible);
@@ -328,7 +325,7 @@
 						obj.options.continuousWorld = true;
 					}
 					else {
-						obj.options.bounds = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
+						obj.options.bounds = new L.LatLngBounds([new L.LatLng(attr.bounds.min.y, attr.bounds.min.x), new L.LatLng(attr.bounds.max.y, attr.bounds.max.x)]);
 					}
 				}
 			};
@@ -346,15 +343,15 @@
 					,zIndex: node.zIndex + node.zIndexOffset
 					,shiftX: node.shiftX || 0
 					,shiftY: node.shiftY || 0
-					,'initCallback': initCallback
-					,'tileFunc': inpAttr['func']
-					,'attr': attr
-					,'_needLoadTile': 0
+					,initCallback: initCallback
+					,tileFunc: inpAttr.func
+					,attr: attr
+					,_needLoadTile: 0
                     ,_inLoadImage: {}
-					,'nodeID': id
-					,'badTiles': {}
-					,'async': true
-					,'unloadInvisibleTiles': true
+					,nodeID: id
+					,badTiles: {}
+					,async: true
+					,unloadInvisibleTiles: true
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
 				if(gmxNode.properties.type === 'Overlay') {
@@ -365,21 +362,21 @@
 				}
                 node.getLayerBounds();
 
-				if(!gmxNode.isBaseLayer && attr['bounds']) {
-					option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
+				if(!gmxNode.isBaseLayer && attr.bounds) {
+					option.bounds = new L.LatLngBounds([new L.LatLng(attr.bounds.min.y, attr.bounds.min.x), new L.LatLng(attr.bounds.max.y, attr.bounds.max.x)]);
 				} else {
-					option['continuousWorld'] = true;
+					option.continuousWorld = true;
 				}
 
-				if(node['subType'] === 'OSM') {
-					node['shiftOSM'] = function() {
+				if(node.subType === 'OSM') {
+					node.shiftOSM = function() {
 						myLayer.options.shiftOSM = utils.getOSMShift();
 					}
 					myLayer = new L.TileLayer.OSMcanvas(option);
 				} else {
 					myLayer = new L.TileLayer.ScanExCanvas(option);
 				}
-				node['leaflet'] = myLayer;
+				node.leaflet = myLayer;
 				var chkPosition = function() {
 					chkVisible();
 				}
@@ -420,9 +417,9 @@
 	}
 	// инициализация
 	function init(arr)	{
-		LMap = gmxAPI._leaflet['LMap'];
-		utils = gmxAPI._leaflet['utils'];
-		mapNodes = gmxAPI._leaflet['mapNodes'];
+		LMap = gmxAPI._leaflet.LMap;
+		utils = gmxAPI._leaflet.utils;
+		mapNodes = gmxAPI._leaflet.mapNodes;
 
 		function drawCanvasPolygon( ctx, x, y, lgeo, opt) {
 			if(!lgeo) return;
@@ -613,7 +610,7 @@
 
                     var onError = function() {
                         //console.log('onError', z, opt.maxZ, rUrl); // 
-                        if (z > 1) {
+                        if (z > 1 && !node.isOverlay) {
                             //if(pt.zoom.from === z) 
                             opt.badTiles[gmxTileKey] = true;
                             // запрос по раззумливанию растрового тайла
@@ -711,8 +708,8 @@
 			}
 			,
 			updateTilesPosition: function (tile) {
-                if (!this._map || gmxAPI._leaflet['zoomstart']) return;
-                if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+                if (!this._map || gmxAPI._leaflet.zoomstart) return;
+                if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
                 var shiftX = mInPixel * (this.options.shiftX || 0);     // сдвиг тайлов
@@ -786,5 +783,5 @@
 		
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['setBackgroundTiles'] = setBackgroundTiles;				// Добавить растровый слой
+	gmxAPI._leaflet.setBackgroundTiles = setBackgroundTiles;				// Добавить растровый слой
 })();

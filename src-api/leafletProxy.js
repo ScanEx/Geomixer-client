@@ -2584,7 +2584,7 @@
 			if(!node) return false;
             if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
 			node.notView = ph.notView || false;
-			if(node.isVisible === ph.attr) return false;
+			if(node.isVisible === ph.attr) return true;
 			node.isVisible = ph.attr;
 			gmxAPI._leaflet.LabelsManager.onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
