@@ -720,6 +720,7 @@
                 var className = 'gmx_copyright_location',
                     container = L.DomUtil.create('div', className);
 
+                L.DomEvent.on(this._map._controlContainer, 'dblclick', L.DomEvent.stopPropagation);
                 L.DomUtil.create('div', className + '_bg', container);
                 this._map = map;
 
