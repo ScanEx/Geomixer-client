@@ -2143,7 +2143,7 @@
                 node._sendObserver = function() {		// передача изменений Observer
                     var currPosition = gmxAPI.currPosition;
                     if(!currPosition || !currPosition.extent) return;
-                    if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
+                    if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                     var zoomCurrent = gmxAPI._leaflet.zoomCurrent,
                         tileSize = zoomCurrent.tileSize,
                         ext = currPosition.extent,
@@ -2349,8 +2349,8 @@
                     node.temporal = attr;
                 }
                 if(myLayer) {	// Обновление лефлет слоя
-                    node.upDateLayer();
-                    //myLayer.redraw();
+                    //node.upDateLayer();
+                    myLayer.redraw();
                 }
                 return true;
             }
