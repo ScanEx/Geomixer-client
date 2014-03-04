@@ -1815,10 +1815,9 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
             _abstractTree.addNode(parentDiv.parentNode, li);
             
             var divElem = $(li).children("div[LayerID]")[0],
-                divParent = $(li.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-                index = _layersTree.findTreeElem(divElem).index;
+                divParent = $(li.parentNode.parentNode).children("div[MapID],div[GroupID]")[0];
         
-            _layersTree.addTreeElem(divParent, index, {type:'layer', content: {properties: newProps, geometry: convertedCoords}});
+            _layersTree.addTreeElem(divParent, 0, {type:'layer', content: {properties: newProps, geometry: convertedCoords}});
             
             _queryMapLayers.addSwappable(li);
             
