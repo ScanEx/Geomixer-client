@@ -907,7 +907,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				var id = 'layertabs' + elemProperties.name,
 					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 					tabMenu,
-                    moreTabs = [];
+                    additionalTabs = [];
 				
 				var pos = nsGmx.Utils.getDialogPos(div, true, 390),
                     updateFunc = function()
@@ -925,7 +925,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                         $(divDialog).dialog('close');
                         removeDialog(divDialog);
                     },
-                    moreTabs: moreTabs,
+                    additionalTabs: additionalTabs,
                     selected: selected,
                     createdCallback: function(layerEditor) {
                         _this.layerEditorsHash[elemProperties.name] = layerEditor;
@@ -998,7 +998,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     $(divDialog).dialog('close');
                     removeDialog(divDialog);
                 },
-                moreTabs: [{title: _gtxt("Стили"), name: 'styles', container: divStyles}]
+                additionalTabs: [{title: _gtxt("Стили"), name: 'styles', container: divStyles}]
                 
             });
 			

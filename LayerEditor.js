@@ -31,12 +31,11 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 			for (var i = 0; i < fields.length; i++)
 			{
 				var opt = _option([_t(fields[i])], [['attr','value',fields[i]]]);
-		
+
 				_(selectLat, [opt.cloneNode(true)]);
 				_(selectLon, [opt.cloneNode(true)]);
             }
 
-            
             _(parent, [_table([_tbody([
                 _tr([
                     _td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), 
@@ -365,7 +364,7 @@ var createPageMain = function(parent, layerProperties, tabSelector) {
         shownProperties = shownProperties.concat(createPageRasterSource(layerProperties));
         
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
+    _(parent, [_table([_tbody(trs)],[['dir','className','propertiesTable']])]);
 }
 
 var createPageVectorSource = function(layerProperties, tabSelector) {
@@ -1049,9 +1048,14 @@ var createPageAdvanced = function(parent, layerProperties) {
 //Это не значит, что слой уже создан/модифицирован без ошибок - нужно анализировать значение promise, которое передано в качестве первого аргумента.
 //Фактически, doneCallback вызывается при успешном начале создания/модификации слоя.
 var LayerEditor = function(div, type, properties, params) {
-    var _params = $.extend({addToMap: true, doneCallback: null}, params);
-    var tabs = [];
-    var divProperties = div ? div.gmxProperties.content.properties : {};
+    var _params = $.extend({addToMap: true, doneCallback: null, additionalUI: {}}, params),
+        divProperties = div ? div.gmxProperties.content.properties : {},
+        layerProperties = new nsGmx.LayerProperties(),
+        tabs = [];
+    
+    layerProperties.initFromViewer(type, divProperties, properties);
+    
+    _params = LayerEditor.applyInitHooks(type, layerProperties, _params);
     
     this.getTabs = function() {
         return tabs;
@@ -1113,9 +1117,6 @@ var LayerEditor = function(div, type, properties, params) {
     
     saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
     
-    var layerProperties = new nsGmx.LayerProperties();
-    layerProperties.initFromViewer(type, divProperties, properties);
-    
     var origLayerProperties = layerProperties.clone();
     
     createPageMain(mainContainer.firstChild, layerProperties, params.tabSelector);
@@ -1124,6 +1125,16 @@ var LayerEditor = function(div, type, properties, params) {
     if (type === 'Vector') {
         createPageAdvanced(advancedContainer.firstChild, layerProperties);
         createPageAttributes(attrContainer.firstChild, layerProperties);
+    }
+    
+    for (var i in _params.additionalUI) {
+        var tab = nsGmx._.findWhere(tabs, {name: i});
+        if (tab) {
+            var container = tab.container.firstChild;
+            _params.additionalUI[i].forEach(function(ui) {
+                $(container).append(ui);
+            })
+        }
     }
             
     if (div) {
@@ -1166,11 +1177,11 @@ var LayerEditor = function(div, type, properties, params) {
         var name = layerProperties.get('Name'),
             curBorder = _mapHelper.drawingBorders.get(name),
             oldDrawing = origLayerProperties.get('Geometry'),
-            type = layerProperties.get('Type'),
+            isVector = layerProperties.get('Type') === 'Vector',
             needRetiling = false;
         
         // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-        if (layerProperties.get('Type') === 'Vector' ||
+        if (isVector ||
             layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
             layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
             oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
@@ -1190,7 +1201,7 @@ var LayerEditor = function(div, type, properties, params) {
         def.always(parseResponse);
         def.then(onceCallback, null, onceCallback);
         
-        if (type === 'Vector' && !name && layerProperties.get('SourceType') === 'manual') {
+        if (isVector && !name && layerProperties.get('SourceType') === 'manual') {
             if (_params.addToMap) {
                 def.done(function(response) {
                     var mapProperties = _layersTree.treeModel.getMapProperties(),
@@ -1222,24 +1233,39 @@ var LayerEditor = function(div, type, properties, params) {
     }
 }
 
+LayerEditor._initHooks = [];
+LayerEditor.addInitHook = function(hook) {
+    LayerEditor._initHooks.push(hook);
+}
+
+LayerEditor.applyInitHooks = function(type, layerProperties, params) {
+    LayerEditor._initHooks.forEach(function(hook){
+        params = hook(type, layerProperties, params) || params;
+    })
+    
+    return params;
+}
+
 /**
  Создаёт диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
+ @memberOf nsGmx
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог
  @param {Object} [params] Дополнительные параметры
- @param {Object[]} [params.moreTabs] Массив дополнительных вкладок со следующими полями:
+ @param {Object[]} [params.additionalTabs] Массив дополнительных вкладок со следующими полями:
  
-   * {String} title Что будет написано но вкладке
-   * {String} name Уникальный идентификатор вкладки
-   * {DOMElement} container Контент вкладки
- 
- @param {String} [params.selected] Идентификатор вкладки, которую нужно сделать активной
- @param {Function(controller)} [params.createdCallback] Ф-ция, которая будет вызвана после того, как диалог будет создан. 
-        В ф-цию передаётся объект со следующими свойствами: 
-        
-   * {Function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
+   - {String} title Что будет написано но вкладке
+   - {String} name Уникальный идентификатор вкладки
+   - {DOMElement} container Контент вкладки
    
+ @param {String} [params.selected] Идентификатор вкладки, которую нужно сделать активной
+ @param {Function(controller)} [params.createdCallback] Ф-ция, которая будет вызвана после того, как диалог будет создан.
+        В ф-цию передаётся объект со следующими свойствами:
+
+   - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
+   
+  @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
 */
 var createLayerEditorProperties = function(div, type, parent, properties, params)
 {
@@ -1261,7 +1287,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, params
     var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
     
     var originalTabs = layerEditor.getTabs();
-    var tabs = originalTabs.concat(params.moreTabs || []);
+    var tabs = originalTabs.concat(params.additionalTabs || []);
     
     var lis = [], containers = [];
     for (var t = 0; t < tabs.length; t++) {
