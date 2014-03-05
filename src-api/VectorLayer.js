@@ -1476,12 +1476,11 @@
             }
             ,chkItemFiltersVisible: function(geo)	{		// Проверить видимость фильтров для обьекта
                 if(!('_isFilters' in geo.propHiden)) node.chkObjectFilters(geo);
-                if(!geo.propHiden['_isFilters']) return false;
+                if(!geo.propHiden._isFilters) return false;
                 var filters = geo.propHiden.toFilters;
-                for (var i = 0; i < filters.length; i++) {
+                for (var i = 0, len = filters.length; i < len; i++) {
                     var fId = filters[i];
-                    var mapNodeFilter = mapNodes[fId];
-                    if(mapNodeFilter.isVisible != false) return true;
+                    if(mapNodes[fId].isVisible != false) return true;
                 }
                 return false;
             }

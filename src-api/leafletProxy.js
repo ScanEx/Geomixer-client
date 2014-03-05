@@ -2228,14 +2228,14 @@
 	}
 	// Изменение видимости ноды
 	function setVisibilityFilter(ph) {
-		var obj = ph['obj'];
-		var id = obj['objectId'];
+		var obj = ph.obj;
+		var id = obj.objectId;
 		var node = mapNodes[id];
-		node['_sqlVisibility'] = ph.attr['sql'].replace(/[\[\]]/g, '"');
-		node['_sqlFuncVisibility'] = gmxAPI.Parsers.parseSQL(node['_sqlVisibility']);
-		if(node['type'] === 'VectorLayer') node.setVisibilityFilter();
-		else setVisibilityFilterRecursive(node, node['_sqlFuncVisibility']);
-		return ( node['_sqlFuncVisibility'] ? true : false);
+		node._sqlVisibility = ph.attr.sql.replace(/[\[\]]/g, '"');
+		node._sqlFuncVisibility = gmxAPI.Parsers.parseSQL(node._sqlVisibility);
+		if(node.type === 'VectorLayer') node.setVisibilityFilter();
+		else setVisibilityFilterRecursive(node, node._sqlFuncVisibility);
+		return ( node._sqlFuncVisibility ? true : false);
 	}
 
 	// Проверка видимости mapObjects
@@ -2722,14 +2722,15 @@
 		,
 		'setFilter':	function(ph)	{			// Установка фильтра
 			var id = ph.obj.objectId;
-			var node = mapNodes[id];
+                node = mapNodes[id];
 			if(!node) return null;					// Нода не была создана через addObject
 			node.type = 'filter';
 			if(node.sql === ph.attr.sql) return true;	// sql не изменился
+			var pNode = mapNodes[node.parentId],
+                falseFn = function() { return false; };
 			node.sql = ph.attr.sql;
-			node.sqlFunction = (node.sql ? gmxAPI.Parsers.parseSQL(ph.attr.sql) : null);
+			node.sqlFunction = (node.sql ? gmxAPI.Parsers.parseSQL(ph.attr.sql) || falseFn : null);
 
-			var pNode = mapNodes[node.parentId];
 			//pNode.addFilter(id);
 			pNode.setFilter(id);
 			
