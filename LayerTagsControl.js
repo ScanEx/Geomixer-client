@@ -74,32 +74,38 @@
         }
     })();
     
-    /**
-        Набор тегов (метаданных) слоя
-        @memberOf nsGmx
-        @class
-        @param {nsGmx.TagMetaInfo} tagMetaInfo описание типов тегов
-        @param {Object} initTags теги для инициализации. Формат: {<tagName>: {Value: <tagValue>}, ...}. tagValue может быть массивом
-    */
-    var LayerTags = function(tagMetaInfo, initTags)
+    var extendClass = function(base, sub) {
+        function ctor() {}
+     
+        ctor.prototype = base.prototype;
+        sub.prototype = new ctor();
+        sub.prototype.constructor = sub;
+    }
+    
+    var LayerTags = function(initTags)
     {
         /** Вызывается при изменении набора тегов слоя
-		    @name nsGmx.LayerTags.change
-		    @event
+            @name nsGmx.LayerTags.change
+            @event
         */
         
-        var uniqueID = 1;
-        var tags = {};
-        
-        var types = [
-            {title: 'Number', key: 'Number'},
-            {title: 'String',  key: 'String'},
-            {title: 'Date',  key: 'Date'},
-            {title: 'Date time',  key: 'DateTime'},
-            {title: 'Time',  key: 'Time'}
-        ];
-        
-        var verificationFunctions = {
+        this._uniqueID = 1;
+        this._tags = {};
+
+        for (var tag in initTags) {
+            var values = initTags[tag].Value;
+            if (!$.isArray(values)) {
+                values = [values];
+            }
+            
+            for (var i = 0; i < values.length; i++) {
+                this.addNewTag(tag, values[i]);
+            }
+        }
+    }
+    
+    LayerTags.prototype = {
+        _verificationFunctions: {
             'Number': function(value)
             {
                 return value.length && !isNaN(Number(value));
@@ -118,106 +124,137 @@
                     return false;
                 }
             }
-        }
-                
-        var _isValidTypeValue = function(type, value)
-        {
-            return !(type in verificationFunctions) || verificationFunctions[type](value);
-        }
+        },
         
+        _isValidTypeValue: function(type, value)
+        {
+            return !(type in this._verificationFunctions) || this._verificationFunctions[type](value);
+        },
+        
+        updateTag: function(id, tag, value, type)
+        {
+            var tags = this._tags;
+            if ( !(id in tags) ) return false;
+            if ( tags[id].tag !== tag || tags[id].value !== value || tags[id].type !== type)
+            {
+                tags[id] = {tag: tag, value: value, type: type};
+                $(this).change();
+            }
+            
+            return true;
+        },
+        
+        deleteTag: function(id)
+        {
+            if ( !(id in this._tags) ) return;
+            
+            delete this._tags[id];
+            $(this).change();
+        },
+        
+        each: function(callback)
+        {
+            var tags = this._tags;
+            for (var tagId in tags)
+                callback(tagId, tags[tagId].tag, tags[tagId].value, tags[tagId].type);
+        },
+        
+        eachValid: function(callback, allowUnknownTags)
+        {
+            var tags = this._tags;
+            for (var tagId in tags)
+                if ((allowUnknownTags || this.isValidValue(tagId)) && !this.isEmptyTag(tagId))
+                    callback(tagId, tags[tagId].tag, tags[tagId].value, tags[tagId].type);
+        },
+        
+        addNewTag: function(tag, value, type)
+        {
+            if (typeof value === 'undefined' || value === null) {
+                value = '';
+            };
+            
+            var newId = 'id' + (++this._uniqueID);
+            this._tags[newId] = {tag: tag || '', value: value, type: type};
+            $(this).change();
+            return newId;
+        },
+        
+        isTag: function(tagId)
+        {
+            return tagId in this._tags;
+        },
+        
+        isEmptyTag: function(tagId)
+        {
+            var tags = this._tags;
+            return tagId in tags && tags[tagId].tag === '' && tags[tagId].value === '';
+        },
+        
+        isValidValue: function(tagId)
+        {
+            var tags = this._tags;
+            return tagId in tags && this._isValidTypeValue(tags[tagId].type, tags[tagId].value);
+        },
+        
+        getTag: function(tagId)
+        {
+            return this._tags[tagId];
+        },
+        
+        getTagByName: function(tagName)
+        {
+            var tags = this._tags;
+            for (var tagId in tags)
+                if (tags[tagId].tag == tagName)
+                    return tags[tagId];
+        },
+        
+        getTagIdByName: function(tagName)
+        {
+            var tags = this._tags;
+            for (var tagId in tags)
+                if (tags[tagId].tag == tagName)
+                    return tagId;
+        }
+    }
+    
+    /**
+        Набор тегов (метаданных) слоя из определённого набора тегов
+        @memberOf nsGmx
+        @class
+        @param {nsGmx.TagMetaInfo} tagMetaInfo описание типов тегов
+        @param {Object} initTags теги для инициализации. Формат: {tagName: {Value: tagValue}, ...}. tagValue может быть массивом
+    */
+    var LayerTagsWithInfo = function(tagMetaInfo, initTags) {
+
+        // чтобы можно было расширять существующий объект LayerTags
+        if (this instanceof LayerTagsWithInfo) {
+            LayerTags.call(this, initTags);
+        }
+
         this.getTagMetaInfo = function()
         {
             return tagMetaInfo;
         }
         
-        this.updateTag = function(id, tag, value)
-        {
-            if ( !(id in tags) ) return false;
-            if ( tags[id].tag !== tag || tags[id].value !== value )
-            {
-                tags[id] = {tag: tag, value: value};
-                $(this).change();
-            }
-            
-            return true;
-        }
-        
-        this.deleteTag = function(id)
-        {
-            if ( !(id in tags) ) return;
-            
-            delete tags[id];
-            $(this).change();
-        }
-        
-        this.each = function(callback)
-        {
-            for (var tagId in tags)
-                callback(tagId, tags[tagId].tag, tags[tagId].value);
-        }
-        
-        this.eachValid = function(callback, allowUnknownTags)
-        {
-            for (var tagId in tags)
-                if ((allowUnknownTags || this.isValidValue(tagId)) && !this.isEmptyTag(tagId))
-                    callback(tagId, tags[tagId].tag, tags[tagId].value);
-        }
-        
-        this.addNewTag = function(tag, value)
-        {
-            tag = tag || '';
-            value = value || '';
-            var newId = 'id' + (++uniqueID);
-            tags[newId] = { tag: tag || '', value: value || ''};
-            $(this).change();
-            return newId;
-        }
-        
-        this.isTag = function(tagId)
-        {
-            return tagId in tags;
-        }
-        
-        this.isEmptyTag = function(tagId)
-        {
-            return tagId in tags && tags[tagId].tag === '' && tags[tagId].value === '';
-        }
-        
-        this.isValidValue = function(tagId)
-        {
-            if (!(tagId in tags)) return false;
-            var type = tagMetaInfo.getTagType(tags[tagId].tag);
-            return type && _isValidTypeValue(type, tags[tagId].value);
-        }
-        
-        this.isValidTagname = function(tagname)
+        this.isKnownTagname = function(tagname)
         {
             return tagMetaInfo.isTag(tagname);
         }
         
-        this.getTag = function(tagId)
+        this.addNewTag = function(tag, value, type)
         {
-            return tags[tagId];
+            type = type || tagMetaInfo.getTagType(tag) || '';
+            LayerTags.prototype.addNewTag.call(this, tag, value, type);
         }
         
-        this.getTagByName = function(tagName)
-        {
-            for (var tagId in tags)
-                if (tags[tagId].tag == tagName)
-                    return tags[tagId];
-        }
-        
-        for (var tag in initTags) {
-            var values = initTags[tag].Value;
-            if (!$.isArray(values)) {
-                values = [values];
-            }
-            
-            for (var i = 0; i < values.length; i++) {
-                this.addNewTag(tag, values[i]);
-            }
+        this.updateTag = function(id, tag, value) {
+            var type = tagMetaInfo.getTagType(tag);
+            LayerTags.prototype.updateTag.call(this, id, tag, value, type);
         }
     }
+    
+    extendClass(LayerTags, LayerTagsWithInfo);
 
     /**
         Контрол для задания набора тегов (например, для слоя)
@@ -299,7 +336,7 @@
         
         var validateRow = function(row)
         {
-            if ( !layerTags.isEmptyTag(row.id) && !layerTags.isValidTagname(row.tag.val()) )
+            if ( !layerTags.isEmptyTag(row.id) && !layerTags.isKnownTagname(row.tag.val()) )
                 row.tag.addClass('error');
             else
                 row.tag.removeClass('error');
@@ -432,5 +469,6 @@
     
     nsGmx.LayerTagSearchControl = LayerTagSearchControl;
     nsGmx.LayerTags = LayerTags;
+    nsGmx.LayerTagsWithInfo = LayerTagsWithInfo;
     nsGmx.TagMetaInfo = TagMetaInfo;
 })();

@@ -1,21 +1,21 @@
 ﻿!function($){
-    _translationsHash.addtext("rus", {
-        "LayerRCControl.minZoom"         : "Мин. зум",
-        "LayerRCControl.titleTemplate"   : "Шаблон имени",
-        "LayerRCControl.pathTemplate"    : "Шаблон тайлов",
-        "LayerRCControl.advancedLink"    : "Дополнительно",
-        "LayerRCControl.layerTagTitle"   : "Параметр слоя",
-        "LayerRCControl.attributeTitle"  : "Атрибут объекта"
-    });
+    _translationsHash.addtext("rus", {LayerRCControl: {
+        minZoom         : "Мин. зум",
+        titleTemplate   : "Шаблон имени",
+        pathTemplate    : "Шаблон тайлов",
+        advancedLink    : "Дополнительно",
+        layerTagTitle   : "Параметр слоя",
+        attributeTitle  : "Атрибут объекта"
+    }});
     
-    _translationsHash.addtext("eng", {
-        "LayerRCControl.minZoom"         : "Min zoom",
-        "LayerRCControl.titleTemplate"   : "Title template",
-        "LayerRCControl.pathTemplate"    : "Path template",
-        "LayerRCControl.advancedLink"    : "Advanced",
-        "LayerRCControl.layerTagTitle"   : "Layer parameter",
-        "LayerRCControl.attributeTitle"  : "Object Attribute"
-    });
+    _translationsHash.addtext("eng", {LayerRCControl: {
+        minZoom         : "Min zoom",
+        titleTemplate   : "Title template",
+        pathTemplate    : "Path template",
+        advancedLink    : "Advanced",
+        layerTagTitle   : "Layer parameter",
+        attributeTitle  : "Object Attribute"
+    }});
     
     var createQuicklookCanvas = function(layerProperties)
     {
@@ -138,7 +138,6 @@
                     .append($('<td/>').append(pathInput)))
                 .appendTo(container);
         
-        var layerTags;
         nsGmx.TagMetaInfo.loadFromServer(function(realTagInfo)
         {
             var realTagsInfo = realTagInfo.getTagArrayExt();
@@ -157,7 +156,7 @@
             for (var iP in columnTagLinks)
                 initTags[columnTagLinks[iP]] = {Value: iP};
             
-            layerTags = new nsGmx.LayerTags(fakeTagManager, initTags);
+            var layerTags = new nsGmx.LayerTagsWithInfo(fakeTagManager, initTags);
             
             createQuicklookCanvas(layerProperties).addClass('RCCreate-advanced').appendTo(container);
             

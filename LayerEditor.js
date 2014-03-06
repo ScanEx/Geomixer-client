@@ -772,10 +772,10 @@ var createPageRasterSource = function(layerProperties) {
             
     var appendMetadata = function(data)
     {
-        var layerTags = layerProperties.get('MetaPropertiesEditing');
+        var layerTags = layerProperties.get('MetaProperties');
         if (!data || !layerTags) return;
         
-        var convertedTagValues = {};
+        // var convertedTagValues = {};
         for (var mp in data)
         {
             var tagtype = data[mp].Type;
@@ -925,35 +925,9 @@ var createPageAttributes = function(parent, props) {
 var createPageMetadata = function(parent, layerProperties) {
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
-        var convertedTagValues = {};
-        
-        var metaProperties = layerProperties.get('MetaProperties');
-        for (var mp in metaProperties)
-        {
-            var tagtype = metaProperties[mp].Type;
-            convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.Utils.convertFromServer(tagtype, metaProperties[mp].Value)};
-        }
-        var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
-        
-        $(layerTags).change(function() {
-            var metaProperties = {};
-            layerTags.eachValid(function(id, tag, value)
-            {
-                //для неизвестных тегов присваиваем тип String
-                var type = layerTags.getTagMetaInfo().getTagType(tag) || 'String';
-                var value = nsGmx.Utils.convertToServer(type, value);
-                if (value !== null) {
-                    metaProperties[tag] = {Value: value, Type: type};
-                }
-            }, true)
-            
-            layerProperties.set('MetaProperties', metaProperties);
-        })
-        
-        //layerProperties тут используется просто как удобный механизм передачи этого класса между элементами диалога
-        layerProperties.set('MetaPropertiesEditing', layerTags);
-        
-        var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, parent);
+        var layerTags = layerProperties.get('MetaProperties');
+        nsGmx.LayerTagsWithInfo.call(layerTags, tagsInfo);
+        new nsGmx.LayerTagSearchControl(layerTags, parent);
     })
 }
 

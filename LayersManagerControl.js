@@ -339,7 +339,7 @@ var LayerManagerControl = function( parentDiv, name, params )
     
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
-        var layerTags = new nsGmx.LayerTags(tagsInfo);
+        var layerTags = new nsGmx.LayerTagsWithInfo(tagsInfo);
         new nsGmx.LayerTagSearchControl(layerTags, tagsParent, {inputWidth: 115});
         LayersFilterParams.setTags(layerTags);
     });

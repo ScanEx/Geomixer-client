@@ -222,7 +222,7 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
         tagInitInfo[tagName] = {Value: pluginParams[tagName]};
     }
     
-    var layerTags = new nsGmx.LayerTags(fakeTagMetaInfo, tagInitInfo);
+    var layerTags = new nsGmx.LayerTagsWithInfo(fakeTagMetaInfo, tagInitInfo);
     
     var container = $('<div/>');
     

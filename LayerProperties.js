@@ -57,7 +57,7 @@ var LayerProperties = Backbone.Model.extend(
     },
     
     initFromViewer: function(type, divProperties, layerProperties) {
-            
+
         this.set({
             Type:           type || (divProperties && divProperties.type) || (layerProperties && layerProperties.type), 
             Title:          divProperties ? (divProperties.title || '') : (layerProperties.Title || ''),
@@ -69,7 +69,7 @@ var LayerProperties = Backbone.Model.extend(
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
             Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
-            MetaProperties: layerProperties.MetaProperties || {},
+            //MetaProperties: layerProperties.MetaProperties || {},
             ShapePath:      layerProperties.ShapePath || {},
             TilePath:       layerProperties.TilePath || {},
             Name:           layerProperties.name,
@@ -79,11 +79,20 @@ var LayerProperties = Backbone.Model.extend(
             TableCS:        layerProperties.TableCS,
             SourceType:     layerProperties.SourceType || 'file',
             Geometry:       layerProperties.Geometry,
-            
+
             Attributes:     divProperties ? divProperties.attributes : [],
             AttrTypes:      divProperties ? divProperties.attrTypes : []
         })
         
+        var metaProperties = layerProperties.MetaProperties;
+        var convertedTagValues = {};
+        for (var mp in metaProperties)
+        {
+            var tagtype = metaProperties[mp].Type;
+            convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.Utils.convertFromServer(tagtype, metaProperties[mp].Value)};
+        }
+        this.set('MetaProperties', new nsGmx.LayerTags(convertedTagValues));
+
         this.set('RC', new nsGmx.LayerRCProperties({
             IsRasterCatalog:      layerProperties.IsRasterCatalog,
             RCMinZoomForRasters:  layerProperties.RCMinZoomForRasters,
@@ -153,10 +162,19 @@ var LayerProperties = Backbone.Model.extend(
             Copyright: attrs.Copyright
         };
 
-        if (attrs.MetaProperties) {
-            reqParams.MetaProperties = JSON.stringify(attrs.MetaProperties);
-        }
-                
+        var metaProperties = {};
+        attrs.MetaProperties.eachValid(function(id, tag, value, type)
+        {
+            //для неизвестных тегов присваиваем тип String
+            var type = type || 'String';
+            var value = nsGmx.Utils.convertToServer(type, value);
+            if (value !== null) {
+                metaProperties[tag] = {Value: value, Type: type};
+            }
+        }, true)
+        
+        reqParams.MetaProperties = JSON.stringify(metaProperties);
+
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
             reqParams.NameObject = attrs.NameObject || '';
@@ -181,7 +199,6 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.TemporalPeriods = tempProperties.getPeriodString();
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
-            
             
             //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
             if (attrs.Columns && (name || stype === 'manual')) {
