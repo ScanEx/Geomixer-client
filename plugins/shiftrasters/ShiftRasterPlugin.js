@@ -185,7 +185,7 @@
                                 originalShiftParams,
                                 shiftLayer = map.addLayer({properties: {
                                     IsRasterCatalog: true,
-                                    RCMinZoomForRasters: 10,
+                                    RCMinZoomForRasters: 1,
                                     styles: [{BalloonEnable: false}]
                                 }}),
                                 geomDx = dx,
