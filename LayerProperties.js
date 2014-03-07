@@ -241,7 +241,11 @@ var LayerProperties = Backbone.Model.extend(
             reqParams.GeometryChanged = geometryChanged;
             
             if (typeof curBorder === 'undefined') {
-                reqParams.BorderFile = attrs.ShapePath.Path || '';
+                if (attrs.ShapePath.Path) {
+                    reqParams.BorderFile = attrs.ShapePath.Path;
+                } else if (attrs.Geometry) {
+                    reqParams.BorderGeometry = attrs.Geometry;
+                }
             } else {
                 reqParams.BorderGeometry = JSON.stringify(merc_geometry(curBorder.geometry));
             }
