@@ -15,12 +15,11 @@
         ,toggleVisibility: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/Скрыть", "Show/Hide")
     }
     var styleIcon = {        // стиль ноды иконок по умолчанию
-        backgroundImage: "url('../../api/img/iconeControls.png')"
-        ,borderRadius: '4px'
+        borderRadius: '4px'
         ,display: 'block'
         ,cursor: 'pointer'
-        ,width: '30px'
-        ,height: '30px'
+        //,width: '30px'
+        //,height: '30px'
         ,marginLeft: '6px'
         ,styleFloat: 'left'
         ,cssFloat: 'left'
@@ -1416,25 +1415,25 @@
                 id: id
                 ,rus: pt.rus || title
                 ,eng: pt.eng || title
-                ,style: gmxAPI.extend(pt.style, styleIcon, true)
+                ,style: gmxAPI.extend(pt.style, styleIcon)
                 ,hoverStyle: pt.hoverStyle
             };
-            var className = 'leaflet-control-' + id;
+            var className = 'leaflet-control-' + id,
+                imageClassName = 'leaflet-control-Image';
 
             if(pt.regularImageUrl) {
                 attr.src = pt.regularImageUrl;
-                attr.style = {
-                    position: 'relative'
-                    ,background: 'rgba(154, 154, 154, 0.7)'
-
-                };
+                // attr.style = {
+                    // position: 'relative'
+                    // ,background: 'rgba(154, 154, 154, 0.7)'
+                // };
             }
             if(pt.activeImageUrl) {
                 attr.srcHover = pt.activeImageUrl;
-                attr.hoverStyle = {
-                    position: 'relative'
-                    ,background: 'rgba(154, 154, 154, 1)'
-                };
+                // attr.hoverStyle = {
+                    // position: 'relative'
+                    // ,background: 'rgba(154, 154, 154, 1)'
+                // };
             }
             if(pt.onClick) attr.onClick = pt.onClick;
             if(pt.onCancel) attr.onCancel = pt.onCancel;
@@ -1446,8 +1445,10 @@
                     attr.innerHTML = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng)
                 }
             } else {
-                className += ' leaflet-control-';
-                className += (pt.width === 'auto' ? 'userIcons' : 'icons');
+                className += ' leaflet-control-userIcons';
+                if (!pt.style) {
+                    className += ' leaflet-control-ImageAuto';
+                }
             }
 
             // Добавление пользовательского контрола
@@ -1461,7 +1462,6 @@
                 ,onFinishID: null
                 ,id: id
                 ,onAdd: function() {
-                    //gmxAPI.setStyleHTML(this._container, attr.style);
                     Controls.items[this.options.id] = this;
                     var my = this;
                     var container = this._container;
@@ -1469,9 +1469,11 @@
                         container.innerHTML = attr.innerHTML;
                         L.DomUtil.addClass(container, 'leaflet-control-Text');
                     } else if(pt.regularImageUrl) {
-                        this._Image = L.DomUtil.create('img', 'leaflet-control-Image');
+                        gmxAPI.setStyleHTML(this._container, attr.style);
+                        this._Image = L.DomUtil.create('img', imageClassName);
                         container.appendChild(this._Image);
-                        L.DomUtil.addClass(container, 'leaflet-control-userIcons');
+                        L.DomUtil.addClass(container, className);
+                        //L.DomUtil.addClass(container, 'leaflet-control-userIcons');
                     }
                     L.DomEvent.on(container, 'mouseover', function (e) {
                         my.setActive(true, true);

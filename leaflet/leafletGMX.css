@@ -187,12 +187,19 @@
     background-color: rgba(154, 154, 154, 1);
 }
 
+.leaflet-control-ImageAuto {
+    width: 30px;
+    height: 30px;
+}
+.leaflet-control-ImageAuto  img {
+    max-width: 30px !important;
+    position: absolute !important;
+}
 
 .leaflet-control-Image {
     bottom: 0;
     left: 0;
     margin: auto;
-    position: absolute;
     right: 0;
     top: 0;
 }
@@ -202,10 +209,10 @@
     cursor: pointer;
     display: block;
     float: left;
-    height: 30px;
     margin-left: 6px;
     position: relative;
     width: 30px;
+    height: 30px;
     cursor: pointer;
     clear: none;
 }
