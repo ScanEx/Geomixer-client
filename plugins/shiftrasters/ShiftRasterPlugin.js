@@ -292,8 +292,10 @@
                             var layerProperties = new nsGmx.LayerProperties();
                             layerProperties.initFromServer(layerName).done(function() {
                                 var metaProperties = layerProperties.get('MetaProperties');
-                                metaProperties.shiftX = {Value: shiftParams.get('dx'), Type: 'Number'};
-                                metaProperties.shiftY = {Value: shiftParams.get('dy'), Type: 'Number'};
+                                var xId = metaProperties.getTagIdByName('shiftX');
+                                var yId = metaProperties.getTagIdByName('shiftY');
+                                xId ? metaProperties.updateTag(xId, 'shiftX', shiftParams.get('dx'), 'Number') : metaProperties.addNewTag('shiftX', shiftParams.get('dx'), 'Number');
+                                yId ? metaProperties.updateTag(yId, 'shiftY', shiftParams.get('dy'), 'Number') : metaProperties.addNewTag('shiftY', shiftParams.get('dy'), 'Number');
                                 layerProperties.save().done(function(response) {
                                     layer.chkLayerVersion && layer.chkLayerVersion();
                                 });
