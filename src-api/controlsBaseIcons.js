@@ -256,12 +256,13 @@
             }
             ,
             _setPosition: function () {
-                var my = this,
-                    MinZoom = my._map.getMinZoom(),
-                    y = my._y_max - (my._zoom - MinZoom) * 7;
+                if(this._zoomVal) {
+                    var MinZoom = this._map.getMinZoom(),
+                        y = this._y_max - (this._zoom - MinZoom) * 7;
 
-                my._zoomVal.innerHTML = my._zoom;
-                L.DomUtil.setPosition(my._zoomPointer, L.point(4, y));
+                    this._zoomVal.innerHTML = this._zoom;
+                    L.DomUtil.setPosition(this._zoomPointer, L.point(4, y));
+                }
             }
             ,
             _getZoomByY: function (y) {
@@ -293,7 +294,7 @@
 
                 if(MinZoom !== my._MinZoom || MaxZoom !== my._MaxZoom) {
                     var delta = MaxZoom - MinZoom;
-                    if(delta > 0) {
+                    if(MaxZoom < 100 && delta >= 0) {
                         if(!my._zoomSliderCont) {
                             my._zoomSliderCont  = my._createDiv(container, 'gmx_sliderCont');
                             my._zoomSliderBG  = my._createDiv(my._zoomSliderCont, 'gmx_sliderBG');
