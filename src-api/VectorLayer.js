@@ -987,9 +987,13 @@
 				var pattern = ctx.createPattern(pImage, "no-repeat");
 				ctx.fillStyle = pattern;
                     //ctx.fillRect(0, 0, 256, 256);
-				geom.paintFill(attr, itemStyle, ctx, true);
+                if(geom.paintFill) {
+                    geom.paintFill(attr, itemStyle, ctx, true);
+                } else {
+                    gmxAPI.addDebugWarnings({'func': 'objectToCanvas', 'nodeID': node.id, 'alert': 'Bad geometry type for id: ' + geom.id + ' layer: ' + nodeId});
+                }
                     //ctx.fill();
-				ctx.clip();
+                ctx.clip();
 				ctx.restore();
             }
 			geom.paint(attr, itemStyle, ctx);
@@ -2580,6 +2584,7 @@
                         var ptx = canvas.getContext('2d');
                         for (var i = 0, len = arr.length; i < len; i++) {
                             var p = arr[i], w = p[4], h = p[5];
+                            if(!p[9]) continue;
                             var sx = 0, sw = 256 - w, dx = w, dw = sw;
                             if(p[2] != p[0]) {
                                 sx = sw, sw = w, dx = 0, dw = sw;
