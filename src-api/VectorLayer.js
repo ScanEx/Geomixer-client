@@ -387,27 +387,20 @@
 
 		var prevID = 0;
 		var prevPoint = null;
-		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
+		node.eventsCheck = function(evName, attr) {			// проверка событий векторного слоя
 			var onScene = (myLayer && myLayer._map ? true : false);
-			// if(onScene && dragAttr && evName === 'onMouseDown') {
-                // dragOn();
-                // return true;
-            // }
-			if(evName !== 'onClick'
-				|| gmxAPI._drawing.activeState
+			if(gmxAPI._drawing.activeState
 				|| !onScene
 				|| gmxAPI._leaflet.curDragState) return false;
 
-			//console.log('eventsCheck ' , evName, node.id, gmxAPI._leaflet['curDragState'], gmxAPI._drawing.tools['move'].isActive);
+            //console.log('eventsCheck ' , evName, node.id);
 
-			//if(node['observerNode']) return false;
 			if(!attr) attr = gmxAPI._leaflet.clickAttr;
 			if(!attr.latlng) return false;
 			var zoom = LMap.getZoom();
 			var pt = getItemsByPoint(attr.latlng, zoom);
 			if(pt.arr.length) {
                 var arr = pt.arr;
-				//var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
 				prevPoint = attr.containerPoint;
 				if(needCheck) {
@@ -417,52 +410,6 @@
                 
 				var idClick = node.flipIDS[node.flipIDS.length - 1];
 				var itemClick = node.objectsData[idClick];
-                
-				var vid = node.flipIDS[0];
-				var item = arr[0];
-				var oper = 'setFlip';
-				var isCluster = (item.geom && item.geom.propHiden.subType == 'cluster' ? true : false);
-				var itemPropHiden = null;
-				var handlerObj = null;
-				if(!isCluster) {
-					var operView = false;
-					if(attr.shiftKey && node.propHiden.rasterView === 'onShiftClick') operView = true;
-					else if(attr.ctrlKey && node.propHiden.rasterView === 'onCtrlClick') operView = true;
-					else if(node.propHiden.rasterView === 'onClick') operView = true;
-
-					vid = node.flipIDS[node.flipIDS.length - 1];
-					handlerObj = getHandler(vid, evName);
-					item = node.objectsData[vid];
-					if(node.flipEnabled && oper === 'setFlip') {
-						item = node.setFlip();
-						if(item && !handlerObj && item.id === prevID) item = node.setFlip();
-                        chkFlip(item.id);
-					}
-					if(!item) return true;
-					vid = item.id;
-					prevID = vid;
-					itemPropHiden = item.propHiden;
-
-					if(operView) {
-						itemPropHiden.rasterView = !itemPropHiden.rasterView;
-						if(node.propHiden.showOnlyTop) {
-							for (var i = 0; i < arr.length; i++) {
-								if(arr[i].geom.id != item.id) {
-									arr[i].geom.propHiden.rasterView = false;
-								}
-							}
-						}
-						node.chkNeedImage(item);
-                        if(node.propHiden.stopFlag) return true;
-					}
-				} else {
-					itemPropHiden = item.geom.propHiden;
-				}
-				if(node.flipEnabled && oper === 'setFlip') {
-					var hItem = getTopFromArrItem(arr);
-					delete node.hoverItem;
-					if(hItem) hoverItem(hItem);
-				}
 				var gmxAttr = attr;
                 gmxAttr.layer = gmxNode;
                 gmxAttr.eventPos = {
@@ -470,24 +417,77 @@
                     //,pixelInTile: attr.pixelInTile
                     ,tID: pt.gmxTileID
 				};
+                var handlerObj = null;
+                if (evName === 'onClick') {
+                    var vid = node.flipIDS[0];
+                    var item = arr[0];
+                    var oper = 'setFlip';
+                    var isCluster = (item.geom && item.geom.propHiden.subType == 'cluster' ? true : false);
+                    var itemPropHiden = null;
+                    if(!isCluster) {
+                        var operView = false;
+                        if(attr.shiftKey && node.propHiden.rasterView === 'onShiftClick') operView = true;
+                        else if(attr.ctrlKey && node.propHiden.rasterView === 'onCtrlClick') operView = true;
+                        else if(node.propHiden.rasterView === 'onClick') operView = true;
 
-				if(!isCluster) {
-                    gmxAttr.objForBalloon = item;
-                    if('onClick' in node.handlers) {		// Есть handlers на слое
- 						var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
- 						if(typeof(res) === 'object' && res.stopPropagation) return true;
+                        vid = node.flipIDS[node.flipIDS.length - 1];
+                        handlerObj = getHandler(vid, evName);
+                        item = node.objectsData[vid];
+                        if(node.flipEnabled && oper === 'setFlip') {
+                            item = node.setFlip();
+                            if(item && !handlerObj && item.id === prevID) item = node.setFlip();
+                            chkFlip(item.id);
+                        }
+                        if(!item) return true;
+                        vid = item.id;
+                        prevID = vid;
+                        itemPropHiden = item.propHiden;
+
+                        if(operView) {
+                            itemPropHiden.rasterView = !itemPropHiden.rasterView;
+                            if(node.propHiden.showOnlyTop) {
+                                for (var i = 0; i < arr.length; i++) {
+                                    if(arr[i].geom.id != item.id) {
+                                        arr[i].geom.propHiden.rasterView = false;
+                                    }
+                                }
+                            }
+                            node.chkNeedImage(item);
+                            if(node.propHiden.stopFlag) return true;
+                        }
+                    } else {
+                        itemPropHiden = item.geom.propHiden;
                     }
-					if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler('onClick', itemClick, handlerObj, gmxAttr);
-                } else {
-					gmxAttr.objType = 'cluster';
-					gmxAttr.members = itemPropHiden._members;
-					if(node.clustersData.clusterView(item)) return true;
-					if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
-					var fID = itemPropHiden.toFilters[0];
-					var filter = gmxAPI.mapNodes[fID];
-					gmxAttr.textFunc = filter.clusters.getTextFunc();
-					if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
-				}
+                    if(node.flipEnabled && oper === 'setFlip') {
+                        var hItem = getTopFromArrItem(arr);
+                        delete node.hoverItem;
+                        if(hItem) hoverItem(hItem);
+                    }
+
+                    if(!isCluster) {
+                        gmxAttr.objForBalloon = item;
+                        // if('onClick' in node.handlers) {		// Есть handlers на слое
+                            // var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
+                            // if(typeof(res) === 'object' && res.stopPropagation) return true;
+                        // }
+                        // if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler('onClick', itemClick, handlerObj, gmxAttr);
+                    } else {
+                        gmxAttr.objType = 'cluster';
+                        gmxAttr.members = itemPropHiden._members;
+                        if(node.clustersData.clusterView(item)) return true;
+                        itemClick = item.geom;
+                        //if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
+                        var fID = itemPropHiden.toFilters[0];
+                        handlerObj = gmxAPI.mapNodes[fID];
+                        gmxAttr.textFunc = handlerObj.clusters.getTextFunc();
+                        //if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
+                    }
+                }
+                if(evName in node.handlers) {		// Есть handlers на слое
+                    var res = callHandler(evName, itemClick, gmxNode, gmxAttr);
+                    if(typeof(res) === 'object' && res.stopPropagation) return true;
+                }
+                if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler(evName, itemClick, handlerObj, gmxAttr);
 				return true;
 			}
 		}
