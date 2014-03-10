@@ -2980,31 +2980,21 @@
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			node['minZ'] = ph.attr['minZ'] || gmxAPI.defaultMinZoom;
-			node['maxZ'] = ph.attr['maxZ'] || gmxAPI.defaultMaxZoom;
+			node.minZ = ph.attr.minZ || gmxAPI.defaultMinZoom;
+			node.maxZ = ph.attr.maxZ || gmxAPI.defaultMaxZoom;
 			var pnode = mapNodes[node.parentId];
-			if(node.propHiden && node.propHiden['subType'] == 'tilesParent') {			//ограничение по zoom квиклуков
+			if(node.propHiden && node.propHiden.subType == 'tilesParent') {			//ограничение по zoom квиклуков
 				if(pnode) {
-					if(pnode['setZoomBoundsQuicklook']) pnode['setZoomBoundsQuicklook'](node['minZ'], node['maxZ']);
+					if(pnode.setZoomBoundsQuicklook) pnode.setZoomBoundsQuicklook(node.minZ, node.maxZ);
 				}
-			} else if(node['type'] == 'map') {			//ограничение по zoom map
-				commands.setMinMaxZoom({'attr':{'z1':node['minZ'], 'z2':node['maxZ']}})
+			} else if(node.type == 'map') {			//ограничение по zoom map
+				commands.setMinMaxZoom({ attr:{ z1: node.minZ, z2: node.maxZ } })
 			} else if('onZoomend' in node) {					// есть проверка по Zoom
 				node.onZoomend();
-			} else if(pnode && pnode['type'] == 'VectorLayer') {	// изменения для одного из фильтров
+			} else if(pnode && pnode.type == 'VectorLayer') {	// изменения для одного из фильтров
 				if('chkZoomBoundsFilters' in pnode) {
 					pnode.chkZoomBoundsFilters();
 				}
-			} else if(node['type'] == 'mapObject') {			//ограничение по zoom mapObject
-				/*gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
-						gmxAPI._leaflet['drawManager'].add(id);
-						
-						if(utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id)) {
-							utils.setVisibleNode({'obj': node, 'attr': true});
-						}
-						return false;
-					}
-				});*/
 			}
 			return true;
 		}

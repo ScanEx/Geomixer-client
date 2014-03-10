@@ -813,7 +813,7 @@
 			{
 				obj.setVisible(true);
 				var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden);
-				FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
+				//FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
 				//obj.setVisible(false);
 				return newObj;
 			}

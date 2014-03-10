@@ -1544,15 +1544,18 @@
                 return toFilters;
             }
             ,chkZoomBoundsFilters: function()	{	// Проверка видимости по Zoom фильтров
-                var minZ = 100;
-                var maxZ = 1;
-                for(var j=0; j<node.filters.length; j++) {
-                    var filter = mapNodes[node.filters[j]];
-                    if(maxZ < filter.maxZ) maxZ = filter.maxZ;
-                    if(minZ > filter.minZ) minZ = filter.minZ;
+                var minZ = 100,
+                    maxZ = 1,
+                    len = node.filters.length;
+                if (len) {
+                    for (var j=0; j<len; j++) {
+                        var filter = mapNodes[node.filters[j]];
+                        if (maxZ < filter.maxZ) maxZ = filter.maxZ;
+                        if (minZ > filter.minZ) minZ = filter.minZ;
+                    }
+                    if (maxZ != node.maxZ) node.maxZ = maxZ;
+                    if (minZ != node.minZ) node.minZ = minZ;
                 }
-                if(maxZ != node.maxZ) node.maxZ = maxZ;
-                if(minZ != node.minZ) node.minZ = minZ;
                 
                 if(node.isVisible !== false && myLayer) {
                     if(myLayer.options.minZ != node.minZ || myLayer.options.maxZ != node.maxZ) {
@@ -1639,6 +1642,7 @@
                 if(node.tilesNeedRepaint.length) {
                     node.checkWaitStyle();
                     if(!gmxAPI._leaflet.zoomstart
+                        && myLayer && myLayer._map
                         && !node.waitStyle
                         && !node.getLoaderFlag()
                         //&& !gmxAPI._leaflet.moveInProgress
