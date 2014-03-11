@@ -1,10 +1,10 @@
 ﻿!function($){
 
-/** Объект, описывающий один атрибут слоя
+/** Объект, описывающий один атрибут слоя. Формат для передачи на сервер
  * @typedef {Object} nsGmx.LayerProperties.Column
- * @property {String} name Имя атрибута
- * @property {String} oldName Исходное имя атрибута. Используется для переименования атрибутов. Для новых атрибутов это поле должно отсутствовать.
- * @property {{user: String, server: String}} type Тип атрибута. Поля соответствуют серверной и клиентской форме записи типа. Клиентская может отсутствовать
+ * @property {String} Name Имя атрибута
+ * @property {String} OldName Исходное имя атрибута. Используется для переименования атрибутов. Для новых атрибутов это поле должно отсутствовать.
+ * @property {String}  ColumnSimpleType Тип атрибута
  * @property {Boolean} IsPrimary
  * @property {Boolean} IsIdentity
  * @property {Boolean} IsComputed

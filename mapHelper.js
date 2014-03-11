@@ -449,12 +449,12 @@ mapHelper.prototype.getMapStyles = function()
 mapHelper.prototype.showPermalink = function()
 {
 	this.createPermalink(function(id){
-									var input = _input(null, [['dir','className','inputStyle'],['attr','value',"http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName))],['css','width','270px']])
-				
-									showDialog(_gtxt("Ссылка на текущее состояние карты:"), _div([input]), 311, 80, false, false);
-									
-									input.select();
-								});
+        var input = _input(null, [['dir','className','inputStyle'],['attr','value',"http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName))],['css','width','270px']])
+
+        showDialog(_gtxt("Ссылка на текущее состояние карты:"), _div([input]), 311, 80, false, false);
+        
+        input.select();
+    });
 }
 
 mapHelper.prototype.createPermalink = function(callback)
@@ -462,17 +462,18 @@ mapHelper.prototype.createPermalink = function(callback)
 	var mapState = this.getMapState();
 	
 	sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
-								{
-									WrapStyle: 'window',
-									content: JSON.stringify(mapState)
-								}, 
-								function(response)
-								{
-									if (!parseResponse(response))
-										return;
-									
-									callback(response.Result);
-								})
+        {
+            WrapStyle: 'window',
+            content: JSON.stringify(mapState)
+        }, 
+        function(response)
+        {
+            if (!parseResponse(response))
+                return;
+            
+            callback(response.Result);
+        }
+    )
 }
 
 mapHelper.prototype.createSuggestCanvas = function(values, textarea, textTamplate, func, valuesArr, addValueFlag)
@@ -772,12 +773,12 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 {
 	var elemProperties = div.gmxProperties.content.properties,
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
-		layerRights = _queryMapLayers.layerRights(elemProperties.name)
+        type = elemProperties.type,
 		_this = this;
 
-    if (elemProperties.type == "Vector")
+    if (type == "Vector")
     {
-        nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, params);
+        nsGmx.createLayerEditor(div, type, parent, layerProperties, params);
         
         return;
     }
@@ -794,7 +795,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
                 
                 loading.removeNode(true);
                 
-                nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, params)
+                nsGmx.createLayerEditor(div, type, parent, response.Result, params)
             })
         }
     }
@@ -812,7 +813,7 @@ mapHelper.prototype.createNewLayer = function(type)
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
         var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 340, height, false, false);
-        nsGmx.createLayerEditorProperties(false, type, parent, properties,
+        nsGmx.createLayerEditor(false, type, parent, properties,
             {
                 doneCallback: function() 
                 {
@@ -894,7 +895,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			if (this.layerEditorsHash[elemProperties.name] != false) {
                 this.layerEditorsHash[elemProperties.name].selectTab(selected);
             }
-			
+
 			return;
 		}
 		
@@ -957,7 +958,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
             var attributesHash = {};
             
             for (var i = 0; i < columns.length; i++) {
-                attributesHash[columns[i].Name] =  [];
+                attributesHash[columns[i].Name] = [];
             }
             
 			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, elemProperties.LayerID);
@@ -1583,7 +1584,7 @@ nsGmx.createGroupEditor = gmxCore.createDeferredFunction('GroupEditor', 'createG
 nsGmx.createMapEditor = gmxCore.createDeferredFunction('GroupEditor', 'createMapEditor');
 
 //Редактирование свойств слоя
-nsGmx.createLayerEditorProperties = gmxCore.createDeferredFunction('LayerEditor', 'createLayerEditorProperties');
+nsGmx.createLayerEditor = gmxCore.createDeferredFunction('LayerEditor', 'createLayerEditor');
 
 //Редактирование стилей векторного слоя
 nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', 'createStylesDialog');

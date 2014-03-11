@@ -1834,7 +1834,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
 	})
 }
 
-queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, needRetiling)
+queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recreateLayer)
 {
     var layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0],
         _this = this;
@@ -1842,7 +1842,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, needRe
     promise
         .done(function(taskInfo)
         {
-            if (needRetiling)
+            if (recreateLayer)
             {
                 var newLayerProperties = taskInfo.Result.properties;
                 

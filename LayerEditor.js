@@ -303,7 +303,274 @@ var ManualAttrView = function()
     }
 };
 
-var createPageMain = function(parent, layerProperties, tabSelector) {
+/**
+ Диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
+ @memberOf nsGmx
+ @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
+ @param {String} type тип слоя ("Vector" или "Raster")
+ @param {DOMElement} parent контейнер, в которым нужно разместить диалог
+ @param {Object} [params] Дополнительные параметры
+ @param {Object[]} [params.additionalTabs] Массив дополнительных вкладок со следующими полями:
+ 
+   - {String} title Что будет написано но вкладке
+   - {String} name Уникальный идентификатор вкладки
+   - {DOMElement} container Контент вкладки
+   
+ @param {String} [params.selected] Идентификатор вкладки, которую нужно сделать активной
+ @param {Function(controller)} [params.createdCallback] Ф-ция, которая будет вызвана после того, как диалог будет создан.
+        В ф-цию передаётся объект со следующими свойствами:
+
+   - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
+   
+  @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
+*/
+var LayerEditor = function(div, type, parent, properties, params) {
+
+    /** Генерируется перед изменением/добавлением слоя. Может быть использован для сохранения в свойствах объекта каких-то внешних данных.
+     * @event nsGmx.LayerEditor#premodify
+     */
+
+    var _params = $.extend({
+                addToMap: true, 
+                doneCallback: null, 
+                additionalUI: {}
+            }, params)
+            
+    var _this = this;
+    this._originalTabs = [];
+    this._saveButton = null;
+    
+    this.selectTab = function(tabName) {
+        var selectedTab = $(tabMenu).tabs('option', 'selected');
+        $.each(tabs, function(i, tab) {
+            if (tab.name === tabName && i !== selectedTab) {
+                $(tabMenu).tabs("select", i);
+            }
+        })
+    }
+    
+    params = params || {};
+    
+    var genPageDiv = function() {
+        return _div(
+            [_div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])],
+            [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]
+        );
+    }
+    
+    var createUI = function() {
+        var divProperties = div ? div.gmxProperties.content.properties : {},
+            layerProperties = new nsGmx.LayerProperties();
+            // tabs = [];
+        
+        layerProperties.initFromViewer(type, divProperties, properties);
+        
+        _params = LayerEditor.applyInitHooks(_this, layerProperties, _params);
+        
+        var mainContainer     = genPageDiv();
+        var metadataContainer = genPageDiv();
+        var advancedContainer = genPageDiv();
+        var attrContainer     = genPageDiv();
+        
+        _this._originalTabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
+        
+        if (type === 'Vector') {
+            _this._originalTabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
+        }
+        
+        _this._originalTabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
+        
+        if (type === 'Vector') {
+            _this._originalTabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
+        }
+        
+        _this._saveButton = null;
+        
+        if (div) {
+            var layerRights = _queryMapLayers.layerRights(divProperties.name);
+            var securityDiv = null;
+            
+            if (!layerRights)
+            {
+                securityDiv = _div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
+            }
+            else if (layerRights != "edit")
+            {
+                securityDiv = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
+            }
+            
+            if (securityDiv) {
+                $([mainContainer.firstChild, metadataContainer.firstChild, advancedContainer.firstChild]).append(securityDiv);
+                _this._saveButton = _div(null, [['css', 'height', '1px']]);
+                return;
+            }
+        }
+        
+        _this._saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
+        
+        var origLayerProperties = layerProperties.clone();
+        
+        _this._createPageMain(mainContainer.firstChild, layerProperties);
+        _this._createPageMetadata(metadataContainer.firstChild, layerProperties);
+        
+        if (type === 'Vector') {
+            _this._createPageAdvanced(advancedContainer.firstChild, layerProperties);
+            _this._createPageAttributes(attrContainer.firstChild, layerProperties);
+        }
+        
+        for (var i in _params.additionalUI) {
+            var tab = nsGmx._.findWhere(_this._originalTabs, {name: i});
+            if (tab) {
+                var container = tab.container.firstChild;
+                _params.additionalUI[i].forEach(function(ui) {
+                    $(container).append(ui);
+                })
+            }
+        }
+                
+        if (div) {
+            layerProperties.on({
+                'change:Title': function() {
+                    var title =  layerProperties.get('Title');
+                
+                    var span = $(div).find(".layer")[0];
+                    removeChilds(span);
+                    _(span, [_t(title)]);
+
+                    divProperties.title = title;
+                },
+                'change:Copyright': function() {
+                    var copyright = layerProperties.get('Copyright')
+                        
+                    globalFlashMap.layers[layerProperties.get('Name')].setCopyright(copyright);
+                        
+                    divProperties.Copyright = copyright;
+                },
+                'change:Description': function() {
+                    var description = layerProperties.get('Description');
+                        
+                    var span = $(div).find(".layerDescription")[0];
+                    removeChilds(span);
+                    span.innerHTML = description;
+                    
+                    divProperties.description = description;
+                },
+                'change:Legend': function() {
+                    divProperties.Legend = layerProperties.get('Legend');
+                },
+                'change:NameObject': function() {
+                    divProperties.NameObject = layerProperties.get('NameObject');
+                }
+            });
+        }
+                    
+        _this._saveButton.onclick = function() {
+            
+            $(_this).trigger('premodify');
+            
+            var name = layerProperties.get('Name'),
+                curBorder = _mapHelper.drawingBorders.get(name),
+                oldDrawing = origLayerProperties.get('Geometry'),
+                isVector = layerProperties.get('Type') === 'Vector',
+                needRetiling = false;
+            
+            // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
+            if (isVector ||
+                layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
+                layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
+                oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
+                !oldDrawing && typeof curBorder != 'undefined' ||
+                oldDrawing && typeof curBorder == 'undefined')
+            {
+                needRetiling = true;
+            }
+            
+            var def = layerProperties.save(needRetiling),
+                layerTitle = layerProperties.get('Title');
+                
+            //doneCallback вызываем при первом progress notification - признаке того, что вызов непосредственно скрипта модификации слоя прошёл успешно
+            var onceCallback = nsGmx._.once(function(){
+                _params.doneCallback && _params.doneCallback(def, layerTitle);
+            });
+            def.always(parseResponse);
+            def.then(onceCallback, null, onceCallback);
+            
+            if (isVector && !name && layerProperties.get('SourceType') === 'manual') {
+                if (_params.addToMap) {
+                    def.done(function(response) {
+                        var mapProperties = _layersTree.treeModel.getMapProperties(),
+                            targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
+                            gmxProperties = {type: 'layer', content: response.Result};
+                            
+                        gmxProperties.content.properties.mapName = mapProperties.name;
+                        gmxProperties.content.properties.hostName = mapProperties.hostName;
+                        gmxProperties.content.properties.visible = true;
+                        
+                        gmxProperties.content.properties.styles = [{
+                            MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                            MaxZoom:21,
+                            RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                        }];
+                    
+                        _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+                    })
+                }
+            } else {
+                if (name) {
+                    _queryMapLayers.asyncUpdateLayer(def, properties, true);
+                } 
+                else {
+                    if (_params.addToMap)
+                        _queryMapLayers.asyncCreateLayer(def, layerTitle);
+                }
+            }
+        }
+    }
+    
+    createUI();
+    
+    var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
+    
+    var tabs = this._originalTabs.concat(params.additionalTabs || []);
+    
+    var lis = [], containers = [];
+    for (var t = 0; t < tabs.length; t++) {
+        lis.push(_li([_a([_t(tabs[t].title)],[['attr','href','#' + tabs[t].name + id]])]));
+        containers.push(tabs[t].container);
+        $(tabs[t].container).attr('id', tabs[t].name + id);
+    }
+    
+    var tabMenu = _div([_ul(lis)].concat(containers));
+    
+    var saveMenuCanvas = _div([this._saveButton]);
+    
+    $(parent).empty().append(_table([
+        _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
+        _tr([_td([_div(null, [['css', 'height', '1px']]), saveMenuCanvas])])
+    ], [['css', 'height', '100%'], ['css', 'width', '100%'], ['css', 'position', 'relative']]));
+    
+    var getTabIndex = function(tabName) {
+        for (var i = 0; i < tabs.length; i++)
+            if (tabs[i].name === tabName)
+                return i;
+        return -1;
+    }
+    
+    var selectIndex = getTabIndex(params.selected);
+    $(tabMenu).tabs({
+        selected: selectIndex > -1 ? selectIndex : 0,
+        select: function(event, ui) {
+            $(saveMenuCanvas).toggle(ui.index < _this._originalTabs.length);
+        }
+    });
+    
+    $(saveMenuCanvas).toggle(selectIndex < this._originalTabs.length);
+    
+    params.createdCallback && params.createdCallback(this);
+}
+
+
+LayerEditor.prototype._createPageMain = function(parent, layerProperties) {
 
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
     title.onkeyup = function() {
@@ -359,15 +626,16 @@ var createPageMain = function(parent, layerProperties, tabSelector) {
             shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
             
     if (layerProperties.get('Type') === "Vector")
-        shownProperties = shownProperties.concat(createPageVectorSource(layerProperties, tabSelector));
+        shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties));
     else
-        shownProperties = shownProperties.concat(createPageRasterSource(layerProperties));
+        shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
         
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
     _(parent, [_table([_tbody(trs)],[['dir','className','propertiesTable']])]);
 }
 
-var createPageVectorSource = function(layerProperties, tabSelector) {
+LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
+    var _this = this;
     var LatLngColumnsModel = new gmxCore.getModule('LayerProperties').LatLngColumnsModel;
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
@@ -542,7 +810,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
                 
     var editAttributeLink = $('<span/>').addClass('buttonLink').text(_gtxt('Редактировать поля')).click(function() {
-        tabSelector.selectTab('attrs');
+        _this.selectTab('attrs');
     })
     
     var attrViewParent = _div();
@@ -653,7 +921,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     return shownProperties;
 }
 
-var createPageRasterSource = function(layerProperties) {
+LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
     var shapePath = layerProperties.get('ShapePath');
     var tilePath = layerProperties.get('TilePath');
     var name = layerProperties.get('Name');
@@ -876,7 +1144,7 @@ var createPageRasterSource = function(layerProperties) {
     return shownProperties;
 }
 
-var createPageAttributes = function(parent, props) {
+LayerEditor.prototype._createPageAttributes = function(parent, props) {
 
     var isNewLayer = !props.get('Name');
     var fileColumnsContainer = _div();
@@ -922,7 +1190,7 @@ var createPageAttributes = function(parent, props) {
     });
 }
 
-var createPageMetadata = function(parent, layerProperties) {
+LayerEditor.prototype._createPageMetadata = function(parent, layerProperties) {
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
         var layerTags = layerProperties.get('MetaProperties');
@@ -931,7 +1199,7 @@ var createPageMetadata = function(parent, layerProperties) {
     })
 }
 
-var createPageAdvanced = function(parent, layerProperties) {
+LayerEditor.prototype._createPageAdvanced = function(parent, layerProperties) {
     //мультивременной слой
     var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
     var temporalProperties = layerProperties.get('Temporal');
@@ -1018,291 +1286,35 @@ var createPageAdvanced = function(parent, layerProperties) {
     ).appendTo(parent);
 }
 
-//doneCallback вызывается после того, как сервер вернул результат без ошибки из скрипта, модифицирующего данные.
-//Это не значит, что слой уже создан/модифицирован без ошибок - нужно анализировать значение promise, которое передано в качестве первого аргумента.
-//Фактически, doneCallback вызывается при успешном начале создания/модификации слоя.
-var LayerEditor = function(div, type, properties, params) {
-    var _params = $.extend({addToMap: true, doneCallback: null, additionalUI: {}}, params),
-        divProperties = div ? div.gmxProperties.content.properties : {},
-        layerProperties = new nsGmx.LayerProperties(),
-        tabs = [];
-    
-    layerProperties.initFromViewer(type, divProperties, properties);
-    
-    _params = LayerEditor.applyInitHooks(type, layerProperties, _params);
-    
-    this.getTabs = function() {
-        return tabs;
-    }
-    
-    this.getSaveButton = function() {
-        return saveButton;
-    }
-    
-    this.done = function(callback) {
-        callback();
-    }
-    
-    var genPageDiv = function() {
-        return _div(
-            [_div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])],
-            [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]
-        );
-    }
-        
-    var mainContainer     = genPageDiv();
-    var metadataContainer = genPageDiv();
-    var advancedContainer = genPageDiv();
-    var attrContainer     = genPageDiv();
-    
-    tabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
-    
-    if (type === 'Vector') {
-        tabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
-    }
-    
-    tabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
-    
-    if (type === 'Vector') {
-        tabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
-    }
-    
-    var saveButton = null;
-    
-    if (div) {
-        var layerRights = _queryMapLayers.layerRights(divProperties.name);
-        var securityDiv = null;
-        
-        if (!layerRights)
-        {
-            securityDiv = _div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
-        }
-        else if (layerRights != "edit")
-        {
-            securityDiv = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
-        }
-        
-        if (securityDiv) {
-            $([mainContainer.firstChild, metadataContainer.firstChild, advancedContainer.firstChild]).append(securityDiv);
-            saveButton = _div(null, [['css', 'height', '1px']]);
-            return;
-        }
-    }
-    
-    saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
-    
-    var origLayerProperties = layerProperties.clone();
-    
-    createPageMain(mainContainer.firstChild, layerProperties, params.tabSelector);
-    createPageMetadata(metadataContainer.firstChild, layerProperties);
-    
-    if (type === 'Vector') {
-        createPageAdvanced(advancedContainer.firstChild, layerProperties);
-        createPageAttributes(attrContainer.firstChild, layerProperties);
-    }
-    
-    for (var i in _params.additionalUI) {
-        var tab = nsGmx._.findWhere(tabs, {name: i});
-        if (tab) {
-            var container = tab.container.firstChild;
-            _params.additionalUI[i].forEach(function(ui) {
-                $(container).append(ui);
-            })
-        }
-    }
-            
-    if (div) {
-        layerProperties.on({
-            'change:Title': function() {
-                var title =  layerProperties.get('Title');
-            
-                var span = $(div).find(".layer")[0];
-                removeChilds(span);
-                _(span, [_t(title)]);
-
-                divProperties.title = title;
-            },
-            'change:Copyright': function() {
-                var copyright = layerProperties.get('Copyright')
-                    
-                globalFlashMap.layers[layerProperties.get('Name')].setCopyright(copyright);
-                    
-                divProperties.Copyright = copyright;
-            },
-            'change:Description': function() {
-                var description = layerProperties.get('Description');
-                    
-                var span = $(div).find(".layerDescription")[0];
-                removeChilds(span);
-                span.innerHTML = description;
-                
-                divProperties.description = description;
-            },
-            'change:Legend': function() {
-                divProperties.Legend = layerProperties.get('Legend');
-            },
-            'change:NameObject': function() {
-                divProperties.NameObject = layerProperties.get('NameObject');
-            }
-        });
-    }
-                
-    saveButton.onclick = function() {
-        var name = layerProperties.get('Name'),
-            curBorder = _mapHelper.drawingBorders.get(name),
-            oldDrawing = origLayerProperties.get('Geometry'),
-            isVector = layerProperties.get('Type') === 'Vector',
-            needRetiling = false;
-        
-        // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-        if (isVector ||
-            layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
-            layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
-            oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
-            !oldDrawing && typeof curBorder != 'undefined' ||
-            oldDrawing && typeof curBorder == 'undefined')
-        {
-            needRetiling = true;
-        }
-        
-        var def = layerProperties.save(needRetiling),
-            layerTitle = layerProperties.get('Title');
-            
-        //doneCallback вызываем при первом progress notification - признаке того, что вызов непосредственно скрипта модификации слоя прошёл успешно
-        var onceCallback = nsGmx._.once(function(){
-            _params.doneCallback && _params.doneCallback(def, layerTitle);
-        });
-        def.always(parseResponse);
-        def.then(onceCallback, null, onceCallback);
-        
-        if (isVector && !name && layerProperties.get('SourceType') === 'manual') {
-            if (_params.addToMap) {
-                def.done(function(response) {
-                    var mapProperties = _layersTree.treeModel.getMapProperties(),
-                        targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
-                        gmxProperties = {type: 'layer', content: response.Result};
-                        
-                    gmxProperties.content.properties.mapName = mapProperties.name;
-                    gmxProperties.content.properties.hostName = mapProperties.hostName;
-                    gmxProperties.content.properties.visible = true;
-                    
-                    gmxProperties.content.properties.styles = [{
-                        MinZoom: gmxProperties.content.properties.VtMaxZoom,
-                        MaxZoom:21,
-                        RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                    }];
-                
-                    _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                })
-            }
-        } else {
-            if (name) {
-                _queryMapLayers.asyncUpdateLayer(def, properties, needRetiling);
-            } 
-            else {
-                if (_params.addToMap)
-                    _queryMapLayers.asyncCreateLayer(def, layerTitle);
-            }
-        }
-    }
-}
-
 LayerEditor._initHooks = [];
 LayerEditor.addInitHook = function(hook) {
     LayerEditor._initHooks.push(hook);
 }
 
-LayerEditor.applyInitHooks = function(type, layerProperties, params) {
+LayerEditor.applyInitHooks = function(layerEditor, layerProperties, params) {
     LayerEditor._initHooks.forEach(function(hook){
-        params = hook(type, layerProperties, params) || params;
+        params = hook(layerEditor, layerProperties, params) || params;
     })
     
     return params;
 }
 
-/**
- Создаёт диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
- @memberOf nsGmx
- @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
- @param {String} type тип слоя ("Vector" или "Raster")
- @param {DOMElement} parent контейнер, в которым нужно разместить диалог
- @param {Object} [params] Дополнительные параметры
- @param {Object[]} [params.additionalTabs] Массив дополнительных вкладок со следующими полями:
- 
-   - {String} title Что будет написано но вкладке
-   - {String} name Уникальный идентификатор вкладки
-   - {DOMElement} container Контент вкладки
-   
- @param {String} [params.selected] Идентификатор вкладки, которую нужно сделать активной
- @param {Function(controller)} [params.createdCallback] Ф-ция, которая будет вызвана после того, как диалог будет создан.
-        В ф-цию передаётся объект со следующими свойствами:
-
-   - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
-   
-  @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
-*/
-var createLayerEditorProperties = function(div, type, parent, properties, params)
-{
-    var tabSelectorInterface = {
-        selectTab: function(tabName) {
-            var selectedTab = $(tabMenu).tabs('option', 'selected');
-            $.each(tabs, function(i, tab) {
-                if (tab.name === tabName && i !== selectedTab) {
-                    $(tabMenu).tabs("select", i);
-                }
-            })
-        }
-    }
-    params = params || {};
-    params.tabSelector = tabSelectorInterface;
+var createLayerEditor = function(div, type, parent, properties, params) {
+    var def = $.Deferred();
     
-    var layerEditor = new nsGmx.LayerEditor(div, type, properties, params);
-    
-    var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
-    
-    var originalTabs = layerEditor.getTabs();
-    var tabs = originalTabs.concat(params.additionalTabs || []);
-    
-    var lis = [], containers = [];
-    for (var t = 0; t < tabs.length; t++) {
-        lis.push(_li([_a([_t(tabs[t].title)],[['attr','href','#' + tabs[t].name + id]])]));
-        containers.push(tabs[t].container);
-        $(tabs[t].container).attr('id', tabs[t].name + id);
+    params.createdCallback = function() {
+        def.resolve(layerEditor);
     }
     
-    var tabMenu = _div([_ul(lis)].concat(containers));
+    var layerEditor = new LayerEditor(div, type, parent, properties, params);
     
-    var saveMenuCanvas = _div([layerEditor.getSaveButton()]);
-    
-    $(parent).empty().append(_table([
-        _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
-        _tr([_td([_div(null, [['css', 'height', '1px']]), saveMenuCanvas])])
-    ], [['css', 'height', '100%'], ['css', 'width', '100%'], ['css', 'position', 'relative']]));
-    
-    var getTabIndex = function(tabName) {
-        for (var i = 0; i < tabs.length; i++)
-            if (tabs[i].name === tabName)
-                return i;
-        return -1;
-    }
-    
-    var selectIndex = getTabIndex(params.selected);
-    $(tabMenu).tabs({
-        selected: selectIndex > -1 ? selectIndex : 0,
-        select: function(event, ui) {
-            $(saveMenuCanvas).toggle(ui.index < originalTabs.length);
-        }
-    });
-    
-    $(saveMenuCanvas).toggle(selectIndex < originalTabs.length);
-    
-    params.createdCallback && params.createdCallback(tabSelectorInterface);
+    return def;
 }
 
 nsGmx.LayerEditor = LayerEditor;
 
 gmxCore.addModule('LayerEditor', {
-        createLayerEditorProperties: createLayerEditorProperties,
+        createLayerEditor: createLayerEditor,
         LayerEditor: LayerEditor
     }, {
         require: ['LayerProperties']
