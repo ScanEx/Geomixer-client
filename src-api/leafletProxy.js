@@ -4352,6 +4352,7 @@
 				if(!gmxAPI.map.dragState) gmxAPI._leaflet.utils.unfreeze();
 				gmxAPI.mousePressed	= gmxAPI._leaflet.mousePressed = false;
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, { attr:{ latlng:e.latlng } });
+				if(gmxAPI._drawing.activeState) return;		// пропускаем при рисовании
 				var attr = parseEvent(e);
 				if(!attr) return;				// пропускаем
 				attr.evName = 'onMouseUp';
@@ -4367,9 +4368,10 @@
 					return;
 				}
 				var attr = parseEvent(e);
-				if(!attr) return;				// пропускаем
+				if(!attr) return;		// пропускаем
 				attr.evName = 'onMouseDown';
 				gmxAPI._leaflet.mousedownAttr = attr;
+				//if(gmxAPI._drawing.activeState) return;		// пропускаем при рисовании
 				gmxAPI._leaflet.utils.chkGlobalEvent(attr);
 			};
 			LMap.on('mousedown', setMouseDown);
