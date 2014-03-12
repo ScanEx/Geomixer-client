@@ -149,7 +149,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 	{
 		if (layers != null)
 		{
-			forEachLayer(layers, function(layer, isVisible) 
+			gmxAPI.forEachLayer(layers, function(layer, isVisible) 
 			{ 
 				var name = layer.properties.name;
 				

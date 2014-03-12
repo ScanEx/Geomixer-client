@@ -2522,6 +2522,8 @@ function forEachLayer(layers, callback, notVisible)
 	forEachLayerRec({type: "group", content: { children: layers.children, properties: { visible: (notVisible ? false : true) } } }, true);
 }
 
+gmxAPI.forEachLayer = forEachLayer;
+
 var APIKeyResponseCache = {};
 var sessionKeyCache = {};
 var KOSMOSNIMKI_SESSION_KEY = false;

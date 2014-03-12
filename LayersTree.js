@@ -51,7 +51,7 @@ nsGmx.LayersTree = function( tree )
     
     this.forEachLayer = function(callback, node)
     {
-        forEachLayer(node || _tree, callback);
+        gmxAPI.forEachLayer(node || _tree, callback);
     }
     
     // клонирование дерева с возможностью его модификации
