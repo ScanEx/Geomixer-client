@@ -34,3 +34,18 @@
     right: 7px;
     margin-top: 7px;
 }
+
+.shift-rasters-properties {
+    margin: 8px 4px;
+    display: block;
+}
+
+.shift-rasters-properties input
+{
+    margin-right: 3px;
+}
+
+.shift-rasters-properties *
+{
+    vertical-align: middle;
+}

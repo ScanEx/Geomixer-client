@@ -6,13 +6,17 @@
     _translationsHash.addtext("rus", { shiftRastersPlugin: {
         saveBtnTitle: 'Готово',
         cancelBtnTitle: 'Отмена',
-        startBtnTitle: 'Сместить'
+        startBtnTitle: 'Сместить',
+        layerPropertiesTitle: 'Включить сдвиг растров',
+        contextTitle: 'Сдвинуть слой'
     }});
     
     _translationsHash.addtext("eng", { shiftRastersPlugin: {
         saveBtnTitle: 'Done',
         cancelBtnTitle: 'Cancel',
-        startBtnTitle: 'Shift'
+        startBtnTitle: 'Shift',
+        layerPropertiesTitle: 'Enable rasters shift',
+        contextTitle: 'Shift Layer'
     }});
     
     var rowUITemplate = '<span>\
@@ -141,6 +145,66 @@
         pluginName: 'Shift Rasters Plugin',
         afterViewer: function(params, map) {
         
+            //размещаем дополнительный параметр в диалоге редактирования свойств слоя
+            gmxCore.loadModule('LayerEditor').done(function() {
+                nsGmx.LayerEditor.addInitHook(function(layerEditor, layerProperties, params){
+                    
+                    var metaProps = layerProperties.get('MetaProperties'),
+                        isRC = layerProperties.get('RC').get('IsRasterCatalog'),
+                        shiftXName = isRC ? 'shiftXfield' : 'shiftX',
+                        shiftYName = isRC ? 'shiftYfield' : 'shiftY',
+                        shiftXDefault = isRC ? 'shiftX' : 0,
+                        shiftYDefault = isRC ? 'shiftY' : 0,
+                        shiftPropType = isRC ? 'String' : 'Number',
+                        isShift = metaProps.getTagByName(shiftXName) && metaProps.getTagByName(shiftYName);
+
+                    var uiTemplate = 
+                        '<label class = "shift-rasters-properties">' +
+                            '<input type="checkbox" id="shift-rasters" {{#isShift}}checked{{/isShift}}>' + 
+                            '{{i+shiftRastersPlugin.layerPropertiesTitle}}' +
+                        '</label>';
+                    
+                    var ui = $(Mustache.render(uiTemplate, {isShift: isShift}));
+                    
+                    $(layerEditor).on('premodify', function() {
+                        var xId = metaProps.getTagIdByName(shiftXName);
+                        var yId = metaProps.getTagIdByName(shiftYName);
+                        
+                        var isChecked = $('#shift-rasters', ui).prop( "checked" );
+                        
+                        if (isChecked) {
+                            xId || metaProps.addNewTag(shiftXName, shiftXDefault, shiftPropType);
+                            yId || metaProps.addNewTag(shiftYName, shiftYDefault, shiftPropType);
+                        } else {
+                            metaProps.deleteTag(xId);
+                            metaProps.deleteTag(yId);
+                        }
+                        
+                        layerProperties.set('MetaProperties', metaProps);
+                        
+                        if (isRC && isChecked) {
+                            var columns = layerProperties.get('Columns').slice();
+                            
+                            if (!nsGmx._.findWhere(columns, {Name: shiftXDefault})) {
+                                columns.push({Name: shiftXDefault, ColumnSimpleType: 'Float'});
+                            }
+                            
+                            if (!nsGmx._.findWhere(columns, {Name: shiftYDefault})) {
+                                columns.push({Name: shiftYDefault, ColumnSimpleType: 'Float'});
+                            }
+                            
+                            layerProperties.set('Columns', columns);
+                        }
+                    })
+
+                    var tabName = layerProperties.get('Type') === 'Vector' ? 'advanced' : 'main';
+                    
+                    params.additionalUI = params.additionalUI || {};
+                    params.additionalUI[tabName] = params.additionalUI[tabName] || [];
+                    params.additionalUI[tabName].push(ui[0]);
+                })
+            })
+        
             //объекты каталога растров
             nsGmx.EditObjectControl.addParamsHook(function(layerName, objectId, params) {
                 var metaProps = map.layers[layerName].properties.MetaProperties;
@@ -256,9 +320,16 @@
             
             //растровый слой и КР целиком
             nsGmx.ContextMenuController.addContextMenuElem({
-                title: 'Сдвинуть слой',
+                title: _gtxt('shiftRastersPlugin.contextTitle'),
                 isVisible: function(context) {
-                    return true;
+                    var layerName = context.elem.name,
+                        layer = map.layers[layerName],
+                        isRC = layer.properties.IsRasterCatalog,
+                        shiftXName = isRC ? 'shiftXfield' : 'shiftX',
+                        shiftYName = isRC ? 'shiftYfield' : 'shiftY',
+                        metaProps = layer.properties.MetaProperties;
+                    
+                    return metaProps[shiftXName] && metaProps[shiftYName];
                 },
                 clickCallback: function(context) {
                     var layerName = context.elem.name,
@@ -296,6 +367,7 @@
                                 var yId = metaProperties.getTagIdByName('shiftY');
                                 xId ? metaProperties.updateTag(xId, 'shiftX', shiftParams.get('dx'), 'Number') : metaProperties.addNewTag('shiftX', shiftParams.get('dx'), 'Number');
                                 yId ? metaProperties.updateTag(yId, 'shiftY', shiftParams.get('dy'), 'Number') : metaProperties.addNewTag('shiftY', shiftParams.get('dy'), 'Number');
+                                
                                 layerProperties.save().done(function(response) {
                                     layer.chkLayerVersion && layer.chkLayerVersion();
                                 });
