@@ -1,8 +1,23 @@
 var nsGmx = nsGmx || {};
 
+/** Результат поиска ноды в дереве слоёв
+ * @typedef nsGmx.LayersTree.SearchResult
+ * @property {Node} elem Найденный элемент
+ * @property {Node[]} parents Массив родителей. Самый последний элемент массива - сама карта
+ * @property {Number} index Индекс найденного элемента в своей группе
+*/
+
+/** Класс для работы с деревом слоёв
+ * @class
+*/
 nsGmx.LayersTree = function( tree )
 {
+    /** Изменилась видимость ноды. Если изменения касаются нескольких нод, событие будет генерироваться для каждой ноды по отдельности.
+     * @event nsGmx.LayersTree#nodeVisibilityChange
+     * @param {Object} elem Нода, видимость которой изменилась
+     */
     var _tree = tree;
+    var _this = this;
     
     var _findElem = function(elem, attrName, name, parents)
     {
@@ -23,17 +38,25 @@ nsGmx.LayersTree = function( tree )
         }
     }
     
-    //public
+    /** Получить исходное дерево слоёв
+    */
     this.getRawTree = function() 
     {
         return _tree;
     }
     
+    /** Получить свойства карты
+    */
     this.getMapProperties = function() 
     {
         return _tree.properties;
     }
     
+    /** Поиск ноды дерева по значению одного из атрибутов. Ищет как папки, так и слои. Возвращает первый найденный результат
+     * @param {String} attrName Имя атрибута
+     * @param {String} attrValue Значение атрибута
+     * @return {nsGmx.LayersTree.SearchResult} Результат поиска. undefined если ничего не найденно
+    */
     this.findElem = function(attrName, name)
     {
         return _findElem(_tree, attrName, name);
@@ -49,15 +72,20 @@ nsGmx.LayersTree = function( tree )
             return this.findElem("MultiLayerID", gmxProperties.content.properties.MultiLayerID);
     }
     
-    this.forEachLayer = function(callback, node)
+    /** Итерирование по всем слоям группы дерева
+     * @param {function(elem, isVisible)} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
+     * @param {Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
+     */
+    this.forEachLayer = function(callback, groupNode)
     {
-        gmxAPI.forEachLayer(node || _tree, callback);
+        gmxAPI.forEachLayer(node ? node.content : _tree, callback);
     }
     
-    // клонирование дерева с возможностью его модификации
-    // filterFunc(node) -> {Node|null} - ф-ция, которая может модифицировать узлы дерева. 
-    // Вызывается после клонирования очередного узла. Изменения данных можно делать in-place. 
-    // Для групп вызывается после обработки всех потомков. Если возвращает null, то узел удаляется
+    /** Клонирование дерева с возможностью его модификации
+     * @param {function(node):Node|null} filterFunc - ф-ция, которая может модифицировать узлы дерева. 
+                Вызывается при клонировании очередного узла. Изменения данных можно делать in-place.
+                Для групп вызывается после обработки всех потомков. Если возвращает null, то узел удаляется
+     */
     this.cloneRawTree = function(filterFunc) {
         filterFunc = filterFunc || function(node) {return node;};
         var res = {};
@@ -93,5 +121,78 @@ nsGmx.LayersTree = function( tree )
             properties: $.extend(true, {}, _tree.properties),
             children: newFirstLevelGroups
         }
+    }
+    
+    //Методы управления видимостью слоёв в дереве
+    
+    //проходится по всему поддереву elem и устанавливает видимость isVisible всем узлам включая elem (учитывая ограничения на radio buttons)
+    var setSubtreeVisibility = function(elem, isVisible) {
+        var props = elem.content.properties;
+        if (props.visible != isVisible) {
+            props.visible = isVisible;
+            $(_this).triggerHandler('nodeVisibilityChange', [elem]);
+            
+            if (elem.content.children) {
+                for (var c = 0; c < elem.content.children.length; c++) {
+                    var vis = isVisible && (!props.list || c == 0); //когда делаем видимой группу-список, виден только первый элемент группы
+                    setSubtreeVisibility(elem.content.children[c], vis);
+                }
+            }
+        }
+    }    
+    
+    /** Устанавливает видимость elem и всех родительских элементов elem в зависимости от видимости его прямых потомков. elem должен быть группой. 
+     * При этом разруливаются конфликты с несколькими видимыми узлами в radio-группах.
+     * @param {Node} elem Нода дерева, видимость которой нужно обновить
+     * @param {Node} triggerSubnode один их прямых потомков elem, состояние которого должно остаться неизменным (важно для разруливания конфликтов в radio-групп)
+     * @param {Node[]} [parents] массив всех родителей, опционально
+     */
+    this.updateNodeVisibility = function(elem, triggerSubnode, parents) {
+        var props = elem.content.properties,
+            isList = props.list,
+            children = elem.content.children,
+            triggerNodeVisible = triggerSubnode ? triggerSubnode.content.properties.visible : false,
+            visibleNode = triggerNodeVisible ? triggerSubnode : null;
+        
+        var isVisible = false;
+        for (var c = 0; c < children.length; c++) {
+            var child = children[c];
+            var childVisible = child.content.properties.visible;
+            isVisible = isVisible || childVisible;
+            
+            if (childVisible && !visibleNode) {
+                visibleNode = child;
+            }
+            
+            if (isList && childVisible && child !== visibleNode) {
+                setSubtreeVisibility(child, false);
+            }
+        }
+        
+        if (isVisible !== props.visible) {
+            props.visible = isVisible;
+            $(this).triggerHandler('nodeVisibilityChange', [elem]);
+            
+            if (!parents) {
+                parents = this.findElemByGmxProperties(elem).parents;
+                parents.pop(); //последний элемент - карта; нас не интересует
+            }
+            var parent = parents.shift();
+            parent && this.updateNodeVisibility(parent, elem, parents);
+        }
+    }
+    
+    /** Задать видимость ноды. Будут сделаны все нужные изменения видимости как выше, 
+     * так и ниже по дереву относительно этой ноды.
+     * @param {Node} elem Нода, которой мы хотим задать видимость
+     * @param {Boolean} isVisible Видимость ноды (true - видна)
+     */
+    this.setNodeVisible = function(elem, isVisible) {
+        //устанавливаем видимость поддерева, которое начинается с этого элемента
+        setSubtreeVisibility(elem, isVisible);
+        
+        //идём вверх по дереву до корня и меняем видимость родителей
+        var parentElem = _this.findElemByGmxProperties(elem).parents[0];
+        parentElem && parentElem.content && this.updateNodeVisibility(parentElem, elem); 
     }
 }

@@ -908,7 +908,7 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 	addButton.onclick = function()
 	{
 		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild)) {
-            _layersTree.setNodeVisible(elemCanvas.parentNode.gmxProperties, true);
+            _layersTree.treeModel.setNodeVisible(elemCanvas.parentNode.gmxProperties, true);
         }
 		
 		var lastStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[elemCanvas.parentNode.gmxProperties.content.properties.styles.length - 1],

@@ -247,7 +247,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		elemProperties.ShowCheckbox = visibilityProperties.get('isVisibilityControl');
 		elemProperties.expanded = elemProperties.initExpand = visibilityProperties.get('isExpanded');
         
-        _layersTree.updateNodeVisibility(mainLayersTree.findTreeElem(div).elem, null);
+        _layersTree.treeModel.updateNodeVisibility(mainLayersTree.findTreeElem(div).elem, null);
 		
 		var curBox = div.firstChild;
 		if (!elemProperties.ShowCheckbox)
