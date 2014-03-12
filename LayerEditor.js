@@ -11,7 +11,7 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 {
     var updateWidget = function() {
         var parsedColumns = nsGmx.LayerProperties.parseColumns(sourceColumns);
-	
+
         removeChilds(parent);
         
         if (!parsedColumns.geomCount && parsedColumns.coordColumns.length) {
@@ -971,6 +971,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
     {
         shapeVisible(true);
         _mapHelper.drawingBorders.removeRoute(name, true);
+        layerProperties.set('Geometry', null);
     }
             
     if (name)
@@ -984,18 +985,10 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
             shapeVisible(false);
                     
             var geometry = layerProperties.get('Geometry');
-            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-            geometry.coordinates[0][0][0] += 0.00001;
-            geometry.coordinates[0][0][1] += 0.00001;
-                    
-            // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
-            var pointCount = geometry.coordinates[0].length;
-            geometry.coordinates[0][pointCount-1][0] += 0.00001;
-            geometry.coordinates[0][pointCount-1][1] += 0.00001;
-                    
+
             var drawingBorder;
             if (geometry.type.indexOf('MULTI') === -1) {
-                drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry));
+                drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry), null, {skipFrame: true});
             } else {
                 drawingBorder = globalFlashMap.addObject(from_merc_geometry(geometry));
             }

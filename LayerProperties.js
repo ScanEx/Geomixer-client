@@ -245,8 +245,9 @@ var LayerProperties = Backbone.Model.extend(
             if (typeof curBorder === 'undefined') {
                 if (attrs.ShapePath.Path) {
                     reqParams.BorderFile = attrs.ShapePath.Path;
-                } else if (attrs.Geometry) {
-                    reqParams.BorderGeometry = attrs.Geometry;
+                } else if (typeof attrs.Geometry !== 'undefined') {
+                    //может быть как null (удалили), так и undefined (не поменялась)
+                    reqParams.BorderGeometry = JSON.stringify(attrs.Geometry);
                 }
             } else {
                 reqParams.BorderGeometry = JSON.stringify(merc_geometry(curBorder.geometry));

@@ -201,19 +201,6 @@ var EditObjectControl = function(layerName, objectId, params)
     var drawingBorderDialog = null;
     var identityField = layer.properties.identityField;
     
-    var modifyRectangularGeometry = function(geom) {
-        if (geom.type === 'POLYGON') {
-            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-            geom.coordinates[0][0][0] += 0.00001;
-            geom.coordinates[0][0][1] += 0.00001;
-                    
-            // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
-            var pointCount = geom.coordinates[0].length;
-            geom.coordinates[0][pointCount-1][0] += 0.00001;
-            geom.coordinates[0][pointCount-1][1] += 0.00001;
-        }
-    }
-    
     var geometryInfoRow = null;
     var geometryMapObject = null;
     var bindDrawingObject = function(obj)
@@ -242,15 +229,14 @@ var EditObjectControl = function(layerName, objectId, params)
             return;
         }
         
-        //gmxAPI.DrawingObject
+        //проверка на gmxAPI.DrawingObject
         if (geom.getGeometry) {
             bindDrawingObject(geom);
             return;
         }
         
         if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON") {
-            modifyRectangularGeometry(geom);
-            bindDrawingObject(globalFlashMap.drawing.addObject(geom));
+            bindDrawingObject(globalFlashMap.drawing.addObject(geom, null, {skipFrame: true}));
         } else {            
             geometryInfoRow && geometryInfoRow.RemoveRow();
             geometryInfoRow = null;
