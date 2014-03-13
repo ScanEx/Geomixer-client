@@ -647,18 +647,22 @@
 		}
 		,
 		'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
-			var out = {};
-			var type = geom.type;
-			out['type'] = type;
-			var arr = null;
+		    var bounds = new L.Bounds();
+                type = geom.type;
+                out = {
+                    type: type
+                    ,bounds: bounds						// Bounds слоя
+                };
 			if(geom.coordinates) {						// Формируем MULTIPOLYGON
+                var arr = null;
 				if(type == 'POLYGON' || type == 'Polygon') {
 					arr = [geom.coordinates];
 				} else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
 					arr = geom.coordinates;
+				} else if(type == 'POINT' || type == 'Point') {
+					arr = [[geom.coordinates]];
 				}
 				if(arr) {
-					var	bounds = new L.Bounds();
 					var pointsArr = [];
 					for (var i = 0; i < arr.length; i++)
 					{
@@ -675,8 +679,7 @@
 							pointsArr.push(pArr);
 						}
 					}
-					out['geom'] = pointsArr;						// Массив Point границ слоя
-					out['bounds'] = bounds;							// Bounds слоя
+					out.geom = pointsArr;						// Массив Point границ слоя
 				}
 			}
 			return out;
