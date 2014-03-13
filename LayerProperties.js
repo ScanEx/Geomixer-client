@@ -162,18 +162,20 @@ var LayerProperties = Backbone.Model.extend(
             Copyright: attrs.Copyright
         };
 
-        var metaProperties = {};
-        attrs.MetaProperties.eachValid(function(id, tag, value, type)
-        {
-            //для неизвестных тегов присваиваем тип String
-            var type = type || 'String';
-            var value = nsGmx.Utils.convertToServer(type, value);
-            if (value !== null) {
-                metaProperties[tag] = {Value: value, Type: type};
-            }
-        }, true)
-        
-        reqParams.MetaProperties = JSON.stringify(metaProperties);
+        if (attrs.MetaProperties) {
+            var metaProperties = {};
+            attrs.MetaProperties.eachValid(function(id, tag, value, type)
+            {
+                //для неизвестных тегов присваиваем тип String
+                var type = type || 'String';
+                var value = nsGmx.Utils.convertToServer(type, value);
+                if (value !== null) {
+                    metaProperties[tag] = {Value: value, Type: type};
+                }
+            }, true)
+            
+            reqParams.MetaProperties = JSON.stringify(metaProperties);
+        }
 
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
