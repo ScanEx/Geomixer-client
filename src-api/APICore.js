@@ -2897,6 +2897,7 @@ FlashMapObject.prototype.remove = function()
 		if(this.propHiden && this.propHiden.isLayer) {		// Это слой
 			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
             if('_clearLayer' in this) this._clearLayer(this.properties.name);
+            gmxAPI._listeners.dispatchEvent('onLayerRemove', gmxAPI.map, this);	// Удален слой
         }
 	}
 	this.isRemoved = true;
@@ -3141,6 +3142,7 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
     }
     
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
+	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
 }
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 

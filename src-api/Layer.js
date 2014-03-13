@@ -963,6 +963,7 @@
             obj._clearLayer(obj.properties.name);
 		}, 101);	// Перед всеми пользовательскими Listeners
 		if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;
+		gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, obj);	// Добавлен слой
 		return obj;
 	}
 
