@@ -648,13 +648,13 @@
         ,
         'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
             var bounds = new L.Bounds();
-                type = geom.type;
                 out = {
-                    type: type
-                    ,bounds: bounds						// Bounds слоя
+                    bounds: bounds						// Bounds слоя
                 };
-            if(geom.coordinates) {						// Формируем MULTIPOLYGON
-                var arr = null;
+            if(geom && geom.coordinates) {						// Формируем MULTIPOLYGON
+                var arr = null,
+                    type = geom.type;
+                out.type = type;
                 if(type == 'POLYGON' || type == 'Polygon') {
                     arr = [geom.coordinates];
                 } else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
@@ -683,50 +683,50 @@
             return out;
         }
         ,
-		prpLayerAttr: function(layer, node)	{				// Подготовка атрибутов слоя
-			var out = {};
-			if(layer) {
-				if(layer.properties) {
-					var prop = layer.properties;
-					if(node.type == 'RasterLayer') {			// растровый слой
-						out.minZoom = (prop.MinZoom ? prop.MinZoom : 1);
-						out.maxZoom = (prop.MaxZoom ? prop.MaxZoom : 20);
-						if(prop.type == 'Overlay') out.isOverlay = true;
-					}
-					else if(node.type == 'VectorLayer') {	// векторный слой
-						out.identityField = (prop.identityField ? prop.identityField : 'ogc_fid');
-						out.ZIndexField = prop.ZIndexField || out.identityField;
+        prpLayerAttr: function(layer, node)	{				// Подготовка атрибутов слоя
+            var out = {};
+            if(layer) {
+                if(layer.properties) {
+                    var prop = layer.properties;
+                    if(node.type == 'RasterLayer') {			// растровый слой
+                        out.minZoom = (prop.MinZoom ? prop.MinZoom : 1);
+                        out.maxZoom = (prop.MaxZoom ? prop.MaxZoom : 20);
+                        if(prop.type == 'Overlay') out.isOverlay = true;
+                    }
+                    else if(node.type == 'VectorLayer') {	// векторный слой
+                        out.identityField = (prop.identityField ? prop.identityField : 'ogc_fid');
+                        out.ZIndexField = prop.ZIndexField || out.identityField;
                         
-						out.typeGeo = (prop.GeometryType ? prop.GeometryType : 'Polygon');
-						out.TemporalColumnName = (prop.TemporalColumnName ? prop.TemporalColumnName : '');
-						
-						out.minZoom = 22;
-						out.maxZoom = 1;
-						for (var i = 0; i < prop.styles.length; i++)
-						{
-							var style = prop.styles[i];
-							out.minZoom = Math.min(out.minZoom, style.MinZoom);
-							out.maxZoom = Math.max(out.maxZoom, style.MaxZoom);
-							//if(style['clusters']) out['clustersFlag'] = true;	// Признак кластеризации на слое
-						}
-					}
-				}
-				if(layer.geometry) {
-					var pt = utils.prpLayerBounds(layer.geometry);
-					if(pt.geom) out.geom = pt.geom;					// Массив Point границ слоя
-					if(pt.bounds) out.bounds = pt.bounds;				// Bounds слоя
-					if(layer.mercGeometry) {
-						var pt = utils.prpLayerBounds(layer.mercGeometry);
-						if(pt.geom) {
-							out.mercGeom = pt.geom;				// Массив Point границ слоя в merc
-							//out['mercGeom'] = [L.LineUtil.simplify(pt['geom'][0], 120)];
-						}
-					}
-				}
-			}
-			return out;
-		}
-		,
+                        out.typeGeo = (prop.GeometryType ? prop.GeometryType : 'Polygon');
+                        out.TemporalColumnName = (prop.TemporalColumnName ? prop.TemporalColumnName : '');
+                        
+                        out.minZoom = 22;
+                        out.maxZoom = 1;
+                        for (var i = 0; i < prop.styles.length; i++)
+                        {
+                            var style = prop.styles[i];
+                            out.minZoom = Math.min(out.minZoom, style.MinZoom);
+                            out.maxZoom = Math.max(out.maxZoom, style.MaxZoom);
+                            //if(style['clusters']) out['clustersFlag'] = true;	// Признак кластеризации на слое
+                        }
+                    }
+                }
+                var pt = utils.prpLayerBounds(layer.geometry);
+                if(pt.bounds) out.bounds = pt.bounds;				// Bounds слоя
+                if(layer.geometry) {
+                    if(pt.geom) out.geom = pt.geom;					// Массив Point границ слоя
+                    if(layer.mercGeometry) {
+                        var pt = utils.prpLayerBounds(layer.mercGeometry);
+                        if(pt.geom) {
+                            out.mercGeom = pt.geom;				// Массив Point границ слоя в merc
+                            //out['mercGeom'] = [L.LineUtil.simplify(pt['geom'][0], 120)];
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+        ,
 		'getLabelSize': function(txt, style)	{			// Получить размер Label
 			var out = {'x': 0, 'y': 0};
 			if(style) {
@@ -2715,7 +2715,7 @@
 			//pNode.addFilter(id);
 			pNode.setFilter(id);
 			
-			return (!node.sql || node.sqlFunction ? true : false);
+			return (!node.sql || (node.sqlFunction && node.sqlFunction != falseFn) ? true : false);
 		}
 		,
 		'startLoadTiles':	function(ph)	{		// Перезагрузка тайлов векторного слоя
