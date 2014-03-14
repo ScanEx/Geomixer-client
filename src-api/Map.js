@@ -389,21 +389,20 @@
 			};
 		}
 
-		map.addContextMenuItem = function(text, callback)
-		{
-			gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
-				'text': text,
-				'func': function(x, y)
-					{
-						if(gmxAPI.proxyType === 'flash') {
-							x = gmxAPI.from_merc_x(x);
-							y = gmxAPI.from_merc_y(y);
-						}
-						callback(x, y);
-					}
-				}
-			});
-		}
+        map.addContextMenuItem = function(text, callback) {
+            return gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
+                text: text,
+                func: function(x, y)
+                    {
+                        if(gmxAPI.proxyType === 'flash') {
+                            x = gmxAPI.from_merc_x(x);
+                            y = gmxAPI.from_merc_y(y);
+                        }
+                        callback(x, y);
+                    }
+                }
+            });
+        }
 
 		if (gmxAPI._drawing) {
 			map.addContextMenuItem(
