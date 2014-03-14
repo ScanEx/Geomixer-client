@@ -645,46 +645,44 @@
 			ctx.drawImage(img, 0, 0);
 			return canvas;
 		}
-		,
-		'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
-		    var bounds = new L.Bounds();
+        ,
+        'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
+            var bounds = new L.Bounds();
                 type = geom.type;
                 out = {
                     type: type
                     ,bounds: bounds						// Bounds слоя
                 };
-			if(geom.coordinates) {						// Формируем MULTIPOLYGON
+            if(geom.coordinates) {						// Формируем MULTIPOLYGON
                 var arr = null;
-				if(type == 'POLYGON' || type == 'Polygon') {
-					arr = [geom.coordinates];
-				} else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
-					arr = geom.coordinates;
-				} else if(type == 'POINT' || type == 'Point') {
-					arr = [[geom.coordinates]];
-				}
-				if(arr) {
-					var pointsArr = [];
-					for (var i = 0; i < arr.length; i++)
-					{
-						for (var j = 0; j < arr[i].length; j++)
-						{
-							var pArr = [];
-							var pol = arr[i][j];
-							for (var j1 = 0; j1 < pol.length; j1++)
-							{
-								var p = (typeof(pol[j1]) === 'object' ? new L.Point( pol[j1][0], pol[j1][1] ) : new L.Point( pol[j1++], pol[j1] ));
-								pArr.push(p);
-								bounds.extend(p);
-							}
-							pointsArr.push(pArr);
-						}
-					}
-					out.geom = pointsArr;						// Массив Point границ слоя
-				}
-			}
-			return out;
-		}
-		,
+                if(type == 'POLYGON' || type == 'Polygon') {
+                    arr = [geom.coordinates];
+                } else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
+                    arr = geom.coordinates;
+                }
+                if(arr) {
+                    var pointsArr = [];
+                    for (var i = 0; i < arr.length; i++)
+                    {
+                        for (var j = 0; j < arr[i].length; j++)
+                        {
+                            var pArr = [];
+                            var pol = arr[i][j];
+                            for (var j1 = 0; j1 < pol.length; j1++)
+                            {
+                                var p = (typeof(pol[j1]) === 'object' ? new L.Point( pol[j1][0], pol[j1][1] ) : new L.Point( pol[j1++], pol[j1] ));
+                                pArr.push(p);
+                                bounds.extend(p);
+                            }
+                            pointsArr.push(pArr);
+                        }
+                    }
+                    out.geom = pointsArr;						// Массив Point границ слоя
+                }
+            }
+            return out;
+        }
+        ,
 		prpLayerAttr: function(layer, node)	{				// Подготовка атрибутов слоя
 			var out = {};
 			if(layer) {
@@ -2559,20 +2557,20 @@
 		'getVisibility': function(ph)	{					// получить видимость mapObject
 			return ph.obj.isVisible;
 		}
-		,
-		'setVisible': function(ph)	{						// установить видимость mapObject
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			//console.log('setVisible ', id, ph.attr);
-			if(!node) return false;
+        ,
+        'setVisible': function(ph)	{						// установить видимость mapObject
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            //console.log('setVisible ', id, ph.attr);
+            if(!node) return false;
             if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
-			node.notView = ph.notView || false;
-			if(node.isVisible === ph.attr) return true;
-			node.isVisible = ph.attr;
-			gmxAPI._leaflet.LabelsManager.onChangeVisible(id, ph.attr);
-			return utils.setVisibleNode(ph);
-		}
-		,
+            node.notView = ph.notView || false;
+            if(node.isVisible === ph.attr) return true;
+            node.isVisible = ph.attr;
+            gmxAPI._leaflet.LabelsManager.onChangeVisible(id, ph.attr);
+            return utils.setVisibleNode(ph);
+        }
+        ,
 		'setExtent':	function(ph)	{		//Задать географический extent - за пределы которого нельзя выйти. - todo
 			var attr = ph.attr;
 			if(!attr) {
