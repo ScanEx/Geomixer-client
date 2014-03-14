@@ -288,6 +288,8 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         
         removeButton.style.marginLeft = '10px';
+        
+        isNew && $(removeButton).hide();
 	
         createButton.onclick = function()
         {
@@ -470,8 +472,8 @@ var EditObjectControl = function(layerName, objectId, params)
             
             _(canvas, [_div([_table([_tbody(trs)], [['dir', 'className', 'obj-edit-proptable']]), afterPropUI],[['dir', 'className', 'obj-edit-canvas'], ['css','overflow','auto']])]);
             
-            _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
-            
+            _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
+
             firstInput && firstInput.focus();
             
             resizeFunc();
