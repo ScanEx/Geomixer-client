@@ -161,7 +161,8 @@
                         q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
                         delete q.loaderObj._item;
 					}
-                    //q.loaderObj.src = emptyImageUrl;
+                    q.loaderObj.src = emptyImageUrl;
+                    curCount--;
 				}
 			}
 		}
@@ -203,12 +204,13 @@
             if (!L.Browser.android) {
                 for (var key in itemsCache) {
                     var q = itemsCache[key][0];
-                    if('src' in q && q.src === src && q.loaderObj) {
+                    if('src' in q && q.loaderObj && q.src.indexOf(src) !== -1) {
                         if(q.loaderObj._item) {
                             q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
                             delete q.loaderObj._item;
                         }
-                        //q.loaderObj.src = emptyImageUrl;
+                        q.loaderObj.src = emptyImageUrl;
+                        curCount--;
                     }
                 }
             }
@@ -216,7 +218,7 @@
             for (var i = 0, len = items.length; i < len; i++)
             {
                 var q = items[i];
-                if(!q.src || q.src !== src) arr.push(q);
+                if(!q.src || q.src.indexOf(src) === -1) arr.push(q);
             }
             items = arr;
             return items.length;

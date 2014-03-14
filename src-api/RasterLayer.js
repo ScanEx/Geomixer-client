@@ -93,33 +93,37 @@
             //console.log('boundsMerc', node.shiftX, node.boundsMerc);
         }
 
-		var chkVisible = function() {
+        var chkVisible = function() {
         //gmxAPI._leaflet.zoomstart
-			if(gmxNode && node.isVisible != false) {
-				var notOnScene = true;
-				var continuousWorld = false;
-				if(myLayer) {
-					if(myLayer._map) notOnScene = false;
-					continuousWorld = myLayer.options.continuousWorld;
-				}
-				if(!continuousWorld && !node.extMercWithShift) {
-					node.getLayerBounds();
-				}
+            if(gmxNode && node.isVisible != false) {
+                var notOnScene = true;
+                var continuousWorld = false;
+                if(myLayer) {
+                    if(myLayer._map) notOnScene = false;
+                    continuousWorld = myLayer.options.continuousWorld;
+                }
+                if(!continuousWorld && !node.extMercWithShift) {
+                    node.getLayerBounds();
+                }
                 var ext = (gmxAPI.currPosition && gmxAPI.currPosition.extent ? gmxAPI.currPosition.extent : gmxAPI.map.getPosition().extent);
-				var notViewFlag = (!utils.chkVisibilityByZoom(id)
-					|| (!continuousWorld && !gmxAPI.extIntersect(node.extMercWithShift, ext))
-					);
-//console.log('chkVisible', notViewFlag1 , notViewFlag, gmxAPI._leaflet.zoomstart, node.boundsMerc, currPos.extent);
-				if(notOnScene != notViewFlag) {
-					utils.setVisibleNode({obj: node, attr: !notViewFlag});
-					if(notViewFlag)	delete gmxAPI._leaflet.renderingObjects[node.id];
-				}
-			}
-		}
+                var notViewFlag = (!utils.chkVisibilityByZoom(id)
+                    || (!continuousWorld && !gmxAPI.extIntersect(node.extMercWithShift, ext))
+                    );
+    //console.log('chkVisible', notViewFlag1 , notViewFlag, gmxAPI._leaflet.zoomstart, node.boundsMerc, currPos.extent);
+                if(notOnScene != notViewFlag) {
+                    utils.setVisibleNode({obj: node, attr: !notViewFlag});
+                    if(notViewFlag) delete gmxAPI._leaflet.renderingObjects[node.id];
+                }
+            }
+        }
 
-		node.remove = function() {				// Удалить растровый слой
-			if(myLayer) LMap.removeLayer(myLayer);
-		}
+        node.remove = function() {				// Удалить растровый слой
+            if(myLayer) {
+                delete gmxAPI._leaflet.renderingObjects[node.id];
+                myLayer._reset();
+                LMap.removeLayer(myLayer);
+            }
+        }
 
 		node.setStyle = function() {
 			var newOpacity = node.regularStyle.fillOpacity;
