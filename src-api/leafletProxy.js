@@ -1991,62 +1991,62 @@
 	function removeNode(key)	{				// Удалить ноду	children
 		removeNodeRecursive(key);
 	}
-	
-	// добавить mapObject
-	function addObject(ph)	{
-		nextId++;
-		var id = 'id' + nextId;
-		var pt = {
-			type: 'mapObject'
-			,handlers: {}
-			,children: []
-			,id: id
-			,zIndexOffset: 0
-			,parentId: ph.obj.objectId
-			//,'eventsCheck': 
-			//subType
-		};
-		//if(ph.attr['hidenAttr']) pt['hidenAttr'] = ph.attr['hidenAttr'];
 
-		var pNode = mapNodes[pt.parentId];
-		if(!pNode) {
-			pNode = {type: 'map', children:[], group: LMap};
-		}
-		pNode.children.push(id);
+    // добавить mapObject
+    function addObject(ph)	{
+        nextId++;
+        var id = 'id' + nextId;
+        var pt = {
+            type: 'mapObject'
+            ,handlers: {}
+            ,children: []
+            ,id: id
+            ,zIndexOffset: 0
+            ,parentId: ph.obj.objectId
+            //,'eventsCheck': 
+            //subType
+        };
+        //if(ph.attr['hidenAttr']) pt['hidenAttr'] = ph.attr['hidenAttr'];
 
-		pt.group = new L.LayerGroup();
-		pNode.group.addLayer(pt.group);
-		
-		if(ph.attr) {
-			pt.propHiden = ph.attr.propHiden || {};
-			if(pt.propHiden.nodeType) pt.type = pt.propHiden.nodeType;
-			var geo = {};
-			if(ph.attr.geometry) {
-				if(pt.propHiden.isLayer) {
-					geo.coordinates = ph.attr.geometry.coordinates;
-					geo.type = utils.fromScanexTypeGeo(ph.attr.geometry.type);
-				} else {
-					geo = utils.parseGeometry(ph.attr.geometry);
-				}
-				if(ph.attr.geometry.properties) geo.properties = ph.attr.geometry.properties;
-			}
-			if(ph.attr.properties) geo.properties = ph.attr.properties;
-			pt.geometry = geo;
-			if(pt.propHiden.subType) pt.subType = pt.propHiden.subType;
-			if(pt.propHiden.refreshMe) pt.refreshMe = pt.propHiden.refreshMe;
-			if(pt.propHiden.layersParent) pt.zIndexOffset = 0;
-			if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
-		}
-		mapNodes[id] = pt;
-		if(pt.geometry.type) {
-			gmxAPI._leaflet.drawManager.add(id);				// добавим в менеджер отрисовки
-			if(pt.leaflet) {
-				setHandlerObject(id);							// добавить Handler для mapObject
-			}
-		}
-		pt.zIndex = utils.getLastIndex(pNode);
-		return id;
-	}
+        var pNode = mapNodes[pt.parentId];
+        if(!pNode) {
+            pNode = {type: 'map', children:[], group: LMap};
+        }
+        pNode.children.push(id);
+
+        pt.group = new L.LayerGroup();
+        pNode.group.addLayer(pt.group);
+        
+        if(ph.attr) {
+            pt.propHiden = ph.attr.propHiden || {};
+            if(pt.propHiden.nodeType) pt.type = pt.propHiden.nodeType;
+            var geo = {};
+            if(ph.attr.geometry) {
+                if(pt.propHiden.isLayer) {
+                    geo.coordinates = ph.attr.geometry.coordinates;
+                    geo.type = utils.fromScanexTypeGeo(ph.attr.geometry.type);
+                } else {
+                    geo = utils.parseGeometry(ph.attr.geometry);
+                }
+                if(ph.attr.geometry.properties) geo.properties = ph.attr.geometry.properties;
+            }
+            if(ph.attr.properties) geo.properties = ph.attr.properties;
+            pt.geometry = geo;
+            if(pt.propHiden.subType) pt.subType = pt.propHiden.subType;
+            if(pt.propHiden.refreshMe) pt.refreshMe = pt.propHiden.refreshMe;
+            if(pt.propHiden.layersParent) pt.zIndexOffset = 0;
+            if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
+        }
+        mapNodes[id] = pt;
+        if(pt.geometry.type) {
+            if (!pt.propHiden.isLayer) gmxAPI._leaflet.drawManager.add(id); // добавим в менеджер отрисовки
+            if(pt.leaflet) {
+                setHandlerObject(id);							// добавить Handler для mapObject
+            }
+        }
+        pt.zIndex = utils.getLastIndex(pNode);
+        return id;
+    }
 	// Добавление набора статических объектов на карту
 	function addObjects(parentId, attr) {
 		var out = [];

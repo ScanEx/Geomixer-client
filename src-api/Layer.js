@@ -387,19 +387,33 @@
 			}
 		}
 
-		var bounds = false;				// в меркаторе
-		var boundsLatLgn = false;
-		var initBounds = function(geom) {	// geom в меркаторе
-			if (geom) {
-				bounds = gmxAPI.getBounds(geom.coordinates);
-				obj.bounds = boundsLatLgn = {
-					minX: gmxAPI.from_merc_x(bounds['minX']),
-					minY: gmxAPI.from_merc_y(bounds['minY']),
-					maxX: gmxAPI.from_merc_x(bounds['maxX']),
-					maxY: gmxAPI.from_merc_y(bounds['maxY'])
-				};
-			}
-		};
+        var bounds = false;				// в меркаторе
+        var boundsLatLgn = false;
+        var initBounds = function(geom) {	// geom в меркаторе
+            if (geom) {
+                bounds = gmxAPI.getBounds(geom.coordinates);
+                obj.bounds = boundsLatLgn = {
+                    minX: gmxAPI.from_merc_x(bounds.minX),
+                    minY: gmxAPI.from_merc_y(bounds.minY),
+                    maxX: gmxAPI.from_merc_x(bounds.maxX),
+                    maxY: gmxAPI.from_merc_y(bounds.maxY)
+                };
+                if (geom.type === 'MULTIPOLYGON') {
+                    obj.boundsArr = [];
+                    obj.boundsLatLgnArr = [];
+                    for (var i = 0, len = geom.coordinates.length; i < len; i++) {
+                        var ext = gmxAPI.getBounds(geom.coordinates[i]);
+                        obj.boundsArr.push(ext);
+                        obj.boundsLatLgnArr.push({
+                            minX: gmxAPI.from_merc_x(ext.minX),
+                            minY: gmxAPI.from_merc_y(ext.minY),
+                            maxX: gmxAPI.from_merc_x(ext.maxX),
+                            maxY: gmxAPI.from_merc_y(ext.maxY)
+                        });
+                    }
+                }
+            }
+        };
 		var getBoundsMerc = function() {
 			if (!bounds) initBounds(obj.mercGeometry);
 			return bounds;
@@ -411,11 +425,16 @@
 		obj.addListener('onChangeLayerVersion', function() {
 			initBounds(obj.mercGeometry);
 		});
-		obj.getLayerBounds = function() {			// Получение boundsLatLgn для внешних плагинов
+        obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
+            if (!boundsLatLgn) initBounds(obj.mercGeometry);
+            return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
+        }
+        obj.getLayerBoundsArrayMerc = function() {      // Получение массива bounds в меркаторе
 			if (!boundsLatLgn) initBounds(obj.mercGeometry);
-			return boundsLatLgn;
-		}
-		obj.getBoundsMerc = function() {			// Получение boundsMerc в меркаторе
+			return (obj.boundsArr ? obj.boundsArr : [bounds]);
+        }
+        
+		obj.getBoundsMerc = function() {            // Получение boundsMerc в меркаторе
 			return getBoundsMerc();
 		}
 
@@ -521,15 +540,12 @@
 			}
 			obj_.getLayerBoundsLatLgn = function() {			// Получение boundsLatLgn
 				if (!boundsLatLgn) initBounds(obj.mercGeometry);
-				return boundsLatLgn;
+                return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
 			}
+            obj_.getLayerBounds = obj_.getLayerBoundsLatLgn;
 			obj_.getLayerBoundsMerc = function() {				// Получение bounds в меркаторе
 				if (!bounds) initBounds(obj.mercGeometry);
-				return bounds;
-			}
-			obj_.getLayerBounds = function() {			// Получение boundsLatLgn для внешних плагинов
-				if (!boundsLatLgn) initBounds(obj.mercGeometry);
-				return boundsLatLgn;
+                return (obj.boundsArr ? obj.boundsArr : [bounds]);
 			}
 			obj.addObject = function(geometry, props, propHiden) { return FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden); }
 			obj.tileSenderPrefix = tileSenderPrefix;	// Префикс запросов за тайлами
