@@ -499,8 +499,8 @@
                 obj.filters.foreach(function(item) { item.removeStyleHook(); });
                 return true;
             }
-		});
-		if(obj.properties) {
+        });
+        if(obj.properties) {
             if('MetaProperties' in obj.properties) {
                 var meta = layer.properties.MetaProperties;
                 if('shiftX' in meta || 'shiftY' in meta) {
@@ -511,20 +511,21 @@
         }
         if('shiftX' in obj) obj.setPositionOffset(obj.shiftX, obj.shiftY);
 
-		var deferredMethodNames = [
-			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
-			'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
-			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip',
-			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
-			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'setDepth', 'bringToBottom',
-			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
-			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
-			'setClusters', 'addImageProcessingHook',
+        var deferredMethodNames = [
+            'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
+            'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
+            'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip',
+            'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
+            'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'setDepth', 'bringToBottom',
+            'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
+            'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
+            'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
+            'setClusters', 'addImageProcessingHook',
+            'addContextMenuItem', 'removeContextMenuItem',
             'enableDragging', 'disableDragging',
-			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
-		];
-		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
+            'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
+        ];
+        // не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
 
 		var createThisLayer = function()
 		{
@@ -782,8 +783,34 @@
 				}
 			}
 			if(obj_['tilesParent']) obj['tilesParent'] = obj_['tilesParent'];
-            // gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
-            // });
+            gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
+                removeContextMenuItem: function(itemId) {
+                    return gmxAPI._cmdProxy('removeContextMenuItem', { obj: obj, attr: {
+                        id: itemId
+                    }});
+                },
+                addContextMenuItem: function(text, callback) {
+                    if(!obj.stateListeners.contextmenu) {
+                        obj.addListener('contextmenu', function(attr) {
+                            var ev = attr.target;
+                            ev.latlng = attr.event.latlng;
+                            gmxAPI._leaflet.contextMenu.showMenu({obj:obj, attr: ev});	// Показать меню
+                        });
+                    }
+                    return gmxAPI._cmdProxy('addContextMenuItem', { obj: obj, attr: {
+                        text: text,
+                        func: function(x, y, target)
+                            {
+                                if(gmxAPI.proxyType === 'flash') {
+                                    x = gmxAPI.from_merc_x(x);
+                                    y = gmxAPI.from_merc_y(y);
+                                }
+                                callback(x, y, target);
+                            }
+                        }
+                    });
+                }
+            });
 		}
 
 		//obj.mercGeometry = layer.mercGeometry;
@@ -952,13 +979,13 @@
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
 
-		obj.addListener('onChangeVisible', function(flag) {				// Изменилась видимость слоя
-			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId});	// Проверка map Listeners на hideBalloons
-		}, -10);
-			
-		obj.addListener('BeforeLayerRemove', function() {				// Удаляется слой
-			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, layerName);	// Удален слой
-		}, -10);
+        obj.addListener('onChangeVisible', function(flag) {				// Изменилась видимость слоя
+            gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId});	// Проверка map Listeners на hideBalloons
+        }, -10);
+
+        obj.addListener('BeforeLayerRemove', function() {				// Удаляется слой
+            gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, layerName);	// Удален слой
+        }, -10);
 		obj._clearLayer = function() {			// Чистка map.layers при удалении слоя
 			//if(!layerName) layerName = obj.properties.name;
 			for(var i=0, len=gmxAPI.map.layers.length; i<len; i++) {			// Удаление слоя из массива

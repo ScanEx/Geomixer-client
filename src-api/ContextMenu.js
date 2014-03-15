@@ -6,6 +6,7 @@
         menuItems = {},     // Хэш наборов ContextMenu по ID нод обьектов карты
         marker = null,
         currMenuID = null,  // Текущее меню
+        lastItem = null,    // Текущий объект
         lastLatLng = null;  // Текущее положение
 
     // Показать меню
@@ -26,6 +27,8 @@
         var latlng = attr.latlng;
         if(!latlng) return false;
         lastLatLng = latlng;
+        lastItem = attr;
+        
         if(marker) LMap.removeLayer(marker);
         marker = createMenu(id, lastLatLng);
         marker.addTo(LMap);
@@ -36,8 +39,8 @@
         var items = menuItems[currMenuID].items;
         if(nm >= items.length) return false;
         if(items[nm].func) {
-            items[nm].func(lastLatLng.lng, lastLatLng.lat);
-            hideMenu();
+            items[nm].func(lastLatLng.lng, lastLatLng.lat, lastItem);
+            setTimeout(hideMenu, 0);
         }
     }
     function createMenu(id, latlng)	{
@@ -59,6 +62,17 @@
         });
         return new L.GMXMarker(latlng, {icon: myIcon, 'toPaneName': 'overlayPane', clickable: false, _isHandlers: true});
     }
+    // Удалить в меню Item
+    function removeItem(items, txt) {
+        for (var i=0, len = items.length; i<len; i++) {
+            var item = items[i];
+            if(item.txt === txt) {
+                items.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    }
     // Добавить в меню Item
     function addMenuItem(ph) {
         if(!LMap) init();
@@ -73,17 +87,24 @@
             ,txt: attr.text
             ,func: attr.func
             ,remove: function () {
-                for (var i=0, len = items.length; i<len; i++) {
-                    var item = items[i];
-                    if(item.id === itemId) {
-                        items.splice(i, 1);
-                        return item;
-                    }
-                }
+                var flag = removeItem(items, attr.text);
+                if(items.length < 1) delete menuItems[id];
+                return flag;
             }
         };
         items.push(out);
-        return out;
+        return itemId;
+    }
+    // Удалить в меню Item
+    function removeMenuItem(ph) {
+        if(!LMap) init();
+        var gmxNode = ph.obj || gmxAPI.map,
+            id = gmxNode.objectId,
+            attr = ph.attr || {},
+            itemId = attr.id,
+            flag = removeItem(menuItems[id].items, itemId);
+        if(menuItems[id].items.length < 1) delete menuItems[id];
+        return flag;
     }
     // инициализация
     function init(arr) {
@@ -119,7 +140,8 @@
     if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
     gmxAPI._leaflet.contextMenu = {     // ContextMenu
         addMenuItem: addMenuItem        // Добавить Item ContextMenu
-        ,showMenu: showMenu             // Добавить Item ContextMenu
+        ,removeMenuItem: removeMenuItem // Удалить Item ContextMenu
+        ,showMenu: showMenu             // Показать ContextMenu
         ,itemClick: itemClick           // Выбор пункта меню
         ,onmouseOver: onmouseOver       // mouseOver пункта меню
         ,onmouseOut: onmouseOut         // mouseOut пункта меню

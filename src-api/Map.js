@@ -373,22 +373,27 @@
 		}
 		map.setZoomBounds = map.setMinMaxZoom;
 
-		map.grid = {
-			setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) }
-			,getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
-			,setOneDegree: function(flag) { gmxAPI._cmdProxy('setOneDegree', { 'attr': flag }) }
-		};
-		map.setMinMaxZoom(1, 17);
+        map.grid = {
+            setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) }
+            ,getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
+            ,setOneDegree: function(flag) { gmxAPI._cmdProxy('setOneDegree', { 'attr': flag }) }
+        };
+        map.setMinMaxZoom(1, 17);
 
-		if (gmxAPI._drawing) {
-			map.drawing = gmxAPI._drawing;
-		} else {
-			map.drawing = {
-				'setHandlers': function() { return false; }
-				,'forEachObject': function() { return false; }
-			};
-		}
+        if (gmxAPI._drawing) {
+            map.drawing = gmxAPI._drawing;
+        } else {
+            map.drawing = {
+                'setHandlers': function() { return false; }
+                ,'forEachObject': function() { return false; }
+            };
+        }
 
+        map.removeContextMenuItem = function(itemId) {
+            return gmxAPI._cmdProxy('removeContextMenuItem', { 'attr': {
+                id: itemId
+            }});
+        };
         map.addContextMenuItem = function(text, callback) {
             return gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
                 text: text,
@@ -402,17 +407,17 @@
                     }
                 }
             });
-        }
+        };
 
-		if (gmxAPI._drawing) {
-			map.addContextMenuItem(
-				gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
-				function(x, y)
-				{
-					map.drawing.addObject({type: "POINT", coordinates: [x, y]});
-				}
-			);
-		}
+        if (gmxAPI._drawing) {
+            map.addContextMenuItem(
+                gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+                function(x, y)
+                {
+                    map.drawing.addObject({type: "POINT", coordinates: [x, y]});
+                }
+            );
+        }
 
 		var haveOSM = false;
 

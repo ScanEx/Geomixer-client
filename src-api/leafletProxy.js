@@ -2376,10 +2376,13 @@
 			return canv;
 		}
 		,
-		'setBackgroundTiles': gmxAPI._leaflet['setBackgroundTiles']			// добавить растровый тайловый слой
-		,
-		'addContextMenuItem': gmxAPI._leaflet['contextMenu']['addMenuItem']			// Добавить Item ContextMenu
-		,
+		'setBackgroundTiles': gmxAPI._leaflet.setBackgroundTiles            // добавить растровый тайловый слой
+        ,
+        'addContextMenuItem': gmxAPI._leaflet.contextMenu.addMenuItem       // Добавить Item ContextMenu
+        ,
+        'removeContextMenuItem': gmxAPI._leaflet.contextMenu.removeMenuItem // Удалить Item ContextMenu
+        ,
+        
 		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
 			return grid.setGridVisible(hash['attr']);
 		}
@@ -4485,7 +4488,12 @@ var tt = 1;
 			LMap.on('contextmenu', function(e) {
                 if(!gmxAPI.map.dragState) {
                     var attr = parseEvent(e);
-                    gmxAPI._leaflet.contextMenu.showMenu({obj:gmxAPI.map, attr: attr});	// Показать меню
+                    if(attr) {
+                        attr.evName = 'contextmenu';
+                        gmxAPI._leaflet.mousedownAttr = attr;
+                        if(gmxAPI._leaflet.utils.chkGlobalEvent(attr)) return;
+                        gmxAPI._leaflet.contextMenu.showMenu({obj:gmxAPI.map, attr: attr});	// Показать меню
+                    }
                 }
             });
 

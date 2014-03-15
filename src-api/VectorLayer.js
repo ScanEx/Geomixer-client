@@ -390,6 +390,7 @@
 		node.eventsCheck = function(evName, attr) {			// проверка событий векторного слоя
 			var onScene = (myLayer && myLayer._map ? true : false);
 			if(gmxAPI._drawing.activeState
+				|| gmxAPI._leaflet.contextMenu.isActive // мышка над пунктом contextMenu
 				|| !onScene
 				|| gmxAPI._leaflet.curDragState) return false;
 
@@ -483,14 +484,15 @@
                         //if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
                     }
                 }
-                if(evName in node.handlers) {		// Есть handlers на слое
+                if(evName in node.handlers) {       // Есть handlers на слое
                     var res = callHandler(evName, itemClick, gmxNode, gmxAttr);
                     if(typeof(res) === 'object' && res.stopPropagation) return true;
                 }
                 if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler(evName, itemClick, handlerObj, gmxAttr);
-				return true;
-			}
-		}
+                else if (gmxNode.stateListeners[evName]) gmxAPI._listeners.dispatchEvent(evName, gmxNode, {target: itemClick, filter: handlerObj, event: gmxAttr});
+                return true;
+            }
+        }
 
 		var getLatLngBounds = function(lb) {			// установка bounds leaflet слоя
 			return new L.LatLngBounds([new L.LatLng(lb.min.y, lb.min.x), new L.LatLng(lb.max.y, lb.max.x)]);
