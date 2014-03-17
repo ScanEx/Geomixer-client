@@ -1,7 +1,7 @@
 var nsGmx = nsGmx || {};
 
 /** Результат поиска ноды в дереве слоёв
- * @typedef nsGmx.LayersTree.SearchResult
+ * @typedef nsGmx.LayersTree~SearchResult
  * @property {Node} elem Найденный элемент
  * @property {Node[]} parents Массив родителей. Самый последний элемент массива - сама карта
  * @property {Number} index Индекс найденного элемента в своей группе
@@ -9,6 +9,7 @@ var nsGmx = nsGmx || {};
 
 /** Класс для работы с деревом слоёв
  * @class
+ * @param {Object} tree Дерево слоёв в формате сервера
 */
 nsGmx.LayersTree = function( tree )
 {
@@ -55,7 +56,7 @@ nsGmx.LayersTree = function( tree )
     /** Поиск ноды дерева по значению одного из атрибутов. Ищет как папки, так и слои. Возвращает первый найденный результат
      * @param {String} attrName Имя атрибута
      * @param {String} attrValue Значение атрибута
-     * @return {nsGmx.LayersTree.SearchResult} Результат поиска. undefined если ничего не найденно
+     * @return {nsGmx.LayersTree~SearchResult} Результат поиска. undefined если ничего не найденно
     */
     this.findElem = function(attrName, name)
     {
@@ -73,13 +74,37 @@ nsGmx.LayersTree = function( tree )
     }
     
     /** Итерирование по всем слоям группы дерева
-     * @param {function(elem, isVisible)} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
+     * @param {nsGmx.LayersTree~LayerVisitor} callback Будет вызвана для каждого слоя внутри группы.
      * @param {Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
      */
     this.forEachLayer = function(callback, groupNode)
     {
         gmxAPI.forEachLayer(groupNode ? groupNode.content : _tree, callback);
     }
+    
+    /** Visitor при обходе слоёв дерева
+     * @callback nsGmx.LayersTree~LayerVisitor
+     * @param {Object} elem Свойства слоя
+     * @param {Boolean} isVisible Видимость слоя с учётом видимости всех родителей
+     * @param {Number} nodeDepth Глубина слоя в дереве (начинается с 0)
+    */
+    
+    /** Итерирование по всем нодам группы дерева
+     * @param {nsGmx.LayersTree~NodeVisitor} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
+     * @param {Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
+     */
+    this.forEachNode = function(callback, groupNode)
+    {
+        gmxAPI.forEachNode(groupNode ? groupNode.content : _tree, callback);
+    }
+    
+    /** Visitor при обходе узлов дерева слоёв
+     * @callback nsGmx.LayersTree~NodeVisitor
+     * @param {Object} elem Свойства узла
+     * @param {Object} type Тип узла (layer или node)
+     * @param {Boolean} isVisible Видимость узла с учётом видимости всех родителей
+     * @param {Number} nodeDepth Глубина узла в дереве (начинается с 0)
+    */
     
     /** Клонирование дерева с возможностью его модификации
      * @param {function(node):Node|null} filterFunc - ф-ция, которая может модифицировать узлы дерева. 
