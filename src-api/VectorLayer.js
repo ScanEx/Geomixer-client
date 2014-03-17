@@ -394,6 +394,7 @@
 				|| !onScene
 				|| gmxAPI._leaflet.curDragState) return false;
 
+            if (evName === 'contextmenu' && !gmxNode.stateListeners[evName]) return false;
             //console.log('eventsCheck ' , evName, node.id);
 
 			if(!attr) attr = gmxAPI._leaflet.clickAttr;
