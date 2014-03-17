@@ -2505,21 +2505,28 @@ function isRequiredAPIKey( hostName )
 	return false;
 }
 
-function forEachLayer(layers, callback, notVisible)
-{
-	var forEachLayerRec = function(o, isVisible)
+gmxAPI.forEachNode = function(layers, callback, notVisible) {
+    var forEachNodeRec = function(o, isVisible, nodeDepth)
 	{
-		isVisible = isVisible && o.content.properties.visible;
-		if (o.type == "layer")
-			callback(o.content, isVisible);
-		else if (o.type == "group")
+		isVisible = isVisible && !!o.content.properties.visible;
+        callback(o.content, o.type, isVisible, nodeDepth);
+		if (o.type == "group")
 		{
 			var a = o.content.children;
 			for (var k = a.length - 1; k >= 0; k--)
-				forEachLayerRec(a[k], isVisible);
+				forEachNodeRec(a[k], isVisible, nodeDepth + 1);
 		}
 	}
-	forEachLayerRec({type: "group", content: { children: layers.children, properties: { visible: (notVisible ? false : true) } } }, true);
+    
+    for (var k = layers.children.length - 1; k >= 0; k--) {
+        forEachNodeRec(layers.children[k], !notVisible, 0)
+    }
+}
+
+function forEachLayer(layers, callback, notVisible) {
+    gmxAPI.forEachNode(layers, function(node, type, isVisible, nodeDepth) {
+        type === 'layer' && callback(node, isVisible, nodeDepth);
+    }, notVisible)
 }
 
 gmxAPI.forEachLayer = forEachLayer;
