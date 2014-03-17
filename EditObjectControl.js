@@ -479,7 +479,7 @@ var EditObjectControl = function(layerName, objectId, params)
             resizeFunc();
         }
         
-        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 510, 300, false, false, resizeFunc, closeFunc);
+        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
         
         if (!isNew)
         {
