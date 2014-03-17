@@ -101,7 +101,7 @@ nsGmx.LayersTree = function( tree )
     /** Visitor при обходе узлов дерева слоёв
      * @callback nsGmx.LayersTree~NodeVisitor
      * @param {Object} elem Свойства узла
-     * @param {Object} type Тип узла (layer или node)
+     * @param {Object} type Тип узла (layer или group)
      * @param {Boolean} isVisible Видимость узла с учётом видимости всех родителей
      * @param {Number} nodeDepth Глубина узла в дереве (начинается с 0)
     */
