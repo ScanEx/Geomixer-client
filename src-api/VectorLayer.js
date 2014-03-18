@@ -485,12 +485,15 @@
                         //if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
                     }
                 }
+                if (evName === 'contextmenu' && gmxNode.stateListeners[evName]) {
+                    gmxAPI._listeners.dispatchEvent(evName, gmxNode, {target: itemClick, filter: handlerObj, event: gmxAttr});
+                    return true;
+                }
                 if(evName in node.handlers) {       // Есть handlers на слое
                     var res = callHandler(evName, itemClick, gmxNode, gmxAttr);
-                    if(typeof(res) === 'object' && res.stopPropagation) return true;
+                    if(res === true || (typeof(res) === 'object' && res.stopPropagation)) return true;
                 }
                 if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler(evName, itemClick, handlerObj, gmxAttr);
-                else if (gmxNode.stateListeners[evName]) gmxAPI._listeners.dispatchEvent(evName, gmxNode, {target: itemClick, filter: handlerObj, event: gmxAttr});
                 return true;
             }
         }
