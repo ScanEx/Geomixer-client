@@ -495,9 +495,18 @@
                 obj.filters.foreach(function(item) { item.setStyleHook(func); });
                 return true;
             }
-            ,removeStyleHook: function() {		// удаление стилевой функции пользователя
+            ,removeStyleHook: function() {  // удаление стилевой функции пользователя
                 obj.filters.foreach(function(item) { item.removeStyleHook(); });
                 return true;
+            }
+            ,setPauseLoading: function(pt) {  // удаление стилевой функции пользователя
+                obj._pauseLoading = true;
+                if(this.objectId) proxy('setPauseLoading', { obj: obj, attr:pt });
+                return true;
+            }
+            ,getStatus: function(pt) {  // Получить состояние слоя по видимому extent
+                if(this.objectId) return proxy('getStatus', { obj: obj, attr:pt });
+                return {isVisible: false};
             }
         });
         if(obj.properties) {

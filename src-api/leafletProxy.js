@@ -1569,66 +1569,60 @@
 				}
 			}
 		}
-		,
-		'fromLeafletTypeGeo': function(type)	{			// перевод геометрии type leaflet->Scanex
-			if(type === 'MultiPolygon') 			type = 'MULTIPOLYGON';
-			else if(type === 'Polygon')				type = 'POLYGON';
-			else if(type === 'Point')				type = 'POINT';
-			else if(type === 'MultiPolyline')		type = 'MULTILINESTRING';
-			else if(type === 'Polyline')			type = 'LINESTRING';
-			return type;
-		}
-		,
-		'fromScanexTypeGeo': function(type)	{			// перевод геометрии type Scanex->leaflet
-			if(type === 'MULTIPOLYGON') 			type = 'MultiPolygon';
-			else if(type === 'POLYGON')				type = 'Polygon';
-			else if(type === 'MULTIPOINT')			type = 'MultiPoint';
-			else if(type === 'POINT')				type = 'Point';
-			else if(type === 'MULTILINESTRING')		type = 'MultiPolyline';
-			else if(type === 'LINESTRING')			type = 'Polyline';
-			else if(type === 'GeometryCollection')	type = 'GeometryCollection';
-			return type;
-		}
-		,
-		'parseGeometry': function(geo, boundsFlag)	{			// перевод геометрии Scanex->leaflet
-			var geom = gmxAPI.clone(geo);
-			/*if(geom['type'] === 'LINESTRING' && geom['coordinates'].length === 2) {
-				geom['coordinates'] = [geom['coordinates']];
-			}*/
-			var pt = gmxAPI.transformGeometry(geom, function(it){return it;}, function(it){return it;});
-			pt.type = utils.fromScanexTypeGeo(pt.type);
-			var b = gmxAPI.getBounds(geom.coordinates);
-			pt.bounds = new L.Bounds(new L.Point(b.minX, b.minY), new L.Point(b.maxX, b.maxY));
-			return pt;
-		}
-		,
-		transformPolygon: function(geom)				// получить Scanex Polygon
-		{
-			var out = {
-				'type': 'POLYGON'
-			}
-			var coords = [];
-			for (var i = 0; i < geom['coordinates'].length; i++)
-			{
-				var coords1 = [];
-				for (var j = 0; j < geom['coordinates'][i].length; j++)
-				{
-					var point = geom['coordinates'][i][j];
-					//coords1.push([point.x, point.y]);
-					coords1.push([gmxAPI.from_merc_x(point.x), gmxAPI.from_merc_y(point.y)]);
-				}
-				coords.push(coords1);
-			}
-			out['coordinates'] = coords;
-			return out;
-		}
-		,
-		transformGeometry: function(geom)			// трансформация геометрии leaflet->Scanex
-		{
-			if(!geom) return geom;
-			if(geom.type === 'Polygon')	return utils.transformPolygon(geom);
-		}
-		,
+        ,
+        'fromLeafletTypeGeo': function(type)	{			// перевод геометрии type leaflet->Scanex
+            if(type === 'MultiPolygon') 			type = 'MULTIPOLYGON';
+            else if(type === 'Polygon')				type = 'POLYGON';
+            else if(type === 'Point')				type = 'POINT';
+            else if(type === 'MultiPolyline')		type = 'MULTILINESTRING';
+            else if(type === 'Polyline')			type = 'LINESTRING';
+            return type;
+        }
+        ,
+        'fromScanexTypeGeo': function(type)	{			// перевод геометрии type Scanex->leaflet
+            if(type === 'MULTIPOLYGON') 			type = 'MultiPolygon';
+            else if(type === 'POLYGON')				type = 'Polygon';
+            else if(type === 'MULTIPOINT')			type = 'MultiPoint';
+            else if(type === 'POINT')				type = 'Point';
+            else if(type === 'MULTILINESTRING')		type = 'MultiPolyline';
+            else if(type === 'LINESTRING')			type = 'Polyline';
+            else if(type === 'GeometryCollection')	type = 'GeometryCollection';
+            return type;
+        },
+        parseGeometry: function(geo) {      // перевод геометрии Scanex->leaflet
+            var geom = gmxAPI.clone(geo),
+                nullFunc = function(it){return it;};
+            
+            var pt = gmxAPI.transformGeometry(geom, nullFunc, nullFunc);
+            pt.type = utils.fromScanexTypeGeo(pt.type);
+            var b = gmxAPI.getBounds(geom.coordinates);
+            pt.bounds = new L.Bounds(new L.Point(b.minX, b.minY), new L.Point(b.maxX, b.maxY));
+            return pt;
+        },
+        transformPolygon: function(geom)        // получить Scanex Polygon
+        {
+            var coords = [];
+            for (var i = 0, len = geom.coordinates.length; i < len; i++) {
+                var coords1 = [];
+                for (var j = 0, len1 = geom.coordinates[i].length; j < len1; j++) {
+                    var point = geom.coordinates[i][j];
+                    //coords1.push([point.x, point.y]);
+                    coords1.push([gmxAPI.from_merc_x(point.x), gmxAPI.from_merc_y(point.y)]);
+                }
+                coords.push(coords1);
+            }
+            return {
+                type: 'POLYGON'
+                ,coordinates: coords
+            };
+        }
+        ,
+        transformGeometry: function(geom)			// трансформация геометрии leaflet->Scanex
+        {
+            if(!geom) return geom;
+            if(geom.type === 'Polygon')	return utils.transformPolygon(geom);
+        }
+        ,
 		fromTileGeometry: function(geom, tileBounds)				// преобразование геометрий из тайлов
 		{
 			var out = null;
@@ -2873,35 +2867,54 @@
 		,'getMouseX':	function()	{ return utils.getMouseX(); }		// Позиция мыши X
 		,'getMouseY':	function()	{ return utils.getMouseY();	}		// Позиция мыши Y
         ,
-		'setStyleHook':	function(ph) {
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(node && 'setStyleHook' in node) {
-				node.setStyleHook(ph.attr.data);
-				return true;
-			}
-			return false;
+        setPauseLoading: function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'setPauseLoading' in node) {
+                node.setPauseLoading(ph.attr);
+                return true;
+            }
+            return false;
         }
         ,
-		'removeStyleHook':	function(ph) {
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(node && 'removeStyleHook' in node) {
-				node.removeStyleHook(ph.attr.data);
-				return true;
-			}
-			return false;
+        getStatus: function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'getStatus' in node) {
+                return node.getStatus(ph.attr);
+            }
+            return false;
         }
         ,
-		'setSortItems':	function(ph) {
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(node && 'setSortItems' in node) {
-				node.setSortItems(ph.attr.data);
-				return true;
-			}
-			return false;
-		}
+        'setStyleHook':	function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'setStyleHook' in node) {
+                node.setStyleHook(ph.attr.data);
+                return true;
+            }
+            return false;
+        }
+        ,
+        'removeStyleHook':	function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'removeStyleHook' in node) {
+                node.removeStyleHook(ph.attr.data);
+                return true;
+            }
+            return false;
+        }
+        ,
+        'setSortItems':	function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'setSortItems' in node) {
+                node.setSortItems(ph.attr.data);
+                return true;
+            }
+            return false;
+        }
 		,
 		'setFlipItems':	function(ph) {
 			var id = ph.obj.objectId;
