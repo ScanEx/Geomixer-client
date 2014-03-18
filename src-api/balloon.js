@@ -56,18 +56,21 @@
 
 		function callBalloonHook(o, div) {
             for(var key in o._balloonHook) {
-                var fid = o._balloonHook[key].hookID;
-                var span = div.getElementsByTagName("span");
-                var notFind = true;
+                var hook = o._balloonHook[key],
+                    st = '[' + key + ']',
+                    fid = hook.hookID,
+                    span = div.getElementsByTagName("span"),
+                    notFound = true;
                 for (var i = 0, len = span.length; i < len; i++) {
                     var node = span[i];
                     if(node.id === fid) {
-                        notFind = false;
+                        notFound = false;
+                        node.innerHTML = node.innerHTML.replace(st, '');
                         node.id += '_' + i;
-                        o._balloonHook[key].callback(o, div, node);
+                        hook.callback(o, div, node);
                     }
                 }
-                if(notFind) o._balloonHook[key].callback(o, div, null);
+                if(notFound) hook.callback(o, div, null);
             }
         }
         
