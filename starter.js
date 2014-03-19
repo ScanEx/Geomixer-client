@@ -247,6 +247,10 @@ var parseURLParams = function()
 
 $(function()
 {
+    Mustache.addCustomTag('i', function (contents, value) {
+        return nsGmx.Translations.getText(contents);
+    });
+    
     var languageFromSettings = translationsHash.getLanguageFromCookies() || window.defaultLang;
     window.language = languageFromSettings || "rus"
 	if (languageFromSettings == "eng")

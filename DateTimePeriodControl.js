@@ -414,7 +414,7 @@ Calendar.prototype.init = function( name, params )
     this.last = $('<div class = "PeriodCalendar-iconLast"></div>').click(this._firstClickFunc.bind(this))[0];
 
     this.moreIcon = $(Mustache.render(
-        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{i+calendarWidget.ExtendedView}}"></div>', 
+        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{i calendarWidget.ExtendedView}}"></div>', 
         {
             iconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse'
         }
@@ -707,10 +707,14 @@ if ( typeof gmxCore !== 'undefined' )
             initTranslations();
             
             return gmxCore.loadScriptWithCheck([
-                { 
+                {
                     check: function(){ return jQuery.ui; },
                     script: path + 'jquery/jquery-ui-1.7.2.custom.min.js',
                     css: path + 'jquery/jquery-ui-1.7.2.custom.css'
+                },
+                {
+                    check: function(){ return window.Mustache; },
+                    script: path + 'jquery/mustache.js'
                 }
             ]);
 		},

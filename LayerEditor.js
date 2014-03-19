@@ -1248,7 +1248,7 @@ LayerEditor.prototype._createPageAdvanced = function(parent, layerProperties) {
     var RCTemplate = 
         '<fieldset class="layer-fieldset">' + 
             '<legend><label>' +
-                '<input type="checkbox" id="rc-params-isRC" {{#isRC}}checked{{/isRC}}>{{i+Каталог растров}}' +
+                '<input type="checkbox" id="rc-params-isRC" {{#isRC}}checked{{/isRC}}>{{i Каталог растров}}' +
             '</label></legend>' +
             //вложенный fieldset нужен из-за бага в Opera
             '<fieldset {{^isRC}}disabled="disabled"{{/isRC}}><div id="rc-params-div"></div></fieldset>' +

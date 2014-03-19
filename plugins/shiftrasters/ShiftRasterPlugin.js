@@ -25,9 +25,9 @@
                 <input class="inputStyle shift-rasters-input" id="dx"></input> \
                 <span class = "shift-rasters-label">dy</span> \
                 <input class="inputStyle shift-rasters-input" id="dy"></input> \
-                <button class="shift-rasters-btn" id="btnStart">{{i+shiftRastersPlugin.startBtnTitle}}</button> \
-                <button class="shift-rasters-btn" id="btnSave">{{i+shiftRastersPlugin.saveBtnTitle}}</button> \
-                <button class="shift-rasters-btn" id="btnCancel">{{i+shiftRastersPlugin.cancelBtnTitle}}</button>\
+                <button class="shift-rasters-btn" id="btnStart">{{i shiftRastersPlugin.startBtnTitle}}</button> \
+                <button class="shift-rasters-btn" id="btnSave">{{i shiftRastersPlugin.saveBtnTitle}}</button> \
+                <button class="shift-rasters-btn" id="btnCancel">{{i shiftRastersPlugin.cancelBtnTitle}}</button>\
             </span>';
             
     var uiTemplate = 
@@ -161,7 +161,7 @@
                     var uiTemplate = 
                         '<label class = "shift-rasters-properties">' +
                             '<input type="checkbox" id="shift-rasters" {{#isShift}}checked{{/isShift}}>' + 
-                            '{{i+shiftRastersPlugin.layerPropertiesTitle}}' +
+                            '{{i shiftRastersPlugin.layerPropertiesTitle}}' +
                         '</label>';
                     
                     var ui = $(Mustache.render(uiTemplate, {isShift: isShift}));

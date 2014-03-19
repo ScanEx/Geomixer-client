@@ -19,13 +19,6 @@
   }
 }(this, function (mustache) {
 
-  var whiteRe = /\s*/;
-  var spaceRe = /\s+/;
-  var nonSpaceRe = /\S/;
-  var eqRe = /\s*=/;
-  var curlyRe = /\s*\}/;
-  var tagRe = /#|\^|\/|>|\{|&|=|!|i\+/;
-
   // Workaround for https://issues.apache.org/jira/browse/COUCHDB-577
   // See https://github.com/janl/mustache.js/issues/189
   var RegExp_test = RegExp.prototype.test;
@@ -33,6 +26,7 @@
     return RegExp_test.call(re, string);
   }
 
+  var nonSpaceRe = /\S/;
   function isWhitespace(string) {
     return !testRegExp(nonSpaceRe, string);
   }
@@ -76,6 +70,15 @@
     ];
   }
 
+  var whiteRe = /\s*/;
+  var spaceRe = /\s+/;
+  var equalsRe = /\s*=/;
+  var curlyRe = /\s*\}/;
+  var tagRe = /#|\^|\/|>|\{|&|=|!/;
+
+  var customTagRe = "";
+  var customTags = {}; // {tag1: callback1, tag2: callback2}
+
   /**
    * Breaks up the given `template` string into a tree of tokens. If the `tags`
    * argument is given here it must be an array with two string values: the
@@ -85,18 +88,18 @@
    * A token is an array with at least 4 elements. The first element is the
    * mustache symbol that was used inside the tag, e.g. "#" or "&". If the tag
    * did not contain a symbol (i.e. {{myValue}}) this element is "name". For
-   * all template text that appears outside a symbol this element is "text".
+   * all text that appears outside a symbol this element is "text".
    *
    * The second element of a token is its "value". For mustache tags this is
    * whatever else was inside the tag besides the opening symbol. For text tokens
    * this is the text itself.
    *
-   * The third and fourth elements of the token are the start and end indices
-   * in the original template of the token, respectively.
+   * The third and fourth elements of the token are the start and end indices,
+   * respectively, of the token in the original template.
    *
-   * Tokens that are the root node of a subtree contain two more elements: an
-   * array of tokens in the subtree and the index in the original template at which
-   * the closing tag for that section begins.
+   * Tokens that are the root node of a subtree contain two more elements: 1) an
+   * array of tokens in the subtree and 2) the index in the original template at
+   * which the closing tag for that section begins.
    */
   function parseTemplate(template, tags) {
     tags = tags || mustache.tags;
@@ -166,8 +169,8 @@
 
       // Get the tag value.
       if (type === '=') {
-        value = scanner.scanUntil(eqRe);
-        scanner.scan(eqRe);
+        value = scanner.scanUntil(equalsRe);
+        scanner.scan(equalsRe);
         scanner.scanUntil(tagRes[1]);
       } else if (type === '{') {
         value = scanner.scanUntil(new RegExp('\\s*' + escapeRegExp('}' + tags[1])));
@@ -455,7 +458,7 @@
       return self.render(template, context, partials);
     }
 
-    var token, value;
+    var token, value, out, scn, ctag;
     for (var i = 0, len = tokens.length; i < len; ++i) {
       token = tokens[i];
 
@@ -496,23 +499,29 @@
         break;
       case '>':
         if (!partials) continue;
-        value = this.parse(isFunction(partials) ? partials(token[1]) : partials[token[1]]);
-        if (value != null) buffer += this.renderTokens(value, context, partials, originalTemplate);
+        value = isFunction(partials) ? partials(token[1]) : partials[token[1]];
+        if (value != null) buffer += this.renderTokens(this.parse(value), context, partials, value);
         break;
       case '&':
         value = context.lookup(token[1]);
         if (value != null) buffer += value;
         break;
-      case 'i+':
-        value = token[1];
-        if (window._gtxt) {
-          value = window._gtxt(value);
-        }
-        buffer += mustache.escape(value);
-        break;
       case 'name':
         value = context.lookup(token[1]);
-        if (value != null) buffer += mustache.escape(value);
+        if (value != null) {
+          buffer += mustache.escape(value);
+        } else {
+          // token may be a custom tag
+          scn = new Scanner(token[1]);
+          ctag = scn.scan(new RegExp(customTagRe));
+          if (ctag) {
+            scn.scan(whiteRe);
+            out = customTags[ctag](scn.tail, context.lookup(scn.tail));
+            if (typeof out === 'string') {
+              buffer += out;
+            }
+          }
+        }
         break;
       case 'text':
         buffer += token[1];
@@ -524,7 +533,7 @@
   };
 
   mustache.name = "mustache.js";
-  mustache.version = "0.8.0";
+  mustache.version = "0.8.1";
   mustache.tags = [ "{{", "}}" ];
 
   // All high-level mustache.* functions use this writer.
@@ -564,6 +573,44 @@
       return result;
     }
   };
+
+  /**
+   * Adds a custom tag.
+   */
+  mustache.addCustomTag = function (tag, callback) {
+    // allow only alphabetic characters
+    if (!tag.match(/^[A-z]+$/)) {
+      throw new Error("invalid tag name");
+    }
+    if (typeof callback !== 'function') {
+      throw new Error("invalid callback");
+    }
+    var customTagsArr;
+    if (!customTags[tag]) {
+      // tag does not exist
+      if (customTagRe === '') {
+        customTagsArr = [];
+      } else {
+        customTagsArr = customTagRe.split('|');
+      }
+      customTagsArr.push(tag);
+      // sort customTagsArr to put the longest strings to the top
+      // in order to prevent regExp mistakes
+      customTagsArr.sort(function (str1, str2) {
+        if (str1.length === str2.length) {
+          if (str1 === str2) {
+            return 0;
+          } else {
+            return str1 < str2 ? 1 : -1;
+          }
+        } else {
+          return str1.length < str2.length ? 1 : -1;
+        }
+      });
+      customTagRe = customTagsArr.join('|');
+    }
+    customTags[tag] = callback;
+  }
 
   // Export the escaping function so that the user may override it.
   // See https://github.com/janl/mustache.js/issues/244
