@@ -38,3 +38,40 @@
 {
 	text-align: center;
 }
+
+.PeriodCalendar-iconFirst {
+    width: 20px;
+    height: 20px;
+    background: url(img/first.png);
+    margin-bottom: -2px;
+}
+
+.PeriodCalendar-iconLast {
+    width: 20px;
+    height: 20px;
+    background: url(img/last.png);
+    margin-bottom: -2px;
+}
+
+.PeriodCalendar-iconFirst:hover {
+    background: url(img/first_a.png);
+}
+
+.PeriodCalendar-iconLast:hover {
+    background: url(img/last_a.png);
+}
+
+.PeriodCalendar-iconMore {
+    width: 9px;
+    height: 9px;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+.PeriodCalendar-iconExpand {
+    background: url(img/expand.gif);
+}
+
+.PeriodCalendar-iconCollapse {
+    background: url(img/collapse.gif);
+}

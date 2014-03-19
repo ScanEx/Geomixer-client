@@ -4,36 +4,57 @@ var nsGmx = nsGmx || {};
 
 var initTranslations = function()
 {
-    _translationsHash.addtext("rus", {
-                                "calendarWidget.Custom" : " ",
-                                "calendarWidget.Day" : "День",
-                                "calendarWidget.Week" : "Неделя",
-                                "calendarWidget.Month" : "Месяц",
-                                "calendarWidget.Year" : "Год",
-                                "calendarWidget.EveryYear" : "Ежегодно",
-                                "calendarWidget.ExtendedView" : "Расширенный поиск",
-                                "calendarWidget.Period" : "Задать период",
-                                "calendarWidget.UTC": "Всемирное координированное время"
-                             });
+    _translationsHash.addtext("rus", { calendarWidget: {
+                                Custom:       " ",
+                                Day:          "День",
+                                Week:         "Неделя",
+                                Month:        "Месяц",
+                                Year:         "Год",
+                                EveryYear:    "Ежегодно",
+                                ExtendedView: "Расширенный поиск",
+                                Period:       "Задать период",
+                                UTC:          "Всемирное координированное время"
+                             }});
                              
-    _translationsHash.addtext("eng", {
-                                "calendarWidget.Custom" : " ",
-                                "calendarWidget.Day" : "Day",
-                                "calendarWidget.Week" : "Week",
-                                "calendarWidget.Month" : "Month",
-                                "calendarWidget.Year" : "Year",
-                                "calendarWidget.EveryYear" : "Every year",
-                                "calendarWidget.ExtendedView" : "Extended search",
-                                "calendarWidget.UTC": "Coordinated Universal Time"
-                             });
+    _translationsHash.addtext("eng", { calendarWidget: {
+                                Custom :       " ",
+                                Day :          "Day",
+                                Week :         "Week",
+                                Month :        "Month",
+                                Year :         "Year",
+                                EveryYear :    "Every year",
+                                ExtendedView : "Extended search",
+                                UTC:           "Coordinated Universal Time"
+                             }});
 }
 
-/**
- @memberOf nsGmx
- @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
+/** Параметры календаря
+ * @typedef nsGmx.Calendar~Parameters
+ * @property {Date} [dateMin] минимальная граничная дата для календарей, null - без ограничений
+ * @property {Date} [dateMax] максимальная граничная дата для календарей, null - без ограничений
+ * @property {String} [dateFormat='dd.mm.yy'] формат даты
+ * @property {bool} [minimized=true] показывать ли минимизированный или развёрнутый виджет в начале
+ * @property {bool} [showSwitcher=true] показывать ли иконку для разворачивания/сворачивания периода
+ * @property {Date} [dateBegin=<текущая дата>] начальная дата интервала
+ * @property {Date} [dateEnd=<текущая дата>] конечная дата интервала
+ * @property {bool} [showTime=false] показывать ли время
+ * @property {String} [container] куда добавлять календарик
+ */
+
+/** Контрол для задания диапазона дат. Даты календарика всегда в UTC, а не в текущем поясе.
+ @alias nsGmx.Calendar
+ @class
+ @param {String} name Имя календаря
+ @param {nsGmx.Calendar~Parameters} params Параметры календаря
 */
 var Calendar = function(name, params)
 {
+    /** Сформированный DOM node с виджетом. Нужно использовать, если не указан параметр `container` в {@link nsGmx.Calendar~Parameters}
+     * @memberOf nsGmx.Calendar.prototype
+     * @member {DOMNode} canvas
+    */
+	this.canvas = null;
+    
 	this._visModeController = (function()
 	{
 		var publicInterface = {
@@ -93,8 +114,8 @@ var Calendar = function(name, params)
     
 	//public interface
 	
-	/**
-	 * @function
+	/** Получить начальную дату
+	 * @return {Date} начальная дата
 	 */
 	this.getDateBegin = function()
 	{
@@ -109,9 +130,9 @@ var Calendar = function(name, params)
 		return date;
 	}
     	
-	/**
-	 * @function
-	 */	
+	/** Получить конечную дату дату
+	 * @return {Date} конечная дата
+	 */
 	this.getDateEnd = function() 
 	{
 		// return $(this.dateEnd).datepicker("getDate"); 
@@ -125,9 +146,9 @@ var Calendar = function(name, params)
 		return date;
 	}
     
-	/**
-	 * @function
-	 */	    
+	/** Установить начальную дату периода
+	 * @param {Date} date Начальная дата
+	 */
     this.setDateBegin = function(date, keepSilence)
     {
         if (date)
@@ -141,9 +162,9 @@ var Calendar = function(name, params)
         keepSilence || $(this).change();
     }
     
-	/**
-	 * @function
-	 */	    
+	/** Установить конечную дату периода
+	 * @param {Date} date Конечная дата
+	 */
     this.setDateEnd = function(date, keepSilence)
     {
         if (date)
@@ -157,23 +178,38 @@ var Calendar = function(name, params)
         _updateInfo();
         keepSilence || $(this).change();
     }
+    
+    /** Установить даты периода
+	 * @param {Date} dateBegin Начальная дата
+	 * @param {Date} dateEnd Конечная дата
+	 */
+    this.setDates = function(dateBegin, dateEnd) {
+        this.setDateBegin(dateBegin, true);
+        this.setDateBegin(dateEnd);
+    }
 	
-	/**
-	 * @function
-	 */	
+	/** Получить верхнюю границу возможных дат периода
+     * @return {Date} верхняя граница возможных периодов
+	 */
 	this.getDateMax = function() { return this.dateMax; }
 	
-	/**
-	 * @function
+	/** Получить нижнуюю границу возможных дат периода
+     * @return {Date} нижняя граница возможных периодов
 	 */
 	this.getDateMin = function() { return this.dateMin; }
     
+	/** Установить нижнуюю границу возможных дат периода
+     * @param {Date} dateMin нижняя граница возможных периодов
+	 */
     this.setDateMin = function(dateMin)
     {
         this.dateMin = dateMin;
         $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', dateMin ? Calendar.toUTC(dateMin) : null);
     }
     
+    /** Установить верхнюю границу возможных дат периода
+     * @param {Date} dateMax верхняя граница возможных периодов
+	 */
     this.setDateMax = function(dateMax)
     {
         this.dateMax = dateMax;
@@ -189,7 +225,7 @@ var Calendar = function(name, params)
     }
     
     /** Нужно ли показывать время под календариком
-     * @param {bool} isShowTime Показывать ли время
+     * @param {Boolean} isShowTime Показывать ли время
      */
     this.setShowTime = function(isShowTime)
     {
@@ -197,9 +233,9 @@ var Calendar = function(name, params)
         _updateInfo();
     }
 	
-	/**
-	 * @function
-	 */	
+	/** Сериализация состояния виджета
+	 * @return {Object} Сериализованное состояние
+	 */
 	this.saveState = function()
 	{
 		return {
@@ -211,9 +247,8 @@ var Calendar = function(name, params)
 		}
 	}
 	
-	/**
-	 * @function
-	 * @param {string} data
+	/** Восстановить состояние виджета по сериализованным данным
+	 * @param {Object} data Сериализованное состояние календарика
 	 */
 	this.loadState = function( data )
 	{
@@ -251,14 +286,12 @@ var Calendar = function(name, params)
 		
 		_updateInfo();
 	}
-	
-	
-	
+
 	this.setLazyDate = function(lazyDate, keepSilence)
 	{
 		this.lazyDate.value = lazyDate;
         var prevDate = this.getDateBegin();
-		this.updateBegin();
+		this._updateBegin();
         var newDate = this.getDateBegin();
 		
 		if ( !keepSilence && prevDate.valueOf() !== newDate.valueOf() )
@@ -295,31 +328,17 @@ Calendar.toUTC = function(date)
  * Инициализирует календарь.
  * @function
  * @param {String} name Имя календаря
- * @param {Object} params Параметры календаря: <br/>
- * dateMin, dateMax - {Date} граничные даты для календарей, null - без ограничений<br/>
- * dateFormat - {String} формат даты <br/>
- * resourceHost - {String} откуда берём иконки <br/>
- * minimized - {bool} показывать ли минимизированный или развёрнутый виджет в начале<br/>
- * showSwitcher - {bool} показывать ли иконку для разворачивания/сворачивания периода<br/>
- * dateBegin, dateEnd - {Date} текущие даты для календарей <br/>
- * showTime - {bool} показывать ли время (default: false)
- * container - {string} куда добавлять календарик
+ * @param {nsGmx.Calendar~Parameters} params Параметры календаря
  */
 Calendar.prototype.init = function( name, params )
 {
 	var _this = this;
 	this._name = name;
-    
-    //Если загружен как модуль, берём ресурсы из папки модуля, иначе локально относительно html
-    var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('DateTimePeriodControl') || '' : '';
-	
+
 	this._params = $.extend({
-		resourceHost: resourceHost,
 		minimized: true,
 		showSwitcher: true,
         showTime: false,
-        // dateMax: new Date(),
-        // dateMin: Calendar.fromUTC(new Date(1900, 0, 1)),
         dateMax: null,
         dateMin: null,
         dateFormat: 'dd.mm.yy'
@@ -336,7 +355,7 @@ Calendar.prototype.init = function( name, params )
 	this.lazyDate.value = this._params.minimized ? 'day' : '';
 	
 	this.lazyDate.onchange = function() {
-		_this.updateBegin();
+		_this._updateBegin();
 		$(_this).triggerHandler('change');
 	}
 	
@@ -363,7 +382,7 @@ Calendar.prototype.init = function( name, params )
 	{
 		onSelect: function(dateText, inst) 
 		{
-			_this.selectFunc(inst);
+			_this._selectFunc(inst);
 			$(_this).triggerHandler('change');
 		},
 		showAnim: 'fadeIn',
@@ -390,39 +409,19 @@ Calendar.prototype.init = function( name, params )
 				$(this.lazyDate).children("option[value='" + allPeriods[i] + "']").remove();
 		}
 	}
-	
-	this.first = makeImageButton(this._params.resourceHost + 'img/first.png', this._params.resourceHost + 'img/first_a.png');
-	this.last = makeImageButton(this._params.resourceHost + 'img/last.png', this._params.resourceHost + 'img/last_a.png');
-	
-	this.first.style.marginBottom = '-2px';
-	this.last.style.marginBottom = '-2px';
+    
+    this.first = $('<div class = "PeriodCalendar-iconFirst"></div>').click(this._firstClickFunc.bind(this))[0];
+    this.last = $('<div class = "PeriodCalendar-iconLast"></div>').click(this._firstClickFunc.bind(this))[0];
 
-	this.first.onclick = function()
-	{
-		_this.firstClickFunc();
-	}
-	
-	this.last.onclick = function()
-	{
-		_this.lastClickFunc();
-	}
-	
-	this.moreIcon = _img(null, [['attr', 'src', 'http://kosmosnimki.ru/img/' + (this._params.minimized ? 'expand.gif' : 'collapse.gif')], ['css', 'margin', '0 0 4px 0'], ['css', 'cursor', 'pointer'], ['attr', 'title', _gtxt('calendarWidget.ExtendedView')]]);
-	this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE)
-		
-	this.moreIcon.onclick = function()
-	{
-		_this._visModeController.toggleMode();
-	}
-	
-	if (!this._params.showSwitcher)
-	{
-		$(this.moreIcon).hide();
-	}
-	
-	//var emptyieinput = _input(null,[['css','width','1px'],['css','border','none'],['css','height','1px']]);
-	//tdYear = this.params.showYear ? _td([this.calendar.lazyDate, _br(), this.calendar.yearBox, _span([_t(_gtxt("calendarWidget.EveryYear"))],[['css','margin','0px 5px']])],[['attr','colSpan',2]]) : _td([this.calendar.lazyDate, this.calendar.yearBox],[['attr','colSpan',2]]);
-	
+    this.moreIcon = $(Mustache.render(
+        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{i+calendarWidget.ExtendedView}}"></div>', 
+        {
+            iconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse'
+        }
+    )).click(_this._visModeController.toggleMode.bind(_this._visModeController)).toggle(!!this._params.showSwitcher)[0];
+
+    this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE);
+
 	this.canvas = _div([_span([//emptyieinput,
 					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin]),_td([this.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
 									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td()])/*,
@@ -437,17 +436,19 @@ Calendar.prototype.init = function( name, params )
 	$(this._visModeController).change(function()
 	{
 		var isSimple = _this._visModeController.getMode() === _this._visModeController.SIMPLE_MODE;
-		$("#calendar .onlyMinVersion", _this.canvas).css({display: isSimple ? '': 'none'});
-		$("#calendar .onlyMaxVersion", _this.canvas).css({display: isSimple ? 'none': ''});
+		$("#calendar .onlyMinVersion", _this.canvas).toggle(isSimple);
+		$("#calendar .onlyMaxVersion", _this.canvas).toggle(!isSimple);
 		
 		_this.setLazyDate(isSimple ? 'day' : '', true);
         $(_this).triggerHandler('change'); //всегда генерим событие, так как в целом состояние календаря изменилось
 		
-		_this.moreIcon.src = 'http://kosmosnimki.ru/img/' + (isSimple ? 'expand.gif' : 'collapse.gif');
+        $(_this.moreIcon)
+            .toggleClass('PeriodCalendar-iconExpand', isSimple)
+            .toggleClass('PeriodCalendar-iconCollapse', !isSimple);
 	});
 					
-	$("#calendar .onlyMinVersion", this.canvas).css({display: this._params.minimized ? '' : 'none'});
-	$("#calendar .onlyMaxVersion", this.canvas).css({display: this._params.minimized ? 'none' : ''});
+	$("#calendar .onlyMinVersion", this.canvas).toggle(this._params.minimized);
+	$("#calendar .onlyMaxVersion", this.canvas).toggle(!this._params.minimized);
 	
 	var curUTCDate = new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000);
 	
@@ -458,7 +459,7 @@ Calendar.prototype.init = function( name, params )
 	
 	if (typeof this._params.dateBegin === 'undefined')
 		//если не выбран период, то по умолчанию мы устанавливаем одинаковые даты
-		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this.getBeginByEnd() );
+		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this._getBeginByEnd() );
 	else
 		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
         
@@ -471,7 +472,7 @@ Calendar.prototype.init = function( name, params )
     }
 }
 
-Calendar.prototype.fixDate = function(date)
+Calendar.prototype._fixDate = function(date)
 {
 	if (date) 
         date.setHours(12);
@@ -479,7 +480,7 @@ Calendar.prototype.fixDate = function(date)
 	return date;
 }
 
-Calendar.prototype.fixDay = function(day)
+Calendar.prototype._fixDay = function(day)
 {
 	if (day == 0)
 		return 6;
@@ -487,7 +488,7 @@ Calendar.prototype.fixDay = function(day)
 		return day - 1;
 }
 
-Calendar.prototype.daysAtMonth = function(month, year)
+Calendar.prototype._daysAtMonth = function(month, year)
 {
 	var leap = ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ) ? 1 : 0,
 		days = [31, 28 + leap, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -495,20 +496,13 @@ Calendar.prototype.daysAtMonth = function(month, year)
 	return days[month - 1];
 }
 
-Calendar.prototype.daysAtYear = function(year)
-{
-	var leap = ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ) ? 1 : 0;
-
-	return 365 + leap;
-}
-
-Calendar.prototype.getBeginByEnd = function(endDate)
+Calendar.prototype._getBeginByEnd = function(endDate)
 {
 	var end = endDate ? endDate : $(this.dateEnd).datepicker("getDate");
     
     if (!end) return null;
     
-	this.fixDate(end)
+	this._fixDate(end)
 	
 	switch(this.lazyDate.value)
 	{
@@ -517,7 +511,7 @@ Calendar.prototype.getBeginByEnd = function(endDate)
 		case 'day': 
 			return end;
 		case 'week':
-			return new Date(end.valueOf() - this.fixDay(end.getDay()) * 24 * 3600 * 1000);
+			return new Date(end.valueOf() - this._fixDay(end.getDay()) * 24 * 3600 * 1000);
 		case 'month': 
 			return new Date(end.getFullYear(), end.getMonth(), 1, 12, 0, 0);
 		case 'year':
@@ -525,13 +519,13 @@ Calendar.prototype.getBeginByEnd = function(endDate)
 	}
 }
 
-Calendar.prototype.getEndByBegin = function(beginDate)
+Calendar.prototype._getEndByBegin = function(beginDate)
 {
 	var begin = beginDate ? beginDate : $(this.dateBegin).datepicker("getDate");
     
     if (!begin) return null;
     
-	this.fixDate(begin)
+	this._fixDate(begin)
 	
 	switch(this.lazyDate.value)
 	{
@@ -540,53 +534,25 @@ Calendar.prototype.getEndByBegin = function(beginDate)
 		case 'day': 
 			return begin;
 		case 'week':
-			return new Date(begin.valueOf() + (6 - this.fixDay(begin.getDay())) * 24 * 3600 * 1000);
+			return new Date(begin.valueOf() + (6 - this._fixDay(begin.getDay())) * 24 * 3600 * 1000);
 		case 'month': 
-			return new Date(begin.getFullYear(), begin.getMonth(), this.daysAtMonth(begin.getMonth() + 1, begin.getFullYear()), 12, 0, 0);
+			return new Date(begin.getFullYear(), begin.getMonth(), this._daysAtMonth(begin.getMonth() + 1, begin.getFullYear()), 12, 0, 0);
 		case 'year':
 			return new Date(begin.getFullYear(), 11, 31, 12, 0, 0)
 	}
 }
 
-Calendar.prototype.lastPeriodDate = function()
+Calendar.prototype._updateBegin = function()
 {
-	var begin = $(this.dateBegin).datepicker("getDate");
-	this.fixDate(begin)
-	
-	switch(this.lazyDate.value)
-	{
-		case '':
-			return $(this.endBegin).datepicker("getDate");
-		case 'day': 
-			return begin;
-		case 'week':
-			var last = new Date(begin.valueOf() + 6 * 24 * 3600 * 1000);
-			return new Date(last.getFullYear(), last.getMonth(), last.getDate(), 12, 0, 0);
-		case 'month':
-			var last = new Date(begin.valueOf() + (this.daysAtMonth(begin.getMonth() + 1, begin.getFullYear()) - 1) * 24 * 3600 * 1000);
-			return new Date(last.getFullYear(), last.getMonth(), last.getDate(), 12, 0, 0);
-		case 'year':
-			var last = new Date(begin.valueOf() + (this.daysAtYear(begin.getFullYear()) - 1) * 24 * 3600 * 1000);
-			return new Date(last.getFullYear(), last.getMonth(), last.getDate(), 12, 0, 0);
-	}
+	$(this.dateBegin).datepicker("setDate", this._getBeginByEnd());
 }
 
-Calendar.prototype.updateBegin = function()
+Calendar.prototype._updateEnd = function()
 {
-	$(this.dateBegin).datepicker("setDate", this.getBeginByEnd());
+	$(this.dateEnd).datepicker("setDate", this._getEndByBegin());
 }
 
-Calendar.prototype.updateEnd = function()
-{
-	$(this.dateEnd).datepicker("setDate", this.getEndByBegin());
-}
-
-Calendar.prototype.getCurrInterval = function()
-{
-	return 1000*60*60*24 * (this.rangeIndexs[this.currRangeIndex].limit)
-}
-
-Calendar.prototype.firstClickFunc = function()
+Calendar.prototype._firstClickFunc = function()
 {
 	var begin = $(this.dateBegin).datepicker("getDate"),
 		end = $(this.dateEnd).datepicker("getDate"),
@@ -595,8 +561,8 @@ Calendar.prototype.firstClickFunc = function()
         
     if (!begin || !end) return;
 	
-	this.fixDate(begin);
-	this.fixDate(end);
+	this._fixDate(begin);
+	this._fixDate(end);
 	
 	if (this.yearBox.checked)
 	{
@@ -630,7 +596,7 @@ Calendar.prototype.firstClickFunc = function()
 		else
 		{
 			newDateEnd = new Date(begin.valueOf() - 1000*60*60*24);
-			newDateBegin = this.getBeginByEnd(newDateEnd);
+			newDateBegin = this._getBeginByEnd(newDateEnd);
 			
 			if (this.dateMin && newDateBegin < this.dateMin)
 			{
@@ -639,14 +605,14 @@ Calendar.prototype.firstClickFunc = function()
 			
 			$(this.dateEnd).datepicker("setDate", newDateEnd);
 			
-			this.updateBegin();
+			this._updateBegin();
 		}
 	}
 	
 	$(this).triggerHandler('change');
 }
 
-Calendar.prototype.lastClickFunc = function()
+Calendar.prototype._lastClickFunc = function()
 {
 	var begin = $(this.dateBegin).datepicker("getDate"),
 		end = $(this.dateEnd).datepicker("getDate"),
@@ -655,8 +621,8 @@ Calendar.prototype.lastClickFunc = function()
         
     if (!begin || !end) return;
 
-	this.fixDate(begin);
-	this.fixDate(end);
+	this._fixDate(begin);
+	this._fixDate(end);
 	
 	if (this.yearBox.checked)
 	{
@@ -690,7 +656,7 @@ Calendar.prototype.lastClickFunc = function()
 		else
 		{
 			newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
-			newDateEnd = this.getEndByBegin(newDateBegin);
+			newDateEnd = this._getBeginByEnd(newDateBegin);
 			
 			if (this.dateMax && newDateEnd > this.dateMax)
 			{
@@ -699,21 +665,21 @@ Calendar.prototype.lastClickFunc = function()
 			
 			$(this.dateBegin).datepicker("setDate", newDateBegin);
 			
-			this.updateEnd();
+			this._updateEnd();
 		}
 	}
 	
 	$(this).triggerHandler('change');
 }
 
-Calendar.prototype.selectFunc = function(inst)
+Calendar.prototype._selectFunc = function(inst)
 {
 	if (this.lazyDate.value != '')
 	{
 		if (inst.input[0] == this.dateEnd)
-			this.updateBegin();
+			this._updateBegin();
 		else
-			this.updateEnd();
+			this._updateEnd();
 	}
 	else {
         var begin = $(this.dateBegin).datepicker("getDate");
