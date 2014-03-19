@@ -1,6 +1,5 @@
-﻿/** 
- * @namespace FireMapplet
- * @description Пожарный виджет
+﻿/** Пожарный виджет
+ * @module FireMapplet
  */
 (function($){
 
@@ -105,7 +104,7 @@ function buildModisPixelDimensionsTable()
 /** Bbox, который может быть пустым или занимать весь мир
  @memberOf FireMapplet
  @class
- @param param Объект {minX, maxX, minY, maxY}, если нормальный bbox, BoundsExt.EMPTY - если пустое множество,  BoundsExt.WHOLE_WORLD - если весь мир.
+ @param param Объект с полями (minX, maxX, minY, maxY), если нормальный bbox, BoundsExt.EMPTY - если пустое множество,  BoundsExt.WHOLE_WORLD - если весь мир.
 */
 var BoundsExt = function( param )
 {
@@ -2043,24 +2042,20 @@ FireControl.prototype._updateCheckboxList = function()
 	var trs = [];
 	var _this = this;
 	
-	for (var k in this.dataControllers)
+	for (var k in this.dataControllers) (function(dataController)
 	{
-		var checkbox = _checkbox(this.dataControllers[k].visible, 'checkbox');
+		var checkbox = _checkbox(dataController.visible, 'checkbox');
 		
-		$(checkbox).attr({id: this.dataControllers[k].name});
+		$(checkbox).attr({id: dataController.name});
 	
-		(function(dataController){
-			checkbox.onclick = function()
-			{
-				dataController.visible = this.checked;
-				_this.update();
-				dataController.renderer.setVisible(this.checked && _this._currentVisibility);
-			}
-		})(this.dataControllers[k]);
+        checkbox.onclick = function()
+        {
+            _this.setDataVisibility(dataController.name, this.checked);
+        }
 		
-		var curTr = _tr([_td([checkbox]), _td([_span([_t( this.dataControllers[k].provider.getDescription() )],[['css','marginLeft','3px']])])]);
+		var curTr = _tr([_td([checkbox]), _td([_span([_t( dataController.provider.getDescription() )],[['css','marginLeft','3px']])])]);
 		trs.push(curTr);
-	}
+	})(this.dataControllers[k])
 	
 	$("#checkContainer", this._parentDiv).append( _table([_tbody(trs)],[['css','marginLeft','4px']]) );
 }
@@ -2077,6 +2072,18 @@ FireControl.prototype.getBbox = function()
 {
 	//return this._initExtent.getIntersection(this.searchBboxController.getBbox());
     return new BoundsExt( BoundsExt.WHOLE_WORLD );
+}
+
+FireControl.prototype.setDataVisibility = function(dataName, isVisible) {
+    for (var k in this.dataControllers) {
+        var dataController = this.dataControllers[k];
+        if (dataController.name === dataName) {
+            dataController.visible = isVisible;
+            this.update();
+            dataController.renderer.setVisible(isVisible && this._currentVisibility);
+            return;
+        }
+    }
 }
 
 //предполагаем, что dateBegin, dateEnd не нулевые
@@ -2222,13 +2229,13 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	$(this._parentDiv).prepend(_div(null, [['dir', 'id', 'checkContainer']]));	
 	
-	if ( this._firesOptions.firesOld ) 
+	if ( this._firesOptions.firesOld )
 		this.addDataProvider( "firedots_old",
 							  new FireSpotProvider( {host: this._firesOptions.firesHost} ),
 							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ),
 							  { isVisible: this._firesOptions.firesOldInit } );
 							  
-	if ( this._firesOptions.burnt ) 
+	if ( this._firesOptions.burnt )
 		this.addDataProvider( "burnts",
 							new FireBurntProvider( {host: this._firesOptions.burntHost} ),
 							new FireBurntRenderer(),
@@ -2348,6 +2355,15 @@ FireControl.prototype.update = function()
 		this.loadForDates( this._calendar.getDateBegin(), this._calendar.getDateEnd() );
 }
 
+/** Класс для удобного доступа к данным пожарного мапплета
+    @class
+    @alias FireMapplet:FireControl2
+    @param {gmxAPI.Map} map Карта ГеоМиксера
+    @param {Object} params Параметры виджета
+    @param {String} [params.data='+fires !images'] Описание данных виджета и их начальной видимости
+    @param {nsGmx.Calendar} [params.calendar] Календарь для управления периодом показа пожаров
+    @param {DOMNode} [params.container] Контейнер для размещения виджета
+*/
 var FireControl2 = function(map, params)
 {
     params = params || {};
@@ -2377,6 +2393,20 @@ var FireControl2 = function(map, params)
         return parsedData[providerName];
     }
     
+    var dataNamesDict = {
+        images: 'images',
+        fires: 'firedots_layer_global',
+        firesGlobal: 'firedots_layer_scanex'
+    }
+    
+    /** Установить видимость определённого типа данных
+      @param {String} dataName Имя типа данных. Поддерживается `images`, `fires` и `firesGlobal`
+      @param {Boolean} isVisible Видимость типа данных
+     */
+    this.setDataVisibility = function(dataName, isVisible) {
+        dataNamesDict[dataName] && baseFireControl.setDataVisibility(dataNamesDict[dataName], isVisible);
+    }
+    
     var baseFireControl = new FireControl(map);
 
     var doCreate = function()
@@ -2400,7 +2430,7 @@ var FireControl2 = function(map, params)
 					dateMax: new Date(),
                     dateFormat: "dd.mm.yy",
                     showTime: false
-				});
+                });
                 $(params.container).append(params.calendar.canvas);
             }
         }
@@ -2472,7 +2502,7 @@ var FireControl2 = function(map, params)
         doCreate();
     }
     
-    return baseFireControl;
+    // return baseFireControl;
 }
 
 var publicInterface = {
