@@ -499,14 +499,20 @@
                 obj.filters.foreach(function(item) { item.removeStyleHook(); });
                 return true;
             }
-            ,setPauseLoading: function(pt) {  // удаление стилевой функции пользователя
-                obj._pauseLoading = true;
-                if(this.objectId) proxy('setPauseLoading', { obj: obj, attr:pt });
-                return true;
-            }
             ,getStatus: function(pt) {  // Получить состояние слоя по видимому extent
                 if(this.objectId) return proxy('getStatus', { obj: obj, attr:pt });
                 return {isVisible: false};
+            }
+            ,freezeLoading: function(pt) {      // установить флаг игнорирования загрузки векторных тайлов
+                obj._isLoadingFreezed = true;
+                return true;
+            }
+            ,unfreezeLoading: function(pt) {    // удалить флаг игнорирования загрузки векторных тайлов
+                obj._isLoadingFreezed = false;
+                return true;
+            }
+            ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
+                return obj._isLoadingFreezed;
             }
         });
         if(obj.properties) {
@@ -726,7 +732,7 @@
                     if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
                     return _obj;
                 }
-                obj.getStat = function() {
+                obj.getStat = function() {      // Это только во Flash
                     var _obj = proxy('getStat', { 'obj': this });
                     return _obj;
                 }
@@ -820,7 +826,21 @@
                         }
                     });
                 }
+                ,freezeLoading: function(pt) {      // установить флаг игнорирования загрузки векторных тайлов
+                    obj._isLoadingFreezed = true;
+                    proxy('setFreezeLoading', { obj: obj, attr:true });
+                    return true;
+                }
+                ,unfreezeLoading: function(pt) {    // удалить флаг игнорирования загрузки векторных тайлов
+                    obj._isLoadingFreezed = false;
+                    proxy('setFreezeLoading', { obj: obj, attr:false });
+                    return true;
+                }
+                ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
+                    return proxy('isLoadingFreezed', { obj: obj });
+                }
             });
+            if(obj._isLoadingFreezed) proxy('setFreezeLoading', { obj: obj, attr:true });
         }
 
         //obj.mercGeometry = layer.mercGeometry;
@@ -870,7 +890,7 @@
                 //obj.setVisible(false);
                 return newObj;
             }
-            for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
+            for (var i = 0, len = deferredMethodNames.length; i < len; i++) (function(name)
             {
                 obj[name] = function(p1, p2, p3, p4) 
                 { 

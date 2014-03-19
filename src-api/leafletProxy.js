@@ -2869,12 +2869,21 @@
 		,'getMouseX':	function()	{ return utils.getMouseX(); }		// Позиция мыши X
 		,'getMouseY':	function()	{ return utils.getMouseY();	}		// Позиция мыши Y
         ,
-        setPauseLoading: function(ph) {
+        setFreezeLoading: function(ph) {
             var id = ph.obj.objectId;
             var node = mapNodes[id];
-            if(node && 'setPauseLoading' in node) {
-                node.setPauseLoading(ph.attr);
+            if(node && 'setFreezeLoading' in node) {
+                node.setFreezeLoading(ph.attr);
                 return true;
+            }
+            return false;
+        }
+        ,
+        isLoadingFreezed: function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'isLoadingFreezed' in node) {
+                return node.isLoadingFreezed(ph.attr);
             }
             return false;
         }

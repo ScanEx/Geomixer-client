@@ -20,8 +20,9 @@
 		node['type'] = 'VectorLayer';
 		node['minZ'] = gmxAPI.defaultMinZoom;
 		node['maxZ'] = gmxAPI.defaultMaxZoom;
-		node['flipEnabled'] = true;				// По умолчанию ротация обьектов слоя установлена
+		node['flipEnabled'] = true;         // По умолчанию ротация обьектов слоя установлена
 
+		node._freezeLoading = false;        // флаг остановки загрузки векторных тайлов
 		node.tilesVers = {};
 		node.tiles = null;
 		//node['observeVectorLayer'] = null;
@@ -1724,18 +1725,27 @@
                 }
                 return {
                     needLoadTiles: needLoadTiles
-                    ,tiles: arr
+                    //,tiles: arr
                     ,loadedObjects: loadedObjects
+                    ,isVisible: true
+                    ,isLoadingFreezed: node._freezeLoading
                 };
             },
             fireEvent: function(name, data) {
                 if (gmxNode) {
-                    gmxAPI._listeners.dispatchEvent(name, gmxNode, data);   // Перед загрузкой тайлов
-                    if(node._loadTilesPause) node.upDateLayer(30);
+                    gmxAPI._listeners.dispatchEvent(name, gmxNode, {   // Перед загрузкой тайлов
+                        isLoadingFreezed: node._freezeLoading     // текущий флаг
+                        //,screenTiles: data                      // количество screen тайлов на экране
+                    });
+                    //if(node._freezeLoading) node.upDateLayer(30);
                 }
             },
-            setPauseLoading: function(pt) { // Команда приостановки загрузки векторных тайлов
-                node._loadTilesPause = true;
+            setFreezeLoading: function(pt) {    // Команда установки/снятия флага остановки загрузки векторных тайлов
+                node._freezeLoading = pt;
+                //if(!node._freezeLoading) node.upDateLayer(0);
+            },
+            isLoadingFreezed: function() {    // Команда установки/снятия флага остановки загрузки векторных тайлов
+                return node._freezeLoading;
             },
             loadTilesByExtent: function(ext, tilePoint)	{		// Загрузка векторных тайлов по extent
                 var flag = false;
@@ -3067,9 +3077,9 @@
 
                 var tilesToLoad = queue.length;
 
-                node._loadTilesPause = false;
-                node.fireEvent('onBeforeTilesLoading', tilesToLoad); // Перед загрузкой тайлов
-                if (tilesToLoad === 0 || node._loadTilesPause) { return; }
+                //node._freezeLoading = false;
+                node.fireEvent('onBeforeUpdate', tilesToLoad); // Перед загрузкой тайлов
+                if (tilesToLoad === 0 || node._freezeLoading) { return; }
 
                 // load tiles in order of their distance to center
                 queue.sort(function (a, b) {
