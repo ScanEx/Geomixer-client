@@ -3,9 +3,8 @@
 {
     "use strict";
     var LMap = null,        // leafLet карта
-        menuItems = {},     // Хэш наборов ContextMenu по ID нод обьектов карты
+        menuItems = [],     // массив ContextMenuItems для всех обьектов карты
         marker = null,
-        currMenuID = null,  // Текущее меню
         lastItem = null,    // Текущий объект
         lastLatLng = null;  // Текущее положение
 
@@ -19,55 +18,63 @@
     // Показать меню
     function showMenu(ph) {
         if(!LMap) init();
-        var gmxNode = ph.obj || gmxAPI.map;
-        var id = gmxNode.objectId;
-        if(!menuItems[id]) return false;
-        currMenuID = id;
-        var attr = ph.attr || {};
-        var latlng = attr.latlng;
-        if(!latlng) return false;
+        var gmxNode = ph.obj || gmxAPI.map,
+            id = gmxNode.objectId,
+            attr = ph.attr || {},
+            latlng = attr.latlng;
+        if (!latlng) return false;
         lastLatLng = latlng;
         lastItem = attr;
         
         if(marker) LMap.removeLayer(marker);
         marker = createMenu(id, lastLatLng);
-        marker.addTo(LMap);
+        if (marker) marker.addTo(LMap);
     }
     // Click на Item меню
     var itemClick = function(nm)	{
-        if(!marker || !menuItems[currMenuID]) return false;
-        var items = menuItems[currMenuID].items;
-        if(nm >= items.length) return false;
-        if(items[nm].func) {
-            items[nm].func(lastLatLng.lng, lastLatLng.lat, lastItem);
+        if(!marker) return false;
+        if(nm >= menuItems.length) return false;
+        if(menuItems[nm].func) {
+            menuItems[nm].func(lastLatLng.lng, lastLatLng.lat, lastItem);
             setTimeout(hideMenu, 0);
         }
     }
+    function isChild(node, child) {
+        if (node === child) return true;
+        if (child.parent && isChild(node, child.parent)) return true;
+        return false;
+    }
+    function sortFunc(a, b) {
+        return a.index - b.index;
+    }
     function createMenu(id, latlng)	{
-        if(!menuItems[id]) return false;
-        var out = '<ul class="context-menu-list context-menu-root">';
-        var items = menuItems[id].items;
-        for (var i=0, len = items.length; i<len; i++) {	// Итерации K-means
-            var item = items[i];
-            out += '<li class="context-menu-item" onClick="gmxAPI._leaflet.contextMenu.itemClick('+i+'); return false;" onmouseOver="gmxAPI._leaflet.contextMenu.onmouseOver(this);" onmouseOut="gmxAPI._leaflet.contextMenu.onmouseOut(this);">';
-            out += '<span>'+item['txt']+'</span>';
-            out += '</li>';
+        var gmxNode = gmxAPI.mapNodes[id],
+            arr = menuItems.sort(sortFunc);
+            out = '';
+        for (var i=0, len = arr.length; i<len; i++) {
+            var item = arr[i],
+                flag = isChild(gmxAPI.mapNodes[item.objectId], gmxNode);
+            if (flag) {
+                out += '<li class="context-menu-item" onClick="gmxAPI._leaflet.contextMenu.itemClick('+i+'); return false;" onmouseOver="gmxAPI._leaflet.contextMenu.onmouseOver(this);" onmouseOut="gmxAPI._leaflet.contextMenu.onmouseOut(this);">';
+                out += '<span>'+item.txt+'</span>';
+                out += '</li>';
+            }
         }
-        out += '</ul>';
+        if (!out) return null;
         
         var myIcon = new L.DivIcon({
-            html: out,
+            html: '<ul class="context-menu-list context-menu-root">' + out + '</ul>',
             iconSize: new L.Point(0, 0),
             className: ''
         });
         return new L.GMXMarker(latlng, {icon: myIcon, 'toPaneName': 'overlayPane', clickable: false, _isHandlers: true});
     }
     // Удалить в меню Item
-    function removeItem(items, txt) {
-        for (var i=0, len = items.length; i<len; i++) {
-            var item = items[i];
-            if(item.txt === txt) {
-                items.splice(i, 1);
+    function removeItem(txt) {
+        for (var i=0, len = menuItems.length; i<len; i++) {
+            var item = menuItems[i];
+            if (item.txt === txt) {
+                menuItems.splice(i, 1);
                 return true;
             }
         }
@@ -77,34 +84,26 @@
     function addMenuItem(ph) {
         if(!LMap) init();
         var gmxNode = ph.obj || gmxAPI.map,
-            id = gmxNode.objectId,
+            objectId = gmxNode.objectId,
             attr = ph.attr || {},
-            itemId = gmxAPI.newFlashMapId();
-        menuItems[id] = menuItems[id] ? menuItems[id] : { items: [] };
-        var items = menuItems[id].items;
-        var out = {
-            id: itemId
+            out = {
+            id: gmxAPI.newFlashMapId()
+            ,objectId: objectId
             ,txt: attr.text
+            ,index: attr.index || 0
             ,func: attr.func
             ,remove: function () {
-                var flag = removeItem(items, attr.text);
-                if(items.length < 1) delete menuItems[id];
-                return flag;
+                return removeItem(attr.text);
             }
         };
-        items.push(out);
-        return itemId;
+        menuItems.push(out);
+        return out.id;
     }
     // Удалить в меню Item
     function removeMenuItem(ph) {
         if(!LMap) init();
-        var gmxNode = ph.obj || gmxAPI.map,
-            id = gmxNode.objectId,
-            attr = ph.attr || {},
-            itemId = attr.id,
-            flag = removeItem(menuItems[id].items, itemId);
-        if(menuItems[id].items.length < 1) delete menuItems[id];
-        return flag;
+        var attr = ph.attr || {};
+        return removeItem(attr.id);
     }
     // инициализация
     function init(arr) {
