@@ -57,7 +57,7 @@
 		function callBalloonHook(o, div) {
             for(var key in o._balloonHook) {
                 var hook = o._balloonHook[key],
-                    st = '[' + key + ']',
+                    //st = '[' + key + ']',
                     fid = hook.hookID,
                     span = div.getElementsByTagName("span"),
                     notFound = true;
@@ -65,7 +65,7 @@
                     var node = span[i];
                     if(node.id === fid) {
                         notFound = false;
-                        node.innerHTML = node.innerHTML.replace(st, '');
+                        //node.innerHTML = node.innerHTML.replace(st, '');
                         node.id += '_' + i;
                         hook.callback(o, div, node);
                     }
@@ -1077,7 +1077,7 @@
                 var res = {
                     key: key
                     ,hookID: hookID
-                    ,resStr: "<span id='"+hookID+"'>["+key+"]</span>"
+                    ,resStr: "<span id='"+hookID+"'></span>"
                     ,callback: callback
                 };
                 
