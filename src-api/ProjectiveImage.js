@@ -282,18 +282,20 @@
 		padx++;
 		pady++;
 
-		var iw = attr.imageObj.width;
-		var ih = attr.imageObj.height;
+        var iw = attr.imageObj.width,
+            ih = attr.imageObj.height,
+            sx = Math.floor(u1 * iw),
+            sy = Math.floor(v1 * ih),
+            sw = Math.floor(Math.min(padx * du, 1) * iw),
+            sh = Math.floor(Math.min(pady * dv, 1) * ih);
 
 		cnt++;
 		ctx.drawImage(
 			attr.imageObj,
-			u1 * iw,
-			v1 * ih,
-			Math.min(padx * du, 1) * iw,
-			Math.min(pady * dv, 1) * ih,
-			dx, dy,
-			padx, pady
+            sx, sy,
+            sw, sh,
+            dx, dy,
+            padx, pady
 		);
 		//ctx.restore();
 	}
