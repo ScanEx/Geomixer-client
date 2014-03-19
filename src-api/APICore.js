@@ -3197,7 +3197,7 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
 		//return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 		//return "http://" + letter + ".tile.osm.kosmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
-		return "http://" + letter + ".tile.osm.kosmosnimki.ru/kosmo" + "/" + z + "/" + i + "/" + j + ".png";
+		return "http://" + letter + ".tile.osm.kosmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 	}
 
 	var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
@@ -3214,7 +3214,7 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		return func(i + size, size - j - 1, z);
 	}, 1);
 	
-	this.setCopyright("&copy; участники OpenStreetMap, <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
+	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
