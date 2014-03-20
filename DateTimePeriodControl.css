@@ -39,18 +39,19 @@
 	text-align: center;
 }
 
-.PeriodCalendar-iconFirst {
+.PeriodCalendar-iconScroll {
     width: 20px;
     height: 20px;
-    background: url(img/first.png);
     margin-bottom: -2px;
+    cursor: pointer;
+}
+
+.PeriodCalendar-iconFirst {
+    background: url(img/first.png);
 }
 
 .PeriodCalendar-iconLast {
-    width: 20px;
-    height: 20px;
     background: url(img/last.png);
-    margin-bottom: -2px;
 }
 
 .PeriodCalendar-iconFirst:hover {
