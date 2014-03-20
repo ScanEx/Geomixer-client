@@ -411,7 +411,7 @@ Calendar.prototype.init = function( name, params )
 	}
     
     this.first = $('<div class = "PeriodCalendar-iconFirst"></div>').click(this._firstClickFunc.bind(this))[0];
-    this.last = $('<div class = "PeriodCalendar-iconLast"></div>').click(this._firstClickFunc.bind(this))[0];
+    this.last = $('<div class = "PeriodCalendar-iconLast"></div>').click(this._lastClickFunc.bind(this))[0];
 
     this.moreIcon = $(Mustache.render(
         '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{i calendarWidget.ExtendedView}}"></div>', 
