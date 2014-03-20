@@ -1,8 +1,10 @@
 ﻿(function(){
-	"use strict";
-	if(!window.gmxAPI) window.gmxAPI = {};
-	window.gmxAPI.addMyLayersControl = function() {
-        gmxAPI.loadCSS("http://localhost/api/leaflet/plugins/winLayersControl/winLayersControl.css");
+    "use strict";
+    if(!window.gmxAPI) window.gmxAPI = {};
+    window.gmxAPI.addMyLayersControl = function() {
+		var apiHost = gmxAPI.getAPIFolderRoot();
+        gmxAPI.loadCSS(apiHost + "leaflet/plugins/winLayersControl/winLayersControl.css");
+        //gmxAPI.loadCSS(apiHost + "http://localhost/api/leaflet/plugins/winLayersControl/winLayersControl.css");
         var mbl = gmxAPI.map.baseLayersManager;     // manager базовых подложек
         var types = {   // 2 типа подложек map и satellite
             map: 'map'
@@ -90,7 +92,6 @@
                             this._baseLayersList.style.display = 'block';
                             this._baseLayersList1.style.display = 'none';
                         }
-//console.log('sdsd', this.current, item);
                     }
                 };
                 L.DomEvent
@@ -106,7 +107,7 @@
                 L.Control.Layers.prototype._update.call(this);
                 
                 var setEmpty = function () {
-                    mbl.setCurrent('');
+                    mbl.setCurrentID('');
                     this._toggle(false);
                 }
                 var itemDiv = L.DomUtil.create('div', 'empty', this._baseLayersList);
@@ -177,7 +178,7 @@
                         this.current = null;
                         ev.target.checked = false;
                     }
-                    mbl.setCurrent((this.current ? this._layers[layerId].layer.id : ''));
+                    mbl.setCurrentID((this.current ? this._layers[layerId].layer.id : ''));
                 }
             }
             ,
@@ -208,7 +209,6 @@
                     if(item && item.overlay && item.layer.isActive) input.checked = true;
                 }
                 this._toggle(false);
-//console.log('sdsd', this.current, item);
             }
         });
         L.control.gmxLayersWindow = function (options) {

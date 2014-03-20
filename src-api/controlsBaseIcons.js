@@ -546,8 +546,7 @@
                                 util.addBaseLayerTool(baseLayer);
                             }
                         }
-                        var id = mbl.getCurrentID();
-                        //if(my._baseLayersHash[id]) my._baseLayersHash[id].select();
+                        mbl.setCurrentID(mbl.getCurrentID());
                     }
                     ,
                     onActiveChanged: function() {
@@ -604,10 +603,9 @@
                     my._update();
                 });
 
-                //util.chkExists();
+                util.chkExists();
                 return this._container;
-            }
-            ,
+            },
             onRemove: function (map) {
                 L.Control.Layers.prototype.onRemove.call(this, map);
                 var mbl = gmxAPI.map.baseLayersManager;
