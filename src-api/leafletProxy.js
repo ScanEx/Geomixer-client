@@ -2028,9 +2028,7 @@
             if(pt.propHiden.subType) pt.subType = pt.propHiden.subType;
             if(pt.propHiden.refreshMe) pt.refreshMe = pt.propHiden.refreshMe;
             if(pt.propHiden.layersParent) pt.zIndexOffset = 0;
-            if(pt.propHiden.overlaysParent ||
-                (geo.properties && geo.properties.type === 'Overlay')
-                ) pt.zIndexOffset = 50000;
+            if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
         }
         mapNodes[id] = pt;
         if(pt.geometry.type) {
@@ -5055,9 +5053,9 @@ var tt = 1;
                     if(element.callback) ph.callback = element.callback;
                     if(element.callbackError) ph.callbackError = element.callbackError;
                     var path = element.path || '';
-                    var prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost)
+                    var prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost);
                     path = prefix + path;
-                    if(element.css) cssFiles.push(prefix + element.css + '?' + gmxAPI.buildGUID);
+                    if(element.css) cssFiles.push(path + element.css + '?' + gmxAPI.buildGUID);
                     gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = ph;
                     element.files.forEach(function(item) {
                         ph.src = path + item + '?' + gmxAPI.buildGUID;

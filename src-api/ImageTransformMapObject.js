@@ -264,6 +264,7 @@
 			node.leaflet = marker;
 			pGroup.addLayer(marker);
 			if(pNode) gmxAPI._leaflet.utils.setVisibleNode({obj: pNode, attr: true});
+			gmxAPI._leaflet.utils.bringToDepth(node, node.zIndex);
 			gmxAPI._leaflet.utils.setNodeHandlers(node.id);
             if(node.dragging) {	// todo drag без лефлета
                 gmxAPI._leaflet.utils.startDrag(node);

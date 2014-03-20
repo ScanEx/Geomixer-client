@@ -190,7 +190,7 @@
             var id = attr.id;
             manager._removeIDFromActive(id);
             var len = manager.activeIDs.length;
-            var index = ('index' in attr && attr.index !== null ? attr.index : len);
+            var index = ('index' in attr && attr.index !== undefined ? attr.index : len);
             var out = -1;
             if(index > len - 1) {
                 out = len;
