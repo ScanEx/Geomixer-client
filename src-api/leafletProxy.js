@@ -2028,7 +2028,9 @@
             if(pt.propHiden.subType) pt.subType = pt.propHiden.subType;
             if(pt.propHiden.refreshMe) pt.refreshMe = pt.propHiden.refreshMe;
             if(pt.propHiden.layersParent) pt.zIndexOffset = 0;
-            if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
+            if(pt.propHiden.overlaysParent ||
+                (geo.properties && geo.properties.type === 'Overlay')
+                ) pt.zIndexOffset = 50000;
         }
         mapNodes[id] = pt;
         if(pt.geometry.type) {
@@ -2037,7 +2039,7 @@
                 setHandlerObject(id);							// добавить Handler для mapObject
             }
         }
-        pt.zIndex = utils.getLastIndex(pNode);
+        pt.zIndex = ('zIndex' in pt.propHiden ? pt.propHiden.zIndex : utils.getLastIndex(pNode));
         return id;
     }
 	// Добавление набора статических объектов на карту
