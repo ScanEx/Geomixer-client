@@ -4,6 +4,7 @@
 (function() {
 
     _translationsHash.addtext("rus", { shiftRastersPlugin: {
+        title: 'Сдвигайте растр правой кнопкой мыши',
         saveBtnTitle: 'Готово',
         cancelBtnTitle: 'Отмена',
         startBtnTitle: 'Сместить',
@@ -12,6 +13,7 @@
     }});
     
     _translationsHash.addtext("eng", { shiftRastersPlugin: {
+        title: 'Use right mouse button to shift raster',
         saveBtnTitle: 'Done',
         cancelBtnTitle: 'Cancel',
         startBtnTitle: 'Shift',
@@ -19,32 +21,50 @@
         contextTitle: 'Shift Layer'
     }});
     
-    var rowUITemplate = '<span>\
+    var rowUITemplate = 
+        '<span>\
+            <div class="shift-rasters-title">{{i shiftRastersPlugin.title}}</div>\
+            <div class="shift-rasters-container">\
                 <div id="slider-placeholder" class="shift-rasters-slider"></div>\
                 <span class = "shift-rasters-label">dx</span> \
                 <input class="inputStyle shift-rasters-input" id="dx"></input> \
                 <span class = "shift-rasters-label">dy</span> \
                 <input class="inputStyle shift-rasters-input" id="dy"></input> \
-                <button class="shift-rasters-btn" id="btnStart">{{i shiftRastersPlugin.startBtnTitle}}</button> \
-                <button class="shift-rasters-btn" id="btnSave">{{i shiftRastersPlugin.saveBtnTitle}}</button> \
-                <button class="shift-rasters-btn" id="btnCancel">{{i shiftRastersPlugin.cancelBtnTitle}}</button>\
-            </span>';
-            
-    var uiTemplate = 
-        '<div>' + 
-            '<div class = "shift-rasters-title">Сдвигайте слой на карте</div>' +
-            rowUITemplate + 
-        '</div>';
+                {{#showButtons}}\
+                    <button class="shift-rasters-btn" id="btnStart">{{i shiftRastersPlugin.startBtnTitle}}</button> \
+                    <button class="shift-rasters-btn" id="btnSave">{{i shiftRastersPlugin.saveBtnTitle}}</button> \
+                    <button class="shift-rasters-btn" id="btnCancel">{{i shiftRastersPlugin.cancelBtnTitle}}</button>\
+                {{/showButtons}}\
+            </div>\
+        </span>';
         
     //события: click:save, click:cancel, click:start
-    var ShiftLayerView = function(canvas, shiftParams, layer, initState) {
+    var ShiftLayerView = function(canvas, shiftParams, layer, params) {
+        params = $.extend({
+            initState: false,
+            showButtons: true
+        }, params)
         var _this = this;
+        
+        var sx, sy;
+        
+        var drag = function( x, y, o ) {        // Вызывается при mouseMove при нажатой мышке
+            shiftParams.set({
+                dx: gmxAPI.merc_x(x) - sx,
+                dy: gmxAPI.merc_y(y) - sy
+            });
+        };
+        
+        var dragStart = function( x, y, o ) {      // Вызывается при mouseDown
+            sx = gmxAPI.merc_x( x ) - shiftParams.get('dx');
+            sy = gmxAPI.merc_y( y ) - shiftParams.get('dy');
+        };
         
         var updateLayerOpacity = function(opacity) {
             (layer.tilesParent || layer).setStyle({fill: {opacity: opacity}});
         }
         
-        var isActiveState = initState;
+        var isActiveState = params.initState;
         var updateState = function() {
             $('#btnCancel, #btnSave, #slider-placeholder', ui).toggle(isActiveState);
             $('#btnStart', ui).toggle(!isActiveState);
@@ -57,13 +77,13 @@
             }
             
             if (isActiveState) {
-                layer.enableDragging(drag, dragStart);
+                layer.addDragHandlers(drag, dragStart, null, {rightButton: true});
             } else {
-                layer.disableDragging();
+                layer.removeDragHandlers();
             }
         }
 
-        var ui = $(Mustache.render(rowUITemplate)).appendTo(canvas);
+        var ui = $(Mustache.render(rowUITemplate, {showButtons: params.showButtons})).appendTo(canvas);
         
         var sliderUI = nsGmx.Controls.createSlider(80, function(event, ui) {
             updateLayerOpacity(ui.value);
@@ -104,20 +124,7 @@
                 dy: parseFloat($('#dy', canvas).val()) || 0
             });
         });
-        
-        var sx, sy;
-        
-        var drag = function( x, y, o ) {        // Вызывается при mouseMove при нажатой мышке
-            shiftParams.set({
-                dx: gmxAPI.merc_x(x) - sx,
-                dy: gmxAPI.merc_y(y) - sy
-            });
-        };
-        var dragStart = function( x, y, o ) {      // Вызывается при mouseDown
-            sx = gmxAPI.merc_x( x ) - shiftParams.get('dx');
-            sy = gmxAPI.merc_y( y ) - shiftParams.get('dy');
-        };
-        
+
         this.setState = function(isActive) {
             isActiveState = isActive;
             updateState();
@@ -255,7 +262,7 @@
                                 geomDx = dx,
                                 geomDy = dy;
                                 
-                            var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, false);
+                            var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, {initState: true, showButtons: false});
                             
                             shiftParams.on('change', function() {
                                 editDialog.set(shiftXfield, shiftParams.get('dx'));
@@ -271,7 +278,7 @@
                                 editDialog.getGeometryObj().setGeometry(shiftedGeom);
                             })
                             
-                            $(shiftView).on('click:start', function() {
+                            var initLayer = function() {
                                 dx = parseFloat(editDialog.get(shiftXfield)) || 0;
                                 dy = parseFloat(editDialog.get(shiftYfield)) || 0;
                                 
@@ -290,27 +297,13 @@
                                     geometry: shiftMercGeometry(editDialog.getGeometry(), -dx, -dy)
                                 }]);
                             
-                                shiftView.setState(true);
                                 var layer = editDialog.getLayer();
                                 var identityField = layer.properties.identityField;
                                 layer.setVisibilityFilter('"' + identityField + '" <> \'' + editDialog.get(identityField) + '\'');
-                            })
-                            
-                            var stopShift = function() {
-                                shiftView.setState(false);
                             }
                             
-                            $(shiftView).on('click:save', stopShift)
+                            initLayer();
                             
-                            $(shiftView).on('click:cancel', function() {
-                                shiftParams.set({
-                                    dx: originalShiftParams.get('dx'),
-                                    dy: originalShiftParams.get('dy')
-                                })
-
-                                stopShift();
-                            });
-
                             return canvas[0];
                         }
                     }
@@ -356,7 +349,7 @@
                     
                     var canvas = $('<div/>').css({height: '45px', width: '100%'}).appendTo(menu.workCanvas);
                     
-                    currentView = new ShiftLayerView(canvas, shiftParams, layer, true);
+                    currentView = new ShiftLayerView(canvas, shiftParams, layer, {initState: true});
                     
                     $(currentView).on('click:save', function(){
                         gmxCore.loadModule('LayerProperties').done(function() {

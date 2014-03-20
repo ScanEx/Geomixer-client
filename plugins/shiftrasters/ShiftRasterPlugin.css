@@ -3,6 +3,10 @@
     margin: 3px;
 }
 
+.shift-rasters-container {
+    position: relative;
+}
+
 .shift-rasters-input {
     width: 35px;
 }
@@ -19,7 +23,7 @@
 .shift-rasters-slider {
     display: inline-block;
     position: absolute;
-    right: 11px;
+    right: 0px;
     margin-top: 7px;
 }
 
