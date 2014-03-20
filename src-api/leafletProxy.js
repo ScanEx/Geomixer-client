@@ -1741,6 +1741,7 @@
                 var lObj = obj.leaflet;
                 zIndex += obj.zIndexOffset;
                 if(lObj._container && lObj._container.style.zIndex != zIndex) lObj._container.style.zIndex = zIndex;
+                else if(lObj._icon && lObj._icon.style.zIndex != zIndex) lObj._icon.style.zIndex = zIndex;
             }
 		}
 		,
