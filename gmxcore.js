@@ -7,7 +7,7 @@
 var gmxCore = function() 
 {
     var _callbacks = [];
-    var _modules = {};
+    var _modules = {}; //null - файл модуля уже загружается, но сам модуль пока не доступен
     var _globalNamespace = this;
 	var _modulesDefaultHost = "";
 	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
@@ -43,7 +43,7 @@ var gmxCore = function()
 			var modules = [];
             for (var m = 0; m < curModules.length; m++)
 			{
-                if ( !(curModules[m] in _modules) )
+                if ( !_modules[curModules[m]] )
                 {
                     isAllModules = false;
                     break;
@@ -169,6 +169,8 @@ var gmxCore = function()
             
             if ( ! (moduleName in _modules) )
             {
+                _modules[moduleName] = null;
+                
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
                 
@@ -217,7 +219,7 @@ var gmxCore = function()
         */
         getModule: function(moduleName)
         {
-            return moduleName in _modules ? _modules[moduleName] :  null;
+            return _modules[moduleName] || null;
         },
 		
         /** Установить дефольный путь к модулям. Используется если указан локальный файл модуля.
@@ -230,7 +232,7 @@ var gmxCore = function()
 		
         pushModule2GlobalNamespace: function(moduleName)
         {
-            if ( ! (moduleName in _modules) ) return;
+            if ( !_modules[moduleName] ) return;
             var module = _modules[moduleName];
             
             for (var p in module)
