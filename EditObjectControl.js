@@ -120,16 +120,16 @@ var FieldsCollection = function() {
     //Сначала isRequired, потом identityField, потом в порядке добавления
     this.sort = function() {
         _asArray = _asArray.sort(function(a, b) {
-            if (!!a.isRequired ^ !!b.isRequired) {
+            if (!!a.isRequired !== !!b.isRequired) {
                 return Number(!!b.isRequired) - Number(!!a.isRequired);
             }
             
-            if (!!a.identityField || !!b.identityField) {
+            if (!!a.identityField !== !!b.identityField) {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
             
             var userZIndexDelta = (b.index || 0) - (a.index || 0);
-            return  userZIndexDelta || (b.origIndex - a.origIndex);
+            return userZIndexDelta || (b.origIndex - a.origIndex);
         })
     }
 }
@@ -564,6 +564,15 @@ var EditObjectControl = function(layerName, objectId, params)
     */
     this.get = function(fieldName) {
         return fieldsCollection.updateValue(fieldName);
+    }
+    
+    this.getAll = function() {
+        var res = {};
+        fieldsCollection.each(function(field) {
+            res[field.name] = fieldsCollection.updateValue(field.name);
+        })
+        
+        return res;
     }
     
     /** Задать значение атрибута объекта из контрола
