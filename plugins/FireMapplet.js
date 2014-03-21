@@ -2494,15 +2494,15 @@ var FireControl2 = function(map, params)
                 $(_queryMapLayers).bind('load', doInit); //в случае использования со старыми версиями
             }
         }
-        else
-            return; //ошибка
+        else {
+            params.container = $('<div/>')[0];
+            doCreate();
+        }
     }
     else
     {
         doCreate();
     }
-    
-    // return baseFireControl;
 }
 
 var publicInterface = {
