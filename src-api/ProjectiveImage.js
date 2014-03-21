@@ -189,98 +189,85 @@
 	  return transform;
 	}
 
-	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit, attr) {
-		if (limit) {
-			// Measure patch non-affinity.
+    var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit, attr) {
+        if (limit) {
+            // Measure patch non-affinity.
             var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
-			var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
-			var d3 = [d1[0] + d2[0], d1[1] + d2[1]];
-			var r = Math.abs((d3[0] * d3[0] + d3[1] * d3[1]) / (d1[0] * d2[0] + d1[1] * d2[1]));
+            var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
+            var d3 = [d1[0] + d2[0], d1[1] + d2[1]];
+            var r = Math.abs((d3[0] * d3[0] + d3[1] * d3[1]) / (d1[0] * d2[0] + d1[1] * d2[1]));
 
-			// Measure patch area.
-			d1 = [p2[0] - p1[0] + p4[0] - p3[0], p2[1] - p1[1] + p4[1] - p3[1]];
-			d2 = [p3[0] - p1[0] + p4[0] - p2[0], p3[1] - p1[1] + p4[1] - p2[1]];
-			var area = Math.abs(d1[0] * d2[1] - d1[1] * d2[0]);
+            // Measure patch area.
+            d1 = [p2[0] - p1[0] + p4[0] - p3[0], p2[1] - p1[1] + p4[1] - p3[1]];
+            d2 = [p3[0] - p1[0] + p4[0] - p2[0], p3[1] - p1[1] + p4[1] - p2[1]];
+            var area = Math.abs(d1[0] * d2[1] - d1[1] * d2[0]);
 
-			// Check area > patchSize pixels (note factor 4 due to not averaging d1 and d2)
-			// The non-affinity measure is used as a correction factor.
-			if ((u1 == 0 && u4 == 1) || ((.25 + r * 5) * area > (patchSize * patchSize))) {
-				// Calculate subdivision points (middle, top, bottom, left, right).
-				var umid = (u1 + u4) / 2;
-				var vmid = (v1 + v4) / 2;
-				var pmid = transform.transformProjectiveVector([umid, vmid, 1]);
-				var pt   = transform.transformProjectiveVector([umid, v1, 1]);
-				var pb   = transform.transformProjectiveVector([umid, v4, 1]);
-				var pl   = transform.transformProjectiveVector([u1, vmid, 1]);
-				var pr   = transform.transformProjectiveVector([u4, vmid, 1]);                
-				
-				// Subdivide.
-				limit--;
-				divide.call(this, u1,   v1, umid, vmid,   p1,   pt,   pl, pmid, limit, attr);
-				divide.call(this, umid,   v1,   u4, vmid,   pt,   p2, pmid,   pr, limit, attr);
-				divide.call(this, u1,  vmid, umid,   v4,   pl, pmid,   p3,   pb, limit, attr);
-				divide.call(this, umid, vmid,   u4,   v4, pmid,   pr,   pb,   p4, limit, attr);
-				return;
-			}
-		}
-		
-		var ctx = attr.ctx;
+            // Check area > patchSize pixels (note factor 4 due to not averaging d1 and d2)
+            // The non-affinity measure is used as a correction factor.
+            if ((u1 == 0 && u4 == 1) || ((.25 + r * 5) * area > (patchSize * patchSize))) {
+                // Calculate subdivision points (middle, top, bottom, left, right).
+                var umid = (u1 + u4) / 2;
+                var vmid = (v1 + v4) / 2;
+                var pmid = transform.transformProjectiveVector([umid, vmid, 1]);
+                var pt   = transform.transformProjectiveVector([umid, v1, 1]);
+                var pb   = transform.transformProjectiveVector([umid, v4, 1]);
+                var pl   = transform.transformProjectiveVector([u1, vmid, 1]);
+                var pr   = transform.transformProjectiveVector([u4, vmid, 1]);                
+                
+                // Subdivide.
+                limit--;
+                divide.call(this, u1,   v1, umid, vmid,   p1,   pt,   pl, pmid, limit, attr);
+                divide.call(this, umid,   v1,   u4, vmid,   pt,   p2, pmid,   pr, limit, attr);
+                divide.call(this, u1,  vmid, umid,   v4,   pl, pmid,   p3,   pb, limit, attr);
+                divide.call(this, umid, vmid,   u4,   v4, pmid,   pr,   pb,   p4, limit, attr);
+                return;
+            }
+        }
+        
+        var ctx = attr.ctx;
 
-		// Render this patch.
-		//ctx.save();
-/*
-		// Set clipping path.
-		ctx.beginPath();
-	
-		ctx.moveTo(p1[0], p1[1]);
-		ctx.lineTo(p2[0], p2[1]);
-		ctx.lineTo(p4[0], p4[1]);
-		ctx.lineTo(p3[0], p3[1]);
+        // Get patch edge vectors.
+        var d12 = [p2[0] - p1[0], p2[1] - p1[1]];
+        var d24 = [p4[0] - p2[0], p4[1] - p2[1]];
+        var d43 = [p3[0] - p4[0], p3[1] - p4[1]];
+        var d31 = [p1[0] - p3[0], p1[1] - p3[1]];
 
-		ctx.closePath();
-*/
-		// Get patch edge vectors.
-		var d12 = [p2[0] - p1[0], p2[1] - p1[1]];
-		var d24 = [p4[0] - p2[0], p4[1] - p2[1]];
-		var d43 = [p3[0] - p4[0], p3[1] - p4[1]];
-		var d31 = [p1[0] - p3[0], p1[1] - p3[1]];
+        // Find the corner that encloses the most area
+        var a1 = Math.abs(d12[0] * d31[1] - d12[1] * d31[0]);
+        var a2 = Math.abs(d24[0] * d12[1] - d24[1] * d12[0]);
+        var a4 = Math.abs(d43[0] * d24[1] - d43[1] * d24[0]);
+        var a3 = Math.abs(d31[0] * d43[1] - d31[1] * d43[0]);
+        var amax = Math.max(Math.max(a1, a2), Math.max(a3, a4));
+        var dx = 0, dy = 0, padx = 0, pady = 0;
 
-		// Find the corner that encloses the most area
-		var a1 = Math.abs(d12[0] * d31[1] - d12[1] * d31[0]);
-		var a2 = Math.abs(d24[0] * d12[1] - d24[1] * d12[0]);
-		var a4 = Math.abs(d43[0] * d24[1] - d43[1] * d24[0]);
-		var a3 = Math.abs(d31[0] * d43[1] - d31[1] * d43[0]);
-		var amax = Math.max(Math.max(a1, a2), Math.max(a3, a4));
-		var dx = 0, dy = 0, padx = 0, pady = 0;
+        // Align the transform along this corner.
+        if (amax == a1) {
+                ctx.setTransform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr.deltaX, p1[1] + attr.deltaY);
+                if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
+                if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
+        } else if (amax == a2) {
+                ctx.setTransform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr.deltaX, p2[1] + attr.deltaY);
+                if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
+                if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
+                dx = -1;
+        } else if (amax == a4) {
+                ctx.setTransform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr.deltaX, p4[1] + attr.deltaY);
+                if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
+                if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
+                dx = -1;
+                dy = -1;
+        } else if (amax == a3) {
+                ctx.setTransform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr.deltaX, p3[1] + attr.deltaY);
+                if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
+                if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
+                dy = -1;
+        }
 
-		// Align the transform along this corner.
-		if (amax == a1) {
-				ctx.setTransform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
-				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
-				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
-		} else if (amax == a2) {
-				ctx.setTransform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
-				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
-				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
-				dx = -1;
-		} else if (amax == a4) {
-				ctx.setTransform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
-				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
-				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
-				dx = -1;
-				dy = -1;
-		} else if (amax == a3) {
-				ctx.setTransform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
-				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
-				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
-				dy = -1;
-		}
-
-		// Calculate image padding to match.
-		var du = (u4 - u1);
-		var dv = (v4 - v1);
-		padx++;
-		pady++;
+        // Calculate image padding to match.
+        var du = (u4 - u1);
+        var dv = (v4 - v1);
+        padx++;
+        pady++;
 
         var iw = attr.imageObj.width,
             ih = attr.imageObj.height,
@@ -289,78 +276,76 @@
             sw = Math.floor(Math.min(padx * du, 1) * iw),
             sh = Math.floor(Math.min(pady * dv, 1) * ih);
 
-		cnt++;
-		ctx.drawImage(
-			attr.imageObj,
+        cnt++;
+        ctx.drawImage(
+            attr.imageObj,
             sx, sy,
             sw, sh,
             dx, dy,
             padx, pady
-		);
-		//ctx.restore();
-	}
+        );
+    }
 
-	var cnt = 0;
-	var limit = 4;
-	var patchSize = 64;
-	var transform = null;
-	var ProjectiveImage = function (attr) {
-		cnt = 0;
-		transform = getProjectiveTransform(attr.points);
-		// Begin subdivision process.
+    var cnt = 0;
+    var limit = 4;
+    var patchSize = 64;
+    var transform = null;
+    var ProjectiveImage = function (attr) {
+        cnt = 0;
+        transform = getProjectiveTransform(attr.points);
+        // Begin subdivision process.
 
-		var ptl = transform.transformProjectiveVector([0, 0, 1]);
-		var ptr = transform.transformProjectiveVector([1, 0, 1]);
-		var pbl = transform.transformProjectiveVector([0, 1, 1]);
-		var pbr = transform.transformProjectiveVector([1, 1, 1]);
+        var ptl = transform.transformProjectiveVector([0, 0, 1]);
+        var ptr = transform.transformProjectiveVector([1, 0, 1]);
+        var pbl = transform.transformProjectiveVector([0, 1, 1]);
+        var pbr = transform.transformProjectiveVector([1, 1, 1]);
 
-		var	boundsP = gmxAPI.bounds([ptl, ptr, pbr, pbl]);
-		var ww = boundsP.max.x - boundsP.min.x;
-		var hh = boundsP.max.y - boundsP.min.y;
-		if(attr.wView < ww || attr.hView < hh) {
-			ww = attr.wView;
-			hh = attr.hView;
-		}
-		var maxSize = Math.max(ww, hh);
-		if('limit' in attr) limit = attr['limit'];
-		else {
-			limit = (maxSize < 200 ? 1 : 4);
-			//patchSize = m/8;
-		}
-		if('patchSize' in attr) patchSize = attr['patchSize'];
-		else {
-			patchSize = Math.floor(maxSize/8);
-		}
-		var canvas = document.createElement("canvas");
-		attr['canvas'] = canvas;
-		attr['ctx'] = canvas.getContext('2d');
-		//attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
-		if(attr['type'] === 'mapObject') {
+        var	boundsP = gmxAPI.bounds([ptl, ptr, pbr, pbl]);
+        var ww = boundsP.max.x - boundsP.min.x;
+        var hh = boundsP.max.y - boundsP.min.y;
+        if(attr.wView < ww || attr.hView < hh) {
+            ww = attr.wView;
+            hh = attr.hView;
+        }
+        var maxSize = Math.max(ww, hh);
+        if('limit' in attr) limit = attr['limit'];
+        else {
+            limit = (maxSize < 200 ? 1 : 4);
+            //patchSize = m/8;
+        }
+        if('patchSize' in attr) patchSize = attr.patchSize;
+        else {
+            patchSize = Math.floor(maxSize/8);
+        }
+        var canvas = document.createElement("canvas");
+        attr.canvas = canvas;
+        attr.ctx = canvas.getContext('2d');
+        if(attr.type === 'mapObject') {
             canvas.width = ww, canvas.height = hh;
-		} else {
+        } else {
             canvas.width = canvas.height = 256;
         }
 
-		try {
-			divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, limit, attr );
-		} catch(e) {
+        try {
+            divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, limit, attr );
+        } catch(e) {
             console.log({'func': 'ProjectiveImage', 'event': e});
-			gmxAPI.addDebugWarnings({'func': 'ProjectiveImage', 'event': e});
-			canvas = null;
-		}
-		return {
-			'canvas': canvas
-			,'ptl': ptl
-			,'ptr': ptr
-			,'pbl': pbl
-			,'pbr': pbr
-			,'cnt': cnt
-		};
-	}
-	
-	//расширяем namespace
-	if(!gmxAPI) gmxAPI = {};
-	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['ProjectiveImage'] = ProjectiveImage;
+            gmxAPI.addDebugWarnings({'func': 'ProjectiveImage', 'event': e});
+            canvas = null;
+        }
+        return {
+            'canvas': canvas
+            ,'ptl': ptl
+            ,'ptr': ptr
+            ,'pbl': pbl
+            ,'pbr': pbr
+            ,'cnt': cnt
+        };
+    }
+
+    //расширяем namespace
+    if(!gmxAPI) gmxAPI = {};
+    if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+    gmxAPI._leaflet.ProjectiveImage = ProjectiveImage;
 })();
 

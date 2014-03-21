@@ -727,290 +727,288 @@
             return out;
         }
         ,
-		'getLabelSize': function(txt, style)	{			// Получить размер Label
-			var out = {'x': 0, 'y': 0};
-			if(style) {
-				var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
-				ptx.clearRect(0, 0, 512, 512);
-				ptx.font = style['font'];
-				ptx.fillStyle = style['fillStyle'];
-				ptx.fillText(txt, 0, 0);
-				
-				var sizeLabel = style['size'] || 12;
-				out.x = ptx.measureText(txt).width;
-				out.y = sizeLabel + 2;
-			}
-			return out;
-		}
-		,
-		'chkPointWithDelta': function(chkBounds, point, attr)	{			// Проверка точки(с учетом размеров) на принадлежность Bounds
-			var mInPixel = gmxAPI._leaflet.mInPixel;
-			return (
-				(chkBounds.min.x - point.x)*mInPixel > attr.sx + (attr.sxLabelLeft || 0)
-				|| (point.x - chkBounds.max.x)*mInPixel > attr.sx + (attr.sxLabelRight || 0)
-				|| (chkBounds.min.y - point.y)*mInPixel > attr.sy + (attr.syLabelBottom || 0)
-				|| (point.y - chkBounds.max.y)*mInPixel > attr.sy + (attr.syLabelTop || 0)
-				? false : true);
-		}
-		,
-		'chkPointInPolyLine': function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			var chkLineHeight = lineHeight / mInPixel;
-			chkLineHeight *= chkLineHeight;
-			
-			var p1 = coords[0];
-			for (var i = 1; i < coords.length; i++)
-			{
-				var p2 = coords[i];
-				var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
-				if(sqDist < chkLineHeight) return true;
-				p1 = p2;
-			}
-			return false;
-		}
-		,
-		'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
-			var isIn = false;
-			var p1 = poly[0];
-			for (var i = 1; i < poly.length; i++)
-			{
-				var p2 = poly[i];
-				if (chkPoint.x > Math.min(p1.x, p2.x)) 
-				{
-					if (chkPoint.x <= Math.max(p1.x, p2.x)) 
-					{
-						if (chkPoint.y <= Math.max(p1.y, p2.y)) 
-						{
-							if (p1.x != p2.x) 
-							{
-								var xinters = (chkPoint.x - p1.x)*(p2.y - p1.y)/(p2.x - p1.x) + p1.y;
-								if (p1.y == p2.y || chkPoint.y <= xinters) isIn = !isIn;
-							}
-						}
-					}
-				}
-				p1 = p2;
-			}
-			return isIn;
-		}
-		,
-		'isPointInPolygonArr': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону в виде массива
-			var isIn = false;
-			var x = chkPoint[0];
-			var y = chkPoint[1];
-			var p1 = poly[0];
-			for (var i = 1; i < poly.length; i++)
-			{
-				var p2 = poly[i];
-				var xmin = Math.min(p1[0], p2[0]);
-				var xmax = Math.max(p1[0], p2[0]);
-				var ymax = Math.max(p1[1], p2[1]);
+        'getLabelSize': function(txt, style)	{			// Получить размер Label
+            var out = {'x': 0, 'y': 0};
+            if(style) {
+                var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
+                ptx.clearRect(0, 0, 512, 512);
+                ptx.font = style['font'];
+                ptx.fillStyle = style['fillStyle'];
+                ptx.fillText(txt, 0, 0);
+                
+                var sizeLabel = style['size'] || 12;
+                out.x = ptx.measureText(txt).width;
+                out.y = sizeLabel + 2;
+            }
+            return out;
+        }
+        ,
+        'chkPointWithDelta': function(chkBounds, point, attr)	{			// Проверка точки(с учетом размеров) на принадлежность Bounds
+            var mInPixel = gmxAPI._leaflet.mInPixel;
+            return (
+                (chkBounds.min.x - point.x)*mInPixel > attr.sx + (attr.sxLabelLeft || 0)
+                || (point.x - chkBounds.max.x)*mInPixel > attr.sx + (attr.sxLabelRight || 0)
+                || (chkBounds.min.y - point.y)*mInPixel > attr.sy + (attr.syLabelBottom || 0)
+                || (point.y - chkBounds.max.y)*mInPixel > attr.sy + (attr.syLabelTop || 0)
+                ? false : true);
+        }
+        ,
+        'chkPointInPolyLine': function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
+            var mInPixel = gmxAPI._leaflet['mInPixel'];
+            var chkLineHeight = lineHeight / mInPixel;
+            chkLineHeight *= chkLineHeight;
+            
+            var p1 = coords[0];
+            for (var i = 1; i < coords.length; i++)
+            {
+                var p2 = coords[i];
+                var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
+                if(sqDist < chkLineHeight) return true;
+                p1 = p2;
+            }
+            return false;
+        }
+        ,
+        'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
+            var isIn = false;
+            var p1 = poly[0];
+            for (var i = 1; i < poly.length; i++)
+            {
+                var p2 = poly[i];
+                if (chkPoint.x > Math.min(p1.x, p2.x)) 
+                {
+                    if (chkPoint.x <= Math.max(p1.x, p2.x)) 
+                    {
+                        if (chkPoint.y <= Math.max(p1.y, p2.y)) 
+                        {
+                            if (p1.x != p2.x) 
+                            {
+                                var xinters = (chkPoint.x - p1.x)*(p2.y - p1.y)/(p2.x - p1.x) + p1.y;
+                                if (p1.y == p2.y || chkPoint.y <= xinters) isIn = !isIn;
+                            }
+                        }
+                    }
+                }
+                p1 = p2;
+            }
+            return isIn;
+        }
+        ,
+        'isPointInPolygonArr': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону в виде массива
+            var isIn = false;
+            var x = chkPoint[0];
+            var y = chkPoint[1];
+            var p1 = poly[0];
+            for (var i = 1; i < poly.length; i++)
+            {
+                var p2 = poly[i];
+                var xmin = Math.min(p1[0], p2[0]);
+                var xmax = Math.max(p1[0], p2[0]);
+                var ymax = Math.max(p1[1], p2[1]);
                 if (x > xmin && x <= xmax && y <= ymax && p1[0] != p2[0]) {
                     var xinters = (x - p1[0])*(p2[1] - p1[1])/(p2[0] - p1[0]) + p1[1];
                     if (p1[1] == p2[1] || y <= xinters) isIn = !isIn;
                 }
-				p1 = p2;
-			}
-			return isIn;
-		}
-		,
-		'getMapPosition': function()	{			// Получить позицию карты
-			var zoom = LMap.getZoom();
-			if(!zoom) {
-				return;
-			}
-			var pos = LMap.getCenter();
-			var size = LMap.getSize();
-			var vbounds = LMap.getBounds();
-			var nw = vbounds.getNorthWest();
-			var se = vbounds.getSouthEast();
-			var dx = (nw['lng'] < -360 ? 360 : 0);
-			var ext = {
-				'minX': nw['lng'] + dx
-				,'minY': (se['lat'] > -gmxAPI.MAX_LATITUDE ? se['lat'] : -gmxAPI.MAX_LATITUDE)
-				,'maxX': se['lng'] + dx
-				,'maxY': (nw['lat'] < gmxAPI.MAX_LATITUDE ? nw['lat'] : gmxAPI.MAX_LATITUDE)
-			};
-			var currPosition = {
-				'z': zoom
-				,'stageHeight': size['y']
-				,'x': gmxAPI.merc_x(pos['lng'])
-				,'y': gmxAPI.merc_y(pos['lat'])
-				,'latlng': {
-					'x': pos['lng']
-					,'y': pos['lat']
-					,'mouseX': utils.getMouseX()
-					,'mouseY': utils.getMouseY()
-					,'extent': ext
-				}
-			};
-			currPosition['mouseX'] = gmxAPI.merc_x(currPosition['latlng']['mouseX']);
-			currPosition['mouseY'] = gmxAPI.merc_x(currPosition['latlng']['mouseY']);
-			currPosition['extent'] = {
-				'minX': gmxAPI.merc_x(ext['minX']),
-				'minY': gmxAPI.merc_y(ext['minY']),
-				'maxX': gmxAPI.merc_x(ext['maxX']),
-				'maxY': gmxAPI.merc_y(ext['maxY'])
-			};
-			return currPosition;
-		}
-		,
-		'runMoveTo': function(attr, zd)	{				//позиционирует карту по координатам
-			if(moveToTimer) clearTimeout(moveToTimer);
-			if(!zd) zd = 200;
-			moveToTimer = setTimeout(function() {
-				if(!attr && !gmxAPI.map.needMove) return;
-				var flagInit = (gmxAPI.map.needMove ? true : false);
-				var px = (attr ? attr['x'] : (flagInit ? gmxAPI.map.needMove.x : 0));
-				var py = (attr ? attr['y'] : (flagInit ? gmxAPI.map.needMove.y : 0));
-				var z = (attr ? attr['z'] : (flagInit ? gmxAPI.map.needMove.z : 1));
-				var pos = new L.LatLng(py, px);
-				gmxAPI.map.needMove = null;
-				LMap.setView(pos, z, gmxAPI._leaflet.zoomstart);
-			}, zd);
-		}
-		,
-		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
-			var vp1 = LMap.project(vpNorthWest);
-			var vp2 = LMap.project(vpSouthEast);
-			return new L.Point(vp2.x - vp1.x, vp2.y - vp1.y);
-		}
-		,
-		'chkBoundsVisible': function(b)	{					// проверить видимость Bounds с учетом сдвигов по X
-			var vbounds = LMap.getBounds();
-			var nw = vbounds.getNorthWest();
-			var se = vbounds.getSouthEast();
-			var vb = new L.Bounds(new L.Point(nw['lng'], nw['lat']), new L.Point(se['lng'], se['lat']));
-			if(vb.intersects(b)) return true;
-			var tb = new L.Bounds(new L.Point(b.min.x + 360, b.min.y), new L.Point(b.max.x + 360, b.max.y));
-			if(vb.intersects(tb)) return true;
-			tb = new L.Bounds(new L.Point(b.min.x - 360, b.min.y), new L.Point(b.max.x - 360, b.max.y));
-			if(vb.intersects(tb)) return true;
-			return false;
-		}
-		,
-		'getOSMShift': function()	{				// Получение сдвига OSM
-			var pos = LMap.getCenter();
-			var z = LMap.getZoom();
-			var point = LMap.project(pos);
-			var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
-			return point.y - p1.y;
-		}
-		,
+                p1 = p2;
+            }
+            return isIn;
+        }
+        ,
+        'getMapPosition': function()	{			// Получить позицию карты
+            var zoom = LMap.getZoom();
+            if(!zoom) {
+                return;
+            }
+            var pos = LMap.getCenter();
+            var size = LMap.getSize();
+            var vbounds = LMap.getBounds();
+            var nw = vbounds.getNorthWest();
+            var se = vbounds.getSouthEast();
+            var dx = (nw['lng'] < -360 ? 360 : 0);
+            var ext = {
+                'minX': nw['lng'] + dx
+                ,'minY': (se['lat'] > -gmxAPI.MAX_LATITUDE ? se['lat'] : -gmxAPI.MAX_LATITUDE)
+                ,'maxX': se['lng'] + dx
+                ,'maxY': (nw['lat'] < gmxAPI.MAX_LATITUDE ? nw['lat'] : gmxAPI.MAX_LATITUDE)
+            };
+            var currPosition = {
+                'z': zoom
+                ,'stageHeight': size['y']
+                ,'x': gmxAPI.merc_x(pos['lng'])
+                ,'y': gmxAPI.merc_y(pos['lat'])
+                ,'latlng': {
+                    'x': pos['lng']
+                    ,'y': pos['lat']
+                    ,'mouseX': utils.getMouseX()
+                    ,'mouseY': utils.getMouseY()
+                    ,'extent': ext
+                }
+            };
+            currPosition['mouseX'] = gmxAPI.merc_x(currPosition['latlng']['mouseX']);
+            currPosition['mouseY'] = gmxAPI.merc_x(currPosition['latlng']['mouseY']);
+            currPosition['extent'] = {
+                'minX': gmxAPI.merc_x(ext['minX']),
+                'minY': gmxAPI.merc_y(ext['minY']),
+                'maxX': gmxAPI.merc_x(ext['maxX']),
+                'maxY': gmxAPI.merc_y(ext['maxY'])
+            };
+            return currPosition;
+        }
+        ,
+        'runMoveTo': function(attr, zd)	{				//позиционирует карту по координатам
+            if(moveToTimer) clearTimeout(moveToTimer);
+            if(!zd) zd = 200;
+            moveToTimer = setTimeout(function() {
+                if(!attr && !gmxAPI.map.needMove) return;
+                var flagInit = (gmxAPI.map.needMove ? true : false);
+                var px = (attr ? attr['x'] : (flagInit ? gmxAPI.map.needMove.x : 0));
+                var py = (attr ? attr['y'] : (flagInit ? gmxAPI.map.needMove.y : 0));
+                var z = (attr ? attr['z'] : (flagInit ? gmxAPI.map.needMove.z : 1));
+                var pos = new L.LatLng(py, px);
+                gmxAPI.map.needMove = null;
+                LMap.setView(pos, z, gmxAPI._leaflet.zoomstart);
+            }, zd);
+        }
+        ,
+        'getPixelMap': function()	{				// Получение текущий размер карты в pixels
+            var vBounds = LMap.getBounds();
+            var vpNorthWest = vBounds.getNorthWest();
+            var vpSouthEast = vBounds.getSouthEast();
+            var vp1 = LMap.project(vpNorthWest);
+            var vp2 = LMap.project(vpSouthEast);
+            return new L.Point(vp2.x - vp1.x, vp2.y - vp1.y);
+        }
+        ,
+        'chkBoundsVisible': function(b)	{					// проверить видимость Bounds с учетом сдвигов по X
+            var vbounds = LMap.getBounds();
+            var nw = vbounds.getNorthWest();
+            var se = vbounds.getSouthEast();
+            var vb = new L.Bounds(new L.Point(nw['lng'], nw['lat']), new L.Point(se['lng'], se['lat']));
+            if(vb.intersects(b)) return true;
+            var tb = new L.Bounds(new L.Point(b.min.x + 360, b.min.y), new L.Point(b.max.x + 360, b.max.y));
+            if(vb.intersects(tb)) return true;
+            tb = new L.Bounds(new L.Point(b.min.x - 360, b.min.y), new L.Point(b.max.x - 360, b.max.y));
+            if(vb.intersects(tb)) return true;
+            return false;
+        }
+        ,
+        'getOSMShift': function()	{				// Получение сдвига OSM
+            var pos = LMap.getCenter();
+            var z = LMap.getZoom();
+            var point = LMap.project(pos);
+            var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
+            return point.y - p1.y;
+        }
+        ,
         chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
-			if(!attr || !attr.evName) return;
-			var evName = attr.evName;
+            if(!attr || !attr.evName) return;
+            var evName = attr.evName;
 
-			//var standartTools = gmxAPI.map.standartTools;
-			//if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
-			if(!gmxAPI._drawing || (!gmxAPI._drawing.activeState && gmxAPI._drawing.type !== 'POINT')) {
-				var from = gmxAPI.map.layers.length - 1;
-				var arr = [];
-				for (var i = from; i >= 0; i--)
-				{
-					var child = gmxAPI.map.layers[i];
-					if(!child || !child.isVisible) continue;
-					var mapNode = mapNodes[child.objectId];
-					if(mapNode.eventsCheck) {
-						var index = (mapNode.zIndexOffset || 0) + mapNode.zIndex;
-						arr.push({zIndex: index, id: child.objectId});
-					}
-				}
-				arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
-				for (var i = 0, to = arr.length; i < to; i++)
-				{
-					var it = arr[i];
-					var mapNode = mapNodes[it.id];
-					if(mapNode.eventsCheck(evName, attr)) {
-						return true;
-					}
-				}
-			}
-			if(attr.tID) {
-				var gmxNode = null;
-				if(attr.tID.indexOf('_drawing') > 0) {
-					gmxNode = gmxAPI.map.drawing.getHoverItem(attr);
-				}
-				if(gmxNode && gmxNode.stateListeners[evName]) {
-					if(gmxAPI._listeners.dispatchEvent(evName, gmxNode, {attr:attr})) return true;
-				}
-			}
-			if(attr.node && attr.hNode && attr.hNode.handlers[evName]) {
-				if(attr.hNode.handlers[evName](attr.node.id, attr.node.geometry.properties, {ev:attr.ev})) return true;
-			}
+            //var standartTools = gmxAPI.map.standartTools;
+            //if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
+            if(!gmxAPI._drawing || (!gmxAPI._drawing.activeState && gmxAPI._drawing.type !== 'POINT')) {
+                var from = gmxAPI.map.layers.length - 1;
+                var arr = [];
+                for (var i = from; i >= 0; i--)
+                {
+                    var child = gmxAPI.map.layers[i];
+                    if(!child || !child.isVisible) continue;
+                    var mapNode = mapNodes[child.objectId];
+                    if(mapNode.eventsCheck) {
+                        var index = (mapNode.zIndexOffset || 0) + mapNode.zIndex;
+                        arr.push({zIndex: index, id: child.objectId});
+                    }
+                }
+                arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
+                for (var i = 0, to = arr.length; i < to; i++)
+                {
+                    var it = arr[i];
+                    var mapNode = mapNodes[it.id];
+                    if(mapNode.eventsCheck(evName, attr)) {
+                        return true;
+                    }
+                }
+            }
+            if(attr.tID) {
+                var gmxNode = null;
+                if(attr.tID.indexOf('_drawing') > 0) {
+                    gmxNode = gmxAPI.map.drawing.getHoverItem(attr);
+                }
+                if(gmxNode && gmxNode.stateListeners[evName]) {
+                    if(gmxAPI._listeners.dispatchEvent(evName, gmxNode, {attr:attr})) return true;
+                }
+            }
+            if(attr.node && attr.hNode && attr.hNode.handlers[evName]) {
+                if(attr.hNode.handlers[evName](attr.node.id, attr.node.geometry.properties, {ev:attr.ev})) return true;
+            }
 
-			var mapID = gmxAPI.map.objectId;
-			var node = mapNodes[mapID];
-			if(node.handlers[evName]) {
-				if(node.handlers[evName](mapID, gmxAPI.map.properties, attr)) return true;
-			} else if(gmxAPI.map.stateListeners[evName] && gmxAPI.map.stateListeners[evName].length) {
-				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {attr:attr})) return true;
-			}
-		}
-		,
-		'chkVisibilityByZoom': function(id)	{				// проверка видимости обьекта - по minZ maxZ
-			var node = mapNodes[id];
-			if(!node || node.type === 'map') return true;
-			var pNode = mapNodes[node.parentId],
+            var mapID = gmxAPI.map.objectId;
+            var node = mapNodes[mapID];
+            if(node.handlers[evName]) {
+                if(node.handlers[evName](mapID, gmxAPI.map.properties, attr)) return true;
+            } else if(gmxAPI.map.stateListeners[evName] && gmxAPI.map.stateListeners[evName].length) {
+                if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {attr:attr})) return true;
+            }
+        }
+        ,
+        'chkVisibilityByZoom': function(id)	{				// проверка видимости обьекта - по minZ maxZ
+            var node = mapNodes[id];
+            if(!node || node.type === 'map') return true;
+            var pNode = mapNodes[node.parentId],
                 zoom = LMap.getZoom(),
                 z1 = node.minZ || 1,
                 z2 = node.maxZ || 100;
-			var flag = (zoom < z1 || zoom > z2 ? false 
-				: (pNode ? utils.chkVisibilityByZoom(pNode.id) : true));
-			return flag;
-		}
-		,
-		'chkVisibleObject': function(id)	{				// проверка видимости обьекта - по isVisible
-			var node = mapNodes[id];
-			if(!node || node['type'] === 'map') return true;
-			if(node.isVisible === false) return false;
-			return utils.chkVisibleObject(node['parentId']);
-		}
-		,
-		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
-			if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
-			if(!zoom) zoom = LMap.getZoom();
-			var drawTileID = zoom + '_' + point.x + '_' + point.y,
+            var flag = (zoom < z1 || zoom > z2 ? false 
+                : (pNode ? utils.chkVisibilityByZoom(pNode.id) : true));
+            return flag;
+        }
+        ,
+        'chkVisibleObject': function(id)	{				// проверка видимости обьекта - по isVisible
+            var node = mapNodes[id];
+            if(!node || node['type'] === 'map') return true;
+            if(node.isVisible === false) return false;
+            return utils.chkVisibleObject(node['parentId']);
+        }
+        ,
+        'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
+            if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
+            if(!zoom) zoom = LMap.getZoom();
+            var drawTileID = zoom + '_' + point.x + '_' + point.y,
                 zoomCurrent = gmxAPI._leaflet.zoomCurrent;
-			if(zoomCurrent.gmxTileBounds[drawTileID]) {
-				return zoomCurrent.gmxTileBounds[drawTileID];
-			}
-			
-			var tileSize = zoomCurrent.tileSize;
-			var minx = point.x * tileSize;
-			var miny = point.y * tileSize;
-			var p = new L.Point(minx, miny);
-			var bounds = new L.Bounds(p);
-			bounds.extend(p);
-			var maxx = minx + tileSize;
-			var maxy = miny + tileSize;
-			bounds.extend(new L.Point(maxx, maxy));
-			gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
-			return bounds;
-		}
-		,
-		'getTileListByBounds': function(bounds, zoom)	{		// получить список тайлов по extent на определенном zoom
-			var res = [];
-			var southWest = bounds._southWest,
-				northEast = bounds._northEast;
-			var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
-			var minx = Math.floor(gmxAPI.merc_x(southWest.lat)/tileSize);
-			var miny = Math.floor(gmxAPI.merc_y(southWest.lng)/tileSize);
-			var maxx = Math.ceil(gmxAPI.merc_x(northEast.lat)/tileSize);
-			var maxy = Math.ceil(gmxAPI.merc_y(northEast.lng)/tileSize);
-			for (var x = minx; x < maxx; x++)
-			{
-				for (var y = miny; y < maxy; y++)
-				{
-					res.push({'x': x, 'y': y, 'z': zoom});
-				}
-			}
-			return res;
-		}
-		,
+            if(zoomCurrent.gmxTileBounds[drawTileID]) {
+                return zoomCurrent.gmxTileBounds[drawTileID];
+            }
+            
+            var tileSize = zoomCurrent.tileSize;
+            var minx = point.x * tileSize;
+            var miny = point.y * tileSize;
+            var p = new L.Point(minx, miny);
+            var bounds = new L.Bounds(p);
+            bounds.extend(p);
+            var maxx = minx + tileSize;
+            var maxy = miny + tileSize;
+            bounds.extend(new L.Point(maxx, maxy));
+            gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
+            return bounds;
+        }
+        ,
+        getTileListByExtent: function(ext) { // получить список тайлов по extent на определенном zoom
+            if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
+            var res = {},
+                z = gmxAPI._leaflet.zoomCurrent.zoom,
+                tileSize = gmxAPI._leaflet.zoomCurrent.tileSize,
+                minx = Math.floor(ext.minX / tileSize),
+                miny = Math.floor(ext.minY / tileSize),
+                maxx = Math.ceil(ext.maxX / tileSize),
+                maxy = Math.ceil(ext.maxY / tileSize);
+            for (var x = minx; x < maxx; x++) {
+                for (var y = miny; y < maxy; y++) {
+                    res[z + '_' + x + '_' + y] = true;
+                }
+            }
+            return res;
+        }
+        ,
 		'getImageSize': function(pt, flag, id)	{				// определение размеров image
 			var url = pt['iconUrl'];
 			if(imagesSize[url]) {
@@ -1992,6 +1990,7 @@
         var pt = {
             type: 'mapObject'
             ,handlers: {}
+            ,propHiden: {}
             ,children: []
             ,id: id
             ,zIndexOffset: 0
@@ -2554,9 +2553,8 @@
 		,
 		'getVisibility': function(ph)	{					// получить видимость mapObject
 			return ph.obj.isVisible;
-		}
-        ,
-        'setVisible': function(ph)	{						// установить видимость mapObject
+		},
+        setVisible: function(ph) {              // установить видимость mapObject
             if(!ph || !ph.obj) return false;
             var obj = ph.obj,
                 id = obj.objectId,
@@ -2878,8 +2876,7 @@
                 return true;
             }
             return false;
-        }
-        ,
+        },
         isLoadingFreezed: function(ph) {
             var id = ph.obj.objectId;
             var node = mapNodes[id];
@@ -2888,8 +2885,7 @@
             }
             return false;
         }
-        ,
-        getStatus: function(ph) {
+        ,getStatus: function(ph) {
             var id = ph.obj.objectId;
             var node = mapNodes[id];
             if(node && 'getStatus' in node) {
@@ -3255,7 +3251,7 @@
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet.PointGeometry = function(geo_, tileBounds_) {				// класс PointGeometry
 		var out = gmxAPI._leaflet.Geometry();
-		out['type'] = 'Point';
+		out.type = 'Point';
 
 		var p = geo_.coordinates;
 		var x = p[0] % gmxAPI.worldWidthMerc2;
@@ -3277,231 +3273,241 @@
 			res.coordinates = p;
 			return res;
 		}
-		// Проверка совпадения с другой точкой
-		out.contains = function (chkPoint) {
-			return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out);
-		}
-		// Проверка пересечения точки с bounds
-		out.intersects = function (chkBounds) {
-			return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out);
-		}
-		// Квадрат растояния до точки
-		out.distance2 = function (chkPoint) {
-			var x = point.x - chkPoint.x,
-				y = point.y - chkPoint.y;
-			return x * x + y * y;
-		}
+        // Проверка совпадения с другой точкой
+        out.contains = function (chkPoint) {
+            return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out);
+        }
+        // Проверка пересечения точки с bounds
+        out.intersects = function (chkBounds) {
+            return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out);
+        }
+        // Квадрат растояния до точки
+        out.distance2 = function (chkPoint) {
+            var x = point.x - chkPoint.x,
+                y = point.y - chkPoint.y;
+            return x * x + y * y;
+        }
 
-		var chkLabelBounds = function(labelBounds, ph)	{							// проверка пересечений labels
-			var p = new L.Point(ph.lx, ph.ly);
-			var b = new L.Bounds(p);
-			b.extend(p);
-			p = new L.Point(ph.lx + ph.labelExtent.x, ph.ly + ph.labelExtent.y);
-			b.extend(p);
-			for (var i = 0; i < labelBounds.length; i++)
-			{
-				if(b.intersects(labelBounds[i])) {					// проверка пересечения уже нарисованных в тайле labels
-					return false;
-				}
-			}
-			labelBounds.push(b);
-			return true;
-		}
+        var chkLabelBounds = function(labelBounds, ph)	{							// проверка пересечений labels
+            var p = new L.Point(ph.lx, ph.ly);
+            var b = new L.Bounds(p);
+            b.extend(p);
+            p = new L.Point(ph.lx + ph.labelExtent.x, ph.ly + ph.labelExtent.y);
+            b.extend(p);
+            for (var i = 0; i < labelBounds.length; i++)
+            {
+                if(b.intersects(labelBounds[i])) {					// проверка пересечения уже нарисованных в тайле labels
+                    return false;
+                }
+            }
+            labelBounds.push(b);
+            return true;
+        }
 
-		// Проверка размера точки по стилю
-		out['chkSize'] = function (node, style) {
-			//var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
-			var prop = this.properties || null,
+        // Проверка размера точки по стилю
+        out.chkSize = function (node, style) {
+            var prop = this.properties || null,
                 size = style.size || 4,
                 scale = style.scale || 1;
-			if(!out._cache) out._cache = {};
-			if('_scale' in out._cache) scale = out._cache._scale;
-			else {
-				if(typeof(scale) == 'string') {
-					scale = (style.scaleFunction ? style.scaleFunction(prop) : 1);
-				}
-				if(scale < style.minScale) scale = style.minScale;
-				else if(scale > style.maxScale) scale = style.maxScale;
-				out._cache._scale = scale;
-			}
-			out.sx = scale * (style.imageWidth ? style.imageWidth/2 : size);
-			out.sy = scale * (style.imageHeight ? style.imageHeight/2 : size);
-			if(style.dx) out.dx = style.dx;
-			if(style.dy) out.dy = style.dy;
-			out.weight = style.weight || 0;
+            if(!out._cache) out._cache = {};
+            if('_scale' in out._cache) scale = out._cache._scale;
+            else {
+                if(typeof(scale) == 'string') {
+                    scale = (style.scaleFunction ? style.scaleFunction(prop) : 1);
+                }
+                if(scale < style.minScale) scale = style.minScale;
+                else if(scale > style.maxScale) scale = style.maxScale;
+                out._cache._scale = scale;
+            }
+            out.sx = scale * (style.imageWidth ? style.imageWidth/2 : size);
+            out.sy = scale * (style.imageHeight ? style.imageHeight/2 : size);
+            if(style.dx) out.dx = style.dx;
+            if(style.dy) out.dy = style.dy;
+            out.weight = style.weight || 0;
 
-			if(style.marker) {
-				if(style.image) {
-					var canv = out._cache.canv;
-					if(!canv) {
-						canv = style.image;
-						var rotateRes = style.rotate || 0;
-						if(rotateRes && typeof(rotateRes) == 'string') {
-							rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
-						}
-						style.rotateRes = rotateRes;
-						if(rotateRes || 'color' in style) {
-							if(rotateRes) {
-								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-								out.sx = out.sy = Math.ceil(scale * size/2);
-								out.isCircle = true;
-							}
-							canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style, size);
-						}
-						out._cache.canv = canv;
-					} else {
-						out.sx = scale * canv.width/2;
-						out.sy = scale * canv.height/2;
-					}
-				} else if('polygons' in style) {
-					var rotateRes = style.rotate || 0;
-					if(rotateRes && typeof(rotateRes) == 'string') {
-						rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
-						if(rotateRes) out.isCircle = true;
-					}
-					style['rotateRes'] = rotateRes || 0;
-				}
-			} else {
-				if('fill' in style) {
-					if('radialGradient' in style) {
-						var rgr = style.radialGradient;
-						var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
-						var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
-						size = scale * Math.max(r1, r2);
-						out.sx = out.sy = size;
-						out.isCircle = true;
-					} else if(style.circle) {
-						out.sx = out.sy = size;
-						out.isCircle = true;
-					}
-				}
-			}
-			out._cache.chkSize = true;
-		}
+            if(style.marker) {
+                if(style.image) {
+                    var canv = out._cache.canv;
+                    if(!canv) {
+                        canv = style.image;
+                        var rotateRes = style.rotate || 0;
+                        if(rotateRes && typeof(rotateRes) == 'string') {
+                            rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                        }
+                        style.rotateRes = rotateRes;
+                        if(rotateRes || 'color' in style) {
+                            if(rotateRes) {
+                                size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+                                out.sx = out.sy = Math.ceil(scale * size/2);
+                                out.isCircle = true;
+                            }
+                            canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style, size);
+                        }
+                        out._cache.canv = canv;
+                    } else {
+                        out.sx = scale * canv.width/2;
+                        out.sy = scale * canv.height/2;
+                    }
+                } else if('polygons' in style) {
+                    var rotateRes = style.rotate || 0;
+                    if(rotateRes && typeof(rotateRes) == 'string') {
+                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                        if(rotateRes) out.isCircle = true;
+                    }
+                    style['rotateRes'] = rotateRes || 0;
+                }
+            } else {
+                if('fill' in style) {
+                    if('radialGradient' in style) {
+                        var rgr = style.radialGradient;
+                        var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
+                        var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
+                        size = scale * Math.max(r1, r2);
+                        out.sx = out.sy = size;
+                        out.isCircle = true;
+                    } else if(style.circle) {
+                        out.sx = out.sy = size;
+                        out.isCircle = true;
+                    }
+                }
+            }
+            out._cache.chkSize = true;
+            var mInPixel = gmxAPI._leaflet.mInPixel;
+            out._cache.sx = out.sx ? out.sx / mInPixel : 0;
+            out._cache.sy = out.sy ? out.sy / mInPixel : 0;
+            out._cache.sxLabelLeft = out.sxLabelLeft ? out.sxLabelLeft / mInPixel : 0;
+            out._cache.sxLabelRight = out.sxLabelRight ? out.sxLabelRight / mInPixel : 0;
+            out._cache.syLabelBottom = out.syLabelBottom ? out.syLabelBottom / mInPixel : 0;
+            out._cache.syLabelTop = out.syLabelTop ? out.syLabelTop / mInPixel : 0;
+            out._cache.tiles = gmxAPI._leaflet.utils.getTileListByExtent({
+                minX: point.x - out._cache.sx - out._cache.sxLabelLeft
+                ,maxX: point.x + out._cache.sx + out._cache.sxLabelRight
+                ,minY: point.y - out._cache.sy - out._cache.syLabelBottom
+                ,maxY: point.y + out._cache.sy + out._cache.syLabelTop
+            });
+        }
 
-		// Отрисовка точки
-		out.paint = function (attr, style, ctx) {
-			if(!attr || !style) return;
-			var zoom = attr.zoom;
-			var mInPixel = gmxAPI._leaflet.mInPixel;
-			var node = attr.node;
+        // Отрисовка точки
+        out.paint = function (attr, style, ctx) {
+            if(!attr || !style) return;
+            var zoom = attr.zoom,
+                mInPixel = gmxAPI._leaflet.mInPixel,
+                node = attr.node;
 
-			if(!out._cache) out._cache = {};
-			if(!out._cache.chkSize) out.chkSize(node, style);
-			//var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
-			var prop = out.properties || null;
-
-			var x = attr.x;
-			var y = 256 + attr.y;
-			var px1 = point.x * mInPixel - x - out.sx;
-			var py1 = y - point.y * mInPixel - out.sy;
-			// 0.9966471893352525	баг L.Projection.Mercator
-			if(style.dx) px1 += out.dx;
-			if(style.dy) py1 += out.dy;
-			if(style.marker && !style.center) {
+            if(!out._cache) out._cache = {};
+            if(!out._cache.chkSize) out.chkSize(node, style);
+            //var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+            var prop = out.properties || null,
+                x = attr.x,
+                y = 256 + attr.y,
+                px1 = point.x * mInPixel - x - out.sx,
+                py1 = y - point.y * mInPixel - out.sy;
+            if(style.dx) px1 += out.dx;
+            if(style.dy) py1 += out.dy;
+            if(style.marker && !style.center) {
                 px1 += out.sx;
                 py1 += out.sy;
             }
             px1 = (0.5 + px1) << 0;
             py1 = (0.5 + py1) << 0;
 
-			if(style.marker) {
-				if(style.image) {
-					var canv = out._cache.canv;
-					if('opacity' in style) ctx.globalAlpha = style.opacity;
-					ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
-					if('opacity' in style) ctx.globalAlpha = 1;
-				} else if(style.polygons) {
-					var rotateRes = style.rotate || 0;
-					if(rotateRes && typeof(rotateRes) == 'string') {
-						rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
-					}
-					style.rotateRes = rotateRes || 0;
+            if(style.marker) {
+                if(style.image) {
+                    var canv = out._cache.canv;
+                    if('opacity' in style) ctx.globalAlpha = style.opacity;
+                    ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
+                    if('opacity' in style) ctx.globalAlpha = 1;
+                } else if(style.polygons) {
+                    var rotateRes = style.rotate || 0;
+                    if(rotateRes && typeof(rotateRes) == 'string') {
+                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                    }
+                    style.rotateRes = rotateRes || 0;
 
-					for (var i = 0, len = style.polygons.length; i < len; i++) {
-						var p = style.polygons[i];
-						ctx.save();
-						ctx.lineWidth = p['stroke-width'] || 0;
-						ctx.fillStyle = p.fill_rgba || 'rgba(0, 0, 255, 1)';
-						
-						ctx.beginPath();
-						var arr = gmxAPI._leaflet.utils.rotatePoints(p.points, style.rotateRes, out._cache._scale, {'x': out.sx, 'y': out.sy});
-						for (var j = 0, lenj = arr.length; j < lenj; j++)
-						{
-							var t = arr[j];
-							if(j == 0)
-								ctx.moveTo(px1 + t.x, py1 + t.y);
-							else
-								ctx.lineTo(px1 + t.x, py1 + t.y);
-						}
-						ctx.fill();
-						ctx.restore();
-					}
-				}
-			} else {
-				if(style.stroke && style.weight > 0) {
-					ctx.beginPath();
-					if(style.circle) {
-						ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
-					} else {
-						ctx.strokeRect(px1, py1, 2*out.sx, 2*out.sy);
-					}
-					ctx.stroke();
-					//sx = sy = size;
-				}
-				if(style.fill) {
-					ctx.beginPath();
-					if(style.radialGradient) {
-						var rgr = style.radialGradient;
-						var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
-						var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
-						var x1 = ('x1Function' in rgr ? rgr.x1Function(prop) : rgr.x1);
-						var y1 = ('y1Function' in rgr ? rgr.y1Function(prop) : rgr.y1);
-						var x2 = ('x2Function' in rgr ? rgr.x2Function(prop) : rgr.x2);
-						var y2 = ('y2Function' in rgr ? rgr.y2Function(prop) : rgr.y2);
-						//size = scale * Math.max(r1, r2);
-						//out['sx'] = out['sy'] = size;
-						px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
-						py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
+                    for (var i = 0, len = style.polygons.length; i < len; i++) {
+                        var p = style.polygons[i];
+                        ctx.save();
+                        ctx.lineWidth = p['stroke-width'] || 0;
+                        ctx.fillStyle = p.fill_rgba || 'rgba(0, 0, 255, 1)';
+                        
+                        ctx.beginPath();
+                        var arr = gmxAPI._leaflet.utils.rotatePoints(p.points, style.rotateRes, out._cache._scale, {'x': out.sx, 'y': out.sy});
+                        for (var j = 0, lenj = arr.length; j < lenj; j++)
+                        {
+                            var t = arr[j];
+                            if(j == 0)
+                                ctx.moveTo(px1 + t.x, py1 + t.y);
+                            else
+                                ctx.lineTo(px1 + t.x, py1 + t.y);
+                        }
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            } else {
+                if(style.stroke && style.weight > 0) {
+                    ctx.beginPath();
+                    if(style.circle) {
+                        ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
+                    } else {
+                        ctx.strokeRect(px1, py1, 2*out.sx, 2*out.sy);
+                    }
+                    ctx.stroke();
+                    //sx = sy = size;
+                }
+                if(style.fill) {
+                    ctx.beginPath();
+                    if(style.radialGradient) {
+                        var rgr = style.radialGradient;
+                        var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
+                        var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
+                        var x1 = ('x1Function' in rgr ? rgr.x1Function(prop) : rgr.x1);
+                        var y1 = ('y1Function' in rgr ? rgr.y1Function(prop) : rgr.y1);
+                        var x2 = ('x2Function' in rgr ? rgr.x2Function(prop) : rgr.x2);
+                        var y2 = ('y2Function' in rgr ? rgr.y2Function(prop) : rgr.y2);
+                        //size = scale * Math.max(r1, r2);
+                        //out['sx'] = out['sy'] = size;
+                        px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
+                        py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
 
-						var radgrad = ctx.createRadialGradient(px1+x1, py1+y1, r1, px1+x2, py1+y2,r2);  
-						for (var i = 0; i < style.radialGradient.addColorStop.length; i++)
-						{
-							var arr = style.radialGradient.addColorStop[i];
-							var arrFunc = style.radialGradient.addColorStopFunctions[i];
-							var p0 = (arrFunc[0] ? arrFunc[0](prop) : arr[0]);
-							var p2 = (arr.length < 3 ? 100 : (arrFunc[2] ? arrFunc[2](prop) : arr[2]));
-							var p1 = gmxAPI._leaflet.utils.dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
-							radgrad.addColorStop(p0, p1);
-						}
-						ctx.fillStyle = radgrad;
+                        var radgrad = ctx.createRadialGradient(px1+x1, py1+y1, r1, px1+x2, py1+y2,r2);  
+                        for (var i = 0; i < style.radialGradient.addColorStop.length; i++)
+                        {
+                            var arr = style.radialGradient.addColorStop[i];
+                            var arrFunc = style.radialGradient.addColorStopFunctions[i];
+                            var p0 = (arrFunc[0] ? arrFunc[0](prop) : arr[0]);
+                            var p2 = (arr.length < 3 ? 100 : (arrFunc[2] ? arrFunc[2](prop) : arr[2]));
+                            var p1 = gmxAPI._leaflet.utils.dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
+                            radgrad.addColorStop(p0, p1);
+                        }
+                        ctx.fillStyle = radgrad;
 
-						ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
-					} else {
-						if(style.circle) {
-							px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
-							py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
-							ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
-						} else {
-							ctx.fillRect(px1, py1, 2*out.sx, 2*out.sy);
-						}
-					}
-					ctx.fill();
-					//sx = sy = size;
-				}
-			}
+                        ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
+                    } else {
+                        if(style.circle) {
+                            px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
+                            py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
+                            ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
+                        } else {
+                            ctx.fillRect(px1, py1, 2*out.sx, 2*out.sy);
+                        }
+                    }
+                    ctx.fill();
+                    //sx = sy = size;
+                }
+            }
 
-			if(style.label) {
-				var labelStyle = style.label;
-				var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
-				if(txt) {
-					gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
-				}
-			}
-		}
-		
-		return out;
-	};
+            if(style.label) {
+                var labelStyle = style.label;
+                var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
+                if(txt) {
+                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
+                }
+            }
+        }
+        
+        return out;
+    };
 })();
 
 // LineGeometry LINESTRING
