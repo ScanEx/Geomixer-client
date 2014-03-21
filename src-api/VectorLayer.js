@@ -2186,7 +2186,7 @@
                 }
                 node._addToObserver = function(geom, fromTiles) {		// добавить обьект в Observer
                     var id = geom.id;
-                    if (observerObj[id]) {
+                    if (!observerObj[id]) {
                         addObj[id] = {
                             layerID: nodeId
                             ,bounds: geom.bounds
