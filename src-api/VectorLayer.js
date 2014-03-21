@@ -2186,14 +2186,16 @@
                 }
                 node._addToObserver = function(geom, fromTiles) {		// добавить обьект в Observer
                     var id = geom.id;
-                    addObj[id] = {
-                        layerID: nodeId
-                        ,bounds: geom.bounds
-                        ,properties: geom.properties
-                        ,geometry: node.getItemGeometry(id)
-                        ,onExtent: true
-                        ,fromTiles: fromTiles
-                    };
+                    if (observerObj[id]) {
+                        addObj[id] = {
+                            layerID: nodeId
+                            ,bounds: geom.bounds
+                            ,properties: geom.properties
+                            ,geometry: node.getItemGeometry(id)
+                            ,onExtent: true
+                            ,fromTiles: fromTiles
+                        };
+                    }
                 }
                 node._sendObserver = function() {		// передача изменений Observer
                     var currPosition = gmxAPI.currPosition;
