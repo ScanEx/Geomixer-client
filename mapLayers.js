@@ -431,7 +431,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
                 var box = div.firstChild;
                 if (attr != box.checked)
                 {
-                    _this.treeModel.setNodeVisible(_this.findTreeElem(div).elem, attr);
+                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, attr);
                 }
             });
         }
@@ -513,7 +513,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		
 		box.onclick = function()
 		{
-            _this.treeModel.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
+            _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 	}
 	
@@ -527,7 +527,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                _this.treeModel.setNodeVisible(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
             }
         },
         dbclickFunc = function()
@@ -692,7 +692,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		
 		box.onclick = function()
 		{
-            _this.treeModel.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
+            _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 		
 		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
@@ -712,7 +712,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                _this.treeModel.setNodeVisible(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
 
                 var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
                 if (clickDiv.length)
@@ -1293,7 +1293,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	
 	newBox.onclick = function()
 	{
-		_this.treeModel.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
+		_this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 	}
 	
 	if ( box.isDummyCheckbox )
@@ -1419,7 +1419,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
             var name = props.name;
 			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
 			{
-                _layersTree.treeModel.setNodeVisible(elem, condition.visible[name]);
+                _layersTree.treeModel.setNodeVisibility(elem, condition.visible[name]);
 			}
 			
 			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&

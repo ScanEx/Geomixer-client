@@ -84,7 +84,7 @@ var LayerFiltersControl = function()
 			if (elem.content.properties.name in layers)
 			{
 				var isShowLayer = _filterFunc( layers[elem.content.properties.name], dateBegin, dateEnd );
-                layersTree.treeModel.setNodeVisible(elem, isShowLayer);
+                layersTree.treeModel.setNodeVisibility(elem, isShowLayer);
 			}
 		}, true);
 	}

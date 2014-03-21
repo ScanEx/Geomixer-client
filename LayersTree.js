@@ -13,7 +13,9 @@ var nsGmx = nsGmx || {};
 */
 nsGmx.LayersTree = function( tree )
 {
-    /** Изменилась видимость ноды. Если изменения касаются нескольких нод, событие будет генерироваться для каждой ноды по отдельности.
+    /** Изменилась видимость ноды. Если изменения касаются нескольких нод, событие будет 
+        генерироваться для каждой ноды по отдельности. Кроме того, это же событие генерируется 
+        на отдельных нодах дерева.
      * @event nsGmx.LayersTree#nodeVisibilityChange
      * @param {Object} elem Нода, видимость которой изменилась
      */
@@ -156,6 +158,7 @@ nsGmx.LayersTree = function( tree )
         if (props.visible != isVisible) {
             props.visible = isVisible;
             $(_this).triggerHandler('nodeVisibilityChange', [elem]);
+            $(elem).triggerHandler('nodeVisibilityChange', [elem]);
             
             if (elem.content.children) {
                 for (var c = 0; c < elem.content.children.length; c++) {
@@ -196,7 +199,9 @@ nsGmx.LayersTree = function( tree )
         
         if (isVisible !== props.visible) {
             props.visible = isVisible;
+            
             $(this).triggerHandler('nodeVisibilityChange', [elem]);
+            $(elem).triggerHandler('nodeVisibilityChange', [elem]);
             
             if (!parents) {
                 parents = this.findElemByGmxProperties(elem).parents;
@@ -212,7 +217,7 @@ nsGmx.LayersTree = function( tree )
      * @param {Node} elem Нода, которой мы хотим задать видимость
      * @param {Boolean} isVisible Видимость ноды (true - видна)
      */
-    this.setNodeVisible = function(elem, isVisible) {
+    this.setNodeVisibility = function(elem, isVisible) {
         //устанавливаем видимость поддерева, которое начинается с этого элемента
         setSubtreeVisibility(elem, isVisible);
         
