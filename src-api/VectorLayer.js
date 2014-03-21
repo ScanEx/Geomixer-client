@@ -1681,7 +1681,7 @@
                 node.lastDrawTime = 1;  // старт отрисовки
                 node.isIdle(-1);  // обнуление проверок окончания отрисовки
                 node.timers.upDateLayerTimer = setTimeout(function() {
-                    myLayer._tilesKeysCurrent = {};
+//                    myLayer._tilesKeysCurrent = {};
                     myLayer._gmxUpdate();
                     node.isIdle();  // запуск проверки окончания отрисовки
                 }, zd);
@@ -1987,6 +1987,7 @@
                 var item = node.objectsData[itemId];
                 if(!item) return null;
                 if(mercFlag && item.mercGeo) return item.mercGeo;
+                if(item.latlngGeo) return item.latlngGeo;
                 var geom = null;
                 if(node.addedItems[itemId]) {
                     geom = node.addedItems[itemId].geometry;
@@ -1994,7 +1995,7 @@
                     for(var tileID in item.propHiden.fromTiles) {
                         var arr = node.tilesGeometry[tileID]; // Обьекты тайла
                         if(arr && arr.length) {
-                            for (var i = 0; i < arr.length; i++) {
+                            for (var i = 0, len = arr.length; i < len; i++) {
                                 var it = arr[i];
                                 if(it.id == itemId) {
                                     var vgeo = it.exportGeo();
@@ -2007,7 +2008,7 @@
                                         if(vgeo.type.indexOf('MULTI') == -1) {
                                             geom.coordinates.push(vgeo.coordinates);
                                         } else {
-                                            for (var j = 0; j < vgeo.coordinates.length; j++) geom.coordinates.push(vgeo.coordinates[j]);
+                                            for (var j = 0, len1 = vgeo.coordinates.length; j < len1; j++) geom.coordinates.push(vgeo.coordinates[j]);
                                         }
                                     }
                                     break;
@@ -2018,6 +2019,7 @@
                 }
                 item.mercGeo = geom;
                 if(geom && !mercFlag) geom = gmxAPI.from_merc_geometry(geom);
+                if(geom.type === 'POINT') item.latlngGeo = geom;
                 return geom;
             }
             ,getPropItem: function(item) {  // Получить properties обьекта векторного слоя
@@ -2151,7 +2153,6 @@
                 node.observerNode = pt.obj.objectId;
                 var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false;  // отменить контроль фильтра видимости
                 var callback = pt.attr.func;
-    //console.log('setObserver ', ignoreVisibilityFilter, node.id, node['observerNode']);
 
                 var observerTiles = {};
                 var observerObj = {};
