@@ -241,9 +241,10 @@
                     title: "Сдвиг растра",
                     view: {
                         getUI: function(editDialog) {
+                            var layer = editDialog.getLayer();
                             $(editDialog).on('close', function() {
                                 shiftLayer.remove();
-                                editDialog.getLayer().setVisibilityFilter();
+                                layer.setVisibilityFilter();
                             });
 
                             var canvas = $('<div/>'),
@@ -257,6 +258,7 @@
                                 shiftLayer = map.addLayer({properties: {
                                     IsRasterCatalog: true,
                                     RCMinZoomForRasters: 1,
+                                    Quicklook: layer.properties.Quicklook,
                                     styles: [{BalloonEnable: false}]
                                 }}),
                                 geomDx = dx,
@@ -291,13 +293,10 @@
 
                                 shiftLayer.addItems([{
                                     id: 1,
-                                    properties: {
-                                        GMX_RasterCatalogID: editDialog.get('GMX_RasterCatalogID')
-                                    },
+                                    properties: editDialog.getAll(),
                                     geometry: shiftMercGeometry(editDialog.getGeometry(), -dx, -dy)
                                 }]);
                             
-                                var layer = editDialog.getLayer();
                                 var identityField = layer.properties.identityField;
                                 layer.setVisibilityFilter('"' + identityField + '" <> \'' + editDialog.get(identityField) + '\'');
                             }
