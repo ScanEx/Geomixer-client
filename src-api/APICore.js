@@ -60,6 +60,80 @@ extend(window.gmxAPI,
 	,
     leafletPlugins: {}
     ,
+    _getEdgeIntersection: function (a, b, code, bounds) {
+        var dx = b[0] - a[0],
+            dy = b[1] - a[1],
+            min = bounds.min,
+            max = bounds.max;
+
+        if (code & 8) { // top
+            return [a[0] + dx * (max.y - a[1]) / dy, max.y];
+        } else if (code & 4) { // bottom
+            return [a[0] + dx * (min.y - a[1]) / dy, min.y];
+        } else if (code & 2) { // right
+            return [max.x, a[1] + dy * (max.x - a[0]) / dx];
+        } else if (code & 1) { // left
+            return [min.x, a[1] + dy * (min.x - a[0]) / dx];
+        }
+    },
+    _getBitCode: function (p, bounds) {
+        var code = 0;
+
+        if (p[0] < bounds.min.x) { // left
+            code |= 1;
+        } else if (p[0] > bounds.max.x) { // right
+            code |= 2;
+        }
+        if (p[1] < bounds.min.y) { // bottom
+            code |= 4;
+        } else if (p[1] > bounds.max.y) { // top
+            code |= 8;
+        }
+
+        return code;
+    },
+    clipPolygonByBounds: function (points, bounds) {
+        var clippedPoints,
+            edges = [1, 4, 2, 8],
+            i, j, k,
+            a, b,
+            len, edge, p;
+
+        for (i = 0, len = points.length; i < len; i++) {
+            points[i][3] = gmxAPI._getBitCode(points[i], bounds);
+        }
+
+        // for each edge (left, bottom, right, top)
+        for (k = 0; k < 4; k++) {
+            edge = edges[k];
+            clippedPoints = [];
+
+            for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
+                a = points[i];
+                b = points[j];
+
+                // if a is inside the clip window
+                if (!(a[3] & edge)) {
+                    // if b is outside the clip window (a->b goes out of screen)
+                    if (b[3] & edge) {
+                        p = gmxAPI._getEdgeIntersection(b, a, edge, bounds);
+                        p[3] = gmxAPI._getBitCode(p, bounds);
+                        clippedPoints.push(p);
+                    }
+                    clippedPoints.push(a);
+
+                // else if b is inside the clip window (a->b enters the screen)
+                } else if (!(b[3] & edge)) {
+                    p = gmxAPI._getEdgeIntersection(b, a, edge, bounds);
+                    p[3] = gmxAPI._getBitCode(p, bounds);
+                    clippedPoints.push(p);
+                }
+            }
+            points = clippedPoints;
+        }
+
+        return points;
+    },
     clipImageByPolygon: function(attr) {       // Polygon fill
         if (attr.bgImage && attr.geom.type.indexOf('POLYGON') !== -1) {
             var mInPixel = attr.mInPixel,

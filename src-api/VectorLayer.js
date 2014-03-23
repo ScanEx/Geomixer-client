@@ -989,21 +989,6 @@
                 ctx.restore();
             }
             geom.paint(attr, itemStyle, ctx);
-            
-            if (node.clipGeo) { // Обрезка отрисованного тайла
-                var canvas = document.createElement('canvas');
-                canvas.width = canvas.height = 256;
-                gmxAPI.clipImageByPolygon({
-                    ctx: canvas.getContext('2d')
-                    ,bgImage: tile
-                    ,geom: node.clipGeo
-                    ,mInPixel: gmxAPI._leaflet.mInPixel
-                    ,tpx: attr.x
-                    ,tpy: 256 + attr.y
-                });
-                ctx.clearRect(0, 0, 256, 256);
-                ctx.drawImage(canvas, 0, 0);
-            }
         }
 
         var chkVisible = function() {
@@ -2794,8 +2779,26 @@
                     myLayer._markTile(tilePoint, cnt);
                     if(cnt == 0) myLayer.removeTile(tilePoint);  // Удаление ставшего пустым тайла
                 }
+                if(tile && node.clipGeo) {
+                    node.clipTileByPolygon(tile, attr.x, attr.y)
+                }
                 //chkBorders(200);
                 return out;
+            }
+            ,clipTileByPolygon: function(tile, x, y) {   // перерисовка 1 тайла
+                var canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = 256;
+                    gmxAPI.clipImageByPolygon({
+                        ctx: canvas.getContext('2d')
+                        ,bgImage: tile
+                        ,geom: node.clipGeo
+                        ,mInPixel: gmxAPI._leaflet.mInPixel
+                        ,tpx: x
+                        ,tpy: 256 + y
+                    });
+                var ctx = tile.getContext('2d');
+                ctx.clearRect(0, 0, 256, 256);
+                ctx.drawImage(canvas, 0, 0);
             }
             ,redrawTile: function(tKey, zoom, redrawFlag) {   // перерисовка 1 тайла
                 if(!myLayer || !myLayer._map) return;
@@ -2847,8 +2850,12 @@
                         }
                     }
                 }
-                if(tile && flagClear) {
-                    tile.getContext('2d').clearRect(0, 0, 256, 256);
+                if (tile) {
+                    if(flagClear) tile.getContext('2d').clearRect(0, 0, 256, 256);
+                    else if(node.clipGeo) {
+                        var attr = vectorUtils.getTileAttr(thash.tilePoint, zoom);
+                        node.clipTileByPolygon(tile, attr.x, attr.y);
+                    }
                 }
                 out = null;
                 arr = null;
