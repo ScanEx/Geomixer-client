@@ -60,6 +60,29 @@ extend(window.gmxAPI,
 	,
     leafletPlugins: {}
     ,
+    clipImageByPolygon: function(attr) {       // Polygon fill
+        if (attr.bgImage && attr.geom.type.indexOf('POLYGON') !== -1) {
+            var mInPixel = attr.mInPixel,
+                geom = attr.geom,
+                coords = geom.coordinates,
+                px = attr.tpx,
+                py = attr.tpy,
+                ctx = attr.ctx;
+                ctx.fillStyle = ctx.createPattern(attr.bgImage, "no-repeat");
+            if (geom.type === 'POLYGON') coords = [coords];
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var coords1 = coords[i][0];    // POLYGON без HELLS
+                for (var k = 0, len2 = coords1.length; k < len2; k++) {
+                    var x = (0.5 + coords1[k][0] * mInPixel - px) << 0,
+                        y = (0.5 + py - coords1[k][1] * mInPixel) << 0;
+                    ctx[(k === 0 ? 'moveTo' : 'lineTo')](x, y);
+                }
+            }
+            ctx.fill();
+        }
+        return true;
+    }
+    ,
     loadJS: function(item, callback, callbackError) {
         var script = document.createElement("script");
         script.setAttribute("charset", "windows-1251");

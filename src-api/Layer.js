@@ -535,7 +535,9 @@
             'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
             'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
             'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
-            'setClusters', 'addImageProcessingHook',
+            'setClusters',
+            'addImageProcessingHook', 'removeImageProcessingHook',
+            'addClipPolygon', 'removeClipPolygon',
             'addContextMenuItem', 'removeContextMenuItem',
             'enableDragging', 'disableDragging',
             'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
@@ -754,6 +756,15 @@
                     };
                     obj.addImageProcessingHook = function(func) {
                         return proxy('addImageProcessingHook', { 'obj': obj, 'attr':{'func':func} });
+                    };
+                    obj.removeImageProcessingHook = function() {
+                        return proxy('removeImageProcessingHook', { 'obj': obj });
+                    };
+                    obj.addClipPolygon = function(geo) {
+                        return proxy('addClipPolygon', { 'obj': obj, 'attr':{'geo':geo} });
+                    };
+                    obj.removeClipPolygon = function() {
+                        return proxy('removeClipPolygon', { 'obj': obj });
                     };
                     
                 } else {

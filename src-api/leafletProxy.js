@@ -2615,14 +2615,31 @@
 			}
 			return false;
 		}
-		,
-		'addImageProcessingHook':	function(ph)	{		// Установка предобработчика растрового тайла
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node) return false;
-			node['imageProcessingHook'] = ph['attr']['func'];
-		}
-		,
+        ,addClipPolygon: function(ph) {     // Установка геометрии обрезки слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return false;
+            if('addClipPolygon' in node) node.addClipPolygon(ph.attr);
+        }
+        ,removeClipPolygon: function(ph) {  // Удаление геометрии обрезки слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return false;
+            if('removeClipPolygon' in node) node.removeClipPolygon(ph.attr);
+        }
+        ,addImageProcessingHook: function(ph) {     // Установка предобработчика растрового тайла
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return false;
+            node.imageProcessingHook = ph.attr.func;
+        }
+        ,removeImageProcessingHook: function(ph) {  // Удаление предобработчика растрового тайла
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return false;
+            delete node.imageProcessingHook;
+        }
+        ,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
 			var toz = Math.abs(ph.attr.dz);
 			if(ph.attr.dz > 0) LMap.zoomOut(toz);

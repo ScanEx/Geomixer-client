@@ -69,6 +69,8 @@
         //gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'rasterView': 'onCtrlClick'} });
 
         if(layer.properties) {
+//node.shiftXfield = 'shiftX';
+//node.shiftYfield = 'shiftY';
             if('MetaProperties' in layer.properties) {
                 var meta = layer.properties.MetaProperties;
                 if('shiftX' in meta || 'shiftY' in meta) {              // сдвиг всего слоя
@@ -590,7 +592,7 @@
                             if(!item.geom.contains(mPoint, null, item.src)) continue;
                         }
                         else if(!item.geom.bounds.contains(mPoint)) continue;
-
+                        if (node.clipGeo && !node.clipGeo.contains(mPoint)) continue; // Ограничение по геометрии обрезки
                         var dist = minDist;
                         if('distance2' in item.geom) {
                             dist = item.geom.distance2(mPoint);
@@ -765,6 +767,7 @@
                 for (var i1 = 0, len = parr.length; i1 < len; i1++) {
                     var geom = parr[i1],
                         type = geom.type;
+                    if (node.clipBounds && !node.clipBounds.intersects(geom.bounds)) continue; // Тайл не пересекает clipBounds
                     if(!flagProcessing) { // проверка массива обьектов из серверного тайла
                         if(node.editedObjects[geom.id]) continue; // обьект из процессинга
                     }
@@ -986,6 +989,21 @@
                 ctx.restore();
             }
             geom.paint(attr, itemStyle, ctx);
+            
+            if (node.clipGeo) { // Обрезка отрисованного тайла
+                var canvas = document.createElement('canvas');
+                canvas.width = canvas.height = 256;
+                gmxAPI.clipImageByPolygon({
+                    ctx: canvas.getContext('2d')
+                    ,bgImage: tile
+                    ,geom: node.clipGeo
+                    ,mInPixel: gmxAPI._leaflet.mInPixel
+                    ,tpx: attr.x
+                    ,tpy: 256 + attr.y
+                });
+                ctx.clearRect(0, 0, 256, 256);
+                ctx.drawImage(canvas, 0, 0);
+            }
         }
 
         var chkVisible = function() {
@@ -1714,13 +1732,7 @@
                 };
             },
             fireEvent: function(name, data) {
-                if (gmxNode) {
-                    gmxAPI._listeners.dispatchEvent(name, gmxNode, {   // Перед загрузкой тайлов
-                        isLoadingFreezed: node._freezeLoading     // текущий флаг
-                        //,screenTiles: data                      // количество screen тайлов на экране
-                    });
-                    //if(node._freezeLoading) node.upDateLayer(30);
-                }
+                return  gmxNode ? gmxAPI._listeners.dispatchEvent(name, gmxNode, data) : false;
             },
             setFreezeLoading: function(pt) {    // Команда установки/снятия флага остановки загрузки векторных тайлов
                 node._freezeLoading = pt;
@@ -1821,10 +1833,13 @@
                 if(currZ < node.minZ || currZ > node.maxZ)  return true; // Неподходящий zoom
 
                 if(!zoom) zoom = currZ;
+                var attr = vectorUtils.getTileAttr(tilePoint, zoom);
+                if (node.clipBounds && !node.clipBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
+                
+                //if (node.fireEvent('onBeforeLoadTile', attr)) return true; // Перед загрузкой или отрисовкой тайла
 
                 var flag = node.loadTilesByExtent(null, tilePoint);
                 if(!flag) {
-                    var attr = vectorUtils.getTileAttr(tilePoint, zoom);
                     node.addTilesNeedRepaint(attr.drawTileID);
                     node.repaintTilesNeed(0);
                 }
@@ -2515,9 +2530,13 @@
                         } else if(node.quicklook) {
                             imageObj = prepareQuicklookImage(rItem, imageObj);
                         }
-                        var pt = {idr: ogc_fid, properties: objData.properties, callback: function(content) {
-                            callback(content);
-                        }};
+                        var pt = {
+                            idr: ogc_fid
+                            ,properties: objData.properties
+                            ,tpx: rItem.attr.x
+                            ,tpy: rItem.attr.y
+                            ,callback: function(content) { callback(content); }
+                        };
                         var content = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
                         if(content) callback(content);
                     }
@@ -2655,6 +2674,24 @@
                 } else {
                     node.loadRasterRecursion(zoom, tx, ty, {id:ogc_fid, z:zoom, x:tx, y:ty}, rItem, callback);
                 }
+            }
+            ,addClipPolygon: function(attr) {    // Установка геометрии обрезки слоя
+                node.clipGeo = gmxAPI.merc_geometry(attr.geo);
+                node.clipBounds = gmxAPI.geoBounds(node.clipGeo);
+                node.clipGeo.contains = function(point) {
+                    var coords = node.clipGeo.coordinates;
+                    if(node.clipGeo.type === 'POLYGON') coords = [coords];
+                    for (var j = 0, len1 = coords.length; j < len1; j++) {
+                        if(utils.isPointInPolygonArr([point.x, point.y], coords[j][0])) return true;
+                    }
+                    return false;
+                }
+                node.redrawFlips(true);
+            }
+            ,removeClipPolygon: function() {    // Удаление геометрии обрезки слоя
+                delete node.clipGeo;
+                delete node.clipBounds;
+                if (myLayer) myLayer.redraw();
             }
             ,repaintTile: function(tilePoint, clearFlag) {    // перерисовать векторный тайл слоя
                 if(!myLayer || !myLayer._map) return;
@@ -3064,7 +3101,7 @@
                 var tilesToLoad = queue.length;
 
                 //node._freezeLoading = false;
-                node.fireEvent('onBeforeUpdate', tilesToLoad); // Перед загрузкой тайлов
+                node.fireEvent('onBeforeUpdate', { isLoadingFreezed: node._freezeLoading }); // Перед загрузкой тайлов
                 if (tilesToLoad === 0 || node._freezeLoading) { return; }
 
                 // load tiles in order of their distance to center
