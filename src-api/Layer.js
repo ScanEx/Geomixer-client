@@ -742,6 +742,12 @@
                     var _obj = proxy('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
                     return _obj;
                 }
+                obj.addClipPolygon = function(geo) {
+                    return proxy('addClipPolygon', { 'obj': obj, 'attr':{'geo':geo} });
+                };
+                obj.removeClipPolygon = function() {
+                    return proxy('removeClipPolygon', { 'obj': obj });
+                };
 
                 if (layer.properties.IsRasterCatalog) {
                     var RCMinZoomForRasters = layer.properties.RCMinZoomForRasters || 1;
@@ -760,13 +766,6 @@
                     obj.removeImageProcessingHook = function() {
                         return proxy('removeImageProcessingHook', { 'obj': obj });
                     };
-                    obj.addClipPolygon = function(geo) {
-                        return proxy('addClipPolygon', { 'obj': obj, 'attr':{'geo':geo} });
-                    };
-                    obj.removeClipPolygon = function() {
-                        return proxy('removeClipPolygon', { 'obj': obj });
-                    };
-                    
                 } else {
                     if (layer.properties.Quicklook) {
                         /*
