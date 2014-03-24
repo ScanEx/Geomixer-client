@@ -2606,7 +2606,7 @@ gmxAPI.forEachNode = function(layers, callback, notVisible) {
     var forEachNodeRec = function(o, isVisible, nodeDepth)
 	{
 		isVisible = isVisible && !!o.content.properties.visible;
-        callback(o.content, o.type, isVisible, nodeDepth);
+        callback(o, isVisible, nodeDepth);
 		if (o.type == "group")
 		{
 			var a = o.content.children;
@@ -2621,8 +2621,8 @@ gmxAPI.forEachNode = function(layers, callback, notVisible) {
 }
 
 function forEachLayer(layers, callback, notVisible) {
-    gmxAPI.forEachNode(layers, function(node, type, isVisible, nodeDepth) {
-        type === 'layer' && callback(node, isVisible, nodeDepth);
+    gmxAPI.forEachNode(layers, function(node, isVisible, nodeDepth) {
+        node.type === 'layer' && callback(node.content, isVisible, nodeDepth);
     }, notVisible)
 }
 
