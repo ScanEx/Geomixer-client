@@ -522,17 +522,22 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     var timer = null,
         clickFunc = function()
         {
+            var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
+            $(treeNode).triggerHandler('click', [treeNode]);
+            
             if (_this._renderParams.allowActive)
                 _this.setActive(span);
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                _this.treeModel.setNodeVisibility(treeNode, true);
             }
         },
         dbclickFunc = function()
         {
+            var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             var layer = globalFlashMap.layers[elem.name];
+            $(treeNode).triggerHandler('dblclick', [treeNode]);
         
             if (layer)
             {
