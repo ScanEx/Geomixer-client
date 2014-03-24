@@ -1699,11 +1699,11 @@
                     needLoadTiles = 0;
                 for (var tID in tiles) {
                     if (node.badTiles[tID]) continue;
+                    var tb = tiles[tID];
+                    if (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY) continue;
                     if (node.tilesGeometry[tID]) {
                         loadedObjects += node.tilesGeometry[tID].length;
                     } else {
-                        var tb = tiles[tID];
-                        if (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY) continue;
                         needLoadTiles++;
                         //arr.push(tID);
                     }
