@@ -7,7 +7,7 @@
         title: 'Сдвигайте растр правой кнопкой мыши',
         saveBtnTitle: 'Готово',
         cancelBtnTitle: 'Отмена',
-        startBtnTitle: 'Сместить',
+        startBtnTitle: 'Сдвинуть',
         layerPropertiesTitle: 'Включить сдвиг растров',
         contextTitle: 'Сдвинуть слой'
     }});
