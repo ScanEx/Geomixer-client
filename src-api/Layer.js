@@ -305,7 +305,8 @@
             }
         }
 
-        if (!isRaster) {
+        if (!isRaster)
+        {
             if(!layer.properties.styles) {  // стиль-фильтр по умолчанию
                 layer.properties.styles = [
                     {
@@ -469,20 +470,19 @@
                 "&y=" + j;
         }
 
+        var isTemporal = layer.properties.Temporal || false; // признак мультивременного слоя
+        if(isTemporal && '_TemporalTiles' in gmxAPI) {
+            obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
+        }
+
+        var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
+        if(gmxAPI._layersVersion && isLayerVers) {  // Установлен модуль версий слоев + есть версии тайлов слоя
+            gmxAPI._layersVersion.chkVersion(obj);
+            obj.chkLayerVersion = function(callback) {
+                gmxAPI._layersVersion.chkLayerVersion(obj, callback);
+            }
+        }
         gmxAPI.extend(obj, {        // определение свойств до установки видимости
-            setDateInterval: function(dt1, dt2) {  // Установка временного интервала
-                obj.dt1 = dt1;
-                obj.dt2 = dt2;
-            },
-            getDateInterval: function() {  // Получить временной интервал
-                return {
-                    beginDate: obj.dt1
-                    ,endDate: obj.dt2
-                };
-            },
-            getTileCounts: function(dt1, dt2) {  // Получить количество тайлов по временному интервалу
-                return 0;
-            },
             setPositionOffset: function(dx, dy) {
                 obj.shiftX = dx || 0;
                 obj.shiftY = dy || 0;
@@ -548,24 +548,11 @@
         {
             var pObj = (isOverlay ? parentObj.overlays : parentObj.layersParent);
             var obj_ = pObj.addObject(obj.geometry, obj.properties, obj.propHiden);
+            obj_['backgroundColor'] = obj['backgroundColor'];
+            obj_['stateListeners'] = obj['stateListeners'];
+            if(obj['isBaseLayer']) obj_['isBaseLayer'] = obj['isBaseLayer'];
+            if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
             obj.objectId = obj_.objectId;
-            obj_.backgroundColor = obj.backgroundColor;
-            obj_.stateListeners = obj.stateListeners;
-            if(obj.isBaseLayer) obj_.isBaseLayer = obj.isBaseLayer;
-//            if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
-
-            var isTemporal = obj.properties.Temporal || false; // признак мультивременного слоя
-            if(isTemporal && '_TemporalTiles' in gmxAPI) {
-                obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
-                
-            }
-            var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
-            if(gmxAPI._layersVersion && isLayerVers) {  // Установлен модуль версий слоев + есть версии тайлов слоя
-                gmxAPI._layersVersion.chkVersion(obj);
-                obj.chkLayerVersion = function(callback) {
-                    gmxAPI._layersVersion.chkLayerVersion(obj, callback);
-                }
-            }
             if(pObj.isMiniMap) {
                 obj.isMiniMap = true;   // Все добавляемые к миникарте ноды имеют этот признак
             }

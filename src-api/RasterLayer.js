@@ -386,11 +386,6 @@
 				}
 				LMap.on('move', chkPosition);
 				LMap.on('zoomend', chkPosition);
-                if (node.isOverlay) {
-                    LMap.on('zoomstart', function() {
-                        myLayer._tileContainer.style.visibility = 'hidden';
-                    });
-                }
 				chkVisible();
 			}
 
