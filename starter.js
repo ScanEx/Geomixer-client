@@ -251,6 +251,13 @@ $(function()
         return nsGmx.Translations.getText(contents);
     });
     
+    $('body').on('keyup', function(event) {
+        if ((event.target === document.body || $(event.target).hasClass('leaflet-container')) && event.keyCode === 79) {
+            _queryMapLayers.getMaps();
+            return false;
+        }
+    })
+    
     var languageFromSettings = translationsHash.getLanguageFromCookies() || window.defaultLang;
     window.language = languageFromSettings || "rus"
 	if (languageFromSettings == "eng")
@@ -260,8 +267,6 @@ $(function()
 	document.title = window.shownTitle;
     
     window.serverBase = _serverBase;
-    
-    var parsedURL = parseURLParams();
     
     addParseResponseHook('*', function(response, customErrorDescriptions) {
         if (response.Warning) {
@@ -329,6 +334,7 @@ $(function()
             }
             var paramsString = apiParams.join('&');
                 
+            var parsedURL = parseURLParams();
             var apiFilename;
             if (parsedURL.params['apifile'])
             {
