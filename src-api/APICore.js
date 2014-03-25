@@ -3819,7 +3819,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				//те же копирайты, что и для карт
 				if (overlayLayers.length > 0)
 				{
-					overlayLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
+					//overlayLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
 					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					// setCopyright(overlayLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
 					// var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");

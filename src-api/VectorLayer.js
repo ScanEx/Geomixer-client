@@ -1104,8 +1104,8 @@
                         node.bounds.extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.min.x), gmxAPI.from_merc_y(geo.bounds.min.y)));
                         node.bounds.extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.max.x), gmxAPI.from_merc_y(geo.bounds.max.y)));
                     }
-                    geo.shiftX = (node.shiftXfield in ph.properties ? Number(ph.properties[node.shiftXfield]) : 0);
-                    geo.shiftY = (node.shiftYfield in ph.properties ? Number(ph.properties[node.shiftYfield]) : 0);
+                    geo.shiftX = (node.shiftXfield && node.shiftXfield in ph.properties ? Number(ph.properties[node.shiftXfield]) : 0);
+                    geo.shiftY = (node.shiftYfield && node.shiftYfield in ph.properties ? Number(ph.properties[node.shiftYfield]) : 0);
                 }
                 var objData = {
                     id: id
