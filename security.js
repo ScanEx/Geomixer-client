@@ -194,9 +194,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             
 	var isShowUserSuggest = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS);
     var isShowFullname    = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME);
-	if ($$('securityDialog'))
-		removeDialog($$('securityDialog'))
-	
+    
+	$$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
+
 	var canvas = _div(null, [['attr','id','securityDialog']]),
 		_this = this;
 	
@@ -244,7 +244,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	changeOwnerLink.setAttribute('id', 'changeOwnerLink');
 	changeOwnerLink.onclick = function()
 	{
-		var canvas = _div();
+		var ownerCanvas = _div();
 		var tableSuggestParent = _div();
         
 		var usersTable = new nsGmx.ScrollTable({limit: 20, pagesCount: 5});
@@ -278,7 +278,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 tr.onclick = function()
 				{
 					removeDialog(dialogCanvas);
-					$('#changeOwnerLink').text(user.Nickname);
+					$('#changeOwnerLink', canvas).text(user.Nickname);
 					securityInfo.SecurityInfo.NewOwnerID = user.UserID;
 				}
 				
@@ -302,7 +302,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             else
                 usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
           
-			_(canvas, [filterContainer, tableSuggestParent]);
+			_(ownerCanvas, [filterContainer, tableSuggestParent]);
             
             
 			
@@ -311,7 +311,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		}
 		else
 		{
-            var userInputWidget = new UserInputWidget(canvas);
+            var userInputWidget = new UserInputWidget(ownerCanvas);
 			var changeOwnerButton = makeLinkButton(_gtxt("Сменить владельца"));
 			changeOwnerButton.onclick = function()
 			{
@@ -330,15 +330,15 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 					}
 					
 					removeDialog(dialogCanvas);
-					$('#changeOwnerLink').text(response.Result.Nickname);
+					$('#changeOwnerLink', canvas).text(response.Result.Nickname);
 					securityInfo.SecurityInfo.NewOwnerID = response.Result.UserID;
 				});
 			}
             changeOwnerButton.style.marginLeft = '10px';
-            $(canvas).append(changeOwnerButton);
+            $(ownerCanvas).append(changeOwnerButton);
 		}
 		
-		var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), canvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 250 : 70);
+		var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), ownerCanvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 250 : 70);
 	}
 	
 	var ownerInfo = _div([_t(_gtxt('Владелец') + ": "), changeOwnerLink], [['css','fontSize','12px'], ['css','margin','5px 0px 10px 0px'], ['css','height','25px']]);
