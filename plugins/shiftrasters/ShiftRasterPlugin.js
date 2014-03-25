@@ -158,12 +158,15 @@
                     
                     var metaProps = layerProperties.get('MetaProperties'),
                         isRC = layerProperties.get('RC').get('IsRasterCatalog'),
-                        shiftXName = isRC ? 'shiftXfield' : 'shiftX',
-                        shiftYName = isRC ? 'shiftYfield' : 'shiftY',
-                        shiftXDefault = isRC ? 'shiftX' : 0,
-                        shiftYDefault = isRC ? 'shiftY' : 0,
-                        shiftPropType = isRC ? 'String' : 'Number',
+                        shiftXName = 'shiftXfield',
+                        shiftYName = 'shiftYfield',
+                        shiftXDefault = 'shiftX',
+                        shiftYDefault = 'shiftY',
                         isShift = metaProps.getTagByName(shiftXName) && metaProps.getTagByName(shiftYName);
+                        
+                    if (!isRC) {
+                        return;
+                    }
 
                     var uiTemplate = 
                         '<label class = "shift-rasters-properties">' +
@@ -180,8 +183,8 @@
                         var isChecked = $('#shift-rasters', ui).prop( "checked" );
                         
                         if (isChecked) {
-                            xId || metaProps.addNewTag(shiftXName, shiftXDefault, shiftPropType);
-                            yId || metaProps.addNewTag(shiftYName, shiftYDefault, shiftPropType);
+                            xId || metaProps.addNewTag(shiftXName, shiftXDefault, 'String');
+                            yId || metaProps.addNewTag(shiftYName, shiftYDefault, 'String');
                         } else {
                             metaProps.deleteTag(xId);
                             metaProps.deleteTag(yId);
@@ -204,11 +207,9 @@
                         }
                     })
 
-                    var tabName = layerProperties.get('Type') === 'Vector' ? 'advanced' : 'main';
-                    
                     params.additionalUI = params.additionalUI || {};
-                    params.additionalUI[tabName] = params.additionalUI[tabName] || [];
-                    params.additionalUI[tabName].push(ui[0]);
+                    params.additionalUI.advanced = params.additionalUI.advanced || [];
+                    params.additionalUI.advanced.push(ui[0]);
                 })
             })
         
@@ -314,14 +315,7 @@
             nsGmx.ContextMenuController.addContextMenuElem({
                 title: _gtxt('shiftRastersPlugin.contextTitle'),
                 isVisible: function(context) {
-                    var layerName = context.elem.name,
-                        layer = map.layers[layerName],
-                        isRC = layer.properties.IsRasterCatalog,
-                        shiftXName = isRC ? 'shiftXfield' : 'shiftX',
-                        shiftYName = isRC ? 'shiftYfield' : 'shiftY',
-                        metaProps = layer.properties.MetaProperties;
-                    
-                    return metaProps[shiftXName] && metaProps[shiftYName];
+                    return true;
                 },
                 clickCallback: function(context) {
                     var layerName = context.elem.name,
