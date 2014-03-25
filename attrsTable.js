@@ -252,7 +252,7 @@ attrsTable.prototype._drawSearchParamsUI = function(tdParams, info) {
     for (var a = 0; a < attrNames.length; a++) 
         attrHash[attrNames[a]] = [];
         
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.LayerID );
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.name );
 	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.queryTextarea, "\"suggest\"", function(){}, attrProvider, true),
 		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.queryTextarea, "\"suggest\"", function(){}, attrProvider),
 		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this.queryTextarea, " suggest ", function(){});

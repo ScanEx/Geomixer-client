@@ -28,10 +28,9 @@ nsGmx.LazyAttributeValuesProviderFromArray = function( attributes )
 nsGmx.LazyAttributeValuesProviderFromArray.prototype = new nsGmx.ILazyAttributeValuesProvider();
 
 //При необходимости этот провайдер будет запрашивать значения аттрибутов у сервера
-nsGmx.LazyAttributeValuesProviderFromServer = function( attributes, layerID )
+nsGmx.LazyAttributeValuesProviderFromServer = function( attributes, layerName)
 {
 	var _attrs = attributes;
-	var _layerID = layerID;
 	var _isInited = false;
 	var _isProcessing = false;
 	
@@ -63,7 +62,7 @@ nsGmx.LazyAttributeValuesProviderFromServer = function( attributes, layerID )
 			//идём на сервер и запрашиваем значения аттрибутов!
 			
 			_isProcessing = true;
-			sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetVectorAttrValues.ashx?WrapStyle=func&LayerID=" + _layerID, function(response)
+			sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetVectorAttrValues.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
 			{
 				_isInited = true;
 				_isProcessing = false;

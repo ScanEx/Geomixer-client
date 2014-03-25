@@ -788,7 +788,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
         {
             _(parent, [loading]);
         
-            sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + elemProperties.LayerID, function(response)
+            sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerName=" + elemProperties.name, function(response)
             {
                 if (!parseResponse(response))
                     return;
@@ -886,26 +886,26 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 mapHelper.prototype.createLayerEditor = function(div, treeView, selected, openedStyleIndex)
 {
 	var elemProperties = div.gmxProperties.content.properties,
+        layerName = elemProperties.name,
 		_this = this;
 	
 	if (elemProperties.type == "Vector")
 	{
-		if (typeof this.layerEditorsHash[elemProperties.name] != 'undefined')
+		if (typeof this.layerEditorsHash[layerName] != 'undefined')
 		{
-			if (this.layerEditorsHash[elemProperties.name] != false) {
-                this.layerEditorsHash[elemProperties.name].selectTab(selected);
+			if (this.layerEditorsHash[layerName] != false) {
+                this.layerEditorsHash[layerName].selectTab(selected);
             }
 
 			return;
 		}
 		
-		this.layerEditorsHash[elemProperties.name] = false;
+		this.layerEditorsHash[layerName] = false;
 		
 		var mapName = elemProperties.mapName,
-			layerName = elemProperties.name,
 			createTabs = function(layerProperties)
 			{
-				var id = 'layertabs' + elemProperties.name,
+				var id = 'layertabs' + layerName,
 					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 					tabMenu,
                     additionalTabs = [];
@@ -929,16 +929,16 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     additionalTabs: additionalTabs,
                     selected: selected,
                     createdCallback: function(layerEditor) {
-                        _this.layerEditorsHash[elemProperties.name] = layerEditor;
-                        _this.layerEditorsHash[elemProperties.name].closeFunc = closeFunc;
-                        _this.layerEditorsHash[elemProperties.name].updateFunc = updateFunc;
+                        _this.layerEditorsHash[layerName] = layerEditor;
+                        _this.layerEditorsHash[layerName].closeFunc = closeFunc;
+                        _this.layerEditorsHash[layerName].updateFunc = updateFunc;
                     }
                 });
 				
 				var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 350, 470, pos.left, pos.top, null, function()
                 {
                     closeFunc();
-                    delete _this.layerEditorsHash[elemProperties.name];
+                    delete _this.layerEditorsHash[layerName];
                 });
                 
 				// при сохранении карты сбросим все временные стили в json карты
@@ -949,7 +949,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		if (!this.attrValues[mapName])
 			this.attrValues[mapName] = {};
 
-		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
+		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + layerName, function(response)
 		{
 			if (!parseResponse(response))
 				return;
@@ -961,7 +961,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                 attributesHash[columns[i].Name] = [];
             }
             
-			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, elemProperties.LayerID);
+			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, layerName);
 			
 			createTabs(response.Result);
 		})
@@ -970,16 +970,16 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 	{
 		if (elemProperties.LayerID)
 		{
-			if (this.layerEditorsHash[elemProperties.name])
+			if (this.layerEditorsHash[layerName])
 				return;
 			
-			this.layerEditorsHash[elemProperties.name] = true;
+			this.layerEditorsHash[layerName] = true;
 			
-			var id = 'layertabs' + elemProperties.name,
+			var id = 'layertabs' + layerName,
 				divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
             
-			var parentObject = globalFlashMap.layers[elemProperties.name],
+			var parentObject = globalFlashMap.layers[layerName],
 				parentStyle = elemProperties.styles[0];
                 
             var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
@@ -1009,14 +1009,14 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
 					elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
 					
-					delete _this.layerEditorsHash[elemProperties.name];
+					delete _this.layerEditorsHash[layerName];
 					
 					treeView.findTreeElem(div).elem.content.properties = elemProperties;
 					
-					_this.drawingBorders.removeRoute(elemProperties.name, true);
+					_this.drawingBorders.removeRoute(layerName, true);
 					
-					if ($$('drawingBorderDialog' + elemProperties.name))
-						removeDialog($$('drawingBorderDialog' + elemProperties.name).parentNode);
+					if ($$('drawingBorderDialog' + layerName))
+						removeDialog($$('drawingBorderDialog' + layerName).parentNode);
 					
 					return false;
 				};

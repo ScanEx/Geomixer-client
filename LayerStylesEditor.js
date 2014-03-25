@@ -1802,7 +1802,7 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
     }
     
     _mapHelper.attrValues[mapName] = _mapHelper.attrValues[mapName] || {};
-    _mapHelper.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, elem.LayerID);
+    _mapHelper.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, layerName);
     
     var closeFunc = function()
     {
