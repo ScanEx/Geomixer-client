@@ -3,49 +3,46 @@
 {
 	var TemporalTiles =	function(obj_)		// атрибуты временных тайлов
 	{
-		var mapObj = obj_;	// Мультивременной слой
-		var prop = mapObj.properties;	// Свойства слоя от сервера
-		var TimeTemporal = true;		// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
+		var mapObj = obj_,              // Мультивременной слой
+            prop = mapObj.properties,   // Свойства слоя от сервера
+            TimeTemporal = true,        // Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
+            oneDay = 1000*60*60*24,     // один день
+            temporalData = null,
+            currentData = {},           // список тайлов для текущего daysDelta
+            ZeroDateString = prop.ZeroDate || '01.01.2008', // нулевая дата
+            arr = ZeroDateString.split('.'),
+            zn = new Date(  // Начальная дата
+                (arr.length > 2 ? arr[2] : 2008),
+                (arr.length > 1 ? arr[1] - 1 : 0),
+                (arr.length > 0 ? arr[0] : 1)
+            ),
+            ZeroDate = new Date(zn.getTime()  - zn.getTimezoneOffset()*60000),  // UTC начальная дата шкалы
+            hostName = prop.hostName || 'maps.kosmosnimki.ru',
+            baseAddress = "http://" + hostName + "/",
+            layerName = prop.name || prop.image,
+            sessionKey = isRequiredAPIKey( hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false,
+            sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false),
+            prefix = baseAddress + 
+                "TileSender.ashx?ModeKey=tile" + 
+                "&MapName=" + encodeURIComponent(prop.mapName) + 
+                "&LayerName=" + encodeURIComponent(layerName) + 
+                (sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
+                (sessionKey2 ? ("&MapSessionKey=" + encodeURIComponent(sessionKey2)) : "");
+        if(prop._TemporalDebugPath) {
+            prefix = prop._TemporalDebugPath;
+            //temporalData['_TemporalDebugPath'] = prop._TemporalDebugPath;
+        }
+        var identityField = prop.identityField;
+        var TemporalColumnName = prop.TemporalColumnName || 'Date';
+        
+        // Начальный интервал дат
+        var DateEnd = new Date();
+        if(prop.DateEnd) {
+            var arr = prop.DateEnd.split('.');
+            if(arr.length > 2) DateEnd = new Date(arr[2], arr[1] - 1, arr[0]);
+        }
+        var DateBegin = new Date(DateEnd - oneDay);
 
-		var oneDay = 1000*60*60*24;	// один день
-		var temporalData = null;
-		var currentData = {};		// список тайлов для текущего daysDelta
-		var ZeroDateString = prop.ZeroDate || '01.01.2008';	// нулевая дата
-		var arr = ZeroDateString.split('.');
-		var zn = new Date(					// Начальная дата
-			(arr.length > 2 ? arr[2] : 2008),
-			(arr.length > 1 ? arr[1] - 1 : 0),
-			(arr.length > 0 ? arr[0] : 1)
-			);
-		var ZeroDate = new Date(zn.getTime()  - zn.getTimezoneOffset()*60000);	// UTC начальная дата шкалы
-
-		var hostName = prop.hostName || 'maps.kosmosnimki.ru';
-		var baseAddress = "http://" + hostName + "/";
-		var layerName = prop.name || prop.image;
-		var sessionKey = isRequiredAPIKey( hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
-		var prefix = baseAddress + 
-				"TileSender.ashx?ModeKey=tile" + 
-				"&MapName=" + encodeURIComponent(prop.mapName) + 
-				"&LayerName=" + encodeURIComponent(layerName) + 
-				(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-				(sessionKey2 ? ("&MapSessionKey=" + encodeURIComponent(sessionKey2)) : "");
-		if(prop._TemporalDebugPath) {
-			prefix = prop._TemporalDebugPath;
-			//temporalData['_TemporalDebugPath'] = prop._TemporalDebugPath;
-		}
-		var identityField = prop.identityField;
-		var TemporalColumnName = prop.TemporalColumnName || 'Date';
-		
-		// Начальный интервал дат
-		var DateEnd = new Date();
-		if(prop.DateEnd) {
-			var arr = prop.DateEnd.split('.');
-			if(arr.length > 2) DateEnd = new Date(arr[2], arr[1] - 1, arr[0]);
-		}
-		var DateBegin = new Date(DateEnd - oneDay);
-			
-			
 		// Формирование Hash списка версий тайлов мультивременного слоя
 		function getTilesHash(prop, ph)
 		{
@@ -84,67 +81,68 @@
 		this.getTilesHash = getTilesHash;
 
 		function prpTemporalTiles(data, vers) {
-			var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
-			var deltaHash = {};
-			var ph = {};
-			var arr = [];
-			if(!vers) vers = [];
-			if(!data) data = [];
-			for (var nm=0; nm<data.length; nm++)
-			{
-				arr = data[nm];
-				if(!arr || !arr.length || arr.length < 5) {
-					gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': prop.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
-					continue;
-				}
-				var v = vers[nm] || 0;
-				var z = arr[4];
-				if(z < 1) continue;
-				var i = arr[2];
-				var j = arr[3];
-				if(!ph[z]) ph[z] = {};
-				if(!ph[z][i]) ph[z][i] = {};
-				if(!ph[z][i][j]) ph[z][i][j] = [];
-				ph[z][i][j].push(arr);
+			var deltaArr = [],      // интервалы временных тайлов [8, 16, 32, 64, 128, 256]
+                deltaHash = {},
+                ph = {};
+            //var arr = [];
+            if(!vers) vers = [];
+            if(!data) data = [];
 
-				if(!deltaHash[arr[0]]) deltaHash[arr[0]] = {};
-				if(!deltaHash[arr[0]][arr[1]]) deltaHash[arr[0]][arr[1]] = [];
-				deltaHash[arr[0]][arr[1]].push([i, j, z, v]);
-			}
-			var arr = [];
-			for (var z in ph)
-				for (var i in ph[z])
-					for (var j in ph[z][i])
-						arr.push(i, j, z);
-			
-			for (var delta in deltaHash) deltaArr.push(parseInt(delta));
-			deltaArr = deltaArr.sort(function (a,b) { return a - b;});
-			return {'dateTiles': arr, 'hash': ph, 'deltaHash': deltaHash, 'deltaArr': deltaArr};
-		}
+            for (var i = 0, len = data.length; i < len; i++) {
+                var arr1 = data[i];
+                if(!arr1 || !arr1.length || arr1.length < 5) {
+                    gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': prop.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
+                    continue;
+                }
+                var z = Number(arr1[4]),
+                    y = Number(arr1[3]),
+                    x = Number(arr1[2]),
+                    s = Number(arr1[1]),
+                    d = Number(arr1[0]),
+                    v = Number(vers[i]),
+                    gmxTileKey = z + '_' + x + '_' + y + '_' + v + '_' + s + '_' + d;
+                    
+                //tiles[gmxTileKey] = {x: x, y: y, z: z, s: s, d: d};
+                if (!ph[z]) ph[z] = {};
+                if (!ph[z][x]) ph[z][x] = {};
+                if (!ph[z][x][y]) ph[z][x][y] = [];
+                ph[z][x][y].push(arr1);
+                if (!deltaHash[d]) deltaHash[d] = {};
+                if (!deltaHash[d][s]) deltaHash[d][s] = [];
+                deltaHash[d][s].push([x, y, z, v]);
+            }
 
-		temporalData = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers);
+            var arr = [];
+            for (var z in ph)
+                for (var x in ph[z])
+                    for (var y in ph[z][x])
+                        arr.push(x, y, z);
 
-		this.temporalData = temporalData;
+            for (var delta in deltaHash) deltaArr.push(parseInt(delta));
+            deltaArr = deltaArr.sort(function (a,b) { return a - b;});
+            return {dateTiles: arr, hash: ph, deltaHash: deltaHash, deltaArr: deltaArr};
+        }
 
+        temporalData = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers);
 
-		var prpTemporalFilter = function(DateBegin, DateEnd, columnName)	// Подготовка строки фильтра
-		{
-			var dt1 = DateBegin;		// начало периода
-			var dt2 = DateEnd;			// конец периода
-			return {
-				'dt1': dt1
-				,'dt2': dt2
-				,'ut1': Math.floor(dt1.getTime() / 1000)
-				,'ut2': Math.floor(dt2.getTime() / 1000)
-			};
-		}
+        this.temporalData = temporalData;
+
+        var prpTemporalFilter = function(DateBegin, DateEnd, columnName)	// Подготовка строки фильтра
+        {
+            var dt1 = DateBegin;		// начало периода
+            var dt2 = DateEnd;			// конец периода
+            return {
+                'dt1': dt1
+                ,'dt2': dt2
+                ,'ut1': Math.floor(dt1.getTime() / 1000)
+                ,'ut2': Math.floor(dt2.getTime() / 1000)
+            };
+        }
 
 		var getDateIntervalTiles = function(dt1, dt2, tdata) {			// Расчет вариантов от begDate до endDate
 			var days = parseInt(1 + (dt2 - dt1)/oneDay);
 			var minFiles = 1000;
 			var outHash = {};
-
-			//var _TemporalDebugPath = tdata['_TemporalDebugPath'];
 
 			function getFiles(daysDelta) {
 				var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'TilesVersionHash': {}, 'out': ''};
@@ -244,9 +242,8 @@
 		ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
 		temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
 
-		// 
 		var me = this;
-		
+
 		var setDateInterval = function(dt1, dt2, tdata)
 		{
 			if(!tdata) tdata = mapObj._temporalTiles.temporalData;
@@ -342,55 +339,54 @@
 			}
 		}
 
-		//расширяем FlashMapObject
-		gmxAPI.extendFMO('setDateInterval', function(dt1, dt2) {
-//console.log('setDateInterval : ' , dt1 , ' : ' , dt2);
-			if(!this._temporalTiles) return false;
-			var tdata = this._temporalTiles.temporalData;
-			this._temporalTiles.setDateInterval(dt1, dt2, tdata);
-			if(!this.isVisible) {
-				delete tdata.currentData.begDate;
-				delete tdata.currentData.endDate;
-			}
-			gmxAPI._listeners.dispatchEvent('onChangeDateInterval', this, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
-		});
+        // Добавление прослушивателей событий
+        mapObj.addListener('onChangeVisible', function(flag) {
+            if(flag) {
+                mapObj.setDateInterval = function(dt1, dt2) {
+                    if(!mapObj._temporalTiles) return false;
+                    var tdata = mapObj._temporalTiles.temporalData;
+                    mapObj._temporalTiles.setDateInterval(dt1, dt2, tdata);
+                    if(!mapObj.isVisible) {
+                        delete tdata.currentData.begDate;
+                        delete tdata.currentData.endDate;
+                    }
+                    gmxAPI._listeners.dispatchEvent('onChangeDateInterval', mapObj, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
+                };
+                mapObj.getDateInterval = function() {
+                    if(mapObj.properties.type !== 'Vector' || !mapObj._temporalTiles) return null;
+                    var tdata = mapObj._temporalTiles.temporalData;
+                    return {
+                        beginDate: tdata.currentData.dt1
+                        ,endDate: tdata.currentData.dt2
+                    };
+                };
 
-		gmxAPI.extendFMO('getTileCounts', function(dt1, dt2) {
-			if(this.properties.type !== 'Vector') return 0;
-			var tdata = this.properties.tiles;
-			var thash = null;
-			if(this._temporalTiles) {
-				var pt = this._temporalTiles.getDateIntervalTiles(dt1, dt2, this._temporalTiles.temporalData);
-				tdata = pt.dtiles;
-				thash = pt.tiles;
-			}
-			return gmxAPI.filterVisibleTiles(tdata, thash);
-		});
+                mapObj.getTileCounts = function(dt1, dt2) {
+                    if(mapObj.properties.type !== 'Vector') return 0;
+                    var tdata = mapObj.properties.tiles;
+                    var thash = null;
+                    if(mapObj._temporalTiles) {
+                        var pt = mapObj._temporalTiles.getDateIntervalTiles(dt1, dt2, mapObj._temporalTiles.temporalData);
+                        tdata = pt.dtiles;
+                        thash = pt.tiles;
+                    }
+                    return gmxAPI.filterVisibleTiles(tdata, thash);
+                };
 
-		gmxAPI.extendFMO('getDateInterval', function(dt1, dt2) {
-			if(this.properties.type !== 'Vector' || !this._temporalTiles) return null;
-			var tdata = this._temporalTiles.temporalData;
-			return {
-                beginDate: tdata.currentData.dt1
-                ,endDate: tdata.currentData.dt2
-            };
-		});
-		
-		// Добавление прослушивателей событий
-		mapObj.addListener('onChangeVisible', function(flag)
-			{
-				if(flag) me.setDateInterval();
-				//gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
-			}
-		);
-		mapObj.addListener('onLayer', function(obj)
-			{
-				var currentData = obj._temporalTiles.temporalData.currentData;
-				obj.setDateInterval(currentData.dt1, currentData.dt2);
-			}
-		);
-		
-	}
-	//расширяем namespace
+                mapObj.setDateInterval(
+                    mapObj.dt1 || me.temporalData.currentData.dt1
+                    ,mapObj.dt2 || me.temporalData.currentData.dt2
+                );
+                delete mapObj.dt1;
+                delete mapObj.dt2;
+            }
+            //gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
+        });
+        mapObj.addListener('onLayer', function(obj) {
+            var currentData = obj._temporalTiles.temporalData.currentData;
+            obj.setDateInterval(currentData.dt1, currentData.dt2);
+        });
+    }
+    //расширяем namespace
     gmxAPI._TemporalTiles = TemporalTiles;
 })();
