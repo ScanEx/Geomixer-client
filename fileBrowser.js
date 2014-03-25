@@ -222,6 +222,43 @@ fileBrowser.prototype._showWarningDialog = function() {
     showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
 }
 
+fileBrowser.prototype._uploadFilesAjax = function(formData) {
+    var _this = this;
+    $(this.progressBar).progressbar('option', 'value', 0);
+    $(this.progressBar).show();
+    
+    formData.append('WrapStyle', 'None');
+    
+    var xhr = new XMLHttpRequest();
+    
+    xhr.upload.addEventListener("progress", function(e) {
+        _this.progressBar && $(_this.progressBar).progressbar('option', 'value', e.loaded / e.total * 100);
+    }, false);
+    
+    xhr.open('POST', serverBase + 'FileBrowser/Upload.ashx');
+    xhr.withCredentials = true;
+    xhr.onload = function () {
+        $(_this.progressBar).hide();
+        if (xhr.status === 200) {
+            response = JSON.parse(xhr.responseText);
+            
+            if (!parseResponse(response))
+                return;
+                
+            if (typeof response.Result == 'string') {
+                var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+                    fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+                
+                _this.shownPath = fileName;
+            }
+            
+            _this.getFiles();
+        }
+    };
+    
+    xhr.send(formData);    
+}
+
 fileBrowser.prototype.loadInfoHandler = function()
 {
     var _this = this;
@@ -266,39 +303,11 @@ fileBrowser.prototype.loadInfoHandler = function()
         for (var f = 0; f < files.length; f++) {
             formData.append('rawdata', files[f]);
         }
+        
         formData.append('ParentDir', _this._path.get());
-        formData.append('WrapStyle', 'None');
         
-        $(_this.progressBar).progressbar('option', 'value', 0);
-        $(_this.progressBar).show();
+        _this._uploadFilesAjax(formData);
         
-        var xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", function(e) {
-            //console.log(e);
-            _this.progressBar && $(_this.progressBar).progressbar('option', 'value', e.loaded / e.total * 100);
-        }, false);
-        xhr.open('POST', serverBase + 'FileBrowser/Upload.ashx');
-        xhr.withCredentials = true;
-        xhr.onload = function () {
-            $(_this.progressBar).hide();
-            if (xhr.status === 200) {
-                response = JSON.parse(xhr.responseText);
-                
-                if (!parseResponse(response))
-                    return;
-                    
-                if (typeof response.Result == 'string') {
-                    var indexSlash = String(response.Result).lastIndexOf(_this.slash),
-                        fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-                    
-                    _this.shownPath = fileName;
-                }
-                
-                _this.getFiles();
-            }
-        };
-        
-        xhr.send(formData);
         return false;
     })
 	
@@ -314,16 +323,7 @@ fileBrowser.prototype.loadInfoHandler = function()
 
 fileBrowser.prototype._updateUploadVisibility = function()
 {
-	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this._path.isInHome())
-	{
-		this.fileUpload.style.display = '';
-		this.tdAddFolder.style.display = '';
-	}
-	else
-	{
-		this.fileUpload.style.display = 'none';
-		this.tdAddFolder.style.display = 'none';
-	}
+    $([this.fileUpload, this.tdAddFolder]).toggle(nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this._path.isInHome())
 }
 
 fileBrowser.prototype.createHeader = function()
@@ -407,16 +407,8 @@ fileBrowser.prototype.createHeader = function()
 	
 	showFolderButton.onclick = function()
 	{
-		if (newFolderName.style.display == 'none')
-		{
-			newFolderName.style.display = '';
-			newFolderButton.style.display = '';
-		}
-		else
-		{
-			newFolderName.style.display = 'none';
-			newFolderButton.style.display = 'none';
-		}
+        $(newFolderName).toggle().focus();
+        $(newFolderButton).toggle();
 	}
 	
 	newFolderName.style.display = 'none';
@@ -444,7 +436,12 @@ fileBrowser.prototype.createHeader = function()
 			inputError(newFolderName);
 	}
 	
-	this.tdAddFolder = _td([_table([_tbody([_tr([_td([showFolderButton], [['attr','vAlign','top']]),_td([newFolderName]),_td([newFolderButton])])])])], [['attr','vAlign','top']]),
+	this.tdAddFolder = _td([_table([_tbody([_tr([
+            _td([showFolderButton], [['attr','vAlign','top']]),
+            _td([newFolderName]),
+            _td([newFolderButton])]
+        )])])], [['attr','vAlign','top'], ['css','height','20px']]);
+        
 	discButtonTds.push(this.tdAddFolder);
 	
 	_(this.fileHeader, [_table([_tbody([_tr(discButtonTds)])])]);
@@ -452,21 +449,26 @@ fileBrowser.prototype.createHeader = function()
 
 fileBrowser.prototype.createUpload = function()
 {
-	var //uploadPath = _input(null,[['attr','type','hidden'], ['attr','name','ParentDir']]),
-		uploadFileButton = makeButton(_gtxt("Загрузить файл")),
-		div = _div(null, [['css','height','30px']]),
+	var div = _div(null, [['css','height','30px']]),
 		_this = this;
 	
 	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=message'],['attr','target','fileBrowserUpload_iframe']]);
-	// _(formFile, [uploadPath]);
 
 	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px'], ['attr','multiple','multiple']]);
 	_(formFile, [attach]);
-	
-	uploadFileButton.onclick = function()
+    
+    attach.onchange = function()
 	{
         if (attach.files && attach.files[0] && attach.files[0].size > fileBrowser.MAX_UPLOAD_SIZE) {
             _this._showWarningDialog();
+            return;
+        }
+        
+        //если можем послать через AJAX, посылаем - будет работать прогресс-бар
+        if (window.FormData) {
+            var formData = new FormData(formFile);
+            formData.append('ParentDir', _this._path.get());
+            _this._uploadFilesAjax(formData);
             return;
         }
         
@@ -489,17 +491,17 @@ fileBrowser.prototype.createUpload = function()
             formFile
         );
 	}
+    
+    var dropInfoDiv = window.FormData ? _div([_t(_gtxt('FileBrowser.DropInfo'))], [['dir', 'className', 'fileBrowser-dragFileMessage']]) : _div();
 	
 	_(div, [
-        _div([_t("Перетащите файлы сюда")], [['dir', 'className', 'fileBrowser-dragFileMessage']]),
+        dropInfoDiv,
         _table([_tbody([_tr([
-            _td([formFile], [['css', 'paddingTop', '18px']]), 
-            _td([uploadFileButton], [['css', 'paddingTop', '18px']])
+            _td([formFile], [['css', 'paddingTop', '18px']])
         ])])])
     ]);
     
-    var progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100});
-    progressBar.hide();
+    var progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100}).hide();
     
     this.progressBar = progressBar[0];
 	
