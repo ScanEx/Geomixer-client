@@ -276,40 +276,39 @@ mapHelper.prototype.setBalloon = function(filter, template)
 	});
 }
 
-mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
+mapHelper.prototype.updateMapStyles = function(newStyles, name)
 {
+    var layer = globalFlashMap.layers[name];
+    
 	// удалим старые фильтры
-	for (var i = globalFlashMap.layers[name].filters.length - 1; i > -1; i--)
+	for (var i = layer.filters.length - 1; i > -1; i--)
 	{
-		globalFlashMap.layers[name].filters[i].remove();
+		layer.filters[i].remove();
 	}
 	
-	globalFlashMap.layers[name].filters = [];
+	layer.filters = [];
 	
 	// добавим новые
-	for (var i = 0; i < newStyles.length; i++)
+	newStyles.forEach(function(style)
 	{
-		var newFilter = globalFlashMap.layers[name].addObject();
+		var newFilter = layer.addObject();
 		
-		if (newStyles[i].Filter)
-			newFilter.setFilter(newStyles[i].Filter);
+		if (style.Filter)
+			newFilter.setFilter(style.Filter);
 		else
 			newFilter.setFilter();
 		
-		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyles[i]);
+		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, style);
 		
-		newFilter.setStyle(newStyles[i].RenderStyle);
+		newFilter.setStyle(style.RenderStyle);
         
-        if (newStyles[i].clusters)
-            newFilter.setClusters(newStyles[i].clusters);
+        if (style.clusters)
+            newFilter.setClusters(style.clusters);
 		
-		newFilter.setZoomBounds(Number(newStyles[i].MinZoom), Number(newStyles[i].MaxZoom));
+		newFilter.setZoomBounds(Number(style.MinZoom), Number(style.MaxZoom));
 		
-		globalFlashMap.layers[name].filters.push(newFilter);
-	}
-	
-	var properties = typeof newProperties == 'undefined' ? globalFlashMap.layers[name].properties : newProperties;
-    
+		layer.filters.push(newFilter);
+	})
 }
 
 //TODO: remove isEditableStyles

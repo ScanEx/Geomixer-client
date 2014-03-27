@@ -1441,14 +1441,14 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				{
 					globalFlashMap.layers[name].setVisible(true);
 					
-					_mapHelper.updateMapStyles(newStyles, name, props);
+					_mapHelper.updateMapStyles(newStyles, name);
 					
 					globalFlashMap.layers[name].setVisible(visibleFlag);
                     
                     props.changedByViewer = true;
 				}
 				else
-					_mapHelper.updateMapStyles(newStyles, name, props);
+					_mapHelper.updateMapStyles(newStyles, name);
 				
                 div && _mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
 			}
