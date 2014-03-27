@@ -1,6 +1,7 @@
+(function() {
 //Контроллёр контектных меню и соответствующие пункты всех меню...
 
-var nsGmx = nsGmx || {};
+nsGmx = nsGmx || {};
 
 /** 
 * Контроллёр контекстных меню.
@@ -118,7 +119,7 @@ nsGmx.ContextMenuController = (function()
 				titleLink.onclick = function()
 				{
 					context.contentMenuArea = getOffsetRect(this);
-					context.contextMenuType = type;
+					context.contentMenuType = type;
 					_contextClose();
 					$(this).removeClass('buttonLinkHover');
 					menuElem.clickCallback(context);
@@ -164,7 +165,7 @@ nsGmx.ContextMenuController = (function()
 		 * @param {String} type Тип меню
 		 * @param {function():Boolean} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
 		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
-		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contextMenuType.
+		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contentMenuType.
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)
 		{
@@ -377,33 +378,65 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	}
 }, 'Layer');
 
-nsGmx.ContextMenuController.addContextMenuElem({
+var applyStyleContentMenuItem = {
 	title: function() { return _gtxt("Применить стиль"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
-				context.elem.type == "Vector" && 
-                nsGmx.ClipboardController.getCount('LayerStyle') > 0 &&
+        if (context.layerManagerFlag || 
+            _queryMapLayers.currentMapRights() !== "edit" || 
+            nsGmx.ClipboardController.getCount('LayerStyle') === 0 ) 
+        {
+            return false;
+        }
+        
+        if (context.contentMenuType === 'Layer') {
+            return context.elem.type == "Vector" && 
                 nsGmx.ClipboardController.get('LayerStyle', -1).type === context.elem.GeometryType;
+        } else { //группы
+            return true;
+        }
 	},
 	clickCallback: function(context)
-	{		
-		var newStyles = nsGmx.ClipboardController.popItem('LayerStyle').style;
-		var div;
-		
-		if (context.elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
-		
-		div.gmxProperties.content.properties.styles = newStyles;
-		
-		_mapHelper.updateMapStyles(newStyles, context.elem.name);
-		
-		_mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
+	{
+		var 
+            newStyles = nsGmx.ClipboardController.get('LayerStyle', -1).style,
+            stylesType = nsGmx.ClipboardController.get('LayerStyle', -1).type;
+            
+		if (context.contentMenuType === 'Layer') {
+            var div;
+            if (context.elem.LayerID)
+                div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
+            else
+                div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+            
+            div.gmxProperties.content.properties.styles = newStyles;
+            
+            _mapHelper.updateMapStyles(newStyles, context.elem.name);
+            
+            _mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
+        } else { //группа
+            var tree = context.tree.treeModel,
+                node = tree.findElemByGmxProperties(context.div.gmxProperties).elem;
+                
+            tree.forEachLayer(function(layerContent) {
+                if (layerContent.properties.type !== "Vector" || layerContent.properties.GeometryType !== stylesType){
+                    return;
+                };
+                
+                layerContent.properties.styles = newStyles;
+                _mapHelper.updateMapStyles(newStyles, layerContent.properties.name);
+                
+                var div = context.tree.findUITreeElem({content: layerContent});
+                if (div) {
+                    // div.gmxProperties.content.properties.styles = newStyles;
+                    _mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
+                }
+            }, node);
+        }
 	}
-}, 'Layer');
+};
+
+nsGmx.ContextMenuController.addContextMenuElem(applyStyleContentMenuItem, 'Layer');
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Контекстное меню групп ////////////////////////////
@@ -439,6 +472,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		_mapHelper.updateUnloadEvent(true);
 	}
 }, 'Group');
+
+nsGmx.ContextMenuController.addContextMenuElem(applyStyleContentMenuItem, 'Group');
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Контекстное меню карты ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -478,3 +513,5 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	}
 }, 'Map');
+
+})();
