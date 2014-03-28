@@ -96,7 +96,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
     var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id});
     var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
-    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '480px');
+    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '478px');
     var visLayerCanvas   = $('<div/>', {id: 'vislayer' + id});
     
     var tabMenu = _div([_ul([_li([_a([_t(_gtxt("Существующие слои"))],[['attr','href','#existlayer' + id]])]),
@@ -130,9 +130,10 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     });
     
     var sizeProvider = function() {
+        console.log(dialogCanvas[0].parentNode.offsetHeight, dialogCanvas[0].parentNode.parentNode.offsetWidth);
         return {
-            width: dialogCanvas[0].parentNode.parentNode.offsetWidth,
-            height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight - 5
+            width: dialogCanvas[0].parentNode.parentNode.offsetWidth - 1,
+            height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight - 9
         }
     }
     
@@ -254,8 +255,9 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     }
     
     $(tabMenu).tabs({
-        select: function(event, ui) {
-            if (ui.index === 4) { //выбираем на карте - добавляем ко всем растрам listeners
+        activate: function(event, ui) {
+            var index = $(tabMenu).tabs('option', 'active');
+            if (index === 4) { //выбираем на карте - добавляем ко всем растрам listeners
                 listeners = [];
                 for (var iL = 0; iL < globalFlashMap.layers.length; iL++) (function(layer) 
                 {

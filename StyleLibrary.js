@@ -593,11 +593,8 @@
 
             var tabsContainer = container.find('#stylelib-styles-tab');
             tabsContainer.tabs({
-                select: function( event, ui ) {
-                    //Делаем таймаут, так как в момент вызова этого события tabs('option', 'selected') возвращает предыдущее значение
-                    setTimeout(function() {
-                        $(retObject).change();
-                    }, 0); 
+                activate: function( event, ui ) {
+                    $(retObject).change();
                 },
                 selected: (dialogMode === 'select' && {POINT: 0, LINESTRING: 1, POLYGON: 2}[geometryType]) || 0
             });
@@ -607,7 +604,7 @@
             }
             
             getActiveStyle = function() {
-                var tabIndex = $(tabsContainer).tabs('option', 'selected');
+                var tabIndex = $(tabsContainer).tabs('option', 'active');
                 
                 var styleView = styleViews[['POINT', 'LINESTRING', 'POLYGON'][tabIndex]];
                 if (!styleView) return null;
@@ -621,7 +618,7 @@
             }
             
             $('.stylelib-style-controls .stylelib-style-add', container).click(function() {
-                var tabIndex = $(tabsContainer).tabs('option', 'selected');
+                var tabIndex = $(tabsContainer).tabs('option', 'active');
                 var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
                     styleView = styleViews[type];
                     

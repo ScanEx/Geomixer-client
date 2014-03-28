@@ -1092,7 +1092,7 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 		var pos = nsGmx.Utils.getDialogPos(spanIcon, false, 160);
 		showDialog(_gtxt('Редактирование стилей объекта'), tabMenu, 330, 180, pos.left, pos.top, false, closeFunc);
 		
-		$(tabMenu).tabs({selected: 0});
+		$(tabMenu).tabs({active: 0});
 	}
 	
 	spanIcon.getStyle = function()

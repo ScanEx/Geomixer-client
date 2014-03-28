@@ -346,12 +346,6 @@ nsGmx.Controls = {
             
             dialogDiv.style.height = div.offsetHeight + 'px';
             dialogDiv.style.minHeight = div.offsetHeight + 'px';
-            
-            // if ($.browser.msie)
-            // {
-                // dialogDiv.parentNode.style.height = div.offsetHeight + 'px';
-                // dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
-            // }
         }, 100)
         
         nsGmx.TagMetaInfo.loadFromServer(function(tagInfo)

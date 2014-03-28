@@ -732,10 +732,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         spanElem.gmxObject = parent;
 		
 		box.className = 'floatLeft';
-		
-		if ($.browser.msie)
-			box.style.margin = '-3px -2px 0px -2px';
-			
+
 		(function(layer, parent, box){
 			spanElem.onclick = function()
 			{
@@ -873,9 +870,6 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		box.className = 'floatLeft';
 		
 		box.setAttribute('layerName', serviceLayers[i].name);
-		
-		if ($.browser.msie)
-			box.style.margin = '-3px -2px 0px -2px';
 		
 		(function(layer, parent, parentTreeCanvas, box, header){
 			spanElem.onclick = function()

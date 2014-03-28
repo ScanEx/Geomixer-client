@@ -1,0 +1,178 @@
+/* Corner radius */
+.ui-corner-all,
+.ui-corner-top,
+.ui-corner-left,
+.ui-corner-tl {
+	border-top-left-radius: 0px/*{cornerRadius}*/;
+}
+.ui-corner-all,
+.ui-corner-top,
+.ui-corner-right,
+.ui-corner-tr {
+	border-top-right-radius: 0px/*{cornerRadius}*/;
+}
+.ui-corner-all,
+.ui-corner-bottom,
+.ui-corner-left,
+.ui-corner-bl {
+	border-bottom-left-radius: 0px/*{cornerRadius}*/;
+}
+.ui-corner-all,
+.ui-corner-bottom,
+.ui-corner-right,
+.ui-corner-br {
+	border-bottom-right-radius: 0px/*{cornerRadius}*/;
+}
+
+/* common */
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default {
+    border: 1px solid #6EB8CE;
+    background: #EDF4F6;
+    color: #2779AA;
+    outline: none;
+}
+
+.ui-widget-content {
+    border: none;
+    background: #FAFAFE;
+    color: #362B36;
+}
+
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+    font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
+}
+
+/* dialog*/
+
+.ui-dialog {
+    overflow: visible;
+    padding: 0px;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    padding: .5em .3em .3em 1em;
+}
+
+.ui-resizable-n { height: 11px; top: -11px; background:url(../jquery/images/dialog-top.png) repeat-x;}
+.ui-resizable-s { height: 20px; bottom: -20px; background:url(../jquery/images/dialog-bottom.png) repeat-x;}
+.ui-resizable-e { width: 13px; right: -13px; background:url(../jquery/images/dialog-right.png) repeat-y;}
+.ui-resizable-w { width: 13px; left: -13px; background:url(../jquery/images/dialog-left.png) repeat-y;}
+.ui-dialog .ui-resizable-se { width: 13px; height: 20px; right: -13px; bottom: -20px; background:url(../jquery/images/dialog-bottom-right.png) no-repeat;}
+.ui-resizable-sw { width: 13px; height: 20px; left: -13px; bottom: -20px; background:url(../jquery/images/dialog-bottom-left.png) no-repeat;}
+.ui-resizable-nw { width: 13px; height: 11px; left: -13px; top: -11px; background:url(../jquery/images/dialog-top-left.png) no-repeat;}
+.ui-resizable-ne { width: 13px; height: 11px; right: -13px; top: -11px; background:url(../jquery/images/dialog-top-right.png) no-repeat;}
+
+.ui-dialog .ui-dialog-content {
+    padding: 0px;
+    margin: 3px 5px;
+}
+
+.ui-widget-header {
+    border: 1px solid #216B9C;
+    background: #539ABC;
+    color: #222;
+    font-weight: normal;
+}
+
+.ui-dialog .ui-dialog-title {
+    float: left;
+    margin: .1em 0 .2em;
+    color: #FFF;
+    font-size: 12px;
+}
+
+/* close button */
+.ui-widget-header .ui-dialog-titlebar-close {
+    border: none;
+    background: none;
+}
+
+.ui-state-default .ui-icon.ui-icon-closethick {
+    background: url(../img/close.png) 0px 0px;
+}
+
+.ui-state-hover .ui-icon.ui-icon-closethick {
+    background: url(../img/close_orange.png) 0px 0px;
+}
+
+/* tabs */
+
+.ui-tabs {
+    padding: 0px;
+}
+
+.ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+    padding: 1px 5px;
+}
+
+.ui-tabs-anchor:focus {
+    outline: none;
+}
+
+.ui-tabs .ui-tabs-panel {
+    padding: 5px 0px 5px 0px;
+}
+
+.ui-tabs {
+	position: static;
+}
+
+/* datepicker */
+.ui-datepicker {
+    border: 1px solid #216B9C;
+}
+
+.ui-datepicker-prev.ui-state-hover, .ui-datepicker-next.ui-state-hover {
+    background: none;
+    border: none;
+}
+
+.ui-datepicker .ui-icon.ui-icon-circle-triangle-e {
+    background: url(../img/arrows.png) no-repeat 0px -18px;
+}
+
+.ui-datepicker .ui-state-hover .ui-icon.ui-icon-circle-triangle-e {    
+    background: url(../img/arrows.png) no-repeat 0px -38px;
+}
+
+.ui-datepicker .ui-icon.ui-icon-circle-triangle-w {
+    background: url(../img/arrows.png) no-repeat -18px -18px;
+}
+
+.ui-datepicker .ui-state-hover .ui-icon.ui-icon-circle-triangle-w {
+    background: url(../img/arrows.png) no-repeat -18px -38px;
+}
+
+.ui-datepicker .ui-datepicker-prev {
+    top: 0px;
+    left: -1px;
+}
+
+.ui-datepicker .ui-datepicker-next {
+    top: 0px;
+    right: 3px;
+}
+
+.ui-datepicker select.ui-datepicker-year {
+    float: right;
+}
+
+.ui-datepicker th {
+    font-weight: normal;
+}
+
+.ui-datepicker .ui-state-highlight {
+    background: #FFEF8F;
+}
+
+/*autocomplete*/ 
+.ui-autocomplete .ui-state-focus {
+    border: 1px solid #74B2E2;
+    background: #E4F1FB;
+}
+
+.ui-autocomplete {
+    z-index: 101;
+}

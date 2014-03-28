@@ -211,7 +211,7 @@ EYE.extend({
 		if (!el || !el.nodeType || el.nodeType != 1) {
 			return false;
 		}
-		if (parentEl.contains && !$.browser.safari) {
+		if (parentEl.contains) {
 			return parentEl.contains(el);
 		}
 		if ( parentEl.compareDocumentPosition ) {

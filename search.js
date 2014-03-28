@@ -280,7 +280,7 @@ var SearchInput = function (oInitContainer, params) {
 		$(searchField).autocomplete("widget")[0].arrSearchWords = [];
 		
         
-		$(searchField).data("autocomplete")._renderItem = function( ul, item) {
+		$(searchField).data("ui-autocomplete")._renderItem = function( ul, item) {
 			var t = item.label;
 			for (var i=0; i<ul[0].arrSearchWords.length; i++){
 				if(ul[0].arrSearchWords[i].length > 1){

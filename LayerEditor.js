@@ -341,10 +341,10 @@ var LayerEditor = function(div, type, parent, properties, params) {
     this._saveButton = null;
     
     this.selectTab = function(tabName) {
-        var selectedTab = $(tabMenu).tabs('option', 'selected');
+        var selectedTab = $(tabMenu).tabs('option', 'active');
         $.each(tabs, function(i, tab) {
             if (tab.name === tabName && i !== selectedTab) {
-                $(tabMenu).tabs("select", i);
+                $(tabMenu).tabs('option', 'active', i);
             }
         })
     }
@@ -558,9 +558,10 @@ var LayerEditor = function(div, type, parent, properties, params) {
     
     var selectIndex = getTabIndex(params.selected);
     $(tabMenu).tabs({
-        selected: selectIndex > -1 ? selectIndex : 0,
-        select: function(event, ui) {
-            $(saveMenuCanvas).toggle(ui.index < _this._originalTabs.length);
+        active: selectIndex > -1 ? selectIndex : 0,
+        activate: function(event, ui) {
+            var activeIndex = $(tabMenu).tabs('option', 'active');
+            $(saveMenuCanvas).toggle(activeIndex < _this._originalTabs.length);
         }
     });
     
@@ -864,7 +865,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     sourceCheckbox.find('input').click(function()
     {
         var activeIdx = $(this).data('containerIdx');
-        $(sourceTab).tabs('select', activeIdx);
+        $(sourceTab).tabs('option', 'active', activeIdx);
     });
         
             
@@ -881,10 +882,10 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     _(sourceTab, sourceContainers);
         
     $(sourceTab).tabs({
-        selected: selectedSource,
-        select: function(event, ui)
+        active: selectedSource,
+        activate: function(event, ui)
         {
-            selectedSource = ui.index;
+            var selectedSource = $(sourceTab).tabs('option', 'active');
     
             if (selectedSource == 0) {
                 layerProperties.set('Columns', fileSourceColumns);

@@ -429,7 +429,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                                  _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + elemProperties.name]])])])]);
                              
         _(dialogContainer, [divProperties, divStyles]);
-        $(dialogContainer).tabs({selected: 0});
+        $(dialogContainer).tabs({active: 0});
     }
     else
         dialogContainer = divProperties;

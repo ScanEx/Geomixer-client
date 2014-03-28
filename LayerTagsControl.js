@@ -356,19 +356,18 @@
                 appendTo: "#layertagstable",
                 select: function(event, ui)
                 {
-                    tagInput.val(ui.item.value);
-                    updateModel(ui.item.value, valueInput.val());
+                    tagInput.val(ui.item.name);
+                    updateModel(ui.item.name, valueInput.val());
                     return false;
                 }
             }).bind('click', function(){
                 $(tagInput).autocomplete("search", "");
             });
             
-            tagInput.data( "autocomplete" )._renderItem = function( ul, item ) 
+            tagInput.data( "ui-autocomplete" )._renderItem = function( ul, item ) 
             {
                 return $( "<li/>")
-                    .data( "item.autocomplete", {value: item.name} )
-                    .append( $("<a/>", {title: item.desc}).text(item.name) )
+                    .append($("<a/>", {title: item.desc}).text(item.name))
                     .appendTo( ul );
             }
             

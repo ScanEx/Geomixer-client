@@ -7,7 +7,7 @@
 		createAPIMap: function(mapName, hostName, options)
 		{
 			var id = 'flash' + Math.random(),
-				br = ($.browser.msie) ? "\n\r" : "\n",
+				br = "\n",
 				mapText = "<div>" + br + "\t<div id=\"" + id + "\" style=\"width: 600px; height: 400px; overflow:hidden;\"></div>" + br;
 			
 			if ( options && options.apiKey )

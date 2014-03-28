@@ -68,11 +68,11 @@ queryBinding.prototype.load = function()
 	
 	_(this.workArea, [this.imgCanvas]);
 	
-	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + getAPIHostRoot() + 'imgSave.ashx?WrapStyle=window" id="form" target="pictureBinding_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', getAPIHostRoot() + 'imgSave.ashx?WrapStyle=window'],['attr','target','pictureBinding_iframe']]);
+	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', getAPIHostRoot() + 'imgSave.ashx?WrapStyle=window'],['attr','target','pictureBinding_iframe']]);
 	formFile.style.width = '220px';
 	_(formFile, [_input(null,[['attr','type','hidden'],['attr','name','id'],['dir','className','inputStyle'], ['attr','value','pictureBinding' + Math.random()]])]);
 
-	var attach = ($.browser.msie) ? document.createElement('<input type="file" name="rawdata" size="25">') : _input(null,[['attr','type','file'],['dir','name','rawdata'],['attr','size',25]]);
+	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['attr','size',25]]);
 	_(formFile, [attach]);
 	
 	var loadButton = makeButton(_gtxt("Загрузить"));

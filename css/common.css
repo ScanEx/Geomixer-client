@@ -1586,7 +1586,7 @@ div.layersScroll
 
 .group-editor-tab-container {
     position: absolute;
-    top: 54px;
+    top: 24px;
     bottom: 2px;
     left: 5px;
     right: 5px;
@@ -1594,7 +1594,6 @@ div.layersScroll
 }
 
 .group-editor-blm-available, .group-editor-blm-map {
-    height: 100%;
     width: 50%;
     vertical-align: top;
     border: 1px #DEDEDE solid;
@@ -1625,6 +1624,7 @@ div.layersScroll
     text-align: center;
     font-size: 12px;
     border: 1px #DEDEDE solid;
+    height: 20px;
 }
 
 .group-editor-blm-table {

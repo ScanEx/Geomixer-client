@@ -496,7 +496,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		},
 		boxClick = _checkbox(!balloonParams.DisableBalloonOnClick && balloonParams.BalloonEnable, 'checkbox'),
 		boxMove = _checkbox(!balloonParams.DisableBalloonOnMouseMove && balloonParams.BalloonEnable, 'checkbox'),
-		br = $.browser.msie ? "\n\r" : "\n";
+		br = "\n";
         
         
     gmxCore.loadModule('TinyMCELoader', function() {

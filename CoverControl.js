@@ -109,7 +109,7 @@ CoverControl.prototype._addWidget = function()
 	var colorTds = [];
 	for (var i = 1; i < this.cloudsCount; i++)
 	{
-		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor', nsGmx.Utils.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
+		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height','7px'], ['css','backgroundColor', nsGmx.Utils.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
 	}
 	
 	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
@@ -210,12 +210,12 @@ CoverControl.prototype.fixLayers = function()
 		if ($(div[0]).children("[styleType='multi']").length) {
 			var icon = nsGmx.Controls.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
 				
-			if ($.browser.msie)
-			{
-				icon.style.width = '9px';
-				icon.style.height = '13px';
-				icon.style.margin = '0px 3px -3px 1px';
-			}
+			// if ($.browser.msie)
+			// {
+				// icon.style.width = '9px';
+				// icon.style.height = '13px';
+				// icon.style.margin = '0px 3px -3px 1px';
+			// }
 			
 			_title(icon, _gtxt("Редактировать стили"));
 			

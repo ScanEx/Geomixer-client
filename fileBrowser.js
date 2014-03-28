@@ -625,7 +625,7 @@ fileBrowser.prototype.findContent = function(value)
 	
 	for (var i = 0; i < tbody.childNodes.length; ++i)
 	{
-		var text = $.browser.msie ? tbody.childNodes[i].outerText.toLowerCase() : tbody.childNodes[i].textContent.toLowerCase()
+		var text = tbody.childNodes[i].textContent.toLowerCase();
 		
 		if (text != "[..]" && text.indexOf(value.toLowerCase()) == 0)
 			return tbody.childNodes[i].offsetTop;

@@ -1118,7 +1118,7 @@ function loadMap(state)
             
             _menuUp.checkView();
             
-            _queryMapLayers.removeUserActions();
+            // _queryMapLayers.removeUserActions();
             _iconPanel.updateVisibility();
             
             nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
