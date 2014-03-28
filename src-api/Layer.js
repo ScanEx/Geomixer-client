@@ -422,9 +422,6 @@
             if (!bounds) initBounds(obj.mercGeometry);
             return boundsLatLgn;
         };
-        obj.addListener('onChangeLayerVersion', function() {
-            initBounds(obj.mercGeometry);
-        });
         obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
             if (!boundsLatLgn) initBounds(obj.mercGeometry);
             return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
@@ -527,6 +524,13 @@
                     obj.shiftY = meta.shiftY ? meta.shiftY.Value : 0;
                 }
             }
+            var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
+            if(gmxAPI._layersVersion && isLayerVers) {  // Установлен модуль версий слоев + есть версии тайлов слоя
+                gmxAPI._layersVersion.chkVersion(obj);
+                obj.chkLayerVersion = function(callback) {
+                    gmxAPI._layersVersion.chkLayerVersion(obj, callback);
+                }
+            }
         }
         if('shiftX' in obj) obj.setPositionOffset(obj.shiftX, obj.shiftY);
 
@@ -562,13 +566,6 @@
             if(isTemporal && '_TemporalTiles' in gmxAPI) {
                 obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
                 
-            }
-            var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
-            if(gmxAPI._layersVersion && isLayerVers) {  // Установлен модуль версий слоев + есть версии тайлов слоя
-                gmxAPI._layersVersion.chkVersion(obj);
-                obj.chkLayerVersion = function(callback) {
-                    gmxAPI._layersVersion.chkLayerVersion(obj, callback);
-                }
             }
             if(pObj.isMiniMap) {
                 obj.isMiniMap = true;   // Все добавляемые к миникарте ноды имеют этот признак
@@ -675,6 +672,7 @@
                     proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
                 }
             }
+            if (obj.stateListeners.onChangeLayerVersion) obj.chkLayerVersion();
 
             var stylesMinMaxZoom = getMinMaxZoom(layer.properties);
             if (isRaster) {
@@ -867,7 +865,10 @@
                     return proxy('isLoadingFreezed', { obj: obj });
                 }
             });
-            if(obj._isLoadingFreezed) proxy('setFreezeLoading', { obj: obj, attr:true });
+            if (obj._isLoadingFreezed) proxy('setFreezeLoading', { obj: obj, attr:true });
+            obj.addListener('onChangeLayerVersion', function() {
+                initBounds(obj.mercGeometry);
+            });
         }
 
         //obj.mercGeometry = layer.mercGeometry;
