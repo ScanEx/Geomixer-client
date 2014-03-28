@@ -4005,18 +4005,22 @@
 				bounds1.extend(new L.Point(point.x, point.y));
 				return gmxAPI._leaflet.utils.chkPointWithDelta(bounds1, chkPoint, out);
 			}
+			var flag = false;
 			if(bounds.contains(chkPoint)) {
 				var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
 				for (var i = 0, len = coords.length; i < len; i++) {
 					if(fill) {
-						if(gmxAPI._leaflet.utils.isPointInPolygon(chkPoint, coords[i])) return true;
+						if(gmxAPI._leaflet.utils.isPointInPolygon(chkPoint, coords[i])) {
+                            if (i > 0) return false;
+                            flag = true;
+                        }
 					} else {
 						var weight = (curStyle ? curStyle.weight : 1);
 						if(gmxAPI._leaflet.utils.chkPointInPolyLine(chkPoint, weight, coords[i])) return true;
 					}
 				}
 			}
-			return false;
+			return flag;
 		}
 		// Проверка смещения
 		var getShiftX = function (chkBounds) {
