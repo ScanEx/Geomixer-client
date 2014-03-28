@@ -514,6 +514,10 @@
             ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
                 return obj._isLoadingFreezed;
             }
+            ,chkLayerVersion: function(callback) {  // Запросить проверку версии невидимого слоя
+                if (callback) callback({"Status":"notVisible"});
+                return false;
+            }
         });
         if(obj.properties) {
             if('MetaProperties' in obj.properties) {
