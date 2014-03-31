@@ -233,7 +233,6 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
         props.changedByViewer = true;
         
         if (elem.type === 'layer') {
-            globalFlashMap.layers[props.name].setVisible(props.visible);
             _this._renderParams.visibilityFunc(props, props.visible);
             $(_this).triggerHandler('layerVisibilityChange', [elem]);
         }
