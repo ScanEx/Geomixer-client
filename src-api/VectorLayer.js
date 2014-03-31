@@ -1578,7 +1578,10 @@
                 if(zd === -1) return;
                 if(arguments.length == 0) zd = 200;
                 node.timers.isIdleTimer = setTimeout(function() {
-                    if(node.tilesNeedRepaint.length > 0) return; // есть очередь отрисовки
+                    if(node.tilesNeedRepaint.length > 0) {
+                        node.repaintTilesNeed();
+                        return; // есть очередь отрисовки
+                    }
                     if(node.getLoaderFlag()) return;    // загрузка данных еще не закончена
                     delete node.lastDrawTime;         // обнуление старта последней отрисовки
                     if(node.observerNode) node._sendObserver();
@@ -1630,7 +1633,7 @@
                 if(node.timers.tilesNeedRepaintTimer) clearTimeout(node.timers.tilesNeedRepaintTimer);
                 if(arguments.length == 0) zd = 0;
                 node.lastDrawTime = 1;  // старт отрисовки
-                node.isIdle(-1);  // обнуление проверок окончания отрисовки
+                //node.isIdle(-1);  // обнуление проверок окончания отрисовки
                 if(node.tilesNeedRepaint.length) {
                     node.checkWaitStyle();
                     if(!gmxAPI._leaflet.zoomstart
@@ -2169,7 +2172,7 @@
                 }
                 node._addToObserver = function(geom, fromTiles) {  // добавить обьект в Observer
                     var id = geom.id;
-                    if (!observerObj[id]) {
+                    if (!observerObj[id] || !observerObj[id].onExtent) {
                         addObj[id] = {
                             layerID: nodeId
                             ,bounds: geom.bounds
@@ -2179,6 +2182,7 @@
                             ,fromTiles: fromTiles
                         };
                     }
+                    //node.isIdle(300);  // запуск проверки окончания отрисовки
                 }
                 node._sendObserver = function() {  // передача изменений Observer
                     var currPosition = gmxAPI.currPosition;
@@ -2774,6 +2778,8 @@
                     node.waitRedrawFlips(100);       // требуется отложенная перерисовка
                 }
                 drawGeoArr(arr);
+                if (arr.length) node.isIdle();  // запуск проверки окончания отрисовки
+
                 arr = null;
                 if(rasterNums === 0) {
                     myLayer._markTile(tilePoint, cnt);
