@@ -81,6 +81,9 @@
                     if(meta.shiftXfield) node.shiftXfield = meta.shiftXfield.Value;
                     if(meta.shiftYfield) node.shiftYfield = meta.shiftYfield.Value;
                 }
+                if('quicklookPlatform' in meta) {    // поля сдвига растров обьектов слоя
+                    node.quicklookPlatform = meta.quicklookPlatform.Value;
+                }
             }
         }
         if(!layer.properties) layer.properties = {};
@@ -653,12 +656,14 @@
             if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
             var gID = rItem.geom.id,
                 geo = node.getItemGeometry(gID, true),
-                item = node.objectsData[gID];
+                item = node.objectsData[gID],
+                properties = item.properties;
             if (!item.bounds) item.bounds = gmxAPI.geoBounds(geo);
             var gmxTilePoint = rItem.attr.scanexTilePoint,
                 mInPixel = gmxAPI._leaflet.mInPixel,
                 begx = mInPixel * item.bounds.min.x,
                 begy = mInPixel * item.bounds.max.y,
+                quicklookPlatform = properties[node.quicklookPlatform] || '',
                 coord = geo.coordinates;
             if(node.pointsFields) {
                 var keys = node.pointsFields;
@@ -697,8 +702,16 @@
                     coord[3][0] = MinX, coord[3][1] = MinY;
                 }
             }
-            var points = utils.getQuicklookPoints(coord),
-                x1 = mInPixel * points.x1, y1 = mInPixel * points.y1,
+            var points = {};
+            if (quicklookPlatform === 'LANDSAT8') {
+                points.x1 = item.bounds.min.x, points.y1 = item.bounds.max.y;
+                points.x2 = item.bounds.max.x, points.y2 = item.bounds.max.y;
+                points.x3 = item.bounds.max.x, points.y3 = item.bounds.min.y;
+                points.x4 = item.bounds.min.x, points.y4 = item.bounds.min.y;
+            } else {
+                points = utils.getQuicklookPoints(coord);
+            }
+            var x1 = mInPixel * points.x1, y1 = mInPixel * points.y1,
                 x2 = mInPixel * points.x2, y2 = mInPixel * points.y2,
                 x3 = mInPixel * points.x3, y3 = mInPixel * points.y3,
                 x4 = mInPixel * points.x4, y4 = mInPixel * points.y4,
