@@ -1599,6 +1599,7 @@
                     delete node.lastDrawTime;         // обнуление старта последней отрисовки
                     if(node.observerNode) node._sendObserver();
                     utils.chkIdle(true, 'VectorLayer');    // Проверка закончены или нет все команды отрисовки карты
+                    if(!myLayer) return;
                     if(myLayer._clearBgBufferTimer) clearTimeout(myLayer._clearBgBufferTimer);
                     myLayer._clearBgBufferTimer = setTimeout(L.bind(myLayer._clearBgBuffer, myLayer), 100);
                 }, zd);
