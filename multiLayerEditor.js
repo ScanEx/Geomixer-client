@@ -368,13 +368,10 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                 
                 var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
                 
-                var divElem = $(li).children("div[MultiLayerID]")[0],
-                    index = _layersTree.findTreeElem(divElem).index;
-                    
                 if (isCreate)
                 {
                     _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
-                    layersTree.addTreeElem(divParent, index, layerData);
+                    layersTree.addTreeElem(divParent, 0, layerData);
                 }
                 else
                 {
