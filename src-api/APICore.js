@@ -3474,9 +3474,9 @@ function createFlashMapInternal(div, layers, callback)
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
 		}
-		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
-			//gmxAPI.map.miniMap.setVisible(true);
-		}
+		// if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
+			// gmxAPI.map.miniMap.setVisible(true);
+		// }
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		if (gmxAPI.proxyType === 'flash') {			// Это flash версия
@@ -3764,6 +3764,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 					setOSMEmbed(osmEmbed);
 				}
 */
+/*
 				if('miniMap' in map) {
 					//map.miniMap.setVisible(true);
 					for (var m = 0; m < mapLayers.length; m++) {
@@ -3775,7 +3776,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 						setOSMEmbed(map.miniMap.layers[osmEmbed.properties.name]);
 					}
 				}
-					
+*/
 				if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 	

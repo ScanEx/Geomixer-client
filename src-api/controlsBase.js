@@ -276,7 +276,7 @@
                     ,addTool: function (tn, attr) {
         //console.log('tool addTool', tn, attr); // wheat
                         if(!attr) attr = {};
-                        if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                        if(attr.overlay && gmxAPI._leaflet && gmxAPI._leaflet.gmxLayers) {
                             attr.id = tn;
                             if(!attr.rus) attr.rus = attr.hint || attr.id;
                             if(!attr.eng) attr.eng = attr.hint || attr.id;
@@ -1661,11 +1661,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
         ,controlsHash: {}
         ,initControls: initControls
         ,remove: function() {      // удаление
-            for(var key in controlsHash) {
-                var item = controlsHash[key];
+            for(var key in Controls.controlsHash) {
+                var item = Controls.controlsHash[key];
                 if('remove' in item) item.remove();
             }
-            controlsHash = {};
+            Controls.controlsHash = {};
         }
         ,setControl: function(id, control) {
             if(Controls.controlsHash[id]) return false;

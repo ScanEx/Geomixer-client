@@ -199,6 +199,7 @@
         map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
         map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
+        if(gmxAPI.proxyType === 'flash') params.gmxControls = 'controlsBase';
         map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
         gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
 
@@ -476,13 +477,14 @@
                 o.setOSMTiles();
                 haveOSM = true;
                 o.setVisible(false);
-
+/*
                 if('miniMap' in map) {
                     var miniOSM = map.miniMap.addObject();
                     miniOSM.setVisible(false);
                     miniOSM.setOSMTiles();
                     miniOSM.setAsBaseLayer("OSM");
                 }
+*/
             }
 
             if(gmxAPI.initParams && gmxAPI.initParams['center']) {   // есть переопределение центра карты
@@ -638,9 +640,9 @@
                 //gmxAPI._listeners.dispatchEvent('onResizeMap', map);
             });
         
-            if('_miniMapInit' in gmxAPI) {
-                gmxAPI._miniMapInit(gmxAPI._div);
-            }
+            // if('_miniMapInit' in gmxAPI) {
+                // gmxAPI._miniMapInit(gmxAPI._div);
+            // }
             
         } else if(gmxAPI.proxyType === 'leaflet') {
             checkMapSize = function()

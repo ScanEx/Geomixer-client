@@ -49,7 +49,7 @@
     }
     function createMenu(id, latlng)	{
         var gmxNode = gmxAPI.mapNodes[id],
-            arr = menuItems.sort(sortFunc);
+            arr = menuItems.sort(sortFunc),
             out = '';
         for (var i=0, len = arr.length; i<len; i++) {
             var item = arr[i],

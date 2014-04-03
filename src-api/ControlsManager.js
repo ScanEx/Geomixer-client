@@ -40,6 +40,11 @@
             gmxAPI.extend(map, {
                 allControls: {
                     div: allToolsNode
+/*                    ,
+                    setVisible: function() {},
+                    minimize: function() {},
+                    maximize: function() {}
+*/
                 },
                 isToolsMinimized: function() {
                     return !ControlsManager.isVisible;
