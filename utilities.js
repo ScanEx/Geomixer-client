@@ -1448,7 +1448,186 @@ $.extend(nsGmx.Utils, {
         else
             return null;
     },
-    showDialog: window.showDialog
+    
+    joinClippedPolygon: function(polygon) {
+            
+        if (polygon.type !== 'MULTIPOLYGON') {
+            return polygon;
+        }
+    
+        var origData = [],
+            segmentsToJoin = [],
+            joinedSegments = [],
+            crossPoints = [],
+            finalPolygon = [];
+            
+        var equal = function(a, b) {return Math.abs(a - b) < 1e-5;}
+            
+        var coords = polygon.coordinates;
+        for (var c = 0; c < coords.length; c++) {
+            for (var r = 0; r < coords[c].length; r++) {
+                coords[c][r].length = coords[c][r].length - 1;
+            }
+        }
+
+        var parseRing = function(origRing) {
+            var segments = [],
+                ring = origRing.coords,
+                len = ring.length;
+                
+            var getNextSegment = function(i) {
+                var il = (i - 1 + len) % len,
+                    points = [];
+                
+                while (i != il) {
+                    if (equal(Math.abs(ring[i][0]), 180) && equal(Math.abs(ring[(i+1)%len][0]), 180) ) {
+                        return [i, points];
+                    }
+                    
+                    points.push(ring[i]);
+                    i = (i + 1) % len;
+                }
+                
+                return [i, points];
+            }
+            
+            var segment = getNextSegment(0);
+            
+            var lastI = segment[0];
+            
+            if (!equal(Math.abs(ring[segment[0]][0]), 180)) {
+                origRing.regularRing = ring;
+                return;
+            }
+            
+            do {
+                startI = (segment[0] + 1) % len;
+                segment = getNextSegment((startI + 1) % len);
+                var nextSegment = {
+                    points: [].concat([ring[startI]], segment[1], [ring[segment[0]]])
+                }
+                segmentsToJoin.push(nextSegment);
+                origRing.segments.push(nextSegment);
+            } while (segment[0] !== lastI);
+        }
+        
+        var findSegment = function(y, joinedSeg) {
+            for (var s = 0; s < segmentsToJoin.length; s++) {
+                var seg = segmentsToJoin[s];
+                if (equal(seg.points[0][1], y) || equal(seg.points[seg.points.length - 1][1], y)) {
+                    segmentsToJoin.splice(s, 1);
+                    seg.joinedSeg = joinedSeg;
+                    var isReg = equal(seg.points[0][1], y);
+                    return {
+                        points: isReg ? seg.points.slice(1, seg.points.length - 1) : seg.points.slice(1, seg.points.length - 1).reverse(),
+                        lastY: isReg ? seg.points[seg.points.length - 1][1] : seg.points[0][1]
+                    };
+                }
+            }
+        }
+        
+        var joinSegment = function(y0) {
+            var res = {},
+                seg = findSegment(y0, res),
+                points = seg.points,
+                crossPoints = [y0];
+                
+            while (seg.lastY !== y0) {
+                crossPoints.push(seg.lastY);
+                seg = findSegment(seg.lastY);
+                points = points.concat(seg.points);
+            };
+            
+            res.points = points,
+            res.crossPoints = crossPoints,
+            res.minCrossPoint = Math.min.apply(Math, crossPoints)
+            
+            return res;
+        }
+        
+        var parseGeometry = function(geom) {
+            for (var c = 0; c < geom.coordinates.length; c++) {
+                var origComp = [];
+                origData.push(origComp);
+                var comp = geom.coordinates[c];
+                for (var r = 0; r < comp.length; r++) {
+                    var origRing = {
+                        coords: comp[r],
+                        segments: []
+                    }
+                    origComp.push(origRing);
+                    parseRing(origRing);
+                }
+            }
+        }
+        
+        parseGeometry(polygon);
+        
+        segmentsToJoin.forEach(function(segment) {
+            if (segment.points[0][0] < 0) {
+                segment.points = segment.points.map(function(c) { return [c[0] + 360, c[1]];});
+            }
+        })
+
+        while (segmentsToJoin.length) {
+            var y0 = segmentsToJoin[0].points[0][1];
+            var joinedSeg = joinSegment(y0);
+            joinedSegments.push(joinedSeg);
+            crossPoints = crossPoints.concat(joinedSeg.crossPoints);
+        }
+        
+        crossPoints = crossPoints.sort();
+        
+        joinedSegments = joinedSegments.sort(function(s1, s2) {
+            return s1.minCrossPoint - s2.minCrossPoint;
+        })
+        
+        joinedSegments.forEach(function(s, i) {
+            s.isExternal = (crossPoints.indexOf(s.minCrossPoint) % 2) === 0;
+        })
+        
+        //собираем объединённые сегменты в мультиполигон
+        joinedSegments.forEach(function(s) {
+            if (s.isExternal) {
+                finalPolygon.push([s.points]);
+            } else {
+                finalPolygon[finalPolygon.length-1].push(s.points);
+            }
+            s.finalComponent = finalPolygon[finalPolygon.length-1];
+        })
+        
+        //добавляем компоненты, которые не пересекались со 180 градусом
+        for (var c = 0; c < origData.length; c++) {
+            if (origData[c][0].regularRing) {
+                console.log('external component', c)
+                var geomToCopy = [];
+                for (var r = 0; r < origData[c].length; r++) {
+                    geomToCopy.push(origData[c][r].regularRing);
+                }
+                finalPolygon.push(geomToCopy);
+                continue;
+            }
+            for (var r = 1; r < origData[c].length; r++) {
+                if (origData[c][r].regularRing) {
+                    console.log('internal component', c, r, origData[c][0].segments);
+                    for (var s = 0; s < origData[c][0].segments.length; s++) {
+                        var joinedSeg = origData[c][0].segments[s].joinedSeg;
+                        if (joinedSeg.isExternal) {
+                            joinedSeg.finalComponent.push(origData[c][r].regularRing);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (finalPolygon.length === 1) {
+            return {type: 'POLYGON', coordinates: finalPolygon[0]};
+        } else {
+            return {type: 'MULTIPOLYGON', coordinates: finalPolygon};
+        }
+    },
+    showDialog: window.showDialog,
 });
 
 window.gmxCore && window.gmxCore.addModule('utilities', nsGmx.Utils);
