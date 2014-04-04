@@ -9,7 +9,6 @@
 
 $('#flash').droppable({
     drop: function(event, ui) {
-        //console.log(ui.draggable[0].geometry);
         var obj = ui.draggable[0].gmxDrawingObject;
         
         if (obj) {
@@ -473,7 +472,6 @@ var ResultList = function(oInitContainer, ImagesHost){
 			}
             
             elemTD.gmxDrawingObject = arrObjects[i];
-            console.log(arrObjects[i]);
                 
             $(elemTD).draggable({
                 scroll: false, 
@@ -702,7 +700,7 @@ var ResultList = function(oInitContainer, ImagesHost){
         var pager = _div([_t('')], [["attr", "id", "respager"]]);
         _(containerList, [pager]);
 
-        var pcount = Math.ceil(results[0].SearchResult[0].OneOf / iLimit);
+        var pcount = results[0].SearchResult[0] ? Math.ceil(results[0].SearchResult[0].OneOf / iLimit) : 0;
         if (pcount > 1) {
             var first = makeNavigButton(pager, '/first.png', '/first_a.png', 'firstpage', _gtxt('Первая страница'));
             $(first).bind('click', function () {
@@ -1105,18 +1103,18 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	@returns {void}*/
 	var fnSearch = function(params)	{
 		var callback = params.callback;
-		var sQueryString = "RequestType=" + escape(params.RequestType);
+		var sQueryString = "RequestType=" + encodeURIComponent(params.RequestType);
 		if (params.SearchString != null) sQueryString += "&SearchString=" + encodeURIComponent(params.SearchString); 
-		if (params.Geometry != null) sQueryString += "&GeometryJSON=" + escape(JSON.stringify(params.Geometry));
-		if (params.Limit != null) sQueryString += "&Limit=" + escape(params.Limit.toString());
-		if (params.ID != null) sQueryString += "&ID=" + escape(params.ID.toString());
-		if (params.TypeCode != null) sQueryString += "&TypeCode=" + escape(params.TypeCode.toString());
-		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + escape(params.IsStrongSearch ? "1" : "0");
-		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
+		if (params.Geometry != null) sQueryString += "&GeometryJSON=" + encodeURIComponent(JSON.stringify(params.Geometry));
+		if (params.Limit != null) sQueryString += "&Limit=" + encodeURIComponent(params.Limit.toString());
+		if (params.ID != null) sQueryString += "&ID=" + encodeURIComponent(params.ID.toString());
+		if (params.TypeCode != null) sQueryString += "&TypeCode=" + encodeURIComponent(params.TypeCode.toString());
+		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + encodeURIComponent(params.IsStrongSearch ? "1" : "0");
+		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + encodeURIComponent(params.WithoutGeometry ? "1" : "0");
 		if (params.PageNum != null) sQueryString += "&PageNum=" + params.PageNum;
 		if (params.ShowTotal != null) sQueryString += "&ShowTotal=" + params.ShowTotal;
 		if (params.UseOSM != null) sQueryString += "&UseOSM=" + params.UseOSM;
-		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
+		//if (sFormatName != null) sQueryString += "&Format=" + encodeURIComponent(sFormatName);
 
 		var key = window.KOSMOSNIMKI_SESSION_KEY;
 		if (key == null || key == "INVALID")
@@ -1194,7 +1192,6 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	/**Осуществляет поиск по векторным слоям
 	@returns {void}*/
 	this.LayerSearch = function(sInitSearchString, oInitGeometry, callback){
-		//var geometry = JSON.stringify(merc_geometry({ type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89, -180, -89]] }));
 		var arrResult = [];
 		if(!oMap){
 			callback(arrResult);
@@ -1209,57 +1206,61 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		var iRespCount = 0;
 
 		if (layersToSearch.length > 0){
-			for (var iLayer = 0; iLayer < layersToSearch.length; iLayer++) {
-				(function(iLayer){
-					var url = "http://" + layersToSearch[iLayer].properties.hostName + "/SearchObject/SearchVector.ashx" + 
-					"?LayerNames=" + layersToSearch[iLayer].properties.name + 
-					"&MapName=" + layersToSearch[iLayer].properties.mapName +
-					(sInitSearchString ? ("&SearchString=" + escape(sInitSearchString)) : "") +
-					(oInitGeometry ? ("&border=" + JSON.stringify(merc_geometry(oInitGeometry))) : "");
-					sendCrossDomainJSONRequest(
-						url,
-						function(searchReq)
-						{
-							iRespCount++;
-							var arrLayerResult = [];
-							if (searchReq.Status == 'ok')
-							{
-								for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
-								{
-                                    var limitSearchResults = typeof(LayerSearchLimit)=="number" ? LayerSearchLimit : 100;
-									var req = searchReq.Result[iServer];
-									for (var j = 0; j<limitSearchResults && j < req.SearchResult.length; j++)
-									{
-										var arrDisplayProperties = {};
-										if (!arrDisplayFields) {
-											arrDisplayProperties = req.SearchResult[j].properties;
-										}
-										else {
-											for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
-												var sPropName = arrDisplayFields[iProperty];
-												if(sPropName in req.SearchResult[j].properties) {
-													arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
-												}
-											}
-										}
-										arrLayerResult.push({ 
-											ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
-											properties: arrDisplayProperties, 
-											Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
-										});
-									}
-								}
-							}		
-							if(arrLayerResult.length > 0) arrResult.push({name: layersToSearch[iLayer].properties.title, SearchResult: arrLayerResult, CanDownloadVectors: true});						
+            layersToSearch.forEach(function(layer) {
+                var url = "http://" + layer.properties.hostName + "/SearchObject/SearchVector.ashx" + 
+                    "?LayerNames=" + layer.properties.name +
+                    "&MapName=" + layer.properties.mapName +
+                    (sInitSearchString ? ("&SearchString=" + encodeURIComponent(sInitSearchString)) : "") +
+                    (oInitGeometry ? ("&border=" + encodeURIComponent(JSON.stringify(merc_geometry(oInitGeometry)))) : "");
+                sendCrossDomainJSONRequest(
+                    url,
+                    function(searchReq)
+                    {
+                        iRespCount++;
+                        var arrLayerResult = [];
+                        if (searchReq.Status == 'ok')
+                        {
+                            for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
+                            {
+                                var limitSearchResults = typeof(LayerSearchLimit)=="number" ? LayerSearchLimit : 100;
+                                var req = searchReq.Result[iServer];
+                                for (var j = 0; j<limitSearchResults && j < req.SearchResult.length; j++)
+                                {
+                                    var arrDisplayProperties = {};
+                                    if (!arrDisplayFields) {
+                                        arrDisplayProperties = req.SearchResult[j].properties;
+                                    }
+                                    else {
+                                        for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
+                                            var sPropName = arrDisplayFields[iProperty];
+                                            if(sPropName in req.SearchResult[j].properties) {
+                                                arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+                                            }
+                                        }
+                                    }
+                                    
+                                    for (var p in arrDisplayProperties) {
+                                        var type = layer.properties.attrTypes[layer.properties.attributes.indexOf(p)];
+                                        arrDisplayProperties[p] = nsGmx.Utils.convertFromServer(type, arrDisplayProperties[p]);
+                                    }
+                                    
+                                    arrLayerResult.push({
+                                        ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
+                                        properties: arrDisplayProperties, 
+                                        Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
+                                    });
+                                }
+                            }
+                        }
+                        if(arrLayerResult.length > 0) arrResult.push({name: layer.properties.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
 
-							if (iRespCount == layersToSearch.length){
-								callback(arrResult);
-								return;
-							}
-						}
-					);
-				})(iLayer);
-			}
+                        if (iRespCount == layersToSearch.length){
+                            callback(arrResult);
+                            return;
+                        }
+                    }
+                );
+            })
 		}
 		else{
 			callback(arrResult);
