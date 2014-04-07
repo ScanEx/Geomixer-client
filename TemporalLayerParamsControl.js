@@ -57,31 +57,33 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend(
 */
 nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 {
-    var optionsHtml = nsGmx._.map([1, 4, 16, 64, 256, 1024], function(a) {return '<option name="'+ a + '">' + a + '</option>'}).join('');
+    var PERIODS = [1, 4, 16, 64, 256, 1024];
+    var optionsHtml = '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}';
+    
     var html = 
         //'<input id="isTemporalCheckbox" type="checkbox"></input>' + 
         '<table><tbody>' + 
             '<tr>' +
-                '<td><%= _gtxt("Макс. период на экране") %></td>' + 
-                '<td><input id="maxShownPeriod" class="inputStyle temporal-maxshow"></input> <span><%= _gtxt("дней") %></span> </td>' + 
+                '<td>{{i Макс. период на экране}}</td>' + 
+                '<td><input id="maxShownPeriod" class="inputStyle temporal-maxshow"></input> <span>{{i дней}}</span> </td>' + 
             '</tr>' + 
             '<tr class="temporal-columns">' +
-                '<td><%= _gtxt("Колонка даты") %></td>' + 
+                '<td>{{i Колонка даты}}</td>' + 
                 '<td><select id="columnSelect" class="selectStyle"></select></td>' + 
             '</tr>' + 
             '<tr class="temporal-advanced">' +
-                '<td><%= _gtxt("Тайлы с") %></td>' + 
-                '<td><select id="minPeriod" class="selectStyle"><%= optionsHtml %></select></td>' + 
+                '<td>{{i Тайлы с}}</td>' + 
+                '<td><select id="minPeriod" class="selectStyle">{{>options}}</select></td>' + 
             '</tr>' + 
             '<tr class="temporal-advanced">' +
-                '<td><%= _gtxt("Тайлы до") %></td>' + 
-                '<td><select id="maxPeriod" class="selectStyle"><%= optionsHtml %></select></td>' + 
+                '<td>{{i Тайлы до}}</td>' + 
+                '<td><select id="maxPeriod" class="selectStyle">{{>options}}</select></td>' + 
             '</tr>' + 
         '</tbody></table>' + 
-        //'<div class="temporal-control-noattr"> <%= _gtxt("Отсутствует временной атрибут") %> </div>' +
-        '<span class="buttonLink RCCreate-advanced-link"><%= _gtxt("LayerRCControl.advancedLink") %></span>';
-        
-    $(parentDiv).html(nsGmx._.template(html)({optionsHtml: optionsHtml}));
+        //'<div class="temporal-control-noattr">{{i Отсутствует временной атрибут}}</div>' +
+        '<span class="buttonLink RCCreate-advanced-link">{{i LayerRCControl.advancedLink}}</span>';
+
+    $(parentDiv).html(Mustache.render(html, {periods: PERIODS}, {options: optionsHtml}));
     
     var updateVisibility = function() {
         var isTemporal = paramsModel.get('isTemporal');
@@ -120,11 +122,14 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
             paramsModel.get('minPeriod') !== paramsModel.defaults.minPeriod ||
             paramsModel.get('maxPeriod') !== paramsModel.defaults.maxPeriod;
     var _columns = columns;
-            
+    
+    var wasInAdvancedMode = isAdvancedMode;
+    
     updateVisibility();
             
     $('.RCCreate-advanced-link', parentDiv).click(function() {
         isAdvancedMode = !isAdvancedMode;
+        wasInAdvancedMode = true;
         updateVisibility();
     })
     
@@ -168,7 +173,22 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
     
     $('#maxShownPeriod', parentDiv).val(paramsModel.get('maxShownPeriod') || '').bind('keyup', function()
     {
-        paramsModel.set('maxShownPeriod', this.value || 0.0);
+        var val = parseInt(this.value) || 0;
+        
+        var paramsToSet = {maxShownPeriod: Math.max(0, val)};
+        
+        if (!wasInAdvancedMode) {
+            if (val > 0) {
+                var index = Math.ceil(Math.log(val)/Math.log(4));
+                paramsToSet.maxPeriod = PERIODS[Math.min(PERIODS.length - 1, index)];
+            } else {
+                paramsToSet.maxPeriod = paramsModel.defaults.maxPeriod;
+            }
+            $('#maxPeriod>option[name='+ paramsToSet.maxPeriod +']', parentDiv).attr('selected', 'selected');
+        }
+        
+        console.log(paramsToSet);
+        paramsModel.set(paramsToSet);
     });
 	
     /**
