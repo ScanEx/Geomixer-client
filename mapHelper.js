@@ -923,7 +923,6 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     doneCallback: function()
                     {
                         $(divDialog).dialog('close');
-                        removeDialog(divDialog);
                     },
                     additionalTabs: additionalTabs,
                     selected: selected,
@@ -996,7 +995,6 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                 doneCallback: function()
                 {
                     $(divDialog).dialog('close');
-                    removeDialog(divDialog);
                 },
                 additionalTabs: [{title: _gtxt("Стили"), name: 'styles', container: divStyles}]
                 
