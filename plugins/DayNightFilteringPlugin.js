@@ -38,8 +38,8 @@ var DayNightFilteringControl = function(container, params)
 
     var setFilter = function()
     {
-        var isDay = dayCheckbox.attr('checked');
-        var isNight = nightCheckbox.attr('checked');
+        var isDay = dayCheckbox.prop('checked');
+        var isNight = nightCheckbox.prop('checked');
         var paramValue;
         var showAll = isDay && isNight;
         
@@ -74,24 +74,24 @@ var DayNightFilteringControl = function(container, params)
     $('input', container).change(setFilter);
     setFilter();
     
-    this.isDay  = function() { return dayCheckbox.attr('checked'); };
+    this.isDay  = function() { return dayCheckbox.prop('checked'); };
     this.setDay  = function(isDay)
     {
         if (isDay)
-            dayCheckbox.attr('checked', true);
+            dayCheckbox.prop('checked', true);
         else
-            dayCheckbox.removeAttr('checked');
+            dayCheckbox.removeProp('checked');
             
         setFilter();
     };
     
-    this.isNight = function() { return nightCheckbox.attr('checked'); };
+    this.isNight = function() { return nightCheckbox.prop('checked'); };
     this.setNight = function(isNight)
     {
         if (isNight)
-            nightCheckbox.attr('checked', true);
+            nightCheckbox.prop('checked', true);
         else
-            nightCheckbox.removeAttr('checked');
+            nightCheckbox.removeProp('checked');
             
         setFilter();
     };
