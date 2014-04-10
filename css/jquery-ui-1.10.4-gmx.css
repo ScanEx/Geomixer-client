@@ -176,3 +176,7 @@
 .ui-autocomplete {
     z-index: 101;
 }
+
+.ui-front {
+	z-index: 1000;
+}
