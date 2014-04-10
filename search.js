@@ -852,34 +852,38 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	/**Помещает объект на карту
 	@param {MapObject} oContainer контейнер, содержащий в себе объекты текущей группы результатов поиска
 	@param {MapObject} oFoundObject добавляемый объект
-	@param {int} iPosition порядковый номер добавляемого объекта в группе*/
+	@param {int} iPosition порядковый номер добавляемого объекта в группе
+    @return {Object} Нарисованные на карте объекты: хеш с полями center и boundary */
 	var DrawObject = function(oContainer, oFoundObject, iPosition){
 		var sDescr = "<b>" + Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + Functions.GetPath(oFoundObject.Parent, "<br/>", true);
 		if (oFoundObject.properties != null) sDescr += "<br/>" + Functions.GetPropertiesString(oFoundObject.properties, "<br/>");
 		var fnBaloon = function(o) {
 			return o.properties.Descr.replace(/;/g, "<br/>");
 		};
-		var elemMap;
+		var centerMapElem,
+            boundaryMapElem;
 		//Рисуем центр объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type == 'POINT') {
-			elemMap = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			elemMap.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
-			elemMap.enableHoverBalloon(fnBaloon);
+			centerMapElem = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
+			centerMapElem.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
+			centerMapElem.enableHoverBalloon(fnBaloon);
 		}
 		else if (oFoundObject.CntrLon != null && oFoundObject.CntrLat != null){
-			elemMap = oContainer.addObject({ type: "POINT", coordinates: [oFoundObject.CntrLon, oFoundObject.CntrLat] }, { Descr: sDescr });
-			elemMap.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
-			elemMap.enableHoverBalloon(fnBaloon);
+			centerMapElem = oContainer.addObject({ type: "POINT", coordinates: [oFoundObject.CntrLon, oFoundObject.CntrLat] }, { Descr: sDescr });
+			centerMapElem.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
+			centerMapElem.enableHoverBalloon(fnBaloon);
 		}
 		
 
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
-			elemMap = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			elemMap.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 60} });
+			boundaryMapElem = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
+			boundaryMapElem.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 60} });
 
-			elemMap.enableHoverBalloon(fnBaloon);
+			boundaryMapElem.enableHoverBalloon(fnBaloon);
 		}
+        
+        return {center: centerMapElem, boundary: boundaryMapElem};
 	};
 	
 	/**Центрует карту по переданному объекту*/
@@ -914,18 +918,23 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	
 	/** Рисует объекты на карте
 	@param {int} iDataSourceN № источника данных (группы результатов поиска)
-	@returns {void}*/
+	@return {Array} Нарисованные на карте объекты: массив хешей с полями center и boundary
+    */
 	this.DrawObjects = function(iDataSourceN, arrFoundObjects){
 		if (arrContainer[iDataSourceN] != null) arrContainer[iDataSourceN].remove();
 		arrContainer[iDataSourceN] = oMap.addObject();
 		arrContainer[iDataSourceN].setVisible(false);
 		iCount = arrFoundObjects.length;
+        
+        var mapObjects = [];
 		//Отрисовываем задом наперед, чтобы номер 1 был сверху от 10ого
 		for (var i = arrFoundObjects.length - 1; i >= 0; i--){
-			DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], i);
+			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], i));
 		}
 		arrContainer[iDataSourceN].setVisible(true);
 		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
+        
+        return mapObjects;
 	}
 };
 
