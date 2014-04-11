@@ -8,7 +8,7 @@
 	var marker = null;
 	var canvas = null;
 
-	var items = [];							// массив ID нод очереди отрисовки
+	//var items = [];							// массив ID нод очереди отрисовки
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
 	var repaintItems = function(zd)	{			// отложенная перерисовка
@@ -258,7 +258,7 @@
 			itemsHash[id] = item;
 			repaintItems();
 		}
-		,removeArray: function(id, arr) {				// удалить массив нод
+        ,removeArray: function(id, arr) {				// удалить массив нод
             var node = gmxAPI._leaflet.mapNodes[id];
             if(!node || node.type !== 'VectorLayer') return false;
             var pref = id + '_';
@@ -267,33 +267,34 @@
                 delete itemsHash[pid];
             }
             repaintItems();
-		}
-		,'remove': function(id, vid, flag) {				// удалить ноду
-			if(itemsHash[id]) delete itemsHash[id];
-			else {
-				var node = gmxAPI._leaflet.mapNodes[id];
-				if(!node) return false;
-				if(node.type === 'VectorLayer') {
-					var st = id + '_';
-					if(vid) st += vid;
-					if(vid) {
-						delete itemsHash[st];
-					} else {
-						for(var pid in itemsHash) {
-							if(pid.indexOf(st) != -1) delete itemsHash[pid];
-						}
-					}
-				} else if(node.type === 'mapObject') {
-					removeRecursive(node);
-				}
-			}
-			if(flag) {
+        }
+        ,'remove': function(id, vid, flag) {				// удалить ноду
+            if(itemsHash[id]) delete itemsHash[id];
+            else {
+                var node = gmxAPI._leaflet.mapNodes[id];
+                if(!node) return false;
+                if(node.type === 'VectorLayer') {
+                    var st = id + '_';
+                    if(vid) st += vid;
+                    if(vid) {
+                        if (!itemsHash[st]) return false;
+                        delete itemsHash[st];
+                    } else {
+                        for(var pid in itemsHash) {
+                            if(pid.indexOf(st) != -1) delete itemsHash[pid];
+                        }
+                    }
+                } else if(node.type === 'mapObject') {
+                    removeRecursive(node);
+                }
+            }
+            if(flag) {
                 repaint(flag);
             } else {
                 repaintItems();
             }
-			return true;
-		}
+            return true;
+        }
 		,'onChangeVisible': function(id, flag)	{		// изменение видимости ноды
 			var node = gmxAPI._leaflet.mapNodes[id];
 			if(node.type == 'mapObject') {

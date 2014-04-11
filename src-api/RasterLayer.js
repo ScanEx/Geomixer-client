@@ -95,7 +95,7 @@
 
         var chkVisible = function() {
         //gmxAPI._leaflet.zoomstart
-            if(gmxNode && node.isVisible != false) {
+            if(gmxNode && gmxNode.isVisible !== false && node.isVisible !== false) {
                 var notOnScene = true;
                 var continuousWorld = false;
                 if(myLayer) {
@@ -332,8 +332,8 @@
 			var createLayer = function() {			// инициализация leaflet слоя
 				if(!gmxNode) {
 					gmxNode = gmxAPI.mapNodes[id];
-					chkInitListeners();
 				}
+				chkInitListeners();
 				var option = {
 					minZoom: inpAttr.minZoomView || 1
 					,maxZoom: inpAttr.maxZoomView || 30
@@ -392,6 +392,10 @@
                     });
                 }
 				chkVisible();
+                window.onbeforeunload = function (evt) {
+                    node.remove();
+                    for (var key in node) node[key] = null;
+                }
 			}
 
 			var createLayerTimer = null;										// Таймер

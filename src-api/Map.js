@@ -443,24 +443,26 @@
             var mapBounds = gmxAPI.getBounds();
             var minLayerZoom = 20;
             forEachLayer(layers, function(layer, isVisible) {
-                var visible = (layer.properties.visible ? true : isVisible);
-                var lObj = map.addLayer(layer, visible, true);
-                if(reverse) {
-                    map.layers.pop();
-                    map.layers.unshift(lObj);
-                }
+                if(!gmxAPI.map.layers[layer.properties.name]) {
+                    var visible = (layer.properties.visible ? true : isVisible);
+                    var lObj = map.addLayer(layer, visible, true);
+                    if(reverse) {
+                        map.layers.pop();
+                        map.layers.unshift(lObj);
+                    }
 
-                if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
-                    gmxAPI._layersVersion.chkVersionLayers(layers, layer);
+                    if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
+                        gmxAPI._layersVersion.chkVersionLayers(layers, layer);
+                    }
+                    if(visible && lObj.mercGeometry) mapBounds.update(lObj.mercGeometry.coordinates);
+                    var arr = layer.properties.styles || [];
+                    for (var i = 0; i < arr.length; i++) {
+                        var mm = arr[i].MinZoom;
+                        minLayerZoom = Math.min(minLayerZoom, mm);
+                    }
+                    if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
+                        gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
                 }
-                if(visible && lObj.mercGeometry) mapBounds.update(lObj.mercGeometry.coordinates);
-                var arr = layer.properties.styles || [];
-                for (var i = 0; i < arr.length; i++) {
-                    var mm = arr[i].MinZoom;
-                    minLayerZoom = Math.min(minLayerZoom, mm);
-                }
-                if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
-                    gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
             }, notVisible);
             //if (layers.properties.UseOpenStreetMap && !haveOSM)
             var baseLayer = map.baseLayersManager.get('OSM');
