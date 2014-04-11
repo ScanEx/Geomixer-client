@@ -2304,6 +2304,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	var updateTimeInfo = function()
 	{
         _this._updateCalendarTime( false /*_this._timeShift || _this.getCurrentTimeShift()*/ );
+        _this._calendar.setShowTime( _this._visModeController.getMode() !==  _this._visModeController.SIMPLE_MODE );
 	}
 	
 	updateTimeInfo();
@@ -2313,7 +2314,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
 		{
 			$(button).css({display: 'none'});
-
 		}
 		
 		updateTimeInfo();
@@ -2418,7 +2418,6 @@ var FireControl2 = function(map, params)
             {
                 params.calendar = nsGmx.widgets.commonCalendar.get();
                 nsGmx.widgets.commonCalendar.show();
-                nsGmx.widgets.commonCalendar.get().setShowTime(true);
             }
             else
             {
@@ -2428,8 +2427,7 @@ var FireControl2 = function(map, params)
 					minimized: true,
 					dateMin: new Date(2009, 05, 29),
 					dateMax: new Date(),
-                    dateFormat: "dd.mm.yy",
-                    showTime: false
+                    dateFormat: "dd.mm.yy"
                 });
                 $(params.container).append(params.calendar.canvas);
             }
