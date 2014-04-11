@@ -100,7 +100,10 @@ var Calendar = function(name, params)
 	
 	var _updateInfo = function()
 	{
-        if (!_this._params.showTime) return;
+        if (!_this._params.showTime) {
+            $('#dateBeginInfo, #dateEndInfo', _this.canvas).empty();
+            return;
+        }
         
 		function f(n) {
 			// Format integers to have at least two digits.
