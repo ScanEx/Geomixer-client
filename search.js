@@ -839,7 +839,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 	
 	var arrContainer = [];
-	// var iCount = 0;
+	var counts = [];
 	
 	/** возвращает стили найденных объектов, используется только для точки*/
 	var getSearchStyle = function(iPosition) {
@@ -936,16 +936,20 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
         if (!arrContainer[iDataSourceN]) {
             arrContainer[iDataSourceN] = oMap.addObject();
             arrContainer[iDataSourceN].setVisible(false);
+            counts[iDataSourceN] = 0;
         }
         
 		iCount = arrFoundObjects.length;
         
         var mapObjects = [];
-        var count = arrContainer[iDataSourceN].getChildren().length + arrFoundObjects.length;
+        
+        counts[iDataSourceN] += arrFoundObjects.length;
+        
 		//Отрисовываем задом наперед, чтобы номер 1 был сверху от 10ого
 		for (var i = arrFoundObjects.length - 1; i >= 0; i--){
-			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], count + i - arrFoundObjects.length, count));
+			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], counts[iDataSourceN] + i - arrFoundObjects.length, counts[iDataSourceN]));
 		}
+        
 		arrContainer[iDataSourceN].setVisible(true);
 		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
         
