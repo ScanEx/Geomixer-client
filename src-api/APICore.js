@@ -2163,7 +2163,12 @@ var tmp = [
 	'convertCoords', 'transformGeometry', 'boundsIntersect', 'getTagValue', 
 	'forEachPointAmb', 'deg_rad', 'deg_decimal'
 ];
-for (var i=0; i<tmp.length; i++) window[tmp[i]] = gmxAPI[tmp[i]];
+var len = tmp.length;
+for (var i=0; i<len; i++) window[tmp[i]] = gmxAPI[tmp[i]];
+window.onbeforeunload = function (evt) {
+    for (var i=0; i<len; i++) window[tmp[i]] = null;
+    gmxAPI = null;
+}
 
 function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
 var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
@@ -3654,7 +3659,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             setOSMEmbed(osmEmbed);
                         }
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
-                        if(attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                     }
