@@ -839,10 +839,11 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 	
 	var arrContainer = [];
-	var iCount = 0;
+	// var iCount = 0;
 	
 	/** возвращает стили найденных объектов, используется только для точки*/
 	var getSearchStyle = function(iPosition) {
+        iPosition = Math.min(iPosition, 9);
 		return [
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png", dx: -14, dy: -38} },
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + "a.png", dx: -14, dy: -38} }
@@ -853,8 +854,10 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	@param {MapObject} oContainer контейнер, содержащий в себе объекты текущей группы результатов поиска
 	@param {MapObject} oFoundObject добавляемый объект
 	@param {int} iPosition порядковый номер добавляемого объекта в группе
+	@param {int} iCount общее количество объектов в группе
     @return {Object} Нарисованные на карте объекты: хеш с полями center и boundary */
-	var DrawObject = function(oContainer, oFoundObject, iPosition){
+	var DrawObject = function(oContainer, oFoundObject, iPosition, iCount){
+        var color = Math.round(0x22 + 0x99*iPosition/iCount);
 		var sDescr = "<b>" + Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + Functions.GetPath(oFoundObject.Parent, "<br/>", true);
 		if (oFoundObject.properties != null) sDescr += "<br/>" + Functions.GetPropertiesString(oFoundObject.properties, "<br/>");
 		var fnBaloon = function(o) {
@@ -878,7 +881,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
 			boundaryMapElem = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			boundaryMapElem.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 60} });
+			boundaryMapElem.setStyle({ outline: { color: (color << 16) + (color << 8) + color, thickness: 3, opacity: 60} });
 
 			boundaryMapElem.enableHoverBalloon(fnBaloon);
 		}
@@ -916,20 +919,32 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		CenterObject(oFoundObject);
 	}
 	
-	/** Рисует объекты на карте
+	/** Рисует объекты на карте.
 	@param {int} iDataSourceN № источника данных (группы результатов поиска)
+	@param {Array} arrFoundObjects Массив объектов для отрисовки. Каждый объект имеет свойства 
+	@param {bool} [options.append=false] Добавить к существующим объектам для источника данных, а не удалять их
 	@return {Array} Нарисованные на карте объекты: массив хешей с полями center и boundary
     */
-	this.DrawObjects = function(iDataSourceN, arrFoundObjects){
-		if (arrContainer[iDataSourceN] != null) arrContainer[iDataSourceN].remove();
-		arrContainer[iDataSourceN] = oMap.addObject();
-		arrContainer[iDataSourceN].setVisible(false);
+	this.DrawObjects = function(iDataSourceN, arrFoundObjects, options){
+        options = $.extend({append: false}, options);
+        
+        if (!options.append && arrContainer[iDataSourceN]) {
+            arrContainer[iDataSourceN].remove();
+            delete arrContainer[iDataSourceN];
+        }
+        
+        if (!arrContainer[iDataSourceN]) {
+            arrContainer[iDataSourceN] = oMap.addObject();
+            arrContainer[iDataSourceN].setVisible(false);
+        }
+        
 		iCount = arrFoundObjects.length;
         
         var mapObjects = [];
+        var count = arrContainer[iDataSourceN].getChildren().length + arrFoundObjects.length;
 		//Отрисовываем задом наперед, чтобы номер 1 был сверху от 10ого
 		for (var i = arrFoundObjects.length - 1; i >= 0; i--){
-			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], i));
+			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], count + i - arrFoundObjects.length, count));
 		}
 		arrContainer[iDataSourceN].setVisible(true);
 		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
