@@ -2165,10 +2165,10 @@ var tmp = [
 ];
 var len = tmp.length;
 for (var i=0; i<len; i++) window[tmp[i]] = gmxAPI[tmp[i]];
-window.onbeforeunload = function (evt) {
-    for (var i=0; i<len; i++) window[tmp[i]] = null;
-    gmxAPI = null;
-}
+// window.onbeforeunload = function (evt) {
+    // for (var i=0; i<len; i++) window[tmp[i]] = null;
+    // gmxAPI = null;
+// }
 
 function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
 var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });

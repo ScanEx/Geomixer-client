@@ -392,10 +392,10 @@
                     });
                 }
 				chkVisible();
-                window.onbeforeunload = function (evt) {
-                    node.remove();
-                    for (var key in node) node[key] = null;
-                }
+                // window.onbeforeunload = function (evt) {
+                    // node.remove();
+                    // for (var key in node) node[key] = null;
+                // }
 			}
 
 			var createLayerTimer = null;										// Таймер

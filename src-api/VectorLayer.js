@@ -3001,10 +3001,10 @@
             } else {
                 createLayer();
             }
-            window.onbeforeunload = function (evt) {
-                node.remove();
-                for (var key in node) node[key] = null;
-            }
+            // window.onbeforeunload = function (evt) {
+                // node.remove();
+                // for (var key in node) node[key] = null;
+            // }
         }
     }
 
