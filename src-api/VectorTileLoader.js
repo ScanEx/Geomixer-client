@@ -20,20 +20,21 @@
 		var counts = srcArr.length;
         curCount += counts;
 		var len = counts;
-		var needParse = [];
+		var needParse = null;
 		for (var i = 0; i < len; i++)		// подгрузка векторных тайлов
 		{
 			var src = srcArr[i] + '&r=t';
 			itemsHash[src] = item;
 			(function() {
 				var psrc = src;
-				if(gmxAPI.isIE || gmxAPI.isSafari) {
+				// if(gmxAPI.isIE || gmxAPI.isSafari) {
 					gmxAPI.sendCrossDomainJSONRequest(psrc, function(response)
 					{
 						//delete node['tilesLoadProgress'][psrc];
 						counts--;
 						if(itemsHash[psrc]) {
 							if(itemsHash[psrc].skip) {
+                                if(itemsHash[psrc].onerror) itemsHash[psrc].onerror({skip: true, 'url': psrc, 'Error': 'skiped by clearLayer'});
 								delete itemsHash[psrc];
 								return;
 							}
@@ -44,55 +45,55 @@
 							onerror({'url': psrc, 'Error': 'bad vector tile response'})
 							//return;
 						}
-						if(response.Result && response.Result.length)	needParse = needParse.concat(response.Result);
+						if(response.Result && response.Result.length) needParse = needParse ? needParse.concat(response.Result) : response.Result;
 						if(counts < 1) {
 					        curCount -= len;
 							callback(needParse, psrc);
-							needParse = [];
-							response = null;
+							needParse = null;
 							item = null;
-						}
+                        }
+						response = null;
 					}
 					, ''
 					, function() {
 						onerror({'url': psrc, 'Error': 'bad vector tile response'})
 					}
 					);
-				} else {
-					gmxAPI.request({
-						'url': psrc
-						,'callback': function(st) {
-							var response = JSON.parse(st);
-							counts--;
-							if(itemsHash[psrc]) {
-								if(itemsHash[psrc].skip) {
-									if(itemsHash[psrc].onerror) itemsHash[psrc].onerror({skip: true, 'url': psrc, 'Error': 'skiped by clearLayer'});
-									delete itemsHash[psrc];
-									return;
-								}
-								delete itemsHash[psrc];
-							}
+				// } else {
+					// gmxAPI.request({
+						// 'url': psrc
+						// ,'callback': function(st) {
+							// var response = JSON.parse(st);
+							// counts--;
+							// if(itemsHash[psrc]) {
+								// if(itemsHash[psrc].skip) {
+									// if(itemsHash[psrc].onerror) itemsHash[psrc].onerror({skip: true, 'url': psrc, 'Error': 'skiped by clearLayer'});
+									// delete itemsHash[psrc];
+									// return;
+								// }
+								// delete itemsHash[psrc];
+							// }
 
-							if(response.length)	needParse = needParse.concat(response);
-							if(counts < 1) {
-                                curCount -= len;
-								callback(needParse, psrc);
-								needParse = [];
-								response = null;
-								item = null;
-							}
-						}
-						,'onError': function(st) {
-							onerror({'url': psrc, 'Error': 'bad vector tile response'})
-						}
-					});
-				}
+                            // if(response.length) needParse = needParse ? needParse.concat(response) : response;
+							// if(counts < 1) {
+                                // curCount -= len;
+								// callback(needParse, psrc);
+                                // needParse = null;
+								// item = null;
+							// }
+							// response = null;
+						// }
+						// ,'onError': function(st) {
+							// onerror({'url': psrc, 'Error': 'bad vector tile response'})
+						// }
+					// });
+				// }
 			})();
 		}
 	}
 		
 	var nextLoad = function()	{		// загрузка image
-		if(curCount > maxCount) return;
+		if(curCount > maxCount || gmxAPI.mousePressed) return;
 		if(items.length < 1) return false;
 		var item = items.shift();
 		loadTile(item);

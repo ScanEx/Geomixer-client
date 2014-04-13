@@ -226,7 +226,7 @@
 					geo.propHiden.fromTiles = {};
 					var style = utils.evalStyle(attr.regularStyle, geo.properties);
 					geo.propHiden.curStyle = style;
-					geo.chkSize(node, style);
+					geo.chkSize(style);
 
 					if(!item._cache || !item._cache.extentLabel) {
 						//var style = item.propHiden.curStyle;

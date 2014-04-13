@@ -89,6 +89,7 @@
 		var func = function(i, j, z, geom)
 		{
 			var path = callback(geom);
+			if (!( 'boundsType' in geom) && 'chkBoundsType' in geom) geom.chkBoundsType();
 			if (geom.boundsType && i < 0) i = -i;
 			if (path.indexOf("{") >= 0){
 				return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));

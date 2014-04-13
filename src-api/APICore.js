@@ -778,6 +778,11 @@ extend(window.gmxAPI,
                 this.max.y += dymax;
                 return this;
             },
+            contains: function (p) {
+                var min = this.min, max = this.max,
+                    x = p[0], y = p[1];
+                return x < min.x || x > max.x || y < min.y || y > max.y ? false : true;
+            },
             intersects: function (bounds, dx, dy) { // (Bounds, dx, dy) -> Boolean
                 var min = this.min,
                     max = this.max,

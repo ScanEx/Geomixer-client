@@ -241,15 +241,15 @@
 			itemsHash[id] = prepareObject(node);
 			repaintItems();
 		}
-		,'addItem': function(txt, geom, attr, style)	{	// добавить Label от векторного слоя
+		,'addItem': function(txt, geom, style)	{	// добавить Label от векторного слоя
 			if(!utils) init();
-			var node = attr.node;
+			var node = gmxAPI._leaflet.mapNodes[geom.layerId];
 			var id = node.id + '_' + geom.id;
 			var item = prepareItem(txt, geom, style, node.shiftX, node.shiftY);
 			if(itemsHash[id]) {
 				var bounds = new L.Bounds();
-				item.bounds.extend(itemsHash[id]['bounds'].min);
-				item.bounds.extend(itemsHash[id]['bounds'].max);
+				item.bounds.extend(itemsHash[id].bounds.min);
+				item.bounds.extend(itemsHash[id].bounds.max);
 				item.point.x = (item.bounds.max.x + item.bounds.min.x)/2;
 				item.point.y = (item.bounds.max.y + item.bounds.min.y)/2;
 			}

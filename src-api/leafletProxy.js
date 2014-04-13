@@ -367,7 +367,7 @@
 				var flag = (utils.chkVisibilityByZoom(node.id) ? true : false);
 				if(!node['leaflet']) gmxAPI._leaflet['drawManager'].add(id);
 				utils.setVisibleNode({'obj': node, 'attr': flag});
-				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
+				gmxAPI._leaflet.LabelsManager.onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
 			}
 		}
 		,
@@ -751,6 +751,44 @@
                 || (chkBounds.min.y - point.y)*mInPixel > attr.sy + (attr.syLabelBottom || 0)
                 || (point.y - chkBounds.max.y)*mInPixel > attr.sy + (attr.syLabelTop || 0)
                 ? false : true);
+        },
+        _sqDistanceToSegmentArr: function (p, p1, p2) { // return distance to point
+            var x = p1[0], y = p1[1],
+                dx = p2[0] - x, dy = p2[1] - y,
+                dot = dx * dx + dy * dy,
+                t;
+
+            if (dot > 0) {
+                t = ((p[0] - x) * dx + (p[1] - y) * dy) / dot;
+
+                if (t > 1) {
+                    x = p2[0];
+                    y = p2[1];
+                } else if (t > 0) {
+                    x += dx * t;
+                    y += dy * t;
+                }
+            }
+
+            dx = p[0] - x;
+            dy = p[1] - y;
+
+            return dx * dx + dy * dy;
+        }
+        ,
+        'chkPointInPolyLineArr': function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
+            var mInPixel = gmxAPI._leaflet.mInPixel;
+            var chkLineHeight = lineHeight / mInPixel;
+            chkLineHeight *= chkLineHeight;
+            
+            var p1 = coords[0];
+            for (var i = 1, len = coords.length; i < len; i++) {
+                var p2 = coords[i],
+                    sqDist = utils._sqDistanceToSegmentArr(chkPoint, p1, p2);
+                if(sqDist < chkLineHeight) return true;
+                p1 = p2;
+            }
+            return false;
         }
         ,
         'chkPointInPolyLine': function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
@@ -759,10 +797,9 @@
             chkLineHeight *= chkLineHeight;
             
             var p1 = coords[0];
-            for (var i = 1; i < coords.length; i++)
-            {
-                var p2 = coords[i];
-                var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
+            for (var i = 1, len = coords.length; i < len; i++) {
+                var p2 = coords[i],
+                    sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
                 if(sqDist < chkLineHeight) return true;
                 p1 = p2;
             }
@@ -772,8 +809,7 @@
         'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
             var isIn = false;
             var p1 = poly[0];
-            for (var i = 1; i < poly.length; i++)
-            {
+            for (var i = 1, len = poly.length; i < len; i++) {
                 var p2 = poly[i];
                 if (chkPoint.x > Math.min(p1.x, p2.x)) 
                 {
@@ -795,16 +831,15 @@
         }
         ,
         'isPointInPolygonArr': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону в виде массива
-            var isIn = false;
-            var x = chkPoint[0];
-            var y = chkPoint[1];
-            var p1 = poly[0];
-            for (var i = 1; i < poly.length; i++)
-            {
-                var p2 = poly[i];
-                var xmin = Math.min(p1[0], p2[0]);
-                var xmax = Math.max(p1[0], p2[0]);
-                var ymax = Math.max(p1[1], p2[1]);
+            var isIn = false,
+                x = chkPoint[0],
+                y = chkPoint[1],
+                p1 = poly[0];
+            for (var i = 1, len = poly.length; i < len; i++) {
+                var p2 = poly[i],
+                    xmin = Math.min(p1[0], p2[0]),
+                    xmax = Math.max(p1[0], p2[0]),
+                    ymax = Math.max(p1[1], p2[1]);
                 if (x > xmin && x <= xmax && y <= ymax && p1[0] != p2[0]) {
                     var xinters = (x - p1[0])*(p2[1] - p1[1])/(p2[0] - p1[0]) + p1[1];
                     if (p1[1] == p2[1] || y <= xinters) isIn = !isIn;
@@ -971,28 +1006,28 @@
             if(node.isVisible === false) return false;
             return utils.chkVisibleObject(node['parentId']);
         }
-        ,
-        'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
-            if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
-            if(!zoom) zoom = LMap.getZoom();
-            var drawTileID = zoom + '_' + point.x + '_' + point.y,
-                zoomCurrent = gmxAPI._leaflet.zoomCurrent;
-            if(zoomCurrent.gmxTileBounds[drawTileID]) {
-                return zoomCurrent.gmxTileBounds[drawTileID];
-            }
+        // ,
+        // 'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
+            // if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
+            // if(!zoom) zoom = LMap.getZoom();
+            // var drawTileID = zoom + '_' + point.x + '_' + point.y,
+                // zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+            // if(zoomCurrent.gmxTileBounds[drawTileID]) {
+                // return zoomCurrent.gmxTileBounds[drawTileID];
+            // }
             
-            var tileSize = zoomCurrent.tileSize;
-            var minx = point.x * tileSize;
-            var miny = point.y * tileSize;
-            var p = new L.Point(minx, miny);
-            var bounds = new L.Bounds(p);
-            bounds.extend(p);
-            var maxx = minx + tileSize;
-            var maxy = miny + tileSize;
-            bounds.extend(new L.Point(maxx, maxy));
-            gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
-            return bounds;
-        }
+            // var tileSize = zoomCurrent.tileSize;
+            // var minx = Math.floor(point.x * tileSize);
+            // var miny = Math.floor(point.y * tileSize);
+            // var p = new L.Point(minx, miny);
+            // var bounds = new L.Bounds(p);
+            // bounds.extend(p);
+            // var maxx = Math.floor(minx + tileSize);
+            // var maxy = Math.floor(miny + tileSize);
+            // bounds.extend(new L.Point(maxx, maxy));
+            // gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
+            // return bounds;
+        // }
         ,
         getTileListByExtent: function(ext) { // получить список тайлов по extent на определенном zoom
             if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
@@ -2192,11 +2227,11 @@
 
 	// Рекурсивное изменение видимости
 	function setVisibilityFilterRecursive(pNode, sqlFunc) {
-		var prop = ('getPropItem' in pNode ? pNode.getPropItem(pNode) : (pNode.geometry && pNode.geometry['properties'] ? pNode.geometry['properties'] : null));
+		var prop = ('getPropItem' in pNode ? pNode.getPropItem(pNode) : (pNode.geometry && pNode.geometry.properties ? pNode.geometry.properties : null));
 		if(pNode['leaflet'] && prop) {
 			var flag = sqlFunc(prop);
 			utils.setVisibleNode({'obj': pNode, 'attr': flag});
-			gmxAPI._leaflet['LabelsManager'].onChangeVisible(pNode.id, flag);
+			gmxAPI._leaflet.LabelsManager.onChangeVisible(pNode.id, flag);
 		} else {
 			for (var i = 0; i < pNode['children'].length; i++) {
 				var key = pNode['children'][i];
@@ -2691,7 +2726,7 @@
 			var node = mapNodes[id];
 			if(!node) return;						// Нода не была создана через addObject
 			//commands.disableDragging(ph);
-			gmxAPI._leaflet['LabelsManager'].remove(id);
+			gmxAPI._leaflet.LabelsManager.remove(id);
 			if('remove' in node) {							// Имеется свой remove
 				node.remove(id);
 				removeNode(id);
@@ -3174,7 +3209,7 @@
 				var itemId = node.children[i];
 				var item = mapNodes[itemId];
 				if(item) {
-					var prop = ('getPropItem' in item ? item.getPropItem(item) : (item.geometry && item.geometry['properties'] ? item.geometry['properties'] : null));
+					var prop = ('getPropItem' in item ? item.getPropItem(item) : (item.geometry && item.geometry.properties ? item.geometry.properties : null));
 					out.push({
 						id: item.id,
 						properties: prop
@@ -3252,17 +3287,17 @@
 // Geometry
 (function()
 {
-	//расширяем namespace
-	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['Geometry'] = function() {						// класс Geometry
-		var out = {
-			'type': 'unknown'
-			,'geoID': gmxAPI.newFlashMapId()
-			,'bounds': null
-			//,'curStyle': null
-		};
-		return out;
-	};
+    //расширяем namespace
+    if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+    gmxAPI._leaflet.Geometry = function() { // класс Geometry
+        var out = {
+            type: 'unknown'
+            ,geoID: gmxAPI.newFlashMapId()
+            ,bounds: null
+            //,'curStyle': null
+        };
+        return out;
+    };
 })();
 
 // PointGeometry
@@ -3308,8 +3343,8 @@
                 y = point.y - chkPoint.y;
             return x * x + y * y;
         }
-
-        var chkLabelBounds = function(labelBounds, ph)	{							// проверка пересечений labels
+/*
+        var chkLabelBounds = function(labelBounds, ph) { // проверка пересечений labels
             var p = new L.Point(ph.lx, ph.ly);
             var b = new L.Bounds(p);
             b.extend(p);
@@ -3324,9 +3359,9 @@
             labelBounds.push(b);
             return true;
         }
-
+*/
         // Проверка размера точки по стилю
-        out.chkSize = function (node, style) {
+        out.chkSize = function (style) {
             var prop = this.properties || null,
                 size = style.size || 4,
                 scale = style.scale || 1;
@@ -3412,12 +3447,10 @@
         out.paint = function (attr, style, ctx) {
             if(!attr || !style) return;
             var zoom = attr.zoom,
-                mInPixel = gmxAPI._leaflet.mInPixel,
-                node = attr.node;
+                mInPixel = gmxAPI._leaflet.mInPixel;
 
             if(!out._cache) out._cache = {};
-            if(!out._cache.chkSize) out.chkSize(node, style);
-            //var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+            if(!out._cache.chkSize) out.chkSize(style);
             var prop = out.properties || null,
                 x = attr.x,
                 y = 256 + attr.y,
@@ -3522,7 +3555,7 @@
                 var labelStyle = style.label;
                 var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
                 if(txt) {
-                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
+                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, style);	// добавим label от векторного слоя
                 }
             }
         }
@@ -3783,96 +3816,125 @@
         if(b1.max.y < b2.min.y || b1.min.y > b2.max.y) return null;
         return 0;
     }
-
-	//расширяем namespace
-	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet.PolygonGeometry = function(geo_, tileBounds_) {				// класс PolygonGeometry
-		if(!tileBounds_) return;
-		var out = gmxAPI._leaflet.Geometry();
-		out.type = 'Polygon';
-		var tileBounds = tileBounds_;					// границы тайла в котором пришел обьект
-		var lastZoom = null;
-		var bounds = null;
-		var hideLines = [];								// индексы точек лежащих на границе тайла
-		var coords = [];
-		var d = (tileBounds.max.x - tileBounds.min.x)/10000;
-		var tbDelta = {									// границы тайла для определения onEdge отрезков
-			minX: tileBounds.min.x + d
-			,maxX: tileBounds.max.x - d
-			,minY: tileBounds.min.y + d
-			,maxY: tileBounds.max.y - d
-		};
-		out.parseCoordinates = function (arr) {
-            var cnt = 0;
-            coords = [], hideLines = [], bounds = null;
-            for (var i = 0, len = arr.length; i < len; i++) {
-                var hideLines1 = [],
-                    coords1 = [],
-                    prev = null;
-                for (var j = 0, len1 = arr[i].length; j < len1; j++) {
-                    var p = arr[i][j],
-                        point = new L.Point(p[0], p[1]);
-                    if(!bounds) bounds = new L.Bounds(point);
-                    bounds.extend(point);
-                    if(prev && chkOnEdge(p, prev, tbDelta)) {
-                        hideLines1.push(cnt);
-                    }
-                    prev = p;
-                    coords1.push(point);
-                    cnt++;
+    // Парсинг координат
+    var parseCoordinates = function (obj) {
+        var cnt = 0,
+            coordinates = obj.coordinates;
+            bounds = gmxAPI.bounds(),
+            hideLines = [],
+            tileBounds = obj.tileBounds;
+            d = (tileBounds.max.x - tileBounds.min.x)/10000,
+            tbDelta = { // границы тайла для определения onEdge отрезков
+                minX: tileBounds.min.x + d
+                ,maxX: tileBounds.max.x - d
+                ,minY: tileBounds.min.y + d
+                ,maxY: tileBounds.max.y - d
+            };
+        for (var i = 0, len = coordinates.length; i < len; i++) {
+            var hideLines1 = [],
+                coords = coordinates[i],
+                prev = null;
+            for (var j = 0, len1 = coords.length; j < len1; j++) {
+                var p = coords[j];
+                bounds.extend(p[0], p[1]);
+                if(prev && chkOnEdge(p, prev, tbDelta)) {
+                    hideLines1.push(cnt);
                 }
-                hideLines.push(hideLines1);
-                coords.push(coords1);
+                prev = p;
+                cnt++;
             }
-            out.cnt = cnt;
-            out.coordinates = coords;
-            out.bounds = bounds;
-		}
-        out.parseCoordinates(geo_.coordinates);
-        
-		// Экспорт в АПИ
-		out.exportGeo = function (chkPoint) {
-			var res = {type: 'POLYGON'};
-			res.coordinates = geo_.coordinates;
-			return res;
-		}
+            hideLines.push(hideLines1);
+        }
+        gmxAPI.extend(obj, {
+            cnt: cnt
+            ,hideLines: hideLines
+            ,bounds: bounds
+            ,center: {
+                x: (bounds.min.x + bounds.max.x)/2,
+                y: (bounds.min.y + bounds.max.y)/2
+            }
+            ,xSize: bounds.max.x - bounds.min.x
+            ,ySize: bounds.max.y - bounds.min.y
+        });
+    }
 
-		var bMinX = gmxAPI.from_merc_x(bounds.min.x);
-		var bMaxX = gmxAPI.from_merc_x(bounds.max.x);
-		out.boundsType = (bMinX < -179.999 && bMaxX > 179.999 ? true : false);
+    //расширяем namespace
+    if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+    gmxAPI._leaflet.PolygonGeometry = function(geo_, tileBounds_) {				// класс PolygonGeometry
+        if(!tileBounds_) return;
+        var out = gmxAPI._leaflet.Geometry();
+        gmxAPI.extend(out, {
+            type: 'Polygon'
+            ,propHiden: {}  // служебные свойства
+            ,coordinates: geo_.coordinates
+            ,tileBounds: tileBounds_
+            ,center: null
+            ,parseCoordinates: function () {
+                parseCoordinates(out);
+            }
+            ,chkBoundsType: function () {
+                var bMinX = gmxAPI.from_merc_x(out.bounds.min.x),
+                    bMaxX = gmxAPI.from_merc_x(out.bounds.max.x);
+                out.boundsType = bMinX < -179.999 && bMaxX > 179.999 ? true : false;
+            }
+            ,exportGeo: function () {   // Экспорт в АПИ
+                return {type: 'POLYGON', coordinates: out.coordinates};
+            }
+            ,distance2: function (chkPoint) {   // Квадрат растояния до полигона
+                if(out.sx) {
+                    var x = out.center.x - chkPoint.x,
+                        y = out.center.y - chkPoint.y;
+                    return x * x + y * y;
+                }
+                return 0;
+            }
+            ,intersects: function (chkBounds) { // Проверка пересечения полигона с bounds
+                var flag = false;
+                if(out.sx) {
+                    flag = gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, out.center, out);
+                } else {
+                    var pt = getShiftX(chkBounds, out.bounds);
+                    flag = (pt === null ? false : true);
+                }
+                return flag;
+            }
+            ,contains: function (chkPoint, curStyle, fillPattern) {
+                // Проверка принадлежности точки полигону
+                if(!curStyle) curStyle = out.propHiden.curStyle;
+                if(curStyle && curStyle.marker) {
+                    var bounds1 = new L.Bounds();
+                    bounds1.extend(new L.Point(out.center.x, out.center.y));
+                    return gmxAPI._leaflet.utils.chkPointWithDelta(bounds1, chkPoint, out);
+                }
+                var flag = false,
+                    coordinates = out.coordinates,
+                    chkPointArr = [chkPoint.x, chkPoint.y];
+                if(out.bounds.contains(chkPointArr)) {
+                    var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
+                    for (var i = 0, len = coordinates.length; i < len; i++) {
+                        if(fill) {
+                            if(gmxAPI._leaflet.utils.isPointInPolygonArr(chkPointArr, coordinates[i])) {
+                                if (i > 0) return false;
+                                flag = true;
+                            }
+                        } else {
+                            var weight = (curStyle ? curStyle.weight : 1);
+                            if(gmxAPI._leaflet.utils.chkPointInPolyLineArr(chkPointArr, weight, coordinates[i])) return true;
+                        }
+                    }
+                }
+                return flag;
+            }
+        });
+        out.parseCoordinates(out);
 
-		out.propHiden = {};					// служебные свойства
-
-		// Получить точку маркера геометрии полигона
-		var getPoint = function () {
-			var point = {
-				x: (bounds.min.x + bounds.max.x)/2,
-				y: (bounds.min.y + bounds.max.y)/2
-			};
-			return point;
-		}
-		out.getPoint = getPoint;
-		// проверка необходимости отрисовки геометрии
-		var chkNeedDraw = function (attr) {
-			//if(!bounds.intersects(attr['bounds'])) return false;				// проверка пересечения полигона с отображаемым тайлом
-			var shiftX = getShiftX(attr.bounds, bounds);
-			if(shiftX === null) return false;
-			var node = attr.node;
-			if(!node.chkTemporalFilter(out)) return false;
-			return shiftX;
-		}
-        // var chkCache = function (attr, style) {
-            // if(!out._cache) out._cache = {};
-            // out.parseCoordinates(coordinates);
-        // }
         // Отрисовка заполнения полигона
         var paintFill = function (attr, style, ctx, fillFlag) {
             if(!attr) return false;
-            var x = attr.x;
-            var y = 256 + attr.y;
-            var mInPixel = gmxAPI._leaflet.mInPixel;
+            var x = attr.x, y = 256 + attr.y,
+                coordinates = out.coordinates,
+                mInPixel = gmxAPI._leaflet.mInPixel;
             //if (!out._cache) chkCache(attr, style);
-            ctx.beginPath();
             if(style) {
                 if(style.pattern) {
                     var canvasPattern = attr.canvasPattern || null;
@@ -3903,13 +3965,12 @@
                     //ctx.fillRect(0, 0, 255, 255);
                 }
             }
-
-            //console.log('nnn ' ,  ' : ' , coords);
-            for (var i = 0, len = coords.length; i < len; i++) {
-                for (var j = 0, lastX = null, lastY = null, len1 = coords[i].length; j < len1; j++) {
-                    var p1 = coords[i][j],
-                        px1 = p1.x * mInPixel - x, px1 = (0.5 + px1) << 0,
-                        py1 = y - p1.y * mInPixel, py1 = (0.5 + py1) << 0;
+            ctx.beginPath();
+            for (var i = 0, len = coordinates.length; i < len; i++) {
+                for (var j = 0, lastX = null, lastY = null, len1 = coordinates[i].length; j < len1; j++) {
+                    var p1 = coordinates[i][j],
+                        px1 = p1[0] * mInPixel - x, px1 = (0.5 + px1) << 0,
+                        py1 = y - p1[1] * mInPixel, py1 = (0.5 + py1) << 0;
                     if(lastX !== px1 || lastY !== py1) {
                         if(j === 0) ctx.moveTo(px1, py1);
                         else ctx.lineTo(px1, py1);
@@ -3920,25 +3981,25 @@
             ctx.closePath();
             if(fillFlag) ctx.fill();
         }
-		// Отрисовка заполнения полигона
-		out.paintFill = function (attr, style, ctx, fillFlag) {
-			paintFill(attr, style, ctx, fillFlag);
-		}
+        // Отрисовка заполнения полигона
+        out.paintFill = function (attr, style, ctx, fillFlag) {
+            paintFill(attr, style, ctx, fillFlag);
+        }
         // Отрисовка геометрии полигона
         var paintStroke = function (attr, style, ctx) {
             if(!attr) return false;
-            var x = attr.x,
-                y = 256 + attr.y,
+            var x = attr.x, y = 256 + attr.y,
+                coordinates = out.coordinates,
                 mInPixel = gmxAPI._leaflet.mInPixel;
 
             ctx.beginPath();
-            for (var i = 0, len = coords.length; i < len; i++) {
-                var hArr = hideLines[i],
-                    coords1 = coords[i];
+            for (var i = 0, len = coordinates.length; i < len; i++) {
+                var hArr = out.hideLines[i],
+                    coords1 = coordinates[i];
                 for (var j = 0, cntHide = 0, lineHide = true, lastX = null, lastY = null, len1 = coords1.length; j < len1; lineHide = false, j++) {
                     var p1 = coords1[j],
-                        px1 = p1.x * mInPixel - x, px1 = (0.5 + px1) << 0,
-                        py1 = y - p1.y * mInPixel, py1 = (0.5 + py1) << 0;
+                        px1 = p1[0] * mInPixel - x, px1 = (0.5 + px1) << 0,
+                        py1 = y - p1[1] * mInPixel, py1 = (0.5 + py1) << 0;
                     if (j == hArr[cntHide]) {
                         lineHide = true;
                         cntHide++;
@@ -3951,97 +4012,46 @@
                 }
             }
             ctx.stroke();
-            var node = attr.node;
             if(style && style.label) {
-                var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out.properties ? out.properties : null));
-                var labelStyle = style.label;
-                var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
+                var prop = out.properties,
+                    labelStyle = style.label,
+                    txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
                 if(txt) {
-                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
+                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, style);	// добавим label от векторного слоя
                 }
-            // } else {
-                // gmxAPI._leaflet.LabelsManager.remove(node.id, out.id);
             }
-            return true;		// отрисована геометрия
+            return true;
         }
-		// Отрисовка геометрии полигона
-		// out.paintStroke = function (attr, style, ctx) {
-			// if(!attr) return;
-			// paintStroke(attr, style, ctx);
-		// }
-		// Отрисовка полигона
-		out.paint = function(attr, style, ctx) {
-			if(!attr || !style) return;
-			if(style && style.marker) {
-				if(style.image) {
-					var point = getPoint();
-					var x = attr.x;
-					var y = 256 + attr.y;
-					var mInPixel = gmxAPI._leaflet.mInPixel;
-					if(style.imageWidth) out.sx = style.imageWidth/2;
-					if(style.imageHeight) out.sy = style.imageHeight/2;
-					var px1 = point.x * mInPixel - x - out.sx; 		px1 = (0.5 + px1) << 0;
-					var py1 = y - point.y * mInPixel - out.sy;		py1 = (0.5 + py1) << 0;
-					ctx.drawImage(style.image, px1, py1);
-					return 1;
-				}
-			} else {
-				out.sx = out.sy = 0;
-				if(style.fill) paintFill(attr, style, ctx, true);
-				var res = paintStroke(attr, style, ctx);
-				return res;
-			}
-		}
-		// Проверка принадлежности точки полигону
-		out.contains = function (chkPoint, curStyle, fillPattern) {
-			if(!curStyle) curStyle = out.propHiden.curStyle;
-			if(curStyle && curStyle.marker) {
-				var point = getPoint();
-				var bounds1 = new L.Bounds();
-				bounds1.extend(new L.Point(point.x, point.y));
-				return gmxAPI._leaflet.utils.chkPointWithDelta(bounds1, chkPoint, out);
-			}
-			var flag = false;
-			if(bounds.contains(chkPoint)) {
-				var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
-				for (var i = 0, len = coords.length; i < len; i++) {
-					if(fill) {
-						if(gmxAPI._leaflet.utils.isPointInPolygon(chkPoint, coords[i])) {
-                            if (i > 0) return false;
-                            flag = true;
-                        }
-					} else {
-						var weight = (curStyle ? curStyle.weight : 1);
-						if(gmxAPI._leaflet.utils.chkPointInPolyLine(chkPoint, weight, coords[i])) return true;
-					}
-				}
-			}
-			return flag;
-		}
-		// Проверка пересечения полигона с bounds
-		out.intersects = function (chkBounds) {
-			var flag = false;
-			if(out.sx) {
-				flag = gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, getPoint(), out);
-			} else {
-				var pt = getShiftX(chkBounds, bounds);
-				flag = (pt === null ? false : true);
-			}
-			return flag;
-		}
-		
-		// Квадрат растояния до полигона
-		out.distance2 = function (chkPoint) {
-			if(out.sx) {
-				var point = getPoint();
-				var x = point.x - chkPoint.x,
-					y = point.y - chkPoint.y;
-				return x * x + y * y;
-			}
-			return 0;
-		}
-		return out;
-	};
+        // Отрисовка полигона
+        out.paint = function(attr, style, ctx) {
+            if(!attr || !style) return;
+            var x = attr.x, y = 256 + attr.y,
+                center = out.center,
+                mInPixel = gmxAPI._leaflet.mInPixel;
+            if(style && style.marker) {
+                if(style.image) {
+                    if(style.imageWidth) out.sx = style.imageWidth/2;
+                    if(style.imageHeight) out.sy = style.imageHeight/2;
+                    var px1 = center.x * mInPixel - x - out.sx; px1 = (0.5 + px1) << 0;
+                    var py1 = y - center.y * mInPixel - out.sy; py1 = (0.5 + py1) << 0;
+                    ctx.drawImage(style.image, px1, py1);
+                    return 1;
+                }
+            } else {
+                out.sx = out.sy = 0;
+                if(out.xSize * mInPixel < 2 && out.ySize * mInPixel < 2) {
+                    var px1 = center.x * mInPixel - x, px1 = (0.5 + px1) << 0,
+                        py1 = y - center.y * mInPixel, py1 = (0.5 + py1) << 0;
+                    ctx.strokeRect(px1, py1, 2, 2);
+                } else {
+                    if(style.fill) paintFill(attr, style, ctx, true);
+                    paintStroke(attr, style, ctx);
+                }
+                return true;
+            }
+        }
+        return out;
+    };
 })();
 
 // MultiPolygonGeometry
@@ -4054,16 +4064,17 @@
 		out.type = 'MultiPolygon';
 		out.tileBounds = tileBounds_;
 
-		var members = [];
-		var bounds = null;
-		var cnt = 0;
+		var members = [],
+            bounds = gmxAPI.bounds(),
+            cnt = 0;
 		var addMember = function (item) {
 			cnt += item.cnt;
-			var p = new L.Point( item.bounds.min.x, item.bounds.min.y );
-			if(!bounds) bounds = new L.Bounds(p);
-			bounds.extend(p);
-			p = new L.Point( item.bounds.max.x, item.bounds.max.y );
-			bounds.extend(p);
+            bounds.extend(item.bounds.min.x, item.bounds.min.y);
+			bounds.extend(item.bounds.max.x, item.bounds.max.y);
+			//var p = new L.Point( item.bounds.min.x, item.bounds.min.y );
+			//if(!bounds) bounds = new L.Bounds(p);
+			//p = new L.Point( item.bounds.max.x, item.bounds.max.y );
+			//bounds.extend(p);
 			members.push(item);
 		}
 		var addMembers = function (arr) {
@@ -4122,12 +4133,11 @@
 				}
 			}
 			if(style && style.label) {
-				var node = attr.node;
-				var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out.properties ? out.properties : null));
-				var labelStyle = style.label;
-				var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
+                var prop = out.properties,
+                    labelStyle = style.label,
+                    txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
 				if(txt) {
-					gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
+					gmxAPI._leaflet.LabelsManager.addItem(txt, out, style);	// добавим label от векторного слоя
 				}
 			}
 
