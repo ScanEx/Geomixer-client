@@ -3687,12 +3687,12 @@
 			return false;
 		}
 		// Проверка пересечения LineGeometry с bounds
-		out['intersects'] = function (chkBounds) {
+		out.intersects = function (chkBounds) {
 			var flag = false;
 			if(out['sx']) {
-				flag = gmxAPI._leaflet['utils'].chkPointWithDelta(chkBounds, getPoint(), out);
+				flag = gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, getPoint(), out);
 			} else {
-				flag = bounds.intersects(chkBounds);
+				flag = chkBounds.intersects(bounds);
 			}
 			return flag;
 		}
@@ -3756,44 +3756,43 @@
 		
 		out['addMembers'] = addMembers;
 		out['addMember'] = addMember;
-		out['bounds'] = bounds;
+		out.bounds = bounds;
 		out['cnt'] = cnt;
 		out['paint'] = function (attr, style, ctx) {
 			if(!attr) return;
 			var cnt = 0;
-			if(bounds.intersects(attr['bounds'])) {				// проверка пересечения мультиполигона с отображаемым тайлом
-				for (var i = 0; i < members.length; i++)
-				{
-					if(!members[i].paint(attr, style, ctx)) break;
+			if(attr.bounds.intersects(bounds)) {				// проверка пересечения мультиполигона с отображаемым тайлом
+				for (var i = 0, len = members.length; i < len; i++) {
+                    var member = members[i];
+                    if (!member.layerId) member.layerId = out.layerId;
+                    if (!member.properties) member.properties = out.properties;
+					if(!member.paint(attr, style, ctx)) break;
 				}
 			}
 			return cnt;		// количество отрисованных точек в геометрии
 		}
 		// Квадрат растояния до MultiPolyline
-		out['distance2'] = function (chkPoint) {
+		out.distance2 = function (chkPoint) {
 			var d = Number.MAX_VALUE;
-			for (var i = 0; i < members.length; i++)
-			{
-				var d1 = members[i]['distance2'](chkPoint);
+			for (var i = 0, len = members.length; i < len; i++) {
+				var d1 = members[i].distance2(chkPoint);
 				if(d1 < d) d = d1;
 			}
 			return d;
 		}
 		
 		// Проверка принадлежности точки MultiPolyline
-		out['contains'] = function (chkPoint) {
-			for (var i = 0; i < members.length; i++)
-			{
-				if(members[i]['contains'](chkPoint)) return true;
+		out.contains = function (chkPoint) {
+			for (var i = 0, len = members.length; i < len; i++) {
+				if(members[i].contains(chkPoint)) return true;
 			}
 			return false;
 		}
 		
 		// Проверка пересечения MultiPolyline с bounds
-		out['intersects'] = function (chkBounds) {
-			for (var i = 0; i < members.length; i++)
-			{
-				if(members[i]['intersects'](chkBounds)) return true;
+		out.intersects = function (chkBounds) {
+			for (var i = 0, len = members.length; i < len; i++) {
+				if(members[i].intersects(chkBounds)) return true;
 			}
 			return false;
 		}
