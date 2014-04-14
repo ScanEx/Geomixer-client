@@ -4128,7 +4128,10 @@
 				var drawFlag = bounds.intersects(attr.bounds);
 				if(drawFlag) {				// проверка пересечения мультиполигона с отображаемым тайлом
 					for (var i = 0, len = members.length; i < len; i++) {
-						count += members[i].paint(attr, style, ctx);
+                        var member = members[i];
+                        if (!member.layerId) member.layerId = out.layerId;
+                        if (!member.properties) member.properties = out.properties;
+						count += member.paint(attr, style, ctx);
 					}
 				}
 			}
@@ -4147,7 +4150,10 @@
 		out.paintFill = function (attr, style, ctx) {
 			if(bounds.intersects(attr.bounds)) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0, len = members.length; i < len; i++) {
-					members[i].paintFill(attr, style, ctx, true);
+                    var member = members[i];
+                    if (!member.layerId) member.layerId = out.layerId;
+                    if (!member.properties) member.properties = out.properties;
+					member.paintFill(attr, style, ctx, true);
 				}
 			}
 		}
