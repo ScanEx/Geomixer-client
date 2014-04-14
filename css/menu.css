@@ -239,3 +239,65 @@ td.searchCanvas
 {
 	padding-left: 60px;
 }
+
+/* left menus */
+div.leftTitle
+{
+	height: 25px;
+	background-color: #539abc;
+	width: 100%;
+	display: inline-block;
+}
+
+.leftTitle table
+{
+	float: left;
+}
+
+.leftmenu-canvas {
+    padding: 0px;
+}
+
+.leftmenu-toggle-icon {
+    float: right;
+    margin: 4px 2px 0px 5px;
+    width: 20px;
+    height: 20px;
+}
+
+.leftmenu-close-icon {
+    float: right;
+    margin: 4px 5px 0px 3px;
+    width: 16px;
+    height: 16px;
+}
+
+.leftmenu-down-icon {
+    background: url(../img/menuDown.png);
+}
+.leftmenu-down-icon:hover {
+    background: url(../img/menuDown_a.png);
+}
+.leftmenu-right-icon {
+    background: url(../img/menuRight.png);
+}
+.leftmenu-right-icon:hover {
+    background: url(../img/menuRight_a.png);
+}
+.leftmenu-close-icon {
+    background: url(../img/close.png);
+}
+.leftmenu-close-icon:hover {
+    background: url(../img/close_orange.png);
+}
+
+.leftmenu-path {
+    color: #293D6B;
+    margin: 4px 0px 1px 10px;
+}
+
+.leftmenu-path-item {
+    color: #153069;
+    font-size: 12px;
+    font-family: tahoma;
+}

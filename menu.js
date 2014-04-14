@@ -411,6 +411,46 @@ UpMenu.prototype.attachEventOnMouseclick = function(elem, id)
 			// _menuUp.openRef(id);
 	}
 }
+
+UpMenu.prototype.getNavigatePath = function(path) {
+    var items = [];
+	
+	for (var menuId in this.submenus)
+	{
+		if (path == menuId)
+		{
+            return [this.submenus[menuId].title];
+		}
+        
+		if (this.submenus[menuId].childs)
+		{
+			var childsLevel2 = this.submenus[menuId].childs;
+			for (var i = 0; i < childsLevel2.length; i++)
+			{
+				if (childsLevel2[i].childs)
+				{
+					var childsLevel3 = childsLevel2[i].childs;
+					// есть подменю, смотрим там
+					for(var j = 0; j < childsLevel3.length; j++)
+					{
+						if (path == childsLevel3[j].id) 
+						{
+                            return [this.submenus[menuId].title, childsLevel2[i].title, childsLevel3[j].title];
+						}
+					}
+				}
+				if (path == childsLevel2[i].id)
+				{
+					// совпадение в меню 2го уровня
+                    return [this.submenus[menuId].title, childsLevel2[i].title];
+				}
+			}
+		}
+	}
+
+	return tds;
+}
+
 // Показывает путь в меню к текущему элементу
 UpMenu.prototype.showNavigatePath = function(path)
 {
@@ -559,6 +599,69 @@ UpMenu.prototype.openTab = function(path)
 	sel && sel(path);
 }
 
+/** Блок (контейнер с заголовком) левой панели
+    @class
+    @param {String} canvasID Уникальный идентификатор блока
+    @param {Object} options Параметры
+    @param {function} [options.closeFunc] Ф-ция, которая будет вызвана при нажатии на иконку закрытия блока. По умолчанию ничего не делается.
+    @param {String[]} [options.path] Массив строк для формирования названия блока.
+                      Предполагается, что последний элемент является собственно названием, а предыдущие - названиями категорий.
+                      По умолчанию будет сформирован из верхнего меню ГеоМиксера по canvasID.
+    @param {Boolean} [options.showCloseButton=true] Показывать ли кнопку закрытия блока
+    @param {Boolean} [options.showMinimizeButton=true] Показывать ли кнопку сворачивания блока
+*/
+nsGmx.LeftPanelItem = function(canvasID, options) {
+
+    options = $.extend({
+        closeFunc: function(){},
+        path: _menuUp.getNavigatePath(canvasID),
+        showCloseButton: true,
+        showMinimizeButton: true
+    }, options);
+    
+    var ui =
+        '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
+            '<div class="leftTitle">' +
+                '<table class="leftmenu-path"><tr>' +
+                    '{{#path}}' +
+                        '<td class="leftmenu-path-item {{#last}}menuNavigateCurrent{{/last}}">{{name}}</td>' +
+                        '{{^last}}<td><div class="markerRight"></div></td>{{/last}}' +
+                    '{{/path}}' +
+                '</tr></table>' +
+                '{{#showCloseButton}}<div class="leftmenu-close-icon"></div>{{/showCloseButton}}' +
+                '{{#showMinimizeButton}}<div class="leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
+            '</div>' +
+            '<div class = "workCanvas"></div>' +
+        '</div>';
+    
+    /**HTML элемент с блоком (содержит шапку и рабочую область)*/
+    this.panelCanvas = $(Mustache.render(ui, {
+        id: 'left_' + canvasID,
+        path: options.path.map(function(item, index, arr) {
+            return {name: item, last: index === arr.length-1};
+        }),
+        showCloseButton: options.showCloseButton,
+        showMinimizeButton: options.showMinimizeButton
+    }))[0];
+    
+    /**Рабочая область блока*/
+    this.workCanvas = $(this.panelCanvas).find('.workCanvas')[0];
+    
+    /** Программная имитация нажатия кнопки закрытия блока
+        @function
+    */
+    this.close = options.closeFunc;
+    
+    var _this = this;
+    
+    $('.leftmenu-toggle-icon', this.panelCanvas).click(function() {
+        $(_this.workCanvas).toggle();
+        $(this).toggleClass('leftmenu-down-icon leftmenu-right-icon');
+    });
+    
+    $('.leftmenu-close-icon',  this.panelCanvas).click(options.closeFunc);
+}
+
 /** Основное меню ГеоМиксера
  * @global
  * @type {UpMenu}
@@ -574,73 +677,21 @@ var leftMenu = function()
 
 leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc)
 {
+    var _this = this;
 	if (!$$('left_' + canvasID))
 	{
-		this.parentWorkCanvas = _div(null, [['attr', 'id','left_' + canvasID],['css','padding','0px'],['css','width','360'],['dir','className','left_' + canvasID]]);
-		this.workCanvas = _div(null, [['dir','className','workCanvas']]);
-		
-		var toggleButton = makeImageButton('img/menuDown.png', 'img/menuDown_a.png'),
-			_this = this;
-			
-		toggleButton.onclick = function()
-		{
-			if (_this.workCanvas.style.display != 'none')
-			{
-				_this.workCanvas.style.display = 'none';
-				
-				this.setAttribute('src', 'img/menuRight.png');
-				this.onmouseover = function()
-				{
-					this.setAttribute('src', 'img/menuRight_a.png');
-				}
-				this.onmouseout = function()
-				{
-					this.setAttribute('src', 'img/menuRight.png');
-				}
-			}
-			else
-			{
-				_this.workCanvas.style.display = '';
-				
-				this.setAttribute('src', 'img/menuDown.png');
-				this.onmouseover = function()
-				{
-					this.setAttribute('src', 'img/menuDown_a.png');
-				}
-				this.onmouseout = function()
-				{
-					this.setAttribute('src', 'img/menuDown.png');
-				}
-			}	
-		}
-		
-		toggleButton.className = 'floatLeft';
-		toggleButton.style.margin = '4px 2px 0px 5px';
-		toggleButton.style.border = '1px solid transparent';
-		
-		var navigatePath = _menuUp.showNavigatePath(canvasID);
-		
-		var closeButton = makeImageButton('img/close.png', 'img/close_orange.png');
-		closeButton.onclick = function()
-		{
-			hide($$('left_' + canvasID));
-			
-			closeFunc && closeFunc();
-		}
-		
-		closeButton.className = 'floatRight';
-		closeButton.style.margin = '2px 18px 0px 3px';
-		closeButton.style.border = '1px solid transparent';
-		
-		_(this.parentWorkCanvas, [_div([toggleButton, _table([_tbody([_tr(navigatePath)])],[['css','color','#293D6B'],['css','margin','4px 0px 1px 0px']]), closeButton],[['dir','className','leftTitle']]),
-								  this.workCanvas
-								  ]);
+        var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, {closeFunc: function() {
+            $(_this.parentWorkCanvas).hide();
+            closeFunc && closeFunc();
+        }});
+        this.parentWorkCanvas = leftPanelItem.panelCanvas;
+        this.workCanvas = leftPanelItem.workCanvas;
 		
 		if ($$('leftContent').childNodes.length == 0)
 			_($$('leftContent'), [this.parentWorkCanvas]);
 		else
 			$$('leftContent').insertBefore(this.parentWorkCanvas, $$('leftContent').firstChild);
-		
+            
 		return false;
 	}
 	else
