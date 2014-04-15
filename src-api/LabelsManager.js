@@ -136,7 +136,7 @@
 			var item = itemsHash[id];
             if (item.layerID) {
                 var node = gmxAPI._leaflet.mapNodes[item.layerID];
-                if(!node || !node.objectsData[item.geoID]) {
+                if(!node || (!node.clustersData && !node.objectsData[item.geoID])) {
                     delete itemsHash[id];
                     continue;
                 }

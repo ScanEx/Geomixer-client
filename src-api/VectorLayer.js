@@ -710,6 +710,11 @@
                 points.x2 = item.bounds.max.x, points.y2 = item.bounds.max.y;
                 points.x3 = item.bounds.max.x, points.y3 = item.bounds.min.y;
                 points.x4 = item.bounds.min.x, points.y4 = item.bounds.min.y;
+            // } else if (quicklookPlatform === 'SPOT 6') {
+                // points.x4 = item.bounds.min.x, points.y4 = item.bounds.max.y;
+                // points.x1 = item.bounds.max.x, points.y1 = item.bounds.max.y;
+                // points.x2 = item.bounds.max.x, points.y2 = item.bounds.min.y;
+                // points.x3 = item.bounds.min.x, points.y3 = item.bounds.min.y;
             } else {
                 points = utils.getQuicklookPoints(coord);
             }
@@ -2737,6 +2742,7 @@
                         //if(geom.type !== 'Point' && geom.type !== 'Polygon' && geom.type !== 'MultiPolygon' && geom.type !== 'Polyline' && geom.type !== 'MultiPolyline') continue;
 
                         var objData = node.objectsData[geom.id] || geom;
+                        geom.layerId = nodeId;
                         var propHiden = objData.propHiden;
                         if(!propHiden.drawInTiles) propHiden.drawInTiles = {};
                         if(!propHiden.drawInTiles[zoom]) propHiden.drawInTiles[zoom] = {};
