@@ -491,9 +491,23 @@
                     gmxAPI._leaflet.imageLoader.removeItemsBySrc(key);
                 }
                 this.options._inLoadImage = {};
-                L.TileLayer.Canvas.prototype._reset.call(this, e);
+                
+                //L.TileLayer.Canvas.prototype._reset.call(this, e);
                 this.options._needLoadTile = 0;
                 
+                for (var key in this._tiles) {
+                    this.fire('tileunload', {tile: this._tiles[key]});
+                }
+                this._tiles = {};
+                this._tilesToLoad = 0;
+                if (this.options.reuseTiles) {
+                    this._unusedTiles = [];
+                }
+                if (this._tileContainer) this._tileContainer.innerHTML = '';
+                if (this._animated && e && e.hard) {
+                    this._clearBgBuffer();
+                }
+                //this._initContainer(); 
             }
             ,
             _addTile: function (tilePoint, container) {
