@@ -2948,9 +2948,17 @@
                 return node.getStatus(ph.attr);
             }
             return false;
+        },
+        redrawItem: function(ph) {
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(node && 'redrawItem' in node) {
+                return node.redrawItem(ph.attr);
+            }
+            return false;
         }
         ,
-        'setStyleHook':	function(ph) {
+        setStyleHook: function(ph) {
             var id = ph.obj.objectId;
             var node = mapNodes[id];
             if(node && 'setStyleHook' in node) {
@@ -2960,7 +2968,7 @@
             return false;
         }
         ,
-        'removeStyleHook':	function(ph) {
+        removeStyleHook: function(ph) {
             var id = ph.obj.objectId;
             var node = mapNodes[id];
             if(node && 'removeStyleHook' in node) {

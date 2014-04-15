@@ -488,6 +488,10 @@
             ,getPositionOffset: function() {
                 return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
             }
+            ,redrawItem: function(pt) {  // Установка стилевой функции пользователя
+                if(this.objectId) return proxy('redrawItem', { obj: obj, attr:pt });
+                return false;
+            }
             ,setStyleHook: function(func) {  // Установка стилевой функции пользователя
                 obj.filters.foreach(function(item) { item.setStyleHook(func); });
                 return true;
@@ -548,6 +552,7 @@
             'addClipPolygon', 'removeClipPolygon',
             'addContextMenuItem', 'removeContextMenuItem',
             'enableDragging', 'disableDragging',
+            'redrawItem',
             'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
         ];
         // не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
@@ -863,6 +868,9 @@
                 }
                 ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
                     return proxy('isLoadingFreezed', { obj: obj });
+                }
+                ,redrawItem: function(pt) {  // Перерисовать объект векторного слоя
+                    return proxy('redrawItem', { obj: obj, attr:pt });
                 }
             });
             if (obj._isLoadingFreezed) proxy('setFreezeLoading', { obj: obj, attr:true });

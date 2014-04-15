@@ -1390,19 +1390,18 @@
                             //,filter: gmxAPI.mapNodes[filter.id]
                             //,layer: gmxNode
                         });
-                    if(res) {
-                        var prevStyle = geom.propHiden.curStyle,
-                            iconUrl = res.marker ? res.marker.image : '';
-                        res = utils.parseStyle(res);
-                        if(prevStyle.image && prevStyle.iconUrl === iconUrl) {
-                            res.iconUrl = prevStyle.iconUrl;
-                            res.image = prevStyle.image;
-                            if(prevStyle.imageWidth) res.imageWidth = prevStyle.imageWidth;
-                            if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
-                        }
-                        res = utils.evalStyle(res, geom.properties);
-                        node.prpStyle(geom, res);
-                   }
+                    if(!res) res = style;
+                    var prevStyle = geom.propHiden.curStyle,
+                        iconUrl = res.marker ? res.marker.image : '';
+                    res = utils.parseStyle(res);
+                    if(prevStyle.image && prevStyle.iconUrl === iconUrl) {
+                        res.iconUrl = prevStyle.iconUrl;
+                        res.image = prevStyle.image;
+                        if(prevStyle.imageWidth) res.imageWidth = prevStyle.imageWidth;
+                        if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
+                    }
+                    res = utils.evalStyle(res, geom.properties);
+                    node.prpStyle(geom, res);
                 }
             }
             ,checkWaitStyle: function() {       // проверка ожидания обработки стилей по фильтрам
@@ -1628,6 +1627,22 @@
                     node.tilesNeedRedraw[tKey] = true;
                 }
                 if(flag) node.redrawTilesNeed(0);
+            }
+            ,redrawItem: function(vid) { // Перерисовать объект
+                var item = node.objectsData[vid];
+                if (item) {
+                    var propHiden = item.propHiden,
+                        zoom = LMap.getZoom();
+                    var drawInTiles = propHiden.drawInTiles;
+                    if(drawInTiles && drawInTiles[zoom]) {
+                        var tilesNeed = {};
+                        getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
+                        node.redrawTilesHash(tilesNeed, true);
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
             }
             ,redrawHash: function(hash, flag) { // Добавить тайл в список перерисовки
                 for (var tKey in hash) {
