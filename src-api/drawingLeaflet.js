@@ -497,7 +497,6 @@
 		}
 		var stopAddPoints = function()
 		{
-			//console.log('stopAddPoints:  ', currentObjectID, isFinish, domObj.objectId);
 			//if(!layerItems[0]) return;
 			gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 			gmxAPI.map.removeListener('onMouseUp', addItemListenerID); addItemListenerID = null;
@@ -530,7 +529,7 @@
 				});
 
 				layerGroup.on('mouseover', function(e) {
-					if(mousePressed) return;
+                    if(mousePressed) return;
 					mouseOverFlag = true;
 					var downType = getDownType(e, coords, oBounds);
 					var title = drawingUtils.getTitle(downType, editType, coords);
@@ -872,11 +871,13 @@
 				return getStyle(removeDefaults, obj);
 			}
 			,
-			'stopDrawing': function() {
-				if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
-				if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID); onMouseUpID = null;
-				if(addItemListenerID) gmxAPI.map.removeListener('onMouseUp', addItemListenerID); addItemListenerID = null;
-				obj.stopDrawing();
+			'stopDrawing': function(ev) {
+                if (ev && ev.objectId === domObj.objectId) {
+                    if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
+                    if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID); onMouseUpID = null;
+                    if(addItemListenerID) gmxAPI.map.removeListener('onMouseUp', addItemListenerID); addItemListenerID = null;
+                    obj.stopDrawing();
+                }
 			}
             ,
 			setGeometry: function(geo) {

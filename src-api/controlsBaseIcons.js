@@ -1205,9 +1205,9 @@
                         }
                         var target = items[key];
                         var className = 'leaflet-control-Drawing-' + key + '-Active';
-                        var stop = function() {
+                        var stop = function(ev) {
                             if(target && target.drawFunc) {
-                                target.drawFunc.stopDrawing();
+                                target.drawFunc.stopDrawing(ev);
                             }
                             //gmxAPI._drawing.endDrawing();
                             L.DomUtil.removeClass(target, className);
