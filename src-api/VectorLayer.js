@@ -101,10 +101,10 @@
             node['quicklook'] = layer.properties['Quicklook'];
             if(!node['IsRasterCatalog'] && !node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
             // Поля точек привязки накладываемых изображений
-            var fields = node.propHiden.pointsFields || layer.properties.pointsFields;
-            if(fields) {
-                node.pointsFields = fields.split(',');
-            }
+            // var fields = node.propHiden.pointsFields || layer.properties.pointsFields;
+            // if(fields) {
+                // node.pointsFields = fields.split(',');
+            // }
         }
 
         // установлен режим показа/скрытия растров
@@ -663,10 +663,14 @@
                 properties = item.properties;
             if (!item.bounds) item.bounds = gmxAPI.geoBounds(geo);
             var mInPixel = gmxAPI._leaflet.mInPixel,
+                ready = false,
                 begx = mInPixel * item.bounds.min.x,
                 begy = mInPixel * item.bounds.max.y,
                 quicklookPlatform = properties[node.quicklookPlatform] || '',
-                coord = geo.coordinates;
+                coord = geo.coordinates[0];
+
+            if(geo.type === 'MULTIPOLYGON') coord = coord[0];
+/*
             if(node.pointsFields) {
                 var keys = node.pointsFields;
                 coord = [];
@@ -704,17 +708,20 @@
                     coord[3][0] = MinX, coord[3][1] = MinY;
                 }
             }
+*/
             var points = {};
             if (quicklookPlatform === 'LANDSAT8') {
                 points.x1 = item.bounds.min.x, points.y1 = item.bounds.max.y;
                 points.x2 = item.bounds.max.x, points.y2 = item.bounds.max.y;
                 points.x3 = item.bounds.max.x, points.y3 = item.bounds.min.y;
                 points.x4 = item.bounds.min.x, points.y4 = item.bounds.min.y;
-            // } else if (quicklookPlatform === 'SPOT 6') {
-                // points.x4 = item.bounds.min.x, points.y4 = item.bounds.max.y;
-                // points.x1 = item.bounds.max.x, points.y1 = item.bounds.max.y;
-                // points.x2 = item.bounds.max.x, points.y2 = item.bounds.min.y;
-                // points.x3 = item.bounds.min.x, points.y3 = item.bounds.min.y;
+                ready = true;
+            } else if (quicklookPlatform === 'SPOT 6') {
+                points.x1 = coord[0][0], points.y1 = coord[0][1];
+                points.x2 = coord[1][0], points.y2 = coord[1][1];
+                points.x3 = coord[2][0], points.y3 = coord[2][1];
+                points.x4 = coord[3][0], points.y4 = coord[3][1];
+                ready = true;
             } else {
                 points = utils.getQuicklookPoints(coord);
             }
@@ -751,7 +758,8 @@
                 return out;
             }
             var shiftPoints = [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
-            if(!node.pointsFields) shiftPoints = chPoints(shiftPoints);
+            //if(!ready !node.pointsFields) shiftPoints = chPoints(shiftPoints);
+            if(!ready) shiftPoints = chPoints(shiftPoints);
 
             var pt = gmxAPI._leaflet.ProjectiveImage({
                 imageObj: content
@@ -1956,9 +1964,9 @@
             }
             ,
             setAPIProperties: function() { // Произошла установка propHiden
-                if(node.propHiden.pointsFields) {       // Проверка pointsFields
-                    node.pointsFields = node.propHiden.pointsFields.split(',');
-                }
+                // if(node.propHiden.pointsFields) {       // Проверка pointsFields
+                    // node.pointsFields = node.propHiden.pointsFields.split(',');
+                // }
                 node.waitRedraw();
             }
             ,
