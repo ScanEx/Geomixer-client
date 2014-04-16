@@ -2833,7 +2833,7 @@
                 if(rasterNums === 0) {
                     myLayer._markTile(tilePoint, cnt);
                     if(cnt == 0) myLayer.removeTile(tilePoint);  // Удаление ставшего пустым тайла
-                    else if (!tile.parentNode) myLayer._tileContainer.appendChild(tile);
+                    else if (tile && !tile.parentNode) myLayer._tileContainer.appendChild(tile);
 
                 }
                 if(tile && node.clipGeo) {

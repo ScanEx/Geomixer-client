@@ -1436,6 +1436,8 @@
             }
             if(pt.onClick) attr.onClick = pt.onClick;
             if(pt.onCancel) attr.onCancel = pt.onCancel;
+            else if(pt.onClick) attr.onCancel = pt.onClick;
+
             //if(pt.overlay) attr.onCancel = pt.onCancel;
             if(!attr.src) {     // Текстовый контрол
                 className += ' leaflet-control-Text';
