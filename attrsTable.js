@@ -158,7 +158,7 @@ var attrsTable = function(layerName, layerTitle)
 
 attrsTable.prototype.getLayerInfo = function()
 {
-    return this.layerInfo;
+    return this._layerInfo;
 }
 
 attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
@@ -210,7 +210,19 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 		
 		loading.removeNode(true);
 		
-        _this.layerInfo = response.Result.properties;
+        _this._layerInfo = response.Result.properties;
+        
+        _this._layerColumns = [
+            {Value: 'GeomIsEmpty([geomixergeojson])', Alias: '__GeomIsEmpty__'},
+            {Value: response.Result.properties.identityField}
+        ];
+        
+        var attrs = response.Result.properties.attributes;
+        for (var k = 0; k < attrs.length; k++) {
+            _this._layerColumns.push({Value: attrs[k]});
+        }
+        
+        // console.log(_this._layerColumns);
         
 		_this.drawDialog(response.Result.properties, canvas, outerSizeProvider, params);
 	})
@@ -220,7 +232,7 @@ attrsTable.prototype._updateSearchString = function(tdParams, info) {
     var query = this.queryTextarea ? this.queryTextarea.value : '';
     this._serverDataProvider.setRequests(
         serverBase + 'VectorLayer/Search.ashx', {layer: this.layerName, query: query, count: true},
-        serverBase + 'VectorLayer/Search.ashx', {layer: this.layerName, query: query}
+        serverBase + 'VectorLayer/Search.ashx', {layer: this.layerName, query: query, columns: JSON.stringify(this._layerColumns)}
     );
 }
 
@@ -466,6 +478,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
         var tds = [];
+        
+        // console.log(elem);
 
         var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
             editButton = makeImageButton('img/edit.png'),
@@ -518,9 +532,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             })
         }
         
-        _title(deleteButton, _gtxt("Удалить"))
-        _title(editButton, _gtxt("Редактировать"))
-        _title(showButton, _gtxt("Показать"))
+        _title(deleteButton, _gtxt("Удалить"));
+        _title(editButton, _gtxt("Редактировать"));
+        _title(showButton, _gtxt("Показать"));
+        
+        $(showButton).toggle(!elem.values[elem.fields['__GeomIsEmpty__'].index]);
         
         if (!_params.hideRowActions)
             tds.push(tdControl);
