@@ -218,14 +218,12 @@
 
         var mouseOut = function() {   // событие mouseOut
             if(node.hoverItem) {
-                var item = node.hoverItem;
-                var geom = item.geom;
-                var propHiden = geom.propHiden;
-                gmxAPI._leaflet.LabelsManager.remove(nodeId, geom.id);
-                var zoom = LMap.getZoom();
-
-                var filter = node.getItemFilter(item);
-                var regularStyle = null;
+                var item = node.hoverItem,
+                    geom = item.geom,
+                    propHiden = geom.propHiden,
+                    zoom = LMap.getZoom(),
+                    filter = node.getItemFilter(item),
+                    regularStyle = null;
                 if(node.clustersData && propHiden.subType === 'cluster') {
                     regularStyle = node.clustersData.regularStyle;
                 } else {
@@ -244,6 +242,7 @@
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
                 prevID = 0;
+                gmxAPI._leaflet.LabelsManager.remove(nodeId, geom.id);
             }
         }
         //gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
@@ -429,6 +428,7 @@
                 };
                 var handlerObj = null;
                 if (evName === 'onClick') {
+                    mouseOut();
                     var vid = node.flipIDS[0];
                     var item = arr[0];
                     var oper = 'setFlip';

@@ -67,6 +67,7 @@
    hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
    if (hoveredStyle.marker && hoveredStyle.marker.size) hoveredStyle.marker.size += 1;
    if (hoveredStyle.outline) hoveredStyle.outline.thickness += 1;
+   if (hoveredStyle.fill && 'opacity' in hoveredStyle.fill) hoveredStyle.fill.opacity = Math.min(Number(hoveredStyle.fill.opacity + 20), 100);
   }
 
   // Получение sql строки фильтра
