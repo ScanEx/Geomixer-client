@@ -2600,7 +2600,8 @@
                 node = mapNodes[id];
             //console.log('setVisible ', id, ph.attr);
             if(!node) return false;
-            if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
+            //if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
+            if('isOnScene' in node) node.isOnScene = true;
             node.notView = ph.notView || false;
             if(obj.isVisible === node.isVisible && node.isVisible === ph.attr) return true;
             node.isVisible = ph.attr;
