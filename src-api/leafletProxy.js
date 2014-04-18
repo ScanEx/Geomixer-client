@@ -356,20 +356,19 @@
 			  }
 		  }
 		  return xmlhttp;
-		}
-		,
-		'chkMapObjectsView': function() {		// Проверка zoomBounds на mapObjects
-			var zoom = LMap.getZoom();
-			for (var id in mapNodes) {
-				var node = mapNodes[id];
-				if(node['type'] !== 'mapObject' || (!node['minZ'] && !node['maxZ'])) continue;
-				//var flag = (utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id) ? true : false);
-				var flag = (utils.chkVisibilityByZoom(node.id) ? true : false);
-				if(!node['leaflet']) gmxAPI._leaflet['drawManager'].add(id);
-				utils.setVisibleNode({'obj': node, 'attr': flag});
-				gmxAPI._leaflet.LabelsManager.onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
-			}
-		}
+		},
+        chkMapObjectsView: function() { // Проверка zoomBounds на mapObjects
+            var zoom = LMap.getZoom();
+            for (var id in mapNodes) {
+                var node = mapNodes[id];
+                if(node.type !== 'mapObject' || (!node.minZ && !node.maxZ)) continue;
+                //var flag = (utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id) ? true : false);
+                var flag = (node.isVisible !== false && utils.chkVisibilityByZoom(node.id) ? true : false);
+                if(!node.leaflet) gmxAPI._leaflet.drawManager.add(id);
+                utils.setVisibleNode({obj: node, attr: flag});
+                gmxAPI._leaflet.LabelsManager.onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
+            }
+        }
 		,
 		'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
 			var out = [];
@@ -937,28 +936,29 @@
             return point.y - p1.y;
         }
         ,
+        getSortLayers: function(name) { // получить отсортированный по zIndex массив видимых слоев имеющих заданный метод
+            var arr = [];
+            for (var i = 0, len = gmxAPI.map.layers.length; i < len; i++) {
+                var child = gmxAPI.map.layers[i];
+                if(!child || !child.isVisible) continue;
+                var mapNode = mapNodes[child.objectId];
+                if(name in mapNode) {
+                    var index = (mapNode.zIndexOffset || 0) + (mapNode.zIndex || 0);
+                    arr.push({zIndex: index, id: child.objectId});
+                }
+            }
+            arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
+            return arr;
+        }
+        ,
         chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
             if(!attr || !attr.evName) return;
             var evName = attr.evName;
 
-            //var standartTools = gmxAPI.map.standartTools;
-            //if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
             if(!gmxAPI._drawing || (!gmxAPI._drawing.activeState && gmxAPI._drawing.type !== 'POINT')) {
-                var from = gmxAPI.map.layers.length - 1;
-                var arr = [];
-                for (var i = from; i >= 0; i--)
-                {
-                    var child = gmxAPI.map.layers[i];
-                    if(!child || !child.isVisible) continue;
-                    var mapNode = mapNodes[child.objectId];
-                    if(mapNode.eventsCheck) {
-                        var index = (mapNode.zIndexOffset || 0) + mapNode.zIndex;
-                        arr.push({zIndex: index, id: child.objectId});
-                    }
-                }
-                arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
-                for (var i = 0, to = arr.length; i < to; i++)
-                {
+                var arr = utils.getSortLayers('eventsCheck');
+                
+                for (var i = 0, len = arr.length; i < len; i++) {
                     var it = arr[i];
                     var mapNode = mapNodes[it.id];
                     if(mapNode.eventsCheck(evName, attr)) {
@@ -4513,16 +4513,13 @@ var tt = 1;
 					if(onMouseMoveTimer) clearTimeout(onMouseMoveTimer);
 					onMouseMoveTimer = setTimeout(function() {
 						onMouseMoveTimer = null;
-						var from = gmxAPI.map.layers.length - 1;
-						for (var i = from; i >= 0; i--)
-						{
-							var child = gmxAPI.map.layers[i];
-							if(!child.isVisible) continue;
-							var mapNode = mapNodes[child.objectId];
-							if(mapNode.mouseMoveCheck) {
-								if(mapNode.mouseMoveCheck('onMouseMove', {'attr':attr})) return true;
-							}
-						}
+                        var arr = utils.getSortLayers('mouseMoveCheck');
+                        for (var i = 0, len = arr.length; i < len; i++) {
+                            var mapNode = mapNodes[arr[i].id];
+                            if(mapNode.mouseMoveCheck('onMouseMove', {'attr':attr})) {
+                                return true;
+                            }
+                        }
 						gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
 					}, 10);
 				}
