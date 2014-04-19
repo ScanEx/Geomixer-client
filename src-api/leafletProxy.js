@@ -1356,7 +1356,7 @@
 		,
 		'setVisibleNode': setVisibleNode									// Рекурсивное изменение видимости
 		,
-		'repaintNode': function(node, recursion, type)	{					// перерисовать ноду - рекурсивно
+		'repaintNode': function(node, recursion, type) { // перерисовать ноду - рекурсивно
 			if(!node) {
 				return null;
 			}
@@ -1369,7 +1369,7 @@
 					//node.leaflet = utils.drawNode(node, regularStyle);
 					pNode.refreshFilter(node.id);
 				} else if(node['isSetImage']) {
-					if('refreshMe' in node) node['refreshMe']();				// свой отрисовщик
+					if('refreshMe' in node) node['refreshMe'](); // свой отрисовщик
 				} else if(node.geometry && node.geometry.type) {
 					utils.removeLeafletNode(node);
 
@@ -2601,7 +2601,7 @@
             //console.log('setVisible ', id, ph.attr);
             if(!node) return false;
             //if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
-            if('isOnScene' in node) node.isOnScene = true;
+            if(ph.attr) node.isOnScene = true;
             node.notView = ph.notView || false;
             if(obj.isVisible === node.isVisible && node.isVisible === ph.attr) return true;
             node.isVisible = ph.attr;
