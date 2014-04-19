@@ -194,7 +194,7 @@
         });
 		var chkReady = function() {
 //console.log('chkReady', arguments);
-            if(!node.leaflet) createIcon().done(function(canv) {
+            if(!node.leaflet || !node.leaflet._map) createIcon().done(function(canv) {
                 node.canvas = canv;
                 waitRedraw();
             });

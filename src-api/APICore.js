@@ -2315,31 +2315,31 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		return id;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
-	* @function removeListener
-	* @memberOf api - удаление прослушивателя
-	* @param {eventName} название события
-	* @param {id} вызываемый метод
-	* @return {Bool} true - удален false - не найден
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-	*/
-	function removeListener(obj, eventName, id)
-	{
-		var arr = getArr(eventName, obj);
-		var out = [];
-		for (var i=0; i<arr.length; i++)
-		{
-			if(id && id != arr[i]["id"] && id != arr[i]["pID"]) out.push(arr[i]);
-		}
-		if(obj) {
-			obj.stateListeners[eventName] = out;
-			if('removeHandler' in obj && (!obj.handlers || !obj.handlers[eventName]) && out.length == 0) obj.removeHandler(eventName);
-			
-		}
-		else stateListeners[eventName] = out;
-		return true;
-	}
+    /** Пользовательские Listeners изменений состояния карты
+    * @function removeListener
+    * @memberOf api - удаление прослушивателя
+    * @param {eventName} название события
+    * @param {id} вызываемый метод
+    * @return {Bool} true - удален false - не найден
+    * @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+    * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+    */
+    function removeListener(obj, eventName, id) {
+        var arr = getArr(eventName, obj);
+        var out = [];
+        for (var i=0, len = arr.length; i<len; i++) {
+            if(id && id != arr[i].id && id != arr[i].pID) out.push(arr[i]);
+        }
+        if(obj) {
+            obj.stateListeners[eventName] = out;
+            if(out.length === 0) {
+                if('removeHandler' in obj && (!obj.handlers || !obj.handlers[eventName])) obj.removeHandler(eventName);
+                delete obj.stateListeners[eventName];
+            }
+        }
+        else stateListeners[eventName] = out;
+        return true;
+    }
 	gmxAPI._listeners = {
 		'dispatchEvent': dispatchEvent,
 		'addListener': addListener,
