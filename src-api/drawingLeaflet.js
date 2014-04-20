@@ -2,153 +2,140 @@
 (function()
 {
     "use strict";
-	var outlineColor = 0x0000ff;
-	var fillColor = 0xffffff;
-	var currentDOMObject = null;		// текущий обьект рисования
-	var currentObjectID = null;			// ID редактируемого обьекта
-	var pSize = 8;
-	var pointSize = pSize / 2;
-	var lineWidth = 3;
-	var mouseOverFlag = false;
-	var mousePressed = false;
-	var topNodeID = null;
+	var outlineColor = 0x0000ff,
+        fillColor = 0xffffff,
+        currentDOMObject = null,    // текущий обьект рисования
+        currentObjectID = null, // ID редактируемого обьекта
+        pSize = 8,
+        pointSize = pSize / 2,
+        lineWidth = 3,
+        mouseOverFlag = false,
+        mousePressed = false,
+        topNodeID = null;
 
-	var drawingUtils = {
-		'disablePointerEvents': function(flag, items) {		// отключить мышь на SVG обьектах
-			if(!items || items.length == 0) return;
-			items[1]._container.style.pointerEvents = 'none';
-			//items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'none';
-			if(flag !== undefined) items[2].options.skipLastPoint = flag;
-		}
-		,
-		'enablePointerEvents': function(flag, items) {			// включить мышь на SVG обьектах
-			if(!items || items.length == 0) return;
-			items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'visiblePainted';
-			if(flag !== undefined) items[2].options.skipLastPoint = flag;
-		}
-		,
-		'hideBalloon': function() {						// выключить балун
-			var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-			if(propsBalloon && propsBalloon.isVisible()) propsBalloon.updatePropsBalloon(false);
-		}
-		,
-		'getGeometryTitle': function(geom) {				// Получить prettify title балуна
-			var geomType = geom.type;
-			if (geomType.indexOf("POINT") != -1)
-			{
-				var c = geom.coordinates;
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.LatLon_formatCoordinates(c[0], c[1]);
-			}
-			else if (geomType.indexOf("LINESTRING") != -1)
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
-			else if (geomType.indexOf("POLYGON") != -1)
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
-			else
-				return "?";
-		}
-		,
-		'getTitle': function(downType, eType, arr) {			// Получить title балуна
-			var title = '';
-			var ii = downType.num;
-			if(downType.type === 'node') {
-				if(eType === 'LINESTRING') {
-					title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [arr.slice(0,ii+1)] }));
-				} else if(eType === 'POLYGON' || eType === 'FRAME') {
-					title = drawingUtils.getGeometryTitle({ type: "POLYGON", coordinates: [arr] });
-				}
-			} else if(downType.type === 'edge') {
-				if(ii == 0 && eType === 'LINESTRING') return false;
-				var p1 = arr[ii];
-				var p2 = arr[(ii == 0 ? arr.length - 1 : ii - 1)];
-				title = drawingUtils.getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
-			}
-			return title;
-		}
-	};
+    var drawingUtils = {
+        'disablePointerEvents': function(flag, items) { // отключить мышь на SVG обьектах
+            if(!items || items.length == 0) return;
+            items[1]._container.style.pointerEvents = 'none';
+            //items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'none';
+            if(flag !== undefined) items[2].options.skipLastPoint = flag;
+        }
+        ,
+        'enablePointerEvents': function(flag, items) {  // включить мышь на SVG обьектах
+            if(!items || items.length == 0) return;
+            items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'visiblePainted';
+            if(flag !== undefined) items[2].options.skipLastPoint = flag;
+        }
+        ,
+        'hideBalloon': function() { // выключить балун
+            var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
+            if(propsBalloon && propsBalloon.isVisible()) propsBalloon.updatePropsBalloon(false);
+        }
+        ,
+        'getGeometryTitle': function(geom) {    // Получить prettify title балуна
+            var geomType = geom.type;
+            if (geomType.indexOf("POINT") != -1)
+            {
+                var c = geom.coordinates;
+                return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.LatLon_formatCoordinates(c[0], c[1]);
+            }
+            else if (geomType.indexOf("LINESTRING") != -1)
+                return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
+            else if (geomType.indexOf("POLYGON") != -1)
+                return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
+            else
+                return "?";
+        }
+        ,
+        'getTitle': function(downType, eType, arr) {    // Получить title балуна
+            var title = '';
+            var ii = downType.num;
+            if(downType.type === 'node') {
+                if(eType === 'LINESTRING') {
+                    title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [arr.slice(0,ii+1)] }));
+                } else if(eType === 'POLYGON' || eType === 'FRAME') {
+                    title = drawingUtils.getGeometryTitle({ type: "POLYGON", coordinates: [arr] });
+                }
+            } else if(downType.type === 'edge') {
+                if(ii == 0 && eType === 'LINESTRING') return false;
+                var p1 = arr[ii];
+                var p2 = arr[(ii == 0 ? arr.length - 1 : ii - 1)];
+                title = drawingUtils.getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
+            }
+            return title;
+        }
+    };
 
-	var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
-		if(drawAttr.regularStyle) {
-			var opacity = ('opacity' in drawAttr.regularStyle ? drawAttr.regularStyle.opacity/100 : 1);
-			var color = ('color' in drawAttr.regularStyle ? drawAttr.regularStyle.color : 0xff);
-			drawAttr.strokeStyle.color = gmxAPI._leaflet.utils.dec2rgba(color, opacity);
-			var weight = ('weight' in drawAttr.regularStyle ? drawAttr.regularStyle.weight : lineWidth);
-			drawAttr.stylePolygon = {
-				'color': gmxAPI._leaflet.utils.dec2rgba(color, opacity)
-				,'weight': weight
-				,'opacity': opacity
-				
-			};
-			drawAttr.stylePoint = gmxAPI.clone(stylePoint);
-			drawAttr.stylePoint.pointSize = pointSize;
-			drawAttr.stylePoint.color = drawAttr.stylePolygon.color;
-			drawAttr.stylePoint.weight = drawAttr.stylePolygon.weight;
-			drawAttr.stylePoint.fillOpacity = 
-			drawAttr.stylePoint.opacity = drawAttr.stylePolygon.opacity;
-		}
-	}
-	
-	var getLongLatLng = function(lat, lng)
-	{
-		var point = new L.LatLng(lat, lng);
-		if(lng > 180) point.lng = lng;
-		else if(lng < -180) point.lng = lng;
-		return point;
-	}
-	var getDownType = function(ph, coords)
-	{
-		var out = {};
-		var dBounds = new L.Bounds();
-		for (var i = 0; i < coords.length; i++)
-		{
-			var pArr = coords[i];
-			dBounds.extend(new L.Point(pArr[0],  pArr[1]));
-		}
-		var dx = getDeltaX(dBounds);
-		var point = getLongLatLng(ph.latlng.lat, ph.latlng.lng);
-		var p1 = gmxAPI._leaflet.LMap.project(point);
-		var size = pointSize + lineWidth;
-		
-		var cursorBounds = new L.Bounds();
-		var p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x - size, p1.y - size));
-		cursorBounds.extend(new L.Point(p.lng,  p.lat));
-		p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x + size, p1.y + size));
-		cursorBounds.extend(new L.Point(p.lng,  p.lat));
+    var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
+        if(drawAttr.regularStyle) {
+            var opacity = ('opacity' in drawAttr.regularStyle ? drawAttr.regularStyle.opacity/100 : 1);
+            var color = ('color' in drawAttr.regularStyle ? drawAttr.regularStyle.color : 0xff);
+            drawAttr.strokeStyle.color = gmxAPI._leaflet.utils.dec2rgba(color, opacity);
+            var weight = ('weight' in drawAttr.regularStyle ? drawAttr.regularStyle.weight : lineWidth);
+            drawAttr.stylePolygon = {
+                'color': gmxAPI._leaflet.utils.dec2rgba(color, opacity)
+                ,'weight': weight
+                ,'opacity': opacity
+                
+            };
+            drawAttr.stylePoint = gmxAPI.clone(stylePoint);
+            drawAttr.stylePoint.pointSize = pointSize;
+            drawAttr.stylePoint.color = drawAttr.stylePolygon.color;
+            drawAttr.stylePoint.weight = drawAttr.stylePolygon.weight;
+            drawAttr.stylePoint.fillOpacity = 
+            drawAttr.stylePoint.opacity = drawAttr.stylePolygon.opacity;
+        }
+    }
 
-		var len = coords.length;
-		for (var i = 0; i < len; i++)
-		{
-			var pArr = coords[i];
-			var x = pArr[0] + dx;
-			var y = pArr[1];
-			//var pBounds = getBoundsPoint(pArr[0] + dx, pArr[1]);
-			if(cursorBounds.max.x < x || cursorBounds.min.x > x || cursorBounds.max.y < y || cursorBounds.min.y > y) {
-				var p2 = gmxAPI._leaflet.LMap.project(getLongLatLng(pArr[1], x));
-				var jj = i + 1;
-				if(jj >= len) jj = 0;
-				var x = coords[jj][0] + dx;
-				var point1 = gmxAPI._leaflet.LMap.project(getLongLatLng(coords[jj][1], x));
-				var x1 = p2.x - p1.x; 			var y1 = p2.y - p1.y;
-				var x2 = point1.x - p1.x;		var y2 = point1.y - p1.y;
-				var dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1) - lineWidth;
-				if (dist < lineWidth)
-				{
-					out = {'type': 'edge', 'num':jj};
-				}
-			} else {
-				out = {'type': 'node', 'num':i};
-				break;
-			}
-		}
-		if(ph.target) {
-			out.evID = ph.target._leaflet_id;
-			out._gmxNodeID = ph.target._gmxNodeID;
-			out._gmxDrawItemID = ph.target._gmxDrawItemID;
-		}
-		if(ph.originalEvent) {
-			out.button = ph.originalEvent.buttons || ph.originalEvent.button;
-		}
-		return out;
-	}
+    var getLongLatLng = function(lat, lng)
+    {
+        var point = new L.LatLng(lat, lng);
+        if(lng > 180) point.lng = lng;
+        else if(lng < -180) point.lng = lng;
+        return point;
+    }
+    var getDownType = function(ph, coords)
+    {
+        var out = {},
+            bounds = gmxAPI.bounds(coords),
+            dx = getDeltaX(bounds),
+            point = getLongLatLng(ph.latlng.lat, ph.latlng.lng),
+            p1 = gmxAPI._leaflet.LMap.project(point),
+            size = pointSize + lineWidth;
+
+        var cursorBounds = new L.Bounds();
+        var p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x - size, p1.y - size));
+        cursorBounds.extend(new L.Point(p.lng,  p.lat));
+        p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x + size, p1.y + size));
+        cursorBounds.extend(new L.Point(p.lng,  p.lat));
+
+        for (var i = 0, len = coords.length; i < len; i++) {
+            var pArr = coords[i],
+                x = pArr[0] + dx, y = pArr[1];
+            if(cursorBounds.max.x < x || cursorBounds.min.x > x || cursorBounds.max.y < y || cursorBounds.min.y > y) {
+                var jj = i + 1;
+                if(jj >= len) break;
+                var p2 = gmxAPI._leaflet.LMap.project(getLongLatLng(y, x)),
+                    point1 = gmxAPI._leaflet.LMap.project(getLongLatLng(coords[jj][1], coords[jj][0] + dx)),
+                    dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1) - lineWidth;
+                if (dist < lineWidth) {
+                    out = {type: 'edge', num:jj};
+                }
+            } else {
+                out = {type: 'node', num:i};
+                break;
+            }
+        }
+        if(ph.target) {
+            out.evID = ph.target._leaflet_id;
+            out._gmxNodeID = ph.target._gmxNodeID;
+            out._gmxDrawItemID = ph.target._gmxDrawItemID;
+        }
+        if(ph.originalEvent) {
+            out.button = ph.originalEvent.buttons || ph.originalEvent.button;
+        }
+        return out;
+    }
 
 	var getBoundsPoint = function(x, y)
 	{
@@ -553,7 +540,7 @@
 					drawingUtils.hideBalloon();
 
 					var downType = getDownType(ev, coords);
-//console.log('downItemID:  ', node.id, downType._gmxNodeID , currentObjectID, coords.length);
+//console.log('downItemID:  ', node.id, downType , currentObjectID, coords.length);
 					if(currentObjectID && downType._gmxNodeID != currentObjectID) return;	// мышь нажата на другом обьекте
 //console.log('downItemID1:  ', node.id, gmxAPI._drawing.activeState, isFinish, downType);
 					if(downType.button === 2 || !isFinish) return; 	// Нажали правую кнопку либо режим добавления точек
