@@ -44,7 +44,7 @@ var ServerDataProvider = function(params)
             return;
         }
         
-        var explicitSortParam = sortParam ? (_params.titleToParams[sortParam] || sortParam) : _params.defaultSortParam;
+        var explicitSortParam = (sortParam || sortParam === '') ? (_params.titleToParams[sortParam] || sortParam) : _params.defaultSortParam;
 
         var params = $.extend({
             page: page,
@@ -411,7 +411,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     this._tableFields.init(_params.attributes, info);
     
-    this._serverDataProvider = new ServerDataProvider({titleToParams: this._tableFields.titleToField});
+    this._serverDataProvider = new ServerDataProvider({titleToParams: $.extend(this._tableFields.titleToField, {'': '__GeomIsEmpty__'})});
     
     var hostName = serverBase.match(/^https?:\/\/(.*)\/$/)[1];
     
@@ -585,7 +585,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var tableFields = _params.hideRowActions ? attrNames : [""].concat(attrNames);
     
     this.table2.setDataProvider(this._serverDataProvider);
-    this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, attrNamesHash, true);
+    this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 	
 	_(canvas, [_div([paramsButton, addObjectButton],[['css','margin','10px 0px 10px 1px']])])
 	_(canvas, [_table([_tbody([_tr([tdParams, tdTable2])])],['css','width','100%'])])
