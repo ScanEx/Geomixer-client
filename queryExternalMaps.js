@@ -59,11 +59,11 @@ queryExternalMaps.prototype.load = function()
 		this.builded = true;
         
 		for (var i = 0; i < this.maps.length; ++i)
-			this.addMapElem(this.maps[i].hostName, this.maps[i].mapName);
+			this.addMapElem(this.maps[i].hostName, this.maps[i].mapName, true);
 	}
 }
 
-queryExternalMaps.prototype.addMapElem = function(hostName, mapName)
+queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 {
     this.createWorkCanvas('externalMaps');
     this.load();
@@ -108,7 +108,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName)
 	}
 }
 
-queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
+queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 {
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px'],['css','width','16px'],['css','height','16px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
@@ -121,7 +121,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 		{
 			loading.parentNode.parentNode.removeNode(true);
 			
-			showErrorMessage(_gtxt("Невозможно загрузить карту [value0] с домена [value1]", mapName, hostName), true);
+			silent || showErrorMessage(_gtxt("Невозможно загрузить карту [value0] с домена [value1]", mapName, hostName), true);
 			
 			return;
 		}
