@@ -242,7 +242,7 @@
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
                 prevID = 0;
-                gmxAPI._leaflet.LabelsManager.remove(nodeId, geom.id);
+                //gmxAPI._leaflet.LabelsManager.remove(nodeId, geom.id);
             }
         }
         //gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
