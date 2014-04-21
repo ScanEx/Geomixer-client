@@ -462,30 +462,32 @@ scrollTable.prototype._drawHeader = function()
     
     var headerElemFactory = this._isWidthScroll ? _th : _td;
     
-	for (var i = 0; i < this._fields.length; i++)
-	{
-        if (!this._fields[i].isActive)
-            continue;
+    this._fields.forEach(function(field) {
+        if (!field.isActive)
+            return;
             
-        var title = this._fields[i].title;
-		var button;
+        var title = field.title,
+            button;
 		
-		if (title != '' && this._fields[i].isSortable)
+		if (title != '' && field.isSortable)
 		{
 			button = makeLinkButton(title);
 			
 			button.sortType = title;
-			
-			button.onclick = function()
-			{
-                _this.setSortParams(this.sortType, 1 - _this.currentSortIndex[this.sortType]);
-			}
 		}
 		else
 			button = _t(title)
 		
-		tds.push(headerElemFactory([button], [['css','width',this._fields[i].width]]));
-	}
+        var td = headerElemFactory([button], [['css','width',field.width]]);
+        
+        if (field.isSortable) {
+            $(td).click(function() {
+                _this.setSortParams(title, 1 - _this.currentSortIndex[title]);
+            })
+        }
+        
+		tds.push(td);
+    })
     
     $(this._tableHeaderRow).empty();
     _(this._tableHeaderRow, tds);
