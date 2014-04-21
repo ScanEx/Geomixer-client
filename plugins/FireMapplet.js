@@ -552,7 +552,7 @@ var FireBurntProvider = function( params )
 var ModisImagesProvider = function( params )
 {
     var _params = $.extend({host: "http://maps.kosmosnimki.ru/", map: window.globalFlashMap}, params)
-    var layersNamesToLoad = ['E0BA0AB1FEA9413C9E5A116B4E9E0363']; //слои, в которых хранятся снимки Terra и Aqua
+    var layersNamesToLoad = ['C2E8FE742B754B99A3F89A2D850BAF5B']; //слои, в которых хранятся снимки Terra и Aqua
     var initDone = false;
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
@@ -564,7 +564,7 @@ var ModisImagesProvider = function( params )
                 for (var iL = 0; iL < layersNamesToLoad.length; iL++) {
                     map.layers[layersNamesToLoad[iL]].setDepth(-3000);
                     // map.layers[layersNamesToLoad[iL]].bringToBottom();
-                    map.layers[layersNamesToLoad[iL]].setVisibilityFilter("IsDay = 'True'");
+                    // map.layers[layersNamesToLoad[iL]].setVisibilityFilter("IsDay = 'True'");
                 }
                 initDone = true;
             }
@@ -2255,7 +2255,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             new FireBurntRenderer3( {
                 map: this._map,
                 hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
-                dailyLayerName: '0F203142F063462DB0961D4F60BDC14E',
+                dailyLayerName: '65E7319D40A64780AE63C398C6F04201',
                 hotspotTimeAttr: 'ImgDateTime',
                 hotspotIDAttr: 'HotSpotID'
             }),
