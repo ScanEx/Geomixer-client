@@ -443,7 +443,7 @@
                         vid = node.flipIDS[node.flipIDS.length - 1];
                         handlerObj = getHandler(vid, evName);
                         item = node.objectsData[vid];
-                        if(node.flipEnabled && oper === 'setFlip') {
+                        if(node.flipEnabled && oper === 'setFlip' && !attr.altKey) {
                             item = node.setFlip();
                             if(item && !handlerObj && item.id === prevID) item = node.setFlip();
                             chkFlip(item.id);

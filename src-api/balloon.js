@@ -649,9 +649,11 @@
 					setMousePos(x_, y_);
 					if(wasVisible) reposition();
 				},
-				resize: function()
-				{
+				resize: function() {
 					reposition();
+				},
+				getDefaultText: function(o) {
+                    return getDefaultBalloonText(o || this.obj);
 				},
 				updatePropsBalloon: function(text)
 				{
