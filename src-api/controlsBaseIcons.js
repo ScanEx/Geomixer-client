@@ -1414,6 +1414,7 @@
                 id: id
                 ,rus: pt.rus || title
                 ,eng: pt.eng || title
+                ,notToggle: pt.notToggle || false
                 ,style: gmxAPI.extend(pt.style, styleIcon)
                 ,hoverStyle: pt.hoverStyle
             };
@@ -1456,6 +1457,7 @@
             var userControl = L.control.gmxControl({
                 title: gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng)
                 ,isActive: false
+                ,notToggle: attr.notToggle || false
                 ,style: {}
                 ,className: className
                 ,src: attr.src || null
@@ -1488,10 +1490,10 @@
                     var container = this._container;
                     if(!this.options.isActive) {
                         if(attr.onClick) attr.onClick.call(this);
-                        this.setActive(true);
+                        this.setActive(true, this.options.notToggle);
                     } else {
                         if(attr.onCancel) attr.onCancel.call(this);
-                        this.setActive(false);
+                        this.setActive(false, this.options.notToggle);
                     }
                 }
             });
