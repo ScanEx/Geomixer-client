@@ -192,9 +192,9 @@ var TimelineController = function(data, map) {
     }
     
     var options = {
-        "style": "line",
-        "start": new Date(2010, 0, 1),
-        "end": new Date(2013, 5, 1),
+        style: "line",
+        start: new Date(2010, 0, 1),
+        end: new Date(2013, 5, 1),
         width: "100%",
         height: "85px",
         style: "line"
@@ -203,10 +203,11 @@ var TimelineController = function(data, map) {
     var timeline = null;
     var countSpan = null;
     var container = $('<div/>', {'class': 'timeline-container'});
+    var footerContainer = $('<div/>', {'class': 'timeline-footer'});
     
     var modeFilters = {
-        'none': function() {return true; },
-        'center': function(item, mapCenter, mapExtent)
+        none: function() {return true; },
+        center: function(item, mapCenter, mapExtent)
         {
             var obj = item.obj,
                 c = obj.geometry.coordinates,
@@ -224,7 +225,7 @@ var TimelineController = function(data, map) {
             
             return intersects;
         },
-        'screen': function(item, mapCenter, mapExtent)
+        screen: function(item, mapCenter, mapExtent)
         {
             return gmxAPI.boundsIntersect(item.bounds, mapExtent);
         }
@@ -278,7 +279,6 @@ var TimelineController = function(data, map) {
             
             if (!items[layerName][i].timelineItem && showItem)
             {
-                // console.log('adding');
                 var date = layerInfo.dateFunction(layer, obj),
                     content;
                 
@@ -299,7 +299,6 @@ var TimelineController = function(data, map) {
             }
             else if (items[layerName][i].timelineItem && !showItem)
             {
-                // console.log('removing');
                 for (var index = 0; index < timeline.items.length; index++)
                 {
                     var itemData = timeline.getData()[index].userdata;
@@ -524,6 +523,8 @@ var TimelineController = function(data, map) {
             calendarContainer
         ).appendTo(container);
         
+        $(footerContainer).appendTo(container);
+        
         _mapHelper.customParamsManager.addProvider({
             name: 'Timeline',
             loadState: function(state) 
@@ -593,7 +594,7 @@ var TimelineController = function(data, map) {
         
         createTimelineLazy();
         
-        nsGmx.widgets.commonCalendar.get().unbindLayer(layerName);
+        nsGmx.widgets.commonCalendar.unbindLayer(layerName);
         layer.setDateInterval(new Date(2000, 1, 1), new Date());
         
         var items = data.get('items');
@@ -650,8 +651,26 @@ var TimelineController = function(data, map) {
     this.toggle = function(isVisible) {
         container.toggle(isVisible);
     }
+    
+    this.getFooterContainer = function() {
+        return footerContainer;
+    }
 }
 
+/** @callback nsGmx.TimelineControl.FilterFunction
+ *  @param {Object} elem Информация об объекте растрового слоя
+ *  @param {gmxAPI.MapObject} elem.obj Непосредственно объект растрового слоя
+ *  @param {gmxAPI.Bounds} elem.bounds Bbox объекта растрового слоя
+ *  @param {Object} mapCenter центр карты (поля x и y)
+ *  @param {gmxAPI.Bounds} mapExtent Bbox видимого экстента карты
+ *  @return {Boolean} Показывать ли данный объект на таймлайне
+ */
+
+/** Контрол для показа объектов мультивременных слоёв на тамймлайне
+ * @class
+ * @memberOf nsGmx
+ * @param {gmxAPI.Map} map Текущая карта ГеоМиксера
+*/
 var TimelineControl = function(map) {
     var data = new TimelineData();
     this.data = data;
@@ -659,36 +678,71 @@ var TimelineControl = function(map) {
     var mapController = new MapController(data, map);
     var timelineController = new TimelineController(data, map);
     
+    /** Добавить векторный мультивременной слой на таймлайн
+     * @param {String} layerName Имя векторного слоя
+     * @param {Object} options Дополнительные опции
+     * @param {function(layer, object): Date} options.dateFunction Пользовательская ф-ция указания даты для объекта слоя. По описанию объекта возвращает его дату
+     * @param {function(layer, startDate, endDate)} options.filterFunction Пользовательская ф-ция для фильтрации слоя по временному интервалу
+              Ф-ция должна сама установить фильтры на слое или сделать другие нужные действия над слоем
+     */
     this.bindLayer = function(layerName, options) {
         data.bindLayer(layerName, options);
     }
     
+    /** Установить режим отображения данных на таймлайне
+     * @param {String} newMode Новый режим: center, screen или none
+    */
     this.setTimelineMode = function(newMode) {
         data.set('timelineMode', newMode);
     }
     
+    /** Установить режим отображения данных на карте
+     * @param {String} newMode Новый режим: selected, range, none
+    */
     this.setMapMode = function(newMode) {
         data.set('mapMode', newMode);
     }
     
+    /** Установить временной интервал таймлайна
+     * @param {Date} start Начальная дата
+     * @param {Date} end Конечная дата
+    */
     this.setVisibleRange = function(start, end) {
         data.set('range', {start: start, end: end});
     }
     
     this._fromTilesToDate = fromTilesToDate;
     
+    /** Установить видимость всего таймлайна
+     * @param {Boolean} isVisible Показывать ли таймлайн или нет
+    */
     this.toggleVisibility = function(isVisible) {
         timelineController.toggle(isVisible);
     }
     
+    /** Добавить пользовательскую ф-цию фильтрации объектов на таймлайне.
+     *  На вход ф-ции передаётся информация об объекте и состоянии карты. Ф-ция возвращает признак того, показывать ли объект на таймлайне или нет.
+     * @param {nsGmx.TimelineControl.FilterFunction} filterFunc Ф-ция фильтрации
+    */
     this.addFilter = function(filterFunc) {
         data.addFilter(filterFunc);
     }
     
+    /** Перепроверить видимость объеков на таймлайне
+     */
     this.updateFilters = function() {
         data.trigger('change:userFilters');
     }
+    
+    /** Получить контейнер для встраивания дополнительных контролов в подвал таймлайна
+     * @return {HTMLElem}
+     */
+    this.getFooterContainer = function() {
+        return timelineController.getFooterContainer();
+    }
 };
+
+nsGmx.TimelineControl = TimelineControl;
 
 var publicInterface = {
     pluginName: 'Timeline Rasters',
