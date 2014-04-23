@@ -451,6 +451,7 @@ function checkUserInfo(defaultState)
 nsGmx.widgets.commonCalendar = {
     _calendar: null,
     _isAppended: false,
+    _unbindedTemporalLayers: {},
     get: function()
     {
         var _this = this;
@@ -472,8 +473,15 @@ nsGmx.widgets.commonCalendar = {
                 loadState: function(state) { _this._calendar.loadState(state); $(_this._calendar).change(); },
                 saveState: function() { return _this._calendar.saveState(); }
             });
+            
+            $(this._calendar).change(this._updateTemporalLayers.bind(this));
+            this._updateTemporalLayers();
+            
+            //depricated: use nsGmx.widgets.commonCalendar.(un)bindLayer
+            this._calendar.bindLayer = this.bindLayer.bind(this);
+            this._calendar.unbindLayer = this.unbindLayer.bind(this);
         }
-        
+
         return this._calendar;
     },
     show: function()
@@ -489,6 +497,45 @@ nsGmx.widgets.commonCalendar = {
     hide: function()
     {
         this._isAppended && $(this.get().canvas).hide();
+        this._isAppended = false;
+    },
+    
+    bindLayer: function(layerName)
+    {
+        delete this._unbindedTemporalLayers[layerName];
+        this._updateTemporalLayers();
+    },
+    unbindLayer: function(layerName)
+    {
+        this._unbindedTemporalLayers[layerName] = globalFlashMap.layers[layerName];
+    },
+    _updateOneLayer: function(layer, dateBegin, dateEnd)
+    {
+        if (layer.properties.maxShownPeriod)
+        {
+            //var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
+            //var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
+            var msecPeriod = layer.properties.maxShownPeriod*24*3600*1000;
+            var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
+            layer.setDateInterval(newDateBegin, dateEnd);
+        }
+        else
+            layer.setDateInterval(dateBegin, dateEnd);
+    },
+    _updateTemporalLayers: function()
+    {
+        var dateBegin = this._calendar.getDateBegin(),
+            dateEnd = this._calendar.getDateEnd();
+        
+        if (dateBegin.valueOf() == dateEnd.valueOf())
+            dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
+        
+        for (var i = 0; i < globalFlashMap.layers.length; i++)
+        {
+            var name = globalFlashMap.layers[i].properties.name;
+            if (!(name in this._unbindedTemporalLayers))
+                this._updateOneLayer(globalFlashMap.layers[i], dateBegin, dateEnd);
+        }
     }
 }
 
@@ -506,7 +553,7 @@ function filterTemporalLayers()
     var isAnyTemporalLayer = false;
     for (var i = 0; i < globalFlashMap.layers.length; i++) {
         var props = globalFlashMap.layers[i].properties;
-        if (props.Temporal && !(props.name in filterTemporalLayers.unbindedTemporalLayers))
+        if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers))
         {
             isAnyTemporalLayer = true;
         }
@@ -514,61 +561,13 @@ function filterTemporalLayers()
     
     if (isAnyTemporalLayer)
     {
-        var calendar = nsGmx.widgets.commonCalendar.get();
         nsGmx.widgets.commonCalendar.show();
-        
-        var updateOneLayer = function(layer, dateBegin, dateEnd)
-        {
-            if (layer.properties.maxShownPeriod)
-            {
-                //var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
-                //var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
-                var msecPeriod = layer.properties.maxShownPeriod*24*3600*1000;
-                var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
-                layer.setDateInterval(newDateBegin, dateEnd);
-            }
-            else
-                layer.setDateInterval(dateBegin, dateEnd);
-        }
-        
-        var updateTemporalLayers = function()
-        {
-            var dateBegin = calendar.getDateBegin();
-            var dateEnd = calendar.getDateEnd();
-            
-            if (dateBegin.valueOf() == dateEnd.valueOf())
-                dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
-            
-            //for (var name in temporalLayers)
-            for (var i = 0; i < globalFlashMap.layers.length; i++)
-            {
-                var name = globalFlashMap.layers[i].properties.name;
-                if (!(name in filterTemporalLayers.unbindedTemporalLayers))
-                    updateOneLayer(globalFlashMap.layers[i], dateBegin, dateEnd);
-            }
-        }
-        
-        $(calendar).change(updateTemporalLayers);
-        updateTemporalLayers();
     }
     else
     {
         nsGmx.widgets.commonCalendar.hide();
     }
-    
-    //расширяем стандартный календарик вьюера
-    nsGmx.widgets.commonCalendar.get().bindLayer = function(layerName)
-    {
-        delete filterTemporalLayers.unbindedTemporalLayers[layerName];
-        updateTemporalLayers();
-    }
-    
-    nsGmx.widgets.commonCalendar.get().unbindLayer = function(layerName)
-    {
-        filterTemporalLayers.unbindedTemporalLayers[layerName] = globalFlashMap.layers[layerName];
-    }
 }
-filterTemporalLayers.unbindedTemporalLayers = {};
 
 function addMapName(container, name)
 {
