@@ -214,12 +214,12 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
         
         _this._layerColumns = [
             {Value: 'GeomIsEmpty([geomixergeojson])', Alias: '__GeomIsEmpty__'},
-            {Value: response.Result.properties.identityField}
+            {Value: '[' + response.Result.properties.identityField + ']'}
         ];
         
         var attrs = response.Result.properties.attributes;
         for (var k = 0; k < attrs.length; k++) {
-            _this._layerColumns.push({Value: attrs[k]});
+            _this._layerColumns.push({Value: '[' + attrs[k] + ']'});
         }
         
         // console.log(_this._layerColumns);
