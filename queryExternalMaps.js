@@ -89,7 +89,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 	_(div, [mapElem, remove]);
 	_(this.mapsCanvas, [div]);
 	
-	this.addMap(hostName, mapName, mapElem);
+	this.addMap(hostName, mapName, mapElem, silent);
 	
 	remove.onclick = function()
 	{
