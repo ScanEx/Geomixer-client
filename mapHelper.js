@@ -1457,6 +1457,10 @@ mapHelper.prototype.searchObjectLayer = function(layerName, options) {
         requestParams.geometry = true;
     }
     
+    if (options.border) {
+        requestParams.border = JSON.stringify(options.border);
+    }
+    
     requestParams.page = options.page || 0;
     requestParams.pagesize = options.pagesize || 100000;
     
