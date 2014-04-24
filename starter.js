@@ -486,12 +486,21 @@ nsGmx.widgets.commonCalendar = {
     },
     show: function()
     {
-        if (!this._isAppended)
-        {
-            this._isAppended = true;
+        var doAdd = function() {
             var calendarDiv = $("<div/>").append(this.get().canvas);
             var table = $(_queryMapLayers.workCanvas).children("table");
             $(table).after(calendarDiv);
+        }.bind(this);
+        
+        if (!this._isAppended)
+        {
+            this._isAppended = true;
+            //явная проверка, так как хочется быть максимально синхронными в этом методе
+            if (_queryMapLayers.loadDeferred.state() === 'resolved') {
+                doAdd();
+            } else {
+                _queryMapLayers.loadDeferred.then(doAdd);
+            }
         }
     },
     hide: function()
