@@ -968,6 +968,7 @@
             if(flagClear) {
                 ctx.clearRect(0, 0, 256, 256);
             }
+
             node.chkCurStyle(geom);
             if(!geom.propHiden.curStyle) return;
 
@@ -1280,6 +1281,7 @@
                 return true;
             }
             ,chkSqlFuncVisibility: function(item) {   // Проверка фильтра видимости
+                if(gmxNode._visibilityHook) return gmxNode._visibilityHook(item);
                 var flag = true;
                 if('_isSQLVisibility' in item.propHiden) {
                     flag = item.propHiden._isSQLVisibility;

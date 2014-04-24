@@ -492,8 +492,17 @@
             ,redrawItem: function(pt) {  // Установка стилевой функции пользователя
                 if(this.objectId) return proxy('redrawItem', { obj: obj, attr:pt });
                 return false;
-            }
-            ,setStyleHook: function(func) {  // Установка стилевой функции пользователя
+            },
+            setVisibilityHook: function (func) {
+                obj._visibilityHook = func;
+                if(this.objectId) return proxy('setFreezeLoading', { obj: obj, attr: obj._isLoadingFreezed });
+            },
+            removeVisibilityHook: function (func) {
+                delete obj._visibilityHook;
+                if(this.objectId) return proxy('setFreezeLoading', { obj: obj, attr: obj._isLoadingFreezed });
+            },
+            
+            setStyleHook: function(func) {  // Установка стилевой функции пользователя
                 obj.filters.foreach(function(item) { item.setStyleHook(func); });
                 return true;
             }
