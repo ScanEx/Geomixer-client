@@ -223,6 +223,31 @@
             items = arr;
             return items.length;
 		}
+		,clearLayer: function(id)	{				// Удалить все запросы по слою id
+			for (var key in itemsCache) {
+				var item = itemsCache[key];
+				if(item.layer == id) {
+                    if('src' in q && q.loaderObj) {
+                        if(q.loaderObj._item) {
+                            q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
+                            delete q.loaderObj._item;
+                        }
+                        q.loaderObj.src = emptyImageUrl;
+                        curCount--;
+                    }
+					delete itemsCache[key];
+					// itemsCache[key].skip = true;
+					// if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
+				}
+			}
+			var arr = [];
+			for(var i=0, len=items.length; i<len; i++) {
+				var item = items[i];
+				if(item.layer != id) arr.push(item);
+			}
+			items = arr;
+			return items.length;
+		}
 	};
 
 	//расширяем namespace

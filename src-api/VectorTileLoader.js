@@ -36,6 +36,7 @@
 							if(itemsHash[psrc].skip) {
                                 if(itemsHash[psrc].onerror) itemsHash[psrc].onerror({skip: true, 'url': psrc, 'Error': 'skiped by clearLayer'});
 								delete itemsHash[psrc];
+                                curCount--;
 								return;
 							}
 							delete itemsHash[psrc];
@@ -56,6 +57,7 @@
 					}
 					, ''
 					, function() {
+                        curCount--;
 						onerror({'url': psrc, 'Error': 'bad vector tile response'})
 					}
 					);

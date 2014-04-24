@@ -2398,6 +2398,7 @@
                 if(node.clustersData) node.clustersData.clear();
                 tilesRedrawImages.clear();
                 gmxAPI._leaflet.vectorTileLoader.clearLayer(nodeId);
+                gmxAPI._leaflet.imageLoader.clearLayer(nodeId);
                 node.isIdle(-1);  // обнуление проверок окончания отрисовки
 
                 node.screenTilesToLoad = {};
@@ -2560,9 +2561,11 @@
                 var zoomFrom = ph.z;
                 var item = {
                     src: rUrl
+                    ,layer: nodeId
                     ,zoom: zoomFrom
                     ,callback: function(imageObj) {
                         // раззумливание растров
+                        if(!node.objectsData[rItem.geom.id]) return;
                         if(node.tileRasterFunc && rItem.geom.properties.GMX_RasterCatalogID) {
                             if(ph.z > z) {
                                 var pos = gmxAPI.getTilePosZoomDelta(ph, ph.z, z);
@@ -2796,6 +2799,7 @@
                                 node.getRaster(pItem, pAttr, pid, function(img) {
                                     rasterNums--;
                                     pItem.imageObj = img;
+                                    if(!node.objectsData[pid]) return;
                                     if(!node.tilesRedrawImages[zoom]) return;
                                     if(!node.tilesRedrawImages[zoom][tKey]) return;
                                     if(rasterNums === 0) {
