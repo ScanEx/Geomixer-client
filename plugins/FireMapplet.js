@@ -2505,7 +2505,7 @@ var FireControl2 = function(map, params)
 
 var publicInterface = {
     pluginName: 'Fire plugin',
-    afterViewer: function(params, map) {
+    beforeViewer: function(params, map) {
         var data = params && params.data;
         if (data && $.isArray(data)) {
             data = data[0];
