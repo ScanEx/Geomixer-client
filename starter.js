@@ -559,22 +559,12 @@ nsGmx.widgets.getCommonCalendar = function()
 //Если выбран не период, а просто дата - фильтруем за последние сутки относительно этой даты
 function filterTemporalLayers()
 {
-    var isAnyTemporalLayer = false;
     for (var i = 0; i < globalFlashMap.layers.length; i++) {
         var props = globalFlashMap.layers[i].properties;
-        if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers))
-        {
-            isAnyTemporalLayer = true;
+        if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
+            nsGmx.widgets.commonCalendar.show();
+            return;
         }
-    }
-    
-    if (isAnyTemporalLayer)
-    {
-        nsGmx.widgets.commonCalendar.show();
-    }
-    else
-    {
-        nsGmx.widgets.commonCalendar.hide();
     }
 }
 
