@@ -410,7 +410,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     {
         var divStyles = _div(null, [['attr','id','styles' + elemProperties.name]]);
         
-        var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(elemProperties.styles[0].MinZoom, elemProperties.styles[0].MaxZoom),
+        var zoomSource = elemProperties.styles && elemProperties.styles[0] || elemProperties;
+        var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(zoomSource.MinZoom, zoomSource.MaxZoom),
             liMinZoom = zoomPropertiesControl.getMinLi(),
             liMaxZoom = zoomPropertiesControl.getMaxLi();
                 
@@ -419,6 +420,9 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         $(zoomPropertiesControl).change(function()
         {
             globalFlashMap.layers[elemProperties.name].setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+            
+            elemProperties.styles = elemProperties.styles || [];
+            elemProperties.styles[0] = elemProperties.styles[0] || {};
             elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
             elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
             

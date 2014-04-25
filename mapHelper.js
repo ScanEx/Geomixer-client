@@ -978,7 +978,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
             
 			var parentObject = globalFlashMap.layers[layerName],
-				parentStyle = elemProperties.styles[0];
+				parentStyle = elemProperties.styles && elemProperties.styles[0] || elemProperties;
                 
             var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
                 liMinZoom = zoomPropertiesControl.getMinLi(),
@@ -1003,6 +1003,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			var pos = nsGmx.Utils.getDialogPos(div, true, 330),
 				closeFunc = function()
 				{
+                    elemProperties.styles = elemProperties.styles || [];
+                    elemProperties.styles[0] = elemProperties.styles[0] || {};
+                    
 					elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
 					elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
 					
