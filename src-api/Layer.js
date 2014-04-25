@@ -4,12 +4,16 @@
  // получить minZoom maxZoom для слоя по фильтрам
  function getMinMaxZoom(prop)
  {
-  var minZoom = 20, maxZoom = 0;
-  for (var i = 0; i < prop.styles.length; i++)
-  {
-   var style = prop.styles[i];
-   minZoom = Math.min(style.MinZoom || gmxAPI.defaultMinZoom, minZoom);
-   maxZoom = Math.max(style.MaxZoom || gmxAPI.defaultMaxZoom, maxZoom);
+  var minZoom = 20, maxZoom = 0, len = prop.styles.length;
+  if (len) {
+      for (var i = 0; i < len; i++)
+      {
+       var style = prop.styles[i];
+       minZoom = Math.min(style.MinZoom || gmxAPI.defaultMinZoom, minZoom);
+       maxZoom = Math.max(style.MaxZoom || gmxAPI.defaultMaxZoom, maxZoom);
+      }
+  } else {
+    minZoom = 1, maxZoom = 30;
   }
   return {'minZoom': minZoom, 'maxZoom': maxZoom};
  }
