@@ -2415,7 +2415,7 @@
                     for(var key in node.tilesGeometry) {
                         node.removeTile(key); // Полная перезагрузка тайлов
                     }
-                    node.addedItems = {};
+                    if (!gmxNode.notServer) node.addedItems = {};
                     node.objectsData = {};
                     redrawFlag = true;
                 }
