@@ -1473,6 +1473,7 @@
 				if(balloon) {
 					if(balloon.outerDiv.style.pointerEvents != 'none') balloon.outerDiv.style.pointerEvents = 'none';
 				}
+                drawingUtils.hideBalloon();
 			};
 			var upCallback = function()
 			{
