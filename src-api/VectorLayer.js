@@ -246,6 +246,8 @@
             }
         }
         //gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
+        gmxAPI.map.drawing.addListener('onFinish', mouseOut);
+        gmxAPI.map.drawing.addListener('onEdit', mouseOut);
 
         var getItemsByPoint = function(latlng, zoom) {  // получить обьекты по пересечению с точкой
             var x = latlng.lng % 360;
@@ -1199,7 +1201,7 @@
                 var latlng = e.latlng;
                 LMap.off('mousemove', mousemove);
                 LMap.off('mouseup', mouseup);
-                LMap.off('mouseout', mouseout);
+                LMap.off('mouseout', mouseoutFunc);
                 if(dragAttr && dragAttr.dragend) dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
                 setTimeout(function(e) {
                     gmxAPI.map.dragState = false;
@@ -1208,12 +1210,12 @@
                     node.waitRedrawFlips(0);
                 }, 0);
             }
-            var mouseout = function(e) {
+            var mouseoutFunc = function(e) {
                 mouseup(e);
             }
             LMap.on('mousemove', mousemove);
             LMap.on('mouseup', mouseup);
-            LMap.on('mouseout', mouseout);
+            LMap.on('mouseout', mouseoutFunc);
             ev.gmxItemID = item.geom.id;
             if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode, ev);
         }
