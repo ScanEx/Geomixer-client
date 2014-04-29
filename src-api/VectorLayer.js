@@ -452,6 +452,7 @@
                         }
                         if(!item) return true;
                         vid = item.id;
+                        handlerObj = getHandler(vid, evName);
                         prevID = vid;
                         itemPropHiden = item.propHiden;
 
