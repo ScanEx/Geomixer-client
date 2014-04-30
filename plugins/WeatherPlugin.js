@@ -1,18 +1,14 @@
 ﻿(function(){
-
+    var windTool = null,
+        weatherTool = null;
+    
 	var winds = null;
 	var weathers = null;
-	//params:
-	//    countryCode - {string} "0" для России
-	//    initWeather - {bool, default: true} Показывать ли погоду по умолчанию
-	//    initWind    - {bool, default: true} Показывать ли ветер по умолчанию
-	//    imagesHost  - {Sting, default: 'http://maps.kosmosnimki.ru/api/img/weather/'} откуда подгружать картинки для иконок
-	//    changeCallback - {function()} ф-ция, которую нужно дёргать, когда что-нибудь изменилось
 	var weather = function (params, map)
 	{
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
 		if (!_map) return;
-		
+
 		_translationsHash.addtext("rus", {
 								"weatherMaplet.WindButton" : "Ветер",
 								"weatherMaplet.WeatherButton" : "Погода",
@@ -20,7 +16,7 @@
 							 });
 		_translationsHash.addtext("eng", {
 								"weatherMaplet.WindButton" : "Wind",
-								"weatherMaplet.WeatherButton" : "Weather",								
+								"weatherMaplet.WeatherButton" : "Weather",
 								"weatherMaplet.AccordingTo" : "According to the data from Gismeteo.ru"
 							 });
 
@@ -29,17 +25,15 @@
 		params.countryCode = params.countryCode || 0;
 		if (typeof params.initWeather == 'undefined') params.initWeather = true;
 		if (typeof params.initWind == 'undefined') params.initWind = true;
+		if (typeof params.addToolbar == 'undefined') params.addToolbar = true;
 		if (typeof params.imagesHost == 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
-		
+
 		var _serverResponce = null;
 		var _serverError = false;
-		
+
 		function parseResponse(response)
 		{
-			if (response.Status == 'ok')
-				return true
-		else
-			return false
+			return response.Status === 'ok';
 		}
 		
 		var getTHClass = function(THs, value)
@@ -49,14 +43,14 @@
 					return i;
 			
 			return THs.length;
-		}		
-		
+		}
+
 		function showWeather(weatherParent, cities)
 		{
 			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
 			tods = ['ночь','утро','день','вечер'],
 			dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
-					
+
 			var iconContainters = [];
 			var iconGeometries = [];
 			var iconTexts = [];
@@ -68,7 +62,7 @@
 				iconGeometries[i] = [];
 				iconTexts[i] = [];
 			}
-			
+
 			var textColors = [0x003fe0, 0x05cdff, 0x00f7b1, 0x7dfa00, 0xeeff00, 0xfc0d00];
 			var temperatureTHs = [-25, -10, 5, 20, 30];
 			
@@ -235,8 +229,11 @@
 			})
 		}
 		
-		weathers = _map.addObject(),
+		weathers = _map.addObject();
 		winds = _map.addObject();
+        
+        weathers.visibleFlag = !! params.initWeather;
+        winds.visibleFlag = !! params.initWind;
 			
 		weathers.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
 		winds.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
@@ -262,70 +259,110 @@
 				_serverResponce = response;
 				
 				weathers.setVisible(false);
-				//for (var i = 0; i < response.Result.length; ++i)
 				showWeather(weathers, response.Result)
 				
 				weathers.setVisible(weathers.visibleFlag);
 				
 				winds.setVisible(false);
 				for (var i = 0; i < response.Result.length; ++i)
-					showWind(winds, response.Result[i])
+					showWind(winds, response.Result[i]);
 				winds.setVisible(winds.visibleFlag);
 			})
 		}
+        
+        lazyInitData();
 
-// Begin: создание weatherTools
-		var weatherTools = new gmxAPI._ToolsContainer('weather');
+        //создание weatherTools
+        if (params.addToolbar) {
+            var weatherTools = new gmxAPI._ToolsContainer('weather');
 
-		var onClickWeather = function() {
-			weathers.visibleFlag = !weathers.visibleFlag;
-			lazyInitData();
-			if (params.changeCallback) params.changeCallback();
-		};
-		var attrWeather = {
-			overlay: true,
-			'onClick': onClickWeather,
-			'onCancel': onClickWeather,
-			'onmouseover': function() { this.style.color = "orange"; },
-			'onmouseout': function() { this.style.color = "wheat"; },
-			'hint': _gtxt("weatherMaplet.WeatherButton")
-		};
+            var onClickWeather = function() {
+                weathers.visibleFlag = !weathers.visibleFlag;
+                lazyInitData();
+                if (params.changeCallback) params.changeCallback();
+            };
+            var attrWeather = {
+                overlay: true,
+                onClick: onClickWeather,
+                onCancel: onClickWeather,
+                onmouseover: function() { this.style.color = "orange"; },
+                onmouseout: function() { this.style.color = "wheat"; },
+                hint: _gtxt("weatherMaplet.WeatherButton")
+            };
 
-		weatherTools.addTool( 'weather', attrWeather);
+            weatherTool = weatherTools.addTool( 'weather', attrWeather);
 
-		var onClickWind = function() {
-			winds.visibleFlag = !winds.visibleFlag;
-			lazyInitData();
-			if (params.changeCallback) params.changeCallback();
-		};
-		
-		var attrWind = {
-			overlay: true,
-			'onClick': onClickWind,
-			'onCancel': onClickWind,
-			'onmouseover': function() { this.style.color = "orange"; },
-			'onmouseout': function() { this.style.color = "wheat"; },
-			'hint': _gtxt("weatherMaplet.WindButton")
-		};
-		weatherTools.addTool( 'wind', attrWind);
-// End: добавление в tool
+            var onClickWind = function() {
+                winds.visibleFlag = !winds.visibleFlag;
+                lazyInitData();
+                if (params.changeCallback) params.changeCallback();
+            };
+            
+            var attrWind = {
+                overlay: true,
+                onClick: onClickWind,
+                onCancel: onClickWind,
+                onmouseover: function() { this.style.color = "orange"; },
+                onmouseout: function() { this.style.color = "wheat"; },
+                hint: _gtxt("weatherMaplet.WindButton")
+            };
+            
+            windTool = weatherTools.addTool ( 'wind', attrWind);
+        }
 	}
 	
     gmxCore.addModule('WeatherPlugin', {
         pluginName: 'Weather',
-        weather: weather,
+        weather: weather, //Depricated: use addToMap
+        
+        /** Получить текущую видимость данных с ветром
+         * @return {Boolean} Видимы ли данные
+        */
         isWindVisible: function()
         {
             return 'visibleFlag' in winds ? winds.visibleFlag : false; 
         },
+        
+        /** Получить текущую видимость данных с погодой
+         * @return {Boolean} Видимы ли данные
+        */
         isWeatherVisible: function()
         {
             return 'visibleFlag' in weathers ? weathers.visibleFlag : false;
         },
-        afterViewer: function(params)
+        
+        /** Установить видимость данных с погодой
+         * @param {Boolean} isVisible Видимы ли данные или нет
+        */
+        setWeatherVisibility: function(isVisible) {
+            weatherTool && weatherTool[isVisible ? 'onClick' : 'onCancel']();
+        },
+        
+        /** Установить видимость данных с ветром
+         * @param {Boolean} isVisible Видимы ли данные или нет
+        */
+        setWindVisibility: function(isVisible) {
+            windTool && windTool[isVisible ? 'onClick' : 'onCancel']();
+        },
+        
+        /** Добавить данные о погоде на карту
+         * @param {Object} params Параметры отображения
+         * @param {String}   [params.countryCode = "0"] ID страны. "0" для России
+         * @param {Boolean}  [params.initWeather = true] Показывать ли погоду по умолчанию
+         * @param {Boolean}  [params.initWind = true] Показывать ли ветер по умолчанию
+         * @param {String}   [params.imagesHost = 'http://maps.kosmosnimki.ru/api/img/weather/'] откуда подгружать картинки для иконок
+         * @param {function} [params.changeCallback] ф-ция, которую нужно дёргать, когда что-нибудь изменилось
+         * @param {Boolean}  [params.addToolbar = true] Добавлять ли тулбар на карту
+        */
+        addToMap: function(params, map)
         {
-            weather(params, globalFlashMap);
-        }
+            weather(params, map);
+        },
+        
+        afterViewer: function(params, map)
+        {
+            weather(params, map);
+        },
     })
 
 })();
