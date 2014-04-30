@@ -629,7 +629,12 @@ window.resizeAll = function()
 	}
 }
 
+var isEditUIInitialized = false;
 function initEditUI() {
+    if (isEditUIInitialized) {
+        return;
+    }
+    
     var isEditableLayer = function(layer) {
         return layer.properties.type === 'Vector' &&
             'tilesVers' in layer.properties && 
@@ -739,6 +744,8 @@ function initEditUI() {
             listeners = {};
         }
     )
+    
+    isEditUIInitialized = true;
 }
 
 function loadMap(state)
@@ -1131,6 +1138,7 @@ function loadMap(state)
                 }
             }
 
+            globalFlashMap.addListener('onLayerAdd', initEditUI);
             initEditUI();
             
             filterTemporalLayers();
