@@ -9,24 +9,24 @@
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
 		if (!_map) return;
 
-		_translationsHash.addtext("rus", {
-								"weatherMaplet.WindButton" : "Ветер",
-								"weatherMaplet.WeatherButton" : "Погода",
-								"weatherMaplet.AccordingTo" : "По данным Gismeteo.ru"
-							 });
+		_translationsHash.addtext("rus", {weatherMaplet: {
+								WindButton : "Ветер",
+								WeatherButton : "Погода",
+								AccordingTo : "По данным Gismeteo.ru"
+							 }});
 		_translationsHash.addtext("eng", {
-								"weatherMaplet.WindButton" : "Wind",
-								"weatherMaplet.WeatherButton" : "Weather",
-								"weatherMaplet.AccordingTo" : "According to the data from Gismeteo.ru"
+								WindButton : "Wind",
+								WeatherButton : "Weather",
+								AccordingTo : "According to the data from Gismeteo.ru"
 							 });
 
 		//если подгружать jquery, можно использовать $.extent
 		if (!params) params = {};
 		params.countryCode = params.countryCode || 0;
-		if (typeof params.initWeather == 'undefined') params.initWeather = true;
-		if (typeof params.initWind == 'undefined') params.initWind = true;
-		if (typeof params.addToolbar == 'undefined') params.addToolbar = true;
-		if (typeof params.imagesHost == 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
+		if (typeof params.initWeather === 'undefined') params.initWeather = false;
+		if (typeof params.initWind === 'undefined') params.initWind = false;
+		if (typeof params.addToolbar === 'undefined') params.addToolbar = true;
+		if (typeof params.imagesHost === 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
 
 		var _serverResponce = null;
 		var _serverError = false;
@@ -232,8 +232,8 @@
 		weathers = _map.addObject();
 		winds = _map.addObject();
         
-        weathers.visibleFlag = !! params.initWeather;
-        winds.visibleFlag = !! params.initWind;
+        weathers.visibleFlag = !!params.initWeather;
+        winds.visibleFlag = !!params.initWind;
 			
 		weathers.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
 		winds.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
