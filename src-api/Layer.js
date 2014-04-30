@@ -1043,10 +1043,8 @@
         }
         parentObj.layers.push(obj);
         parentObj.layers[layerName] = obj;
-        if (!layer.properties.title) {
-            obj.notServer = true;
-            layer.properties.title = 'layer from client ' + layerName;
-        }
+        if (!layer.properties.LayerVersion) obj.notServer = true;
+        if (!layer.properties.title) layer.properties.title = 'layer from client ' + layerName;
         if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
             parentObj.layers[layer.properties.title] = obj;
 
