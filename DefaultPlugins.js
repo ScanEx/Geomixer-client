@@ -2,7 +2,6 @@
 nsGmx._defaultPlugins = 
 [
     {pluginName: 'Cadastre',             file: 'plugins/cadastre/cadastre.js',              module: 'cadastre',           mapPlugin: true,  isPublic: true},
-    {pluginName: 'BufferPlugin',         file: 'plugins/buffer/BufferPlugin.js',            module: 'BufferPlugin',       mapPlugin: true,  isPublic: true},
     {pluginName: 'Media Plugin',         file: 'plugins/media/PhotoPlugin.js',              module: 'PhotoPlugin',        mapPlugin: false, isPublic: true},
     {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js', module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
     {pluginName: 'Wikimapia',            file: 'plugins/wikimapia/WikimapiaPlugin.js',      module: 'WikimapiaPlugin',    mapPlugin: true,  isPublic: true,
