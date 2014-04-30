@@ -487,7 +487,7 @@
                     } else {
                         gmxAttr.objType = 'cluster';
                         gmxAttr.members = itemPropHiden._members;
-                        if(node.clustersData.clusterView(item)) return true;
+                        if(node.clustersData.clusterView(item, node)) return true;
                         itemClick = item.geom;
                         //if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
                         var fID = itemPropHiden.toFilters[0];

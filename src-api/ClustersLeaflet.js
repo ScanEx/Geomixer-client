@@ -255,9 +255,9 @@
                 node.GMXClusterPoints = null;
             }
 		}
-		,'viewClusterItem': function(item)	{			// Показать содержимое кластера
+		,'viewClusterItem': function(item, node)	{			// Показать содержимое кластера
 			var geom = item.geom;					// геометрия кластера
-			var node = item.attr.node;				// лефлет нода слоя
+			//var node = item.attr.node;				// лефлет нода слоя
             gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Скрыть балуны
 
 			var isBalloon = false;
@@ -393,7 +393,7 @@
 					var propHiden = item.geom.propHiden;
 					
 					if(propHiden._members.length < clusterView.maxMembers) {
-						ClustersLeaflet.viewClusterItem(item);
+						ClustersLeaflet.viewClusterItem(item, node);
 						return true;
 					}
 					return false;
