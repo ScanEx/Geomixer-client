@@ -2501,6 +2501,15 @@ var FireControl2 = function(map, params)
     {
         doCreate();
     }
+    
+    this.getCalendar = function() {
+        return params.calendar;
+    }
+    
+    //проксируем рая команд
+    this.saveState = baseFireControl.saveState.bind(baseFireControl);
+    this.loadState = baseFireControl.loadState.bind(baseFireControl);
+    this.update = baseFireControl.update.bind(baseFireControl);
 }
 
 var publicInterface = {
@@ -2510,7 +2519,34 @@ var publicInterface = {
         if (data && $.isArray(data)) {
             data = data[0];
         }
-        new FireControl2(map, {data: data});
+        var fireControl = new FireControl2(map, {data: data});
+        
+        //сериализация состояния
+        if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
+            _mapHelper.customParamsManager.addProvider({
+                name: 'firesWidget2',
+                loadState: function(state) { fireControl.loadState(state); fireControl.update(); },
+                saveState: function() { return fireControl.saveState(); }
+            });
+        }
+        
+        //Читаем старый формат
+        if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
+            _mapHelper.customParamsManager.addProvider({
+                name: 'firesWidget',
+                loadState: function(state)
+                {
+                    if (!state) return;
+                    
+                    var calendar = fireControl.getCalendar();
+                    
+                    state.calendar.vismode = state.vismode;
+                    calendar.loadState(state.calendar);
+                    fireControl.loadState(state.fires);
+                    $(calendar).change();
+                }
+            });
+        };
     },
     IDataProvider: IDataProvider,
     
