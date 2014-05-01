@@ -39,6 +39,7 @@ var initTranslations = function()
  * @property {Date} [dateEnd=<текущая дата>] конечная дата интервала
  * @property {bool} [showTime=false] показывать ли время
  * @property {String} [container] куда добавлять календарик
+ * @property {String} [buttonImage] URL иконки для активации календариков
  */
 
 /** Контрол для задания диапазона дат. Даты календарика всегда в UTC, а не в текущем поясе.
@@ -394,7 +395,9 @@ Calendar.prototype.init = function( name, params )
 		minDate: this.dateMin ? Calendar.toUTC(this.dateMin) : null,
 		maxDate: this.dateMax ? Calendar.toUTC(this.dateMax) : null,
 		dateFormat: this._params.dateFormat,
-		defaultDate: Calendar.toUTC(this.dateMax || new Date())
+		defaultDate: Calendar.toUTC(this.dateMax || new Date()),
+        showOn: 'both',
+        buttonImageOnly: true
 	});
 	
 	if (!this._params.showYear) {
@@ -433,7 +436,12 @@ Calendar.prototype.init = function( name, params )
 									])])], [['attr', 'id', 'calendar']])
 					],
 				[['attr','id',this._name], ['dir','className','PeriodCalendar']]);
-				
+
+    //устанавливаем опцию после того, как добавили календарик в canvas
+    if (this._params.buttonImage) {
+        $([this.dateBegin, this.dateEnd]).datepicker('option', 'buttonImage', this._params.buttonImage);
+    }
+                
 	//emptyieinput.blur();
 	
 	$(this._visModeController).change(function()
