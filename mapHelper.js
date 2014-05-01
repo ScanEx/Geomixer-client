@@ -149,7 +149,7 @@ mapHelper.prototype.customParamsManager = (function()
 			for (var p = 0; p < _providers.length; p++ )
 			{
 				if (typeof _providers[p].saveState !== 'undefined')
-				params[_providers[p].name] = _providers[p].saveState();
+                    params[_providers[p].name] = _providers[p].saveState();
 			}
 				
 			return params;
@@ -166,7 +166,11 @@ mapHelper.prototype.customParamsManager = (function()
 		{
 			_providers.push( provider );
 			loadProviderState( provider );
-		}
+		},
+        
+        isProvider: function(providerName) {
+            return !!nsGmx._.findWhere(_providers, {name: providerName});
+        }
 	}
 })();
 
