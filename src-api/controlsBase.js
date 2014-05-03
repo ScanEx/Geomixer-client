@@ -1675,6 +1675,9 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
         }
         ,getControl: function(id) {
             var control = this.controlsHash[id] || null;
+            if (!control) {
+                control = this.controlsHash.standart.getTool(id) || null;
+            }
             return (control && 'getInterface' in control ? control.getInterface() : control);
         }
     }
