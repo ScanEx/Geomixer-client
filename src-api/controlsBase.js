@@ -101,11 +101,11 @@
                             }
                         }
                         this.activeToolName = toolName;
-                        this.repaint();			
+                        this.repaint();
                     }
-                    ,selectTool: function(toolName) {
+                    ,selectTool: function(toolName, flag) {
                         if (name == 'standart') {	// только для колонки 'standart'
-                            if (toolName == my.activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// если toolName совпадает с активным tool переключаем на 1 tool
+                            if (!flag && toolName == my.activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// если toolName совпадает с активным tool переключаем на 1 tool
 
                             // При draw обьектов
                             if (my.currentlyDrawnObject && 'stopDrawing' in my.currentlyDrawnObject) {
@@ -122,13 +122,13 @@
                             tool.repaint();
                         }
 
-                        my.activeToolName = (notSelectedFlag && toolName == oldToolName ? '' : toolName);
+                        my.activeToolName = (!flag && notSelectedFlag && toolName == oldToolName ? '' : toolName);
 
                         tool = toolHash[toolName];
                         if(tool) {
-                            if (contType == 0) {								// для добавляемых юзером меню
+                            if (contType == 0) {   // для добавляемых юзером меню
                                 if (tool.isActive) {
-                                    if ('onCancel' in tool) tool.onCancel();
+                                    if ('onCancel' in tool && !flag) tool.onCancel();
                                 } else {
                                     if ('onClick' in tool) tool.onClick();
                                 }
@@ -397,9 +397,10 @@
                             ,
                             select: function() { my.selectTool(tn); }
                             ,
-                            setActive: function() { my.selectTool(tn); }
+                            setActive: function() { my.selectTool(tn, true); }
                         }
                         toolHash[tn].line = row;      // для обратной совместимости
+                        my.setActive = function() { my.selectTool(tn, true); }
 
                         var pos = (attr.pos > 0 ? attr.pos : toolNames.length);
                         toolNames.splice(pos, 0, tn);
