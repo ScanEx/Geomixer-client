@@ -2448,8 +2448,10 @@
                 }
 
                 if('dtiles' in attr) {  // Для мультивременных слоев
-                    for(var key in node.tiles) {
-                        node.removeTile(key); // Полная перезагрузка тайлов
+                    if (!attr.notClear) {
+                        for(var key in node.tiles) {
+                            node.removeTile(key); // Полная перезагрузка тайлов
+                        }
                     }
                     node.getTilesBounds(attr.dtiles);
                     node.temporal = attr;
