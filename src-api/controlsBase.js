@@ -398,6 +398,10 @@
                             select: function() { my.selectTool(tn); }
                             ,
                             setActive: function() { my.selectTool(tn, true); }
+                            ,
+                            setActiveTool: function(flag) {
+                                my.selectTool(flag ? tn : 'move', true);
+                            }
                         }
                         toolHash[tn].line = row;      // для обратной совместимости
                         my.setActive = function() { my.selectTool(tn, true); }

@@ -174,7 +174,8 @@
                 return ret;
             }
             ,setActiveTool: function(flag) {    // обратная совместимость
-                this.setActive(flag);
+                this.options.isActive = !flag;
+                this._gmxOnClick();
             }
         });
         /**
@@ -1466,8 +1467,8 @@
                 ,id: id
                 ,onAdd: function() {
                     Controls.items[this.options.id] = this;
-                    var my = this;
-                    var container = this._container;
+                    var my = this,
+                        container = this._container;
                     if(attr.innerHTML) {
                         container.innerHTML = attr.innerHTML;
                         L.DomUtil.addClass(container, 'leaflet-control-Text');
