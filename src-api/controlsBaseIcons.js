@@ -33,7 +33,6 @@
                 attr.id = tn;
                 if(!attr.rus) attr.rus = attr.hint || attr.id;
                 if(!attr.eng) attr.eng = attr.hint || attr.id;
-                
                 Controls.items.layers.addOverlay(tn, attr);
                 ret = Controls.items.layers;
 
@@ -615,6 +614,18 @@
                 delete Controls.items.layers;
             }
             ,
+            getControl: function (id) {       // Получить контрол
+                var my = this;
+                for (i in my._layers) {
+                    var layer = this._layers[i].layer;
+                    var obj = this._layers[i];
+                    if (layer.overlay && id === layer.id) {
+                        return layer;
+                    }
+                }
+                return null;
+            }
+            ,
             addOverlayTool: function (id, attr) {       // совместимость c addTool
                 var my = this;
                 var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
@@ -622,6 +633,15 @@
                 attr.getIndex = function () {
                     return my._overlaysList.childNodes.length;
                 }
+                attr.setActiveTool = function (flag) {
+                    if (flag) {
+                        this.onClick();
+                    } else {
+                        this.onCancel();
+                    }
+                    my.setVisibility(id, flag);
+                }
+                
                 this.addOverlay(attr, name);
                 return {
                     id: id
@@ -1389,8 +1409,11 @@
         * @returns {Control| null} возвращает контрол либо null если контрол с данным идентификатором не найден
         */
         getControl: function(id) {
-            //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
-            return this.items[id] || null;
+            var control = this.items[id] || null;
+            if (!control) {
+                control = this.items.layers.getControl(id) || null;
+            }
+            return control;
         }
         ,
         /** Добавить контрол

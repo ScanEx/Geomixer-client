@@ -400,7 +400,14 @@
                             setActive: function() { my.selectTool(tn, true); }
                             ,
                             setActiveTool: function(flag) {
-                                my.selectTool(flag ? tn : 'move', true);
+                                if (flag) {
+                                    this.onClick();
+                                    my.selectTool(tn, true);
+                                } else {
+                                    if (this.isActive) this.onCancel();
+                                    this.isActive = false;
+                                    my.repaint();
+                                }
                             }
                         }
                         toolHash[tn].line = row;      // для обратной совместимости
@@ -1679,6 +1686,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
         }
         ,getControl: function(id) {
             var control = this.controlsHash[id] || null;
+            if (control) {
+                var tool = control.getTool(id) || null;
+                if (tool) control = tool;
+            }
             if (!control) {
                 control = this.controlsHash.standart.getTool(id) || null;
             }
