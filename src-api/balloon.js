@@ -276,6 +276,7 @@
 						if(keyPress['members']) o['members'] = keyPress['members'];	// члены кластера 
 					}
 					if(!keyPress['textFunc']) keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+                    hideHoverBalloons(null, {from: 'hide', remove: true});
 					return clickBalloonFix(o, keyPress);
 				}
 			};
