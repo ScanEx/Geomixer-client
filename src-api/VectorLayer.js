@@ -328,6 +328,7 @@
                     hoveredStyle = (filter.hoveredStyle ? filter.hoveredStyle : null);
                     regularStyle = (filter.regularStyle ? filter.regularStyle : null);
                 }
+                gmxAttr.objType = propHiden.tileID === 'addItem' ? 'addItem' : 'fromServer';
             } else {
                 //hoveredStyle = node['clustersData']['hoveredStyle'];
                 regularStyle = node.clustersData.regularStyle;
@@ -430,7 +431,8 @@
                 };
                 var handlerObj = null;
                 if (evName === 'onClick') {
-                    mouseOut();
+                    gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: nodeId, remove: true});
+//                    mouseOut();
                     var vid = node.flipIDS[0];
                     var item = arr[0];
                     var oper = 'setFlip';
@@ -2214,9 +2216,9 @@
             }
             ,setObserver: function (pt) {    // Установка получателя видимых обьектов векторного слоя
                 node.observerNode = pt.obj.objectId;
-                var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false;  // отменить контроль фильтра видимости
-                var callback = pt.attr.func;
-
+                var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false,  // отменить контроль фильтра видимости
+                    callback = pt.attr.func,
+                    geometryMode = pt.attr.geometryMode || 'LatLng';
                 var observerTiles = {};
                 var observerObj = {};
                 var addObj = {};
@@ -2237,10 +2239,13 @@
                             layerID: nodeId
                             ,bounds: geom.bounds
                             ,properties: geom.properties
-                            ,geometry: node.getItemGeometry(id)
+                            //,geometry: node.getItemGeometry(id)
                             ,onExtent: true
                             ,fromTiles: fromTiles
                         };
+                        if (geometryMode !== 'None') {
+                            addObj[id].geometry = node.getItemGeometry(id, geometryMode === 'Mercator' ? true : false);
+                        }
                     }
                     //node.isIdle(300);  // запуск проверки окончания отрисовки
                 }

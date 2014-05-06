@@ -4423,12 +4423,16 @@
 				attr.evName = 'onMouseUp';
 				gmxAPI._leaflet.utils.chkGlobalEvent(attr);
 			});
+			LMap.on('drag', function(e) {
+                var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
+                if(propsBalloon) propsBalloon.setVisible(false);
+			});
 			var setMouseDown = function(e) {
 				gmxAPI.mousePressed	= gmxAPI._leaflet.mousePressed = true;
 				timeDown = gmxAPI.timeDown = new Date().getTime();
 				gmxAPI._leaflet.mousedown = true;
-				var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-				if(propsBalloon) propsBalloon.setVisible(false);
+				// var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
+				// if(propsBalloon) propsBalloon.setVisible(false);
 				var node = mapNodes[gmxAPI._leaflet.activeObject || gmxAPI.map.objectId];
 				if(node && node.dragMe) {
 					node.dragMe(e);

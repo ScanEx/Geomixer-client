@@ -661,8 +661,10 @@
                 var fAttr = {
                     'layerId': obj.objectId
                     ,'asArray': true
+                    ,'geometryMode': attr.geometryMode || 'LatLng'
                     ,'ignoreVisibilityFilter': (attr && attr['ignoreVisibilityFilter'] ? true : false)
                 };
+
                 var outCallBacks = function(arr) {
                     var out = [];
                 }
