@@ -429,7 +429,7 @@ Calendar.prototype.init = function( name, params )
     this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE);
 
 	this.canvas = _div([_span([//emptyieinput,
-					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin]),_td([this.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
+					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin], [['dir', 'className', 'date-box']]),_td([this.dateEnd], [['dir', 'className', 'date-box onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
 									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td()])/*,
 									_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/ /*,
 									_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','margin','4px']])]), tdYear], [['dir', 'className', 'onlyMaxVersion']])*/
