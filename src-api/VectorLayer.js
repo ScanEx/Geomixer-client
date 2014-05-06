@@ -431,7 +431,6 @@
                 };
                 var handlerObj = null;
                 if (evName === 'onClick') {
-                    gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: nodeId, remove: true});
 //                    mouseOut();
                     var vid = node.flipIDS[0];
                     var item = arr[0];
@@ -503,6 +502,7 @@
                     return true;
                 }
                 if(evName in node.handlers) {       // Есть handlers на слое
+                    gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: nodeId, remove: true});
                     var res = callHandler(evName, itemClick, gmxNode, gmxAttr);
                     if(res === true || (typeof(res) === 'object' && res.stopPropagation)) return true;
                 }
