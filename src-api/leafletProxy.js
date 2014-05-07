@@ -2136,94 +2136,95 @@
 		}
 		return out;
 	}
-	// Изменение видимости
-	function setVisibleNode(ph) {
-		var id = ph.obj.objectId || ph.obj.id;
-		var node = mapNodes[id];
-		if(node) {							// нода имеется
-			if(node.type === 'map') {							// нода map ничего не делаем
-				return;
-			}
-			//node.isVisible = ph.attr;
-			var pNode = mapNodes[node.parentId] || null;
-			var pGroup = (pNode ? pNode.group : LMap);
-			if(node.type === 'filter') {							// нода filter
-				if(pNode) pNode.refreshFilter(id);
-				return;
-			} else {							// нода имеет вид в leaflet
-				if(ph.attr) {
-					var flag = utils.chkVisibilityByZoom(id);
-					if(!flag) return;
-					if(node.leaflet && node.leaflet._map) return;
-					if(node.type === 'RasterLayer') {
-						gmxAPI._leaflet.renderingObjects[node.id] = 1;					
-						if(node.leaflet) {
-							LMap.addLayer(node.leaflet);
-							utils.bringToDepth(node, node.zIndex);
-						} else if('nodeInit' in node) {
-							node.nodeInit();
-						}
-					}
-					else
-					{
-						var isOnScene = ('isOnScene' in node ? node.isOnScene : true);
-						if(node.parentId) {
-							if(isOnScene) pGroup.addLayer(node.group);
-						}
-						
-						if(node.leaflet) {
-							if(isOnScene) {
+    // Изменение видимости
+    function setVisibleNode(ph) {
+        var id = ph.obj.objectId || ph.obj.id,
+            node = mapNodes[id];
+        if(node) {							// нода имеется
+            if(node.type === 'map') {							// нода map ничего не делаем
+                return;
+            }
+            //node.isVisible = ph.attr;
+            var pNode = mapNodes[node.parentId] || null,
+                pGroup = (pNode ? pNode.group : LMap);
+            if(node.type === 'filter') {							// нода filter
+                if(pNode) pNode.refreshFilter(id);
+                return;
+            } else {							// нода имеет вид в leaflet
+                if(ph.attr) {
+                    var flag = utils.chkVisibilityByZoom(id);
+                    if(!flag) return;
+                    if(node.leaflet && node.leaflet._map) return;
+                    if(node.type === 'RasterLayer') {
+                        gmxAPI._leaflet.renderingObjects[node.id] = 1;					
+                        if(node.leaflet) {
+                            LMap.addLayer(node.leaflet);
+                            utils.bringToDepth(node, node.zIndex);
+                        } else if('nodeInit' in node) {
+                            node.nodeInit();
+                        }
+                    }
+                    else
+                    {
+                        var isOnScene = ('isOnScene' in node ? node.isOnScene : true);
+                        if(node.parentId) {
+                            if(isOnScene) pGroup.addLayer(node.group);
+                        }
+                        
+                        if(node.leaflet) {
+                            if(isOnScene) {
                                 if(node.subType !== 'drawingFrame' && node.leaflet.setStyle && node.regularStyle) node.leaflet.setStyle(node.regularStyle);
                                 pGroup.addLayer(node.leaflet);
                             }
-						} else if(node.geometry.type) {
-							gmxAPI._leaflet.drawManager.add(id);				// добавим в менеджер отрисовки
-						}
-						if(node.type === 'VectorLayer') {					// нода VectorLayer
-							node.checkFilters(0);
-						}
-					}
-				}
-				else
-				{
-					if(node.type === 'RasterLayer') {
-						delete gmxAPI._leaflet.renderingObjects[node.id];
-						if(node.leaflet) {
-							LMap.removeLayer(node.leaflet);
-						}
-					}
-					else {
-						if(node.parentId) {
-							pGroup.removeLayer(node.group);
-						}
-						if(node.leaflet) {
-							if(pGroup._layers[node.leaflet._leaflet_id]) pGroup.removeLayer(node.leaflet);
-						}
-						if(node.mask) {
-							if(pGroup._layers[node.mask._leaflet_id]) pGroup.removeLayer(node.mask);
-						}
-					}
-				}
-			}
-			for (var i = 0, len = node.children.length; i < len; i++) {
-				setVisibleRecursive(mapNodes[node.children[i]], ph.attr);
-			}
-		}
-	}
+                        } else if(node.geometry.type) {
+                            gmxAPI._leaflet.drawManager.add(id);				// добавим в менеджер отрисовки
+                        }
+                        if(node.type === 'VectorLayer') {					// нода VectorLayer
+                            node.checkFilters(0);
+                        }
+                    }
+                }
+                else
+                {
+                    if(node.type === 'RasterLayer') {
+                        delete gmxAPI._leaflet.renderingObjects[node.id];
+                        if(node.leaflet) {
+                            LMap.removeLayer(node.leaflet);
+                        }
+                    }
+                    else {
+                        if(node.parentId) {
+                            pGroup.removeLayer(node.group);
+                        }
+                        if(node.leaflet) {
+                            if(pGroup._layers[node.leaflet._leaflet_id]) pGroup.removeLayer(node.leaflet);
+                        }
+                        if(node.mask) {
+                            if(pGroup._layers[node.mask._leaflet_id]) pGroup.removeLayer(node.mask);
+                        }
+                    }
+                }
+            }
+            for (var i = 0, len = node.children.length; i < len; i++) {
+                setVisibleRecursive(mapNodes[node.children[i]], ph.attr);
+            }
+        }
+    }
 
-	// Рекурсивное изменение видимости
-	function setVisibleRecursive(pNode, flag) {
-		if(!pNode) return;
-		if(pNode['leaflet']) {
-			utils.setVisibleNode({'obj': pNode, 'attr': flag});
-		} else {
-			for (var i = 0; i < pNode['children'].length; i++) {
-				var key = pNode['children'][i];
-				var node = mapNodes[key];
-				setVisibleRecursive(node, flag);
-			}
-		}
-	}
+    // Рекурсивное изменение видимости
+    function setVisibleRecursive(pNode, flag) {
+        if(!pNode) return;
+        if(pNode.isVisible !== false && pNode.geometry.type) {
+            utils.setVisibleNode({'obj': pNode, 'attr': flag});
+        } else {
+            for (var i = 0, len = pNode.children.length; i < len; i++) {
+                var key = pNode.children[i],
+                    node = mapNodes[key];
+                utils.setVisibleNode({'obj': node, 'attr': flag});
+                //setVisibleRecursive(node, flag);
+            }
+        }
+    }
 
 	// Рекурсивное изменение видимости
 	function setVisibilityFilterRecursive(pNode, sqlFunc) {
