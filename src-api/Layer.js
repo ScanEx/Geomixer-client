@@ -160,8 +160,10 @@
  // * MinZoom: мин.зум
  // * MaxZoom: макс.зум
  // * sql: строка фильтра
- var addFilter = function(prnt, attr)
+ var addFilter = function(prnt, style)
  {
+   var attr = getFilterAttr(style);
+
   if(!attr) attr = {};
   var filter = new gmxAPI._FMO(false, {}, prnt); // MapObject для фильтра
   var num = prnt.filters.length;     // Номер фильтра в массиве фильтров
@@ -325,9 +327,9 @@
             }
             // Добавление начальных фильтров
             for (var i = 0, len = layer.properties.styles.length; i < len; i++) {
-                var style = layer.properties.styles[i],
-                    attr = getFilterAttr(style);
-                addFilter(obj, attr);
+                var style = layer.properties.styles[i];
+                    //attr = getFilterAttr(style);
+                addFilter(obj, style);
             }
             obj.addFilter = function(attr) { return addFilter(obj, attr); };
             obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
