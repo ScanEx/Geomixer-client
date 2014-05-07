@@ -331,7 +331,12 @@
                     //attr = getFilterAttr(style);
                 addFilter(obj, style);
             }
-            obj.addFilter = function(attr) { return addFilter(obj, attr); };
+            obj.addFilter = function(style) {
+                var filter = addFilter(obj, style);
+                filter.setStyle(filter._attr.regularStyle, filter._attr.hoveredStyle);
+                if(filter._attr.clusters) filter.setClusters(filter._attr.clusters);
+                return filter;
+            };
             obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
                 return proxy('getItem', { 'obj': obj, 'attr':{layerId:obj.objectId, itemId:pid, flagMerc:flagMerc} });
             };
