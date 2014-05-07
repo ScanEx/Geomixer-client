@@ -9,16 +9,16 @@
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
 		if (!_map) return;
 
-		_translationsHash.addtext("rus", {weatherMaplet: {
+		_translationsHash.addtext("rus", {WeatherPlugin: {
 								WindButton : "Ветер",
 								WeatherButton : "Погода",
-								AccordingTo : "По данным Gismeteo.ru"
+								AccordingTo : "По данным"
 							 }});
-		_translationsHash.addtext("eng", {
+		_translationsHash.addtext("eng", {WeatherPlugin: {
 								WindButton : "Wind",
 								WeatherButton : "Weather",
-								AccordingTo : "According to the data from Gismeteo.ru"
-							 });
+								AccordingTo : "According to the data from"
+							 }});
 
 		//если подгружать jquery, можно использовать $.extent
 		if (!params) params = {};
@@ -118,7 +118,7 @@
 				}
 			  
 				str += "</table></tbody>";
-				str += "<div style=\"margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;\">По данным <a href=\"http://gismeteo.ru\" target=\"_blank\">Gismeteo.ru</a></div>";
+				str += "<div style=\"margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;\">" + _gtxt('WeatherPlugin.AccordingTo') + " <a href=\"http://gismeteo.ru\" target=\"_blank\">Gismeteo.ru</a></div>";
 				
 				iconTexts[icon].push({text: str, name: city.Name});
 			}
@@ -274,40 +274,29 @@
 
         //создание weatherTools
         if (params.addToolbar) {
-            var weatherTools = new gmxAPI._ToolsContainer('weather');
+            var weatherTools = new gmxAPI._ToolsContainer('weatherContainer');
 
-            var onClickWeather = function() {
-                weathers.visibleFlag = !weathers.visibleFlag;
-                lazyInitData();
-                if (params.changeCallback) params.changeCallback();
-            };
-            var attrWeather = {
-                overlay: true,
-                onClick: onClickWeather,
-                onCancel: onClickWeather,
-                onmouseover: function() { this.style.color = "orange"; },
-                onmouseout: function() { this.style.color = "wheat"; },
-                hint: _gtxt("weatherMaplet.WeatherButton")
-            };
-
-            weatherTool = weatherTools.addTool( 'weather', attrWeather);
-
-            var onClickWind = function() {
-                winds.visibleFlag = !winds.visibleFlag;
-                lazyInitData();
-                if (params.changeCallback) params.changeCallback();
+            var onClick = function(container, isVisible) {
+                if (container.visibleFlag !== isVisible) {
+                    container.visibleFlag = isVisible;
+                    lazyInitData();
+                    if (params.changeCallback) params.changeCallback();
+                }
             };
             
-            var attrWind = {
+            weatherTool = weatherTools.addTool( 'weather', {
                 overlay: true,
-                onClick: onClickWind,
-                onCancel: onClickWind,
-                onmouseover: function() { this.style.color = "orange"; },
-                onmouseout: function() { this.style.color = "wheat"; },
-                hint: _gtxt("weatherMaplet.WindButton")
-            };
+                onClick: onClick.bind(null, weathers, true),
+                onCancel: onClick.bind(null, weathers, false),
+                hint: _gtxt("WeatherPlugin.WeatherButton")
+            });
             
-            windTool = weatherTools.addTool ( 'wind', attrWind);
+            windTool = weatherTools.addTool( 'wind', {
+                overlay: true,
+                onClick: onClick.bind(null, winds, true),
+                onCancel: onClick.bind(null, winds, false),
+                hint: _gtxt("WeatherPlugin.WindButton")
+            });
         }
 	}
 	
@@ -335,14 +324,14 @@
          * @param {Boolean} isVisible Видимы ли данные или нет
         */
         setWeatherVisibility: function(isVisible) {
-            weatherTool && weatherTool[isVisible ? 'onClick' : 'onCancel']();
+            weatherTool && weatherTool.setActiveTool(isVisible);
         },
         
         /** Установить видимость данных с ветром
          * @param {Boolean} isVisible Видимы ли данные или нет
         */
         setWindVisibility: function(isVisible) {
-            windTool && windTool[isVisible ? 'onClick' : 'onCancel']();
+            windTool && windTool.setActiveTool(isVisible);
         },
         
         /** Добавить данные о погоде на карту
