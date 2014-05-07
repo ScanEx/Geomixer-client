@@ -633,6 +633,7 @@
                 attr.getIndex = function () {
                     return my._overlaysList.childNodes.length;
                 }
+
                 attr.setActiveTool = function (flag) {
                     if (flag) {
                         this.onClick();
@@ -641,12 +642,12 @@
                     }
                     my.setVisibility(id, flag);
                 }
-                
+
                 this.addOverlay(attr, name);
                 return {
                     id: id
                     ,setActiveTool: function (flag) {
-                        return my.setVisibility(this.id, flag);
+                        return attr.setActiveTool(flag);
                     }
                     ,setVisible: function(flag) {
                         if('setVisible' in my) my.setVisible(flag);
