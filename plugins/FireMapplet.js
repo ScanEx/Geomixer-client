@@ -2089,12 +2089,14 @@ FireControl.prototype.setDataVisibility = function(dataName, isVisible) {
 //предполагаем, что dateBegin, dateEnd не нулевые
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {    
-    //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
-    if (dateEnd - dateBegin < 12*3600*1000) {
-        dateBegin = new Date(dateBegin.valueOf() - 24*60*60*1000);
-    }
     
     if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE ) {
+        
+        //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
+        if (dateEnd - dateBegin < 12*3600*1000) {
+            dateBegin = new Date(dateBegin.valueOf() - 24*60*60*1000);
+        }
+        
         var hours = Math.ceil((dateEnd - dateBegin)/3600000);
         var hoursStr = hours > 24 ? "24+" + (hours-24) : hours;
         var prefix = hours === 24 ? _gtxt("firesWidget.timeTitlePrefix") : _gtxt("firesWidget.timeTitleLastPrefix");
