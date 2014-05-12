@@ -690,6 +690,7 @@
                         }
                     }
                 }
+                gmxAPI._listeners.dispatchEvent('onChangeControlsVisibility', gmxAPI.map, this.options.isVisible);
             },
             _toggleVisible: function (e) {
                 L.DomEvent.stopPropagation(e);
