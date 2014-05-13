@@ -181,7 +181,7 @@ extend(window.gmxAPI,
         var css = document.createElement("link");
         css.setAttribute("type", "text/css");
         css.setAttribute("rel", "stylesheet");
-        css.setAttribute("media", "screen");
+        //css.setAttribute("media", "screen");
         css.setAttribute("href", href);
         document.getElementsByTagName("head").item(0).appendChild(css);
 	}
@@ -2587,7 +2587,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName, callbackEr
     
     var sepSym = url.indexOf('?') == -1 ? '?' : '&';
     
-	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
+	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName);
 	if(callbackError) script.onerror = function(e) {
 		callbackError(e);
 	};
