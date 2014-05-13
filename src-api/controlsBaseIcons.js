@@ -1491,7 +1491,7 @@
                 ,onFinishID: null
                 ,id: id
                 ,onAdd: function() {
-                    Controls.items[this.options.id] = this;
+                    if (this.options.id) Controls.items[this.options.id] = this;
                     var my = this,
                         container = this._container;
                     if(attr.innerHTML) {
