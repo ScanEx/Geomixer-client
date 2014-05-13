@@ -2452,11 +2452,11 @@
                 }
 
                 if('dtiles' in attr) {  // Для мультивременных слоев
-                    if (!attr.notClear) {
+                    //if (!attr.notClear) { // нельзя не очищать т.к. в ключи тайлов не содержать SPAN и версии
                         for(var key in node.tiles) {
                             node.removeTile(key); // Полная перезагрузка тайлов
                         }
-                    }
+                    //}
                     node.getTilesBounds(attr.dtiles);
                     node.temporal = attr;
                 }
