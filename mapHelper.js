@@ -285,34 +285,16 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name)
     var layer = globalFlashMap.layers[name];
     
 	// удалим старые фильтры
-	for (var i = layer.filters.length - 1; i > -1; i--)
-	{
+	for (var i = layer.filters.length - 1; i > -1; i--) {
 		layer.filters[i].remove();
 	}
 	
 	layer.filters = [];
-	
+    
 	// добавим новые
-	newStyles.forEach(function(style)
-	{
-		var newFilter = layer.addObject();
-		
-		if (style.Filter)
-			newFilter.setFilter(style.Filter);
-		else
-			newFilter.setFilter();
-		
-		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, style);
-		
-		newFilter.setStyle(style.RenderStyle);
-        
-        if (style.clusters)
-            newFilter.setClusters(style.clusters);
-		
-		newFilter.setZoomBounds(Number(style.MinZoom), Number(style.MaxZoom));
-		
-		layer.filters.push(newFilter);
-	})
+    newStyles.forEach(function(style) {
+        layer.addFilter(style);
+    });
 }
 
 //TODO: remove isEditableStyles
