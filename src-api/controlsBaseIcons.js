@@ -118,7 +118,7 @@
             }
             ,
             addTo: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 this._map = map;
 
                 var container = this._container = this.onAdd(map),
@@ -165,7 +165,7 @@
             }
             ,
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var ret = this._initLayout();
                 //gmxAPI.setStyleHTML(this._container, this.options.style || defaultStyle);
                 if(this.options.onAdd) this.options.onAdd.call(this, ret);
@@ -206,7 +206,7 @@
             ,_listeners: {}
             ,
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var zoomName = 'gmx_zoomParent',
                     container = L.DomUtil.create('div', zoomName);
 
@@ -525,7 +525,7 @@
             ,_baseLayersHash: {}
             ,
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 L.Control.Layers.prototype.onAdd.call(this, map);
                 
                 var my = this;
@@ -737,7 +737,7 @@
                 notHide: true
             },
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = L.DomUtil.create('div', className);
 
@@ -769,7 +769,7 @@
                 notHide: true
             },
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var className = 'gmx_location',
                     container = L.DomUtil.create('div', className),
                     my = this;
@@ -907,7 +907,7 @@
                 notHide: true
             },
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = this._container = L.DomUtil.create('span', className);
 
@@ -1077,7 +1077,7 @@
                 gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
             }
             ,onAdd: function(cont) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var my = this;
                 this._map.on('boxzoomend', function() {
                     L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.id + '-Active');
@@ -1157,7 +1157,7 @@
             },
 
             onAdd: function (map) {
-                Controls.items[this.options.id] = this;
+                if (this.options.id) Controls.items[this.options.id] = this;
                 var container = L.DomUtil.create('div', 'leaflet-control-Drawing');
 
                 L.DomEvent
