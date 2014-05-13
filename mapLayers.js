@@ -619,11 +619,14 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         
         if ( elem.styles.length == 1 && elem.name in globalFlashMap.layers )
         {
-            globalFlashMap.layers[elem.name].filters[0].addListener('onSetStyle', function(style)
-            {
+            globalFlashMap.layers[elem.name].addListener('onStyleChange', function(filter) {
                 if (globalFlashMap.layers[elem.name].filters.length == 1)
                 {
-                    var newIcon = _mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag});
+                    var newIcon = _mapHelper.createStylesEditorIcon(
+                        [{MinZoom:1, MaxZoom: 21, RenderStyle: filter.getStyle().regular}], 
+                        elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', 
+                        {addTitle: !layerManagerFlag}
+                    );
                     $(iconSpan).empty().append(newIcon);
                 }
             });
