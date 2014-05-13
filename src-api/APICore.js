@@ -2905,7 +2905,12 @@ FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDr
 FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
 FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
 
-FlashMapObject.prototype.setStyle = function(style, activeStyle) { var attr = {'regularStyle':style, 'hoveredStyle':activeStyle}; gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr }); gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr); }
+FlashMapObject.prototype.setStyle = function(style, activeStyle) {
+ var attr = {'regularStyle':style, 'hoveredStyle':activeStyle};
+ gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr });
+ gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr);
+ gmxAPI._listeners.dispatchEvent('onStyleChange', this.parent, this);
+ }
 FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
 FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
 
