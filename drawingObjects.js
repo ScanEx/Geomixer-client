@@ -491,7 +491,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 		if (_collection.Count() == 0) hide(_divButtons);
 		var removedDiv = _containers.splice(index, 1)[0];
 		_rows.splice(index, 1);
-		removedDiv.parentNode.removeChild(removedDiv);
+		removedDiv.parentNode && removedDiv.parentNode.removeChild(removedDiv);
         
         if (index === _selectedIndex) {
             _selectedIndex = null;
