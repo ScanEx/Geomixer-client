@@ -3825,8 +3825,9 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 
 				if (mapLayers.length > 0)
 				{
-					mapLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
-					mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					mapLayers[0].setCopyright("<a href='http://www.collinsbartholomew.com/'>&copy; Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+					mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					//mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; ЗАО «Геоцентр-Консалтинг»</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					// setCopyright(mapLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
 					// var obj = setCopyright(mapLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
 					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
@@ -3835,8 +3836,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				//те же копирайты, что и для карт
 				if (overlayLayers.length > 0)
 				{
+					overlayLayers[0].setCopyright("<a href='http://www.collinsbartholomew.com/'>&copy; Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					//overlayLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
-					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					//overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					// setCopyright(overlayLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
 					// var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
 					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
