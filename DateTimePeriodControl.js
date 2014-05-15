@@ -11,7 +11,8 @@ var initTranslations = function()
                                 Month:        "Месяц",
                                 Year:         "Год",
                                 EveryYear:    "Ежегодно",
-                                ExtendedView: "Расширенный поиск",
+                                ExtendedViewTitle: "Выбор периода",
+                                MinimalViewTitle:  "Свернуть",
                                 Period:       "Задать период",
                                 UTC:          "Всемирное координированное время"
                              }});
@@ -23,7 +24,8 @@ var initTranslations = function()
                                 Month :        "Month",
                                 Year :         "Year",
                                 EveryYear :    "Every year",
-                                ExtendedView : "Extended search",
+                                ExtendedViewTitle: "Period selection",
+                                MinimalViewTitle: "Minimize",
                                 UTC:           "Coordinated Universal Time"
                              }});
 }
@@ -420,9 +422,10 @@ Calendar.prototype.init = function( name, params )
     this.last = $('<div class = "PeriodCalendar-iconScroll PeriodCalendar-iconLast"></div>').click(this._lastClickFunc.bind(this))[0];
 
     this.moreIcon = $(Mustache.render(
-        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{i calendarWidget.ExtendedView}}"></div>', 
+        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{title}}"></div>', 
         {
-            iconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse'
+            iconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse',
+            title: this._params.minimized ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle')
         }
     )).click(_this._visModeController.toggleMode.bind(_this._visModeController)).toggle(!!this._params.showSwitcher)[0];
 
@@ -441,9 +444,9 @@ Calendar.prototype.init = function( name, params )
     if (this._params.buttonImage) {
         $([this.dateBegin, this.dateEnd]).datepicker('option', 'buttonImage', this._params.buttonImage);
     }
-                
+
 	//emptyieinput.blur();
-	
+
 	$(this._visModeController).change(function()
 	{
 		var isSimple = _this._visModeController.getMode() === _this._visModeController.SIMPLE_MODE;
@@ -456,24 +459,25 @@ Calendar.prototype.init = function( name, params )
         $(_this.moreIcon)
             .toggleClass('PeriodCalendar-iconExpand', isSimple)
             .toggleClass('PeriodCalendar-iconCollapse', !isSimple);
+        $(_this.moreIcon).attr('title', isSimple ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle'));
 	});
-					
+
 	$("#calendar .onlyMinVersion", this.canvas).toggle(this._params.minimized);
 	$("#calendar .onlyMaxVersion", this.canvas).toggle(!this._params.minimized);
-	
+
 	var curUTCDate = new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000);
-	
+
 	if (typeof this._params.dateEnd === 'undefined')
 		$(this.dateEnd).datepicker("setDate", curUTCDate);
 	else
 		$(this.dateEnd).datepicker("setDate", this._params.dateEnd);
-	
+
 	if (typeof this._params.dateBegin === 'undefined')
 		//если не выбран период, то по умолчанию мы устанавливаем одинаковые даты
 		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this._getBeginByEnd() );
 	else
 		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
-        
+
     if (this._params.container)
     {
         if (typeof this._params.container === 'string')
