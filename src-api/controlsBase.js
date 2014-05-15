@@ -1043,7 +1043,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                 var chkExists = {};
                 var texts = [
                     //первым всегда будет располагаться копирайт СканЭкс. 
-                    "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>, 2007-2014"
+                    "&copy; <a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>, 2007-2014"
                 ];
                 this.forEach(function(item, i) {
                     var obj = item[0];
@@ -1060,7 +1060,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                     chkExists[copyright] = true;
                     texts.push(copyright.split("<a").join("<a target='_blank' style='color: inherit;'"));
                 });
-                if(gmxAPI.proxyType == 'leaflet') texts.push("<a target='_blank' style='color: inherit;' href='http://leafletjs.com'>&copy; Leaflet</a>");
+                if(gmxAPI.proxyType == 'leaflet') texts.push("&copy; <a target='_blank' style='color: inherit;' href='http://leafletjs.com'>Leaflet</a>");
 
                 var text = texts.join(' ');
 
