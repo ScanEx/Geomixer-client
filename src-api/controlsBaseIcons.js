@@ -6,7 +6,7 @@
         locationTxt: gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты", "Current center coordinates")
         ,coordFormatChange: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format")
         ,print: gmxAPI.KOSMOSNIMKI_LOCALIZED("Печать", "Print")
-        ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("Пермалинк", "Link to the map")
+        ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("Постоянная ссылка", "Link to the map")
         ,boxZoom: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "BoxZoom")
         ,marker: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
         ,polygon: gmxAPI.KOSMOSNIMKI_LOCALIZED("Многоугольник", "Polygon")
