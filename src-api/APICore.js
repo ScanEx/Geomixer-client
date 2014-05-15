@@ -3326,7 +3326,8 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		return func(i + size, size - j - 1, z);
 	}, 1);
 	
-	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
+	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>", 8, 18);
+	this.setCopyright("&copy; <a href='http://www.naturalearthdata.com/'>Natural Earth</a>", 1, 7);
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
