@@ -2508,9 +2508,23 @@ var FireControl2 = function(map, params)
         return params.calendar;
     }
     
-    //проксируем рая команд
+    //проксируем несколько команд из FireControl
+    
+    /** Селиализовать текущее состояние виджета пожаров
+     * @return {Object} Простой объект, описывающий состояние виджета
+     * @method
+    */
     this.saveState = baseFireControl.saveState.bind(baseFireControl);
+    
+    /** Применить ранее сериализованное состояние. После применения нужно явно вызвать ф-цию update()
+     * @param {Object} data Сериализованное состояние
+     * @method
+    */
     this.loadState = baseFireControl.loadState.bind(baseFireControl);
+    
+    /** Перерисовать данные на карте
+     * @method
+    */
     this.update = baseFireControl.update.bind(baseFireControl);
 }
 
