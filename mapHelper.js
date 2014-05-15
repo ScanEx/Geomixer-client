@@ -226,18 +226,7 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
     _userObjects.collect();
     mapState.userObjects = JSON.stringify(_userObjects.getData());
     
-    sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
-    {
-        WrapStyle: 'window',
-        content: JSON.stringify(mapState)
-    }, 
-    function(response)
-    {
-        if (!parseResponse(response))
-            return;
-        
-        callback(response.Result);
-    })
+    nsGmx.Utils.TinyReference.create(mapState).then(callback);
 }
 
 mapHelper.prototype.reloadMap = function()
@@ -318,17 +307,7 @@ mapHelper.prototype.updateTreeStyles = function(newStyles, div, treeView, isEdit
 mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCallback)
 {
 	window.suppressDefaultPermalink = true;
-	sendCrossDomainJSONRequest(serverBase + "TinyReference/Get.ashx?id=" + id, function(response)
-	{
-		//если пермалинк не найден, сервер не возвращает ошибку, а просто пустой результат
-		if ( !parseResponse(response) || !response.Result )
-		{
-			errorCallback && errorCallback();
-			return;
-		}
-		
-		var obj = JSON.parse(response.Result);
-		
+    nsGmx.Utils.TinyReference.get(id).then(function(obj) {
 		if (obj.position)
 		{
 			obj.position.x = from_merc_x(obj.position.x);
@@ -343,7 +322,7 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 		}
         obj.originalReference = id;
 		callbackSuccess(obj);
-	});
+    }, errorCallback);
 }
 
 mapHelper.prototype.getMapState = function()
@@ -360,7 +339,6 @@ mapHelper.prototype.getMapState = function()
 		
 		if (o.geometry.type != "POINT")
 		{
-			//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
 			var style = o.getStyle();
 			
 			elem.thickness = style.regular.outline.thickness;
@@ -445,20 +423,7 @@ mapHelper.prototype.showPermalink = function()
 mapHelper.prototype.createPermalink = function(callback)
 {
 	var mapState = this.getMapState();
-	
-	sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
-        {
-            WrapStyle: 'window',
-            content: JSON.stringify(mapState)
-        }, 
-        function(response)
-        {
-            if (!parseResponse(response))
-                return;
-            
-            callback(response.Result);
-        }
-    )
+    nsGmx.Utils.TinyReference.create(mapState).then(callback);
 }
 
 mapHelper.prototype.createSuggestCanvas = function(values, textarea, textTamplate, func, valuesArr, addValueFlag)

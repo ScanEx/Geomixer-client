@@ -439,8 +439,7 @@ function checkUserInfo(defaultState)
         
         if (tempPermalink && tempPermalink == tinyRef)
         {
-            sendCrossDomainJSONRequest(serverBase + "TinyReference/Delete.ashx?id=" + tempPermalink, function(response){});
-            
+            nsGmx.Utils.TinyReference.remove(tempPermalink);
             eraseCookie("TempPermalink");
         }
     }

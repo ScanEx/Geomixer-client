@@ -1628,6 +1628,70 @@ $.extend(nsGmx.Utils, {
         }
     },
     showDialog: window.showDialog,
+    
+    /** Методы для работы с сохранёнными на сервере данными. 
+    * Сервер позволяет сохранять произвольный текст на сервере и получить ID, по которому можно этот текст получить.
+    * Используется для формирования пермалинков (сохранение состояния)
+    * @namespace
+    * @memberOf nsGmx.Utils
+    */
+    TinyReference: {
+        /** Создать новую ссылку 
+        * @param {String} data Данные, которые нужно сохранить
+        * @return {jQuery.Deferred} Промис, который будет resolve при сохранении данных. Параметр при ресолве: ID, по которому можно получить данные обратно
+        */
+        create: function(data) {
+            var def = $.Deferred();
+            sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx", {
+                WrapStyle: 'message',
+                content: JSON.stringify(data)
+            }, 
+            function(response) {
+                if (parseResponse(response)) {
+                    def.resolve(response.Result);
+                } else {
+                    def.reject();
+                }
+            })
+            
+            return def.promise();
+        },
+        
+        /** Получить ранее сохранённые данные по ID
+        * @param {String} id полученный при сохранении ID данных
+        * @return {jQuery.Deferred} Промис, который будет resolve при получении данных. Параметр при ресолве: данные с сервера
+        */
+        get: function(id) {
+            var def = $.Deferred();
+            sendCrossDomainJSONRequest(serverBase + "TinyReference/Get.ashx?id=" + id, function(response){
+                //если пермалинк не найден, сервер не возвращает ошибку, а просто пустой результат
+                if (parseResponse(response) && response.Result) {
+                    def.resolve(JSON.parse(response.Result));
+                } else {
+                    def.reject();
+                }
+            });
+            
+            return def.promise();
+        },
+        
+        /** Удалить данные по ID
+        * @param {String} id полученный при сохранении ID данных
+        * @return {jQuery.Deferred} Промис, который будет resolve при удалении данных
+        */
+        remove: function(id) {
+            var def = $.Deferred();
+            sendCrossDomainJSONRequest(serverBase + "TinyReference/Delete.ashx?id=" + id, function(response){
+                if (parseResponse(response)) {
+                    def.resolve();
+                } else {
+                    def.reject();
+                }
+            });
+            
+            return def.promise();
+        }
+    }
 });
 
 window.gmxCore && window.gmxCore.addModule('utilities', nsGmx.Utils);
