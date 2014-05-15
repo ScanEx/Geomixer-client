@@ -668,8 +668,8 @@
                 var fAttr = {
                     'layerId': obj.objectId
                     ,'asArray': true
-                    ,'geometryMode': attr.geometryMode || 'LatLng'
-                    ,'ignoreVisibilityFilter': (attr && attr['ignoreVisibilityFilter'] ? true : false)
+                    ,'geometryMode': attr && attr.geometryMode ? attr.geometryMode : 'LatLng'
+                    ,'ignoreVisibilityFilter': (attr && attr.ignoreVisibilityFilter ? true : false)
                 };
 
                 var outCallBacks = function(arr) {
@@ -677,25 +677,25 @@
                 }
                 var func = function(arr) {
                     var out = [];
-                    for (var i = 0; i < arr.length; i++) {
+                    for (var i = 0, len = arr.length; i < len; i++) {
                         var item = arr[i];
                         var geo = (gmxAPI.proxyType === 'leaflet' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry));
                         var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
-                        var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item['isVisibleFilter'], 'status':item['status']};
+                        var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item.isVisibleFilter, 'status':item.status};
                         out.push(ph);
                     }
-                    for (var j = 0; j < obj._observerOnChange.length; j++) {
+                    for (var j = 0, len = obj._observerOnChange.length; j < len; j++) {
                         var ph = obj._observerOnChange[j];
                         if(out.length) ph[0](out);
                     }
                 }
-                fAttr['func'] = func;
+                fAttr.func = func;
                 
                 if(!obj._observerOnChange) {
                     proxy('observeVectorLayer', { 'obj': o, 'attr':fAttr});
                     obj._observerOnChange = [];
                 }
-                obj._observerOnChange.push([onChange, fAttr['ignoreVisibilityFilter']]);
+                obj._observerOnChange.push([onChange, fAttr.ignoreVisibilityFilter]);
                 if(observeByLayerZooms) {
                     proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
                 }
