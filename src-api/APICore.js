@@ -3697,10 +3697,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				}
 
 				//те же копирайты, что и для карт
-				if (overlayLayers.length > 0)
+				if (overlayLayers.length > 1)
 				{
-					overlayLayers[0].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
-					overlayLayers[0].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					overlayLayers[1].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+					overlayLayers[1].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 				}
 
 				if ( satelliteLayers.length > 0 )
