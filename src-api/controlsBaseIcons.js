@@ -975,7 +975,7 @@
                         });
                         if(gmxAPI.proxyType == 'leaflet') texts.push("&copy; <a target='_blank' style='color: inherit;' href='http://leafletjs.com'>Leaflet</a>");
 
-                        var text = texts.join(' ');
+                        var text = texts.join('; ');
 
                         if(this.currentText != text) {
                             this.currentText = text;
