@@ -125,7 +125,7 @@
     margin-top: 60px;
     position: absolute;
     left: 2px;
-    top: 60px;
+    top: 45px;
 }
 .gmx_zoomMinus {
     background-image: url("../img/iconControls.png");
@@ -185,10 +185,9 @@
     display: block;
     clear: none;
     float: left;
-    margin-left: 6px;
     position: relative;
     cursor: pointer;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-userIcons:hover, .leaflet-control-userIcons-Active {
     background-color: rgba(154, 154, 154, 1);
@@ -216,7 +215,7 @@
     cursor: pointer;
     display: block;
     float: left;
-    margin-left: 6px;
+    margin-left: 4px;
     position: relative;
     width: 30px;
     height: 30px;
@@ -266,13 +265,13 @@
     height: 30px;
     background-color: rgba(0, 0, 0, 0);
     overflow: hidden;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-drawingPoint {
     background-image: url("../img/iconControls.png");
     background-position: -238px -33px;
     float: left;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-drawingPoint:hover, .leaflet-control-drawingPoint-Active {
     background-position: -238px -2px;
@@ -285,7 +284,7 @@
     height: 30px;
     clear: none;
     float: left;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-drawingZoom:hover, .leaflet-control-drawingZoom-Active {
     background-position: -627px -2px;
@@ -298,7 +297,7 @@
     height: 30px;
     clear: none;
     float: left;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-permalink:hover {
     background-position: -534px -2px;
@@ -311,7 +310,7 @@
     height: 30px;
     clear: none;
     float: left;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
 }
 .leaflet-control-print:hover {
     background-position: -52px -2px;
@@ -324,7 +323,7 @@
     height: 30px;
     clear: none;
     float: left;
-    margin-right: 19px;    
+    margin-right: 12px;    
 }
 .leaflet-control-hide:hover {
     background-position: -596px -2px;
