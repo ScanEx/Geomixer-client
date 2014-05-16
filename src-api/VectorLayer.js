@@ -480,6 +480,7 @@
 
                     if(!isCluster) {
                         gmxAttr.objForBalloon = item;
+                        gmxAttr.objType = itemPropHiden.tileID === 'addItem' ? 'addItem' : 'fromServer';
                         // if('onClick' in node.handlers) {  // Есть handlers на слое
                             // var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
                             // if(typeof(res) === 'object' && res.stopPropagation) return true;
