@@ -328,8 +328,8 @@
 		this.ut2Prev = 0;
 		resetTiles = function(attr, obj) {
 			if(attr) {
+				if(attr.ut1 === obj._temporalTiles.ut1Prev && attr.ut2 === obj._temporalTiles.ut2Prev) return;
 				startLoadTiles(attr, obj);
-				if(attr.ut1 == obj._temporalTiles.ut1Prev && attr.ut2 == obj._temporalTiles.ut2Prev) return;
 				obj._temporalTiles.ut1Prev = attr.ut1;
 				obj._temporalTiles.ut2Prev = attr.ut2;
 			}
