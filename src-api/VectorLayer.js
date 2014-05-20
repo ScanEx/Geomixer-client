@@ -1559,6 +1559,7 @@
                     myLayer.options.maxZ = node.maxZ;
                     chkVisible();
                 }
+                node.reCheckFilters();
             }
             ,chkZoomBoundsFilters: function() { // Проверка видимости по Zoom фильтров
                 var minZ = 100,
