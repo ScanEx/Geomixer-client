@@ -70,15 +70,30 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
     
 	var mapElem = _div(),
 		div = _div(null, [['css','position','relative'],['css','margin','2px 0px']]),
-		remove = makeImageButton('img/closemin.png','img/close_orange.png');
+		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
+        mapInfo,
+        _this = this;
 	
-	for (var i = 0; i < this.mapsCanvas.childNodes.length; ++i)
-	{
-		var divChild = this.mapsCanvas.childNodes[i];
-		
-		if (divChild.hostName == hostName && divChild.mapName == mapName)
-			return;
-	}
+    for (var i = 0; i < this.maps.length; i++) {
+        var map = this.maps[i];
+        if (map.hostName === hostName && map.mapName === mapName) {
+            if (map.container) {
+                return;
+            }
+            mapInfo = map;
+            break;
+        }
+    }
+    
+    if (!mapInfo) {
+        mapInfo = {
+            hostName: hostName,
+            mapName: mapName
+        }
+        this.maps.push(mapInfo);
+    }
+    
+    mapInfo.container = div
 	
 	div.hostName = hostName;
 	div.mapName = mapName;
@@ -105,6 +120,14 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 			if (globalFlashMap.layers[name].external)
 				_queryMapLayers.removeLayer(name);
 		});
+        
+        for (var i = 0; i < _this.maps.length; i++) {
+            var map = _this.maps[i];
+            if (map.hostName === hostName && map.mapName === mapName) {
+                _this.maps.splice(i, 1);
+                break;
+            }
+        }
 	}
 }
 
@@ -145,6 +168,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 
 queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 {
+    var _this = this;
 	loadMapJSON(hostName, mapName, function(layers)
 	{
 		if (layers != null)
@@ -156,7 +180,6 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 				if (!globalFlashMap.layers[name])
 				{
 					globalFlashMap.addLayer(layer, isVisible, true);
-					//globalFlashMap.layers[name].setVisible(isVisible);
 					globalFlashMap.layers[name].external = true;
 				}
 			});
@@ -172,11 +195,18 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 				catch (e) { alert(e); }
 			}
 			
-			var data = layers;
-			data.properties.hostName = hostName;
+			layers.properties.hostName = hostName;
 			
-			callback(data);
-			$(_queryExternalMaps).triggerHandler('map_loaded', data);
+			callback(layers);
+			$(_queryExternalMaps).triggerHandler('map_loaded', layers);
+            
+            for (var i = 0; i < _this.maps.length; i++) {
+                var map = _this.maps[i];
+                if (map.hostName === hostName && map.mapName === mapName) {
+                    map.tree = layers;
+                    break;
+                }
+            }
 		}
 		else
 		{
