@@ -225,20 +225,24 @@
 		}
 		,clearLayer: function(id)	{				// Удалить все запросы по слою id
 			for (var key in itemsCache) {
-				var item = itemsCache[key];
-				if(item.layer == id) {
-                    if('src' in q && q.loaderObj) {
-                        if(q.loaderObj._item) {
-                            q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
-                            delete q.loaderObj._item;
+				var arr = itemsCache[key];
+                for(var i=0, len=arr.length; i<len; i++) {
+                    var item = arr[i];
+                    if(item.layer == id) {
+                        if('src' in item && item.loaderObj) {
+                            //var loaderObj = item.loaderObj;
+                            //if(loaderObj._item) {
+                                //loaderObj._item.callback = loaderObj._item.onerror = null;
+                                //delete item.loaderObj._item;
+                            //}
+                            item.loaderObj.src = emptyImageUrl;
+                            curCount--;
                         }
-                        q.loaderObj.src = emptyImageUrl;
-                        curCount--;
+                        // itemsCache[key].skip = true;
+                        // if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
                     }
-					delete itemsCache[key];
-					// itemsCache[key].skip = true;
-					// if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
-				}
+                }
+                delete itemsCache[key];
 			}
 			var arr = [];
 			for(var i=0, len=items.length; i<len; i++) {

@@ -1357,6 +1357,7 @@
                 node.checkFilters(0);
             }
             ,setVisibilityFilter: function() {
+                gmxAPI._leaflet.imageLoader.clearLayer(nodeId);
                 node.checkFilters(10);   
             }
             ,setFilter: function(fid) {   // Добавить фильтр к векторному слою
