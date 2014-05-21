@@ -225,21 +225,14 @@
 		}
 		,clearLayer: function(id)	{				// Удалить все запросы по слою id
 			for (var key in itemsCache) {
-				var arr = itemsCache[key];
-                for(var i=0, len=arr.length; i<len; i++) {
-                    var item = arr[i];
-                    if(item.layer == id) {
-                        if('src' in item && item.loaderObj) {
-                            //var loaderObj = item.loaderObj;
-                            //if(loaderObj._item) {
-                                //loaderObj._item.callback = loaderObj._item.onerror = null;
-                                //delete item.loaderObj._item;
-                            //}
-                            item.loaderObj.src = emptyImageUrl;
-                            curCount--;
-                        }
-                        // itemsCache[key].skip = true;
-                        // if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
+				var item = itemsCache[key][0];
+                if(item.layer == id) {
+                    if('src' in item && item.loaderObj) {
+                        var loaderObj = item.loaderObj;
+                        loaderObj.onload = loaderObj.onerror = null;
+                        loaderObj.src = emptyImageUrl;
+                        if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
+                        curCount--;
                     }
                 }
                 delete itemsCache[key];

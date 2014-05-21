@@ -1358,7 +1358,9 @@
             }
             ,setVisibilityFilter: function() {
                 gmxAPI._leaflet.imageLoader.clearLayer(nodeId);
-                node.checkFilters(10);   
+                node.tilesNeedRepaint = [];
+                node.tilesNeedRedraw = [];
+                node.checkFilters(10);  
             }
             ,setFilter: function(fid) {   // Добавить фильтр к векторному слою
                 var flag = true;
@@ -2474,7 +2476,7 @@
                 var zoom = LMap.getZoom();
                 var itemId = item.id;
                 if(arguments.length < 2) zd = 100;
-                
+
                 var rasterNums = 0;
                 for (var tKey in node.tilesRedrawImages[zoom]) {
                     var thash = tilesRedrawImages.getTileItems(zoom, tKey);
