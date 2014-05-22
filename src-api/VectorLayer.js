@@ -1875,7 +1875,7 @@
                                 delete node.loaderDrawFlags[stID];
                                 delete node.tilesLoadProgress[stID];
                                 if(err.skip) return;
-                                node.badTiles[stID] = true;
+                                //node.badTiles[stID] = true;
                                 gmxAPI.addDebugWarnings(err);
                                 gmxNode.chkLayerVersion();
                             }
