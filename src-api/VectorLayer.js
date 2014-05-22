@@ -1302,6 +1302,11 @@
             ,setStyleFilter: function(fid, attr) {  // обновить стиль фильтра
                 if(!gmxNode.isVisible) return;
                 var fnode = mapNodes[fid];
+                var gmxFilter = gmxAPI.mapNodes[fid];
+                if(gmxFilter._attr) {
+                    gmxFilter._attr.regularStyle = fnode._regularStyle;
+                    gmxFilter._attr.hoveredStyle = fnode._hoveredStyle;
+                }
                 node.chkStyleFilter(fnode);
                 
                 node.refreshFilter(fid);
