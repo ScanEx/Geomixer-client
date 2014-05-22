@@ -1,35 +1,39 @@
 ﻿//Плагин для добавления таймлайна для просмотра данных мультивременных слоёв.
 (function ($){
 
-_translationsHash.addtext("rus", {
-    "timeline.modesTextTitle": "Показывать объекты",
-    "timeline.modesTextTimeline": "на таймлайне",
-    "timeline.modesTextMap": "на карте",
-    "timeline.contextMemuTitle": "Добавить к таймлайну",
-    
-    "timeline.mapMode.none": "все",
-    "timeline.mapMode.screen": "на экране",
-    "timeline.mapMode.center": "над центром",
-    
-    "timeline.timelineMode.none": "все",
-    "timeline.timelineMode.range": "по датам",
-    "timeline.timelineMode.selected": "выделенные"
-});
+_translationsHash.addtext("rus", {timeline: {
+    modesTextTitle: "Показывать объекты",
+    modesTextTimeline: "на таймлайне",
+    modesTextMap: "на карте",
+    contextMemuTitle: "Добавить к таймлайну",
+    mapMode: {
+        none: "все",
+        screen: "на экране",
+        center: "над центром"
+    },
+    timelineMode: {
+        none: "все",
+        range: "по датам",
+        selected: "выделенные"
+    }
+}});
 
-_translationsHash.addtext("eng", {
-    "timeline.modesTextTitle": "Show objects",
-    "timeline.modesTextTimeline": "at timeline",
-    "timeline.modesTextMap": "on map",
-    "timeline.contextMemuTitle": "Add to timeline",
-    
-    "timeline.mapMode.none": "all",
-    "timeline.mapMode.screen": "at screen",
-    "timeline.mapMode.center": "at center",
-    
-    "timeline.timelineMode.none": "all",
-    "timeline.timelineMode.range": "by dates",
-    "timeline.timelineMode.selected": "selected"
-});
+_translationsHash.addtext("eng", {timeline: {
+    modesTextTitle: "Show objects",
+    modesTextTimeline: "at timeline",
+    modesTextMap: "on map",
+    contextMemuTitle: "Add to timeline",
+    mapMode: {
+        none: "all",
+        screen: "at screen",
+        center: "at center"
+    },
+    timelineMode: {
+        none: "all",
+        range: "by dates",
+        selected: "selected"
+    }
+}});
 
 var fromTilesToDate = function(type, value)
 {
@@ -239,7 +243,7 @@ var TimelineController = function(data, map) {
         var identityField = layer.properties.identityField;
         
         var elemsToAdd = [];
-        var mapCenter = {x: map.getX(), y: map.getY()};
+        var mapCenter = {x: gmxAPI.map.getX(), y: map.getY()};
         var mapExtent = map.getVisibleExtent();
         var items = data.get('items');
         var filters = data.get('userFilters').slice(0);
