@@ -234,8 +234,8 @@
                         if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
                         curCount--;
                     }
+                    delete itemsCache[key];
                 }
-                delete itemsCache[key];
 			}
 			var arr = [];
 			for(var i=0, len=items.length; i<len; i++) {
