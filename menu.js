@@ -413,8 +413,6 @@ UpMenu.prototype.attachEventOnMouseclick = function(elem, id)
 }
 
 UpMenu.prototype.getNavigatePath = function(path) {
-    var items = [];
-	
 	for (var menuId in this.submenus)
 	{
 		if (path == menuId)
@@ -448,7 +446,7 @@ UpMenu.prototype.getNavigatePath = function(path) {
 		}
 	}
 
-	return tds;
+	return [];
 }
 
 // Показывает путь в меню к текущему элементу
