@@ -390,7 +390,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
                 return;
 
             removeDialog(canvas);
-        }
+        },
+        closeText: null
     };
     
     if (params.setMinSize)
