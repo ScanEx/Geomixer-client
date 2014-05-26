@@ -119,7 +119,10 @@
             //console.log('onError', ev.target.src);
 			curCount--;
 			item.isError = true;
-			item.errorEvent = ev;
+			item.errorEvent = {
+                originalEvent: ev,
+                stID: item.stID
+            };
 			callCacheItems(item);
 		};
 		curCount++;
@@ -203,13 +206,21 @@
 		,removeItemsBySrc: function(src)	{		// удалить запросы по src
             if (!L.Browser.android) {
                 for (var key in itemsCache) {
-                    var q = itemsCache[key][0];
-                    if('src' in q && q.loaderObj && q.src.indexOf(src) !== -1) {
-                        if(q.loaderObj._item) {
-                            q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
-                            delete q.loaderObj._item;
-                        }
-                        q.loaderObj.src = emptyImageUrl;
+                    var item = itemsCache[key][0],
+                        loaderObj = item.loaderObj;
+                    if('src' in item && loaderObj && item.src.indexOf(src) !== -1) {
+                        loaderObj.onload = loaderObj.onerror = null;
+                        loaderObj.src = emptyImageUrl;
+
+                        item.isError = true;
+                        item.errorEvent = {
+                            skip: true,
+                            url: key,
+                            stID: item.stID
+                        };
+                        callCacheItems(item);
+
+                        //if(item.onerror) item.onerror({skip: true, stID: item.stID, url: key, Error: 'removed by clearLayer'});
                         curCount--;
                     }
                 }
@@ -231,7 +242,16 @@
                         var loaderObj = item.loaderObj;
                         loaderObj.onload = loaderObj.onerror = null;
                         loaderObj.src = emptyImageUrl;
-                        if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
+                        
+                        item.isError = true;
+                        item.errorEvent = {
+                            skip: true,
+                            url: key,
+                            stID: item.stID
+                        };
+                        callCacheItems(item);
+                        
+                        //if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
                         curCount--;
                     }
                     delete itemsCache[key];

@@ -933,7 +933,7 @@
             var z = LMap.getZoom();
             var point = LMap.project(pos);
             var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
-            return point.y - p1.y;
+            return Math.floor(point.y - p1.y);
         }
         ,
         getSortLayers: function(name) { // получить отсортированный по zIndex массив видимых слоев имеющих заданный метод

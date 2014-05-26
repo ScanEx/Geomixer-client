@@ -382,6 +382,7 @@
 				}
 				node.leaflet = myLayer;
 				var chkPosition = function() {
+                    gmxAPI._leaflet.imageLoader.clearLayer(node.id);
 					chkVisible();
 				}
 				LMap.on('move', chkPosition);
@@ -635,11 +636,10 @@
                     var rUrl = opt.tileFunc(pt.x, pt.y, z);
                     var gmxTileKey = z + '_' + pt.x + '_' + pt.y;
 
-                    var onError = function() {
-                        //console.log('onError', z, opt.maxZ, rUrl); // 
-                        if (z > 1 && !node.isOverlay) {
-                            //if(pt.zoom.from === z) 
-                            opt.badTiles[gmxTileKey] = true;
+                    var onError = function(err) {
+                        if (!err) err = {};
+                        if (!err.skip && z > 1 && !node.isOverlay) {
+                           //if (err.stID) opt.badTiles[err.stID] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
                             loadRasterRecursion(pt);
@@ -655,14 +655,16 @@
 
                     var item = {
                         'src': rUrl
+                        ,layer: node.id
+                        ,'stID': gmxTileKey
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             delete opt._inLoadImage[rUrl];
                             pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
                         }
-                        ,'onerror': function() {
+                        ,'onerror': function(err) {
                             delete opt._inLoadImage[rUrl];
-                            onError();
+                            onError(err);
                         }
                     };
                     if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
@@ -674,13 +676,13 @@
                     callback: function(ph) {
                         opt._needLoadTile--;
                         if(!layer._map || gmxAPI._leaflet.zoomstart) {
-                            //node.waitRedraw();
                             return;     // идет анимация
                         }
-                        if(LMap.getZoom() != zoom) {
-                            return;     // Только для текущего zoom
-                        }
-                        if(ph) {     // Есть раззумленный тайл
+                        // if(LMap.getZoom() != zoom) {
+                            // return;     // Только для текущего zoom
+                        // }
+                        //if(ph) {     // Есть раззумленный тайл
+                        if(ph && LMap.getZoom() === zoom) {     // Есть раззумленный тайл
                             var imageObj = ph.img;
                             if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
                                 var pos = null;
@@ -771,10 +773,11 @@
                 tile._tilePoint = tilePoint;
                 var tilePos = this._getTilePos(tilePoint);
 
+                if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
                 var shiftX = mInPixel * (this.options.shiftX || 0); // сдвиг тайлов
-                var shiftY = mInPixel * (this.options.shiftY || 0);
+                var shiftY = Math.floor(mInPixel * (this.options.shiftY || 0));
                 var shiftOSM = (this.options.shiftOSM ? this.options.shiftOSM : 0);		// Сдвиг для OSM
                 shiftY -= shiftOSM;
                 tilePos.x += shiftX;
