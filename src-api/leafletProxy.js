@@ -853,38 +853,41 @@
             if(!zoom) {
                 return;
             }
-            var pos = LMap.getCenter();
-            var size = LMap.getSize();
-            var vbounds = LMap.getBounds();
-            var nw = vbounds.getNorthWest();
-            var se = vbounds.getSouthEast();
-            var dx = (nw['lng'] < -360 ? 360 : 0);
+            var pos = LMap.getCenter(),
+                size = LMap.getSize(),
+                vbounds = LMap.getBounds(),
+                se = vbounds.getSouthEast(),
+                nw = vbounds.getNorthWest(),
+                cnt = - parseInt(nw.lng / 360),
+                lng = nw.lng % 360;
+            cnt += (lng < -180 ? 1 : (lng > 180 ? -1 : 0));
+            var dx = cnt * 360;
             var ext = {
-                'minX': nw['lng'] + dx
-                ,'minY': (se['lat'] > -gmxAPI.MAX_LATITUDE ? se['lat'] : -gmxAPI.MAX_LATITUDE)
-                ,'maxX': se['lng'] + dx
-                ,'maxY': (nw['lat'] < gmxAPI.MAX_LATITUDE ? nw['lat'] : gmxAPI.MAX_LATITUDE)
+                minX: nw.lng + dx
+                ,minY: (se.lat > -gmxAPI.MAX_LATITUDE ? se.lat : -gmxAPI.MAX_LATITUDE)
+                ,maxX: se.lng + dx
+                ,maxY: (nw.lat < gmxAPI.MAX_LATITUDE ? nw.lat : gmxAPI.MAX_LATITUDE)
             };
             var currPosition = {
-                'z': zoom
-                ,'stageHeight': size['y']
-                ,'x': gmxAPI.merc_x(pos['lng'])
-                ,'y': gmxAPI.merc_y(pos['lat'])
-                ,'latlng': {
-                    'x': pos['lng']
-                    ,'y': pos['lat']
-                    ,'mouseX': utils.getMouseX()
-                    ,'mouseY': utils.getMouseY()
-                    ,'extent': ext
+                z: zoom
+                ,stageHeight: size.y
+                ,x: gmxAPI.merc_x(pos.lng)
+                ,y: gmxAPI.merc_y(pos.lat)
+                ,latlng: {
+                    x: pos.lng
+                    ,y: pos.lat
+                    ,mouseX: utils.getMouseX()
+                    ,mouseY: utils.getMouseY()
+                    ,extent: ext
                 }
             };
-            currPosition['mouseX'] = gmxAPI.merc_x(currPosition['latlng']['mouseX']);
-            currPosition['mouseY'] = gmxAPI.merc_x(currPosition['latlng']['mouseY']);
-            currPosition['extent'] = {
-                'minX': gmxAPI.merc_x(ext['minX']),
-                'minY': gmxAPI.merc_y(ext['minY']),
-                'maxX': gmxAPI.merc_x(ext['maxX']),
-                'maxY': gmxAPI.merc_y(ext['maxY'])
+            currPosition.mouseX = gmxAPI.merc_x(currPosition.latlng.mouseX);
+            currPosition.mouseY = gmxAPI.merc_x(currPosition.latlng.mouseY);
+            currPosition.extent = {
+                minX: gmxAPI.merc_x(ext.minX),
+                minY: gmxAPI.merc_y(ext.minY),
+                maxX: gmxAPI.merc_x(ext.maxX),
+                maxY: gmxAPI.merc_y(ext.maxY)
             };
             return currPosition;
         }
