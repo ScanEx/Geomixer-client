@@ -602,14 +602,16 @@ UpMenu.prototype.openTab = function(path)
     @param {String} canvasID Уникальный идентификатор блока
     @param {Object} options Параметры
     @param {function} [options.closeFunc] Ф-ция, которая будет вызвана при нажатии на иконку закрытия блока. По умолчанию ничего не делается.
-    @param {String[]} [options.path] Массив строк для формирования названия блока.
-                      Предполагается, что последний элемент является собственно названием, а предыдущие - названиями категорий.
+    @param {String[]} [options.path] Массив строк для формирования названия блока (см. метод setTitle()).
                       По умолчанию будет сформирован из верхнего меню ГеоМиксера по canvasID.
     @param {Boolean} [options.showCloseButton=true] Показывать ли кнопку закрытия блока
     @param {Boolean} [options.showMinimizeButton=true] Показывать ли кнопку сворачивания блока
 */
 nsGmx.LeftPanelItem = function(canvasID, options) {
-
+    /** Изменение видимости контента ("свёрнутости") панели
+     * @event nsGmx.LeftPanelItem.changeVisibility
+    */
+    
     options = $.extend({
         closeFunc: function(){},
         path: _menuUp.getNavigatePath(canvasID),
@@ -617,15 +619,26 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
         showMinimizeButton: true
     }, options);
     
+    var getPathHTML = function(path) {
+        return Mustache.render(
+            '<tr>' +
+                '{{#path}}' +
+                    '<td class="leftmenu-path-item {{#last}}menuNavigateCurrent{{/last}}">{{name}}</td>' +
+                    '{{^last}}<td><div class="markerRight"></div></td>{{/last}}' +
+                '{{/path}}' +
+            '</tr>', 
+            {
+                path: path.map(function(item, index, arr) {
+                    return {name: item, last: index === arr.length-1};
+                })
+            }
+        )
+    }
+    
     var ui =
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
             '<div class="leftTitle">' +
-                '<table class="leftmenu-path"><tr>' +
-                    '{{#path}}' +
-                        '<td class="leftmenu-path-item {{#last}}menuNavigateCurrent{{/last}}">{{name}}</td>' +
-                        '{{^last}}<td><div class="markerRight"></div></td>{{/last}}' +
-                    '{{/path}}' +
-                '</tr></table>' +
+                '<table class="leftmenu-path">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="leftmenu-close-icon"></div>{{/showCloseButton}}' +
                 '{{#showMinimizeButton}}<div class="leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
             '</div>' +
@@ -635,9 +648,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
     this.panelCanvas = $(Mustache.render(ui, {
         id: 'left_' + canvasID,
-        path: options.path.map(function(item, index, arr) {
-            return {name: item, last: index === arr.length-1};
-        }),
+        pathTR: getPathHTML(options.path),
         showCloseButton: options.showCloseButton,
         showMinimizeButton: options.showMinimizeButton
     }))[0];
@@ -655,9 +666,18 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     $('.leftmenu-toggle-icon', this.panelCanvas).click(function() {
         $(_this.workCanvas).toggle();
         $(this).toggleClass('leftmenu-down-icon leftmenu-right-icon');
+        $(_this).trigger('changeVisibility');
     });
     
     $('.leftmenu-close-icon',  this.panelCanvas).click(options.closeFunc);
+    
+    /** Задать новый заголовок окна
+     @param {String[]} [path] Массив строк для формирования названия блока.
+                      Предполагается, что последний элемент является собственно названием, а предыдущие - названиями категорий.
+    */
+    this.setTitle = function(path) {
+        $('.leftmenu-path', this.panelCanvas).html(getPathHTML(path));
+    }
 }
 
 /** Основное меню ГеоМиксера
