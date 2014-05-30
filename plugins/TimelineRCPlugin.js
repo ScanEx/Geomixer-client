@@ -678,7 +678,7 @@ var TimelineController = function(data, map, options) {
     
     this.setOptions = function(newOptions) {
         options = $.extend(options, newOptions);
-        updateContrrolsVisibility();
+        updateContrrolsVisibility && updateContrrolsVisibility();
     }
 }
 
