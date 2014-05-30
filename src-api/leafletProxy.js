@@ -858,14 +858,15 @@
                 vbounds = LMap.getBounds(),
                 se = vbounds.getSouthEast(),
                 nw = vbounds.getNorthWest(),
+                all = (se.lng - nw.lng >= 360 ? true : false),
                 cnt = - parseInt(nw.lng / 360),
                 lng = nw.lng % 360;
             cnt += (lng < -180 ? 1 : (lng > 180 ? -1 : 0));
             var dx = cnt * 360;
             var ext = {
-                minX: nw.lng + dx
+                minX: all ? -180 : nw.lng + dx
                 ,minY: (se.lat > -gmxAPI.MAX_LATITUDE ? se.lat : -gmxAPI.MAX_LATITUDE)
-                ,maxX: se.lng + dx
+                ,maxX: all ? 180 : se.lng + dx
                 ,maxY: (nw.lat < gmxAPI.MAX_LATITUDE ? nw.lat : gmxAPI.MAX_LATITUDE)
             };
             var currPosition = {
