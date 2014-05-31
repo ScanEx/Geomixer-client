@@ -235,11 +235,11 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
 	
-	var visibilityProperties = new GroupVisibilityPropertiesModel(
-        elemProperties.list, 
-        typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox, 
-        typeof elemProperties.initExpand === 'undefined' ? false : elemProperties.initExpand
-    );
+	var visibilityProperties = new GroupVisibilityPropertiesModel({
+        isChildRadio: elemProperties.list, 
+        isVisibilityControl: typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox,
+        isExpanded: typeof elemProperties.initExpand === 'undefined' ? false : elemProperties.initExpand
+    });
 	var visibilityPropertiesView = GroupVisibilityPropertiesView(visibilityProperties, !isMap, !isMap);
 	visibilityProperties.on('change', function()
 	{
