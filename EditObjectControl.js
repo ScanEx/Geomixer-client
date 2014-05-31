@@ -195,7 +195,7 @@ var EditObjectControl = function(layerName, objectId, params)
     EditObjectControlsManager.add(layerName, objectId, this);
     
     var layer = globalFlashMap.layers[layerName];
-    var geometryInfoContainer = _span(null, [['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
+    var geometryInfoContainer = _div(null, [['css','color','#215570'], ['css','fontSize','12px']]);
     
     var originalGeometry = null;
     var drawingBorderDialog = null;
