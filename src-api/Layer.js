@@ -676,19 +676,6 @@
                     var out = [];
                 }
                 var func = function(arr) {
-                    var out = [];
-                    for (var i = 0, len = arr.length; i < len; i++) {
-                        var item = arr[i];
-                        var geo = (gmxAPI.proxyType === 'leaflet' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry));
-                        var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
-                        var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item.isVisibleFilter, 'status':item.status};
-                        out.push(ph);
-                    }
-                    for (var j = 0, len = obj._observerOnChange.length; j < len; j++) {
-                        var ph = obj._observerOnChange[j];
-                        if(out.length) ph[0](out);
-                    }
-/*
                     for (var j = 0, len = obj._observerOnChange.length; j < len; j++) {
                         var pt = obj._observerOnChange[j],
                             out = [];
@@ -705,14 +692,12 @@
                                 'isVisibleFilter':item.isVisibleFilter,
                                 'status':item.status
                             };
-                            //var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item.isVisibleFilter, 'status':item.status};
                             out.push(ph);
                         }
                         if(out.length) {
                             pt[0](out);
                         }
                     }
-*/                
                 }
                 fAttr.func = func;
                 
