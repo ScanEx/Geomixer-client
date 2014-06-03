@@ -676,17 +676,26 @@
                     var out = [];
                 }
                 var func = function(arr) {
-                    var out = [];
-                    for (var i = 0, len = arr.length; i < len; i++) {
-                        var item = arr[i];
-                        var geo = (gmxAPI.proxyType === 'leaflet' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry));
-                        var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
-                        var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item.isVisibleFilter, 'status':item.status};
-                        out.push(ph);
-                    }
                     for (var j = 0, len = obj._observerOnChange.length; j < len; j++) {
-                        var ph = obj._observerOnChange[j];
-                        if(out.length) ph[0](out);
+                        var pt = obj._observerOnChange[j],
+                            out = [];
+                        for (var i = 0, len1 = arr.length; i < len1; i++) {
+                            var item = arr[i];
+                            var geo = (pt[2] === 'None' ? null : (pt[2] === 'Mercator' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry)));
+                            var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
+                            var ph = {
+                                'onExtent':item.onExtent,
+                                'bounds':item.bounds,
+                                'fromTiles':item.fromTiles,
+                                'item':mObj,
+                                'isVisibleFilter':item.isVisibleFilter,
+                                'status':item.status
+                            };
+                            out.push(ph);
+                        }
+                        if(out.length) {
+                            pt[0](out);
+                        }
                     }
                 }
                 fAttr.func = func;
@@ -695,7 +704,7 @@
                     proxy('observeVectorLayer', { 'obj': o, 'attr':fAttr});
                     obj._observerOnChange = [];
                 }
-                obj._observerOnChange.push([onChange, fAttr.ignoreVisibilityFilter]);
+                obj._observerOnChange.push([onChange, fAttr.ignoreVisibilityFilter, fAttr.geometryMode]);
                 if(observeByLayerZooms) {
                     proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
                 }

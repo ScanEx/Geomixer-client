@@ -2253,7 +2253,7 @@
                             ,fromTiles: fromTiles
                         };
                         if (geometryMode !== 'None') {
-                            addObj[id].geometry = node.getItemGeometry(id, geometryMode === 'Mercator' ? true : false);
+                            addObj[id].geometry = node.getItemGeometry(id, true);
                         }
                     }
                     //node.isIdle(300);  // запуск проверки окончания отрисовки
