@@ -2253,7 +2253,8 @@
                             ,fromTiles: fromTiles
                         };
                         if (geometryMode !== 'None') {
-                            addObj[id].geometry = node.getItemGeometry(id, true);
+                            addObj[id].geometry = node.getItemGeometry(id, geometryMode === 'Mercator' ? true : false);
+                            //addObj[id].geometry = gmxAPI.clone(node.getItemGeometry(id, true));
                         }
                     }
                     //node.isIdle(300);  // запуск проверки окончания отрисовки
