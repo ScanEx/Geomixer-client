@@ -681,7 +681,7 @@
                             out = [];
                         for (var i = 0, len1 = arr.length; i < len1; i++) {
                             var item = arr[i],
-                                geo = gmxAPI.clone(item.geometry);
+                                geo = item.geometry;
                             geo = (pt[2] === 'None' ? null : (pt[2] === 'Mercator' ? geo : gmxAPI.from_merc_geometry(geo)));
                             var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
                             var ph = {
