@@ -231,7 +231,7 @@
 					}
 
 					map.clickBalloonFix = clickBalloonFix;
-					return true;
+					return false;
 				},
 				onMouseOut: function(o) 
 				{
@@ -248,7 +248,7 @@
 						if(propsBalloon.delayShow) { clearTimeout(propsBalloon.delayShow); propsBalloon.delayShow = false; }
 						propsBalloon.updatePropsBalloon(false);
 					}
-					return true;
+					return false;
 				},
 				onClick: function(o, keyPress)
 				{
