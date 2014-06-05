@@ -184,7 +184,13 @@ var MapController = function(data, map) {
     })
 }
 
-var TimelineController = function(data, map) {
+var TimelineController = function(data, map, options) {
+    options = $.extend({
+        showModeControl: true,
+        showSelectionControl: true,
+        showCalendar: true
+    }, options);
+    
     function isPointInPoly(poly, pt){
         var l = poly.length;
         poly[0][0] == poly[l-1][0] && poly[0][1] == poly[l-1][1] && l--;
@@ -195,7 +201,7 @@ var TimelineController = function(data, map) {
         return c;
     }
     
-    var options = {
+    var timelineOptions = {
         style: "line",
         start: new Date(2010, 0, 1),
         end: new Date(2013, 5, 1),
@@ -204,10 +210,13 @@ var TimelineController = function(data, map) {
         style: "line"
     };
     
-    var timeline = null;
-    var countSpan = null;
-    var container = $('<div/>', {'class': 'timeline-container'});
-    var footerContainer = $('<div/>', {'class': 'timeline-footer'});
+    var timeline = null,
+        countSpan = null,
+        container = $('<div/>', {'class': 'timeline-container'}),
+        footerContainer = $('<div/>', {'class': 'timeline-footer'}),
+        _this = this;
+    
+    var updateContrrolsVisibility;
     
     var modeFilters = {
         none: function() {return true; },
@@ -385,7 +394,7 @@ var TimelineController = function(data, map) {
         return res;
     }
     
-    var activateNextItem = function(step)
+    this.shiftActiveItem = function(step)
     {
         var curSelection = timeline.getSelection();
         if (curSelection.length > 0)
@@ -410,7 +419,7 @@ var TimelineController = function(data, map) {
         map.miniMap && map.miniMap.setVisible(false);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
-        timeline.draw([], options);
+        timeline.draw([], timelineOptions);
         
         links.events.addListener(timeline, 'select', fireSelectionEvent);
         
@@ -429,7 +438,7 @@ var TimelineController = function(data, map) {
         _title(prevDiv, _gtxt("Предыдущий слой"));
         prevDiv.onclick = function()
         {
-            activateNextItem(-1);
+            _this.shiftActiveItem(-1);
         }
         $(prevDiv).addClass('timeline-controls');
         
@@ -438,16 +447,16 @@ var TimelineController = function(data, map) {
         
         nextDiv.onclick = function()
         {
-            activateNextItem(1);
+            _this.shiftActiveItem(1);
         }
         $(nextDiv).addClass('timeline-controls');
         
         // container.keypress(function(event) {
             // console.log(event);
             // if (event.keyCode === 37) { //влево
-                // activateNextItem(-1);
+                // shiftActiveItem(-1);
             // } else if (event.keyCode === 39) { //вправо
-                // activateNextItem(1);
+                // shiftActiveItem(1);
             // }
         // })
         
@@ -519,13 +528,20 @@ var TimelineController = function(data, map) {
         countSpan = $('<span/>', {'class': 'count-container'});
         
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
-            $('<div/>').append(
+            $('<div/>').addClass('timeline-mode-control').append(
                 $('<span/>').text(_gtxt('timeline.modesTextTitle') + ': ' +_gtxt('timeline.modesTextTimeline')), timelineModeSelect, countSpan,
                 $('<span></span>').text(_gtxt('timeline.modesTextMap')).css('margin-left', '10px'), mapModeSelect
             ),
             prevDiv, nextDiv,
             calendarContainer
         ).appendTo(container);
+        
+        updateContrrolsVisibility = function() {
+            $('.timeline-mode-control', controlsContainer).toggle(options.showModeControl);
+            $([prevDiv, nextDiv]).toggle(options.showSelectionControl);
+            $(calendarContainer).toggle(options.showCalendar);
+        }
+        updateContrrolsVisibility();
         
         $(footerContainer).appendTo(container);
         
@@ -659,6 +675,11 @@ var TimelineController = function(data, map) {
     this.getFooterContainer = function() {
         return footerContainer;
     }
+    
+    this.setOptions = function(newOptions) {
+        options = $.extend(options, newOptions);
+        updateContrrolsVisibility && updateContrrolsVisibility();
+    }
 }
 
 /** @callback nsGmx.TimelineControl.FilterFunction
@@ -743,6 +764,24 @@ var TimelineControl = function(map) {
      */
     this.getFooterContainer = function() {
         return timelineController.getFooterContainer();
+    }
+    
+    /** Задать видимость контролов таймлайна
+     * @param {Object} visInfo Видимость контролов
+     * @param {Boolean} [visInfo.showModeControl=true] Установить видимость контрола переключения режимов отображения информации
+     * @param {Boolean} [visInfo.showSelectionControl=true] Установить видимость контрола переключения активного снимка
+     * @param {Boolean} [visInfo.showCalendar=true] Установить видимость календаря на таймлайне
+     */
+    this.setControlsVisibility = function(visInfo) {
+        timelineController.setOptions(visInfo);
+    }
+    
+    /** Активизировать следующий/предыдущий снимок на таймлайне
+     * @param {Number} step Смещение нового активного снимка на таймлайне относительно текущего активного. 
+     * 1 - следующий, -1 - предыдущий и т.п.
+     */
+    this.shiftActiveItem = function(step) {
+        timelineController.shiftActiveItem(step);
     }
 };
 

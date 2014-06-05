@@ -1556,7 +1556,7 @@ var SearchControlGet = function (params){
 		AutoCompleteSource: fnAutoCompleteSource
 	});
     var oLocationTitleRenderer = new LocationTitleRenderer(params.Map, typeof (gmxGeoCodeShowNearest) != "undefined" && gmxGeoCodeShowNearest ? oLogic.SearchNearest:oLogic.SearchLocation);
-	SearchControl.apply(this, [btnSearch, lstResult, oLogic, oLocationTitleRenderer]);
+	SearchControl.apply(this, [btnSearch, lstResult, oLogic, oLocationTitleRenderer, params.Map]);
 }
 SearchControlGet.prototype = SearchControl;
 
@@ -1566,10 +1566,14 @@ SearchControlGet.prototype = SearchControl;
  @param oInitInput Текстовое поле ввода
  @param oInitResultListMap Отображение результатов поиска
  @param oInitLogic Слой бизнес-логики
- @param oInitLocationTitleRenderer Отображение на карте текущего местоположения*/
-var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer){
+ @param oInitLocationTitleRenderer Отображение на карте текущего местоположения
+ @param oInitMap Карта (для реакции на ввод координат)
+*/
+var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer, oInitMap){
 	var _this = this;
 	
+    var oMap = oInitMap || globalFlashMap;
+    
 	var oLogic = oInitLogic;
 	/**Результаты поиска*/
 	var lstResult = oInitResultListMap;
@@ -1636,8 +1640,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		try{
 			fnBeforeSearch();
 			if (!parseCoordinates(SearchString, function(x, y) {
-				globalFlashMap.moveTo(x, y, globalFlashMap.getZ());
-				globalFlashMap.drawing.addObject({ type: "POINT", coordinates: [x, y] }, { text: SearchString });
+				oMap.moveTo(x, y, oMap.getZ());
+				oMap.drawing.addObject({ type: "POINT", coordinates: [x, y] }, { text: SearchString });
 				
 				fnAfterSearch();
 			})){

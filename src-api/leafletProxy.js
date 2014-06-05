@@ -853,38 +853,42 @@
             if(!zoom) {
                 return;
             }
-            var pos = LMap.getCenter();
-            var size = LMap.getSize();
-            var vbounds = LMap.getBounds();
-            var nw = vbounds.getNorthWest();
-            var se = vbounds.getSouthEast();
-            var dx = (nw['lng'] < -360 ? 360 : 0);
+            var pos = LMap.getCenter(),
+                size = LMap.getSize(),
+                vbounds = LMap.getBounds(),
+                se = vbounds.getSouthEast(),
+                nw = vbounds.getNorthWest(),
+                all = (se.lng - nw.lng >= 360 ? true : false),
+                cnt = - parseInt(nw.lng / 360),
+                lng = nw.lng % 360;
+            cnt += (lng < -180 ? 1 : (lng > 180 ? -1 : 0));
+            var dx = cnt * 360;
             var ext = {
-                'minX': nw['lng'] + dx
-                ,'minY': (se['lat'] > -gmxAPI.MAX_LATITUDE ? se['lat'] : -gmxAPI.MAX_LATITUDE)
-                ,'maxX': se['lng'] + dx
-                ,'maxY': (nw['lat'] < gmxAPI.MAX_LATITUDE ? nw['lat'] : gmxAPI.MAX_LATITUDE)
+                minX: all ? -180 : nw.lng + dx
+                ,minY: (se.lat > -gmxAPI.MAX_LATITUDE ? se.lat : -gmxAPI.MAX_LATITUDE)
+                ,maxX: all ? 180 : se.lng + dx
+                ,maxY: (nw.lat < gmxAPI.MAX_LATITUDE ? nw.lat : gmxAPI.MAX_LATITUDE)
             };
             var currPosition = {
-                'z': zoom
-                ,'stageHeight': size['y']
-                ,'x': gmxAPI.merc_x(pos['lng'])
-                ,'y': gmxAPI.merc_y(pos['lat'])
-                ,'latlng': {
-                    'x': pos['lng']
-                    ,'y': pos['lat']
-                    ,'mouseX': utils.getMouseX()
-                    ,'mouseY': utils.getMouseY()
-                    ,'extent': ext
+                z: zoom
+                ,stageHeight: size.y
+                ,x: gmxAPI.merc_x(pos.lng)
+                ,y: gmxAPI.merc_y(pos.lat)
+                ,latlng: {
+                    x: pos.lng
+                    ,y: pos.lat
+                    ,mouseX: utils.getMouseX()
+                    ,mouseY: utils.getMouseY()
+                    ,extent: ext
                 }
             };
-            currPosition['mouseX'] = gmxAPI.merc_x(currPosition['latlng']['mouseX']);
-            currPosition['mouseY'] = gmxAPI.merc_x(currPosition['latlng']['mouseY']);
-            currPosition['extent'] = {
-                'minX': gmxAPI.merc_x(ext['minX']),
-                'minY': gmxAPI.merc_y(ext['minY']),
-                'maxX': gmxAPI.merc_x(ext['maxX']),
-                'maxY': gmxAPI.merc_y(ext['maxY'])
+            currPosition.mouseX = gmxAPI.merc_x(currPosition.latlng.mouseX);
+            currPosition.mouseY = gmxAPI.merc_x(currPosition.latlng.mouseY);
+            currPosition.extent = {
+                minX: gmxAPI.merc_x(ext.minX),
+                minY: gmxAPI.merc_y(ext.minY),
+                maxX: gmxAPI.merc_x(ext.maxX),
+                maxY: gmxAPI.merc_y(ext.maxY)
             };
             return currPosition;
         }
@@ -933,7 +937,7 @@
             var z = LMap.getZoom();
             var point = LMap.project(pos);
             var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
-            return point.y - p1.y;
+            return Math.floor(point.y - p1.y);
         }
         ,
         getSortLayers: function(name) { // получить отсортированный по zIndex массив видимых слоев имеющих заданный метод
@@ -2545,7 +2549,16 @@
 						return;
 					}
 					gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
-					if(node['leaflet']) setHandlerObject(id);
+					if(node.leaflet) {
+                        setHandlerObject(id);
+                        if(node.type === 'mapObject') {
+                            var latlngs = L.GeoJSON.coordsToLatLngs(geo.coordinates);
+                            for (var key in node.leaflet._layers) {
+                                var _layer = node.leaflet._layers[key];
+                                if ('setLatLngs' in _layer) _layer.setLatLngs(latlngs);
+                            }
+                        }
+                    }
 				}
 			}
 		}

@@ -2092,8 +2092,10 @@
                     }
                 }
                 item.mercGeo = geom;
-                if(geom && !mercFlag) geom = gmxAPI.from_merc_geometry(geom);
-                if(geom.type === 'POINT' || node.addedItems[itemId]) item.latlngGeo = geom;
+                if(geom && !mercFlag) {
+                    geom = gmxAPI.from_merc_geometry(geom);
+                    if(geom.type === 'POINT' || node.addedItems[itemId]) item.latlngGeo = geom;
+                }
                 return geom;
             }
             ,getPropItem: function(item) {  // Получить properties обьекта векторного слоя
@@ -2253,7 +2255,7 @@
                             ,fromTiles: fromTiles
                         };
                         if (geometryMode !== 'None') {
-                            addObj[id].geometry = node.getItemGeometry(id, geometryMode === 'Mercator' ? true : false);
+                            addObj[id].geometry = node.getItemGeometry(id, true);
                         }
                     }
                     //node.isIdle(300);  // запуск проверки окончания отрисовки

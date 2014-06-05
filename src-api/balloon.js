@@ -82,7 +82,7 @@
 			var props = gmxAPI.clone(o.properties);
             if(o._balloonHook) {
                 for(var key in o._balloonHook) {
-                    props[key] = gmxAPI.applyTemplate(o._balloonHook[key].resStr, props);
+                    if (key in props) props[key] = gmxAPI.applyTemplate(o._balloonHook[key].resStr, props);
                 }
             }
 
@@ -97,7 +97,7 @@
                         else if (value.indexOf("www.") == 0)
                             value = "<a href='http://" + value + "'>" + value + "</a>";
                     }
-					text += "<b>" + key + ":</b> " + value + "<br />";
+                    text += "<b>" + key + ":</b> " + value + "<br />";
 				}
 			}
 			var summary = o.getGeometrySummary();
@@ -231,7 +231,7 @@
 					}
 
 					map.clickBalloonFix = clickBalloonFix;
-					return true;
+					return false;
 				},
 				onMouseOut: function(o) 
 				{
@@ -248,7 +248,7 @@
 						if(propsBalloon.delayShow) { clearTimeout(propsBalloon.delayShow); propsBalloon.delayShow = false; }
 						propsBalloon.updatePropsBalloon(false);
 					}
-					return true;
+					return false;
 				},
 				onClick: function(o, keyPress)
 				{
