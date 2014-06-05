@@ -2549,7 +2549,16 @@
 						return;
 					}
 					gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
-					if(node['leaflet']) setHandlerObject(id);
+					if(node.leaflet) {
+                        setHandlerObject(id);
+                        if(node.type === 'mapObject') {
+                            var latlngs = L.GeoJSON.coordsToLatLngs(geo.coordinates);
+                            for (var key in node.leaflet._layers) {
+                                var _layer = node.leaflet._layers[key];
+                                if ('setLatLngs' in _layer) _layer.setLatLngs(latlngs);
+                            }
+                        }
+                    }
 				}
 			}
 		}
