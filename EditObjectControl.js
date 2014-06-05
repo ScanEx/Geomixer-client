@@ -88,7 +88,7 @@ var FieldsCollection = function() {
     var _asHash = {};
     
     this.append = function(field) {
-        if (_asHash[field.name]) {
+        if (field.name && _asHash[field.name]) {
             var origIndex = _asHash[field.name].origIndex;
             $.extend(true, _asHash[field.name], field);
             _asHash[field.name].origIndex = origIndex;
@@ -374,8 +374,7 @@ var EditObjectControl = function(layerName, objectId, params)
             
             $(_this).trigger('close');
         }
-        
-        //либо drawingObject либо geometry
+
         var drawAttrList = function(fields)
         {
             var trs = [],
@@ -598,7 +597,7 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     this.getGeometryObj = function() {
-        return (geometryInfoRow && geometryInfoRow.getDrawingObject()) || geometryMapObject;
+        return geometryInfoRow ? geometryInfoRow.getDrawingObject() : geometryMapObject;
     }
     
     this.getGeometry = function() {
@@ -614,6 +613,10 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     this.getLayer = function() { return layer; };
+    
+    this.add = function(field) {
+        fieldsCollection.append(field);
+    }
     
     createDialog();
 }
