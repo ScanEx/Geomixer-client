@@ -2852,6 +2852,7 @@
 			else if(type === 'Point')				geo['type'] = 'POINT';
 			else if(type === 'MultiLineString')		geo['type'] = 'MULTILINESTRING';
 			else if(type === 'Polyline')			geo['type'] = 'LINESTRING';
+			else if(type === 'MultiPolyline')		geo['type'] = 'MULTILINESTRING';
 			else if(type === 'GeometryCollection')	geo['type'] = 'GeometryCollection';
 			return geo;
 		}
@@ -3683,6 +3684,14 @@
 				paintStroke(attr, style, ctx);
 			}
 			if(style) lineHeight = style.weight;
+            if(style.label) {
+                var prop = out.properties,
+                    labelStyle = style.label;
+                var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
+                if(txt) {
+                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, style);	// добавим label от векторного слоя
+                }
+            }
 			return true;
 		}
 		// Квадрат растояния до линии
@@ -3792,6 +3801,14 @@
 					if(!member.paint(attr, style, ctx)) break;
 				}
 			}
+            if(style.label) {
+                var prop = out.properties,
+                    labelStyle = style.label;
+                var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
+                if(txt) {
+                    gmxAPI._leaflet.LabelsManager.addItem(txt, out, style);	// добавим label от векторного слоя
+                }
+            }
 			return cnt;		// количество отрисованных точек в геометрии
 		}
 		// Квадрат растояния до MultiPolyline
