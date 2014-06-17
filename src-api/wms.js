@@ -18,7 +18,8 @@
 			strResp = response.replace(/[\t\n\r]/g, ' '),
 			strResp = strResp.replace(/\s+/g, ' '),
             xml = gmxAPI.parseXML(response),
-            version = xml.getElementsByTagName('WMS_Capabilities')[0].getAttribute('version'),
+            mainTag = xml.getElementsByTagName('WMS_Capabilities')[0] || xml.getElementsByTagName('WMT_MS_Capabilities')[0],
+            version = mainTag.getAttribute('version'),
 			layersXML = xml.getElementsByTagName('Layer');
 		
         if (!(version in supportedVersions)) {
