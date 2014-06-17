@@ -16,7 +16,7 @@ queryTabs.prototype.load = function()
 	if (!this.builded)
 	{
 		var _this = this;
-		this.tabsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']])
+		this.tabsCanvas = _div(null, [['dir','className','tabsCanvas']])
 		
 		_(this.workCanvas, [this.tabsCanvas]);
 		
@@ -85,33 +85,25 @@ queryTabs.prototype.add = function()
 
 queryTabs.prototype.draw = function(tabInfo)
 {
-	var canvas = _div(null, [['dir','className','canvas']]),
-		title = makeLinkButton(tabInfo.name),
-		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
-		_this = this;
-		
+    var tmpl = '<div class="canvas"><div class="buttonLink tabName">{{name}}</div><div class="gmx-icon-close"></div>';
+    var canvas = $(Mustache.render(tmpl, {name: tabInfo.name}))[0];
+
+    var _this = this;
+
 	canvas.tabInfo = tabInfo;
 	
-	title.onclick = function()
-	{
+    $('.tabName', canvas).click(function() {
 		_this.show(tabInfo.state)
-	}
+	})
 	
-	title.style.marginLeft = '5px';
-	
-	remove.onclick = function()
-	{
+    $('.gmx-icon-close', canvas).click(function() {
 		var index = getOwnChildNumber(canvas);
 		
 		_this.tabs.splice(index, 1);
 		
 		canvas.removeNode(true);
-	}
-	
-	remove.className = 'remove';
-	
-	_(canvas, [_div([title], [['dir','className','item']]), remove])
-	
+	})
+    
 	_(this.tabsCanvas, [canvas]);
 }
 

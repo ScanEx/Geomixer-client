@@ -1611,6 +1611,7 @@ div.layersScroll
     height: 100%;
 }
 
+/* Common icons */
 .gmx-icon-choose {
     width: 11px;
     height: 9px;
@@ -1621,4 +1622,28 @@ div.layersScroll
 
 .gmx-icon-choose:hover {
     background-image: url(../img/choose2_a.png);
+}
+
+.gmx-icon-close {
+    width: 7px;
+    height: 7px;
+    cursor: pointer;
+    background: url(../img/redesign/icons2.png);
+    background-position: -79px -6px;
+}
+
+/* Tabs panel */
+.tabsCanvas .gmx-icon-close {
+    position: absolute;
+    right: 14px;
+    top: 6px;
+}
+
+.tabsCanvas .canvas{
+    position: relative;
+    padding: 6px 0px 6px 8px;
+}
+
+.tabsCanvas .tabName{
+    margin-right: 28px;
 }

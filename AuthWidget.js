@@ -159,7 +159,7 @@ var nsGmx = nsGmx || {};
                 return;
                 
             var isMapsSite = typeof mapsSite != 'undefined' && mapsSite;
-            var dialogHeight = isMapsSite ? 190 : 135;
+            var dialogHeight = isMapsSite ? 210 : 155;
             
             var loginInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
                 passwordInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
@@ -203,7 +203,7 @@ var nsGmx = nsGmx || {};
                 _(canvas, [regLink, _br(), retriveLink]);
             }
             
-            showDialog(_gtxt("Пожалуйста, авторизуйтесь"), canvas, 200, dialogHeight, false, false, null, function()
+            showDialog(_gtxt("Пожалуйста, авторизуйтесь"), canvas, 248, dialogHeight, false, false, null, function()
             {
                 _dialogCanvas = null;
             });

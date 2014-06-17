@@ -246,11 +246,12 @@ div.leftTitle
 	height: 30px;
 	background-color: #f0f0f0;
 	width: 100%;
-	display: inline-block;
 }
 
 .leftmenu-canvas {
     padding: 0px;
+    margin: 4px 7px 4px 20px;
+    border: 1px solid #dddddd;
 }
 
 .leftmenu-toggle-icon {
@@ -261,35 +262,20 @@ div.leftTitle
     cursor: pointer;
 }
 
-.leftmenu-close-icon {
+.leftTitle .gmx-icon-close {
     float: right;
     margin: 11px 7px 0px 0px;
-    width: 7px;
-    height: 7px;
-    cursor: pointer;
 }
 
 .leftmenu-down-icon {
     background: url(../img/redesign/icons2.png);
     background-position: -97px -5px;
 }
-/*.leftmenu-down-icon:hover {
-    background: url(../img/menuDown_a.png);
-}*/
+
 .leftmenu-right-icon {
     background: url(../img/redesign/icons2.png);
     background-position: -116px -5px;
 }
-/*.leftmenu-right-icon:hover {
-    background: url(../img/menuRight_a.png);
-}*/
-.leftmenu-close-icon {
-    background: url(../img/redesign/icons2.png);
-    background-position: -79px -6px;
-}
-/*.leftmenu-close-icon:hover {
-    background: url(../img/close_orange.png);
-}*/
 
 .leftmenu-path {
     color: #293D6B;
@@ -302,4 +288,8 @@ div.leftTitle
     color: black;
     font-size: 12px;
     font-family: tahoma;
+}
+
+.workCanvas {
+    background-color: #F0F0F0;
 }
