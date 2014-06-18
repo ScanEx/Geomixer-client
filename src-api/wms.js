@@ -36,24 +36,27 @@
 			
             if (srs.length)
             {
-                layer.srs = null; 
+                layer.srs = null;
+                var supportedSrs = {};
                 for (var si = 0; si < srs.length; si++)
                 {
-                    var curSrs = gmxAPI.strip(gmxAPI.getTextContent(srs[si]))
-                    
-                    if (gmxAPI.valueInArray(wmsProjections, curSrs))
-                    {
-                        layer.srs = curSrs;
+                    var srsName = gmxAPI.strip(gmxAPI.getTextContent(srs[si]));
+                    supportedSrs[srsName] = true;
+                }
+                
+                //порядок имеет значение!
+                for (var p = 0; p < wmsProjections.length; p++) {
+                    if (wmsProjections[p] in supportedSrs) {
+                        layer.srs = wmsProjections[p];
                         break;
                     }
                 }
                 if (!layer.srs) continue;
             }
-			else
+			else {
                 layer.srs = wmsProjections[0];
-                
-				
-			
+            }
+
 			if (name.length)
 				layer.name = gmxAPI.getTextContent(name[0]);
 			
