@@ -19,13 +19,19 @@ var initTranslations = function()
         "firesWidget.TitleFiresFIRMS" : "Пожары FIRMS",
         "firesWidget.LayerClusterBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
-            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
+            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+        "firesWidget.LayerClusterBalloonIndustrial" :
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>" + 
             "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
         "firesWidget.LayerGeometryBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
-            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>",
         "firesWidget.timeTitlePrefix" : "За ",
@@ -47,6 +53,12 @@ var initTranslations = function()
         "firesWidget.TitleFiresFIRMS" : "Fires from FIRMS",
         "firesWidget.LayerClusterBalloon" : 
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" + 
+            "<b>Number of hotspots:</b> [count]<br/>" + 
+            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
+        "firesWidget.LayerClusterBalloonIndustrial" : 
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
             "<b>Observation period:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>" + 
@@ -1528,6 +1540,7 @@ var FireBurntRenderer3 = function( params )
     var clusterLayer = map.addLayer({properties: {
         name: 'fireClustersLayer' + _params.hotspotLayerName,
         styles: [{
+            Filter: '"isIndustrial"=0',
             Balloon: _gtxt('firesWidget.LayerClusterBalloon'),
             MinZoom:1,
             MaxZoom:_params.minGeomZoom - 1,
@@ -1547,6 +1560,24 @@ var FireBurntRenderer3 = function( params )
                     color: 0xffffff,
                     field: 'label',
                     align: 'center'
+                }
+            }
+        },
+        {
+            Filter: '"isIndustrial"=1',
+            Balloon: _gtxt('firesWidget.LayerClusterBalloonIndustrial'),
+            MinZoom:1,
+            MaxZoom:_params.minGeomZoom - 1,
+            RenderStyle: {
+                fill: {
+                    radialGradient: {
+                        r1: 0,
+                        r2: '[scale]*20',
+                        addColorStop: [
+                            [0, 0xffffff, 80],
+                            [1, 0xffaa00, 80]
+                        ]
+                    }
                 }
             }
         }]
@@ -1638,7 +1669,8 @@ var FireBurntRenderer3 = function( params )
                             lng: 0, 
                             count: 0,
                             startDate: Number.POSITIVE_INFINITY,
-                            endDate: Number.NEGATIVE_INFINITY
+                            endDate: Number.NEGATIVE_INFINITY,
+                            isIndustrial: false
                         };
                     }
                     var cluster = clusters[clusterId];
@@ -1661,6 +1693,7 @@ var FireBurntRenderer3 = function( params )
                     cluster.count += count;
                     cluster.startDate = Math.min(cluster.startDate, hotspotDate);
                     cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
+                    cluster.isIndustrial = cluster.isIndustrial || props.FireType == '1';
                     
                     clustersToRepaint[clusterId] = true;
                 }
@@ -1686,7 +1719,8 @@ var FireBurntRenderer3 = function( params )
                                 label: count >= 10 ? count : null,
                                 startDate: strStartDate,
                                 endDate: strEndDate,
-                                dateRange: cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate
+                                dateRange: cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate,
+                                isIndustrial: Number(cluster.isIndustrial)
                             }
                         };
                         
