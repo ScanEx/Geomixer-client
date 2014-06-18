@@ -61,8 +61,8 @@ var initTranslations = function()
         "firesWidget.timeTitlePostfix" : "h (UTC)"
     });
 }
-						 
-						 
+
+
 // Lookup table for pixel dimensions based on scan index of the pixel
 
 var ModisPixelDimensions = [];
@@ -73,12 +73,12 @@ function buildModisPixelDimensionsTable()
 	if(ModisPixelDimensions.length > 0){
 		return;
 	}
-	
+
 	var h = 705.0;		// Terra/Aqua orbit altitude [km]
 	var p = 1.0;		// nadir pixel resolution [km]
 	var EARTH_RADIUS = 6371.0;
     var SAMPLES = 1354;
-    
+
 	var r = EARTH_RADIUS + h;	/* [km] */
 	var s = p / h;                  /* [rad] */
 
@@ -1257,6 +1257,10 @@ var _lazyLoadFireLayers = (function()
                     layer.setZoomBounds(_params.minZoom, 17);
                 }
                 
+                if (nsGmx && nsGmx.widgets && nsGmx.widgets.commonCalendar) {
+                    nsGmx.widgets.commonCalendar.unbindLayer(_params.hotspotLayerName);
+                }
+                
                 loadDeferred.resolve();
             });
         }
@@ -2088,8 +2092,7 @@ FireControl.prototype.setDataVisibility = function(dataName, isVisible) {
 
 //предполагаем, что dateBegin, dateEnd не нулевые
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
-{    
-    
+{
     if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE ) {
         
         //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
@@ -2104,29 +2107,29 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
     } else {
         this._infoDiv.empty();
     }
-    
-	
+
 	var curExtent = this.getBbox();
-	
-	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
-	
+
 	var isBBoxChanged = !curExtent.isEqual(this.requestBbox);
-	//var isBBoxChanged = !curExtent.isInside(this.requestBbox) || !this.statusModel.getCommonStatus();
-	
+
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
-	
+
     var _this = this;
-	
-	if (isBBoxChanged || isDatesChanged) {
+
+	if (isBBoxChanged) {
 		this.requestBbox = curExtent;
 	}
-	
+
 	for (var k in this.dataControllers)
 	{
 		var curController = this.dataControllers[k];
+        var isDatesChanged = !curController.dateFiresBegin || !curController.dateFiresEnd || dateBegin.getTime() != curController.dateFiresBegin.getTime() || dateEnd.getTime() != curController.dateFiresEnd.getTime();
+        
 		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
+            curController.dateFiresBegin = dateBegin;
+            curController.dateFiresEnd = dateEnd;
 			//если у нас получилась пустая область запроса, просто говорим рендереру очистить все данные
 			if ( curExtent.isEmpty() )
 			{
