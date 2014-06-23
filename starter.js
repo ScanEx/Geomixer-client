@@ -322,7 +322,7 @@ $(function()
     {
         nsGmx.pluginsManager.beforeMap();
         createHeader();
-    
+        
         nsGmx.AuthManager.checkUserInfo(function()
         {
             var apiParams = [];
@@ -1144,6 +1144,8 @@ function loadMap(state)
             $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
             
             nsGmx.pluginsManager.afterViewer();
+            
+            $("#leftContent").mCustomScrollbar();
         });
 	})
 	
