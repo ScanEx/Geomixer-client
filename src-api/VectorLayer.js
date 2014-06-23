@@ -944,7 +944,8 @@
                         //ctx.webkitLineDashOffset = dashOffset;
                     }            
                 }
-                
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
                 var strokeStyle = '';
                 if(style.stroke) {
                     var lineWidth = style.weight || 0.001;

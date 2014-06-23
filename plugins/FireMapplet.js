@@ -19,13 +19,19 @@ var initTranslations = function()
         "firesWidget.TitleFiresFIRMS" : "Пожары FIRMS",
         "firesWidget.LayerClusterBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
-            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
+            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+        "firesWidget.LayerClusterBalloonIndustrial" :
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>" + 
             "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
         "firesWidget.LayerGeometryBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
-            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>",
         "firesWidget.timeTitlePrefix" : "За ",
@@ -51,6 +57,12 @@ var initTranslations = function()
             "<b>Observation period:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>" + 
             "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
+        "firesWidget.LayerClusterBalloonIndustrial" : 
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" + 
+            "<b>Number of hotspots:</b> [count]<br/>" + 
+            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
         "firesWidget.LayerGeometryBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
@@ -61,8 +73,8 @@ var initTranslations = function()
         "firesWidget.timeTitlePostfix" : "h (UTC)"
     });
 }
-						 
-						 
+
+
 // Lookup table for pixel dimensions based on scan index of the pixel
 
 var ModisPixelDimensions = [];
@@ -73,12 +85,12 @@ function buildModisPixelDimensionsTable()
 	if(ModisPixelDimensions.length > 0){
 		return;
 	}
-	
+
 	var h = 705.0;		// Terra/Aqua orbit altitude [km]
 	var p = 1.0;		// nadir pixel resolution [km]
 	var EARTH_RADIUS = 6371.0;
     var SAMPLES = 1354;
-    
+
 	var r = EARTH_RADIUS + h;	/* [km] */
 	var s = p / h;                  /* [rad] */
 
@@ -1257,6 +1269,10 @@ var _lazyLoadFireLayers = (function()
                     layer.setZoomBounds(_params.minZoom, 17);
                 }
                 
+                if (nsGmx && nsGmx.widgets && nsGmx.widgets.commonCalendar) {
+                    nsGmx.widgets.commonCalendar.unbindLayer(_params.hotspotLayerName);
+                }
+                
                 loadDeferred.resolve();
             });
         }
@@ -1524,6 +1540,7 @@ var FireBurntRenderer3 = function( params )
     var clusterLayer = map.addLayer({properties: {
         name: 'fireClustersLayer' + _params.hotspotLayerName,
         styles: [{
+            Filter: '"isIndustrial"=0',
             Balloon: _gtxt('firesWidget.LayerClusterBalloon'),
             MinZoom:1,
             MaxZoom:_params.minGeomZoom - 1,
@@ -1543,6 +1560,24 @@ var FireBurntRenderer3 = function( params )
                     color: 0xffffff,
                     field: 'label',
                     align: 'center'
+                }
+            }
+        },
+        {
+            Filter: '"isIndustrial"=1',
+            Balloon: _gtxt('firesWidget.LayerClusterBalloonIndustrial'),
+            MinZoom:1,
+            MaxZoom:_params.minGeomZoom - 1,
+            RenderStyle: {
+                fill: {
+                    radialGradient: {
+                        r1: 0,
+                        r2: '[scale]*20',
+                        addColorStop: [
+                            [0, 0xffffff, 80],
+                            [1, 0xffaa00, 80]
+                        ]
+                    }
                 }
             }
         }]
@@ -1634,7 +1669,8 @@ var FireBurntRenderer3 = function( params )
                             lng: 0, 
                             count: 0,
                             startDate: Number.POSITIVE_INFINITY,
-                            endDate: Number.NEGATIVE_INFINITY
+                            endDate: Number.NEGATIVE_INFINITY,
+                            isIndustrial: false
                         };
                     }
                     var cluster = clusters[clusterId];
@@ -1657,6 +1693,7 @@ var FireBurntRenderer3 = function( params )
                     cluster.count += count;
                     cluster.startDate = Math.min(cluster.startDate, hotspotDate);
                     cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
+                    cluster.isIndustrial = cluster.isIndustrial || props.FireType == '1';
                     
                     clustersToRepaint[clusterId] = true;
                 }
@@ -1682,7 +1719,8 @@ var FireBurntRenderer3 = function( params )
                                 label: count >= 10 ? count : null,
                                 startDate: strStartDate,
                                 endDate: strEndDate,
-                                dateRange: cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate
+                                dateRange: cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate,
+                                isIndustrial: Number(cluster.isIndustrial)
                             }
                         };
                         
@@ -2088,8 +2126,7 @@ FireControl.prototype.setDataVisibility = function(dataName, isVisible) {
 
 //предполагаем, что dateBegin, dateEnd не нулевые
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
-{    
-    
+{
     if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE ) {
         
         //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
@@ -2104,29 +2141,29 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
     } else {
         this._infoDiv.empty();
     }
-    
-	
+
 	var curExtent = this.getBbox();
-	
-	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
-	
+
 	var isBBoxChanged = !curExtent.isEqual(this.requestBbox);
-	//var isBBoxChanged = !curExtent.isInside(this.requestBbox) || !this.statusModel.getCommonStatus();
-	
+
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
-	
+
     var _this = this;
-	
-	if (isBBoxChanged || isDatesChanged) {
+
+	if (isBBoxChanged) {
 		this.requestBbox = curExtent;
 	}
-	
+
 	for (var k in this.dataControllers)
 	{
 		var curController = this.dataControllers[k];
+        var isDatesChanged = !curController.dateFiresBegin || !curController.dateFiresEnd || dateBegin.getTime() != curController.dateFiresBegin.getTime() || dateEnd.getTime() != curController.dateFiresEnd.getTime();
+        
 		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
+            curController.dateFiresBegin = dateBegin;
+            curController.dateFiresEnd = dateEnd;
 			//если у нас получилась пустая область запроса, просто говорим рендереру очистить все данные
 			if ( curExtent.isEmpty() )
 			{

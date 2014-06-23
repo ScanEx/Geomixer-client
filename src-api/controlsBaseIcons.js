@@ -457,7 +457,7 @@
                     }
                 }
                 len = activeIDs.length + overlays.length;
-                this._container.style.display = len > 0 ? 'block' : 'none';
+                this._container.style.visibility = len > 0 ? 'visible' : 'hidden';
                 this._separator.style.display = overlays.length && activeIDs.length ? '' : 'none';
                 if(this.current) this.setCurrent(this.current, true);
             }
