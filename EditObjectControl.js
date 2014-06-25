@@ -65,7 +65,7 @@ var getInputElement = function(type)
             changeMonth: true,
             changeYear: true,
             dateFormat: "dd.mm.yy",
-            timeFormat: "hh:mm:ss",
+            timeFormat: "HH:mm:ss",
             showSecond: true,
             timeOnly: false
         })
@@ -74,7 +74,7 @@ var getInputElement = function(type)
     {
         $(input).timepicker({
             timeOnly: true,
-            timeFormat: "hh:mm:ss",
+            timeFormat: "HH:mm:ss",
             showSecond: true
         });
     }
