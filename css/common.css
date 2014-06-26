@@ -269,11 +269,7 @@ textarea.error
 	margin: 0px;
 	background-color: #edf4f6;
 }
-.left_layers
-{	
-	margin: 0px;
-	background-color: #FAFAFE;
-}
+
 .left_gps
 {	
 	margin: 0px;
@@ -1645,4 +1641,12 @@ div.layersScroll
 
 .tabsCanvas .tabName{
     margin-right: 28px;
+}
+
+#left_layers div.leftTitle, #left_layers .workCanvas {
+    background-color: #FAFAFE;
+}
+
+#left_layers.leftmenu-canvas {
+    border: none;
 }
