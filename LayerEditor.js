@@ -1060,7 +1060,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
                 var date = new Date( (dateInt+timeInt)*1000 + timeOffset );
                 
                 var dateString = $.datepicker.formatDate('yy.mm.dd', date);
-                var timeString = $.datepicker.formatTime('hh:mm', {hour: date.getHours(), minute: date.getMinutes()});
+                var timeString = $.datepicker.formatTime('HH:mm', {hour: date.getHours(), minute: date.getMinutes()});
                 
                 layerProperties.set('Title', platform.value + '_' + dateString + '_' + timeString + '_UTC');
             }

@@ -1237,7 +1237,7 @@ $.extend(nsGmx.Utils, {
             if (value === null) return '';
             
             var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
+            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "HH:mm:ss"});
             $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
@@ -1246,7 +1246,7 @@ $.extend(nsGmx.Utils, {
             if (value === null) return '';
             
             var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
+            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "HH:mm:ss"});
             $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
@@ -1288,14 +1288,14 @@ $.extend(nsGmx.Utils, {
         }
         else if (lowerCaseType == 'time')
         {
-            var resTime = $.datepicker.parseTime('hh:mm:ss', value);
+            var resTime = $.datepicker.parseTime('HH:mm:ss', value);
             if (!resTime) return null;
             
             return resTime.hour*3600 + resTime.minute*60 + resTime.second;
         }
         else if (lowerCaseType == 'datetime')
         {
-            var localDateValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value);
+            var localDateValue = $.datepicker.parseDateTime('dd.mm.yy', 'HH:mm:ss', value);
             if (localDateValue === null) return null;
             
             var localValue = localDateValue.valueOf()/1000;

@@ -1,7 +1,7 @@
 ﻿window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins = 
 [
-    {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginPhoto/PhotoPlugin.js',         module: 'PhotoPlugin',        mapPlugin: false, isPublic: true},
+    {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
     {pluginName: 'Cadastre',             file: 'plugins/external/GMXPluginCadastre/cadastre.js',         module: 'cadastre',           mapPlugin: true,  isPublic: true},
     {pluginName: 'BufferPlugin',         file: 'plugins/external/GMXPluginBuffer/BufferPlugin.js',       module: 'BufferPlugin',       mapPlugin: true,  isPublic: true},
