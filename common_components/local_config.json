@@ -1,0 +1,7 @@
+{
+    "name": "Fires",
+    "host": "http://localhost/sites/fires/",
+    "api_key": "W4IH6K7CJ4",
+    "default_encoding": "utf-8",
+    "common_components": "./CommonComponents/"
+}

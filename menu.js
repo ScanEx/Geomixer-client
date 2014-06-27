@@ -220,8 +220,11 @@ UpMenu.prototype.draw = function()
 	}
 	
 	_(ul, lis);
-    removeChilds(this.parent.firstChild);
-	_(this.parent.firstChild, [ul]);
+    
+    if (this.parent) {
+        removeChilds(this.parent.firstChild);
+        _(this.parent.firstChild, [ul]);
+    }
     
     //убираем все скрытые меню
     for (var d in this.disabledTabs)
@@ -561,12 +564,15 @@ UpMenu.prototype.checkView = function()
 UpMenu.prototype.addLoginCanvas = function()
 {
 	this.loginContainer = _span(null, [['dir','className','loginCanvas'], ['css','position','relative'], ['css','display','block']]);
-	_(this.parent, [this.loginContainer]);
+    
+    if (this.parent) {
+        _(this.parent, [this.loginContainer]);
+    }
 }
 
-UpMenu.prototype.go = function(reloadAfterLoginFlag)
+UpMenu.prototype.go = function(container)
 {
-	this.setParent($$('menu'));
+	this.setParent(container);
 	
 	this.createMenu();
 		

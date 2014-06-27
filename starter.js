@@ -321,7 +321,8 @@ $(function()
     nsGmx.pluginsManager.done(function()
     {
         nsGmx.pluginsManager.beforeMap();
-        createHeader();
+        nsGmx.widgets.headerController = new nsGmx.Controls.HeaderController($('.header'), {});
+        // createHeader();
         
         nsGmx.AuthManager.checkUserInfo(function()
         {
@@ -594,12 +595,13 @@ window.resizeAll = function()
 	var top = 0,
 		bottom = 0,
 		right = 0,
-		left = Number(layersShown) * 360;
+		left = Number(layersShown) * 360,
+        headerHeight = $('#header').height();
 	
 	$$("flash").style.left = left + 'px';
 	$$("flash").style.top = top + 'px';
 	$$("flash").style.width = getWindowWidth() - left - right + 'px';
-	$$("flash").style.height = getWindowHeight() - top - 35 - 60 * Number(layersShown) - bottom + 'px';
+	$$("flash").style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
     
     window.globalFlashMap && window.globalFlashMap.checkMapSize();
 	
@@ -607,10 +609,10 @@ window.resizeAll = function()
 	{
 		show($$("leftMenu"));
 		
-		jQuery("#header").find("[hidable]").css("display",'');
-		$$('header').style.height = '95px';
+		// jQuery("#header").find("[hidable]").css("display",'');
+		// $$('header').style.height = '95px';
 		
-        var baseHeight = getWindowHeight() - top - bottom - 95;
+        var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
         $$("leftMenu").style.height = baseHeight + 'px'
         
@@ -623,8 +625,8 @@ window.resizeAll = function()
 	{
 		hide($$("leftMenu"))
 
-		jQuery("#header").find("[hidable]").css("display",'none')
-		$$('header').style.height = '35px';
+		// jQuery("#header").find("[hidable]").css("display",'none')
+		// $$('header').style.height = '35px';
 	}
 }
 
@@ -887,9 +889,9 @@ function loadMap(state)
                     nsGmx.pluginsManager.addMenuItems(_menuUp);
                 };
                 
-                _menuUp.go(true);
+                _menuUp.go(nsGmx.widgets.headerController.getMenuPlaceholder()[0]);
                 
-                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback(true));
+                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.headerController.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback(true));
                 
                 if ($$('left_usage'))
                     hide($$('left_usage'))
@@ -983,30 +985,38 @@ function loadMap(state)
             
             //создаём тулбар
             var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
-            var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
-            _($$('iconPanel'), [_table([_tbody([_tr([
-                _td([iconContainer]), 
-                _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
-            ])])])]);
+            
+            // var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
+            var searchContainer = nsGmx.widgets.headerController.getSearchPlaceholder()[0];
+            
+            // if ($$('iconPanel')) {
+                // _($$('iconPanel'), [_table([_tbody([_tr([
+                    // _td([iconContainer]), 
+                    // _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
+                // ])])])]);
+            // }
             
             //инициализация контролов поиска (модуль уже загружен)
             var oSearchModule = gmxCore.getModule("search");
             window.oSearchControl = new oSearchModule.SearchGeomixer();
+            
+            // if (document.getElementById('searchCanvas')) {
             window.oSearchControl.Init({
                 Menu: oSearchLeftMenu,
-                ContainerInput: document.getElementById('searchCanvas'),
+                ContainerInput: searchContainer,
                 ServerBase: globalFlashMap.geoSearchAPIRoot,
                 layersSearchFlag: true,
                 mapHelper: _mapHelper,
                 Map: globalFlashMap
-            });            
+            });
+            // }
             
             _menuUp.createMenu = function()
             {
                 createMenu();
             };
 
-            _menuUp.go();
+            _menuUp.go(nsGmx.widgets.headerController.getMenuPlaceholder()[0]);
             
             // Загружаем все пользовательские данные
             _userObjects.load();
@@ -1046,10 +1056,10 @@ function loadMap(state)
             addMapName(mapNameContainer, data.properties.title);
             
             _leftIconPanel.create(leftIconPanelContainer);
-            _($$('leftIconPanel'), [_table([_tbody([_tr([
-                _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
-                _td([leftIconPanelContainer])
-            ])])])]);
+            // _($$('leftIconPanel'), [_table([_tbody([_tr([
+                // _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
+                // _td([leftIconPanelContainer])
+            // ])])])]);
             
             //добавим в тулбар две иконки, но видимой будет только одна
             //по клику переключаем между ними
@@ -1089,8 +1099,8 @@ function loadMap(state)
             _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
             _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
             
-            if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages )
-                _translationsHash.showLanguages();
+            // if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages )
+                // _translationsHash.showLanguages();
             
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
             {
@@ -1125,7 +1135,7 @@ function loadMap(state)
             // _queryMapLayers.removeUserActions();
             _iconPanel.updateVisibility();
             
-            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
+            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.headerController.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
             
             if (nsGmx.AuthManager.isLogin())
             {
