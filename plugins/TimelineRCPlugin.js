@@ -214,6 +214,7 @@ var TimelineController = function(data, map, options) {
         countSpan = null,
         container = $('<div/>', {'class': 'timeline-container'}),
         footerContainer = $('<div/>', {'class': 'timeline-footer'}),
+        headerContainer = $('<div/>', { 'class': 'timeline-header' }),
         _this = this;
     
     var updateContrrolsVisibility;
@@ -520,11 +521,13 @@ var TimelineController = function(data, map, options) {
         links.events.addListener(timeline, 'rangechanged', updateCalendarRange);
         updateCalendarRange();
         
-        $(calendarControl).change(function() {
+        $(calendarControl).change(function () {
             // timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
-            data.set('range', {start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd()})
-        })
-                
+            data.set('range', { start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd() })
+        });
+         
+        $(headerContainer).prependTo(container);
+
         countSpan = $('<span/>', {'class': 'count-container'});
         
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
@@ -675,6 +678,10 @@ var TimelineController = function(data, map, options) {
     this.getFooterContainer = function() {
         return footerContainer;
     }
+
+    this.getHeaderContainer = function () {
+        return headerContainer;
+    }
     
     this.setOptions = function(newOptions) {
         options = $.extend(options, newOptions);
@@ -764,6 +771,13 @@ var TimelineControl = function(map) {
      */
     this.getFooterContainer = function() {
         return timelineController.getFooterContainer();
+    }
+
+    /** Получить контейнер для встраивания дополнительных контролов в шапку таймлайна
+    * @return {HTMLElem}
+    */
+    this.getHeaderContainer = function () {
+        return timelineController.getHeaderContainer();
     }
     
     /** Задать видимость контролов таймлайна
