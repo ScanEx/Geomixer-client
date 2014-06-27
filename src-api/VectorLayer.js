@@ -944,7 +944,8 @@
                         //ctx.webkitLineDashOffset = dashOffset;
                     }            
                 }
-                
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
                 var strokeStyle = '';
                 if(style.stroke) {
                     var lineWidth = style.weight || 0.001;
@@ -2092,8 +2093,10 @@
                     }
                 }
                 item.mercGeo = geom;
-                if(geom && !mercFlag) geom = gmxAPI.from_merc_geometry(geom);
-                if(geom.type === 'POINT' || node.addedItems[itemId]) item.latlngGeo = geom;
+                if(geom && !mercFlag) {
+                    geom = gmxAPI.from_merc_geometry(geom);
+                    if(geom.type === 'POINT' || node.addedItems[itemId]) item.latlngGeo = geom;
+                }
                 return geom;
             }
             ,getPropItem: function(item) {  // Получить properties обьекта векторного слоя

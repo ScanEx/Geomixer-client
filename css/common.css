@@ -221,6 +221,7 @@ div.user span
     position: absolute;
 	left: 0px;
 	top: 0px;
+    width: 100%;
 }
 
 .leftPanelFooter
@@ -228,6 +229,7 @@ div.user span
     position: absolute;
 	left: 0px;
 	bottom: 0px;
+    width: 100%;
 }
 
 .leftContent
@@ -252,29 +254,6 @@ textarea.error
 	background-color: #FFABAB;
 }
 
-/* left menus */
-div.leftTitle
-{
-	height: 25px;
-/*	background: url(../img/grad.png) repeat-x scroll 0px -126px;*/
-	background-color: #539abc;
-	width: 360px;
-	display: inline-block;
-}
-.leftTitle table
-{
-	float:left;
-}
-.leftTitle img
-{
-	width: 18px;
-	height: 18px;
-}
-.leftMenuBorder
-{
-	height: 1px;
-	background: #6CB9CE;
-}
 .left_wfs
 {
 	margin: 0px;

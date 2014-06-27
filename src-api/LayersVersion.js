@@ -70,6 +70,9 @@
 			// обновить версию слоя
 			layer.properties.LayerVersion = ph.properties.LayerVersion;
 			layer._Processing = chkProcessing(layer, ph.properties);
+			for (var key in ph.properties) {
+                layer.properties[key] = ph.properties[key];
+            }
 			var pt = null;
 			var attr = {
 				processing: layer._Processing,

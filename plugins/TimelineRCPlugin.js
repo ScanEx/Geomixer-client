@@ -40,7 +40,7 @@ var fromTilesToDate = function(type, value)
     var localDateValue;
     if (type === 'datetime')
     {
-        localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm:ss', value);
+        localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'HH:mm:ss', value);
     }
     else
     {

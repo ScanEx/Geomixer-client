@@ -309,7 +309,7 @@
                     changeMonth: true,
                     changeYear: true,
                     dateFormat: "dd.mm.yy",
-                    timeFormat: "hh:mm:ss",
+                    timeFormat: "HH:mm:ss",
                     showSecond: true,
                     timeOnly: false
                 }).addClass('layertags-datetimeinput');
@@ -322,7 +322,7 @@
                 
                 $(valueInput).timepicker({
                     timeOnly: true,
-                    timeFormat: "hh:mm:ss",
+                    timeFormat: "HH:mm:ss",
                     showSecond: true
                 });
             }

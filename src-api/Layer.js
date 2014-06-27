@@ -680,8 +680,9 @@
                         var pt = obj._observerOnChange[j],
                             out = [];
                         for (var i = 0, len1 = arr.length; i < len1; i++) {
-                            var item = arr[i];
-                            var geo = (pt[2] === 'None' ? null : (pt[2] === 'Mercator' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry)));
+                            var item = arr[i],
+                                geo = item.geometry;
+                            geo = (pt[2] === 'None' ? null : (pt[2] === 'Mercator' ? geo : gmxAPI.from_merc_geometry(geo)));
                             var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
                             var ph = {
                                 'onExtent':item.onExtent,

@@ -55,22 +55,35 @@
 		}
 
 		function callBalloonHook(o, div) {
+            var spans = div.getElementsByTagName("span");
+            
+            //собираем статистику применения хуков в шаблоне
+            var hooksCount = {};
+            for(var key in o._balloonHook) {
+                var hookID = o._balloonHook[key].hookID;
+                hooksCount[key] = 0;
+                for (var i = 0, len = spans.length; i < len; i++) {
+                    if (spans[i].id === hookID) {
+                        hooksCount[key]++;
+                    }
+                }
+            }
+            
             for(var key in o._balloonHook) {
                 var hook = o._balloonHook[key],
                     //st = '[' + key + ']',
                     fid = hook.hookID,
-                    span = div.getElementsByTagName("span"),
                     notFound = true;
-                for (var i = 0, len = span.length; i < len; i++) {
-                    var node = span[i];
+                for (var i = 0, len = spans.length; i < len; i++) {
+                    var node = spans[i];
                     if(node.id === fid) {
                         notFound = false;
                         //node.innerHTML = node.innerHTML.replace(st, '');
                         node.id += '_' + i;
-                        hook.callback(o, div, node);
+                        hook.callback(o, div, node, hooksCount);
                     }
                 }
-                if(notFound) hook.callback(o, div, null);
+                if(notFound) hook.callback(o, div, null, hooksCount);
             }
         }
         
@@ -97,7 +110,9 @@
                         else if (value.indexOf("www.") == 0)
                             value = "<a href='http://" + value + "'>" + value + "</a>";
                     }
-					text += "<b>" + key + ":</b> " + value + "<br />";
+                    if (key in o.properties) {
+                        text += "<b>" + key + ":</b> " + value + "<br />";
+                    }
 				}
 			}
 			var summary = o.getGeometrySummary();
@@ -231,7 +246,7 @@
 					}
 
 					map.clickBalloonFix = clickBalloonFix;
-					return true;
+					return false;
 				},
 				onMouseOut: function(o) 
 				{
@@ -248,7 +263,7 @@
 						if(propsBalloon.delayShow) { clearTimeout(propsBalloon.delayShow); propsBalloon.delayShow = false; }
 						propsBalloon.updatePropsBalloon(false);
 					}
-					return true;
+					return false;
 				},
 				onClick: function(o, keyPress)
 				{
