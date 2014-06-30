@@ -3122,7 +3122,7 @@ FlashMapObject.prototype.setImageExtent = function(attr)
 	}
 	gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
 }
-FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
+FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, pane)
 {
     this.setImageExtent({
         url: url
@@ -3132,7 +3132,8 @@ FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
 			,maxX: x1
             ,maxY: y1
         }
-        ,notSetPolygon: flagGeo || false
+        ,notSetPolygon: false
+        ,toPaneName: pane || false
     });
 }
 
