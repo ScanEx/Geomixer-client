@@ -4,32 +4,39 @@ ul
 	list-style-position:outside;
 	list-style-type:none;
 }
-li.header1
+
+/*li.header1
 {
 	float:left;
 	position:relative;
 	padding:0px 0px 0px 0px;
 	overflow:inherit;
-/*	white-space:nowrap;*/
 	display:inline;
 	z-index:2;
 	cursor:default;
 	margin: 0px 0px 0px 0px;
-/*	background: #c4dfe7;*/
+}*/
+
+div.headerContainer {
+    white-space:nowrap;
 }
-div.header1
+
+div.header1 {
+    display:inline-block;
+}
+
+div.header1Internal
 {
 	text-align:center;
 	color:#153069;
 	font-family:tahoma;
 	font-size:12px;
 	font-weight:normal;
-	padding:8px 10px 7px 10px;
-	white-space:nowrap;
-	background: transparent /*url(img/knopki_body.png) repeat-x scroll 0px 0px*/;
-/*	height: 15px;*/
+	padding:8px 10px 4px 10px;
+	background: transparent;
+    cursor:default;
 }
-ul.header1
+div.header1
 {
 	z-index:2;
 	color:#666666;
@@ -55,9 +62,9 @@ ul.header2
 	position:absolute;
 	visibility:hidden;
 /*	display: none;*/
-	background: #c4dfe7/* url(img/grad2.png) repeat-y 0px 0px*/;
+	background: #ffffff;
 	z-index:2;
-	border: 1px solid #e6f1f5;
+	border: 1px solid #e1e1e1;
 }
 li.header2
 {
@@ -75,11 +82,9 @@ ul.header3
 	width:180px;
 	position:absolute;
 	visibility:hidden;
-/*	display: none;*/
-/*	border:1px solid #9FC0C4;*/
 	z-index:3;
-	background: #c4dfe7/* url(img/grad2.png) repeat-y -180px 0px*/;
-	border: 1px solid #e6f1f5;
+	background: #ffffff;
+	border: 1px solid #e1e1e1;
 }
 li.header3
 {
@@ -111,24 +116,24 @@ li.header1.menuActive
 {
 /*	background: url(img/grad.png) repeat-x scroll 0px -40px;*/
 }
-li.header1.menuActive div.header1,
+div.header1.menuActive div.header1Internal,
 li.header2.menu2Active div.header2,
 li.header3.menu3Active div.header3
 {
-	color: #fc830b;
+	color: #3f70a8;
 }
 
-li.header1.menuActive div.header1
+div.header1.menuActive div.header1
 {
 	background: #c4dfe7;
 /*	background: transparent url(img/knopki_body.png) repeat-x scroll 0px 0px;*/
 }
 
-li.header1.menuActive div.buttonLeft
+div.header1.menuActive div.buttonLeft
 {
 /*	background: transparent url(img/left_knopka.png) repeat-x scroll 0px 0px;*/
 }
-li.header1.menuActive div.buttonRight
+div.header1.menuActive div.buttonRight
 {
 /*	background: transparent url(img/right_knopka.png) repeat-x scroll 0px 0px;*/
 }

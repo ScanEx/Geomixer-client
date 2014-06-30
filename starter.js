@@ -115,10 +115,10 @@ var createMenu = function()
 	{id:"mapsMenu", title:_gtxt("Карта"),childs:
 		[
 			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
-			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
+			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}, style: [['css','borderBottom','1px solid #e1e1e1']]},
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
 			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)}},
-			{id: 'permalink',    title: _gtxt('Ссылка на карту'),   func: function(){_mapHelper.showPermalink()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
+			{id: 'permalink',    title: _gtxt('Ссылка на карту'),   func: function(){_mapHelper.showPermalink()}, style: [['css','borderBottom','1px solid #e1e1e1']]},
 			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
 			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
             {id: 'stileLibrary', title: 'Библиотека стилей',        func: nsGmx.showStyleLibraryDialog},

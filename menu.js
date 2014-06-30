@@ -139,8 +139,8 @@ UpMenu.prototype.hidemenu = function(elem)
 */
 UpMenu.prototype.draw = function()
 {
-	var ul = _ul();
-	ul.className = 'header1';
+	var ul = _div();
+	ul.className = 'headerContainer';
 	var lis = [];
 	
 	for (var menuId in this.submenus)
@@ -189,16 +189,16 @@ UpMenu.prototype.draw = function()
 			
 			_(ul2, lis2);
 			
-			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
+			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1Internal']]);
 			
-			li = _li([div, ul2],[['dir','className','header1']]);
+			li = _div([div, ul2],[['dir','className','header1']]);
 			
 			// Запоминаем id для открывания/закрывания меню
 			li.setAttribute('hash', menuId);
 		}
 		else
 		{
-			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
+			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1Internal']]);
 			
 			div.style.cursor = 'pointer';
 			
@@ -210,7 +210,7 @@ UpMenu.prototype.draw = function()
 			else	
 				this.refs[menuId] = {onsel:this.submenus[menuId].onsel, onunsel:this.submenus[menuId].onunsel};
 			
-			li = _li([div],[['dir','className','header1']]);
+			li = _div([div],[['dir','className','header1']]);
 		}
 		
 		this.attachEventOnMouseover(li, 'menuActive', 2);
