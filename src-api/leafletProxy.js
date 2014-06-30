@@ -4284,13 +4284,13 @@
 	var leafLetCont_ = null;
 	var mapDivID = '';
 	var initFunc = null;
-	var intervalID = 0;
+	//var intervalID = 0;
 	
 	// Инициализация LeafLet карты
 	function waitMe(e)
 	{
 		if('L' in window) {
-			clearInterval(intervalID);
+			//clearInterval(intervalID);
 			if(!utils) utils = gmxAPI._leaflet.utils;
 			if(!mapNodes) {
 				mapNodes = gmxAPI._leaflet.mapNodes;
@@ -5105,37 +5105,57 @@ var tt = 1;
 	// Загрузка leaflet.js
 	function addLeafLetScripts()
 	{
-		var apiHost = gmxAPI.getAPIFolderRoot();
-
-        var cssFiles = [
+		var apiHost = gmxAPI.getAPIFolderRoot(),
+            cssFiles = [
             apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
             ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
         ];
-		// if(gmxAPI.isIE) {
-            // cssFiles.push(apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
-		// }
-
         gmxAPI.loadJS({src: apiHost + 'leaflet/leaflet.js?' + gmxAPI.buildGUID});
-		if(window.LeafletPlugins) {
-            window.LeafletPlugins.forEach(function(element, index, array) {
-                if(element.files) {
-                    var ph = {count : array.length};
-                    if(element.callback) ph.callback = element.callback;
-                    if(element.callbackError) ph.callbackError = element.callbackError;
-                    var path = element.path || '';
-                    var prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost);
-                    path = prefix + path;
-                    if(element.css) cssFiles.push(path + element.css + '?' + gmxAPI.buildGUID);
-                    gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = ph;
-                    element.files.forEach(function(item) {
-                        ph.src = path + item + '?' + gmxAPI.buildGUID;
-                        gmxAPI.loadJS(ph);
-                    });
-                }
-            });
-        }
         cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
 	}
+
+    // Загрузка LeafletPlugins
+    function addLeafletPlugins()
+    {
+        var apiHost = gmxAPI.getAPIFolderRoot(),
+            cssFiles = [],
+            arr = [];
+
+        if(window.LeafletPlugins) {
+            for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
+                var element = window.LeafletPlugins[i],
+                    path = element.path || '',
+                    prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost);
+                path = prefix + path;
+                if(element.css) cssFiles.push(path + element.css + '?' + gmxAPI.buildGUID);
+                if(element.files) {
+                    for (var j = 0, len1 = element.files.length; j < len1; j++) {
+                        var ph = {
+                            charset: element.charset || 'utf8',
+                            src: path + element.files[j] + '?' + gmxAPI.buildGUID
+                        };
+                        if(element.callback) ph.callback = element.callback;
+                        if(element.callbackError) ph.callbackError = element.callbackError;
+                        arr.push(ph);
+                    }
+                }
+                gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = element;
+            }
+        }
+        if (arr.length) {
+            var count = 0,
+                loadItem = function() {
+                    gmxAPI.loadJS(arr.shift(), function(item) {
+                        if (arr.length === 0) waitMe();
+                        else loadItem();
+                    });
+                };
+            loadItem();
+        } else {
+            waitMe();
+        }
+        cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
+    }
 
 	// Добавить leaflet в DOM
 	function addLeafLetObject(apiBase, flashId, ww, hh, v, bg, loadCallback, FlagFlashLSO)
@@ -5155,7 +5175,7 @@ var tt = 1;
 				border: 0
 			}
 		);
-		window.leafletLoaded = waitMe;
+		window.leafletLoaded = addLeafletPlugins;
 		addLeafLetScripts();
 		//intervalID = setInterval(waitMe, 50);
 		//gmxAPI._leaflet['LMapContainer'] = leafLetCont_;				// Контейнер лефлет карты

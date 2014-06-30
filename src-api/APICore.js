@@ -159,14 +159,15 @@ extend(window.gmxAPI,
     ,
     loadJS: function(item, callback, callbackError) {
         var script = document.createElement("script");
-        script.setAttribute("charset", "windows-1251");
+        script.setAttribute("charset", item.charset || "windows-1251");
         script.setAttribute("src", item.src);
         item.readystate = 'loading';
         script.onload = function(ev) {
             var count = 0;
             if(item.count) count = item.count--;
             if(count === 0) item.readystate = 'loaded';
-            if(item.callback) item.callback(item);
+            if(callback) callback(item);
+            else if(item.callback) item.callback(item);
             document.getElementsByTagName("head").item(0).removeChild(script);
         };
         script.onerror = function(ev) {

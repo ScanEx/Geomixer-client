@@ -904,17 +904,135 @@
 		}
 		return ret;
 	}
-	drawFunctions.LINESTRING = function(coords, props, propHiden)
-	{
-		return editObject(coords, props, 'LINESTRING', propHiden)
+
+    var getLatlngsFromGeometry = function(geom) {
+        var geoJson = L.GeoJSON.geometryToLayer({
+            geometry: geom,
+            type: 'Feature'
+            // ,
+            // properties: {}
+        });
+        return geoJson._latlngs;
+    }
+    var checkLastPoint = function(geom) {
+        var type = geom.type;
+        if (type !== "Polyline") {
+            var coords = geom.coordinates;
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var arr = coords[i], len1 = arr.length - 1;
+                if(len1 > 0) {
+                    if(arr[0][0] !== arr[len1][0] || arr[0][1] !== arr[len1][1])
+                        arr.push(arr[0]);
+                }
+            }
+            if (type === "Polygon" || type === "Rectangle") {
+                geom.type = "POLYGON";
+            }
+        } else {
+            geom.type = "LINESTRING";
+        }
+    }
+    var fireEvent = function(eType, object) {
+        var res = object.toGeoJSON(),
+            _leaflet_id = object._leaflet_id;
+
+        checkLastPoint(res.geometry);
+        res.id = _leaflet_id;
+        res._object = object;
+        if (objects[_leaflet_id]) {
+            objects[_leaflet_id].geometry = res.geometry;
+            res = objects[_leaflet_id];
+        } else {
+            gmxAPI.extend(res, {
+                remove: function() {
+                    gmxAPI._leaflet.LMap.gmxDrawing.remove(this._object);
+                    delete objects[this.id];
+                },
+                getStyle: function() {
+                    var out = {
+                        regular: {
+                            outline: {}
+                        },
+                        hovered: {}
+                    };
+                    if (res._style) {
+                        if (res._style.regular && res._style.regular.outline) {
+                            out.regular.outline = res._style.regular.outline;
+                        }
+                    }
+                    return out;
+                },
+                setStyle: function(regularStyle, hoveredStyle) {
+                    res._style = {
+                        regular: regularStyle,
+                        hovered: hoveredStyle
+                    };
+                },
+                stateListeners: {},
+                addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
+                removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
+            });
+            objects[_leaflet_id] = res;
+        }
+        var handlers = gmxAPI.map.drawing.handlers[eType] || [];
+        for (var i = 0; i < handlers.length; i++) handlers[i](res);
+        gmxAPI._listeners.dispatchEvent(eType, res, res);
+        gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, res);
+    }
+    var needListeners = function(gmxDrawing) {
+        gmxDrawing
+            // .on('dragstart', function (ev) { })
+            // .on('dragend', function (ev) { })
+            // .on('drawstart', function (ev) { })
+            .on('drawstop', function (ev) { fireEvent('onFinish', ev.object); })
+            .on('onMouseOver', function (ev) { fireEvent('onMouseOver', ev.object); })
+            .on('onMouseOut', function (ev) { fireEvent('onMouseOut', ev.object); })
+            .on('add', function (ev) { fireEvent('onAdd', ev.object); })
+            .on('edit', function (ev) { fireEvent('onEdit', ev.object); })
+            .on('remove', function (ev) { fireEvent('onRemove', ev.object); })
+            .on('drag', function (ev) { fireEvent('onEdit', ev.object); });
+        needListeners = null;
+        //console.log('gmxDrawing drawstop', arguments);
+    }
+    drawFunctions.LINESTRING = function(coords, props, propHiden) {
+        var LMap = gmxAPI._leaflet.LMap;
+        if ('gmxDrawing' in LMap) {
+            if (needListeners) needListeners(LMap.gmxDrawing);
+            var obj = null;
+            if (coords) {
+                obj = LMap.gmxDrawing.add(L.polyline(reverseCoords(coords)), {});
+            } else obj = LMap.gmxDrawing.create('Polyline', {});
+            return obj;
+        }
+        return editObject(coords, props, 'LINESTRING', propHiden)
 	}
 	drawFunctions.POLYGON = function(coords, props, propHiden)
 	{
 		if ((!propHiden || !propHiden.skipFrame) && gmxAPI.isRectangle(coords)) return drawFunctions.FRAME(coords, props);
+        var LMap = gmxAPI._leaflet.LMap;
+        if ('gmxDrawing' in LMap) {
+            if (needListeners) needListeners(LMap.gmxDrawing);
+            var obj = null;
+            if (coords) {
+                obj = LMap.gmxDrawing.add(L.polygon(getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords })), {});
+            } else obj = LMap.gmxDrawing.create('Polygon', {});
+            return obj;
+        }
 		return editObject(coords, props, 'POLYGON', propHiden)
 	}
 	drawFunctions.FRAME = function(coords, props, propHiden)
 	{
+        var LMap = gmxAPI._leaflet.LMap;
+        if ('gmxDrawing' in LMap) {
+            if (needListeners) needListeners(LMap.gmxDrawing);
+            var obj = null;
+            if (coords) {
+                var bounds = gmxAPIutils.bounds(coords[0]);
+                var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
+                obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), {});
+            } else obj = LMap.gmxDrawing.create('Rectangle', {});
+            return obj;
+        }
 		if (!props)
 			props = {};
 
