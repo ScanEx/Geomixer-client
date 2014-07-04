@@ -357,6 +357,10 @@ var TimelineController = function(data, map, options) {
         });
         updateCount();
     }
+
+    var timelineDataChanged = function () {
+        data.trigger("change:data");
+    }
     
     var fireSelectionEvent = function() {
         var selectedItems = [];
@@ -420,10 +424,13 @@ var TimelineController = function(data, map, options) {
         map.miniMap && map.miniMap.setVisible(false);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
+
         timeline.draw([], timelineOptions);
+
+        links.events.addListener(timeline, 'reflow', timelineDataChanged);
         
         links.events.addListener(timeline, 'select', fireSelectionEvent);
-        
+
         links.Timeline.addEventListener(timeline.dom.content, "dblclick", function(elem) {
             if (timeline.eventParams.itemIndex !== undefined) {
                 var items = data.get('items');
@@ -759,7 +766,7 @@ var TimelineControl = function(map) {
     this.addFilter = function(filterFunc) {
         data.addFilter(filterFunc);
     }
-    
+
     /** Перепроверить видимость объеков на таймлайне
      */
     this.updateFilters = function() {

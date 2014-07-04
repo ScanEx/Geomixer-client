@@ -763,6 +763,7 @@ links.Timeline.prototype.render = function(options) {
                 'renderTimesLeft': (renderTimesLeft - 1)
             });
         }
+        this.trigger('reflow');
     }
 };
 
