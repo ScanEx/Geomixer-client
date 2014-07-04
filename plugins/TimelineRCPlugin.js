@@ -357,10 +357,6 @@ var TimelineController = function(data, map, options) {
         });
         updateCount();
     }
-
-    var timelineDataChanged = function () {
-        data.trigger("change:data");
-    }
     
     var fireSelectionEvent = function() {
         var selectedItems = [];
@@ -427,7 +423,11 @@ var TimelineController = function(data, map, options) {
 
         timeline.draw([], timelineOptions);
 
-        links.events.addListener(timeline, 'reflow', timelineDataChanged);
+        //подписываемся на событие reflow которое возникает 
+        //при обновлении элеменов на таймлайне
+        links.events.addListener(timeline, 'reflow', function () {
+            $(_this).trigger("reflow");
+        });
         
         links.events.addListener(timeline, 'select', fireSelectionEvent);
 
@@ -727,7 +727,14 @@ var TimelineControl = function(map) {
     this.bindLayer = function(layerName, options) {
         data.bindLayer(layerName, options);
     }
-    
+
+    /** Возвращает ссылку на timelineController
+     * @return {Object}
+     */
+    this.getTimelineController = function () {
+        return timelineController;
+    }
+
     /** Установить режим отображения данных на таймлайне
      * @param {String} newMode Новый режим: center, screen или none
     */
