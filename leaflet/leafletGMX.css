@@ -344,7 +344,7 @@
 }
 .leaflet-container {
 	background: #ffffff !important;
-    cursor: auto !important;
+    cursor: inherit;
 }
 
 .leaflet-tile-container {
