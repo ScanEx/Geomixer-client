@@ -342,10 +342,11 @@
     -webkit-transform-origin: left top 0; /* Safari and Chrome */
     -ms-transform-origin: left top 0; /* IE 9 */
 }
-/*.leaflet-container {
-	cursor: inherit !important;
-	}
-*/
+.leaflet-container {
+	background: #ffffff !important;
+    cursor: auto !important;
+}
+
 .leaflet-tile-container {
 	pointer-events: none;
 }
