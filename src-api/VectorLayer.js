@@ -1089,12 +1089,13 @@
         }
 
         function objectsToFilters(arr, tileID) {    // Разложить массив обьектов по фильтрам
-            var outArr = [];
-            var zoom = LMap.getZoom();
-            var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
-            var tiles = node.tiles;
+            var len = arr.length,
+                outArr = new Array(len),
+                zoom = LMap.getZoom(),
+                tileSize = Math.pow(2, 8 - zoom) * 156543.033928041,
+                tiles = node.tiles;
 
-            for (var i = 0, len = arr.length; i < len; i++) {
+            for (var i = 0; i < len; i++) {
                 var ph = arr[i];
                 if(!ph) return;
                 var prop = ph.properties || {};
@@ -1133,7 +1134,8 @@
                     geo.id = id;
                     geo.layerId = nodeId;
                     geo.properties = prop;
-                    outArr.push(geo);
+                    outArr[i] = geo;
+                    //outArr.push(geo);
                     if(tileID === 'addItem') {
                         geo.geometry = ph.geometry;
                         node.bounds.extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.min.x), gmxAPI.from_merc_y(geo.bounds.min.y)));
@@ -1443,9 +1445,7 @@
                 }
                 node.waitStyle = false;
             }
-            ,reCheckFilters: function(tileSize) {       // переустановка обьектов по фильтрам
-                if(!gmxNode.isVisible) return;
-                //needRedrawTiles = {};
+            ,clearPropHiden: function() {       // чистка propHiden обьектов
                 for (var tileID in node.tilesGeometry)      // Перебрать все загруженные тайлы
                 {
                     var arr = node.tilesGeometry[tileID];
@@ -1461,8 +1461,6 @@
                             delete geom.propHiden.drawInTiles;
                         }
                         geom._cache = null;
-                        //delete geom['curStyle'];
-                        //geom.propHiden['toFilters'] = chkObjectFilters(geom, tileSize);
                     }
                 }
                 for(var pID in node.addedItems) {
@@ -1478,9 +1476,12 @@
                     }
                     geom._cache = null;
                     delete geom.curStyle;
-                    //node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i], tileSize);
                 }
-                //clearDrawDone();
+            }
+            ,reCheckFilters: function(tileSize) {       // переустановка обьектов по фильтрам
+                if(!gmxNode.isVisible) return;
+                //needRedrawTiles = {};
+                node.clearPropHiden();
                 node.checkWaitStyle();
                 node.repaintTilesList();
             }
@@ -2966,6 +2967,19 @@
                         cnt++;
                     }
                 }
+            },
+
+            onRemove: function (map) {
+                node.clearPropHiden();
+                if(node.clustersData) {
+                    gmxAPI._leaflet.LabelsManager.remove(nodeId); // Удалить Labels
+                    node.clustersData.clear();
+                }
+                
+                tilesRedrawImages.clear();
+                node.screenTilesToLoad = {};
+                // node.tilesGeometry = {};
+                // node.objectsData = {};
             }
         });
 
@@ -3074,6 +3088,13 @@
         // Векторный слой
         L.TileLayer.VectorTiles = L.TileLayer.Canvas.extend(
         {
+            onRemove: function (map) {
+                L.TileLayer.Canvas.prototype.onRemove.call(this, map);
+                var opt = this.options,
+                    node = mapNodes[opt.id];
+                node.onRemove(map);
+            },
+
             _initContainer: function () {
                 L.TileLayer.Canvas.prototype._initContainer.call(this);
                 if('initCallback' in this.options) this.options.initCallback(this);

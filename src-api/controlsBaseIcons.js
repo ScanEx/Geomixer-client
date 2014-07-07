@@ -1063,12 +1063,13 @@
             ,isActive: false
             ,id: 'drawingZoom'
             ,onclick: function(e) {
-                var className = 'leaflet-control-icons leaflet-control-' + this.options.id + '-Active';
+                var className = 'leaflet-control-' + this.options.id + '-Active';
                 if(!gmxAPI._drawing.BoxZoom) {
                     gmxAPI._drawFunctions.zoom();
-                    L.DomUtil.addClass(this._container, className);
+                    L.DomUtil.addClass(this._container, 'leaflet-control-icons ' + className);
                     this.options.isActive = true;
                 } else {
+                    this._map.boxZoom.removeHooks();
                     this.options.isActive = false;
                     gmxAPI._drawing.activeState = false;
                     gmxAPI._drawing.BoxZoom = false;
@@ -1076,16 +1077,28 @@
                 }
                 gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: this.options.id, target: this});
             }
-            ,onAdd: function(cont) {
+            ,onAdd: function(control) {
                 if (this.options.id) Controls.items[this.options.id] = this;
-                var my = this;
-                this._map.on('boxzoomend', function() {
+                var my = this,
+                    map = this._map,
+                    _onMouseDown = map.boxZoom._onMouseDown;
+
+                map.boxZoom._onMouseDown = function (e) {
+                    _onMouseDown.call(map.boxZoom, {
+                        clientX: e.clientX,
+                        clientY: e.clientY,
+                        which: 1,
+                        shiftKey: true
+                    });
+                };
+                map.on('boxzoomend', function () {
+                    map.dragging.enable();
+                    map.boxZoom.removeHooks();
                     L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.id + '-Active');
                     my.options.isActive = false;
                     gmxAPI._listeners.dispatchEvent('onActiveChanged', controlsManager, {id: my.options.id, target: my});
                 });
             }
-
         });
         drawingZoomControl.addTo(gmxAPI._leaflet.LMap);
         //outControls.drawingZoomControl = drawingZoomControl;

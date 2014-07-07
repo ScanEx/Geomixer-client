@@ -532,6 +532,7 @@
                     var permalink = result[1];
                     var callbackName = gmxAPI.uniqueGlobalName(function(obj)
                     {
+                        delete window[callbackName];
                         if (obj.position) {
                             var pos = {
                                 'x': obj.position.x,
