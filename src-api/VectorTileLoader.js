@@ -96,7 +96,11 @@
 		
 	var nextLoad = function()	{		// загрузка image
 		if(curCount > maxCount || gmxAPI.mousePressed) return;
-		if(items.length < 1) return false;
+		if(items.length < 1) {
+            if (timer) clearInterval(timer);
+            timer = null;
+            return false;
+        }
 		var item = items.shift();
 		loadTile(item);
 	}

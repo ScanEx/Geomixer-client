@@ -4530,12 +4530,13 @@ var tt = 1;
 				}
 				gmxAPI._leaflet.mousePixelPos = e.layerPoint;
 				gmxAPI._leaflet.containerPoint = e.containerPoint;
+				var isScrollWheelZoom = LMap.scrollWheelZoom.enabled();
 
 				if(gmxAPI._mouseOnBalloon) {
-					if(LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.disable();
+					if(isScrollWheelZoom) LMap.scrollWheelZoom.disable();
 					return null;
 				} else {
-					if(!LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.enable();
+					if(!isScrollWheelZoom) LMap.scrollWheelZoom.enable();
 				}
 				if(gmxAPI._leaflet.mousedown) timeDown -= 900;
 				gmxAPI._leaflet.mousePos = e.latlng;
