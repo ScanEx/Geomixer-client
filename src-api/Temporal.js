@@ -359,10 +359,11 @@
 
         mapObj.getTileCounts = function(dt1, dt2) {
             if(mapObj.properties.type !== 'Vector') return 0;
-            var tdata = mapObj.properties.tiles;
-            var thash = null;
+            var tdata = mapObj.properties.tiles,
+                thash = null;
             if(mapObj._temporalTiles) {
-                var pt = mapObj._temporalTiles.getDateIntervalTiles(dt1, dt2, mapObj._temporalTiles.temporalData);
+                var cur = new Date(),
+                    pt = mapObj._temporalTiles.getDateIntervalTiles(dt1 || ZeroDate, dt2 || cur, mapObj._temporalTiles.temporalData);
                 tdata = pt.dtiles;
                 thash = pt.tiles;
             }
