@@ -1,7 +1,18 @@
 var nsGmx = nsGmx || {};
 
-(function()
-{
+nsGmx.Translations.addText('rus', {security: {
+    ownerName: 'Владелец',
+    shareType: 'Публичность',
+    defAccess: 'Доступ для всех'
+}});
+
+nsGmx.Translations.addText('eng', {security: {
+    ownerName: 'Owner',
+    shareType: 'Share type',
+    defAccess: 'Public access'
+}});
+
+(function() {
 
 var removeMapUser = function(user, dataProvider)
 {
@@ -63,7 +74,6 @@ var security = function()
 	
 	this.mapAccessArr = {};
 	this.defaultAccess = null;
-	
 	
 	this.getSecurityName = null;
 	this.updateSecurityName = null;
@@ -201,22 +211,31 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		_this = this;
         
     var uiTemplate = '<div>' +
-        '<table class="security-header"><tr>' +
-            '<td><div>' +
-                '{{i Владелец}}: <span class="buttonLink changeOwnerLink">{{ownerName}}</span>' +
-            '</div></td>' +
-            '<td><div>' +
-                '<table class="security-header-right"><tr>' +
-                    '<td>{{i Тип}}</td>' +
-                    '<td><select class="security-type-select selectStyle">' +
-                        '{{#types}}' +
-                            '<option value="{{value}} {{#isSelected}}selected{{/isSelected}}">{{title}}</option>' +
-                        '{{/types}}' +
-                    '</select></td>' +
-                    '<td><button class="security-save">{{i Сохранить}}</button></td>' +
-                '</tr></table>' +
-            '</div></td>' +
-        '</tr></table>' + 
+        '<div class="security-header">' + 
+            '<table class="security-header-table"><tr>' +
+                '<td><div>' +
+                    '{{i security.ownerName}}: <span class="buttonLink changeOwnerLink">{{ownerName}}</span>' +
+                '</div></td>' +
+                '<td><div>' +
+                    '<table class="security-header-right"><tr>' +
+                        '<td>{{i security.shareType}}</td>' +
+                        '<td><select class="security-share-select selectStyle">' +
+                            '{{#shareTypes}}' +
+                                '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
+                            '{{/shareTypes}}' +
+                        '</select></td>' +
+                        '<td><button class="security-save">{{i Сохранить}}</button></td>' +
+                    '</tr></table>' +
+                '</div></td>' +
+            '</tr></table>' + 
+            '<div>{{i security.defAccess}}: ' +
+                '<select class="security-defaccess-select selectStyle">' +
+                    '{{#defAccessTypes}}' +
+                        '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
+                    '{{/defAccessTypes}}' +
+                '</select>' +
+            '</div>' + 
+        '</div>' +
         '{{#isShowUserSuggest}}' +
             '<div class="security-suggest-header">{{i Пользователи без прав доступа:}}</div>' +
             '<div class="suggest-filters-placeholder"></div>' +
@@ -236,13 +255,20 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var canvas = $(Mustache.render(uiTemplate, {
         ownerName: securityInfo.SecurityInfo.Owner,
         isShowUserSuggest: isShowUserSuggest,
-        types: securityInfo.SecurityDescription.Types.map(function(type) {
+        shareTypes: securityInfo.SecurityDescription.Types.map(function(type) {
             return {value: type[0], title: type[1], isSelected: type[0] === securityInfo.SecurityInfo.Type};
+        }),
+        defAccessTypes: securityInfo.SecurityDescription.AccessList.map(function(type) {
+            return {value: type[0], title: type[1], isSelected: type[0] === securityInfo.SecurityInfo.DefAccess};
         })
     }))[0];
 	
-	$('.security-type-select', canvas).change(function() {
+	$('.security-share-select', canvas).change(function() {
 		securityInfo.SecurityInfo.Type = this.value;
+	})
+    
+    $('.security-defaccess-select', canvas).change(function() {
+		securityInfo.SecurityInfo.DefAccess = this.value;
 	})
 	
 	this.defaultAccess = securityInfo.SecurityDescription.DefaultAccess;
