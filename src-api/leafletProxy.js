@@ -3683,7 +3683,7 @@
 				out['sx'] = out['sy'] = 0;
 				paintStroke(attr, style, ctx);
 			}
-			if(style) lineHeight = style.weight;
+			if(style) lineHeight = style.maxWeight || style.weight;
             if(style.label) {
                 var prop = out.properties,
                     labelStyle = style.label;
@@ -3957,7 +3957,7 @@
                                 flag = true;
                             }
                         } else {
-                            var weight = (curStyle ? curStyle.weight : 1);
+                            var weight = (curStyle ? curStyle.maxWeight || curStyle.weight : 1);
                             if(gmxAPI._leaflet.utils.chkPointInPolyLineArr(chkPointArr, weight, coordinates[i])) return true;
                         }
                     }
