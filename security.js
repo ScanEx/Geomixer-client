@@ -2,13 +2,13 @@ var nsGmx = nsGmx || {};
 
 nsGmx.Translations.addText('rus', {security: {
     ownerName: 'Владелец',
-    shareType: 'Публичность',
+    shareType: 'Видимость в списках',
     defAccess: 'Доступ для всех'
 }});
 
 nsGmx.Translations.addText('eng', {security: {
     ownerName: 'Owner',
-    shareType: 'Share type',
+    shareType: 'Visible in lists',
     defAccess: 'Public access'
 }});
 
