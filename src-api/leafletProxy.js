@@ -899,10 +899,15 @@
             if (attr && attr.z) gmxAPI.needZoom = attr.z;
             moveToTimer = setTimeout(function() {
                 if(!attr && !gmxAPI.map.needMove) return;
-                var flagInit = (gmxAPI.map.needMove ? true : false);
-                var px = (attr ? attr.x : (flagInit ? gmxAPI.map.needMove.x : 0));
-                var py = (attr ? attr.y : (flagInit ? gmxAPI.map.needMove.y : 0));
-                var z = (attr ? attr.z : (flagInit ? gmxAPI.map.needMove.z : 1));
+                var flagInit = (gmxAPI.map.needMove ? true : false),
+                    px = (attr ? attr.x : (flagInit ? gmxAPI.map.needMove.x : 0)),
+                    py = (attr ? attr.y : (flagInit ? gmxAPI.map.needMove.y : 0)),
+                    z = (attr ? attr.z : (flagInit ? gmxAPI.map.needMove.z : 1));
+                if (px > 180 || px < -180) {
+                    px %= 360;
+                    if (px < -180) px += 360;
+                    else if (px > 180) px -= 360;
+                }
                 var pos = new L.LatLng(py, px);
                 gmxAPI.needZoom = null;
                 gmxAPI.map.needMove = null;
@@ -2664,13 +2669,6 @@
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты
 			if(LMap) {
-                var center = gmxAPI._leaflet.LMap.getCenter();
-                if (center.lng > 180 || center.lng < -180) {
-                    center.lng %= 360;
-                    if (center.lng < -180) center.lng += 360;
-                    else if (center.lng > 180) center.lng -= 360;
-                    gmxAPI._leaflet.LMap.setView(center);
-                }
 				LMap._onResize();
 				return true;
 			}
