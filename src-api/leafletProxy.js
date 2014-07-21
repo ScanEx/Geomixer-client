@@ -2664,6 +2664,13 @@
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты
 			if(LMap) {
+                var center = gmxAPI._leaflet.LMap.getCenter();
+                if (center.lng > 180 || center.lng < -180) {
+                    center.lng %= 360;
+                    if (center.lng < -180) center.lng += 360;
+                    else if (center.lng > 180) center.lng -= 360;
+                    gmxAPI._leaflet.LMap.setView(center);
+                }
 				LMap._onResize();
 				return true;
 			}
