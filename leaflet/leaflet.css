@@ -163,10 +163,8 @@
 	cursor: pointer;
 	}
 .leaflet-container {
-/*
 	cursor: -webkit-grab;
 	cursor:    -moz-grab;
-*/
 	}
 .leaflet-popup-pane,
 .leaflet-control {
@@ -183,7 +181,7 @@
 /* visual tweaks */
 
 .leaflet-container {
-	background: #ffffff;
+	background: #ddd;
 	outline: 0;
 	}
 .leaflet-container a {

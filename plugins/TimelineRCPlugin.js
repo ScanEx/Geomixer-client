@@ -214,6 +214,7 @@ var TimelineController = function(data, map, options) {
         countSpan = null,
         container = $('<div/>', {'class': 'timeline-container'}),
         footerContainer = $('<div/>', {'class': 'timeline-footer'}),
+        headerContainer = $('<div/>', { 'class': 'timeline-header' }),
         _this = this;
     
     var updateContrrolsVisibility;
@@ -419,10 +420,17 @@ var TimelineController = function(data, map, options) {
         map.miniMap && map.miniMap.setVisible(false);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
+
         timeline.draw([], timelineOptions);
+
+        //подписываемся на событие reflow которое возникает 
+        //при обновлении элеменов на таймлайне
+        links.events.addListener(timeline, 'reflow', function () {
+            $(_this).trigger("reflow");
+        });
         
         links.events.addListener(timeline, 'select', fireSelectionEvent);
-        
+
         links.Timeline.addEventListener(timeline.dom.content, "dblclick", function(elem) {
             if (timeline.eventParams.itemIndex !== undefined) {
                 var items = data.get('items');
@@ -520,11 +528,13 @@ var TimelineController = function(data, map, options) {
         links.events.addListener(timeline, 'rangechanged', updateCalendarRange);
         updateCalendarRange();
         
-        $(calendarControl).change(function() {
+        $(calendarControl).change(function () {
             // timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
-            data.set('range', {start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd()})
-        })
-                
+            data.set('range', { start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd() })
+        });
+         
+        $(headerContainer).prependTo(container);
+
         countSpan = $('<span/>', {'class': 'count-container'});
         
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
@@ -675,6 +685,10 @@ var TimelineController = function(data, map, options) {
     this.getFooterContainer = function() {
         return footerContainer;
     }
+
+    this.getHeaderContainer = function () {
+        return headerContainer;
+    }
     
     this.setOptions = function(newOptions) {
         options = $.extend(options, newOptions);
@@ -713,7 +727,14 @@ var TimelineControl = function(map) {
     this.bindLayer = function(layerName, options) {
         data.bindLayer(layerName, options);
     }
-    
+
+    /** Возвращает ссылку на timelineController
+     * @return {Object}
+     */
+    this.getTimelineController = function () {
+        return timelineController;
+    }
+
     /** Установить режим отображения данных на таймлайне
      * @param {String} newMode Новый режим: center, screen или none
     */
@@ -752,7 +773,7 @@ var TimelineControl = function(map) {
     this.addFilter = function(filterFunc) {
         data.addFilter(filterFunc);
     }
-    
+
     /** Перепроверить видимость объеков на таймлайне
      */
     this.updateFilters = function() {
@@ -764,6 +785,13 @@ var TimelineControl = function(map) {
      */
     this.getFooterContainer = function() {
         return timelineController.getFooterContainer();
+    }
+
+    /** Получить контейнер для встраивания дополнительных контролов в шапку таймлайна
+    * @return {HTMLElem}
+    */
+    this.getHeaderContainer = function () {
+        return timelineController.getHeaderContainer();
     }
     
     /** Задать видимость контролов таймлайна

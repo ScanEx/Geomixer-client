@@ -274,27 +274,26 @@ var SearchInput = function (oInitContainer, params) {
 					oMenu.style.width = Container.clientWidth - 6;
 				}
 			});
+		
+            /** Слова, содержащиеся в строке поиска */
+            $(searchField).autocomplete("widget")[0].arrSearchWords = [];
+            
+            $(searchField).data("ui-autocomplete")._renderItem = function( ul, item) {
+                var t = item.label;
+                for (var i=0; i<ul[0].arrSearchWords.length; i++){
+                    if(ul[0].arrSearchWords[i].length > 1){
+                        var re = new RegExp(ul[0].arrSearchWords[i], 'ig') ;
+                        t = t.replace(re, function(str, p1, p2, offset, s){
+                            return "<span class='ui-autocomplete-match'>" + str + "</span>";
+                        });
+                    }
+                }
+                return $( "<li></li>" )
+                    .data( "item.autocomplete", item )
+                    .append( "<a>" + t + "</a>" )
+                    .appendTo( ul );
+            };
 		});
-		
-		/** Слова, содержащиеся в строке поиска */
-		$(searchField).autocomplete("widget")[0].arrSearchWords = [];
-		
-        
-		$(searchField).data("ui-autocomplete")._renderItem = function( ul, item) {
-			var t = item.label;
-			for (var i=0; i<ul[0].arrSearchWords.length; i++){
-				if(ul[0].arrSearchWords[i].length > 1){
-					var re = new RegExp(ul[0].arrSearchWords[i], 'ig') ;
-					t = t.replace(re, function(str, p1, p2, offset, s){
-						return "<span class='ui-autocomplete-match'>" + str + "</span>";
-					});
-				}
-			}
-			return $( "<li></li>" )
-				.data( "item.autocomplete", item )
-				.append( "<a>" + t + "</a>" )
-				.appendTo( ul );
-		};
 
 	}
 	/** Возвращает контрол, в котором находится данный контрол*/
@@ -1572,7 +1571,7 @@ SearchControlGet.prototype = SearchControl;
 var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer, oInitMap){
 	var _this = this;
 	
-    var oMap = oInitMap || globalFlashMap;
+    var oMap = oInitMap || window.globalFlashMap;
     
 	var oLogic = oInitLogic;
 	/**Результаты поиска*/

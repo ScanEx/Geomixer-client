@@ -717,7 +717,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         if (res)
         {
             var b = res.bounds;
-            parent.setImageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY);
+            parent.setImageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY, 'tilePane');
             console.log('overlay', b);
         }
 	}

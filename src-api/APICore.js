@@ -159,14 +159,15 @@ extend(window.gmxAPI,
     ,
     loadJS: function(item, callback, callbackError) {
         var script = document.createElement("script");
-        script.setAttribute("charset", "windows-1251");
+        script.setAttribute("charset", item.charset || "windows-1251");
         script.setAttribute("src", item.src);
         item.readystate = 'loading';
         script.onload = function(ev) {
             var count = 0;
             if(item.count) count = item.count--;
             if(count === 0) item.readystate = 'loaded';
-            if(item.callback) item.callback(item);
+            if(callback) callback(item);
+            else if(item.callback) item.callback(item);
             document.getElementsByTagName("head").item(0).removeChild(script);
         };
         script.onerror = function(ev) {
@@ -2581,7 +2582,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName, callbackEr
 	var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 	{
 		callback && callback(obj);
-		window[callbackName] = false;
+		delete window[callbackName];
 		document.getElementsByTagName("head").item(0).removeChild(script);
 	});
     
@@ -3121,7 +3122,7 @@ FlashMapObject.prototype.setImageExtent = function(attr)
 	}
 	gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
 }
-FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
+FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, pane)
 {
     this.setImageExtent({
         url: url
@@ -3131,7 +3132,8 @@ FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
 			,maxX: x1
             ,maxY: y1
         }
-        ,notSetPolygon: flagGeo || false
+        ,notSetPolygon: false
+        ,toPaneName: pane || false
     });
 }
 

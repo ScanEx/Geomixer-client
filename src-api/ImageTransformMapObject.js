@@ -7,6 +7,7 @@
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
 		var mapNodes = gmxAPI._leaflet.mapNodes;
 		var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
+        var toPaneName = attr.toPaneName || 'shadowPane';
 
 		var LatLngToPixel = function(y, x) {
 			var point = new L.LatLng(y, x);
@@ -259,7 +260,7 @@
 			});
 			var vBounds = LMap.getBounds();
 			var vpNorthWest = vBounds.getNorthWest();
-			var marker =  new L.GMXMarker(vpNorthWest, {icon: canvasIcon, toPaneName: 'shadowPane', zIndexOffset: -1000});
+			var marker =  new L.GMXMarker(vpNorthWest, {icon: canvasIcon, toPaneName: toPaneName, zIndexOffset: -1000});
 				
 			node.leaflet = marker;
 			pGroup.addLayer(marker);
