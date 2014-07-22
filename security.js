@@ -1,18 +1,43 @@
 var nsGmx = nsGmx || {};
 
+(function() {
+
+var SHARE_TYPES = ['public', 'private'];
+
 nsGmx.Translations.addText('rus', {security: {
     ownerName: 'Владелец',
     shareType: 'Видимость в списках',
-    defAccess: 'Доступ для всех'
+    defAccess: 'Доступ для всех',
+    access: {
+        no: 'нет доступа',
+        view: 'просмотр',
+        edit: 'редактирование',
+        editrows: 'редактирование объектов',
+        preview: 'предпросмотр'
+    },
+    share: {
+        'public': 'публичный',
+        'private': 'частный'
+    }
 }});
 
 nsGmx.Translations.addText('eng', {security: {
     ownerName: 'Owner',
     shareType: 'Visible in lists',
-    defAccess: 'Public access'
+    defAccess: 'Public access',
+    access: {
+        no: 'no access',
+        view: 'view only',
+        edit: 'edit',
+        editrows: 'edit objects',
+        preview: 'preview'
+    },
+    share: {
+        'public': 'public',
+        'private': 'private'
+    }
 }});
 
-(function() {
 
 var removeMapUser = function(user, dataProvider)
 {
@@ -72,7 +97,6 @@ var security = function()
 	this.mapTypeSel = null;
 	this.mapAccessSel = null;
 	
-	this.mapAccessArr = {};
 	this.defaultAccess = null;
 	
 	this.getSecurityName = null;
@@ -97,6 +121,8 @@ var mapSecurity = function()
 	
 	this.propertyName = "MapID";
 	this.dialogTitle = "Редактирование прав доступа карты [value0]";
+
+    this.accessTypes = ['no', 'view', 'edit'];
 }
 
 mapSecurity.prototype = new security();
@@ -110,6 +136,8 @@ var layerSecurity = function()
 	
 	this.propertyName = "LayerID";
 	this.dialogTitle = "Редактирование прав доступа слоя [value0]";
+    
+    this.accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
 }
 
 layerSecurity.prototype = new security();
@@ -255,11 +283,19 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var canvas = $(Mustache.render(uiTemplate, {
         ownerName: securityInfo.SecurityInfo.Owner,
         isShowUserSuggest: isShowUserSuggest,
-        shareTypes: securityInfo.SecurityDescription.Types.map(function(type) {
-            return {value: type[0], title: type[1], isSelected: type[0] === securityInfo.SecurityInfo.Type};
+        shareTypes: SHARE_TYPES.map(function(type) {
+            return {
+                value: type, 
+                title: _gtxt('security.share.' + type), 
+                isSelected: type === securityInfo.SecurityInfo.Type
+            };
         }),
-        defAccessTypes: securityInfo.SecurityDescription.AccessList.map(function(type) {
-            return {value: type[0], title: type[1], isSelected: type[0] === securityInfo.SecurityInfo.DefAccess};
+        defAccessTypes: this.accessTypes.map(function(type) {
+            return {
+                value: type, 
+                title: _gtxt('security.access.' + type), 
+                isSelected: type === securityInfo.SecurityInfo.DefAccess
+            };
         })
     }))[0];
 	
@@ -271,11 +307,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		securityInfo.SecurityInfo.DefAccess = this.value;
 	})
 	
-	this.defaultAccess = securityInfo.SecurityDescription.DefaultAccess;
-	
-    this._accessList = securityInfo.SecurityDescription.AccessList;
-	for (var i = 0; i < securityInfo.SecurityDescription.AccessList.length; ++i)
-		this.mapAccessArr[securityInfo.SecurityDescription.AccessList[i][0]] = securityInfo.SecurityDescription.AccessList[i][1];
+	this.defaultAccess = 'view';
 	
 	$('.security-save', canvas).click(function(){
 		securityInfo.SecurityInfo.Users = _this._securityUsersProvider.getOriginalItems();
@@ -580,13 +612,13 @@ security.prototype.drawMapUsers = function(user, securityScope)
 	var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
 		tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
 		maxLayerWidth = this.tableHeader.firstChild.childNodes[0].offsetWidth + 'px',
-		accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','110px']]),
+		accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','130px']]),
         isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
 		tr;
 	
-    var accessList = securityScope._accessList;
+    var accessList = securityScope.accessTypes;
 	for (var i = 0; i < accessList.length; ++i) {
-		_(accessSel, [_option([_t(accessList[i][1])],[['attr', 'value', accessList[i][0]]])]);
+		_(accessSel, [_option([_t(_gtxt('security.access.' + accessList[i]))],[['attr', 'value', accessList[i]]])]);
     }
 
 	remove.onclick = function()
