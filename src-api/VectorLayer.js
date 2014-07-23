@@ -906,7 +906,7 @@
                     ctx.mozDash = ctx.webkitLineDash = dashes;
                     ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
                 } else {
-                    if(style.dashes) {
+                    if (dashes.length || ctx.getLineDash().length) {
                         ctx.setLineDash(dashes);
                         ctx.lineDashOffset = dashOffset;
                     }
