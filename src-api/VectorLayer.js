@@ -906,6 +906,7 @@
                     ctx.mozDash = ctx.webkitLineDash = dashes;
                     ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
                 } else {
+                    ctx.globalCompositeOperation = dashes.length ? 'source-over' : 'destination-over';
                     if (dashes.length || ctx.getLineDash().length) {
                         ctx.setLineDash(dashes);
                         ctx.lineDashOffset = dashOffset;
