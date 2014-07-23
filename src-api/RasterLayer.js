@@ -55,7 +55,7 @@
                 node.zIndexOffset = pNode.zIndexOffset;
             }
         }
-        node.zIndex = utils.getIndexLayer(id);
+        node.zIndex = utils.getIndexLayer(node.id);
 
         node.getLayerBounds = function(flag) {				// Проверка границ растрового слоя
             if(!gmxNode || !attr.mercGeom) return;
@@ -106,7 +106,7 @@
                     node.getLayerBounds();
                 }
                 var ext = (gmxAPI.currPosition && gmxAPI.currPosition.extent ? gmxAPI.currPosition.extent : gmxAPI.map.getPosition().extent);
-                var notViewFlag = (!utils.chkVisibilityByZoom(id)
+                var notViewFlag = (!utils.chkVisibilityByZoom(node.id)
                     || (!continuousWorld && !gmxAPI.extIntersect(node.extMercWithShift, ext))
                     );
     //console.log('chkVisible', notViewFlag1 , notViewFlag, gmxAPI._leaflet.zoomstart, node.boundsMerc, currPos.extent);
@@ -313,7 +313,7 @@
 
 			var initCallback = function(obj) {			// инициализация leaflet слоя
 				if(obj._container) {
-					if(obj._container.id != id) obj._container.id = id;
+					if(obj._container.id != node.id) obj._container.id = node.id;
 					//if(obj._container.style.position != 'absolute') obj._container.style.position = 'absolute';
 					//if(!'zIndex' in node) node.zIndex = utils.getIndexLayer(id) + node.zIndexOffset;
 					//utils.bringToDepth(node, node.zIndex);
@@ -331,7 +331,7 @@
 			};
 			var createLayer = function() {			// инициализация leaflet слоя
 				if(!gmxNode) {
-					gmxNode = gmxAPI.mapNodes[id];
+					gmxNode = gmxAPI.mapNodes[node.id];
 				}
 				chkInitListeners();
 				var option = {
@@ -348,7 +348,7 @@
 					,attr: attr
 					,_needLoadTile: 0
                     ,_inLoadImage: {}
-					,nodeID: id
+					,nodeID: node.id
 					,badTiles: {}
 					,async: true
 					,unloadInvisibleTiles: true
@@ -383,6 +383,7 @@
 				node.leaflet = myLayer;
 				var chkPosition = function() {
                     gmxAPI._leaflet.imageLoader.clearLayer(node.id);
+                    myLayer.options._needLoadTile = 0;
 					chkVisible();
 				}
 				LMap.on('move', chkPosition);
@@ -419,7 +420,7 @@
 			}
 		}
 
-		gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
+		gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
 		var onLayerEventID = gmxNode.addListener('onLayer', function(obj) {	// Слой инициализирован
 			gmxNode.removeListener('onLayer', onLayerEventID);
 			gmxNode = obj;
@@ -726,6 +727,7 @@
                             utils.waitChkIdle(0, 'RasterLayer ' + layer._animating);					// Проверка отрисовки карты
                             if(layer._clearBgBufferTimer) clearTimeout(layer._clearBgBufferTimer);
                             layer._clearBgBufferTimer = setTimeout(L.bind(layer._clearBgBuffer, layer), 500);
+                            layer.updateTilesPosition();
                             //console.log('_needLoadTile', opt._needLoadTile);
                         }
                     }

@@ -243,16 +243,19 @@
 		}
 		,'addItem': function(txt, geom, style)	{	// добавить Label от векторного слоя
 			if(!utils) init();
-			var node = gmxAPI._leaflet.mapNodes[geom.layerId];
-			var id = node.id + '_' + geom.id;
-			var item = prepareItem(txt, geom, style, node.shiftX, node.shiftY);
+			var node = gmxAPI._leaflet.mapNodes[geom.layerId],
+                id = node.id + '_' + geom.id,
+                item = null;
 			if(itemsHash[id]) {
+                item = itemsHash[id];
 				var bounds = new L.Bounds();
 				item.bounds.extend(itemsHash[id].bounds.min);
 				item.bounds.extend(itemsHash[id].bounds.max);
 				item.point.x = (item.bounds.max.x + item.bounds.min.x)/2;
 				item.point.y = (item.bounds.max.y + item.bounds.min.y)/2;
-			}
+			} else {
+                item = prepareItem(txt, geom, style, node.shiftX, node.shiftY);
+            }
             item.geoID = geom.id;
             item.layerID = node.id;
 			itemsHash[id] = item;

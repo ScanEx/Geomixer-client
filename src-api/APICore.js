@@ -2582,7 +2582,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName, callbackEr
 	var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 	{
 		callback && callback(obj);
-		window[callbackName] = false;
+		delete window[callbackName];
 		document.getElementsByTagName("head").item(0).removeChild(script);
 	});
     

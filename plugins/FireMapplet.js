@@ -1618,11 +1618,12 @@ var FireBurntRenderer3 = function( params )
         dailyClustersLayer.setVisibilityFilter('ogc_fid=-1');
         dailyClustersLayer.setZoomBounds(1, _params.minGeomZoom-1);
         dailyClustersLayer.setVisible(true);
-            
+        
+        var minLayerZoom = Math.min(_params.minGeomZoom, _params.minHotspotZoom);
         layer.setVisible(true);
-        layer.setZoomBounds(_params.minGeomZoom, 21);
+        layer.setZoomBounds(minLayerZoom, 21);
         layer.setDepth(-1000);
-        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(_params.minGeomZoom, 21); });
+        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(minLayerZoom, 21); });
         
         map.addListener('positionChanged', function()
         {
@@ -2296,7 +2297,9 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
                 hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
                 dailyLayerName: '65E7319D40A64780AE63C398C6F04201',
                 hotspotTimeAttr: 'ImgDateTime',
-                hotspotIDAttr: 'HotSpotID'
+                hotspotIDAttr: 'HotSpotID',
+                minHotspotZoom: firesOptions.minHotspotZoom,
+                minGeomZoom: firesOptions.minGeomZoom
             }),
             { isVisible: !!this._firesOptions.firesInit }
         );
@@ -2311,7 +2314,9 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
                 hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
                 dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
                 hotspotTimeAttr: 'Timestamp',
-                hotspotIDAttr: 'SpotID'
+                hotspotIDAttr: 'SpotID',
+                minHotspotZoom: firesOptions.minHotspotZoom,
+                minGeomZoom: firesOptions.minGeomZoom
             }),
             { isVisible: !!this._firesOptions.firesGlobalInit }
         );
@@ -2572,7 +2577,7 @@ var publicInterface = {
         if (data && $.isArray(data)) {
             data = data[0];
         }
-        var fireControl = new FireControl2(map, {data: data});
+        var fireControl = new FireControl2(map, params);
         
         //сериализация состояния
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {

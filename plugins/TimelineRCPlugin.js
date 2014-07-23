@@ -420,10 +420,17 @@ var TimelineController = function(data, map, options) {
         map.miniMap && map.miniMap.setVisible(false);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
+
         timeline.draw([], timelineOptions);
+
+        //подписываемся на событие reflow которое возникает 
+        //при обновлении элеменов на таймлайне
+        links.events.addListener(timeline, 'reflow', function () {
+            $(_this).trigger("reflow");
+        });
         
         links.events.addListener(timeline, 'select', fireSelectionEvent);
-        
+
         links.Timeline.addEventListener(timeline.dom.content, "dblclick", function(elem) {
             if (timeline.eventParams.itemIndex !== undefined) {
                 var items = data.get('items');
@@ -720,7 +727,14 @@ var TimelineControl = function(map) {
     this.bindLayer = function(layerName, options) {
         data.bindLayer(layerName, options);
     }
-    
+
+    /** Возвращает ссылку на timelineController
+     * @return {Object}
+     */
+    this.getTimelineController = function () {
+        return timelineController;
+    }
+
     /** Установить режим отображения данных на таймлайне
      * @param {String} newMode Новый режим: center, screen или none
     */
@@ -759,7 +773,7 @@ var TimelineControl = function(map) {
     this.addFilter = function(filterFunc) {
         data.addFilter(filterFunc);
     }
-    
+
     /** Перепроверить видимость объеков на таймлайне
      */
     this.updateFilters = function() {
