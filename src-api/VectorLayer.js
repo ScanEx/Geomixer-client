@@ -899,18 +899,17 @@
 
         var setCanvasStyle = function(tile, ctx, style) {       // указать стиль Canvas
             if(style) {
-                if(style.dashes) {
-                    var dashes = style.dashes;
-                    var dashOffset = (style.dashOffset ? style.dashOffset : 0);
-                    if ('setLineDash' in ctx) {     //Chrome
+                var dashes = style.dashes || [],
+                    dashOffset = style.dashOffset ? style.dashOffset : 0,
+                    isDashSupport = 'setLineDash' in ctx;
+                if (!isDashSupport) {
+                    ctx.mozDash = ctx.webkitLineDash = dashes;
+                    ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
+                } else {
+                    if(style.dashes) {
                         ctx.setLineDash(dashes);
-                        //ctx.lineDashOffset(dashOffset);
-                    } else {                        //Firefox
-                        ctx.mozDash = dashes;
-                        ctx.mozDashOffset = dashOffset;
-                        //ctx.webkitLineDash = dashes;
-                        //ctx.webkitLineDashOffset = dashOffset;
-                    }            
+                        ctx.lineDashOffset = dashOffset;
+                    }
                 }
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
