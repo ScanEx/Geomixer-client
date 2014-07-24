@@ -635,9 +635,10 @@ function initEditUI() {
     }
     
     var isEditableLayer = function(layer) {
+        var layerRights = _queryMapLayers.layerRights(layer.properties.name);
         return layer.properties.type === 'Vector' &&
-            'tilesVers' in layer.properties && 
-            _queryMapLayers.layerRights(layer.properties.name) == 'edit';
+            'tilesVers' in layer.properties &&
+            (layerRights === 'edit' || layerRights === 'editrows');
     }
     
     var hasEditableLayer = false;
