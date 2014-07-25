@@ -1539,10 +1539,10 @@
                 for (var z in geo.propHiden.drawInTiles) {
                     if(z != zoom) delete geo.propHiden.drawInTiles[z];
                 }
+                var toFilters = [];
                 if(geo.propHiden.subType === 'cluster') {
                     geo.propHiden.toFilters = node.filters;
                 } else {
-                    var toFilters = [];
                     for(var j=0, len = node.filters.length; j<len; j++) {
                         var filterID = node.filters[j],
                             filter = mapNodes[node.filters[j]];
