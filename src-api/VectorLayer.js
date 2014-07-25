@@ -1541,7 +1541,7 @@
                 }
                 var toFilters = [];
                 if(geo.propHiden.subType === 'cluster') {
-                    geo.propHiden.toFilters = node.filters;
+                    geo.propHiden.toFilters = toFilters = node.filters;
                 } else {
                     for(var j=0, len = node.filters.length; j<len; j++) {
                         var filterID = node.filters[j],
@@ -2807,7 +2807,7 @@
                                 continue;
                             }
                         }
-                        
+
                         propHiden.drawInTiles[zoom][drawTileID] = true;
                         var style = geom.propHiden.curStyle || null;
                         cnt++;
