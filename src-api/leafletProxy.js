@@ -1015,28 +1015,6 @@
             if(node.isVisible === false) return false;
             return utils.chkVisibleObject(node['parentId']);
         }
-        // ,
-        // 'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
-            // if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
-            // if(!zoom) zoom = LMap.getZoom();
-            // var drawTileID = zoom + '_' + point.x + '_' + point.y,
-                // zoomCurrent = gmxAPI._leaflet.zoomCurrent;
-            // if(zoomCurrent.gmxTileBounds[drawTileID]) {
-                // return zoomCurrent.gmxTileBounds[drawTileID];
-            // }
-            
-            // var tileSize = zoomCurrent.tileSize;
-            // var minx = Math.floor(point.x * tileSize);
-            // var miny = Math.floor(point.y * tileSize);
-            // var p = new L.Point(minx, miny);
-            // var bounds = new L.Bounds(p);
-            // bounds.extend(p);
-            // var maxx = Math.floor(minx + tileSize);
-            // var maxy = Math.floor(miny + tileSize);
-            // bounds.extend(new L.Point(maxx, maxy));
-            // gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
-            // return bounds;
-        // }
         ,
         getTileListByExtent: function(ext) { // получить список тайлов по extent на определенном zoom
             if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
@@ -1062,7 +1040,6 @@
 				pt['imageHeight'] = imagesSize[url]['imageHeight'];
 				if(flag) {
 					pt['image'] = imagesSize[url]['image'];
-					if(imagesSize[url]['polygons']) pt['polygons'] = imagesSize[url]['polygons'];
 				}
 				if(pt['waitStyle']) {
 					pt['waitStyle'](id);
@@ -1072,14 +1049,10 @@
 			}
 			var ph = {
 				'src': url
-				,'callback': function(it, svgFlag) {
+				,'callback': function(it) {
 					pt['imageWidth'] = it.width;
 					pt['imageHeight'] = it.height;
-					if(svgFlag) {
-						pt['polygons'] = it.polygons;
-					} else {
-						if(flag) pt['image'] = it;
-					}
+					if(flag) pt['image'] = it;
 					imagesSize[url] = pt;
 					if(pt['waitStyle']) {
 						pt['waitStyle'](id);
@@ -1255,16 +1228,6 @@
 
 			return pt;
 		}
-/*		
-		,
-		'parseSQL': function(sql)	{							// парсинг SQL строки
-			var zn = sql;
-			if(typeof(zn) === 'string') {
-				zn = zn.replace(/ AND /g, ' && ');
-			}
-			return zn
-		}
-*/
 		,
 		'isPropsInString': function(st)	{				// парсинг значений свойств в строке
 			if(typeof(st) === 'string') {
@@ -1712,16 +1675,6 @@
 					geo.addMembers(geo1);
 				}
 			}
-/*			
-			else if(type === 'Polygon')
-			{
-				var type1 = geo1.type;
-				for (var i = 0; i < geo1['coordinates'].length; i++)
-				{
-					res['coordinates'].push(geo1['coordinates'][i]);
-				}
-			}
-*/
 			return res;
 		}
 		,
@@ -1781,8 +1734,6 @@
 			if(!obj) return;
 			if('setZIndex' in obj) obj.setZIndex(zIndex);
             else {
-//console.log('11111111111 bringToDepth ' , obj.id, obj['zIndex'], zIndex); 
-			//obj['zIndex'] = zIndex;
                 if(!obj.leaflet) return;
                 var lObj = obj.leaflet;
                 zIndex += obj.zIndexOffset;
@@ -1795,18 +1746,7 @@
 			var n = 1;
 			if(pNode) {
 				n = pNode.children.length + 1;
-/*				
-				if(pNode['hidenAttr'] && pNode['hidenAttr']['zIdnexSkip']) {
-					//var tNode = mapNodes[pNode.parentId];
-					if(pNode.parentId == mapDivID) n = pNode.children.length;
-					else n = utils.getLastIndex(mapNodes[pNode.parentId]);
-					//if(!tNode && pNode.parentId != mapDivID) n = pNode.children.length;
-					
-					//return utils.getLastIndex(tNode);
-				}
-*/				
 			}
-//console.log('getLastIndex ' , pNode, n); 
 			return n;
 		}
 		,
@@ -3306,12 +3246,7 @@
 	gmxAPI._leaflet['cmdProxy'] = leafletCMD;				// посылка команд отрисовщику
 	gmxAPI._leaflet['utils'] = utils;						// утилиты для leaflet
 	gmxAPI._leaflet['mapNodes'] = mapNodes;					// Хэш нод обьектов карты - аналог MapNodes.hx
-    
-	//gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
-	//gmxAPI._leafletUtils = utils;
-//	var mapNodes = {						// Хэш нод обьектов карты - аналог MapNodes.hx
-	
-})();
+ })();
 
 // Geometry
 (function()
@@ -3372,23 +3307,7 @@
                 y = point.y - chkPoint.y;
             return x * x + y * y;
         }
-/*
-        var chkLabelBounds = function(labelBounds, ph) { // проверка пересечений labels
-            var p = new L.Point(ph.lx, ph.ly);
-            var b = new L.Bounds(p);
-            b.extend(p);
-            p = new L.Point(ph.lx + ph.labelExtent.x, ph.ly + ph.labelExtent.y);
-            b.extend(p);
-            for (var i = 0; i < labelBounds.length; i++)
-            {
-                if(b.intersects(labelBounds[i])) {					// проверка пересечения уже нарисованных в тайле labels
-                    return false;
-                }
-            }
-            labelBounds.push(b);
-            return true;
-        }
-*/
+
         // Проверка размера точки по стилю
         out.chkSize = function (style) {
             var prop = this.properties || null,
@@ -3433,13 +3352,6 @@
                         out.sx = scale * canv.width/2;
                         out.sy = scale * canv.height/2;
                     }
-                } else if('polygons' in style) {
-                    var rotateRes = style.rotate || 0;
-                    if(rotateRes && typeof(rotateRes) == 'string') {
-                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
-                        if(rotateRes) out.isCircle = true;
-                    }
-                    style['rotateRes'] = rotateRes || 0;
                 }
             } else {
                 if('fill' in style) {
@@ -3500,32 +3412,6 @@
                     if('opacity' in style) ctx.globalAlpha = style.opacity;
                     ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
                     if('opacity' in style) ctx.globalAlpha = 1;
-                } else if(style.polygons) {
-                    var rotateRes = style.rotate || 0;
-                    if(rotateRes && typeof(rotateRes) == 'string') {
-                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
-                    }
-                    style.rotateRes = rotateRes || 0;
-
-                    for (var i = 0, len = style.polygons.length; i < len; i++) {
-                        var p = style.polygons[i];
-                        ctx.save();
-                        ctx.lineWidth = p['stroke-width'] || 0;
-                        ctx.fillStyle = p.fill_rgba || 'rgba(0, 0, 255, 1)';
-                        
-                        ctx.beginPath();
-                        var arr = gmxAPI._leaflet.utils.rotatePoints(p.points, style.rotateRes, out._cache._scale, {'x': out.sx, 'y': out.sy});
-                        for (var j = 0, lenj = arr.length; j < lenj; j++)
-                        {
-                            var t = arr[j];
-                            if(j == 0)
-                                ctx.moveTo(px1 + t.x, py1 + t.y);
-                            else
-                                ctx.lineTo(px1 + t.x, py1 + t.y);
-                        }
-                        ctx.fill();
-                        ctx.restore();
-                    }
                 }
             } else {
                 if(style.stroke && style.weight > 0) {
@@ -3628,11 +3514,6 @@
 
 		// Отрисовка геометрии LineGeometry
 		var paintStroke = function (attr, style, ctx) {
-//console.log(bounds , ' paintStroke: ' , attr.bounds);
-			//if(!chkNeedDraw(attr)) return false;				// проверка необходимости отрисовки
-//console.log(' ok: ' , attr.bounds);
-			
-			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
