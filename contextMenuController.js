@@ -233,7 +233,12 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Свойства"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit');
+        var layerRights = _queryMapLayers.layerRights(context.elem.name);
+		return !context.layerManagerFlag && (
+            _queryMapLayers.currentMapRights() === "edit" || 
+            layerRights === 'edit' || 
+            layerRights === 'editrows'
+        );
 	},
 	clickCallback: function(context)
 	{
@@ -343,8 +348,9 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Добавить снимки"); },
 	isVisible: function(context)
 	{
+        var layerRights = _queryMapLayers.layerRights(context.elem.name);
 		return !context.layerManagerFlag &&
-               _queryMapLayers.layerRights(context.elem.name) == 'edit' && 
+               (layerRights === 'edit' || layerRights === 'editrows') && 
                context.elem.type == "Vector" &&
                context.elem.IsRasterCatalog;
 	},

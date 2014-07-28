@@ -64,7 +64,8 @@
                             return;
                         }
                         
-                        if (_queryMapLayers.layerRights(activeLayer) !== 'edit') {
+                        var layerRights = _queryMapLayers.layerRights(activeLayer);
+                        if (layerRights !== 'edit' && layerRights !== 'editrows') {
                             nsGmx.widgets.authWidget.showLoginDialog();
                             return;
                         }

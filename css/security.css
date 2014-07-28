@@ -1,0 +1,34 @@
+.security-header-table {
+    width: 100%;
+}
+
+.security-header {
+    margin: 2px 0px 13px 0px;
+}
+
+.security-header * {
+    font-size: 12px;
+}
+
+.security-header-right {
+    float: right;
+}
+
+.security-share-select {
+    width: 160px;
+}
+
+.security-save {
+    margin-left: 30px;
+    padding: 0px 5px;
+}
+
+.security-suggest-header, .security-access-header {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.suggest-table-placeholder {
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgb(153, 153, 153);
+}

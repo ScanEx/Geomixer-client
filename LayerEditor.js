@@ -394,7 +394,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
             {
                 securityDiv = _div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
             }
-            else if (layerRights != "edit")
+            else if (layerRights !== "edit")
             {
                 securityDiv = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
             }

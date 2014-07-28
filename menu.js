@@ -699,15 +699,28 @@ var leftMenu = function()
 	this.parentWorkCanvas = null;
 }
 
-leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc)
+//варианты вызова:
+//    function(canvasID, closeFunc, options) - для обратной совместимости
+//    function(canvasID, options)
+// options - те же, что и в LeftPanelItem
+leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
 {
+    if (typeof closeFunc !== 'function') {
+        options = closeFunc || {};
+        closeFunc = options.closeFunc;
+    } else {
+        options = options || {};
+    }
+    
+    options.closeFunc = function() {
+        $(_this.parentWorkCanvas).hide();
+        closeFunc && closeFunc();
+    }
+    
     var _this = this;
 	if (!$$('left_' + canvasID))
 	{
-        var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, {closeFunc: function() {
-            $(_this.parentWorkCanvas).hide();
-            closeFunc && closeFunc();
-        }});
+        var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, options);
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
 		

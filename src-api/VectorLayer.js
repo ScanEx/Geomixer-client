@@ -899,18 +899,18 @@
 
         var setCanvasStyle = function(tile, ctx, style) {       // указать стиль Canvas
             if(style) {
-                if(style.dashes) {
-                    var dashes = style.dashes;
-                    var dashOffset = (style.dashOffset ? style.dashOffset : 0);
-                    if ('setLineDash' in ctx) {     //Chrome
+                var dashes = style.dashes || [],
+                    dashOffset = style.dashOffset ? style.dashOffset : 0,
+                    isDashSupport = 'setLineDash' in ctx;
+                if (!isDashSupport) {
+                    ctx.mozDash = ctx.webkitLineDash = dashes;
+                    ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
+                } else {
+                    ctx.globalCompositeOperation = dashes.length ? 'source-over' : 'destination-over';
+                    if (dashes.length || ctx.getLineDash().length) {
                         ctx.setLineDash(dashes);
-                        //ctx.lineDashOffset(dashOffset);
-                    } else {                        //Firefox
-                        ctx.mozDash = dashes;
-                        ctx.mozDashOffset = dashOffset;
-                        //ctx.webkitLineDash = dashes;
-                        //ctx.webkitLineDashOffset = dashOffset;
-                    }            
+                        ctx.lineDashOffset = dashOffset;
+                    }
                 }
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
@@ -1539,10 +1539,10 @@
                 for (var z in geo.propHiden.drawInTiles) {
                     if(z != zoom) delete geo.propHiden.drawInTiles[z];
                 }
+                var toFilters = [];
                 if(geo.propHiden.subType === 'cluster') {
-                    geo.propHiden.toFilters = node.filters;
+                    geo.propHiden.toFilters = toFilters = node.filters;
                 } else {
-                    var toFilters = [];
                     for(var j=0, len = node.filters.length; j<len; j++) {
                         var filterID = node.filters[j],
                             filter = mapNodes[node.filters[j]];
@@ -2807,7 +2807,7 @@
                                 continue;
                             }
                         }
-                        
+
                         propHiden.drawInTiles[zoom][drawTileID] = true;
                         var style = geom.propHiden.curStyle || null;
                         cnt++;

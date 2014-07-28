@@ -315,7 +315,8 @@
             nsGmx.ContextMenuController.addContextMenuElem({
                 title: _gtxt('shiftRastersPlugin.contextTitle'),
                 isVisible: function(context) {
-                    return true;
+                    var layerRights = _queryMapLayers.layerRights(context.elem.name);
+                    return layerRights == 'edit' || layerRights == 'editrows';
                 },
                 clickCallback: function(context) {
                     var layerName = context.elem.name,

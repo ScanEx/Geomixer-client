@@ -10,45 +10,6 @@
 	var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 	var falseFn = function () {	return false; };
 
-	var parseSVG = function(item, str)	{		// парсинг SVG файла
-		var out = {};
-		var xml = gmxAPI.parseXML(str);
-		
-		var svg = xml.getElementsByTagName("svg");
-		out.width = parseFloat(svg[0].getAttribute("width"));
-		out.height = parseFloat(svg[0].getAttribute("height"));
-		
-		var polygons = svg[0].getElementsByTagName("polygon");
-		var poly = [];
-		for (var i = 0; i < polygons.length; i++)
-		{
-			var pt = {};
-			var it = polygons[i];
-			var hexString = it.getAttribute("fill"); hexString = hexString.replace(/^#/, '');
-			pt.fill = parseInt(hexString, 16);
-			pt.fill_rgba = gmxAPI._leaflet.utils.dec2rgba(pt.fill, 1);
-			
-			pt['stroke-width'] = parseFloat(it.getAttribute("stroke-width"));
-			var points = it.getAttribute("points");
-			if(points) {
-				var arr = [];
-				var pp = points.split(' ');
-				for (var j = 0; j < pp.length; j++)
-				{
-					var t = pp[j];
-					var xy = t.split(',');
-					arr.push({x: parseFloat(xy[0]), y: parseFloat(xy[1])});
-				}
-				if(arr.length) arr.push(arr[0]);
-			}
-			pt.points = arr;
-			poly.push(pt);
-		}
-		out.polygons = poly;
-        //console.log('vvvvv ', item['src'], out);
-		return out;
-	}
-	
 	var callCacheItems = function(item)	{		// загрузка image
 		if(itemsCache[item.src]) {
 			var arr = itemsCache[item.src];
@@ -60,8 +21,6 @@
 					if(it.onerror) it.onerror(first.errorEvent);
 				} else if(first.imageObj) {
 					if(it.callback) it.callback(first.imageObj, false, it);
-				} else if(first.svgPattern) {
-					if(it.callback) it.callback(first.svgPattern, true, it);
 				}
 			}
 			delete itemsCache[item.src];
@@ -80,16 +39,6 @@
             }
         }
         items = arr;
-		if(item.src.match(/\.svg$/)) {
-			var xmlhttp = gmxAPI._leaflet.utils.getXmlHttp();
-			xmlhttp.open('GET', item.src, false);
-			xmlhttp.send(null);
-			if(xmlhttp.status == 200) {
-				item.svgPattern = parseSVG(item, xmlhttp.responseText);
-				callCacheItems(item);
-			}
-			return;
-		}
 
 		var imageObj = new Image();
 		var src = item.src;
@@ -100,14 +49,12 @@
             }
         }
 		item.loaderObj = imageObj;
-		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
             item.imageObj = imageObj;
             delete item.loaderObj;
             callCacheItems(item);
 		}
 		imageObj.onload = function(ev) {
-            //console.log('ok ', ev.target.src);
 			curCount--;
 			if (gmxAPI.isIE) {
 				setTimeout(function() { chkLoadedImage(); } , 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
@@ -116,7 +63,6 @@
 			}
 		};
 		imageObj.onerror = function(ev) {
-            //console.log('onError', ev.target.src);
 			curCount--;
 			item.isError = true;
 			item.errorEvent = {
@@ -126,7 +72,6 @@
 			callCacheItems(item);
 		};
 		curCount++;
-        //console.log('src', src);
 		imageObj.src = src;
 	}
 
@@ -145,7 +90,6 @@
 			} else if(pitem.imageObj) {
 				if(item.callback) item.callback(pitem.imageObj, false, item);
 			} else {
-                //console.log('wait image: ', item.src);
 				itemsCache[item.src].push(item);
 			}
 		} else {
@@ -219,8 +163,6 @@
                             stID: item.stID
                         };
                         callCacheItems(item);
-
-                        //if(item.onerror) item.onerror({skip: true, stID: item.stID, url: key, Error: 'removed by clearLayer'});
                         curCount--;
                     }
                 }
@@ -250,8 +192,6 @@
                             stID: item.stID
                         };
                         callCacheItems(item);
-                        
-                        //if(item.onerror) item.onerror({skip: true, url: key, Error: 'removed by clearLayer'});
                         curCount--;
                     }
                     delete itemsCache[key];
