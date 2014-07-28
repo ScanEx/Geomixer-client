@@ -340,20 +340,18 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
     else
         icon = _span(null, [['dir', 'className', _drawingObject.geometry.type + (isRectangle(_drawingObject.geometry.coordinates) ? ' RECTANGLE' : '')]]);
 	
-	var remove = null;
+	var remove = _span();
     
     if (_options.allowDelete)
     {
-        remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
+        //remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
         remove.setAttribute('title', _gtxt('drawingObjects.removeObject'));
         remove.className = 'removeGeometry';
         remove.onclick = function(){
             $(_this).triggerHandler('onRemove', [_drawingObject]);
         }
     }
-    else
-        remove = _span();
-				
+
 	_(_canvas, [_span([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
 	
 	_(oInitContainer, [_canvas])
