@@ -40,3 +40,7 @@
 {
 	background: transparent url(../img/searchBeginOff_a.png) no-repeat scroll 0 0;
 }
+
+.genericHeader-left {
+    width: 360px;
+}
