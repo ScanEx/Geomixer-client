@@ -711,10 +711,12 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc)
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
 		
-		if ($$('leftContent').childNodes.length == 0)
-			_($$('leftContent'), [this.parentWorkCanvas]);
+		if ($$('leftContentInner').childNodes.length == 0) {
+            $()
+			_($$('leftContentInner'), [this.parentWorkCanvas]);
+        }
 		else
-			$$('leftContent').insertBefore(this.parentWorkCanvas, $$('leftContent').firstChild);
+			$$('leftContentInner').insertBefore(this.parentWorkCanvas, $$('leftContentInner').firstChild);
             
 		return false;
 	}
