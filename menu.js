@@ -675,7 +675,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
         $(_this).trigger('changeVisibility');
     });
     
-    $('.leftmenu-close-icon',  this.panelCanvas).click(options.closeFunc);
+    $('.leftTitle .gmx-icon-close',  this.panelCanvas).click(options.closeFunc);
     
     /** Задать новый заголовок окна
      @param {String[]} [path] Массив строк для формирования названия блока.
