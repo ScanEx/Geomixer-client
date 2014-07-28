@@ -15,7 +15,7 @@ div.tableHeader
 }
 .tableHeader td, .tableHeader th
 {
-	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	background: #F0F0F0;
 	height: 20px;
 	color: #777777;
 	text-align: center;

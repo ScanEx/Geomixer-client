@@ -1420,8 +1420,8 @@ div.layersScroll
     float: left;
 }
 
-.maps-manager-active {
-    background-color: #eeeeee;
+.maps-manager-active{
+    background-color: #fcfcfc;
 }
 
 .group-editor-search-title {
