@@ -321,7 +321,18 @@ $(function()
     nsGmx.pluginsManager.done(function()
     {
         nsGmx.pluginsManager.beforeMap();
-        nsGmx.widgets.headerController = new nsGmx.Controls.HeaderController($('.header'), {});
+        nsGmx.widgets.headerController = new nsGmx.Controls.HeaderController($('.header'), {
+            topBar: {
+                leftLinks: [{
+                    title: "ГеоМиксер",
+                    link: "http://geomixer.ru"
+                }],
+                rightLinks: [{
+                    title: "Помощь",
+                    link: "http://geomixer.ru/docs"
+                }]
+            }
+        });
         // createHeader();
         
         nsGmx.AuthManager.checkUserInfo(function()
