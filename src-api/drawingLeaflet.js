@@ -1023,7 +1023,12 @@
             objects[domId] = res;
         }
         checkLastPoint(res.geometry);
-		return res;
+        res.getStyle = function() {
+            return {
+                regular: { outline: {} }
+            }
+		}
+        return res;
 	}
 
     var fireEvent = function(eType, object) {
