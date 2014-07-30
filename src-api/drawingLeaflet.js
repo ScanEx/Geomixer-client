@@ -937,90 +937,99 @@
         var res = object.toGeoJSON(),
             domId = '_' + object._leaflet_id;
 
-        checkLastPoint(res.geometry);
-        res.id = domId;
-        res._object = object;
+         if (objects[domId]) {
+            var geoJSON = object.toGeoJSON();
+            checkLastPoint(geoJSON.geometry);
+            //objects[domId].geometry = geoJSON.geometry;
+            res = objects[domId];
+            res.geometry = res.domObj.geometry = geoJSON.geometry;
+        } else {
+            res.id = domId;
+            //res.objectId = domId;
+            res._object = object;
 
-		var domObj = {
-			geometry: res.geometry || {},
-			properties: properties || {},
-			propHiden: propHiden || {},
-			//setText: ret.setText,
-			setVisible: function(flag)
-			{
-				this.properties.isVisible = flag;
-			},
-
-			setGeometry: function(geo) {
-                //console.log('setGeometry');
-                // if('setGeometry' in ret) {
-                    // return ret.setGeometry(geo);
-                // }
-                return false;
-            },
-			update: function(geometry, text)
-			{
-                //console.log('update');
-				// if(!geometry) return;				// Если нет geometry ничего не делаем
-				// this.properties.text = text;
-				// this.properties.isVisible = ret.isVisible;
-				// this.geometry = geometry;
-				// this.balloon = ret.balloon;
-				// var evName = (addHandlerCalled ? "onEdit" : "onAdd");
-				// callHandler(evName);
-                // if(evName === 'onEdit') gmxAPI._listeners.dispatchEvent(evName, ret.domObj, ret.domObj);
-				// addHandlerCalled = true;
-			},
-			remove: function() {
-                //console.log('remove', arguments);
-                var id = res.id,
-                    obj = objects[id];
-                
-                //fireEvent('onRemove', obj._object);
-                obj._object.remove();
-                delete objects[id];
-            },
-			removeInternal: function()
-			{
-			},
-			chkZindex: function()
-			{
-			},
-			triggerInternal: function( callbackName ){ console.log('triggerInternal'); },
-			getGeometry: function() { return gmxAPI.clone(this.geometry); },
-			getLength: function() { return gmxAPI.geoLength(this.geometry); },
-			getArea: function() { return gmxAPI.geoArea(this.geometry); },
-			getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
-			setStyle: function(regularStyle, hoveredStyle) {
-                //console.log('setStyle');
-//                ret.setStyle(regularStyle, hoveredStyle);
+            var domObj = {
+                objectId: domId,
+                geometry: res.geometry || {},
+                properties: properties || {},
+                propHiden: propHiden || {},
+                //setText: ret.setText,
+                setVisible: function(flag)
+                {
+                    this.properties.isVisible = flag;
                 },
-			getVisibleStyle: function() { 
-                console.log('getVisibleStyle');
-            //return ret.getVisibleStyle(); 
-            },
-			getStyle: function(removeDefaults) {
-console.log('getStyle');
-                //return ret.getStyle(removeDefaults); 
-            },
-			stateListeners: {},
-			addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
-			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
-		}
-		// if('chkMouse' in ret) objects[myId].chkMouse = ret.chkMouse;
-		// if('getItemDownType' in ret) objects[myId].getItemDownType = ret.getItemDownType;
-		// if('itemMouseDown' in ret) objects[myId].itemMouseDown = ret.itemMouseDown;
 
-        res.domObj = domObj;
-        objects[domId] = res;
-		//currentDOMObject = ret.domObj = objects[_leaflet_id];
+                setGeometry: function(geo) {
+                    //console.log('setGeometry');
+                    // if('setGeometry' in ret) {
+                        // return ret.setGeometry(geo);
+                    // }
+                    return false;
+                },
+                update: function(geometry, text)
+                {
+                    //console.log('update');
+                    // if(!geometry) return;				// Если нет geometry ничего не делаем
+                    // this.properties.text = text;
+                    // this.properties.isVisible = ret.isVisible;
+                    // this.geometry = geometry;
+                    // this.balloon = ret.balloon;
+                    // var evName = (addHandlerCalled ? "onEdit" : "onAdd");
+                    // callHandler(evName);
+                    // if(evName === 'onEdit') gmxAPI._listeners.dispatchEvent(evName, ret.domObj, ret.domObj);
+                    // addHandlerCalled = true;
+                },
+                remove: function() {
+                    //console.log('remove', arguments);
+                    var id = res.id,
+                        obj = objects[id];
+                    
+                    fireEvent('onRemove', obj._object);
+                    obj._object.remove();
+                    delete objects[id];
+                },
+                removeInternal: function()
+                {
+                },
+                chkZindex: function()
+                {
+                },
+                triggerInternal: function( callbackName ){ console.log('triggerInternal'); },
+                getGeometry: function() { return gmxAPI.clone(this.geometry); },
+                getLength: function() { return gmxAPI.geoLength(this.geometry); },
+                getArea: function() { return gmxAPI.geoArea(this.geometry); },
+                getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
+                setStyle: function(regularStyle, hoveredStyle) {
+                    //console.log('setStyle');
+    //                ret.setStyle(regularStyle, hoveredStyle);
+                    },
+                getVisibleStyle: function() { 
+                    console.log('getVisibleStyle');
+                //return ret.getVisibleStyle(); 
+                },
+                getStyle: function(removeDefaults) {
+                    //console.log('getStyle');
+                    //return ret.getStyle(removeDefaults); 
+                },
+                stateListeners: {},
+                addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
+                removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
+            }
+            // if('chkMouse' in ret) objects[myId].chkMouse = ret.chkMouse;
+            // if('getItemDownType' in ret) objects[myId].getItemDownType = ret.getItemDownType;
+            // if('itemMouseDown' in ret) objects[myId].itemMouseDown = ret.itemMouseDown;
+
+            res.domObj = domObj;
+            objects[domId] = res;
+        }
+        checkLastPoint(res.geometry);
 		return res;
 	}
 
     var fireEvent = function(eType, object) {
         var domId = '_' + object._leaflet_id,
             res = null;
-//console.log('fireEvent', eType, object);
+        //console.log('fireEvent', eType, object);
 
         if (objects[domId]) {
             var geoJSON = object.toGeoJSON();
@@ -1049,7 +1058,6 @@ console.log('getStyle');
             .on('remove', function (ev) { fireEvent('onRemove', ev.object); })
             .on('drag', function (ev) { fireEvent('onEdit', ev.object); });
         needListeners = null;
-        //console.log('gmxDrawing drawstop', arguments);
     }
     drawFunctions.LINESTRING = function(coords, props, propHiden) {
         var LMap = gmxAPI._leaflet.LMap;
