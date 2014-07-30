@@ -1205,6 +1205,12 @@ div.layersScroll
     background: #DCE3E5
 }
 
+#layertagstable
+{
+    z-index: 10001;
+    position: relative;
+}
+
 #layertagstable .ui-autocomplete
 {
     background-color: #eeeeff;
