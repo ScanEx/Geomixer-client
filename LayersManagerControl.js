@@ -235,7 +235,7 @@ var LayerManagerControl = function( parentDiv, name, params )
         _params.fixType = [_params.fixType];
         
 	var canvas = _div(null, [['attr','id','layersList']]),
-		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
+		searchCanvas = _div(null, [['dir','className','layersSearchCanvas']]),
 		_this = this;
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','185px']]),

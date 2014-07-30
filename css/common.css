@@ -441,7 +441,7 @@ div.unit .unitInfo
 }
 
 /* layer manager */
-.searchCanvas span
+.layersSearchCanvas span
 {
 	margin: 0px 5px;
 }
@@ -880,17 +880,17 @@ skype_pnh_container
     width: 50px;
 }
 
-.searchCanvas .PeriodCalendar
+.layersSearchCanvas .PeriodCalendar
 {
 	margin: 0px;
 }
 
-.searchCanvas #calendar
+.layersSearchCanvas #calendar
 {
 	margin: 0px;
 }
 
-.searchCanvas .intersection > td
+.layersSearchCanvas .intersection > td
 {
 	padding-top: 10px;
 }
