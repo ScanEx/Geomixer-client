@@ -1000,16 +1000,44 @@
                 getArea: function() { return gmxAPI.geoArea(this.geometry); },
                 getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
                 setStyle: function(regularStyle, hoveredStyle) {
-                    //console.log('setStyle');
-    //                ret.setStyle(regularStyle, hoveredStyle);
-                    },
+                    var id = res.id,
+                        obj = objects[id];
+
+                    if (regularStyle) {
+                        var opt = {},
+                            outline = regularStyle.outline,
+                            marker = regularStyle.marker,
+                            fill = regularStyle.fill;
+                        if (outline) {
+                            if ('color' in outline) {
+                                var val = outline.color;
+                                opt.color = typeof val === 'number' ?
+                                    '#' + gmxAPIutils.dec2hex(val)
+                                    :
+                                    (val.substring(0, 1) !== '#' ? '#' : '') + val;
+                            }
+                            if ('thickness' in outline) opt.weight = outline.thickness;
+                            if ('opacity' in outline) opt.opacity = outline.opacity/100;
+                            obj._object.setLinesStyle(opt);
+                        }
+                        if (fill || marker) {
+                            opt = {};
+                            if (fill) {
+                                if ('color' in fill) opt.fillColor = '#' + gmxAPIutils.dec2hex(fill.color);
+                            }
+                            if (marker) {
+                                if ('size' in marker) opt.size = 2 * marker.size;
+                            }
+                            obj._object.setPointsStyle(opt);
+                        }
+                    }
+                },
                 getVisibleStyle: function() { 
                     console.log('getVisibleStyle');
                 //return ret.getVisibleStyle(); 
                 },
                 getStyle: function(removeDefaults) {
-                    //console.log('getStyle');
-                    //return ret.getStyle(removeDefaults); 
+                    return res.getStyle(removeDefaults);
                 },
                 stateListeners: {},
                 addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
@@ -1024,9 +1052,24 @@
         }
         checkLastPoint(res.geometry);
         res.getStyle = function() {
-            return {
-                regular: { outline: {} }
-            }
+            var id = res.id,
+                obj = objects[id],
+                _object = obj._object,
+                linesOpt = _object.lines.options,
+                pointsOpt = _object.points.options,
+                styles = {
+                    regular: {
+                        outline: { color: linesOpt.color, thickness: linesOpt.weight, opacity: linesOpt.opacity * 100 },
+                        marker: { size: pointsOpt.size },
+                        fill: { color: pointsOpt.fillColor, opacity: pointsOpt.fillOpacity * 100 }
+                    },
+                    hovered: {
+                        outline: { color: linesOpt.color, thickness: linesOpt.weight + 1 },
+                        marker: { size: pointsOpt.size + 1 },
+                        fill: { color: pointsOpt.fillColor }
+                    }
+                };
+            return styles;
 		}
         return res;
 	}
@@ -1070,7 +1113,8 @@
             if (needListeners) needListeners(LMap.gmxDrawing);
             var obj = null;
             if (coords) {
-                obj = LMap.gmxDrawing.add(L.polyline(reverseCoords(coords)), {});
+                var _latlngs = getLatlngsFromGeometry({ type: 'LineString', coordinates: coords });
+                obj = LMap.gmxDrawing.add(L.polyline(_latlngs), {});
                 obj = domFeature(obj);
             } else obj = LMap.gmxDrawing.create('Polyline', {});
 
@@ -1086,7 +1130,8 @@
             if (needListeners) needListeners(LMap.gmxDrawing);
             var obj = null;
             if (coords) {
-                obj = LMap.gmxDrawing.add(L.polygon(getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords })), {});
+                var _latlngs = getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords });
+                obj = LMap.gmxDrawing.add(L.polygon(_latlngs), {});
                 obj = domFeature(obj);
             } else obj = LMap.gmxDrawing.create('Polygon', {});
 
