@@ -1,15 +1,15 @@
 ﻿var gmxAPIutils = {
 	lastMapId: 0,
     
-	newMapId: function()
+	newId: function()
 	{
 		gmxAPIutils.lastMapId += 1;
-		return "random_" + gmxAPIutils.lastMapId;
+		return '_' + gmxAPIutils.lastMapId;
 	},
     
 	uniqueGlobalName: function(thing)
 	{
-		var id = gmxAPIutils.newMapId();
+		var id = gmxAPIutils.newId();
 		window[id] = thing;
 		return id;
 	},
@@ -97,7 +97,7 @@
       }
     }
     ,
-    
+
     tileSizes: [] // Размеры тайла по zoom
     ,
     
@@ -143,6 +143,9 @@
 				if (y > this.max.y) this.max.y = y;
                 return this;
 			},
+			extendBounds: function(bounds) {
+				this.extendArray([[bounds.min.x, bounds.min.y], [bounds.max.x, bounds.max.y]]);
+			},
 			extendArray: function(arr) {
                 if (!arr) { return this };
 				for(var i=0, len=arr.length; i<len; i++) {
@@ -157,8 +160,19 @@
                 this.max.y += dymax;
                 return this;
             },
-            //TODO: do we still need dx, dy?
-			intersects: function (bounds, dx, dy) { // (Bounds, dx, dy) -> Boolean
+			contains: function (point) { // ([x, y]) -> Boolean
+				var min = this.min, max = this.max,
+					x = point[0], y = point[1];
+				return x > min.x && x < max.x && y > min.y && y < max.y;
+            },
+			intersects: function (bounds) { // (Bounds) -> Boolean
+				var min = this.min,
+					max = this.max,
+					min2 = bounds.min,
+					max2 = bounds.max;
+				return max2.x > min.x && min2.x < max.x && max2.y > min.y && min2.y < max.y;
+            },
+			intersectsWithDelta: function (bounds, dx, dy) { // (Bounds, dx, dy) -> Boolean
 				var min = this.min,
 					max = this.max,
 					dx = dx || 0,
@@ -172,28 +186,66 @@
 		return res.extendArray(arr);
     },
 
-    geoItemBounds: function(geo) {// получить bounds векторного обьекта		
-		var type = geo.type;
-		var coords = geo.coordinates;
-		var arr = [];
-		var addToArr = function(pol) {
-			for (var i = 0, len = pol.length; i < len; i++)	arr.push(pol[i]);
-		}
-		if(type === 'POINT') {
-			arr.push(coords);
-		} else if(type === 'MULTIPOINT') {
-			for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i]);
-		} else if(type === 'LINESTRING') {
-			addToArr(coords);
-		} else if(type === 'MULTILINESTRING') {
-			for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i]);
-		} else if(type === 'POLYGON') {
-			coords.length && addToArr(coords[0]);			// дырки пропускаем
-		} else if(type === 'MULTIPOLYGON') {
-			for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i][0]);
-		}
-		return gmxAPIutils.bounds(arr);
-	},
+    geoItemBounds: function(geo) {  // get bounds by geometry
+        var type = geo.type,
+            coords = geo.coordinates,
+            bounds = null,
+            boundsArr = [],
+            arr = [];
+        if (type === 'MULTIPOLYGON') {
+            bounds = gmxAPIutils.bounds();
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var arr1 = [];
+                for (var j = 0, len1 = coords[i].length; j < len1; j++) {
+                    var b = gmxAPIutils.bounds(coords[i][j]);
+                    arr1.push(b);
+                    if (j === 0) bounds.extendBounds(b);
+                }
+                boundsArr.push(arr1);
+            }
+        } else if (type === 'POLYGON') {
+            bounds = gmxAPIutils.bounds();
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var b = gmxAPIutils.bounds(coords[i]);
+                boundsArr.push(b);
+                if (i === 0) bounds.extendBounds(b);
+            }
+        } else if (type === 'POINT') {
+            bounds = gmxAPIutils.bounds([coords]);
+        } else if (type === 'MULTIPOINT') {
+            bounds = gmxAPIutils.bounds();
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var b = gmxAPIutils.bounds([coords[i]]);
+                bounds.extendBounds(b);
+            }
+        } else if (type === 'LINESTRING') {
+            bounds = gmxAPIutils.bounds(coords);
+            //boundsArr.push(bounds);
+        } else if (type === 'MULTILINESTRING') {
+            bounds = gmxAPIutils.bounds();
+            for (var i = 0, len = coords.length; i < len; i++) {
+                var b = gmxAPIutils.bounds([coords[i]]);
+                bounds.extendBounds(b);
+                //boundsArr.push(b);
+            }
+        }
+        return {
+            bounds: bounds,
+            boundsArr: boundsArr
+        };
+    },
+
+    getMarkerPolygon: function(bounds, dx, dy) {
+        var x = (bounds.min.x + bounds.max.x) / 2,
+            y = (bounds.min.y + bounds.max.y) / 2;
+        return [
+            [x - dx, y - dy]
+            ,[x - dx, y + dy]
+            ,[x + dx, y + dy]
+            ,[x + dx, y - dy]
+            ,[x - dx, y - dy]
+        ];
+    },
 
     getPropertiesHash: function(arr, indexes) {
         var properties = {};
@@ -208,8 +260,12 @@
 		var g = (i >> 8) & 255;
 		var b = i & 255;
 		return 'rgba('+r+', '+g+', '+b+', '+a+')';
-	}
-	,
+	},
+
+    dec2hex: function(i)	{					// convert decimal to hex
+        return (i+0x1000000).toString(16).substr(-6).toUpperCase();
+    },
+
 	'oneDay': 60*60*24			// один день
 	,
     'isTileKeysIntersects': function(tk1, tk2) { // пересечение по номерам двух тайлов
@@ -219,32 +275,6 @@
         
         var dz = tk1.z - tk2.z
         return tk1.x >> dz === tk2.x && tk1.y >> dz === tk2.y;
-	}
-	,
-	parseXML: function(str)
-	{
-		var xmlDoc;
-		try
-		{
-			if (window.DOMParser)
-			{
-				parser = new DOMParser();
-				xmlDoc = parser.parseFromString(str,"text/xml");
-			}
-			else // Internet Explorer
-			{
-				xmlDoc = new ActiveXObject("MSXML2.DOMDocument.3.0");
-				xmlDoc.validateOnParse = false;
-				xmlDoc.async = false;
-				xmlDoc.loadXML(str);
-			}
-		}
-		catch(e)
-		{
-			console.log({'func': 'parseXML', 'str': str, 'event': e, 'alert': e});
-		}
-		
-		return xmlDoc;
 	},
 
     rotatePoints: function(arr, angle, scale, center) {			// rotate - массива точек
@@ -420,30 +450,15 @@
                     ctx.setTransform(gmx.mInPixel, 0, 0, gmx.mInPixel, -attr.tpx, attr.tpy);
                     ctx.drawImage(style.image, px1 - sx, sy - py1, 2 * sx, 2 * sy);
                     ctx.setTransform(gmx.mInPixel, 0, 0, -gmx.mInPixel, -attr.tpx, attr.tpy);
+                } else if(style.rotateRes) {
+                    ctx.translate(px1 - sx, py1 - sy);
+                    ctx.rotate(gmxAPIutils.deg_rad(style.rotateRes));
+                    ctx.drawImage(style.image, 0, 0, 2 * sx, 2 * sy);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
                 } else {
                     ctx.drawImage(style.image, px1 - sx, py1 - sy, 2 * sx, 2 * sy);
                 }
                 if('opacity' in style) ctx.globalAlpha = 1;
-            } else if(style.polygons) {
-                for (var i = 0, len = style.polygons.length; i < len; i++) {
-                    var p = style.polygons[i];
-                    ctx.save();
-                    ctx.lineWidth = p['stroke-width'] || 0;
-                    ctx.fillStyle = p.fill_rgba || 'rgba(0, 0, 255, 1)';
-                    
-                    ctx.beginPath();
-                    var arr = gmxAPIutils.rotatePoints(p.points, style.rotateRes, style.scale, {x: sx, y: sy});
-                    for (var j = 0, len1 = arr.length; j < len1; j++)
-                    {
-                        var t = arr[j];
-                        if(j == 0)
-                            ctx.moveTo(px1 + t.x, py1 + t.y);
-                        else
-                            ctx.lineTo(px1 + t.x, py1 + t.y);
-                    }
-                    ctx.fill();
-                    ctx.restore();
-                }
             }
         } else if(style.strokeStyle) {
             ctx.beginPath();
@@ -535,7 +550,7 @@
                 lastX = p2[0], lastY = p2[1];
                 ctx[(lineIsOnEdge ? 'moveTo' : 'lineTo')](p2[0], p2[1]);
                 if(!flagPixels) {
-                    pixels.push(p1);
+                    pixels.push([L.Util.formatNum(p1[0], 2), L.Util.formatNum(p1[1], 2)]);
                     if(lineIsOnEdge) hidden.push(cnt);
                 }
                 cnt++;
@@ -611,14 +626,6 @@
 	}
 	,'worldWidthMerc': 20037508
 	,'r_major': 6378137.000
-	,'y_ex': function(lat)	{				// Вычисление y_ex 
-		if (lat > 89.5)		lat = 89.5;
-		if (lat < -89.5) 	lat = -89.5;
-		var phi = gmxAPIutils.deg_rad(lat);
-		var ts = Math.tan(0.5*((Math.PI*0.5) - phi));
-		var y = -gmxAPIutils.r_major * Math.log(ts);
-		return y;
-	}	
 	,
 	deg_rad: function(ang)
 	{
@@ -812,17 +819,50 @@
         return true;
     },
 
-    chkPointInPolyLine: function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
+    isPointInPolyLine: function(chkPoint, lineHeight, coords, hiddenLines) {
+        // Проверка точки(с учетом размеров) на принадлежность линии
+        var dx = chkPoint[0], dy = chkPoint[1],
+            nullPoint = { x: dx, y: dy },
+            minx = dx - lineHeight, maxx = dx + lineHeight,
+            miny = dy - lineHeight, maxy = dy + lineHeight,
+            cntHide = 0;
+
         lineHeight *= lineHeight;
-        
-        var chkPoint = { x: chkPoint[0], y: chkPoint[1] };
-        var p1 = { x: coords[0][0], y: coords[0][1] };
-        for (var i = 1, len = coords.length; i < len; i++)
-        {
-            var p2 = { x: coords[i][0], y: coords[i][1] };
-            var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
-            if(sqDist < lineHeight) return true;
-            p1 = p2;
+        for (var i = 1, len = coords.length; i < len; i++) {
+            if(hiddenLines && i == hiddenLines[cntHide]) {
+                cntHide++;
+            } else {
+                var p1 = coords[i-1], p2 = coords[i],
+                    x1 = p1[0], y1 = p1[1],
+                    x2 = p2[0], y2 = p2[1];
+                
+                if(!(Math.max(x1, x2) < minx
+                    || Math.min(x1, x2) > maxx
+                    || Math.max(y1, y2) < miny
+                    || Math.min(y1, y2) > maxy)) {
+                    var sqDist = L.LineUtil._sqClosestPointOnSegment(nullPoint, { x: x1, y: y1 }, { x: x2, y: y2 }, true);
+                    if(sqDist < lineHeight) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    },
+
+    isPointInLines: function (attr) {
+        var arr = attr.coords,
+            point = attr.point,
+            delta = attr.delta,
+            boundsArr = attr.boundsArr,
+            hidden = attr.hidden;
+        for (var j = 0, len = arr.length, flag = false; j < len; j++) {
+            flag = boundsArr[j] ? boundsArr[j].contains(point) : true;
+            if (flag
+                && gmxAPIutils.isPointInPolyLine(point, delta, arr[j], hidden ? hidden[j] : null)
+            ) {
+               return true;
+            }
         }
         return false;
     },
@@ -859,18 +899,6 @@
                 p1 = arr[i], p2 = arr[ipp];
             area += p1.lng * Math.sin(gmxAPIutils.deg_rad(p2.lat)) - p2.lng * Math.sin(gmxAPIutils.deg_rad(p1.lat));
         }
-/*        
-        var area = 0,
-            len = arr.length - 1;
-        if (len < 2) return 0;
-        if (arr[0].lng !== arr[len].lng || arr[0].lat !== arr[len].lat) len++;
-        var p1 = arr[len - 1];
-        for(var i=0; i<len; i++) {
-            var p2 = arr[i];
-            area += p1.lng * Math.sin(gmxAPIutils.deg_rad(p2.lat)) - p2.lng * Math.sin(gmxAPIutils.deg_rad(p1.lat));
-            p1 = p2;
-        }
-*/
         var out = Math.abs(area * gmxAPIutils.lambertCoefX * gmxAPIutils.lambertCoefY/2);
         return out;
     },
@@ -1011,3 +1039,186 @@ L.Util.formatCoordinates = function (latlng, type) {
 L.Util.geoArea = gmxAPIutils.geoArea;
 L.Util.getGeometrySummary = gmxAPIutils.getGeometrySummary;
 L.Util.getGeometriesSummary = gmxAPIutils.getGeometriesSummary;
+
+!function() {
+
+    //скопирована из API для обеспечения независимости от него
+    function parseUri(str)
+    {
+        var	o   = parseUri.options,
+            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i   = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        uri.hostOnly = uri.host;
+        uri.host = uri.authority; // HACK
+
+        return uri;
+    };
+
+    parseUri.options = {
+        strictMode: false,
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+        q:   {
+            name:   "queryKey",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    };
+
+    var requests = {};
+    var lastRequestId = 0;
+    
+    var processMessage = function(e) {
+
+        if (!(e.origin in requests)) {
+            return;
+        }
+        
+        var dataStr = decodeURIComponent(e.data.replace(/\n/g,'\n\\'));
+        try {
+            var dataObj = JSON.parse(dataStr);
+        } catch (e) {
+            request.callback && request.callback({Status:"error", ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType: "JSON.parse", StackTrace: dataStr}});
+        }
+        var request = requests[e.origin][dataObj.CallbackName];
+        if(!request) return;    // message от других запросов
+        
+        delete request[dataObj.CallbackName];
+        delete dataObj.CallbackName;
+
+        if(request.iframe.parentNode) request.iframe.parentNode.removeChild(request.iframe);
+        request.callback && request.callback(dataObj);
+    }
+    
+    L.DomEvent.on(window, 'message', processMessage);
+
+    function createPostIframe2(id, callback, url)
+    {
+        var uniqueId = 'gmxAPIutils_id'+(lastRequestId++);
+        
+        iframe = L.DomUtil.create('iframe');
+        iframe.style.display = 'none';
+        iframe.setAttribute('id', id);
+        iframe.setAttribute('name', id);
+        iframe.src = 'javascript:true';
+        iframe.callbackName = uniqueId;
+        
+        var parsedURL = parseUri(url);
+        var origin = (parsedURL.protocol ? (parsedURL.protocol + ':') : window.location.protocol) + '//' + (parsedURL.host || window.location.host);
+        
+        requests[origin] = requests[origin] || {};
+        requests[origin][uniqueId] = {callback: callback, iframe: iframe};
+
+        return iframe;
+    }
+    
+	//расширяем namespace
+    gmxAPIutils.createPostIframe2 = createPostIframe2;
+
+}();
+
+// кроссдоменный POST запрос
+(function()
+{
+	/** Посылает кроссдоменный POST запрос
+	* @namespace utilities
+    * @ignore
+	* @function
+	* 
+	* @param url {string} - URL запроса
+	* @param params {object} - хэш параметров-запросов
+	* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
+	* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
+	*                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
+	*/
+	function sendCrossDomainPostRequest(url, params, callback, baseForm)
+	{
+        var form,
+            id = '$$iframe_' + gmxAPIutils.newId();
+
+        var iframe = gmxAPIutils.createPostIframe2(id, callback, url),
+            originalFormAction;
+            
+        if (baseForm)
+        {
+            form = baseForm;
+            originalFormAction = form.getAttribute('action');
+            form.setAttribute('action', url);
+            form.target = id;
+        }
+        else
+        {
+            if(L.Browser.ielt9) {
+                var str = '<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>';
+                form = document.createElement(str);
+            } else {
+                form = document.createElement("form");
+                form.style.display = 'none';
+                form.setAttribute('enctype', 'multipart/form-data');
+                form.target = id;
+                form.setAttribute('method', 'POST');
+                form.setAttribute('action', url);
+                form.id = id;
+            }
+        }
+        
+        var hiddenParamsDiv = document.createElement("div");
+        hiddenParamsDiv.style.display = 'none';
+        
+        if (params.WrapStyle === 'window') {
+            params.WrapStyle = 'message';
+        }
+        
+        if (params.WrapStyle === 'message') {
+            params.CallbackName = iframe.callbackName;
+        }
+        
+        for (var paramName in params)
+        {
+            var input = document.createElement("input");
+            
+            var value = typeof params[paramName] !== 'undefined' ? params[paramName] : '';
+            
+            input.setAttribute('type', 'hidden');
+            input.setAttribute('name', paramName);
+            input.setAttribute('value', value);
+            
+            hiddenParamsDiv.appendChild(input)
+        }
+        
+        form.appendChild(hiddenParamsDiv);
+        
+        if (!baseForm)
+            document.body.appendChild(form);
+            
+        document.body.appendChild(iframe);
+        
+        form.submit();
+        
+        if (baseForm)
+        {
+            form.removeChild(hiddenParamsDiv);
+            if (originalFormAction !== null)
+                form.setAttribute('action', originalFormAction);
+            else
+                form.removeAttribute('action');
+        }
+        else
+        {
+            form.parentNode.removeChild(form);
+        }
+	}
+	//расширяем namespace
+	gmxAPIutils.sendCrossDomainPostRequest = sendCrossDomainPostRequest;
+})();

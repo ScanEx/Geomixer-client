@@ -4,6 +4,8 @@ var _gtxt = function (key) {
     var res = L.gmxLocale ? L.gmxLocale.getText(key) : null;
     return res || key;
 };
+var downObject = null;
+var rectDelta = 0.0000001;
 
 L.GmxDrawing = L.Class.extend({
     options: {
@@ -57,19 +59,56 @@ L.GmxDrawing = L.Class.extend({
         var item = null;
         if (obj instanceof L.GmxDrawing.Feature) {
             item = obj;
-            this._map.addLayer(item._group);
-            item._editHandlers(true);
-            this.items.push(item);
-            this.fire('add', {mode: item.mode, object: item});
         } else {
             if (!options) options = {};
             if (obj instanceof L.Rectangle)     options.type = 'Rectangle';
             else if (obj instanceof L.Polygon)  options.type = 'Polygon';
             else if (obj instanceof L.Polyline) options.type = 'Polyline';
 
-            item = new L.GmxDrawing.Feature(this, obj, options);
+            if (obj instanceof L.Marker) {
+                item = obj;
+                this._setMarker(obj);
+                this.items.push(obj);
+                this.fire('drawstop', {mode: 'Point', object: obj});
+            } else {
+                item = new L.GmxDrawing.Feature(this, obj, options);
+            }
         }
+        if (!item._map) this._map.addLayer(item);
+        if (item.points) item.points._path.setAttribute('fill-rule', 'inherit');
+        if ('setEditMode' in item) item.setEditMode();
         return item;
+    },
+
+    _setMarker: function (marker) {
+        var my = this;
+        marker
+            .bindPopup(null, {maxWidth: 1000})
+            .on('dblclick', function(ev) {
+                this._map.removeLayer(this);
+                my.remove(this);
+            })
+            .on('popupopen', function(ev) {
+                var popup = ev.popup;
+                if (!popup._input) {
+                    popup._input = L.DomUtil.create('textarea', 'leaflet-gmx-popup-textarea', popup._contentNode);
+                    popup._input.placeholder = this.options.title || "Input text";
+                    popup._contentNode.style.width = 'auto';
+                }
+                L.DomEvent.on(popup._input, 'keyup', function(ev) {
+                    var rows = this.value.split("\n"),
+                        cols = this.cols || 0;
+                     
+                    rows.forEach(function(str) {
+                        if (str.length > cols) cols = str.length;
+                    });
+                    //if (rows > 2) 
+                    this.rows = rows.length;
+                    if (cols) this.cols = cols;
+                    popup.update();
+                }, popup._input);
+                popup.update();
+            });
     },
 
     _disableDrag: function (ev) {
@@ -101,7 +140,10 @@ L.GmxDrawing = L.Class.extend({
     create: function (type, drawOptions) {
         this._clearCreate(null);
         if (type) {
-            if (type === 'Rectangle') this._map.dragging.disable();
+            if (type === 'Rectangle') {
+                this._map._initPathRoot();
+                this._map.dragging.disable();
+            }
             if (!drawOptions) drawOptions = {};
             var my = this;
             this._createKey = {
@@ -112,38 +154,7 @@ L.GmxDrawing = L.Class.extend({
                     var obj = null,
                         latlng = ev.latlng;
                     if (type === 'Point') {
-                        obj = L.marker(latlng, {draggable: true})
-                            .addTo(this._map)
-                            .bindPopup(null, {maxWidth: 1000})
-                            .on('dblclick', function() {
-                                this._map.removeLayer(this);
-                                this.options.type = type;
-                                my._removeItem(this, true);
-                            });
-                        my.items.push(obj);
-                        my.fire('drawstop', {mode: type, object: obj});
-                        obj.on('popupopen', function(ev) {
-                            var popup = ev.popup;
-                            if (!popup._input) {
-                                popup._input = L.DomUtil.create('textarea', 'leaflet-gmx-popup-textarea', popup._contentNode);
-                                popup._input.placeholder = "Input text";
-                                popup._contentNode.style.width = 'auto';
-                            }
-                            L.DomEvent.on(popup._input, 'keyup', function(ev) {
-                                var rows = this.value.split("\n"),
-                                    cols = this.cols || 0;
-                                 
-                                rows.forEach(function(str) {
-                                    if (str.length > cols) cols = str.length;
-                                });
-                                //if (rows > 2) 
-                                this.rows = rows.length;
-                                if (cols) this.cols = cols;
-                                popup.update();
-                            }, popup._input);
-                            popup.update();
-                        });
-
+                        obj = my.add(L.marker(latlng, {draggable: true}) );
                     } else if (type === 'Rectangle') {
                         //console.log('Rectangle ', ev, latlng);
                         if (L.Browser.mobile) {
@@ -151,7 +162,7 @@ L.GmxDrawing = L.Class.extend({
                             latlng = downAttr.latlng;
                         }
                         obj = my.add(
-                            L.rectangle(L.latLngBounds(L.latLng(latlng.lat + 0.01, latlng.lng - 0.01), latlng))
+                            L.rectangle(L.latLngBounds(L.latLng(latlng.lat + rectDelta, latlng.lng - rectDelta), latlng))
                         , {mode: 'edit', drawOptions: drawOptions} );
                         if (L.Browser.mobile) obj._startTouchMove(ev, true);
                         else obj._pointDown(ev);
@@ -179,6 +190,11 @@ L.GmxDrawing = L.Class.extend({
         return this.items;
     },
 
+    _addItem: function (item) {
+        this.items.push(item);
+        this.fire('add', {mode: item.mode, object: item});
+    },
+
     _removeItem: function (obj, remove) {
         for (var i = 0, len = this.items.length; i < len; i++) {
             var item = this.items[i];
@@ -196,8 +212,8 @@ L.GmxDrawing = L.Class.extend({
     },
 
     remove: function (obj) {
-        var item = this._removeItem(obj);
-        if (item) {
+        var item = this._removeItem(obj, true);
+        if (item && '_remove' in item) {
             item._remove();
         }
         return item;
@@ -208,22 +224,31 @@ L.Map.addInitHook(function () {
     this.gmxDrawing = new L.GmxDrawing(this);
 });
 
-L.GmxDrawing.Feature = L.Handler.extend({
+L.GmxDrawing.Feature = L.LayerGroup.extend({
     options: {
         mode: '' // add, edit
     },
     includes: L.Mixin.Events,
 
     onAdd: function (map) {
-        if (map.gmxDrawing && this._group && !this._map) {
-            this._map = map;
-            map.gmxDrawing.add(this);
-            this.setEditMode();
-        }
+        L.LayerGroup.prototype.onAdd.call(this, map);
+        this._parent._addItem(this);
     },
 
     onRemove: function (map) {
-        if (map.gmxDrawing) return map.gmxDrawing.remove(this);
+        L.LayerGroup.prototype.onRemove.call(this, map);
+        this.remove();
+        this._pointUp();
+        this.removeEditMode();
+        if ('hideTooltip' in this) this.hideTooltip();
+    },
+
+    remove: function () {
+        this._parent.remove(this);
+    },
+
+    _remove: function () {
+        if (this._map) this._map.removeLayer(this);
     },
 
     setLinesStyle: function (options) {
@@ -264,7 +289,7 @@ L.GmxDrawing.Feature = L.Handler.extend({
         }
         this.points.setLatLngs(points);
         this._fireEvent('edit');
-        this._showTooltip(this.options.type === 'Polyline' ? 'lengthPoint': 'area');
+        //this._showTooltip(this.options.type === 'Polyline' ? 'lengthPoint': 'area');
     },
 
     addLatLng: function (point) {
@@ -279,6 +304,7 @@ L.GmxDrawing.Feature = L.Handler.extend({
         if (!options) options = {};
         L.setOptions(this, options);
 
+		this._layers = {};
         this._parent = parent;
 
         var latlngs = obj._latlngs,
@@ -289,11 +315,10 @@ L.GmxDrawing.Feature = L.Handler.extend({
             linesStyle.fill = true;
         }
         for (var key in options.lineStyle) linesStyle[key] = options.lineStyle[key];
-        this._group = new L.LayerGroup();
         this.lines = new L.Polyline(latlngs, linesStyle);
-        this._group.addLayer(this.lines);
+        this.addLayer(this.lines);
         this.fill = new L.GmxDrawing._Fill(latlngs);
-        this._group.addLayer(this.fill);
+        this.addLayer(this.fill);
         if (this.options.type !== 'Polyline' && mode === 'edit') {
             this.lines.addLatLng(latlngs[0]);
             this.fill.addLatLng(latlngs[0]);
@@ -301,23 +326,14 @@ L.GmxDrawing.Feature = L.Handler.extend({
 
         this.points = new L.GmxDrawing.PointMarkers(latlngs, options.pointStyle || {});
         this.points._parent = this;
-        this._group.addLayer(this.points);
+        this.addLayer(this.points);
 
-        this.onAdd(parent._map);
-
-        this.points._path.setAttribute('fill-rule', 'inherit');
         if (L.LineUtil.prettifyDistance) {
             var my = this,
-                showTooltipTimer = 0,
-                lastEvent = null;
-            var showTooltip = function (type, ev) {
-                var _latlngs = my.points._latlngs;
-                if (!ev) ev = lastEvent;
-                else lastEvent = ev;
-
-                if (showTooltipTimer) clearTimeout(showTooltipTimer);
-                showTooltipTimer = setTimeout(function () {
-                    showTooltipTimer = null;
+                geoType = my.options.type;
+            this._showTooltip = function (type, ev) {
+                if (!downObject || downObject === this) {
+                    var _latlngs = my.points._latlngs;
                     if (type === 'area') {
                         if (!L.PolyUtil.getArea) return;
                         var area = L.PolyUtil.getArea(_latlngs),
@@ -325,11 +341,10 @@ L.GmxDrawing.Feature = L.Handler.extend({
                         my._parent.showTooltip(ev.layerPoint, str);
                     } else if (type === 'length' || type === 'lengthPoint') {
                         var downAttr = L.GmxDrawing.utils.getDownType.call(my, ev, my._map),
+                            arr = [];
+                        if (downAttr.type === 'node') {
                             arr = _latlngs.slice(0, downAttr.num + 1);
-                        if (my.options.type === 'Polyline' && type === 'length') {
-                            arr.pop();
-                            arr =  arr.concat(ev.latlng);
-                        } else if (my.options.type === 'Rectangle') {
+                        } else {
                             arr = _latlngs.slice(downAttr.num - 1, downAttr.num + 1);
                             if (arr.length === 1) arr.push(_latlngs[0]);
                         }
@@ -338,41 +353,26 @@ L.GmxDrawing.Feature = L.Handler.extend({
                         my._parent.showTooltip(ev.layerPoint, str);
                     }
                     my._fireEvent('onMouseOver');
-                }, 0);
+                }
             };
-            this._showTooltip = showTooltip;
             this.hideTooltip = function() {
-                if (showTooltipTimer) clearTimeout(showTooltipTimer);
-                showTooltipTimer = null;
-                this._parent.hideTooltip();
+                if (!downObject || downObject === this) {
+                    this._parent.hideTooltip();
+                    this._fireEvent('onMouseOut');
+                }
             };
 
             this.points
                 .on('mouseover mousemove', function (ev) {
-                   showTooltip(this.options.type === 'Polyline' ? 'lengthPoint': 'area', ev);
+                    this._showTooltip(this.options.type === 'Polyline' ? 'lengthPoint': 'area', ev);
                 }, this)
-                .on('mouseout', function (ev) {
-                    this.hideTooltip();
-                    this._fireEvent('onMouseOut');
-                }, this);
+                .on('mouseout', this.hideTooltip, this);
             this.fill
                 .on('mouseover mousemove', function (ev) {
-                    showTooltip('length', ev);
+                    this._showTooltip('length', ev);
                 }, this)
-                .on('mouseout', function (ev) {
-                    this.hideTooltip();
-                    this._fireEvent('onMouseOut');
-                }, this);
+                .on('mouseout', this.hideTooltip, this);
         }
-    },
-
-    _remove: function () {
-        this._pointUp();
-        this.removeEditMode();
-        this._map.removeLayer(this._group);
-        this._parent._removeItem(this, true);
-        if ('hideTooltip' in this) this.hideTooltip();
-        this._map = null;
     },
 
     _setPoint: function (latlng, nm, type) {
@@ -415,21 +415,25 @@ L.GmxDrawing.Feature = L.Handler.extend({
             this._setPoint(latlng, num, type);
         }
         this.down = downAttr;
+        downObject = this;
         this._map
             .on('mousemove', this._pointMove, this)
             .on('mouseup', this._pointUp, this);
 
         this._parent._enableDrag();
+        if (!this.options.lineStyle && this.options.type !== 'Polyline') this.lines.setStyle({fill: true});
     },
 
     _pointMove: function (ev) {
         if (this.down) {
             this._setPoint(ev.latlng, this.down.num, this.down.type);
             this.skipClick = true;
+            if ('_showTooltip' in this) this._showTooltip(this.options.type === 'Polyline' ? 'lengthPoint': 'area', ev);
         }
     },
 
     _pointUp: function (ev) {
+        downObject = null;
         if (this._map) this._map
             .off('mousemove', this._pointMove, this)
             .off('mouseup', this._pointUp, this);
@@ -439,6 +443,7 @@ L.GmxDrawing.Feature = L.Handler.extend({
         }
         this._drawstop = false;
         this.down = null;
+        if (!this.options.lineStyle) this.lines.setStyle({fill: false});
     },
     _lastPointClickTime: 0,  // Hack for emulate dblclick on Point
 
@@ -702,7 +707,7 @@ L.GmxDrawing.Feature = L.Handler.extend({
 					}
 					this._setPoint(points[0], 0);
 				} else {
-					this.onRemove(this._map);
+					this._remove();
 				}
 				this._fireEvent('drawstop');
 				return;
