@@ -1074,7 +1074,7 @@
 			});
 			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) {
                 if(this.filters) {
-                    this.filters.foreach(function(item) {
+                    this.filters.forEach(function(item) {
                         map.balloonClassObject.enableHoverBalloon(item, callback, attr);
                     });
                 } else {
@@ -1083,7 +1083,7 @@
             });
 			gmxAPI.extendFMO('disableHoverBalloon', function() {
                 if(this.filters) {
-                    this.filters.foreach(function(item) {
+                    this.filters.forEach(function(item) {
                         map.balloonClassObject.disableHoverBalloon(item);
                     });
                 } else {
@@ -1098,9 +1098,8 @@
                     ,resStr: "<span id='"+hookID+"'></span>"
                     ,callback: callback
                 };
-                
                 if(this.filters) {
-                    this.filters.foreach(function(item) {
+                    this.filters.forEach(function(item) {
                         if(!item._balloonHook) item._balloonHook = {};
                         if(item._balloonHook[key]) return false;
                         item._balloonHook[key] = res;
@@ -1114,7 +1113,7 @@
             });
 			gmxAPI.extendFMO('removeBalloonHook', function(key) {
                 if(this.filters) {
-                    this.filters.foreach(function(item) {
+                    this.filters.forEach(function(item) {
                         if(item._balloonHook) delete item._balloonHook[key];
                     });
                 } else {
