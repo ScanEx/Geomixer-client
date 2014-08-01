@@ -1000,37 +1000,7 @@
                 getArea: function() { return gmxAPI.geoArea(this.geometry); },
                 getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
                 setStyle: function(regularStyle, hoveredStyle) {
-                    var id = res.id,
-                        obj = objects[id];
-
-                    if (regularStyle) {
-                        var opt = {},
-                            outline = regularStyle.outline,
-                            marker = regularStyle.marker,
-                            fill = regularStyle.fill;
-                        if (outline) {
-                            if ('color' in outline) {
-                                var val = outline.color;
-                                opt.color = typeof val === 'number' ?
-                                    '#' + gmxAPIutils.dec2hex(val)
-                                    :
-                                    (val.substring(0, 1) !== '#' ? '#' : '') + val;
-                            }
-                            if ('thickness' in outline) opt.weight = outline.thickness;
-                            if ('opacity' in outline) opt.opacity = outline.opacity/100;
-                            obj._object.setLinesStyle(opt);
-                        }
-                        if (fill || marker) {
-                            opt = {};
-                            if (fill) {
-                                if ('color' in fill) opt.fillColor = '#' + gmxAPIutils.dec2hex(fill.color);
-                            }
-                            if (marker) {
-                                if ('size' in marker) opt.size = 2 * marker.size;
-                            }
-                            obj._object.setPointsStyle(opt);
-                        }
-                    }
+                    return res.setStyle(regularStyle, hoveredStyle);
                 },
                 getVisibleStyle: function() { 
                     console.log('getVisibleStyle');
@@ -1051,6 +1021,31 @@
             objects[domId] = res;
         }
         checkLastPoint(res.geometry);
+        res.setStyle = function(regularStyle, hoveredStyle) {
+            var id = res.id,
+                obj = objects[id];
+
+            if (regularStyle) {
+                var opt = {},
+                    outline = regularStyle.outline,
+                    marker = regularStyle.marker,
+                    fill = regularStyle.fill;
+                if (outline) {
+                    if ('color' in outline) {
+                        var val = outline.color;
+                        opt.color = typeof val === 'number' ?
+                            '#' + gmxAPIutils.dec2hex(val)
+                            :
+                            (val.substring(0, 1) !== '#' ? '#' : '') + val;
+                    }
+                    if ('thickness' in outline) opt.weight = outline.thickness;
+                    if ('opacity' in outline) opt.opacity = outline.opacity/100;
+                    obj._object.setLinesStyle(opt);
+                }
+                opt.size = 10;
+                obj._object.setPointsStyle(opt);
+            }
+        }
         res.getStyle = function() {
             var id = res.id,
                 obj = objects[id],
