@@ -309,10 +309,14 @@ $(function()
             if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
                 resize();
                 
-            canvas.parentNode.style.overflow = 'hidden';	
+            canvas.parentNode.style.overflow = 'hidden';
             
             return false;
         }
+    })
+    
+    _translationsHash.addErrorHandler(function(text) {
+        showErrorMessage("Не найдено тектовое описание для \"" + text + "\"");
     })
     
     nsGmx.pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
