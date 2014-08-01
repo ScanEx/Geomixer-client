@@ -267,12 +267,7 @@ var SearchInput = function (oInitContainer, params) {
 				minLength: 3,
 				source: fnAutoCompleteSource,
 				select: fnAutoCompleteSelect,
-				//appendTo: searchField,
-				open: function(event, ui){
-					var oMenu = $(searchField).autocomplete("widget")[0];
-					oMenu.style.left = oMenu.offsetLeft - divSearchBegin.clientWidth + 1;
-					oMenu.style.width = Container.clientWidth - 6;
-				}
+                appendTo: searchField.parentNode
 			});
 		
             /** Слова, содержащиеся в строке поиска */

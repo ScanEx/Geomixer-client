@@ -176,8 +176,8 @@
 
   filter._attr = attr;
   prnt.filters.push(filter);
-  if (attr.name)
-   prnt.filters[attr.name] = filter;
+  // if (attr.name)
+   // prnt.filters[attr.name] = filter;
 
   if(!filter.clusters && attr.clusters && '_Clusters' in gmxAPI) {
    filter.clusters = new gmxAPI._Clusters(filter); // атрибуты кластеризации потомков по фильтру
@@ -201,7 +201,7 @@
   filter.remove = function()
   {
    var ret = gmxAPI._FMO.prototype.remove.call(this);
-   if(prnt.filters[attr.name]) delete prnt.filters[attr.name];
+   //if(prnt.filters[attr.name]) delete prnt.filters[attr.name];
    for(var i=0; i<prnt.filters.length; i++) {
     if(this == prnt.filters[i]) {
      prnt.filters.splice(i, 1);
@@ -306,11 +306,11 @@
             layer.properties.type = "Overlay";
 
         obj.filters = [];
-        obj.filters.foreach = function(callback) {
-            for (var i = 0, len = obj.filters.length; i < len; i++) {
-                if(callback(obj.filters[i], i) === false) return;
-            }
-        }
+        // obj.filters.foreach = function(callback) {
+            // for (var i = 0, len = obj.filters.length; i < len; i++) {
+                // if(callback(obj.filters[i], i) === false) return;
+            // }
+        // }
 
         if (!isRaster) {
             if(!layer.properties.styles) {  // стиль-фильтр по умолчанию
@@ -514,11 +514,11 @@
             },
             
             setStyleHook: function(func) {  // Установка стилевой функции пользователя
-                obj.filters.foreach(function(item) { item.setStyleHook(func); });
+                obj.filters.forEach(function(item) { item.setStyleHook(func); });
                 return true;
             }
             ,removeStyleHook: function() {  // удаление стилевой функции пользователя
-                obj.filters.foreach(function(item) { item.removeStyleHook(); });
+                obj.filters.forEach(function(item) { item.removeStyleHook(); });
                 return true;
             }
             ,getStatus: function(pt) {  // Получить состояние слоя по видимому extent
@@ -1004,47 +1004,48 @@
                 }
 
                 for (var i = 0, len = layer.properties.styles.length; i < len; i++) (function(i) {
-                    obj.filters[i].setZoomBounds = function(minZoom, maxZoom)
+                    var filter = obj.filters[i];
+                    filter.setZoomBounds = function(minZoom, maxZoom)
                     {
-                        if(!obj.filters[i]['_attr']) obj.filters[i]['_attr'] = {};
-                        obj.filters[i]['_attr']['MinZoom'] = minZoom;
-                        obj.filters[i]['_attr']['MaxZoom'] = maxZoom;
+                        if(!filter._attr) filter._attr = {};
+                        filter._attr.MinZoom = minZoom;
+                        filter._attr.MaxZoom = maxZoom;
                         deferred.push(function() {
-                            obj.filters[i].setZoomBounds(minZoom, maxZoom);
+                            filter.setZoomBounds(minZoom, maxZoom);
                             });
                     }
-                    obj.filters[i].setVisible = function(flag)
+                    filter.setVisible = function(flag)
                     {
                         deferred.push(function() {
-                            obj.filters[i].setVisible(flag);
+                            filter.setVisible(flag);
                             });
                     }
-                    obj.filters[i].setStyle = function(style, activeStyle)
+                    filter.setStyle = function(style, activeStyle)
                     {
                         deferred.push(function() {
-                            obj.filters[i].setStyle(style, activeStyle);
+                            filter.setStyle(style, activeStyle);
                             });
                     }
-                    obj.filters[i].setFilter = function(sql)
+                    filter.setFilter = function(sql)
                     {
-                        if(!obj.filters[i]['_attr']) obj.filters[i]['_attr'] = {};
-                        obj.filters[i]['_attr']['sql'] = sql;
+                        if(!filter._attr) filter._attr = {};
+                        filter._attr.sql = sql;
                         deferred.push(function() { 
-                            obj.filters[i].setFilter(sql);
+                            filter.setFilter(sql);
                             });
                         return true;
                     }
-                    obj.filters[i].enableHoverBalloon = function(callback, attr)
+                    filter.enableHoverBalloon = function(callback, attr)
                     {
                         deferred.push(function() {
-                            obj.filters[i].enableHoverBalloon(callback, attr);
+                            filter.enableHoverBalloon(callback, attr);
                             });
                     }
-                    obj.filters[i].setClusters = function(attr)
+                    filter.setClusters = function(attr)
                     {
-                        obj.filters[i]._clustersAttr = attr;
+                        filter._clustersAttr = attr;
                         deferred.push(function() {
-                            obj.filters[i].setClusters(attr);
+                            filter.setClusters(attr);
                         });
                     }
                 })(i);

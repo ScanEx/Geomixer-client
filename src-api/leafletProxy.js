@@ -4235,6 +4235,7 @@
 			);
 
 			gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
+            gmxAPI._leaflet.utils.chkZoomCurrent(5);
             //gmxAPI._leaflet.zoomstart = true;
             // BoxZoom при нажатом shift
             L.DomEvent.on(document, 'keydown', function(e) {
