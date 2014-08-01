@@ -249,14 +249,14 @@ td.searchCanvas
 div.leftTitle
 {
 	height: 30px;
-	background-color: #f0f0f0;
 	width: 100%;
 }
 
 .leftmenu-canvas {
     padding: 0px;
-    margin: 4px 7px 4px 20px;
+    margin: 4px 7px 8px 20px;
     border: 1px solid #dddddd;
+    background-color: #F0F0F0;
 }
 
 .leftmenu-toggle-icon {
@@ -293,8 +293,4 @@ div.leftTitle
     color: black;
     font-size: 12px;
     font-family: tahoma;
-}
-
-.workCanvas {
-    background-color: #F0F0F0;
 }

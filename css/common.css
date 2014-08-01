@@ -1439,10 +1439,10 @@ div.layersScroll
 
 .group-editor-tab-container {
     position: absolute;
-    top: 24px;
+    top: 29px;
     bottom: 2px;
-    left: 5px;
-    right: 5px;
+    left: 0px;
+    right: 0px;
     padding-bottom: 6px;
 }
 
