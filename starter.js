@@ -1109,10 +1109,9 @@ function loadMap(state)
                     var color = state.drawnObjects[i].color || 0x0000FF,
                         thickness = state.drawnObjects[i].thickness || 3,
                         opacity = state.drawnObjects[i].opacity || 80,
-                        elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
-                        style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
+                        elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties);
                     
-                    elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
+                    elem.setStyle({outline: {color: color, thickness: thickness, opacity: opacity }});
                     
                     if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
                         elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
