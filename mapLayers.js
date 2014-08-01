@@ -1885,49 +1885,37 @@ queryMapLayers.prototype.getMaps = function()
 
 queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, addLink)
 {
-	var input = _input(null, [['attr','value', ''],['css','margin','10px 10px 15px 10px'],['dir','className','inputStyle'],['css','width','220px']]),
-		button = makeButton(buttonName),
-		canvas = _div([input, button],[['css','textAlign','center']]);
-		_this = this;
-	
-	input.onkeydown = function(e)
-	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{
-	  		if (input.value != '')
-	  		{
-				func(input.value);
-				
-				$(canvas.parentNode).dialog("destroy")
-				canvas.parentNode.removeNode(true);
-			}
-			else
-				inputError(input);
-	  		
+	var uiTemplate = 
+        '<div class = "createMap-container">' + 
+            '<input class = "inputStyle createMap-input">' +
+            '<button class = "createMap-button">{{buttonName}}</button>' +
+        '</div>';
+    
+    var ui = $(Mustache.render(uiTemplate, {buttonName: buttonName})),
+        input = $('.createMap-input', ui)[0];
+    
+    var tryCreateMap = function() {
+        input.focus();
+        if (input.value != '') {
+            removeDialog(dialogDiv);
+            func(input.value);
+        } else {
+            inputError(input);
+        }
+    }
+    
+	$(input, ui).on('keydown', function(e) {
+	  	if (getkey(e.originalEvent) === 13) {
+            tryCreateMap();
 	  		return false;
 	  	}
-	}
+	})
 	
-	button.onclick = function()
-	{
-		if (input.value != '')
-		{
-			func(input.value);
-			
-			$(canvas.parentNode).dialog("destroy")
-			canvas.parentNode.removeNode(true);
-		}
-		else
-			inputError(input);
-	}
+	$('.createMap-button', ui).click(tryCreateMap)
 	
-	if (addLink)
-		_(canvas, [addLink]);
+	addLink && ui.append(addLink);
 	
-	showDialog(title, canvas, 280, 110 + (addLink ? 20 : 0), false, false);
-	
-	canvas.parentNode.style.overflow = 'hidden';
+	var dialogDiv = showDialog(title, ui[0], 280, 110 + (addLink ? 20 : 0), false, false);
 }
 
 queryMapLayers.prototype.createMap = function(name)

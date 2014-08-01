@@ -417,9 +417,7 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 
 function removeDialog(canvas)
 {
-	jQuery(canvas).dialog('destroy');
-	
-	canvas.removeNode(true);
+	jQuery(canvas).dialog('destroy').remove();
 }
 
 function showErrorMessage(message, removeFlag, title)
