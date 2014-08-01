@@ -319,9 +319,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
     }
 
 	var regularDrawingStyle = {
-			marker: {size: 3},
-			outline: { color: 0x0000ff, thickness: 3, opacity: 80 },
-			fill: {color: 0xffffff}
+			outline: { color: 0x0000ff, thickness: 3, opacity: 80 }
 		},
 		icon = null;
 
