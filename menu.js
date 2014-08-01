@@ -226,6 +226,12 @@ UpMenu.prototype.draw = function()
         _(this.parent.firstChild, [ul]);
     }
     
+    //явно прописываем всем элементам ширину с небольшим запасом
+    //это нужно, чтобы при установке bold шрифта при наведении меню не смещалось бы
+    $(ul).children().each(function() {
+        $(this).width($(this).width() + 10);
+    });
+    
     //убираем все скрытые меню
     for (var d in this.disabledTabs)
         this.disableMenus([d]);

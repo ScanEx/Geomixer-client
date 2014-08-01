@@ -5,18 +5,6 @@ ul
 	list-style-type:none;
 }
 
-/*li.header1
-{
-	float:left;
-	position:relative;
-	padding:0px 0px 0px 0px;
-	overflow:inherit;
-	display:inline;
-	z-index:2;
-	cursor:default;
-	margin: 0px 0px 0px 0px;
-}*/
-
 div.headerContainer {
     white-space:nowrap;
 }
@@ -104,7 +92,6 @@ div.header3
 	font-family: tahoma;
 	font-size: 12px;
 	font-weight: normal;
-/*	white-space: normal;*/
 }
 div.header2.menuDisabled,
 div.header3.menuDisabled
@@ -112,39 +99,18 @@ div.header3.menuDisabled
 	color: #999999;
 }
 
-li.header1.menuActive
-{
-/*	background: url(img/grad.png) repeat-x scroll 0px -40px;*/
-}
-div.header1.menuActive div.header1Internal,
-li.header2.menu2Active div.header2,
-li.header3.menu3Active div.header3
-{
-	color: #3f70a8;
+div.header1.menuActive  .header1Internal{
+    font-weight: bold;
 }
 
 div.header1.menuActive div.header1
 {
 	background: #c4dfe7;
-/*	background: transparent url(img/knopki_body.png) repeat-x scroll 0px 0px;*/
 }
 
-div.header1.menuActive div.buttonLeft
+.menu2Active, .menu3Active
 {
-/*	background: transparent url(img/left_knopka.png) repeat-x scroll 0px 0px;*/
-}
-div.header1.menuActive div.buttonRight
-{
-/*	background: transparent url(img/right_knopka.png) repeat-x scroll 0px 0px;*/
-}
-
-.menu2Active
-{
-/*	background: #8cb7db/* url(img/grad2.png) repeat-y -360px 0px*/;
-}
-.menu3Active
-{
-/*	background: #8cb7db/* url(img/grad2.png) repeat-y -540px 0px*/;
+    background-color: #e5e5e5;
 }
 
 /* menu */
@@ -205,11 +171,6 @@ div.login
 	white-space:nowrap;
 }
 
-/* */
-.iconsParent
-{
-	/*width: 100%;*/
-}
 .iconsParent td
 {
 	height: 30px;
