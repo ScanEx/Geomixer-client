@@ -1,7 +1,7 @@
 //Поддержка leaflet
 (function()
 {
-    "use strict";
+    //"use strict";
 	var nextId = 0;							// следующий ID mapNode
 	var LMap = null;						// leafLet карта
 	var imagesSize = {};					// Размеры загруженных Images
@@ -510,7 +510,8 @@
 			var ptx = canvas.getContext('2d');
 			ptx.clearRect(0, 0, ww , hh);
 			//ptx.fillRect(0, 0, ww , hh);
-			var tx = ty = 0;
+			var tx = 0,
+                ty = 0;
 			if(style['rotateRes']) {
 				tx = style.imageWidth/2;
 				ty = style.imageHeight/2;
