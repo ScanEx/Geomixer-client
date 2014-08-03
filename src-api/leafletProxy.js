@@ -1,6 +1,7 @@
 //Поддержка leaflet
 (function()
 {
+    "use strict";
 	var nextId = 0;							// следующий ID mapNode
 	var LMap = null;						// leafLet карта
 	var imagesSize = {};					// Размеры загруженных Images
@@ -549,13 +550,13 @@
 		}
 		,
 		'startDrag': function(node)	{			// Начать Drag
-			if(!node || !node['dragging']) return false;
-			var layer = node['leaflet'];
-			if(!layer && node['type'] != 'map') return false;
+			if(!node || !node.dragging) return;
+			var layer = node.leaflet;
+			if(!layer && node.type != 'map') return;
 			var chkDrag = function(eType, e) {
-				if(!node['dragging']) return;
+				if(!node.dragging) return;
 				var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
-				var latlng = (layer && layer._latlng ? layer._latlng : e.latlng || gmxAPI._leaflet['mousePos']);
+				var latlng = (layer && layer._latlng ? layer._latlng : e.latlng || gmxAPI._leaflet.mousePos);
 				var ph = {
 					'obj':gmxNode
 					,'attr': {
@@ -570,25 +571,25 @@
 			// todo drag без лефлета
 			if(layer && layer.dragging) {
 				layer.on('dragstart', function(e){
-					if(!node['dragging']) return;
-					node['onDrag'] = true;
+					if(!node.dragging) return;
+					node.onDrag = true;
 					chkDrag('dragstart', e);
 				});	// dragstart на обьекте
 				layer.on('drag', function(e){
-					if(!node['dragging']) return;
+					if(!node.dragging) return;
 					chkDrag('drag', e);
 				});			// Drag на обьекте
 				layer.on('dragend', function(e){		// dragend на обьекте
 					//if(!node['dragging']) return;
-					node['onDrag'] = false;
+					node.onDrag = false;
 					chkDrag('dragend', e);
 					//layer.off('drag');
 					//layer.off('dragstart');
 					//layer.off('dragend');
 				});
 				layer.dragging.enable();
-				layer.options['_isHandlers'] = true;
-				layer.options['dragging'] = true;
+				layer.options._isHandlers = true;
+				layer.options.dragging = true;
 				layer.update();
 			}
 			else
@@ -598,27 +599,27 @@
 					commands.freeze();
 				});
 				layer.on('mouseout', function(e) {
-					if(!gmxAPI._leaflet['mousePressed']) commands.unfreeze();
+					if(!gmxAPI._leaflet.mousePressed) commands.unfreeze();
 				});
 				node['dragMe'] = function(e) {		// dragstart на обьекте
 					chkDrag('dragstart', e);
 					commands.freeze();
 					//L.DomEvent.stop(e.originalEvent);
-					if(!node['_dragInitOn']) {
+					if(!node._dragInitOn) {
 						LMap.on('mousemove', function(e) {		// drag на обьекте
-							if(gmxAPI._leaflet['curDragState']) {
+							if(gmxAPI._leaflet.curDragState) {
 								chkDrag('drag', e);
 							}
 						});
 						LMap.on('mouseup', function(e) {			// dragend на обьекте
 							commands.unfreeze();
 							chkDrag('dragend', e);
-							node['_dragInitOn'] = false;
+							node._dragInitOn = false;
 						});
 					}
-					node['_dragInitOn'] = true;		// drag инициализирован
+					node._dragInitOn = true;		// drag инициализирован
 				};
-                layer.on('mousedown', node['dragMe']);
+                layer.on('mousedown', node.dragMe);
 			}
 		}
 		,
@@ -631,6 +632,7 @@
 			} catch(e) {
 				return true;
 			}
+            return false;
 		}
 		,
 		'getScaleImage': function(img, sx, sy)	{			//получить img отскалированный в Canvas
@@ -646,7 +648,7 @@
 		}
         ,
         'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
-            var bounds = new L.Bounds();
+            var bounds = new L.Bounds(),
                 out = {
                     bounds: bounds						// Bounds слоя
                 };
@@ -851,7 +853,7 @@
         'getMapPosition': function()	{			// Получить позицию карты
             var zoom = LMap.getZoom();
             if(!zoom) {
-                return;
+                return null;
             }
             var pos = LMap.getCenter(),
                 size = LMap.getSize(),
@@ -908,10 +910,11 @@
                     if (px < -180) px += 360;
                     else if (px > 180) px -= 360;
                 }
-                var pos = new L.LatLng(py, px);
+                var pos = new L.LatLng(py, px),
+                    opt = gmxAPI._leaflet.zoomstart || {};
                 gmxAPI.needZoom = null;
                 gmxAPI.map.needMove = null;
-                LMap.setView(pos, z, gmxAPI._leaflet.zoomstart);
+                LMap.setView(pos, z, opt);
             }, zd);
         }
         ,
@@ -961,7 +964,7 @@
         }
         ,
         chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
-            if(!attr || !attr.evName) return;
+            if(!attr || !attr.evName) return false;
             var evName = attr.evName;
 
             if(!gmxAPI._drawing || (!gmxAPI._drawing.activeState && gmxAPI._drawing.type !== 'POINT')) {
@@ -995,6 +998,7 @@
             } else if(gmxAPI.map.stateListeners[evName] && gmxAPI.map.stateListeners[evName].length) {
                 if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {attr:attr})) return true;
             }
+            return false;
         }
         ,
         'chkVisibilityByZoom': function(id)	{				// проверка видимости обьекта - по minZ maxZ
@@ -1330,7 +1334,7 @@
 		,
 		'repaintNode': function(node, recursion, type) { // перерисовать ноду - рекурсивно
 			if(!node) {
-				return null;
+				return;
 			}
 			if(!type) type = 'regularStyle';
 			var regularStyle = utils.getNodeProp(node, type, true);
@@ -1824,14 +1828,14 @@
 	// setLabel для mapObject
 	function setLabel(id, iconAnchor)	{
 		var node = mapNodes[id];
-		if(!node) return false;
+		if(!node) return;
 		gmxAPI._leaflet.LabelsManager.add(id);			// добавим в менеджер отрисовки
 	}
 
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
 		var node = mapNodes[id];
-		if(!node || !attr) return false;
+		if(!node || !attr) return;
 
 		if(attr.regularStyle) {
 			node._regularStyle = gmxAPI.clone(attr.regularStyle);
@@ -1887,7 +1891,7 @@
 	// добавить Handlers для leaflet нод
 	function setNodeHandlers(id)	{
 		var node = mapNodes[id];
-		if(!node || !node.handlers) return false;
+		if(!node || !node.handlers) return;
 		node.isHandlers = false;
 		for (var evName in scanexEventNames) {
 			setHandlerObject(id, evName);
@@ -1921,7 +1925,7 @@
 			var func = function(e) {
 				if(gmxAPI._drawing.activeState && evName == 'onClick') {
 					gmxAPI._leaflet.chkClick(e);
-					return false;
+					return;
 				}
 				if(node.hoveredStyle && 'setStyle' in node.leaflet) {
 					if(evName == 'onMouseOver') {
@@ -2441,7 +2445,7 @@
                 return;
             }
 			var layer = node['leaflet'];
-			if(!layer && node['type'] != 'map') return false;
+			if(!layer && node['type'] != 'map') return;
             if(layer && layer.dragging) {
 				layer.dragging.disable();
                 node['dragging'] = false;
@@ -2509,16 +2513,16 @@
 		}
 		,
 		'bringToTop': function(ph)	{						// установка zIndex - вверх
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			var zIndex = 1;
-			if('getMaxzIndex' in node) zIndex = node['getMaxzIndex']();
-			else zIndex = utils.getLastIndex(node.parent);
-			node['zIndex'] = zIndex;
+			var id = ph.obj.objectId,
+                node = mapNodes[id],
+                zIndex = 1;
+			if('getMaxzIndex' in node) zIndex = node.getMaxzIndex();
+			else if (node.parent) zIndex = utils.getLastIndex(node.parent);
+			node.zIndex = zIndex;
 			utils.bringToDepth(node, zIndex);
 			if(!gmxAPI.map.needMove) {
 				if('bringToFront' in node) node.bringToFront();
-				else if(node['leaflet'] && node['leaflet']._map && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
+				else if(node.leaflet && node.leaflet._map && 'bringToFront' in node.leaflet) node.leaflet.bringToFront();
 				gmxAPI.map.drawing.chkZindex(id);
 			}
 			return zIndex;
@@ -2528,11 +2532,11 @@
 			var obj = ph.obj;
 			var id = obj.objectId;
 			var node = mapNodes[id];
-			node['zIndex'] = ('getMinzIndex' in node ? node.getMinzIndex() : 0);
-			utils.bringToDepth(node, node['zIndex']);
-			if(!gmxAPI.map.needMove && node['type'] !== 'VectorLayer') {
+			node.zIndex = ('getMinzIndex' in node ? node.getMinzIndex() : 0);
+			utils.bringToDepth(node, node.zIndex);
+			if(!gmxAPI.map.needMove && node.type !== 'VectorLayer') {
 				if('bringToBack' in node) node.bringToBack();
-				else if(node['leaflet'] && node['leaflet']._map && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
+				else if(node.leaflet && node.leaflet._map && 'bringToBack' in node.leaflet) node.leaflet.bringToBack();
 				gmxAPI.map.drawing.chkZindex(id);
 			}
 			return 0;
@@ -2617,25 +2621,25 @@
         ,addClipPolygon: function(ph) {     // Установка геометрии обрезки слоя
             var id = ph.obj.objectId;
             var node = mapNodes[id];
-            if(!node) return false;
+            if(!node) return;
             if('addClipPolygon' in node) node.addClipPolygon(ph.attr);
         }
         ,removeClipPolygon: function(ph) {  // Удаление геометрии обрезки слоя
             var id = ph.obj.objectId;
             var node = mapNodes[id];
-            if(!node) return false;
+            if(!node) return;
             if('removeClipPolygon' in node) node.removeClipPolygon(ph.attr);
         }
         ,addImageProcessingHook: function(ph) {     // Установка предобработчика растрового тайла
             var id = ph.obj.objectId;
             var node = mapNodes[id];
-            if(!node) return false;
+            if(!node) return;
             node.imageProcessingHook = ph.attr.func;
         }
         ,removeImageProcessingHook: function(ph) {  // Удаление предобработчика растрового тайла
             var id = ph.obj.objectId;
             var node = mapNodes[id];
-            if(!node) return false;
+            if(!node) return;
             delete node.imageProcessingHook;
         }
         ,
@@ -2669,7 +2673,7 @@
 		'getStyle':	function(ph)	{				// Установка стилей обьекта
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;						// Нода не была создана через addObject
+			if(!node) return false;     // Нода не была создана через addObject
 			var out = {	};
 			if(node._regularStyle) out.regular = node._regularStyle;
 			if(node._hoveredStyle) out.hovered = node._hoveredStyle;
@@ -2704,19 +2708,19 @@
 		'setWatcher':	function(ph)	{			// Установка подглядывателя обьекта под Hover обьектом
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return null;
+			if(!node) return;
 			if('setWatcher' in node) node['setWatcher'](ph.attr);
 		}
 		,
 		'removeWatcher': function(ph)	{				// Удалить подглядыватель
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node) return null;
+			var id = ph.obj.objectId,
+                node = mapNodes[id];
+			if(!node) return;
 			if('removeWatcher' in node) node['removeWatcher']();
 		}
 		,
 		'setFilter':	function(ph)	{			// Установка фильтра
-			var id = ph.obj.objectId;
+			var id = ph.obj.objectId,
                 node = mapNodes[id];
 			if(!node) return null;					// Нода не была создана через addObject
 			node.type = 'filter';
@@ -3027,16 +3031,15 @@
 		}
 		,
 		'setZoomBounds':	function(ph)	{		// Установка границ по zoom
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node) return;
+			var id = ph.obj.objectId,
+                node = mapNodes[id];
+			if(!node) return false;
 			node.minZ = ph.attr.minZ || gmxAPI.defaultMinZoom;
 			node.maxZ = ph.attr.maxZ || gmxAPI.defaultMaxZoom;
-			var pnode = mapNodes[node.parentId];
-			if(node.propHiden && node.propHiden.subType == 'tilesParent') {			//ограничение по zoom квиклуков
-				if(pnode) {
-					if(pnode.setZoomBoundsQuicklook) pnode.setZoomBoundsQuicklook(node.minZ, node.maxZ);
-				}
+			var pnode = mapNodes[node.parentId],
+                propHiden = node.propHiden;
+			if(propHiden && propHiden.subType == 'tilesParent') {			//ограничение по zoom квиклуков
+				if(pnode && pnode.setZoomBoundsQuicklook) pnode.setZoomBoundsQuicklook(node.minZ, node.maxZ);
 			} else if(node.type == 'map') {			//ограничение по zoom map
 				commands.setMinMaxZoom({ attr:{ z1: node.minZ, z2: node.maxZ } })
 			} else if('onZoomend' in node) {					// есть проверка по Zoom
@@ -3052,10 +3055,10 @@
 		'observeVectorLayer':	function(ph)	{		// Установка получателя видимых обьектов векторного слоя
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;
+			if(!node) return false;
 			var layerId = ph.attr.layerId;
 			var nodeLayer = mapNodes[layerId];
-			if(!nodeLayer) return;
+			if(!nodeLayer) return false;
 			nodeLayer.setObserver(ph);
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
@@ -3073,7 +3076,7 @@
         'setImage':	function(ph)	{					// Установка изображения
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;
+			if(!node) return false;
 			setTimeout(function() {
                 var fName = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
                 gmxAPI._leaflet[fName](node, ph);
@@ -3084,7 +3087,7 @@
 		'setImageExtent':	function(ph)	{			// Установка изображения без трансформации
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;
+			if(!node) return false;
 			ph['setImageExtent'] = true;
 			setTimeout(function() {
                 gmxAPI._leaflet.setImageMapObject(node, ph);
@@ -3550,7 +3553,7 @@
 
 		// Отрисовка LineGeometry
 		out['paint'] = function(attr, style, ctx) {
-			if(!attr) return;
+			if(!attr) return false;
 			if(style && style['marker']) {
 				if(style['image']) {
 					//var ctx = attr['ctx'];
@@ -3677,7 +3680,7 @@
 		out.bounds = bounds;
 		out['cnt'] = cnt;
 		out['paint'] = function (attr, style, ctx) {
-			if(!attr) return;
+			if(!attr) return 0;
 			var cnt = 0;
 			if(attr.bounds.intersects(bounds)) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0, len = members.length; i < len; i++) {
@@ -3744,10 +3747,10 @@
     // Парсинг координат
     var parseCoordinates = function (obj) {
         var cnt = 0,
-            coordinates = obj.coordinates;
+            coordinates = obj.coordinates,
             bounds = gmxAPI.bounds(),
             hideLines = [],
-            tileBounds = obj.tileBounds;
+            tileBounds = obj.tileBounds,
             d = (tileBounds.max.x - tileBounds.min.x)/10000,
             tbDelta = { // границы тайла для определения onEdge отрезков
                 minX: tileBounds.min.x + d
@@ -3786,7 +3789,7 @@
     //расширяем namespace
     if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
     gmxAPI._leaflet.PolygonGeometry = function(geo_, tileBounds_) {				// класс PolygonGeometry
-        if(!tileBounds_) return;
+        if(!tileBounds_) return null;
         var out = gmxAPI._leaflet.Geometry();
         gmxAPI.extend(out, {
             type: 'Polygon'
@@ -3855,7 +3858,7 @@
 
         // Отрисовка заполнения полигона
         var paintFill = function (attr, style, ctx, fillFlag) {
-            if(!attr) return false;
+            if(!attr) return;
             var x = attr.x, y = 256 + attr.y,
                 coordinates = out.coordinates,
                 mInPixel = gmxAPI._leaflet.mInPixel;
@@ -3949,7 +3952,7 @@
         }
         // Отрисовка полигона
         out.paint = function(attr, style, ctx) {
-            if(!attr || !style) return;
+            if(!attr || !style) return 0;
             var x = attr.x, y = 256 + attr.y,
                 center = out.center,
                 mInPixel = gmxAPI._leaflet.mInPixel;
@@ -3974,6 +3977,7 @@
                 }
                 return true;
             }
+            return 0;
         }
         return out;
     };
@@ -4428,7 +4432,7 @@ var tt = 1;
 				if(gmxAPI._leaflet.mousedown) timeDown -= 900;
 				gmxAPI._leaflet.mousePos = e.latlng;
 				var attr = parseEvent(e);
-				if(!attr) return;				// пропускаем
+				if(!attr) return null;				// пропускаем
 				attr.evName = 'onMouseMove';
 				gmxAPI._leaflet.mouseMoveAttr = attr;
 				if(gmxAPI._drawing.activeState) {
@@ -5048,7 +5052,7 @@ var tt = 1;
     }
 
 	// Добавить leaflet в DOM
-	function addLeafLetObject(apiBase, flashId, ww, hh, v, bg, loadCallback, FlagFlashLSO)
+	function addLeafLetObject(apiBase, flashId, ww, hh, v, bg, loadCallback)
 	{
 		mapDivID = flashId;
 		initFunc = loadCallback;

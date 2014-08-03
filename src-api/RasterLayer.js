@@ -46,12 +46,14 @@
             if(node.propHiden.zIndexOffset) node.zIndexOffset = node.propHiden.zIndexOffset;
         }
         var pNode = mapNodes[node.parentId];        // Нода родителя
-        if(pNode && pNode.propHiden && pNode.propHiden.subType === 'tilesParent') {
-            attr.minZoom = pNode.minZ || 1;
-            attr.maxZoom = pNode.maxZ || 30;
-            // pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
-        } else {
-            if(pNode && pNode.zIndexOffset) {
+        if(pNode) {
+            var propHiden = pNode.propHiden || {};
+            if(propHiden.subType && propHiden.subType === 'tilesParent') {
+                attr.minZoom = pNode.minZ || 1;
+                attr.maxZoom = pNode.maxZ || 30;
+                // pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
+            }
+            if(pNode.zIndexOffset) {
                 node.zIndexOffset = pNode.zIndexOffset;
             }
         }
@@ -496,9 +498,10 @@
                 
                 //L.TileLayer.Canvas.prototype._reset.call(this, e);
                 this.options._needLoadTile = 0;
-                
-                for (var key in this._tiles) {
-                    this.fire('tileunload', {tile: this._tiles[key]});
+                if (this._tiles) {
+                    for (var key in this._tiles) {
+                        this.fire('tileunload', {tile: this._tiles[key]});
+                    }
                 }
                 this._tiles = {};
                 this._tilesToLoad = 0;
@@ -724,7 +727,7 @@
                         }
                         if(opt._needLoadTile < 1) {
                             delete gmxAPI._leaflet.renderingObjects[opt.nodeID];
-                            utils.waitChkIdle(0, 'RasterLayer ' + layer._animating);					// Проверка отрисовки карты
+                            utils.waitChkIdle(0, 'RasterLayer ' + opt.nodeID);  // Проверка отрисовки карты
                             if(layer._clearBgBufferTimer) clearTimeout(layer._clearBgBufferTimer);
                             layer._clearBgBufferTimer = setTimeout(L.bind(layer._clearBgBuffer, layer), 500);
                             layer.updateTilesPosition();
@@ -751,7 +754,9 @@
                 var arr = [tile];
                 if(!tile) {
                     arr = [];
-                    for(var tKey in this._tiles) arr.push(this._tiles[tKey]);
+                    if (this._tiles) {
+                        for(var tKey in this._tiles) arr.push(this._tiles[tKey]);
+                    }
                 }
                 for (var i = 0, len = arr.length; i < len; i++) {
                     var tile = arr[i];

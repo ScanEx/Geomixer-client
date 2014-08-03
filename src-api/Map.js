@@ -659,24 +659,25 @@
         {
             var currPos = (attr && attr.currPosition ? attr.currPosition : map.getPosition());
             
-            var eventFlag = (gmxAPI.currPosition && currPos['x'] == gmxAPI.currPosition['x']
-                && currPos['y'] == gmxAPI.currPosition['y']
-                && currPos['z'] == gmxAPI.currPosition['z']
+            var eventFlag = (gmxAPI.currPosition && currPos.x == gmxAPI.currPosition.x
+                && currPos.y == gmxAPI.currPosition.y
+                && currPos.z == gmxAPI.currPosition.z
                 ? false : true);
 
-            currPos['latlng'] = {
-                'x': gmxAPI.from_merc_x(currPos['x']),
-                'y': gmxAPI.from_merc_y(currPos['y']),
-                'mouseX': gmxAPI.from_merc_x(currPos['mouseX']),
-                'mouseY': gmxAPI.from_merc_y(currPos['mouseY'])
+            currPos.latlng = {
+                x: gmxAPI.from_merc_x(currPos.x),
+                y: gmxAPI.from_merc_y(currPos.y),
+                mouseX: gmxAPI.from_merc_x(currPos.mouseX),
+                mouseY: gmxAPI.from_merc_y(currPos.mouseY)
             };
-            if(currPos['extent']) {
-                if(currPos['extent']['minx'] != 0 || currPos['extent']['maxx'] != 0) {
-                    currPos['latlng']['extent'] = {
-                        minX: gmxAPI.from_merc_x(currPos['extent']['minX'] || currPos['extent']['minx']),
-                        minY: gmxAPI.from_merc_y(currPos['extent']['minY'] || currPos['extent']['miny']),
-                        maxX: gmxAPI.from_merc_x(currPos['extent']['maxX'] || currPos['extent']['maxx']),
-                        maxY: gmxAPI.from_merc_y(currPos['extent']['maxY'] || currPos['extent']['maxy'])
+            if(currPos.extent) {
+                var extent = currPos.extent;
+                if(extent.minx || extent.maxx) {
+                    currPos.latlng.extent = {
+                        minX: gmxAPI.from_merc_x(extent.minX || extent.minx),
+                        minY: gmxAPI.from_merc_y(extent.minY || extent.miny),
+                        maxX: gmxAPI.from_merc_x(extent.maxX || extent.maxx),
+                        maxY: gmxAPI.from_merc_y(extent.maxY || extent.maxy)
                     };
                 }
             }

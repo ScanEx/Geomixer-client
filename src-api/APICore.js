@@ -1791,8 +1791,7 @@ extend(window.gmxAPI,
 			apiHost = gmxAPI.getHostAndPath(window.location.href);
 		}
 		var arr = /(.*)\/[^\/]*/.exec(apiHost);
-		res = (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
-		return res;
+		return (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
 	})
 	,
 	getAPIHostRoot: memoize(function()
@@ -2451,9 +2450,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
     function createPostIframe2(id, callback, url)
     {
-        var uniqueId = 'gmxAPI_id'+(lastRequestId++);
-        
-        iframe = document.createElement("iframe");
+        var uniqueId = 'gmxAPI_id'+(lastRequestId++),
+            iframe = document.createElement("iframe");
+
         iframe.style.display = 'none';
         iframe.setAttribute('id', id);
         iframe.setAttribute('name', id);
@@ -3554,7 +3553,7 @@ function createFlashMapInternal(div, layers, callback)
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
-		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
+		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback);
 		if(o === '') {
 			var warnDiv = document.getElementById('noflash');
 			if(warnDiv) warnDiv.style.display = 'block';

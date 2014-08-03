@@ -79,7 +79,7 @@
 		if(curCount > maxCount) return;
 		if(items.length < 1) {
 			curCount = 0;
-			return false;
+			return;
 		}
 		var item = items.shift();
 
