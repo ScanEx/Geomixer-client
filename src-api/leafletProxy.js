@@ -498,11 +498,11 @@
 		}
 		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
-			var canvas = document.createElement('canvas');
-			var ww = style.imageWidth;
-			var hh = style.imageHeight;
-			if(style['rotateRes']) {
-				ww = size;
+			var canvas = document.createElement('canvas'),
+                ww = style.imageWidth,
+                hh = style.imageHeight;
+			if(style.rotateRes) {
+				ww = size || Math.ceil(Math.sqrt(ww*ww + hh*hh));
 				hh = ww;
 			}
 			canvas.width = ww;
@@ -512,32 +512,32 @@
 			//ptx.fillRect(0, 0, ww , hh);
 			var tx = 0,
                 ty = 0;
-			if(style['rotateRes']) {
+			if(style.rotateRes) {
 				tx = style.imageWidth/2;
 				ty = style.imageHeight/2;
 				ptx.translate(ww/2, hh/2);
-				ptx.rotate(Math.PI * style['rotateRes']/180);
+				ptx.rotate(Math.PI * style.rotateRes/180);
 			}
 			ptx.drawImage(img, -tx, -ty);
 			if('color' in style) {
 				var color = style.color;
-				if(typeof(style.color) == 'string') color = parseInt('0x' + style.color.replace(/#/, ''));
-				if (color != gmxAPI._leaflet['utils'].DEFAULT_REPLACEMENT_COLOR) {
-					var r = (color >> 16) & 255;
-					var g = (color >> 8) & 255;
-					var b = color & 255;
-					var flag = false;
+				if(typeof(color) == 'string') color = parseInt('0x' + color.replace(/#/, ''));
+				if (color != gmxAPI._leaflet.utils.DEFAULT_REPLACEMENT_COLOR) {
+					var r = (color >> 16) & 255,
+                        g = (color >> 8) & 255,
+                        b = color & 255,
+                        flag = false;
 
-					var imageData = ptx.getImageData(0, 0, ww, hh);
-					for (var i = 0; i < imageData.data.length; i+=4)
-					{
-						if (imageData.data[i] == 0xff
-							&& imageData.data[i+1] == 0
-							&& imageData.data[i+2] == 0xff
+					var imageData = ptx.getImageData(0, 0, ww, hh),
+                        data = imageData.data;
+					for (var i = 0, len = data.length; i < len; i+=4) {
+						if (data[i] === 0xff
+							&& data[i+1] === 0
+							&& data[i+2] === 0xff
 							) {
-							imageData.data[i] = r;
-							imageData.data[i+1] = g;
-							imageData.data[i+2] = b;
+							data[i] = r;
+							data[i+1] = g;
+							data[i+2] = b;
 							flag = true;
 						}
 					}
@@ -3335,26 +3335,17 @@
 
             if(style.marker) {
                 if(style.image) {
-                    var canv = out._cache.canv;
-                    if(!canv) {
-                        canv = style.image;
-                        var rotateRes = style.rotate || 0;
-                        if(rotateRes && typeof(rotateRes) == 'string') {
-                            rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                    var rotateRes = style.rotate || 0;
+                    if(rotateRes && typeof(rotateRes) == 'string') {
+                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                    }
+                    style.rotateRes = rotateRes;
+                    if(rotateRes || 'color' in style) {
+                        if(rotateRes) {
+                            size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+                            out.sx = out.sy = Math.ceil(scale * size/2);
+                            out.isCircle = true;
                         }
-                        style.rotateRes = rotateRes;
-                        if(rotateRes || 'color' in style) {
-                            if(rotateRes) {
-                                size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-                                out.sx = out.sy = Math.ceil(scale * size/2);
-                                out.isCircle = true;
-                            }
-                            canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style, size);
-                        }
-                        out._cache.canv = canv;
-                    } else {
-                        out.sx = scale * canv.width/2;
-                        out.sy = scale * canv.height/2;
                     }
                 }
             } else {
@@ -3412,7 +3403,7 @@
 
             if(style.marker) {
                 if(style.image) {
-                    var canv = out._cache.canv;
+                    var canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style);
                     if('opacity' in style) ctx.globalAlpha = style.opacity;
                     ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
                     if('opacity' in style) ctx.globalAlpha = 1;

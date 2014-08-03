@@ -211,10 +211,11 @@
             return arr;
         }
 
-        var getTKeysFromGmxTileID = function(tkeys, gmxTiles) {   // событие mouseOut
+        var getTKeysFromGmxTileID = function(tkeys, gmxTiles) {
             for (var gmxTileID in gmxTiles) {
-                for(var tKey in node.tilesKeys[gmxTileID]) {
-                    tkeys[tKey] = true;
+                var hash = node.tilesKeys[gmxTileID];
+                if (hash) {
+                    for(var tKey in hash) tkeys[tKey] = true;
                 }
             }
         }
