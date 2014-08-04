@@ -19,22 +19,25 @@ nsGmx.MapsManagerControl = function()
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 {
+    var searchUITemplate = 
+        '<div class="mapslist-search">' +
+            '<table class="mapslist-search-table"><tr>' +
+                '<td>' +
+                    '{{i Название}}<input class="mapslist-search-name">' +
+                '</td><td>' +
+                    '{{i Владелец}}<input class="mapslist-search-owner">' +
+                '</td>' +
+            '</tr></table>' +
+        '</div>';
+        
+    var searchCanvas = $(Mustache.render(searchUITemplate))[0];
 	var canvas = _div(null, [['attr','id','mapsList']]),
-		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		name = 'maps',
         mapsTable = this._mapsTable,
 		_this = this;
 	
-	var mapNameInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
-	var mapOwnerInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
-	
-	_(searchCanvas, [_div([_table([_tbody([_tr([
-        _td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','90px']]),
-        _td([mapNameInput],[['css','width','170px']]),
-        _td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])],[['css','width','92px']]),
-        _td([mapOwnerInput])
-    ])])],[['css','width','100%']])], [['css','marginBottom','10px']])]);
-	
+	var mapNameInput = $('.mapslist-search-name', searchCanvas)[0],
+        mapOwnerInput = $('.mapslist-search-owner', searchCanvas)[0];
 	_(canvas, [searchCanvas]);
 	
 	var tableParent = _div(),
@@ -56,10 +59,6 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(titleFunc, idFunc);
 	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
-    
-    // $(mapsTable).bind('beforeRedraw', function() {
-        //_this._activeIndex = 0;
-    // })
 	
 	mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
     {
@@ -76,7 +75,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
         return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
     };
 
-    $(mapNameInput).bind('keydown', function(event) {
+    $([mapNameInput, mapOwnerInput]).bind('keydown', function(event) {
         var numItems = mapsTable.getVisibleItems().length;
         
         if (event.keyCode === 13) {
@@ -133,17 +132,18 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	
 	var resize = function()
 	{
-		mapsTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		mapsTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		mapsTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+        var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
+		mapsTable.tableParent.style.width = dialogWidth - 15 - 21 + 'px';
+		mapsTable.tableBody.parentNode.parentNode.style.width = dialogWidth + 5 - 21 + 'px';
+		mapsTable.tableBody.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
 
-		mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+		mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
 
 		mapsTable.tableParent.style.height = '200px';
 		mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
 		
 		_this._mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
-		_this._mapPreview.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+		_this._mapPreview.style.width = dialogWidth + 5 - 21 + 'px';
 	}
 		
 	showDialog(_gtxt("Список карт"), canvas, 571, 470, 535, 130, resize);

@@ -1547,3 +1547,16 @@ div.layersScroll
     margin: 12px;
     padding: 0px 5px;
 }
+
+.mapslist-search-table {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.mapslist-search-table * {
+    font-size: 12px;
+}
+
+.mapslist-search-name, .mapslist-search-owner {
+    margin-left: 15px;
+}
