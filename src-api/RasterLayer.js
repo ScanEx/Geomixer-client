@@ -701,6 +701,7 @@
                                     }
                                 }
                                 var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
+                                if (node.imageProcessingHook) imageObj = node.imageProcessingHook(imageObj, tilePoint);
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {

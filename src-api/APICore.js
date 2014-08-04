@@ -3260,6 +3260,12 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
             gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
         }
     }
+    this.addImageProcessingHook = function(func) {
+        return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': this, 'attr':{'func':func} });
+    };
+    this.removeImageProcessingHook = function() {
+        return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
+    };
     
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
