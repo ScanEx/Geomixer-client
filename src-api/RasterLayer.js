@@ -518,6 +518,15 @@
                 //this._initContainer(); 
             }
             ,
+            _clearBgBuffer: function () {
+                var map = this._map;
+
+                if (this._bgBuffer && map && !map._animatingZoom && !map.touchZoom._zooming) {
+                    this._bgBuffer.innerHTML = '';
+                    this._bgBuffer.style[L.DomUtil.TRANSFORM] = '';
+                }
+            },
+    
             _addTile: function (tilePoint, container) {
                 this._adjustTilePoint(tilePoint);
                 this.drawTile(null, tilePoint, this._map._zoom);
