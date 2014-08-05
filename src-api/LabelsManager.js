@@ -103,8 +103,8 @@
 	}
 
 	var repaint = function(flag) {				// перерисовка
-		if(!canvas || gmxAPI._leaflet.zoomstart) return false;
-        if(!flag && gmxAPI._leaflet.mousePressed) return false;
+		if(!canvas || gmxAPI._leaflet.zoomstart) return;
+        if(!flag && gmxAPI._leaflet.mousePressed) return;
         timer = null;
 		var zoom = LMap.getZoom();
 		if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
@@ -209,8 +209,7 @@
 			//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
 			gmxAPI.map.addListener('onMoveEnd', repaintItems);
 			var onZoomstart = function() {				// скрыть при onZoomstart
-				if(!canvas) return false;
-				canvas.width = canvas.height = 0;
+				if(canvas) canvas.width = canvas.height = 0;
 			}
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomstart', 'func': onZoomstart});
 		}
@@ -236,7 +235,7 @@
 	var LabelsManager = {						// менеджер отрисовки
 		'add': function(id)	{					// добавить Label для отрисовки
 			var node = gmxAPI._leaflet.mapNodes[id];
-			if(!node) return false;
+			if(!node) return;
 			if(!utils) init();
 			itemsHash[id] = prepareObject(node);
 			repaintItems();
@@ -263,7 +262,7 @@
 		}
         ,removeArray: function(id, arr) {				// удалить массив нод
             var node = gmxAPI._leaflet.mapNodes[id];
-            if(!node || node.type !== 'VectorLayer') return false;
+            if(!node || node.type !== 'VectorLayer') return;
             var pref = id + '_';
             for (var i = 0, len = arr.length; i < len; i++) {
                 var pid = pref + arr[i];

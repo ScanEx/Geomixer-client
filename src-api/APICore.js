@@ -1791,8 +1791,7 @@ extend(window.gmxAPI,
 			apiHost = gmxAPI.getHostAndPath(window.location.href);
 		}
 		var arr = /(.*)\/[^\/]*/.exec(apiHost);
-		res = (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
-		return res;
+		return (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
 	})
 	,
 	getAPIHostRoot: memoize(function()
@@ -2451,9 +2450,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
     function createPostIframe2(id, callback, url)
     {
-        var uniqueId = 'gmxAPI_id'+(lastRequestId++);
-        
-        iframe = document.createElement("iframe");
+        var uniqueId = 'gmxAPI_id'+(lastRequestId++),
+            iframe = document.createElement("iframe");
+
         iframe.style.display = 'none';
         iframe.setAttribute('id', id);
         iframe.setAttribute('name', id);
@@ -3261,7 +3260,13 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
             gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
         }
     }
-    
+    this.addImageProcessingHook = function(func) {
+        return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': this, 'attr':{'func':func} });
+    };
+    this.removeImageProcessingHook = function() {
+        return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
+    };
+
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
 }
@@ -3554,7 +3559,7 @@ function createFlashMapInternal(div, layers, callback)
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
-		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
+		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback);
 		if(o === '') {
 			var warnDiv = document.getElementById('noflash');
 			if(warnDiv) warnDiv.style.display = 'block';
@@ -3632,43 +3637,67 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 }
 
                 for (var i = 0, len = arr.length; i < len; i++) {
-                    var id = arr[i];
-                    baseLayersManager.remove(id);
+                    var id = arr[i],
+                        isExist = baseLayersManager.get(id);
+                    //if (isExist) continue;
                     // нет подложки сформируем через getBaseMapParam 
                     var attr = {id: id, layers:[] };
                     if(id === 'satellite' && satelliteLayerID) {
-                        attr.rus = 'Снимки';
-                        attr.eng = 'Satellite';
-                        satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
-                        attr.layers = satelliteLayers;
+                        if (!isExist) {
+                            satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
+                            attr.rus = 'Снимки';
+                            attr.eng = 'Satellite';
+                            attr.layers = satelliteLayers;
+                            if ( satelliteLayers.length > 0 ) {
+                                satelliteLayers[0].setCopyright("&copy; <a href='http://www.nasa.gov'>NASA</a>", 1, 5);
+                                satelliteLayers[0].setCopyright("&copy; <a href='http://www.es-geo.com'>Earthstar Geographics</a>", 6, 13);
+                                satelliteLayers[0].setCopyright("&copy; <a href='http://www.antrix.gov.in/'>ANTRIX</a>", 6, 14, { type: "LINESTRING", coordinates: [9.9481201, 18.265291, 45.263671, 61.305477] });
+                                satelliteLayers[0].setCopyright("&copy; <a href='http://www.geoeye.com'>GeoEye Inc.</a>", 9, 17);
+                            }
+                        }
+
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         
                         if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'hybrid' && (satelliteLayerID || overlayLayerID)) {
-                        attr.rus = 'Гибрид';
-                        attr.eng = 'Hybrid';
-                        overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
-                        attr.layers = overlayLayers;
+                        if (!isExist) {
+                            overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
+                            attr.rus = 'Гибрид';
+                            attr.eng = 'Hybrid';
+                            attr.layers = overlayLayers;
+                            if (overlayLayers.length > 1) {
+                                overlayLayers[1].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+                                overlayLayers[1].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+                            }
+                        }
+                        
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'map' && mapLayerID) {
-                        attr.rus = 'Карта';
-                        attr.eng = 'Map';
-                        mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
-                        attr.layers = mapLayers;
-                        var osmEmbed = map.layers[osmEmbedID];
-                        if (osmEmbed) {
-                            attr.layers.push(osmEmbed);
-                            setOSMEmbed(osmEmbed);
+                        if (!isExist) {
+                            mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
+                            attr.rus = 'Карта';
+                            attr.eng = 'Map';
+                            attr.layers = mapLayers;
+                            var osmEmbed = map.layers[osmEmbedID];
+                            if (osmEmbed) {
+                                attr.layers.push(osmEmbed);
+                                setOSMEmbed(osmEmbed);
+                            }
+                            if (mapLayers.length > 0) {
+                                mapLayers[0].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+                                mapLayers[0].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+                            }
                         }
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
+                        
                     }
                     if(attr.layers.length) {
                         baseLayersManager.add(id, attr);
@@ -3691,28 +3720,28 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 
-                if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
+                //if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
-				if (mapLayers.length > 0)
-				{
-					mapLayers[0].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
-					mapLayers[0].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
-				}
+				// if (mapLayers.length > 0)
+				// {
+					// mapLayers[0].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+					// mapLayers[0].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+				// }
 
 				//те же копирайты, что и для карт
-				if (overlayLayers.length > 1)
-				{
-					overlayLayers[1].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
-					overlayLayers[1].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
-				}
+				// if (overlayLayers.length > 1)
+				// {
+					// overlayLayers[1].setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2012", 1, 9);
+					// overlayLayers[1].setCopyright("&copy; <a href='http://www.geocenter-consulting.ru/'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>, 2013", 1, 17, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+				// }
 
-				if ( satelliteLayers.length > 0 )
-				{
-					satelliteLayers[0].setCopyright("&copy; <a href='http://www.nasa.gov'>NASA</a>", 1, 5);
-					satelliteLayers[0].setCopyright("&copy; <a href='http://www.es-geo.com'>Earthstar Geographics</a>", 6, 13);
-					satelliteLayers[0].setCopyright("&copy; <a href='http://www.antrix.gov.in/'>ANTRIX</a>", 6, 14, { type: "LINESTRING", coordinates: [9.9481201, 18.265291, 45.263671, 61.305477] });
-					satelliteLayers[0].setCopyright("&copy; <a href='http://www.geoeye.com'>GeoEye Inc.</a>", 9, 17);
-				}
+				// if ( satelliteLayers.length > 0 )
+				// {
+					// satelliteLayers[0].setCopyright("&copy; <a href='http://www.nasa.gov'>NASA</a>", 1, 5);
+					// satelliteLayers[0].setCopyright("&copy; <a href='http://www.es-geo.com'>Earthstar Geographics</a>", 6, 13);
+					// satelliteLayers[0].setCopyright("&copy; <a href='http://www.antrix.gov.in/'>ANTRIX</a>", 6, 14, { type: "LINESTRING", coordinates: [9.9481201, 18.265291, 45.263671, 61.305477] });
+					// satelliteLayers[0].setCopyright("&copy; <a href='http://www.geoeye.com'>GeoEye Inc.</a>", 9, 17);
+				// }
 
 				try {
 					callback(map, layers);		// Передача управления

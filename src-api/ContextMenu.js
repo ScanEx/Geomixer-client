@@ -22,7 +22,7 @@
             id = gmxNode.objectId,
             attr = ph.attr || {},
             latlng = attr.latlng;
-        if (!latlng) return false;
+        if (!latlng) return;
         lastLatLng = latlng;
         lastItem = attr;
         
@@ -32,8 +32,8 @@
     }
     // Click на Item меню
     var itemClick = function(nm)	{
-        if(!marker) return false;
-        if(nm >= menuItems.length) return false;
+        if(!marker) return;
+        if(nm >= menuItems.length) return;
         if(menuItems[nm].func) {
             menuItems[nm].func(lastLatLng.lng, lastLatLng.lat, lastItem);
             setTimeout(hideMenu, 0);

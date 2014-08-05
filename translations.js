@@ -6,6 +6,8 @@ var translationsHash = function()
 	this.flags = {};
 	
 	this.titles = {};
+    
+    this._errorHandlers = [];
 }
 
 translationsHash.DEFAULT_LANGUAGE = "rus";
@@ -121,8 +123,7 @@ translationsHash.prototype.showLanguages = function()
 		else
 			_(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
 	}
-	
-	// _($$("headerLinks"), [langCanvas]);
+
 	_(document.getElementById("headerLinks"), [langCanvas]);
 }
 
@@ -147,17 +148,10 @@ translationsHash.prototype.gettext = function()
 				return '';
 		};
 	
-	if (!this.hash[lang])
+	if (!this.hash[lang] || !this.hash[lang][text])
 	{
-		showErrorMessage("Не заданы значения для языка \"" + lang + "\"");
-		
-		return '';
-	}
-	else if (!this.hash[lang][text])
-	{
-		showErrorMessage("Не найдено тектовое описание для \"" + text + "\"");
-		
-		return '';
+        this._errorHandlers.forEach(function(handler) {handler(text, lang);});
+        return '';
 	}
 	else
 	{
@@ -167,6 +161,10 @@ translationsHash.prototype.gettext = function()
 		})
 	}
 }
+
+translationsHash.prototype.addErrorHandler = function(handler) {
+    this._errorHandlers.push(handler);
+};
 
 var _translationsHash = new translationsHash();
 
@@ -233,6 +231,14 @@ window.nsGmx.Translations.setLanguage = _translationsHash.setLanguage.bind(_tran
  @return {String} Текущий язык (eng/rus/...)
 */
 window.nsGmx.Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash);
+
+/** Добавить обработчик ошибок локализации. 
+    При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
+ @func addErrorHandler
+ @memberOf nsGmx.Translations
+ @param {function(text, lang)} Обработчик ошибки. В ф-цию передаётся текст и язык
+*/
+window.nsGmx.Translations.addErrorHandler = _translationsHash.addErrorHandler.bind(_translationsHash);
 
 window.gmxCore && gmxCore.addModule('translations',
 {

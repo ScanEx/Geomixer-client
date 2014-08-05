@@ -319,14 +319,14 @@
 		}
 		this.setVectorTiles = setVectorTiles;
 
-		startLoadTiles = function(attr, obj) {
+		var startLoadTiles = function(attr, obj) {
 			var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': obj, 'attr':attr });
 			return ret;
 		}
 
 		this.ut1Prev = 0;
 		this.ut2Prev = 0;
-		resetTiles = function(attr, obj) {
+		var resetTiles = function(attr, obj) {
 			if(attr) {
 				if(attr.ut1 === obj._temporalTiles.ut1Prev && attr.ut2 === obj._temporalTiles.ut2Prev) return;
 				startLoadTiles(attr, obj);

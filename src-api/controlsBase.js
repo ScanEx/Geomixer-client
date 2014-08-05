@@ -1576,8 +1576,15 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                             regularStyle: {},
                             regularImageUrl: apiBase + "img/select_tool.png",
                             activeImageUrl: apiBase + "img/select_tool_a.png",
-                            onClick: gmxAPI._drawFunctions.zoom,
-                            onCancel: function() {},
+                            onClick: function() {
+                                if(!gmxAPI._drawing.BoxZoom) {
+                                    gmxAPI._drawFunctions.zoom();
+                               }
+                            },
+                            onCancel: function() {
+                                gmxAPI._leaflet.LMap.fire('boxzoomend');
+                                gmxAPI._drawing.BoxZoom = false;
+                            },
                             hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
                         }
                         ,
@@ -1625,6 +1632,23 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                             hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
                         }
                     ];
+                    var LMap = gmxAPI._leaflet.LMap,
+                        _onMouseDown = LMap.boxZoom._onMouseDown;
+
+                    LMap.boxZoom._onMouseDown = function (e) {
+                        _onMouseDown.call(LMap.boxZoom, {
+                            clientX: e.clientX,
+                            clientY: e.clientY,
+                            which: 1,
+                            shiftKey: true
+                        });
+                    };
+                    LMap.on('boxzoomend', function () {
+                        LMap.dragging.enable();
+                        LMap.boxZoom.removeHooks();
+                        standartTools.selectTool("move");
+                    });
+                    
                     for(var i=0; i<arr.length; i++) {
                         standartTools.addTool(arr[i].key, arr[i]);
                     }

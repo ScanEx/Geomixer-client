@@ -3,6 +3,7 @@
 {
 	function setImage(node, ph)	{
 		var attr = ph.attr;
+		node._image = attr.image || null;
 		node.setImageExtent = (ph.setImageExtent ? true : false);
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
 		var mapNodes = gmxAPI._leaflet.mapNodes;
@@ -217,29 +218,39 @@
 		var redrawMe = function(e) {
 			if(gmxAPI._leaflet.zoomstart) return;
 			if(!imageObj) {
-				var src = attr.url;
-				node.imageURL = encodeURIComponent(src);
-				var ph = {
-					src: src
-					,uri: node.imageURL
-					,callback: function(img, svgFlag, pt) {
-						if(pt.uri === node.imageURL) {
-							imageObj = img;
-                            gmxAPI._listeners.dispatchEvent('onImageLoad', gmxNode, imageObj);	// Событие загрузки Image
-							node.refreshMe = function() {
-								node.isLargeImage = null;
-								waitRedraw();
-							}
-							if(canvas) repaint(canvas);
-						}
-					}
-					,onerror: function(e) {
-                        gmxAPI._listeners.dispatchEvent('onImageError', gmxNode, e);	    // Ошибка при загрузке Image
-						gmxAPI.addDebugWarnings({func: 'setImage', Error: 'not found image: ' + src, alert: 'setImage error'});
-					}
-				};
-				if(!node.setImageExtent) ph.crossOrigin = 'anonymous';
-				gmxAPI._leaflet.imageLoader.push(ph);
+				if(node._image) {
+                    imageObj = node._image;
+                    gmxAPI._listeners.dispatchEvent('onImageLoad', gmxNode, imageObj);	// Событие загрузки Image
+                    node.refreshMe = function() {
+                        node.isLargeImage = null;
+                        waitRedraw();
+                    }
+                    if(canvas) repaint(canvas);
+                } else {
+                    var src = attr.url;
+                    node.imageURL = encodeURIComponent(src);
+                    var ph = {
+                        src: src
+                        ,uri: node.imageURL
+                        ,callback: function(img, svgFlag, pt) {
+                            if(pt.uri === node.imageURL) {
+                                imageObj = img;
+                                gmxAPI._listeners.dispatchEvent('onImageLoad', gmxNode, imageObj);	// Событие загрузки Image
+                                node.refreshMe = function() {
+                                    node.isLargeImage = null;
+                                    waitRedraw();
+                                }
+                                if(canvas) repaint(canvas);
+                            }
+                        }
+                        ,onerror: function(e) {
+                            gmxAPI._listeners.dispatchEvent('onImageError', gmxNode, e);	    // Ошибка при загрузке Image
+                            gmxAPI.addDebugWarnings({func: 'setImage', Error: 'not found image: ' + src, alert: 'setImage error'});
+                        }
+                    };
+                    if(!node.setImageExtent) ph.crossOrigin = 'anonymous';
+                    gmxAPI._leaflet.imageLoader.push(ph);
+                }
 			} else if(canvas) {
 				repaint(canvas);
 			}
