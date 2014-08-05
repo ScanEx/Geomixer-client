@@ -444,7 +444,7 @@ var EditObjectControl = function(layerName, objectId, params)
                         },
                         checkValue: function() {
                             var validationFunc = field.validate || _params.validate[field.name];
-                            var isValid = !validationFunc || validationFunc(clientValue);
+                            var isValid = !validationFunc || validationFunc(this._input.value);
                             if (!isValid) {
                                 inputError(this._input);
                             }
