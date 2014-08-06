@@ -108,7 +108,7 @@ _translationsHash.hash["eng"] = {
 	"многоугольники" : "polygons",
 	"(ссылка)" : "(link)",
 	"Сохранить состояние карты" : "Save map state",
-	"Ссылка на текущее состояние карты:" : "Link to the map:",
+	"Ссылка на текущее состояние карты" : "Link to the map",
 	"Добавить стиль" : "Add style",
 	"Атрибут >" : "Attribute >",
 	"Значение >" : "Value >",

@@ -90,6 +90,14 @@ option
 	margin: 1px 3px;
 }
 
+.inputStyle.inputFullWidth {
+    width: 100%;
+    box-sizing: border-box;
+    height: 18px;
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
 .inputStyle:disabled
 {
     color: #545454;
@@ -1039,9 +1047,6 @@ div.layersScroll
 
 .pluginEditor-pluginInput
 {
-    width: 100%;
-    box-sizing: border-box;
-    height: 18px;
     margin: 2px 0px;
 }
 
@@ -1553,14 +1558,11 @@ div.layersScroll
 }
 
 .createMap-input {
-    width: 100%;
-    height: 18px;
-    box-sizing: border-box;
     margin: 0px;
 }
 
 .createMap-button {
-    margin: 12px;
+    margin: 12px 0px 4px 0px;
     padding: 0px 5px;
 }
 

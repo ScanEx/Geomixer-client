@@ -45,12 +45,10 @@ queryTabs.prototype.load = function()
 
 queryTabs.prototype.add = function()
 {
-	var inputTab = _input(null,[['dir','className','inputStyle'],['css','width','240px']]),
-		create = makeButton(_gtxt('Создать')),
-		createTab = function()
+	var createTab = function(value)
 		{
 			var mapState = _mapHelper.getMapState(),
-				tab = {name:inputTab.value, state:mapState};
+				tab = {name: value, state: mapState};
 			
 			_this.tabs.push(tab);
 			
@@ -59,28 +57,8 @@ queryTabs.prototype.add = function()
 			removeDialog(inputTab.parentNode.parentNode)
 		},
 		_this = this;
-	
-	create.onclick = createTab;
-	
-	inputTab.onkeyup = function(e)
-	{
-		if (this.value == '')
-			$(this).addClass('error');
-		else
-			$(this).removeClass('error');
-		
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
-			createTab();
-	  		
-	  		return false;
-	  	}
-		
-		return true;
-	}
-	
-	showDialog(_gtxt("Имя закладки"), _div([inputTab, _br(), create],[['css','textAlign','center']]), 280, 100, false, false)
+    
+    _queryMapLayers.createMapDialog(_gtxt('Имя закладки'), _gtxt('Создать'), createTab);
 }
 
 queryTabs.prototype.draw = function(tabInfo)

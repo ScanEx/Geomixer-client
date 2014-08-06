@@ -412,9 +412,10 @@ mapHelper.prototype.getMapStyles = function()
 mapHelper.prototype.showPermalink = function()
 {
 	this.createPermalink(function(id){
-        var input = _input(null, [['dir','className','inputStyle'],['attr','value',"http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName))],['css','width','270px']])
+        var url = "http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName));
+        var input = _input(null, [['dir','className','inputStyle inputFullWidth'],['attr','value', url]]);
 
-        showDialog(_gtxt("Ссылка на текущее состояние карты:"), _div([input]), 311, 80, false, false);
+        showDialog(_gtxt("Ссылка на текущее состояние карты"), _div([input]), 311, 80, false, false);
         
         input.select();
     });

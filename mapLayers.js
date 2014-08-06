@@ -1874,7 +1874,7 @@ queryMapLayers.prototype.createLayersManager = function()
         
     layerManagerControl.disableLayers(existLayers);
     
-	showDialog(_gtxt("Список слоев"), canvas, 571, 480, 535, 130);
+	showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130);
 }
 
 queryMapLayers.prototype.getMaps = function()
@@ -1887,7 +1887,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 {
 	var uiTemplate = 
         '<div class = "createMap-container">' + 
-            '<input class = "inputStyle createMap-input">' +
+            '<input class = "inputStyle inputFullWidth createMap-input">' +
             '<button class = "createMap-button">{{buttonName}}</button>' +
         '</div>';
     
@@ -1915,7 +1915,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 	
 	addLink && ui.append(addLink);
 	
-	var dialogDiv = showDialog(title, ui[0], 280, 110 + (addLink ? 20 : 0), false, false);
+	var dialogDiv = showDialog(title, ui[0], 280, 103 + (addLink ? 20 : 0), false, false);
 }
 
 queryMapLayers.prototype.createMap = function(name)
