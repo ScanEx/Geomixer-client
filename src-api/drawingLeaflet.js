@@ -1952,7 +1952,7 @@
 			if(!callback) return;
 			for (var id in objects) {
 				var cObj = objects[id];
-				if(cObj.geometry) callback(cObj);
+				if(cObj.geometry) callback(cObj.domObj || cObj);
 			}
 /*			
 			for (var id in objects) {
