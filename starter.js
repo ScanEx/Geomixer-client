@@ -326,16 +326,14 @@ $(function()
     {
         nsGmx.pluginsManager.beforeMap();
         nsGmx.widgets.headerController = new nsGmx.Controls.HeaderController($('.header'), {
-            topBar: {
-                leftLinks: [{
-                    title: "ГеоМиксер",
-                    link: "http://geomixer.ru"
-                }],
-                rightLinks: [{
-                    title: "Помощь",
-                    link: "http://geomixer.ru/docs"
-                }]
-            }
+            leftLinks: [{
+                title: "ГеоМиксер",
+                link: "http://geomixer.ru"
+            }],
+            rightLinks: [{
+                title: "Помощь",
+                link: "http://geomixer.ru/docs"
+            }]
         });
         // createHeader();
         
