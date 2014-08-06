@@ -342,7 +342,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			defLong = _input(null,[['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defPermalink = _input(null,[['attr','value',elemProperties.ViewUrl != null ? elemProperties.ViewUrl : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			defZoom = _input(null,[['attr','value',elemProperties.DefaultZoom != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			onLoad = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','height','100%'], ['css','display','block']]),
+			onLoad = _textarea(null,[['dir','className','inputStyle group-editor-onload']]),
 			copyright = _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			minViewY = _input(null,[['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -599,10 +599,10 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			divCommon     = _div(null,[['attr','id','common' + id],['css','width','320px']]),
             divBaseLayers = _div(null,[['attr','id','baselayers' + id],['dir','className','group-editor-tab-container']]),
 			divPolicy     = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
-			divSearch     = _div(null,[['attr','id','search' + id],['dir','className','group-editor-tab-container'],['css','overflowY','scroll'], ['css','overflowX','hidden']]),
+			divSearch     = _div(null,[['attr','id','search' + id],['dir','className','group-editor-tab-container']]),
 			divView       = _div(null,[['attr','id','view' + id],['css','width','320px']]),
 			divOnload     = _div(null,[['attr','id','onload' + id],['dir','className','group-editor-tab-container']]),
-			divPlugins    = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
+			divPlugins    = _div(null,[['attr','id','plugins' + id],['dir','className','group-editor-tab-container']]);
 		
 		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
         
@@ -611,7 +611,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
-		_(divOnload, [_div([onLoad], [['css','position', 'absolute'], ['css','top', '6px'], ['css','bottom', '6px'], ['css','left', '0px'], ['css','right', '10px']])]);
+		_(divOnload, [onLoad]);
         
         var pluginsEditor = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         
@@ -755,7 +755,7 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 420, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 440, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };

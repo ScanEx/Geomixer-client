@@ -375,13 +375,6 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
         resizable: true,
         resize: function()
         {
-            canvas.style.width = 'auto';
-            canvas.style.height = canvas.parentNode.clientHeight - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
-            
-            // баги ие
-            // if (jQuery.browser.msie)
-                // canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
-            
             params.resizeFunc && params.resizeFunc();
         },
         close: function(ev, ui)
@@ -401,10 +394,7 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
     }
                         
     jQuery(canvas).dialog(dialogParams);
-	
-	canvas.parentNode.style.height = params.height + 'px';
-	canvas.style.height = params.height - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
-							
+
 	var dialog = canvas.parentNode;
 	dialog.style.overflow = '';
 	

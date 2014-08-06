@@ -916,7 +916,7 @@ function loadMap(state)
                 
                 var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
                 
-                _($$('headerLinks'), [divStatus])
+                //_($$('headerLinks'), [divStatus])
                 
                 window.onresize = resizeAll;
                 resizeAll();
@@ -1120,7 +1120,9 @@ function loadMap(state)
             
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
             {
-                $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+                if ($('#headerLinks').length) {
+                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+                }
             }
             
             nsGmx.addHeaderLinks($$('headerLinks'));
