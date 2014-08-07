@@ -506,7 +506,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
-		box.className = 'box';
+		box.className = 'box layers-visibility-checkbox';
 		
 		box.setAttribute('box','layer');
 		
@@ -693,7 +693,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
-		box.className = 'box';
+		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','group');
 		
@@ -1291,7 +1291,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
         ),
 		_this = this;
 	
-	newBox.className = 'box';
+	newBox.className = 'box layers-visibility-checkbox';
 
 	if (box.getAttribute('box') == 'group')
 		newBox.setAttribute('box', 'group');
@@ -1478,9 +1478,17 @@ queryMapLayers.prototype.load = function(data)
 	{
 		var _this = this;
 
-		this.treeCanvas = _div();
-				
-		_(this.workCanvas, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','10px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])]);
+		this.treeCanvas = _div(null, [['dir', 'className', 'layers-tree']]);
+		
+        //Для обратной совместимости - есть много мапплетов карт, которые пытаются интегрироваться после первого table
+        //TODO: изнечтожить все такие мапплеты
+        _(this.workCanvas, [_table()]);
+        
+		_(this.workCanvas, [
+            _div([
+                _table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','7px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])
+            ], [['dir', 'className', 'layers-before']])
+        ]);
 
 		_(this.workCanvas, [this.treeCanvas]);
 		
@@ -2043,7 +2051,11 @@ var _queryMapLayers = new queryMapLayers();
 
 mapLayers.mapLayers.load = function()
 {
-	var alreadyLoaded = _queryMapLayers.createWorkCanvas(arguments[0]);
+	var alreadyLoaded = _queryMapLayers.createWorkCanvas('layers', {
+            path: ['Слои'], 
+            showCloseButton: false, 
+            showMinimizeButton: false
+        });
 	
 	if (!alreadyLoaded)
 		_queryMapLayers.load()

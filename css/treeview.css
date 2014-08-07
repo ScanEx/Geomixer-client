@@ -16,9 +16,9 @@
 .treeview .hitarea
 {
 	/*background: url(../img/treeview-new.png) -64px -25px no-repeat;*/
-    background: url(../img/redesign/icons2.png) -110px -4px no-repeat;
+    background: url(../img/redesign/icons2.png) -115px -3px no-repeat;
 	height: 16px;
-	width: 16px;
+	width: 6px;
 	margin-left: -16px;
 	float: left;
 	cursor: pointer;
@@ -34,7 +34,7 @@
 .actions li
 {
 	margin: 0;
-	padding: 1px 0pt 0px 16px;
+	padding: 1px 0pt 0px 9px;
 }
 
 .treeview a.selected
@@ -53,7 +53,7 @@
 
 .treeview .expandable-hitarea
 {
-	background-position: -92px -4px;
+	background-position: -97px -4px;
 }
 
 .treeview li.last
