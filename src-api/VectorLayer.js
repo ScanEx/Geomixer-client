@@ -233,15 +233,18 @@
                 } else {
                     regularStyle = (filter && filter.regularStyle ? filter.regularStyle : null);
                 }
-                propHiden.curStyle = regularStyle;
+                if (!regularStyle.iconUrl) {
+                    propHiden.curStyle = regularStyle;
+
+                    var drawInTiles = propHiden.drawInTiles;
+                    if(drawInTiles && drawInTiles[zoom]) {
+                        var tilesNeed = {};
+                        getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
+                        node.redrawTilesHash(tilesNeed, true);
+                    }
+                }
 
                 node.hoverItem = null;
-                var drawInTiles = propHiden.drawInTiles;
-                if(drawInTiles && drawInTiles[zoom]) {
-                    var tilesNeed = {};
-                    getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
-                    node.redrawTilesHash(tilesNeed, true);
-                }
                 gmxAPI._div.style.cursor = '';
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
@@ -353,16 +356,18 @@
                 if(flagRedraw) {
                     var tilesNeed = {};
                     node.hoverItem = item;
-                    item.geom.propHiden.curStyle = gmxAttr.objType === 'cluster' ?
-                        utils.evalStyle(hoveredStyle, item.geom.properties)
-                        : node.getStyleArray(item.geom, true)
-                    ;
-                    var drawInTiles = propHiden.drawInTiles;
-                    if(drawInTiles && drawInTiles[zoom]) {
-                        getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
+                    if (!hoveredStyle.iconUrl) {
+                        item.geom.propHiden.curStyle = gmxAttr.objType === 'cluster' ?
+                            utils.evalStyle(hoveredStyle, item.geom.properties)
+                            : node.getStyleArray(item.geom, true)
+                        ;
+                        var drawInTiles = propHiden.drawInTiles;
+                        if(drawInTiles && drawInTiles[zoom]) {
+                            getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
+                        }
+                        node.redrawTilesHash(tilesNeed, true);
+                        item.geom._cache = null;
                     }
-                    node.redrawTilesHash(tilesNeed, true);
-                    item.geom._cache = null;
 
                     gmxAPI._div.style.cursor = 'pointer';
                     if(gmxAPI._leaflet.isMouseOut) return;
@@ -1377,7 +1382,7 @@
                 var filter = geom.currentFilter || null;
                 if(!geom.propHiden.curStyle) {
                     filter = node.getItemFilter(geom);
-                    geom.propHiden.curStyle = getStyleArray(geom);
+                    geom.propHiden.curStyle = node.getStyleArray(geom);
                 }
                 if(filter && filter.styleHook) {
                     var gmxFilter = gmxAPI.mapNodes[filter.id],
