@@ -89,7 +89,6 @@ var nsGmx = nsGmx || {};
             {
                 _this.showLoginDialog( loginCallback );
             }
-            
             _(_container, [_div([span], [['attr','id','log'],['dir','className','log']])]);
         }
         
@@ -129,7 +128,11 @@ var nsGmx = nsGmx || {};
             
             _title(userSpan, _gtxt("Изменение пароля"))
             
-            _(_container, [_div([logoutSpan], [['attr','id','log'],['dir','className','log']]), _div([userSpan], [['attr','id','user'],['dir','className','user']])]);
+            _(_container, [_table([_tr([
+                _td([_div([userSpan], [['attr','id','user'],['dir','className','user']])]),
+                _td([_div([logoutSpan], [['attr','id','log'],['dir','className','log']])])
+            ])])]);
+            // _(_container, [_div([logoutSpan], [['attr','id','log'],['dir','className','log']]), _div([userSpan], [['attr','id','user'],['dir','className','user']])]);
         }
         
         var _update = function()
