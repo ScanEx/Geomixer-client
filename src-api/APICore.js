@@ -1685,8 +1685,8 @@ extend(window.gmxAPI,
 			x = -x;
 		if (text.indexOf("S") != -1)
 			y = -y;
-		callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
-		return true;
+		callback && callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
+		return [gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y)];
 	}
 	,
 	parseUri: function(str)
