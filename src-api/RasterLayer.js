@@ -536,7 +536,6 @@
                 var opt = this.options,
                     nodeID = opt.nodeID,
                     _map = this._map,
-                    tileSize = this._getTileSize(),
                     node = mapNodes[nodeID];
                 if (!_map || gmxAPI._leaflet.zoomstart) {
                     node.waitRedraw();
@@ -550,7 +549,8 @@
                 }
                 gmxAPI._leaflet.renderingObjects[nodeID] = 1;
                 if('initCallback' in opt) opt.initCallback(this);
-                var sbounds = _map.getPixelBounds();
+                var tileSize = this._getTileSize(),
+                    sbounds = _map.getPixelBounds();
 
                 if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
