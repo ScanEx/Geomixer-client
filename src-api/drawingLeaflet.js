@@ -984,7 +984,7 @@
                     var id = res.id,
                         obj = objects[id];
                     
-                    fireEvent('onRemove', obj._object);
+                    //fireEvent('onRemove', obj._object);
                     obj._object.remove();
                     delete objects[id];
                 },
