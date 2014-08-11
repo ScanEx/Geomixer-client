@@ -4405,6 +4405,7 @@ var tt = 1;
 */
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
+                if (!gmxAPI.map) return;
 				gmxAPI._leaflet.isMouseOut = false;			// мышь на карте
 				if(LMap._pathRoot && !gmxAPI.isIE) {
 					if(!LMap._pathRoot.style.pointerEvents) {

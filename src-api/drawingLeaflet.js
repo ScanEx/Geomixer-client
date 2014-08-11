@@ -984,7 +984,7 @@
                     var id = res.id,
                         obj = objects[id];
                     
-                    fireEvent('onRemove', obj._object);
+                    //fireEvent('onRemove', obj._object);
                     obj._object.remove();
                     delete objects[id];
                 },
@@ -1952,7 +1952,7 @@
 			if(!callback) return;
 			for (var id in objects) {
 				var cObj = objects[id];
-				if(cObj.geometry) callback(cObj);
+				if(cObj.geometry) callback(cObj.domObj || cObj);
 			}
 /*			
 			for (var id in objects) {

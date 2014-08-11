@@ -27,8 +27,16 @@
         map.needSetMode = null;
 
         // Методы присущие только Map
-        map.setDistanceUnit = function(attr) { map.DistanceUnit = attr; return true; }
-        map.setSquareUnit = function(attr) { map.SquareUnit = attr; return true; }
+        map.setDistanceUnit = function(attr) {
+            map.DistanceUnit = 
+                gmxAPI._leaflet.LMap.options.distanceUnit = attr;
+            return true;
+        }
+        map.setSquareUnit = function(attr) {
+            map.SquareUnit = 
+                gmxAPI._leaflet.LMap.options.squareUnit = attr;
+            return true;
+        }
         map.getDistanceUnit = function() { return map.DistanceUnit; }
         map.getSquareUnit = function() { return map.SquareUnit; }
         map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }

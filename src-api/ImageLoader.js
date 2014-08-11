@@ -57,6 +57,12 @@
 		imageObj.onload = function(ev) {
 			curCount--;
 			if (gmxAPI.isIE) {
+                if (src.match(/\.svg$/)) { // IE11 "bug"
+                    document.body.appendChild(imageObj);
+                    imageObj.width = imageObj.offsetWidth;
+                    imageObj.height = imageObj.offsetHeight;
+                    document.body.removeChild(imageObj);
+                }
 				setTimeout(function() { chkLoadedImage(); } , 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 			} else {
 				chkLoadedImage();

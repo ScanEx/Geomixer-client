@@ -360,6 +360,9 @@
                     option.opacity = node.regularStyle.fillOpacity;
                 }
 
+				if('maxNativeZoom' in gmxNode) {
+                    option.maxNativeZoom = gmxNode.maxNativeZoom;
+                }
 				if(gmxNode.properties.type === 'Overlay') {
 					node.isOverlay = true;
 					if(!node.zIndexOffset) node.zIndexOffset = 50000;
@@ -515,7 +518,17 @@
                 //this._initContainer(); 
             }
             ,
+            _clearBgBuffer: function () {
+                var map = this._map;
+
+                if (this._bgBuffer && map && !map._animatingZoom && !map.touchZoom._zooming) {
+                    this._bgBuffer.innerHTML = '';
+                    this._bgBuffer.style[L.DomUtil.TRANSFORM] = '';
+                }
+            },
+    
             _addTile: function (tilePoint, container) {
+                this._adjustTilePoint(tilePoint);
                 this.drawTile(null, tilePoint, this._map._zoom);
             }
             ,
@@ -536,8 +549,8 @@
                 }
                 gmxAPI._leaflet.renderingObjects[nodeID] = 1;
                 if('initCallback' in opt) opt.initCallback(this);
-                var sbounds   = _map.getPixelBounds(),
-                    tileSize = opt.tileSize;
+                var tileSize = this._getTileSize(),
+                    sbounds = _map.getPixelBounds();
 
                 if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
@@ -611,7 +624,8 @@
                 
                 if(!zoom) zoom = LMap.getZoom();
                 if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
-                var gmxTilePoint = layer._getGMXtileNum(tilePoint, zoom);
+                var gmxTilePoint = layer._getGMXtileNum(tilePoint, tilePoint.z),
+                    tileSize = layer._getTileSize();
 
                 var attr = opt.attr;
                 var allFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y <= -85 && attr.bounds.max.x > 179 && attr.bounds.max.y >= 85));
@@ -671,7 +685,7 @@
                             onError(err);
                         }
                     };
-                    if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
+                    if(pt.zoom.from != z || node.imageProcessingHook) item.crossOrigin = 'use-credentials';
                     opt._inLoadImage[rUrl] = true;
                     gmxAPI._leaflet.imageLoader.push(item);
                 }
@@ -690,8 +704,8 @@
                             var imageObj = ph.img;
                             if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
                                 var pos = null;
-                                if(ph.zoom !== zoom) {
-                                    pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, zoom, ph.zoom);
+                                if(ph.zoom !== ph.fromZoom) {
+                                    pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, ph.fromZoom, ph.zoom);
                                     if(pos.size < 0.00390625
                                         || pos.x > 255 || pos.y > 255
                                         || (pos.x + pos.size) < 0
@@ -723,6 +737,8 @@
                                         drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
                                     }
                                     ctx.fill();
+                                } else {
+                                    tile.style.width = tile.style.height = tileSize + 'px';
                                 }
                             }
                         }
@@ -736,7 +752,7 @@
                         }
                     }
                     ,zoom: {
-                        from: zoom
+                        from: tilePoint.z
                     }
                     ,x: gmxTilePoint.x
                     ,y: gmxTilePoint.y

@@ -1009,7 +1009,7 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, bInitAutoCenter){
 	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter);
 	var lstResult = new ResultList(oInitContainer, sImagesHost);
-	ResultListMap.apply(this, [lstResult, oRenderer]);
+	ResultListMap.call(this, lstResult, oRenderer);
 }
 
 ResultListMapGet.prototype = ResultListMap;
@@ -1303,7 +1303,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
  @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска
  @returns {Search.SearchLogic}*/
 var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, arrDisplayFields){
-	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, arrDisplayFields]);
+	SearchLogic.call(this, new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, arrDisplayFields);
 }
 SearchLogicGet.prototype = SearchLogic;
 
@@ -1537,20 +1537,30 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 * @returns {Search.SearchControl}
 */
 var SearchControlGet = function (params){
-	var oLogic = new SearchLogicGet(params.ServerBase, params.Map, params.WithoutGeometry);
+    var map = params.Map;
+	var oLogic = new SearchLogicGet(params.ServerBase, map, params.WithoutGeometry);
 	var fnAutoCompleteSource = function (request, response) {
 		oLogic.AutoCompleteData(request.term, response);
 	}
 	/**Результаты поиска*/
-	var lstResult = new ResultListMapGet(params.ContainerList, params.Map, params.ImagesHost);
+	var lstResult = new ResultListMapGet(params.ContainerList, map, params.ImagesHost);
 	/**Строка ввода поискового запроса*/
 	var btnSearch = new SearchInput(params.ContainerInput, {
 		ImagesHost: params.ImagesHost,
 		layersSearchFlag: params.layersSearchFlag,
 		AutoCompleteSource: fnAutoCompleteSource
 	});
-    var oLocationTitleRenderer = new LocationTitleRenderer(params.Map, typeof (gmxGeoCodeShowNearest) != "undefined" && gmxGeoCodeShowNearest ? oLogic.SearchNearest:oLogic.SearchLocation);
-	SearchControl.apply(this, [btnSearch, lstResult, oLogic, oLocationTitleRenderer, params.Map]);
+    var oLocationTitleRenderer = new LocationTitleRenderer(map, typeof (gmxGeoCodeShowNearest) != "undefined" && gmxGeoCodeShowNearest ? oLogic.SearchNearest:oLogic.SearchLocation);
+	SearchControl.call(this, btnSearch, lstResult, oLogic, oLocationTitleRenderer);
+    
+    this.addSearchByStringHook(function(searchString) {
+        var pos = gmxAPI.parseCoordinates(searchString);
+        if (pos) {
+            map.moveTo(pos[0], pos[1], map.getZ());
+            map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
+            return true;
+        }
+    })
 }
 SearchControlGet.prototype = SearchControl;
 
@@ -1561,12 +1571,9 @@ SearchControlGet.prototype = SearchControl;
  @param oInitResultListMap Отображение результатов поиска
  @param oInitLogic Слой бизнес-логики
  @param oInitLocationTitleRenderer Отображение на карте текущего местоположения
- @param oInitMap Карта (для реакции на ввод координат)
 */
-var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer, oInitMap){
+var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer){
 	var _this = this;
-	
-    var oMap = oInitMap || window.globalFlashMap;
     
 	var oLogic = oInitLogic;
 	/**Результаты поиска*/
@@ -1577,6 +1584,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var iLimit = typeof (GeocodePageResults) == "number" ? GeocodePageResults : 10; 
 	
 	var oLocationTitleRenderer = oInitLocationTitleRenderer;
+    
+    var searchByStringHooks = [];
 	
 	var downloadVectorForm = _form([_input(null, [['attr', 'name', 'name']]),
 							 _input(null, [['attr', 'name', 'points']]),
@@ -1615,15 +1624,15 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	};
 
 	var fnBeforeSearch = function(){
-		/** Вызывается перед началом поиска
+		/** Генерируется перед началом поиска
 		@name Search.SearchControl.onBeforeSearch
 		@event*/
 		$(_this).triggerHandler('onBeforeSearch');
 	}
 	
 	var fnAfterSearch = function(){
-		/** Вызывается после окончания поиска
-		@name Search.SearchControl.onBeforeSearch
+		/** Генерируется после окончания поиска
+		@name Search.SearchControl.onAfterSearch
 		@event*/
 		$(_this).triggerHandler('onAfterSearch');
 	}
@@ -1633,35 +1642,35 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	{
 		try{
 			fnBeforeSearch();
-			if (!parseCoordinates(SearchString, function(x, y) {
-				oMap.moveTo(x, y, oMap.getZ());
-				oMap.drawing.addObject({ type: "POINT", coordinates: [x, y] }, { text: SearchString });
-				
-				fnAfterSearch();
-			})){
-				lstResult.ShowLoading();
-				oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0,
-                callback: function (response) {
-                    lstResult.ShowResult(SearchString, response);                   
-                    lstResult.CreatePager(response, function (e) {
-                        var evt = e || window.event,
-			            active = evt.srcElement || evt.target
-                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: iLimit, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, layersSearchFlag: layersSearchFlag,
-                            callback: function (response) {
-                                lstResult.ShowResult(SearchString, response);
-                                $('#prevpages~span:visible').attr('class', 'buttonLink');
-                                for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
-                                $(active).attr('class', 'page');
-                                attachEffects(active, '');
-                            }
-                        });
+            for (var h = 0; h < searchByStringHooks.length; h++) {
+                if (searchByStringHooks[h](SearchString)) {
+                    fnAfterSearch();
+                    return;
+                }
+            }
+            lstResult.ShowLoading();
+            var useOSM = typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0;
+            oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1, UseOSM: useOSM,
+            callback: function (response) {
+                lstResult.ShowResult(SearchString, response);
+                lstResult.CreatePager(response, function (e) {
+                    var evt = e || window.event,
+                    active = evt.srcElement || evt.target
+                    oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: iLimit, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: useOSM,
+                        callback: function (response) {
+                            lstResult.ShowResult(SearchString, response);
+                            $('#prevpages~span:visible').attr('class', 'buttonLink');
+                            for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
+                            $(active).attr('class', 'page');
+                            attachEffects(active, '');
+                        }
                     });
-					fnAfterSearch();
-				}});
-			}
+                });
+                fnAfterSearch();
+            }});
 		}
 		catch (e){
-			lstResult.ShowError();
+			lstResult.ShowError(e);
 		}
 	}
 	
@@ -1755,6 +1764,13 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	/**Очищает результаты поиска
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
+    
+    /**Добавляет хук поиска объектов по строке. Хуки выполняются в порядке их добавления
+    @param {function} hook - ф-ция, которая принимает на вход строку поиска и возвращает признак прекращения дальнейшего поиска (true - прекратить)
+	@returns {void}*/
+    this.addSearchByStringHook = function(hook) {
+        searchByStringHooks.push(hook);
+    }
 }
 
 /**Конструктор без параметров
