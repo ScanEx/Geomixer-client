@@ -25,8 +25,7 @@ nsGmx.ContextMenuController = (function()
 	// * elem {DOMElement} - элемент, на который навешивается меню
 	// * menuFunc {Function, menuFunc()->DomElement} - функция, создающая меню
 	// * checkFunc {Function, checkFunc()->Bool} - если возвращает false, то ничего не показывается...
-	// * suggestTimeout {float} - задержка в мс перед показом меню в Opera
-	var _context = function(elem, menuFunc, checkFunc, suggestTimeout)
+	var _context = function(elem, menuFunc, checkFunc)
 	{
         var menu = null;
         elem.oncontextmenu = function(e)

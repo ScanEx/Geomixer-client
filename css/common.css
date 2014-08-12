@@ -2,7 +2,6 @@
 {
 	font-family: tahoma;
 	font-size: 11px;
-	color: #003366;
 	padding: 0;
 	margin: 0;
     outline: none;
@@ -704,11 +703,10 @@ div.fileBrowser-progressBar
 {
 	position:absolute;
 	z-index: 1000000;
-	background-color: #DAEAF3;
+	background-color: #F0F0F0;
 	padding-left: 10px;
 	padding-right: 10px;
-	border-right: 1px solid #BEBEBE;
-	border-bottom: 1px solid #BEBEBE;
+	border: 1px solid #DDDDDD;
 	/*width: 120px;*/
 }
 
@@ -717,15 +715,6 @@ div.fileBrowser-progressBar
 	padding-top: 1px;
 	padding-bottom: 1px;
 	white-space:nowrap;
-}
-
-.contextMenuItem span.buttonLink
-{
-	color: #293D6B;
-}
-.contextMenuItem span.buttonLinkHover
-{
-	color: #fc830b;
 }
 
 .contextMenuSeparator
