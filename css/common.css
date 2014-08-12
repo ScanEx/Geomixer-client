@@ -1417,6 +1417,18 @@ div.layersScroll
     border: none;
 }
 
+.layer-container-outer {
+    position: absolute;
+    top: 30px;
+    bottom: 20px;
+    width: 100%;
+}
+
+.layer-container-inner {
+    height: 100%;
+    overflow-y: auto;
+}
+
 .defaultMapLangContainer
 {
     margin-left: 3px;
