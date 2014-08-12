@@ -1038,7 +1038,7 @@
                     if ('color' in outline) {
                         var val = outline.color;
                         opt.color = typeof val === 'number' ?
-                            '#' + utils.dec2hex(val)
+                            '#' + gmxAPI._leaflet.utils.dec2hex(val)
                             :
                             (val.substring(0, 1) !== '#' ? '#' : '') + val;
                     }
