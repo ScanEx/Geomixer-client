@@ -70,6 +70,7 @@
         if(drawAttr.regularStyle) {
             var opacity = ('opacity' in drawAttr.regularStyle ? drawAttr.regularStyle.opacity/100 : 1);
             var color = ('color' in drawAttr.regularStyle ? drawAttr.regularStyle.color : 0xff);
+            if(typeof(color) === 'string' && color[0] === '#') color = parseInt(color.substr(1), 16);
             drawAttr.strokeStyle.color = gmxAPI._leaflet.utils.dec2rgba(color, opacity);
             var weight = ('weight' in drawAttr.regularStyle ? drawAttr.regularStyle.weight : lineWidth);
             drawAttr.stylePolygon = {
@@ -1021,6 +1022,9 @@
             objects[domId] = res;
         }
         checkLastPoint(res.geometry);
+        res.chkZindex = function() {
+            if ('bringToFront' in object) object.bringToFront();
+        }
         res.setStyle = function(regularStyle, hoveredStyle) {
             var id = res.id,
                 obj = objects[id];
@@ -1034,7 +1038,7 @@
                     if ('color' in outline) {
                         var val = outline.color;
                         opt.color = typeof val === 'number' ?
-                            '#' + gmxAPIutils.dec2hex(val)
+                            '#' + utils.dec2hex(val)
                             :
                             (val.substring(0, 1) !== '#' ? '#' : '') + val;
                     }
