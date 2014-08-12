@@ -16,7 +16,7 @@
 .treeview .hitarea
 {
 	/*background: url(../img/treeview-new.png) -64px -25px no-repeat;*/
-    background: url(../img/redesign/icons2.png) -115px -3px no-repeat;
+    background: url(../img/redesign/icons2.png) -97px -4px no-repeat;
 	height: 16px;
 	width: 6px;
 	margin-left: -16px;
@@ -53,7 +53,7 @@
 
 .treeview .expandable-hitarea
 {
-	background-position: -97px -4px;
+	background-position: -115px -3px;
 }
 
 .treeview li.last
