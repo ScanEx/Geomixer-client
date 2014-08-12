@@ -17,28 +17,31 @@
 	width: 21px;
 	text-align: right;
 }
+
+.searchBeginOn, .searchBeginOff {
+	height: 24px;
+	width: 24px;
+    border: 1px solid #E2E2E2;
+    margin-right: -1px;
+}
+
 .searchBeginOn
 {
-	background: transparent url(../img/searchBeginOn.png) no-repeat scroll 0 0;
+	background: transparent url(../img/searchBeginOn_2.png) no-repeat scroll 0 0;
 	cursor: pointer;
-	height: 22px;
-	width: 21px;
 }
 .active .searchBeginOn
 {
-	background: transparent url(../img/searchBeginOn_a.png) no-repeat scroll 0 0;
+	background: transparent url(../img/searchBeginOn_2a.png) no-repeat scroll 0 0;
 }
 .searchBeginOff
 {
-	background: transparent url(../img/searchBeginOff.png) no-repeat scroll 0 0;
-	border: none;
-	height: 22px;
-	width: 21px;
+	background: transparent url(../img/searchBeginOff_2.png) no-repeat scroll 0 0;
 	cursor: pointer;
 }
 .active .searchBeginOff
 {
-	background: transparent url(../img/searchBeginOff_a.png) no-repeat scroll 0 0;
+	background: transparent url(../img/searchBeginOff_2a.png) no-repeat scroll 0 0;
 }
 
 .genericHeader-left {
