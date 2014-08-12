@@ -2520,10 +2520,15 @@ var FireControl2 = function(map, params)
                 //Поэтому покажем календарик заранее
                 if (typeof params.calendar === 'undefined')
                     nsGmx.widgets.commonCalendar.show();
-                
-                var table = $(_queryMapLayers.workCanvas).children("table")[0],
-                    div = _div(null, [['css', 'margin', '5px']])
-                $(table).after(div);
+
+                var div = _div(null, [['css', 'margin', '5px']]);
+                if ($('.layers-before', _queryMapLayers.workCanvas).length) {
+                    $('.layers-before .PeriodCalendar', _queryMapLayers.workCanvas).before(div);
+                } else {
+                    //старый вариант интерфейса
+                    var table = $(_queryMapLayers.workCanvas).children("table");
+                    table.after(div);
+                }
                 
                 params.container = div;
                 
