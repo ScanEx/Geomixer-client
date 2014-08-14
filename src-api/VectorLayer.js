@@ -1408,7 +1408,7 @@
                         if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
                     }
                     res = utils.evalStyle(res, geom.properties);
-                    node.prpStyle(geom, res);
+                    geom.propHiden.curStyle = node.prpStyle(geom, res);
                 }
             }
             ,checkWaitStyle: function() {       // проверка ожидания обработки стилей по фильтрам
