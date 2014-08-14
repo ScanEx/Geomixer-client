@@ -632,6 +632,8 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     }, options);
     
     var getPathHTML = function(path) {
+        if (!path) return '';
+        
         return Mustache.render(
             '<tr>' +
                 '{{#path}}' +
@@ -649,16 +651,17 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     
     var ui =
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
-            '<div class="leftTitle">' +
+            '{{#isTitle}}<div class="leftTitle">' +
                 '<table class="leftmenu-path">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
                 '{{#showMinimizeButton}}<div class="leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
-            '</div>' +
+            '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
         '</div>';
     
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
     this.panelCanvas = $(Mustache.render(ui, {
+        isTitle: !!(options.path || options.showCloseButton || options.showMinimizeButton),
         id: 'left_' + canvasID,
         pathTR: getPathHTML(options.path),
         showCloseButton: options.showCloseButton,
