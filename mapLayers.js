@@ -1472,6 +1472,12 @@ queryMapLayers.prototype.equalStyles = function(style1, style2)
 	return true;
 }
 
+queryMapLayers.prototype.getContainerBefore = function() {
+    if (!this.builded) return;
+    
+    return $('.layers-before', this.workCanvas).show();
+}
+
 queryMapLayers.prototype.load = function(data)
 {
 	if (this.buildedTree && !this.builded)
@@ -1486,8 +1492,8 @@ queryMapLayers.prototype.load = function(data)
         
 		_(this.workCanvas, [
             _div([
-                _table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','7px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])
-            ], [['dir', 'className', 'layers-before']])
+                //_table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','7px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])
+            ], [['dir', 'className', 'layers-before'], ['css', 'display', 'none']])
         ]);
 
 		_(this.workCanvas, [this.treeCanvas]);
@@ -2052,7 +2058,7 @@ var _queryMapLayers = new queryMapLayers();
 mapLayers.mapLayers.load = function()
 {
 	var alreadyLoaded = _queryMapLayers.createWorkCanvas('layers', {
-            path: ['Слои'], 
+            path: null,
             showCloseButton: false, 
             showMinimizeButton: false
         });

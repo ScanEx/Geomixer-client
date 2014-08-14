@@ -501,7 +501,7 @@ nsGmx.widgets.commonCalendar = {
     {
         var doAdd = function() {
             var calendarDiv = $("<div/>").append(this.get().canvas);
-            $('.layers-before', _queryMapLayers.workCanvas).append(calendarDiv);
+            _queryMapLayers.getContainerBefore().append(calendarDiv);
         }.bind(this);
         
         if (!this._isAppended)

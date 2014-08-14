@@ -2080,22 +2080,22 @@ FireControl.prototype._updateCheckboxList = function()
 	$("#checkContainer", this._parentDiv).empty();
 	var trs = [];
 	var _this = this;
-	
+
 	for (var k in this.dataControllers) (function(dataController)
 	{
 		var checkbox = _checkbox(dataController.visible, 'checkbox');
-		
+
 		$(checkbox).attr({id: dataController.name});
-	
+
         checkbox.onclick = function()
         {
             _this.setDataVisibility(dataController.name, this.checked);
         }
-		
+
 		var curTr = _tr([_td([checkbox]), _td([_span([_t( dataController.provider.getDescription() )],[['css','marginLeft','3px']])])]);
 		trs.push(curTr);
 	})(this.dataControllers[k])
-	
+
 	$("#checkContainer", this._parentDiv).append( _table([_tbody(trs)],[['css','marginLeft','4px']]) );
 }
 
@@ -2522,8 +2522,8 @@ var FireControl2 = function(map, params)
                     nsGmx.widgets.commonCalendar.show();
 
                 var div = _div(null, [['css', 'margin', '5px']]);
-                if ($('.layers-before', _queryMapLayers.workCanvas).length) {
-                    $('.layers-before .PeriodCalendar', _queryMapLayers.workCanvas).before(div);
+                if (_queryMapLayers.getContainerBefore) {
+                    _queryMapLayers.getContainerBefore().prepend(div);
                 } else {
                     //старый вариант интерфейса
                     var table = $(_queryMapLayers.workCanvas).children("table");
