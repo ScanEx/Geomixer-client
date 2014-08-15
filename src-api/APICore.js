@@ -2717,8 +2717,8 @@ function loadMapJSON(hostName, mapName, callback, onError)
 							//layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 						});
 					}
-					callback(layers);
 					flashMapAlreadyLoading = false;
+					callback(layers);
 				} else {
 					flashMapAlreadyLoading = false;
 					if (onError) onError();
