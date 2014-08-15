@@ -1456,8 +1456,6 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 			}
 		}
 	}, visFlag)
-	
-	var parentCanvas = typeof div == 'undefined' ? $(this.buildedTree.firstChild).children("[MapID]")[0] : div;
 }
 
 queryMapLayers.prototype.equalStyles = function(style1, style2)

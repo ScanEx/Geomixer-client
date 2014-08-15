@@ -1589,13 +1589,21 @@ div.layersScroll
 
 .layers-before {
     border: 1px solid #DDD;
-    padding: 10px 0px 10px 6px;
+    padding: 9px 0px 10px 6px;
     margin-bottom: 8px;
 }
 
 .layers-tree {
     border: 1px solid #DDD;
-    padding: 10px 0px 10px 21px;
+    padding: 10px 0px 10px 12px;
+}
+
+.layers-tree > .filetree > li > div {
+    display: none;
+}
+
+.layers-tree > .filetree > li > ul {
+    margin-top: 0px;
 }
 
 .layers-visibility-checkbox {
