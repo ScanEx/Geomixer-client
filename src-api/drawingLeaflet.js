@@ -957,8 +957,10 @@
                 //setText: ret.setText,
                 setVisible: function(flag)
                 {
-                    if (flag) gmxAPI._leaflet.LMap.addLayer(res._object);
-                    else gmxAPI._leaflet.LMap.removeLayer(res._object);
+                    if (flag) {
+                        gmxAPI._leaflet.LMap.addLayer(res._object);
+                        res._object.setEditMode();
+                    } else gmxAPI._leaflet.LMap.removeLayer(res._object);
                     this.properties.isVisible = flag;
                 },
 
