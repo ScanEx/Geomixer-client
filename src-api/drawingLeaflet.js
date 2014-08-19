@@ -957,6 +957,8 @@
                 //setText: ret.setText,
                 setVisible: function(flag)
                 {
+                    if (flag) gmxAPI._leaflet.LMap.addLayer(res._object);
+                    else gmxAPI._leaflet.LMap.removeLayer(res._object);
                     this.properties.isVisible = flag;
                 },
 
@@ -1004,8 +1006,7 @@
                     return res.setStyle(regularStyle, hoveredStyle);
                 },
                 getVisibleStyle: function() { 
-                    console.log('getVisibleStyle');
-                //return ret.getVisibleStyle(); 
+                    return this.properties.isVisible || false; 
                 },
                 getStyle: function(removeDefaults) {
                     return res.getStyle(removeDefaults);
