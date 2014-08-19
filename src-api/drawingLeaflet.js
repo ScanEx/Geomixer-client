@@ -1088,7 +1088,7 @@
             res = objects[domId];
             res.geometry = res.domObj.geometry = geoJSON.geometry;
         } else {
-            res = domFeature(object);
+            res = domFeature(object, object.options);
         }
         var handlers = gmxAPI.map.drawing.handlers[eType] || [];
         for (var i = 0; i < handlers.length; i++) handlers[i](res.domObj);
@@ -1116,8 +1116,8 @@
             var obj = null;
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'LineString', coordinates: coords });
-                obj = LMap.gmxDrawing.add(L.polyline(_latlngs), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polyline', {});
 
             return obj;
@@ -1133,8 +1133,8 @@
             var obj = null;
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords });
-                obj = LMap.gmxDrawing.add(L.polygon(_latlngs), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polygon', {});
 
             return obj;
@@ -1150,8 +1150,8 @@
             if (coords) {
                 var bounds = gmxAPIutils.bounds(coords[0]);
                 var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
-                obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Rectangle', {});
 
             return obj;
