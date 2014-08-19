@@ -1026,7 +1026,7 @@
         }
         checkLastPoint(res.geometry);
         res.chkZindex = function() {
-            if ('bringToFront' in object) object.bringToFront();
+            if (object._map && 'bringToFront' in object) object.bringToFront();
         }
         res.setStyle = function(regularStyle, hoveredStyle) {
             var id = res.id,
