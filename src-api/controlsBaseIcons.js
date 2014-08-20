@@ -60,7 +60,13 @@
         }
         ,
         selectTool: function (id) {
-            var control = (id === 'POINT' ? Controls.items.drawingPoint : Controls.items.gmxDrawing);
+            var control = Controls.items.gmxDrawing;
+            if (id === 'POINT') {
+                control = Controls.items.drawingPoint;
+                if ('onclick' in control.options) {
+                    control.options.onclick();
+                }
+            }
             control.setActive(id);
         }
     };
