@@ -2437,14 +2437,14 @@
                 node.loaderDrawFlags = {};
                 node.badTiles = {};
                 node.badRastersURL = {};
-                if (!attr.notClear) {
+                //if (!attr.notClear) {
                     for(var key in node.tilesGeometry) {
                         node.removeTile(key); // Полная перезагрузка тайлов
                     }
                     if (!gmxNode.notServer) node.addedItems = {};
                     node.objectsData = {};
                     redrawFlag = true;
-                }
+                //}
                 if (attr.processing) {      // Для обычных слоев
                     if (attr.processing.addObjects.length === 0) {
                         node.removeItems(node.addedItems);
@@ -2480,6 +2480,10 @@
                     //}
                     node.getTilesBounds(attr.dtiles);
                     node.temporal = attr;
+                    if(gmxAPI._leaflet._moveendTimer) clearTimeout(gmxAPI._leaflet._moveendTimer);
+                    gmxAPI._leaflet._moveendTimer = setTimeout(function() {
+                        gmxAPI._leaflet.LMap.fire('moveend');
+                    }, 10);
                 }
                 if(myLayer) { // Обновление лефлет слоя
                     //node.upDateLayer();
