@@ -1353,21 +1353,32 @@ extend(window.gmxAPI,
 	{
 		gmxAPI.forEachPoint(arg.length ? arg : arg.coordinates, callback);
 	}
-	,
-	geoLength: function(arg1, arg2, arg3, arg4)
-	{
-		if (arg4)
-			return gmxAPI.distVincenty(arg1, arg2, arg3, arg4);
-		var currentX = false, currentY = false, length = 0;
-		gmxAPI.forEachPointAmb(arg1, function(p)
-		{
-			if (currentX && currentY)
-				length += parseFloat(gmxAPI.distVincenty(currentX, currentY, p[0], p[1]));
-			currentX = p[0];
-			currentY = p[1];
-		});
-		return length;
-	}
+    ,
+    geoLength: function(arg)
+    {
+        if (!arg) return 0;
+        var coords = arg.coordinates, length = 0;
+        if (arg.type === "LINESTRING") {
+            coords = [arg.coordinates];
+        } else if (arg.type === "POLYGON") {
+            coords = [arg.coordinates];
+        } else if (arg.type === "MULTIPOLYGON") {
+            coords = [];
+            for (var i = 0; i < arg.coordinates.length; i++) {
+                coords = coords.concat(arg.coordinates[i]);
+            }
+        }
+        for (var i = 0; i < coords.length; i++) {
+            var currentX = false, currentY = false;
+            gmxAPI.forEachPointAmb(coords[i], function(p) {
+                if (currentX && currentY)
+                    length += parseFloat(gmxAPI.distVincenty(currentX, currentY, p[0], p[1]));
+                currentX = p[0];
+                currentY = p[1];
+            });
+        }
+        return length;
+    }
 	,
 	geoArea: function(arg)
 	{
