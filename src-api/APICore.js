@@ -1357,7 +1357,7 @@ extend(window.gmxAPI,
     geoLength: function(arg)
     {
         if (!arg) return 0;
-        var coords = arg.coordinates, length = 0;
+        var coords = [arg], length = 0;
         if (arg.type === "LINESTRING") {
             coords = [arg.coordinates];
         } else if (arg.type === "POLYGON") {
