@@ -680,7 +680,7 @@
             };
             if(currPos.extent) {
                 var extent = currPos.extent;
-                if(extent.minx || extent.maxx) {
+                if('minX' in extent || 'minx' in extent) {
                     currPos.latlng.extent = {
                         minX: gmxAPI.from_merc_x(extent.minX || extent.minx),
                         minY: gmxAPI.from_merc_y(extent.minY || extent.miny),
