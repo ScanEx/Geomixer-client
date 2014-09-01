@@ -745,7 +745,7 @@
         if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
         
         if(!map.needSetMode && haveOSM) {   // если нигде не устанавливалась текущая подложка и есть OSM
-            if(!gmxAPI._baseLayersArr || gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
+            if(!gmxAPI._baseLayersArr && gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
         }
 
         var startDrag = function(object, dragCallback, upCallback)

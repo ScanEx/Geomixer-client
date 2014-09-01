@@ -3707,7 +3707,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             }
                         }
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
-                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        //if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!map.needSetMode && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                         
