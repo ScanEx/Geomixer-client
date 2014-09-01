@@ -356,7 +356,7 @@
 }
 */
 .leaflet-overlay-pane svg g {
-	pointer-events: auto;
+	pointer-events: visible;
 }
 .leaflet-tile {
 	position: absolute;
