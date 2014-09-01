@@ -3346,6 +3346,8 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 	
 	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>", 8, 18);
 	this.setCopyright("&copy; <a href='http://www.naturalearthdata.com/'>Natural Earth</a>", 1, 7);
+	this.setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2014", 1, 7);
+    
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
