@@ -2619,6 +2619,11 @@
                             ,properties: objData.properties
                             ,tpx: ph.x
                             ,tpy: ph.y
+                            ,from: {
+                                x: x,
+                                y: y,
+                                z: z
+                            }
                             ,callback: function(content) { callback(content); }
                         };
                         var content = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
