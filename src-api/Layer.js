@@ -455,6 +455,8 @@
 
         var tileSenderPrefix = tileSenderPrefixBase + 
             "&LayerName=" + layerName;
+        
+        obj.tileSenderPrefix = tileSenderPrefix; // Префикс запросов за тайлами
 
         var tileFunction = function(i, j, z)
         {
