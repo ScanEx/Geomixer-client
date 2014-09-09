@@ -233,8 +233,8 @@
                 } else {
                     regularStyle = (filter && filter.regularStyle ? filter.regularStyle : null);
                 }
-                if (!regularStyle.iconUrl) {
-                    propHiden.curStyle = regularStyle;
+                if (regularStyle && !regularStyle.iconUrl) {
+                    propHiden.curStyle = utils.evalStyle(regularStyle, item.geom.properties);
 
                     var drawInTiles = propHiden.drawInTiles;
                     if(drawInTiles && drawInTiles[zoom]) {
@@ -284,7 +284,12 @@
             if(pt.arr.length) {
                 var item = getTopFromArrItem(pt.arr);
                 if(item) {
-                    if(node.hoverItem !== item) mouseOut();
+                    if(node.hoverItem) {
+                        if(node.hoverItem.geom.id === item.geom.id) return false;
+                        else {
+                            mouseOut();
+                        }
+                    }
                     hoverItem(item);
                     return true;
                 }
