@@ -708,10 +708,10 @@
                 points.x4 = coord[3][0], points.y4 = coord[3][1];
                 ready = true;
             } else if (quicklookPlatform === 'image') {
-                points.x1 = gmxAPI.merc_x(properties.xTopLeft), points.y1 = gmxAPI.merc_y(properties.yTopLeft);
-                points.x2 = gmxAPI.merc_x(properties.xTopRight), points.y2 = gmxAPI.merc_y(properties.yTopRight);
-                points.x3 = gmxAPI.merc_x(properties.xBottomRight), points.y3 = gmxAPI.merc_y(properties.yBottomRight);
-                points.x4 = gmxAPI.merc_x(properties.xBottomLeft), points.y4 = gmxAPI.merc_y(properties.yBottomLeft);
+                points.x1 = gmxAPI.merc_x(properties.xTopLeft || 0), points.y1 = gmxAPI.merc_y(properties.yTopLeft || 0);
+                points.x2 = gmxAPI.merc_x(properties.xTopRight || 0), points.y2 = gmxAPI.merc_y(properties.yTopRight || 0);
+                points.x3 = gmxAPI.merc_x(properties.xBottomRight || 0), points.y3 = gmxAPI.merc_y(properties.yBottomRight || 0);
+                points.x4 = gmxAPI.merc_x(properties.xBottomLeft || 0), points.y4 = gmxAPI.merc_y(properties.yBottomLeft || 0);
                 ready = true;
             } else {
                 points = utils.getQuicklookPoints(coord);
