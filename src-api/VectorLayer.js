@@ -425,15 +425,17 @@
 
             if(!attr) attr = gmxAPI._leaflet.clickAttr;
             if(!attr.latlng) return false;
-            var zoom = LMap.getZoom();
-            var pt = getItemsByPoint(attr.latlng, zoom);
-            if(pt.arr.length) {
+            var zoom = LMap.getZoom(),
+                pt = getItemsByPoint(attr.latlng, zoom),
+                count = pt.arr.length;
+            if(count) {
                 var arr = pt.arr;
-                var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
-                prevPoint = attr.containerPoint;
-                if(needCheck) {
+                if(
+                    !prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y
+                ) {
                     node.flipIDS = sortFlipIDS(arr);
                 }
+                prevPoint = attr.containerPoint;
                 if(!node.flipIDS.length) return false;
                 
                 var idClick = node.flipIDS[node.flipIDS.length - 1];
@@ -704,6 +706,12 @@
                 points.x2 = coord[1][0], points.y2 = coord[1][1];
                 points.x3 = coord[2][0], points.y3 = coord[2][1];
                 points.x4 = coord[3][0], points.y4 = coord[3][1];
+                ready = true;
+            } else if (quicklookPlatform === 'image') {
+                points.x1 = gmxAPI.merc_x(properties.xTopLeft), points.y1 = gmxAPI.merc_y(properties.yTopLeft);
+                points.x2 = gmxAPI.merc_x(properties.xTopRight), points.y2 = gmxAPI.merc_y(properties.yTopRight);
+                points.x3 = gmxAPI.merc_x(properties.xBottomRight), points.y3 = gmxAPI.merc_y(properties.yBottomRight);
+                points.x4 = gmxAPI.merc_x(properties.xBottomLeft), points.y4 = gmxAPI.merc_y(properties.yBottomLeft);
                 ready = true;
             } else {
                 points = utils.getQuicklookPoints(coord);
