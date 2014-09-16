@@ -1094,6 +1094,7 @@
         for (var i = 0; i < handlers.length; i++) handlers[i](res.domObj);
         gmxAPI._listeners.dispatchEvent(eType, res.domObj, res.domObj);
         gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, res.domObj);
+        return domId;
     }
     var needListeners = function(gmxDrawing) {
         gmxDrawing
@@ -1102,10 +1103,16 @@
             // .on('drawstart', function (ev) { })
             .on('drawstop', function (ev) { fireEvent('onFinish', ev.object); })
             .on('onMouseOver', function (ev) { fireEvent('onMouseOver', ev.object); })
-            .on('onMouseOut', function (ev) { fireEvent('onMouseOut', ev.object); })
+            .on('onMouseOut', function (ev) {
+                var domId = '_' + ev.object._leaflet_id;
+                if (objects[domId]) fireEvent('onMouseOut', ev.object);
+             })
             .on('add', function (ev) { fireEvent('onAdd', ev.object); })
             .on('edit', function (ev) { fireEvent('onEdit', ev.object); })
-            .on('remove', function (ev) { fireEvent('onRemove', ev.object); })
+            .on('remove', function (ev) {
+                var domId = fireEvent('onRemove', ev.object);
+                delete objects[domId];
+            })
             .on('drag', function (ev) { fireEvent('onEdit', ev.object); });
         needListeners = null;
     }
