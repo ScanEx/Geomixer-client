@@ -1494,3 +1494,25 @@ div.layersScroll
 .gmx-icon-choose:hover {
     background-image: url(../img/choose2_a.png);
 }
+
+/* Закладки */
+.addtabs-container {
+    text-align: center;
+}
+
+.addtabs-title-input {
+    width: 240px;
+    margin-bottom: 10px;
+}
+
+.addtabs-title-description {
+    width: 240px;
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+.addtabs-info {
+    text-align: left;
+    padding-left: 12px;
+    margin-bottom: 2px;
+}

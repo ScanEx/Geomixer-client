@@ -45,32 +45,25 @@ queryTabs.prototype.load = function()
 
 queryTabs.prototype.add = function()
 {
-	var inputTab = _input(null,[['dir','className','inputStyle'],['css','width','240px']]),
-		create = makeButton(_gtxt('Создать')),
-		createTab = function()
-		{
-			var mapState = _mapHelper.getMapState(),
-				tab = {name:inputTab.value, state:mapState};
-			
-			_this.tabs.push(tab);
-			
-			_this.draw(tab);
-			
-			removeDialog(inputTab.parentNode.parentNode)
-		},
-		_this = this;
-	
-	create.onclick = createTab;
-	
-	inputTab.onkeyup = function(e)
-	{
-		if (this.value == '')
+    var uiTemplate = 
+        '<div class = "addtabs-container">' +
+            '<div class = "addtabs-info">{{i Название}}</div>' + 
+            '<input class = "addtabs-title-input inputStyle"><br>' + 
+            '<div class = "addtabs-info">{{i Описание}}</div>' + 
+            '<textarea class = "addtabs-title-description inputStyle"></textarea><br>' + 
+            '<button class = "addtabs-create">{{i Создать}}</button>' +
+        '</div>';
+        
+    var ui = $(Mustache.render(uiTemplate)),
+        titleInput = $('.addtabs-title-input', ui);
+    
+    titleInput.keyup(function(e) {
+        if (this.value == '')
 			$(this).addClass('error');
 		else
 			$(this).removeClass('error');
 		
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
+	  	if (e.keyCode == 13) 
 	  	{	
 			createTab();
 	  		
@@ -78,9 +71,26 @@ queryTabs.prototype.add = function()
 	  	}
 		
 		return true;
-	}
+    })
+             
+	var createTab = function() {
+            var mapState = _mapHelper.getMapState(),
+                tab = {
+                    name: titleInput.val(),
+                    description: $('.addtabs-title-description', ui).val(),
+                    state: mapState
+                };
+            
+            _this.tabs.push(tab);
+            _this.draw(tab);
+            
+            removeDialog(dialogDiv);
+        },
+        _this = this;
 	
-	showDialog(_gtxt("Имя закладки"), _div([inputTab, _br(), create],[['css','textAlign','center']]), 280, 100, false, false)
+    $('.addtabs-create', ui).click(createTab);
+	
+	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 190, false, false)
 }
 
 queryTabs.prototype.draw = function(tabInfo)
@@ -91,6 +101,10 @@ queryTabs.prototype.draw = function(tabInfo)
 		_this = this;
 		
 	canvas.tabInfo = tabInfo;
+    
+    if (tabInfo.description) {
+        title.title = tabInfo.description;
+    }
 	
 	title.onclick = function()
 	{
