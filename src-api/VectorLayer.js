@@ -2644,7 +2644,7 @@
                     }
                     ,onerror: onError
                 };
-                if(ph.crossOrigin || node.imageProcessingHook || zoomFrom != z) item.crossOrigin = 'use-credentials'; // если требуется преобразование image - векторные слои всегда с авторизацией
+                if(ph.crossOrigin || node.imageProcessingHook || zoomFrom != z) item.crossOrigin = node.imageProcessingCrossOrigin || 'use-credentials'; // если требуется преобразование image - векторные слои всегда с авторизацией
                 gmxAPI._leaflet.imageLoader.push(item);
             }
             ,getRaster: function(rItem, attr, ogc_fid, callback) { // получить растр обьекта векторного тайла

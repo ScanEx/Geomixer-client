@@ -678,14 +678,14 @@
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             delete opt._inLoadImage[rUrl];
-                            pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
+                            pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from, 'x': pt.x, 'y': pt.y});
                         }
                         ,'onerror': function(err) {
                             delete opt._inLoadImage[rUrl];
                             onError(err);
                         }
                     };
-                    if(pt.zoom.from != z || node.imageProcessingHook) item.crossOrigin = 'use-credentials';
+                    if(pt.zoom.from != z || node.imageProcessingHook) item.crossOrigin = node.imageProcessingCrossOrigin || 'use-credentials';
                     opt._inLoadImage[rUrl] = true;
                     gmxAPI._leaflet.imageLoader.push(item);
                 }
@@ -703,7 +703,16 @@
                         if(ph && LMap.getZoom() === zoom) {     // Есть раззумленный тайл
                             var imageObj = ph.img;
                             if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
-                                var pos = null;
+                                var pos = null,
+                                    imgProcAttr = {
+                                        tpx: gmxTilePoint.x
+                                        ,tpy: gmxTilePoint.y
+                                        ,from: {
+                                            x: gmxTilePoint.x,
+                                            y: gmxTilePoint.y,
+                                            z: ph.fromZoom
+                                        }
+                                    };
                                 if(ph.zoom !== ph.fromZoom) {
                                     pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, ph.fromZoom, ph.zoom);
                                     if(pos.size < 0.00390625
@@ -713,9 +722,16 @@
                                     ) {
                                         return;
                                     }
+                                    imgProcAttr.from = {
+                                        x: ph.x,
+                                        y: ph.y,
+                                        z: ph.zoom
+                                    };
                                 }
                                 var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
-                                if (node.imageProcessingHook) imageObj = node.imageProcessingHook(imageObj, tilePoint);
+                                if (node.imageProcessingHook) {
+                                    imageObj = node.imageProcessingHook(imageObj, imgProcAttr);
+                                }
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {

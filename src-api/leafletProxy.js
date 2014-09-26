@@ -2640,12 +2640,14 @@
             var node = mapNodes[id];
             if(!node) return;
             node.imageProcessingHook = ph.attr.func;
+            node.imageProcessingCrossOrigin = ph.attr.crossOrigin;
         }
         ,removeImageProcessingHook: function(ph) {  // Удаление предобработчика растрового тайла
             var id = ph.obj.objectId;
             var node = mapNodes[id];
             if(!node) return;
             delete node.imageProcessingHook;
+            delete node.imageProcessingCrossOrigin;
         }
         ,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
