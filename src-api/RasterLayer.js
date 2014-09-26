@@ -728,10 +728,7 @@
                                         z: ph.zoom
                                     };
                                 }
-                                var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
-                                if (node.imageProcessingHook) {
-                                    imageObj = node.imageProcessingHook(imageObj, imgProcAttr);
-                                }
+                                var type = (!pos && isIntersects === 2 && !node.imageProcessingHook ? 'img' : 'canvas');
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {
@@ -744,15 +741,25 @@
                                         ptx.drawImage(imageObj, Math.floor(pos.x), Math.floor(pos.y), pos.size, pos.size, 0, 0, 256, 256);
                                         imageObj = canvas;
                                     }
-
-                                    var pattern = ctx.createPattern(imageObj, "no-repeat");
-                                    ctx.fillStyle = pattern;
-                                    if(isIntersects === 2) ctx.fillRect(0, 0, 256, 256);
-                                    else {
-                                        if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
-                                        drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
+                                    var putContent = function(content) {
+                                        var pattern = ctx.createPattern(content, "no-repeat");
+                                        ctx.fillStyle = pattern;
+                                        if(isIntersects === 2) ctx.fillRect(0, 0, 256, 256);
+                                        else {
+                                            if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
+                                            drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
+                                        }
+                                        ctx.fill();
+                                    };
+                                    if (node.imageProcessingHook) {
+                                        imgProcAttr.callback = function(inp) {
+                                            putContent(inp);
+                                        };
+                                        var content = node.imageProcessingHook(imageObj, imgProcAttr);
+                                        if(content) putContent(content);
+                                    } else {
+                                        putContent(imageObj);
                                     }
-                                    ctx.fill();
                                 } else {
                                     tile.style.width = tile.style.height = tileSize + 'px';
                                 }
