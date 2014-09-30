@@ -2615,6 +2615,19 @@
                     ,callback: function(imageObj) {
                         // раззумливание растров
                         if(!node.objectsData[rItem.geom.id]) return;
+                        var pt = {
+                            idr: ogc_fid
+                            ,properties: objData.properties
+                            ,tpx: ph.x
+                            ,tpy: ph.y
+                            ,from: {
+                                img: imageObj,
+                                x: x,
+                                y: y,
+                                z: z
+                            }
+                            ,callback: function(content) { callback(content); }
+                        };
                         if(node.tileRasterFunc && rItem.geom.properties.GMX_RasterCatalogID) {
                             if(ph.z > z) {
                                 var pos = gmxAPI.getTilePosZoomDelta(ph, ph.z, z);
@@ -2627,18 +2640,6 @@
                         } else if(node.quicklook) {
                             imageObj = prepareQuicklookImage(rItem, gmxTilePoint, imageObj);
                         }
-                        var pt = {
-                            idr: ogc_fid
-                            ,properties: objData.properties
-                            ,tpx: ph.x
-                            ,tpy: ph.y
-                            ,from: {
-                                x: x,
-                                y: y,
-                                z: z
-                            }
-                            ,callback: function(content) { callback(content); }
-                        };
                         var content = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
                         if(content) callback(content);
                     }
