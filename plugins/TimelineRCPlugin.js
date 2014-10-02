@@ -394,6 +394,10 @@ var TimelineController = function(data, map, options) {
         
         return res;
     }
+
+    this.getTimeline = function () {
+        return timeline;
+    }
     
     this.shiftActiveItem = function(step)
     {

@@ -1530,6 +1530,7 @@ var FireBurntRenderer3 = function( params )
         dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
         hotspotTimeAttr: 'Timestamp',
         hotspotIDAttr: 'SpotID',
+        clusterTimeAttr: 'ClusterDate',
         mapName: 'NDFYK'
     }, params);
     
@@ -1694,7 +1695,7 @@ var FireBurntRenderer3 = function( params )
                     cluster.count += count;
                     cluster.startDate = Math.min(cluster.startDate, hotspotDate);
                     cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
-                    cluster.isIndustrial = cluster.isIndustrial || props.FireType == '1';
+                    cluster.isIndustrial = cluster.isIndustrial || (Number(props.FireType) & 1);
                     
                     clustersToRepaint[clusterId] = true;
                 }
@@ -1757,7 +1758,7 @@ var FireBurntRenderer3 = function( params )
             }
         }
         
-        dailyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
+        dailyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', _params.clusterTimeAttr), {ignoreVisibilityFilter: true});
         layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', _params.hotspotIDAttr, null, _params.hotspotTimeAttr), {ignoreVisibilityFilter: true});
     })
     
@@ -2294,9 +2295,10 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresScanEx")} ),
             new FireBurntRenderer3( {
                 map: this._map,
-                hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
-                dailyLayerName: '65E7319D40A64780AE63C398C6F04201',
-                hotspotTimeAttr: 'ImgDateTime',
+                hotspotLayerName: 'F2840D287CD943C4B1122882C5B92565',
+                dailyLayerName: 'E58063D97D534BB4BBDFF07FE5CB17F2',
+                clusterTimeAttr: 'DateTime',
+                hotspotTimeAttr: 'DateTime',
                 hotspotIDAttr: 'HotSpotID',
                 minHotspotZoom: firesOptions.minHotspotZoom,
                 minGeomZoom: firesOptions.minGeomZoom
@@ -2313,6 +2315,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
                 map: this._map,
                 hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
                 dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
+                clusterTimeAttr: 'ClusterDate',
                 hotspotTimeAttr: 'Timestamp',
                 hotspotIDAttr: 'SpotID',
                 minHotspotZoom: firesOptions.minHotspotZoom,

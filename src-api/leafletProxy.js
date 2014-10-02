@@ -1209,7 +1209,7 @@
 					}
 				}
 				pt.stroke = false;
-				if(typeof(st.outline) === 'object') {				//	Есть стиль контура
+				if(typeof(st.outline) === 'object') {   //	Есть стиль контура
 					pt.stroke = true;
 					var ph = st.outline;
 					if('color' in ph) pt.color = ph.color;
@@ -1225,17 +1225,21 @@
 				pt.scaleFunction = gmxAPI.Parsers.parseExpression(pt.scale);
 			}
 			if('color' in pt && typeof(pt.color) === 'string') {
-				pt.colorFunction = gmxAPI.Parsers.parseExpression(pt.color);
+                var zn = pt.color;
+                if(zn.substr(0,1) === '#') pt.color = parseInt('0x' + zn.replace(/#/, ''));
+				else pt.colorFunction = gmxAPI.Parsers.parseExpression(pt.color);
 			}
 			if('fillColor' in pt && typeof(pt.fillColor) === 'string') {
-				pt.fillColorFunction = gmxAPI.Parsers.parseExpression(pt.fillColor);
+                var zn = pt.fillColor;
+                if(zn.substr(0,1) === '#') pt.fillColor = parseInt('0x' + zn.replace(/#/, ''));
+				else pt.fillColorFunction = gmxAPI.Parsers.parseExpression(pt.fillColor);
 			}
 
 			return pt;
 		}
 		,
 		'isPropsInString': function(st)	{				// парсинг значений свойств в строке
-			if(typeof(st) === 'string') {
+            if(typeof(st) === 'string') {
 				for(var i in regProps) {
 					var matches = regProps[i].exec(st);
 					if(matches && matches.length > 0) return true;
@@ -2636,12 +2640,14 @@
             var node = mapNodes[id];
             if(!node) return;
             node.imageProcessingHook = ph.attr.func;
+            node.imageProcessingCrossOrigin = ph.attr.crossOrigin;
         }
         ,removeImageProcessingHook: function(ph) {  // Удаление предобработчика растрового тайла
             var id = ph.obj.objectId;
             var node = mapNodes[id];
             if(!node) return;
             delete node.imageProcessingHook;
+            delete node.imageProcessingCrossOrigin;
         }
         ,
 		'zoomBy':	function(ph)	{				// установка Zoom карты

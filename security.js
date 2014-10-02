@@ -151,6 +151,8 @@ var multiLayerSecurity = function()
 	
 	this.propertyName = "MultiLayerID";
 	this.dialogTitle = "Редактирование прав доступа слоя [value0]";
+    
+    this.accessTypes = ['no', 'view', 'edit'];
 }
 
 multiLayerSecurity.prototype = new security();

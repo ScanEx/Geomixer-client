@@ -70,6 +70,7 @@
         if(drawAttr.regularStyle) {
             var opacity = ('opacity' in drawAttr.regularStyle ? drawAttr.regularStyle.opacity/100 : 1);
             var color = ('color' in drawAttr.regularStyle ? drawAttr.regularStyle.color : 0xff);
+            if(typeof(color) === 'string' && color[0] === '#') color = parseInt(color.substr(1), 16);
             drawAttr.strokeStyle.color = gmxAPI._leaflet.utils.dec2rgba(color, opacity);
             var weight = ('weight' in drawAttr.regularStyle ? drawAttr.regularStyle.weight : lineWidth);
             drawAttr.stylePolygon = {
@@ -956,6 +957,10 @@
                 //setText: ret.setText,
                 setVisible: function(flag)
                 {
+                    if (flag) {
+                        gmxAPI._leaflet.LMap.addLayer(res._object);
+                        res._object.setEditMode();
+                    } else gmxAPI._leaflet.LMap.removeLayer(res._object);
                     this.properties.isVisible = flag;
                 },
 
@@ -1003,8 +1008,7 @@
                     return res.setStyle(regularStyle, hoveredStyle);
                 },
                 getVisibleStyle: function() { 
-                    console.log('getVisibleStyle');
-                //return ret.getVisibleStyle(); 
+                    return this.properties.isVisible || false; 
                 },
                 getStyle: function(removeDefaults) {
                     return res.getStyle(removeDefaults);
@@ -1021,6 +1025,9 @@
             objects[domId] = res;
         }
         checkLastPoint(res.geometry);
+        res.chkZindex = function() {
+            if (object._map && 'bringToFront' in object) object.bringToFront();
+        }
         res.setStyle = function(regularStyle, hoveredStyle) {
             var id = res.id,
                 obj = objects[id];
@@ -1034,7 +1041,7 @@
                     if ('color' in outline) {
                         var val = outline.color;
                         opt.color = typeof val === 'number' ?
-                            '#' + gmxAPIutils.dec2hex(val)
+                            '#' + gmxAPI._leaflet.utils.dec2hex(val)
                             :
                             (val.substring(0, 1) !== '#' ? '#' : '') + val;
                     }
@@ -1081,12 +1088,13 @@
             res = objects[domId];
             res.geometry = res.domObj.geometry = geoJSON.geometry;
         } else {
-            res = domFeature(object);
+            res = domFeature(object, object.options);
         }
         var handlers = gmxAPI.map.drawing.handlers[eType] || [];
         for (var i = 0; i < handlers.length; i++) handlers[i](res.domObj);
         gmxAPI._listeners.dispatchEvent(eType, res.domObj, res.domObj);
         gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, res.domObj);
+        return domId;
     }
     var needListeners = function(gmxDrawing) {
         gmxDrawing
@@ -1095,10 +1103,16 @@
             // .on('drawstart', function (ev) { })
             .on('drawstop', function (ev) { fireEvent('onFinish', ev.object); })
             .on('onMouseOver', function (ev) { fireEvent('onMouseOver', ev.object); })
-            .on('onMouseOut', function (ev) { fireEvent('onMouseOut', ev.object); })
+            .on('onMouseOut', function (ev) {
+                var domId = '_' + ev.object._leaflet_id;
+                if (objects[domId]) fireEvent('onMouseOut', ev.object);
+             })
             .on('add', function (ev) { fireEvent('onAdd', ev.object); })
             .on('edit', function (ev) { fireEvent('onEdit', ev.object); })
-            .on('remove', function (ev) { fireEvent('onRemove', ev.object); })
+            .on('remove', function (ev) {
+                var domId = fireEvent('onRemove', ev.object);
+                delete objects[domId];
+            })
             .on('drag', function (ev) { fireEvent('onEdit', ev.object); });
         needListeners = null;
     }
@@ -1109,8 +1123,8 @@
             var obj = null;
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'LineString', coordinates: coords });
-                obj = LMap.gmxDrawing.add(L.polyline(_latlngs), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polyline', {});
 
             return obj;
@@ -1126,8 +1140,8 @@
             var obj = null;
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords });
-                obj = LMap.gmxDrawing.add(L.polygon(_latlngs), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polygon', {});
 
             return obj;
@@ -1143,8 +1157,8 @@
             if (coords) {
                 var bounds = gmxAPIutils.bounds(coords[0]);
                 var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
-                obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), {});
-                obj = domFeature(obj);
+                obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
+                obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Rectangle', {});
 
             return obj;

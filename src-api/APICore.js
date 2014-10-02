@@ -1353,21 +1353,32 @@ extend(window.gmxAPI,
 	{
 		gmxAPI.forEachPoint(arg.length ? arg : arg.coordinates, callback);
 	}
-	,
-	geoLength: function(arg1, arg2, arg3, arg4)
-	{
-		if (arg4)
-			return gmxAPI.distVincenty(arg1, arg2, arg3, arg4);
-		var currentX = false, currentY = false, length = 0;
-		gmxAPI.forEachPointAmb(arg1, function(p)
-		{
-			if (currentX && currentY)
-				length += parseFloat(gmxAPI.distVincenty(currentX, currentY, p[0], p[1]));
-			currentX = p[0];
-			currentY = p[1];
-		});
-		return length;
-	}
+    ,
+    geoLength: function(arg)
+    {
+        if (!arg) return 0;
+        var coords = [arg], length = 0;
+        if (arg.type === "LINESTRING") {
+            coords = [arg.coordinates];
+        } else if (arg.type === "POLYGON") {
+            coords = [arg.coordinates];
+        } else if (arg.type === "MULTIPOLYGON") {
+            coords = [];
+            for (var i = 0; i < arg.coordinates.length; i++) {
+                coords = coords.concat(arg.coordinates[i]);
+            }
+        }
+        for (var i = 0; i < coords.length; i++) {
+            var currentX = false, currentY = false;
+            gmxAPI.forEachPointAmb(coords[i], function(p) {
+                if (currentX && currentY)
+                    length += parseFloat(gmxAPI.distVincenty(currentX, currentY, p[0], p[1]));
+                currentX = p[0];
+                currentY = p[1];
+            });
+        }
+        return length;
+    }
 	,
 	geoArea: function(arg)
 	{
@@ -2717,8 +2728,8 @@ function loadMapJSON(hostName, mapName, callback, onError)
 							//layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 						});
 					}
-					callback(layers);
 					flashMapAlreadyLoading = false;
+					callback(layers);
 				} else {
 					flashMapAlreadyLoading = false;
 					if (onError) onError();
@@ -3260,8 +3271,10 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
             gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
         }
     }
-    this.addImageProcessingHook = function(func) {
-        return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': this, 'attr':{'func':func} });
+    this.addImageProcessingHook = function(func, crossOrigin) {
+        var opt = {'func':func};
+        if (crossOrigin) opt.crossOrigin = crossOrigin;
+        return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': this, 'attr': opt});
     };
     this.removeImageProcessingHook = function() {
         return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
@@ -3335,6 +3348,8 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 	
 	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>", 8, 18);
 	this.setCopyright("&copy; <a href='http://www.naturalearthdata.com/'>Natural Earth</a>", 1, 7);
+	this.setCopyright("&copy; <a href='http://www.collinsbartholomew.com/'>Collins Bartholomew Ltd.</a>, 2014", 1, 7);
+    
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
@@ -3694,7 +3709,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             }
                         }
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
-                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        //if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!map.needSetMode && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                         

@@ -680,7 +680,7 @@
             };
             if(currPos.extent) {
                 var extent = currPos.extent;
-                if(extent.minx || extent.maxx) {
+                if('minX' in extent || 'minx' in extent) {
                     currPos.latlng.extent = {
                         minX: gmxAPI.from_merc_x(extent.minX || extent.minx),
                         minY: gmxAPI.from_merc_y(extent.minY || extent.miny),
@@ -745,7 +745,7 @@
         if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
         
         if(!map.needSetMode && haveOSM) {   // если нигде не устанавливалась текущая подложка и есть OSM
-            if(!gmxAPI._baseLayersArr || gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
+            if(!gmxAPI._baseLayersArr && gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
         }
 
         var startDrag = function(object, dragCallback, upCallback)

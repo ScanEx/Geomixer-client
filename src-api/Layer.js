@@ -455,6 +455,8 @@
 
         var tileSenderPrefix = tileSenderPrefixBase + 
             "&LayerName=" + layerName;
+        
+        obj.tileSenderPrefix = tileSenderPrefix; // Префикс запросов за тайлами
 
         var tileFunction = function(i, j, z)
         {
@@ -813,8 +815,10 @@
                     obj.getRCTileUrl = function(x, y, z, pid) {
                         return tileSenderPrefix + '&x='+x+'&y='+y+'&z='+z+'&idr=' + pid;
                     };
-                    obj.addImageProcessingHook = function(func) {
-                        return proxy('addImageProcessingHook', { 'obj': obj, 'attr':{'func':func} });
+                    obj.addImageProcessingHook = function(func, crossOrigin) {
+                        var opt = {'func':func};
+                        if (crossOrigin) opt.crossOrigin = crossOrigin;
+                        return proxy('addImageProcessingHook', { 'obj': obj, 'attr': opt });
                     };
                     obj.removeImageProcessingHook = function() {
                         return proxy('removeImageProcessingHook', { 'obj': obj });

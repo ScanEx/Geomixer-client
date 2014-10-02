@@ -45,20 +45,52 @@ queryTabs.prototype.load = function()
 
 queryTabs.prototype.add = function()
 {
-	var createTab = function(value)
-		{
-			var mapState = _mapHelper.getMapState(),
-				tab = {name: value, state: mapState};
-			
-			_this.tabs.push(tab);
-			
-			_this.draw(tab);
-			
-			removeDialog(inputTab.parentNode.parentNode)
-		},
-		_this = this;
+    var uiTemplate = 
+        '<div class = "addtabs-container">' +
+            '<div class = "addtabs-info">{{i Название}}</div>' + 
+            '<input class = "addtabs-title-input inputStyle"><br>' + 
+            '<div class = "addtabs-info">{{i Описание}}</div>' + 
+            '<textarea class = "addtabs-title-description inputStyle"></textarea><br>' + 
+            '<button class = "addtabs-create">{{i Создать}}</button>' +
+        '</div>';
+        
+    var ui = $(Mustache.render(uiTemplate)),
+        titleInput = $('.addtabs-title-input', ui);
     
-    _queryMapLayers.createMapDialog(_gtxt('Имя закладки'), _gtxt('Создать'), createTab);
+    titleInput.keyup(function(e) {
+        if (this.value == '')
+			$(this).addClass('error');
+		else
+			$(this).removeClass('error');
+		
+	  	if (e.keyCode == 13) 
+	  	{	
+			createTab();
+	  		
+	  		return false;
+	  	}
+		
+		return true;
+    })
+             
+	var createTab = function() {
+            var mapState = _mapHelper.getMapState(),
+                tab = {
+                    name: titleInput.val(),
+                    description: $('.addtabs-title-description', ui).val(),
+                    state: mapState
+                };
+            
+            _this.tabs.push(tab);
+            _this.draw(tab);
+            
+            removeDialog(dialogDiv);
+        },
+        _this = this;
+	
+    $('.addtabs-create', ui).click(createTab);
+	
+	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 210, false, false)
 }
 
 queryTabs.prototype.draw = function(tabInfo)
@@ -71,6 +103,9 @@ queryTabs.prototype.draw = function(tabInfo)
 	canvas.tabInfo = tabInfo;
 	
     $('.tabName', canvas).click(function() {
+	    if (tabInfo.description) {
+	        title.title = tabInfo.description;
+	    }
 		_this.show(tabInfo.state)
 	})
 	

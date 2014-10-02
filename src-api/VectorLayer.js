@@ -233,8 +233,8 @@
                 } else {
                     regularStyle = (filter && filter.regularStyle ? filter.regularStyle : null);
                 }
-                if (!regularStyle.iconUrl) {
-                    propHiden.curStyle = regularStyle;
+                if (regularStyle && !regularStyle.iconUrl) {
+                    propHiden.curStyle = utils.evalStyle(regularStyle, item.geom.properties);
 
                     var drawInTiles = propHiden.drawInTiles;
                     if(drawInTiles && drawInTiles[zoom]) {
@@ -284,7 +284,12 @@
             if(pt.arr.length) {
                 var item = getTopFromArrItem(pt.arr);
                 if(item) {
-                    if(node.hoverItem !== item) mouseOut();
+                    if(node.hoverItem) {
+                        if(node.hoverItem.geom.id === item.geom.id) return false;
+                        else {
+                            mouseOut();
+                        }
+                    }
                     hoverItem(item);
                     return true;
                 }
@@ -420,15 +425,17 @@
 
             if(!attr) attr = gmxAPI._leaflet.clickAttr;
             if(!attr.latlng) return false;
-            var zoom = LMap.getZoom();
-            var pt = getItemsByPoint(attr.latlng, zoom);
-            if(pt.arr.length) {
+            var zoom = LMap.getZoom(),
+                pt = getItemsByPoint(attr.latlng, zoom),
+                count = pt.arr.length;
+            if(count) {
                 var arr = pt.arr;
-                var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
-                prevPoint = attr.containerPoint;
-                if(needCheck) {
+                if(
+                    !prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y
+                ) {
                     node.flipIDS = sortFlipIDS(arr);
                 }
+                prevPoint = attr.containerPoint;
                 if(!node.flipIDS.length) return false;
                 
                 var idClick = node.flipIDS[node.flipIDS.length - 1];
@@ -699,6 +706,12 @@
                 points.x2 = coord[1][0], points.y2 = coord[1][1];
                 points.x3 = coord[2][0], points.y3 = coord[2][1];
                 points.x4 = coord[3][0], points.y4 = coord[3][1];
+                ready = true;
+            } else if (quicklookPlatform === 'image') {
+                points.x1 = gmxAPI.merc_x(properties.xTopLeft || 0), points.y1 = gmxAPI.merc_y(properties.yTopLeft || 0);
+                points.x2 = gmxAPI.merc_x(properties.xTopRight || 0), points.y2 = gmxAPI.merc_y(properties.yTopRight || 0);
+                points.x3 = gmxAPI.merc_x(properties.xBottomRight || 0), points.y3 = gmxAPI.merc_y(properties.yBottomRight || 0);
+                points.x4 = gmxAPI.merc_x(properties.xBottomLeft || 0), points.y4 = gmxAPI.merc_y(properties.yBottomLeft || 0);
                 ready = true;
             } else {
                 points = utils.getQuicklookPoints(coord);
@@ -1408,7 +1421,7 @@
                         if(prevStyle.imageHeight) res.imageHeight = prevStyle.imageHeight;
                     }
                     res = utils.evalStyle(res, geom.properties);
-                    node.prpStyle(geom, res);
+                    geom.propHiden.curStyle = node.prpStyle(geom, res);
                 }
             }
             ,checkWaitStyle: function() {       // проверка ожидания обработки стилей по фильтрам
@@ -2437,7 +2450,7 @@
                 node.loaderDrawFlags = {};
                 node.badTiles = {};
                 node.badRastersURL = {};
-                if (!attr.notClear) {
+                if (!attr.notClear || node.subType === 'Temporal') {
                     for(var key in node.tilesGeometry) {
                         node.removeTile(key); // Полная перезагрузка тайлов
                     }
@@ -2480,6 +2493,10 @@
                     //}
                     node.getTilesBounds(attr.dtiles);
                     node.temporal = attr;
+                    if(gmxAPI._leaflet._moveendTimer) clearTimeout(gmxAPI._leaflet._moveendTimer);
+                    gmxAPI._leaflet._moveendTimer = setTimeout(function() {
+                        gmxAPI._leaflet.LMap.fire('moveend');
+                    }, 10);
                 }
                 if(myLayer) { // Обновление лефлет слоя
                     //node.upDateLayer();
@@ -2615,6 +2632,11 @@
                             ,properties: objData.properties
                             ,tpx: ph.x
                             ,tpy: ph.y
+                            ,from: {
+                                x: x,
+                                y: y,
+                                z: z
+                            }
                             ,callback: function(content) { callback(content); }
                         };
                         var content = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
@@ -2622,7 +2644,7 @@
                     }
                     ,onerror: onError
                 };
-                if(ph.crossOrigin || node.imageProcessingHook || zoomFrom != z) item.crossOrigin = 'use-credentials'; // если требуется преобразование image - векторные слои всегда с авторизацией
+                if(ph.crossOrigin || node.imageProcessingHook || zoomFrom != z) item.crossOrigin = node.imageProcessingCrossOrigin || 'use-credentials'; // если требуется преобразование image - векторные слои всегда с авторизацией
                 gmxAPI._leaflet.imageLoader.push(item);
             }
             ,getRaster: function(rItem, attr, ogc_fid, callback) { // получить растр обьекта векторного тайла

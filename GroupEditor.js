@@ -597,7 +597,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 								 _li([_a([_t(_gtxt("Загрузка"))],[['attr','href','#onload' + id]])]),
 								 _li([_a([_t(_gtxt("Плагины"))],[['attr','href','#plugins' + id]])])])]),
 			divCommon     = _div(null,[['attr','id','common' + id],['css','width','320px']]),
-            divBaseLayers = _div(null,[['attr','id','baselayers' + id],['dir','className','group-editor-tab-container']]),
+            divBaseLayers = _div(null,[['attr','id','baselayers' + id],['dir','className','group-editor-tab-container'],['css','overflowY','auto']]),
 			divPolicy     = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
 			divSearch     = _div(null,[['attr','id','search' + id],['dir','className','group-editor-tab-container']]),
 			divView       = _div(null,[['attr','id','view' + id],['css','width','320px']]),

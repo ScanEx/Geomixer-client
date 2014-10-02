@@ -382,7 +382,7 @@ textarea.error
 	cursor: pointer;
 }
 
-/* cРїРµС†РёР°Р»СЊРЅС‹Рµ РѕС‚СЃС‚СѓРїС‹ РґР»СЏ РјСѓР»СЊС‚РёСЃС‚РёР»РµР№ */
+/* cпециальные отступы для мультистилей */
 div[multistyle] {
     padding-left: 11px;
 }
@@ -1549,6 +1549,27 @@ div.layersScroll
 
 .tabsCanvas .tabName{
     margin-right: 28px;
+}
+
+.addtabs-container {
+    text-align: center;
+}
+
+.addtabs-title-input {
+    width: 240px;
+    margin-bottom: 10px;
+}
+
+.addtabs-title-description {
+    width: 240px;
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+.addtabs-info {
+    text-align: left;
+    padding-left: 12px;
+    margin-
 }
 
 .leftmenu-canvas#left_layers {

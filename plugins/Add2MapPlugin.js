@@ -37,15 +37,14 @@
             
             var parsedParams = parseParams(params);
             $.each(parsedParams, function(id, toolParams) {
-                console.log(toolParams);
                 var layerName = toolParams.layerName;
                 
                 var regularImage = toolParams.regularImage || DEFAULT_ICON;
                 var activeImage = toolParams.activeImage || regularImage;
                 
                 var mapListenerId = null;
-                var toolContainer = new map.ToolsContainer('addObject');
-                var tool = toolContainer.addTool('addObject', {
+                var toolContainer = new map.ToolsContainer('add2map_' + id);
+                var tool = toolContainer.addTool('add2map_' + id, {
                     hint: _gtxt('add2MapPlugin.iconTitle'),
                     regularImageUrl: regularImage.search(/^https?:\/\//) !== -1 ? regularImage : path + regularImage,
                     activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,

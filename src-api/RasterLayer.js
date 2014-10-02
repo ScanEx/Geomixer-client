@@ -678,14 +678,14 @@
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             delete opt._inLoadImage[rUrl];
-                            pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
+                            pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from, 'x': pt.x, 'y': pt.y});
                         }
                         ,'onerror': function(err) {
                             delete opt._inLoadImage[rUrl];
                             onError(err);
                         }
                     };
-                    if(pt.zoom.from != z || node.imageProcessingHook) item.crossOrigin = 'use-credentials';
+                    if(pt.zoom.from != z || node.imageProcessingHook) item.crossOrigin = node.imageProcessingCrossOrigin || 'use-credentials';
                     opt._inLoadImage[rUrl] = true;
                     gmxAPI._leaflet.imageLoader.push(item);
                 }
@@ -703,7 +703,16 @@
                         if(ph && LMap.getZoom() === zoom) {     // Есть раззумленный тайл
                             var imageObj = ph.img;
                             if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
-                                var pos = null;
+                                var pos = null,
+                                    imgProcAttr = {
+                                        tpx: gmxTilePoint.x
+                                        ,tpy: gmxTilePoint.y
+                                        ,from: {
+                                            x: gmxTilePoint.x,
+                                            y: gmxTilePoint.y,
+                                            z: ph.fromZoom
+                                        }
+                                    };
                                 if(ph.zoom !== ph.fromZoom) {
                                     pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, ph.fromZoom, ph.zoom);
                                     if(pos.size < 0.00390625
@@ -713,9 +722,13 @@
                                     ) {
                                         return;
                                     }
+                                    imgProcAttr.from = {
+                                        x: ph.x,
+                                        y: ph.y,
+                                        z: ph.zoom
+                                    };
                                 }
-                                var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
-                                if (node.imageProcessingHook) imageObj = node.imageProcessingHook(imageObj, tilePoint);
+                                var type = (!pos && isIntersects === 2 && !node.imageProcessingHook ? 'img' : 'canvas');
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {
@@ -728,15 +741,25 @@
                                         ptx.drawImage(imageObj, Math.floor(pos.x), Math.floor(pos.y), pos.size, pos.size, 0, 0, 256, 256);
                                         imageObj = canvas;
                                     }
-
-                                    var pattern = ctx.createPattern(imageObj, "no-repeat");
-                                    ctx.fillStyle = pattern;
-                                    if(isIntersects === 2) ctx.fillRect(0, 0, 256, 256);
-                                    else {
-                                        if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
-                                        drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
+                                    var putContent = function(content) {
+                                        var pattern = ctx.createPattern(content, "no-repeat");
+                                        ctx.fillStyle = pattern;
+                                        if(isIntersects === 2) ctx.fillRect(0, 0, 256, 256);
+                                        else {
+                                            if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
+                                            drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
+                                        }
+                                        ctx.fill();
+                                    };
+                                    if (node.imageProcessingHook) {
+                                        imgProcAttr.callback = function(inp) {
+                                            putContent(inp);
+                                        };
+                                        var content = node.imageProcessingHook(imageObj, imgProcAttr);
+                                        if(content) putContent(content);
+                                    } else {
+                                        putContent(imageObj);
                                     }
-                                    ctx.fill();
                                 } else {
                                     tile.style.width = tile.style.height = tileSize + 'px';
                                 }

@@ -328,7 +328,7 @@ var gmxCore = function()
             var def = $.Deferred();
             lazyLoadLABjs().done(function()
             {
-                var descr = {src: fileName};
+                var descr = {src: withCachePostfix(fileName)};
                 if (charset) {
                     descr.charset = charset;
                 }
@@ -349,7 +349,7 @@ var gmxCore = function()
         {
             var doLoadCss = function()
             {
-                $.getCSS(cssFilename);
+                $.getCSS(withCachePostfix(cssFilename));
             }
             
             if ('getCSS' in $)
