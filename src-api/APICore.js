@@ -3271,11 +3271,13 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
             gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
         }
     }
-    this.addImageProcessingHook = function(func, crossOrigin) {
+    this.setImageProcessingHook = function(func, crossOrigin) {
         var opt = {'func':func};
         if (crossOrigin) opt.crossOrigin = crossOrigin;
         return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': this, 'attr': opt});
     };
+    this.addImageProcessingHook = this.setImageProcessingHook;
+    
     this.removeImageProcessingHook = function() {
         return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
     };
