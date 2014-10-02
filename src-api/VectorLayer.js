@@ -1976,25 +1976,27 @@
             }
             ,
             getFlipItems: function() {  // Получить массив id flip обьектов
-                return gmxAPI.clone(node.flipedIDS);
+                return gmxAPI.clone(node.flipedIDS_top);
             }
             ,
             setFlipItems: function(arr, flag) { // Установить массив flip обьектов
                 if(flag) {      // очистка массива flip обьектов
-                    node.flipedIDS = [];
+                    node.flipedIDS_top = [];
+                    node.flipedIDS_bottom = [];
                     node.flipHash = {};
                 }
-                for (var i = 0, len = arr.length; i < len; i++) {
-                    chkFlip(arr[i]);
-                }
-                node.redrawFlips(true);
+                // for (var i = 0, len = arr.length; i < len; i++) {
+                    // chkFlip(arr[i]);
+                // }
+                // node.redrawFlips(true);
                 return true;
             }
             ,
             addFlip: function(fid) {  // добавить обьект flip сортировки
                 chkFlip(fid);
-                node.redrawFlips(true);
-                return node.flipedIDS.length;
+                node.redrawItem(fid);
+                //node.redrawFlips(true);
+                return 1;
             }
             ,
             setFlip: function() {      // переместить обьект flip сортировки
