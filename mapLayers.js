@@ -816,13 +816,12 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
 	
-	if (!this._renderParams.allowActive)
-		return [spanParent];
-
-	span.onclick = function()
-	{
-        _this.setActive(this);
-	}
+	if (this._renderParams.allowActive) {
+        span.onclick = function()
+        {
+            _this.setActive(this);
+        }
+    }
 	
     if (!layerManagerFlag)
     {

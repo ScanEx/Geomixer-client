@@ -994,20 +994,26 @@ function loadMap(state)
             
             _queryMapLayers.addLayers(data, condition, mapStyles);
             
+            var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').appendTo($('body'));
+            nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
+                {
+                    return _queryMapLayers.currentMapRights() == "edit";
+                },
+                function() 
+                {
+                    return {
+                        div: $(_layersTree._treeCanvas).find('div[MapID]')[0],
+                        tree: _layersTree
+                    }
+                }
+            );
+            
             _menuUp.defaultHash = 'layers';
             
             //создаём тулбар
             var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
             
-            // var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
             var searchContainer = nsGmx.widgets.headerController.getSearchPlaceholder()[0];
-            
-            // if ($$('iconPanel')) {
-                // _($$('iconPanel'), [_table([_tbody([_tr([
-                    // _td([iconContainer]), 
-                    // _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
-                // ])])])]);
-            // }
             
             //инициализация контролов поиска (модуль уже загружен)
             var oSearchModule = gmxCore.getModule("search");

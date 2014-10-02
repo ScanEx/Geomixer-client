@@ -1630,3 +1630,12 @@ div.layersScroll
 .layers-visibility-checkbox {
     margin-right: 5px;
 }
+
+.mainmap-title {
+    position: absolute;
+    top: 76px;
+    left: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
