@@ -328,7 +328,7 @@
         var hoverItem = function(geom) {    // Отрисовка hoveredStyle для item
             var itemId = geom.id,
                 item = node.objectsData[itemId],
-                propHidenItem = item.propHiden;
+                propHidenItem = item ? item.propHiden : geom.propHiden;
             
             var zoom = LMap.getZoom();
             var hoveredStyle = null;
@@ -476,7 +476,7 @@
                     } else {
                         gmxAttr.objType = 'cluster';
                         gmxAttr.members = itemPropHiden._members;
-                        if(node.clustersData.clusterView(itemClick, node)) return true;
+                        if(node.clustersData.clusterView(geom, node)) return true;
                         itemClick = geom;
                         //if(callHandler('onClick', itemClick.geom, gmxNode, gmxAttr)) return true;
                         var fID = itemPropHiden.toFilters[0];
@@ -575,7 +575,7 @@
                         var geom = thash.arr[i],
                             id = geom.id,
                             item = node.objectsData[id],
-                            propHidenItem = item.propHiden;
+                            propHidenItem = item ? item.propHiden : geom.propHiden;
                         if(propHidenItem.subType != 'cluster' && !propHidenItem._isFilters) continue;
                         var drawInTiles = propHidenItem.drawInTiles ? propHidenItem.drawInTiles[zoom] : {};
                         if(!drawInTiles[gmxTileID]) continue;
