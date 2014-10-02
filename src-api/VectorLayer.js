@@ -795,13 +795,13 @@
             for (var i = node.flipedIDS_bottom.length - 1; i >=0; i--) {
                 var tid = node.flipedIDS_bottom[i];
                 bottom.map(function(it) {
-                    if (it.id === tid) arr.unshift(it);
+                    if (it.id == tid) arr.unshift(it);
                 });
             }
             for (var i = 0, len = node.flipedIDS_top.length; i < len; i++) {
                 var tid = node.flipedIDS_top[i];
                 top.map(function(it) {
-                    if (it.id === tid) arr.push(it);
+                    if (it.id == tid) arr.push(it);
                 });
             }
             return arr;
@@ -1014,13 +1014,13 @@
         var chkFlip = function(fid, direction) {    // добавить flip объект direction: 1=вверх  -1=вниз
             if(node.flipHash[fid]) {
                 for (var i = 0, len = node.flipedIDS_top.length; i < len; i++) {
-                    if(fid === node.flipedIDS_top[i]) {
+                    if(fid == node.flipedIDS_top[i]) {
                         node.flipedIDS_top.splice(i, 1);
                         break;
                     }
                 }
                 for (var i = 0, len = node.flipedIDS_bottom.length; i < len; i++) {
-                    if(fid === node.flipedIDS_bottom[i]) {
+                    if(fid == node.flipedIDS_bottom[i]) {
                         node.flipedIDS_bottom.splice(i, 1);
                         break;
                     }
@@ -2867,13 +2867,13 @@
                     for (var i = node.flipedIDS_bottom.length - 1; i >=0; i--) {
                         var tid = node.flipedIDS_bottom[i];
                         bottom.map(function(it) {
-                            if (it.id === tid) arr.unshift(it);
+                            if (it.id == tid) arr.unshift(it);
                         });
                     }
                     for (var i = 0, len = node.flipedIDS_top.length; i < len; i++) {
                         var tid = node.flipedIDS_top[i];
                         top.map(function(it) {
-                            if (it.id === tid) arr.push(it);
+                            if (it.id == tid) arr.push(it);
                         });
                     }
                     node.drawGeoArr(arr, thash.attr, thash.images, true);
