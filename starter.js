@@ -721,7 +721,7 @@ function initEditUI() {
                             var obj = attr.obj;
                             var layer = attr.attr.layer;
                             var id = obj.properties[layer.properties.identityField];
-                            layer.bringToTopItem(id);
+                            //layer.bringToTopItem(id);
                             new nsGmx.EditObjectControl(layer.properties.name, id);
                             return true; // oтключить дальнейшую обработку события
                         });
