@@ -480,8 +480,8 @@
                 var o = map.addObject();
                 //o.setVisible(false);
                 o.bringToBottom();
-                //o.setAsBaseLayer("OSM");
-                baseLayer = map.baseLayersManager.add('OSM', {});
+                //o.setAsBaseLayer("OSM"); lang
+                baseLayer = map.baseLayersManager.add('OSM', { icon: 'img/baseLayers/basemap_osm_' + gmxAPI.KOSMOSNIMKI_LOCALIZED('ru', 'eng') + '.png'});
                     //map.baseLayersManager.add('OSM', {isVisible:false});
                 baseLayer.addLayer(o);
                 o.setOSMTiles();
