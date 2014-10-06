@@ -107,6 +107,82 @@ window.collectCustomParams = function()
 	return null;
 }
 
+var createMenuNew = function()
+{
+	_menuUp.submenus = {};
+	
+	_menuUp.addItem(
+	{id:"mapsMenu", title:_gtxt("Карта"),childs:
+		[
+			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
+			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
+			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
+			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id: 'share',        title: 'Поделиться',               func: function(){}},
+			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
+			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
+			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id: 'mapProperties',title: 'Свойства',                 func: function(){}},
+			{id: 'mapSequrity',  title: 'Права доступа',            func: function(){}}
+		]});
+	
+	_menuUp.addItem(
+	{id:"dataMenu", title: 'Данные', childs:
+		[
+			{id:'layerList', title: 'Открыть слой',func:function(){_queryMapLayers.getLayers()}},
+			{id:'createLayer', title: 'Создать слой',func:function(){}},
+			{id:'createGroup', title: 'Создать каталог',func:function(){}},
+			{id:'baseLayers',  title: 'Базовые слои',func:function(){}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id:'loadFile',    title: 'Загрузить файл',func:function(){}},
+			{id:'wms',  title: 'Подключить WMS',func:function(){}},
+			{id:'wfs',  title: 'Подключить WFS',func:function(){}}
+			
+		]});
+	
+	_menuUp.addItem(
+	{id:"viewMenu", title:_gtxt("Вид"),childs:
+		[
+			{id:'edit', title:'Панель редактирования', func:function(){}},
+			{id:'extMaps', title:'Дополнительные карты', func:function(){}},
+			{id:'bookmarks', title:'Закладки', func:function(){}},
+			{id:'objects', title:'Объекты', func:function(){}},
+			//{id:'layers', title:'Слои', func:function(){}},
+			{id:'searchView', title:'Результаты поиска', func:function(){}}
+		]});
+	
+	_menuUp.addItem(
+        {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
+		[
+			{id: 'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}},
+			{id: 'buffer', title:'Буфер', func:function(){}},
+			{id: 'shift', title:'Ручная привязка растров', func:function(){}},
+			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
+			{id: 'crowdsourcing', title:'Краудсорсинг данных', func:function(){}},
+			{id: 'geocoding', title:'Пакетный геокодинг', func:function(){}},
+			{id: 'directions', title:'Маршруты', func:function(){}}
+		]});
+        
+    	_menuUp.addItem(
+        {id:"pluginsMenu", title: 'Плагины',childs:
+		[
+			{id: 'cadastre', title:'Кадастр Росреестра', func:function(){}},
+			{id: 'wikimapia', title:'Викимапиа', func:function(){}},
+			{id: 'scanexSearch', title:'Каталог СКАНЭКС', func:function(){}},
+			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
+			{id: 'fires', title:'Космоснимки-пожары', func:function(){}},
+			{id: 'gibs', title:'GIBS NASA', func:function(){}}
+		]});
+        
+	_menuUp.addItem(
+	{id:"helpMenu", title:_gtxt("Справка"),childs:
+		[
+			{id:'about', title:_gtxt('О проекте'),func:_mapHelper.version},
+			{id:'usage', title: 'Руководство пользователя', func:function(){}},
+			{id:'api', title:'GeoMixer API',func:function(){}},
+			{id:'pluginsUsage', title:'Использование плагинов',func:function(){}}
+		]});
+}
+
 var createMenu = function()
 {
 	_menuUp.submenus = {};
@@ -1008,7 +1084,8 @@ function loadMap(state)
                 }
             );
             
-            _menuUp.defaultHash = 'layers';
+            // _menuUp.defaultHash = 'layers';
+            mapLayers.mapLayers.load();
             
             //создаём тулбар
             var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
