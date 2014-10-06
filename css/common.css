@@ -144,7 +144,7 @@ div.log
 	right: 10px;
 	text-align: right;*/
     float: right;
-    margin: 8px 10px 0px 0px;
+    /*margin: 8px 10px 0px 0px;*/
 }
 div.log span
 {
@@ -161,7 +161,7 @@ div.user
 	right: 50px;*/
 	white-space: nowrap;
 	overflow: hidden;
-    margin: 8px 4px 0px 0px;
+    /*margin: 8px 4px 0px 0px;*/
 }
 div.user span
 {
