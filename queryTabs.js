@@ -1,5 +1,42 @@
 //Отображение закладок карты в левой панели
 
+//TODO: сделать глобально доступным
+nsGmx.Controls = nsGmx.Controls || {};
+nsGmx.Controls.LanguageSelector = function(container, defLang) {
+    
+    var LANGUAGES = [
+            {lang: 'rus', title: 'rus'},
+            {lang: 'eng', title: 'eng'}
+        ],
+        lang = null,
+        _this = this;
+    
+    var template = '<div class = "language-container">' + 
+        '{{#langs}}' +
+            '<span data-lang = "{{lang}}" class="language-item">{{title}}</span>' + 
+        '{{/langs}}' +
+    '</div>';
+    
+    $(container).empty().append($(Mustache.render(template, {langs: LANGUAGES})));
+    
+    var update = function() {
+        var newLang = $(this).data('lang'),
+            prevLang = lang;
+        
+        if (newLang !== prevLang) {
+            lang = newLang;
+            $(this).addClass('language-selected')
+                .siblings().removeClass('language-selected');
+            $(_this).trigger('change', [prevLang, newLang]);
+        }
+    }
+    
+    $(container).find('span').click(update);
+    update.bind($(container).find('span')[0])();
+    
+    this.getLang = function() {return lang;};
+}
+
 var queryTabs = function()
 {
 	this.builded = false;
@@ -52,32 +89,52 @@ queryTabs.prototype.add = function()
             '<div class = "addtabs-info">{{i Описание}}</div>' + 
             '<textarea class = "addtabs-title-description inputStyle"></textarea><br>' + 
             '<button class = "addtabs-create">{{i Создать}}</button>' +
+            '<div class = "addtabs-lang-placeholder"></div>' + 
         '</div>';
         
     var ui = $(Mustache.render(uiTemplate)),
         titleInput = $('.addtabs-title-input', ui);
+        
+    var titleLoc = {rus: '', eng: ''};
+    var descrLoc = {rus: '', eng: ''};
+    
+    var updateDataLoc = function(lang) {
+        titleLoc[lang] = titleInput.val();
+        descrLoc[lang] = $('.addtabs-title-description', ui).val();
+    }
+        
+    var langControl = new nsGmx.Controls.LanguageSelector(ui.find('.addtabs-lang-placeholder'));
+    $(langControl).change(function(event, prevLang, newLang) {
+        updateDataLoc(prevLang);
+        titleInput.val(titleLoc[newLang]);
+        $('.addtabs-title-description', ui).val(descrLoc[newLang]);
+    })
     
     titleInput.keyup(function(e) {
-        if (this.value == '')
-			$(this).addClass('error');
-		else
-			$(this).removeClass('error');
-		
-	  	if (e.keyCode == 13) 
-	  	{	
+        $(this).toggleClass('error', this.value == '');
+
+	  	if (e.keyCode == 13)
+	  	{
 			createTab();
-	  		
+
 	  		return false;
 	  	}
-		
+
 		return true;
-    })
+    });
              
 	var createTab = function() {
+            updateDataLoc(langControl.getLang());
             var mapState = _mapHelper.getMapState(),
                 tab = {
-                    name: titleInput.val(),
-                    description: $('.addtabs-title-description', ui).val(),
+                    name: titleLoc.rus || titleLoc.eng,
+                    description: descrLoc.rus || descrLoc.eng,
+                    
+                    name_rus: titleLoc.rus,
+                    description_rus: descrLoc.rus,
+                    name_eng: titleLoc.eng,
+                    description_eng: descrLoc.eng,
+                    
                     state: mapState
                 };
             
@@ -90,20 +147,26 @@ queryTabs.prototype.add = function()
 	
     $('.addtabs-create', ui).click(createTab);
 	
-	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 190, false, false)
+	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 200, false, false)
 }
 
 queryTabs.prototype.draw = function(tabInfo)
 {
+    var selectValLoc = function(paramName) {
+        var lang = nsGmx.Translations.getLanguage();
+        return tabInfo[paramName + '_' + lang] || tabInfo[paramName];
+    }
+    
 	var canvas = _div(null, [['dir','className','canvas']]),
-		title = makeLinkButton(tabInfo.name),
+		title = makeLinkButton(selectValLoc('name')),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this;
 		
 	canvas.tabInfo = tabInfo;
     
-    if (tabInfo.description) {
-        title.title = tabInfo.description;
+    var description = selectValLoc('description');
+    if (description) {
+        title.title = description;
     }
 	
 	title.onclick = function()

@@ -1497,6 +1497,7 @@ div.layersScroll
 
 .addtabs-container {
     text-align: center;
+    padding-top: 12px;
 }
 
 .addtabs-title-input {
@@ -1514,4 +1515,22 @@ div.layersScroll
     text-align: left;
     padding-left: 12px;
     margin-bottom: 2px;
+}
+
+.addtabs-lang-placeholder {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+}
+
+.language-item {
+    cursor: pointer;
+    margin-left: 3px;
+    padding-bottom: 1px;
+    border-bottom: 1px dotted;
+}
+
+.language-item.language-selected {
+    cursor: default;
+    border-bottom: none;
 }
