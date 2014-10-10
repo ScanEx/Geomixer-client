@@ -76,3 +76,7 @@
 .PeriodCalendar-iconCollapse {
     background: url(img/collapse.gif);
 }
+
+.PeriodCalendar-dateBegin, .PeriodCalendar-dateEnd {
+    width: 70px;
+}
