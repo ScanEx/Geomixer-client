@@ -139,6 +139,7 @@
                 ,layers: attr.layers || []          // массив слоев подложки
                 ,rus: attr.rus || id                // title подложки 
                 ,eng: attr.eng || id
+                ,icon: attr.icon || ''
                 ,addLayer: function(layer) {
                     manager.removeLayer(id, layer);
                     this.layers.push(layer);

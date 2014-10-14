@@ -131,7 +131,7 @@
 	
 	var chkTimer = function() {				// установка таймера
 		if(!timer) {
-			timer = setInterval(nextLoad, 50);
+			timer = setInterval(nextLoad, 1);
             gmxAPI._leaflet.LMap.on('zoomend', function(e) {
                 var zoom = gmxAPI._leaflet.LMap.getZoom();
                 removeItemsByZoom(zoom);

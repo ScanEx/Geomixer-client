@@ -655,7 +655,7 @@ var TimelineController = function(data, map, options) {
                 }
                 else
                 {
-                    if (items[layerName][id].timelineItem)
+                    if (items[layerName][id] && items[layerName][id].timelineItem)
                     {
                         var index = timeline.getItemIndex(items[layerName][id].timelineItem.dom);
                         timeline.deleteItem(index, true);

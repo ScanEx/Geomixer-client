@@ -413,8 +413,13 @@ function removeDialog(canvas)
 function showErrorMessage(message, removeFlag, title)
 {
 	var canvas = _div([_t(message)],[['dir','className','errorDialog']]);
-	
-	showDialog(typeof title != 'undefined' ? title : "Ошибка!", canvas, 250, 150, false, false);
+        jQueryDiv = showDialog(title || "Ошибка!", canvas, {
+            width: 250,
+            height: 150,
+            closeFunc: function(){
+                canvas = null;
+            }
+        });
 	
 	if (removeFlag)
 	{
@@ -422,7 +427,7 @@ function showErrorMessage(message, removeFlag, title)
 		{
 			if (canvas)
 			{
-				jQuery(canvas.parentNode).dialog("destroy")
+                jQuery(jQueryDiv).dialog("destroy");
 				canvas.parentNode.removeNode(true);
 			}
 		}, 2500)
