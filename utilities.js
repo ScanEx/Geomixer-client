@@ -1685,6 +1685,9 @@ $.extend(nsGmx.Utils, {
             
             return def.promise();
         }
+    },
+    isIpad: function() {
+        return navigator.userAgent.match(/iPad/i) != null;
     }
 });
 

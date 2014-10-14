@@ -377,7 +377,7 @@
             * @returns {String|null} возвращает идентификатор текущей подложки либо null.
             */
             getCurrentID: function() {
-                return manager.currentID;
+                return manager.map.needSetMode || manager.currentID;
             },
             /** Получить идентификатор по наименованию подложки
             * @memberOf BaseLayersManager#
