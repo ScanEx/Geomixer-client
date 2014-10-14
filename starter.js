@@ -872,6 +872,10 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
+        nsGmx.createBaseLayersControl(map.baseLayersManager, {
+            language: nsGmx.Translations.getLanguage()
+        }).addTo(gmxAPI._leaflet.LMap);
+        
         $('#flash').bind('dragover', function()
         {
             return false;

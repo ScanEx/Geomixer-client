@@ -47,3 +47,7 @@
 .genericHeader-left {
     width: 360px;
 }
+
+.baseLayersControl  {
+    margin-bottom: 20px;
+}
