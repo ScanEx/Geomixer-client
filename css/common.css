@@ -1658,3 +1658,7 @@ div.layersScroll
     cursor: default;
     border-bottom: none;
 }
+
+.leaflet-control-layers-base, .leaflet-control-layers-separator {
+    display: none;
+}
