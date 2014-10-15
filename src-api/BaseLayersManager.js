@@ -163,6 +163,11 @@
                 item.isBaseLayer = true;
                 item.setVisible(false);
             });
+            pt.options = {
+                rus: pt.rus
+                ,eng: pt.eng
+                ,icon: pt.icon
+            };
 
             manager.hash[id] = pt;
             manager.arr.push(pt);
