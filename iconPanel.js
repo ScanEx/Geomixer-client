@@ -38,7 +38,7 @@
 	{
 		var div = _createIcon(url, urlHover),
 			elem = _td([div],[['css','width','38px'],['attr','vAlign','top'], ['attr', 'id', iconId]]);
-        _data.push({name: name, callback: callback, visFunc: visFunc, elem: elem, delimeter: false});
+        _data.push({name: name, callback: callback, visFunc: visFunc, elem: elem, delimiter: false});
 		
 		elem.onclick = function()
 		{
@@ -60,7 +60,7 @@
         var isAlreadyIcons = false;
         for (var i=0; i < _data.length; i++)
         {
-            if (_data[i].delimeter)
+            if (_data[i].delimiter)
             {
                 _data[i].elem.style.display = isAlreadyIcons ? '' : 'none';
             }
@@ -88,12 +88,12 @@
 		return prevCallback;
 	}
 	
-	this.addDelimeter = function(delimeterId, floatRight, hiddenFlag)
+	this.addDelimiter = function(delimiterId, floatRight, hiddenFlag)
 	{
 		var img = _img(null, [['attr','src','img/toolbar/toolbarDelimeter.png']]),
-			elem = _td([img], [['css','width','10px'], ['attr', 'id', delimeterId]]);
+			elem = _td([img], [['css','width','10px'], ['attr', 'id', delimiterId]]);
             
-        _data.push({elem: elem, delimeter: true});
+        _data.push({elem: elem, delimiter: true});
 		
 		img.style.left = '0px';
 		img.style.top = '0px';
@@ -123,7 +123,7 @@
 		if (!this.parent)
 			return;
 			
-		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimeter'];
+		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimiter'];
 		
 		for (var i = 0; i < ids.length; i++)
 			this.setVisible(ids[i], true);
@@ -135,7 +135,7 @@
 		if (!this.parent)
 			return;
 			
-		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimeter'];
+		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimiter'];
 		
 		for (var i = 0; i < ids.length; i++)
 			this.setVisible(ids[i], false);

@@ -123,7 +123,7 @@ var createMenuNew = function()
 			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
 			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, style: [['css','borderBottom','1px solid #e1e1e1']]},
 			{id: 'mapProperties',title: 'Свойства',                 func: function(){}},
-			{id: 'mapSequrity',  title: 'Права доступа',            func: function(){}}
+			{id: 'mapSecurity',  title: 'Права доступа',            func: function(){}}
 		]});
 	
 	_menuUp.addItem(
@@ -174,11 +174,11 @@ var createMenuNew = function()
 		]});
         
 	_menuUp.addItem(
-	{id:"helpMenu", title:_gtxt("Справка"),childs:
+	{id:"helpMenu", title:_gtxt("Справка"), childs:
 		[
-			{id:'about', title:_gtxt('О проекте'),func:_mapHelper.version},
-			{id:'usage', title: 'Руководство пользователя', func:function(){}},
-			{id:'api', title:'GeoMixer API',func:function(){}},
+			{id:'about',        title:_gtxt('О проекте'),func:_mapHelper.version},
+			{id:'usage',        title: 'Руководство пользователя', func:function(){}},
+			{id:'api',          title:'GeoMixer API',func:function(){}},
 			{id:'pluginsUsage', title:'Использование плагинов',func:function(){}}
 		]});
 }
@@ -1186,7 +1186,7 @@ function loadMap(state)
             _iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, visFuncCreateLayers)
             _iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, visFuncCreateLayers)
             
-            _iconPanel.addDelimeter('userDelimeter', false, true);
+            _iconPanel.addDelimiter('userDelimiter', false, true);
             
             _iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
             
