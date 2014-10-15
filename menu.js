@@ -16,9 +16,7 @@
 var UpMenu = function()
 {
     
-    this.submenus = {};
-	this.level2 = [];
-	this.level3 = [];
+    this.submenus = [];
 	this.currSel = null;
 	this.currUnSel = null;
 	this.refs = {};
@@ -29,6 +27,19 @@ var UpMenu = function()
     this.defaultHash = 'layers';
 };
 
+//предполагает, что если callback возвращает true, то итерирование можно прекратить
+UpMenu.prototype._iterateMenus = function(elem, callback) {
+    if (!elem.childs) {
+        return;
+    }
+
+    for (var i = 0; i < elem.childs.length; i++) {
+        if (callback(elem.childs[i]) || this._iterateMenus(elem.childs[i], callback)) {
+            return true;
+        }
+    }
+}
+
 /** Добавляет к меню новый элемент верхнего уровня
 *
 * Если меню уже было нарисовано, вызов этой ф-ции приведёт к перерисовке
@@ -37,29 +48,8 @@ var UpMenu = function()
 */
 UpMenu.prototype.addItem = function(elem)
 {
-	if (!this.submenus[elem.id])
-	{
-		this.submenus[elem.id] = new Object();
-		this.submenus[elem.id].title = elem.title;
-	}
-	
-	if (elem.childs)
-	{
-		this.submenus[elem.id].childs = new Array();
-
-		for (var i = 0; i < elem.childs.length; i++)
-			this.submenus[elem.id].childs.push(elem.childs[i]);
-	}
-	
-	if (elem.func)
-		this.submenus[elem.id].func = elem.func;
-	if (elem.onsel)
-		this.submenus[elem.id].onsel = elem.onsel;
-	if (elem.onunsel)
-		this.submenus[elem.id].onunsel = elem.onunsel;
-        
-    if (this._isCreated)
-        this.draw();
+    this.submenus.push(elem)        
+    this._isCreated && this.draw();
 }
 
 /** Добавляет к меню новый элемент.
@@ -71,42 +61,16 @@ UpMenu.prototype.addItem = function(elem)
 */
 UpMenu.prototype.addChildItem = function(newElem, parentID)
 {
-    var _this = this;
-	//предполагает, что если callback возвращает true, то итерирование можно прекратить
-	var _iterateMenus = function( elem, callback )
-	{
-		if (typeof elem.childs === 'undefined')
-			return;
-			
-		for (var i = 0; i < elem.childs.length; i++)
-		{
-			if (callback(elem.childs[i], elem.childs[i].id) )
-				return true;
-				
-			if (_iterateMenus(elem.childs[i], callback) )
-				return true;
-		}
-	}
-	
-	var _callback = function(elem, id)
-	{
-		if (id === parentID)
-		{
-			if (!elem.childs) elem.childs = [];
-			elem.childs.push(newElem);
+    this._iterateMenus({childs: this.submenus}, function(elem) {
+        if (elem.id && elem.id === parentID) {
+            elem.childs = elem.childs || [];
+            elem.childs.push(newElem);
             
-            if (_this._isCreated)
-                _this.draw();
+            this._isCreated && this.draw();
                 
-			return true;
-		}
-	}
-	
-	for (var m in this.submenus)
-	{
-		_callback(this.submenus[m], m);
-		_iterateMenus(this.submenus[m], _callback);
-	}
+            return true;
+        }
+    }.bind(this));
 }
 
 /** Задаёт родителя в DOM дереве для меню
@@ -135,102 +99,84 @@ UpMenu.prototype.hidemenu = function(elem)
 {
 	elem.style.visibility = 'hidden';
 }
+
+UpMenu.prototype._template = 
+'<div class="headerContainer">\
+{{#childs}}\
+    <div class = "header1{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
+        <div class = "header1Internal">{{title}}</div>\
+        {{#anyChildren}}\
+            <ul class = "header2" id="{{id}}">\
+            {{#childs}}\
+                <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
+                    <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">{{title}}\
+                        {{#anyChildren}}\
+                        <div class = "menuMarkerRight"></div>\
+                        {{/anyChildren}}\
+                    </div>\
+                    {{#anyChildren}}\
+                        <ul class = "header3" id="{{id}}">\
+                        {{#childs}}\
+                            <li class = "header3 menuClickable" hash = "{{id}}">\
+                                <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">{{title}}</div>\
+                            </li>\
+                        {{/childs}}\
+                    {{/anyChildren}}\
+                </li>\
+            {{/childs}}\
+            </ul>\
+        {{/anyChildren}}\
+    </div>\
+{{/childs}}\
+</div>';
+
 /** Основная функция  - рисует меню по заданной структуре
 */
 UpMenu.prototype.draw = function()
 {
-	var ul = _div();
-	ul.className = 'headerContainer';
-	var lis = [];
-	
-	for (var menuId in this.submenus)
-	{
-		var li;
-		
-		if (this.submenus[menuId].childs)
-		{
-			var ul2 = _ul(),
-				lis2 = [];
-
-			ul2.className = 'header2';
-			ul2.id = menuId;
-			
-			for (var i = 0; i < this.submenus[menuId].childs.length; i++)
-			{
-				var lev2 = this.makeLevel2(this.submenus[menuId].childs[i]),
-					div = lev2.div,
-					menu2Id = this.submenus[menuId].childs[i].id;
-				
-				// Если есть подменю 3го уровня
-				if (lev2.ul)
-				{
-					var li = _li([div, lev2.ul],[['dir','className','header2']]);
-					li.setAttribute('hash', menu2Id);
-					
-					this.attachEventOnMouseover(li, 'menu2Active', 3);
-					this.attachEventOnMouseout(li, 'menu2Active', 3);
-					
-					lis2.push(li);
-				}
-				// Если нет подменю 3го уровня
-				else
-				{
-					var li = _li([div],[['dir','className','header2'],['css','cursor','pointer']]);
-					li.setAttribute('hash', menu2Id);
-					
-					if (!this.submenus[menuId].childs[i].disabled)
-						attachEffects(li, 'menu2Active');
-					else
-						div.style.cursor = 'default';
-					
-					lis2.push(li);
-				}
-			}
-			
-			_(ul2, lis2);
-			
-			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1Internal']]);
-			
-			li = _div([div, ul2],[['dir','className','header1']]);
-			
-			// Запоминаем id для открывания/закрывания меню
-			li.setAttribute('hash', menuId);
-		}
-		else
-		{
-			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1Internal']]);
-			
-			div.style.cursor = 'pointer';
-			
-			this.attachEventOnMouseclick(div, menuId);
-			
-			// Опредеяем действия по загрузке/выгрузке этого элемента меню
-			if (this.submenus[menuId].func)
-				this.refs[menuId] = {func:this.submenus[menuId].func};
-			else	
-				this.refs[menuId] = {onsel:this.submenus[menuId].onsel, onunsel:this.submenus[menuId].onunsel};
-			
-			li = _div([div],[['dir','className','header1']]);
-		}
-		
-		this.attachEventOnMouseover(li, 'menuActive', 2);
-		this.attachEventOnMouseout(li, 'menuActive', 2);
-		
-		lis.push(li);
-	}
-	
-	_(ul, lis);
+    var ui = $(Mustache.render(this._template, {
+            childs: this.submenus, 
+            anyChildren: function(){
+                return function(text, renderer) {
+                    return this.childs && this.childs.length ? renderer(text) : "";
+                }
+            },
+            noChildren: function(){
+                return function(text, renderer) {
+                    return this.childs && this.childs.length ? "" : renderer(text);
+                }
+            }
+            
+        })),
+        _this = this;
+        
+    $(this.parent.firstChild).empty().append(ui);
     
-    if (this.parent) {
-        removeChilds(this.parent.firstChild);
-        _(this.parent.firstChild, [ul]);
-    }
-    
-    //явно прописываем всем элементам ширину с небольшим запасом
-    //это нужно, чтобы при установке bold шрифта при наведении меню не смещалось бы
-    $(ul).children().each(function() {
+    $(ui).find('.header1').each(function() {
+        _this.attachEventOnMouseover(this, 'menuActive');
+        _this.attachEventOnMouseout(this, 'menuActive');
         $(this).width($(this).width() + 10);
     });
+    
+    $(ui).find('li.header2').each(function() {
+        _this.attachEventOnMouseover(this, 'menu2Active');
+        _this.attachEventOnMouseout(this, 'menu2Active');
+    });
+    
+    $(ui).find('li.header3').each(function() {
+        attachEffects(this, 'menu3Active');
+    });
+    
+    $(ui).find('.menuClickable').each(function() {
+        _this.attachEventOnMouseclick(this, $(this).attr('hash'));
+    });
+    
+    this._iterateMenus({childs: this.submenus}, function(elem) {
+        if (elem.func)
+            _this.refs[elem.id] = {func:elem.func};
+        else
+            _this.refs[elem.id] = {onsel:elem.onsel, onunsel: elem.onunsel};
+    })
     
     //убираем все скрытые меню
     for (var d in this.disabledTabs)
@@ -238,85 +184,7 @@ UpMenu.prototype.draw = function()
     
     this._isCreated = true;
 }
-// Создает элемент меню 2го уровня
-UpMenu.prototype.makeLevel2 = function(elem)
-{
-	var div = _div([_t(elem.title)],[['dir','className','header2']]);
-	
-	// Меню на этом уровне
-	var names = [];
-	
-	// Если есть подменю 3го уровня
-	if (elem.childs)
-	{
-		// Имя меню и стрелочка >
-		_(div, [_div(null,[['dir','className','menuMarkerRight']])])
-		
-		var lis2 = [],
-			ul2 = _ul();
-		ul2.className = 'header3';
-		ul2.id = elem.id;
 
-		for (var i = 0; i < elem.childs.length; i++)
-		{
-			// Формируем сслыку для перехода на этот элемент меню
-			var div2 = _div([_t(elem.childs[i].title)],[['dir','className','header3'],['css','cursor','pointer']]),
-				li = _li([div2],[['dir','className','header3']]);
-
-			li.setAttribute('hash', elem.childs[i].id);
-			
-			if (elem.childs[i].disabled)
-			{
-				$(div2).addClass("menuDisabled");
-				
-				div2.style.cursor = 'default';
-			}
-			else
-			{
-				this.attachEventOnMouseclick(div2, elem.childs[i].id);
-				div.onmouseout = div.onmouseover = null;
-				attachEffects(li, 'menu3Active');
-
-				// Опредеяем действия по загрузке/выгрузке этого элемента меню
-				if (elem.childs[i].func)
-					this.refs[elem.childs[i].id] = {func:elem.childs[i].func};
-				else	
-					this.refs[elem.childs[i].id] = {onsel:elem.childs[i].onsel, onunsel:elem.childs[i].onunsel};
-			}
-			
-			if (elem.childs[i].style)
-				_(div, null, elem.childs[i].style);
-
-			lis2.push(li);
-		}
-		
-		_(ul2, lis2);
-
-		return {'div': div, 'ul': ul2};
-	}
-	// Если нет подменю 3го уровня
-	else
-	{
-		if (elem.disabled)
-			$(div).addClass("menuDisabled");
-		else
-		{
-			this.attachEventOnMouseclick(div, elem.id);
-			_(div,null,[['css','cursor','pointer']]);
-
-			// Опредеяем действия по загрузке/выгрузке этого элемента меню
-			if (elem.func)
-				this.refs[elem.id] = {func:elem.func};
-			else
-				this.refs[elem.id] = {onsel:elem.onsel, onunsel:elem.onunsel};
-		}
-		
-		if (elem.style)
-			_(div, null, elem.style);
-
-		return {'div': div};
-	}
-}
 UpMenu.prototype.removeSelections = function(id)
 {
 	$('li.menu3Active').removeClass('menu3Active');
@@ -353,7 +221,7 @@ UpMenu.prototype.openFunc = function(func)
 	func();
 }
 
-UpMenu.prototype.attachEventOnMouseover = function(elem, className, menu)
+UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 {
 	var _this = this;
 	elem.onmouseover = function(e)
@@ -364,7 +232,7 @@ UpMenu.prototype.attachEventOnMouseover = function(elem, className, menu)
 			_this.showmenu($$(this.getAttribute('hash')));
 	}
 }
-UpMenu.prototype.attachEventOnMouseout = function(elem, className, menu)
+UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 {
 	var _this = this;
 	elem.onmouseout = function(e)
@@ -409,29 +277,28 @@ UpMenu.prototype.attachEventOnMouseclick = function(elem, id)
 	{
 		if (_this.refs[id].func)
 			_menuUp.openFunc(_this.refs[id].func);
-		//else if (id == _tab_hash.recentHash && $$('left_' + id) && $$('left_' + id).style.display == 'none')
         else
 		{
 			_menuUp.removeSelections();
 			_menuUp.hideMenus();
 			_menuUp.openTab(id);
 		}
-		// else 
-			// _menuUp.openRef(id);
 	}
 }
 
 UpMenu.prototype.getNavigatePath = function(path) {
-	for (var menuId in this.submenus)
+	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
-		if (path == menuId)
+        var submenu = this.submenus[menuIdx];
+        
+		if (path == submenu.id)
 		{
-            return [this.submenus[menuId].title];
+            return [submenu.title];
 		}
         
-		if (this.submenus[menuId].childs)
+		if (submenu.childs)
 		{
-			var childsLevel2 = this.submenus[menuId].childs;
+			var childsLevel2 = submenu.childs;
 			for (var i = 0; i < childsLevel2.length; i++)
 			{
 				if (childsLevel2[i].childs)
@@ -442,14 +309,14 @@ UpMenu.prototype.getNavigatePath = function(path) {
 					{
 						if (path == childsLevel3[j].id) 
 						{
-                            return [this.submenus[menuId].title, childsLevel2[i].title, childsLevel3[j].title];
+                            return [submenu.title, childsLevel2[i].title, childsLevel3[j].title];
 						}
 					}
 				}
 				if (path == childsLevel2[i].id)
 				{
 					// совпадение в меню 2го уровня
-                    return [this.submenus[menuId].title, childsLevel2[i].title];
+                    return [submenu.title, childsLevel2[i].title];
 				}
 			}
 		}
@@ -459,21 +326,24 @@ UpMenu.prototype.getNavigatePath = function(path) {
 }
 
 // Показывает путь в меню к текущему элементу
+// Depricated: use getNavigatePath
 UpMenu.prototype.showNavigatePath = function(path)
 {
 	var tds = [];
 	
-	for (var menuId in this.submenus)
+	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
-		if (path == menuId)
+        var submenu = this.submenus[menuIdx];
+        
+		if (path == submenu.id)
 		{
-			tds.push(_td([_t(this.submenus[menuId].title)],[['dir','className','menuNavigateCurrent']]));
+			tds.push(_td([_t(submenu.title)],[['dir','className','menuNavigateCurrent']]));
 			
 			return tds;
 		}
-		else if (this.submenus[menuId].childs)
+		else if (submenu.childs)
 		{
-			var childsLevel2 = this.submenus[menuId].childs;
+			var childsLevel2 = submenu.childs;
 			for (var i = 0; i < childsLevel2.length; i++)
 			{
 				
@@ -486,7 +356,7 @@ UpMenu.prototype.showNavigatePath = function(path)
 						if (path == childsLevel3[j].id) 
 						{
 						//	tds.push(_td([reload]));
-							tds.push(_td([_t(this.submenus[menuId].title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
+							tds.push(_td([_t(submenu.title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
 							tds.push(_td([_div(null,[['dir','className','markerRight']])], [['attr','vAlign','top']]));
 							tds.push(_td([_t(childsLevel2[i].title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
 							tds.push(_td([_div(null,[['dir','className','markerRight']])], [['attr','vAlign','top']]));
@@ -498,7 +368,7 @@ UpMenu.prototype.showNavigatePath = function(path)
 				if (path == childsLevel2[i].id)
 				{
 					// совпадение в меню 2го уровня
-					tds.push(_td([_t(this.submenus[menuId].title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
+					tds.push(_td([_t(submenu.title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
 					tds.push(_td([_div(null,[['css','width', '10px'],['dir','className','markerRight']])], [['attr','vAlign','top']]));
 					tds.push(_td([_t(childsLevel2[i].title)],[['dir','className','menuNavigateCurrent']]));
 				}
