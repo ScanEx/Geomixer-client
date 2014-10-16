@@ -3558,11 +3558,6 @@ function createFlashMapInternal(div, layers, callback)
                 }
             }
         }
-        if(map.needSetMode) {
-            var needSetMode = map.needSetMode;
-            map.needSetMode = null;
-            map.setMode(needSetMode);
-        }
         if (!layers || !layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API) {
             if (callback) {
                 try {
@@ -3571,6 +3566,11 @@ function createFlashMapInternal(div, layers, callback)
                     gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
                 }
             }
+        }
+        if(map.needSetMode) {
+            var needSetMode = map.needSetMode;
+            map.needSetMode = null;
+            map.setMode(needSetMode);
         }
 	}
 
