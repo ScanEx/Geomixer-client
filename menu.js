@@ -109,18 +109,24 @@ UpMenu.prototype._template =
             <ul class = "header2" id="{{id}}">\
             {{#childs}}\
                 <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
-                    <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">{{title}}\
+                    <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
+                        <div class = "menuMarkerLeft"></div>\
+                        {{title}}\
                         {{#anyChildren}}\
-                        <div class = "menuMarkerRight"></div>\
+                            <div class = "menuMarkerRight"></div>\
                         {{/anyChildren}}\
                     </div>\
                     {{#anyChildren}}\
                         <ul class = "header3" id="{{id}}">\
                         {{#childs}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
-                                <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">{{title}}</div>\
+                                <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
+                                    <div class = "menuMarkerLeft"></div>\
+                                    {{title}}\
+                                </div>\
                             </li>\
                         {{/childs}}\
+                        </ul>\
                     {{/anyChildren}}\
                 </li>\
             {{/childs}}\
@@ -183,6 +189,10 @@ UpMenu.prototype.draw = function()
         this.disableMenus([d]);
     
     this._isCreated = true;
+}
+
+UpMenu.prototype.checkItem = function(id, isChecked) {
+    $(this.parent).find('li[hash=' + id + ']').find('.menuMarkerLeft').toggleClass('menuChecked', isChecked);
 }
 
 UpMenu.prototype.removeSelections = function(id)

@@ -46,7 +46,7 @@ div.header1
 ul.header2
 {
 	margin-left:0px;
-	width:180px;
+	width:190px;
 	position:absolute;
 	visibility:hidden;
 /*	display: none;*/
@@ -58,16 +58,16 @@ li.header2
 {
 	float:left;
 	position:relative;
-	width:180px;
+	width:190px;
 /*	height:25px;*/
 	z-index:2;
 	cursor:default;
 }
 ul.header3
 {
-	margin-left:175px;
+	margin-left:185px;
 	margin-top:-21px;
-	width:180px;
+	width:190px;
 	position:absolute;
 	visibility:hidden;
 	z-index:3;
@@ -78,7 +78,7 @@ li.header3
 {
 	float:left;
 	position:relative;
-	width:180px;
+	width:190px;
 /*	height:25px;*/
 	z-index:3;
 	cursor:default;
@@ -115,6 +115,19 @@ div.header1.menuActive div.header1
 
 li.menuClickable, div.menuClickable {
     cursor: pointer;
+}
+
+.menuMarkerLeft {
+    width: 14px;
+    height: 14px;
+    margin-right: 5px;
+    float: left;
+}
+
+.menuMarkerLeft.menuChecked {
+    background: url(../common_components/common/CommonStyles/assets/images/check-a.png);
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 /* menu */
