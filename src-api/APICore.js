@@ -3507,16 +3507,6 @@ function createFlashMapInternal(div, layers, callback)
             map.needSetMode = gmxAPI._baseLayersArr[0];
             map.baseLayersManager.setActiveIDs(gmxAPI._baseLayersArr);
         }
-		if (callback) {
-			try {
-				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
-			} catch(e) {
-				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
-			}
-		}
-		// if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
-			// gmxAPI.map.miniMap.setVisible(true);
-		// }
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		if (gmxAPI.proxyType === 'flash') {			// Это flash версия
@@ -3572,6 +3562,15 @@ function createFlashMapInternal(div, layers, callback)
             var needSetMode = map.needSetMode;
             map.needSetMode = null;
             map.setMode(needSetMode);
+        }
+        if (!layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API) {
+            if (callback) {
+                try {
+                    callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
+                } catch(e) {
+                    gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
+                }
+            }
         }
 	}
 
@@ -3762,7 +3761,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				// }
 
 				try {
-					callback(map, layers);		// Передача управления
+                    callback(map, layers);		// Передача управления
 				} catch(e) {
 					gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в callback:\n'+e});
 				}
