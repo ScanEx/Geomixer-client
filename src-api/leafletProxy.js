@@ -2264,7 +2264,7 @@
 				if(grid.baseLayerListenerID) gmxAPI.map.baseLayersManager.removeListener('onSetCurrent', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
 				//if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
 				if(grid.zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', grid.zoomListenerID); grid.zoomListenerID = null;
-				LMap.removeLayer(grid.lealfetObj);
+				if (grid.lealfetObj) LMap.removeLayer(grid.lealfetObj);
 				grid.lealfetObj = null;
 			}
 			grid.isVisible = (grid.lealfetObj ? true : false);
@@ -5012,7 +5012,7 @@ var tt = 1;
                 apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
                 ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
             ],
-            arr = [];
+            arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
         if(window.LeafletPlugins) {
             for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
