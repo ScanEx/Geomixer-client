@@ -3563,7 +3563,7 @@ function createFlashMapInternal(div, layers, callback)
             map.needSetMode = null;
             map.setMode(needSetMode);
         }
-        if (!layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API) {
+        if (layers && (!layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API)) {
             if (callback) {
                 try {
                     callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
