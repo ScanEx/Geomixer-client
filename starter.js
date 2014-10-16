@@ -165,7 +165,16 @@ var createMenuNew = function()
     	_menuUp.addItem(
         {id:"pluginsMenu", title: 'Плагины',childs:
 		[
-			{id: 'cadastre', title:'Кадастр Росреестра', func:function(){}},
+			{id: 'cadastre', title:'Кадастр Росреестра', func: function(){
+                nsGmx.pluginsManager.setUsePlugin('Cadastre', true);
+                nsGmx.pluginsManager.done(function() {
+                    _menuUp.checkItem('cadastre', true);
+                    var plugin = nsGmx.pluginsManager.getPluginByName('Cadastre');
+                    plugin.body.afterViewer(plugin.params, globalFlashMap);
+                    _mapHelper.mapPlugins.addPlugin('Cadastre', plugin.params);
+                })
+                
+            }},
 			{id: 'wikimapia', title:'Викимапиа', func:function(){}},
 			{id: 'scanexSearch', title:'Каталог СКАНЭКС', func:function(){}},
 			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
@@ -871,9 +880,11 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
-        nsGmx.createBaseLayersControl(map.baseLayersManager, {
+        var baseLayersControl = new nsGmx.BaseLayersControl(map.baseLayersManager, {
             language: nsGmx.Translations.getLanguage()
-        }).addTo(gmxAPI._leaflet.LMap);
+        });
+        
+        baseLayersControl.addTo(gmxAPI._leaflet.LMap);
         
         $('#flash').bind('dragover', function()
         {

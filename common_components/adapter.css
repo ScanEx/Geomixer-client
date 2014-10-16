@@ -48,6 +48,6 @@
     width: 360px;
 }
 
-.baseLayersControl  {
-    margin-bottom: 20px;
+.leaflet-bottom .leaflet-control.baseLayersControl  {
+    margin-bottom: 27px;
 }
