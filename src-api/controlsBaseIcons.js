@@ -4,6 +4,7 @@
     "use strict";
     var titles = {
         locationTxt: gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты", "Current center coordinates")
+        ,scaleBarChange: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат масштаба", "Toggle scale bar format")
         ,coordFormatChange: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format")
         ,print: gmxAPI.KOSMOSNIMKI_LOCALIZED("Печать", "Print")
         ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("Постоянная ссылка", "Link to the map")
@@ -13,7 +14,30 @@
         ,line: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
         ,rectangle: gmxAPI.KOSMOSNIMKI_LOCALIZED("Прямоугольник", "Rectangle")
         ,toggleVisibility: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/Скрыть", "Show/Hide")
-    }
+    };
+    var _mzoom = [
+        'M 1:500 000 000',  //  0   156543.03392804
+        'M 1:300 000 000',  //  1   78271.51696402 
+        'M 1:150 000 000',  //  2   39135.75848201 
+        'M 1:80 000 000',   //  3   19567.879241005 
+        'M 1:40 000 000',   //  4   9783.9396205025 
+        'M 1:20 000 000',   //  5   4891.96981025125 
+        'M 1:10 000 000',   //  6   2445.98490512563 
+        'M 1:5 000 000',    //  7   1222.99245256281 
+        'M 1:2500 000',     //  8   611.496226281406 
+        'M 1:1 000 000',    //  9   305.748113140703 
+        'M 1:500 000',      //  10  152.874056570352 
+        'M 1:300 000',      //  11  76.437028285176 
+        'M 1:150 000',      //  12  38.218514142588 
+        'M 1:80 000',       //  13  19.109257071294 
+        'M 1:40 000',       //  14  9.554628535647 
+        'M 1:20 000',       //  15  4.777314267823 
+        'M 1:10 000',       //  16  2.388657133912 
+        'M 1:5 000',        //  17  1.194328566956 
+        'M 1:2 500',        //  18  0.597164283478 
+        'M 1:1 250',        //  19  0.298582141739 
+        'M 1:625'           //  20  0.149291070869
+    ];
     var styleIcon = {        // стиль ноды иконок по умолчанию
         borderRadius: '4px'
         ,display: 'block'
@@ -773,6 +797,7 @@
         L.Control.LocationControls = L.Control.gmxControl.extend({
             options: {
                 notHide: true
+                ,scaleFormat: 1
             },
             onAdd: function (map) {
                 if (this.options.id) Controls.items[this.options.id] = this;
@@ -786,11 +811,17 @@
                 this.coordFormatChange.title = titles.coordFormatChange;
                 this.scaleBar = L.DomUtil.create('span', 'gmx_scaleBar', container);
                 this.scaleBarTxt = L.DomUtil.create('span', 'gmx_scaleBarTxt', container);
+                this.scaleBarTxt.title = titles.scaleBarChange;
                 this._map = map;
 
                 var util = {
                     checkPositionChanged: function(ev) {
-                        var attr = gmxAPI.getScaleBarDistance();
+                        var z = map.getZoom(),
+                            attr = { txt: _mzoom[z], width: 0 };
+                        if (my.options.scaleFormat) {
+                            attr = gmxAPI.getScaleBarDistance();
+                        }
+                        // var attr = gmxAPI.getScaleBarDistance();
                         if (!attr || (attr.txt === my._scaleBarText && attr.width === my._scaleBarWidth)) return;
                         my._scaleBarText = attr.txt;
                         my._scaleBarWidth = attr.width;
@@ -881,8 +912,22 @@
                     ,
                     setFormat: util.setCoordinatesFormat
                 }
-                
+ 
+                var stop = L.DomEvent.stopPropagation;
+                L.DomEvent
+                    .on(this.scaleBarTxt, 'click', stop)
+                    .on(this.scaleBarTxt, 'dblclick', stop)
+                    .on(this.scaleBarTxt, 'click', function (ev) {
+                        this.setScaleFormat(this.options.scaleFormat ? 0 : 1);
+                    }, this);
+               
                 return container;
+            },
+
+            setScaleFormat: function (type) {   // 1 - scale with bar 0 - text scale
+                this.options.scaleFormat = type ? true : false;
+                this.scaleBar.style.visibility = type ? 'visible' : 'hidden';
+                this._checkPositionChanged();
             }
             ,getWidth: function() { 
                 return this._container.clientWidth;
