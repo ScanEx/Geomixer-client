@@ -110,7 +110,7 @@ UpMenu.prototype._template =
             {{#childs}}\
                 <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
                     <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                        <div class = "menuMarkerLeft"></div>\
+                        <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
                         {{title}}\
                         {{#anyChildren}}\
                             <div class = "menuMarkerRight"></div>\
@@ -121,7 +121,7 @@ UpMenu.prototype._template =
                         {{#childs}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
                                 <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                                    <div class = "menuMarkerLeft"></div>\
+                                    <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
@@ -151,6 +151,11 @@ UpMenu.prototype.draw = function()
                 return function(text, renderer) {
                     return this.childs && this.childs.length ? "" : renderer(text);
                 }
+            },
+            isChecked: function() {
+                return function(text, renderer) {
+                    return this.checked ? renderer(text) : "";
+                }
             }
             
         })),
@@ -174,14 +179,11 @@ UpMenu.prototype.draw = function()
     });
     
     $(ui).find('.menuClickable').each(function() {
-        _this.attachEventOnMouseclick(this, $(this).attr('hash'));
+        $(this).click(_this.openTab.bind(_this, $(this).attr('hash')));
     });
     
     this._iterateMenus({childs: this.submenus}, function(elem) {
-        if (elem.func)
-            _this.refs[elem.id] = {func:elem.func};
-        else
-            _this.refs[elem.id] = {onsel:elem.onsel, onunsel: elem.onunsel};
+        _this.refs[elem.id] = elem;
     })
     
     //убираем все скрытые меню
@@ -192,7 +194,10 @@ UpMenu.prototype.draw = function()
 }
 
 UpMenu.prototype.checkItem = function(id, isChecked) {
-    $(this.parent).find('li[hash=' + id + ']').find('.menuMarkerLeft').toggleClass('menuChecked', isChecked);
+    if (this.refs[id]) {
+        this.refs[id].checked = isChecked;
+        $(this.parent).find('li[hash=' + id + ']').find('.menuMarkerLeft').toggleClass('menuChecked', isChecked);
+    }
 }
 
 UpMenu.prototype.removeSelections = function(id)
@@ -221,14 +226,6 @@ UpMenu.prototype.openRef = function(hash)
 	_menuUp.removeSelections();
 	_menuUp.hideMenus();
 	_menuUp.openTab(hash);
-}
-
-UpMenu.prototype.openFunc = function(func)
-{
-	_menuUp.removeSelections();
-	_menuUp.hideMenus();
-	
-	func();
 }
 
 UpMenu.prototype.attachEventOnMouseover = function(elem, className)
@@ -279,22 +276,6 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 		}
 	}
 }
-UpMenu.prototype.attachEventOnMouseclick = function(elem, id)
-{
-	var _this = this;
-	
-	elem.onclick = function()
-	{
-		if (_this.refs[id].func)
-			_menuUp.openFunc(_this.refs[id].func);
-        else
-		{
-			_menuUp.removeSelections();
-			_menuUp.hideMenus();
-			_menuUp.openTab(id);
-		}
-	}
-}
 
 UpMenu.prototype.getNavigatePath = function(path) {
 	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
@@ -333,60 +314,6 @@ UpMenu.prototype.getNavigatePath = function(path) {
 	}
 
 	return [];
-}
-
-// Показывает путь в меню к текущему элементу
-// Depricated: use getNavigatePath
-UpMenu.prototype.showNavigatePath = function(path)
-{
-	var tds = [];
-	
-	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
-	{
-        var submenu = this.submenus[menuIdx];
-        
-		if (path == submenu.id)
-		{
-			tds.push(_td([_t(submenu.title)],[['dir','className','menuNavigateCurrent']]));
-			
-			return tds;
-		}
-		else if (submenu.childs)
-		{
-			var childsLevel2 = submenu.childs;
-			for (var i = 0; i < childsLevel2.length; i++)
-			{
-				
-				if (childsLevel2[i].childs)
-				{
-					var childsLevel3 = childsLevel2[i].childs;
-					// есть подменю, смотрим там
-					for(var j = 0; j < childsLevel3.length; j++)
-					{
-						if (path == childsLevel3[j].id) 
-						{
-						//	tds.push(_td([reload]));
-							tds.push(_td([_t(submenu.title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
-							tds.push(_td([_div(null,[['dir','className','markerRight']])], [['attr','vAlign','top']]));
-							tds.push(_td([_t(childsLevel2[i].title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
-							tds.push(_td([_div(null,[['dir','className','markerRight']])], [['attr','vAlign','top']]));
-							tds.push(_td([_t(childsLevel3[j].title)],[['dir','className','menuNavigateCurrent']]));
-							break;
-						}
-					}
-				}
-				if (path == childsLevel2[i].id)
-				{
-					// совпадение в меню 2го уровня
-					tds.push(_td([_t(submenu.title)], [['css','color','#153069'],['css','fontSize','12px'],['css','fontFamily','tahoma']]));
-					tds.push(_td([_div(null,[['css','width', '10px'],['dir','className','markerRight']])], [['attr','vAlign','top']]));
-					tds.push(_td([_t(childsLevel2[i].title)],[['dir','className','menuNavigateCurrent']]));
-				}
-			}
-		}
-	}
-
-	return tds;
 }
 
 /** Показывает все ранее скрытые элементы меню
@@ -476,17 +403,24 @@ UpMenu.prototype.go = function(container)
 	this.openTab(this.defaultHash);
 }
 
-UpMenu.prototype.openTab = function(path)
+UpMenu.prototype.openTab = function(id)
 {
-    if (this.disabledTabs[path])
-		return;
-        
-    if (!this.refs[path]) 
-		return;
-	
-	var sel = this.refs[path].onsel;
-
-	sel && sel(path);
+    if (this.disabledTabs[id] || !this.refs[id]) {
+        return;
+    }
+    
+    var item = this.refs[id];
+    
+    this.removeSelections();
+	this.hideMenus();
+    
+    if (item.func) {
+        item.func(id);
+    } else {
+        var func = item[item.checked ? 'onunsel' : 'onsel'];
+        func && func(id);
+        this.checkItem(id, !item.checked);
+    }
 }
 
 /** Блок (контейнер с заголовком) левой панели

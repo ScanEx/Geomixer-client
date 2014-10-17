@@ -109,6 +109,34 @@ window.collectCustomParams = function()
 
 var createMenuNew = function()
 {
+    //формирует описание элемента меню для включения/выключения плагина
+    var getPluginToMenuBinding = function(pluginName, menuItemName, menuTitle) {
+        var plugin = nsGmx.pluginsManager.getPluginByName(pluginName);
+        var sel = function() {
+            nsGmx.pluginsManager.setUsePlugin(pluginName, true);
+            nsGmx.pluginsManager.done(function() {
+                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params, globalFlashMap);
+                _mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
+            })
+        }
+        
+        var unsel = function() {
+            nsGmx.pluginsManager.setUsePlugin(pluginName, false);
+            nsGmx.pluginsManager.done(function() {
+                _mapHelper.mapPlugins.remove(pluginName);
+                plugin.body.unload && plugin.body.unload();
+            })
+        }
+        
+        return {
+            id: menuItemName,
+            title: menuTitle, 
+            onsel: sel,
+            onunsel: unsel,
+            checked: plugin.isUsed()
+        }
+    }
+    
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
@@ -154,7 +182,8 @@ var createMenuNew = function()
         {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
 		[
 			{id: 'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}},
-			{id: 'buffer', title:'Буфер', func:function(){}},
+            getPluginToMenuBinding('BufferPlugin', 'buffer', 'Буфер'),
+			// {id: 'buffer', title:'Буфер', func:function(){}},
 			{id: 'shift', title:'Ручная привязка растров', func:function(){}},
 			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
 			{id: 'crowdsourcing', title:'Краудсорсинг данных', func:function(){}},
@@ -165,20 +194,13 @@ var createMenuNew = function()
     	_menuUp.addItem(
         {id:"pluginsMenu", title: 'Плагины',childs:
 		[
-			{id: 'cadastre', title:'Кадастр Росреестра', func: function(){
-                nsGmx.pluginsManager.setUsePlugin('Cadastre', true);
-                nsGmx.pluginsManager.done(function() {
-                    _menuUp.checkItem('cadastre', true);
-                    var plugin = nsGmx.pluginsManager.getPluginByName('Cadastre');
-                    plugin.body.afterViewer(plugin.params, globalFlashMap);
-                    _mapHelper.mapPlugins.addPlugin('Cadastre', plugin.params);
-                })
-                
-            }},
-			{id: 'wikimapia', title:'Викимапиа', func:function(){}},
+            getPluginToMenuBinding('Cadastre', 'cadastre', 'Кадастр Росреестра'),
+            getPluginToMenuBinding('Wikimapia', 'wikimapia', 'Викимапиа'),
+			// {id: 'wikimapia', title:'Викимапиа', func:function(){}},
 			{id: 'scanexSearch', title:'Каталог СКАНЭКС', func:function(){}},
 			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
-			{id: 'fires', title:'Космоснимки-пожары', func:function(){}},
+            getPluginToMenuBinding('Fire plugin', 'fires', 'Космоснимки-пожары'),
+			// {id: 'fires', title:'Космоснимки-пожары', func:function(){}},
 			{id: 'gibs', title:'GIBS NASA', func:function(){}}
 		]});
         
@@ -1123,7 +1145,7 @@ function loadMap(state)
             
             _menuUp.createMenu = function()
             {
-                createMenu();
+                createMenuNew();
             };
 
             _menuUp.go(nsGmx.widgets.headerController.getMenuPlaceholder()[0]);
