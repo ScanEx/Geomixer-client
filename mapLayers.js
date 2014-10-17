@@ -908,7 +908,7 @@ layersTree.prototype.showSaveStatus = function(parent)
 			
 	var divStatus = _div([_span([_t(_gtxt("Сохранено"))],[['css','marginLeft','10px'],['css','color','#33AB33']])], [['css','paddingTop','10px'],['attr','savestatus',true]]);
 	
-	_(parent, [divStatus])
+	$(parent).append(divStatus);
 	
 	this.timer = setTimeout(function()
 		{
@@ -2002,7 +2002,7 @@ queryMapLayers.prototype.createMap = function(name)
         $('#headerLinks').find("[savestatus]").remove();
         
         var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        _($$('headerLinks'), [loading]);
+        $('#headerLinks').append(loading);
         
         sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _layersTree.treeModel.getMapProperties().name, function(response)
         {
@@ -2043,7 +2043,7 @@ queryMapLayers.prototype.createMap = function(name)
         $('#headerLinks').find("[savestatus]").remove();
         
         var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        _($$('headerLinks'), [loading]);
+        $('#headerLinks').append(loading);
         
         saveMapInternal("Map/SaveAs.ashx", name);
     }
