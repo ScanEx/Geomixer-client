@@ -84,10 +84,11 @@ var gmxCore = function()
     var cssLoader = null;
     
     var withCachePostfix = function(filename) {
+        var sym = filename.indexOf('?') === -1 ? '?' : '&';
         if (window.gmxDropBrowserCache) {
-            filename += '?' + Math.random();
+            filename += sym + Math.random();
         } else if (window.nsGmx && nsGmx.buildGUID){
-            filename += '?' + nsGmx.buildGUID;
+            filename += sym + nsGmx.buildGUID;
         }
         
         return filename;
