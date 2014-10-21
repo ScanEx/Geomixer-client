@@ -145,11 +145,11 @@ var createMenuNew = function()
 			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
 			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
-			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)},   delimiter: true},
 			{id: 'share',        title: 'Поделиться',               func: function(){}},
 			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
 			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
-			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
 			{id: 'mapProperties',title: 'Свойства',                 func: function(){}},
 			{id: 'mapSecurity',  title: 'Права доступа',            func: function(){}}
 		]});
@@ -160,7 +160,7 @@ var createMenuNew = function()
 			{id:'layerList', title: 'Открыть слой',func:function(){_queryMapLayers.getLayers()}},
 			{id:'createLayer', title: 'Создать слой',func:function(){}},
 			{id:'createGroup', title: 'Создать каталог',func:function(){}},
-			{id:'baseLayers',  title: 'Базовые слои',func:function(){}, style: [['css','borderBottom','1px solid #e1e1e1']]},
+			{id:'baseLayers',  title: 'Базовые слои',func:function(){}, delimiter: true},
 			{id:'loadFile',    title: 'Загрузить файл',func:function(){}},
 			{id:'wms',  title: 'Подключить WMS',func:function(){}},
 			{id:'wfs',  title: 'Подключить WFS',func:function(){}}
@@ -181,7 +181,11 @@ var createMenuNew = function()
 	_menuUp.addItem(
         {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
 		[
-			{id: 'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}},
+			{id: 'mapGrid', title:_gtxt('Координатная сетка'), 
+                onsel: function(){globalFlashMap.grid.setVisible(true); _mapHelper.gridView = true;}, 
+                onunsel: function(){globalFlashMap.grid.setVisible(false); _mapHelper.gridView = false;},
+                checked: _mapHelper.gridView
+            },
             getPluginToMenuBinding('BufferPlugin', 'buffer', 'Буфер'),
 			// {id: 'buffer', title:'Буфер', func:function(){}},
 			{id: 'shift', title:'Ручная привязка растров', func:function(){}},
@@ -196,12 +200,10 @@ var createMenuNew = function()
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', 'Кадастр Росреестра'),
             getPluginToMenuBinding('Wikimapia', 'wikimapia', 'Викимапиа'),
-			// {id: 'wikimapia', title:'Викимапиа', func:function(){}},
-			{id: 'scanexSearch', title:'Каталог СКАНЭКС', func:function(){}},
-			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
+            {id: 'scanexSearch', title:'Каталог СКАНЭКС',      func: function(){}},
+            {id: 'search',       title:'Поиск слоев на карте', func: function(){}},
             getPluginToMenuBinding('Fire plugin', 'fires', 'Космоснимки-пожары'),
-			// {id: 'fires', title:'Космоснимки-пожары', func:function(){}},
-			{id: 'gibs', title:'GIBS NASA', func:function(){}}
+            getPluginToMenuBinding('GIBS Plugin', 'gibs', 'GIBS NASA')
 		]});
         
 	_menuUp.addItem(
@@ -441,24 +443,16 @@ $(function()
                 link: "http://geomixer.ru/docs"
             }]
         });
-        // createHeader();
         
         nsGmx.AuthManager.checkUserInfo(function()
         {
-            var apiParams = [];
-            if (window.apiKey) apiParams.push("key=" + window.apiKey);
-            if (window.gmxDropBrowserCache) {
-                apiParams.push(Math.random());
-            } else if (nsGmx.buildGUID) {
-                apiParams.push(nsGmx.buildGUID);
-            }
-            var paramsString = apiParams.join('&');
-                
+            var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
+
             var parsedURL = parseURLParams();
             var apiFilename;
             if (parsedURL.params['apifile'])
             {
-                apiFilename = parsedURL.params['apifile'] + '.js'
+                apiFilename = parsedURL.params['apifile'] + '.js';
             }
             else
             {
@@ -469,20 +463,23 @@ $(function()
                 }
             }
             
-            var script = document.createElement("script");
-            script.setAttribute("charset", "windows-1251");
-            script.setAttribute("src", _mapHostName + apiFilename + '?' + paramsString);
+            var url = _mapHostName + apiFilename + apikeyParam;
             
-            var interval = setInterval(function()
-            {
-                if (window.gmxAPI && window.gmxAPI.APILoaded)
-                {
-                    clearInterval(interval);
-                    parseReferences(parsedURL.params, parsedURL.givenMapName);
+            gmxCore.loadScript(url, null, 'windows-1251').then(function() {
+                if (window.gmxAPI && window.gmxAPI.APILoaded) {
+                    parseReferences(parsedURL.params, parsedURL.givenMapName)
+                } else {
+                    var interval = setInterval(function()
+                    {
+                        if (window.gmxAPI && window.gmxAPI.APILoaded)
+                        {
+                            clearInterval(interval);
+                            parseReferences(parsedURL.params, parsedURL.givenMapName);
+                        }
+                    }, 200);
                 }
-            }, 200);
-            
-            document.getElementsByTagName("head").item(0).appendChild(script);
+            })
+
         }, function()
         {
             //TODO: обработка ошибок

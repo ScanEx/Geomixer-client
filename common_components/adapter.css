@@ -23,6 +23,7 @@
 	width: 24px;
     border: 1px solid #E2E2E2;
     margin-right: -1px;
+    display: none;
 }
 
 .searchBeginOn
