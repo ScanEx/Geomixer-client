@@ -206,6 +206,10 @@
                 this.options.isActive = !flag;
                 this._gmxOnClick();
             }
+            ,remove: function() {
+                var it = Controls.items[this.options.id];
+                if (it && this._map) it.removeFrom(this._map);
+            }
         });
         /**
          * Описание класса gmxControl.
@@ -676,6 +680,7 @@
                 this.addOverlay(attr, name);
                 return {
                     id: id
+                    ,layer: attr
                     ,setActiveTool: function (flag) {
                         return attr.setActiveTool(flag);
                     }
@@ -1396,12 +1401,13 @@
                 //console.log('ToolsContainer', name, attr);
                 if(!attr) attr = {};
                 var cont = {
-                    addTool: function (tn, attr) {
+                    items: {}
+                    ,addTool: function (tn, attr) {
                         //console.log('tool addTool', tn, attr); // wheat
                         if(!attr) attr = {};
+                        var item = {};
                         var ret = null;
                         if(attr.overlay && Controls.items.layers) {
-                        //if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
                             attr.id = tn;
                             if(!attr.rus) attr.rus = attr.hint || attr.id;
                             if(!attr.eng) attr.eng = attr.hint || attr.id;
@@ -1409,19 +1415,30 @@
                             var layersControl = gmxAPI.map.controlsManager.getControl('layers');
                             if(layersControl) {
                                 ret = layersControl.addOverlayTool(tn, attr);
+                                item.overlay = true;
                             }
                         } else {
                             ret = Controls.addControl(tn, attr);
-                            // var controls = gmxAPI.map.controlsManager.getCurrent();
-                            // if(controls && 'addControl' in controls) {
-                                // ret = controls.addControl(tn, attr);
-                            // }
+                            item.icon = true;
                         }
                         gmxAPI._tools[tn] = ret;
+                        item.res = ret;
+                        cont.items[tn] = item;
                         return ret;
                     }
+                    ,remove: function() {
+                        var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                        for (var tn in cont.items) {
+                            var tool = cont.items[tn];
+                            if (tool.res)  {
+                                if (tool.overlay) layersControl.removeLayer(tool.res.layer);
+                                else {
+                                    Controls.removeControl(tn);
+                                }
+                            }
+                        }
+                    }
                 };
-                //gmxAPI._tools[name] = cont;
                 return cont;
             }
             gmxAPI._ToolsContainer = ToolsContainer;
