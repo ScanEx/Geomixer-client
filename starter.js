@@ -446,6 +446,12 @@ $(function()
         
         nsGmx.AuthManager.checkUserInfo(function()
         {
+            window.LeafletPlugins = window.LeafletPlugins || [];
+            window.LeafletPlugins.push(
+               {module: 'gmxIcon', files: ['src/js/L.Control.gmxIcon.js'], css: 'src/css/L.Control.gmxIcon.css', path: 'leaflet/plugins/gmxControls/'},
+               {module: 'gmxIconGroup', files: ['src/js/L.Control.gmxIconGroup.js'], css: 'src/css/L.Control.gmxIconGroup.css', path: 'leaflet/plugins/gmxControls/'}
+            );
+            
             var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
 
             var parsedURL = parseURLParams();
@@ -1199,6 +1205,24 @@ function loadMap(state)
                 layersShown = !layersShown;
                 resizeAll();
             }
+            
+            var saveMapIcon = new L.Control.gmxIcon({
+                id: 'saveMap', 
+                title: _gtxt("Сохранить карту"),
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool.png',
+                activeImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool_a.png'
+            })
+                .addTo(gmxAPI._leaflet.LMap)
+                .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
+            
+            var createLayerIcon = new L.Control.gmxIcon({
+                id: 'createVectorLayer', 
+                title: _gtxt("Создать векторный слой"),
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png',
+                activeImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool_a.png'
+            })
+                .addTo(gmxAPI._leaflet.LMap)
+                .on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
             
             _leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
                                function() { _toggleFullscreenIcon(true); });
