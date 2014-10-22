@@ -4971,7 +4971,10 @@ var tt = 1;
 					image.style.height = size.y + 'px';
 				}
 			});
-			
+
+            for (var i = 0, len = gmxAPI.whenLoadedArray.length; i < len; i++) {
+                gmxAPI.whenLoadedArray[i]();
+            }
 			initFunc(mapDivID, 'leaflet');
 			
 			var setCenterPoint = null

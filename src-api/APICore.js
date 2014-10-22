@@ -60,6 +60,12 @@ extend(window.gmxAPI,
 	,
     leafletPlugins: {}
     ,
+    whenLoadedArray: []
+    ,
+    whenLoaded: function (func) {
+        window.gmxAPI.whenLoadedArray.push(func);
+    }
+    ,
     _getEdgeIntersection: function (a, b, code, bounds) {
         var dx = b[0] - a[0],
             dy = b[1] - a[1],
@@ -3544,6 +3550,7 @@ function createFlashMapInternal(div, layers, callback)
             }
             if(baseLayersArr) {
                 var baseLayersManager = map.baseLayersManager;
+                //baseLayersManager.setActiveIDs(gmxAPI._baseLayersArr);
                 for (var i = 0, len = baseLayersArr.length; i < len; i++) {
                     var id = baseLayersArr[i];
                     baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
