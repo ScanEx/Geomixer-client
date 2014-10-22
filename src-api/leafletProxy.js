@@ -3416,7 +3416,10 @@
 
             if(style.marker) {
                 if(style.image) {
-                    var canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style);
+                    var canv = out._cache.canvas;
+                    if (!canv) {
+                        canv = out._cache.canvas = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style);
+                    }
                     if('opacity' in style) ctx.globalAlpha = style.opacity;
                     ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
                     if('opacity' in style) ctx.globalAlpha = 1;
