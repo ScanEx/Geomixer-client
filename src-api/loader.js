@@ -25,6 +25,12 @@
         waitArgs = [].slice.call(arguments);
     }
 
+    if(!window.gmxAPI) window.gmxAPI = {};
+    window.gmxAPI.whenLoadedArray = [];
+    window.gmxAPI.whenLoaded = function(func) {
+        window.gmxAPI.whenLoadedArray.push(func);
+    }
+
     function LABjsLoaded() {
         var filesToLoad = [/*#buildinclude<%%api_files%%>*/];
         
