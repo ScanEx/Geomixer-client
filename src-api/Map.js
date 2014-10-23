@@ -205,6 +205,23 @@
         map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
         map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
+        L.extend(map.baseLayersManager, L.Mixin.Events);
+        map.baseLayersManager.addListener('onAdd', function(attr) {
+            map.baseLayersManager.fire('baselayeradd', attr);
+        });
+        map.baseLayersManager.addListener('onRemove', function(attr) {
+            map.baseLayersManager.fire('baselayerremove', attr);
+        });
+        map.baseLayersManager.addListener('onLayerChange', function(attr) {
+            map.baseLayersManager.fire('baselayerlayerschange', attr);
+        });
+        map.baseLayersManager.addListener('onActiveChanged', function(attr) {
+            map.baseLayersManager.fire('baselayeractiveids', attr);
+        });
+        map.baseLayersManager.addListener('onSetCurrent', function(attr) {
+            map.baseLayersManager.fire('baselayerchange', attr);
+        });
+
         map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
         if(gmxAPI.proxyType === 'flash') params.gmxControls = 'controlsBase';

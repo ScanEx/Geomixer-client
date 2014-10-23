@@ -60,6 +60,12 @@ extend(window.gmxAPI,
 	,
     leafletPlugins: {}
     ,
+    whenLoadedArray: []
+    ,
+    whenLoaded: function (func) {
+        window.gmxAPI.whenLoadedArray.push(func);
+    }
+    ,
     _getEdgeIntersection: function (a, b, code, bounds) {
         var dx = b[0] - a[0],
             dy = b[1] - a[1],
@@ -3544,6 +3550,7 @@ function createFlashMapInternal(div, layers, callback)
             }
             if(baseLayersArr) {
                 var baseLayersManager = map.baseLayersManager;
+                //baseLayersManager.setActiveIDs(gmxAPI._baseLayersArr);
                 for (var i = 0, len = baseLayersArr.length; i < len; i++) {
                     var id = baseLayersArr[i];
                     baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
@@ -3558,12 +3565,7 @@ function createFlashMapInternal(div, layers, callback)
                 }
             }
         }
-        if(map.needSetMode) {
-            var needSetMode = map.needSetMode;
-            map.needSetMode = null;
-            map.setMode(needSetMode);
-        }
-        if (!layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API) {
+        if (!layers || !layers.properties.UseKosmosnimkiAPI || layers.properties.name !== gmxAPI.kosmosnimki_API) {
             if (callback) {
                 try {
                     callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
@@ -3571,6 +3573,11 @@ function createFlashMapInternal(div, layers, callback)
                     gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
                 }
             }
+        }
+        if(map.needSetMode) {
+            var needSetMode = map.needSetMode;
+            map.needSetMode = null;
+            map.setMode(needSetMode);
         }
 	}
 

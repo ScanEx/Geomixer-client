@@ -54,6 +54,7 @@
     width: 40px;
 }
 .gmx_scaleBarTxt {
+    cursor: pointer;
     color: black;
     margin-left: 2px;
     font-size: 9pt;

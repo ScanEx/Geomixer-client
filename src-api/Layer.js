@@ -506,6 +506,10 @@
                 if(this.objectId) return proxy('redrawItem', { obj: obj, attr:pt });
                 return false;
             },
+
+            repaint: function () {
+                if(this.objectId) return proxy('repaintLayer', { obj: obj });
+            },
             setVisibilityHook: function (func) {
                 obj._visibilityHook = func;
                 if(this.objectId) return proxy('setFreezeLoading', { obj: obj, attr: obj._isLoadingFreezed });
@@ -727,6 +731,15 @@
                     ,'bounds': bounds
                 };
                 proxy('setBackgroundTiles', {'obj': obj, 'attr':ph });
+                obj.setImageProcessingHook = function(func, crossOrigin) {
+                    var opt = {'func':func};
+                    if (crossOrigin) opt.crossOrigin = crossOrigin;
+                    return proxy('addImageProcessingHook', { 'obj': obj, 'attr': opt });
+                };
+                obj.addImageProcessingHook = obj.setImageProcessingHook;
+                obj.removeImageProcessingHook = function() {
+                    return proxy('removeImageProcessingHook', { 'obj': obj });
+                };
             } else
             {
                 obj.getFeatures = function()

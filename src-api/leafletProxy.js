@@ -2929,6 +2929,13 @@
             }
             return false;
         }
+        ,repaintLayer: function(ph) {       // Перерисовка текущих тайлов слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return;
+            if('repaintTilesList' in node) node.repaintTilesList();
+            else if('redraw' in node) node.redraw();
+        }
         ,
         setStyleHook: function(ph) {
             var id = ph.obj.objectId;
@@ -3749,7 +3756,9 @@
             bounds = gmxAPI.bounds(),
             hideLines = [],
             tileBounds = obj.tileBounds,
-            d = (tileBounds.max.x - tileBounds.min.x)/10000,
+            //d = (tileBounds.max.x - tileBounds.min.x)/10000,
+            //d = 0.05,
+            d = 2,
             tbDelta = { // границы тайла для определения onEdge отрезков
                 minX: tileBounds.min.x + d
                 ,maxX: tileBounds.max.x - d
@@ -4962,7 +4971,10 @@ var tt = 1;
 					image.style.height = size.y + 'px';
 				}
 			});
-			
+
+            for (var i = 0, len = gmxAPI.whenLoadedArray.length; i < len; i++) {
+                gmxAPI.whenLoadedArray[i]();
+            }
 			initFunc(mapDivID, 'leaflet');
 			
 			var setCenterPoint = null

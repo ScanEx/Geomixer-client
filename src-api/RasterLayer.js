@@ -118,6 +118,15 @@
                 }
             }
         }
+        node.redraw = function() {  // Перерисовать растровый слой
+            if(myLayer && myLayer._map) {
+                for (var key in myLayer._tiles) {
+                    var tile = myLayer._tiles[key];
+                    myLayer.drawTile(tile, tile._tilePoint);
+                }
+            }
+            myLayer._update();
+        }
 
         node.remove = function() {				// Удалить растровый слой
             if(myLayer) {

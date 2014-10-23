@@ -667,6 +667,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                     gmxAPI.setVisible(zoomControl.zoomArr[i], (i < dz));
                 }
                 if(dz < zoomControl.zoomArr.length) for (var i = dz; i < zoomControl.zoomArr.length; i++) gmxAPI.setVisible(zoomControl.zoomArr[i], false);
+                
+                var topleft = gmxAPI._leaflet.LMap._controlCorners.topleft;
+                topleft.style.top = '-4px';
+                topleft.style.left = (83 + gap) + 'px';
             }
             ,onChangeBackgroundColorID: null
             ,onMoveEndID: null
