@@ -60,10 +60,8 @@ extend(window.gmxAPI,
 	,
     leafletPlugins: {}
     ,
-    whenLoadedArray: []
-    ,
     whenLoaded: function (func) {
-        window.gmxAPI.whenLoadedArray.push(func);
+        func();
     }
     ,
     _getEdgeIntersection: function (a, b, code, bounds) {
@@ -3829,3 +3827,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 	else
 		finish();
 };
+
+if (gmxAPI.whenLoadedArray) {
+    for (var i = 0, len = gmxAPI.whenLoadedArray.length; i < len; i++) {
+        gmxAPI.whenLoadedArray[i]();
+    }
+    gmxAPI.whenLoadedArray = null;
+}

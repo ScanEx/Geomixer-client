@@ -4972,11 +4972,8 @@ var tt = 1;
 				}
 			});
 
-            for (var i = 0, len = gmxAPI.whenLoadedArray.length; i < len; i++) {
-                gmxAPI.whenLoadedArray[i]();
-            }
 			initFunc(mapDivID, 'leaflet');
-			
+
 			var setCenterPoint = null
 			setTimeout(function () {
 				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", opacity: 0.8, 'pointerEvents': 'none' });
