@@ -1662,3 +1662,27 @@ div.layersScroll
 .leaflet-control-layers-base, .leaflet-control-layers-separator {
     display: none;
 }
+
+/* login dialog */
+.loginMainDiv {
+    text-align: center;
+}
+
+.inputLogin, .inputPass {
+    width: 200px;
+    margin-bottom: 10px;
+}
+
+.loginLabel {
+    font-size: 12px;
+}
+
+.ui-widget .loginButton {
+    padding: 0px 7px;
+    font-size: 12px;
+    margin: 3px 0px 10px 0px;
+}
+
+.loginLinks {
+    margin-left: 14px;
+}
