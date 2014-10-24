@@ -45,10 +45,10 @@ div.header1
 }
 ul.header2
 {
-	margin-left:0px;
-	width:190px;
-	position:absolute;
-	visibility:hidden;
+	margin-left: -16px;
+	width: 190px;
+	position: absolute;
+	visibility: hidden;
 /*	display: none;*/
 	background: #ffffff;
 	z-index:2;
@@ -199,12 +199,14 @@ div.login
 {
 	height: 30px;
 }
+
 .iconsParent td div.toolbarIcon
 {
 	width: 24px;
 	height: 24px;
 	margin: 5px 7px 0px 7px;
 }
+
 .iconMapName
 {
 	width: 240px;
@@ -214,17 +216,6 @@ div.login
 	font-size: 12px;
 }
 
-li.loginCanvas
-{
-	float:right;
-	position:relative;
-	padding:0px 20px 0px 20px;
-	overflow:inherit;
-	white-space:nowrap;
-	display:inline;
-	z-index:2;
-	cursor:default;
-}
 td.searchCanvas
 {
 	padding-left: 60px;

@@ -1,4 +1,4 @@
-/** 
+/**
   @class
   @virtual
   @name IMenuElem
@@ -15,12 +15,12 @@
 */
 var UpMenu = function()
 {
-    
+
     this.submenus = [];
 	this.currSel = null;
 	this.currUnSel = null;
 	this.refs = {};
-    
+
 	this.parent = null;
     this.loginContainer = null;
     this._isCreated = false;
@@ -48,7 +48,7 @@ UpMenu.prototype._iterateMenus = function(elem, callback) {
 */
 UpMenu.prototype.addItem = function(elem)
 {
-    this.submenus.push(elem)        
+    this.submenus.push(elem)
     this._isCreated && this.draw();
 }
 
@@ -65,9 +65,9 @@ UpMenu.prototype.addChildItem = function(newElem, parentID)
         if (elem.id && elem.id === parentID) {
             elem.childs = elem.childs || [];
             elem.childs.push(newElem);
-            
+
             this._isCreated && this.draw();
-                
+
             return true;
         }
     }.bind(this));
@@ -79,13 +79,13 @@ UpMenu.prototype.addChildItem = function(newElem, parentID)
 UpMenu.prototype.setParent = function(parent)
 {
 	this.parent = parent;
-	
+
 	if (parent)
     {
 		removeChilds(parent);
         _(parent, [_span()]);
     }
-	
+
 	this.disabledTabs = {};
 }
 
@@ -100,7 +100,7 @@ UpMenu.prototype.hidemenu = function(elem)
 	elem.style.visibility = 'hidden';
 }
 
-UpMenu.prototype._template = 
+UpMenu.prototype._template =
 '<div class="headerContainer">\
 {{#childs}}\
     <div class = "header1{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
@@ -141,7 +141,7 @@ UpMenu.prototype._template =
 UpMenu.prototype.draw = function()
 {
     var ui = $(Mustache.render(this._template, {
-            childs: this.submenus, 
+            childs: this.submenus,
             anyChildren: function(){
                 return function(text, renderer) {
                     return this.childs && this.childs.length ? renderer(text) : "";
@@ -157,39 +157,39 @@ UpMenu.prototype.draw = function()
                     return this.checked ? renderer(text) : "";
                 }
             }
-            
+
         })),
         _this = this;
-        
+
     $(this.parent.firstChild).empty().append(ui);
-    
+
     $(ui).find('.header1').each(function() {
         _this.attachEventOnMouseover(this, 'menuActive');
         _this.attachEventOnMouseout(this, 'menuActive');
         $(this).width($(this).width() + 10);
     });
-    
+
     $(ui).find('li.header2').each(function() {
         _this.attachEventOnMouseover(this, 'menu2Active');
         _this.attachEventOnMouseout(this, 'menu2Active');
     });
-    
+
     $(ui).find('li.header3').each(function() {
         attachEffects(this, 'menu3Active');
     });
-    
+
     $(ui).find('.menuClickable').each(function() {
         $(this).click(_this.openTab.bind(_this, $(this).attr('hash')));
     });
-    
+
     this._iterateMenus({childs: this.submenus}, function(elem) {
         _this.refs[elem.id] = elem;
     })
-    
+
     //убираем все скрытые меню
     for (var d in this.disabledTabs)
         this.disableMenus([d]);
-    
+
     this._isCreated = true;
 }
 
@@ -210,7 +210,7 @@ UpMenu.prototype.removeSelections = function(id)
 UpMenu.prototype.hideMenus = function()
 {
 	var _this = this;
-	
+
 	$('ul.header2').each(function()
 	{
 		_this.hidemenu(this);
@@ -234,7 +234,7 @@ UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 	elem.onmouseover = function(e)
 	{
 		$(this).addClass(className);
-		
+
 		if ($$(this.getAttribute('hash')))
 			_this.showmenu($$(this.getAttribute('hash')));
 	}
@@ -248,7 +248,7 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 			target = evt.srcElement || evt.target,
 			relTarget = evt.relatedTarget || evt.toElement,
 			elem = this;
-		
+
 		try
 		{
 			while (relTarget)
@@ -256,21 +256,21 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 				if (relTarget == elem)
 				{
 					stopEvent(e);
-					
+
 					return false;
 				}
 				relTarget = relTarget.parentNode;
 			}
-			
+
 			$(elem).removeClass(className)
-			
+
 			if ($$(elem.getAttribute('hash')))
 				_this.hidemenu($$(elem.getAttribute('hash')));
 		}
 		catch (e)
 		{
 			$(elem).removeClass(className)
-				
+
 			if ($$(elem.getAttribute('hash')))
 				_this.hidemenu($$(elem.getAttribute('hash')));
 		}
@@ -281,12 +281,12 @@ UpMenu.prototype.getNavigatePath = function(path) {
 	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
         var submenu = this.submenus[menuIdx];
-        
+
 		if (path == submenu.id)
 		{
             return [submenu.title];
 		}
-        
+
 		if (submenu.childs)
 		{
 			var childsLevel2 = submenu.childs;
@@ -298,7 +298,7 @@ UpMenu.prototype.getNavigatePath = function(path) {
 					// есть подменю, смотрим там
 					for(var j = 0; j < childsLevel3.length; j++)
 					{
-						if (path == childsLevel3[j].id) 
+						if (path == childsLevel3[j].id)
 						{
                             return [submenu.title, childsLevel2[i].title, childsLevel3[j].title];
 						}
@@ -323,7 +323,7 @@ UpMenu.prototype.enableMenus = function()
 	for (var name in this.disabledTabs)
 	{
 		$(this.parent).find("li[hash='" + name + "']").children('div').css('display','');
-		
+
 		delete this.disabledTabs[name];
 	}
 }
@@ -335,7 +335,7 @@ UpMenu.prototype.disableMenus = function(arr)
 	for (var i = 0; i < arr.length; i++)
 	{
 		$(this.parent).find("li[hash='" + arr[i] + "']").children('div').css('display','none');
-		
+
 		this.disabledTabs[arr[i]] = true;
 	}
 }
@@ -345,61 +345,50 @@ UpMenu.prototype.checkView = function()
 	if (!nsGmx.AuthManager.isLogin())
 	{
 		this.enableMenus();
-		
+
 		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding']);
 	}
 	else if (_queryMapLayers.currentMapRights() != "edit")
 	{
 		this.enableMenus();
-		
+
 		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
-    
+
     if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
         this.disableMenus(['stileLibrary']);
     }
-    
+
     if (_queryMapLayers.currentMapRights() !== "edit") {
         this.disableMenus(['mapTabsNew']);
     }
-	
+
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
             this.disableMenus(['layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
-    
+
     if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_MAP))
 	{
             this.disableMenus(['mapCreate']);
 	}
 }
 
-UpMenu.prototype.addLoginCanvas = function()
-{
-	this.loginContainer = _span(null, [['dir','className','loginCanvas'], ['css','position','relative'], ['css','display','block']]);
-    
-    if (this.parent) {
-        _(this.parent, [this.loginContainer]);
-    }
-}
-
 UpMenu.prototype.go = function(container)
 {
 	this.setParent(container);
-	
+
 	this.createMenu();
-		
+
 	this.draw();
-	
+
 	this.checkView();
-	
-	this.addLoginCanvas();
-	
+
 	if (window.location.hash)
 	{
 		this.currUnsel = function(){};
 	}
-	
+
 	this.openTab(this.defaultHash);
 }
 
@@ -408,12 +397,12 @@ UpMenu.prototype.openTab = function(id)
     if (this.disabledTabs[id] || !this.refs[id]) {
         return;
     }
-    
+
     var item = this.refs[id];
-    
+
     this.removeSelections();
 	this.hideMenus();
-    
+
     if (item.func) {
         item.func(id);
     } else {
@@ -437,24 +426,24 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     /** Изменение видимости контента ("свёрнутости") панели
      * @event nsGmx.LeftPanelItem.changeVisibility
     */
-    
+
     options = $.extend({
         closeFunc: function(){},
         path: _menuUp.getNavigatePath(canvasID),
         showCloseButton: true,
         showMinimizeButton: true
     }, options);
-    
+
     var getPathHTML = function(path) {
         if (!path) return '';
-        
+
         return Mustache.render(
             '<tr>' +
                 '{{#path}}' +
                     '<td class="leftmenu-path-item {{#last}}menuNavigateCurrent{{/last}}">{{name}}</td>' +
                     '{{^last}}<td><div class="markerRight"></div></td>{{/last}}' +
                 '{{/path}}' +
-            '</tr>', 
+            '</tr>',
             {
                 path: path.map(function(item, index, arr) {
                     return {name: item, last: index === arr.length-1};
@@ -462,7 +451,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
             }
         )
     }
-    
+
     var ui =
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
             '{{#isTitle}}<div class="leftTitle">' +
@@ -472,7 +461,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
         '</div>';
-    
+
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
     this.panelCanvas = $(Mustache.render(ui, {
         isTitle: !!(options.path || options.showCloseButton || options.showMinimizeButton),
@@ -481,25 +470,25 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
         showCloseButton: options.showCloseButton,
         showMinimizeButton: options.showMinimizeButton
     }))[0];
-    
+
     /**Рабочая область блока*/
     this.workCanvas = $(this.panelCanvas).find('.workCanvas')[0];
-    
+
     /** Программная имитация нажатия кнопки закрытия блока
         @function
     */
     this.close = options.closeFunc;
-    
+
     var _this = this;
-    
+
     $('.leftmenu-toggle-icon', this.panelCanvas).click(function() {
         $(_this.workCanvas).toggle();
         $(this).toggleClass('leftmenu-down-icon leftmenu-right-icon');
         $(_this).trigger('changeVisibility');
     });
-    
+
     $('.leftTitle .gmx-icon-close',  this.panelCanvas).click(options.closeFunc);
-    
+
     /** Задать новый заголовок окна
      @param {String[]} [path] Массив строк для формирования названия блока.
                       Предполагается, что последний элемент является собственно названием, а предыдущие - названиями категорий.
@@ -534,38 +523,38 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
     } else {
         options = options || {};
     }
-    
+
     options.closeFunc = function() {
         $(_this.parentWorkCanvas).hide();
         closeFunc && closeFunc();
     }
-    
+
     var _this = this;
 	if (!$$('left_' + canvasID))
 	{
         var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, options);
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
-		
+
 		if ($$('leftContentInner').childNodes.length == 0) {
             $()
 			_($$('leftContentInner'), [this.parentWorkCanvas]);
         }
 		else
 			$$('leftContentInner').insertBefore(this.parentWorkCanvas, $$('leftContentInner').firstChild);
-            
+
 		return false;
 	}
 	else
 	{
 		this.parentWorkCanvas = $$('left_' + canvasID);
 		this.workCanvas = this.parentWorkCanvas.lastChild;
-		
+
 		show(this.parentWorkCanvas)
-		
+
 		if (this.parentWorkCanvas.parentNode.childNodes.length > 0)
 			this.parentWorkCanvas.parentNode.insertBefore(this.parentWorkCanvas, this.parentWorkCanvas.parentNode.firstChild);
-			
+
 		return true;
 	}
 }
