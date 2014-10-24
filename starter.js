@@ -472,18 +472,7 @@ $(function()
             var url = _mapHostName + apiFilename + apikeyParam;
             
             gmxCore.loadScript(url, null, 'windows-1251').then(function() {
-                if (window.gmxAPI && window.gmxAPI.APILoaded) {
-                    parseReferences(parsedURL.params, parsedURL.givenMapName)
-                } else {
-                    var interval = setInterval(function()
-                    {
-                        if (window.gmxAPI && window.gmxAPI.APILoaded)
-                        {
-                            clearInterval(interval);
-                            parseReferences(parsedURL.params, parsedURL.givenMapName);
-                        }
-                    }, 200);
-                }
+                gmxAPI.whenLoaded(parseReferences.bind(null, parsedURL.params, parsedURL.givenMapName));
             })
 
         }, function()
@@ -823,7 +812,7 @@ function initEditUI() {
     globalFlashMap.drawing.addTool('editTool'
         , _gtxt("Редактировать")
         , 'img/project_tool.png'
-        , 'img/project_tool_a.png'
+        , 'img/project_tool.png'
         , function()
         {
             for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
@@ -905,11 +894,13 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
-        var baseLayersControl = new nsGmx.BaseLayersControl(map.baseLayersManager, {
-            language: nsGmx.Translations.getLanguage()
-        });
+        if (map && map.baseLayersManager) {
+            var baseLayersControl = new nsGmx.BaseLayersControl(map.baseLayersManager, {
+                language: nsGmx.Translations.getLanguage()
+            });
         
-        baseLayersControl.addTo(gmxAPI._leaflet.LMap);
+            baseLayersControl.addTo(gmxAPI._leaflet.LMap);
+        }
         
         $('#flash').bind('dragover', function()
         {
@@ -1191,10 +1182,6 @@ function loadMap(state)
             addMapName(mapNameContainer, data.properties.title);
             
             _leftIconPanel.create(leftIconPanelContainer);
-            // _($$('leftIconPanel'), [_table([_tbody([_tr([
-                // _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
-                // _td([leftIconPanelContainer])
-            // ])])])]);
             
             //добавим в тулбар две иконки, но видимой будет только одна
             //по клику переключаем между ними
@@ -1206,23 +1193,46 @@ function loadMap(state)
                 resizeAll();
             }
             
+            // пополняем тулбар
             var saveMapIcon = new L.Control.gmxIcon({
                 id: 'saveMap', 
                 title: _gtxt("Сохранить карту"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool.png',
-                activeImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool_a.png'
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool.png'
             })
                 .addTo(gmxAPI._leaflet.LMap)
                 .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
             
-            var createLayerIcon = new L.Control.gmxIcon({
+            var createVectorLayerIcon = new L.Control.gmxIcon({
                 id: 'createVectorLayer', 
                 title: _gtxt("Создать векторный слой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png',
-                activeImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool_a.png'
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+                
+            var createRasterLayerIcon = new L.Control.gmxIcon({
+                id: 'createRasterLayer', 
+                title: _gtxt("Создать растровый слой"),
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+            
+            var createMultiLayerIcon = new L.Control.gmxIcon({
+                id: 'createMultiLayer', 
+                title: _gtxt("Создать мультислой"),
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'));
+            
+            var createLayerIconGroup = new L.Control.gmxIconGroup({
+                id: 'createLayer',
+                items: [createVectorLayerIcon, createRasterLayerIcon, createMultiLayerIcon]
+            }).addTo(gmxAPI._leaflet.LMap);
+            
+            var saveMapIcon = new L.Control.gmxIcon({
+                id: 'uploadFile', 
+                title: _gtxt("Загрузить файл"),
+                regularImageUrl: 'http://search.kosmosnimki.ru/img/upload.png'
             })
                 .addTo(gmxAPI._leaflet.LMap)
-                .on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+                .on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
+            
             
             _leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
                                function() { _toggleFullscreenIcon(true); });
@@ -1230,30 +1240,10 @@ function loadMap(state)
             _leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
                                 function() { _toggleFullscreenIcon(false); }, null, true);
             
-            _iconPanel.create(iconContainer);
-            
-            var visFuncSaveMap      = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit"; };
-            var visFuncCreateLayers = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS) && _queryMapLayers.currentMapRights() === "edit"; };
-            
-            _iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()}, visFuncSaveMap)
-            _iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, visFuncCreateLayers)
-            _iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, visFuncCreateLayers)
-            
-            _iconPanel.addDelimiter('userDelimiter', false, true);
-            
-            _iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
-            
             //если в карте новый тип контролов, пермалинк из тулбаров перекачёвывает в контролы карты
             if (map.controlsManager && !map.controlsManager.getControl('permalink')) {
                 _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
             }
-            
-            _iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
-            _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
-            _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
-            
-            // if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages )
-                // _translationsHash.showLanguages();
             
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
             {
