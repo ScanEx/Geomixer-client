@@ -191,6 +191,10 @@ extend(window.gmxAPI,
         document.getElementsByTagName("head").item(0).appendChild(css);
 	}
     ,
+    getIconCanvas: memoize(function() {
+        return document.createElement('canvas');
+    })
+    ,
     getURLParams: memoize(function() {
         var q = window.location.search,
             kvp = (q.length > 1) ? q.substring(1).split("&") : [];

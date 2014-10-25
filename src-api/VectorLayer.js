@@ -890,14 +890,15 @@
                     ctx.mozDash = ctx.webkitLineDash = dashes;
                     ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
                 } else {
-                    ctx.globalCompositeOperation = dashes.length ? 'source-over' : 'source-over';
+                    var globalCompositeOperation = dashes.length ? 'source-over' : 'source-over';
+                    if (ctx.globalCompositeOperation !== globalCompositeOperation) ctx.globalCompositeOperation = globalCompositeOperation;
                     if (dashes.length || ctx.getLineDash().length) {
                         ctx.setLineDash(dashes);
                         ctx.lineDashOffset = dashOffset;
                     }
                 }
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
+                if (ctx.lineCap !== 'round') ctx.lineCap = 'round';
+                if (ctx.lineJoin !== 'round') ctx.lineJoin = 'round';
                 var strokeStyle = '';
                 if(style.stroke) {
                     var lineWidth = style.weight || 0.001;
@@ -939,7 +940,7 @@
             }
             for (var i = 0, maxWeight = 0, len = styles.length; i < len; i++) {
                 var itemStyle = styles[i];
-                maxWeight = Math.max(maxWeight, itemStyle.weight);
+                maxWeight = Math.max(maxWeight, itemStyle.weight || 0, itemStyle.maxWeight || 0);
                 itemStyle.maxWeight = maxWeight;
                 setCanvasStyle(tile, ctx, itemStyle);
                 if(imageObj) {
@@ -1525,10 +1526,24 @@
                     propHiden.toFilters = toFilters;
                     propHiden.curStyle = node.getStyleArray(geo);
                 }
+                var prevFilter = geo.currentFilter;
                 propHiden._isFilters = false;
                 if (toFilters.length) {
                     geo.currentFilter = mapNodes[toFilters[0]];
                     propHiden._isFilters = true;
+                }
+                if (prevFilter !== geo.currentFilter) {
+                    if (propHiden.curStyle.polygons) {
+                        var polygons = propHiden.curStyle.polygons,
+                            rotate = propHiden.curStyle.rotate;
+                
+                        var arr  = [];
+                        for (var i = 0, len = polygons.length; i < len; i++) {
+                            var p = polygons[i];
+                            arr.push(gmxAPI._leaflet.utils.rotatePoints(p.points, rotate, geo._cache._scale, {x: geo.sx, y: geo.sy}));
+                        }
+                        geo.polygonsPointsRes = arr;
+                    }
                 }
                 return toFilters;
             },
@@ -2706,6 +2721,7 @@
                         }
                     };
                     
+                if(node.tileRasterFunc || node.quicklook) {
                 geoItems.map(function(geom) {
                     var id = geom.id,
                         objData = node.objectsData[id] || geom;
@@ -2721,6 +2737,7 @@
                         });
                     }
                 });
+                }
                 chkReadyRasters();
 
                 return def;

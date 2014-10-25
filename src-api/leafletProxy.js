@@ -374,15 +374,15 @@
 		'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
 			var out = [];
 			angle *= Math.PI / 180.0
-			var sin = Math.sin(angle);
-			var cos = Math.cos(angle);
-			for (var i = 0; i < arr.length; i++)
-			{
-				var x = scale * arr[i].x - center.x;
-				var y = scale * arr[i].y - center.y;
+			var sin = Math.sin(angle),
+                cos = Math.cos(angle);
+			for (var i = 0, len = arr.length; i < len; i++) {
+				var x = scale * arr[i].x - center.x,
+                    y = scale * arr[i].y - center.y;
+                
 				out.push({
-					'x': cos * x - sin * y + center.x
-					,'y': sin * x + cos * y + center.y
+					x: cos * x - sin * y + center.x
+					,y: sin * x + cos * y + center.y
 				});
 			}
 			return out;
@@ -498,11 +498,11 @@
 		}
 		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
-			var canvas = document.createElement('canvas'),
+            var canvas = gmxAPI.getIconCanvas(),
                 ww = style.imageWidth,
                 hh = style.imageHeight;
 			if(style.rotateRes) {
-				ww = size || Math.ceil(Math.sqrt(ww*ww + hh*hh));
+				ww = size || style.maxWeight || Math.ceil(Math.sqrt(ww*ww + hh*hh));
 				hh = ww;
 			}
 			canvas.width = ww;
@@ -1039,44 +1039,50 @@
         }
         ,
 		'getImageSize': function(pt, flag, id)	{				// определение размеров image
-			var url = pt['iconUrl'];
+			var url = pt.iconUrl;
 			if(imagesSize[url]) {
-				pt['imageWidth'] = imagesSize[url]['imageWidth'];
-				pt['imageHeight'] = imagesSize[url]['imageHeight'];
+				pt.imageWidth = imagesSize[url].imageWidth;
+				pt.imageHeight = imagesSize[url].imageHeight;
+				pt.maxWeight = Math.ceil(Math.sqrt(pt.imageWidth*pt.imageWidth + pt.imageHeight*pt.imageHeight));
 				if(flag) {
-					pt['image'] = imagesSize[url]['image'];
+					pt.image = imagesSize[url].image;
 				}
-				if(pt['waitStyle']) {
-					pt['waitStyle'](id);
+				if(pt.waitStyle) {
+					pt.waitStyle(id);
 				}
-				delete pt['waitStyle'];
+				delete pt.waitStyle;
 				return;
 			}
 			var ph = {
 				'src': url
-				,'callback': function(it) {
-					pt['imageWidth'] = it.width;
-					pt['imageHeight'] = it.height;
-					if(flag) pt['image'] = it;
-					imagesSize[url] = pt;
-					if(pt['waitStyle']) {
-						pt['waitStyle'](id);
+				,'callback': function(it, svgFlag) {
+					pt.imageWidth = it.width;
+					pt.imageHeight = it.height;
+					pt.maxWeight = Math.ceil(Math.sqrt(pt.imageWidth*pt.imageWidth + pt.imageHeight*pt.imageHeight));
+					if(svgFlag) {
+						pt.polygons = it.polygons;
+					} else {
+                        if(flag) pt.image = it;
 					}
-					delete pt['waitStyle'];
+                    imagesSize[url] = pt;
+					if(pt.waitStyle) {
+						pt.waitStyle(id);
+					}
+					delete pt.waitStyle;
 					gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
 				}
 				,'onerror': function(){
-					pt['imageWidth'] = 1;
-					pt['imageHeight'] = 0;
-					pt['image'] = null;
+					pt.imageWidth = 1;
+					pt.imageHeight = 0;
+					pt.image = null;
 					imagesSize[url] = pt;
 					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
 				}
 			};
-			if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
+			if(('color' in pt && pt.color != utils.DEFAULT_REPLACEMENT_COLOR)
 				|| 'rotate' in pt
-			) ph['crossOrigin'] = 'anonymous';
-			gmxAPI._leaflet['imageLoader'].unshift(ph);
+			) ph.crossOrigin = 'anonymous';
+			gmxAPI._leaflet.imageLoader.unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
 		,'getMouseY':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lat : 0);	}		// Позиция мыши Y
@@ -3347,12 +3353,18 @@
             out.weight = style.weight || 0;
 
             if(style.marker) {
-                if(style.image) {
-                    var rotateRes = style.rotate || 0;
-                    if(rotateRes && typeof(rotateRes) == 'string') {
-                        rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+				var rotateRes = style.rotate || 0;
+                if(rotateRes && typeof(rotateRes) == 'string') {
+                    rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+                }
+				style.rotateRes = rotateRes || 0;
+				if(style.polygons) {
+					if(rotateRes) out.isCircle = true;
+					if(style.maxWeight) {
+                        size = style.maxWeight;
+                        out.sx = out.sy = Math.ceil(scale * size + out.weight);
                     }
-                    style.rotateRes = rotateRes;
+				} else if(style.image) {
                     if(rotateRes || 'color' in style) {
                         if(rotateRes) {
                             size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
@@ -3415,7 +3427,37 @@
             py1 = (0.5 + py1) << 0;
 
             if(style.marker) {
-                if(style.image) {
+                if(style.polygons) {
+                    var rotateRes = style.rotate || 0;
+                    if(rotateRes && typeof(rotateRes) == 'string') {
+                        rotateRes = style.rotateFunction ? style.rotateFunction(prop) : 0;
+                    }
+                    style.rotateRes = rotateRes || 0;
+
+                    var polygons = style.polygons,
+                        pointsRes = out.polygonsPointsRes,
+                        len = polygons.length;
+                    for (var i = 0; i < len; i++) {
+                        var p = polygons[i],
+                            lineWidth = p['stroke-width'] || 0,
+                            fillStyle = p.fill_hex || '#0000ff',
+                            pRes = pointsRes[i];
+                        //ctx.save();
+                        if (ctx.lineWidth !== lineWidth) ctx.lineWidth = lineWidth;
+                        if (ctx.fillStyle !== fillStyle) ctx.fillStyle = fillStyle;// || 'rgba(0, 0, 255, 1)';
+                        
+                        ctx.beginPath();
+                        for (var j = 0, len1 = pRes.length; j < len1; j++) {
+                            var t = pRes[j];
+                            if(j == 0)
+                                ctx.moveTo(px1 + t.x, py1 + t.y);
+                            else
+                                ctx.lineTo(px1 + t.x, py1 + t.y);
+                        }
+                        ctx.fill();
+                        //ctx.restore();
+                    }
+                } else if(style.image) {
                     var canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style);
                     if('opacity' in style) ctx.globalAlpha = style.opacity;
                     ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
@@ -4973,7 +5015,7 @@ var tt = 1;
 			});
 
 			initFunc(mapDivID, 'leaflet');
-
+			
 			var setCenterPoint = null
 			setTimeout(function () {
 				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", opacity: 0.8, 'pointerEvents': 'none' });
