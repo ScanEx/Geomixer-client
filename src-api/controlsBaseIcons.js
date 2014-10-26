@@ -155,6 +155,7 @@
                     pos = this.getPosition(),
                     corner = map._controlCorners[pos] || map._controlContainer;
 
+                container.id = this.options.id;
                 L.DomUtil.addClass(container, 'leaflet-control');
 
                 if (pos.indexOf('bottom') !== -1) {
@@ -244,6 +245,7 @@
                 var zoomName = 'gmx_zoomParent',
                     container = L.DomUtil.create('div', zoomName);
 
+                container.id = this.options.id;
                 this._map = map;
                 this._zoomPlaque = L.DomUtil.create('div', 'gmx_zoomPlaque', container);
 
@@ -562,6 +564,7 @@
                 if (this.options.id) Controls.items[this.options.id] = this;
                 L.Control.Layers.prototype.onAdd.call(this, map);
                 
+                this._container.id = this.options.id;
                 var my = this;
                 var mbl = gmxAPI.map.baseLayersManager;
                 var util = {
@@ -719,7 +722,8 @@
                 for (var key in Controls.items) {
                     var item = Controls.items[key];
                     if (!item.options.notHide || allFlag) {
-                        if (item._container) item._container.style.display = flag && item.options.isVisible ? 'block' : 'none';
+                        //if (item._container) item._container.style.display = flag && item.options.isVisible ? 'block' : 'none';
+                        if (item._container) item._container.style.display = flag ? 'block' : 'none';
                         else {
                             console.warn('hideControls', item);
                         }
@@ -779,6 +783,7 @@
                 L.DomEvent.on(this._map._controlContainer, 'dblclick', L.DomEvent.stopPropagation);
                 L.DomUtil.create('div', className + '_bg', container);
                 this._map = map;
+                container.id = this.options.id;
 
                 return container;
             }
@@ -818,6 +823,7 @@
                 this.scaleBarTxt = L.DomUtil.create('span', 'gmx_scaleBarTxt', container);
                 this.scaleBarTxt.title = titles.scaleBarChange;
                 this._map = map;
+                container.id = this.options.id;
 
                 var util = {
                     checkPositionChanged: function(ev) {
@@ -967,6 +973,7 @@
                 var className = 'gmx_copyright_location',
                     container = this._container = L.DomUtil.create('span', className);
 
+                container.id = this.options.id;
                 this._map = map;
                 var my = this;
                 var util = {
@@ -1237,6 +1244,7 @@
                         container.style.height = '98px';
                     });
 
+                container.id = this.options.id;
                 this._map = map;
                 var arr = [
                 {
