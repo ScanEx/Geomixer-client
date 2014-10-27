@@ -377,8 +377,8 @@
 			var sin = Math.sin(angle),
                 cos = Math.cos(angle);
 			for (var i = 0, len = arr.length; i < len; i++) {
-				var x = scale * arr[i].x - center.x,
-                    y = scale * arr[i].y - center.y;
+                var x = scale * (arr[i].x - center.x),
+                    y = scale * (arr[i].y - center.y);
                 
 				out.push({
 					x: cos * x - sin * y + center.x
@@ -388,6 +388,22 @@
 			return out;
 		}
 		, 
+        rotateScalePolygonsPoints: function(curStyle, sx, sy) {
+            var arr = [];
+            if (curStyle.polygons) {
+                var polygons = curStyle.polygons,
+                    center = {x: curStyle.imageWidth/2, y: curStyle.imageHeight/2},
+                    scale = curStyle.scale || 1,
+                    rotate = curStyle.rotate;
+
+                for (var i = 0, len = polygons.length; i < len; i++) {
+                    var p = polygons[i];
+                    arr.push(gmxAPI._leaflet.utils.rotatePoints(p.points, rotate, scale, center));
+                }
+            }
+            return arr;
+        }
+        , 
 		'getPatternIcon': function(item, style) {			// получить bitmap стиля pattern
 			if(!style['pattern']) return null;
 			var pattern = style['pattern'];
@@ -3437,6 +3453,11 @@
                     var polygons = style.polygons,
                         pointsRes = out.polygonsPointsRes,
                         len = polygons.length;
+                    
+                    if (!pointsRes) {
+                        pointsRes = out.polygonsPointsRes = gmxAPI._leaflet.utils.rotateScalePolygonsPoints(style, out);
+                    }
+                        
                     for (var i = 0; i < len; i++) {
                         var p = polygons[i],
                             lineWidth = p['stroke-width'] || 0,
