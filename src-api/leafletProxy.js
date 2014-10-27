@@ -370,24 +370,26 @@
                 gmxAPI._leaflet.LabelsManager.onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
             }
         }
-		,
-		'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
-			var out = [];
-			angle *= Math.PI / 180.0
-			var sin = Math.sin(angle),
-                cos = Math.cos(angle);
-			for (var i = 0, len = arr.length; i < len; i++) {
-                var x = scale * (arr[i].x - center.x),
-                    y = scale * (arr[i].y - center.y);
+        ,
+        'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
+            var out = [];
+            angle *= Math.PI / 180.0
+            var sin = Math.sin(angle),
+                cos = Math.cos(angle),
+                cx = scale * center.x,
+                cy = scale * center.y;
+            for (var i = 0, len = arr.length; i < len; i++) {
+                var x = scale * arr[i].x - cx,
+                    y = scale * arr[i].y - cy;
                 
-				out.push({
-					x: cos * x - sin * y + center.x
-					,y: sin * x + cos * y + center.y
-				});
-			}
-			return out;
-		}
-		, 
+                out.push({
+                    x: cos * x - sin * y
+                    ,y: sin * x + cos * y
+                });
+            }
+            return out;
+        }
+        ,
         rotateScalePolygonsPoints: function(curStyle, sx, sy) {
             var arr = [];
             if (curStyle.polygons) {
@@ -3471,9 +3473,9 @@
                         for (var j = 0, len1 = pRes.length; j < len1; j++) {
                             var t = pRes[j];
                             if(j == 0)
-                                ctx.moveTo(px1 + t.x, py1 + t.y);
+                                ctx.moveTo(px1 + out.sx + t.x, py1 + out.sy + t.y);
                             else
-                                ctx.lineTo(px1 + t.x, py1 + t.y);
+                                ctx.lineTo(px1 + out.sx + t.x, py1 + out.sy + t.y);
                         }
                         ctx.fill();
                         //ctx.restore();

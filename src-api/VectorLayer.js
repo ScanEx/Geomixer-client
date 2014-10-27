@@ -1534,15 +1534,7 @@
                 }
                 if (prevFilter !== geo.currentFilter) {
                     if (propHiden.curStyle.polygons) {
-                        var polygons = propHiden.curStyle.polygons,
-                            rotate = propHiden.curStyle.rotate;
-                
-                        var arr  = [];
-                        for (var i = 0, len = polygons.length; i < len; i++) {
-                            var p = polygons[i];
-                            arr.push(gmxAPI._leaflet.utils.rotatePoints(p.points, rotate, geo._cache._scale, {x: geo.sx, y: geo.sy}));
-                        }
-                        geo.polygonsPointsRes = arr;
+                        geo.polygonsPointsRes = utils.rotateScalePolygonsPoints(propHiden.curStyle);
                     }
                 }
                 return toFilters;
