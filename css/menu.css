@@ -96,6 +96,7 @@ div.header3
 div.header2.menuDisabled,
 div.header3.menuDisabled
 {
+    cursor: default;
 	color: #999999;
 }
 

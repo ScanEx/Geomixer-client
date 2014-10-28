@@ -179,7 +179,10 @@ UpMenu.prototype.draw = function()
     });
 
     $(ui).find('.menuClickable').each(function() {
-        $(this).click(_this.openTab.bind(_this, $(this).attr('hash')));
+        var id = $(this).attr('hash');
+        $(this).click(function() {
+            _this.refs[id].disabled || _this.openTab(id);
+        });
     });
 
     this._iterateMenus({childs: this.submenus}, function(elem) {
