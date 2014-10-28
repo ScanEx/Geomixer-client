@@ -542,10 +542,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("ID"), field: 'name'},
 										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
 									]
-									//.concat(visibilityPropertiesView)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
-										//{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},
@@ -737,7 +735,7 @@ window._mapEditorsHash = {};
 /** Создаёт диалог редактирование свойств группы. Есть проверка на создание дублирующих диалогов
  @param div {HTMLHNode} - элемент дерева, соответствующий редактируемой карте
 */
-var createMapEditor = function(div)
+var createMapEditor = function(div, activePage)
 {
 	var elemProperties = div.gmxProperties.properties,
 		_this = this;
@@ -760,7 +758,7 @@ var createMapEditor = function(div)
         update: canvas.updateFunc
     };
 	
-	$(canvas).tabs({active: 0});
+	$(canvas).tabs({active: activePage || 0});
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
 }
