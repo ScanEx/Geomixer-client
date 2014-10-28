@@ -146,36 +146,54 @@ var createMenuNew = function()
 			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
 			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)},   delimiter: true},
-			{id: 'share',        title: 'Поделиться',               func: function(){}},
+			{id: 'share',        title: 'Поделиться',               func: function(){_mapHelper.showPermalink()}},
 			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
 			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
 			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
-			{id: 'mapProperties',title: 'Свойства',                 func: function(){}},
-			{id: 'mapSecurity',  title: 'Права доступа',            func: function(){}}
+			{id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
+                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                nsGmx.createMapEditor(div);
+            }},
+			{id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
+                var securityDialog = new nsGmx.mapSecurity(),
+                    props = _layersTree.treeModel.getMapProperties();
+                securityDialog.getRights(props.MapID, props.title);
+            }}
 		]});
 	
 	_menuUp.addItem(
 	{id:"dataMenu", title: 'Данные', childs:
 		[
-			{id:'layerList', title: 'Открыть слой',func:function(){_queryMapLayers.getLayers()}},
-			{id:'createLayer', title: 'Создать слой',func:function(){}},
-			{id:'createGroup', title: 'Создать каталог',func:function(){}},
-			{id:'baseLayers',  title: 'Базовые слои',func:function(){}, delimiter: true},
-			{id:'loadFile',    title: 'Загрузить файл',func:function(){}},
-			{id:'wms',  title: 'Подключить WMS',func:function(){}},
-			{id:'wfs',  title: 'Подключить WFS',func:function(){}}
+			{id:'layerList',   title: 'Открыть слой',    func:function(){_queryMapLayers.getLayers()}},
+			{id:'createLayer', title: 'Создать слой',    childs:
+				[
+					{id:'createRasterLayer', title: 'Растровый', func: _mapHelper.createNewLayer.bind(_mapHelper, 'Raster')},
+					{id:'createVectorLayer', title: 'Векторный', func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector')},
+					{id:'createMultiLayer',  title: 'Мультислой', func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi')}
+				]
+            },
+			{id:'createGroup', title: 'Создать каталог', func:function(){
+                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                nsGmx.addSubGroup(div, _layersTree);
+            }},
+			{id:'baseLayers',  title: 'Базовые слои',    func:function(){
+                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                nsGmx.createMapEditor(div, 1);
+            }, delimiter: true},
+			{id:'loadFile',    title: 'Загрузить файл',  func:drawingObjects.loadShp.load},
+			{id:'wms',         title: 'Подключить WMS',  func:loadServerData.WMS.load},
+			{id:'wfs',         title: 'Подключить WFS',  func:loadServerData.WFS.load}
 			
 		]});
 	
 	_menuUp.addItem(
 	{id:"viewMenu", title:_gtxt("Вид"),childs:
 		[
-			{id:'edit', title:'Панель редактирования', func:function(){}},
-			{id:'extMaps', title:'Дополнительные карты', func:function(){}},
-			{id:'bookmarks', title:'Закладки', func:function(){}},
-			{id:'objects', title:'Объекты', func:function(){}},
-			//{id:'layers', title:'Слои', func:function(){}},
-			{id:'searchView', title:'Результаты поиска', func:function(){}}
+			{id:'edit',       title: 'Панель редактирования',       func: function(){}, disabled: true},
+			{id:'extMaps',    title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
+			{id:'bookmarks',  title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
+			{id:'objects',    title: 'Объекты',                     func: oDrawingObjectGeomixer.Load},
+			{id:'searchView', title: 'Результаты поиска',           func: oSearchControl.Load}
 		]});
 	
 	_menuUp.addItem(
@@ -187,21 +205,19 @@ var createMenuNew = function()
                 checked: _mapHelper.gridView
             },
             getPluginToMenuBinding('BufferPlugin', 'buffer', 'Буфер'),
-			// {id: 'buffer', title:'Буфер', func:function(){}},
-			{id: 'shift', title:'Ручная привязка растров', func:function(){}},
-			{id: 'search', title:'Поиск слоев на карте', func:function(){}},
-			{id: 'crowdsourcing', title:'Краудсорсинг данных', func:function(){}},
-			{id: 'geocoding', title:'Пакетный геокодинг', func:function(){}},
-			{id: 'directions', title:'Маршруты', func:function(){}}
+			{id: 'shift', title:'Ручная привязка растров', func:function(){}, disabled: true},
+			{id: 'search', title:'Поиск слоев на карте', func:nsGmx.mapLayersList.load},
+			{id: 'crowdsourcing', title:'Краудсорсинг данных', func:function(){}, disabled: true},
+			{id: 'geocoding', title:'Пакетный геокодинг', func:function(){}, disabled: true},
+			{id: 'directions', title:'Маршруты', func:function(){}, disabled: true}
 		]});
         
     	_menuUp.addItem(
-        {id:"pluginsMenu", title: 'Плагины',childs:
+        {id:"pluginsMenu", title: 'Сервисы',childs:
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', 'Кадастр Росреестра'),
             getPluginToMenuBinding('Wikimapia', 'wikimapia', 'Викимапиа'),
             {id: 'scanexSearch', title:'Каталог СКАНЭКС',      func: function(){}},
-            {id: 'search',       title:'Поиск слоев на карте', func: function(){}},
             getPluginToMenuBinding('Fire plugin', 'fires', 'Космоснимки-пожары'),
             getPluginToMenuBinding('GIBS Plugin', 'gibs', 'GIBS NASA')
 		]});
