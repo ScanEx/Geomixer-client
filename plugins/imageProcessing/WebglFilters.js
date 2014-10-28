@@ -65,7 +65,7 @@
                                 var layer = gmxAPI.map.layers[activeLayerName];
                                 var dateInterval = layer.getDateInterval();
                                 out = gmxAPI.map.layers[activeLayerName];
-                            } else if (params.DefaultLayerID) {
+                            } else {
                                 var blm = gmxAPI.map.baseLayersManager,
                                     layers = blm.getLayers(blm.getCurrentID());
 
