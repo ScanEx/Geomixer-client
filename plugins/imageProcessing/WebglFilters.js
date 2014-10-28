@@ -64,23 +64,22 @@
                                 var activeLayerName = active[0].parentNode.gmxProperties.content.properties.name;
                                 var layer = gmxAPI.map.layers[activeLayerName];
                                 var dateInterval = layer.getDateInterval();
-                                out = {
-                                    layerID: activeLayerName
-                                };
+                                out = gmxAPI.map.layers[activeLayerName];
                             } else if (params.DefaultLayerID) {
-                                out = {
-                                    layerID: params.DefaultLayerID
-                                };
+                                var blm = gmxAPI.map.baseLayersManager,
+                                    layers = blm.getLayers(blm.getCurrentID());
+
+                                if (layers && layers.length) {
+                                    out = gmxAPI.mapNodes[layers[0].objectId];
+                                }
                             }
                             
                             return out;
                         }
                         var testLayerID = null,
-                            searchLayerAttr = getActiveLayer();
-                        
-                        if(searchLayerAttr && searchLayerAttr.layerID) {
-                            testLayerID = searchLayerAttr.layerID;
-                            testLayer = gmxAPI.map.layers[testLayerID];
+                            testLayer = getActiveLayer();
+
+                        if(testLayer) {
                             L.gmx.WebglFilters.callback = function() {
                                 testLayer.repaint();
                             };

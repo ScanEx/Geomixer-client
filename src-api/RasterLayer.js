@@ -118,6 +118,11 @@
                 }
             }
         }
+        node.redrawLayer = function() {  // Пересоздать тайлы слоя
+            if(myLayer && myLayer._map) {
+                myLayer.redraw();
+            }
+        }
         node.redraw = function() {  // Перерисовать растровый слой
             if(myLayer && myLayer._map) {
                 for (var key in myLayer._tiles) {
@@ -741,8 +746,6 @@
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {
-                                    tile.width = tile.height = 256; // TODO: убрать повторные отрисовки
-                                    var ctx = tile.getContext('2d');
                                     if(pos) {
                                         var canvas = document.createElement('canvas');
                                         canvas.width = canvas.height = 256;
@@ -750,6 +753,8 @@
                                         ptx.drawImage(imageObj, Math.floor(pos.x), Math.floor(pos.y), pos.size, pos.size, 0, 0, 256, 256);
                                         imageObj = canvas;
                                     }
+                                    tile.width = tile.height = 256; // TODO: убрать повторные отрисовки
+                                    var ctx = tile.getContext('2d');
                                     var putContent = function(content) {
                                         var pattern = ctx.createPattern(content, "no-repeat");
                                         ctx.fillStyle = pattern;

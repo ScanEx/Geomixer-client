@@ -2665,6 +2665,7 @@
             if(!node) return;
             node.imageProcessingHook = ph.attr.func;
             node.imageProcessingCrossOrigin = ph.attr.crossOrigin;
+            if('redrawLayer' in node) node.redrawLayer();
         }
         ,removeImageProcessingHook: function(ph) {  // Удаление предобработчика растрового тайла
             var id = ph.obj.objectId;

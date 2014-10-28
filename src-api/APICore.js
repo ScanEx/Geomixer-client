@@ -3289,6 +3289,9 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
     this.removeImageProcessingHook = function() {
         return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
     };
+    this.repaint = function() {
+        return gmxAPI._cmdProxy('repaintLayer', { 'obj': this });
+    };
 
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
