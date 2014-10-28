@@ -35,15 +35,17 @@ var nsGmx = nsGmx || {};
                     return;
                 }
                 
+                nsGmx.widgets.notifications.startAction('changePassword');
                 nsGmx.AuthManager.changePassword(oldInput.value, newInput.value, function()
                 {
-                    jQuery(canvas.parentNode).dialog("destroy")
+                    jQuery(canvas.parentNode).dialog("destroy");
                     canvas.parentNode.removeNode(true);
                     
-                    _layersTree.showSaveStatus($$('headerLinks'));
+                    nsGmx.widgets.notifications.stopAction('changePassword', 'success', _gtxt('Пароль изменён'));
                 }, function( message )
                 {
                     message && showErrorMessage(message, true);
+                    nsGmx.widgets.notifications.stopAction('changePassword', 'failure');
                 })
                 
                 oldInput.value = '';

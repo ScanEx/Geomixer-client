@@ -378,12 +378,10 @@ $(function()
     
     addParseResponseHook('*', function(response, customErrorDescriptions) {
         if (response.Warning) {
-            nsGmx.addHeaderLinks.def.done(function() { //из-за вёрстки должны добавить только после добавления ссылок в шапку
-                if (!$('#headerLinks > #warningContainer').length) {
-                    $('<div id="warningContainer"/>').appendTo($('#headerLinks'));
-                }
-                $('#headerLinks > #warningContainer').text(response.Warning);
-            })
+            //мы дожидаемся загрузки дерева слоёв, чтобы не добавлять notification widget слишком рано (до инициализации карты в контейнере)
+            _queryMapLayers.loadDeferred.then(function() {
+                nsGmx.widgets.notifications.stopAction(null, 'warning', response.Warning, 0);
+            });
         }
     })
     
@@ -1017,9 +1015,7 @@ function loadMap(state)
                                     
                 _menuUp.checkView();
                 
-                var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
-                
-                //_($$('headerLinks'), [divStatus])
+                nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt("У вас нет прав на просмотр данной карты"), 0);
                 
                 window.onresize = resizeAll;
                 resizeAll();

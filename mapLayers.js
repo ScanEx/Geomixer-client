@@ -1992,17 +1992,14 @@ queryMapLayers.prototype.createMap = function(name)
                 
                 _mapHelper.updateUnloadEvent(false);
                 
-                _layersTree.showSaveStatus($$('headerLinks'));
+                nsGmx.widgets.notifications.stopAction('saveMap', 'success', _gtxt("Сохранено"));
             }
         )
     }
     
     queryMapLayers.prototype.saveMap = function()
     {
-        $('#headerLinks').find("[savestatus]").remove();
-        
-        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        $('#headerLinks').append(loading);
+        nsGmx.widgets.notifications.startAction('saveMap');
         
         sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _layersTree.treeModel.getMapProperties().name, function(response)
         {
@@ -2040,11 +2037,7 @@ queryMapLayers.prototype.createMap = function(name)
 
     queryMapLayers.prototype.saveMapAs = function(name)
     {
-        $('#headerLinks').find("[savestatus]").remove();
-        
-        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        $('#headerLinks').append(loading);
-        
+        nsGmx.widgets.notifications.startAction('saveMap');
         saveMapInternal("Map/SaveAs.ashx", name);
     }
 

@@ -314,17 +314,17 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	$('.security-save', canvas).click(function(){
 		securityInfo.SecurityInfo.Users = _this._securityUsersProvider.getOriginalItems();
 		
-		var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-		_($$('headerLinks'), [loading]);
-		
+        nsGmx.widgets.notifications.startAction('securitySave');
 		var postParams = {WrapStyle: 'window', SecurityInfo: JSON.stringify(securityInfo.SecurityInfo)};
 		postParams[_this.propertyName] = _this.propertyValue;
 		
 		sendCrossDomainPostRequest(serverBase + _this.updateSecurityName, postParams, function(response) {
-            if (!parseResponse(response))
+            if (!parseResponse(response)) {
+                nsGmx.widgets.notifications.stopAction('securitySave');
                 return;
+            }
             
-            _layersTree.showSaveStatus($$('headerLinks'));
+            nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
         })
 	})
 	

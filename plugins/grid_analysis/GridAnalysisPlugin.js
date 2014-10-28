@@ -33,8 +33,8 @@ var publicInterface = {
         $.each(menus, function(menuName, value) {
             map.addContextMenuItem(menuName, function(lat, lng) {
                 var defs = [];
-                var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-                _($$('headerLinks'), [loading]);
+                
+                nsGmx.widgets.notifications.startAction('gridAnalysis');
                 
                 layerNames.forEach(function(layerName) {
                     var identityField = map.layers[layerName].properties.identityField,
@@ -62,8 +62,8 @@ var publicInterface = {
                     })
                 })
                 $.when.apply($, defs).then(function() {
-                    _layersTree.showSaveStatus($$('headerLinks'));
-                })
+                    nsGmx.widgets.notifications.stopAction('gridAnalysis', 'success', _gtxt('Сохранено'));
+                });
             })
         });
     }

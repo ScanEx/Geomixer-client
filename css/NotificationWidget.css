@@ -1,0 +1,35 @@
+.notification-container {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 21px;
+    text-align: center;
+}
+
+.notification-process {
+    background: url(../img/loader2.gif);
+    vertical-align: middle;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+}
+
+.notification-message {
+    background-color: white;
+    vertical-align: middle;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.notification-success {
+    color: green;
+}
+
+.notification-failure {
+    color: red;
+}
+
+.notification-warning {
+    color: orange;
+}

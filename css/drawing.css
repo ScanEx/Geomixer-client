@@ -78,7 +78,7 @@
     vertical-align: middle;
 }
 
-.drawingObjectsCanvas .remove, /* Старая реализация, новая - removeGeometry*/
+.drawingObjectsCanvas .remove,
 .serverDataCanvas .remove
 {
 	cursor: pointer;
