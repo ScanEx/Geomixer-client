@@ -187,13 +187,13 @@ window.translationsHash = translationsHash;
 */
 
 window.nsGmx = window.nsGmx || {};
-window.nsGmx.Translations = window.nsGmx.Translations || {};
+var Translations = window.nsGmx.Translations = window.nsGmx.Translations || {};
 
 /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
  @name noConflicts
  @memberOf nsGmx.Translations
 */
-window.nsGmx.Translations.noConflicts = function() {
+Translations.noConflicts = function() {
     window._gtxt = prev_gtxt;
     window._translationsHash = prev_translationsHash;
     window.translationsHash = prevTranslationsHash;
@@ -208,7 +208,7 @@ window.nsGmx.Translations.noConflicts = function() {
                  Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
                  к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
 */
-window.nsGmx.Translations.addText = _translationsHash.addtext.bind(_translationsHash);
+Translations.addText = _translationsHash.addtext.bind(_translationsHash);
 
 /** Получить локализованный текст по ключу для текущего языка
  @func getText
@@ -216,21 +216,21 @@ window.nsGmx.Translations.addText = _translationsHash.addtext.bind(_translations
  @param {String} key Ключ локализации
  @return {String} Локализованный текст
 */
-window.nsGmx.Translations.getText = _translationsHash.gettext.bind(_translationsHash);
+Translations.getText = _translationsHash.gettext.bind(_translationsHash);
 
 /** Установить текущий язык
  @func setLanguage
  @memberOf nsGmx.Translations
  @param {String} lang Текущий язык (eng/rus/...)
 */
-window.nsGmx.Translations.setLanguage = _translationsHash.setLanguage.bind(_translationsHash);
+Translations.setLanguage = _translationsHash.setLanguage.bind(_translationsHash);
 
 /** Получить текущий язык локализации
  @func getLanguage
  @memberOf nsGmx.Translations
  @return {String} Текущий язык (eng/rus/...)
 */
-window.nsGmx.Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash);
+Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash);
 
 /** Добавить обработчик ошибок локализации. 
     При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
@@ -238,7 +238,23 @@ window.nsGmx.Translations.getLanguage = _translationsHash.getLanguage.bind(_tran
  @memberOf nsGmx.Translations
  @param {function(text, lang)} Обработчик ошибки. В ф-цию передаётся текст и язык
 */
-window.nsGmx.Translations.addErrorHandler = _translationsHash.addErrorHandler.bind(_translationsHash);
+Translations.addErrorHandler = _translationsHash.addErrorHandler.bind(_translationsHash);
+
+/** Считать из кук текущий язык локализации.
+ * В куках отдельно записываются языки для каждого pathname, а не только для домена целиком
+ @func getLanguageFromCookies
+ @memberOf nsGmx.Translations
+ @return {String} Язык, записанный в куках для данного pathname
+*/
+Translations.getLanguageFromCookies = translationsHash.getLanguageFromCookies;
+
+/** Записать в куки текущий язык локализации.
+ * В куках отдельно записываются языки для каждого pathname, а не только для домена целиком
+ @func updateLanguageCookies
+ @memberOf nsGmx.Translations
+ @param {String} lang Язык, который нужно записать в куку
+*/
+Translations.updateLanguageCookies = translationsHash.updateLanguageCookies;
 
 window.gmxCore && gmxCore.addModule('translations',
 {
