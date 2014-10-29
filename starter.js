@@ -458,6 +458,8 @@ $(function()
             }]
         });
         
+        nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageController(nsGmx.widgets.header.getLanguagePlaceholder());
+        
         nsGmx.AuthManager.checkUserInfo(function()
         {
             window.LeafletPlugins = window.LeafletPlugins || [];
