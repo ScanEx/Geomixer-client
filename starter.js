@@ -447,7 +447,7 @@ $(function()
     nsGmx.pluginsManager.done(function()
     {
         nsGmx.pluginsManager.beforeMap();
-        nsGmx.widgets.headerController = new nsGmx.Controls.HeaderController($('.header'), {
+        nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
             leftLinks: [{
                 title: "ГеоМиксер",
                 link: "http://geomixer.ru"
@@ -1022,9 +1022,9 @@ function loadMap(state)
                     nsGmx.pluginsManager.addMenuItems(_menuUp);
                 };
                 
-                _menuUp.go(nsGmx.widgets.headerController.getMenuPlaceholder()[0]);
+                _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
                 
-                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.headerController.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback(true));
+                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback(true));
                 
                 if ($$('left_usage'))
                     hide($$('left_usage'))
@@ -1132,7 +1132,7 @@ function loadMap(state)
             //создаём тулбар
             var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
             
-            var searchContainer = nsGmx.widgets.headerController.getSearchPlaceholder()[0];
+            var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
             
             //инициализация контролов поиска (модуль уже загружен)
             var oSearchModule = gmxCore.getModule("search");
@@ -1154,7 +1154,7 @@ function loadMap(state)
                 createMenuNew();
             };
 
-            _menuUp.go(nsGmx.widgets.headerController.getMenuPlaceholder()[0]);
+            _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
             
             // Загружаем все пользовательские данные
             _userObjects.load();
@@ -1291,7 +1291,7 @@ function loadMap(state)
             // _queryMapLayers.removeUserActions();
             _iconPanel.updateVisibility();
             
-            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.headerController.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
+            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
             
             if (nsGmx.AuthManager.isLogin())
             {
