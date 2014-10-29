@@ -516,7 +516,7 @@
 		}
 		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
-            var canvas = gmxAPI.getIconCanvas(),
+			var canvas = document.createElement('canvas'),
                 ww = style.imageWidth,
                 hh = style.imageHeight;
 			if(style.rotateRes) {
