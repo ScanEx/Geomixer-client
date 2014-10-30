@@ -52,3 +52,16 @@
 .leaflet-bottom .leaflet-control.baseLayersControl  {
     margin-bottom: 27px;
 }
+
+/* Auth widget */
+.auth-user-name {
+    font-size: 12px;
+}
+
+.auth-user-menu .dropdown-link{
+    font-size: 12px;
+}
+
+.auth-user-menu {
+    padding-left: 0px;
+}

@@ -1013,7 +1013,43 @@ function loadMap(state)
                 
                 return false;
             });
-                        
+            
+            var nativeAuthWidget = new nsGmx.AuthWidget($('<div/>')[0], nsGmx.AuthManager, defaultLoginCallback(true));
+            
+            // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
+            var authManagerProxy = {
+                getUserInfo: function(){
+                    var def = $.Deferred();
+                    nsGmx.AuthManager.checkUserInfo(function() {
+                        var auth = nsGmx.AuthManager;
+                        def.resolve({
+                            Status: 'ok',
+                            Result: {
+                                Login: auth.getFullname() || auth.getNickname() || auth.getLogin()
+                            }
+                        });
+                    })
+                    return def;
+                },
+                
+                login: function(){
+                    nativeAuthWidget.showLoginDialog();
+                },
+                
+                logout: function(){
+                    var def = $.Deferred();
+                    nsGmx.AuthManager.logout(function() {
+                        def.resolve({Status: 'ok', Result: {}});
+                        _mapHelper.reloadMap();
+                    });
+                    return def;
+                }
+            };
+            nsGmx.widgets.authWidget = new nsGmx.Controls.AuthController(nsGmx.widgets.header.getAuthPlaceholder()[0], {authManager: authManagerProxy});
+            
+            //ugly hack
+            nsGmx.widgets.authWidget.showLoginDialog = nativeAuthWidget.showLoginDialog.bind(nativeAuthWidget);
+            
             if (!data)
             {
                 _menuUp.defaultHash = 'usage';
@@ -1025,8 +1061,6 @@ function loadMap(state)
                 };
                 
                 _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
-                
-                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback(true));
                 
                 if ($$('left_usage'))
                     hide($$('left_usage'))
@@ -1293,7 +1327,7 @@ function loadMap(state)
             // _queryMapLayers.removeUserActions();
             _iconPanel.updateVisibility();
             
-            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
+            // nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
             
             if (nsGmx.AuthManager.isLogin())
             {
