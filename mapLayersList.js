@@ -525,7 +525,7 @@ queryMapLayersList.prototype.reloadList = function()
 	listTable.start = 0;
 	listTable.reportStart = 0;
 	
-	listTable.getDataProvider().setOriginalItems(extendLayers);	
+	listTable.getDataProvider().setOriginalItems(extendLayers);
 }
 
 var _queryMapLayersList = new queryMapLayersList();

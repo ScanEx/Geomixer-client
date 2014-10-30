@@ -140,6 +140,7 @@ UpMenu.prototype._template =
 */
 UpMenu.prototype.draw = function()
 {
+    // anyChildren, noChildren, isChecked нужны для того, чтобы Mustache не проверял аналогичные свойства предыдущего уровня дерева
     var ui = $(Mustache.render(this._template, {
             childs: this.submenus,
             anyChildren: function(){

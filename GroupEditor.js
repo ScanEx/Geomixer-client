@@ -723,7 +723,7 @@ var createGroupEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, false, _layersTree);
-	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 160, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 170, pos.left, pos.top, null, closeFunc);
 	_groupEditorsHash[elemProperties.GroupID] = true;
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
