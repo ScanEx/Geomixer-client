@@ -43,7 +43,8 @@
 .drawingObjectsActiveItemCanvas
 {
 	/*background-color: #ffff00;*/
-	background-color: #94CAEB;
+	/*background-color: #94CAEB;*/
+	background-color: #CCCCCC;
 }
 .drawingObjectsActiveItemCanvas .drawingObjectsItemTitle
 {
@@ -54,7 +55,7 @@
 {
 	cursor: pointer;
 	margin: 0px 4px;
-	color: #218580;
+	/*color: #218580;*/
 }
 .drawingObjectsItemTitle:hover
 {

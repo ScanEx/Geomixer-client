@@ -191,7 +191,7 @@ var createMenuNew = function()
 		[
 			{id:'edit',           title: 'Панель редактирования',       func: function(){}, disabled: true},
 			{id:'extMaps',        title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
-			{id:'bookmarks',      title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
+			{id:'mapTabs',        title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
 			{id:'DrawingObjects', title: 'Объекты',                     func: oDrawingObjectGeomixer.Load},
 			{id:'searchView',     title: 'Результаты поиска',           func: oSearchControl.Load}
 		]});
