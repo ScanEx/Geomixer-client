@@ -1258,19 +1258,19 @@ function loadMap(state)
             var createVectorLayerIcon = new L.Control.gmxIcon({
                 id: 'createVectorLayer', 
                 title: _gtxt("Создать векторный слой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_vector_tool.png'
             }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
                 
             var createRasterLayerIcon = new L.Control.gmxIcon({
                 id: 'createRasterLayer', 
                 title: _gtxt("Создать растровый слой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_raster_tool.png'
             }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
             
             var createMultiLayerIcon = new L.Control.gmxIcon({
                 id: 'createMultiLayer', 
                 title: _gtxt("Создать мультислой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_tool.png'
+                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_multilayer_tool.png'
             }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'));
             
             var createLayerIconGroup = new L.Control.gmxIconGroup({
