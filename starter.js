@@ -449,13 +449,18 @@ $(function()
         nsGmx.pluginsManager.beforeMap();
         nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
             leftLinks: [{
-                title: "ГеоМиксер",
+                title: "Карта пожаров",
+                link: "http://fires.kosmosnimki.ru"
+            },
+            {
+                title: "Поиск снимков",
+                link: "http://search.kosmosnimki.ru"
+            },
+            {
+                title: "Веб-ГИС ГеоМиксер",
                 link: "http://geomixer.ru"
-            }],
-            rightLinks: [{
-                title: "Помощь",
-                link: "http://geomixer.ru/docs"
-            }]
+            }], 
+            rightLinks: []
         });
         
         nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageController(nsGmx.widgets.header.getLanguagePlaceholder());
