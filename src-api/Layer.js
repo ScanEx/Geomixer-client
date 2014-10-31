@@ -331,6 +331,14 @@
                     //attr = getFilterAttr(style);
                 addFilter(obj, style);
             }
+            obj.getStyleNames = function() {
+                var styles = layer.properties.styles,
+                    arr = [];
+                for (var i = 0, len = styles.length; i < len; i++) {
+                    arr.push(styles[i].Name || i);
+                }
+                return arr;
+            };
             obj.addFilter = function(style) {
                 var filter = addFilter(obj, style);
                 filter.setStyle(filter._attr.regularStyle, filter._attr.hoveredStyle);
