@@ -2802,6 +2802,13 @@
 			setHandlerObject(id, attr.eventName);
 		}
 		,
+		getItems:	function(ph)	{			//	Получить загруженные объекты векторного слоя
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !node.getItems) return null;					// Нода не была создана через addObject
+			return node.getItems(ph.attr);
+		}
+		,
 		'getItem':	function(ph)	{			//	Получить описание объекта векторного слоя
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];

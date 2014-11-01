@@ -2023,6 +2023,10 @@
                 return item;
             }
             ,
+            getItems: function (attr) {    // Загруженные объекты векторного слоя
+                return node.objectsData;
+            }
+            ,
             getItem: function (attr) {    // Получить описание объекта векторного слоя
                 var itemId = attr.itemId;
                 var item = node.objectsData[itemId];

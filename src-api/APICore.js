@@ -162,6 +162,10 @@ extend(window.gmxAPI,
     }
     ,
     loadJS: function(item, callback, callbackError) {
+        if (!item && callback) {
+            callback(item);
+            return;
+        }
         var script = document.createElement("script");
         script.setAttribute("charset", item.charset || "windows-1251");
         script.setAttribute("src", item.src);
