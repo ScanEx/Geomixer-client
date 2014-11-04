@@ -368,6 +368,7 @@
 					,badTiles: {}
 					,async: true
 					,unloadInvisibleTiles: true
+                    ,gmxCopyright: gmxNode.gmxCopyright
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
                 if(node.regularStyle && node.regularStyle.fillOpacity) { // Изменить opacity растрового слоя
@@ -505,8 +506,8 @@
                 L.TileLayer.Canvas.prototype._initContainer.call(this);
                 //if('initCallback' in this.options) this.options.initCallback(this);
                 this.updateTilesPosition();
-            }
-            ,
+            },
+
             _reset: function (e) {
                 for(var key in this.options._inLoadImage) {
                     gmxAPI._leaflet.imageLoader.removeItemsBySrc(key);
