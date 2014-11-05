@@ -224,6 +224,7 @@
             if(node.hoverItem) {
                 var geom = node.hoverItem,
                     id = geom.id;
+                node.hoverItem = null;
                 if (!node.objectsData[id]) return;
                 var propHiden = geom.propHiden,
                     item = node.objectsData[id],
@@ -246,7 +247,6 @@
                     }
                 }
 
-                node.hoverItem = null;
                 gmxAPI._div.style.cursor = '';
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
