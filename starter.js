@@ -463,7 +463,7 @@ $(function()
             rightLinks: []
         });
         
-        nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageController(nsGmx.widgets.header.getLanguagePlaceholder());
+        nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());
         
         nsGmx.AuthManager.checkUserInfo(function()
         {
