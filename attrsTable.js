@@ -121,7 +121,6 @@ var attrsTable = function(layerName, layerTitle)
 	
 	this.filterData = null;
 	
-	this.queryTextarea = null;
 	this.activeColumns = null;
 	
 	this.resizeFunc = function(){};
@@ -458,7 +457,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             _this.layerName, 
             hostName,
             format,
-            _this.queryTextarea.value
+            _params.searchParamsManager.getQuery()
         );
     }
 
