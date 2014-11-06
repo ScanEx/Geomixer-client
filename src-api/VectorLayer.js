@@ -97,6 +97,7 @@
         if(layer.properties['IsRasterCatalog']) {
             node['IsRasterCatalog'] = true;
             node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
+            node.rasterCatalogMaxZoom = layer.properties.MaxZoom || 21;
         }
 
         // накладываемое изображения с трансформацией
@@ -2505,9 +2506,18 @@
                 if(!node.objectsData[ogc_fid]) return;
                 var objData = node.objectsData[ogc_fid],
                     gmxTilePoint = ph.attr.scanexTilePoint,
-                    prop = objData.properties;
+                    prop = objData.properties,
+                    existRasterLayer = node.tileRasterFunc && prop.GMX_RasterCatalogID;
+
+                if (existRasterLayer && z > node.rasterCatalogMaxZoom) { // Начинаем только с максимального зума растров КР
+                    var dz = Math.pow(2, z - node.rasterCatalogMaxZoom),
+                        xx = Math.floor(x / dz),
+                        yy = Math.floor(y / dz);
+                    node.loadRasterRecursion(node.rasterCatalogMaxZoom, xx, yy, ph, geom, callback);
+                    return;
+                }
                 var rUrl = (
-                    node.tileRasterFunc && prop.GMX_RasterCatalogID ?
+                    existRasterLayer ?
                       node.tileRasterFunc(x, y, z, objData)
                     : (node.quicklook ? 
                         utils.chkPropsInString(node.quicklook, prop, 3)
