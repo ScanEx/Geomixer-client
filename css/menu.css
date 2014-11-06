@@ -23,6 +23,7 @@ div.header1Internal
 	padding:8px 10px 4px 10px;
 	background: transparent;
     cursor:default;
+    margin-bottom: 8px;
 }
 div.header1
 {
@@ -46,7 +47,6 @@ div.header1
 ul.header2
 {
 	margin-left: -16px;
-    margin-top: 8px;
 	width: 190px;
 	position: absolute;
 	visibility: hidden;
