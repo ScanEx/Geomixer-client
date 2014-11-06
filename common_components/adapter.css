@@ -49,6 +49,10 @@
     width: 360px;
 }
 
+.genericHeader-menu {
+    padding-right: 12px;
+}
+
 .leaflet-bottom .leaflet-control.baseLayersControl  {
     margin-bottom: 27px;
 }
@@ -68,4 +72,13 @@
 
 .topBarLink-anchor {
     font-size: 12px;
+}
+
+.topBarLink:hover .topBarLink-anchor {
+    color: #2372B9;
+}
+
+.topBarLink_active .topBarLink-anchor {
+    color: #2372B9;
+    cursor: default;
 }

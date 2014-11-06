@@ -1663,6 +1663,19 @@ div.layersScroll
     display: none;
 }
 
+.leaflet-control-layers-overlays span {
+    font-size: 12px;
+}
+
+.leaflet-control-layers.leaflet-control-layers-expanded.leaflet-control {
+    padding: 8px 12px 8px 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.leaflet-control-layers-selector {
+    margin-right: 3px;
+}
+
 /* login dialog */
 .loginMainDiv {
     text-align: center;
@@ -1686,3 +1699,4 @@ div.layersScroll
 .loginLinks {
     margin-left: 14px;
 }
+

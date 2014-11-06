@@ -46,6 +46,7 @@ div.header1
 ul.header2
 {
 	margin-left: -16px;
+    margin-top: 8px;
 	width: 190px;
 	position: absolute;
 	visibility: hidden;
@@ -87,8 +88,8 @@ div.header2,
 div.header3
 {
 	padding: 4px 20px 6px 10px;
-	text-align:left;
-	color:#153069;
+	text-align: left;
+	color: black;
 	font-family: tahoma;
 	font-size: 12px;
 	font-weight: normal;
@@ -102,6 +103,7 @@ div.header3.menuDisabled
 
 div.header1.menuActive  .header1Internal{
     font-weight: bold;
+    color: #3e71a6;
 }
 
 div.header1.menuActive div.header1

@@ -457,8 +457,8 @@ $(function()
                 link: "http://search.kosmosnimki.ru"
             },
             {
-                title: "Веб-ГИС ГеоМиксер",
-                link: "http://geomixer.ru"
+                title: "Платформа Геомиксер",
+                active: true
             }], 
             rightLinks: []
         });
