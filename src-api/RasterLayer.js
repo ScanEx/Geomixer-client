@@ -350,6 +350,9 @@
 					gmxNode = gmxAPI.mapNodes[node.id];
 				}
 				chkInitListeners();
+                if(gmxNode._urlTiles) {
+                    node.imageProcessingCrossOrigin = 'anonymous';
+                }
 				var option = {
 					minZoom: inpAttr.minZoomView || 1
 					,maxZoom: inpAttr.maxZoomView || 30
