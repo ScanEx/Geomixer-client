@@ -687,7 +687,7 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
 }
 
 attrsTableHash.prototype.addHook = function(paramsHook) {
-    var id = 'id' + _hookID++;
+    var id = 'id' + this._hookID++;
     this.hooks.push({id: id, hook: paramsHook});
     return id;
 }
