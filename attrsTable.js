@@ -660,13 +660,14 @@ var attrsTableHash = function()
 {
 	this.hash = {};
     this.hooks = [];
+    this._hookID = 0;
 }
 
 attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, params)
 {
     params = params || {};
-    this.hooks.forEach(function(hook) {
-        params = hook(params) || params;
+    this.hooks.forEach(function(hookInfo) {
+        params = hookInfo.hook(params, name) || params;
     })
     
 	if (name in this.hash)
@@ -686,7 +687,18 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
 }
 
 attrsTableHash.prototype.addHook = function(paramsHook) {
-    this.hooks.push(paramsHook);
+    var id = 'id' + _hookID++;
+    this.hooks.push({id: id, hook: paramsHook});
+    return id;
+}
+
+attrsTableHash.prototype.removeHook = function(hookID) {
+    for (var i = 0; i < this.hooks.length; i++) {
+        if (this.hooks[i].id === hookID) {
+            this.hooks.splice(i, 1);
+            return;
+        }
+    }
 }
 
 window.nsGmx = window.nsGmx || {};
@@ -730,10 +742,21 @@ window.nsGmx.createAttributesTable = window._attrsTableHash.create.bind(window._
 /** Добавить хук для изменения параметров при вызове таблицы атрибутов
   @func addAttributesTableHook
   @memberOf nsGmx
-  @param {function(params):Object} paramsHook Хук, который вызывается при каждом вызове диалога редактирования и может модифицировать параметры диалога (первый параметр)
+  @param {function(params, layerName):Object} paramsHook Хук, который вызывается при каждом вызове диалога редактирования. 
+         Первый параметр - параметры диалога (можно модифицировать), второй - ID слоя).
+  @return {String} ID добавленного хука
 */
 window.nsGmx.addAttributesTableHook = function(paramsHook) {
-    window._attrsTableHash.addHook(paramsHook);
+    return window._attrsTableHash.addHook(paramsHook);
+};
+
+/** Удаляет хук параметров
+  @func removeAttributesTableHook
+  @memberOf nsGmx
+  @param {String} hookID ID хука для удаления
+*/
+window.nsGmx.removeAttributesTableHook = function(hookID) {
+    window._attrsTableHash.removeHook(paramsID);
 };
 
 })();
