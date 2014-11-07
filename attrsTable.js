@@ -756,7 +756,7 @@ window.nsGmx.addAttributesTableHook = function(paramsHook) {
   @param {String} hookID ID хука для удаления
 */
 window.nsGmx.removeAttributesTableHook = function(hookID) {
-    window._attrsTableHash.removeHook(paramsID);
+    window._attrsTableHash.removeHook(hookID);
 };
 
 })();
