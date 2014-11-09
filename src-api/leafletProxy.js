@@ -2258,119 +2258,39 @@
 	}
 	utils['waitChkIdle'] = waitChkIdle;
 
-	var grid = {
-		'isVisible': false							// видимость grid
-		,
-		'isOneDegree': false						// признак сетки через 1 градус
-		,
-		'lealfetObj': null							// lealfet обьект
-		,
-		'gridSteps': [0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 30, 60, 120, 180]
-		,
-		'setOneDegree': function (flag)
-		{
-			this.isOneDegree = flag;
-		}
-		,
-		'formatFloat': function (f)
-		{
-			f %= 360;
-			if (f > 180) f -= 360;
-			else if (f < -180) f += 360;
-			return Math.round(f*1000.0)/1000.0;
-		}
-		,
-		'setGridVisible': function(flag) {			// Установка видимости grid
-			if(flag) {
-				grid.redrawGrid();
-			} else {
-				if(grid.positionChangedListenerID) gmxAPI.map.removeListener('positionChanged', grid.positionChangedListenerID); grid.positionChangedListenerID = null;
-				if(grid.baseLayerListenerID) gmxAPI.map.baseLayersManager.removeListener('onSetCurrent', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
-				//if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
-				if(grid.zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', grid.zoomListenerID); grid.zoomListenerID = null;
-				if (grid.lealfetObj) LMap.removeLayer(grid.lealfetObj);
-				grid.lealfetObj = null;
-			}
-			grid.isVisible = (grid.lealfetObj ? true : false);
-		}
-		,
-		'getGridVisibility': function() {			// Получить видимость grid
-			return grid.isVisible;
-		}
-		,
-		'redrawGrid': function() {					// перерисовать grid
-			var zoom = LMap.getZoom();
-			var gridStep = grid.getGridStep();
-			
-			return false;
-		}
-		,
-		'getGridStep': function() {					// получить шаг сетки
-			var zoom = LMap.getZoom();
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
-
-			var w = LMap._size.x;
-			var h = LMap._size.y;
-
-			var x1 = vpNorthWest.lng;
-			var x2 = vpSouthEast.lng;
-			var y1 = vpSouthEast.lat;
-			var y2 = vpNorthWest.lat;
-			var xStep = 0;
-			var yStep = 0;
-			if(this.isOneDegree) {
-				xStep = yStep = 1;
-			} else {
-				for (var i = 0; i < grid['gridSteps'].length; i++) {
-					var step = grid['gridSteps'][i];
-					if (xStep == 0 && (x2 - x1)/step < w/80) xStep = step;
-					if (yStep == 0 && (y2 - y1)/step < h/80) yStep = step;
-					if (xStep > 0 && yStep > 0) break;
-				}
-			}
-			var color = gmxAPI.getHtmlColor();
-			var haloColor = (color === 'black' ? 'white' : 'black');
-
-			var divStyle = {'width': 'auto', 'height': 'auto', 'color': color, 'haloColor': haloColor, 'wordBreak': 'keep-all'};
-			var opt = {'className': 'my-div-icon', 'html': '0', 'divStyle': divStyle };
-			var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
-		
-			var latlngArr = [];
-			var textMarkers = [];
-			
-			for (var i = Math.floor(x1/xStep), len1 = Math.ceil(x2/xStep); i < len1; i++) {
-				var x = i * xStep;
-				var p1 = new L.LatLng(y1, x);
-				var p2 = new L.LatLng(y2, x);
-				latlngArr.push(p2, p1);
-				if(this.isOneDegree && zoom < 6) continue;
-				textMarkers.push(grid.formatFloat(x) + "°", '');
-			}
-			for (var i = Math.floor(y1/yStep), len1 = Math.ceil(y2/yStep); i < len1; i++) {
-				var y = i * yStep;
-				var p1 = new L.LatLng(y, x1);
-				var p2 = new L.LatLng(y, x2);
-				latlngArr.push(p1, p2);
-				if(this.isOneDegree && zoom < 6) continue;
-				textMarkers.push(grid.formatFloat(y) + "°", '');
-			}
-
-			if(!grid.lealfetObj) {
-				grid.lealfetObj = new L.GMXgrid(latlngArr, {noClip: true, clickable: false});
-				LMap.addLayer(grid.lealfetObj);
-				if(!grid.positionChangedListenerID) grid.positionChangedListenerID = gmxAPI.map.addListener('positionChanged', grid.redrawGrid, -10);
-				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', grid.redrawGrid, -10);
-				//if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
-				if(!grid.zoomListenerID) grid.zoomListenerID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': grid.redrawGrid});
-			}
-			grid.lealfetObj.setStyle({'stroke': true, 'weight': 1, 'color': color});
-			grid.lealfetObj.options['textMarkers'] = textMarkers;
-			grid.lealfetObj.setLatLngs(latlngArr);
-			return false;
-		}
-	};
+    var grid = {
+        gridPlugin: null,
+        setOneDegree: function (flag) {
+            if (grid.gridPlugin) grid.gridPlugin.setOneDegree(flag);
+        },
+        setGridVisible: function(flag) {			// Установка видимости grid
+            if(flag) {
+                if (!grid.gridPlugin) {
+                    var ph = {
+                        charset: 'utf8',
+                        src: 'leaflet/plugins/L.GmxGrid/src/L.GmxGrid.js?' + gmxAPI.buildGUID
+                    };
+                    gmxAPI.loadJS(ph, function(item) {
+                        grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
+                        grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
+                        grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function() {
+                            grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
+                        }, -10);
+                    });
+                } else {
+                    if (!grid.gridPlugin._map) grid.gridPlugin.addTo(LMap);
+                    grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
+                }
+                return true;
+            } else {
+                if (grid.gridPlugin) LMap.removeLayer(grid.gridPlugin);
+                return false;
+            }
+        },
+        getGridVisibility: function() {			// Получить видимость grid
+            return grid.gridPlugin && grid.gridPlugin._map ? true : false;
+        }
+    };
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
@@ -4355,7 +4275,7 @@
                         'currPosition': currPosition
                     };
                     gmxAPI._updatePosition(e, attr);
-                    if(setCenterPoint) setCenterPoint();
+                    //if(setCenterPoint) setCenterPoint();
                     if(gmxAPI.map.handlers.onMove) {
                         var mapID = gmxAPI.map.objectId;
                         var node = mapNodes[mapID];
@@ -4936,53 +4856,6 @@ var tt = 1;
 				}
 			});
 
-			L.GMXgrid = L.Polyline.extend({
-				_getPathPartStr: function (points) {
-					var round = L.Path.VML;
-					if(this._containerText) this._container.removeChild(this._containerText);
-					this._containerText = this._createElement('g');
-					this._containerText.setAttribute("stroke-width", 0);
-
-					var color = this._path.getAttribute("stroke");
-					this._containerText.setAttribute("stroke", color);
-					this._containerText.setAttribute("fill", color);
-					this._containerText.setAttribute("opacity", 1);
-					this._container.appendChild(this._containerText);
-
-					for (var j = 0, len2 = points.length, str = '', p, p1; j < len2; j+=2) {
-						p = points[j];
-						p1 = points[j+1];
-						if (round) {
-							p._round();
-							p1._round();
-						}
-						str += 'M' + p.x + ' ' + p.y;
-						str += 'L' + p1.x + ' ' + p1.y;
-						if(this.options.textMarkers && this.options.textMarkers[j]) {
-							var text = this._createElement('text');
-							text.textContent = this.options.textMarkers[j];
-							var dx = 0;
-							var dy = 3;
-							if(p.y == p1.y) dx = 20;
-							if(p.x == p1.x) {
-								text.setAttribute("text-anchor", "middle");
-								dy = 20;
-							}
-							text.setAttribute('x', p.x + dx);
-							text.setAttribute('y', p.y + dy);
-							this._containerText.appendChild(text);
-						}
-					}
-					return str;
-				}
-				,
-				_updatePath: function () {
-					if (!this._map) { return; }
-					this._clipPoints();
-					L.Path.prototype._updatePath.call(this);
-				}
-			});
-
 			L.GMXLabels = L.Polyline.extend({
 				_getPathPartStr: function (points) {
 					var round = L.Path.VML;
@@ -5037,7 +4910,6 @@ var tt = 1;
 					var image   = this._image,
 						topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
 						size = this._map.latLngToLayerPoint(this._bounds.getSouthEast())._subtract(topLeft);
-//console.log('sdsdsdddsssss ' , topLeft);
 					L.DomUtil.setPosition(image, topLeft);
 
 					image.style.width  = size.x + 'px';
@@ -5046,45 +4918,8 @@ var tt = 1;
 			});
 
 			initFunc(mapDivID, 'leaflet');
-			
-			var setCenterPoint = null
-			setTimeout(function () {
-				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", opacity: 0.8, 'pointerEvents': 'none' });
-				var div = document.getElementById(mapDivID);
-				div.parentNode.appendChild(centerControlDIV);
-				setCenterPoint = function ()
-				{
-					var vBounds = LMap.getPixelBounds();
-					var y = (vBounds.max.y - vBounds.min.y)/2;
-					var x = (vBounds.max.x - vBounds.min.x)/2;
-					centerControlDIV.style.top = (y - 6) + 'px';
-					centerControlDIV.style.left = (x - 6) + 'px';
-				};
-				var setControlDIVInnerHTML = function ()
-				{
-					var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
-					centerControlDIV.innerHTML = '<svg height="12" width="12" style=""><g><path d="M6 0L6 12M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
-					//return false;
-				};
-				setControlDIVInnerHTML();
-				setCenterPoint();
-				gmxAPI.map.baseLayersManager.addListener('onSetCurrent', setControlDIVInnerHTML, 100);
-				//gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
-			}, 500);
 		}
 	}
-
-	// Загрузка leaflet.js
-	// function addLeafLetScripts()
-	// {
-		// var apiHost = gmxAPI.getAPIFolderRoot(),
-            // cssFiles = [
-            // apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
-            // ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
-        // ];
-        // gmxAPI.loadJS({src: apiHost + 'leaflet/leaflet.js?' + gmxAPI.buildGUID});
-        // cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
-	// }
 
     // Загрузка LeafletPlugins
     function addLeafletPlugins()
@@ -5150,11 +4985,7 @@ var tt = 1;
 				border: 0
 			}
 		);
-		//window.leafletLoaded = addLeafletPlugins;
 		addLeafletPlugins();
-		//intervalID = setInterval(waitMe, 50);
-		//gmxAPI._leaflet['LMapContainer'] = leafLetCont_;				// Контейнер лефлет карты
-
 		return leafLetCont_;
 	}
 	
