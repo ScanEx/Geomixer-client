@@ -798,14 +798,6 @@
         //hideControls.addTo(LMap);
         //outControls.hideControls = hideControls;
 
-        var center = new L.Control.gmxCenter();
-        Controls.items[center.options.id] = center;
-        LMap.addControl(center);
-        gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function () {
-            var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
-            center.setColor(color);
-        }, 100);
-
         // BottomBG - подвал background
         //if (false && L.Control.gmxBottom) {
         var bottomBG = null;

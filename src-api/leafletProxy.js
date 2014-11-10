@@ -4168,6 +4168,13 @@
         // if(controls && 'initControls' in controls) {
             // controls.initControls();
         // }
+        var center = new L.Control.gmxCenter();
+        //Controls.items[center.options.id] = center;
+        gmxAPI._leaflet.LMap.addControl(center);
+        gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function () {
+            var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
+            center.setColor(color);
+        }, 100);
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
