@@ -45,20 +45,8 @@
 	background: transparent url(../img/searchBeginOff_2a.png) no-repeat scroll 0 0;
 }
 
-.genericHeader-left {
-    width: 360px;
-}
-
-.genericHeader-menu {
-    padding-right: 12px;
-}
-
-.leaflet-bottom .leaflet-control.baseLayersControl  {
-    margin-bottom: 27px;
-}
-
 /* Auth widget */
-.auth-user-name {
+.auth-user-name, .auth-login {
     font-size: 12px;
 }
 
@@ -70,8 +58,18 @@
     padding-left: 0px;
 }
 
+/* Header widget */
+
 .topBarLink-anchor {
     font-size: 12px;
+}
+
+.genericHeader-left {
+    width: 360px;
+}
+
+.genericHeader-menu {
+    padding-right: 12px;
 }
 
 .topBarLink:hover .topBarLink-anchor {
@@ -81,4 +79,9 @@
 .topBarLink_active .topBarLink-anchor {
     color: #2372B9;
     cursor: default;
+}
+
+/* Base layers widget */
+.baseLayersControl-layer {
+    border-color: #777;
 }
