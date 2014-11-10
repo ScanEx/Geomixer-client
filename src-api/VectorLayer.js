@@ -97,6 +97,7 @@
         if(layer.properties['IsRasterCatalog']) {
             node['IsRasterCatalog'] = true;
             node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
+            node.rasterCatalogMaxZoom = layer.properties.MaxZoom || 21;
         }
 
         // накладываемое изображения с трансформацией
@@ -224,6 +225,7 @@
             if(node.hoverItem) {
                 var geom = node.hoverItem,
                     id = geom.id;
+                node.hoverItem = null;
                 if (!node.objectsData[id]) return;
                 var propHiden = geom.propHiden,
                     item = node.objectsData[id],
@@ -246,7 +248,6 @@
                     }
                 }
 
-                node.hoverItem = null;
                 gmxAPI._div.style.cursor = '';
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
@@ -890,14 +891,15 @@
                     ctx.mozDash = ctx.webkitLineDash = dashes;
                     ctx.mozDashOffset = ctx.webkitLineDashOffset = dashOffset;
                 } else {
-                    ctx.globalCompositeOperation = dashes.length ? 'source-over' : 'source-over';
+                    var globalCompositeOperation = dashes.length ? 'source-over' : 'source-over';
+                    if (ctx.globalCompositeOperation !== globalCompositeOperation) ctx.globalCompositeOperation = globalCompositeOperation;
                     if (dashes.length || ctx.getLineDash().length) {
                         ctx.setLineDash(dashes);
                         ctx.lineDashOffset = dashOffset;
                     }
                 }
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
+                if (ctx.lineCap !== 'round') ctx.lineCap = 'round';
+                if (ctx.lineJoin !== 'round') ctx.lineJoin = 'round';
                 var strokeStyle = '';
                 if(style.stroke) {
                     var lineWidth = style.weight || 0.001;
@@ -939,7 +941,7 @@
             }
             for (var i = 0, maxWeight = 0, len = styles.length; i < len; i++) {
                 var itemStyle = styles[i];
-                maxWeight = Math.max(maxWeight, itemStyle.weight);
+                maxWeight = Math.max(maxWeight, itemStyle.weight || 0, itemStyle.maxWeight || 0);
                 itemStyle.maxWeight = maxWeight;
                 setCanvasStyle(tile, ctx, itemStyle);
                 if(imageObj) {
@@ -1525,10 +1527,16 @@
                     propHiden.toFilters = toFilters;
                     propHiden.curStyle = node.getStyleArray(geo);
                 }
+                var prevFilter = geo.currentFilter;
                 propHiden._isFilters = false;
                 if (toFilters.length) {
                     geo.currentFilter = mapNodes[toFilters[0]];
                     propHiden._isFilters = true;
+                }
+                if (prevFilter !== geo.currentFilter) {
+                    if (propHiden.curStyle.polygons) {
+                        geo.polygonsPointsRes = utils.rotateScalePolygonsPoints(propHiden.curStyle);
+                    }
                 }
                 return toFilters;
             },
@@ -2016,6 +2024,10 @@
                 return item;
             }
             ,
+            getItems: function (attr) {    // Загруженные объекты векторного слоя
+                return node.objectsData;
+            }
+            ,
             getItem: function (attr) {    // Получить описание объекта векторного слоя
                 var itemId = attr.itemId;
                 var item = node.objectsData[itemId];
@@ -2494,9 +2506,18 @@
                 if(!node.objectsData[ogc_fid]) return;
                 var objData = node.objectsData[ogc_fid],
                     gmxTilePoint = ph.attr.scanexTilePoint,
-                    prop = objData.properties;
+                    prop = objData.properties,
+                    existRasterLayer = node.tileRasterFunc && prop.GMX_RasterCatalogID;
+
+                if (existRasterLayer && z > node.rasterCatalogMaxZoom) { // Начинаем только с максимального зума растров КР
+                    var dz = Math.pow(2, z - node.rasterCatalogMaxZoom),
+                        xx = Math.floor(x / dz),
+                        yy = Math.floor(y / dz);
+                    node.loadRasterRecursion(node.rasterCatalogMaxZoom, xx, yy, ph, geom, callback);
+                    return;
+                }
                 var rUrl = (
-                    node.tileRasterFunc && prop.GMX_RasterCatalogID ?
+                    existRasterLayer ?
                       node.tileRasterFunc(x, y, z, objData)
                     : (node.quicklook ? 
                         utils.chkPropsInString(node.quicklook, prop, 3)
@@ -2706,6 +2727,7 @@
                         }
                     };
                     
+                if(node.tileRasterFunc || node.quicklook) {
                 geoItems.map(function(geom) {
                     var id = geom.id,
                         objData = node.objectsData[id] || geom;
@@ -2721,6 +2743,7 @@
                         });
                     }
                 });
+                }
                 chkReadyRasters();
 
                 return def;
@@ -2971,6 +2994,7 @@
             
             var createLayerTimer = null;          // Таймер
             var createLayer = function() {          // Создание leaflet слоя
+                option.gmxCopyright = gmxNode.gmxCopyright;
                 myLayer = new L.TileLayer.VectorTiles(option);
                 node.leaflet = myLayer;
                 node.chkZoomBoundsFilters();

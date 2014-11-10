@@ -162,6 +162,10 @@ extend(window.gmxAPI,
     }
     ,
     loadJS: function(item, callback, callbackError) {
+        if (!item && callback) {
+            callback(item);
+            return;
+        }
         var script = document.createElement("script");
         script.setAttribute("charset", item.charset || "windows-1251");
         script.setAttribute("src", item.src);
@@ -190,6 +194,10 @@ extend(window.gmxAPI,
         css.setAttribute("href", href);
         document.getElementsByTagName("head").item(0).appendChild(css);
 	}
+    ,
+    getIconCanvas: memoize(function() {
+        return document.createElement('canvas');
+    })
     ,
     getURLParams: memoize(function() {
         var q = window.location.search,
@@ -3284,6 +3292,9 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
     
     this.removeImageProcessingHook = function() {
         return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': this });
+    };
+    this.repaint = function() {
+        return gmxAPI._cmdProxy('repaintLayer', { 'obj': this });
     };
 
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });

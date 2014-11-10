@@ -27,8 +27,13 @@ nsGmx.LazyAttributeValuesProviderFromArray = function( attributes )
 };
 nsGmx.LazyAttributeValuesProviderFromArray.prototype = new nsGmx.ILazyAttributeValuesProvider();
 
-//При необходимости этот провайдер будет запрашивать значения аттрибутов у сервера
-nsGmx.LazyAttributeValuesProviderFromServer = function( attributes, layerName)
+/** При необходимости этот провайдер будет запрашивать значения аттрибутов у сервера
+ * @class
+ * @memberOf nsGmx
+ * @param {Object} attributes Хеш имён атрибутов, значения которых хочется иметь
+ * @param {String} layerName ID слоя
+*/
+nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 {
 	var _attrs = attributes;
 	var _isInited = false;
@@ -38,11 +43,19 @@ nsGmx.LazyAttributeValuesProviderFromServer = function( attributes, layerName)
 	//важно все их правильно сохранить и выхвать при получении данных
 	var _callbacks = {};
 
+    /** Проверить, есть ли такой атрибут
+        @param {String} attrName Имя атрибута
+        @return {Boolean} Есть ли такой атрибут среди атрибутов
+    */
 	this.isAttributeExists = function( attrName )
 	{
 		return attrName in _attrs; 
 	};
 	
+    /** Получить доступные значения атрибута
+        @param {String} attrName Имя атрибута
+        @param {Function} callback Ф-ция, которая будет вызвана со списком атрибутов, когда он станет доступным
+    */
 	this.getValuesForAttribute = function( attrName, callback )
 	{
 		if ( !(attrName in _attrs) ) //вообще нет такого имени

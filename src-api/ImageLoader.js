@@ -10,6 +10,46 @@
 	var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 	var falseFn = function () {	return false; };
 
+	var parseSVG = function(item, str)	{		// парсинг SVG файла
+		var out = {};
+		var xml = gmxAPI.parseXML(str);
+		
+		var svg = xml.getElementsByTagName("svg");
+		out.width = parseFloat(svg[0].getAttribute("width"));
+		out.height = parseFloat(svg[0].getAttribute("height"));
+		
+		var polygons = svg[0].getElementsByTagName("polygon"),
+            poly = [];
+		for (var i = 0, len = polygons.length; i < len; i++)
+		{
+			var pt = {};
+			var it = polygons[i];
+			var hexString = it.getAttribute("fill");
+			pt.fill_hex = hexString;
+            hexString = hexString.replace(/^#/, '');
+			pt.fill = parseInt(hexString, 16);
+			pt.fill_rgba = gmxAPI._leaflet.utils.dec2rgba(pt.fill, 1);
+			
+			pt['stroke-width'] = parseFloat(it.getAttribute("stroke-width"));
+			var points = it.getAttribute("points");
+			if(points) {
+				var arr = [];
+				var pp = points.split(' ');
+				for (var j = 0; j < pp.length; j++)
+				{
+					var t = pp[j];
+					var xy = t.split(',');
+					arr.push({x: parseFloat(xy[0]), y: parseFloat(xy[1])});
+				}
+				if(arr.length) arr.push(arr[0]);
+			}
+			pt.points = arr;
+			poly.push(pt);
+		}
+		out.polygons = poly;
+		return out;
+	}
+	
 	var callCacheItems = function(item)	{		// загрузка image
 		if(itemsCache[item.src]) {
 			var arr = itemsCache[item.src];
@@ -21,6 +61,8 @@
 					if(it.onerror) it.onerror(first.errorEvent);
 				} else if(first.imageObj) {
 					if(it.callback) it.callback(first.imageObj, false, it);
+				} else if(first.svgPattern) {
+					if(it.callback) it.callback(first.svgPattern, true, it);
 				}
 			}
 			delete itemsCache[item.src];
@@ -39,6 +81,16 @@
             }
         }
         items = arr;
+		if(item.src.match(/\.svg$/)) {
+			var xmlhttp = gmxAPI._leaflet.utils.getXmlHttp();
+			xmlhttp.open('GET', item.src, false);
+			xmlhttp.send(null);
+			if(xmlhttp.status == 200) {
+				item.svgPattern = parseSVG(item, xmlhttp.responseText);
+				callCacheItems(item);
+			}
+			return;
+		}
 
 		var imageObj = new Image();
 		var src = item.src;
@@ -207,9 +259,9 @@
 			for(var i=0, len=items.length; i<len; i++) {
 				var item = items[i];
 				if(item.layer != id) arr.push(item);
-			}
-			items = arr;
-			return items.length;
+            }
+            items = arr;
+            return items.length;
 		}
 	};
 

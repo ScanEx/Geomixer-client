@@ -331,11 +331,22 @@
                     //attr = getFilterAttr(style);
                 addFilter(obj, style);
             }
+            obj.getStyleNames = function() {
+                var styles = layer.properties.styles,
+                    arr = [];
+                for (var i = 0, len = styles.length; i < len; i++) {
+                    arr.push(styles[i].Name || i);
+                }
+                return arr;
+            };
             obj.addFilter = function(style) {
                 var filter = addFilter(obj, style);
                 filter.setStyle(filter._attr.regularStyle, filter._attr.hoveredStyle);
                 if(filter._attr.clusters) filter.setClusters(filter._attr.clusters);
                 return filter;
+            };
+            obj.getItems = function(attr) { // Получить загруженные объекты векторного слоя
+                return proxy('getItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
             };
             obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
                 return proxy('getItem', { 'obj': obj, 'attr':{layerId:obj.objectId, itemId:pid, flagMerc:flagMerc} });
