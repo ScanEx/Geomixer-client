@@ -417,349 +417,347 @@
     {
         var LMap = gmxAPI._leaflet.LMap;
         var obj = null;
-        if ('gmxDrawing' in LMap) {
+        var controls = gmxAPI.map.controlsManager.getCurrent();
+        if ('gmxDrawing' in LMap && controls && controls.id === 'controlsBaseIcons') {
             if (needListeners) needListeners(LMap.gmxDrawing);
             var latlng = new L.LatLng(coords[1], coords[0]),
                 icon = L.icon({iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png'}),
                 marker = L.marker(latlng, {draggable: true, title: props.text || '', icon: icon}),
                 obj = LMap.gmxDrawing.add(marker, {});
             obj = domFeature(obj, props);
-        }
-        return obj;
-    }
-/*
-	drawFunctions.POINT = function(coords, props, propHiden)
-	{
-		if (!props)
-			props = {};
+            return obj;
+        } else {
+            if (!props)
+                props = {};
 
-		var text = props.text;
-		if (!text)
-			text = "";
-		var x, y;
-		var obj = false;
-		var balloon = false;
-		var domObj;
-		var onZoomendID = null;
-		var zoomByID = null;
-		var onMoveEndID = null;
-		var onZoomendBalloonID = null;
-		var onZoomstartBalloonID = null;
-		var addItemListenerID = null;
-		
-		var isDrawing = true;
-		var balloonVisible = false;
+            var text = props.text;
+            if (!text)
+                text = "";
+            var x, y;
+            var obj = false;
+            var balloon = false;
+            var domObj;
+            var onZoomendID = null;
+            var zoomByID = null;
+            var onMoveEndID = null;
+            var onZoomendBalloonID = null;
+            var onZoomstartBalloonID = null;
+            var addItemListenerID = null;
+            
+            var isDrawing = true;
+            var balloonVisible = false;
 
-		// Проверка пользовательских Listeners POLYGON
-		var chkEvent = function(eType, out)
-		{
-			var flag = gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
-			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
-			return flag;
-		}
+            // Проверка пользовательских Listeners POLYGON
+            var chkEvent = function(eType, out)
+            {
+                var flag = gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
+                if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+                return flag;
+            }
 
-		var ret = {
-			'isVisible': (props.isVisible == undefined) ? true : props.isVisible
-			,
-			'setVisible': function(flag) { 
-				obj.setVisible(flag); 
-				ret.isVisible = flag;
-				if(balloon) balloon.setVisible(ret.isVisible && balloonVisible);
-			}
-			,
-			'stopDrawing': function() {
-				if (!isDrawing) return;
-				isDrawing = false;
-				if (!coords) {
-					if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
-				}
-			}
-			,
-			'remove' : function() {
-				if (obj)
-				{
-					obj.remove();
-					if(balloon) balloon.remove();
-					domObj.removeInternal();
-					chkEvent('onRemove');
-					if(onZoomendID) gmxAPI._listeners.removeListener(null, 'onZoomend', onZoomendID); onZoomendID = null;
-					if(zoomByID) gmxAPI.map.removeListener('zoomBy', zoomByID); zoomByID = null;
-					if(onMoveEndID) gmxAPI.map.removeListener('onMoveEnd', onMoveEndID); onMoveEndID = null;
-
-					if(onZoomendBalloonID) gmxAPI._listeners.removeListener(null, 'onZoomend', onZoomendBalloonID); onZoomendBalloonID = null;
-					if(onZoomstartBalloonID) gmxAPI._listeners.removeListener(null, 'onZoomstart', onZoomstartBalloonID); onZoomstartBalloonID = null;
-					if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
-					// disableDragging					
-				}
-			}
-			,
-			'setStyle': function(regularStyle, hoveredStyle) {}
-			,'setText': function(newText) {
-				if(!balloon) return;
-				text = newText;
-				input.value = newText;
-				balloon.updatePropsBalloon(newText);
-				updateText();
-			}
-			,
-			'getVisibleStyle': function() { return obj.getVisibleStyle(); }
-			,
-			'getStyle': function(removeDefaults) { return getStyle(removeDefaults, obj); }
-		};
-		var done = function(xx, yy)
-		{
-            //gmxAPI._drawing.activeState = false;
-			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawing'});
-			balloon = null;
-			if(gmxAPI.map.balloonClassObject) {
-				balloon = gmxAPI.map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
-			}
-			ret.balloon = balloon;
-
-			var updateDOM = function()
-			{
-				xx = gmxAPI.chkPointCenterX(xx);
-				domObj.update({ type: "POINT", coordinates: [xx, yy] }, text);
-			}
-
-
-			var position = function(x, y)
-			{
-				xx = x;
-				yy = y;
-				obj.setPoint(xx, yy);
-				if(balloon) balloon.setPoint(xx, yy, isDragged);
-				updateDOM();
-			}
-
-			var apiBase = gmxAPI.getAPIFolderRoot();
-
-			obj.setStyle(
-				{ 
-					marker: { image: apiBase + "img/flag_blau1.png", dx: -6, dy: -36 },
-					label: { size: 12, color: 0xffffc0 }
-				},
-				{ 
-					marker: { image: apiBase + "img/flag_blau1_a.png", dx: -6, dy: -36 },
-					label: { size: 12, color: 0xffffc0 }
-				}
-			);
-
-			var startDx = 0, startDy = 0, isDragged = false;
-			var clickTimeout = false;
-			var needMouseOver = true;
-
-			obj.setHandlers({
-				"onClick": function()
-				{
-					if(domObj.stateListeners.onClick && chkEvent('onClick')) return;	// если установлен пользовательский onClick возвращающий true выходим
-					if (clickTimeout)
-					{
-						clearTimeout(clickTimeout);
-						clickTimeout = false;
-						ret.remove();
-					}
-					else
-					{
-						clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
-						if(balloon) {
-							balloonVisible = !balloon.isVisible;
-							balloon.setVisible(balloonVisible);
-							if (balloonVisible)
-								setHTMLVisible(true);
-							else
-							{
-								gmxAPI.hide(input);
-								gmxAPI.hide(htmlDiv);
-							}
-						}
-					}
-					return true;
-				}
-				,"onMouseOver": function()
-				{
-					if(!isDragged && needMouseOver) {
-						chkEvent('onMouseOver');
-						needMouseOver = false;
-					}
-				}
-				,"onMouseOut": function()
-				{
-					if(!isDragged && !needMouseOver) {
-						chkEvent('onMouseOut');
-						needMouseOver = true;
-					}
-				}
-			});
-
-			var dragCallback = function(x, y)
-			{
-				position(x, y);
-				chkEvent('onEdit');
-			}
-			var downCallback = function(x, y)
-			{
-				x = gmxAPI.chkPointCenterX(x);
-				isDragged = true;
-				if(balloon) {
-					if(balloon.outerDiv.style.pointerEvents != 'none') balloon.outerDiv.style.pointerEvents = 'none';
-				}
-			};
-			var upCallback = function()
-			{
-				if(balloon) {
-					if(balloon.outerDiv.style.pointerEvents != 'auto') balloon.outerDiv.style.pointerEvents = 'auto';
-				}
-				isDragged = false;
-				chkEvent('onFinish');
-			}
-			
-			obj.enableDragging(function(x, y, o, data)
-			{
-				dragCallback(x, y);
-				gmxAPI._drawing.activeState = true;
-			}
-			, function(x, y, o, data)
-			{
-				downCallback(x, y);
-			}
-			, function(o)
-			{
-				gmxAPI._drawing.activeState = false;
-				upCallback();
-			});
-
-			if(balloon) {	// Это все касается балуна для маркера
-				var htmlDiv = document.createElement("div");
-				htmlDiv.onclick = function(event)
-				{
-					event = event || window.event;
-					var e = gmxAPI.compatTarget(event);
-					if (e == htmlDiv)
-					{
-						setHTMLVisible(false);
-						input.focus();
-					}
-				}
-				balloon.div.appendChild(htmlDiv);
-				var input = document.createElement("textarea");
-				input.style.backgroundColor = "transparent";
-				input.style.border = 0;
-				input.style.overflow = "hidden";
-				var fontSize = 16;
-				input.style.fontSize = fontSize + 'px';
-				input.setAttribute("wrap", "off");
-				input.value = text ? text : "";
-
-				var updateText = function() 
-				{ 
-					var newText = input.value;
-					var rows = 1;
-					for (var i = 0; i < newText.length; i++) {
-						if (newText.charAt(i) == '\n'.charAt(0)) rows += 1;
-						var tt = 1;
-					}
-					input.rows = rows;
-					var lines = newText.split("\n");
-					var cols = 2;
-					for (var i in lines)
-						cols = Math.max(cols, lines[i].length + 3);
-					input.cols = cols;
-					input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
-					text = newText;
-					if(balloon) balloon.resize();
-					updateDOM();
-				};
-				input.onkeyup = updateText;
-				input.onblur = function()
-				{
-					setHTMLVisible(true);
-				}
-				input.onmousedown = function(e)
-				{
-					if (!e)
-						e = window.event;
-					if (e.stopPropagation)
-						e.stopPropagation();
-					else
-						e.cancelBubble = true;
-				}
-				if(balloon) balloon.div.appendChild(input);
-
-				var setHTMLVisible = function(flag)
-				{
-					gmxAPI.setVisible(input, !flag);
-					gmxAPI.setVisible(htmlDiv, flag);
-					if (flag)
-						htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
-					if(balloon) balloon.resize();
-				}
-
-				balloonVisible = (text && (text != "")) ? true : false;
-				setHTMLVisible(balloonVisible);
-
-				var showFlag = false;
-				onZoomstartBalloonID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomstart', 'func': function(attr) {
-					showFlag = balloon.isVisible;
-					balloon.setVisible(false);
-				}});
-				onZoomendBalloonID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(attr) {
-					balloon.setVisible(showFlag);
-				}});
-			}
-			domObj = createDOMObject(ret, null, propHiden);
-			domObj.objectId = obj.objectId;
-			position(xx, yy);
-			if(balloon) {
-				balloon.setVisible(balloonVisible);
-				updateText();
-			}
-			chkEvent('onAdd');
-
-			ret.setVisible(ret.isVisible);
-			chkEvent('onFinish');
-
-			zoomByID = gmxAPI.map.addListener('zoomBy', function() {
-				if(balloon.isVisible) gmxAPI.setVisible(balloon.outerDiv, false);
-			});
-			onMoveEndID = gmxAPI.map.addListener('onMoveEnd', function() {
-				if(balloon.isVisible) {
-					gmxAPI.setVisible(balloon.outerDiv, true);
-					balloon.reposition();
-				}
-			});
-			onZoomendID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
-		}
-
-		if (!coords)
-		{
-			//gmxAPI._sunscreen.bringToTop();
-			//gmxAPI._sunscreen.setVisible(true);
-			//var apiBase = gmxAPI.getAPIFolderRoot();
-            setTimeout(function() {
-                addItemListenerID = gmxAPI.map.addListener('onClick', function()
-                {
-                    done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
-                    //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool((gmxAPI.map.isKeyDown(16) ? "POINT" : "move"));
-                    ret.stopDrawing();
-                    endDrawing();
-                    if (gmxAPI.map.isKeyDown(16)) {
-                        var control = gmxAPI.map.controlsManager.getControl('drawingPoint');
-                        if(control && 'onclick' in control.options) control.options.onclick.call(control);
-                        else if(gmxAPI.map.standartTools && 'selectTool' in gmxAPI.map.standartTools) gmxAPI.map.standartTools.selectTool("POINT");
+            var ret = {
+                'isVisible': (props.isVisible == undefined) ? true : props.isVisible
+                ,
+                'setVisible': function(flag) { 
+                    obj.setVisible(flag); 
+                    ret.isVisible = flag;
+                    if(balloon) balloon.setVisible(ret.isVisible && balloonVisible);
+                }
+                ,
+                'stopDrawing': function() {
+                    if (!isDrawing) return;
+                    isDrawing = false;
+                    if (!coords) {
+                        if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
                     }
-                    return true;
+                }
+                ,
+                'remove' : function() {
+                    if (obj)
+                    {
+                        obj.remove();
+                        if(balloon) balloon.remove();
+                        domObj.removeInternal();
+                        chkEvent('onRemove');
+                        if(onZoomendID) gmxAPI._listeners.removeListener(null, 'onZoomend', onZoomendID); onZoomendID = null;
+                        if(zoomByID) gmxAPI.map.removeListener('zoomBy', zoomByID); zoomByID = null;
+                        if(onMoveEndID) gmxAPI.map.removeListener('onMoveEnd', onMoveEndID); onMoveEndID = null;
+
+                        if(onZoomendBalloonID) gmxAPI._listeners.removeListener(null, 'onZoomend', onZoomendBalloonID); onZoomendBalloonID = null;
+                        if(onZoomstartBalloonID) gmxAPI._listeners.removeListener(null, 'onZoomstart', onZoomstartBalloonID); onZoomstartBalloonID = null;
+                        if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
+                        // disableDragging					
+                    }
+                }
+                ,
+                'setStyle': function(regularStyle, hoveredStyle) {}
+                ,'setText': function(newText) {
+                    if(!balloon) return;
+                    text = newText;
+                    input.value = newText;
+                    balloon.updatePropsBalloon(newText);
+                    updateText();
+                }
+                ,
+                'getVisibleStyle': function() { return obj.getVisibleStyle(); }
+                ,
+                'getStyle': function(removeDefaults) { return getStyle(removeDefaults, obj); }
+            };
+            var done = function(xx, yy)
+            {
+                //gmxAPI._drawing.activeState = false;
+                obj = gmxAPI.map.addObject(null, null, {'subType': 'drawing'});
+                balloon = null;
+                if(gmxAPI.map.balloonClassObject) {
+                    balloon = gmxAPI.map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
+                }
+                ret.balloon = balloon;
+
+                var updateDOM = function()
+                {
+                    xx = gmxAPI.chkPointCenterX(xx);
+                    domObj.update({ type: "POINT", coordinates: [xx, yy] }, text);
+                }
+
+
+                var position = function(x, y)
+                {
+                    xx = x;
+                    yy = y;
+                    obj.setPoint(xx, yy);
+                    if(balloon) balloon.setPoint(xx, yy, isDragged);
+                    updateDOM();
+                }
+
+                var apiBase = gmxAPI.getAPIFolderRoot();
+
+                obj.setStyle(
+                    { 
+                        marker: { image: apiBase + "img/flag_blau1.png", dx: -6, dy: -36 },
+                        label: { size: 12, color: 0xffffc0 }
+                    },
+                    { 
+                        marker: { image: apiBase + "img/flag_blau1_a.png", dx: -6, dy: -36 },
+                        label: { size: 12, color: 0xffffc0 }
+                    }
+                );
+
+                var startDx = 0, startDy = 0, isDragged = false;
+                var clickTimeout = false;
+                var needMouseOver = true;
+
+                obj.setHandlers({
+                    "onClick": function()
+                    {
+                        if(domObj.stateListeners.onClick && chkEvent('onClick')) return;	// если установлен пользовательский onClick возвращающий true выходим
+                        if (clickTimeout)
+                        {
+                            clearTimeout(clickTimeout);
+                            clickTimeout = false;
+                            ret.remove();
+                        }
+                        else
+                        {
+                            clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
+                            if(balloon) {
+                                balloonVisible = !balloon.isVisible;
+                                balloon.setVisible(balloonVisible);
+                                if (balloonVisible)
+                                    setHTMLVisible(true);
+                                else
+                                {
+                                    gmxAPI.hide(input);
+                                    gmxAPI.hide(htmlDiv);
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                    ,"onMouseOver": function()
+                    {
+                        if(!isDragged && needMouseOver) {
+                            chkEvent('onMouseOver');
+                            needMouseOver = false;
+                        }
+                    }
+                    ,"onMouseOut": function()
+                    {
+                        if(!isDragged && !needMouseOver) {
+                            chkEvent('onMouseOut');
+                            needMouseOver = true;
+                        }
+                    }
                 });
-			}, 0);
-            gmxAPI._drawing.type = 'POINT';
-		}
-		else {
-			done(coords[0], coords[1]);
-			endDrawing();
-		}
-		return ret;
+
+                var dragCallback = function(x, y)
+                {
+                    position(x, y);
+                    chkEvent('onEdit');
+                }
+                var downCallback = function(x, y)
+                {
+                    x = gmxAPI.chkPointCenterX(x);
+                    isDragged = true;
+                    if(balloon) {
+                        if(balloon.outerDiv.style.pointerEvents != 'none') balloon.outerDiv.style.pointerEvents = 'none';
+                    }
+                };
+                var upCallback = function()
+                {
+                    if(balloon) {
+                        if(balloon.outerDiv.style.pointerEvents != 'auto') balloon.outerDiv.style.pointerEvents = 'auto';
+                    }
+                    isDragged = false;
+                    chkEvent('onFinish');
+                }
+                
+                obj.enableDragging(function(x, y, o, data)
+                {
+                    dragCallback(x, y);
+                    gmxAPI._drawing.activeState = true;
+                }
+                , function(x, y, o, data)
+                {
+                    downCallback(x, y);
+                }
+                , function(o)
+                {
+                    gmxAPI._drawing.activeState = false;
+                    upCallback();
+                });
+
+                if(balloon) {	// Это все касается балуна для маркера
+                    var htmlDiv = document.createElement("div");
+                    htmlDiv.onclick = function(event)
+                    {
+                        event = event || window.event;
+                        var e = gmxAPI.compatTarget(event);
+                        if (e == htmlDiv)
+                        {
+                            setHTMLVisible(false);
+                            input.focus();
+                        }
+                    }
+                    balloon.div.appendChild(htmlDiv);
+                    var input = document.createElement("textarea");
+                    input.style.backgroundColor = "transparent";
+                    input.style.border = 0;
+                    input.style.overflow = "hidden";
+                    var fontSize = 16;
+                    input.style.fontSize = fontSize + 'px';
+                    input.setAttribute("wrap", "off");
+                    input.value = text ? text : "";
+
+                    var updateText = function() 
+                    { 
+                        var newText = input.value;
+                        var rows = 1;
+                        for (var i = 0; i < newText.length; i++) {
+                            if (newText.charAt(i) == '\n'.charAt(0)) rows += 1;
+                            var tt = 1;
+                        }
+                        input.rows = rows;
+                        var lines = newText.split("\n");
+                        var cols = 2;
+                        for (var i in lines)
+                            cols = Math.max(cols, lines[i].length + 3);
+                        input.cols = cols;
+                        input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
+                        text = newText;
+                        if(balloon) balloon.resize();
+                        updateDOM();
+                    };
+                    input.onkeyup = updateText;
+                    input.onblur = function()
+                    {
+                        setHTMLVisible(true);
+                    }
+                    input.onmousedown = function(e)
+                    {
+                        if (!e)
+                            e = window.event;
+                        if (e.stopPropagation)
+                            e.stopPropagation();
+                        else
+                            e.cancelBubble = true;
+                    }
+                    if(balloon) balloon.div.appendChild(input);
+
+                    var setHTMLVisible = function(flag)
+                    {
+                        gmxAPI.setVisible(input, !flag);
+                        gmxAPI.setVisible(htmlDiv, flag);
+                        if (flag)
+                            htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
+                        if(balloon) balloon.resize();
+                    }
+
+                    balloonVisible = (text && (text != "")) ? true : false;
+                    setHTMLVisible(balloonVisible);
+
+                    var showFlag = false;
+                    onZoomstartBalloonID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomstart', 'func': function(attr) {
+                        showFlag = balloon.isVisible;
+                        balloon.setVisible(false);
+                    }});
+                    onZoomendBalloonID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(attr) {
+                        balloon.setVisible(showFlag);
+                    }});
+                }
+                domObj = createDOMObject(ret, null, propHiden);
+                domObj.objectId = obj.objectId;
+                position(xx, yy);
+                if(balloon) {
+                    balloon.setVisible(balloonVisible);
+                    updateText();
+                }
+                chkEvent('onAdd');
+
+                ret.setVisible(ret.isVisible);
+                chkEvent('onFinish');
+
+                zoomByID = gmxAPI.map.addListener('zoomBy', function() {
+                    if(balloon.isVisible) gmxAPI.setVisible(balloon.outerDiv, false);
+                });
+                onMoveEndID = gmxAPI.map.addListener('onMoveEnd', function() {
+                    if(balloon.isVisible) {
+                        gmxAPI.setVisible(balloon.outerDiv, true);
+                        balloon.reposition();
+                    }
+                });
+                onZoomendID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
+            }
+
+            if (!coords)
+            {
+                //gmxAPI._sunscreen.bringToTop();
+                //gmxAPI._sunscreen.setVisible(true);
+                //var apiBase = gmxAPI.getAPIFolderRoot();
+                setTimeout(function() {
+                    addItemListenerID = gmxAPI.map.addListener('onClick', function()
+                    {
+                        done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
+                        //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool((gmxAPI.map.isKeyDown(16) ? "POINT" : "move"));
+                        ret.stopDrawing();
+                        endDrawing();
+                        if (gmxAPI.map.isKeyDown(16)) {
+                            var control = gmxAPI.map.controlsManager.getControl('drawingPoint');
+                            if(control && 'onclick' in control.options) control.options.onclick.call(control);
+                            else if(gmxAPI.map.standartTools && 'selectTool' in gmxAPI.map.standartTools) gmxAPI.map.standartTools.selectTool("POINT");
+                        }
+                        return true;
+                    });
+                }, 0);
+                gmxAPI._drawing.type = 'POINT';
+            }
+            else {
+                done(coords[0], coords[1]);
+                endDrawing();
+            }
+            return ret;
+        }
 	}
-*/
+
     var chkZindexTimer = null,
         nullFunc = function() { };
 	var drawing = {

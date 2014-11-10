@@ -2266,9 +2266,10 @@
         setGridVisible: function(flag) {			// Установка видимости grid
             if(flag) {
                 if (!grid.gridPlugin) {
+                    var apiHost = gmxAPI.getAPIFolderRoot();
                     var ph = {
                         charset: 'utf8',
-                        src: 'leaflet/plugins/L.GmxGrid/src/L.GmxGrid.js?' + gmxAPI.buildGUID
+                        src: apiHost + 'leaflet/plugins/L.GmxGrid/src/L.GmxGrid.js?' + gmxAPI.buildGUID
                     };
                     gmxAPI.loadJS(ph, function(item) {
                         grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
