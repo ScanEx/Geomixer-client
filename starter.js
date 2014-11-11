@@ -137,6 +137,8 @@ var createMenuNew = function()
         }
     }
     
+    var isMapEditor = _queryMapLayers.currentMapRights() === "edit";
+    
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
@@ -153,33 +155,33 @@ var createMenuNew = function()
 			{id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div);
-            }},
+            }, disabled: !isMapEditor},
 			{id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
                 var securityDialog = new nsGmx.mapSecurity(),
                     props = _layersTree.treeModel.getMapProperties();
                 securityDialog.getRights(props.MapID, props.title);
-            }}
+            }, disabled: !isMapEditor}
 		]});
 	
 	_menuUp.addItem(
 	{id:"dataMenu", title: _gtxt('Данные'), childs:
 		[
-			{id:'layerList',   title: _gtxt('Открыть слой'),    func:function(){_queryMapLayers.getLayers()}},
+			{id:'layerList',   title: _gtxt('Открыть слой'),    func:function(){_queryMapLayers.getLayers()}, disabled: !isMapEditor},
 			{id:'createLayer', title: _gtxt('Создать слой'),    childs:
 				[
-					{id:'createRasterLayer', title: _gtxt('Растровый'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Raster')},
-					{id:'createVectorLayer', title: _gtxt('Векторный'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector')},
-					{id:'createMultiLayer',  title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi')}
-				]
-            },
+					{id:'createRasterLayer', title: _gtxt('Растровый'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'), disabled: !isMapEditor},
+					{id:'createVectorLayer', title: _gtxt('Векторный'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'), disabled: !isMapEditor},
+					{id:'createMultiLayer',  title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor}
+				],
+                disabled: !isMapEditor},
 			{id:'createGroup', title: _gtxt('Создать каталог'), func:function(){
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.addSubGroup(div, _layersTree);
-            }},
+            }, disabled: !isMapEditor},
 			{id:'baseLayers',  title: _gtxt('Базовые слои'),    func:function(){
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div, 1);
-            }, delimiter: true},
+            }, delimiter: true, disabled: !isMapEditor},
 			{id:'loadFile',    title: _gtxt('Загрузить файл'),  func:drawingObjects.loadShp.load},
 			{id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
 			{id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
@@ -468,11 +470,6 @@ $(function()
         nsGmx.AuthManager.checkUserInfo(function()
         {
             window.LeafletPlugins = window.LeafletPlugins || [];
-            window.LeafletPlugins.push(
-               {module: 'gmxIcon', files: ['src/js/L.Control.gmxIcon.js'], css: 'src/css/L.Control.gmxIcon.css', path: 'leaflet/plugins/gmxControls/'},
-               {module: 'gmxIconGroup', files: ['src/js/L.Control.gmxIconGroup.js'], css: 'src/css/L.Control.gmxIconGroup.css', path: 'leaflet/plugins/gmxControls/'}
-            );
-            
             var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
 
             var parsedURL = parseURLParams();
