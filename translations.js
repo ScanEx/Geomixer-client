@@ -10,7 +10,7 @@ var translationsHash = function()
     this._errorHandlers = [];
 }
 
-translationsHash.DEFAULT_LANGUAGE = "rus";
+var DEFAULT_LANGUAGE = 'rus';
 
 //Для запоминания выбора языка пользователем используются куки. 
 //Запоминается выбор для каждого pathname, а не только для домена целиком
@@ -50,153 +50,37 @@ var _saveLanguageCookie = function(langs)
     createCookie("language", cookies.join('&'));
 }
 
-translationsHash.updateLanguageCookies = function(lang)
-{
-    var langs = _parseLanguageCookie();
-    
-    langs[window.location.pathname] = lang;
-    
-    _saveLanguageCookie(langs);
+var TranslationsManager = function() {
+    this.flags = {};
+    this.titles = {};
+    this.hash = {};
+    this._errorHandlers = [];
 }
 
-translationsHash.getLanguageFromCookies = function()
-{
-    return _parseLanguageCookie()[window.location.pathname];
-}
+TranslationsManager.prototype._language = null;
 
-translationsHash.prototype._addTextWithPrefix = function(prefix, lang, newHash) {
-	var res = true;
-	
-	if ( !(lang in this.hash) ) this.hash[lang] = {};
+TranslationsManager.prototype._addTextWithPrefix = function(prefix, lang, newHash) {
+    var res = true,
+        hash = this.hash;
 
-	for ( var k in newHash ) {
+    if (!(lang in hash)) {
+        hash[lang] = {};
+    }
+
+    for (var k in newHash) {
         var fullKey = prefix + k;
-		if ( fullKey in this.hash[lang] )
-			res = false;
-		else {
+        if (fullKey in hash[lang]) {
+            res = false;
+        } else {
             if (typeof newHash[k] === 'string') {
-                this.hash[lang][fullKey] = newHash[k];
+                hash[lang][fullKey] = newHash[k];
             } else {
                 this._addTextWithPrefix(fullKey + '.', lang, newHash[k]);
             }
         }
-	}
-    
-	return res;
-}
+    }
 
-translationsHash.prototype.addtext = function(lang, newHash) {
-    this._addTextWithPrefix('', lang, newHash);
-}
-
-translationsHash.prototype.showLanguages = function()
-{
-	var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
-	
-	for (var lang in this.hash)
-	{
-		if (lang != window.language)
-		{
-			var button = makeLinkButton(_translationsHash.titles[lang]);
-			
-			button.style.marginLeft = '5px';
-			button.style.fontSize = '11px';
-			
-			(function(lang){
-				button.onclick = function()
-				{
-					translationsHash.updateLanguageCookies(lang);
-					
-                    if (window.nsGmx && window.nsGmx.GeomixerFramework) {
-                        window.language = lang;
-                        _mapHelper.reloadMap();
-                    } else {
-                        window.location.reload();
-                    }
-				}
-			})(lang);
-			
-			_title(button, this.titles[lang]);
-			
-			_(langCanvas, [button]);
-		}
-		else
-			_(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
-	}
-
-	_(document.getElementById("headerLinks"), [langCanvas]);
-}
-
-translationsHash.prototype.getLanguage = function(){
-	return this._language || window.language || translationsHash.DEFAULT_LANGUAGE;
-}
-
-translationsHash.prototype.setLanguage = function(lang){
-	this._language = lang;
-}
-
-translationsHash.prototype.gettext = function()
-{
-	var lang = this.getLanguage(),
-		text = arguments[0],
-		args = arguments,
-		getNextValue = function(i)
-		{
-			if (i + 1 < args.length)
-				return args[i + 1];
-			else
-				return '';
-		};
-	
-	if (!this.hash[lang] || !this.hash[lang][text])
-	{
-        this._errorHandlers.forEach(function(handler) {handler(text, lang);});
-        return '';
-	}
-	else
-	{
-		return this.hash[lang][text].replace(/\[value(\d)\]/g, function()
-		{
-			return getNextValue(Number(arguments[1]))
-		})
-	}
-}
-
-translationsHash.prototype.addErrorHandler = function(handler) {
-    this._errorHandlers.push(handler);
-};
-
-var _translationsHash = new translationsHash();
-
-function _gtxt()
-{
-	return _translationsHash.gettext.apply(_translationsHash, arguments)
-}
-
-var prev_gtxt = window._gtxt,
-    prev_translationsHash = window._translationsHash,
-    prevTranslationsHash = window.translationsHash;
-
-//Явно добавляем объекты в глобальную видимость
-window._gtxt = _gtxt;
-window._translationsHash = _translationsHash;
-window.translationsHash = translationsHash;
-
-/** Ф-ции для локализации пользовательского интерфейса
- @namespace nsGmx.Translations
-*/
-
-window.nsGmx = window.nsGmx || {};
-var Translations = window.nsGmx.Translations = window.nsGmx.Translations || {};
-
-/** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
- @name noConflicts
- @memberOf nsGmx.Translations
-*/
-Translations.noConflicts = function() {
-    window._gtxt = prev_gtxt;
-    window._translationsHash = prev_translationsHash;
-    window.translationsHash = prevTranslationsHash;
+    return res;
 }
 
 /** Добавить строки в словарь локализации
@@ -208,7 +92,9 @@ Translations.noConflicts = function() {
                  Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
                  к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
 */
-Translations.addText = _translationsHash.addtext.bind(_translationsHash);
+TranslationsManager.prototype.addText = function(lang, newHash) {
+    this._addTextWithPrefix('', lang, newHash);
+}
 
 /** Получить локализованный текст по ключу для текущего языка
  @func getText
@@ -216,21 +102,42 @@ Translations.addText = _translationsHash.addtext.bind(_translationsHash);
  @param {String} key Ключ локализации
  @return {String} Локализованный текст
 */
-Translations.getText = _translationsHash.gettext.bind(_translationsHash);
+TranslationsManager.prototype.getText = function(dictKey) {
+    var lang = this.getLanguage(),
+        args = arguments,
+        getArg = function(i) {
+            return args[i + 1] || '';
+        };
+
+    if (!this.hash[lang] || !this.hash[lang][dictKey]) {
+        this._errorHandlers.forEach(function(handler) {handler(dictKey, lang);});
+        return '';
+    } else {
+        return this.hash[lang][dictKey].replace(/\[value(\d)\]/g, function(match, argIndex) {
+            return getArg(Number(argIndex))
+        })
+    }
+}
 
 /** Установить текущий язык
  @func setLanguage
  @memberOf nsGmx.Translations
  @param {String} lang Текущий язык (eng/rus/...)
 */
-Translations.setLanguage = _translationsHash.setLanguage.bind(_translationsHash);
+TranslationsManager.prototype.setLanguage = function(lang) {
+    TranslationsManager.prototype._language = lang;
+}
 
 /** Получить текущий язык локализации
  @func getLanguage
  @memberOf nsGmx.Translations
  @return {String} Текущий язык (eng/rus/...)
 */
-Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash);
+TranslationsManager.prototype.getLanguage = function() {
+    return TranslationsManager.prototype._language || 
+           (typeof window !== 'undefined' && window.language) || 
+           DEFAULT_LANGUAGE;
+}
 
 /** Добавить обработчик ошибок локализации. 
     При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
@@ -238,7 +145,9 @@ Translations.getLanguage = _translationsHash.getLanguage.bind(_translationsHash)
  @memberOf nsGmx.Translations
  @param {function(text, lang)} Обработчик ошибки. В ф-цию передаётся текст и язык
 */
-Translations.addErrorHandler = _translationsHash.addErrorHandler.bind(_translationsHash);
+TranslationsManager.prototype.addErrorHandler = function(handler) {
+    this._errorHandlers.push(handler);
+}
 
 /** Считать из кук текущий язык локализации.
  * В куках отдельно записываются языки для каждого pathname, а не только для домена целиком
@@ -246,7 +155,9 @@ Translations.addErrorHandler = _translationsHash.addErrorHandler.bind(_translati
  @memberOf nsGmx.Translations
  @return {String} Язык, записанный в куках для данного pathname
 */
-Translations.getLanguageFromCookies = translationsHash.getLanguageFromCookies;
+TranslationsManager.prototype.getLanguageFromCookies = function() {
+    return _parseLanguageCookie()[window.location.pathname];
+}
 
 /** Записать в куки текущий язык локализации.
  * В куках отдельно записываются языки для каждого pathname, а не только для домена целиком
@@ -254,11 +165,96 @@ Translations.getLanguageFromCookies = translationsHash.getLanguageFromCookies;
  @memberOf nsGmx.Translations
  @param {String} lang Язык, который нужно записать в куку
 */
-Translations.updateLanguageCookies = translationsHash.updateLanguageCookies;
+TranslationsManager.prototype.updateLanguageCookies = function(lang) {
+    var langs = _parseLanguageCookie();
+    langs[window.location.pathname] = lang;
+    _saveLanguageCookie(langs);
+}
+
+/** Ф-ции для локализации пользовательского интерфейса
+ @namespace nsGmx.Translations
+*/
+
+var commonTranslationsManager = new TranslationsManager();
+TranslationsManager.commonManager = commonTranslationsManager;
+
+if (typeof define === 'function' && define.amd) {
+	define(function() {
+        return TranslationsManager;
+    });
+} else {
+    window.nsGmx = window.nsGmx || {};
+    window.nsGmx.Translations = commonTranslationsManager;
+    
+    //Поддерживаем обратную совместимость - глобальные объекты _gtxt, _translationsHash, translationsHash
+    var prev_gtxt = window._gtxt,
+        prev_translationsHash = window._translationsHash,
+        prevTranslationsHash = window.translationsHash;
+        
+    /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
+     @name noConflicts
+     @memberOf nsGmx.Translations
+    */
+    TranslationsManager.prototype.noConflicts = function() {
+        window._gtxt = prev_gtxt;
+        window._translationsHash = prev_translationsHash;
+        window.translationsHash = prevTranslationsHash;
+    }
+    
+    //Явно добавляем объекты в глобальную видимость
+    var DumpClass = function(){};
+    DumpClass.prototype = commonTranslationsManager;
+    
+    window._translationsHash = new DumpClass();
+    _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTranslationsManager),
+    _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
+    _translationsHash.showLanguages = function() {
+        var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
+        
+        for (var lang in this.hash)
+        {
+            if (lang != window.language)
+            {
+                var button = makeLinkButton(_translationsHash.titles[lang]);
+                
+                button.style.marginLeft = '5px';
+                button.style.fontSize = '11px';
+
+                button.onclick = function(lang) {
+                    window.translationsHash.updateLanguageCookies(lang);
+
+                    if (window.nsGmx && window.nsGmx.GeomixerFramework) {
+                        window.language = lang;
+                        _mapHelper.reloadMap();
+                    } else {
+                        window.location.reload();
+                    }
+                }.bind(null, lang);
+                
+                _title(button, this.titles[lang]);
+                
+                _(langCanvas, [button]);
+            }
+            else
+                _(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
+        }
+
+        _(document.getElementById("headerLinks"), [langCanvas]);
+    }
+    
+    window._gtxt = function() {
+        return commonTranslationsManager.getText.apply(commonTranslationsManager, arguments);
+    };
+    
+    window.translationsHash = {
+        getLanguageFromCookies: commonTranslationsManager.getLanguageFromCookies.bind(commonTranslationsManager),
+        updateLanguageCookies: commonTranslationsManager.updateLanguageCookies.bind(commonTranslationsManager)
+    };
+}
 
 window.gmxCore && gmxCore.addModule('translations',
 {
-    _translationsHash: _translationsHash
+    _translationsHash: window._translationsHash
 })
 
 }();
