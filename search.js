@@ -7,6 +7,22 @@
 */
 (function($){
 
+//TODO: переписать генерацию UI на шаблонах
+//Очень суровое решение для разруливания конфликтов с глобальными переменными.
+var _ = nsGmx.Utils._,
+    _input = nsGmx.Utils._input,
+    _td = nsGmx.Utils._td,
+    _tr = nsGmx.Utils._tr,
+    _div = nsGmx.Utils._div,
+    _t = nsGmx.Utils._t,
+    _table = nsGmx.Utils._table,
+    _tbody = nsGmx.Utils._tbody,
+    _img = nsGmx.Utils._img,
+    _span = nsGmx.Utils._span,
+    _li = nsGmx.Utils._li,
+    _ul = nsGmx.Utils._ul,
+    _form = nsGmx.Utils._form;
+
 $('#flash').droppable({
     drop: function(event, ui) {
         var obj = ui.draggable[0].gmxDrawingObject;
