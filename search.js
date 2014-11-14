@@ -1185,7 +1185,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID", TypeCode: params.TypeCode});
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID", TypeCode: params.TypeCode, UseOSM: params.UseOSM});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1490,7 +1490,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode});
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode, UseOSM: params.UseOSM});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1694,7 +1694,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var fnSelect = function(event, oAutoCompleteItem){
 	    if (fnBeforeSearch != null) fnBeforeSearch();
 	    $('#respager').remove();
-	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode,
+	    var useOSM = typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0;
+	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode, UseOSM: useOSM, 
                             callback: function (response) {
                                 lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: response[0].SearchResult}]);
                         }
