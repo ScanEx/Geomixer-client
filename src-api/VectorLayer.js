@@ -2735,12 +2735,17 @@
                     if (getRasterURL(objData, tileAttr.zoom, tileAttr.scanexTilePoint) // если необходимы растры
                         && node.chkSqlFuncVisibility(objData)    // + если проходит фильтр видимости на слое
                     ) {
-                        needLoadRasters++;
-                        node.getRaster(geom, tileAttr, id, function(img) {
-                            images[id] = img;
-                            needLoadRasters--;
-                            chkReadyRasters();
-                        });
+                        var coords = geom.coordinates[0];
+                        if (geom.type === 'MultiPolygon') coords = coords[0];
+                        var clip = tileAttr.bounds.clipPolygon(coords);
+                        if (clip.length) {
+                            needLoadRasters++;
+                            node.getRaster(geom, tileAttr, id, function(img) {
+                                images[id] = img;
+                                needLoadRasters--;
+                                chkReadyRasters();
+                            });
+                        }
                     }
                 });
                 }
