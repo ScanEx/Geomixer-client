@@ -760,7 +760,44 @@ extend(window.gmxAPI,
 		return (geom ? gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y) : null);
 	}
     ,
-    'bounds': function(arr) {							// получить bounds массива точек
+    clipPolygon: function(coords, rect) {   // получить пересечение полигона с frame
+        var clip = rect,
+            cp1, cp2, s, e,
+            inside = function (p) {
+                return (cp2[0]-cp1[0])*(p[1]-cp1[1]) > (cp2[1]-cp1[1])*(p[0]-cp1[0]);
+            },
+            intersection = function () {
+                var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+                    dp = [ s[0] - e[0], s[1] - e[1] ],
+                    n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+                    n2 = s[0] * e[1] - s[1] * e[0], 
+                    n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            };
+
+        var outputList = coords;
+        cp1 = clip[clip.length-1];
+        for (j in clip) {
+            var cp2 = clip[j],
+                inputList = outputList;
+            outputList = [];
+            s = inputList[inputList.length - 1]; //last on the input list
+            for (i in inputList) {
+                var e = inputList[i];
+                if (inside(e)) {
+                    if (!inside(s)) outputList.push(intersection());
+                    outputList.push(e);
+                } else if (inside(s)) {
+                    outputList.push(intersection());
+                }
+                s = e;
+            }
+            cp1 = cp2;
+        }
+        return outputList
+    },
+
+    bounds: function(arr) {							// получить bounds массива точек
         var res = {
             min: {
                 x: Number.MAX_VALUE,
@@ -807,41 +844,8 @@ extend(window.gmxAPI,
             },
             clipPolygon: function (coords) { // (coords) -> clip coords
                 var min = this.min,
-                    max = this.max,
-                    clip = [[min.x, min.y], [max.x, min.y], [max.x, max.y], [min.x, max.y]],
-                    cp1, cp2, s, e,
-                    inside = function (p) {
-                        return (cp2[0]-cp1[0])*(p[1]-cp1[1]) > (cp2[1]-cp1[1])*(p[0]-cp1[0]);
-                    },
-                    intersection = function () {
-                        var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
-                            dp = [ s[0] - e[0], s[1] - e[1] ],
-                            n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
-                            n2 = s[0] * e[1] - s[1] * e[0], 
-                            n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-                        return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
-                    };
-
-                var outputList = coords;
-                cp1 = clip[clip.length-1];
-                for (j in clip) {
-                    var cp2 = clip[j],
-                        inputList = outputList;
-                    outputList = [];
-                    s = inputList[inputList.length - 1]; //last on the input list
-                    for (i in inputList) {
-                        var e = inputList[i];
-                        if (inside(e)) {
-                            if (!inside(s)) outputList.push(intersection());
-                            outputList.push(e);
-                        } else if (inside(s)) {
-                            outputList.push(intersection());
-                        }
-                        s = e;
-                    }
-                    cp1 = cp2;
-                }
-                return outputList
+                    max = this.max;
+                return gmxAPI.clipPolygon(coords, [[min.x, min.y], [max.x, min.y], [max.x, max.y], [min.x, max.y]]);
             }
         };
         
