@@ -2266,18 +2266,11 @@
         setGridVisible: function(flag) {			// Установка видимости grid
             if(flag) {
                 if (!grid.gridPlugin) {
-                    var apiHost = gmxAPI.getAPIFolderRoot();
-                    var ph = {
-                        charset: 'utf8',
-                        src: apiHost + 'leaflet/plugins/L.GmxGrid/src/L.GmxGrid.js?' + gmxAPI.buildGUID
-                    };
-                    gmxAPI.loadJS(ph, function(item) {
-                        grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
+                    grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
+                    grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
+                    grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function() {
                         grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
-                        grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function() {
-                            grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
-                        }, -10);
-                    });
+                    }, -10);
                 } else {
                     if (!grid.gridPlugin._map) grid.gridPlugin.addTo(LMap);
                     grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
