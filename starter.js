@@ -218,7 +218,7 @@ var createMenuNew = function()
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', _gtxt('Кадастр Росреестра')),
             getPluginToMenuBinding('Wikimapia', 'wikimapia', _gtxt('Викимапиа')),
-            {id: 'scanexSearch', title: _gtxt('Каталог СКАНЭКС'), func: function(){}},
+            getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
             getPluginToMenuBinding('Fire plugin', 'fires', _gtxt('Космоснимки-пожары')),
             getPluginToMenuBinding('GIBS Plugin', 'gibs', _gtxt('GIBS NASA'))
 		]});
@@ -228,13 +228,13 @@ var createMenuNew = function()
 		[
 			{id:'about',        title:_gtxt('О проекте'),                 func: _mapHelper.version},
 			{id:'usage',        title: _gtxt('Руководство пользователя'), func: function(){
-                window.open('http://geomixer.ru/docs/manual/','_blank');
+                window.open('http://geomixer.ru/docs/manual/', '_blank');
             }},
 			{id:'api',          title: _gtxt('GeoMixer API'),             func: function(){
-                window.open('http://geomixer.ru/docs/api_reference/','_blank');
+                window.open('http://geomixer.ru/docs/api_reference/', '_blank');
             }},
 			{id:'pluginsUsage', title: _gtxt('Использование плагинов'),   func: function(){
-                window.open('http://geomixer.ru/docs/plugins/','_blank');
+                window.open('http://geomixer.ru/docs/plugins/', '_blank');
             }}
 		]
     });
