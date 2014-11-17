@@ -179,78 +179,78 @@ var commonTranslationsManager = new TranslationsManager();
 TranslationsManager.commonManager = commonTranslationsManager;
 
 if (typeof define === 'function' && define.amd) {
-	define(function() {
+    define(function() {
         return TranslationsManager;
     });
-} else {
-    window.nsGmx = window.nsGmx || {};
-    window.nsGmx.Translations = commonTranslationsManager;
-    
-    //Поддерживаем обратную совместимость - глобальные объекты _gtxt, _translationsHash, translationsHash
-    var prev_gtxt = window._gtxt,
-        prev_translationsHash = window._translationsHash,
-        prevTranslationsHash = window.translationsHash;
-        
-    /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
-     @name noConflicts
-     @memberOf nsGmx.Translations
-    */
-    TranslationsManager.prototype.noConflicts = function() {
-        window._gtxt = prev_gtxt;
-        window._translationsHash = prev_translationsHash;
-        window.translationsHash = prevTranslationsHash;
-    }
-    
-    //Явно добавляем объекты в глобальную видимость
-    var DumpClass = function(){};
-    DumpClass.prototype = commonTranslationsManager;
-    
-    window._translationsHash = new DumpClass();
-    _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTranslationsManager),
-    _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
-    _translationsHash.showLanguages = function() {
-        var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
-        
-        for (var lang in this.hash)
-        {
-            if (lang != window.language)
-            {
-                var button = makeLinkButton(_translationsHash.titles[lang]);
-                
-                button.style.marginLeft = '5px';
-                button.style.fontSize = '11px';
-
-                button.onclick = function(lang) {
-                    window.translationsHash.updateLanguageCookies(lang);
-
-                    if (window.nsGmx && window.nsGmx.GeomixerFramework) {
-                        window.language = lang;
-                        _mapHelper.reloadMap();
-                    } else {
-                        window.location.reload();
-                    }
-                }.bind(null, lang);
-                
-                _title(button, this.titles[lang]);
-                
-                _(langCanvas, [button]);
-            }
-            else
-                _(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
-        }
-
-        _(document.getElementById("headerLinks"), [langCanvas]);
-    }
-    
-    window._gtxt = function() {
-        return commonTranslationsManager.getText.apply(commonTranslationsManager, arguments);
-    };
-    
-    window.translationsHash = {
-        getLanguageFromCookies: commonTranslationsManager.getLanguageFromCookies.bind(commonTranslationsManager),
-        updateLanguageCookies: commonTranslationsManager.updateLanguageCookies.bind(commonTranslationsManager)
-    };
 }
+
+window.nsGmx = window.nsGmx || {};
+window.nsGmx.Translations = commonTranslationsManager;
+
+//Поддерживаем обратную совместимость - глобальные объекты _gtxt, _translationsHash, translationsHash
+var prev_gtxt = window._gtxt,
+    prev_translationsHash = window._translationsHash,
+    prevTranslationsHash = window.translationsHash;
+    
+/** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
+ @name noConflicts
+ @memberOf nsGmx.Translations
+*/
+TranslationsManager.prototype.noConflicts = function() {
+    window._gtxt = prev_gtxt;
+    window._translationsHash = prev_translationsHash;
+    window.translationsHash = prevTranslationsHash;
+}
+
+//Явно добавляем объекты в глобальную видимость
+var DumpClass = function(){};
+DumpClass.prototype = commonTranslationsManager;
+
+window._translationsHash = new DumpClass();
+_translationsHash.gettext = commonTranslationsManager.getText.bind(commonTranslationsManager),
+_translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
+_translationsHash.showLanguages = function() {
+    var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
+    
+    for (var lang in this.hash)
+    {
+        if (lang != window.language)
+        {
+            var button = makeLinkButton(_translationsHash.titles[lang]);
+            
+            button.style.marginLeft = '5px';
+            button.style.fontSize = '11px';
+
+            button.onclick = function(lang) {
+                window.translationsHash.updateLanguageCookies(lang);
+
+                if (window.nsGmx && window.nsGmx.GeomixerFramework) {
+                    window.language = lang;
+                    _mapHelper.reloadMap();
+                } else {
+                    window.location.reload();
+                }
+            }.bind(null, lang);
+            
+            _title(button, this.titles[lang]);
+            
+            _(langCanvas, [button]);
+        }
+        else
+            _(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
+    }
+
+    _(document.getElementById("headerLinks"), [langCanvas]);
+}
+
+window._gtxt = function() {
+    return commonTranslationsManager.getText.apply(commonTranslationsManager, arguments);
+};
+
+window.translationsHash = {
+    getLanguageFromCookies: commonTranslationsManager.getLanguageFromCookies.bind(commonTranslationsManager),
+    updateLanguageCookies: commonTranslationsManager.updateLanguageCookies.bind(commonTranslationsManager)
+};
 
 window.gmxCore && gmxCore.addModule('translations',
 {
