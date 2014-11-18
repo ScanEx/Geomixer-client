@@ -1365,6 +1365,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
 					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 					if(/[a-zA-Z]/.test(SearchString)){
+                        if(oFoundObject.ObjAltNameEng || oFoundObject.ObjNameEng){
 						if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 							sValue = sLabel;
@@ -1374,7 +1375,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 							sValue = sLabel;
 							//if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
-						}
+						}}
 					}
 					else{
 						if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
