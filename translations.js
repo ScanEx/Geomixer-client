@@ -184,6 +184,13 @@ if (typeof define === 'function' && define.amd) {
     });
 }
 
+if (window.Handlebars) {
+    //хелпер для вставки локализованных констант в шаблоны. Например: {{i "layerEditor.dialogTitle"}}
+    Handlebars.registerHelper('i', function(dictKey) {
+        return commonTranslationsManager.getText(dictKey);
+    });
+}
+
 window.nsGmx = window.nsGmx || {};
 window.nsGmx.Translations = commonTranslationsManager;
 
