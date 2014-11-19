@@ -421,7 +421,13 @@
         if ('gmxDrawing' in LMap && controls && controls.id === 'controlsBaseIcons') {
             if (needListeners) needListeners(LMap.gmxDrawing);
             var latlng = new L.LatLng(coords[1], coords[0]),
-                icon = L.icon({iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png'}),
+                drawOptions = {
+                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png',
+                    popupAnchor: [2, -18],
+                    iconSize: [33, 41],
+                    iconAnchor: [6, 36]
+                },
+                icon = L.icon(drawOptions),
                 marker = L.marker(latlng, {draggable: true, title: props.text || '', icon: icon}),
                 obj = LMap.gmxDrawing.add(marker, {});
             obj = domFeature(obj, props);

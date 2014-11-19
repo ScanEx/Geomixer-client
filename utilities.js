@@ -107,6 +107,21 @@ nsGmx.Utils = nsGmx.Utils || {};
         _param: function(children,attrs){return _el('PARAM',children,attrs)}
     }
     
+    var prevGlobals = {};
+    for (var k in domManipulation) {
+        prevGlobals[k] = window[k];
+    }
+    
+    /** Удаляет из глобальной видимости часть методов, записанных туда при загрузке utilities.js
+    * @memberOf nsGmx.Utils
+    */
+    nsGmx.Utils.noConflicts = function() {
+        for (var k in domManipulation) {
+            window[k] = prevGlobals[k];
+        }
+        return nsGmx.Utils;
+    }
+    
     jQuery.extend(window, domManipulation);      //для обратной совместимости
     jQuery.extend(nsGmx.Utils, domManipulation);
 })();
