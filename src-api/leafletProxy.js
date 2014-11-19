@@ -4933,11 +4933,11 @@ var tt = 1;
             arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
         cssFiles.push(
-            'leaflet/plugins/gmxControls/dist/css/gmxControls.css?' + gmxAPI.buildGUID
+            apiHost + 'leaflet/plugins/gmxControls/dist/css/gmxControls.css?' + gmxAPI.buildGUID
         );
         arr.push({
             charset: 'utf8',
-            src: 'leaflet/plugins/gmxControls/dist/gmxControls.js?' + gmxAPI.buildGUID
+            src: apiHost + 'leaflet/plugins/gmxControls/dist/gmxControls.js?' + gmxAPI.buildGUID
         });
 
         if(window.LeafletPlugins) {
