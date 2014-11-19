@@ -1051,7 +1051,7 @@
                         attribution: copyright,
                         minZoom: z1,
                         maxZoom: z2,
-                        bounds: bounds ? L.latLngBounds(L.latLng(bounds.minX, bounds.minY), L.latLng(bounds.maxX, bounds.maxY)) : null
+                        bounds: bounds ? L.latLngBounds(L.latLng(bounds.minY, bounds.minX), L.latLng(bounds.maxY, bounds.maxX)) : null
                     });
                     var node = gmxAPI._leaflet.mapNodes[obj.objectId];
                     if (node.leaflet) {
