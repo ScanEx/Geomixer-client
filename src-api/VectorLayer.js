@@ -2290,7 +2290,9 @@
             }
             ,removeObserver: function (pt) {
                 var key = 'onMoveEnd';
-                gmxAPI.map.removeListener(key, node.listenerIDS[key]);
+                var ev = node.listenerIDS[key];
+                if (ev) gmxAPI.map.removeListener(key, ev.evID);
+                delete node.listenerIDS[key];
                 node.observerNode = null;
                 return true;
             }
