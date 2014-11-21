@@ -374,7 +374,7 @@
         if ('gmxDrawing' in LMap) {
             if (needListeners) needListeners(LMap.gmxDrawing);
             if (coords) {
-                var bounds = gmxAPIutils.bounds(coords[0]);
+                var bounds = gmxAPI.bounds(coords[0]);
                 var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
                 obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
                 obj = domFeature(obj, props);
