@@ -450,6 +450,7 @@ var IDataProvider = {};
 // {
 	// getDescription: function(){}, //возвращает строчку, которая показывается рядом с checkbox
 	// getData: function( dateBegin, dateEnd, bbox, onSucceess, onError ){} //onSucceess(data) - полученные данные; onError(type) - ошибка определённого типа
+    // remove: function(){} //вызывается при завершении работы с провайдером
 // };
 
 IDataProvider.ERROR_TOO_MUCH_DATA = 0;
@@ -1301,13 +1302,6 @@ var FireSpotRendererLayer = function( params )
                 _params.map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
             }
         })
-        
-        //loadFireLayers();
-        
-        // if (_params.hotspotLayerName in _params.map.layers)
-        // {
-            // _params.map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
-        // }
     }
     
     this.setVisible = function(flag)
@@ -1783,6 +1777,12 @@ var FireBurntRenderer3 = function( params )
         map.layers[_params.hotspotLayerName] && map.layers[_params.hotspotLayerName].setVisible(flag);
         map.layers[_params.dailyLayerName] && map.layers[_params.dailyLayerName].setVisible(flag);
     }
+    
+    this.remove = function() {
+        this.setVisible(false);
+        clusterLayer.remove();
+        clusterGeomLayer.remove();
+    }
 }
 
 /** Рисует на карте картинки MODIS
@@ -1804,6 +1804,8 @@ var ModisImagesRenderer = function( params )
             for (iL in modisLayers)
                 modisLayers[iL].setVisible(flag);
 	}
+    
+    this.remove = this.setVisible.bind(this, false);
 }
 
 var CombinedFiresRenderer = function( params )
@@ -2396,6 +2398,15 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	this._initDeferred.resolve();
 }
 
+FireControl.prototype.remove = function() {
+    $(this._parentDiv).empty();
+    for (var n in this.dataControllers) {
+        var dc = this.dataControllers[n];
+        dc.provider.remove && dc.provider.remove();
+        dc.renderer.remove && dc.renderer.remove();
+    }
+}
+
 FireControl.prototype.update = function()
 {
 	if (this._calendar)
@@ -2415,6 +2426,8 @@ var FireControl2 = function(map, params)
 {
     params = params || {};
     params.data = params.data || "+fires !images";
+    
+    var createdDiv = null;
     
     var parseParams = function(params)
     {
@@ -2533,7 +2546,7 @@ var FireControl2 = function(map, params)
                     table.after(div);
                 }
                 
-                params.container = div;
+                params.container = createdDiv = div;
                 
                 doCreate();
             }
@@ -2545,7 +2558,7 @@ var FireControl2 = function(map, params)
             }
         }
         else {
-            params.container = $('<div/>')[0];
+            params.container = createdDiv = $('<div/>')[0];
             doCreate();
         }
     }
@@ -2576,16 +2589,28 @@ var FireControl2 = function(map, params)
      * @method
     */
     this.update = baseFireControl.update.bind(baseFireControl);
+    
+    this.remove = function() {
+        $(createdDiv).remove();
+        baseFireControl.remove();
+    }
 }
+
+var isInitialized = false;
+var fireControl;
 
 var publicInterface = {
     pluginName: 'Fire plugin',
     beforeViewer: function(params, map) {
+        if (isInitialized) {
+            return;
+        }
+        
         var data = params && params.data;
         if (data && $.isArray(data)) {
             data = data[0];
         }
-        var fireControl = new FireControl2(map, params);
+        fireControl = new FireControl2(map, params);
         
         //сериализация состояния
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
@@ -2597,7 +2622,7 @@ var publicInterface = {
         }
         
         //Читаем старый формат
-        if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
+        if (!_mapHelper.customParamsManager.isProvider('firesWidget')) {
             _mapHelper.customParamsManager.addProvider({
                 name: 'firesWidget',
                 loadState: function(state)
@@ -2613,6 +2638,19 @@ var publicInterface = {
                 }
             });
         };
+        isInitialized = true;
+    },
+    afterViewer: function(params, map) {
+        this.beforeViewer(params, map);
+    },
+    unload: function(){
+        var paramsManager = _mapHelper.customParamsManager;
+        paramsManager.removeProvider('firesWidget2');
+        paramsManager.removeProvider('firesWidget');
+        
+        fireControl && fireControl.remove();
+        
+        isInitialized = false;
     },
     IDataProvider: IDataProvider,
     
