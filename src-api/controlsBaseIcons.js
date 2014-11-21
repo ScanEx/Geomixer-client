@@ -798,14 +798,6 @@
         //hideControls.addTo(LMap);
         //outControls.hideControls = hideControls;
 
-        var center = new L.Control.gmxCenter();
-        Controls.items[center.options.id] = center;
-        LMap.addControl(center);
-        gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function () {
-            var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
-            center.setColor(color);
-        }, 100);
-
         // BottomBG - подвал background
         //if (false && L.Control.gmxBottom) {
         var bottomBG = null;
@@ -1059,7 +1051,7 @@
                         attribution: copyright,
                         minZoom: z1,
                         maxZoom: z2,
-                        bounds: bounds ? L.latLngBounds(L.latLng(bounds.minX, bounds.minY), L.latLng(bounds.maxX, bounds.maxY)) : null
+                        bounds: bounds ? L.latLngBounds(L.latLng(bounds.minY, bounds.minX), L.latLng(bounds.maxY, bounds.maxX)) : null
                     });
                     var node = gmxAPI._leaflet.mapNodes[obj.objectId];
                     if (node.leaflet) {
@@ -1407,6 +1399,7 @@
             gmxDrawing = L.control.gmxDrawing({
                 drawOptions: {
                     iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png',
+                    popupAnchor: [2, -18],
                     iconSize: [33, 41],
                     iconAnchor: [6, 36]
                 }

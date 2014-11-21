@@ -658,6 +658,13 @@
                     }
                     // todo: реальное пересечение screenTile с геометрией слоя
                     //if(isIntersects) isIntersects += gmxAPI._leaflet['utils'].chkExtInPolygonArr(tileExtent, attr['mercGeom']['coordinates'][0]);
+                    if(isIntersects) {
+                        var geom = attr.mercGeom,
+                            coords = geom.coordinates[0];
+                        if (geom.type === 'MULTIPOLYGON') coords = coords[0];
+                        var clip = gmxAPI.clipPolygon(coords, [[tileExtent.minX, tileExtent.minY], [tileExtent.maxX, tileExtent.minY], [tileExtent.maxX, tileExtent.maxY], [tileExtent.minX, tileExtent.maxY]]);
+                        if (clip.length === 0) isIntersects = 0;
+                    }
                 }
                 if(isIntersects === 0) return;
 

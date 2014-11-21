@@ -2266,18 +2266,11 @@
         setGridVisible: function(flag) {			// Установка видимости grid
             if(flag) {
                 if (!grid.gridPlugin) {
-                    var apiHost = gmxAPI.getAPIFolderRoot();
-                    var ph = {
-                        charset: 'utf8',
-                        src: apiHost + 'leaflet/plugins/L.GmxGrid/src/L.GmxGrid.js?' + gmxAPI.buildGUID
-                    };
-                    gmxAPI.loadJS(ph, function(item) {
-                        grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
+                    grid.gridPlugin = new L.GmxGrid({}).addTo(LMap);
+                    grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
+                    grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function() {
                         grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
-                        grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function() {
-                            grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
-                        }, -10);
-                    });
+                    }, -10);
                 } else {
                     if (!grid.gridPlugin._map) grid.gridPlugin.addTo(LMap);
                     grid.gridPlugin.setColor(gmxAPI.getHtmlColor());
@@ -4168,6 +4161,13 @@
         // if(controls && 'initControls' in controls) {
             // controls.initControls();
         // }
+        var center = new L.Control.gmxCenter();
+        //Controls.items[center.options.id] = center;
+        gmxAPI._leaflet.LMap.addControl(center);
+        gmxAPI.map.baseLayersManager.addListener('onSetCurrent', function () {
+            var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
+            center.setColor(color);
+        }, 100);
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
@@ -4932,6 +4932,14 @@ var tt = 1;
             ],
             arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
+        cssFiles.push(
+            apiHost + 'leaflet/plugins/gmxControls/dist/css/gmxControls.css?' + gmxAPI.buildGUID
+        );
+        arr.push({
+            charset: 'utf8',
+            src: apiHost + 'leaflet/plugins/gmxControls/dist/gmxControls.js?' + gmxAPI.buildGUID
+        });
+
         if(window.LeafletPlugins) {
             for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
                 var element = window.LeafletPlugins[i],
@@ -4954,6 +4962,16 @@ var tt = 1;
             }
         }
         cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
+        gmxAPI.gmxControlsDevLoader = function(depsJS, depsCSS) {
+            var gmxControlsPrefix = 'leaflet/plugins/gmxControls/';
+            depsCSS.forEach(function(item) {gmxAPI.loadCSS(gmxControlsPrefix + item + '?' + gmxAPI.buildGUID);} );
+            depsJS.forEach(function(item) {
+                arr.push({
+                    charset: 'utf8',
+                    src: gmxControlsPrefix + item + '?' + gmxAPI.buildGUID
+                });
+            });
+        };
         if (arr.length) {
             var count = 0,
                 loadItem = function() {
