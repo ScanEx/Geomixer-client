@@ -170,6 +170,11 @@ mapHelper.prototype.customParamsManager = (function()
         
         isProvider: function(providerName) {
             return !!nsGmx._.findWhere(_providers, {name: providerName});
+        },
+        removeProvider: function(providerName) {
+            _providers = nsGmx._.filter(_providers, function(provider) {
+                return provider.name !== providerName;
+            })
         }
 	}
 })();
