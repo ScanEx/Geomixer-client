@@ -727,6 +727,9 @@
                     proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
                 }
             }
+            obj.removeObserver = function() {
+                proxy('removeObserver', { 'obj': obj});
+            };
             if (obj.stateListeners.onChangeLayerVersion) obj.chkLayerVersion();
 
             var stylesMinMaxZoom = getMinMaxZoom(layer.properties);

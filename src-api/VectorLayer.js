@@ -2288,6 +2288,14 @@
                 var key = 'onMoveEnd';
                 node.listenerIDS[key] = {obj: gmxNode.map, evID: gmxAPI.map.addListener(key, node._sendObserver, 11)};
             }
+            ,removeObserver: function (pt) {
+                var key = 'onMoveEnd';
+                var ev = node.listenerIDS[key];
+                if (ev) gmxAPI.map.removeListener(key, ev.evID);
+                delete node.listenerIDS[key];
+                node.observerNode = null;
+                return true;
+            }
             ,getLoaderFlag: function() {   // Проверка необходимости загрузки векторных тайлов
                 node.loaderFlag = false;
                 for (var pkey in node.tilesLoadProgress) {

@@ -3023,6 +3023,14 @@
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
 		}
+		,
+		'removeObserver':	function(ph)	{		// Удаление получателя видимых обьектов векторного слоя
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return false;
+			if ('removeObserver' in node) node.removeObserver(ph);
+			return true;
+		}
         ,
 		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
 			var id = ph.obj.objectId;
