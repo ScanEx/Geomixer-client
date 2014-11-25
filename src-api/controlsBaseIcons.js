@@ -164,6 +164,8 @@
 
                 container.id = this.options.id;
                 L.DomUtil.addClass(container, 'leaflet-control');
+                L.DomEvent
+                    .on(container, 'mousemove', L.DomEvent.stopPropagation);
 
                 if (pos.indexOf('bottom') !== -1) {
                     corner.insertBefore(container, corner.firstChild);
@@ -577,7 +579,10 @@
             ,
             onAdd: function (map) {
                 if (this.options.id) Controls.items[this.options.id] = this;
-                L.Control.Layers.prototype.onAdd.call(this, map);
+                var cont = L.Control.Layers.prototype.onAdd.call(this, map);
+                //L.Control.Layers.prototype.onAdd.call(this, map);
+                L.DomEvent
+                    .on(cont, 'mousemove', L.DomEvent.stopPropagation);
                 
                 this._container.id = this.options.id;
                 var my = this;
