@@ -1072,7 +1072,7 @@
                 var geo = {};
                 if(ph.geometry) {
                     if(!ph.geometry.type) ph.geometry.type = typeGeo.toUpperCase();
-                    geo = utils.fromTileGeometry(ph.geometry, tileBounds);
+                    geo = utils.fromTileGeometry(ph.geometry, tileBounds, id);
                     if(!geo) {
                         gmxAPI._debugWarnings.push({tileID: tileID, badObject: ph.geometry});
                         continue;
