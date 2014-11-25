@@ -821,6 +821,9 @@ extend(window.gmxAPI,
                 }
                 return this;
             },
+            extendBounds: function(bounds) {
+                return this.extendArray([[bounds.min.x, bounds.min.y], [bounds.max.x, bounds.max.y]]);
+            },
             addBuffer: function(dxmin, dymin, dxmax, dymax) {
                 this.min.x -= dxmin;
                 this.min.y -= dymin;

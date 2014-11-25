@@ -1099,6 +1099,7 @@
                 geo.propHiden = objData.propHiden;
                 geo.properties = objData.properties;
                 propHiden.toFilters = node.chkObjectFilters(geo, tileSize);
+                var bbox = geo.bounds;
                 if(node.objectsData[id] && tileID !== 'addItem') {  // Обьект уже имеется - нужна??? склейка геометрий
                     var pt = node.objectsData[id];
                     if(objData.type != 'POINT' && objData.type.indexOf('MULTI') == -1) pt.type = 'MULTI' + objData.type;
@@ -1106,8 +1107,10 @@
                     pt.propHiden.fromTiles[tileID] = true;
                     geo.propHiden = pt.propHiden;
                     delete pt.mercGeo;
+                    pt.bounds.extendBounds(bbox);
                 } else {
                     node.objectsData[id] = objData;
+                    node.objectsData[id].bounds = gmxAPI.bounds([[bbox.min.x, bbox.min.y], [bbox.max.x, bbox.max.y]]);
                 }
             }
             arr = [];
@@ -2036,6 +2039,7 @@
                     id: item.id
                     ,properties: item.properties
                     ,geometry: node.getItemGeometry(itemId, attr.flagMerc)
+                    ,bounds: item.bounds
                 }
                 if(!item.propHiden.fromTiles.addItem) out.fromTiles = item.propHiden.fromTiles;
                 return out;
