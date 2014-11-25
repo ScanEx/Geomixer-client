@@ -56,7 +56,7 @@ extend(window.gmxAPI,
 	,
     initParams: null							// Параметры заданные при создании карты 
 	,
-    buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
+    buildGUID: [/*#buildinclude<__buildGUID__>*/][0] || Math.random() // GUID текущей сборки
 	,
     leafletPlugins: {}
     ,
