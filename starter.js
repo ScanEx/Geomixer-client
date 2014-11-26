@@ -205,7 +205,6 @@ var createMenuNew = function()
                 onunsel: function(){globalFlashMap.grid.setVisible(false); _mapHelper.gridView = false;},
                 checked: _mapHelper.gridView
             },
-            getPluginToMenuBinding('BufferPlugin', 'buffer', _gtxt('Буфер')),
 			{id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
 			{id: 'search',        title: _gtxt('Поиск слоев на карте'), func:nsGmx.mapLayersList.load},
 			{id: 'crowdsourcing', title: _gtxt('Краудсорсинг данных'), func:function(){}, disabled: true},
