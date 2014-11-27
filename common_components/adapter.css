@@ -58,6 +58,15 @@
     padding-left: 0px;
 }
 
+.dropdown-item {
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.dropdown{
+    border: 1px solid #DDDDDD;
+    border-bottom: none;
+}
+
 /* Header widget */
 
 .topBarLink-anchor {

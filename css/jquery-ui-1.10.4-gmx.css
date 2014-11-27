@@ -55,10 +55,10 @@
     padding: 16px 0px 9px 24px;
 }
 
-.ui-resizable-n {height: 10px; top:    -11px; border-bottom: 1px solid gray;}
-.ui-resizable-s {height: 10px; bottom: -11px; border-top:    1px solid gray;}
-.ui-resizable-e {width:  10px; right:  -11px; border-left:   1px solid gray;}
-.ui-resizable-w {width:  10px; left:   -11px; border-right:  1px solid gray;}
+.ui-resizable-n {height: 10px; top:    -11px; border-bottom: 1px solid #DDDDDD;}
+.ui-resizable-s {height: 10px; bottom: -11px; border-top:    1px solid #DDDDDD;}
+.ui-resizable-e {width:  10px; right:  -11px; border-left:   1px solid #DDDDDD;}
+.ui-resizable-w {width:  10px; left:   -11px; border-right:  1px solid #DDDDDD;}
 
 .ui-dialog .ui-resizable-se { width: 10px; height: 10px; right: -11px; bottom: -11px;}
 .ui-resizable-sw                      { width: 10px; height: 10px; left:  -11px; bottom: -11px;}
