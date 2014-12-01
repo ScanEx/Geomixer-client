@@ -1283,6 +1283,7 @@ function loadMap(state)
             
             var createLayerIconGroup = new L.Control.gmxIconGroup({
                 id: 'createLayer',
+                isSortable: true,
                 items: [createVectorLayerIcon, createRasterLayerIcon, createMultiLayerIcon]
             }).addTo(gmxAPI._leaflet.LMap);
             
