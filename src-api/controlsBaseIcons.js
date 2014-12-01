@@ -511,13 +511,14 @@
                     }
                 }
                 len = activeIDs.length + overlays.length;
-                this._container.style.visibility = len > 0 ? 'visible' : 'hidden';
 
                 var display = overlays.length && activeIDs.length ? '' : 'none';
                 if (this.options.hideBaseLayers) {
                     display = 'none';
                     this._baseLayersList.style.display = display;
+                    if (overlays.length === 0) len = 0;
                 }
+                this._container.style.visibility = len > 0 ? 'visible' : 'hidden';
                 this._separator.style.display = display;
                 if(this.current) this.setCurrent(this.current, true);
             }
