@@ -1664,10 +1664,6 @@ div.layersScroll
     border-bottom: none;
 }
 
-.leaflet-control-layers-base, .leaflet-control-layers-separator {
-    display: none;
-}
-
 .leaflet-control-layers-overlays span {
     font-size: 12px;
 }
