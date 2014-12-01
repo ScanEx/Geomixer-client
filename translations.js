@@ -178,17 +178,20 @@ TranslationsManager.prototype.updateLanguageCookies = function(lang) {
 var commonTranslationsManager = new TranslationsManager();
 TranslationsManager.commonManager = commonTranslationsManager;
 
-if (typeof define === 'function' && define.amd) {
-    define(function() {
-        return TranslationsManager;
+//хелпер для вставки локализованных констант в шаблоны. Например: {{i "layerEditor.dialogTitle"}}
+var addHanlebarsHelper = function(Handlebars) {
+    Handlebars && Handlebars.registerHelper('i', function(dictKey) {
+        return commonTranslationsManager.getText(dictKey);
     });
 }
 
-if (window.Handlebars) {
-    //хелпер для вставки локализованных констант в шаблоны. Например: {{i "layerEditor.dialogTitle"}}
-    Handlebars.registerHelper('i', function(dictKey) {
-        return commonTranslationsManager.getText(dictKey);
+if (typeof define === 'function' && define.amd) {
+    define(['handlebars'], function(Handlebars) {
+        addHanlebarsHelper(Handlebars);
+        return TranslationsManager;
     });
+} else {
+    addHanlebarsHelper(window.Handlebars);
 }
 
 window.nsGmx = window.nsGmx || {};
