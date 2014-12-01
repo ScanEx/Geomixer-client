@@ -463,6 +463,7 @@
                 current: ''
                 ,collapsed: false
                 ,isVisible: true
+                //,hideBaseLayers: true
             }
             ,
             _onInputClick: function (ev) {
@@ -511,7 +512,13 @@
                 }
                 len = activeIDs.length + overlays.length;
                 this._container.style.visibility = len > 0 ? 'visible' : 'hidden';
-                this._separator.style.display = overlays.length && activeIDs.length ? '' : 'none';
+
+                var display = overlays.length && activeIDs.length ? '' : 'none';
+                if (this.options.hideBaseLayers) {
+                    display = 'none';
+                    this._baseLayersList.style.display = display;
+                }
+                this._separator.style.display = display;
                 if(this.current) this.setCurrent(this.current, true);
             }
             ,setVisible: function(flag) {

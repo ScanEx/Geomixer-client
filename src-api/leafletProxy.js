@@ -1665,22 +1665,22 @@
             if(geom.type === 'Polygon')	return utils.transformPolygon(geom);
         }
         ,
-		fromTileGeometry: function(geom, tileBounds)				// преобразование геометрий из тайлов
+		fromTileGeometry: function(geom, tileBounds, id)				// преобразование геометрий из тайлов
 		{
 			var out = null;
 			if(geom) {
                 var type = geom.type,
                     ut = gmxAPI._leaflet;
 				if(type === 'POINT') {
-					out = ut.PointGeometry(geom, tileBounds);
+					out = ut.PointGeometry(geom, tileBounds, id);
 				} else if(type === 'MULTILINESTRING') {
-					out = ut.MultiPolyline(geom, tileBounds);
+					out = ut.MultiPolyline(geom, tileBounds, id);
 				} else if(type === 'LINESTRING') {
-					out = ut.LineGeometry(geom, tileBounds);
+					out = ut.LineGeometry(geom, tileBounds, id);
 				} else if(type === 'POLYGON') {
-					out = ut.PolygonGeometry(geom, tileBounds);
+					out = ut.PolygonGeometry(geom, tileBounds, id);
 				} else if(type === 'MULTIPOLYGON') {
-					out = ut.MultiPolygonGeometry(geom, tileBounds);
+					out = ut.MultiPolygonGeometry(geom, tileBounds, id);
 				}
 			}
 			return out;
@@ -3990,7 +3990,7 @@
 {
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet.MultiPolygonGeometry = function(geo, tileBounds_) {				// класс MultiPolygonGeometry
+	gmxAPI._leaflet.MultiPolygonGeometry = function(geo, tileBounds_, id) {				// класс MultiPolygonGeometry
 		var out = gmxAPI._leaflet.Geometry();
 		out.type = 'MultiPolygon';
 		out.tileBounds = tileBounds_;
@@ -4006,6 +4006,7 @@
 			//if(!bounds) bounds = new L.Bounds(p);
 			//p = new L.Point( item.bounds.max.x, item.bounds.max.y );
 			//bounds.extend(p);
+            item.id = id;
 			members.push(item);
 		}
 		var addMembers = function (arr) {

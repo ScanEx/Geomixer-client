@@ -56,7 +56,7 @@ extend(window.gmxAPI,
 	,
     initParams: null							// Параметры заданные при создании карты 
 	,
-    buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
+    buildGUID: [/*#buildinclude<__buildGUID__>*/][0] || Math.random() // GUID текущей сборки
 	,
     leafletPlugins: {}
     ,
@@ -820,6 +820,9 @@ extend(window.gmxAPI,
                     this.extend(arr[i][0], arr[i][1]);
                 }
                 return this;
+            },
+            extendBounds: function(bounds) {
+                return this.extendArray([[bounds.min.x, bounds.min.y], [bounds.max.x, bounds.max.y]]);
             },
             addBuffer: function(dxmin, dymin, dxmax, dymax) {
                 this.min.x -= dxmin;
