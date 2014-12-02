@@ -777,12 +777,12 @@ extend(window.gmxAPI,
 
         var outputList = coords;
         cp1 = clip[clip.length-1];
-        for (j in clip) {
+        for (var j = 0, len = clip.length; j < len; j++) {
             var cp2 = clip[j],
                 inputList = outputList;
             outputList = [];
             s = inputList[inputList.length - 1]; //last on the input list
-            for (i in inputList) {
+            for (var i = 0, len1 = inputList.length; i < len1; i++) {
                 var e = inputList[i];
                 if (inside(e)) {
                     if (!inside(s)) outputList.push(intersection());
