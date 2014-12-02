@@ -1702,3 +1702,6 @@ div.layersScroll
     margin-left: 14px;
 }
 
+.filterCanvas > ul > li > .hitarea {
+    margin-top: 5px;
+}

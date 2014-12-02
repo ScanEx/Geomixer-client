@@ -1741,7 +1741,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 var LayerStylesEditor = function(div, divStyles, openedStyleIndex) {
     var elemProperties = div.gmxProperties.content.properties,
         parentIcon = $(div).children("[styleType]")[0],
-        filtersCanvas = _div(),
+        filtersCanvas = _div(null, [['css', 'marginLeft', '10px']]),
         filterHeader = createFilterHeader(filtersCanvas, elemProperties, parentIcon),
         filters = globalFlashMap.layers[elemProperties.name].filters;
     
