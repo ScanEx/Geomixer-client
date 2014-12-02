@@ -382,8 +382,8 @@
         }
         return obj;
 	}
-/*
-	drawFunctions.zoom = function()
+
+	drawFunctions.zoom = function()     // Only for old controls
 	{
 		gmxAPI._drawing.activeState = true;
 		gmxAPI._drawing.BoxZoom = true;
@@ -408,7 +408,7 @@
 		}
 		return ret;
 	}
-*/
+
 	drawFunctions["move"] = function()
 	{
 		//gmxAPI._drawing.BoxZoom = false;
