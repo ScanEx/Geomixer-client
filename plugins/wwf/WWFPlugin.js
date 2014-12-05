@@ -61,7 +61,8 @@
             drawPalette(ui.find('.wwf-palette')[0]);
             
             ui.appendTo(leftPanel.workCanvas);
-            $('#leftContentInner').prepend(leftPanel.panelCanvas);
+            var parentContainer = $('#leftContentInner').length ? $('#leftContentInner') : $('#leftContent');
+            parentContainer.prepend(leftPanel.panelCanvas);
             
             var layerID = params && params.layerID || 'FA06D5DDB33B4D9186A90DEA65DDF883';
             map.layers[layerID].setImageProcessingHook(function(image, options) {
