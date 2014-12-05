@@ -7,6 +7,22 @@
 */
 (function($){
 
+//TODO: переписать генерацию UI на шаблонах
+//Очень суровое решение для разруливания конфликтов с глобальными переменными.
+var _ = nsGmx.Utils._,
+    _input = nsGmx.Utils._input,
+    _td = nsGmx.Utils._td,
+    _tr = nsGmx.Utils._tr,
+    _div = nsGmx.Utils._div,
+    _t = nsGmx.Utils._t,
+    _table = nsGmx.Utils._table,
+    _tbody = nsGmx.Utils._tbody,
+    _img = nsGmx.Utils._img,
+    _span = nsGmx.Utils._span,
+    _li = nsGmx.Utils._li,
+    _ul = nsGmx.Utils._ul,
+    _form = nsGmx.Utils._form;
+
 $('#flash').droppable({
     drop: function(event, ui) {
         var obj = ui.draggable[0].gmxDrawingObject;
@@ -1169,7 +1185,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID", TypeCode: params.TypeCode});
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID", TypeCode: params.TypeCode, UseOSM: params.UseOSM});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1328,8 +1344,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		var sLabel = Functions.GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 		if (oFoundObject.Parent != null) sLabel += ", " + Functions.GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
 		if (oFoundObject.Parent == null && oFoundObject.Path != null) {
-		    sLabel = "";
-		    for (var i = oFoundObject.Path.length-1; i >=0; --i)
+		    for (var i = oFoundObject.Path.length-2; i >=0; --i)
 		        sLabel += (i<oFoundObject.Path.length-1?", ":"") + Functions.GetFullName(oFoundObject.Path[i][0], oFoundObject.Path[i][1])
         }
 		return sLabel;
@@ -1350,27 +1365,29 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
 					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 					if(/[a-zA-Z]/.test(SearchString)){
-						if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
-							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
-							sValue = sLabel;
-							if (oFoundObject.ObjAltName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
-						}
-						else{
-							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-							sValue = sLabel;
-							if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
+                        if(oFoundObject.ObjAltNameEng || oFoundObject.ObjNameEng){
+						    if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
+							    sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							    sValue = sLabel;
+							    //if (oFoundObject.ObjAltName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+						    }
+						    else{
+							    sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							    sValue = sLabel;
+							    //if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
+						    }
 						}
 					}
 					else{
 						if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 							sValue = sLabel;
-							if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							//if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
 							sValue = sLabel;
-							if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							//if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
 					}
 					arrResult.push({
@@ -1474,7 +1491,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode});
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode, UseOSM: params.UseOSM});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1678,7 +1695,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var fnSelect = function(event, oAutoCompleteItem){
 	    if (fnBeforeSearch != null) fnBeforeSearch();
 	    $('#respager').remove();
-	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode,
+	    var useOSM = typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0;
+	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode, UseOSM: useOSM, 
                             callback: function (response) {
                                 lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: response[0].SearchResult}]);
                         }

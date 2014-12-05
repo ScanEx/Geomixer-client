@@ -118,6 +118,20 @@
                 }
             }
         }
+        node.redrawLayer = function() {  // Пересоздать тайлы слоя
+            if(myLayer && myLayer._map) {
+                myLayer.redraw();
+            }
+        }
+        node.redraw = function() {  // Перерисовать растровый слой
+            if(myLayer && myLayer._map) {
+                for (var key in myLayer._tiles) {
+                    var tile = myLayer._tiles[key];
+                    myLayer.drawTile(tile, tile._tilePoint);
+                }
+            }
+            myLayer._update();
+        }
 
         node.remove = function() {				// Удалить растровый слой
             if(myLayer) {
@@ -336,6 +350,9 @@
 					gmxNode = gmxAPI.mapNodes[node.id];
 				}
 				chkInitListeners();
+                if(gmxNode._urlTiles) {
+                    node.imageProcessingCrossOrigin = 'anonymous';
+                }
 				var option = {
 					minZoom: inpAttr.minZoomView || 1
 					,maxZoom: inpAttr.maxZoomView || 30
@@ -354,6 +371,7 @@
 					,badTiles: {}
 					,async: true
 					,unloadInvisibleTiles: true
+                    ,gmxCopyright: gmxNode.gmxCopyright
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
                 if(node.regularStyle && node.regularStyle.fillOpacity) { // Изменить opacity растрового слоя
@@ -491,8 +509,8 @@
                 L.TileLayer.Canvas.prototype._initContainer.call(this);
                 //if('initCallback' in this.options) this.options.initCallback(this);
                 this.updateTilesPosition();
-            }
-            ,
+            },
+
             _reset: function (e) {
                 for(var key in this.options._inLoadImage) {
                     gmxAPI._leaflet.imageLoader.removeItemsBySrc(key);
@@ -538,7 +556,7 @@
                     _map = this._map,
                     node = mapNodes[nodeID];
                 if (!_map || gmxAPI._leaflet.zoomstart) {
-                    node.waitRedraw();
+                    //node.waitRedraw();
                     return;
                 }
 
@@ -640,6 +658,13 @@
                     }
                     // todo: реальное пересечение screenTile с геометрией слоя
                     //if(isIntersects) isIntersects += gmxAPI._leaflet['utils'].chkExtInPolygonArr(tileExtent, attr['mercGeom']['coordinates'][0]);
+                    if(isIntersects) {
+                        var geom = attr.mercGeom,
+                            coords = geom.coordinates[0];
+                        if (geom.type === 'MULTIPOLYGON') coords = coords[0];
+                        var clip = gmxAPI.clipPolygon(coords, [[tileExtent.minX, tileExtent.minY], [tileExtent.maxX, tileExtent.minY], [tileExtent.maxX, tileExtent.maxY], [tileExtent.minX, tileExtent.maxY]]);
+                        if (clip.length === 0) isIntersects = 0;
+                    }
                 }
                 if(isIntersects === 0) return;
 
@@ -732,8 +757,6 @@
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 tile.id = gmxTilePoint.gmxTileID;
                                 if(type === 'canvas') {
-                                    tile.width = tile.height = 256; // TODO: убрать повторные отрисовки
-                                    var ctx = tile.getContext('2d');
                                     if(pos) {
                                         var canvas = document.createElement('canvas');
                                         canvas.width = canvas.height = 256;
@@ -741,6 +764,8 @@
                                         ptx.drawImage(imageObj, Math.floor(pos.x), Math.floor(pos.y), pos.size, pos.size, 0, 0, 256, 256);
                                         imageObj = canvas;
                                     }
+                                    tile.width = tile.height = 256; // TODO: убрать повторные отрисовки
+                                    var ctx = tile.getContext('2d');
                                     var putContent = function(content) {
                                         var pattern = ctx.createPattern(content, "no-repeat");
                                         ctx.fillStyle = pattern;

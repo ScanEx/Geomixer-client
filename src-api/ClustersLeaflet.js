@@ -261,8 +261,10 @@
             gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Скрыть балуны
 
 			var isBalloon = false;
-			var point = geom.coordinates;
-			var center = [gmxAPI.from_merc_y(point.y), gmxAPI.from_merc_x(point.x)];
+			// var point = geom.coordinates;
+			// var center = [gmxAPI.from_merc_y(point.y), gmxAPI.from_merc_x(point.x)];
+            var latlng = gmxAPI._leaflet.mousePos;
+			var center = [latlng.lat, latlng.lng];
 			var members = geom.propHiden._members;
 			
 			var vattr = node.clustersData.input.clusterView;

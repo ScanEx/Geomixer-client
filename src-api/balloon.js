@@ -467,15 +467,15 @@
 
 				if(balloon.objType === 'cluster') {
                     keyPress.dx = keyPress.dy = 0;
-				} else if(o.getGeometryType() == 'POINT') {
-					var gObj = o.getGeometry();
-					var x = gObj.coordinates[0];
-					var y = gObj.coordinates[1];
+				// } else if(o.getGeometryType() == 'POINT') {
+					// var gObj = o.getGeometry();
+					// var x = gObj.coordinates[0];
+					// var y = gObj.coordinates[1];
 
 					//balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
 					//balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
-					mx = x;
-					my = y;
+					// mx = x;
+					// my = y;
 					//balloon.fixedDeltaFlag = true;
 				}
 

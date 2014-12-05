@@ -331,11 +331,22 @@
                     //attr = getFilterAttr(style);
                 addFilter(obj, style);
             }
+            obj.getStyleNames = function() {
+                var styles = layer.properties.styles,
+                    arr = [];
+                for (var i = 0, len = styles.length; i < len; i++) {
+                    arr.push(styles[i].Name || i);
+                }
+                return arr;
+            };
             obj.addFilter = function(style) {
                 var filter = addFilter(obj, style);
                 filter.setStyle(filter._attr.regularStyle, filter._attr.hoveredStyle);
                 if(filter._attr.clusters) filter.setClusters(filter._attr.clusters);
                 return filter;
+            };
+            obj.getItems = function(attr) { // Получить загруженные объекты векторного слоя
+                return proxy('getItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
             };
             obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
                 return proxy('getItem', { 'obj': obj, 'attr':{layerId:obj.objectId, itemId:pid, flagMerc:flagMerc} });
@@ -505,6 +516,10 @@
             ,redrawItem: function(pt) {  // Установка стилевой функции пользователя
                 if(this.objectId) return proxy('redrawItem', { obj: obj, attr:pt });
                 return false;
+            },
+
+            repaint: function () {
+                if(this.objectId) return proxy('repaintLayer', { obj: obj });
             },
             setVisibilityHook: function (func) {
                 obj._visibilityHook = func;
@@ -712,6 +727,9 @@
                     proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
                 }
             }
+            obj.removeObserver = function() {
+                proxy('removeObserver', { 'obj': obj});
+            };
             if (obj.stateListeners.onChangeLayerVersion) obj.chkLayerVersion();
 
             var stylesMinMaxZoom = getMinMaxZoom(layer.properties);
@@ -727,6 +745,15 @@
                     ,'bounds': bounds
                 };
                 proxy('setBackgroundTiles', {'obj': obj, 'attr':ph });
+                obj.setImageProcessingHook = function(func, crossOrigin) {
+                    var opt = {'func':func};
+                    if (crossOrigin) opt.crossOrigin = crossOrigin;
+                    return proxy('addImageProcessingHook', { 'obj': obj, 'attr': opt });
+                };
+                obj.addImageProcessingHook = obj.setImageProcessingHook;
+                obj.removeImageProcessingHook = function() {
+                    return proxy('removeImageProcessingHook', { 'obj': obj });
+                };
             } else
             {
                 obj.getFeatures = function()

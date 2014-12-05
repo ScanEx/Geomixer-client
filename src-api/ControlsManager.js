@@ -81,11 +81,15 @@
         }
         ,
         setVisible: function(flag) {
+if (gmxAPI.map.allControls) {
+    gmxAPI.map.allControls.setVisible(flag);
+} else {
             if(!arguments.length) flag = !this.isVisible;
             for (var key in ControlsManager._controls.controlsHash) {
                 var control = ControlsManager._controls.controlsHash[key];
                 if('setVisible' in control) control.setVisible(flag, chkOld);
             }
+}
             this.isVisible = flag;
             gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, !ControlsManager.isVisible);
         }

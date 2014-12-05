@@ -59,11 +59,13 @@
 	}
 
 	// подготовка Label от векторного слоя
-	var prepareItem = function(txt, geom, inpStyle, shiftX, shiftY) {
-		var style = prepareStyle(inpStyle);
-		var bounds = new L.Bounds();
-		bounds.extend(new L.Point(geom.bounds.min.x + shiftX, geom.bounds.min.y + shiftY));
-		bounds.extend(new L.Point(geom.bounds.max.x + shiftX, geom.bounds.max.y + shiftY));
+	var prepareItem = function(txt, geom, inpStyle, node) {
+		var style = prepareStyle(inpStyle),
+            shiftX = node.shiftX,
+            shiftY = node.shiftY,
+            item = node.getItem({itemId: geom.id, flagMerc: true}),
+            bounds = item.bounds;
+
 		var x = (bounds.max.x + bounds.min.x) /2;
 		var y = (bounds.max.y + bounds.min.y) /2;
 		
@@ -244,17 +246,8 @@
             if(!utils) init();
             var node = gmxAPI._leaflet.mapNodes[geom.layerId],
                 id = node.id + '_' + geom.id,
-                item = null;
-            // if(itemsHash[id]) {
-                // item = itemsHash[id];
-                // var bounds = new L.Bounds();
-                // item.bounds.extend(itemsHash[id].bounds.min);
-                // item.bounds.extend(itemsHash[id].bounds.max);
-                // item.point.x = (item.bounds.max.x + item.bounds.min.x)/2;
-                // item.point.y = (item.bounds.max.y + item.bounds.min.y)/2;
-            // } else {
-                item = prepareItem(txt, geom, style, node.shiftX, node.shiftY);
-            // }
+                item = prepareItem(txt, geom, style, node);
+
             item.geoID = geom.id;
             item.layerID = node.id;
             itemsHash[id] = item;
