@@ -467,7 +467,8 @@ $(function()
                 title: _gtxt("Платформа Геомиксер"),
                 active: true
             }], 
-            rightLinks: []
+            rightLinks: [],
+            logo: window.gmxViewerUI && window.gmxViewerUI.logoImage
         });
         
         nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());

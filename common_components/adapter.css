@@ -90,6 +90,10 @@
     cursor: default;
 }
 
+.genericHeader-logo {
+    background-position: 0px 0px;
+}
+
 /* Base layers widget */
 .baseLayersControl-layer {
     border-color: #777;
