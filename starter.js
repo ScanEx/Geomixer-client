@@ -453,28 +453,36 @@ $(function()
     //сейчас подгружаются все глобальные плагины + все плагины карт, у которых нет имени в конфиге
     nsGmx.pluginsManager.done(function()
     {
-        nsGmx.pluginsManager.beforeMap();
-        nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
-            leftLinks: [{
-                title: _gtxt("Карта пожаров"),
-                link: "http://fires.kosmosnimki.ru"
-            },
-            {
-                title: _gtxt("Поиск снимков"),
-                link: "http://search.kosmosnimki.ru"
-            },
-            {
-                title: _gtxt("Платформа Геомиксер"),
-                active: true
-            }], 
-            rightLinks: [],
-            logo: window.gmxViewerUI && window.gmxViewerUI.logoImage
-        });
-        
-        nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());
-        
         nsGmx.AuthManager.checkUserInfo(function()
         {
+            var rightLinks = [];
+            if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+                rightLinks.push({
+                    title: _gtxt('Администрирование'),
+                    link: serverBase + 'Administration/SettingsAdmin.aspx'
+                })
+            }
+            
+            nsGmx.pluginsManager.beforeMap();
+            nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
+                leftLinks: [{
+                    title: _gtxt("Карта пожаров"),
+                    link: "http://fires.kosmosnimki.ru"
+                },
+                {
+                    title: _gtxt("Поиск снимков"),
+                    link: "http://search.kosmosnimki.ru"
+                },
+                {
+                    title: _gtxt("Платформа Геомиксер"),
+                    active: true
+                }], 
+                rightLinks: rightLinks,
+                logo: window.gmxViewerUI && window.gmxViewerUI.logoImage
+            });
+            
+            nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());
+        
             window.LeafletPlugins = window.LeafletPlugins || [];
             var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
 
