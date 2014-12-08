@@ -37,7 +37,7 @@
 .ui-widget-content {
     border: none;
     /*background: #FAFAFE;*/
-    color: #362B36;
+    color: #000000;
 }
 
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
@@ -123,8 +123,20 @@
 }
 
 .ui-tabs .ui-tabs-nav li.ui-tabs-active {
-    border-bottom: 4px solid #709fd3;
+    border-bottom: 4px solid #6f9ed2;
     padding-bottom: 5px;
+}
+
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited {
+    color: #000000;
+}
+
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+    color: #000000;
+}
+
+.ui-state-hover a, .ui-state-hover a:hover {
+    color: #6f9ed2;
 }
 
 /* datepicker */

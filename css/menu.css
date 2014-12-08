@@ -16,7 +16,7 @@ div.header1 {
 div.header1Internal
 {
 	text-align: center;
-	color: #153069;
+	color: #000000;
 	font-family: tahoma;
 	font-size: 12px;
 	font-weight: normal;
@@ -101,8 +101,8 @@ div.header3.menuDisabled
 }
 
 div.header1.menuActive  .header1Internal{
-    font-weight: bold;
-    color: #3e71a6;
+    /* font-weight: bold; */
+    color: #2372B9;
 }
 
 div.header1.menuActive div.header1
