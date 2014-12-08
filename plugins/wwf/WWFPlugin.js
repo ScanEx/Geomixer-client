@@ -64,7 +64,7 @@
             var parentContainer = $('#leftContentInner').length ? $('#leftContentInner') : $('#leftContent');
             parentContainer.prepend(leftPanel.panelCanvas);
             
-            var layerID = params && params.layerID || 'FA06D5DDB33B4D9186A90DEA65DDF883';
+            var layerID = params && params.layerID || '3F5FA68D2821459D8CF1A6DE493BE337';
             map.layers[layerID].setImageProcessingHook(function(image, options) {
                 
                 var canvas = document.createElement('canvas');
@@ -81,7 +81,7 @@
                 for (var p = 0; p < 256*256*4; p += 4) {
                     var a = data[p+3];
                     if (a > 0) {
-                        var v = data[p]*256 + data[p+1];
+                        var v = data[p] + data[p+1];
                         
                         if (v >= minVal && v <= maxVal) {
                             data[p] = Math.floor((356-v)*coeff);
