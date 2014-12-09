@@ -3703,6 +3703,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 });
 
 				var baseLayersManager = map.baseLayersManager,
+                    blmCurrentID = baseLayersManager.getCurrentID(),
                     mapLayers = [],
                     overlayLayers = [],
                     satelliteLayers = [],
@@ -3735,7 +3736,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         
-                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!blmCurrentID && !map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'hybrid' && (satelliteLayerID || overlayLayerID)) {
@@ -3751,7 +3752,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         }
                         
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
-                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!blmCurrentID && !map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'map' && mapLayerID) {
@@ -3772,7 +3773,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         }
                         if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         //if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
-                        if(!map.needSetMode && (!baseLayersArr || baseLayersHash[id])) {
+                        if(!blmCurrentID && !map.needSetMode && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
                         
