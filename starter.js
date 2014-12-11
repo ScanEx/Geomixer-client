@@ -934,12 +934,6 @@ function loadMap(state)
             baseLayersControl.addTo(gmxAPI._leaflet.LMap);
         }
         
-        var layers = gmxAPI.map.controlsManager.getCurrent().getControl('layers');
-        if (layers) {
-              layers.options.hideBaseLayers = true;
-              layers._update();
-        }
-        
         $('#flash').bind('dragover', function()
         {
             return false;
@@ -954,6 +948,12 @@ function loadMap(state)
                         _mapHelper.showPermalink();
                      }
                 });
+            }
+            
+            var layers = map.controlsManager.getCurrent().getControl('layers');
+            if (layers) {
+                  layers.options.hideBaseLayers = true;
+                  layers._update();
             }
         }
         
