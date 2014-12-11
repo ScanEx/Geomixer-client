@@ -283,7 +283,7 @@ var gmxCore = function()
         *
         *   * check: function() -> Bool. Если возвращает true, ни js ни css не будет загружены
         *   * script: String. Не обязательно. Скрипт для загрузки, если провалится проверка
-        *   * css: String. Не обязательно. CSS файл для загрузки, если провалится проверка
+        *   * css: String | String[]. Не обязательно. CSS файл(ы) для загрузки, если провалится проверка
         *   @returns {jQuery.Deferred} Deferred, который будет разрешён когда все скрипты выполнятся (окончание загрузки css не отслеживается)
         */
         loadScriptWithCheck: function(filesInfo)
@@ -301,7 +301,11 @@ var gmxCore = function()
                         doLoad()
                     else
                     {
-                        curInfo.css && _this.loadCSS(curInfo.css);
+                        var css = curInfo.css || [];
+                        if (typeof css === 'string') {
+                            css = [css];
+                        }
+                        css.forEach(_this.loadCSS);
                         
                         if (curInfo.script)
                             _this.loadScript(curInfo.script).then(doLoad);

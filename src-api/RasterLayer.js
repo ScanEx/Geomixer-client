@@ -556,7 +556,7 @@
                     _map = this._map,
                     node = mapNodes[nodeID];
                 if (!_map || gmxAPI._leaflet.zoomstart) {
-                    node.waitRedraw();
+                    //node.waitRedraw();
                     return;
                 }
 

@@ -1,0 +1,16 @@
+﻿.wwf-container {
+    margin: 10px;
+}
+
+.wwf-slider {
+    margin-bottom: 3px;
+}
+
+.wwf-slider.ui-slider a {
+    background: orange;
+}
+
+.wwf-palette {
+    height: 10px;
+    width: 100%;
+}

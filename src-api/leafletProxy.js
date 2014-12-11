@@ -3627,15 +3627,17 @@
 {
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['MultiPolyline'] = function(geo, tileBounds_) {				// класс MultiPolyline
+	gmxAPI._leaflet['MultiPolyline'] = function(geo, tileBounds_, id) {				// класс MultiPolyline
 		var out = gmxAPI._leaflet['Geometry']();
 		out['type'] = 'MultiPolyline';
 		out['tileBounds'] = tileBounds_;
+		out.id = id;
 
 		var members = [];
 		var bounds = null;
 		var cnt = 0;
 		var addMember = function (item) {
+            item.id = id;
 			cnt += item.cnt;
 			var p = new L.Point( item.bounds.min.x, item.bounds.min.y );
 			if(!bounds) bounds = new L.Bounds(p);
@@ -3994,6 +3996,7 @@
 		var out = gmxAPI._leaflet.Geometry();
 		out.type = 'MultiPolygon';
 		out.tileBounds = tileBounds_;
+		out.id = id;
 
 		var members = [],
             bounds = gmxAPI.bounds(),
