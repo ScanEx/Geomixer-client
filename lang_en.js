@@ -286,6 +286,7 @@ _translationsHash.hash["eng"] = {
     "Псевдоним": "Nickname",
     "Полное имя": "Full name",
 	"Пожалуйста, авторизуйтесь" : "Please, authorize",
+    "адрес электронной почты": "enter your e-mail",
 	"Ошибка сервера" : "Server error",
 	"Папка" : "Folder",
 	" и " : " and ",
