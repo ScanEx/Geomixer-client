@@ -708,18 +708,22 @@ div.fileBrowser-progressBar > .ui-progressbar-value {
 {
 	position:absolute;
 	z-index: 1000000;
-	background-color: #F0F0F0;
-	padding-left: 10px;
-	padding-right: 10px;
+	background-color: #FFFFFF;
+	/* padding: 0px 10px; */
 	border: 1px solid #DDDDDD;
 	/*width: 120px;*/
 }
 
 .contextMenuItem
 {
-	padding-top: 1px;
-	padding-bottom: 1px;
+	padding: 3px 10px;
 	white-space:nowrap;
+    cursor: pointer;
+}
+
+.contextMenuItem:hover
+{
+	background-color: #e5e5e5;
 }
 
 .contextMenuSeparator

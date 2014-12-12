@@ -104,34 +104,43 @@ nsGmx.ContextMenuController = (function()
 	
 	var _generateMenuDiv = function(type, context)
 	{
-		var bAnyElem = false;
-		var actionsCanvas = _div();
-		var items = _menuItems[type];
+        var uiTemplate = Handlebars.compile('<div>' +
+            '{{#menuItems}}' +
+                '{{#if separator}}<div class = "contextMenuSeparator"></div>{{/if}}' + 
+                '<div class = "contextMenuItem" data-itemIndex="{{index}}">{{title}}</div>' +
+            '{{/menuItems}}' +
+        '</div>');
+        
+		var items = _menuItems[type],
+            visibleItems = [];
 		
-		for (var e = 0; e < items.length; e++)
-			(function (menuElem) {
-				if (typeof menuElem.isVisible !== 'undefined' && !menuElem.isVisible(context) ) return;
-				
-				bAnyElem = true;
-				
-				var titleLink = makeLinkButton(typeof menuElem.title === 'function' ? menuElem.title() : menuElem.title);
-				titleLink.onclick = function()
-				{
-					context.contentMenuArea = getOffsetRect(this);
-					context.contentMenuType = type;
-					_contextClose();
-					$(this).removeClass('buttonLinkHover');
-					menuElem.clickCallback(context);
-				};
-				
-				if ( typeof menuElem.isSeparatorBefore !== 'undefined' && menuElem.isSeparatorBefore(context) )
-					_(actionsCanvas, [_div(null, [['dir','className','contextMenuItem contextMenuSeparator']])]);
-				
-				_(actionsCanvas, [_div([titleLink],[['dir','className','contextMenuItem']])]);
-				
-			})(items[e]);
-
-		return bAnyElem ? actionsCanvas : null;
+		for (var e = 0; e < items.length; e++) {
+			var menuElem = items[e];
+            if (menuElem.isVisible && !menuElem.isVisible(context)) {
+                continue;
+            }
+            
+            visibleItems.push({
+                index: e,
+                title: typeof menuElem.title === 'function' ? menuElem.title() : menuElem.title,
+                separator: menuElem.isSeparatorBefore && menuElem.isSeparatorBefore(context)
+            });
+        }
+        
+        if (visibleItems.length) {
+            var ui = $(uiTemplate({menuItems: visibleItems}));
+            ui.find('.contextMenuItem').click(function() {
+                var itemIndex = Number($(this).data('itemindex'));
+                context.contentMenuArea = getOffsetRect(this);
+                context.contentMenuType = type;
+                _contextClose();
+                _menuItems[type][itemIndex].clickCallback(context);
+            });
+            
+            return ui[0];
+        }
+        
+        return null;
 	}
 	
 	//public interface
