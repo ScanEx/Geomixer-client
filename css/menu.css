@@ -101,7 +101,8 @@ div.header3.menuDisabled
 }
 
 div.header1.menuActive  .header1Internal{
-    color: #fc830b;
+    /* font-weight: bold; */
+    color: #2372B9;
 }
 
 div.header1.menuActive div.header1
@@ -112,11 +113,6 @@ div.header1.menuActive div.header1
 .menu2Active, .menu3Active
 {
     background-color: #e5e5e5;
-    
-}
-.menu2Active > .header2, .menu3Active > .header3
-{
-    color: #fc830b;
 }
 
 li.menuClickable, div.menuClickable {
