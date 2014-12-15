@@ -374,8 +374,8 @@
         'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
             var out = [];
             angle *= Math.PI / 180.0
-            var sin = Math.sin(angle),
-                cos = Math.cos(angle),
+            var sin = angle ? Math.sin(angle) : 0,
+                cos = angle ? Math.cos(angle) : 1,
                 cx = scale * center.x,
                 cy = scale * center.y;
             for (var i = 0, len = arr.length; i < len; i++) {
@@ -396,7 +396,7 @@
                 var polygons = curStyle.polygons,
                     center = {x: curStyle.imageWidth/2, y: curStyle.imageHeight/2},
                     scale = curStyle.scale || 1,
-                    rotate = curStyle.rotate;
+                    rotate = curStyle.rotate || 0;
 
                 for (var i = 0, len = polygons.length; i < len; i++) {
                     var p = polygons[i];
