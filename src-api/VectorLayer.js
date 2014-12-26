@@ -2742,13 +2742,14 @@
                 if(node.tileRasterFunc || node.quicklook) {
                 geoItems.map(function(geom) {
                     var id = geom.id,
+                        type = geom.type,
                         objData = node.objectsData[id] || geom;
 
-                    if (getRasterURL(objData, tileAttr.zoom, tileAttr.scanexTilePoint) // если необходимы растры
+                    if (type === 'Polygon'    // + если это Polygon
+                        && getRasterURL(objData, tileAttr.zoom, tileAttr.scanexTilePoint) // если необходимы растры
                         && node.chkSqlFuncVisibility(objData)    // + если проходит фильтр видимости на слое
                     ) {
                         var coords = geom.coordinates[0];
-                        if (geom.type === 'MultiPolygon') coords = coords[0];
                         var clip = tileAttr.bounds.clipPolygon(coords);
                         if (clip.length) {
                             needLoadRasters++;
