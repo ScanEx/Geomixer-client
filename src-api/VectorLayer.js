@@ -83,9 +83,18 @@
                     if(meta.shiftXfield) node.shiftXfield = meta.shiftXfield.Value;
                     if(meta.shiftYfield) node.shiftYfield = meta.shiftYfield.Value;
                 }
-                if('quicklookPlatform' in meta) {    // поля сдвига растров обьектов слоя
+                if('quicklookPlatform' in meta) {    // тип квиклуков КР
                     node.quicklookPlatform = meta.quicklookPlatform.Value;
                 }
+                if('quicklookX1' in meta) node.quicklookX1 = meta.quicklookX1.Value;
+                if('quicklookY1' in meta) node.quicklookY1 = meta.quicklookY1.Value;
+                if('quicklookX2' in meta) node.quicklookX2 = meta.quicklookX2.Value;
+                if('quicklookY2' in meta) node.quicklookY2 = meta.quicklookY2.Value;
+                if('quicklookX3' in meta) node.quicklookX3 = meta.quicklookX3.Value;
+                if('quicklookY3' in meta) node.quicklookY3 = meta.quicklookY3.Value;
+                if('quicklookX4' in meta) node.quicklookX4 = meta.quicklookX4.Value;
+                if('quicklookY4' in meta) node.quicklookY4 = meta.quicklookY4.Value;
+
                 if('multiFilters' in meta) {    // проверка всех фильтров для обьектов слоя
                     node.multiFilters = meta.multiFilters.Value == 1 ? true : false;
                 }
@@ -662,6 +671,18 @@
                 points.x3 = gmxAPI.merc_x(properties.xBottomRight || 0), points.y3 = gmxAPI.merc_y(properties.yBottomRight || 0);
                 points.x4 = gmxAPI.merc_x(properties.xBottomLeft || 0), points.y4 = gmxAPI.merc_y(properties.yBottomLeft || 0);
                 ready = true;
+            } else if (node.quicklookPlatform === 'imageMercator') {
+                points.x1 = node.quicklookX1 ? properties[node.quicklookX1] : properties.x1 || 0;
+                points.y1 = node.quicklookY1 ? properties[node.quicklookY1] : properties.y1 || 0;
+                points.x2 = node.quicklookX2 ? properties[node.quicklookX2] : properties.x2 || 0;
+                points.y2 = node.quicklookY2 ? properties[node.quicklookY2] : properties.y2 || 0;
+                points.x3 = node.quicklookX3 ? properties[node.quicklookX3] : properties.x3 || 0;
+                points.y3 = node.quicklookY3 ? properties[node.quicklookY3] : properties.y3 || 0;
+                points.x4 = node.quicklookX4 ? properties[node.quicklookX4] : properties.x4 || 0;
+                points.y4 = node.quicklookY4 ? properties[node.quicklookY4] : properties.y4 || 0;
+                ready = true;
+                begx = mInPixel * points.x1;
+                begy = mInPixel * points.y1;
             } else {
                 points = utils.getQuicklookPoints(coord);
             }
