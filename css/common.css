@@ -769,7 +769,7 @@ skype_pnh_container
 }
 .attrsTableBody #attrsTableParent th
 {
-	background:url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;
+	/* background:url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;*/
 	height:20px;
 	text-align:center;
 	padding: 1px 5px 2px 5px;
