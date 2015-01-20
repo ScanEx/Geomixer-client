@@ -2879,6 +2879,7 @@
                 if (arr.length) {
                     var def = node.getTileRasters(arr, attr);
                     def.done(function(geoItems, tileAttr, images) {
+                        if(!myLayer._map) return;
                         node.drawGeoArr(geoItems, tileAttr, images, true);
                         //myLayer._markTile(tilePoint, 1);
                         node.isIdle();  // запуск проверки окончания отрисовки
