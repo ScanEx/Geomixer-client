@@ -8,20 +8,9 @@
 (function($){
 
 //TODO: переписать генерацию UI на шаблонах
+
 //Очень суровое решение для разруливания конфликтов с глобальными переменными.
-var _ = nsGmx.Utils._,
-    _input = nsGmx.Utils._input,
-    _td = nsGmx.Utils._td,
-    _tr = nsGmx.Utils._tr,
-    _div = nsGmx.Utils._div,
-    _t = nsGmx.Utils._t,
-    _table = nsGmx.Utils._table,
-    _tbody = nsGmx.Utils._tbody,
-    _img = nsGmx.Utils._img,
-    _span = nsGmx.Utils._span,
-    _li = nsGmx.Utils._li,
-    _ul = nsGmx.Utils._ul,
-    _form = nsGmx.Utils._form;
+var _, _input, _td, _tr, _div, _t, _table, _tbody, _img, _span, _li, _ul, _form;
 
 $('#flash').droppable({
     drop: function(event, ui) {
@@ -35,27 +24,29 @@ $('#flash').droppable({
     }
 })
 
-_translationsHash.addtext("rus", {
-	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
-	"Следующие [value0] страниц": "Следующие [value0] страниц",
-	"Следующие [value0] страницы": "Следующие [value0] страницы",
-	"Следующая страница": "Следующая страница",
-	"Следующая [value0] страница": "Следующая [value0] страница",
-    "Предыдущие [value0] страниц" : "Предыдущие [value0] страниц",
-    "Первая страница" : "Первая страница",
-    "Последняя страница" : "Последняя страница"
-});
+var initTranslations = function() {
+    _translationsHash.addtext("rus", {
+        "Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
+        "Следующие [value0] страниц": "Следующие [value0] страниц",
+        "Следующие [value0] страницы": "Следующие [value0] страницы",
+        "Следующая страница": "Следующая страница",
+        "Следующая [value0] страница": "Следующая [value0] страница",
+        "Предыдущие [value0] страниц" : "Предыдущие [value0] страниц",
+        "Первая страница" : "Первая страница",
+        "Последняя страница" : "Последняя страница"
+    });
 
-_translationsHash.addtext("eng", {
-	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine",
-	"Следующие [value0] страниц": "Next [value0] pages",
-	"Следующие [value0] страницы": "Next [value0] pages",
-	"Следующая страница": "Next page",
-	"Следующая [value0] страница": "Next [value0] pages",
-    "Предыдущие [value0] страниц" : "Previous [value0] pages",
-    "Первая страница" : "First page",
-    "Последняя страница" : "Last page"
-});
+    _translationsHash.addtext("eng", {
+        "Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine",
+        "Следующие [value0] страниц": "Next [value0] pages",
+        "Следующие [value0] страницы": "Next [value0] pages",
+        "Следующая страница": "Next page",
+        "Следующая [value0] страница": "Next [value0] pages",
+        "Предыдущие [value0] страниц" : "Previous [value0] pages",
+        "Первая страница" : "First page",
+        "Последняя страница" : "Last page"
+    });
+}
 
 
 /** Вспомогательные функции
@@ -219,7 +210,9 @@ var SearchInput = function (oInitContainer, params) {
         if (getkey(evt) == 13) {
 			if (Number(new Date()) - dtLastSearch < 1000 || $("#ui-active-menuitem").get().length > 0) return; //Если уже ведется поиск по автозаполнению, то обычный не ведем
 			dtLastSearch = new Date();
-			if($(searchField).autocomplete != null)$(searchField).autocomplete("close");
+			if($(searchField).data('ui-autocomplete')) {
+                $(searchField).autocomplete("close");
+            }
             fnSearch();
             return true;
         }
@@ -1927,6 +1920,26 @@ var publicInterface = {
 	Functions: Functions
 }
 
-gmxCore.addModule("search", publicInterface);
+gmxCore.addModule("search", publicInterface, {
+    require: ['utilities', 'translations'],
+    init: function() {
+        //Очень суровое решение для разруливания конфликтов с глобальными переменными.
+        _ = nsGmx.Utils._;
+        _input = nsGmx.Utils._input;
+        _td = nsGmx.Utils._td;
+        _tr = nsGmx.Utils._tr;
+        _div = nsGmx.Utils._div;
+        _t = nsGmx.Utils._t;
+        _table = nsGmx.Utils._table;
+        _tbody = nsGmx.Utils._tbody;
+        _img = nsGmx.Utils._img;
+        _span = nsGmx.Utils._span;
+        _li = nsGmx.Utils._li;
+        _ul = nsGmx.Utils._ul;
+        _form = nsGmx.Utils._form;
+        
+        initTranslations();
+    }
+});
 
 })(jQuery); 
