@@ -2562,6 +2562,10 @@
                 node.isIdle(-1);  // обнуление проверок окончания отрисовки
 
                 var onError = function(e) {
+                    if (node.tileRasterFunc && !geom.properties.GMX_RasterCatalogID) {
+                        callback(null);
+                        return;
+                    }
                     node.badRastersURL[rUrl] = true;
                     if (node.tileRasterFunc && z > 1) {
                         // запрос по раззумливанию растрового тайла
