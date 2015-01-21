@@ -850,6 +850,13 @@
         }
         bottomBG.addTo(LMap);
 
+        var gmxLogo = null;
+        if (L.Control.gmxLogo) {
+            gmxLogo = L.control.gmxLogo();
+            Controls.items[gmxLogo.options.id] = gmxLogo;
+        }
+        gmxLogo.addTo(LMap);
+        
         // LocationControls - 
         var locationControl = null;
         // if (false && L.Control.gmxLocation) {

@@ -136,7 +136,7 @@
     }
     var checkLastPoint = function(geom) {
         var type = geom.type;
-        if (type !== "Polyline") {
+        if (type !== "LineString") {
             var coords = geom.coordinates;
             for (var i = 0, len = coords.length; i < len; i++) {
                 var arr = coords[i], len1 = arr.length - 1;
