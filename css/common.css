@@ -1452,8 +1452,16 @@ div.layersScroll
     float: left;
 }
 
-.maps-manager-active{
+.maps-manager-active {
     background-color: #fcfcfc;
+}
+
+.buttonLink.maps-manager-mapname {
+    text-decoration: none;
+    overflow-x: hidden;
+    display: inline-block;
+    width: 100%;
+    text-overflow: ellipsis;
 }
 
 /* Group editor */
@@ -1605,6 +1613,14 @@ div.layersScroll
     padding: 0px 5px;
 }
 
+#mapsList {
+    overflow: hidden;
+}
+
+#mapsTableParent .tableBody > table{
+    table-layout: fixed;
+}
+
 .mapslist-search-table {
     width: 100%;
     margin-bottom: 10px;
@@ -1699,7 +1715,7 @@ div.layersScroll
 .ui-widget .loginButton {
     padding: 0px 7px;
     font-size: 12px;
-    margin: 3px 0px 10px 0px;
+    margin-top: 3px;
 }
 
 .loginLinks {

@@ -6,6 +6,8 @@ nsGmx.MapsManagerControl = function()
 {
     var _this = this;
     this._activeIndex = 0;
+    this._mapsTable = new nsGmx.ScrollTable();
+    
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
         if (!parseResponse(response))
@@ -14,7 +16,6 @@ nsGmx.MapsManagerControl = function()
         _this._drawMapsDialog(response.Result);
     })
     
-    this._mapsTable = new nsGmx.ScrollTable();
 }
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
@@ -23,9 +24,9 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
         '<div class="mapslist-search">' +
             '<table class="mapslist-search-table"><tr>' +
                 '<td>' +
-                    '{{i Название}}<input class="mapslist-search-name">' +
+                    '{{i Название}}<input class="inputStyle mapslist-search-name">' +
                 '</td><td>' +
-                    '{{i Владелец}}<input class="mapslist-search-owner">' +
+                    '{{i Владелец}}<input class="inputStyle mapslist-search-owner">' +
                 '</td>' +
             '</tr></table>' +
         '</div>';
@@ -169,7 +170,7 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	_title(addExternal, _gtxt("Добавить"));
 	_title(remove, _gtxt("Удалить"));
 	
-	name.style.textDecoration = 'none';
+    name.className = name.className + ' maps-manager-mapname';
 	
 	name.onclick = function()
 	{
