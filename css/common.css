@@ -90,7 +90,7 @@ option
 .inputStyle.inputFullWidth {
     width: 100%;
     box-sizing: border-box;
-    height: 18px;
+    height: 20px;
     margin-right: 0px;
     margin-left: 0px;
 }
@@ -906,20 +906,20 @@ skype_pnh_container
 
 .layersScroll .ui-widget-content
 {
-	background: #cceeee;
+	background: #C7C7C7;
 	margin: 7px;
 }
 
 div.layersScroll
 {
-	width: 330px;
-	padding: 5px 0px;
+    width: 315px;
+    padding: 5px 0px;
 }
 
-.layersScroll label
+.layersScroll > label > input
 {
-	font-size: 12px;
-	margin-left: 3px;
+    vertical-align: middle;
+    margin-right: 4px;
 }
 
 .layersScroll table, .layersScroll td#scrollTD

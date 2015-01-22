@@ -461,7 +461,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
             '{{#isTitle}}<div class="leftTitle">' +
                 '<table class="leftmenu-path">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
-                '{{#showMinimizeButton}}<div class="leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
+                '{{#showMinimizeButton}}<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
         '</div>';
