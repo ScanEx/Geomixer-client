@@ -841,12 +841,16 @@ function initEditUI() {
     //добавляем тул в тублар карты
     var listeners = {};
     var pluginPath = gmxCore.getModulePath('EditObjectPlugin');
-    globalFlashMap.drawing.addTool('editTool'
-        , _gtxt("Редактировать")
-        , 'img/project_tool.png'
-        , 'img/project_tool.png'
-        , function()
-        {
+    
+    var saveMapIcon = new L.Control.gmxIcon({
+        id: 'editTool',
+        title: _gtxt("Редактировать"),
+        togglable: true,
+        addBefore: 'toolsGroup'
+    }).addTo(gmxAPI._leaflet.LMap);
+        
+    saveMapIcon.on('statechange', function() {
+        if (saveMapIcon.options.isActive) {
             for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
             {
                 var layer = globalFlashMap.layers[iL];
@@ -871,9 +875,7 @@ function initEditUI() {
                     }
                 }
             }
-        }
-        , function()
-        {
+        } else {
             //for (var i = 0; i < listeners.length; i++) {
             for (var layerName in listeners) {
                 var pt = listeners[layerName];
@@ -885,9 +887,9 @@ function initEditUI() {
                     layer.enableFlip();
                 }
             }
-            listeners = {};
+            listeners = {};            
         }
-    )
+    });
     
     isEditUIInitialized = true;
 }
@@ -940,16 +942,6 @@ function loadMap(state)
         });
         
         if (map && map.controlsManager) {
-            var permalinkControl = map.controlsManager.getControl('permalink');
-            if (permalinkControl) {
-                permalinkControl.setVisible(true);
-                 map.controlsManager.addListener('onClick', function(event) {
-                     if (event.id === 'permalink') {
-                        _mapHelper.showPermalink();
-                     }
-                });
-            }
-            
             var layers = map.controlsManager.getCurrent().getControl('layers');
             if (layers) {
                   layers.options.hideBaseLayers = true;
@@ -1263,47 +1255,80 @@ function loadMap(state)
                 resizeAll();
             }
             
-            // пополняем тулбар
+            //лупу совсем убираем
+            gmxAPI.map.controlsManager.getCurrent().removeControl('boxzoom');
+            
+            //пополняем тулбар
             var saveMapIcon = new L.Control.gmxIcon({
                 id: 'saveMap', 
                 title: _gtxt("Сохранить карту"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/save_map_tool.png'
+                addBefore: 'drawing'
             })
                 .addTo(gmxAPI._leaflet.LMap)
                 .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
             
+            //группа инструментов
+            var gridIcon = new L.Control.gmxIcon({
+                id: 'gridTool', 
+                title: _gtxt("Координатная сетка"),
+                togglable: true
+            }).on('click', function() {
+                var isActive = gridIcon.options.isActive;
+                globalFlashMap.grid.setVisible(isActive);
+                _mapHelper.gridView = isActive;
+            });
+            
+            var bookmarkIcon = new L.Control.gmxIcon({
+                id: 'bookmark',
+                title: _gtxt("Добавить закладку")
+            }).on('click', function() {
+                mapHelp.tabs.load('mapTabs');
+                _queryTabs.add();
+            });
+            
+            var uploadFileIcon = new L.Control.gmxIcon({
+                id: 'uploadFile', 
+                title: _gtxt("Загрузить файл")
+            }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
+            
+            var ToolsGroup = new L.Control.gmxIconGroup({
+                id: 'toolsGroup',
+                isSortable: true,
+                items: [gridIcon, bookmarkIcon, uploadFileIcon]
+            }).addTo(gmxAPI._leaflet.LMap);
+            
+            //группа создания слоёв
             var createVectorLayerIcon = new L.Control.gmxIcon({
                 id: 'createVectorLayer', 
                 title: _gtxt("Создать векторный слой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_vector_tool.png'
             }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
-                
+            
             var createRasterLayerIcon = new L.Control.gmxIcon({
                 id: 'createRasterLayer', 
                 title: _gtxt("Создать растровый слой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_raster_tool.png'
             }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
-            
-            var createMultiLayerIcon = new L.Control.gmxIcon({
-                id: 'createMultiLayer', 
-                title: _gtxt("Создать мультислой"),
-                regularImageUrl: 'http://images.kosmosnimki.ru/new_tools/add_layer_multilayer_tool.png'
-            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'));
             
             var createLayerIconGroup = new L.Control.gmxIconGroup({
                 id: 'createLayer',
                 isSortable: true,
-                items: [createVectorLayerIcon, createRasterLayerIcon, createMultiLayerIcon]
+                //isCollapsible: false,
+                items: [createVectorLayerIcon, createRasterLayerIcon]
             }).addTo(gmxAPI._leaflet.LMap);
-            
-            var saveMapIcon = new L.Control.gmxIcon({
-                id: 'uploadFile', 
-                title: _gtxt("Загрузить файл"),
-                regularImageUrl: 'http://search.kosmosnimki.ru/img/upload.png'
+
+            var printIcon = new L.Control.gmxIcon({
+                id: 'print',
+                title: _gtxt('Печать'),
+                addBefore: 'createLayer'
             })
                 .addTo(gmxAPI._leaflet.LMap)
-                .on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
-            
+                .on('click', _mapHelper.print.bind(_mapHelper));
+                
+            var permalinkIcon = new L.Control.gmxIcon({
+                id: 'permalink',
+                title: _gtxt('Ссылка на карту')
+            })
+                .addTo(gmxAPI._leaflet.LMap)
+                .on('click', _mapHelper.showPermalink.bind(_mapHelper));
             
             _leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
                                function() { _toggleFullscreenIcon(true); });
@@ -1347,10 +1372,7 @@ function loadMap(state)
             
             _menuUp.checkView();
             
-            // _queryMapLayers.removeUserActions();
             _iconPanel.updateVisibility();
-            
-            // nsGmx.widgets.authWidget = new nsGmx.AuthWidget(nsGmx.widgets.header.getAuthPlaceholder()[0], nsGmx.AuthManager, defaultLoginCallback());
             
             if (nsGmx.AuthManager.isLogin())
             {
