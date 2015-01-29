@@ -14,8 +14,7 @@
 		var nodes = gmxAPI._leaflet.mapNodes;
 		for (var id in itemsHash) {
 			var node = nodes[id];
-			if(!node) return false;
-			gmxAPI._leaflet.utils.repaintNode(node, true);
+			if(node) gmxAPI._leaflet.utils.repaintNode(node, true);
 		}
 		itemsHash = {};
 		return true;
