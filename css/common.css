@@ -1758,6 +1758,7 @@ div.layersScroll
 .leaflet-gmx-icon-gridTool {
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -268px -59px;
+    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-bookmark {
