@@ -80,23 +80,43 @@ queryTabs.prototype.load = function()
 	}
 }
 
-queryTabs.prototype.add = function()
+queryTabs.prototype.add = function(tabInfo, tabIndex)
 {
+    var isNew = typeof tabIndex === 'undefined';
+    tabInfo = tabInfo || {
+        name_rus: '',
+        description_rus: '',
+        name_eng: '',
+        description_eng: ''
+    };
+    
+    if (typeof tabInfo.name_rus === 'undefined') {
+        tabInfo.name_rus = tabInfo.name;
+    }
+    
+    if (typeof tabInfo.description_rus === 'undefined') {
+        tabInfo.description_rus = tabInfo.description;
+    }
+    
     var uiTemplate = 
         '<div class = "addtabs-container">' +
             '<div class = "addtabs-info">{{i Название}}</div>' + 
-            '<input class = "addtabs-title-input inputStyle"><br>' + 
+            '<input class = "addtabs-title-input inputStyle" value="{{title}}"><br>' + 
             '<div class = "addtabs-info">{{i Описание}}</div>' + 
-            '<textarea class = "addtabs-title-description inputStyle"></textarea><br>' + 
-            '<button class = "addtabs-create">{{i Создать}}</button>' +
+            '<textarea class = "addtabs-title-description inputStyle">{{description}}</textarea><br>' + 
+            '<button class = "addtabs-create">{{buttonTitle}}</button>' +
             '<div class = "addtabs-lang-placeholder"></div>' + 
         '</div>';
         
-    var ui = $(Mustache.render(uiTemplate)),
-        titleInput = $('.addtabs-title-input', ui);
         
-    var titleLoc = {rus: '', eng: ''};
-    var descrLoc = {rus: '', eng: ''};
+    var titleLoc = {rus: tabInfo.name_rus, eng: tabInfo.name_eng};
+    var descrLoc = {rus: tabInfo.description_rus, eng: tabInfo.description_eng};
+    var ui = $(Mustache.render(uiTemplate, {
+            title: titleLoc.rus, 
+            description: descrLoc.rus,
+            buttonTitle: isNew ? _gtxt('Создать') : _gtxt('Изменить')
+        })),
+        titleInput = $('.addtabs-title-input', ui);
     
     var updateDataLoc = function(lang) {
         titleLoc[lang] = titleInput.val();
@@ -113,17 +133,18 @@ queryTabs.prototype.add = function()
     titleInput.keyup(function(e) {
         $(this).toggleClass('error', this.value == '');
 
-	  	if (e.keyCode == 13)
-	  	{
-			createTab();
+        if (e.keyCode == 13)
+        {
+            createTab();
+            return false;
+        }
 
-	  		return false;
-	  	}
-
-		return true;
+        return true;
     });
+    
+    titleInput.focus();
              
-	var createTab = function() {
+    var createTab = function () {
             updateDataLoc(langControl.getLang());
             var mapState = _mapHelper.getMapState(),
                 tab = {
@@ -138,68 +159,88 @@ queryTabs.prototype.add = function()
                     state: mapState
                 };
             
-            _this.tabs.push(tab);
-            _this.draw(tab);
+            if (isNew) {
+                _this.tabs.push(tab);
+            } else {
+                _this.tabs[tabIndex] = tab;
+            }
+            _this.draw(tab, tabIndex);
             
             removeDialog(dialogDiv);
         },
         _this = this;
-	
+
     $('.addtabs-create', ui).click(createTab);
-	
-	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 200, false, false)
+
+    var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 200, false, false)
 }
 
-queryTabs.prototype.draw = function(tabInfo)
+queryTabs.prototype.draw = function (tabInfo, tabIndex)
 {
     var selectValLoc = function(paramName) {
         var lang = nsGmx.Translations.getLanguage();
         return tabInfo[paramName + '_' + lang] || tabInfo[paramName];
     }
     
-	var canvas = _div(null, [['dir','className','canvas']]),
-		title = makeLinkButton(selectValLoc('name')),
-		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
-		_this = this;
-		
-	canvas.tabInfo = tabInfo;
-    
+    var canvas = _div(null, [['dir','className','canvas']]),
+        title = makeLinkButton(selectValLoc('name')),
+        edit = makeImageButton('img/edit.png','img/edit.png'),
+        remove = makeImageButton('img/closemin.png','img/close_orange.png'),
+        _this = this;
+        
+    canvas.tabInfo = tabInfo;
+
     var description = selectValLoc('description');
     if (description) {
         title.title = description;
     }
-	
-	title.onclick = function()
-	{
-		_this.show(tabInfo.state)
-	}
-	
-	title.style.marginLeft = '5px';
-	
-	remove.onclick = function()
-	{
-		var index = getOwnChildNumber(canvas);
-		
-		_this.tabs.splice(index, 1);
-		
-		canvas.removeNode(true);
-	}
-	
-	remove.className = 'remove';
-	
-	_(canvas, [_div([title], [['dir','className','item']]), remove])
-	
-	_(this.tabsCanvas, [canvas]);
+
+    title.onclick = function()
+    {
+        _this.show(tabInfo.state)
+    }
+
+    title.style.marginLeft = '5px';
+    
+    edit.onclick = function() {
+        var index = getOwnChildNumber(canvas);
+        _this.add(_this.tabs[index], index);
+    }
+
+    remove.onclick = function()
+    {
+        var index = getOwnChildNumber(canvas);
+        
+        _this.tabs.splice(index, 1);
+        
+        canvas.removeNode(true);
+    }
+
+    remove.className = 'remove';
+    edit.className = 'tabs-edit';
+
+    _(canvas, [_div([title], [['dir','className','item']]), edit, remove]);
+    
+    if (_queryMapLayers.currentMapRights() != "edit") {
+        $(edit).hide();
+    }
+
+    if (typeof tabIndex === 'undefined') {
+        _(this.tabsCanvas, [canvas]);
+    } else {
+        $(this.tabsCanvas).find('.canvas').eq(tabIndex).replaceWith(canvas);
+    }
 }
 
 queryTabs.prototype.show = function(state)
 {
 	var parsedState = {};
-	$.extend(true, parsedState, state)
+	$.extend(true, parsedState, state);
+    var pos = parsedState.position;
 	
-	parsedState.position.x = from_merc_x(state.position.x);
-	parsedState.position.y = from_merc_y(state.position.y);
-	parsedState.position.z = 17 - state.position.z;
+	pos.x = from_merc_x(pos.x);
+	pos.y = from_merc_y(pos.y);
+	pos.z = 17 - pos.z;
 	
 	if (state.drawnObjects.length)
 	{
@@ -210,7 +251,7 @@ queryTabs.prototype.show = function(state)
 		}
 	}
 	
-	globalFlashMap.moveTo(parsedState.position.x, parsedState.position.y, parsedState.position.z);
+	globalFlashMap.moveTo(pos.x, pos.y, pos.z);
 	globalFlashMap.setMode(parsedState.mode);
 	
 	globalFlashMap.drawing.forEachObject(function(obj)

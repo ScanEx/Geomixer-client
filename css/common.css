@@ -1523,6 +1523,15 @@ div.layersScroll
     right: 10px;
 }
 
+.tabs-edit {
+    position: absolute;
+    height: 11px;
+    position: absolute;
+    right: 28px;
+    height: 11px;
+    top: 5px;
+}
+
 .language-item {
     cursor: pointer;
     margin-left: 3px;
