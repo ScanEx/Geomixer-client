@@ -200,7 +200,7 @@ UpMenu.prototype.draw = function()
 UpMenu.prototype.checkItem = function(id, isChecked) {
     if (this.refs[id]) {
         this.refs[id].checked = isChecked;
-        $(this.parent).find('li[hash=' + id + ']').find('.menuMarkerLeft').toggleClass('menuChecked', isChecked);
+        $(this.parent).find('li[hash=' + id + ']').find('.menuMarkerLeft').toggleClass('ui-icon ui-icon-check', isChecked);
     }
 }
 
@@ -411,8 +411,8 @@ UpMenu.prototype.openTab = function(id)
         item.func(id);
     } else {
         var func = item[item.checked ? 'onunsel' : 'onsel'];
-        func && func(id);
         this.checkItem(id, !item.checked);
+        func && func(id);
     }
 }
 

@@ -126,12 +126,6 @@ li.menuClickable, div.menuClickable {
     float: left;
 }
 
-.menuMarkerLeft.menuChecked {
-    background: url(../common_components/common/CommonStyles/assets/images/check-a.png);
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 /* menu */
 div.upMenu
 {
