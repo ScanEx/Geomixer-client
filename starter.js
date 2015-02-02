@@ -107,6 +107,21 @@ window.collectCustomParams = function()
 	return null;
 }
 
+var gridManager = {
+    state: false,
+    setState: function(newState) {
+        if (this.state == newState) {
+            return;
+        }
+        
+        this.state = newState;
+        gmxAPI._leaflet.LMap.gmxControlIconManager.get('gridTool').setActive(newState);
+        _menuUp.checkItem('mapGrid', newState);
+        _mapHelper.gridView = newState; //можно удалить?
+        globalFlashMap.grid.setVisible(newState);
+    }
+}
+
 var createMenuNew = function()
 {
     //формирует описание элемента меню для включения/выключения плагина
@@ -201,8 +216,8 @@ var createMenuNew = function()
         {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
 		[
 			{id: 'mapGrid', title:_gtxt('Координатная сетка'), 
-                onsel: function(){globalFlashMap.grid.setVisible(true); _mapHelper.gridView = true;}, 
-                onunsel: function(){globalFlashMap.grid.setVisible(false); _mapHelper.gridView = false;},
+                onsel: gridManager.setState.bind(gridManager, true), //function(){globalFlashMap.grid.setVisible(true); _mapHelper.gridView = true;}, 
+                onunsel: gridManager.setState.bind(gridManager, false), //function(){globalFlashMap.grid.setVisible(false); _mapHelper.gridView = false;},
                 checked: _mapHelper.gridView
             },
 			{id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
@@ -1292,8 +1307,9 @@ function loadMap(state)
                 .addTo(lmap)
                 .on('click', function() {
                     var isActive = gridIcon.options.isActive;
-                    globalFlashMap.grid.setVisible(isActive);
-                    _mapHelper.gridView = isActive;
+                    gridManager.setState(isActive);
+                    //globalFlashMap.grid.setVisible(isActive);
+                    //_mapHelper.gridView = isActive;
                 });
             
             //группа создания слоёв
