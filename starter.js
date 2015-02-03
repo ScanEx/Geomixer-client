@@ -107,6 +107,7 @@ window.collectCustomParams = function()
 	return null;
 }
 
+//для синхронизации меню и тулбара при включении/выключении сетки координат
 var gridManager = {
     state: false,
     setState: function(newState) {
@@ -1308,42 +1309,42 @@ function loadMap(state)
                 .on('click', function() {
                     var isActive = gridIcon.options.isActive;
                     gridManager.setState(isActive);
-                    //globalFlashMap.grid.setVisible(isActive);
-                    //_mapHelper.gridView = isActive;
                 });
             
-            //группа создания слоёв
-            var createVectorLayerIcon = new L.Control.gmxIcon({
-                id: 'createVectorLayer', 
-                title: _gtxt("Создать векторный слой"),
-            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
-            
-            var createRasterLayerIcon = new L.Control.gmxIcon({
-                id: 'createRasterLayer', 
-                title: _gtxt("Создать растровый слой"),
-            }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
-            
-            var createLayerIconGroup = new L.Control.gmxIconGroup({
-                id: 'createLayer',
-                isSortable: true,
-                //isCollapsible: false,
-                items: [createVectorLayerIcon, createRasterLayerIcon]
-            }).addTo(lmap);
-            
-            var bookmarkIcon = new L.Control.gmxIcon({
-                id: 'bookmark',
-                title: _gtxt("Добавить закладку")
-            }).on('click', function() {
-                mapHelp.tabs.load('mapTabs');
-                _queryTabs.add();
-            }).addTo(lmap);
-            
-            var saveMapIcon = new L.Control.gmxIcon({
-                id: 'saveMap', 
-                title: _gtxt("Сохранить карту")
-            })
-                .addTo(lmap)
-                .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
+            if (_queryMapLayers.currentMapRights() === "edit") {
+                //группа создания слоёв
+                var createVectorLayerIcon = new L.Control.gmxIcon({
+                    id: 'createVectorLayer', 
+                    title: _gtxt("Создать векторный слой"),
+                }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+                
+                var createRasterLayerIcon = new L.Control.gmxIcon({
+                    id: 'createRasterLayer', 
+                    title: _gtxt("Создать растровый слой"),
+                }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+                
+                var createLayerIconGroup = new L.Control.gmxIconGroup({
+                    id: 'createLayer',
+                    isSortable: true,
+                    //isCollapsible: false,
+                    items: [createVectorLayerIcon, createRasterLayerIcon]
+                }).addTo(lmap);
+                
+                var bookmarkIcon = new L.Control.gmxIcon({
+                    id: 'bookmark',
+                    title: _gtxt("Добавить закладку")
+                }).on('click', function() {
+                    mapHelp.tabs.load('mapTabs');
+                    _queryTabs.add();
+                }).addTo(lmap);
+                
+                var saveMapIcon = new L.Control.gmxIcon({
+                    id: 'saveMap', 
+                    title: _gtxt("Сохранить карту")
+                })
+                    .addTo(lmap)
+                    .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
+            }
 
             // var ToolsGroup = new L.Control.gmxIconGroup({
                 // id: 'toolsGroup',
