@@ -82,11 +82,11 @@ var nsGmx = nsGmx || {};
             '<div class = "loginMainDiv">' +
                 '<div>' +
                     '<span class="loginLabel">{{i Логин}}</span><br>' +
-                    '<input class = "inputStyle inputLogin" title = "{{i адрес электронной почты}}"><br>' +
+                    '<input class = "inputStyle inputLogin" placeholder = "{{i адрес электронной почты}}"><br>' +
                 '</div>' +
                 '<div>' +
                     '<span class="loginLabel">{{i Пароль}}</span><br>' +
-                    '<input class = "inputStyle inputPass" type = "password" title = "{{i Пароль}}"><br>' +
+                    '<input class = "inputStyle inputPass" type = "password" placeholder = "{{i пароль}}"><br>' +
                 '</div>' +
                 '<button class="loginButton">{{i Вход}}</button>' +
             '</div>' +
