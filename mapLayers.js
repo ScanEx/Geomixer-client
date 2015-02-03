@@ -225,6 +225,10 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
     this.treeModel = new nsGmx.LayersTree(tree);
     this._mapTree = tree; //Устарело: используйте this.treeModel для доступа к исходному дереву
     
+    this.treeModel.forEachLayer(function(layerContent, isVisible) {
+        layerContent.properties.initVisible = layerContent.properties.visible;
+    });
+    
     var _this = this;
     $(this.treeModel).on('nodeVisibilityChange', function(event, elem) {
         var props = elem.content.properties;
@@ -1424,10 +1428,11 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		{
             
             var name = props.name;
-			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
-			{
+			if (typeof condition.visible[name] != 'undefined') {
                 _layersTree.treeModel.setNodeVisibility(elem, condition.visible[name]);
-			}
+			} else {
+                _layersTree.treeModel.setNodeVisibility(elem, props.initVisible);
+            }
 			
 			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&
 				!_this.equalStyles(props.styles, mapLayersParam[name]))
@@ -1965,12 +1970,13 @@ queryMapLayers.prototype.createMap = function(name)
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
         {
+            var props = child.content.properties;
             if (child.type == "group")
             {
-                var props = child.content.properties;
                 props.expanded = typeof props.initExpand !== 'undefined' ? props.initExpand : false;
                 delete props.initExpand;
             }
+            delete props.initVisible;
         }, true);
         
         var params = {
