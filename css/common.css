@@ -212,7 +212,17 @@ div.user span
     top: 0px;
     bottom: 0px;
     margin: auto;
-    margin-left: -2px;
+    width: 6px;
+    height: 11px;
+    margin-left: 2px;
+}
+
+.leftCollapser-left {
+    background: url(../img/collapse-arrow-left.gif)
+}
+
+.leftCollapser-right {
+    background: url(../img/collapse-arrow-right.gif)
 }
 
 .flashMap
@@ -234,7 +244,7 @@ div.user span
 .leftMenu
 {
 	position: absolute;
-	left: 12px;
+	left: 0px;
 	top: 95px;
 	width: 360px;
 	overflow: hidden;

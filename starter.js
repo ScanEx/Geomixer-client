@@ -753,7 +753,7 @@ window.resizeAll = function()
 	var top = 0,
 		bottom = 0,
 		right = 0,
-		left = Number(layersShown) * 360 + 12,
+		left = layersShown ? 360 : 12,
         headerHeight = $('#header').height();
 	
 	$$("flash").style.left = left + 'px';
@@ -1271,8 +1271,8 @@ function loadMap(state)
             
             var updateLeftPanelVis = function() {
                 $('.leftCollapser-icon')
-                    .toggleClass('ui-icon-triangle-1-e',  !layersShown)
-                    .toggleClass('ui-icon-triangle-1-w', !!layersShown);
+                    .toggleClass('leftCollapser-right', !layersShown)
+                    .toggleClass('leftCollapser-left', !!layersShown);
                 resizeAll();
             }
             
