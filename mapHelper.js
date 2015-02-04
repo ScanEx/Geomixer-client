@@ -1152,9 +1152,9 @@ mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, d
 {
 	var proceess = function( text )
 	{
-		if (num ) text = text.replace("{gmxVersion}", num);
-		if (data) text = text.replace("{gmxData}", data);
-		callback(text);
+		//if (num ) text = text.replace("{gmxVersion}", num);
+		//if (data) text = text.replace("{gmxData}", data);
+		callback(Mustache.render(text, {gmxVersion: num, gmxData: data}));
 	}
 	
 	if (fileName.indexOf("http://") !== 0)
@@ -1168,56 +1168,22 @@ mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, d
 
 mapHelper.prototype.version = function()
 {
-	var _this = this;
-	if (!$$('version'))
-	{
-		function showVersion(num, data)
-		{
-			var div = $("<div></div>");
-			
-			var fileName;
-			
-			if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.helpFilePrefix !== 'undefined')
-				fileName = window.gmxViewerUI.helpFilePrefix;
-			else
-				fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
-			
-			fileName += _gtxt("helpPostfix");
-			
-			_mapHelper._loadHelpTextFromFile( fileName, function( text )
-			{
-				div.html(text);
-				showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
-			}, num, data );			
-			}
-			
-		if (!this.versionNum)
-		{
-			var _this = this;
-			
-			$.ajax({
-				url: '../version.txt',
-				success: function(resp)
-				{
-				  _this.versionNum = strip(String(resp.split('\n')[0]));
-				  _this.versionData = strip(String(resp.split('\n')[1]));
-				  
-				  showVersion(_this.versionNum, _this.versionData)
-				},
-				error: function(resp)
-				{
-				  _this.versionNum = '1.6';
-				  _this.versionData = _gtxt('файл версии отсутствует');
-				  
-				  showVersion('1.6', _this.versionData)
-				},
-				dataType: 'text'
-			});
-
-		}
-		else
-			showVersion(this.versionNum, this.versionData)
-	}
+    var div = $("<div class='gmx-about'></div>");
+        
+    var fileName;
+    
+    if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.helpFilePrefix !== 'undefined')
+        fileName = window.gmxViewerUI.helpFilePrefix;
+    else
+        fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
+    
+    fileName += _gtxt("helpPostfix");
+    
+    _mapHelper._loadHelpTextFromFile( fileName, function(text)
+    {
+        div.html(text);
+        showDialog(_gtxt("О проекте"), div[0], 500, 300, false, false);
+    }, window.nsGmx.GeomixerFrameworkVersion, '' );
 }
 
 mapHelper.prototype.createAPIMapDialog = function()

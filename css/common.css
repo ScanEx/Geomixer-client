@@ -1789,3 +1789,12 @@ div.layersScroll
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -114px -58px;
 }
+
+.gmx-about {
+    margin: 0px 16px;
+}
+
+.gmx-about > p {
+    margin-bottom: 1em;
+    line-height: 1.4em;
+}
