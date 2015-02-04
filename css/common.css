@@ -196,6 +196,25 @@ div.user span
 	width: 360px;
 }
 
+#leftCollapser {
+    position: absolute;
+    width: 12px;
+    bottom: 0px;
+    top: 90px;
+}
+
+#leftCollapser:hover {
+    background-color: #EFEFEF;
+}
+
+.leftCollapser-icon {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    margin: auto;
+    margin-left: -2px;
+}
+
 .flashMap
 {
 	position: relative;
@@ -215,7 +234,7 @@ div.user span
 .leftMenu
 {
 	position: absolute;
-	left: 0px;
+	left: 12px;
 	top: 95px;
 	width: 360px;
 	overflow: hidden;

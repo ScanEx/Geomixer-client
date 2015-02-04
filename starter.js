@@ -753,7 +753,7 @@ window.resizeAll = function()
 	var top = 0,
 		bottom = 0,
 		right = 0,
-		left = Number(layersShown) * 360,
+		left = Number(layersShown) * 360 + 12,
         headerHeight = $('#header').height();
 	
 	$$("flash").style.left = left + 'px';
@@ -766,10 +766,7 @@ window.resizeAll = function()
 	if (layersShown)
 	{
 		show($$("leftMenu"));
-		
-		// jQuery("#header").find("[hidable]").css("display",'');
-		// $$('header').style.height = '95px';
-		
+        
         var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
         $$("leftMenu").style.height = baseHeight + 'px'
@@ -1263,13 +1260,27 @@ function loadMap(state)
             
             //добавим в тулбар две иконки, но видимой будет только одна
             //по клику переключаем между ними
-            var _toggleFullscreenIcon = function(isFullScreen)
+            /*var _toggleFullscreenIcon = function(isFullScreen)
             {
                 _leftIconPanel.setVisible('fullscreenon', !isFullScreen);
                 _leftIconPanel.setVisible('fullscreenoff', isFullScreen);
                 layersShown = !layersShown;
                 resizeAll();
             }
+            */
+            
+            var updateLeftPanelVis = function() {
+                $('.leftCollapser-icon')
+                    .toggleClass('ui-icon-triangle-1-e',  !layersShown)
+                    .toggleClass('ui-icon-triangle-1-w', !!layersShown);
+                resizeAll();
+            }
+            
+            $('#leftCollapser').click(function() {
+                layersShown = !layersShown;
+                updateLeftPanelVis();
+            });
+            updateLeftPanelVis();
             
             var lmap = gmxAPI._leaflet.LMap;
             
@@ -1354,11 +1365,11 @@ function loadMap(state)
             
             //--------------------------------------
 
-            _leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
+            /*_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
                                function() { _toggleFullscreenIcon(true); });
             
             _leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
-                                function() { _toggleFullscreenIcon(false); }, null, true);
+                                function() { _toggleFullscreenIcon(false); }, null, true);*/
             
             //если в карте новый тип контролов, пермалинк из тулбаров перекачёвывает в контролы карты
             if (map.controlsManager && !map.controlsManager.getControl('permalink')) {
