@@ -156,19 +156,21 @@ queryTabs.prototype.draw = function(tabInfo)
         var lang = nsGmx.Translations.getLanguage();
         return tabInfo[paramName + '_' + lang] || tabInfo[paramName];
     }
-    var tmpl = '<div class="canvas"><div class="buttonLink tabName">{{name}}</div><div class="gmx-icon-close"></div>';
-    var canvas = $(Mustache.render(tmpl, {name: selectValLoc('name')}))[0];
+    
+    var tmpl = '<div class="canvas">' +
+        '<div class="buttonLink tabName" title="{{description}}">{{name}}</div>' +
+        '<div class="gmx-icon-close">' +
+    '</div>';
+    
+    var canvas = $(Mustache.render(tmpl, {
+            name: selectValLoc('name'),
+            description: selectValLoc('description')
+        }))[0];
     var _this = this;
 
 	canvas.tabInfo = tabInfo;
 	
-    $('.tabName', canvas).click(function() {
-	    var description = selectValLoc('description');
-        if (description) {
-            title.title = description;
-	    }
-		_this.show(tabInfo.state)
-	})
+    $('.tabName', canvas).click(this.show.bind(this, tabInfo.state));
 	
     $('.gmx-icon-close', canvas).click(function() {
 		var index = getOwnChildNumber(canvas);
