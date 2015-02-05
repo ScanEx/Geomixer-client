@@ -201,6 +201,7 @@ div.user span
     width: 12px;
     bottom: 0px;
     top: 90px;
+    cursor: pointer;
 }
 
 #leftCollapser:hover {
@@ -1807,4 +1808,12 @@ div.layersScroll
 .gmx-about > p {
     margin-bottom: 1em;
     line-height: 1.4em;
+}
+
+.ui-widget-content .gmx-about a{
+    color: #000000;
+}
+
+.ui-widget-content .gmx-about a:hover {
+    color: #FC830B
 }
