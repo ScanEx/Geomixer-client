@@ -1817,3 +1817,11 @@ div.layersScroll
 .ui-widget-content .gmx-about a:hover {
     color: #FC830B
 }
+
+.gmx-prompt-canvas {
+    margin: 0px 20px 0px 10px;
+}
+
+.gmx-prompt-input {
+    width: 100%;
+}

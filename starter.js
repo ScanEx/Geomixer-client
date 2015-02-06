@@ -1435,26 +1435,23 @@ function loadMap(state)
 		$$("noflash").style.display = "block";
 }
 
-function promptFunction(title, value)
-{
-	var input = _input(null, [['attr','value', value],['css','margin','20px 10px'],['dir','className','inputStyle'],['css','width','220px']]);
-	
-	input.onkeydown = function(e)
-	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
-			globalFlashMap.moveToCoordinates(input.value);
-	  		
-	  		return false;
-	  	}
-	}
-	
-	var div = _div([input],[['css','textAlign','center']]);
-	
-	showDialog(title, div, 280, 100, false, false);
-	
-	div.parentNode.style.overflow = 'hidden';
+function promptFunction(title, value) {
+    var ui = $(Mustache.render(
+            '<div class="gmx-prompt-canvas">' +
+                '<input class="inputStyle gmx-prompt-input" value="{{value}}">' +
+            '</div>', {value: value})
+        );
+        
+    ui.find('input').on('keydown', function(e) {
+        var evt = e || window.event;
+        if (e.which === 13)
+        {
+            globalFlashMap.moveToCoordinates(this.value);
+            return false;
+        }
+    })
+
+    showDialog(title, ui[0], 300, 80, false, false);
 }
 
 window.prompt = promptFunction;
