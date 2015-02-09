@@ -237,10 +237,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     
 	$$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
 
-	var canvas = _div(null, [['attr','id','securityDialog']]),
-		_this = this;
-        
-    var uiTemplate = '<div>' +
+	var _this = this;
+
+    var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
         '<div class="security-header">' + 
             '<table class="security-header-table"><tr>' +
                 '<td><div>' +
@@ -559,30 +558,20 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			
 			_this._securityTableSuggest.tableParent.style.height = mapTableHeight + 'px';
 			_this._securityTableSuggest.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
-		
-		
-			_this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
-
-			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
-			
-			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 		}
 		else
 		{
 			mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 30;
-			
-			_this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
-
-			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
-			
-			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 15 + 'px';
 		}
+        
+        _this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
+        _this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
+        _this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
+
+        _this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
+        
+        _this._securityTable.tableParent.style.height = mapTableHeight + 'px';
+        _this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 	}
 
 	showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, isShowUserSuggest ? 470 : 370, false, false, resize);

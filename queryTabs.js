@@ -147,7 +147,7 @@ queryTabs.prototype.add = function()
 	
     $('.addtabs-create', ui).click(createTab);
 	
-	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 220, false, false)
+	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 230, false, false);
 }
 
 queryTabs.prototype.draw = function(tabInfo)

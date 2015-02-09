@@ -36,8 +36,12 @@
 
 .ui-widget-content {
     border: none;
-    /*background: #FAFAFE;*/
     color: #000000;
+}
+
+.ui-dialog.ui-widget-content {
+    border: 1px solid #777;
+    box-shadow: rgba(0, 0, 0, 0.7) 0px 0px 3px;
 }
 
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
@@ -55,15 +59,15 @@
     padding: 16px 0px 9px 24px;
 }
 
-.ui-resizable-n {height: 10px; top:    -11px; border-bottom: 1px solid #DDDDDD;}
-.ui-resizable-s {height: 10px; bottom: -11px; border-top:    1px solid #DDDDDD;}
-.ui-resizable-e {width:  10px; right:  -11px; border-left:   1px solid #DDDDDD;}
-.ui-resizable-w {width:  10px; left:   -11px; border-right:  1px solid #DDDDDD;}
+.ui-resizable-n {height: 10px; top:    -7px;}
+.ui-resizable-s {height: 10px; bottom: -7px;}
+.ui-resizable-e {width:  10px; right:  -7px;}
+.ui-resizable-w {width:  10px; left:   -7px;}
 
-.ui-dialog .ui-resizable-se { width: 10px; height: 10px; right: -11px; bottom: -11px;}
-.ui-resizable-sw                      { width: 10px; height: 10px; left:  -11px; bottom: -11px;}
-.ui-resizable-nw                      { width: 10px; height: 10px; left:  -11px; top:    -11px;}
-.ui-resizable-ne                      { width: 10px; height: 10px; right: -11px; top:    -11px;}
+.ui-dialog .ui-resizable-se { width: 10px; height: 10px; right: -7px; bottom: -7px;}
+.ui-resizable-sw                      { width: 10px; height: 10px; left:  -7px; bottom: -7px;}
+.ui-resizable-nw                      { width: 10px; height: 10px; left:  -7px; top:    -7px;}
+.ui-resizable-ne                      { width: 10px; height: 10px; right: -7px; top:    -7px;}
 
 .ui-dialog .ui-dialog-content {
     padding: 0px;
