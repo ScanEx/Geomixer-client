@@ -4,6 +4,7 @@
     var addNewMap = function(rootObjectId, layers, callback)
     {
         var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject основной карты
+        window.globalFlashMap = map;
         gmxAPI.map = map;
         gmxAPI.mapNodes[rootObjectId] = map; // основная карта
 
@@ -204,28 +205,57 @@
         // Использование SharedObject
         map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
-        map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
-        L.extend(map.baseLayersManager, L.Mixin.Events);
-        map.baseLayersManager.addListener('onAdd', function(attr) {
-            map.baseLayersManager.fire('baselayeradd', attr);
+        //map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
+        map.baseLayersManager = gmxAPI._leaflet.LMap.gmxBaseLayersManager;
+        gmxAPI.extend(map, {
+            setMode: function(name) {
+                var id = map.baseLayersManager.getIDByName(name);
+                map.baseLayersManager.setCurrentID(id);
+            }
+            ,getModeID: function() {
+                return map.baseLayersManager.getCurrentID();
+            }
+            ,setBaseLayer: function(name) {
+                this.setMode(name);
+            }
+            ,
+            unSetBaseLayer: function() {
+                map.setBaseLayer();
+            }
+            ,getBaseLayer: function() {
+                return this.getModeID();
+            }
+            // ,baseLayerControl: {
+                // isVisible: true,
+                // /**
+                 // * @deprecated Использовать контрол L.Control.gmxLayers
+                 // */
+                // setVisible: function(flag) {
+                    // var controls = map.controlsManager.getCurrent();
+                    // if(!controls) return null;
+                    // var control = controls.getControl('layers');
+                    // return control.setVisible(flag);
+                // },
+                // /**
+                 // * @deprecated Использовать map.baseLayersManager.getActiveIDs()
+                 // */
+                // getBaseLayerNames: function() {
+                    // return manager.activeIDs;
+                // },
+                // /**
+                 // * @deprecated Использовать map.baseLayersManager.getLayers()
+                 // */
+                // getBaseLayerLayers: function(name) {
+                    // var baseLayer = manager.get(name);
+                    // return (baseLayer ? baseLayer.layers : null);
+                // }
+            // }
         });
-        map.baseLayersManager.addListener('onRemove', function(attr) {
-            map.baseLayersManager.fire('baselayerremove', attr);
-        });
-        map.baseLayersManager.addListener('onLayerChange', function(attr) {
-            map.baseLayersManager.fire('baselayerlayerschange', attr);
-        });
-        map.baseLayersManager.addListener('onActiveChanged', function(attr) {
-            map.baseLayersManager.fire('baselayeractiveids', attr);
-        });
-        map.baseLayersManager.addListener('onSetCurrent', function(attr) {
-            map.baseLayersManager.fire('baselayerchange', attr);
-        });
-
-        map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
+        
+        //map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
-        if(gmxAPI.proxyType === 'flash') params.gmxControls = 'controlsBase';
-        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
+        // if(gmxAPI.proxyType === 'flash') params.gmxControls = 'controlsBase';
+//        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
         gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
 
         var toolHandlers = {};
@@ -412,6 +442,85 @@
             map.drawing = {
                 'setHandlers': function() { return false; }
                 ,'forEachObject': function() { return false; }
+                ,addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel) {
+                    var LMap = gmxAPI._leaflet.LMap;
+                    LMap.addControl(new L.Control.gmxIcon({
+                        id: tn,
+                        title: hint,
+                        toggle: true,
+                        regularImageUrl: regularImageUrl,
+                        activeImageUrl: activeImageUrl,
+                        stateChange: function (control) {
+                            console.log(tn , ':', control.options.isActive);
+                            if(control.options.isActive) onClick();
+                            else onCancel();
+                        }
+                    }));
+/*
+                var standartTools = (gmxAPI._tools.standart ? gmxAPI._tools.standart : gmxAPI.map.toolsAll.standartTools);
+                    var ret = standartTools.addTool(tn, {
+                        'key': tn,
+                        'activeStyle': {},
+                        'regularStyle': {},
+                        'regularImageUrl': regularImageUrl,
+                        'activeImageUrl': activeImageUrl,
+                        'onClick': onClick,
+                        'onCancel': onCancel,
+                        'hint': hint
+                    });
+                    return ret;*/
+                }
+                ,removeTool: function(tn) {
+                    if(this.tools[tn]) {
+                        gmxAPI.map.toolsAll.standartTools.removeTool(tn);
+                    }
+                },
+/*                
+                ,addTool: function (tn, attr) {      // Добавление иконки или оверлея
+                    //console.log('tool addTool', tn, attr); // wheat
+                    if(!attr) attr = {};
+                    var ret = null;
+                    if(attr.overlay && Controls.items.layers) {
+                        attr.id = tn;
+                        if(!attr.rus) attr.rus = attr.hint || attr.id;
+                        if(!attr.eng) attr.eng = attr.hint || attr.id;
+                        Controls.items.layers.addOverlay(tn, attr);
+                        ret = Controls.items.layers;
+
+                        // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                        // if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                    } else {
+                        ret = Controls.addControl(tn, attr);
+                        // var controls = gmxAPI.map.controlsManager.getCurrent();
+                        // if(controls && 'addControl' in controls) {
+                            // ret = controls.addControl(tn, attr);
+                        // }
+                    }
+                    return ret;
+                }
+                ,getToolByName: function(id) {
+                    return Controls.items[id] || null;
+                }
+                ,
+                removeTool: function(id) {              // Удалить control
+                    return Controls.removeControl(id);
+                }
+                ,
+*/
+                setVisible: function(id, flag) {        // видимость
+                    var control = Controls.items[id];
+                }
+                ,
+                selectTool: function (id) {
+                    var control = Controls.items.gmxDrawing;
+                    if (id === 'POINT') {
+                        control = Controls.items.drawingPoint;
+                        if ('onclick' in control.options) {
+                            control.options.onclick();
+                        }
+                    }
+                    control.setActive(id);
+                }
             };
         }
 
@@ -450,6 +559,7 @@
 
         map.addLayers = function(layers, notMoveFlag, notVisible)
         {
+//return;
             var reverse = false;
             if(layers.properties.name === gmxAPI.currentMapName) {  // Это основная карта
                 if(layers.properties.MinZoom) { // установлен MinZoom карты
@@ -476,17 +586,17 @@
                         map.layers.unshift(lObj);
                     }
 
-                    if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
-                        gmxAPI._layersVersion.chkVersionLayers(layers, layer);
-                    }
-                    if(visible && lObj.mercGeometry) mapBounds.update(lObj.mercGeometry.coordinates);
-                    var arr = layer.properties.styles || [];
-                    for (var i = 0; i < arr.length; i++) {
-                        var mm = arr[i].MinZoom;
-                        minLayerZoom = Math.min(minLayerZoom, mm);
-                    }
-                    if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
-                        gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
+                    // if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
+                        // gmxAPI._layersVersion.chkVersionLayers(layers, layer);
+                    // }
+                    // if(visible && lObj.mercGeometry) mapBounds.update(lObj.mercGeometry.coordinates);
+                    // var arr = layer.properties.styles || [];
+                    // for (var i = 0; i < arr.length; i++) {
+                        // var mm = arr[i].MinZoom;
+                        // minLayerZoom = Math.min(minLayerZoom, mm);
+                    // }
+                    // if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
+                        // gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
                 }
             }, notVisible);
             //if (layers.properties.UseOpenStreetMap && !haveOSM)
@@ -494,23 +604,17 @@
             //if (!baseLayer !haveOSM)
             if (!baseLayer)
             {
+/*
                 var o = map.addObject();
                 //o.setVisible(false);
                 o.bringToBottom();
-                //o.setAsBaseLayer("OSM"); lang
-                baseLayer = map.baseLayersManager.add('OSM', { icon: 'http://maps.kosmosnimki.ru/api/img/baseLayers/basemap_osm_' + gmxAPI.KOSMOSNIMKI_LOCALIZED('ru', 'eng') + '.png'});
+                //o.setAsBaseLayer("OSM");
+                baseLayer = map.baseLayersManager.add('OSM', {});
                     //map.baseLayersManager.add('OSM', {isVisible:false});
                 baseLayer.addLayer(o);
                 o.setOSMTiles();
                 haveOSM = true;
                 o.setVisible(false);
-/*
-                if('miniMap' in map) {
-                    var miniOSM = map.miniMap.addObject();
-                    miniOSM.setVisible(false);
-                    miniOSM.setOSMTiles();
-                    miniOSM.setAsBaseLayer("OSM");
-                }
 */
             }
 
@@ -761,9 +865,9 @@
         
         if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
         
-        if(!map.needSetMode && haveOSM) {   // если нигде не устанавливалась текущая подложка и есть OSM
-            if(!gmxAPI._baseLayersArr && gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
-        }
+        // if(!map.needSetMode && haveOSM) {   // если нигде не устанавливалась текущая подложка и есть OSM
+            // if(!gmxAPI._baseLayersArr && gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
+        // }
 
         var startDrag = function(object, dragCallback, upCallback)
         {
@@ -801,7 +905,7 @@
             gmxAPI._startDrag(this, dragCallback, upCallback);
         });
 
-        if(gmxAPI.proxyType === 'leaflet') {
+        // if(gmxAPI.proxyType === 'leaflet') {
             gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback, options)
             {
                 var attr = { 'drag': dragCallback, 'dragstart':downCallback, 'dragend':upCallback, options: options };
@@ -813,7 +917,7 @@
             });
             gmxAPI._FMO.prototype.addDragHandlers = gmxAPI._FMO.prototype.enableDragging;
             gmxAPI._FMO.prototype.removeDragHandlers = gmxAPI._FMO.prototype.disableDragging;
-        } else {
+/*        } else {
             gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
             {
                 var object = this;
@@ -937,15 +1041,36 @@
             addHandler(document, "mousewheel", onWheel);
             if (window.addEventListener) window.addEventListener('DOMMouseScroll', onWheel, false);
         }
+*/
+        map.balloonClassObject = {
+            applyBalloonDefaultStyle: function(balloonStyle) {
+                var out = gmxAPI.clone(balloonStyle);
+                //слой только что создали - всё по умолчанию!
+                if (typeof out.BalloonEnable === 'undefined') {
+                    out.BalloonEnable = true;
+                    out.DisableBalloonOnClick = false;
+                    out.DisableBalloonOnMouseMove = true;
+                } else {
+                    //поддержка совместимости - если слой уже был, но новых параметров нет 
+                    if (typeof out.DisableBalloonOnClick === 'undefined')
+                        out.DisableBalloonOnClick = false;
+                        
+                    if (typeof out.DisableBalloonOnMouseMove === 'undefined')
+                        out.DisableBalloonOnMouseMove = false;
+                }
+                return out;
+            }
+        };
+
         map.ToolsContainer = gmxAPI._ToolsContainer;
         gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Глобальный Listeners
-        // Deferred методы
-        var deferred = function() {
-            console.log('Deferred function: ', arguments.callee);
+        // запрещенные методы
+        var oldFunc = function() {
+            console.log('Old function: ', arguments.callee);
         }
-        map.setCoordinatesAlign = deferred; // Позиционирование масштабной шкалы (tr tl br bl)
-        map.setCopyrightAlign = deferred;  // Позиционирование Copyright (tr tl br bl bc)
-        map.setGeomixerLinkAlign = deferred; // Позиционирование GeomixerLink (tr tl br bl)
+        map.setCoordinatesAlign = oldFunc; // Позиционирование масштабной шкалы (tr tl br bl)
+        map.setCopyrightAlign = oldFunc;  // Позиционирование Copyright (tr tl br bl bc)
+        map.setGeomixerLinkAlign = oldFunc; // Позиционирование GeomixerLink (tr tl br bl)
         return map;
     }
     //расширяем namespace
