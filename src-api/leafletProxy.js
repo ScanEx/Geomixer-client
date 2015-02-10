@@ -3429,6 +3429,8 @@ console.log('setClusters', arguments);
             ],
             arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
+        cssFiles.push(apiHost + 'leaflet/buildAPIV2/dist/css/leaflet-geomixer-all.css');
+        arr.push({src: apiHost + "leaflet/buildAPIV2/dist/leaflet-geomixer-all.js", charset: 'utf8'});
         if(window.LeafletPlugins) {
             for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
                 var element = window.LeafletPlugins[i],
