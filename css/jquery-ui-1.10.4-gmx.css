@@ -40,8 +40,7 @@
 }
 
 .ui-dialog.ui-widget-content {
-    border: 1px solid #777;
-    box-shadow: rgba(0, 0, 0, 0.7) 0px 0px 3px;
+    box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
 }
 
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {

@@ -896,7 +896,7 @@ layersTree.prototype.removeGroup = function(div)
 		_mapHelper.updateUnloadEvent(true);
 	}
 	
-	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
+	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
 }
 
 layersTree.prototype.showSaveStatus = function(parent)
