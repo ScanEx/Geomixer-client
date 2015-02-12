@@ -2663,8 +2663,8 @@
 				node.remove(id);
 				removeNode(id);
 			} else if(node['type'] === 'filter') {			// Удаление фильтра векторного слоя
-				var pNode = mapNodes[node['parentId']];
-				pNode.removeFilter(id);
+				// var pNode = mapNodes[node['parentId']];
+				// pNode.removeFilter(id);
 			} else if(node['type'] === 'mapObject') {	// Удаление mapObject
 				removeNode(id);
 			}

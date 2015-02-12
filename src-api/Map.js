@@ -209,8 +209,8 @@
         map.baseLayersManager = gmxAPI._leaflet.LMap.gmxBaseLayersManager;
         gmxAPI.extend(map, {
             setMode: function(name) {
-                var id = map.baseLayersManager.getIDByName(name);
-                map.baseLayersManager.setCurrentID(id);
+                //var id = map.baseLayersManager.getIDByName(name);
+                map.baseLayersManager.setCurrentID(name);
             }
             ,getModeID: function() {
                 return map.baseLayersManager.getCurrentID();

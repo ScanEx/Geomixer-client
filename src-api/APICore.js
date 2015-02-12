@@ -3341,6 +3341,9 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 
 FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
+FlashMapObject.prototype.addFilter = function() {
+console.warn('addFilter', arguments);
+}
 FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 {
 	var ph = {'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles};
