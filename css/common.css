@@ -1664,6 +1664,23 @@ div.layersScroll
     margin-left: 15px;
 }
 
+.mapslist-hint {
+    position: absolute;
+    width: 200px;
+    top: 22px;
+    right: 10px;
+    background-color: #EEE;
+    border-radius: 10px;
+    height: 110px;
+    display: table;
+}
+.mapslist-hint-inner {
+    text-align: center;
+    vertical-align: middle;
+    display: table-cell;
+    padding: 4px;
+}
+
 .layers-before {
     border: 1px solid #DDD;
     padding: 9px 0px 10px 6px;

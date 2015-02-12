@@ -271,6 +271,7 @@ _translationsHash.hash["eng"] = {
 	"загрузка..." : "loading...",
 	"удаление..." : "deleting...",
 	"Вы действительно хотите удалить эту карту?" : " Do you really want to delete the selected map?",
+    "maplist.hint": "You can drag layers and folders from here to current map",
 	"Слоя нет в базе" : "Layer is not in base",
 	"ScanEx Web Geomixer - просмотр карты" : "ScanEx Web Geomixer – map view",
 	"Изменить параметры поиска" : "Change search parameters",

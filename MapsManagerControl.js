@@ -61,7 +61,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
 	
-	mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
+	mapsTable.createTable(tableParent, name, 410, ["", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '55%', '15%', '15%', '5%'], function(map, i)
     {
         return _this._drawMaps.call(this, map, i, _this);
     }, sortFuncs);
@@ -127,7 +127,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 
 	_(canvas, [tableParent]);
 	
-	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
+	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto'],['css','position','relative']]);
 	
 	_(canvas, [this._mapPreview]);
 	
@@ -161,13 +161,11 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManager)
 {
 	var name = makeLinkButton(map.Title),
-		load = makeImageButton("img/choose.png", "img/choose_a.png"),
-		addExternal = makeImageButton("img/prev.png", "img/prev_a.png"),
+		load = makeImageButton("img/collapse-arrow-right.gif", "img/collapse-arrow-right.gif"),
 		remove = makeImageButton("img/recycle.png", "img/recycle_a.png");
 	
 	_title(name, _gtxt("Загрузить"));
 	_title(load, _gtxt("Показать"));
-	_title(addExternal, _gtxt("Добавить"));
 	_title(remove, _gtxt("Удалить"));
 	
     name.className = name.className + ' maps-manager-mapname';
@@ -176,6 +174,11 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	{
 		window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + map.Name);
 	}
+    
+    nsGmx.ContextMenuController.bindMenuToElem(name, 'MapListItem', function(){return true;},
+    {
+        name: map.Name
+	});
 	
 	load.onclick = function()
 	{
@@ -187,11 +190,6 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 		
 		// раз уж мы список получили с сервера, то и карты из этого списка точно нужно загружать с него же...
 		mapsManager._loadMapJSON(window.serverBase, map.Name, mapsManager._mapPreview); 
-	}
-	
-	addExternal.onclick = function()
-	{
-		_queryExternalMaps.addMapElem(_layersTree.treeModel.getMapProperties().hostName, map.Name);
 	}
 	
 	remove.onclick = function()
@@ -224,7 +222,6 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	var modificationDateString = $.datepicker.formatDate('dd.mm.yy', date); // + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
 	
 	var tr = _tr([
-		_td([addExternal], [['css','textAlign','center']]), 
 		_td([load], [['css','textAlign','center']]), 
 		_td([name]), 
 		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), 
@@ -273,13 +270,35 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
         var ul = previewLayersTree.drawTree(layers, 2);
 		
 		$(ul).treeview();
+        
+        //раскрываем группы по клику
+        $(ul).click(function(event) {
+            if ($(event.target).hasClass('groupLayer')) {
+                var clickDiv = $(event.target.parentNode.parentNode.parentNode).children("div.hitarea");
+                clickDiv.length && $(clickDiv[0]).trigger('click');
+            }
+        })
 		
 		removeChilds(parent);
+        
+        var hint = $('<div class="mapslist-hint"><div class="mapslist-hint-inner">' + _gtxt('maplist.hint') + '</div></div>');
 
-		_(parent, [ul])
+		_(parent, [hint[0], ul]);
 		
 		_queryMapLayers.addDraggable(parent);
+        
+        hint.hide().fadeIn(400, function() {
+            hint.delay(4000).fadeOut(400);
+        });
 	})
 }
+
+nsGmx.ContextMenuController.addContextMenuElem({
+    title: function() { return "Открыть в новом окне"; },
+    clickCallback: function(context)
+    {
+        window.open(window.location.href.split(/\?|#/)[0] + "?" + context.name, '_blank');
+    }
+}, 'MapListItem');
 
 })();
