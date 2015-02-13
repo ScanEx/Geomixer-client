@@ -12,10 +12,10 @@ nsGmx.Utils = nsGmx.Utils || {};
                 attrs = attributes;
             
             if (children)
-                _childs(el, children)
+                domManipulation._childs(el, children)
                 
             if (attrs && attrs.length)
-                _attr(el, attrs)
+                domManipulation._attr(el, attrs)
             
             return el;
         },
@@ -27,10 +27,10 @@ nsGmx.Utils = nsGmx.Utils || {};
                 attrs = attributes;
 
             if (children)
-                _childs(el, children)
+                domManipulation._childs(el, children)
                 
             if (attrs && attrs.length)
-                _attr(el, attrs)
+                domManipulation._attr(el, attrs)
             
             return el;
         },
@@ -106,6 +106,8 @@ nsGmx.Utils = nsGmx.Utils || {};
         _object: function(children,attrs){return _el('OBJECT',children,attrs)},
         _param: function(children,attrs){return _el('PARAM',children,attrs)}
     }
+    
+    var _el = domManipulation._el;
     
     var prevGlobals = {};
     for (var k in domManipulation) {
