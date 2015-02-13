@@ -424,11 +424,11 @@ div[multistyle] {
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;
-	background: #7BCBF2;
+	background: #DDDDDD;
 	font-family: monospace;
 	color: #123456;
-	border-right: 2px solid #ABBCCD;
-	border-bottom: 2px solid #ABBCCD;
+	border-right: 2px solid #AAAAAA;
+	border-bottom: 2px solid #AAAAAA;
 	z-index:100000;
 	-webkit-user-select:none;
 	cursor: move;
@@ -1667,18 +1667,11 @@ div.layersScroll
 .mapslist-hint {
     position: absolute;
     width: 200px;
-    top: 22px;
-    right: 10px;
-    background-color: #EEE;
-    border-radius: 10px;
-    height: 110px;
-    display: table;
-}
-.mapslist-hint-inner {
-    text-align: center;
-    vertical-align: middle;
-    display: table-cell;
-    padding: 4px;
+    bottom: 20px;
+    right: 30px;
+    font-size: 14px;
+    color: #AAA;
+    font-weight: bold;
 }
 
 .layers-before {

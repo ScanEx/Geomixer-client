@@ -127,7 +127,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 
 	_(canvas, [tableParent]);
 	
-	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto'],['css','position','relative']]);
+	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
 	
 	_(canvas, [this._mapPreview]);
 	
@@ -281,15 +281,15 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 		
 		removeChilds(parent);
         
-        var hint = $('<div class="mapslist-hint"><div class="mapslist-hint-inner">' + _gtxt('maplist.hint') + '</div></div>');
+        var hint = $('<div class="mapslist-hint">' + _gtxt('maplist.hint') + '</div>');
 
 		_(parent, [hint[0], ul]);
 		
 		_queryMapLayers.addDraggable(parent);
         
-        hint.hide().fadeIn(400, function() {
-            hint.delay(4000).fadeOut(400);
-        });
+        // hint.hide().fadeIn(400, function() {
+            // hint.delay(4000).fadeOut(400);
+        // });
 	})
 }
 
