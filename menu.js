@@ -110,7 +110,7 @@ UpMenu.prototype._template =
             {{#childs}}\
                 <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
                     <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                        <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
+                        <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                         {{title}}\
                         {{#anyChildren}}\
                             <div class = "menuMarkerRight"></div>\
@@ -121,7 +121,7 @@ UpMenu.prototype._template =
                         {{#childs}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
                                 <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                                    <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
+                                    <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
