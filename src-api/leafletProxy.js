@@ -1384,8 +1384,10 @@
 					}
 
 					node.geometry.id = node.id;
-					if(regularStyle['iconUrl'] && !regularStyle['imageWidth']) {		// нарисовать после загрузки onIconLoaded
-						gmxAPI._leaflet['drawManager'].add(node.id);					// добавим в менеджер отрисовки
+					if(regularStyle.iconUrl && !regularStyle.imageWidth) {		// нарисовать после загрузки onIconLoaded
+                        gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onIconLoaded', 'func': function(eID) {
+                            if (node.id === eID) gmxAPI._leaflet.drawManager.add(node.id);
+                        }});
 						return;
 					} else {
 						if(node['subType'] === 'drawingFrame') {
@@ -3299,6 +3301,8 @@
             if(style.dx) out.dx = style.dx;
             if(style.dy) out.dy = style.dy;
             out.weight = style.weight || 0;
+            out.sx += out.weight/2;
+            out.sy += out.weight/2;
 
             if(style.marker) {
 				var rotateRes = style.rotate || 0;

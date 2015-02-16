@@ -80,23 +80,43 @@ queryTabs.prototype.load = function()
 	}
 }
 
-queryTabs.prototype.add = function()
+queryTabs.prototype.add = function(tabInfo, tabIndex)
 {
+    var isNew = typeof tabIndex === 'undefined';
+    tabInfo = tabInfo || {
+        name_rus: '',
+        description_rus: '',
+        name_eng: '',
+        description_eng: ''
+    };
+    
+    if (typeof tabInfo.name_rus === 'undefined') {
+        tabInfo.name_rus = tabInfo.name;
+    }
+    
+    if (typeof tabInfo.description_rus === 'undefined') {
+        tabInfo.description_rus = tabInfo.description;
+    }
+    
     var uiTemplate = 
         '<div class = "addtabs-container">' +
             '<div class = "addtabs-info">{{i Название}}</div>' + 
-            '<input class = "addtabs-title-input inputStyle"><br>' + 
+            '<input class = "addtabs-title-input inputStyle" value="{{title}}"><br>' + 
             '<div class = "addtabs-info">{{i Описание}}</div>' + 
-            '<textarea class = "addtabs-title-description inputStyle"></textarea><br>' + 
-            '<button class = "addtabs-create">{{i Создать}}</button>' +
+            '<textarea class = "addtabs-title-description inputStyle">{{description}}</textarea><br>' + 
+            '<button class = "addtabs-create">{{buttonTitle}}</button>' +
             '<div class = "addtabs-lang-placeholder"></div>' + 
         '</div>';
         
-    var ui = $(Mustache.render(uiTemplate)),
+        
+    var titleLoc = {rus: tabInfo.name_rus, eng: tabInfo.name_eng};
+    var descrLoc = {rus: tabInfo.description_rus, eng: tabInfo.description_eng};
+    var ui = $(Mustache.render(uiTemplate, {
+            title: titleLoc.rus, 
+            description: descrLoc.rus,
+            buttonTitle: isNew ? _gtxt('Создать') : _gtxt('Изменить')
+        })),
         titleInput = $('.addtabs-title-input', ui);
-    
-    var titleLoc = {rus: '', eng: ''};
-    var descrLoc = {rus: '', eng: ''};
     
     var updateDataLoc = function(lang) {
         titleLoc[lang] = titleInput.val();
@@ -113,15 +133,16 @@ queryTabs.prototype.add = function()
     titleInput.keyup(function(e) {
         $(this).toggleClass('error', this.value == '');
 		
-	  	if (e.keyCode == 13) 
-	  	{	
+        if (e.keyCode == 13)
+        {
 			createTab();
-	  		
 	  		return false;
 	  	}
 		
 		return true;
     });
+             
+    titleInput.focus();
              
 	var createTab = function() {
             updateDataLoc(langControl.getLang());
@@ -138,8 +159,12 @@ queryTabs.prototype.add = function()
                     state: mapState
                 };
             
+            if (isNew) {
             _this.tabs.push(tab);
-            _this.draw(tab);
+            } else {
+                _this.tabs[tabIndex] = tab;
+            }
+            _this.draw(tab, tabIndex);
             
             removeDialog(dialogDiv);
         },
@@ -150,7 +175,7 @@ queryTabs.prototype.add = function()
 	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 230, false, false);
 }
 
-queryTabs.prototype.draw = function(tabInfo)
+queryTabs.prototype.draw = function (tabInfo, tabIndex)
 {
     var selectValLoc = function(paramName) {
         var lang = nsGmx.Translations.getLanguage();
@@ -159,7 +184,8 @@ queryTabs.prototype.draw = function(tabInfo)
     
     var tmpl = '<div class="canvas">' +
         '<div class="buttonLink tabName" title="{{description}}">{{name}}</div>' +
-        '<div class="gmx-icon-close">' +
+        '<div class="gmx-icon-edit"></div>' +
+        '<div class="gmx-icon-close"></div>' +
     '</div>';
     
     var canvas = $(Mustache.render(tmpl, {
@@ -169,7 +195,7 @@ queryTabs.prototype.draw = function(tabInfo)
     var _this = this;
 
 	canvas.tabInfo = tabInfo;
-	
+
     $('.tabName', canvas).click(this.show.bind(this, tabInfo.state));
 	
     $('.gmx-icon-close', canvas).click(function() {
@@ -180,17 +206,31 @@ queryTabs.prototype.draw = function(tabInfo)
 		canvas.removeNode(true);
 	})
     
-	_(this.tabsCanvas, [canvas]);
+    $('.gmx-icon-edit', canvas).click(function() {
+        var index = getOwnChildNumber(canvas);
+        _this.add(_this.tabs[index], index);
+    })
+    
+    if (_queryMapLayers.currentMapRights() != "edit") {
+        $(edit).hide();
+    }
+
+    if (typeof tabIndex === 'undefined') {
+        _(this.tabsCanvas, [canvas]);
+    } else {
+        $(this.tabsCanvas).find('.canvas').eq(tabIndex).replaceWith(canvas);
+    }
 }
 
 queryTabs.prototype.show = function(state)
 {
 	var parsedState = {};
-	$.extend(true, parsedState, state)
+	$.extend(true, parsedState, state);
+    var pos = parsedState.position;
 	
-	parsedState.position.x = from_merc_x(state.position.x);
-	parsedState.position.y = from_merc_y(state.position.y);
-	parsedState.position.z = 17 - state.position.z;
+	pos.x = from_merc_x(pos.x);
+	pos.y = from_merc_y(pos.y);
+	pos.z = 17 - pos.z;
 	
 	if (state.drawnObjects.length)
 	{
@@ -201,7 +241,7 @@ queryTabs.prototype.show = function(state)
 		}
 	}
 	
-	globalFlashMap.moveTo(parsedState.position.x, parsedState.position.y, parsedState.position.z);
+	globalFlashMap.moveTo(pos.x, pos.y, pos.z);
 	globalFlashMap.setMode(parsedState.mode);
 	
 	globalFlashMap.drawing.forEachObject(function(obj)

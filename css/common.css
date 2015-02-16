@@ -1570,6 +1570,14 @@ div.layersScroll
     cursor: pointer;
 }
 
+.gmx-icon-edit {
+    width: 11px;
+    height: 11px;
+    background-image: url(../img/edit_small.png);
+    display: inline-block;
+    cursor: pointer;
+}
+
 .gmx-icon-choose:hover {
     background-image: url(../img/choose2_a.png);
 }
@@ -1589,13 +1597,19 @@ div.layersScroll
     top: 10px;
 }
 
+.tabsCanvas .gmx-icon-edit {
+    position: absolute;
+    right: 34px;
+    top: 8px;
+}
+
 .tabsCanvas .canvas{
     position: relative;
     padding: 6px 0px 6px 8px;
 }
 
 .tabsCanvas .tabName{
-    margin-right: 28px;
+    margin-right: 52px;
 }
 
 .addtabs-container {
@@ -1710,6 +1724,15 @@ div.layersScroll
     position: absolute;
     top: 4px;
     right: 10px;
+}
+
+.tabs-edit {
+    position: absolute;
+    height: 11px;
+    position: absolute;
+    right: 28px;
+    height: 11px;
+    top: 5px;
 }
 
 .language-item {
