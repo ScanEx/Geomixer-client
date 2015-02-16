@@ -4275,6 +4275,10 @@
                 .on('viewreset', function(e) {
                     this.invalidateSize();
                 }, LMap)
+                .on('dragend', function(e) {
+                    if(!gmxAPI.map.dragState) gmxAPI._leaflet.utils.unfreeze();
+                    gmxAPI.mousePressed	= gmxAPI._leaflet.mousePressed = false;
+                }, LMap)
                 .on('mouseout', function(e) {
                     var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
                     if(propsBalloon && propsBalloon.isVisible()) propsBalloon.setVisible(false);
