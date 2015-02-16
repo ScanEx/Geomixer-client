@@ -2424,7 +2424,7 @@ FireControl.prototype.update = function()
 */
 var FireControl2 = function(map, params)
 {
-    params = params || {};
+    params = $.extend({}, params); //чтобы не портить исходный хеш
     params.data = params.data || "+fires !images";
     
     var createdDiv = null;
