@@ -5,29 +5,16 @@ var nsGmx = nsGmx || {};
 var initTranslations = function()
 {
     _translationsHash.addtext("rus", { calendarWidget: {
-                                Custom:       " ",
-                                Day:          "День",
-                                Week:         "Неделя",
-                                Month:        "Месяц",
-                                Year:         "Год",
-                                EveryYear:    "Ежегодно",
-                                ExtendedViewTitle: "Выбор периода",
-                                MinimalViewTitle:  "Свернуть",
-                                Period:       "Задать период",
-                                UTC:          "Всемирное координированное время"
-                             }});
+        ExtendedViewTitle: "Выбор периода",
+        MinimalViewTitle:  "Свернуть",
+        UTC:               "Всемирное координированное время"
+     }});
                              
     _translationsHash.addtext("eng", { calendarWidget: {
-                                Custom :       " ",
-                                Day :          "Day",
-                                Week :         "Week",
-                                Month :        "Month",
-                                Year :         "Year",
-                                EveryYear :    "Every year",
-                                ExtendedViewTitle: "Period selection",
-                                MinimalViewTitle: "Minimize",
-                                UTC:           "Coordinated Universal Time"
-                             }});
+        ExtendedViewTitle: "Period selection",
+        MinimalViewTitle:  "Minimize",
+        UTC:               "Coordinated Universal Time"
+    }});
 }
 
 /** Параметры календаря
@@ -94,8 +81,6 @@ var Calendar = function(name, params)
 	
 	this.lazyDateInited = false;
 	
-	this.yearBox = null;
-	
 	this._timeBegin = { hours: 0, minutes: 0, seconds: 0 };
 	this._timeEnd   = { hours: 0, minutes: 0, seconds: 0 };
 	
@@ -136,12 +121,11 @@ var Calendar = function(name, params)
 		return date;
 	}
     	
-	/** Получить конечную дату дату
+	/** Получить конечную дату
 	 * @return {Date} конечная дата
 	 */
 	this.getDateEnd = function() 
 	{
-		// return $(this.dateEnd).datepicker("getDate"); 
 		var date = Calendar.fromUTC($(this.dateEnd).datepicker("getDate"));
         if (date)
         {
@@ -247,8 +231,7 @@ var Calendar = function(name, params)
 		return {
 			dateBegin: this.getDateBegin().valueOf(),
 			dateEnd: this.getDateEnd().valueOf(),
-			lazyDate: this.lazyDate.value,
-			year: this.yearBox.checked,
+			lazyDate: this.lazyDate,
 			vismode: this._visModeController.getMode()
 		}
 	}
@@ -260,8 +243,7 @@ var Calendar = function(name, params)
 	{
 		$(this.dateBegin).datepicker("setDate", Calendar.toUTC(new Date(data.dateBegin)));
 		$(this.dateEnd).datepicker("setDate", Calendar.toUTC(new Date(data.dateEnd)));
-		this.lazyDate.value = data.lazyDate;
-		this.yearBox.checked = data.year;
+		this.lazyDate = data.lazyDate;
 		this._visModeController.setMode(data.vismode);
 	}
 	
@@ -295,7 +277,7 @@ var Calendar = function(name, params)
 
 	this.setLazyDate = function(lazyDate, keepSilence)
 	{
-		this.lazyDate.value = lazyDate;
+		this.lazyDate = lazyDate;
         var prevDate = this.getDateBegin();
 		this._updateBegin();
         var newDate = this.getDateBegin();
@@ -349,32 +331,7 @@ Calendar.prototype.init = function( name, params )
         dateMin: null,
         dateFormat: 'dd.mm.yy'
 	}, params)
-	
-	this.lazyDate = nsGmx.Utils._select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
-								_option([_t(_gtxt("calendarWidget.Day"))],[['attr','value','day']]),
-								_option([_t(_gtxt("calendarWidget.Week"))],[['attr','value','week']]),
-								_option([_t(_gtxt("calendarWidget.Month"))],[['attr','value','month']]),
-								_option([_t(_gtxt("calendarWidget.Year"))],[['attr','value','year']])
-							   ],[['css','width','70px'],['dir','className','selectStyle'],['css','marginBottom','4px']]);
-	
-	// значение по умолчанию
-	this.lazyDate.value = this._params.minimized ? 'day' : '';
-	
-	this.lazyDate.onchange = function() {
-		_this._updateBegin();
-		$(_this).triggerHandler('change');
-	}
-	
-	this.yearBox = _checkbox(false, 'checkbox');
 
-	this.yearBox.className = 'box';
-    this.yearBox.style.marginLeft = '3px'
-	
-	_title(this.yearBox, _gtxt("calendarWidget.EveryYear"));
-	
-	this.dateBegin = _input(null,[['dir','className','inputStyle'],['css','width','70px']]);
-	this.dateEnd = _input(null,[['dir','className','inputStyle'],['css','width','70px']]);
-	
 	this.dateMin = this._params.dateMin;
 	this.dateMax = this._params.dateMax;
     
@@ -383,8 +340,44 @@ Calendar.prototype.init = function( name, params )
         this.dateMax.setMinutes(59);
         this.dateMax.setSeconds(59);
     };
-	
-	$([this.dateBegin, this.dateEnd]).datepicker(
+    
+    this.lazyDate = this._params.periodDefault || (this._params.minimized ? 'day': '');
+
+    this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE);
+    
+    this.canvas = $(Mustache.render(
+        '<div id = "{{name}}" class = "PeriodCalendar"><span id = "calendar"><table>' + 
+            '<tr>' +
+                '<td><div class = "PeriodCalendar-iconScroll PeriodCalendar-iconFirst"></div></td>' + 
+                '<td class = "date-box"><input class = "inputStyle PeriodCalendar-dateBegin"></td>' + 
+                '<td class = "date-box onlyMaxVersion"><input class = "inputStyle PeriodCalendar-dateEnd"></td>' + 
+                '<td><div class = "PeriodCalendar-iconScroll PeriodCalendar-iconLast" ></div></td>' + 
+                '<td><div class = "PeriodCalendar-iconMore {{moreIconClass}}" title = "{{moreIconTitle}}"></div></td>' +
+            '</tr><tr>' +
+                '<td></td>' + 
+                '<td id = "dateBeginInfo"></td>' + 
+                '<td id = "dateEndInfo" class = "onlyMaxVersion"></td>' + 
+                '<td></td>' + 
+                '<td></td>' + 
+            '</tr>' +
+        '</table></span></div>',
+        {
+            moreIconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse',
+            moreIconTitle: this._params.minimized ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle'),
+            name: this._name
+        }
+    ));
+    
+    this.moreIcon = this.canvas.find('.PeriodCalendar-iconMore')
+                    .click(_this._visModeController.toggleMode.bind(_this._visModeController)).toggle(!!this._params.showSwitcher)[0];
+                    
+    this.first = this.canvas.find('.PeriodCalendar-iconFirst').click(this._firstClickFunc.bind(this))[0];
+    this.last = this.canvas.find('.PeriodCalendar-iconLast').click(this._lastClickFunc.bind(this))[0];
+    
+    this.dateBegin = this.canvas.find('.PeriodCalendar-dateBegin')[0];
+    this.dateEnd = this.canvas.find('.PeriodCalendar-dateEnd')[0];
+    
+    $([this.dateBegin, this.dateEnd]).datepicker(
 	{
 		onSelect: function(dateText, inst) 
 		{
@@ -398,59 +391,18 @@ Calendar.prototype.init = function( name, params )
 		maxDate: this.dateMax ? Calendar.toUTC(this.dateMax) : null,
 		dateFormat: this._params.dateFormat,
 		defaultDate: Calendar.toUTC(this.dateMax || new Date()),
-        showOn: 'both',
+        showOn: this._params.buttonImage ? 'both' : 'focus',
         buttonImageOnly: true
 	});
-	
-	if (!this._params.showYear) {
-		this.yearBox.style.display = "none";
-	}
-	
-	if (this._params.periodDefault) {
-		this.lazyDate.value = this._params.periodDefault;
-	}
-	
-	if (this._params.periods) {
-		var allPeriods = ['','day','week','month','year'];
-		for (var i = 0; i < allPeriods.length; ++i) {
-			if (!valueInArray(this._params.periods, allPeriods[i]))
-				$(this.lazyDate).children("option[value='" + allPeriods[i] + "']").remove();
-		}
-	}
-    
-    this.first = $('<div class = "PeriodCalendar-iconScroll PeriodCalendar-iconFirst"></div>').click(this._firstClickFunc.bind(this))[0];
-    this.last = $('<div class = "PeriodCalendar-iconScroll PeriodCalendar-iconLast"></div>').click(this._lastClickFunc.bind(this))[0];
-
-    this.moreIcon = $(Mustache.render(
-        '<div class="PeriodCalendar-iconMore {{iconClass}}" title="{{title}}"></div>', 
-        {
-            iconClass: this._params.minimized ? 'PeriodCalendar-iconExpand' : 'PeriodCalendar-iconCollapse',
-            title: this._params.minimized ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle')
-        }
-    )).click(_this._visModeController.toggleMode.bind(_this._visModeController)).toggle(!!this._params.showSwitcher)[0];
-
-    this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE);
-
-	this.canvas = _div([_span([//emptyieinput,
-					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin], [['dir', 'className', 'date-box']]),_td([this.dateEnd], [['dir', 'className', 'date-box onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
-									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td()])/*,
-									_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/ /*,
-									_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','margin','4px']])]), tdYear], [['dir', 'className', 'onlyMaxVersion']])*/
-									])])], [['attr', 'id', 'calendar']])
-					],
-				[['attr','id',this._name], ['dir','className','PeriodCalendar']]);
 
     //устанавливаем опцию после того, как добавили календарик в canvas
     if (this._params.buttonImage) {
         $([this.dateBegin, this.dateEnd]).datepicker('option', 'buttonImage', this._params.buttonImage);
     }
 
-	//emptyieinput.blur();
-
 	$(this._visModeController).change(function()
 	{
 		var isSimple = _this._visModeController.getMode() === _this._visModeController.SIMPLE_MODE;
-		$("#calendar .onlyMinVersion", _this.canvas).toggle(isSimple);
 		$("#calendar .onlyMaxVersion", _this.canvas).toggle(!isSimple);
 		
 		_this.setLazyDate(isSimple ? 'day' : '', true);
@@ -462,7 +414,6 @@ Calendar.prototype.init = function( name, params )
         $(_this.moreIcon).attr('title', isSimple ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle'));
 	});
 
-	$("#calendar .onlyMinVersion", this.canvas).toggle(this._params.minimized);
 	$("#calendar .onlyMaxVersion", this.canvas).toggle(!this._params.minimized);
 
 	var curUTCDate = new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000);
@@ -474,7 +425,7 @@ Calendar.prototype.init = function( name, params )
 
 	if (typeof this._params.dateBegin === 'undefined')
 		//если не выбран период, то по умолчанию мы устанавливаем одинаковые даты
-		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this._getBeginByEnd() );
+		$(this.dateBegin).datepicker("setDate", this.lazyDate === '' ? curUTCDate : this._getBeginByEnd() );
 	else
 		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
 
@@ -519,7 +470,7 @@ Calendar.prototype._getBeginByEnd = function(endDate)
     
 	this._fixDate(end)
 	
-	switch(this.lazyDate.value)
+	switch(this.lazyDate)
 	{
 		case '':
 			return $(this.dateBegin).datepicker("getDate");
@@ -542,7 +493,7 @@ Calendar.prototype._getEndByBegin = function(beginDate)
     
 	this._fixDate(begin)
 	
-	switch(this.lazyDate.value)
+	switch(this.lazyDate)
 	{
 		case '':
 			return $(this.dateEnd).datepicker("getDate");
@@ -578,51 +529,34 @@ Calendar.prototype._firstClickFunc = function()
 	
 	this._fixDate(begin);
 	this._fixDate(end);
-	
-	if (this.yearBox.checked)
-	{
-		if (end.valueOf() - begin.valueOf() > 1000*60*60*24 * 365)
-			return;
-		
-		newDateBegin = new Date(begin.getFullYear() - 1, begin.getMonth(), begin.getDate());
-		newDateEnd = new Date(end.getFullYear() - 1, end.getMonth(), end.getDate());
-		
-		if (this.dateMin && newDateBegin < this.dateMin)
-			return;
-		
-		$(this.dateBegin).datepicker("setDate", newDateBegin);
-		$(this.dateEnd).datepicker("setDate", newDateEnd);
-	}
-	else
-	{
-		if (this.lazyDate.value == '')
-		{
-			var period = end.valueOf() - begin.valueOf();
-			
-			newDateBegin = new Date(begin.valueOf() - 1000*60*60*24);
-			newDateEnd = new Date(begin.valueOf() - 1000*60*60*24 - period);
-			
-			if (this.dateMin && newDateBegin < this.dateMin)
-				return;
-			
-			$(this.dateEnd).datepicker("setDate", newDateBegin);
-			$(this.dateBegin).datepicker("setDate", newDateEnd);
-		}
-		else
-		{
-			newDateEnd = new Date(begin.valueOf() - 1000*60*60*24);
-			newDateBegin = this._getBeginByEnd(newDateEnd);
-			
-			if (this.dateMin && newDateBegin < this.dateMin)
-			{
-				return;
-			}
-			
-			$(this.dateEnd).datepicker("setDate", newDateEnd);
-			
-			this._updateBegin();
-		}
-	}
+
+    if (this.lazyDate == '')
+    {
+        var period = end.valueOf() - begin.valueOf();
+        
+        newDateBegin = new Date(begin.valueOf() - 1000*60*60*24);
+        newDateEnd = new Date(begin.valueOf() - 1000*60*60*24 - period);
+        
+        if (this.dateMin && newDateBegin < this.dateMin)
+            return;
+        
+        $(this.dateEnd).datepicker("setDate", newDateBegin);
+        $(this.dateBegin).datepicker("setDate", newDateEnd);
+    }
+    else
+    {
+        newDateEnd = new Date(begin.valueOf() - 1000*60*60*24);
+        newDateBegin = this._getBeginByEnd(newDateEnd);
+        
+        if (this.dateMin && newDateBegin < this.dateMin)
+        {
+            return;
+        }
+        
+        $(this.dateEnd).datepicker("setDate", newDateEnd);
+        
+        this._updateBegin();
+    }
 	
 	$(this).triggerHandler('change');
 }
@@ -638,58 +572,41 @@ Calendar.prototype._lastClickFunc = function()
 
 	this._fixDate(begin);
 	this._fixDate(end);
-	
-	if (this.yearBox.checked)
-	{
-		if (end.valueOf() - begin.valueOf() > 1000*60*60*24 * 365)
-			return;
-		
-		newDateBegin = new Date(begin.getFullYear() + 1, begin.getMonth(), begin.getDate());
-		newDateEnd = new Date(end.getFullYear() + 1, end.getMonth(), end.getDate());
-		
-		if (this.dateMax && newDateEnd > this.dateMax)
-			return;
-		
-		$(this.dateBegin).datepicker("setDate", newDateBegin);
-		$(this.dateEnd).datepicker("setDate", newDateEnd);
-	}	
-	else
-	{
-		if (this.lazyDate.value == '')
-		{
-			var period = end.valueOf() - begin.valueOf();
-			
-			newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
-			newDateEnd = new Date(end.valueOf() + 1000*60*60*24 + period);
-			
-			if (this.dateMax && newDateEnd > this.dateMax)
-				return;
-			
-			$(this.dateBegin).datepicker("setDate", newDateBegin);
-			$(this.dateEnd).datepicker("setDate", newDateEnd);
-		}
-		else
-		{
-			newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
-			newDateEnd = this._getBeginByEnd(newDateBegin);
-			
-			if (this.dateMax && newDateEnd > this.dateMax)
-			{
-				return;
-			}
-			
-			$(this.dateBegin).datepicker("setDate", newDateBegin);
-			
-			this._updateEnd();
-		}
-	}
-	
+
+    if (this.lazyDate == '')
+    {
+        var period = end.valueOf() - begin.valueOf();
+        
+        newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
+        newDateEnd = new Date(end.valueOf() + 1000*60*60*24 + period);
+        
+        if (this.dateMax && newDateEnd > this.dateMax)
+            return;
+        
+        $(this.dateBegin).datepicker("setDate", newDateBegin);
+        $(this.dateEnd).datepicker("setDate", newDateEnd);
+    }
+    else
+    {
+        newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
+        newDateEnd = this._getBeginByEnd(newDateBegin);
+        
+        if (this.dateMax && newDateEnd > this.dateMax)
+        {
+            return;
+        }
+        
+        $(this.dateBegin).datepicker("setDate", newDateBegin);
+        
+        this._updateEnd();
+    }
+
 	$(this).triggerHandler('change');
 }
 
 Calendar.prototype._selectFunc = function(inst)
 {
-	if (this.lazyDate.value != '')
+	if (this.lazyDate != '')
 	{
 		if (inst.input[0] == this.dateEnd)
 			this._updateBegin();
@@ -724,8 +641,8 @@ if ( typeof gmxCore !== 'undefined' )
             return gmxCore.loadScriptWithCheck([
                 {
                     check: function(){ return jQuery.ui; },
-                    script: path + 'jquery/jquery-ui-1.7.2.custom.min.js',
-                    css: path + 'jquery/jquery-ui-1.7.2.custom.css'
+                    script: path + 'jquery/jquery-ui-1.10.4.min.js',
+                    css: [path + 'css/jquery-ui-1.10.4.css', path + 'css/jquery-ui-1.10.4-gmx.css']
                 },
                 {
                     check: function(){ return window.Mustache; },
@@ -733,7 +650,7 @@ if ( typeof gmxCore !== 'undefined' )
                 }
             ]);
 		},
-        require: ['translations', 'utilities']
+        require: ['translations']
 	});
 }
 else
