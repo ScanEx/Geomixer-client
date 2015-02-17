@@ -91,7 +91,11 @@
 }
 
 .genericHeader-logo {
-    background-position: 0px 0px;
+    background-position: 0px 30px;
+}
+
+.genericHeader-languageBar {
+    padding: 6px 22px;
 }
 
 /* Base layers widget */

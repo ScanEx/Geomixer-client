@@ -246,7 +246,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 95px;
+	top: 115px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -1696,7 +1696,7 @@ div.layersScroll
 
 .layers-tree {
     border: 1px solid #DDD;
-    padding: 10px 0px 10px 12px;
+    padding: 10px 0px 10px 2px;
 }
 
 .layers-tree > .filetree > li > div {
@@ -1713,8 +1713,8 @@ div.layersScroll
 
 .mainmap-title {
     position: absolute;
-    top: 76px;
-    left: 20px;
+    top: 95px;
+    left: 22px;
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
