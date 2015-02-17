@@ -3348,11 +3348,13 @@
             out._cache.sxLabelRight = out.sxLabelRight ? out.sxLabelRight / mInPixel : 0;
             out._cache.syLabelBottom = out.syLabelBottom ? out.syLabelBottom / mInPixel : 0;
             out._cache.syLabelTop = out.syLabelTop ? out.syLabelTop / mInPixel : 0;
+
+            var delta = out.weight ? out.weight / mInPixel : 0;
             out._cache.tiles = gmxAPI._leaflet.utils.getTileListByExtent({
-                minX: point.x - out._cache.sx - out._cache.sxLabelLeft
-                ,maxX: point.x + out._cache.sx + out._cache.sxLabelRight
-                ,minY: point.y - out._cache.sy - out._cache.syLabelBottom
-                ,maxY: point.y + out._cache.sy + out._cache.syLabelTop
+                minX: point.x - out._cache.sx - out._cache.sxLabelLeft - delta
+                ,maxX: point.x + out._cache.sx + out._cache.sxLabelRight + delta
+                ,minY: point.y - out._cache.sy - out._cache.syLabelBottom - delta
+                ,maxY: point.y + out._cache.sy + out._cache.syLabelTop + delta
             });
         }
 
@@ -4274,6 +4276,10 @@
             LMap
                 .on('viewreset', function(e) {
                     this.invalidateSize();
+                }, LMap)
+                .on('dragend', function(e) {
+                    if(!gmxAPI.map.dragState) gmxAPI._leaflet.utils.unfreeze();
+                    gmxAPI.mousePressed	= gmxAPI._leaflet.mousePressed = false;
                 }, LMap)
                 .on('mouseout', function(e) {
                     var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);

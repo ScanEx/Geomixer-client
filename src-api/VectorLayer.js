@@ -647,7 +647,7 @@
                 ready = false,
                 begx = mInPixel * item.bounds.min.x,
                 begy = mInPixel * item.bounds.max.y,
-                quicklookPlatform = properties[node.quicklookPlatform] || '',
+                quicklookPlatform = properties[node.quicklookPlatform] || node.quicklookPlatform || '',
                 coord = geo.coordinates[0];
 
             if(geo.type === 'MULTIPOLYGON') coord = coord[0];
@@ -665,11 +665,15 @@
                 points.x3 = coord[2][0], points.y3 = coord[2][1];
                 points.x4 = coord[3][0], points.y4 = coord[3][1];
                 ready = true;
-            } else if (quicklookPlatform === 'image') {
-                points.x1 = gmxAPI.merc_x(properties.xTopLeft || 0), points.y1 = gmxAPI.merc_y(properties.yTopLeft || 0);
-                points.x2 = gmxAPI.merc_x(properties.xTopRight || 0), points.y2 = gmxAPI.merc_y(properties.yTopRight || 0);
-                points.x3 = gmxAPI.merc_x(properties.xBottomRight || 0), points.y3 = gmxAPI.merc_y(properties.yBottomRight || 0);
-                points.x4 = gmxAPI.merc_x(properties.xBottomLeft || 0), points.y4 = gmxAPI.merc_y(properties.yBottomLeft || 0);
+            } else if (quicklookPlatform === 'image' || node.quicklookPlatform === 'image') {
+                points.x1 = gmxAPI.merc_x(properties.xTopLeft || properties[node.quicklookX1] || 0);
+                points.y1 = gmxAPI.merc_y(properties.yTopLeft || properties[node.quicklookY1] || 0);
+                points.x2 = gmxAPI.merc_x(properties.xTopRight || properties[node.quicklookX2] || 0);
+                points.y2 = gmxAPI.merc_y(properties.yTopRight || properties[node.quicklookY2] || 0);
+                points.x3 = gmxAPI.merc_x(properties.xBottomRight || properties[node.quicklookX3] || 0);
+                points.y3 = gmxAPI.merc_y(properties.yBottomRight || properties[node.quicklookY3] || 0);
+                points.x4 = gmxAPI.merc_x(properties.xBottomLeft || properties[node.quicklookX4] || 0);
+                points.y4 = gmxAPI.merc_y(properties.yBottomLeft || properties[node.quicklookY4] || 0);
                 ready = true;
             } else if (node.quicklookPlatform === 'imageMercator') {
                 points.x1 = node.quicklookX1 ? properties[node.quicklookX1] : properties.x1 || 0;

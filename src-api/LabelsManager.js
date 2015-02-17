@@ -64,7 +64,7 @@
             shiftX = node.shiftX,
             shiftY = node.shiftY,
             item = node.getItem({itemId: geom.id, flagMerc: true}),
-            bounds = item.bounds;
+            bounds = item ? item.bounds : geom.bounds;
 
 		var x = (bounds.max.x + bounds.min.x) /2;
 		var y = (bounds.max.y + bounds.min.y) /2;
