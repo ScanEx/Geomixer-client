@@ -345,7 +345,7 @@ Calendar.prototype.init = function( name, params )
 
     this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE);
     
-    this.canvas = $(Mustache.render(
+    var canvas = $(Mustache.render(
         '<div id = "{{name}}" class = "PeriodCalendar"><span id = "calendar"><table>' + 
             '<tr>' +
                 '<td><div class = "PeriodCalendar-iconScroll PeriodCalendar-iconFirst"></div></td>' + 
@@ -368,14 +368,16 @@ Calendar.prototype.init = function( name, params )
         }
     ));
     
-    this.moreIcon = this.canvas.find('.PeriodCalendar-iconMore')
+    this.canvas = canvas[0];
+    
+    this.moreIcon = canvas.find('.PeriodCalendar-iconMore')
                     .click(_this._visModeController.toggleMode.bind(_this._visModeController)).toggle(!!this._params.showSwitcher)[0];
                     
-    this.first = this.canvas.find('.PeriodCalendar-iconFirst').click(this._firstClickFunc.bind(this))[0];
-    this.last = this.canvas.find('.PeriodCalendar-iconLast').click(this._lastClickFunc.bind(this))[0];
+    this.first = canvas.find('.PeriodCalendar-iconFirst').click(this._firstClickFunc.bind(this))[0];
+    this.last = canvas.find('.PeriodCalendar-iconLast').click(this._lastClickFunc.bind(this))[0];
     
-    this.dateBegin = this.canvas.find('.PeriodCalendar-dateBegin')[0];
-    this.dateEnd = this.canvas.find('.PeriodCalendar-dateEnd')[0];
+    this.dateBegin = canvas.find('.PeriodCalendar-dateBegin')[0];
+    this.dateEnd = canvas.find('.PeriodCalendar-dateEnd')[0];
     
     $([this.dateBegin, this.dateEnd]).datepicker(
 	{
@@ -403,7 +405,7 @@ Calendar.prototype.init = function( name, params )
 	$(this._visModeController).change(function()
 	{
 		var isSimple = _this._visModeController.getMode() === _this._visModeController.SIMPLE_MODE;
-		$("#calendar .onlyMaxVersion", _this.canvas).toggle(!isSimple);
+		$("#calendar .onlyMaxVersion", canvas).toggle(!isSimple);
 		
 		_this.setLazyDate(isSimple ? 'day' : '', true);
         $(_this).triggerHandler('change'); //всегда генерим событие, так как в целом состояние календаря изменилось
@@ -414,7 +416,7 @@ Calendar.prototype.init = function( name, params )
         $(_this.moreIcon).attr('title', isSimple ? _gtxt('calendarWidget.ExtendedViewTitle') : _gtxt('calendarWidget.MinimalViewTitle'));
 	});
 
-	$("#calendar .onlyMaxVersion", this.canvas).toggle(!this._params.minimized);
+	$("#calendar .onlyMaxVersion", canvas).toggle(!this._params.minimized);
 
 	var curUTCDate = new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000);
 
@@ -432,9 +434,9 @@ Calendar.prototype.init = function( name, params )
     if (this._params.container)
     {
         if (typeof this._params.container === 'string')
-            $('#' + this._params.container).append(this.canvas);
+            $('#' + this._params.container).append(canvas);
         else
-            $(this._params.container).append(this.canvas);
+            $(this._params.container).append(canvas);
     }
 }
 
