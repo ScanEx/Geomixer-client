@@ -224,7 +224,7 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	var tr = _tr([
 		_td([load], [['css','textAlign','center']]), 
 		_td([name]), 
-		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible maps-manager-owner'], ['dir','title',map.Owner]]), 
 		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]), 
 		_td([remove], [['css','textAlign','center']])
 	]);
@@ -286,10 +286,6 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 		_(parent, [hint[0], ul]);
 		
 		_queryMapLayers.addDraggable(parent);
-        
-        // hint.hide().fadeIn(400, function() {
-            // hint.delay(4000).fadeOut(400);
-        // });
 	})
 }
 

@@ -1494,6 +1494,11 @@ div.layersScroll
     text-overflow: ellipsis;
 }
 
+.maps-manager-owner {
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+}
+
 /* Group editor */
 .group-editor-search-title {
     border-bottom: solid 1px #DEDEDE;
@@ -1683,9 +1688,8 @@ div.layersScroll
     width: 200px;
     bottom: 20px;
     right: 30px;
-    font-size: 14px;
-    color: #AAA;
-    font-weight: bold;
+    font-size: 20px;
+    color: #DDD;
 }
 
 .layers-before {
