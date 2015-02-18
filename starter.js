@@ -494,7 +494,7 @@ $(function()
                     active: true
                 }], 
                 rightLinks: rightLinks,
-                logo: window.gmxViewerUI && window.gmxViewerUI.logoImage
+                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
             });
             
             nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());
