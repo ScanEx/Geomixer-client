@@ -767,7 +767,7 @@ window.resizeAll = function()
 	{
 		show($$("leftMenu"));
         
-        var baseHeight = getWindowHeight() - top - bottom - headerHeight - 25;
+        var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
         $$("leftMenu").style.height = baseHeight + 'px'
         

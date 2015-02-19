@@ -91,11 +91,11 @@
 }
 
 .genericHeader-logo {
-    background-position: 0px 30px;
+    background-position: 0px 0px;
 }
 
 .genericHeader-languageBar {
-    padding: 6px 22px;
+    display: none;
 }
 
 /* Base layers widget */

@@ -246,7 +246,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 115px;
+	top: 90px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -1717,7 +1717,7 @@ div.layersScroll
 
 .mainmap-title {
     position: absolute;
-    top: 95px;
+    top: 70px;
     left: 22px;
     font-size: 12px;
     font-weight: bold;
