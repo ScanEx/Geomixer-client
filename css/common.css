@@ -1796,7 +1796,6 @@ div.layersScroll
 .leaflet-gmx-icon-saveMap {
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -330px -60px;
-    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-uploadFile {
@@ -1807,6 +1806,7 @@ div.layersScroll
 .leaflet-gmx-icon-editTool {
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -205px 0px;
+    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-editTool-active {
