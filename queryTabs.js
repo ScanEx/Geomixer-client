@@ -209,11 +209,7 @@ queryTabs.prototype.draw = function (tabInfo, tabIndex)
     $('.gmx-icon-edit', canvas).click(function() {
         var index = getOwnChildNumber(canvas);
         _this.add(_this.tabs[index], index);
-    })
-    
-    if (_queryMapLayers.currentMapRights() != "edit") {
-        $(edit).hide();
-    }
+    }).toggle(_queryMapLayers.currentMapRights() === "edit");
 
     if (typeof tabIndex === 'undefined') {
         _(this.tabsCanvas, [canvas]);
