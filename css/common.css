@@ -1700,7 +1700,7 @@ div.layersScroll
 
 .layers-tree {
     border: 1px solid #DDD;
-    padding: 10px 0px 10px 2px;
+    padding: 10px 0px 10px 0px;
 }
 
 .layers-tree > .filetree > li > div {
