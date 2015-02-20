@@ -633,8 +633,8 @@ nsGmx.widgets.commonCalendar = {
                 saveState: function() { return _this._calendar.saveState(); }
             });
             
-            $(this._calendar).change(this._updateTemporalLayers.bind(this));
-            this._updateTemporalLayers();
+            $(this._calendar).change(this.updateTemporalLayers.bind(this, null));
+            this.updateTemporalLayers();
             
             //depricated: use nsGmx.widgets.commonCalendar.(un)bindLayer
             this._calendar.bindLayer = this.bindLayer.bind(this);
@@ -670,7 +670,7 @@ nsGmx.widgets.commonCalendar = {
     bindLayer: function(layerName)
     {
         delete this._unbindedTemporalLayers[layerName];
-        this._updateTemporalLayers();
+        this.updateTemporalLayers();
     },
     unbindLayer: function(layerName)
     {
@@ -680,8 +680,6 @@ nsGmx.widgets.commonCalendar = {
     {
         if (layer.properties.maxShownPeriod)
         {
-            //var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
-            //var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
             var msecPeriod = layer.properties.maxShownPeriod*24*3600*1000;
             var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
             layer.setDateInterval(newDateBegin, dateEnd);
@@ -689,19 +687,20 @@ nsGmx.widgets.commonCalendar = {
         else
             layer.setDateInterval(dateBegin, dateEnd);
     },
-    _updateTemporalLayers: function()
+    updateTemporalLayers: function(layers)
     {
+        layers = layers || globalFlashMap.layers;
         var dateBegin = this._calendar.getDateBegin(),
             dateEnd = this._calendar.getDateEnd();
         
         if (dateBegin.valueOf() == dateEnd.valueOf())
             dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
         
-        for (var i = 0; i < globalFlashMap.layers.length; i++)
+        for (var i = 0; i < layers.length; i++)
         {
-            var name = globalFlashMap.layers[i].properties.name;
+            var name = layers[i].properties.name;
             if (!(name in this._unbindedTemporalLayers))
-                this._updateOneLayer(globalFlashMap.layers[i], dateBegin, dateEnd);
+                this._updateOneLayer(layers[i], dateBegin, dateEnd);
         }
     }
 }

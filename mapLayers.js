@@ -1227,38 +1227,39 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 //геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
-	if (typeof elem.content.properties.GroupID != 'undefined')
-	{
-		for (var i = 0; i < elem.content.children.length; i++)
-		{
-			var res = this.addLayersToMap(elem.content.children[i]);
-			
-			if (!res)
-				return false;
-		}
-	}
-	else
-	{
-		var layer = elem.content,
-			name = layer.properties.name;
+    if (typeof elem.content.properties.GroupID != 'undefined')
+    {
+        for (var i = 0; i < elem.content.children.length; i++)
+        {
+            var res = this.addLayersToMap(elem.content.children[i]);
+            
+            if (!res)
+                return false;
+        }
+    }
+    else
+    {
+        var layer = elem.content,
+            name = layer.properties.name;
             
             layer.geometry = from_merc_geometry(layer.geometry);
 
-		if (!globalFlashMap.layers[name])
-		{
-			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
-			
-			globalFlashMap.addLayer(layer, visibility);
+        if (!globalFlashMap.layers[name])
+        {
+            var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
+            
+            var layerOnMap = globalFlashMap.addLayer(layer, visibility);
+            nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
             layer.properties.changedByViewer = true;
-		}
-		else
-		{
-			showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
-			return false;
-		}
-	}
-	
-	return true;
+        }
+        else
+        {
+            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
+            return false;
+        }
+    }
+
+    return true;
 }
 
 layersTree.prototype.getParentParams = function(li)
