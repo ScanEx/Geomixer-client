@@ -342,29 +342,6 @@ var createDefaultMenu = function()
 		]});
 }
 
-function createHeader()
-{
-	var logoDivClass = (typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogo) ? 'emptyLogo' : 'logo';
-	var logoDiv = _div(null, [['dir','className', logoDivClass],['attr','hidable',true]]);
-	
-	if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.logoImage )
-		logoDiv.style.background = "transparent url(" + window.gmxViewerUI.logoImage + ") no-repeat scroll 0 0";
-	
-	var td = _td(null, [['attr','vAlign','top']]),
-		table = _table([_tbody([_tr([_td([logoDiv, _div(null,[['dir','className','leftIconPanel'],['attr','id','leftIconPanel']])],[['css','width','360px'],['attr','vAlign','top'],['css','background','transparent url(img/gradHeader.png) repeat-x 0px 0px']]),
-									 td])])],[['css','width','100%']]);
-	
-	_(td, [_div([_div(null, [['attr','id','headerLinks'],['dir','className','headerLinks']]),
-		   _div(null, [['attr','id','menu'],['dir','className','upMenu']])], [['css','background','transparent url(img/gradHeader.png) repeat-x 0px 0px'],['attr','hidable',true]]),
-		   _div(null, [['attr','id','iconPanel'],['dir','className','iconPanel']])]);
-	
-	_($$('header'), [table])
-	
-	var loading = _table([_tbody([_tr([_td([_img(null, [['attr','src','img/loader.gif']])],[['attr','vAlign','center'],['css','textAlign','center']])])])], [['css','width','100%'],['css','height','100%']]);
-	
-	_($$('flash'), [loading]);
-}
-
 var parseURLParams = function()
 {
     var q = window.location.search,
@@ -471,6 +448,8 @@ $(function()
     {
         nsGmx.AuthManager.checkUserInfo(function()
         {
+            nsGmx.pluginsManager.beforeMap();
+            
             var rightLinks = [];
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
                 rightLinks.push({
@@ -479,20 +458,10 @@ $(function()
                 })
             }
             
-            nsGmx.pluginsManager.beforeMap();
+            
+                        
             nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
-                leftLinks: [{
-                    title: _gtxt("Карта пожаров"),
-                    link: "http://fires.kosmosnimki.ru"
-                },
-                {
-                    title: _gtxt("Поиск снимков"),
-                    link: "http://search.kosmosnimki.ru"
-                },
-                {
-                    title: _gtxt("Платформа Геомиксер"),
-                    active: true
-                }], 
+                leftLinks: nsGmx.addHeaderLinks(), 
                 rightLinks: rightLinks,
                 logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
             });
@@ -1370,25 +1339,10 @@ function loadMap(state)
             
             //--------------------------------------
 
-            /*_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
-                               function() { _toggleFullscreenIcon(true); });
-            
-            _leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
-                                function() { _toggleFullscreenIcon(false); }, null, true);*/
-            
             //если в карте новый тип контролов, пермалинк из тулбаров перекачёвывает в контролы карты
             if (map.controlsManager && !map.controlsManager.getControl('permalink')) {
                 _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
             }
-            
-            if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
-            {
-                if ($('#headerLinks').length) {
-                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
-                }
-            }
-            
-            nsGmx.addHeaderLinks($$('headerLinks'));
             
             state.mode && map.setMode(state.mode);
             
