@@ -1595,6 +1595,12 @@ div.layersScroll
     background-position: -79px -6px;
 }
 
+.gmx-icon-progress {
+    background: url(../img/progress.gif);
+    width: 16px;
+    height: 16px;
+}
+
 /* Tabs panel */
 .tabsCanvas .gmx-icon-close {
     position: absolute;
@@ -1690,6 +1696,12 @@ div.layersScroll
     right: 30px;
     font-size: 20px;
     color: #DDD;
+}
+
+#mapsList .gmx-icon-progress{
+    background-position: 50%;
+    background-repeat: no-repeat;
+    width: auto;
 }
 
 .layers-before {

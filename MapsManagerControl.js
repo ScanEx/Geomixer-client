@@ -7,15 +7,44 @@ nsGmx.MapsManagerControl = function()
     var _this = this;
     this._activeIndex = 0;
     this._mapsTable = new nsGmx.ScrollTable();
+    this._canvas = _div(null, [['attr','id','mapsList']]);
+    this._mapPreview = null;
+    
+    $(this._canvas).append('<div class="gmx-icon-progress"></div>');
+    
+    this._dialogDiv = showDialog(_gtxt("Список карт"), this._canvas, 571, 320, 535, 130, this._resize.bind(this));
     
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
+        $(_this._canvas).empty();
+        
         if (!parseResponse(response))
             return;
 
         _this._drawMapsDialog(response.Result);
     })
     
+}
+
+nsGmx.MapsManagerControl.prototype._resize = function() {
+    var canvas = this._canvas,
+        mapsTable = this._mapsTable,
+        mapPreview = this._mapPreview;
+        
+    var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
+    mapsTable.tableParent.style.width = dialogWidth - 15 - 21 + 'px';
+    mapsTable.tableBody.parentNode.parentNode.style.width = dialogWidth + 5 - 21 + 'px';
+    mapsTable.tableBody.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
+
+    mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
+
+    mapsTable.tableParent.style.height = '200px';
+    mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
+    
+    if (mapPreview) {
+        mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
+        mapPreview.style.width = dialogWidth + 5 - 21 + 'px';
+    }
 }
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
@@ -32,7 +61,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
         '</div>';
         
     var searchCanvas = $(Mustache.render(searchUITemplate))[0];
-	var canvas = _div(null, [['attr','id','mapsList']]),
+	var canvas = this._canvas,
 		name = 'maps',
         mapsTable = this._mapsTable,
 		_this = this;
@@ -127,31 +156,9 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 
 	_(canvas, [tableParent]);
 	
-	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
-	
-	_(canvas, [this._mapPreview]);
-	
-	var resize = function()
-	{
-        var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
-		mapsTable.tableParent.style.width = dialogWidth - 15 - 21 + 'px';
-		mapsTable.tableBody.parentNode.parentNode.style.width = dialogWidth + 5 - 21 + 'px';
-		mapsTable.tableBody.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
-
-		mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
-
-		mapsTable.tableParent.style.height = '200px';
-		mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
-		
-		_this._mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
-		_this._mapPreview.style.width = dialogWidth + 5 - 21 + 'px';
-	}
-		
-	showDialog(_gtxt("Список карт"), canvas, 571, 470, 535, 130, resize);
-	
 	mapsTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 
-	resize();
+	this._resize();
 	
 	mapsTable.getDataProvider().setOriginalItems(mapsList);
 	
@@ -182,10 +189,18 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	
 	load.onclick = function()
 	{
-		removeChilds(mapsManager._mapPreview);
+		$(mapsManager._mapPreview).empty();
 		
 		var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]);
 		
+        if (!mapsManager._mapPreview) {
+            mapsManager._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
+            $(mapsManager._canvas).append(mapsManager._mapPreview);
+            $(mapsManager._dialogDiv).dialog('option', 'height', 550);
+            $(mapsManager._dialogDiv).dialog('option', 'minHeight', 550);
+            mapsManager._resize();
+            
+        }
 		_(mapsManager._mapPreview, [loading]);
 		
 		// раз уж мы список получили с сервера, то и карты из этого списка точно нужно загружать с него же...
