@@ -1880,9 +1880,9 @@
                                 data = null;
                             }
                             ,'onerror': function(err){      // ошибка при загрузке тайла
-                                delete node.loaderDrawFlags[stID];
-                                delete node.tilesLoadProgress[stID];
                                 if(err.skip) return;
+                                delete node.tilesLoadProgress[stID];
+                                delete node.loaderDrawFlags[stID];
                                 //node.badTiles[stID] = true;
                                 gmxAPI.addDebugWarnings(err);
                                 gmxNode.chkLayerVersion();
@@ -1910,6 +1910,7 @@
                 if(!flag) {
                     node.addTilesNeedRepaint(attr.drawTileID, true);
                 }
+
                 return flag;
             }
             ,reloadTilesList: function(zd) {   // перезагрузка тайлов слоя с задержкой
@@ -3129,7 +3130,6 @@
             ,
             _gmxUpdate: function () {
                 if (!this._map) {
-                    //console.log('_update: ', this.id);
                     return;
                 }
 
