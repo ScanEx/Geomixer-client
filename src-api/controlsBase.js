@@ -766,7 +766,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                     "img",
                     {
                         src: apiBase + "img/geomixer_logo_api.png",
-                        title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
+                        title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2015 ИТЦ «СканЭкс»", "(c) 2007-2015 RDC ScanEx"),
                         width: 130,
                         height: 34
                     },
@@ -1047,7 +1047,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                 var chkExists = {};
                 var texts = [
                     //первым всегда будет располагаться копирайт СканЭкс. 
-                    "&copy; <a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>, 2007-2014"
+                    "&copy; <a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>, 2007-2015"
                 ];
                 this.forEach(function(item, i) {
                     var obj = item[0];

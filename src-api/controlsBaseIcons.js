@@ -610,7 +610,7 @@
         var copyrightControls = null;
         // if (false && L.Control.gmxCopyright) {
         if (L.Control.gmxCopyright) {
-            copyrightControls = L.control.gmxCopyright();
+            copyrightControls = L.control.gmxCopyright({mapCopyright: gmxAPI.map.properties.Copyright || ''});
             Controls.items[copyrightControls.options.id] = copyrightControls;
             gmxAPI.map.addListener('scaleBarRepainted', function(width) {
                 LMap.fire('onChangeLocationSize', {locationSize: width});

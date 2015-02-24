@@ -259,7 +259,7 @@ var SearchInput = function (oInitContainer, params) {
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
 			/** Слова, содержащиеся в строке поиска */
-			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
+			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/g, "|").split("|");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -906,7 +906,10 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		else
 		{
            if (oFoundObject.Geometry.type == 'POINT') {
-			    oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
+		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat)
+			        oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
+                else
+			        oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
 		    }
 		    else {
 			    var oExtent = getBounds(oFoundObject.Geometry.coordinates);
