@@ -6,7 +6,6 @@ var SHARE_TYPES = ['public', 'private'];
 
 nsGmx.Translations.addText('rus', {security: {
     ownerName: 'Владелец',
-    shareType: 'Видимость в списках',
     defAccess: 'Доступ для всех',
     access: {
         no: 'нет доступа',
@@ -23,7 +22,6 @@ nsGmx.Translations.addText('rus', {security: {
 
 nsGmx.Translations.addText('eng', {security: {
     ownerName: 'Owner',
-    shareType: 'Visible in lists',
     defAccess: 'Public access',
     access: {
         no: 'no access',
@@ -245,17 +243,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 '<td><div>' +
                     '{{i security.ownerName}}: <span class="buttonLink changeOwnerLink">{{ownerName}}</span>' +
                 '</div></td>' +
-                '<td><div>' +
-                    '<table class="security-header-right"><tr>' +
-                        '<td>{{i security.shareType}}</td>' +
-                        '<td><select class="security-share-select selectStyle">' +
-                            '{{#shareTypes}}' +
-                                '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
-                            '{{/shareTypes}}' +
-                        '</select></td>' +
-                        '<td><button class="security-save">{{i Сохранить}}</button></td>' +
-                    '</tr></table>' +
-                '</div></td>' +
+                '<td>' +
+                    '<button class="security-save">{{i Сохранить}}</button>' +
+                '</td>' +
             '</tr></table>' + 
             '<div>{{i security.defAccess}}: ' +
                 '<select class="security-defaccess-select selectStyle">' +
@@ -284,13 +274,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var canvas = $(Mustache.render(uiTemplate, {
         ownerName: securityInfo.SecurityInfo.Owner,
         isShowUserSuggest: isShowUserSuggest,
-        shareTypes: SHARE_TYPES.map(function(type) {
-            return {
-                value: type, 
-                title: _gtxt('security.share.' + type), 
-                isSelected: type === securityInfo.SecurityInfo.Type
-            };
-        }),
         defAccessTypes: this.accessTypes.map(function(type) {
             return {
                 value: type, 
@@ -299,10 +282,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             };
         })
     }))[0];
-	
-	$('.security-share-select', canvas).change(function() {
-		securityInfo.SecurityInfo.Type = this.value;
-	})
     
     $('.security-defaccess-select', canvas).change(function() {
 		securityInfo.SecurityInfo.DefAccess = this.value;
