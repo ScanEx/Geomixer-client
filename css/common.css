@@ -1704,6 +1704,10 @@ div.layersScroll
     width: auto;
 }
 
+#mapsList .treeview {
+    margin-left: -2px;
+}
+
 .layers-before {
     border: 1px solid #DDD;
     padding: 9px 0px 10px 6px;

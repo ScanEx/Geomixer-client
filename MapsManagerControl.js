@@ -12,7 +12,7 @@ nsGmx.MapsManagerControl = function()
     
     $(this._canvas).append('<div class="gmx-icon-progress"></div>');
     
-    this._dialogDiv = showDialog(_gtxt("Список карт"), this._canvas, 571, 320, 535, 130, this._resize.bind(this));
+    this._dialogDiv = showDialog(_gtxt("Список карт"), this._canvas, 571, 360, 535, 130, this._resize.bind(this));
     
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
