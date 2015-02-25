@@ -1508,6 +1508,13 @@ queryMapLayers.prototype.load = function(data)
 		_layersTree.runLoadingFuncs();
 		
 		_layersTree.addExpandedEvents(this.buildedTree);
+        
+        $(this.treeCanvas).droppable({
+            accept: "span[dragg]", 
+            drop: function(ev, ui) {
+                queryMapLayers._droppableHandler.bind($(_this.buildedTree).find('[mapid]')[0], ev, ui)();
+            }
+        })
 		
 		this.applyState(_layersTree.condition, _layersTree.mapStyles);
 
@@ -1621,44 +1628,46 @@ queryMapLayers.prototype.removeDraggable = function(parent)
 	$(parent).find("span[dragg]").draggable('destroy');
 }
 
+queryMapLayers._droppableHandler = function(ev, ui)
+{
+    $('body').css("cursor", '');
+
+    // удалим элемент, отображающий копирование
+    ui.helper[0].removeNode(true)
+
+    // уберем заведомо ложные варианты - сам в себя, копирование условий
+    if (this == ui.draggable[0].parentNode.parentNode) return;
+
+    var circle = false,
+        layerManager = false;
+        
+    $(this).parents().each(function()
+    {
+        if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+            circle = true;
+    })
+        
+    if (circle) return;
+        
+    var isFromExternalMaps = false;
+    $(ui.draggable[0].parentNode.parentNode).parents().each(function()
+    {
+        if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+            layerManager = true;
+            
+        if ( this == $$('externalMapsCanvas') )
+            isFromExternalMaps = true;
+    })
+    
+    if (!layerManager)
+        _layersTree.moveHandler(ui.draggable[0], this)
+    else				
+        _layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
+}
+
 queryMapLayers.prototype.addDroppable = function(parent)
 {
-	$(parent).find("div[GroupID],div[MapID]").droppable({accept: "span[dragg]", hoverClass: 'droppableHover', drop: function(ev, ui)
-	{
-		$('body').css("cursor", '');
-		
-		// удалим элемент, отображающий копирование
-		ui.helper[0].removeNode(true)
-		
-		// уберем заведомо ложные варианты - сам в себя, копирование условий
-		if (this == ui.draggable[0].parentNode.parentNode) return;
-		
-		var circle = false,
-			layerManager = false;
-			
-		$(this).parents().each(function()
-		{
-			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
-				circle = true;
-		})
-			
-		if (circle) return;
-			
-        var isFromExternalMaps = false;
-		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
-		{
-			if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
-				layerManager = true;
-                
-            if ( this == $$('externalMapsCanvas') )
-                isFromExternalMaps = true;
-		})
-		
-		if (!layerManager)
-			_layersTree.moveHandler(ui.draggable[0], this)
-		else				
-			_layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
-	}})
+	$(parent).find("div[GroupID],div[MapID]").droppable({accept: "span[dragg]", hoverClass: 'droppableHover', drop: queryMapLayers._droppableHandler})
     
     $(parent).find("div[LayerID],div[MultiLayerID]").droppable({
         accept: "span[dragg]", 
