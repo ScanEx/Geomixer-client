@@ -349,6 +349,7 @@
                 obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polyline', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -364,6 +365,7 @@
                 obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polygon', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -379,6 +381,7 @@
                 obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Rectangle', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -760,6 +763,7 @@
                 done(coords[0], coords[1]);
                 endDrawing();
             }
+            gmxAPI._drawing.activeState = true;
             return ret;
         }
 	}
