@@ -793,6 +793,9 @@
             });
             gmxAPI._drawing.needListeners(LMap.gmxDrawing);
             Controls.items[gmxDrawing.options.id] = gmxDrawing;
+            gmxDrawing.on('activechange', function () {
+                gmxAPI._drawing.activeState = gmxDrawing.activeIcon ? true : false;
+            });
         }
         gmxDrawing.addTo(LMap);
         //outControls.gmxDrawing = gmxDrawing;
