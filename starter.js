@@ -658,6 +658,8 @@ nsGmx.widgets.commonCalendar = {
     },
     updateTemporalLayers: function(layers)
     {
+        if (!this._calendar) {return;}
+        
         layers = layers || globalFlashMap.layers;
         var dateBegin = this._calendar.getDateBegin(),
             dateEnd = this._calendar.getDateEnd();
@@ -681,17 +683,18 @@ nsGmx.widgets.getCommonCalendar = function()
     return nsGmx.widgets.commonCalendar.get();
 }
 
-//Отслеживаем изменения календарика и фильтруем все мультивременные слои относительно выбранного периода. 
-//Если выбран не период, а просто дата - фильтруем за последние сутки относительно этой даты
-function filterTemporalLayers()
+function initTimeline(layers)
 {
-    for (var i = 0; i < globalFlashMap.layers.length; i++) {
-        var props = globalFlashMap.layers[i].properties;
+    layers = layers || globalFlashMap.layers;
+    for (var i = 0; i < layers.length; i++) {
+        var props = layers[i].properties;
         if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
             nsGmx.widgets.commonCalendar.show();
-            return;
+            break;
         }
     }
+    
+    nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
 }
 
 function addMapName(container, name)
@@ -1378,12 +1381,14 @@ function loadMap(state)
                 }
             }
 
-            globalFlashMap.addListener('onLayerAdd', initEditUI);
+            globalFlashMap.addListener('onLayerAdd', function() {
+                initEditUI();
+                initTimeline();
+            });
+            
             initEditUI();
-            
-            filterTemporalLayers();
-            $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
-            
+            initTimeline();
+
             nsGmx.pluginsManager.afterViewer();
             
             $("#leftContent").mCustomScrollbar();

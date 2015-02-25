@@ -1249,7 +1249,7 @@ layersTree.prototype.addLayersToMap = function(elem)
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
             
             var layerOnMap = globalFlashMap.addLayer(layer, visibility);
-            nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
+            //nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
             layer.properties.changedByViewer = true;
         }
         else
@@ -1667,10 +1667,16 @@ queryMapLayers._droppableHandler = function(ev, ui)
 
 queryMapLayers.prototype.addDroppable = function(parent)
 {
-	$(parent).find("div[GroupID],div[MapID]").droppable({accept: "span[dragg]", hoverClass: 'droppableHover', drop: queryMapLayers._droppableHandler})
+	$(parent).find("div[GroupID],div[MapID]").droppable({
+        accept: "span[dragg]",
+        hoverClass: 'droppableHover',
+        greedy: true,
+        drop: queryMapLayers._droppableHandler
+    })
     
     $(parent).find("div[LayerID],div[MultiLayerID]").droppable({
-        accept: "span[dragg]", 
+        accept: "span[dragg]",
+        greedy: true,
         drop: function(ev, ui) {
             var swapElem = $(this).next();
             swapElem.removeClass('swap-droppableHover');
@@ -1730,7 +1736,7 @@ queryMapLayers._swapHandler = function(ev, ui)
 
 queryMapLayers.prototype.addSwappable = function(parent)
 {
-	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', drop: queryMapLayers._swapHandler})
+	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', greedy: true, drop: queryMapLayers._swapHandler})
 }
 queryMapLayers.prototype.removeSwappable = function(parent)
 {
