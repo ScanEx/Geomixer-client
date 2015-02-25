@@ -793,6 +793,12 @@
             });
             gmxAPI._drawing.needListeners(LMap.gmxDrawing);
             Controls.items[gmxDrawing.options.id] = gmxDrawing;
+            LMap.gmxDrawing.on('drawstart', function () {
+                gmxAPI._drawing.activeState = true;
+            });
+            LMap.gmxDrawing.on('drawstop', function () {
+                gmxAPI._drawing.activeState = false;
+            });
         }
         gmxDrawing.addTo(LMap);
         //outControls.gmxDrawing = gmxDrawing;
