@@ -349,6 +349,7 @@
                 obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polyline', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -364,6 +365,7 @@
                 obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Polygon', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -379,6 +381,7 @@
                 obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
                 obj = domFeature(obj, props);
             } else obj = LMap.gmxDrawing.create('Rectangle', {});
+            gmxAPI._drawing.activeState = true;
         }
         return obj;
 	}
@@ -411,7 +414,10 @@
 
 	drawFunctions["move"] = function()
 	{
-		//gmxAPI._drawing.BoxZoom = false;
+        var LMap = gmxAPI._leaflet.LMap;
+        if ('gmxDrawing' in LMap) {
+            LMap.gmxDrawing.create('');
+        }
     }
     drawFunctions.POINT = function(coords, props, propHiden)
     {
@@ -760,6 +766,7 @@
                 done(coords[0], coords[1]);
                 endDrawing();
             }
+            gmxAPI._drawing.activeState = true;
             return ret;
         }
 	}
