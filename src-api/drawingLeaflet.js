@@ -414,7 +414,10 @@
 
 	drawFunctions["move"] = function()
 	{
-		//gmxAPI._drawing.BoxZoom = false;
+        var LMap = gmxAPI._leaflet.LMap;
+        if ('gmxDrawing' in LMap) {
+            LMap.gmxDrawing.create('');
+        }
     }
     drawFunctions.POINT = function(coords, props, propHiden)
     {
