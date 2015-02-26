@@ -1738,6 +1738,9 @@ div.layersScroll
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
+    overflow-x: hidden;
+    width: 320px;
+    text-overflow: ellipsis;
 }
 
 .addtabs-lang-placeholder {
