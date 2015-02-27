@@ -477,7 +477,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
 
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
     this.panelCanvas = $(Mustache.render(ui, {
-        isTitle: !!(options.path || options.showCloseButton || options.showMinimizeButton),
+        isTitle: !!(options.path.length || options.showCloseButton || options.showMinimizeButton),
         id: 'left_' + canvasID,
         pathTR: getPathHTML(options.path),
         showCloseButton: options.showCloseButton,
