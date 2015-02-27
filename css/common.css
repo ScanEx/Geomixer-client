@@ -1881,3 +1881,10 @@ div.layersScroll
 .gmx-prompt-input {
     width: 100%;
 }
+
+#flash .leaflet-gmx-copyright-window {
+    box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
+    border: none;
+    margin: 3px;
+    background-color: #FFFFFF;
+}
