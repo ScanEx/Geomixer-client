@@ -348,8 +348,10 @@
                 var _latlngs = getLatlngsFromGeometry({ type: 'LineString', coordinates: coords });
                 obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
                 obj = domFeature(obj, props);
-            } else obj = LMap.gmxDrawing.create('Polyline', {});
-            gmxAPI._drawing.activeState = true;
+            } else {
+                obj = LMap.gmxDrawing.create('Polyline', {});
+                gmxAPI._drawing.activeState = true;
+            }
         }
         return obj;
 	}
@@ -364,8 +366,10 @@
                 var _latlngs = getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords });
                 obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
                 obj = domFeature(obj, props);
-            } else obj = LMap.gmxDrawing.create('Polygon', {});
-            gmxAPI._drawing.activeState = true;
+            } else {
+                obj = LMap.gmxDrawing.create('Polygon', {});
+                gmxAPI._drawing.activeState = true;
+            }
         }
         return obj;
 	}
@@ -380,8 +384,10 @@
                 var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
                 obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
                 obj = domFeature(obj, props);
-            } else obj = LMap.gmxDrawing.create('Rectangle', {});
-            gmxAPI._drawing.activeState = true;
+            } else {
+                obj = LMap.gmxDrawing.create('Rectangle', {});
+                gmxAPI._drawing.activeState = true;
+            }
         }
         return obj;
 	}
@@ -761,12 +767,12 @@
                     });
                 }, 0);
                 gmxAPI._drawing.type = 'POINT';
+                gmxAPI._drawing.activeState = true;
             }
             else {
                 done(coords[0], coords[1]);
                 endDrawing();
             }
-            gmxAPI._drawing.activeState = true;
             return ret;
         }
 	}
