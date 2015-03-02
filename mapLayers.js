@@ -574,7 +574,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
 		
 	spanDescr.innerHTML = elem.description ? elem.description : '';
@@ -788,7 +788,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
     if (this._renderParams.showVisibilityCheckbox && (!parentVisibility || !elem.visible)) {
         $(spanParent).addClass("invisible");
@@ -817,7 +817,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerManagerFlag)
 {
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer']]),
-		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+		spanParent = _div([span],[['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
 	
 	if (this._renderParams.allowActive) {
