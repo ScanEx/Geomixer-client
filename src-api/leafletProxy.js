@@ -3313,14 +3313,15 @@
 				if(style.polygons) {
 					if(rotateRes) out.isCircle = true;
 					if(style.maxWeight) {
-                        size = style.maxWeight;
-                        out.sx = out.sy = Math.ceil(scale * size + out.weight);
+                        size = Math.ceil(scale * style.maxWeight + out.weight);
+                        out.sx = out.sy = size || 0;
                     }
 				} else if(style.image) {
                     if(rotateRes || 'color' in style) {
                         if(rotateRes) {
                             size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-                            out.sx = out.sy = Math.ceil(scale * size/2);
+                            size = Math.ceil(scale * size/2);
+                            out.sx = out.sy = size || 0;
                             out.isCircle = true;
                         }
                     }
@@ -3332,10 +3333,10 @@
                         var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
                         var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
                         size = scale * Math.max(r1, r2);
-                        out.sx = out.sy = size;
+                        out.sx = out.sy = size || 0;
                         out.isCircle = true;
                     } else if(style.circle) {
-                        out.sx = out.sy = size;
+                        out.sx = out.sy = size || 0;
                         out.isCircle = true;
                     }
                 }
