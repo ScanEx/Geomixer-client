@@ -728,6 +728,7 @@
                 }
             }
             obj.removeObserver = function() {
+                delete obj._observerOnChange;
                 proxy('removeObserver', { 'obj': obj});
             };
             if (obj.stateListeners.onChangeLayerVersion) obj.chkLayerVersion();
