@@ -134,7 +134,8 @@ option
 }
 div.active
 {
-	background-color: #94CAEB;
+    background-color: #E0E0E0;
+    padding: 2px 0px;
 }
 div.log
 {
