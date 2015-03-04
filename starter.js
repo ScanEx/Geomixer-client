@@ -466,7 +466,9 @@ $(function()
                 logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
             });
             
-            nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(nsGmx.widgets.header.getLanguagePlaceholder());
+            //переключалку языков будем размещать в нестандартном месте - auth widget и правыми ссылками
+            var langContainer = $('<div class="genericHeader-gmxLanguageBar"></div>').insertBefore(nsGmx.widgets.header.getAuthPlaceholder().parent());
+            nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(langContainer);
         
             window.LeafletPlugins = window.LeafletPlugins || [];
             var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';

@@ -94,8 +94,15 @@
     background-position: 0px 0px;
 }
 
-.genericHeader-languageBar {
-    display: none;
+.genericHeader-gmxLanguageBar {
+    display: table-cell;
+    vertical-align: middle;
+    padding-bottom: 1px;
+    padding-right: 15px;
+}
+
+.languageWidget {
+    width: 50px;
 }
 
 /* Base layers widget */
