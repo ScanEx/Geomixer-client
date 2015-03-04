@@ -783,14 +783,7 @@
         var gmxDrawing = null;
         // if (false) {
         if (L.Control.gmxDrawing) {
-            gmxDrawing = L.control.gmxDrawing({
-                drawOptions: {
-                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png',
-                    popupAnchor: [2, -18],
-                    iconSize: [33, 41],
-                    iconAnchor: [6, 36]
-                }
-            });
+            gmxDrawing = L.control.gmxDrawing();
             gmxAPI._drawing.needListeners(LMap.gmxDrawing);
             Controls.items[gmxDrawing.options.id] = gmxDrawing;
             gmxDrawing.on('activechange', function () {
