@@ -80,15 +80,17 @@ var nsGmx = nsGmx || {};
     var loginDialogTemplate = 
         '<div>' +
             '<div class = "loginMainDiv">' +
-                '<div>' +
-                    '<span class="loginLabel">{{i Логин}}</span><br>' +
-                    '<input class = "inputStyle inputLogin" placeholder = "{{i адрес электронной почты}}"><br>' +
-                '</div>' +
-                '<div>' +
-                    '<span class="loginLabel">{{i Пароль}}</span><br>' +
-                    '<input class = "inputStyle inputPass" type = "password" placeholder = "{{i пароль}}"><br>' +
-                '</div>' +
-                '<button class="loginButton">{{i Вход}}</button>' +
+                '<form>' +
+                    '<div>' +
+                        '<span class="loginLabel">{{i Логин}}</span><br>' +
+                        '<input name="login" class = "inputStyle inputLogin" placeholder = "{{i адрес электронной почты}}"><br>' +
+                    '</div>' +
+                    '<div>' +
+                        '<span class="loginLabel">{{i Пароль}}</span><br>' +
+                        '<input name="password" class = "inputStyle inputPass" type = "password" placeholder = "{{i пароль}}"><br>' +
+                    '</div>' +
+                    '<button class="loginButton">{{i Вход}}</button>' +
+                '</form>' + 
             '</div>' +
             '{{#isMapsSite}}' + 
             '<div class="loginLinks">' + 
@@ -155,7 +157,6 @@ var nsGmx = nsGmx || {};
                 _td([_div([userSpan], [['attr','id','user'],['dir','className','user']])]),
                 _td([_div([logoutSpan], [['attr','id','log'],['dir','className','log']])])
             ])])]);
-            // _(_container, [_div([logoutSpan], [['attr','id','log'],['dir','className','log']]), _div([userSpan], [['attr','id','user'],['dir','className','user']])]);
         }
         
         var _update = function()
@@ -210,13 +211,12 @@ var nsGmx = nsGmx || {};
                                 errorDiv.hide(500, function(){ errorDiv.remove(); });
                             }, 8000)
                         }
+                        loginInput.value = '';
+                        passwordInput.value = '';
                         inputError([loginInput, passwordInput], 2000);
                         loginInput.focus();
                     }
                 );
-                
-                loginInput.value = '';
-                passwordInput.value = '';
             };
             
             _dialogCanvas = canvas;
@@ -229,6 +229,10 @@ var nsGmx = nsGmx || {};
             loginInput.focus();
             
             loginButton.onclick = checkLogin;
+            
+            canvas.find('form').submit(function(e) {
+                e.preventDefault();
+            })
             
             canvas.find('.registration').click(function(){
                 window.open(window.gmxAuthServer + 'Account/Registration', '_blank');
