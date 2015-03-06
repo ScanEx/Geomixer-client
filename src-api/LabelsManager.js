@@ -255,7 +255,7 @@
         }
         ,removeArray: function(id, arr) {				// удалить массив нод
             var node = gmxAPI._leaflet.mapNodes[id];
-            if(!node || node.type !== 'VectorLayer') return;
+            if(!node || node.type !== 'VectorLayer' || !gmxAPI.isArray(arr)) return;
             var pref = id + '_';
             for (var i = 0, len = arr.length; i < len; i++) {
                 var pid = pref + arr[i];
