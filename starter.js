@@ -830,6 +830,7 @@ function initEditUI() {
     
     var editIcon = new L.Control.gmxIcon({
         id: 'editTool',
+        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt("Редактировать"),
         togglable: true,
         addBefore: 'drawing'
@@ -1264,6 +1265,7 @@ function loadMap(state)
             //пополняем тулбар
             var uploadFileIcon = new L.Control.gmxIcon({
                 id: 'uploadFile', 
+                className: 'leaflet-gmx-icon-sprite',
                 title: _gtxt("Загрузить файл")
             }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
             
@@ -1272,7 +1274,8 @@ function loadMap(state)
             if (_queryMapLayers.currentMapRights() === "edit") {
 
                 var saveMapIcon = new L.Control.gmxIcon({
-                    id: 'saveMap', 
+                    id: 'saveMap',
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Сохранить карту"),
                     addBefore: 'drawing'
                 })
@@ -1282,12 +1285,14 @@ function loadMap(state)
                 //группа создания слоёв
                 var createVectorLayerIcon = new L.Control.gmxIcon({
                     id: 'createVectorLayer', 
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Создать векторный слой"),
                     addBefore: 'drawing'
                 }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
                 
                 var createRasterLayerIcon = new L.Control.gmxIcon({
                     id: 'createRasterLayer', 
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Создать растровый слой"),
                     addBefore: 'drawing'
                 }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
@@ -1302,6 +1307,7 @@ function loadMap(state)
                 
                 var bookmarkIcon = new L.Control.gmxIcon({
                     id: 'bookmark',
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Добавить закладку"),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -1327,6 +1333,7 @@ function loadMap(state)
             
             var gridIcon = new L.Control.gmxIcon({
                 id: 'gridTool', 
+                className: 'leaflet-gmx-icon-sprite',
                 title: _gtxt("Координатная сетка"),
                 togglable: true
             })
