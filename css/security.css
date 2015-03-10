@@ -10,16 +10,8 @@
     font-size: 12px;
 }
 
-.security-header-right {
-    float: right;
-}
-
-.security-share-select {
-    width: 160px;
-}
-
 .security-save {
-    margin-left: 30px;
+    float: right;
     padding: 0px 5px;
 }
 
@@ -31,4 +23,8 @@
 .suggest-table-placeholder {
     padding-bottom: 10px;
     border-bottom: 1px solid rgb(153, 153, 153);
+}
+
+.security-canvas {
+    overflow: hidden;
 }

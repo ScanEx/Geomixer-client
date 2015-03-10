@@ -226,17 +226,21 @@ div.leftTitle
 
 .leftmenu-canvas {
     padding: 0px;
-    margin: 4px 7px 8px 20px;
+    margin: 4px 7px 8px 12px;
     border: 1px solid #dddddd;
     background-color: #F0F0F0;
 }
 
+.leftmenu-toggle-zone {
+    float: left;
+    cursor: pointer;
+    margin: 4px;
+}
+
 .leftmenu-toggle-icon {
-    float: right;
-    margin: 9px 15px 0px 0px;
+    margin: 6px;
     width: 6px;
     height: 9px;
-    cursor: pointer;
 }
 
 .leftTitle .gmx-icon-close {
@@ -256,7 +260,6 @@ div.leftTitle
 
 .leftmenu-path {
     color: #293D6B;
-    margin-left: 10px;
     height: 30px;
     float: left;
 }

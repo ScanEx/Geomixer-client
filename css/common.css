@@ -134,7 +134,8 @@ option
 }
 div.active
 {
-	background-color: #94CAEB;
+    background-color: #E0E0E0;
+    padding: 2px 0px;
 }
 div.log
 {
@@ -246,7 +247,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 95px;
+	top: 90px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -424,11 +425,11 @@ div[multistyle] {
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;
-	background: #7BCBF2;
+	background: #DDDDDD;
 	font-family: monospace;
 	color: #123456;
-	border-right: 2px solid #ABBCCD;
-	border-bottom: 2px solid #ABBCCD;
+	border-right: 2px solid #AAAAAA;
+	border-bottom: 2px solid #AAAAAA;
 	z-index:100000;
 	-webkit-user-select:none;
 	cursor: move;
@@ -1076,7 +1077,7 @@ div.layersScroll
 /* Plugin Editor */
 .pluginEditor-pluginList
 {
-    height: 200px;
+    height: 190px;
     width: 100%;
 }
 
@@ -1494,6 +1495,11 @@ div.layersScroll
     text-overflow: ellipsis;
 }
 
+.maps-manager-owner {
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+}
+
 /* Group editor */
 .group-editor-search-title {
     border-bottom: solid 1px #DEDEDE;
@@ -1570,6 +1576,14 @@ div.layersScroll
     cursor: pointer;
 }
 
+.gmx-icon-edit {
+    width: 11px;
+    height: 11px;
+    background-image: url(../img/edit_small.png);
+    display: inline-block;
+    cursor: pointer;
+}
+
 .gmx-icon-choose:hover {
     background-image: url(../img/choose2_a.png);
 }
@@ -1582,11 +1596,23 @@ div.layersScroll
     background-position: -79px -6px;
 }
 
+.gmx-icon-progress {
+    background: url(../img/progress.gif);
+    width: 16px;
+    height: 16px;
+}
+
 /* Tabs panel */
 .tabsCanvas .gmx-icon-close {
     position: absolute;
     right: 14px;
     top: 10px;
+}
+
+.tabsCanvas .gmx-icon-edit {
+    position: absolute;
+    right: 34px;
+    top: 8px;
 }
 
 .tabsCanvas .canvas{
@@ -1595,7 +1621,7 @@ div.layersScroll
 }
 
 .tabsCanvas .tabName{
-    margin-right: 28px;
+    margin-right: 52px;
 }
 
 .addtabs-container {
@@ -1664,6 +1690,25 @@ div.layersScroll
     margin-left: 15px;
 }
 
+.mapslist-hint {
+    position: absolute;
+    width: 200px;
+    bottom: 20px;
+    right: 30px;
+    font-size: 20px;
+    color: #DDD;
+}
+
+#mapsList .gmx-icon-progress{
+    background-position: 50%;
+    background-repeat: no-repeat;
+    width: auto;
+}
+
+#mapsList .treeview {
+    margin-left: -2px;
+}
+
 .layers-before {
     border: 1px solid #DDD;
     padding: 9px 0px 10px 6px;
@@ -1672,7 +1717,7 @@ div.layersScroll
 
 .layers-tree {
     border: 1px solid #DDD;
-    padding: 10px 0px 10px 12px;
+    padding: 10px 0px 10px 0px;
 }
 
 .layers-tree > .filetree > li > div {
@@ -1689,17 +1734,29 @@ div.layersScroll
 
 .mainmap-title {
     position: absolute;
-    top: 76px;
-    left: 20px;
+    top: 70px;
+    left: 22px;
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
+    overflow-x: hidden;
+    width: 320px;
+    text-overflow: ellipsis;
 }
 
 .addtabs-lang-placeholder {
     position: absolute;
     top: 4px;
     right: 10px;
+}
+
+.tabs-edit {
+    position: absolute;
+    height: 11px;
+    position: absolute;
+    right: 28px;
+    height: 11px;
+    top: 5px;
 }
 
 .language-item {
@@ -1759,7 +1816,6 @@ div.layersScroll
 .leaflet-gmx-icon-saveMap {
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -330px -60px;
-    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-uploadFile {
@@ -1770,10 +1826,11 @@ div.layersScroll
 .leaflet-gmx-icon-editTool {
     background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -205px 0px;
+    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-editTool-active {
-    background-position: -205px -30px;
+    background-position: -205px -26px;
 }
 
 .leaflet-gmx-icon-createVectorLayer {
@@ -1793,7 +1850,7 @@ div.layersScroll
 }
 
 .leaflet-gmx-icon-gridTool-active {
-    background-position: -268px -90px;
+    background-position: -268px -92px;
 }
 
 .leaflet-gmx-icon-bookmark {
@@ -1824,4 +1881,11 @@ div.layersScroll
 
 .gmx-prompt-input {
     width: 100%;
+}
+
+#flash .leaflet-gmx-copyright-window {
+    box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
+    border: none;
+    margin: 3px;
+    background-color: #FFFFFF;
 }

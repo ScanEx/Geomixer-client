@@ -123,29 +123,29 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 */
 var addSubGroup = function(div, layersTree)
 {
-	var ul = _abstractTree.getChildsUl(div.parentNode),
-		newIndex;
-	
-	if (!ul)
-		newIndex = 0;
-	else
-		newIndex = ul.childNodes.length + 1;
-	
-	var groupVisibilityProperties = new GroupVisibilityPropertiesModel();
-	var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
-	
-	var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
-	    newName = elemProperties.title,
-		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
-		create = makeButton(_gtxt('Создать')),
-		pos = nsGmx.Utils.getDialogPos(div, true, 100),
-		createSubGroup = function()
-		{
-			if (inputIndex.value == '')
-				return;
-			
-			var parentProperties = div.gmxProperties,
-				newGroupProperties = {
+    var ul = _abstractTree.getChildsUl(div.parentNode),
+        newIndex;
+
+    if (!ul)
+        newIndex = 0;
+    else
+        newIndex = ul.childNodes.length + 1;
+
+    var groupVisibilityProperties = new GroupVisibilityPropertiesModel();
+    var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
+
+    var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
+        newName = elemProperties.title,
+        inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
+        create = makeButton(_gtxt('Создать')),
+        pos = nsGmx.Utils.getDialogPos(div, true, 100),
+        createSubGroup = function()
+        {
+            if (inputIndex.value == '')
+                return;
+            
+            var parentProperties = div.gmxProperties,
+                newGroupProperties = {
                     type:'group', 
                     content:{
                         properties:{
@@ -222,7 +222,7 @@ var addSubGroup = function(div, layersTree)
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
-	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 210, pos.left, pos.top);
+	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 220, pos.left, pos.top);
 }
 
 var createGroupEditorProperties = function(div, isMap, mainLayersTree)
@@ -753,7 +753,7 @@ var createMapEditor = function(div, activePage)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 440, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 450, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };

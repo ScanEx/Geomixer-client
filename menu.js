@@ -110,7 +110,7 @@ UpMenu.prototype._template =
             {{#childs}}\
                 <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
                     <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                        <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
+                        <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                         {{title}}\
                         {{#anyChildren}}\
                             <div class = "menuMarkerRight"></div>\
@@ -121,7 +121,7 @@ UpMenu.prototype._template =
                         {{#childs}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
                                 <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                                    <div class = "menuMarkerLeft {{#isChecked}} menuChecked{{/isChecked}}"></div>\
+                                    <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
@@ -433,10 +433,15 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
 
     options = $.extend({
         closeFunc: function(){},
-        path: _menuUp.getNavigatePath(canvasID),
         showCloseButton: true,
         showMinimizeButton: true
     }, options);
+    
+    //по умолчанию оставляем только последний элемент списка
+    if (!options.path) {
+        var menuPath = _menuUp.getNavigatePath(canvasID);
+        options.path = menuPath.length ? [menuPath[menuPath.length - 1]] : [];
+    }
 
     var getPathHTML = function(path) {
         if (!path) return '';
@@ -459,16 +464,20 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     var ui =
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
             '{{#isTitle}}<div class="leftTitle">' +
+                '{{#showMinimizeButton}}' + 
+                    '<div class = "leftmenu-toggle-zone">' + 
+                        '<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>' + 
+                    '</div>' +
+                '{{/showMinimizeButton}}' +
                 '<table class="leftmenu-path">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
-                '{{#showMinimizeButton}}<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>{{/showMinimizeButton}}' +
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
         '</div>';
 
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
     this.panelCanvas = $(Mustache.render(ui, {
-        isTitle: !!(options.path || options.showCloseButton || options.showMinimizeButton),
+        isTitle: !!(options.path.length || options.showCloseButton || options.showMinimizeButton),
         id: 'left_' + canvasID,
         pathTR: getPathHTML(options.path),
         showCloseButton: options.showCloseButton,
@@ -485,9 +494,9 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
 
     var _this = this;
 
-    $('.leftmenu-toggle-icon', this.panelCanvas).click(function() {
+    $('.leftmenu-toggle-zone', this.panelCanvas).click(function() {
         $(_this.workCanvas).toggle();
-        $(this).toggleClass('leftmenu-down-icon leftmenu-right-icon');
+        $(this).find('div').toggleClass('leftmenu-down-icon leftmenu-right-icon');
         $(_this).trigger('changeVisibility');
     });
 

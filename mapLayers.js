@@ -225,6 +225,10 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
     this.treeModel = new nsGmx.LayersTree(tree);
     this._mapTree = tree; //Устарело: используйте this.treeModel для доступа к исходному дереву
     
+    this.treeModel.forEachLayer(function(layerContent, isVisible) {
+        layerContent.properties.initVisible = layerContent.properties.visible;
+    });
+    
     var _this = this;
     $(this.treeModel).on('nodeVisibilityChange', function(event, elem) {
         var props = elem.content.properties;
@@ -570,7 +574,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
 		
 	spanDescr.innerHTML = elem.description ? elem.description : '';
@@ -784,7 +788,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
     if (this._renderParams.showVisibilityCheckbox && (!parentVisibility || !elem.visible)) {
         $(spanParent).addClass("invisible");
@@ -813,7 +817,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerManagerFlag)
 {
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer']]),
-		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+		spanParent = _div([span],[['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
 	
 	if (this._renderParams.allowActive) {
@@ -896,7 +900,7 @@ layersTree.prototype.removeGroup = function(div)
 		_mapHelper.updateUnloadEvent(true);
 	}
 	
-	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
+	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
 }
 
 layersTree.prototype.showSaveStatus = function(parent)
@@ -1223,38 +1227,39 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 //геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
-	if (typeof elem.content.properties.GroupID != 'undefined')
-	{
-		for (var i = 0; i < elem.content.children.length; i++)
-		{
-			var res = this.addLayersToMap(elem.content.children[i]);
-			
-			if (!res)
-				return false;
-		}
-	}
-	else
-	{
-		var layer = elem.content,
-			name = layer.properties.name;
+    if (typeof elem.content.properties.GroupID != 'undefined')
+    {
+        for (var i = 0; i < elem.content.children.length; i++)
+        {
+            var res = this.addLayersToMap(elem.content.children[i]);
+            
+            if (!res)
+                return false;
+        }
+    }
+    else
+    {
+        var layer = elem.content,
+            name = layer.properties.name;
             
             layer.geometry = from_merc_geometry(layer.geometry);
 
-		if (!globalFlashMap.layers[name])
-		{
-			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
-			
-			globalFlashMap.addLayer(layer, visibility);
+        if (!globalFlashMap.layers[name])
+        {
+            var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
+            
+            var layerOnMap = globalFlashMap.addLayer(layer, visibility);
+            //nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
             layer.properties.changedByViewer = true;
-		}
-		else
-		{
-			showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
-			return false;
-		}
-	}
-	
-	return true;
+        }
+        else
+        {
+            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
+            return false;
+        }
+    }
+
+    return true;
 }
 
 layersTree.prototype.getParentParams = function(li)
@@ -1423,10 +1428,11 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		{
             
             var name = props.name;
-			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
-			{
+			if (typeof condition.visible[name] != 'undefined') {
                 _layersTree.treeModel.setNodeVisibility(elem, condition.visible[name]);
-			}
+			} else {
+                _layersTree.treeModel.setNodeVisibility(elem, props.initVisible);
+            }
 			
 			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&
 				!_this.equalStyles(props.styles, mapLayersParam[name]))
@@ -1502,6 +1508,13 @@ queryMapLayers.prototype.load = function(data)
 		_layersTree.runLoadingFuncs();
 		
 		_layersTree.addExpandedEvents(this.buildedTree);
+        
+        $(this.treeCanvas).droppable({
+            accept: "span[dragg]", 
+            drop: function(ev, ui) {
+                queryMapLayers._droppableHandler.bind($(_this.buildedTree).find('[mapid]')[0], ev, ui)();
+            }
+        })
 		
 		this.applyState(_layersTree.condition, _layersTree.mapStyles);
 
@@ -1615,89 +1628,115 @@ queryMapLayers.prototype.removeDraggable = function(parent)
 	$(parent).find("span[dragg]").draggable('destroy');
 }
 
+queryMapLayers._droppableHandler = function(ev, ui)
+{
+    $('body').css("cursor", '');
+
+    // удалим элемент, отображающий копирование
+    ui.helper[0].removeNode(true)
+
+    // уберем заведомо ложные варианты - сам в себя, копирование условий
+    if (this == ui.draggable[0].parentNode.parentNode) return;
+
+    var circle = false,
+        layerManager = false;
+        
+    $(this).parents().each(function()
+    {
+        if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+            circle = true;
+    })
+        
+    if (circle) return;
+        
+    var isFromExternalMaps = false;
+    $(ui.draggable[0].parentNode.parentNode).parents().each(function()
+    {
+        if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+            layerManager = true;
+            
+        if ( this == $$('externalMapsCanvas') )
+            isFromExternalMaps = true;
+    })
+    
+    if (!layerManager)
+        _layersTree.moveHandler(ui.draggable[0], this)
+    else				
+        _layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
+}
+
 queryMapLayers.prototype.addDroppable = function(parent)
 {
-	$(parent).find("div[GroupID],div[MapID]").droppable({accept: "span[dragg]", hoverClass: 'droppableHover', drop: function(ev, ui)
-	{
-		$('body').css("cursor", '');
-		
-		// удалим элемент, отображающий копирование
-		ui.helper[0].removeNode(true)
-		
-		// уберем заведомо ложные варианты - сам в себя, копирование условий
-		if (this == ui.draggable[0].parentNode.parentNode) return;
-		
-		var circle = false,
-			layerManager = false;
-			
-		$(this).parents().each(function()
-		{
-			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
-				circle = true;
-		})
-			
-		if (circle) return;
-			
-        var isFromExternalMaps = false;
-		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
-		{
-			if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
-				layerManager = true;
-                
-            if ( this == $$('externalMapsCanvas') )
-                isFromExternalMaps = true;
-		})
-		
-		if (!layerManager)
-			_layersTree.moveHandler(ui.draggable[0], this)
-		else				
-			_layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
-	}})
+	$(parent).find("div[GroupID],div[MapID]").droppable({
+        accept: "span[dragg]",
+        hoverClass: 'droppableHover',
+        greedy: true,
+        drop: queryMapLayers._droppableHandler
+    })
+    
+    $(parent).find("div[LayerID],div[MultiLayerID]").droppable({
+        accept: "span[dragg]",
+        greedy: true,
+        drop: function(ev, ui) {
+            var swapElem = $(this).next();
+            swapElem.removeClass('swap-droppableHover');
+            queryMapLayers._swapHandler.call(swapElem[0], ev, ui);
+        },
+        over: function(ev, ui) {
+            $(this).next().addClass('swap-droppableHover');
+        },
+        out: function(ev, ui) {
+            $(this).next().removeClass('swap-droppableHover');
+        }
+    })
 }
 queryMapLayers.prototype.removeDroppable = function(parent)
 {
 	$(parent).find("div[GroupID],div[MapID]").droppable('destroy');
 }
 
+//статическая ф-ция
+queryMapLayers._swapHandler = function(ev, ui)
+{
+    $('body').css("cursor", '');
+    
+    // удалим элемент, отображающий копирование
+    ui.helper[0].removeNode(true);
+    
+    //проверим, не идёт ли копирование группы внутрь самой себя
+    var circle = false;
+        
+    $(this).parents().each(function()
+    {
+        if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+            circle = true;
+    })
+    
+    if (circle) return;
+    
+    var layerManager = false;
+    
+    var isFromExternalMaps = false;
+    $(ui.draggable[0].parentNode.parentNode).parents().each(function()
+    {
+        if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+            layerManager = true;
+            
+        if ( this == $$('externalMapsCanvas') )
+            isFromExternalMaps = true;
+    })
+    
+    var gmxProperties = ui.draggable[0].parentNode.parentNode.gmxProperties;
+    
+    if (!layerManager)
+        _layersTree.swapHandler(ui.draggable[0], this)
+    else
+        _layersTree.copyHandler(gmxProperties, this, true, !isFromExternalMaps)
+}
+
 queryMapLayers.prototype.addSwappable = function(parent)
 {
-	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', drop: function(ev, ui)
-	{
-		$('body').css("cursor", '');
-		
-		// удалим элемент, отображающий копирование
-		ui.helper[0].removeNode(true);
-        
-        //проверим, не идёт ли копирование группы внутрь самой себя
-		var circle = false;
-			
-		$(this).parents().each(function()
-		{
-			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
-				circle = true;
-		})
-        
-        if (circle) return;
-		
-		var layerManager = false;
-		
-        var isFromExternalMaps = false;
-		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
-		{
-			if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
-				layerManager = true;
-                
-            if ( this == $$('externalMapsCanvas') )
-                isFromExternalMaps = true;
-		})
-        
-        var gmxProperties = ui.draggable[0].parentNode.parentNode.gmxProperties;
-		
-		if (!layerManager)
-			_layersTree.swapHandler(ui.draggable[0], this)
-		else
-			_layersTree.copyHandler(gmxProperties, this, true, !isFromExternalMaps)
-	}})
+	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', greedy: true, drop: queryMapLayers._swapHandler})
 }
 queryMapLayers.prototype.removeSwappable = function(parent)
 {
@@ -1926,7 +1965,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 	
 	addLink && ui.append(addLink);
 	
-	var dialogDiv = showDialog(title, ui[0], 280, 103 + (addLink ? 20 : 0), false, false);
+	var dialogDiv = showDialog(title, ui[0], 280, 110 + (addLink ? 20 : 0), false, false);
 }
 
 queryMapLayers.prototype.createMap = function(name)
@@ -1964,12 +2003,13 @@ queryMapLayers.prototype.createMap = function(name)
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
         {
+            var props = child.content.properties;
             if (child.type == "group")
             {
-                var props = child.content.properties;
                 props.expanded = typeof props.initExpand !== 'undefined' ? props.initExpand : false;
                 delete props.initExpand;
             }
+            delete props.initVisible;
         }, true);
         
         var params = {

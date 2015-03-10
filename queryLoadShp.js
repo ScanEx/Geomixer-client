@@ -96,9 +96,9 @@ var _queryLoadShp = new queryLoadShp();
 
 
 drawingObjects.loadShp.load = function() {
-    nsGmx.widgets.notifications.startAction('uploadShp');
     if ('File' in window) {
         $('<input type="file">').change(function(e) {
+            nsGmx.widgets.notifications.startAction('uploadShp');
             nsGmx.Utils.parseShpFile(e.target.files[0]).then(
                 function(objs) {
                     _queryLoadShp._showObjectsOnMap(objs);

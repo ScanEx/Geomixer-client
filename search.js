@@ -259,7 +259,7 @@ var SearchInput = function (oInitContainer, params) {
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
 			/** Слова, содержащиеся в строке поиска */
-			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
+			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/g, "|").split("|");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -906,7 +906,10 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		else
 		{
            if (oFoundObject.Geometry.type == 'POINT') {
-			    oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
+		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat)
+			        oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
+                else
+			        oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
 		    }
 		    else {
 			    var oExtent = getBounds(oFoundObject.Geometry.coordinates);
@@ -1309,10 +1312,11 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
  @param {string} ServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
- @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска
+ @param {object} [params] дополнительные параметры
+ @param {object} [params.UseOSM] использовать ли геокодер OSM
  @returns {Search.SearchLogic}*/
-var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, arrDisplayFields){
-	SearchLogic.call(this, new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, arrDisplayFields);
+var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, params){
+    SearchLogic.call(this, new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, params);
 }
 SearchLogicGet.prototype = SearchLogic;
 
@@ -1321,13 +1325,22 @@ SearchLogicGet.prototype = SearchLogic;
  @memberof Search
  @param {object} oInitSearchDataProvider источник данных для обработки
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
+ @param {Object} [params] - дополнительные параметры
+ @param {Object} [params.UseOSM] - Искать ли в базе OSM
 */
-var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
+var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
     var oSearchDataProvider = oInitSearchDataProvider;
     var iLimitAutoComplete = typeof (AutoCompleteLimit) == "number" ? AutoCompleteLimit : 10; //Максимальное количество результатов
 	var _this = this;
 	if(oSearchDataProvider == null) throw "Error in SearchLogic: oSearchDataProvider is not supplied";
-			
+    
+    var useOSMDefault = 0;
+    if (params && 'UseOSM' in params) {
+        useOSMDefault = Number(params.UseOSM);
+    } else  if (typeof gmxGeoCodeUseOSM !== 'undefined') {
+        useOSMDefault = Number(gmxGeoCodeUseOSM);
+    }
+
 	/** Возращает полный путь к объекту для отображения в подсказке
 	@param oFoundObject Найденный объект
 	@param sObjNameField название свойства, из которого брать наименование
@@ -1348,8 +1361,12 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	    @param {function(arrResult)} callback вызывается когда подсказка готова
     */
 	this.AutoCompleteData = function (SearchString, callback){
-	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: iLimitAutoComplete, WithoutGeometry: 1,
-	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 
+	    _this.SearchByString({
+            SearchString: SearchString, 
+            IsStrongSearch: 0,
+            Limit: iLimitAutoComplete,
+            WithoutGeometry: 1,
+	        UseOSM: useOSMDefault, 
         callback: function(arrResultDataSources){
 			var arrResult = [];
 			var sSearchRegExp = new RegExp("("+SearchString.replace(/^\s|\s$/, "").replace(/[^\wа-яА-Я]+/g, "|")+")", "i");
@@ -1462,8 +1479,14 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
         <i>UseOSM<i> - Искать в базе OSM
 	@returns {void}*/
 	this.SearchByString = function(params){
-	    oSearchDataProvider.SearchByString({ SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry || WithoutGeometry,
-            PageNum: params.PageNum, ShowTotal: params.ShowTotal, UseOSM: params.UseOSM, 
+	    oSearchDataProvider.SearchByString({
+            SearchString: params.SearchString,
+            IsStrongSearch: params.IsStrongSearch,
+            Limit: params.Limit,
+            WithoutGeometry: params.WithoutGeometry || WithoutGeometry,
+            PageNum: params.PageNum,
+            ShowTotal: params.ShowTotal,
+            UseOSM: 'UseOSM' in params ? params.UseOSM : useOSMDefault,
 			callback: function(response) {
 				for(var i=0; i<response.length; i++)	response[i].CanDownloadVectors = false;
 				if (params.layersSearchFlag){
@@ -1484,7 +1507,12 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode, UseOSM: params.UseOSM});
+		oSearchDataProvider.SearchID({
+            callback: params.callback,
+            ID: params.ID,
+            TypeCode: params.TypeCode,
+            UseOSM: 'UseOSM' in params ? params.UseOSM : useOSMDefault
+        });
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1659,14 +1687,13 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
                 }
             }
             lstResult.ShowLoading();
-            var useOSM = typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0;
-            oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1, UseOSM: useOSM,
+            oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1,
             callback: function (response) {
                 lstResult.ShowResult(SearchString, response);
                 lstResult.CreatePager(response, function (e) {
                     var evt = e || window.event,
                     active = evt.srcElement || evt.target
-                    oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: iLimit, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: useOSM,
+                    oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: iLimit, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0,
                         callback: function (response) {
                             lstResult.ShowResult(SearchString, response);
                             $('#prevpages~span:visible').attr('class', 'buttonLink');
@@ -1688,8 +1715,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var fnSelect = function(event, oAutoCompleteItem){
 	    if (fnBeforeSearch != null) fnBeforeSearch();
 	    $('#respager').remove();
-	    var useOSM = typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0;
-	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode, UseOSM: useOSM, 
+	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode,
                             callback: function (response) {
                                 lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: response[0].SearchResult}]);
                         }

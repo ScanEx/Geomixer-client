@@ -1782,6 +1782,9 @@ var FireBurntRenderer3 = function( params )
         this.setVisible(false);
         clusterLayer.remove();
         clusterGeomLayer.remove();
+        
+        map.layers[_params.hotspotLayerName] && map.layers[_params.hotspotLayerName].removeObserver();
+        map.layers[_params.dailyLayerName] && map.layers[_params.dailyLayerName].removeObserver();
     }
 }
 
@@ -2330,6 +2333,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
     
+    $(calendar.canvas).next('.fireMappletHours').remove();
     this._infoDiv = $('<div/>', {'class': 'fireMappletHours'}).insertAfter(calendar.canvas);
     
 	//this.searchBboxController.init();
@@ -2405,6 +2409,8 @@ FireControl.prototype.remove = function() {
         dc.provider.remove && dc.provider.remove();
         dc.renderer.remove && dc.renderer.remove();
     }
+    
+    $(this._calendar.canvas).next('.fireMappletHours').remove();
 }
 
 FireControl.prototype.update = function()
@@ -2424,7 +2430,7 @@ FireControl.prototype.update = function()
 */
 var FireControl2 = function(map, params)
 {
-    params = params || {};
+    params = $.extend({}, params); //чтобы не портить исходный хеш
     params.data = params.data || "+fires !images";
     
     var createdDiv = null;

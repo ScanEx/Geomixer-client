@@ -542,7 +542,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             
             var offset = $(deleteButton).offset();
             
-            var jDialog = showDialog(_gtxt("Удалить объект?"), _div([remove],[['css','textAlign','center']]), 180, 70, offset.left + 20, offset.top - 30);
+            var jDialog = showDialog(_gtxt("Удалить объект?"), _div([remove],[['css','textAlign','center']]), 180, 75, offset.left + 20, offset.top - 30);
         }
         
         showButton.onclick = function()

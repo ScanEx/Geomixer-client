@@ -602,7 +602,7 @@ mapHelper.prototype.updateTinyMCE = function(container) {
 mapHelper.ImageInputControl = function(initURL)
 {
     var prevValue = initURL || '';
-    var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','175px']]);
+    var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','170px']]);
     _title(inputUrl, _gtxt("URL изображения"));
     
     var _this = this;
