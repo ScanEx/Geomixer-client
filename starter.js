@@ -207,7 +207,7 @@ var createMenuNew = function()
 	_menuUp.addItem(
 	{id:"viewMenu", title: _gtxt("Вид"),childs:
 		[
-			{id:'extMaps',        title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
+			{id:'externalMaps',   title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
 			{id:'mapTabs',        title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
 			{id:'DrawingObjects', title: _gtxt('Объекты'),              func: oDrawingObjectGeomixer.Load},
 			{id:'searchView',     title: _gtxt('Результаты поиска'),    func: oSearchControl.Load}

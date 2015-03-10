@@ -1889,3 +1889,10 @@ div.layersScroll
     margin: 3px;
     background-color: #FFFFFF;
 }
+
+/* External maps */
+.externalMapsCanvas .gmx-icon-close {
+    position: absolute;
+    top: 6px;
+    right: 1px;
+}
