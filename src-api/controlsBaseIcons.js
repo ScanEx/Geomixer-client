@@ -659,11 +659,13 @@
             };
             gmxAPI.extend(gmxAPI.map, {
                 addCopyrightedObject: function(obj, copyright, z1, z2, geo) {
-                    util.addItem(obj, copyright, z1, z2, geo);
+                    copyrightControls.setMapCopyright(copyright);
+                    //util.addItem(obj, copyright, z1, z2, geo);
                 }
                 ,removeCopyrightedObject: function(obj) {
-                    util.removeItem(obj);
-                    copyrightControls._redraw();
+                    copyrightControls.setMapCopyright('');
+                    // util.removeItem(obj);
+                    // copyrightControls._redraw();
                 }
                 ,setCopyrightVisibility: function(obj) {
                     //copyrightControl.setVisible(obj);
