@@ -228,8 +228,8 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
     var mapState = _mapHelper.getMapState();
     
     // туда же сохраним созданные объекты
-    _userObjects.collect();
-    mapState.userObjects = JSON.stringify(_userObjects.getData());
+    nsGmx.userObjectsManager.collect();
+    mapState.userObjects = JSON.stringify(nsGmx.userObjectsManager.getData());
     
     nsGmx.Utils.TinyReference.create(mapState).then(callback);
 }

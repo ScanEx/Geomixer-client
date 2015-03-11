@@ -974,7 +974,7 @@ function loadMap(state)
 		globalFlashMap = map;
         var userObjects = state.userObjects || (data && data.properties.UserData);
         
-        userObjects && _userObjects.setData(JSON.parse(userObjects));
+        userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
         
         if (state.dt) {
             try {
@@ -991,9 +991,9 @@ function loadMap(state)
         //Остальные данные будем загружать чуть позже после частичной инициализации вьюера
         //О да, формат хранения данных о плагинах часто менялся! 
         //Поддерживаются все предыдущие форматы из-за старых версий клиента и сложности обновления базы данных
-        _userObjects.load('mapPlugins');
-        _userObjects.load('mapPlugins_v2');
-        _userObjects.load('mapPlugins_v3');
+        nsGmx.userObjectsManager.load('mapPlugins');
+        nsGmx.userObjectsManager.load('mapPlugins_v2');
+        nsGmx.userObjectsManager.load('mapPlugins_v3');
         
         //после загрузки списка плагинов карты начали загружаться не глобальные плагины, 
         //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
@@ -1194,7 +1194,7 @@ function loadMap(state)
             _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
             
             // Загружаем все пользовательские данные
-            _userObjects.load();
+            nsGmx.userObjectsManager.load();
             
             //динамически добавляем пункты в меню. DEPRICATED.
             nsGmx.pluginsManager.addMenuItems(_menuUp);

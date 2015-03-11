@@ -220,7 +220,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 
 var _queryExternalMaps = new queryExternalMaps();
 
-_userObjects.addDataCollector('externalMaps', {
+nsGmx.userObjectsManager.addDataCollector('externalMaps', {
     collect: function()
     {
         if (!_queryExternalMaps.workCanvas)

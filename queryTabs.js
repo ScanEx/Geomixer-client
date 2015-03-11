@@ -264,7 +264,7 @@ queryTabs.prototype.show = function(state)
 
 var _queryTabs = new queryTabs();
 
-_userObjects.addDataCollector('tabs', {
+nsGmx.userObjectsManager.addDataCollector('tabs', {
     collect: function()
     {
         if (!_queryTabs.tabs.length)

@@ -43,7 +43,7 @@
 		}
 	}
 	
-	_userObjects.addDataCollector('Coverage', {
+	nsGmx.userObjectsManager.addDataCollector('Coverage', {
 		collect: function(){
 			return layerStatus;
 		},
