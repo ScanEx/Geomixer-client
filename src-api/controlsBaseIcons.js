@@ -555,7 +555,6 @@
 
         // HideControls - кнопка управления видимостью всех контролов
         var hideControls = null;
-        //if (false && L.Control.gmxHide) {
         if (L.Control.gmxHide) {
             hideControls = L.control.gmxHide();
             hideControls.on('click', function (ev) {
@@ -566,8 +565,7 @@
         }
         gmxAPI.extend(gmxAPI.map.allControls, {
             setVisible: function(flag) {
-                if ('setVisibility' in hideControls) hideControls.setVisibility(flag, true);
-                else hideControls.setVisible(flag);
+                hideControls.setActive(flag);
             },
             minimize: function() {
                 this.setVisible(false);
