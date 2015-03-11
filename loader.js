@@ -1,10 +1,6 @@
-﻿var nsGmx = {};
-nsGmx.GeomixerFramework = true;
-
-(function(){
+﻿(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
-
 
 window.nsGmx = {};
 window.nsGmx.GeomixerFramework = true;

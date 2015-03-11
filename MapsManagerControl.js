@@ -6,35 +6,68 @@ nsGmx.MapsManagerControl = function()
 {
     var _this = this;
     this._activeIndex = 0;
+    this._mapsTable = new nsGmx.ScrollTable();
+    this._canvas = _div(null, [['attr','id','mapsList']]);
+    this._mapPreview = null;
+    
+    $(this._canvas).append('<div class="gmx-icon-progress"></div>');
+    
+    this._dialogDiv = showDialog(_gtxt("Список карт"), this._canvas, 571, 360, 535, 130, this._resize.bind(this));
+    
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
+        $(_this._canvas).empty();
+        
         if (!parseResponse(response))
             return;
 
         _this._drawMapsDialog(response.Result);
     })
     
-    this._mapsTable = new nsGmx.ScrollTable();
+}
+
+nsGmx.MapsManagerControl.prototype._resize = function() {
+    var canvas = this._canvas,
+        mapsTable = this._mapsTable,
+        mapPreview = this._mapPreview;
+        
+    var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
+    mapsTable.tableParent.style.width = dialogWidth - 15 - 21 + 'px';
+    mapsTable.tableBody.parentNode.parentNode.style.width = dialogWidth + 5 - 21 + 'px';
+    mapsTable.tableBody.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
+
+    mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
+
+    mapsTable.tableParent.style.height = '200px';
+    mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
+    
+    if (mapPreview) {
+        mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
+        mapPreview.style.width = dialogWidth + 5 - 21 + 'px';
+    }
 }
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 {
-	var canvas = _div(null, [['attr','id','mapsList']]),
-		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
+    var searchUITemplate = 
+        '<div class="mapslist-search">' +
+            '<table class="mapslist-search-table"><tr>' +
+                '<td>' +
+                    '{{i Название}}<input class="inputStyle mapslist-search-name">' +
+                '</td><td>' +
+                    '{{i Владелец}}<input class="inputStyle mapslist-search-owner">' +
+                '</td>' +
+            '</tr></table>' +
+        '</div>';
+        
+    var searchCanvas = $(Mustache.render(searchUITemplate))[0];
+	var canvas = this._canvas,
 		name = 'maps',
         mapsTable = this._mapsTable,
 		_this = this;
 	
-	var mapNameInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
-	var mapOwnerInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
-	
-	_(searchCanvas, [_div([_table([_tbody([_tr([
-        _td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','90px']]),
-        _td([mapNameInput],[['css','width','170px']]),
-        _td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])],[['css','width','92px']]),
-        _td([mapOwnerInput])
-    ])])],[['css','width','100%']])], [['css','marginBottom','10px']])]);
-	
+	var mapNameInput = $('.mapslist-search-name', searchCanvas)[0],
+        mapOwnerInput = $('.mapslist-search-owner', searchCanvas)[0];
 	_(canvas, [searchCanvas]);
 	
 	var tableParent = _div(),
@@ -56,12 +89,8 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(titleFunc, idFunc);
 	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
-    
-    // $(mapsTable).bind('beforeRedraw', function() {
-        //_this._activeIndex = 0;
-    // })
 	
-	mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
+	mapsTable.createTable(tableParent, name, 410, ["", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '55%', '15%', '15%', '5%'], function(map, i)
     {
         return _this._drawMaps.call(this, map, i, _this);
     }, sortFuncs);
@@ -76,7 +105,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
         return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
     };
 
-    $(mapNameInput).bind('keydown', function(event) {
+    $([mapNameInput, mapOwnerInput]).bind('keydown', function(event) {
         var numItems = mapsTable.getVisibleItems().length;
         
         if (event.keyCode === 13) {
@@ -127,30 +156,9 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 
 	_(canvas, [tableParent]);
 	
-	this._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
-	
-	_(canvas, [this._mapPreview]);
-	
-	var resize = function()
-	{
-		mapsTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		mapsTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		mapsTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-
-		mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
-
-		mapsTable.tableParent.style.height = '200px';
-		mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
-		
-		_this._mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
-		_this._mapPreview.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-	}
-		
-	showDialog(_gtxt("Список карт"), canvas, 571, 470, 535, 130, resize);
-	
 	mapsTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 
-	resize();
+	this._resize();
 	
 	mapsTable.getDataProvider().setOriginalItems(mapsList);
 	
@@ -160,37 +168,43 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManager)
 {
 	var name = makeLinkButton(map.Title),
-		load = makeImageButton("img/choose.png", "img/choose_a.png"),
-		addExternal = makeImageButton("img/prev.png", "img/prev_a.png"),
+		load = makeImageButton("img/collapse-arrow-right.gif", "img/collapse-arrow-right.gif"),
 		remove = makeImageButton("img/recycle.png", "img/recycle_a.png");
 	
 	_title(name, _gtxt("Загрузить"));
 	_title(load, _gtxt("Показать"));
-	_title(addExternal, _gtxt("Добавить"));
 	_title(remove, _gtxt("Удалить"));
 	
-	name.style.textDecoration = 'none';
+    name.className = name.className + ' maps-manager-mapname';
 	
 	name.onclick = function()
 	{
 		window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + map.Name);
 	}
+    
+    nsGmx.ContextMenuController.bindMenuToElem(name, 'MapListItem', function(){return true;},
+    {
+        name: map.Name
+	});
 	
 	load.onclick = function()
 	{
-		removeChilds(mapsManager._mapPreview);
+		$(mapsManager._mapPreview).empty();
 		
 		var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]);
 		
+        if (!mapsManager._mapPreview) {
+            mapsManager._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
+            $(mapsManager._canvas).append(mapsManager._mapPreview);
+            $(mapsManager._dialogDiv).dialog('option', 'height', 550);
+            $(mapsManager._dialogDiv).dialog('option', 'minHeight', 550);
+            mapsManager._resize();
+            
+        }
 		_(mapsManager._mapPreview, [loading]);
 		
 		// раз уж мы список получили с сервера, то и карты из этого списка точно нужно загружать с него же...
 		mapsManager._loadMapJSON(window.serverBase, map.Name, mapsManager._mapPreview); 
-	}
-	
-	addExternal.onclick = function()
-	{
-		_queryExternalMaps.addMapElem(_layersTree.treeModel.getMapProperties().hostName, map.Name);
 	}
 	
 	remove.onclick = function()
@@ -223,10 +237,9 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	var modificationDateString = $.datepicker.formatDate('dd.mm.yy', date); // + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
 	
 	var tr = _tr([
-		_td([addExternal], [['css','textAlign','center']]), 
 		_td([load], [['css','textAlign','center']]), 
 		_td([name]), 
-		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible maps-manager-owner'], ['dir','title',map.Owner]]), 
 		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]), 
 		_td([remove], [['css','textAlign','center']])
 	]);
@@ -272,13 +285,31 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
         var ul = previewLayersTree.drawTree(layers, 2);
 		
 		$(ul).treeview();
+        
+        //раскрываем группы по клику
+        $(ul).click(function(event) {
+            if ($(event.target).hasClass('groupLayer')) {
+                var clickDiv = $(event.target.parentNode.parentNode.parentNode).children("div.hitarea");
+                clickDiv.length && $(clickDiv[0]).trigger('click');
+            }
+        })
 		
 		removeChilds(parent);
+        
+        var hint = $('<div class="mapslist-hint">' + _gtxt('maplist.hint') + '</div>');
 
-		_(parent, [ul])
+		_(parent, [hint[0], ul]);
 		
 		_queryMapLayers.addDraggable(parent);
 	})
 }
+
+nsGmx.ContextMenuController.addContextMenuElem({
+    title: function() { return "Открыть в новом окне"; },
+    clickCallback: function(context)
+    {
+        window.open(window.location.href.split(/\?|#/)[0] + "?" + context.name, '_blank');
+    }
+}, 'MapListItem');
 
 })();

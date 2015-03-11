@@ -53,7 +53,7 @@ queryTabs.prototype.load = function()
 	if (!this.builded)
 	{
 		var _this = this;
-		this.tabsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']])
+		this.tabsCanvas = _div(null, [['dir','className','tabsCanvas']])
 		
 		_(this.workCanvas, [this.tabsCanvas]);
 		
@@ -132,19 +132,19 @@ queryTabs.prototype.add = function(tabInfo, tabIndex)
     
     titleInput.keyup(function(e) {
         $(this).toggleClass('error', this.value == '');
-
+		
         if (e.keyCode == 13)
         {
-            createTab();
-            return false;
-        }
-
-        return true;
+			createTab();
+	  		return false;
+	  	}
+		
+		return true;
     });
-    
+             
     titleInput.focus();
              
-    var createTab = function () {
+	var createTab = function() {
             updateDataLoc(langControl.getLang());
             var mapState = _mapHelper.getMapState(),
                 tab = {
@@ -160,7 +160,7 @@ queryTabs.prototype.add = function(tabInfo, tabIndex)
                 };
             
             if (isNew) {
-                _this.tabs.push(tab);
+            _this.tabs.push(tab);
             } else {
                 _this.tabs[tabIndex] = tab;
             }
@@ -169,10 +169,10 @@ queryTabs.prototype.add = function(tabInfo, tabIndex)
             removeDialog(dialogDiv);
         },
         _this = this;
-
+	
     $('.addtabs-create', ui).click(createTab);
-
-    var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 200, false, false)
+	
+	var dialogDiv = showDialog(_gtxt("Имя закладки"), ui[0], 280, 230, false, false);
 }
 
 queryTabs.prototype.draw = function (tabInfo, tabIndex)
@@ -182,48 +182,34 @@ queryTabs.prototype.draw = function (tabInfo, tabIndex)
         return tabInfo[paramName + '_' + lang] || tabInfo[paramName];
     }
     
-    var canvas = _div(null, [['dir','className','canvas']]),
-        title = makeLinkButton(selectValLoc('name')),
-        edit = makeImageButton('img/edit.png','img/edit.png'),
-        remove = makeImageButton('img/closemin.png','img/close_orange.png'),
-        _this = this;
-        
-    canvas.tabInfo = tabInfo;
-
-    var description = selectValLoc('description');
-    if (description) {
-        title.title = description;
-    }
-
-    title.onclick = function()
-    {
-        _this.show(tabInfo.state)
-    }
-
-    title.style.marginLeft = '5px';
+    var tmpl = '<div class="canvas">' +
+        '<div class="buttonLink tabName" title="{{description}}">{{name}}</div>' +
+        '<div class="gmx-icon-edit"></div>' +
+        '<div class="gmx-icon-close"></div>' +
+    '</div>';
     
-    edit.onclick = function() {
+    var canvas = $(Mustache.render(tmpl, {
+            name: selectValLoc('name'),
+            description: selectValLoc('description')
+        }))[0];
+    var _this = this;
+
+	canvas.tabInfo = tabInfo;
+
+    $('.tabName', canvas).click(this.show.bind(this, tabInfo.state));
+	
+    $('.gmx-icon-close', canvas).click(function() {
+		var index = getOwnChildNumber(canvas);
+		
+		_this.tabs.splice(index, 1);
+		
+		canvas.removeNode(true);
+	})
+    
+    $('.gmx-icon-edit', canvas).click(function() {
         var index = getOwnChildNumber(canvas);
         _this.add(_this.tabs[index], index);
-    }
-
-    remove.onclick = function()
-    {
-        var index = getOwnChildNumber(canvas);
-        
-        _this.tabs.splice(index, 1);
-        
-        canvas.removeNode(true);
-    }
-
-    remove.className = 'remove';
-    edit.className = 'tabs-edit';
-
-    _(canvas, [_div([title], [['dir','className','item']]), edit, remove]);
-    
-    if (_queryMapLayers.currentMapRights() != "edit") {
-        $(edit).hide();
-    }
+    }).toggle(_queryMapLayers.currentMapRights() === "edit");
 
     if (typeof tabIndex === 'undefined') {
         _(this.tabsCanvas, [canvas]);

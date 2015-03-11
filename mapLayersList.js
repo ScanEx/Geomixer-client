@@ -27,7 +27,7 @@ queryMapLayersList.prototype.load = function()
         listTable = this._listTable,
 		_this = this;
 	
-	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
+	var layerName = _input(null, [['dir','className','inputStyle inputFullWidth'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
 		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]);
 
 	var intersectSel = nsGmx.Utils._select(
@@ -79,13 +79,15 @@ queryMapLayersList.prototype.load = function()
 	_(canvas, [searchCanvas]);
 	
 	var scrollDiv = $("<div></div>", {'class': 'layersScroll'});
-	var scrollCheckbox = _checkbox(false, 'checkbox');
-	scrollDiv.append(scrollCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Пролистывать слои")));
+    
+    var scrollDiv = $(Mustache.render('<div class="layersScroll"><label><input type="checkbox">{{i Пролистывать слои}}</label></div>'));
+	//var scrollCheckbox = _checkbox(false, 'checkbox');
+	//scrollDiv.append(scrollCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Пролистывать слои")));
 	this._isLayersScrollActive = false;
-	$(scrollCheckbox).change(function()
-	{
-		_this._isLayersScrollActive = scrollCheckbox.checked;
-		if (scrollCheckbox.checked)
+    
+	scrollDiv.find('input').change(function() {
+		_this._isLayersScrollActive = this.checked;
+		if (this.checked)
 		{
 			sliderDiv.show();
 			_this._updateSliderVisibility(_this._scrollDiv.slider('option', 'value'));
@@ -130,7 +132,7 @@ queryMapLayersList.prototype.load = function()
 	listTable.limit = 20;
 	listTable.pagesCount = 5;
     
-	listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+	listTable.createTable(tableParent, name, 295, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
     listTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	$(listTable).bind('sortChange', function(){ _this._updateSlider()} );
@@ -257,11 +259,11 @@ queryMapLayersList.prototype.load = function()
 	_(this.workCanvas, [canvas]);
 	
 	listTable.tableBody.parentNode.style.width = '100%';
-	listTable.tableParent.style.width = '330px';
+	listTable.tableParent.style.width = '315px';
 	listTable.tableBody.parentNode.parentNode.style.height = 'auto';
 	listTable.tableBody.parentNode.parentNode.style.overflowY = 'auto';
 	listTable.tableParent.style.height = 'auto';
-	listTable.tableParent.parentNode.lastChild.style.width = '333px';
+	listTable.tableParent.parentNode.lastChild.style.width = '317px';
 	
 	listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 }
@@ -525,7 +527,7 @@ queryMapLayersList.prototype.reloadList = function()
 	listTable.start = 0;
 	listTable.reportStart = 0;
 	
-	listTable.getDataProvider().setOriginalItems(extendLayers);	
+	listTable.getDataProvider().setOriginalItems(extendLayers);
 }
 
 var _queryMapLayersList = new queryMapLayersList();

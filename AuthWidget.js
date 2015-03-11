@@ -35,15 +35,17 @@ var nsGmx = nsGmx || {};
                     return;
                 }
                 
+                nsGmx.widgets.notifications.startAction('changePassword');
                 nsGmx.AuthManager.changePassword(oldInput.value, newInput.value, function()
                 {
-                    jQuery(canvas.parentNode).dialog("destroy")
+                    jQuery(canvas.parentNode).dialog("destroy");
                     canvas.parentNode.removeNode(true);
                     
-                    _layersTree.showSaveStatus($$('headerLinks'));
+                    nsGmx.widgets.notifications.stopAction('changePassword', 'success', _gtxt('Пароль изменён'));
                 }, function( message )
                 {
                     message && showErrorMessage(message, true);
+                    nsGmx.widgets.notifications.stopAction('changePassword', 'failure');
                 })
                 
                 oldInput.value = '';
@@ -75,6 +77,29 @@ var nsGmx = nsGmx || {};
         }
     }
     
+    var loginDialogTemplate = 
+        '<div>' +
+            '<div class = "loginMainDiv">' +
+                '<form>' +
+                    '<div>' +
+                        '<span class="loginLabel">{{i Логин}}</span><br>' +
+                        '<input name="login" class = "inputStyle inputLogin" placeholder = "{{i адрес электронной почты}}"><br>' +
+                    '</div>' +
+                    '<div>' +
+                        '<span class="loginLabel">{{i Пароль}}</span><br>' +
+                        '<input name="password" class = "inputStyle inputPass" type = "password" placeholder = "{{i пароль}}"><br>' +
+                    '</div>' +
+                    '<button class="loginButton">{{i Вход}}</button>' +
+                '</form>' + 
+            '</div>' +
+            '{{#isMapsSite}}' + 
+            '<div class="loginLinks">' + 
+                '<span class = "buttonLink registration">{{i Регистрация}}</span><br>' +
+                '<span class = "buttonLink passRecovery">{{i Восстановление пароля}}</span>' +
+            '</div>' +
+            '{{/isMapsSite}}' + 
+        '</div>';
+    
     nsGmx.AuthWidget = function( container, authManager, loginCallback )
     {
         var _container = container;
@@ -89,7 +114,6 @@ var nsGmx = nsGmx || {};
             {
                 _this.showLoginDialog( loginCallback );
             }
-            
             _(_container, [_div([span], [['attr','id','log'],['dir','className','log']])]);
         }
         
@@ -129,7 +153,10 @@ var nsGmx = nsGmx || {};
             
             _title(userSpan, _gtxt("Изменение пароля"))
             
-            _(_container, [_div([logoutSpan], [['attr','id','log'],['dir','className','log']]), _div([userSpan], [['attr','id','user'],['dir','className','user']])]);
+            _(_container, [_table([_tr([
+                _td([_div([userSpan], [['attr','id','user'],['dir','className','user']])]),
+                _td([_div([logoutSpan], [['attr','id','log'],['dir','className','log']])])
+            ])])]);
         }
         
         var _update = function()
@@ -155,81 +182,71 @@ var nsGmx = nsGmx || {};
         //Показывает диалог с вводом логина/пароля, посылает запрос на сервер.
         this.showLoginDialog = function()
         {
-            if (_dialogCanvas !== null)
+            if (_dialogCanvas) {
                 return;
+            }
                 
-            var isMapsSite = typeof mapsSite != 'undefined' && mapsSite;
-            var dialogHeight = isMapsSite ? 190 : 135;
+            var isMapsSite = !!window.mapsSite;
+            var dialogHeight = isMapsSite ? 210 : 175;
             
-            var loginInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
-                passwordInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
-                regLink = makeLinkButton(_gtxt("Регистрация")),
-                retriveLink = makeLinkButton(_gtxt("Восстановление пароля")),
-                loginButton = makeButton(_gtxt("Вход")),
-                canvas = _div([_div([_span([_t(_gtxt("Логин"))]), _br(), loginInput, _br(),
-                               _span([_t(_gtxt("Пароль"))]), _br(), passwordInput, _br()],[['css','textAlign','center']]),
-                               _div([loginButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','loginCanvas']]),
-                checkLogin = function()
-                {
-                    _authManager.login(loginInput.value, passwordInput.value, function()
-                        { //всё хорошо
-                            $(canvas.parentNode).dialog("destroy")
-                            canvas.parentNode.removeNode(true);
-                            _dialogCanvas = null;
-                            loginCallback && loginCallback();
-                        }, function(err)
-                        { //ошибка
-                            if (err.emailWarning)
-                            {
-                                var errorDiv = $("<div/>", {'class': 'EmailErrorMessage'}).text(err.message);
-                                $(loginButton).after(errorDiv);
-                                setTimeout(function(){
-                                    errorDiv.hide(500, function(){ errorDiv.remove(); });
-                                }, 8000)
-                            }
-                            inputError([loginInput, passwordInput], 2000);
-                            loginInput.focus();
+            var canvas = $(Mustache.render(loginDialogTemplate, {isMapsSite: isMapsSite})),
+                loginInput = canvas.find('.inputLogin')[0],
+                passwordInput = canvas.find('.inputPass')[0],
+                loginButton = canvas.find('.loginButton')[0];
+
+            var checkLogin = function(){
+                _authManager.login(loginInput.value, passwordInput.value, function()
+                    { //всё хорошо
+                        $(jQueryDialog).dialog("destroy")
+                        jQueryDialog.removeNode(true);
+                        _dialogCanvas = null;
+                        loginCallback && loginCallback();
+                    }, function(err)
+                    { //ошибка
+                        if (err.emailWarning)
+                        {
+                            var errorDiv = $("<div/>", {'class': 'EmailErrorMessage'}).text(err.message);
+                            $(loginButton).after(errorDiv);
+                            setTimeout(function(){
+                                errorDiv.hide(500, function(){ errorDiv.remove(); });
+                            }, 8000)
                         }
-                    );
-                    
-                    loginInput.value = '';
-                    passwordInput.value = '';
-                };
+                        loginInput.value = '';
+                        passwordInput.value = '';
+                        inputError([loginInput, passwordInput], 2000);
+                        loginInput.focus();
+                    }
+                );
+            };
             
             _dialogCanvas = canvas;
             
-            if (isMapsSite)
-            {
-                _(canvas, [regLink, _br(), retriveLink]);
-            }
-            
-            showDialog(_gtxt("Пожалуйста, авторизуйтесь"), canvas, 200, dialogHeight, false, false, null, function()
+            var jQueryDialog = showDialog(_gtxt("Пожалуйста, авторизуйтесь"), canvas[0], 248, dialogHeight, false, false, null, function()
             {
                 _dialogCanvas = null;
             });
             
-            canvas.parentNode.style.overflow = 'hidden';
-            
             loginInput.focus();
             
-            loginButton.onclick = function()
-            {
-                checkLogin();
-            }
-            regLink.onclick = function()
-            {
-                window.open(window.gmxAuthServer + 'Account/Registration', '_blank')
-            }
-            retriveLink.onclick = function()
-            {
-                window.open(window.gmxAuthServer + 'Account/Retrive', '_blank')
-            }
+            loginButton.onclick = checkLogin;
+            
+            canvas.find('form').submit(function(e) {
+                e.preventDefault();
+            })
+            
+            canvas.find('.registration').click(function(){
+                window.open(window.gmxAuthServer + 'Account/Registration', '_blank');
+            });
+            
+            canvas.find('.passRecovery').click(function(){
+                window.open(window.gmxAuthServer + 'Account/Retrive', '_blank');
+            });
             
             passwordInput.onkeyup = function(e)
             {
                 var evt = e || window.event;
                 if (getkey(evt) == 13) 
-                {	
+                {
                     checkLogin();
                     
                     return false;

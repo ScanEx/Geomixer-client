@@ -15,9 +15,10 @@
 
 .treeview .hitarea
 {
-	background: url(../img/treeview-new.png) -64px -25px no-repeat;
+	/*background: url(../img/treeview-new.png) -64px -25px no-repeat;*/
+    background: url(../img/redesign/icons2.png) -97px -4px no-repeat;
 	height: 16px;
-	width: 16px;
+	width: 6px;
 	margin-left: -16px;
 	float: left;
 	cursor: pointer;
@@ -33,7 +34,7 @@
 .actions li
 {
 	margin: 0;
-	padding: 1px 0pt 0px 16px;
+	padding: 1px 0pt 0px 12px;
 }
 
 .treeview a.selected
@@ -43,7 +44,7 @@
 
 .treeview li 
 {
-	background: url(../img/treeview-new-line.png) 0 0 no-repeat;
+	/*background: url(../img/treeview-new-line.png) 0 0 no-repeat;*/
 }
 .treeview li.collapsable, .treeview li.expandable
 {
@@ -52,7 +53,7 @@
 
 .treeview .expandable-hitarea
 {
-	background-position: -80px -3px;
+	background-position: -115px -3px;
 }
 
 .treeview li.last
@@ -61,7 +62,7 @@
 }
 .treeview li.lastCollapsable, .treeview li.lastExpandable 
 {
-	background-image: url(../img/treeview-new.png); 
+	/*background-image: url(../img/treeview-new.png); */
 }
 .treeview li.lastCollapsable 
 {
@@ -75,7 +76,7 @@
 .treeview div.lastCollapsable-hitarea,
 .treeview div.lastExpandable-hitarea 
 {
-	background-position: 0;
+	/*background-position: 0;*/
 }
 
 .droppable-active,
@@ -90,7 +91,7 @@ div.droppable-active
 
 div.singleHitarea
 {
-	background: url(../img/treeview-new.png) 0px -111px no-repeat;
+	/*background: url(../img/treeview-new.png) 0px -111px no-repeat;*/
 	height: 16px;
 	width: 16px;
 	margin-left: -16px;

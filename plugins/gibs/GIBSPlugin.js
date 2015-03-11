@@ -86,6 +86,10 @@ var GIBSLayer = function(layerName, map, params) {
         }, 1);
     }
     
+    this.remove = function() {
+        gmxLayer.remove();
+    }
+    
     /** Связать с календарём для задания даты снимков. Будет использована конечная дата интервала календаря.
      * @param {nsGmx.Calendar} newCalendar Календарь
     */
@@ -105,6 +109,9 @@ var GIBSLayer = function(layerName, map, params) {
     calendar && this.bindToCalendar(calendar);
     params.initDate && this.setDate(params.initDate);
 }
+
+var toolContainer = null;
+var gibsLayers = [];
  
 var publicInterface = {
     pluginName: 'GIBS Plugin',
@@ -121,8 +128,9 @@ var publicInterface = {
             params.layer = [params.layer];
         }
         
-        var calendar = nsGmx.widgets.commonCalendar.get(),
-            gibsTools = new gmxAPI._ToolsContainer('gibs');
+        var calendar = nsGmx.widgets.commonCalendar.get();
+        
+        toolContainer = new gmxAPI._ToolsContainer('gibs');
             
         params.layer.forEach(function(layerName) {
             var gibsLayer = new GIBSLayer(layerName, map, {
@@ -130,15 +138,22 @@ var publicInterface = {
                 visible: false
             });
             
-            gibsTools.addTool( layerName, {
+            toolContainer.addTool(layerName, {
                 overlay: true,
                 onClick: gibsLayer.setVisibility.bind(gibsLayer, true),
                 onCancel: gibsLayer.setVisibility.bind(gibsLayer, false),
                 hint: layerName
             })
+            
+            gibsLayers.push(gibsLayer);
         })
         
         params.layer.length && nsGmx.widgets.commonCalendar.show();
+    },
+    
+    unload: function() {
+        toolContainer && toolContainer.remove();
+        gibsLayers.forEach(function(layer) {layer.remove();});
     }
 }
 

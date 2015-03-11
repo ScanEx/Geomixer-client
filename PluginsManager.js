@@ -175,6 +175,7 @@ var PluginsManager = function()
                         _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
                     } catch (e) {
                         console && console.error('Error in function ' + funcName + '() of plugin ' + _plugins[p].moduleName + ': ' + e);
+                        console && console.error(e.stack);
                     }
                 }
         }

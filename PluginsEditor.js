@@ -155,7 +155,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                 pluginSelect.append(pluginOption);
             }
                 
-        var pluginInput = $('<input/>', {'class': 'inputStyle pluginEditor-pluginInput'}).bind('focus', function()
+        var pluginInput = $('<input/>', {'class': 'inputStyle inputFullWidth pluginEditor-pluginInput'}).bind('focus', function()
         {
             isListActive = false;
         });

@@ -18,7 +18,7 @@
 
 .searchLayerHeader, .SearchTotalHeader
 {
-	color: #2185C0;
+	color: #2372B9;
 	font-size: 12px;
 }
 .searchLayerHeader span
@@ -37,7 +37,7 @@ span.searchElemPosition
 span.searchElem
 {
 	cursor: pointer;
-	color: #218580;
+	color: #2372B9;
 	font-weight: bold;
 }
 span.searchElemParent
@@ -137,11 +137,12 @@ span.searchElem:hover, span.searchElemParent:hover
 	cursor: pointer;
 }
 
-.searchResultCanvas{
-	margin-left: 7px;
+.searchResultCanvas.treeview{
+	margin-left: 14px;
 }
 .SearchResultListChildsCanvas{
 	padding-right: 10px;
+    overflow-x: hidden;
 }
 .searchResultListLoading
 {

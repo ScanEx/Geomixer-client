@@ -15,9 +15,9 @@ div.tableHeader
 }
 .tableHeader td, .tableHeader th
 {
-	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	background: #F0F0F0;
 	height: 20px;
-	color: #777777;
+	color: #000000;
 	text-align: center;
     font-size: 12px;
 }
@@ -45,7 +45,7 @@ div.tableBody tr.rowSelected td
 
 .tableBody td
 {
-	color: #333333;
+	color: #000000;
 	height: 20px;
 	border-bottom: 1px solid #D0D8DF;
 	border-top: 1px solid #D0D8DF;
@@ -62,7 +62,7 @@ div.tableBody tr.rowSelected td
 }
 .page
 {
-	color: #153069;
+	color: #000000;
 	font-size: 13px;
 	font-weight: bold;
 	margin: 0px 2px;
