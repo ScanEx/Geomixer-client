@@ -1993,8 +1993,8 @@ queryMapLayers.prototype.createMap = function(name)
         var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
         mStyleEditor && mStyleEditor.updateAllStyles();
         
-        _userObjects.collect();
-        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
+        nsGmx.userObjectsManager.collect();
+        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(nsGmx.userObjectsManager.getData());
         
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         

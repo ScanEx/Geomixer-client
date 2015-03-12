@@ -238,7 +238,7 @@ KML.KML.unload = function()
 {
 }
 
-_userObjects.addDataCollector('kml', {
+nsGmx.userObjectsManager.addDataCollector('kml', {
     collect: function()
     {
         if (_queryKML.parentCanvas == null || _queryKML._loadedKML.length == 0)

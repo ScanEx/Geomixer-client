@@ -351,7 +351,7 @@ _mapHelper.mapPlugins = new MapPlugins();
 
 //Cтарая версия информации о плагинах карты. Поддерживается для обратной совместимости (например, загрузка доп. карт)
 //Формат: {String[]} массив имён плагинов
-_userObjects.addDataCollector('mapPlugins', {
+nsGmx.userObjectsManager.addDataCollector('mapPlugins', {
     load: function(data)
     {
         if (data) {
@@ -366,7 +366,7 @@ _userObjects.addDataCollector('mapPlugins', {
 
 //Вторая версия информации о плагинах карты.
 //Формат: [{name: pluginName1, params: {param: value, ...}}, ...]
-_userObjects.addDataCollector('mapPlugins_v2', {
+nsGmx.userObjectsManager.addDataCollector('mapPlugins_v2', {
     load: function(data)
     {
         if (data) {
@@ -382,7 +382,7 @@ _userObjects.addDataCollector('mapPlugins_v2', {
 
 //Третья версия информации о плагинах карты.
 //Формат: {plugins: [name1, ....], params: {name1: {param1: value1, ...}, ...}}
-_userObjects.addDataCollector('mapPlugins_v3', {
+nsGmx.userObjectsManager.addDataCollector('mapPlugins_v3', {
     load: function(data)
     {
         if (data) {

@@ -207,7 +207,7 @@ var createMenuNew = function()
 	_menuUp.addItem(
 	{id:"viewMenu", title: _gtxt("Вид"),childs:
 		[
-			{id:'extMaps',        title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
+			{id:'externalMaps',   title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
 			{id:'mapTabs',        title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
 			{id:'DrawingObjects', title: _gtxt('Объекты'),              func: oDrawingObjectGeomixer.Load},
 			{id:'searchView',     title: _gtxt('Результаты поиска'),    func: oSearchControl.Load}
@@ -830,6 +830,7 @@ function initEditUI() {
     
     var editIcon = new L.Control.gmxIcon({
         id: 'editTool',
+        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt("Редактировать"),
         togglable: true,
         addBefore: 'drawing'
@@ -973,7 +974,7 @@ function loadMap(state)
 		globalFlashMap = map;
         var userObjects = state.userObjects || (data && data.properties.UserData);
         
-        userObjects && _userObjects.setData(JSON.parse(userObjects));
+        userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
         
         if (state.dt) {
             try {
@@ -990,9 +991,9 @@ function loadMap(state)
         //Остальные данные будем загружать чуть позже после частичной инициализации вьюера
         //О да, формат хранения данных о плагинах часто менялся! 
         //Поддерживаются все предыдущие форматы из-за старых версий клиента и сложности обновления базы данных
-        _userObjects.load('mapPlugins');
-        _userObjects.load('mapPlugins_v2');
-        _userObjects.load('mapPlugins_v3');
+        nsGmx.userObjectsManager.load('mapPlugins');
+        nsGmx.userObjectsManager.load('mapPlugins_v2');
+        nsGmx.userObjectsManager.load('mapPlugins_v3');
         
         //после загрузки списка плагинов карты начали загружаться не глобальные плагины, 
         //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
@@ -1193,7 +1194,7 @@ function loadMap(state)
             _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
             
             // Загружаем все пользовательские данные
-            _userObjects.load();
+            nsGmx.userObjectsManager.load();
             
             //динамически добавляем пункты в меню. DEPRICATED.
             nsGmx.pluginsManager.addMenuItems(_menuUp);
@@ -1264,6 +1265,7 @@ function loadMap(state)
             //пополняем тулбар
             var uploadFileIcon = new L.Control.gmxIcon({
                 id: 'uploadFile', 
+                className: 'leaflet-gmx-icon-sprite',
                 title: _gtxt("Загрузить файл")
             }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
             
@@ -1272,7 +1274,8 @@ function loadMap(state)
             if (_queryMapLayers.currentMapRights() === "edit") {
 
                 var saveMapIcon = new L.Control.gmxIcon({
-                    id: 'saveMap', 
+                    id: 'saveMap',
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Сохранить карту"),
                     addBefore: 'drawing'
                 })
@@ -1282,12 +1285,14 @@ function loadMap(state)
                 //группа создания слоёв
                 var createVectorLayerIcon = new L.Control.gmxIcon({
                     id: 'createVectorLayer', 
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Создать векторный слой"),
                     addBefore: 'drawing'
                 }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
                 
                 var createRasterLayerIcon = new L.Control.gmxIcon({
                     id: 'createRasterLayer', 
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Создать растровый слой"),
                     addBefore: 'drawing'
                 }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
@@ -1302,6 +1307,7 @@ function loadMap(state)
                 
                 var bookmarkIcon = new L.Control.gmxIcon({
                     id: 'bookmark',
+                    className: 'leaflet-gmx-icon-sprite',
                     title: _gtxt("Добавить закладку"),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -1327,6 +1333,7 @@ function loadMap(state)
             
             var gridIcon = new L.Control.gmxIcon({
                 id: 'gridTool', 
+                className: 'leaflet-gmx-icon-sprite',
                 title: _gtxt("Координатная сетка"),
                 togglable: true
             })

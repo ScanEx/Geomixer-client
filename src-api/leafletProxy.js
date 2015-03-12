@@ -1158,7 +1158,15 @@
 					var ph = st.fill;
 					if('color' in ph) pt.fillColor = ph.color;
                     pt.fillOpacity = ('opacity' in ph ? ph.opacity : 100);
-					if('pattern' in ph) {
+					if('image' in ph) {
+                        pt.iconUrl = ph.image;
+                        try {
+                            if(typeof(callback) === 'function') pt.waitStyle = callback;
+                            utils.getImageSize(pt, true, id);
+                        } catch(ev) {
+                            gmxAPI.addDebugWarnings({'url': pt.iconUrl, 'func': 'getImageSize', 'alert': 'getImageSize error ' + pt.iconUrl});
+                        }
+					} else if('pattern' in ph) {
 						var pattern = ph.pattern;
 						delete pattern._res;
 						pt.pattern = pattern;

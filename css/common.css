@@ -1814,17 +1814,14 @@ div.layersScroll
 }
 /* Toolbar Icons */
 .leaflet-gmx-icon-saveMap {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -330px -60px;
 }
 
 .leaflet-gmx-icon-uploadFile {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -237px -60px;
 }
 
 .leaflet-gmx-icon-editTool {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -205px 0px;
     margin-right: 10px;
 }
@@ -1834,17 +1831,14 @@ div.layersScroll
 }
 
 .leaflet-gmx-icon-createVectorLayer {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -50px -59px;
 }
 
 .leaflet-gmx-icon-createRasterLayer {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -205px -60px;
 }
 
 .leaflet-gmx-icon-gridTool {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -268px -59px;
     margin-right: 10px;
 }
@@ -1854,7 +1848,6 @@ div.layersScroll
 }
 
 .leaflet-gmx-icon-bookmark {
-    background-image: url("../leaflet/plugins/gmxControls/dist/css/img/gmxSprite.png");
     background-position: -114px -58px;
 }
 
@@ -1888,4 +1881,11 @@ div.layersScroll
     border: none;
     margin: 3px;
     background-color: #FFFFFF;
+}
+
+/* External maps */
+.externalMapsCanvas .gmx-icon-close {
+    position: absolute;
+    top: 6px;
+    right: 1px;
 }
