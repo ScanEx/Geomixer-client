@@ -80,10 +80,10 @@ nsGmx.userObjectsManager = {
 	*/
     addDataCollector: function( collectorId, collector ) {
         this._collectors[collectorId] = collector;
-        if (collectorId in _data && 'load' in collector)
+        if (collectorId in this._data && 'load' in collector)
         {
-            collector.load(_data[collectorId])
-            delete _data[collectorId];
+            collector.load(this._data[collectorId])
+            delete this._data[collectorId];
         }
     }
 }
