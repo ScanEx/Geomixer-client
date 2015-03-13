@@ -457,18 +457,21 @@ $(function()
                     link: serverBase + 'Administration/SettingsAdmin.aspx'
                 })
             }
-            
-            
                         
-            nsGmx.widgets.header = new nsGmx.Controls.HeaderWidget($('.header'), {
+            nsGmx.widgets.header = new nsGmx.HeaderWidget({
                 leftLinks: nsGmx.addHeaderLinks(), 
                 rightLinks: rightLinks,
                 logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
             });
             
-            //переключалку языков будем размещать в нестандартном месте - auth widget и правыми ссылками
-            var langContainer = $('<div class="genericHeader-gmxLanguageBar"></div>').insertBefore(nsGmx.widgets.header.getAuthPlaceholder().parent());
-            nsGmx.widgets.languageWidget = new nsGmx.Controls.LanguageWidget(langContainer);
+            nsGmx.widgets.header.appendTo($('.header'));
+            
+            //переключалку языков будем размещать в нестандартном месте - между auth widget и правыми ссылками
+            nsGmx.widgets.header.getLanguagePlaceholder().insertBefore(nsGmx.widgets.header.getAuthPlaceholder());
+            
+            var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
+            nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
+            nsGmx.widgets.languageWidget.appendTo(langContainer);
         
             window.LeafletPlugins = window.LeafletPlugins || [];
             var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
@@ -1015,7 +1018,7 @@ function loadMap(state)
                 return false;
             });
             
-            var nativeAuthWidget = new nsGmx.AuthWidget($('<div/>')[0], nsGmx.AuthManager, defaultLoginCallback(true));
+            var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, defaultLoginCallback(true));
             
             // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
             var authManagerProxy = {
@@ -1046,7 +1049,8 @@ function loadMap(state)
                     return def;
                 }
             };
-            nsGmx.widgets.authWidget = new nsGmx.Controls.AuthController(nsGmx.widgets.header.getAuthPlaceholder()[0], {authManager: authManagerProxy});
+            nsGmx.widgets.authWidget = new nsGmx.AuthWidget({authManager: authManagerProxy});
+            nsGmx.widgets.authWidget.appendTo(nsGmx.widgets.header.getAuthPlaceholder());
             
             //ugly hack
             nsGmx.widgets.authWidget.showLoginDialog = nativeAuthWidget.showLoginDialog.bind(nativeAuthWidget);
