@@ -190,7 +190,7 @@ var createMenuNew = function()
 					{id:'createMultiLayer',  title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor}
 				],
                 disabled: !isMapEditor},
-			{id:'createGroup', title: _gtxt('Создать каталог'), func:function(){
+			{id:'createGroup', title: _gtxt('Создать группу'), func:function(){
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.addSubGroup(div, _layersTree);
             }, disabled: !isMapEditor},
