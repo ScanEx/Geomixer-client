@@ -73,7 +73,7 @@ var balloonTemplate =
         '<a title="Открыть снимок в полном размере" href="http://maps.kosmosnimki.ru/GetImage.ashx?usr={{user}}&img={{folder}}[filename]" target="_blank">Полный размер</a>' +
     '</div><div>' +
         '<strong>Имя файла:</strong> [filename]<br />' +
-        '<strong>Время съемки:</strong> [DateTimeOr] <br />' +
+        '<strong>Время съемки:</strong> [img_date] <br />' +
         '[SUMMARY]' +
     '</div>';
     
