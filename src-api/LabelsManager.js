@@ -23,7 +23,7 @@
             haloColor = label.haloColor || 0;
 		var out = {
 			size: size
-			,align: label.align || 'left'
+			,align: label.align // || 'left'
 			,font: size + 'px "Arial"'
 			,strokeStyle: utils.dec2rgba(haloColor, 1)
 			,fillStyle: utils.dec2rgba(fillStyle, 1)
@@ -66,9 +66,12 @@
             item = node.getItem({itemId: geom.id, flagMerc: true}),
             bounds = item ? item.bounds : geom.bounds;
 
-		var x = (bounds.max.x + bounds.min.x) /2;
-		var y = (bounds.max.y + bounds.min.y) /2;
-		
+        var center = utils.getItemCenter(item);
+        if (!center) {return null;}
+        if (!style.align) {
+            style.align = 'center';
+        }
+
 		var extentLabel = null;
 		if(geom._cache && geom._cache.extentLabel) {
 			extentLabel = geom._cache.extentLabel;
@@ -78,7 +81,7 @@
 		}
 		var out = {
 			txt: txt
-			,point: new L.Point(x, y)
+			,point: new L.Point(center[0], center[1])
 			,bounds: bounds
 			,sx: geom.sx || 0
 			,sy: geom.sy || 0
@@ -248,10 +251,12 @@
                 id = node.id + '_' + geom.id,
                 item = prepareItem(txt, geom, style, node);
 
-            item.geoID = geom.id;
-            item.layerID = node.id;
-            itemsHash[id] = item;
-            repaintItems();
+            if (item) {
+                item.geoID = geom.id;
+                item.layerID = node.id;
+                itemsHash[id] = item;
+                repaintItems();
+            }
         }
         ,removeArray: function(id, arr) {				// удалить массив нод
             var node = gmxAPI._leaflet.mapNodes[id];
