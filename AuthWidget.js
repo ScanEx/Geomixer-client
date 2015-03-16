@@ -2,7 +2,7 @@
 * Показывает кнопки Вход/Выход, имя пользователя. Позволяет отослать логин/пароль на сервер, сменить пароль.
  @memberOf nsGmx
  @class
- @name AuthWidget
+ @name GeoMixerAuthWidget
 */
 var nsGmx = nsGmx || {};
 (function($)
@@ -100,7 +100,7 @@ var nsGmx = nsGmx || {};
             '{{/isMapsSite}}' + 
         '</div>';
     
-    nsGmx.AuthWidget = function( container, authManager, loginCallback )
+    nsGmx.GeoMixerAuthWidget = function( container, authManager, loginCallback )
     {
         var _container = container;
         var _authManager = authManager;
@@ -261,4 +261,10 @@ var nsGmx = nsGmx || {};
             return _container;
         }
     }
+    
+    // Обратная совместимость. Проверка нужна из-за возможного конфликта с одноимённым классом из общих компонент
+    if (!nsGmx.AuthWidget) {
+        nsGmx.AuthWidget = nsGmx.GeoMixerAuthWidget;
+    }
+    
 })(jQuery);
