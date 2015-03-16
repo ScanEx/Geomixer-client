@@ -346,6 +346,7 @@
             if (needListeners) needListeners(LMap.gmxDrawing);
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'LineString', coordinates: coords });
+                if (props) {props.mode = null;}
                 obj = LMap.gmxDrawing.add(L.polyline(_latlngs), props);
                 obj = domFeature(obj, props);
             } else {
@@ -364,6 +365,7 @@
             if (needListeners) needListeners(LMap.gmxDrawing);
             if (coords) {
                 var _latlngs = getLatlngsFromGeometry({ type: 'Polygon', coordinates: coords });
+                if (props) {props.mode = null;}
                 obj = LMap.gmxDrawing.add(L.polygon(_latlngs), props);
                 obj = domFeature(obj, props);
             } else {
@@ -382,6 +384,7 @@
             if (coords) {
                 var bounds = gmxAPI.bounds(coords[0]);
                 var latLngBounds = L.latLngBounds(L.latLng(bounds.min.y, bounds.min.x), L.latLng(bounds.max.y, bounds.max.x));
+                if (props) {props.mode = null;}
                 obj = LMap.gmxDrawing.add(L.rectangle(latLngBounds), props);
                 obj = domFeature(obj, props);
             } else {
