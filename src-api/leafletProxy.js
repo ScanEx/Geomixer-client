@@ -4011,8 +4011,8 @@
                     coords1 = coordinates[i];
                 for (var j = 0, cntHide = 0, lineHide = true, lastX = null, lastY = null, len1 = coords1.length; j < len1; lineHide = false, j++) {
                     var p1 = coords1[j],
-                        px1 = p1[0] * mInPixel - x, px1 = (0.5 + px1) << 0,
-                        py1 = y - p1[1] * mInPixel, py1 = (0.5 + py1) << 0;
+                        px1 = p1[0] * mInPixel - x, px1 = Math.round(px1),
+                        py1 = y - p1[1] * mInPixel, py1 = Math.round(py1);
                     if (j == hArr[cntHide]) {
                         lineHide = true;
                         cntHide++;
