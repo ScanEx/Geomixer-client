@@ -1,16 +1,19 @@
 *
 {
-	font-family: sans-serif;
-	font-size: 11px;
-	color: #003366;
+	font-family: tahoma;
+	font-size: 12px;
 	padding: 0;
 	margin: 0;
-/*	background-color: transparent;*/
+    outline: none;
 }
+
+*:focus {
+    outline: none;
+}
+
 body 
 {
 	color: inherit;
-	background-color: #FAFAFE;
 	overflow:hidden;
 	border:none;
 }
@@ -84,6 +87,14 @@ option
 	margin: 1px 3px;
 }
 
+.inputStyle.inputFullWidth {
+    width: 100%;
+    box-sizing: border-box;
+    height: 20px;
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
 .inputStyle:disabled
 {
     color: #545454;
@@ -96,11 +107,6 @@ option
 	background-color: #FFFFFF;
 	height: 20px;
 	margin: 1px 3px;
-}
-.header
-{
-	height: 95px;
-	background: #FAFAFE;
 }
 .headerLinks
 {
@@ -128,7 +134,8 @@ option
 }
 div.active
 {
-	background-color: #94CAEB;
+    background-color: #E0E0E0;
+    padding: 2px 0px;
 }
 div.log
 {
@@ -138,7 +145,7 @@ div.log
 	right: 10px;
 	text-align: right;*/
     float: right;
-    margin: 8px 10px 0px 0px;
+    /*margin: 8px 10px 0px 0px;*/
 }
 div.log span
 {
@@ -155,7 +162,7 @@ div.user
 	right: 50px;*/
 	white-space: nowrap;
 	overflow: hidden;
-    margin: 8px 4px 0px 0px;
+    /*margin: 8px 4px 0px 0px;*/
 }
 div.user span
 {
@@ -190,10 +197,39 @@ div.user span
 	width: 360px;
 }
 
+#leftCollapser {
+    position: absolute;
+    width: 12px;
+    bottom: 0px;
+    top: 90px;
+    cursor: pointer;
+}
+
+#leftCollapser:hover {
+    background-color: #EFEFEF;
+}
+
+.leftCollapser-icon {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    margin: auto;
+    width: 6px;
+    height: 11px;
+    margin-left: 2px;
+}
+
+.leftCollapser-left {
+    background: url(../img/collapse-arrow-left.gif)
+}
+
+.leftCollapser-right {
+    background: url(../img/collapse-arrow-right.gif)
+}
+
 .flashMap
 {
 	position: relative;
-	border-left: 1px solid #216b9c;
 }
 .tooltip
 {
@@ -211,7 +247,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 95px;
+	top: 90px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -270,11 +306,7 @@ textarea.error
 	margin: 0px;
 	background-color: #edf4f6;
 }
-.left_layers
-{	
-	margin: 0px;
-	background-color: #FAFAFE;
-}
+
 .left_gps
 {	
 	margin: 0px;
@@ -376,19 +408,28 @@ textarea.error
 }
 .groupLayer
 {
-	margin: 0px 0px 0px 4px;
+	margin: 0px 0px 0px 0px;
 	font-weight: bold;
 	cursor: pointer;
+}
+
+/* cпециальные отступы для мультистилей */
+div[multistyle] {
+    padding-left: 11px;
+}
+
+.treeview [multistyle]  li li{
+    padding-left: 0px;
 }
 
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;
-	background: #7BCBF2;
+	background: #DDDDDD;
 	font-family: monospace;
 	color: #123456;
-	border-right: 2px solid #ABBCCD;
-	border-bottom: 2px solid #ABBCCD;
+	border-right: 2px solid #AAAAAA;
+	border-bottom: 2px solid #AAAAAA;
 	z-index:100000;
 	-webkit-user-select:none;
 	cursor: move;
@@ -667,6 +708,11 @@ div.fileBrowser-progressBar
     position: absolute;
     right: 0px;
     z-index: 1;
+    height: 30px;
+}
+
+div.fileBrowser-progressBar > .ui-progressbar-value {
+    background: #DDD;
 }
 
 .vectorInfoParams
@@ -693,28 +739,22 @@ div.fileBrowser-progressBar
 {
 	position:absolute;
 	z-index: 1000000;
-	background-color: #DAEAF3;
-	padding-left: 10px;
-	padding-right: 10px;
-	border-right: 1px solid #BEBEBE;
-	border-bottom: 1px solid #BEBEBE;
+	background-color: #FFFFFF;
+	/* padding: 0px 10px; */
+	border: 1px solid #DDDDDD;
 	/*width: 120px;*/
 }
 
 .contextMenuItem
 {
-	padding-top: 1px;
-	padding-bottom: 1px;
+	padding: 3px 10px;
 	white-space:nowrap;
+    cursor: pointer;
 }
 
-.contextMenuItem span.buttonLink
+.contextMenuItem:hover
 {
-	color: #293D6B;
-}
-.contextMenuItem span.buttonLinkHover
-{
-	color: #fc830b;
+	background-color: #e5e5e5;
 }
 
 .contextMenuSeparator
@@ -760,7 +800,7 @@ skype_pnh_container
 }
 .attrsTableBody #attrsTableParent th
 {
-	background:url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;
+	/* background:url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;*/
 	height:20px;
 	text-align:center;
 	padding: 1px 5px 2px 5px;
@@ -897,20 +937,20 @@ skype_pnh_container
 
 .layersScroll .ui-widget-content
 {
-	background: #cceeee;
+	background: #C7C7C7;
 	margin: 7px;
 }
 
 div.layersScroll
 {
-	width: 330px;
-	padding: 5px 0px;
+    width: 315px;
+    padding: 5px 0px;
 }
 
-.layersScroll label
+.layersScroll > label > input
 {
-	font-size: 12px;
-	margin-left: 3px;
+    vertical-align: middle;
+    margin-right: 4px;
 }
 
 .layersScroll table, .layersScroll td#scrollTD
@@ -1034,15 +1074,15 @@ div.layersScroll
     background-color: #ffcccc
 }
 
+/* Plugin Editor */
 .pluginEditor-pluginList
 {
-    height: 200px;
-    width: 150px;
+    height: 190px;
+    width: 100%;
 }
 
 .pluginEditor-pluginInput
 {
-    width: 144px;
     margin: 2px 0px;
 }
 
@@ -1088,6 +1128,7 @@ div.layersScroll
 
 .pluginEditor-allTD
 {
+    vertical-align: top;
     width: 50%;
 }
 
@@ -1207,6 +1248,12 @@ div.layersScroll
 #layerSource .ui-tabs-selected
 {
     background: #DCE3E5
+}
+
+#layertagstable
+{
+    z-index: 10001;
+    position: relative;
 }
 
 #layertagstable .ui-autocomplete
@@ -1399,6 +1446,18 @@ div.layersScroll
     border: none;
 }
 
+.layer-container-outer {
+    position: absolute;
+    top: 30px;
+    bottom: 20px;
+    width: 100%;
+}
+
+.layer-container-inner {
+    height: 100%;
+    overflow-y: auto;
+}
+
 .defaultMapLangContainer
 {
     margin-left: 3px;
@@ -1425,9 +1484,23 @@ div.layersScroll
 }
 
 .maps-manager-active {
-    background-color: #eeeeee;
+    background-color: #fcfcfc;
 }
 
+.buttonLink.maps-manager-mapname {
+    text-decoration: none;
+    overflow-x: hidden;
+    display: inline-block;
+    width: 100%;
+    text-overflow: ellipsis;
+}
+
+.maps-manager-owner {
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+}
+
+/* Group editor */
 .group-editor-search-title {
     border-bottom: solid 1px #DEDEDE;
     text-align: center;
@@ -1437,11 +1510,13 @@ div.layersScroll
 
 .group-editor-tab-container {
     position: absolute;
-    top: 24px;
-    bottom: 2px;
-    left: 5px;
-    right: 5px;
+    top: 29px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
     padding-bottom: 6px;
+    overflow-y: overlay;
+    overflow-x: hidden;
 }
 
 .group-editor-blm-available, .group-editor-blm-map {
@@ -1481,8 +1556,18 @@ div.layersScroll
 .group-editor-blm-table {
     width: 100%;
     height: 100%;
+    padding-bottom: 1px; /* To remove scrollbar in Chrome */
 }
 
+.group-editor-onload {
+    width: 100%;
+    height: 100%;
+    display: block;
+    box-sizing: border-box;
+    margin: 0px;
+}
+
+/* Common icons */
 .gmx-icon-choose {
     width: 11px;
     height: 9px;
@@ -1491,8 +1576,52 @@ div.layersScroll
     cursor: pointer;
 }
 
+.gmx-icon-edit {
+    width: 11px;
+    height: 11px;
+    background-image: url(../img/edit_small.png);
+    display: inline-block;
+    cursor: pointer;
+}
+
 .gmx-icon-choose:hover {
     background-image: url(../img/choose2_a.png);
+}
+
+.gmx-icon-close {
+    width: 7px;
+    height: 7px;
+    cursor: pointer;
+    background: url(../img/redesign/icons2.png);
+    background-position: -79px -6px;
+}
+
+.gmx-icon-progress {
+    background: url(../img/progress.gif);
+    width: 16px;
+    height: 16px;
+}
+
+/* Tabs panel */
+.tabsCanvas .gmx-icon-close {
+    position: absolute;
+    right: 14px;
+    top: 10px;
+}
+
+.tabsCanvas .gmx-icon-edit {
+    position: absolute;
+    right: 34px;
+    top: 8px;
+}
+
+.tabsCanvas .canvas{
+    position: relative;
+    padding: 6px 0px 6px 8px;
+}
+
+.tabsCanvas .tabName{
+    margin-right: 52px;
 }
 
 .addtabs-container {
@@ -1514,7 +1643,105 @@ div.layersScroll
 .addtabs-info {
     text-align: left;
     padding-left: 12px;
-    margin-bottom: 2px;
+    margin-
+}
+
+.leftmenu-canvas#left_layers {
+    background-color: #ffffff;
+}
+
+#left_layers.leftmenu-canvas {
+    border: none;
+}
+
+/* Create map dialog*/
+.createMap-container {
+    text-align: center;
+    padding: 0px 4px;
+}
+
+.createMap-input {
+    margin: 0px;
+}
+
+.createMap-button {
+    margin: 12px 0px 4px 0px;
+    padding: 0px 5px;
+}
+
+#mapsList {
+    overflow: hidden;
+}
+
+#mapsTableParent .tableBody > table{
+    table-layout: fixed;
+}
+
+.mapslist-search-table {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.mapslist-search-table * {
+    font-size: 12px;
+}
+
+.mapslist-search-name, .mapslist-search-owner {
+    margin-left: 15px;
+}
+
+.mapslist-hint {
+    position: absolute;
+    width: 200px;
+    bottom: 20px;
+    right: 30px;
+    font-size: 20px;
+    color: #DDD;
+}
+
+#mapsList .gmx-icon-progress{
+    background-position: 50%;
+    background-repeat: no-repeat;
+    width: auto;
+}
+
+#mapsList .treeview {
+    margin-left: -2px;
+}
+
+.layers-before {
+    border: 1px solid #DDD;
+    padding: 9px 0px 10px 6px;
+    margin-bottom: 8px;
+}
+
+.layers-tree {
+    border: 1px solid #DDD;
+    padding: 10px 0px 10px 0px;
+}
+
+.layers-tree > .filetree > li > div {
+    display: none;
+}
+
+.layers-tree > .filetree > li > ul {
+    margin-top: 0px;
+}
+
+.layers-visibility-checkbox {
+    margin-right: 5px;
+}
+
+.mainmap-title {
+    position: absolute;
+    top: 70px;
+    left: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    overflow-x: hidden;
+    width: 320px;
+    text-overflow: ellipsis;
 }
 
 .addtabs-lang-placeholder {
@@ -1542,4 +1769,123 @@ div.layersScroll
 .language-item.language-selected {
     cursor: default;
     border-bottom: none;
+}
+
+.leaflet-control-layers-overlays span {
+    font-size: 12px;
+}
+
+.leaflet-control-layers.leaflet-control-layers-expanded.leaflet-control {
+    padding: 8px 12px 8px 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.leaflet-control-layers-selector {
+    margin-right: 3px;
+}
+
+/* login dialog */
+.loginMainDiv {
+    text-align: center;
+}
+
+.loginMainDiv .inputLogin, .loginMainDiv .inputPass {
+    width: 200px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.loginLabel {
+    font-size: 12px;
+}
+
+.ui-widget .loginButton {
+    padding: 0px 7px;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.loginLinks {
+    margin-left: 14px;
+}
+
+.filterCanvas > ul > li > .hitarea {
+    margin-top: 5px;
+}
+/* Toolbar Icons */
+.leaflet-gmx-icon-saveMap {
+    background-position: -330px -60px;
+}
+
+.leaflet-gmx-icon-uploadFile {
+    background-position: -237px -60px;
+}
+
+.leaflet-gmx-icon-editTool {
+    background-position: -205px 0px;
+    margin-right: 10px;
+}
+
+.leaflet-gmx-icon-editTool-active {
+    background-position: -205px -26px;
+}
+
+.leaflet-gmx-icon-createVectorLayer {
+    background-position: -50px -59px;
+}
+
+.leaflet-gmx-icon-createRasterLayer {
+    background-position: -205px -60px;
+}
+
+.leaflet-gmx-icon-gridTool {
+    background-position: -268px -59px;
+    margin-right: 10px;
+}
+
+.leaflet-gmx-icon-gridTool-active {
+    background-position: -268px -92px;
+}
+
+.leaflet-gmx-icon-bookmark {
+    background-position: -114px -58px;
+}
+
+.gmx-about {
+    margin: 0px 16px;
+}
+
+.gmx-about > p {
+    margin-bottom: 1em;
+    line-height: 1.4em;
+}
+
+.ui-widget-content .gmx-about a{
+    color: #000000;
+}
+
+.ui-widget-content .gmx-about a:hover {
+    color: #FC830B
+}
+
+.gmx-prompt-canvas {
+    margin: 0px 20px 0px 10px;
+}
+
+.gmx-prompt-input {
+    width: 100%;
+}
+
+#flash .leaflet-gmx-copyright-window {
+    box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
+    border: none;
+    margin: 3px;
+    background-color: #FFFFFF;
+}
+
+/* External maps */
+.externalMapsCanvas .gmx-icon-close {
+    position: absolute;
+    top: 6px;
+    right: 1px;
 }

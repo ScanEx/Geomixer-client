@@ -929,7 +929,7 @@ loadServerData.WMS.unload = function()
 //	removeChilds($$('leftContent'))
 }
 
-_userObjects.addDataCollector('wms', {
+nsGmx.userObjectsManager.addDataCollector('wms', {
     collect: function()
     {
         if (!_queryServerDataWMS.workCanvas)
@@ -990,7 +990,7 @@ _userObjects.addDataCollector('wms', {
     }
 })
 
-_userObjects.addDataCollector('wfs', {
+nsGmx.userObjectsManager.addDataCollector('wfs', {
     collect: function()
     {
         if (!_queryServerDataWFS.workCanvas)

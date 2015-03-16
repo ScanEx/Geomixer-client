@@ -123,29 +123,29 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 */
 var addSubGroup = function(div, layersTree)
 {
-	var ul = _abstractTree.getChildsUl(div.parentNode),
-		newIndex;
-	
-	if (!ul)
-		newIndex = 0;
-	else
-		newIndex = ul.childNodes.length + 1;
-	
-	var groupVisibilityProperties = new GroupVisibilityPropertiesModel();
-	var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
-	
-	var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
-	    newName = elemProperties.title,
-		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
-		create = makeButton(_gtxt('Создать')),
-		pos = nsGmx.Utils.getDialogPos(div, true, 100),
-		createSubGroup = function()
-		{
-			if (inputIndex.value == '')
-				return;
-			
-			var parentProperties = div.gmxProperties,
-				newGroupProperties = {
+    var ul = _abstractTree.getChildsUl(div.parentNode),
+        newIndex;
+
+    if (!ul)
+        newIndex = 0;
+    else
+        newIndex = ul.childNodes.length + 1;
+
+    var groupVisibilityProperties = new GroupVisibilityPropertiesModel();
+    var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
+
+    var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
+        newName = elemProperties.title,
+        inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
+        create = makeButton(_gtxt('Создать')),
+        pos = nsGmx.Utils.getDialogPos(div, true, 100),
+        createSubGroup = function()
+        {
+            if (inputIndex.value == '')
+                return;
+            
+            var parentProperties = div.gmxProperties,
+                newGroupProperties = {
                     type:'group', 
                     content:{
                         properties:{
@@ -222,7 +222,7 @@ var addSubGroup = function(div, layersTree)
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
-	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 210, pos.left, pos.top);
+	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 220, pos.left, pos.top);
 }
 
 var createGroupEditorProperties = function(div, isMap, mainLayersTree)
@@ -342,7 +342,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			defLong = _input(null,[['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defPermalink = _input(null,[['attr','value',elemProperties.ViewUrl != null ? elemProperties.ViewUrl : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			defZoom = _input(null,[['attr','value',elemProperties.DefaultZoom != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			onLoad = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','height','100%'], ['css','display','block']]),
+			onLoad = _textarea(null,[['dir','className','inputStyle group-editor-onload']]),
 			copyright = _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			minViewY = _input(null,[['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -542,10 +542,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("ID"), field: 'name'},
 										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
 									]
-									//.concat(visibilityPropertiesView)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
-										//{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},
@@ -599,10 +597,10 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			divCommon     = _div(null,[['attr','id','common' + id],['css','width','320px']]),
             divBaseLayers = _div(null,[['attr','id','baselayers' + id],['dir','className','group-editor-tab-container'],['css','overflowY','auto']]),
 			divPolicy     = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
-			divSearch     = _div(null,[['attr','id','search' + id],['dir','className','group-editor-tab-container'],['css','overflowY','scroll'], ['css','overflowX','hidden']]),
+			divSearch     = _div(null,[['attr','id','search' + id],['dir','className','group-editor-tab-container']]),
 			divView       = _div(null,[['attr','id','view' + id],['css','width','320px']]),
 			divOnload     = _div(null,[['attr','id','onload' + id],['dir','className','group-editor-tab-container']]),
-			divPlugins    = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
+			divPlugins    = _div(null,[['attr','id','plugins' + id],['dir','className','group-editor-tab-container']]);
 		
 		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
         
@@ -611,7 +609,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
-		_(divOnload, [_div([onLoad], [['css','position', 'absolute'], ['css','top', '6px'], ['css','bottom', '6px'], ['css','left', '0px'], ['css','right', '10px']])]);
+		_(divOnload, [onLoad]);
         
         var pluginsEditor = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         
@@ -725,7 +723,7 @@ var createGroupEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, false, _layersTree);
-	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 160, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 170, pos.left, pos.top, null, closeFunc);
 	_groupEditorsHash[elemProperties.GroupID] = true;
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
@@ -737,7 +735,7 @@ window._mapEditorsHash = {};
 /** Создаёт диалог редактирование свойств группы. Есть проверка на создание дублирующих диалогов
  @param div {HTMLHNode} - элемент дерева, соответствующий редактируемой карте
 */
-var createMapEditor = function(div)
+var createMapEditor = function(div, activePage)
 {
 	var elemProperties = div.gmxProperties.properties,
 		_this = this;
@@ -755,12 +753,12 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 420, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 450, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };
 	
-	$(canvas).tabs({active: 0});
+	$(canvas).tabs({active: activePage || 0});
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
 }

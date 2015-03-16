@@ -52,7 +52,7 @@ queryExternalMaps.prototype.load = function()
 			nameButton.value = '';
 		}
 
-		this.mapsCanvas = _div(null,[['dir','className','drawingObjectsCanvas'],['css','paddingLeft','0px'], ['attr', 'id', 'externalMapsCanvas']]);
+		this.mapsCanvas = _div(null,[['dir','className','drawingObjectsCanvas externalMapsCanvas'],['css','paddingLeft','0px'], ['attr', 'id', 'externalMapsCanvas']]);
 		
 		_(this.workCanvas, [this.mapsCanvas]);
 		
@@ -69,8 +69,8 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
     this.load();
     
 	var mapElem = _div(),
-		div = _div(null, [['css','position','relative'],['css','margin','2px 0px']]),
-		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
+		div = _div(null, [['css','position','relative'],['css','margin','2px 0px 2px 14px']]),
+		remove = $('<div class="gmx-icon-close"></div>'),
         mapInfo,
         _this = this;
 	
@@ -98,15 +98,12 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 	div.hostName = hostName;
 	div.mapName = mapName;
 	
-	remove.className = 'remove';
-	remove.style.right = '7px';
-	
-	_(div, [mapElem, remove]);
+	_(div, [mapElem, remove[0]]);
 	_(this.mapsCanvas, [div]);
 	
 	this.addMap(hostName, mapName, mapElem, silent);
 	
-	remove.onclick = function()
+	remove.click(function()
 	{
 		div.removeNode(true);
 		
@@ -128,7 +125,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
                 break;
             }
         }
-	}
+	})
 }
 
 queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
@@ -223,7 +220,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 
 var _queryExternalMaps = new queryExternalMaps();
 
-_userObjects.addDataCollector('externalMaps', {
+nsGmx.userObjectsManager.addDataCollector('externalMaps', {
     collect: function()
     {
         if (!_queryExternalMaps.workCanvas)

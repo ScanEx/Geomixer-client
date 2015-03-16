@@ -43,7 +43,8 @@
 .drawingObjectsActiveItemCanvas
 {
 	/*background-color: #ffff00;*/
-	background-color: #94CAEB;
+	/*background-color: #94CAEB;*/
+	background-color: #CCCCCC;
 }
 .drawingObjectsActiveItemCanvas .drawingObjectsItemTitle
 {
@@ -54,7 +55,7 @@
 {
 	cursor: pointer;
 	margin: 0px 4px;
-	color: #218580;
+	/*color: #218580;*/
 }
 .drawingObjectsItemTitle:hover
 {
@@ -63,16 +64,14 @@
 
 .DrawingObjectsLeftMenu .removeGeometry
 {
-	position: absolute;
-	top: 1px;
-	right: 5px;
-    width: 16px;
-    height: 16px;
-    background: url(../img/closemin.png);
-}
-
-.DrawingObjectsLeftMenu .removeGeometry:hover {
-    background: url(../img/close_orange.png);
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    cursor: pointer;
+    background: url(../img/redesign/icons2.png);
+    background-position: -79px -6px;
+    right: 7px;
+    top: 6px;
 }
 
 .removeGeometry
@@ -80,7 +79,7 @@
     vertical-align: middle;
 }
 
-.drawingObjectsCanvas .remove, /* Старая реализация, новая - removeGeometry*/
+.drawingObjectsCanvas .remove,
 .serverDataCanvas .remove
 {
 	cursor: pointer;

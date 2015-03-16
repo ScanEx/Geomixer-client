@@ -555,7 +555,6 @@
 
         // HideControls - кнопка управления видимостью всех контролов
         var hideControls = null;
-        //if (false && L.Control.gmxHide) {
         if (L.Control.gmxHide) {
             hideControls = L.control.gmxHide();
             hideControls.on('click', function (ev) {
@@ -566,8 +565,7 @@
         }
         gmxAPI.extend(gmxAPI.map.allControls, {
             setVisible: function(flag) {
-                if ('setVisibility' in hideControls) hideControls.setVisibility(flag, true);
-                else hideControls.setVisible(flag);
+                hideControls.setActive(flag);
             },
             minimize: function() {
                 this.setVisible(false);
@@ -659,11 +657,13 @@
             };
             gmxAPI.extend(gmxAPI.map, {
                 addCopyrightedObject: function(obj, copyright, z1, z2, geo) {
-                    util.addItem(obj, copyright, z1, z2, geo);
+                    copyrightControls.setMapCopyright(copyright);
+                    //util.addItem(obj, copyright, z1, z2, geo);
                 }
                 ,removeCopyrightedObject: function(obj) {
-                    util.removeItem(obj);
-                    copyrightControls._redraw();
+                    copyrightControls.setMapCopyright('');
+                    // util.removeItem(obj);
+                    // copyrightControls._redraw();
                 }
                 ,setCopyrightVisibility: function(obj) {
                     //copyrightControl.setVisible(obj);
@@ -783,16 +783,18 @@
         var gmxDrawing = null;
         // if (false) {
         if (L.Control.gmxDrawing) {
-            gmxDrawing = L.control.gmxDrawing({
-                drawOptions: {
-                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png',
-                    popupAnchor: [2, -18],
-                    iconSize: [33, 41],
-                    iconAnchor: [6, 36]
-                }
-            });
+            var drawOptions = {
+                iconUrl: 'http://maps.kosmosnimki.ru/api/img/flag_blau1.png',
+                popupAnchor: [2, -18],
+                iconSize: [33, 41],
+                iconAnchor: [6, 36]
+            };
+            gmxDrawing = L.control.gmxDrawing({drawOptions: drawOptions});
             gmxAPI._drawing.needListeners(LMap.gmxDrawing);
             Controls.items[gmxDrawing.options.id] = gmxDrawing;
+            gmxDrawing.on('activechange', function () {
+                gmxAPI._drawing.activeState = gmxDrawing.activeIcon ? true : false;
+            });
         }
         gmxDrawing.addTo(LMap);
         //outControls.gmxDrawing = gmxDrawing;

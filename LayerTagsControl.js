@@ -278,7 +278,7 @@
         //добавляем к body элемент с id чтобы добавить к нему jQuery autocomplete и задать стили
         //к текущему виджету добавить нельзя, так как он ещё не добавлен в общее дерево, а виджет ac требует глобального селектора
         if ($('#layertagstable').length == 0)
-            $('body').append("<div/>").attr('id', 'layertagstable');
+            $('body').append($('<div id="layertagstable"></div>'));
         
         var rows = {}; //ссылки на контролы для каждого элемента
         var rowsVector = [];

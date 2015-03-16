@@ -1,0 +1,97 @@
+﻿/** временный файл для интеграции общих стилей Common Components в ГеоМиксер*/
+
+.table {
+    display: table;
+}
+.table-row {
+    display: table-row;
+}
+.table-cell {
+    display: table-cell;
+}
+
+/* Geo-search */
+.searchBeginOnTD
+{
+	border: none;
+	width: 21px;
+	text-align: right;
+}
+
+.searchBeginOn, .searchBeginOff {
+	height: 24px;
+	width: 24px;
+    border: 1px solid #E2E2E2;
+    margin-right: -1px;
+    display: none;
+}
+
+.searchBeginOn
+{
+	background: transparent url(../img/searchBeginOn_2.png) no-repeat scroll 0 0;
+	cursor: pointer;
+}
+.active .searchBeginOn
+{
+	background: transparent url(../img/searchBeginOn_2a.png) no-repeat scroll 0 0;
+}
+.searchBeginOff
+{
+	background: transparent url(../img/searchBeginOff_2.png) no-repeat scroll 0 0;
+	cursor: pointer;
+}
+.active .searchBeginOff
+{
+	background: transparent url(../img/searchBeginOff_2a.png) no-repeat scroll 0 0;
+}
+
+/* Auth widget */
+.auth-user-name, .auth-login {
+    font-size: 12px;
+}
+
+.auth-user-menu .dropdown-link{
+    font-size: 12px;
+}
+
+.auth-user-menu {
+    padding-left: 0px;
+}
+
+.dropdown-item {
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.dropdown{
+    border: 1px solid #DDDDDD;
+    border-bottom: none;
+}
+
+/* Header widget */
+#HeaderLinkGeoMixer {
+    color: #2372B9;
+    background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png");
+    cursor: default;
+    font-weight: bold;
+}
+
+.dropdownMenuWidget-item {
+    cursor: auto;
+}
+
+.headerWidget-logoContainer {
+    padding: 0px;
+}
+
+.dropdownMenuWidget-item a {
+    color: #6F6F6F;
+}
+
+.dropdownMenuWidget-item a:hover {
+    color: #2372B9;
+}
+
+/* Base layers widget */
+.baseLayersControl-layer {
+    border-color: #777;
+}

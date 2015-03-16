@@ -392,13 +392,6 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
         resizable: true,
         resize: function()
         {
-            canvas.style.width = 'auto';
-            canvas.style.height = canvas.parentNode.clientHeight - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
-            
-            // баги ие
-            // if (jQuery.browser.msie)
-                // canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
-            
             params.resizeFunc && params.resizeFunc();
         },
         close: function(ev, ui)
@@ -418,10 +411,7 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
     }
                         
     jQuery(canvas).dialog(dialogParams);
-	
-	canvas.parentNode.style.height = params.height + 'px';
-	canvas.style.height = params.height - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
-							
+
 	var dialog = canvas.parentNode;
 	dialog.style.overflow = '';
 	
@@ -434,9 +424,7 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 
 function removeDialog(canvas)
 {
-	jQuery(canvas).dialog('destroy');
-	
-	canvas.removeNode(true);
+	jQuery(canvas).dialog('destroy').remove();
 }
 
 function showErrorMessage(message, removeFlag, title)
@@ -1018,34 +1006,29 @@ function parsePropertiesDate(str)
 	return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]).valueOf();
 }
 
-function stringDate(msec)
+function stringDate(msec, isUtc)
 {
 	var date = new Date(msec);
-		excDate = date.getDate(),
-		excMonth = date.getMonth() + 1,
-		excYear = date.getFullYear();
+		excDate = isUtc ? date.getUTCDate() : date.getDate(),
+		excMonth = (isUtc ? date.getUTCMonth() : date.getMonth()) + 1,
+		excYear = isUtc ? date.getUTCFullYear() : date.getFullYear();
 	
 	return (excDate < 10 ? '0' + excDate : excDate) + '.' + (excMonth < 10 ? '0' + excMonth : excMonth) + '.' + excYear;
 }
 
-function stringTime(msec)
+function stringTime(msec, isUtc)
 {
 	var date = new Date(msec);
-		excHour = date.getHours(),
-		excMin = date.getMinutes(),
-		excSec = date.getSeconds();
+		excHour = isUtc ? date.getUTCHours() : date.getHours(),
+		excMin = isUtc ? date.getUTCMinutes() : date.getMinutes(),
+		excSec = isUtc ? date.getUTCSeconds() : date.getSeconds();
 	
 	return (excHour < 10 ? '0' + excHour : excHour) + ':' + (excMin < 10 ? '0' + excMin : excMin) + ':' + (excSec < 10 ? '0' + excSec : excSec);
 }
 
-function stringDateTime(msec)
+function stringDateTime(msec, isUtc)
 {
-	var date = new Date(msec);
-		excHour = date.getHours(),
-		excMin = date.getMinutes(),
-		excSec = date.getSeconds();
-	
-	return stringDate(msec) + ' ' + stringTime(msec);
+	return stringDate(msec, isUtc) + ' ' + stringTime(msec, isUtc);
 }
 
 /** Подсвечивает красным input, убирает подсветку через некоторое время
@@ -1251,26 +1234,17 @@ $.extend(nsGmx.Utils, {
         {
             if (value === null) return '';
             
-            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-            return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
+            return stringDate(value*1000, true);
         }
         else if (lowerCaseType == 'time')
         {
             if (value === null) return '';
-            
-            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "HH:mm:ss"});
-            $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
-            return $(tempInput).val();
+            return stringTime(value*1000, true);
         }
         else if (lowerCaseType == 'datetime')
         {
             if (value === null) return '';
-            
-            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "HH:mm:ss"});
-            $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
-            return $(tempInput).val();
+            return stringDateTime(value*1000, true);
         }
         
         return value;

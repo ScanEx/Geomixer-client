@@ -6,7 +6,6 @@ var SHARE_TYPES = ['public', 'private'];
 
 nsGmx.Translations.addText('rus', {security: {
     ownerName: 'Владелец',
-    shareType: 'Видимость в списках',
     defAccess: 'Доступ для всех',
     access: {
         no: 'нет доступа',
@@ -23,7 +22,6 @@ nsGmx.Translations.addText('rus', {security: {
 
 nsGmx.Translations.addText('eng', {security: {
     ownerName: 'Owner',
-    shareType: 'Visible in lists',
     defAccess: 'Public access',
     access: {
         no: 'no access',
@@ -237,26 +235,17 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     
 	$$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
 
-	var canvas = _div(null, [['attr','id','securityDialog']]),
-		_this = this;
-        
-    var uiTemplate = '<div>' +
+	var _this = this;
+
+    var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
         '<div class="security-header">' + 
             '<table class="security-header-table"><tr>' +
                 '<td><div>' +
                     '{{i security.ownerName}}: <span class="buttonLink changeOwnerLink">{{ownerName}}</span>' +
                 '</div></td>' +
-                '<td><div>' +
-                    '<table class="security-header-right"><tr>' +
-                        '<td>{{i security.shareType}}</td>' +
-                        '<td><select class="security-share-select selectStyle">' +
-                            '{{#shareTypes}}' +
-                                '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
-                            '{{/shareTypes}}' +
-                        '</select></td>' +
-                        '<td><button class="security-save">{{i Сохранить}}</button></td>' +
-                    '</tr></table>' +
-                '</div></td>' +
+                '<td>' +
+                    '<button class="security-save">{{i Сохранить}}</button>' +
+                '</td>' +
             '</tr></table>' + 
             '<div>{{i security.defAccess}}: ' +
                 '<select class="security-defaccess-select selectStyle">' +
@@ -285,13 +274,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var canvas = $(Mustache.render(uiTemplate, {
         ownerName: securityInfo.SecurityInfo.Owner,
         isShowUserSuggest: isShowUserSuggest,
-        shareTypes: SHARE_TYPES.map(function(type) {
-            return {
-                value: type, 
-                title: _gtxt('security.share.' + type), 
-                isSelected: type === securityInfo.SecurityInfo.Type
-            };
-        }),
         defAccessTypes: this.accessTypes.map(function(type) {
             return {
                 value: type, 
@@ -300,10 +282,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             };
         })
     }))[0];
-	
-	$('.security-share-select', canvas).change(function() {
-		securityInfo.SecurityInfo.Type = this.value;
-	})
     
     $('.security-defaccess-select', canvas).change(function() {
 		securityInfo.SecurityInfo.DefAccess = this.value;
@@ -314,17 +292,17 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	$('.security-save', canvas).click(function(){
 		securityInfo.SecurityInfo.Users = _this._securityUsersProvider.getOriginalItems();
 		
-		var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-		_($$('headerLinks'), [loading]);
-		
+        nsGmx.widgets.notifications.startAction('securitySave');
 		var postParams = {WrapStyle: 'window', SecurityInfo: JSON.stringify(securityInfo.SecurityInfo)};
 		postParams[_this.propertyName] = _this.propertyValue;
 		
 		sendCrossDomainPostRequest(serverBase + _this.updateSecurityName, postParams, function(response) {
-            if (!parseResponse(response))
+            if (!parseResponse(response)) {
+                nsGmx.widgets.notifications.stopAction('securitySave');
                 return;
+            }
             
-            _layersTree.showSaveStatus($$('headerLinks'));
+            nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
         })
 	})
 	
@@ -559,30 +537,20 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			
 			_this._securityTableSuggest.tableParent.style.height = mapTableHeight + 'px';
 			_this._securityTableSuggest.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
-		
-		
-			_this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
-
-			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
-			
-			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 		}
 		else
 		{
 			mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 30;
-			
-			_this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
-			_this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
-
-			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
-			
-			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 15 + 'px';
 		}
+        
+        _this._securityTable.tableParent.style.width = dialogWidth - 35 - 21 + 'px';
+        _this._securityTable.tableBody.parentNode.parentNode.style.width = dialogWidth - 15 - 21 + 'px';
+        _this._securityTable.tableBody.parentNode.style.width = dialogWidth - 35 - 21 + 'px';
+
+        _this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = dialogWidth - 12 - 21 + 'px';
+        
+        _this._securityTable.tableParent.style.height = mapTableHeight + 'px';
+        _this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 	}
 
 	showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, isShowUserSuggest ? 470 : 370, false, false, resize);

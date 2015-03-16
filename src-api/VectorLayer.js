@@ -959,6 +959,9 @@
             var curStyle = geom.propHiden.curStyle,
                 styles = [curStyle];
 
+            if (!imageObj && curStyle.image) {
+                imageObj = curStyle.image;
+            }
             if(curStyle.addStyles) {
                 for (var i = 0, len = curStyle.addStyles.length; i < len; i++) {
                     styles.push(curStyle.addStyles[i]);
@@ -998,8 +1001,10 @@
                     } else {
                         chkGlobalAlpha(ctx);
                     }
-                    var pattern = ctx.createPattern(pImage, "no-repeat");
-                    ctx.fillStyle = pattern;
+                    //var pattern = ctx.createPattern(pImage, "no-repeat");
+                    //ctx.fillStyle = pattern;
+                    attr.canvasPattern = pImage;
+                    itemStyle.pattern = true;
                         //ctx.fillRect(0, 0, 256, 256);
                     if(geom.paintFill) {
                         geom.paintFill(attr, itemStyle, ctx, true);
@@ -2368,19 +2373,22 @@
                 var needRemove = {},
                     needRepaint = false,
                     zoom = LMap.getZoom();
-                gmxAPI._leaflet.LabelsManager.removeArray(nodeId, data); // Переформировать Labels
-                for (var i = 0, len = data.length; i < len; i++) {
-                    var pid = data[i];
-                    needRemove[pid] = true;
-                    //gmxAPI._leaflet.LabelsManager.remove(nodeId, pid); // Переформировать Labels
-                    var item = node.objectsData[pid];
-                    if(item && item.propHiden.drawInTiles) {
-                        node.repaintHash(item.propHiden.drawInTiles[zoom]);
-                        item.propHiden.drawInTiles[zoom] = {};
-                        needRepaint = true;
-                    }                   
-                    delete node.objectsData[pid];
-                    delete node.addedItems[pid];
+
+                if (gmxAPI.isArray(data)) {
+                    gmxAPI._leaflet.LabelsManager.removeArray(nodeId, data); // Переформировать Labels
+                    for (var i = 0, len = data.length; i < len; i++) {
+                        var pid = data[i];
+                        needRemove[pid] = true;
+                        //gmxAPI._leaflet.LabelsManager.remove(nodeId, pid); // Переформировать Labels
+                        var item = node.objectsData[pid];
+                        if(item && item.propHiden.drawInTiles) {
+                            node.repaintHash(item.propHiden.drawInTiles[zoom]);
+                            item.propHiden.drawInTiles[zoom] = {};
+                            needRepaint = true;
+                        }                   
+                        delete node.objectsData[pid];
+                        delete node.addedItems[pid];
+                    }
                 }
 
                 for(var tileID in node.tilesGeometry) {

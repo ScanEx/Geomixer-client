@@ -5,20 +5,20 @@
 var NASA_URL_PREFIX = 'https://map1a.vis.earthdata.nasa.gov/wmts-webmerc/';
 
 var NASA_LAYERS = {
-    MODIS_Terra_CorrectedReflectance_TrueColor: 9,
-    MODIS_Terra_CorrectedReflectance_Bands721: 9,
-    MODIS_Terra_CorrectedReflectance_Bands367: 9,
-    MODIS_Aqua_CorrectedReflectance_TrueColor: 9,
-    MODIS_Aqua_CorrectedReflectance_Bands721: 9,
+    MODIS_Terra_CorrectedReflectance_TrueColor: {zoom: 9, title: 'Terra Corrected TrueColor'},
+    MODIS_Terra_CorrectedReflectance_Bands721:  {zoom: 9, title: 'Terra Corrected Bands 721'},
+    MODIS_Terra_CorrectedReflectance_Bands367:  {zoom: 9, title: 'Terra Corrected Bands 367'},
+    MODIS_Aqua_CorrectedReflectance_TrueColor:  {zoom: 9, title: 'Aqua Corrected TrueColor'},
+    MODIS_Aqua_CorrectedReflectance_Bands721:   {zoom: 9, title: 'Aqua Corrected Bands 721'},
     
-    MODIS_Terra_SurfaceReflectance_Bands143: 8,
-    MODIS_Terra_SurfaceReflectance_Bands721: 8,
-    MODIS_Terra_SurfaceReflectance_Bands121: 9,
-    MODIS_Aqua_SurfaceReflectance_Bands143: 8,
-    MODIS_Aqua_SurfaceReflectance_Bands721: 8,
-    MODIS_Aqua_SurfaceReflectance_Bands121: 9,
+    MODIS_Terra_SurfaceReflectance_Bands143:    {zoom: 8, title: 'Terra Surface Bands 143'},
+    MODIS_Terra_SurfaceReflectance_Bands721:    {zoom: 8, title: 'Terra Surface Bands 721'},
+    MODIS_Terra_SurfaceReflectance_Bands121:    {zoom: 9, title: 'Terra Surface Bands 121'},
+    MODIS_Aqua_SurfaceReflectance_Bands143:     {zoom: 8, title: 'Aqua Surface Bands 143'},
+    MODIS_Aqua_SurfaceReflectance_Bands721:     {zoom: 8, title: 'Aqua Surface Bands 721'},
+    MODIS_Aqua_SurfaceReflectance_Bands121:     {zoom: 9, title: 'Aqua Surface Bands 121'},
     
-    VIIRS_CityLights_2012: 8
+    VIIRS_CityLights_2012: {zoom: 8, title: 'VIIRS City Lights 2012'}
 };
 
 /** Слой для подгрузки данных из NASA Global Imagery Browse Services (GIBS)
@@ -45,7 +45,7 @@ var GIBSLayer = function(layerName, map, params) {
         calendar = params.calendar,
         gmxLayer,
         _this = this,
-        layerZoom = NASA_LAYERS[layerName] || 7;
+        layerZoom = (NASA_LAYERS[layerName] && NASA_LAYERS[layerName].zoom) || 7;
     
     var initLayer = function() {
         var isVisible;
@@ -86,6 +86,10 @@ var GIBSLayer = function(layerName, map, params) {
         }, 1);
     }
     
+    this.remove = function() {
+        gmxLayer.remove();
+    }
+    
     /** Связать с календарём для задания даты снимков. Будет использована конечная дата интервала календаря.
      * @param {nsGmx.Calendar} newCalendar Календарь
     */
@@ -105,6 +109,9 @@ var GIBSLayer = function(layerName, map, params) {
     calendar && this.bindToCalendar(calendar);
     params.initDate && this.setDate(params.initDate);
 }
+
+var toolContainer = null;
+var gibsLayers = [];
  
 var publicInterface = {
     pluginName: 'GIBS Plugin',
@@ -121,8 +128,9 @@ var publicInterface = {
             params.layer = [params.layer];
         }
         
-        var calendar = nsGmx.widgets.commonCalendar.get(),
-            gibsTools = new gmxAPI._ToolsContainer('gibs');
+        var calendar = nsGmx.widgets.commonCalendar.get();
+        
+        toolContainer = new gmxAPI._ToolsContainer('gibs');
             
         params.layer.forEach(function(layerName) {
             var gibsLayer = new GIBSLayer(layerName, map, {
@@ -130,15 +138,22 @@ var publicInterface = {
                 visible: false
             });
             
-            gibsTools.addTool( layerName, {
+            toolContainer.addTool(layerName, {
                 overlay: true,
                 onClick: gibsLayer.setVisibility.bind(gibsLayer, true),
                 onCancel: gibsLayer.setVisibility.bind(gibsLayer, false),
-                hint: layerName
+                hint: NASA_LAYERS[layerName].title
             })
+            
+            gibsLayers.push(gibsLayer);
         })
         
         params.layer.length && nsGmx.widgets.commonCalendar.show();
+    },
+    
+    unload: function() {
+        toolContainer && toolContainer.remove();
+        gibsLayers.forEach(function(layer) {layer.remove();});
     }
 }
 

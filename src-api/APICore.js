@@ -504,7 +504,10 @@ extend(window.gmxAPI,
 		if(attr.alert) {
             if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
             else if(window.gmxAPIdebugLevel === 9) console.log(attr);
-            else if(window.gmxAPIdebugLevel === 11 && attr.event) throw attr.event;
+            else if(window.gmxAPIdebugLevel === 11 && attr.event) {
+                console.error(attr.event.stack);
+                throw attr.event;
+            }
        }
 	},
 	_debugWarnings: [],

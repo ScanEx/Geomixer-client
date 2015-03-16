@@ -869,6 +869,72 @@
             return isIn;
         }
         ,
+        getItemCenter: function(item, geoItems) {
+            var bounds = item.bounds,
+                min = bounds.min, max = bounds.max,
+                geom = item.geometry,
+                type = geom.type,
+                isPoint = type === 'POINT' || type === 'MULTIPOINT',
+                center = isPoint ? [min.x, min.y] : [(min.x + max.x) / 2, (min.y + max.y) / 2];
+
+            if (type === 'POLYGON' || type === 'MULTIPOLYGON') {
+                if (bounds.contains(center)) {
+                    var coords = geom.coordinates;
+                    if (geom.type === 'POLYGON') {coords = [coords];}
+                    for (var j = 0, len1 = coords.length; j < len1; j++) {
+                        for (var j1 = 0, coords1 = coords[j], len2 = coords1.length; j1 < len2; j1++) {
+                            var pt = utils.getHSegmentsInPolygon(center[1], coords1[j1]);
+                            if (pt) {
+                                return pt.max.center;
+                            }
+                        }
+                    }
+                }
+            } else if (type === 'POINT' || type === 'MULTIPOINT') {
+                return center;
+            } else if (type === 'LINESTRING' || type === 'MULTILINESTRING') {
+                return center;
+            }
+            return null;
+        },
+
+        getHSegmentsInPolygon: function(y, poly) {
+            var s = [], i, len, out,
+                p1 = poly[0],
+                isGt1 = y > p1[1];
+            for (i = 1, len = poly.length; i < len; i++) {
+                var p2 = poly[i],
+                    isGt2 = y > p2[1];
+                if (isGt1 !== isGt2) {
+                    s.push(p1[0] - (p1[0] - p2[0]) * (p1[1] - y) / (p1[1] - p2[1]));
+                }
+                p1 = p2;
+                isGt1 = isGt2;
+            }
+            len = s.length;
+            if (len) {
+                s = s.sort();
+                var max = 0,
+                    index = -1;
+                for (i = 1; i < len; i++) {
+                    var j = i - 1,
+                        d = s[i] - s[j];
+                    if (d > max) {
+                        max = d;
+                        index = j;
+                    }
+                }
+                out = {
+                    y: y,
+                    segArr: s,
+                    max: {
+                        width: max,
+                        center: [(s[index] + s[index + 1]) / 2, y]
+                    }
+                };
+            }
+            return out;
+        },
         'getMapPosition': function()	{			// Получить позицию карты
             var zoom = LMap.getZoom();
             if(!zoom) {
@@ -1158,7 +1224,15 @@
 					var ph = st.fill;
 					if('color' in ph) pt.fillColor = ph.color;
                     pt.fillOpacity = ('opacity' in ph ? ph.opacity : 100);
-					if('pattern' in ph) {
+					if('image' in ph) {
+                        pt.iconUrl = ph.image;
+                        try {
+                            if(typeof(callback) === 'function') pt.waitStyle = callback;
+                            utils.getImageSize(pt, true, id);
+                        } catch(ev) {
+                            gmxAPI.addDebugWarnings({'url': pt.iconUrl, 'func': 'getImageSize', 'alert': 'getImageSize error ' + pt.iconUrl});
+                        }
+					} else if('pattern' in ph) {
 						var pattern = ph.pattern;
 						delete pattern._res;
 						pt.pattern = pattern;
@@ -3313,14 +3387,15 @@
 				if(style.polygons) {
 					if(rotateRes) out.isCircle = true;
 					if(style.maxWeight) {
-                        size = style.maxWeight;
-                        out.sx = out.sy = Math.ceil(scale * size + out.weight);
+                        size = Math.ceil(scale * style.maxWeight + out.weight);
+                        out.sx = out.sy = isFinite(size) ? size : 0;
                     }
 				} else if(style.image) {
                     if(rotateRes || 'color' in style) {
                         if(rotateRes) {
                             size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-                            out.sx = out.sy = Math.ceil(scale * size/2);
+                            size = Math.ceil(scale * size/2);
+                            out.sx = out.sy = isFinite(size) ? size : 0;
                             out.isCircle = true;
                         }
                     }
@@ -3332,10 +3407,10 @@
                         var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
                         var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
                         size = scale * Math.max(r1, r2);
-                        out.sx = out.sy = size;
+                        out.sx = out.sy = isFinite(size) ? size : 0;
                         out.isCircle = true;
                     } else if(style.circle) {
-                        out.sx = out.sy = size;
+                        out.sx = out.sy = isFinite(size) ? size : 0;
                         out.isCircle = true;
                     }
                 }
@@ -3936,8 +4011,8 @@
                     coords1 = coordinates[i];
                 for (var j = 0, cntHide = 0, lineHide = true, lastX = null, lastY = null, len1 = coords1.length; j < len1; lineHide = false, j++) {
                     var p1 = coords1[j],
-                        px1 = p1[0] * mInPixel - x, px1 = (0.5 + px1) << 0,
-                        py1 = y - p1[1] * mInPixel, py1 = (0.5 + py1) << 0;
+                        px1 = p1[0] * mInPixel - x, px1 = Math.round(px1),
+                        py1 = y - p1[1] * mInPixel, py1 = Math.round(py1);
                     if (j == hArr[cntHide]) {
                         lineHide = true;
                         cntHide++;

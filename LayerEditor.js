@@ -352,9 +352,9 @@ var LayerEditor = function(div, type, parent, properties, params) {
     params = params || {};
     
     var genPageDiv = function() {
-        return _div(
-            [_div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])],
-            [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]
+        return _div([
+                _div(null, [['dir', 'className', 'layer-container-inner']])
+            ], [['dir', 'className', 'layer-container-outer']]
         );
     }
     

@@ -1,45 +1,29 @@
-﻿(function()
+﻿/**
+    Возвращает массив ссылок в верхнее левое мета-меню в формате HeaderWidget из CommonComponents.
+    Считывает информацию из window.gmxViewerUI.headerLinkItems в формате [{icon: iconPath, title: TITLE, href: HREF}, ...] (формат ГеоМиксера)
+    Если переменной нет, подставляет значения по умолчению ("Карта пожаров", "Поиск снимков", "Платформа Геомиксер")
+    @memberOf nsGmx
+*/
+nsGmx.addHeaderLinks = function()
 {
-    /**
-        Добавляет ряд ссылок с иконками и текстом. 
-        Считывает информацию из window.gmxViewerUI.headerLinkItems в формате [{icon: iconPath, title: TITLE, href: HREF}, ...]
-        Если переменной нет, подставляет значения по умолчению ("Поиск снимков", "Документация", "Блог")
-        @memberOf nsGmx
-        @param container {HTMLDOMElement} куда добавлять ссылки
-    */
-    var addHeaderLinks = function(container)
-    {
-        var isHeaderLinks = false;
-            if ( typeof window.headerLinks === 'boolean' ) isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
-            if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' )
-                isHeaderLinks = window.gmxViewerUI.headerLinks;
+    var isHeaderLinks = true;
+    if ( typeof window.headerLinks === 'boolean' ) isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
+    if ( typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.headerLinks !== 'undefined' )
+        isHeaderLinks = window.gmxViewerUI.headerLinks;
 
-        if (!isHeaderLinks) {
-            addHeaderLinks.def.resolve();
-            return;
-        }
-
-        var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
-            [
-                {icon: 'img/zoom_tool2.png', title: "Поиск снимков", href: 'http://search.kosmosnimki.ru'},
-                {icon: 'img/api2.png',       title: "Документация",  href: 'http://geomixer.ru/docs'     },
-                {icon: 'img/blog.png',       title: "Блог",          href: 'http://blog.kosmosnimki.ru'  }
-            ];
-            
-        var template = 
-            '<span>{{#links}}' + 
-                '<a href="{{href}}" target="{{target}}{{^target}}_blank{{/target}}">' + 
-                    '{{#icon}}<img src={{icon}}></img>{{/icon}}' + 
-                    '{{title}}' + 
-                '</a>' + 
-            '{{/links}}</span>';
-        
-        $(Mustache.render(template, {links: items})).appendTo(container);
-
-        addHeaderLinks.def.resolve();
+    if (!isHeaderLinks) {
+        return [];
     }
-    
-    addHeaderLinks.def = $.Deferred();
-    
-    nsGmx.addHeaderLinks = addHeaderLinks;
-})()
+
+    var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
+        [
+            {title: _gtxt("Карта пожаров"), href: "http://fires.kosmosnimki.ru", newWindow: true},
+            {title: _gtxt("Поиск снимков"), href: "http://search.kosmosnimki.ru", newWindow: true},
+            {title: _gtxt("Платформа Геомиксер"), newWindow: true, id: 'HeaderLinkGeoMixer'}
+        ];
+        
+    return $.extend(true, [], items).map(function(item) {
+        item.link = item.href;
+        return item;
+    })
+}

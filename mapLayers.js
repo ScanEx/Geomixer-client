@@ -510,7 +510,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
-		box.className = 'box';
+		box.className = 'box layers-visibility-checkbox';
 		
 		box.setAttribute('box','layer');
 		
@@ -574,7 +574,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
 		
 	spanDescr.innerHTML = elem.description ? elem.description : '';
@@ -697,7 +697,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
-		box.className = 'box';
+		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','group');
 		
@@ -788,7 +788,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
     
     disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
     if (this._renderParams.showVisibilityCheckbox && (!parentVisibility || !elem.visible)) {
         $(spanParent).addClass("invisible");
@@ -817,16 +817,15 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerManagerFlag)
 {
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer']]),
-		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+		spanParent = _div([span],[['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
 	
-	if (!this._renderParams.allowActive)
-		return [spanParent];
-
-	span.onclick = function()
-	{
-        _this.setActive(this);
-	}
+	if (this._renderParams.allowActive) {
+        span.onclick = function()
+        {
+            _this.setActive(this);
+        }
+    }
 	
     if (!layerManagerFlag)
     {
@@ -901,7 +900,7 @@ layersTree.prototype.removeGroup = function(div)
 		_mapHelper.updateUnloadEvent(true);
 	}
 	
-	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
+	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
 }
 
 layersTree.prototype.showSaveStatus = function(parent)
@@ -913,7 +912,7 @@ layersTree.prototype.showSaveStatus = function(parent)
 			
 	var divStatus = _div([_span([_t(_gtxt("Сохранено"))],[['css','marginLeft','10px'],['css','color','#33AB33']])], [['css','paddingTop','10px'],['attr','savestatus',true]]);
 	
-	_(parent, [divStatus])
+	$(parent).append(divStatus);
 	
 	this.timer = setTimeout(function()
 		{
@@ -1228,38 +1227,39 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 //геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
-	if (typeof elem.content.properties.GroupID != 'undefined')
-	{
-		for (var i = 0; i < elem.content.children.length; i++)
-		{
-			var res = this.addLayersToMap(elem.content.children[i]);
-			
-			if (!res)
-				return false;
-		}
-	}
-	else
-	{
-		var layer = elem.content,
-			name = layer.properties.name;
+    if (typeof elem.content.properties.GroupID != 'undefined')
+    {
+        for (var i = 0; i < elem.content.children.length; i++)
+        {
+            var res = this.addLayersToMap(elem.content.children[i]);
+            
+            if (!res)
+                return false;
+        }
+    }
+    else
+    {
+        var layer = elem.content,
+            name = layer.properties.name;
             
             layer.geometry = from_merc_geometry(layer.geometry);
 
-		if (!globalFlashMap.layers[name])
-		{
-			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
-			
-			globalFlashMap.addLayer(layer, visibility);
+        if (!globalFlashMap.layers[name])
+        {
+            var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
+            
+            var layerOnMap = globalFlashMap.addLayer(layer, visibility);
+            //nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
             layer.properties.changedByViewer = true;
-		}
-		else
-		{
-			showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
-			return false;
-		}
-	}
-	
-	return true;
+        }
+        else
+        {
+            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
+            return false;
+        }
+    }
+
+    return true;
 }
 
 layersTree.prototype.getParentParams = function(li)
@@ -1295,7 +1295,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
         ),
 		_this = this;
 	
-	newBox.className = 'box';
+	newBox.className = 'box layers-visibility-checkbox';
 
 	if (box.getAttribute('box') == 'group')
 		newBox.setAttribute('box', 'group');
@@ -1461,8 +1461,6 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 			}
 		}
 	}, visFlag)
-	
-	var parentCanvas = typeof div == 'undefined' ? $(this.buildedTree.firstChild).children("[MapID]")[0] : div;
 }
 
 queryMapLayers.prototype.equalStyles = function(style1, style2)
@@ -1477,15 +1475,29 @@ queryMapLayers.prototype.equalStyles = function(style1, style2)
 	return true;
 }
 
+queryMapLayers.prototype.getContainerBefore = function() {
+    if (!this.builded) return;
+    
+    return $('.layers-before', this.workCanvas).show();
+}
+
 queryMapLayers.prototype.load = function(data)
 {
 	if (this.buildedTree && !this.builded)
 	{
 		var _this = this;
 
-		this.treeCanvas = _div();
-				
-		_(this.workCanvas, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','10px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])]);
+		this.treeCanvas = _div(null, [['dir', 'className', 'layers-tree']]);
+		
+        //Для обратной совместимости - есть много мапплетов карт, которые пытаются интегрироваться после первого table
+        //TODO: изнечтожить все такие мапплеты
+        _(this.workCanvas, [_table()]);
+        
+		_(this.workCanvas, [
+            _div([
+                //_table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','7px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])
+            ], [['dir', 'className', 'layers-before'], ['css', 'display', 'none']])
+        ]);
 
 		_(this.workCanvas, [this.treeCanvas]);
 		
@@ -1496,6 +1508,13 @@ queryMapLayers.prototype.load = function(data)
 		_layersTree.runLoadingFuncs();
 		
 		_layersTree.addExpandedEvents(this.buildedTree);
+        
+        $(this.treeCanvas).droppable({
+            accept: "span[dragg]", 
+            drop: function(ev, ui) {
+                queryMapLayers._droppableHandler.bind($(_this.buildedTree).find('[mapid]')[0], ev, ui)();
+            }
+        })
 		
 		this.applyState(_layersTree.condition, _layersTree.mapStyles);
 
@@ -1609,89 +1628,115 @@ queryMapLayers.prototype.removeDraggable = function(parent)
 	$(parent).find("span[dragg]").draggable('destroy');
 }
 
+queryMapLayers._droppableHandler = function(ev, ui)
+{
+    $('body').css("cursor", '');
+
+    // удалим элемент, отображающий копирование
+    ui.helper[0].removeNode(true)
+
+    // уберем заведомо ложные варианты - сам в себя, копирование условий
+    if (this == ui.draggable[0].parentNode.parentNode) return;
+
+    var circle = false,
+        layerManager = false;
+        
+    $(this).parents().each(function()
+    {
+        if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+            circle = true;
+    })
+        
+    if (circle) return;
+        
+    var isFromExternalMaps = false;
+    $(ui.draggable[0].parentNode.parentNode).parents().each(function()
+    {
+        if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+            layerManager = true;
+            
+        if ( this == $$('externalMapsCanvas') )
+            isFromExternalMaps = true;
+    })
+    
+    if (!layerManager)
+        _layersTree.moveHandler(ui.draggable[0], this)
+    else				
+        _layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
+}
+
 queryMapLayers.prototype.addDroppable = function(parent)
 {
-	$(parent).find("div[GroupID],div[MapID]").droppable({accept: "span[dragg]", hoverClass: 'droppableHover', drop: function(ev, ui)
-	{
-		$('body').css("cursor", '');
-		
-		// удалим элемент, отображающий копирование
-		ui.helper[0].removeNode(true)
-		
-		// уберем заведомо ложные варианты - сам в себя, копирование условий
-		if (this == ui.draggable[0].parentNode.parentNode) return;
-		
-		var circle = false,
-			layerManager = false;
-			
-		$(this).parents().each(function()
-		{
-			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
-				circle = true;
-		})
-			
-		if (circle) return;
-			
-        var isFromExternalMaps = false;
-		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
-		{
-			if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
-				layerManager = true;
-                
-            if ( this == $$('externalMapsCanvas') )
-                isFromExternalMaps = true;
-		})
-		
-		if (!layerManager)
-			_layersTree.moveHandler(ui.draggable[0], this)
-		else				
-			_layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
-	}})
+	$(parent).find("div[GroupID],div[MapID]").droppable({
+        accept: "span[dragg]",
+        hoverClass: 'droppableHover',
+        greedy: true,
+        drop: queryMapLayers._droppableHandler
+    })
+    
+    $(parent).find("div[LayerID],div[MultiLayerID]").droppable({
+        accept: "span[dragg]",
+        greedy: true,
+        drop: function(ev, ui) {
+            var swapElem = $(this).next();
+            swapElem.removeClass('swap-droppableHover');
+            queryMapLayers._swapHandler.call(swapElem[0], ev, ui);
+        },
+        over: function(ev, ui) {
+            $(this).next().addClass('swap-droppableHover');
+        },
+        out: function(ev, ui) {
+            $(this).next().removeClass('swap-droppableHover');
+        }
+    })
 }
 queryMapLayers.prototype.removeDroppable = function(parent)
 {
 	$(parent).find("div[GroupID],div[MapID]").droppable('destroy');
 }
 
+//статическая ф-ция
+queryMapLayers._swapHandler = function(ev, ui)
+{
+    $('body').css("cursor", '');
+    
+    // удалим элемент, отображающий копирование
+    ui.helper[0].removeNode(true);
+    
+    //проверим, не идёт ли копирование группы внутрь самой себя
+    var circle = false;
+        
+    $(this).parents().each(function()
+    {
+        if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+            circle = true;
+    })
+    
+    if (circle) return;
+    
+    var layerManager = false;
+    
+    var isFromExternalMaps = false;
+    $(ui.draggable[0].parentNode.parentNode).parents().each(function()
+    {
+        if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+            layerManager = true;
+            
+        if ( this == $$('externalMapsCanvas') )
+            isFromExternalMaps = true;
+    })
+    
+    var gmxProperties = ui.draggable[0].parentNode.parentNode.gmxProperties;
+    
+    if (!layerManager)
+        _layersTree.swapHandler(ui.draggable[0], this)
+    else
+        _layersTree.copyHandler(gmxProperties, this, true, !isFromExternalMaps)
+}
+
 queryMapLayers.prototype.addSwappable = function(parent)
 {
-	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', drop: function(ev, ui)
-	{
-		$('body').css("cursor", '');
-		
-		// удалим элемент, отображающий копирование
-		ui.helper[0].removeNode(true);
-        
-        //проверим, не идёт ли копирование группы внутрь самой себя
-		var circle = false;
-			
-		$(this).parents().each(function()
-		{
-			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
-				circle = true;
-		})
-        
-        if (circle) return;
-		
-		var layerManager = false;
-		
-        var isFromExternalMaps = false;
-		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
-		{
-			if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
-				layerManager = true;
-                
-            if ( this == $$('externalMapsCanvas') )
-                isFromExternalMaps = true;
-		})
-        
-        var gmxProperties = ui.draggable[0].parentNode.parentNode.gmxProperties;
-		
-		if (!layerManager)
-			_layersTree.swapHandler(ui.draggable[0], this)
-		else
-			_layersTree.copyHandler(gmxProperties, this, true, !isFromExternalMaps)
-	}})
+	$(parent).find("div[swap]").droppable({accept: "span[dragg]", hoverClass: 'swap-droppableHover', greedy: true, drop: queryMapLayers._swapHandler})
 }
 queryMapLayers.prototype.removeSwappable = function(parent)
 {
@@ -1879,7 +1924,7 @@ queryMapLayers.prototype.createLayersManager = function()
         
     layerManagerControl.disableLayers(existLayers);
     
-	showDialog(_gtxt("Список слоев"), canvas, 571, 475, 535, 130);
+	showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130);
 }
 
 queryMapLayers.prototype.getMaps = function()
@@ -1890,49 +1935,37 @@ queryMapLayers.prototype.getMaps = function()
 
 queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, addLink)
 {
-	var input = _input(null, [['attr','value', ''],['css','margin','10px 10px 15px 10px'],['dir','className','inputStyle'],['css','width','220px']]),
-		button = makeButton(buttonName),
-		canvas = _div([input, button],[['css','textAlign','center']]);
-		_this = this;
-	
-	input.onkeydown = function(e)
-	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{
-	  		if (input.value != '')
-	  		{
-				func(input.value);
-				
-				$(canvas.parentNode).dialog("destroy")
-				canvas.parentNode.removeNode(true);
-			}
-			else
-				inputError(input);
-	  		
+	var uiTemplate = 
+        '<div class = "createMap-container">' + 
+            '<input class = "inputStyle inputFullWidth createMap-input">' +
+            '<button class = "createMap-button">{{buttonName}}</button>' +
+        '</div>';
+    
+    var ui = $(Mustache.render(uiTemplate, {buttonName: buttonName})),
+        input = $('.createMap-input', ui)[0];
+    
+    var tryCreateMap = function() {
+        input.focus();
+        if (input.value != '') {
+            removeDialog(dialogDiv);
+            func(input.value);
+        } else {
+            inputError(input);
+        }
+    }
+    
+	$(input, ui).on('keydown', function(e) {
+	  	if (getkey(e.originalEvent) === 13) {
+            tryCreateMap();
 	  		return false;
 	  	}
-	}
+	})
 	
-	button.onclick = function()
-	{
-		if (input.value != '')
-		{
-			func(input.value);
-			
-			$(canvas.parentNode).dialog("destroy")
-			canvas.parentNode.removeNode(true);
-		}
-		else
-			inputError(input);
-	}
+	$('.createMap-button', ui).click(tryCreateMap)
 	
-	if (addLink)
-		_(canvas, [addLink]);
+	addLink && ui.append(addLink);
 	
-	showDialog(title, canvas, 280, 110 + (addLink ? 20 : 0), false, false);
-	
-	canvas.parentNode.style.overflow = 'hidden';
+	var dialogDiv = showDialog(title, ui[0], 280, 115 + (addLink ? 20 : 0), false, false);
 }
 
 queryMapLayers.prototype.createMap = function(name)
@@ -1960,8 +1993,8 @@ queryMapLayers.prototype.createMap = function(name)
         var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
         mStyleEditor && mStyleEditor.updateAllStyles();
         
-        _userObjects.collect();
-        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
+        nsGmx.userObjectsManager.collect();
+        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(nsGmx.userObjectsManager.getData());
         
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         
@@ -1999,17 +2032,14 @@ queryMapLayers.prototype.createMap = function(name)
                 
                 _mapHelper.updateUnloadEvent(false);
                 
-                _layersTree.showSaveStatus($$('headerLinks'));
+                nsGmx.widgets.notifications.stopAction('saveMap', 'success', _gtxt("Сохранено"));
             }
         )
     }
     
     queryMapLayers.prototype.saveMap = function()
     {
-        $('#headerLinks').find("[savestatus]").remove();
-        
-        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        _($$('headerLinks'), [loading]);
+        nsGmx.widgets.notifications.startAction('saveMap');
         
         sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _layersTree.treeModel.getMapProperties().name, function(response)
         {
@@ -2047,11 +2077,7 @@ queryMapLayers.prototype.createMap = function(name)
 
     queryMapLayers.prototype.saveMapAs = function(name)
     {
-        $('#headerLinks').find("[savestatus]").remove();
-        
-        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-        _($$('headerLinks'), [loading]);
-        
+        nsGmx.widgets.notifications.startAction('saveMap');
         saveMapInternal("Map/SaveAs.ashx", name);
     }
 
@@ -2061,7 +2087,11 @@ var _queryMapLayers = new queryMapLayers();
 
 mapLayers.mapLayers.load = function()
 {
-	var alreadyLoaded = _queryMapLayers.createWorkCanvas(arguments[0]);
+	var alreadyLoaded = _queryMapLayers.createWorkCanvas('layers', {
+            path: null,
+            showCloseButton: false, 
+            showMinimizeButton: false
+        });
 	
 	if (!alreadyLoaded)
 		_queryMapLayers.load()

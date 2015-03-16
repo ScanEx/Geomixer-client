@@ -190,7 +190,7 @@ fileBrowser.prototype.resize = function()
 	
 	var titleHeight = $$('fileBrowserDialog').parentNode.parentNode.firstChild.offsetHeight;
 	
-	$$('fileBrowserDialog').childNodes[1].lastChild.style.height = $$('fileBrowserDialog').parentNode.parentNode.offsetHeight - titleHeight - 6 - $$('fileBrowserDialog').lastChild.offsetHeight - $$('fileBrowserDialog').firstChild.offsetHeight - $$('fileBrowserDialog').childNodes[1].firstChild.offsetHeight - 15 + 'px';
+	$$('fileBrowserDialog').childNodes[1].lastChild.style.height = $$('fileBrowserDialog').parentNode.parentNode.offsetHeight - titleHeight - 6 - $$('fileBrowserDialog').lastChild.offsetHeight - $$('fileBrowserDialog').firstChild.offsetHeight - $$('fileBrowserDialog').childNodes[1].firstChild.offsetHeight - 20 + 'px';
 }
 
 fileBrowser.prototype.close = function(path)
@@ -224,21 +224,21 @@ fileBrowser.prototype._showWarningDialog = function() {
 
 fileBrowser.prototype._uploadFilesAjax = function(formData) {
     var _this = this;
-    $(this.progressBar).progressbar('option', 'value', 0);
-    $(this.progressBar).show();
+    this.progressBar.progressbar('option', 'value', 0);
+    this.progressBar.show();
     
     formData.append('WrapStyle', 'None');
     
     var xhr = new XMLHttpRequest();
     
     xhr.upload.addEventListener("progress", function(e) {
-        _this.progressBar && $(_this.progressBar).progressbar('option', 'value', e.loaded / e.total * 100);
+        _this.progressBar.progressbar('option', 'value', e.loaded / e.total * 100);
     }, false);
     
     xhr.open('POST', serverBase + 'FileBrowser/Upload.ashx');
     xhr.withCredentials = true;
     xhr.onload = function () {
-        $(_this.progressBar).hide();
+        _this.progressBar.hide();
         if (xhr.status === 200) {
             response = JSON.parse(xhr.responseText);
             
@@ -501,11 +501,9 @@ fileBrowser.prototype.createUpload = function()
         ])])])
     ]);
     
-    var progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100}).hide();
+    this.progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100}).hide();
     
-    this.progressBar = progressBar[0];
-	
-	_(this.fileUpload, [this.progressBar, div]);
+    _(this.fileUpload, [this.progressBar[0], div]);
 }
 
 fileBrowser.prototype.getFiles = function(path)
