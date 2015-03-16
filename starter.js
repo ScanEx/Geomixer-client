@@ -463,12 +463,9 @@ $(function()
                 rightLinks: rightLinks,
                 logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
             });
-            
+
             nsGmx.widgets.header.appendTo($('.header'));
-            
-            //переключалку языков будем размещать в нестандартном месте - между auth widget и правыми ссылками
-            nsGmx.widgets.header.getLanguagePlaceholder().insertBefore(nsGmx.widgets.header.getAuthPlaceholder());
-            
+
             var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
             nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
             nsGmx.widgets.languageWidget.appendTo(langContainer);

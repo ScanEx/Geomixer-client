@@ -45,10 +45,6 @@
 	background: transparent url(../img/searchBeginOff_2a.png) no-repeat scroll 0 0;
 }
 
-.languageWidget {
-    margin-right: 20px;
-}
-
 /* Auth widget */
 .auth-user-name, .auth-login {
     font-size: 12px;
