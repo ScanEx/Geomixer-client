@@ -1965,7 +1965,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 	
 	addLink && ui.append(addLink);
 	
-	var dialogDiv = showDialog(title, ui[0], 280, 110 + (addLink ? 20 : 0), false, false);
+	var dialogDiv = showDialog(title, ui[0], 280, 115 + (addLink ? 20 : 0), false, false);
 }
 
 queryMapLayers.prototype.createMap = function(name)
