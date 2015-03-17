@@ -3312,25 +3312,60 @@ console.log('setClusters', arguments);
 				    center: [55.7574, 37.5952]
 					,zoom: 5
 					,zoomControl: false
-					//,doubleClickZoom: false
-					//,doubleClickZoomGMX: true
 					,attributionControl: false
 					,trackResize: true
 					,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
 					,zoomAnimation: (window.gmxPhantom ? false : true)		// отключение zoomAnimation при запуске тестов
 					,boxZoom: false
-					//,zoomAnimation: false
-					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
-					//,worldCopyJump: false
-					
-					//,inertia: false
-					//,keyboard: false
-					//,markerZoomAnimation: true
-					//,dragging: false
-					//,crs: L.CRS.EPSG3395
-					//,'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
 				}
 			);
+            LMap.gmxControlsManager.init();
+
+            LMap.addControl(new L.Control.gmxLayers(LMap.gmxBaseLayersManager, {hideBaseLayers: true}));
+            LMap.addControl(new L.Control.gmxIcon({
+                id: 'boxzoom',
+                toggle: true,
+                title: L.gmxLocale.addText({
+                    'eng': {
+                        'boxZoom': 'BoxZoom'
+                    },
+                    'rus': {
+                        'boxZoom': 'Увеличение'
+                    }
+                }).getText('boxZoom'),
+                onAdd: function (control) {
+                    //console.log('onAdd', this, arguments);
+                    var map = control._map,
+                        _onMouseDown = map.boxZoom._onMouseDown;
+                    map.boxZoom._onMouseDown = function (e) {
+                        _onMouseDown.call(map.boxZoom, {
+                            clientX: e.clientX,
+                            clientY: e.clientY,
+                            which: 1,
+                            shiftKey: true
+                        });
+                    }
+                    map.on('boxzoomend', function () {
+                        map.dragging.enable();
+                        map.boxZoom.removeHooks();
+                        control.setActive(false);
+                    });
+                },
+                stateChange: function (control) {
+                    //console.log('boxzoom', control.options.isActive);
+                    var map = control._map;
+                    if (control.options.isActive) {
+                        map.dragging.disable();
+                        map.boxZoom.addHooks();
+                    } else {
+                        map.dragging.enable();
+                        map.boxZoom.removeHooks();
+                    }
+                }
+            }));
+            
+            //var gmxLayers = new L.Control.gmxLayers(LMap.gmxBaseLayersManager, {collapsed: false});
+/*            
             window.v2 = {};
             var controls = window.v2.controls = {
                 gmxZoom: L.control.gmxZoom()            // default options = {zoomslider: true}
@@ -3392,7 +3427,7 @@ console.log('setClusters', arguments);
             for (var key in controls) {
                 LMap.addControl(controls[key]);
             }
-
+*/
 // if ('_initBaseLayersManager' in LMap) LMap._initBaseLayersManager({
     // activeIDs: ['map', 'hybrid', 'satellite', 'osm', 'relief', 'outline', 'grey', '2GIS', 'osm_spring', 'osm_summer', 'osm_autumn', 'osm_winter', 'osm_night', 'OSMHybrid'],
     // currentID: 'map',

@@ -3477,7 +3477,8 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
     gmxAPI._tools = {
         standart: {    // интерфейс для обратной совместимости
             addTool: function (tn, attr) {
-                var layersControl = window.v2.controls.gmxLayers;
+                var layersControl = gmxAPI._leaflet.LMap.gmxControlsManager.get('layers');
+                //var layersControl = window.v2.controls.gmxLayers;
                 //console.log('tool addTool', tn, attr); // wheat
                 if(!attr) attr = {};
                 attr.id = tn;
@@ -3511,7 +3512,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
             }
             ,
             selectTool: function (id) {
-                var control = gmxAPI._tools[id] || window.v2.controls[id];
+                var control = gmxAPI._tools[id] || gmxAPI._leaflet.LMap.gmxControlsManager.get(id);
                 if (control) {
                     if (id === 'POINT') {
                         //control = Controls.items.drawingPoint;
