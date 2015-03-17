@@ -39,7 +39,7 @@
 
             setZIndex: function(num) {
 //console.log('setZIndex', arguments);
-                myLayer.setZIndex(num);
+                if (myLayer) myLayer.setZIndex(num);
             },
 
             setStyle: function(style) {  // обновить стили всех фильтров

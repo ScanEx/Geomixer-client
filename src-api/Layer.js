@@ -6,12 +6,13 @@
         var FlashMapObject = gmxAPI._FMO;
         if (!parentObj.layers)
             parentObj.layers = [];
-        
+      
         if (!parentObj.layersParent) {
             parentObj.layersParent = parentObj.addObject(null, null, {'layersParent': true});
         }
         if (!parentObj.overlays)
         {
+            // parentObj.overlays = parentObj;
             parentObj.overlays = parentObj.addObject(null, null, {'overlaysParent': true});
             parentObj.addObject = function(geom, props, propHiden) {
                 var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props, propHiden);
@@ -115,7 +116,7 @@
 
         gmxAPI.extend(obj, {        // определение свойств до установки видимости
             addBalloonHook: function(func) {
-                console.log('addBalloonHook', arguments);
+                //console.log('addBalloonHook', arguments);
             },
             setImageProcessingHook: function(func) {
                 return gmxAPI._cmdProxy('setImageProcessingHook', { 'obj': obj, 'attr':{'func':func} });

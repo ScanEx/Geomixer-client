@@ -27,7 +27,7 @@
             myLayer = node.leaflet = gmxAPI.layersByID[layerID];
         node.leaflet = myLayer;
         
-        if (prop.visible) myLayer.addTo(LMap);
+        if (prop.visible && myLayer) myLayer.addTo(LMap);
 
         gmxAPI.extend(node, {
             setVisible: function(flag) {
@@ -40,7 +40,7 @@
 
             setZIndex: function(num) {
                 //console.log('setZIndex', arguments);
-                myLayer.setZIndex(num);
+                if (myLayer) myLayer.setZIndex(num);
             },
 
             startLoadTiles: function() {
@@ -76,7 +76,7 @@
         
         gmxAPI.extend(gmxNode, {
             setDateInterval: function(dt1, dt2) {  // Установка временного интервала
-                myLayer.setDateInterval(dt1, dt2);
+                if (myLayer) myLayer.setDateInterval(dt1, dt2);
                 // obj.dt1 = dt1;
                 // obj.dt2 = dt2;
             },
