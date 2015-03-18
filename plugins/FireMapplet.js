@@ -2431,7 +2431,7 @@ FireControl.prototype.update = function()
 var FireControl2 = function(map, params)
 {
     params = $.extend({}, params); //чтобы не портить исходный хеш
-    params.data = params.data || "+fires !images";
+    params.data = (params.data || "+fires !images").trim();
     
     var createdDiv = null;
     
@@ -2452,7 +2452,7 @@ var FireControl2 = function(map, params)
         return res;
     }
     
-    var parsedData = parseParams(params.data);
+    var parsedData = parseParams(params.data) || parseParams("+fires !images");
     
     this.getProviderParams = function(providerName)
     {
