@@ -82,8 +82,8 @@
             },
             getDateInterval: function() {  // Получить временной интервал
                 return {
-                    beginDate: obj.dt1
-                    ,endDate: obj.dt2
+                    beginDate: null
+                    ,endDate: null
                 };
             },
             getTileCounts: function(dt1, dt2) {  // Получить количество тайлов по временному интервалу
