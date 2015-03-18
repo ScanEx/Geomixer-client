@@ -918,7 +918,7 @@
                     index = -1;
                 for (i = 1; i < len; i++) {
                     var j = i - 1,
-                        d = s[i] - s[j];
+                        d = Math.abs(s[i] - s[j]);
                     if (d > max) {
                         max = d;
                         index = j;
