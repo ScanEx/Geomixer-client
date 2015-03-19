@@ -492,6 +492,9 @@
         }
 
         gmxAPI.extend(obj, {        // определение свойств до установки видимости
+            setRasterOpacity: function(op) {
+                return proxy('setRasterOpacity', { obj: obj, attr: op });
+            },
             setDateInterval: function(dt1, dt2) {  // Установка временного интервала
                 obj.dt1 = dt1;
                 obj.dt2 = dt2;

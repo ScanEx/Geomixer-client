@@ -998,6 +998,13 @@
                     }
                     if('rasterOpacity' in itemStyle) {     // для растров в КР
                         ctx.globalAlpha = itemStyle.rasterOpacity;
+                    } else if('rasterOpacity' in node) {
+                        var tImage = document.createElement('canvas');
+                        tImage.width = pImage.width; tImage.height = pImage.height;
+                        var ptx = tImage.getContext('2d');
+                        ptx.globalAlpha = node.rasterOpacity;
+                        ptx.drawImage(pImage, 0, 0);
+                        pImage = tImage;
                     } else {
                         chkGlobalAlpha(ctx);
                     }
@@ -1208,8 +1215,16 @@
         gmxAPI.extend(node, {
             timers: {}      // таймеры
             ,loaderDrawFlags: {}
-            ,tilesNeedRedraw: [] 
-            ,enableDragging: function(pt) {     // Включить drag
+            ,tilesNeedRedraw: []
+            ,
+            rasterOpacity: 1,
+            setRasterOpacity: function (opacity) {
+                node.rasterOpacity = opacity;
+                //node.waitRedraw();
+                node.repaintTilesList();
+            }
+            ,
+            enableDragging: function(pt) {     // Включить drag
                 if(dragAttr) node.disableDragging();
                 dragAttr = pt.attr;
                 LMap.on('mousedown', dragOn);

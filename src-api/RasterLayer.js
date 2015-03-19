@@ -221,6 +221,12 @@
             if(dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
         }
         gmxAPI.extend(node, {
+            rasterOpacity: 1,
+            setRasterOpacity: function (opacity) {
+                node.rasterOpacity = opacity;
+                if (myLayer) myLayer.setOpacity(node.rasterOpacity);
+            }
+            ,
             eventsCheck: function(evName, attr) {			// проверка событий растрового слоя
                 var onScene = (myLayer && myLayer._map ? true : false);
                 if(gmxAPI._drawing.activeState
@@ -375,7 +381,7 @@
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
                 if(node.regularStyle && node.regularStyle.fillOpacity) { // Изменить opacity растрового слоя
-                    option.opacity = node.regularStyle.fillOpacity;
+                    option.opacity = 'rasterOpacity' in node ? node.rasterOpacity : node.regularStyle.fillOpacity;
                 }
 
 				if('maxNativeZoom' in gmxNode) {

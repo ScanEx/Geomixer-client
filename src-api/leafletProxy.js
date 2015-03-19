@@ -2364,6 +2364,16 @@
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
+        setRasterOpacity:	function(ph) { // Изменить opacity растров слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node) return;
+            if('setRasterOpacity' in node) {
+                node.setRasterOpacity((ph.attr || 0) / 100);
+            }
+            return ph.attr;
+        }
+        ,
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
 		,
 		'getPatternIcon':	function(hash)	{				// получить иконку pattern
