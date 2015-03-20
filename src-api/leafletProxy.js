@@ -407,7 +407,7 @@
         }
         , 
 		'getPatternIcon': function(item, style) {			// получить bitmap стиля pattern
-			if(!style['pattern']) return null;
+			if(!style.pattern) return null;
 			var pattern = style['pattern'];
 			var prop = (item ? item['properties'] : {});
 
@@ -3961,7 +3961,7 @@
             if(style) {
                 if(style.pattern) {
                     var canvasPattern = attr.canvasPattern || null;
-                    if(!canvasPattern) {
+                    if(!canvasPattern && style.pattern !== true) {
                         var pt = gmxAPI._leaflet.utils.getPatternIcon(out, style);
                         canvasPattern = (pt ? pt.canvas : null);
                     }
