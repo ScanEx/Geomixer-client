@@ -3140,7 +3140,9 @@
                     this._clearBgBufferTimer = setTimeout(L.bind(this._clearBgBuffer, this), 100);
                     return;
                 }
-                L.TileLayer.Canvas.prototype._clearBgBuffer.call(this);
+                if (this._bgBuffer) {
+                    L.TileLayer.Canvas.prototype._clearBgBuffer.call(this);
+                }
             }
             ,
             _reset: function (e) {
