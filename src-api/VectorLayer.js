@@ -674,6 +674,8 @@
                 points.y3 = gmxAPI.merc_y(properties.yBottomRight || properties[node.quicklookY3] || 0);
                 points.x4 = gmxAPI.merc_x(properties.xBottomLeft || properties[node.quicklookX4] || 0);
                 points.y4 = gmxAPI.merc_y(properties.yBottomLeft || properties[node.quicklookY4] || 0);
+                begx = mInPixel * points.x1;
+                begy = mInPixel * points.y1;
                 ready = true;
             } else if (node.quicklookPlatform === 'imageMercator') {
                 points.x1 = node.quicklookX1 ? properties[node.quicklookX1] : properties.x1 || 0;
