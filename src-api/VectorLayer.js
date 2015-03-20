@@ -2800,13 +2800,17 @@
                         type = geom.type,
                         objData = node.objectsData[id] || geom;
 
-                    if (type === 'Polygon'    // + если это Polygon
+                    if ((type === 'Polygon' || type === 'MultiPolygon')   // + если это Polygon
                         && getRasterURL(objData, tileAttr.zoom, tileAttr.scanexTilePoint) // если необходимы растры
                         && node.chkSqlFuncVisibility(objData)    // + если проходит фильтр видимости на слое
                     ) {
-                        var coords = geom.coordinates[0];
-                        var clip = tileAttr.bounds.clipPolygon(coords);
-                        if (clip.length) {
+                        var flag = true;
+                        if (type === 'Polygon') {
+                            var coords = geom.coordinates[0],
+                                clip = tileAttr.bounds.clipPolygon(coords);
+                            if (!clip.length) {flag = false;}
+                        }
+                        if (flag) {
                             needLoadRasters++;
                             node.getRaster(geom, tileAttr, id, function(img) {
                                 images[id] = img;
