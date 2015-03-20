@@ -258,19 +258,20 @@
                     marker = regularStyle.marker,
                     fill = regularStyle.fill;
                 if (outline) {
+                    var lineStyle = {};
                     if ('color' in outline) {
                         var val = outline.color;
-                        opt.color = typeof val === 'number' ?
+                        lineStyle.color = typeof val === 'number' ?
                             '#' + gmxAPI._leaflet.utils.dec2hex(val)
                             :
                             (val.substring(0, 1) !== '#' ? '#' : '') + val;
                     }
-                    if ('thickness' in outline) opt.weight = outline.thickness;
-                    if ('opacity' in outline) opt.opacity = outline.opacity/100;
-                    obj._object.setLinesStyle(opt);
+                    if ('thickness' in outline) lineStyle.weight = outline.thickness;
+                    if ('opacity' in outline) lineStyle.opacity = outline.opacity/100;
+                    opt.lineStyle = lineStyle;
                 }
-                opt.size = 10;
-                obj._object.setPointsStyle(opt);
+                //opt.pointStyle = {size: 10};
+                obj._object.setOptions(opt);
             }
         }
         res.getStyle = function() {
