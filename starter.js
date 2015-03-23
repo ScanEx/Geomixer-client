@@ -491,7 +491,9 @@ $(function()
             var url = _mapHostName + apiFilename + apikeyParam;
             
             gmxCore.loadScript(url, null, 'windows-1251').then(function() {
-                gmxAPI.whenLoaded(parseReferences.bind(null, parsedURL.params, parsedURL.givenMapName));
+                gmxAPI.whenLoaded(function() {
+                    addLeafletPlugins().then(parseReferences.bind(null, parsedURL.params, parsedURL.givenMapName));
+                });
             })
 
         }, function()
@@ -881,6 +883,68 @@ function initEditUI() {
     isEditUIInitialized = true;
 }
 
+function addLeafletPlugins() {
+    var apiHost = gmxAPI.getAPIFolderRoot(),
+        cssFiles = [
+            apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
+        ],
+        arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }],
+        def = $.Deferred();
+
+    cssFiles.push(apiHost + 'leaflet/buildAPIV2/dist/css/leaflet-geomixer-all.css');
+    arr.push({src: apiHost + "leaflet/buildAPIV2/dist/leaflet-geomixer-all.js", charset: 'utf8'});
+    if (window.LeafletPlugins) {
+        for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
+            var element = window.LeafletPlugins[i],
+                path = element.path || '',
+                prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost);
+            path = prefix + path;
+            if(element.css) cssFiles.push(path + element.css + '?' + gmxAPI.buildGUID);
+            if(element.files) {
+                for (var j = 0, len1 = element.files.length; j < len1; j++) {
+                    var ph = {
+                        charset: element.charset || 'utf8',
+                        src: path + element.files[j] + '?' + gmxAPI.buildGUID
+                    };
+                    if(element.callback) ph.callback = element.callback;
+                    if(element.callbackError) ph.callbackError = element.callbackError;
+                    arr.push(ph);
+                }
+            }
+            gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = element;
+        }
+    }
+    cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
+    gmxAPI.gmxAPIv2DevLoader = function(depsJS, depsCSS) {
+        var gmxControlsPrefix = 'leaflet/buildAPIV2/';
+        depsJS.forEach(function(item) {
+            arr.push({
+                charset: 'utf8',
+                src: gmxControlsPrefix + item + '?' + gmxAPI.buildGUID
+            });
+        });
+        depsCSS.forEach(function(item) {gmxAPI.loadCSS(gmxControlsPrefix + item + '?' + gmxAPI.buildGUID);} );
+    };
+
+    if (arr.length) {
+        var count = 0,
+            loadItem = function() {
+                gmxAPI.loadJS(arr.shift(), function(item) {
+                    if (arr.length === 0) {
+                        def.resolve();
+                    } else {
+                        loadItem();
+                    }
+                });
+            };
+        loadItem();
+    } else {
+        def.resolve();
+    }
+    
+    return def.promise();
+}
+
 function loadMap(state)
 {
 	layersShown = (state.isFullScreen == "false");
@@ -907,9 +971,39 @@ function loadMap(state)
                 _mapHelper.reloadMap();
         }
     }
-	
-    var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data)
-	{
+    
+    var lmap = new L.Map($$('flash'), {
+        center: [55.7574, 37.5952]
+        ,zoom: 5
+        ,zoomControl: false
+        ,attributionControl: false
+        ,trackResize: true
+        ,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
+        ,zoomAnimation: (window.gmxPhantom ? false : true)		// отключение zoomAnimation при запуске тестов
+        ,boxZoom: false
+    });
+    lmap.gmxControlsManager.init();
+    lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
+    gmxAPI._leaflet.LMap = lmap;
+    
+    //var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data) {
+    var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
+    L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap}).then(function(gmxMap) {
+        
+        gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
+        var data = gmxMap.rawTree;
+        var map = gmxAPI._addNewMap('_main', gmxMap.rawTree);
+        map.layersByID = gmxMap.layersByID;
+        map.LMap = lmap;
+        
+        var mapProp = gmxMap.rawTree.properties || {}
+        var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
+        
+        lmap.gmxBaseLayersManager.initDefaults().then(function() {
+            lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
+            if (baseLayers.length) lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
+        });
+        
         //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
         if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
             window.language = data.properties.DefaultLanguage;
@@ -1261,7 +1355,7 @@ function loadMap(state)
             
             //лупу совсем убираем
             //gmxAPI.map.controlsManager.getCurrent().removeControl('boxzoom');
-            lmap.removeControl(lmap.gmxControlIconManager.get('boxzoom'));
+            //lmap.removeControl(lmap.gmxControlIconManager.get('boxzoom'));
             
             //пополняем тулбар
             var uploadFileIcon = new L.Control.gmxIcon({
@@ -1405,8 +1499,8 @@ function loadMap(state)
         });
 	})
 	
-	if (!success)
-		$$("noflash").style.display = "block";
+	// if (!success)
+		// $$("noflash").style.display = "block";
 }
 
 function promptFunction(title, value) {

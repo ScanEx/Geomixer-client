@@ -3257,6 +3257,8 @@ console.log('setClusters', arguments);
 {
 	// Обработчик события - mapInit
 	function onMapInit(ph) {
+        var mapNodes = gmxAPI._leaflet.mapNodes;
+        gmxAPI._cmdProxy = gmxAPI._leaflet.cmdProxy;			// Установка прокси для leaflet
 		var mapID = ph.objectId;
 		mapNodes[mapID] = {
 			'type': 'map'
@@ -3280,6 +3282,8 @@ console.log('setClusters', arguments);
 				// gmxAPI.map.standartTools.remove();
 			// }
 		}});
+        
+
 //        gmxAPI.map.controlsManager.initControls();
 		// var controls = gmxAPI.map.controlsManager.getCurrent();
         // if(controls && 'initControls' in controls) {
@@ -3287,7 +3291,7 @@ console.log('setClusters', arguments);
         // }
 	}
 	
-	var utils = null;							// Утилиты leafletProxy
+	var utils = gmxAPI._leaflet.utils;							// Утилиты leafletProxy
 	var mapNodes = null;						// Хэш нод обьектов карты - аналог MapNodes.hx
 	var leafLetCont_ = null;
 	var mapDivID = '';
@@ -3300,14 +3304,14 @@ console.log('setClusters', arguments);
 		if('L' in window) {
 			//clearInterval(intervalID);
 			if(!utils) utils = gmxAPI._leaflet.utils;
-			if(!mapNodes) {
-				mapNodes = gmxAPI._leaflet.mapNodes;
-				gmxAPI._cmdProxy = gmxAPI._leaflet.cmdProxy;			// Установка прокси для leaflet
-			}
+			// if(!mapNodes) {
+				// mapNodes = gmxAPI._leaflet.mapNodes;
+				// gmxAPI._cmdProxy = gmxAPI._leaflet.cmdProxy;			// Установка прокси для leaflet
+			// }
 
 			gmxAPI.isMobile = (L.Browser.mobile ? true : false);
 
-			var LMap = new L.Map(leafLetCont_,
+			/*var LMap = new L.Map(leafLetCont_,
 				{
 				    center: [55.7574, 37.5952]
 					,zoom: 5
@@ -3362,7 +3366,7 @@ console.log('setClusters', arguments);
                         map.boxZoom.removeHooks();
                     }
                 }
-            }));
+            }));*/
             
             //var gmxLayers = new L.Control.gmxLayers(LMap.gmxBaseLayersManager, {collapsed: false});
 /*            
@@ -3436,9 +3440,9 @@ console.log('setClusters', arguments);
     // mapID: '1D30C72D02914C5FB90D1D448159CAB6'
 // });
 
-			gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
-            gmxAPI._leaflet.utils.chkZoomCurrent(5);
-            LMap
+			//gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
+            //gmxAPI._leaflet.utils.chkZoomCurrent(5);
+            /*LMap
                 .on('viewreset', function(e) {
                     this.invalidateSize();
                 }, LMap)
@@ -3456,7 +3460,7 @@ console.log('setClusters', arguments);
                 }, LMap);
 
 			// Обработчик события - mapInit
-			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
+			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});*/
 
 
 			initFunc(mapDivID, 'leaflet');
@@ -3603,6 +3607,7 @@ console.log('setClusters', arguments);
         
 		if(!flag) gmxAPI._leaflet['utils'].chkIdle(true, 'onRenderingEnd: ' + id);					// Проверка отрисовки карты
 	};
+    gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
 })();
 
 if (gmxAPI.whenLoadedArray) {

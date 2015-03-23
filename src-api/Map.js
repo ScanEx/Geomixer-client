@@ -72,9 +72,10 @@
         {
             if ((minX == maxX) && (minY == maxY))
                 return 17;
+            var size = gmxAPI._leaflet.LMap.getSize();
             return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
-                Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/gmxAPI.flashDiv.clientWidth,
-                Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/gmxAPI.flashDiv.clientHeight
+                Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/size.x,
+                Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/size.y
             ))/Math.log(2)));
         }
 
