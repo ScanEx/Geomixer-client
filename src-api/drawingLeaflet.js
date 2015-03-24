@@ -271,7 +271,7 @@
                     opt.lineStyle = lineStyle;
                 }
                 //opt.pointStyle = {size: 10};
-                obj._object.setOptions(opt);
+                if ('setOptions' in obj._object) obj._object.setOptions(opt);
             }
         }
         res.getStyle = function() {
