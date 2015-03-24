@@ -110,16 +110,20 @@ window.collectCustomParams = function()
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 var gridManager = {
     state: false,
+    gridControl: null,
     setState: function(newState) {
         if (this.state == newState) {
             return;
         }
         
+        //lazy instantantion
+        this.gridControl = this.gridControl || new L.GmxGrid();
+        nsGmx.leafletMap[newState ? 'addLayer' : 'removeLayer'](this.gridControl);
+        
         this.state = newState;
         nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(newState);
         _menuUp.checkItem('mapGrid', newState);
         _mapHelper.gridView = newState; //можно удалить?
-        globalFlashMap.grid.setVisible(newState);
     }
 }
 
@@ -131,7 +135,7 @@ var createMenuNew = function()
         var sel = function() {
             nsGmx.pluginsManager.setUsePlugin(pluginName, true);
             nsGmx.pluginsManager.done(function() {
-                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params, globalFlashMap);
+                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params);
                 _mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
             })
         }
@@ -217,8 +221,8 @@ var createMenuNew = function()
         {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
 		[
 			{id: 'mapGrid', title:_gtxt('Координатная сетка'), 
-                onsel: gridManager.setState.bind(gridManager, true), //function(){globalFlashMap.grid.setVisible(true); _mapHelper.gridView = true;}, 
-                onunsel: gridManager.setState.bind(gridManager, false), //function(){globalFlashMap.grid.setVisible(false); _mapHelper.gridView = false;},
+                onsel: gridManager.setState.bind(gridManager, true),
+                onunsel: gridManager.setState.bind(gridManager, false),
                 checked: _mapHelper.gridView
             },
 			{id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
@@ -626,8 +630,13 @@ nsGmx.widgets.commonCalendar = {
             
             _mapHelper.customParamsManager.addProvider({
                 name: 'commonCalendar',
-                loadState: function(state) { _this._calendar.loadState(state); $(_this._calendar).change(); },
-                saveState: function() { return _this._calendar.saveState(); }
+                loadState: function(state) {
+                    _this._calendar.loadState(state);
+                    $(_this._calendar).change();
+                },
+                saveState: function() {
+                    return _this._calendar.saveState();
+                }
             });
             
             $(this._calendar).change(this.updateTemporalLayers.bind(this, null));
@@ -671,7 +680,7 @@ nsGmx.widgets.commonCalendar = {
     },
     unbindLayer: function(layerName)
     {
-        this._unbindedTemporalLayers[layerName] = globalFlashMap.layers[layerName];
+        this._unbindedTemporalLayers[layerName] = nsGmx.gmxMap.layersByID[layerName];
     },
     _updateOneLayer: function(layer, dateBegin, dateEnd)
     {
@@ -688,15 +697,14 @@ nsGmx.widgets.commonCalendar = {
     {
         if (!this._calendar) {return;}
         
-        layers = layers || globalFlashMap.layers;
+        layers = layers || nsGmx.layers;
         var dateBegin = this._calendar.getDateBegin(),
             dateEnd = this._calendar.getDateEnd();
         
         if (dateBegin.valueOf() == dateEnd.valueOf())
             dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
         
-        for (var i = 0; i < layers.length; i++)
-        {
+        for (var i = 0; i < layers.length; i++) {
             var name = layers[i].properties.name;
             if (!(name in this._unbindedTemporalLayers))
                 this._updateOneLayer(layers[i], dateBegin, dateEnd);
@@ -760,7 +768,7 @@ window.resizeAll = function()
 	$$("flash").style.width = getWindowWidth() - left - right + 'px';
 	$$("flash").style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
     
-    window.globalFlashMap && window.globalFlashMap.checkMapSize();
+    nsGmx.leafletMap && nsGmx.leafletMap.invalidateSize();
 	
 	if (layersShown)
 	{
