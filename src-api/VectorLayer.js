@@ -894,7 +894,8 @@
                 ) return null;
             var prop = obj.properties;
             if(node.tileRasterFunc) {
-                if(prop.GMX_RasterCatalogID) return node.tileRasterFunc(gmxTilePoint.x, gmxTilePoint.y, zoom, obj);
+                if(prop.GMX_RasterCatalogID) return true;
+                //if(prop.GMX_RasterCatalogID) return node.tileRasterFunc(gmxTilePoint.x, gmxTilePoint.y, zoom, obj);
                 return (node.quicklook ? utils.chkPropsInString(node.quicklook, prop, 3) : null);
             }
             return (node.quicklook && itemRasterView ? utils.chkPropsInString(node.quicklook, prop, 3) : null);
