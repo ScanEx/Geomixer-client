@@ -773,6 +773,7 @@
                     if(type === 'Point' || type === 'Polygon' || type === 'MultiPolygon' || type === 'Polyline' || type === 'MultiPolyline') {
                         if(type === 'Point') {
                             if (!geom._cache) {
+                                if (!geom.currentFilter) continue;
                                 geom.propHiden.curStyle = node.prpStyle(geom, (geom.currentFilter.regularStyleIsAttr ? utils.evalStyle(geom.currentFilter.regularStyle, geom.properties) : geom.currentFilter.regularStyle));
                             }
                             if (!geom._cache.tiles[drawTileID]) continue;
