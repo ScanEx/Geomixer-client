@@ -373,10 +373,15 @@
         // Добавление прослушивателей событий
         mapObj.addListener('onChangeVisible', function(flag) {
             if(flag) {
-                mapObj.setDateInterval(
-                    mapObj.dt1 || me.temporalData.currentData.dt1
-                    ,mapObj.dt2 || me.temporalData.currentData.dt2
-                );
+				mapObj._temporalTiles.ut1Prev = null;
+				mapObj._temporalTiles.ut2Prev = null;
+            
+                setTimeout(function() {
+                    mapObj.setDateInterval(
+                        mapObj.dt1 || me.temporalData.currentData.dt1
+                        ,mapObj.dt2 || me.temporalData.currentData.dt2
+                    );
+                }, 0);
                 delete mapObj.dt1;
                 delete mapObj.dt2;
             }
