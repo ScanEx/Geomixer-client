@@ -10,9 +10,10 @@ var sendGmxRequest = function(requestType, url, params) {
     
     var processResponse = function(response) {
         if (!response.Result || !response.Result.TaskID) {
-            if (response.Status === 'ok') {
+            if (response.Status === 'ok' && !response.ErrorInfo) {
                 def.resolve(response);
             } else {
+                parseResponse(response);
                 def.reject(response);
             }
             return;
@@ -30,6 +31,7 @@ var sendGmxRequest = function(requestType, url, params) {
                     if (response.Status !== 'ok' || res.ErrorInfo)
                     {
                         res.Status = 'error';
+                        parseResponse(res);
                         clearInterval(interval);
                         def.reject(res);
                     }
