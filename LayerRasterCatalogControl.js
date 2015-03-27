@@ -27,7 +27,7 @@
         
         quicklookText.value = layerProperties.get('Quicklook') || '';
         
-        quicklookText.onkeyup = function()
+        quicklookText.onkeyup = quicklookText.onchange = function()
         {
             setQuicklook();
             return true;
