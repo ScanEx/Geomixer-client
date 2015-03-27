@@ -373,9 +373,6 @@
         // Добавление прослушивателей событий
         mapObj.addListener('onChangeVisible', function(flag) {
             if(flag) {
-				mapObj._temporalTiles.ut1Prev = null;
-				mapObj._temporalTiles.ut2Prev = null;
-            
                 setTimeout(function() {
                     mapObj.setDateInterval(
                         mapObj.dt1 || me.temporalData.currentData.dt1
