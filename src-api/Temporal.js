@@ -236,11 +236,19 @@
 		}
 		this.getDateIntervalTiles = getDateIntervalTiles;
 
-		var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);		// начало текущих суток
-		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
-		var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
-		ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
-		temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
+        var ddt1 = mapObj.dt1;
+        if (!ddt1) {
+            ddt1 = new Date();
+            ddt1.setHours(0, 0, 0, 0);		// начало текущих суток
+            ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
+        }
+        var ddt2 = mapObj.dt2;
+        if (!ddt2) {
+            ddt2 = new Date();
+            ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
+            ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
+        }
+        temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
 
 		var me = this;
 
@@ -339,6 +347,8 @@
 			}
 		}
         mapObj.setDateInterval = function(dt1, dt2) {
+            mapObj.dt1 = dt1;
+            mapObj.dt2 = dt2;
             if(!mapObj._temporalTiles) return false;
             var tdata = mapObj._temporalTiles.temporalData;
             mapObj._temporalTiles.setDateInterval(dt1, dt2, tdata);
@@ -379,14 +389,14 @@
                         ,mapObj.dt2 || me.temporalData.currentData.dt2
                     );
                 }, 0);
-                delete mapObj.dt1;
-                delete mapObj.dt2;
             }
             //gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
         });
         mapObj.addListener('onLayer', function(obj) {
-            var currentData = obj._temporalTiles.temporalData.currentData;
-            obj.setDateInterval(currentData.dt1, currentData.dt2);
+            mapObj._temporalTiles.ut1Prev = null;
+            mapObj._temporalTiles.ut2Prev = null;
+            // var currentData = obj._temporalTiles.temporalData.currentData;
+            // obj.setDateInterval(obj.dt1 || currentData.dt1, obj.dt2 || currentData.dt2);
         });
     }
     //расширяем namespace
