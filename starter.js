@@ -1022,6 +1022,7 @@ function loadMap(state)
     //var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data) {
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
     L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap}).then(function(gmxMap) {
+        nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
         var data = gmxMap.rawTree;
         var map = gmxAPI._addNewMap('_main', gmxMap.rawTree);
