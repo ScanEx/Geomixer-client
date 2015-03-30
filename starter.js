@@ -684,30 +684,35 @@ nsGmx.widgets.commonCalendar = {
     },
     _updateOneLayer: function(layer, dateBegin, dateEnd)
     {
-        if (layer.properties.maxShownPeriod)
+        var prop = layer.properties || layer._gmx.properties;
+        if (prop.maxShownPeriod)
         {
-            var msecPeriod = layer.properties.maxShownPeriod*24*3600*1000;
+            var msecPeriod = prop.maxShownPeriod*24*3600*1000;
             var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
             layer.setDateInterval(newDateBegin, dateEnd);
         }
         else
             layer.setDateInterval(dateBegin, dateEnd);
     },
-    updateTemporalLayers: function(layers)
+    updateTemporalLayers: function(layersOld)
     {
         if (!this._calendar) {return;}
-        
-        layers = layers || nsGmx.layers;
-        var dateBegin = this._calendar.getDateBegin(),
+
+        var layers = nsGmx.gmxMap.layers,
+            dateBegin = this._calendar.getDateBegin(),
             dateEnd = this._calendar.getDateEnd();
         
-        if (dateBegin.valueOf() == dateEnd.valueOf())
+        if (dateBegin.valueOf() == dateEnd.valueOf()) {
             dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
-        
-        for (var i = 0; i < layers.length; i++) {
-            var name = layers[i].properties.name;
-            if (!(name in this._unbindedTemporalLayers))
-                this._updateOneLayer(layers[i], dateBegin, dateEnd);
+        }
+
+        for (var i = 0, len = layers.length; i < len; i++) {
+            // TODO: Only for Temporal layers
+            var layer = layers[i];
+            if (layer instanceof L.gmx.VectorLayer &&
+                !(layer._gmx.layerID in this._unbindedTemporalLayers)) {
+                    this._updateOneLayer(layer, dateBegin, dateEnd);
+            }
         }
     }
 }
