@@ -942,22 +942,23 @@ extend(window.gmxAPI,
 		return (ext1.maxX < ext2.minX || ext1.minX > ext2.maxX || ext1.maxY < ext2.minY || ext1.minY > ext2.maxY ? false : true);
 	}
 	,
-	isRectangle: function(coords)
-	{
-		return (coords && coords[0] && coords[0].length == 5
-			&& coords[0][4][0] == coords[0][0][0] && coords[0][4][1] == coords[0][0][1]
-			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
-			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
-			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
-			&& ((coords[0][3][0] == coords[0][4][0]) || (coords[0][3][1] == coords[0][4][1]))
-		);
-	}
-	,
 	getScale: function(z)
 	{
 		return Math.pow(2, -z)*156543.033928041;
 	}
 */
+	,
+	isRectangle: function(coords)
+	{
+		return (coords && coords[0] && (coords[0].length == 5 || coords[0].length == 4)
+			//&& coords[0][4][0] == coords[0][0][0] && coords[0][4][1] == coords[0][0][1]
+			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
+			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
+			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
+			&& ((coords[0][3][0] == coords[0][0][0]) || (coords[0][3][1] == coords[0][0][1]))
+			//&& ((coords[0][3][0] == coords[0][4][0]) || (coords[0][3][1] == coords[0][4][1]))
+		);
+	}
 	,
 	deg_rad: function(ang)
 	{

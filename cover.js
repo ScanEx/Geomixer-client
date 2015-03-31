@@ -2665,7 +2665,7 @@ var MapCalendar = function(params)
 		{
 			isHidden: function(obj)
 			{
-				return typeof obj.properties.firesBbox !== 'undefined';
+				return typeof obj.options.firesBbox !== 'undefined';
 			}
 		});
 	}

@@ -214,11 +214,11 @@ var DrawingObjectCollection = function(oInitMap) {
 	@param {drawingObject} drawingObject Добавляемый объект*/
 	this.Add = function(drawingObject){
         
-        var editID = drawingObject.addListener('onEdit', function() {
+        var editID = drawingObject.on('edit', function() {
             onEdit(drawingObject);
         });
         
-        var removeID = drawingObject.addListener('onRemove', function() {
+        var removeID = drawingObject.on('remove', function() {
             onRemove(drawingObject);
         });
         
@@ -284,8 +284,9 @@ var DrawingObjectCollection = function(oInitMap) {
 */
 var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, options) {
     var defaultClickFunction = function(obj) {
-        var coords = obj.geometry.coordinates;
-		if (obj.geometry.type == "POINT") {
+        var geom = obj.toGeoJSON().geometry;
+        var coords = geom.coordinates;
+		if (geom.type == "Point") {
             _map.moveTo(coords[0], coords[1], Math.max(14, _map.getZ()));
         } else {
             var bounds = getBounds(coords);
@@ -323,20 +324,21 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		},
 		icon = null;
 
+    var geom = _drawingObject.toGeoJSON().geometry;
     if (_options.editStyle)
     {
-        if (_drawingObject.geometry.type == "POINT")
+        if (geom.type == "Point")
         {
             icon = _img(null, [['attr','src', gmxAPI.getAPIHostRoot() + 'api/img/flag_min.png'], ['dir', 'className', 'colorIcon']])
         }
         else
         {
-            icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, _drawingObject.geometry.type.toLowerCase());
+            icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, geom.type.toLowerCase());
             CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
         }
     }
     else
-        icon = _span(null, [['dir', 'className', _drawingObject.geometry.type + (isRectangle(_drawingObject.geometry.coordinates) ? ' RECTANGLE' : '')]]);
+        icon = _span(null, [['dir', 'className', geom.type + (gmxAPI.isRectangle(geom.coordinates) ? ' RECTANGLE' : '')]]);
 	
 	var remove = _span();
     
@@ -354,40 +356,43 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	
 	_(oInitContainer, [_canvas])
     
-    var mouseOverListenerId = _drawingObject.addListener('onMouseOver', function()
+    var mouseOverListenerId = _drawingObject.on('mouseover', function()
     {
         $(_canvas).addClass('drawingObjectsActiveItemCanvas');
     })
     
-    var mouseOutListenerId = _drawingObject.addListener('onMouseOut', function()
+    var mouseOutListenerId = _drawingObject.on('mouseout', function()
     {
         $(_canvas).removeClass('drawingObjectsActiveItemCanvas');
     })    
 	
 	/** Обновляет информацию о геометрии */
 	this.UpdateRow = function(){
-		var type = _drawingObject.geometry.type,
-			coords = _drawingObject.geometry.coordinates,
-			text = _drawingObject.properties.text;
+        var geom = _drawingObject.toGeoJSON().geometry;
+		var type = geom.type,
+			coords = geom.coordinates,
+			text = _drawingObject.options.text;
 			
 		removeChilds(_title);
 		removeChilds(_text);
 		removeChilds(_summary);
 		
-		if (type == "POINT")
+        var summary = L.gmxUtil.getGeoJSONSummary(geom, false);
+		if (type == "Point")
 		{
 			_(_title, [_t(_gtxt('drawingObjects.pointTitle'))]);
-			_(_summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
+			_(_summary, [_t("(" + summary + ")")]);
+			//_(_summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
 		}
-		else if (type == "LINESTRING")
+		else if (type == "LineString")
 		{
 			_(_title, [_t(_gtxt('drawingObjects.lineTitle'))]);
-			_(_summary, [_t("(" + prettifyDistance(geoLength(coords)) + ")")]);
+			_(_summary, [_t("(" + summary + ")")]);
 		}
-		else if (type == "POLYGON")
+		else if (type == "Polygon")
 		{
-			_(_title, [_t(isRectangle(coords) ? _gtxt('drawingObjects.rectangleTitle') : _gtxt('drawingObjects.polygonTitle'))]);
-			_(_summary, [_t("(" + prettifyArea(geoArea(coords)) + ")")]);
+			_(_title, [_t(gmxAPI.isRectangle(coords) ? _gtxt('drawingObjects.rectangleTitle') : _gtxt('drawingObjects.polygonTitle'))]);
+			_(_summary, [_t("(" + summary + ")")]);
 		}
 		
 		_(_text, [_t(text ? text.replace(/<[^<>]*>/g, " ") : "")])
@@ -406,10 +411,10 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             
         if (_drawingObject === null) return;
             
-        _drawingObject.removeListener('onEdit', editListenerID);
-        _drawingObject.removeListener('onRemove', removeListenerID);
-        _drawingObject.removeListener('onMouseOver', mouseOverListenerId);
-        _drawingObject.removeListener('onMouseOut', mouseOutListenerId);
+        _drawingObject.off('edit', editListenerID);
+        _drawingObject.off('remove', removeListenerID);
+        _drawingObject.off('mouseover', mouseOverListenerId);
+        _drawingObject.off('mouseout', mouseOutListenerId);
         
         _drawingObject = null;
 	}
@@ -425,8 +430,8 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         return _drawingObject;
     }
     
-    var editListenerID = _drawingObject.addListener('onEdit', this.UpdateRow);
-    var removeListenerID = _drawingObject.addListener('onRemove', this.RemoveRow);
+    var editListenerID = _drawingObject.on('edit', this.UpdateRow);
+    var removeListenerID = _drawingObject.on('remove', this.RemoveRow);
     
 	this.UpdateRow();
 }
@@ -579,10 +584,12 @@ var DrawingObjectGeomixer = function() {
 		}
 		bVisible = true;
 	}
-	
-	var fnAddToCollection = function(drawingObject){
-		if (!nsGmx.DrawingObjectCustomControllers || !nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) {
-            oCollection.Add(drawingObject);
+
+	var fnAddToCollection = function(ev) {
+        var feature = ev.object;
+		if (!nsGmx.DrawingObjectCustomControllers || !nsGmx.DrawingObjectCustomControllers.isHidden(feature)) {
+            oCollection.Add(feature);
+            var tt = 1;
         }
 	}
 	
@@ -591,9 +598,10 @@ var DrawingObjectGeomixer = function() {
             isNonPolygon = false;
             
 		for (var i=0; i< oCollection.Count(); i++){
-            var geom = oCollection.Item(i).geometry;
-            isAnyRectangle = isAnyRectangle || isRectangle(geom.coordinates);
-            isNonPolygon = isNonPolygon || geom.type !== 'POLYGON';
+            var feature = oCollection.Item(i);
+            var geom = feature.toGeoJSON().geometry;
+            isAnyRectangle = isAnyRectangle || gmxAPI.isRectangle(geom.coordinates);
+            isNonPolygon = isNonPolygon || geom.type !== 'Polygon';
 		}
         
         $(downloadContainer).toggle(oCollection.Count() > 0);
@@ -685,8 +693,8 @@ var DrawingObjectGeomixer = function() {
 			fnAddToCollection(ret);
 		});
 		
-		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
-		
+        var LMap = gmxAPI._leaflet.LMap;
+        LMap.gmxDrawing.on('add', fnAddToCollection);
         
         $(oCollection).bind('onRemove onAdd', checkDownloadVisibility);
         
@@ -712,25 +720,31 @@ var DrawingObjectGeomixer = function() {
 		
 		for (var i=0; i<oCollection.Count(); i++){
 			var ret = oCollection.Item(i);
-			var type = ret.geometry.type;
-			
+            var geom = ret.toGeoJSON().geometry;
+			var type = geom.type;
+
 			if (!objectsByType[type])
 				objectsByType[type] = [];
-			if (ret.geometry.type == "POINT" && ((ret.properties.text == "") || !ret.properties.text))
+			if (type == "Point" && ((ret.options.text == "") || !ret.options.text))
 			{
-				ret.properties.text = "marker " + markerIdx;
+				ret.options.text = "marker " + markerIdx;
 				markerIdx++;
 			}
 			
-			objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
+			objectsByType[type].push({ geometry: {
+                    type: type.toUpperCase(),
+                    coordinates: geom.coordinates
+                },
+                properties: ret.options
+            });
 		}
 		        
         sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
             name:     fileName,
             format:   format,
-            points:   objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '',
-            lines:    objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '',
-            polygons: objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : ''
+            points:   objectsByType["Point"] ? JSON.stringify(objectsByType["Point"]) : '',
+            lines:    objectsByType["LineString"] ? JSON.stringify(objectsByType["LineString"]) : '',
+            polygons: objectsByType["Polygon"] ? JSON.stringify(objectsByType["Polygon"]) : ''
         })
 	}
 	
