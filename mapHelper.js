@@ -1325,21 +1325,25 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
  *    * Если указан id, то модифицируем
  *    * Для удаления объекта нужно явно прописать параметр
 */
-mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
+mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 {
     var def = $.Deferred();
     
     $.each(objs, function(i, obj)
     {
         obj.action = obj.action || (obj.id ? 'update' : 'insert');
-    })
-    
+    });
+    var params = {
+        WrapStyle: 'window', 
+        LayerName: layerName, 
+        objects: JSON.stringify(objs)
+    };
+    if (crs) {
+        params.geometry_cs = crs;
+    }
     sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
-        {
-            WrapStyle: 'window', 
-            LayerName: layerName, 
-            objects: JSON.stringify(objs)
-        },
+        params
+        ,
         function(addResponse)
         {
             if (!parseResponse(addResponse))

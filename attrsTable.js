@@ -558,9 +558,15 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 {
                     if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
-                        var geom = from_merc_geometry(row[i]);
-                        var bounds = getBounds(geom.coordinates);
-                        globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                        //var geom = from_merc_geometry(row[i]);
+                        //var bounds = getBounds(geom.coordinates);
+                        //globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                        var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
+                        var bounds = L.gmxUtil.bounds(geom.coordinates[0]);
+                        nsGmx.leafletMap.fitBounds([
+                            [bounds.min.y, bounds.min.x],
+                            [bounds.max.y, bounds.max.x]
+                        ]);
                     }
                 }
             })

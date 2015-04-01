@@ -194,12 +194,15 @@ var EditObjectControl = function(layerName, objectId, params)
     
     EditObjectControlsManager.add(layerName, objectId, this);
     
-    var layer = globalFlashMap.layers[layerName];
+    var LMap = nsGmx.leafletMap,
+        layersByID = nsGmx.gmxMap.layersByID;
+    var layer = layersByID[layerName];
+    //var layer = globalFlashMap.layers[layerName];
     var geometryInfoContainer = _div(null, [['css','color','#215570'], ['css','fontSize','12px']]);
     
     var originalGeometry = null;
     var drawingBorderDialog = null;
-    var identityField = layer.properties.identityField;
+    var identityField = layer._gmx.properties.identityField;
     
     var geometryInfoRow = null;
     var geometryMapObject = null;
@@ -225,10 +228,12 @@ var EditObjectControl = function(layerName, objectId, params)
     
     //geom может быть либо классом gmxAPI.DrawingObject, либо просто описанием геометрии
     var bindGeometry = function(geom) {
-        if (!geom) {
-            return;
+        if (geom) {
+            var geojson = new L.GeoJSON(geom),
+                obj = LMap.gmxDrawing.add(geojson);
+            bindDrawingObject(obj);
         }
-        
+/*        
         //проверка на gmxAPI.DrawingObject
         if (geom.getGeometry) {
             bindDrawingObject(geom);
@@ -236,6 +241,10 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         
         if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON") {
+            //var geoJson = L.geoJson(geom);
+            //geometryToGeoJSON
+            //var obj = LMap.gmxDrawing.add(geojson.type);
+
             bindDrawingObject(globalFlashMap.drawing.addObject(geom, null, {skipFrame: true}));
         } else {            
             geometryInfoRow && geometryInfoRow.RemoveRow();
@@ -252,6 +261,7 @@ var EditObjectControl = function(layerName, objectId, params)
             geometryMapObject = globalFlashMap.addObject(geom);
             geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}, marker: {size: 3}});
         }
+*/
     }
 
     var canvas = null;
@@ -334,17 +344,20 @@ var EditObjectControl = function(layerName, objectId, params)
                 var curGeomString = JSON.stringify(selectedGeom);
                 var origGeomString = JSON.stringify(originalGeometry);
                 
-                if (origGeomString !== curGeomString)
-                    obj.geometry = gmxAPI.merc_geometry(selectedGeom);
+                if (origGeomString !== curGeomString) {
+                    obj.geometry = selectedGeom;
+                }
+                //obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             else
             {
-                obj.geometry = gmxAPI.merc_geometry(selectedGeom);
+                obj.geometry = selectedGeom;
+                //obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             
             isSaving = true;
             
-            _mapHelper.modifyObjectLayer(layerName, [obj]).done(function()
+            _mapHelper.modifyObjectLayer(layerName, [obj], 'EPSG:4326').done(function()
             {
                 $(_this).trigger('modify');
                 removeDialog(dialogDiv);
@@ -477,8 +490,9 @@ var EditObjectControl = function(layerName, objectId, params)
             
             resizeFunc();
         }
+var prop = layer._gmx.properties;
         
-        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
+        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", prop.title) : _gtxt("Редактировать объект слоя [value0]", prop.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
         
         if (!isNew)
         {
@@ -503,7 +517,9 @@ var EditObjectControl = function(layerName, objectId, params)
                 {
                     if (columnNames[i] === 'geomixergeojson')
                     {
-                        var geom = from_merc_geometry(geometryRow[i]);
+                        //var geom = from_merc_geometry(geometryRow[i]);
+                        var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
+                        
                         bindGeometry(geom);
                         if (geom) {
                             originalGeometry = $.extend(true, {}, geom);
@@ -533,9 +549,9 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         else
         {
-            for (var i = 0; i < layer.properties.attributes.length; ++i)
+            for (var i = 0; i < prop.attributes.length; ++i)
             {
-                fieldsCollection.append({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]})
+                fieldsCollection.append({type: prop.attrTypes[i], name: prop.attributes[i]})
             }
             
             _params.fields.forEach(fieldsCollection.append);
@@ -601,8 +617,10 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     this.getGeometry = function() {
-        var geom = null;
-            
+        var geom = geometryInfoRow.getDrawingObject();
+        var geojson = geom.toGeoJSON();
+        return geojson.geometry;
+/*            
         if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
             geom = geometryInfoRow.getDrawingObject().getGeometry();
         } else if (geometryMapObject) {
@@ -610,6 +628,7 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         
         return geom;
+*/
     }
     
     this.getLayer = function() { return layer; };
