@@ -5039,9 +5039,11 @@ var tt = 1;
             ],
             arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
-        cssFiles.push(
-            apiHost + 'leaflet/plugins/gmxControls/dist/css/gmxControls.css?' + gmxAPI.buildGUID
-        );
+        cssFiles = cssFiles.concat([
+            apiHost + 'leaflet/plugins/gmxControls/dist/css/gmxControls.css?' + gmxAPI.buildGUID,
+            apiHost + 'leaflet/plugins/gmxDrawing/css/L.gmxDrawing.css?' + gmxAPI.buildGUID,
+            apiHost + 'leaflet/plugins/gmxControls/src/css/external.css?' + gmxAPI.buildGUID
+        ]);
         arr.push({
             charset: 'utf8',
             src: apiHost + 'leaflet/plugins/gmxControls/dist/gmxControls.js?' + gmxAPI.buildGUID
