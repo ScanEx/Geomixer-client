@@ -11,7 +11,7 @@
     gmxCore.addModule('WeatherPlugin', {
         pluginName: 'Weather',
         afterViewer: function(params, map) {
-            gmxAPI.loadJS({src: 'http://originalsin.github.io/Leaflet.WindWeatherPlugin/src/L.WindWeatherLayer.js', charset: 'utf8'},
+            gmxAPI.loadJS({src: 'http://scanex.github.io/Leaflet.WindWeatherPlugin/src/L.WindWeatherLayer.js', charset: 'utf8'},
                 function(item) {
                     var LMap = gmxAPI._leaflet.LMap,
                         controlsManager = LMap.gmxControlsManager,
