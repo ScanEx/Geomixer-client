@@ -1242,7 +1242,8 @@ layersTree.prototype.addLayersToMap = function(elem)
         var layer = elem.content,
             name = layer.properties.name;
             
-            layer.geometry = from_merc_geometry(layer.geometry);
+            //layer.geometry = from_merc_geometry(layer.geometry);
+            layer.geometry = L.gmxUtil.geometryToGeoJSON(layer.geometry, true);
 
         if (!globalFlashMap.layers[name])
         {
@@ -1848,7 +1849,8 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 
                 newLayerProperties.styles = layerDiv.gmxProperties.content.properties.styles;
                 
-                var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
+                //var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
+                var convertedCoords = L.gmxUtil.geometryToGeoJSON(taskInfo.Result.geometry, true);
                 
                 _this.removeLayer(newLayerProperties.name);
                 

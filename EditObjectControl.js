@@ -230,8 +230,10 @@ var EditObjectControl = function(layerName, objectId, params)
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
-                obj = LMap.gmxDrawing.add(geojson);
-            bindDrawingObject(obj);
+                arr = LMap.gmxDrawing.addGeoJSON(geojson);
+            for (var i = 0, len = arr.length; i < len; i++) {
+                bindDrawingObject(arr[i]);
+            }
         }
 /*        
         //проверка на gmxAPI.DrawingObject
