@@ -1,0 +1,31 @@
+﻿.gfw-slider {
+    width: 600px;
+    background-color: rgba(154, 154, 154, 0.7);
+    padding: 6px 0px;
+}
+
+.gfw-slider-container {
+    margin: 6px 20px;
+    height: 4px;
+    background-color: #cccccc;
+}
+
+.gfw-slider-labels {
+    display: table;
+    width: 100%;
+}
+
+.gfw-label-item {
+    display: table-cell;
+    text-align: center;
+    color: #dddddd;
+}
+
+.gfw-slider-container .ui-widget-header {
+    background-color: #4AC74A;
+}
+
+.gfw-slider-container.ui-slider-horizontal .ui-slider-handle {
+    top: -5px;
+    border-radius: 4px;
+}
