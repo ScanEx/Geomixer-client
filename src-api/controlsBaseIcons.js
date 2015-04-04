@@ -274,6 +274,7 @@
         L.Control.gmxLayers = L.Control.Layers.extend({
             options: {
                 current: ''
+                ,autoZIndex: false
                 ,collapsed: false
                 ,isVisible: true
                 //,hideBaseLayers: true
