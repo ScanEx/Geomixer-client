@@ -1,10 +1,10 @@
 ﻿(function() {
 
     _translationsHash.addtext("rus", {
-        "WebglFilters.iconTitle" : "Включить/Выключить фильтры растров активного слоя"
+        "WebglFilters.title" : "Включить/Выключить фильтры растров активного слоя"
     });
     _translationsHash.addtext("eng", {
-        "WebglFilters.iconTitle" : "Show/Hide raster filters"
+        "WebglFilters.title" : "Show/Hide raster filters"
     });
 
     var publicInterface = {
@@ -38,7 +38,7 @@
                         className: 'leaflet-gmx-icon-sprite',
                         regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
                         activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
-                        title: _gtxt('VectorTiles.iconTitle')
+                        title: _gtxt('WebglFilters.title')
                     }).on('statechange', function(ev) {
                         var control = ev.target,
                             testLayerID = null;
