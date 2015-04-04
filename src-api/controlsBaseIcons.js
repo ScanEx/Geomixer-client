@@ -388,8 +388,15 @@
                 if(overlay) {
                     if(isActive) {
                         if(item.onClick) item.onClick();
+                        else {
+                            this._map.addLayer(item);
+                        }
                     } else {
                         if(item.onCancel) item.onCancel();
+                        else {
+                            item.isActive = false;
+                            this._map.removeLayer(item);
+                        }
                     }
                     item.isActive = isActive;
                 }
@@ -504,6 +511,11 @@
                 return null;
             }
             ,
+            addOverlay: function (layer, name) {
+                layer.overlay = true;
+                L.Control.Layers.prototype.addOverlay.call(this, layer, name);
+                return this;
+            },
             addOverlayTool: function (id, attr) {       // совместимость c addTool
                 var my = this;
                 var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
