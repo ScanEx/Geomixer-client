@@ -91,12 +91,12 @@
             if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
         }
         mapNodes[id] = pt;
-        if(pt.geometry.type) {
+        // if(pt.geometry.type) {
             //if (!pt.propHiden.isLayer) gmxAPI._leaflet.drawManager.add(id); // добавим в менеджер отрисовки
-            if(pt.leaflet) {
-                setHandlerObject(id);							// добавить Handler для mapObject
-            }
-        }
+            // if(pt.leaflet) {
+                // setHandlerObject(id);							// добавить Handler для mapObject
+            // }
+        // }
         //pt.zIndex = ('zIndex' in pt.propHiden ? pt.propHiden.zIndex : utils.getLastIndex(pNode));
         return id;
     }
@@ -111,11 +111,12 @@
                 node.setVisible(ph.attr);
                 return;
             }
+/*
             //node.isVisible = ph.attr;
             var pNode = mapNodes[node.parentId] || null,
                 pGroup = (pNode ? pNode.group : LMap);
             if(node.type === 'filter') {							// нода filter
-                if(pNode) pNode.refreshFilter(id);
+                // if(pNode) pNode.refreshFilter(id);
                 return;
             } else {							// нода имеет вид в leaflet
                 if(ph.attr) {
@@ -172,9 +173,10 @@
                     }
                 }
             }
-            for (var i = 0, len = node.children.length; i < len; i++) {
-                setVisibleRecursive(mapNodes[node.children[i]], ph.attr);
-            }
+            // for (var i = 0, len = node.children.length; i < len; i++) {
+                // setVisibleRecursive(mapNodes[node.children[i]], ph.attr);
+            // }
+*/
         }
     }
 
@@ -247,7 +249,9 @@
             node.notView = ph.notView || false;
             if(obj.isVisible === node.isVisible && node.isVisible === ph.attr) return true;
             node.isVisible = ph.attr;
-            return utils.setVisibleNode(ph);
+            if(node.type !== 'map' && node.setVisible) {
+                node.setVisible(ph.attr);
+            }
         }
         ,
 		'getPatternIcon':	function(hash)	{				// получить иконку pattern

@@ -10,38 +10,39 @@
         if (!parentObj.layersParent) {
             parentObj.layersParent = parentObj.addObject(null, null, {'layersParent': true});
         }
-        if (!parentObj.overlays)
-        {
-            // parentObj.overlays = parentObj;
-            parentObj.overlays = parentObj.addObject(null, null, {'overlaysParent': true});
-            parentObj.addObject = function(geom, props, propHiden) {
-                var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props, propHiden);
-                parentObj.overlays.bringToTop();
-                return ret;
-            }
-        }
+        // if (!parentObj.overlays)
+        // {
+            // parentObj.overlays = parentObj.addObject(null, null, {'overlaysParent': true});
+            // parentObj.addObject = function(geom, props, propHiden) {
+                // var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props, propHiden);
+                // parentObj.overlays.bringToTop();
+                // return ret;
+            // }
+        // }
         
         if (isVisible === undefined)
             isVisible = true;
         
-        var zIndex = parentObj.layers.length;
-        if(!layer) layer = {};
-        if(!layer.properties) layer.properties = {};
-        if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
+        // var zIndex = parentObj.layers.length;
+        var prop = layer.properties;
 
-        var isRaster = (layer.properties.type == "Raster");
-        var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
-        if(!layer.properties.name) layer.properties.name = layerName;
+        //if(!layer) layer = {};
+        //if (!layer.properties) layer.properties = {};
+        if (!prop.identityField) prop.identityField = "ogc_fid";
+
+        var isRaster = (prop.type == "Raster");
+        var layerName = prop.name || prop.image;
+        if(!prop.name) prop.name = layerName;
 
         var pObj = parentObj.layersParent
-        var obj = pObj.addObject(null, layer.properties);
+        var obj = pObj.addObject(null, prop);
         // obj.tilesParent = layer.properties.IsRasterCatalog ? obj : null; 
         obj.geometry = layer.geometry;
-        obj.properties = layer.properties;
+        obj.properties = prop;
         if(parentObj.layers[layerName]) {
             for(var i = parentObj.layers.length - 1; i >= 0; i--) { // Удаление слоя из массива
-                var prop = parentObj.layers[i].properties;
-                if(prop.name === layerName) {
+                //var prop = parentObj.layers[i].properties;
+                if(parentObj.layers[i].properties.name === layerName) {
                     parentObj.layers.splice(i, 1);
                     break;
                 }
@@ -49,13 +50,13 @@
         }
         parentObj.layers.push(obj);
         parentObj.layers[layerName] = obj;
-        if (!layer.properties.LayerVersion) obj.notServer = true;
-        if (!layer.properties.title) layer.properties.title = 'layer from client ' + layerName;
-        if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
-            parentObj.layers[layer.properties.title] = obj;
+        if (!prop.LayerVersion) obj.notServer = true;
+        if (!prop.title) prop.title = 'layer from client ' + layerName;
+        if (!prop.title.match(/^\s*[0-9]+\s*$/))
+            parentObj.layers[prop.title] = obj;
 
         var filters = [],
-            styles = layer.properties.styles || [];
+            styles = prop.styles || [];
         for (var i = 0, len = styles.length; i < len; i++) {
             var filter = obj.addObject(null, {}); // MapObject для фильтра
             gmxAPI._leaflet.mapNodes[filter.objectId].type = 'filter';
@@ -68,32 +69,21 @@
         var bounds = false;    // в меркаторе
         var boundsLatLgn = false;
         var initBounds = function() { // geom в меркаторе
-            var geom = obj.geometry;
-            bounds = gmxAPI.getBounds(geom.coordinates);
+            var geom = obj.geometry,
+                coords = geom ? geom.coordinates : [[[-20037508, -20037508], [20037508, 20037508]]];
+            bounds = gmxAPI.getBounds(coords);
+            var sw = L.Projection.Mercator.unproject({x: bounds.minX, y: bounds.minY});
+            var ne = L.Projection.Mercator.unproject({x: bounds.maxX, y: bounds.maxY});
             obj.bounds = boundsLatLgn = {
-                minX: gmxAPI.from_merc_x(bounds.minX),
-                minY: gmxAPI.from_merc_y(bounds.minY),
-                maxX: gmxAPI.from_merc_x(bounds.maxX),
-                maxY: gmxAPI.from_merc_y(bounds.maxY)
+                minX: sw.lng,
+                minY: sw.lat,
+                maxX: ne.lng,
+                maxY: ne.lat
             };
-            if (geom.type === 'MULTIPOLYGON') {
-                obj.boundsArr = [];
-                obj.boundsLatLgnArr = [];
-                for (var i = 0, len = geom.coordinates.length; i < len; i++) {
-                    var ext = gmxAPI.getBounds(geom.coordinates[i]);
-                    obj.boundsArr.push(ext);
-                    obj.boundsLatLgnArr.push({
-                        minX: gmxAPI.from_merc_x(ext.minX),
-                        minY: gmxAPI.from_merc_y(ext.minY),
-                        maxX: gmxAPI.from_merc_x(ext.maxX),
-                        maxY: gmxAPI.from_merc_y(ext.maxY)
-                    });
-                }
-            }
         };
         obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
             if (!boundsLatLgn) initBounds(obj.mercGeometry);
-            return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
+            return boundsLatLgn;
         }
 
         gmxAPI._cmdProxy(isRaster ? 'setBackgroundTiles' : 'setVectorTiles', {'obj': obj });

@@ -3,6 +3,8 @@
 {
     var addNewMap = function(rootObjectId, layers, callback)
     {
+        var LMap = nsGmx.leafletMap;
+    
         var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject основной карты
         window.globalFlashMap = map;
         gmxAPI.map = map;
@@ -13,9 +15,9 @@
         if(!layers.children) layers.children = [];
         map.isVisible = true;
         map.layers = [];
-        map.rasters = map;
-        map.tiledQuicklooks = map;
-        map.vectors = map;
+        // map.rasters = map;
+        // map.tiledQuicklooks = map;
+        // map.vectors = map;
         var getDefaultPos = function(prop) {
             return {
                 x: (typeof(prop.DefaultLong) === 'number' ? prop.DefaultLong :(map.needMove ? map.needMove.x : 35))
@@ -23,7 +25,7 @@
                 ,z: (typeof(prop.DefaultZoom) === 'number' ? prop.DefaultZoom :(map.needMove ? map.needMove.z : 4))
             };
         }
-        map.needMove = getDefaultPos(layers.properties);
+        map.needMove = getDefaultPos(map.properties);
         map.needSetMode = null;
 
         map.moveTo = function(x, y, z) {
@@ -41,14 +43,14 @@
         {
             if ((minX == maxX) && (minY == maxY))
                 return 17;
-            var size = gmxAPI._leaflet.LMap.getSize();
+            var size = LMap.getSize();
             return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
                 Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/size.x,
                 Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/size.y
             ))/Math.log(2)));
         }
 
-        map.baseLayersManager = gmxAPI._leaflet.LMap.gmxBaseLayersManager;
+        map.baseLayersManager = LMap.gmxBaseLayersManager;
         gmxAPI.extend(map, {
             setMode: function(name) {
                 map.baseLayersManager.setCurrentID(name);
@@ -83,7 +85,6 @@
             ,'forEachObject': function() { return false; }
             ,
             addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel) {
-                var LMap = gmxAPI._leaflet.LMap;
                 LMap.addControl(new L.Control.gmxIcon({
                     id: tn,
                     title: hint,
@@ -114,23 +115,24 @@
             }
         };
 
-        map.addLayers = function(layers, notMoveFlag, notVisible)
-        {
+        map.addLayers = function(layers, notMoveFlag, notVisible) {
 //return;
             forEachLayer(layers, function(layer, isVisible) {
-                if(!gmxAPI.map.layers[layer.properties.name]) {
-                    var visible = (layer.properties.visible ? true : isVisible);
-                    map.addLayer(layer, visible, true);
+                var prop = layer.properties,
+                    layerID = prop.name;
+                if(!gmxAPI.map.layers[layerID]) {
+                    map.addLayer(layer, prop.visible ? true : isVisible, true);
                 }
             }, notVisible);
-            if (typeof(layers.properties.DefaultLat) === 'number'
-                || typeof(layers.properties.DefaultLong) === 'number'
-                || typeof(layers.properties.DefaultZoom) === 'number') {
-                map.needMove = getDefaultPos(layers.properties);
+
+            if (typeof(map.properties.DefaultLat) === 'number'
+                || typeof(map.properties.DefaultLong) === 'number'
+                || typeof(map.properties.DefaultZoom) === 'number') {
+                map.needMove = getDefaultPos(map.properties);
             }
         }
 
-        map.defaultHostName = (layers && layers.properties ? layers.properties.hostName : '');
+        map.defaultHostName = map.properties.hostName || '';
         map.addLayers(layers, false, false);
         
         map.ToolsContainer = gmxAPI._ToolsContainer;

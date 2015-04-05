@@ -839,7 +839,8 @@ if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация han
     gmxAPI._tools = {
         standart: {    // интерфейс для обратной совместимости
             addTool: function (tn, attr) {
-                var layersControl = gmxAPI._leaflet.LMap.gmxControlsManager.get('layers');
+                var LMap = nsGmx.leafletMap;
+                var layersControl = LMap.gmxControlsManager.get('layers');
                 //var layersControl = window.v2.controls.gmxLayers;
                 //console.log('tool addTool', tn, attr); // wheat
                 if(!attr) attr = {};
@@ -856,7 +857,7 @@ if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация han
                         if (control.options.isActive) attr.onClick(gmxAPI._tools[tn]);
                         else attr.onCancel(gmxAPI._tools[tn]);
                     };
-                    ret = new L.Control.gmxIcon(attr).addTo(gmxAPI._leaflet.LMap);
+                    ret = new L.Control.gmxIcon(attr).addTo(LMap);
                 }
                 gmxAPI._tools[tn] = ret;
                 return ret;
@@ -874,7 +875,8 @@ if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация han
             }
             ,
             selectTool: function (id) {
-                var control = gmxAPI._tools[id] || gmxAPI._leaflet.LMap.gmxControlsManager.get(id);
+                var LMap = nsGmx.leafletMap;
+                var control = gmxAPI._tools[id] || LMap.gmxControlsManager.get(id);
                 if (control) {
                     if (id === 'POINT') {
                         //control = Controls.items.drawingPoint;
