@@ -1,5 +1,4 @@
 ﻿(function() {
-
     _translationsHash.addtext("rus", {
         "VectorTiles.iconTitle" : "Показать/Скрыть контура векторных тайлов активного слоя"
     });
@@ -55,7 +54,7 @@
                 layerName: null
             }, params);
 
-            var LMap = gmxAPI._leaflet.LMap,
+            var LMap = nsGmx.leafletMap,
                 featureGroup = L.featureGroup();
 
             featureGroup.bindPopup('temp', {maxWidth: 170});

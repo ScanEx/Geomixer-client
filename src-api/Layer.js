@@ -20,7 +20,6 @@
                 return ret;
             }
         }
-        var proxy = gmxAPI._cmdProxy;
         
         if (isVisible === undefined)
             isVisible = true;
@@ -36,7 +35,7 @@
 
         var pObj = parentObj.layersParent
         var obj = pObj.addObject(null, layer.properties);
-        obj.tilesParent = layer.properties.IsRasterCatalog ? obj : null; 
+        // obj.tilesParent = layer.properties.IsRasterCatalog ? obj : null; 
         obj.geometry = layer.geometry;
         obj.properties = layer.properties;
         if(parentObj.layers[layerName]) {
@@ -92,51 +91,11 @@
                 }
             }
         };
-        var getBoundsMerc = function() {
-            if (!bounds) initBounds(obj.mercGeometry);
-            return bounds;
-        };
-        var getBoundsLatLng = function() {
-            if (!bounds) initBounds(obj.mercGeometry);
-            return boundsLatLgn;
-        };
         obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
-            //var gmxlayer = gmxAPI.map.layersByID[layerName];
             if (!boundsLatLgn) initBounds(obj.mercGeometry);
             return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
         }
-        obj.getLayerBoundsArrayMerc = function() {      // Получение массива bounds в меркаторе
-            if (!boundsLatLgn) initBounds(obj.mercGeometry);
-            return (obj.boundsArr ? obj.boundsArr : [bounds]);
-        }
-        
-        obj.getBoundsMerc = function() {            // Получение boundsMerc в меркаторе
-            return getBoundsMerc();
-        }
 
-        gmxAPI.extend(obj, {        // определение свойств до установки видимости
-            addBalloonHook: function(func) {
-                //console.log('addBalloonHook', arguments);
-            },
-            setImageProcessingHook: function(func) {
-                return gmxAPI._cmdProxy('setImageProcessingHook', { 'obj': obj, 'attr':{'func':func} });
-            },
-
-            removeImageProcessingHook: function() {
-                return gmxAPI._cmdProxy('removeImageProcessingHook', { 'obj': obj });
-            },
-
-            setDateInterval: function(dt1, dt2) {  // Установка временного интервала
-                //console.log('setDateInterval на растровом слое');
-            },
-            getDateInterval: function() {  // Получить временной интервал
-                //console.log('getDateInterval на растровом слое');
-                return {
-                    beginDate: obj.dt1
-                    ,endDate: obj.dt2
-                };
-            }
-        });
         gmxAPI._cmdProxy(isRaster ? 'setBackgroundTiles' : 'setVectorTiles', {'obj': obj });
 
         obj.isVisible = isVisible;
