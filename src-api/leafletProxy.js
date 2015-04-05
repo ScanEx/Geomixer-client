@@ -178,6 +178,63 @@
         }
     }
 
+    // Добавить векторный слой
+    function setVectorTiles(ph) {
+        var LMap = nsGmx.leafletMap,
+            layersByID = nsGmx.gmxMap.layersByID;
+
+        var layer = ph.obj,
+            nodeId = layer.objectId,
+            prop = layer.properties,
+            layerID = prop.name,
+            node = gmxAPI._leaflet.mapNodes[nodeId];
+
+        if(!node) return;      // Нода не определена
+        node.type = 'VectorLayer';
+
+        var myLayer = node.leaflet = layersByID[layerID];
+        node.leaflet = myLayer;
+        
+        if (prop.visible && myLayer) myLayer.addTo(LMap);
+
+        gmxAPI.extend(node, {
+            setVisible: function(flag) {
+                //console.log('setVisible', arguments);
+                if (flag) {
+                    LMap.addLayer(myLayer);
+                } else {
+                    LMap.removeLayer(myLayer);
+                }
+            }
+        });
+    }
+    // Добавить растровый слой
+    function setBackgroundTiles(ph) {
+        var LMap = nsGmx.leafletMap,
+            layersByID = nsGmx.gmxMap.layersByID;
+
+        var layer = ph.obj,
+            nodeId = layer.objectId,
+            prop = layer.properties,
+            layerID = prop.name,
+            node = mapNodes[nodeId];
+        if(!node) return;      // Нода не определена
+		node.type = 'RasterLayer';
+
+        var gmxNode = gmxAPI.mapNodes[nodeId],  // Нода gmxAPI
+            myLayer = node.leaflet = layersByID[layerID];
+        node.leaflet = myLayer;
+        gmxAPI.extend(node, {
+            setVisible: function(flag) {
+//console.log('setVisible', arguments);
+                if (flag) {
+                    LMap.addLayer(myLayer);
+                    //node.setZIndex(node.zIndex + node.zIndexOffset);
+                } else LMap.removeLayer(myLayer);
+            }
+        });
+    }
+
 	// Команды в leaflet
 	var commands = {				// Тип команды
         setVisible: function(ph) {              // установить видимость mapObject
@@ -223,9 +280,9 @@
         ,
 		'addObject': addObject								// добавить mapObject
 		,
-		'setBackgroundTiles': gmxAPI._leaflet.setBackgroundTiles            // добавить растровый тайловый слой
+		'setBackgroundTiles': setBackgroundTiles
 		,
-		'setVectorTiles': gmxAPI._leaflet.setVectorTiles			// Установка векторный тайловый слой
+		'setVectorTiles': setVectorTiles
 	}
 
 	// Передача команды в leaflet
