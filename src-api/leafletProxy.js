@@ -916,7 +916,7 @@
                 s = s.sort();
                 var max = 0,
                     index = -1;
-                for (i = 1; i < len; i++) {
+                for (i = 1; i < len; i += 2) {
                     var j = i - 1,
                         d = Math.abs(s[i] - s[j]);
                     if (d > max) {
