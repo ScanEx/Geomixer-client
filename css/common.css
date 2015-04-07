@@ -787,9 +787,10 @@ tr td.invisible
 {
 	display:inline !important;
 }
+
 skype_pnh_container
 {
-	display:none !important;
+	display: none !important;
 }
 
 .attrsTableBody #attrsTableParent td
@@ -1284,12 +1285,12 @@ div.layersScroll
 
 .collabsible-icon-hidden
 {
-    background: url(http://kosmosnimki.ru/img/expand.gif);
+    background: url(img/expand.gif);
 }
 
 .collabsible-icon-shown
 {
-    background: url(http://kosmosnimki.ru/img/collapse.gif);
+    background: url(img/collapse.gif);
 }
 
 .collabsible-title
@@ -1644,7 +1645,6 @@ div.layersScroll
 .addtabs-info {
     text-align: left;
     padding-left: 12px;
-    margin-
 }
 
 .leftmenu-canvas#left_layers {

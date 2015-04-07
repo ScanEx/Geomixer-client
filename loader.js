@@ -36,11 +36,8 @@ var loadJS = function(fileList, callback)
 }
 
 nsGmx.buildGUID = buildGUID;
-//var gmxFilesList = jsToLoad;
-//var thirdpartyList = [/*#buildinclude<load_thirdparty.txt>*/];
 
 loadJS(thirdpartyList, function() {
-    //var cssToLoad = [/*#buildinclude<load_css.txt>*/];
     
     for (var f = 0; f < cssToLoad.length; f++) {
         $.getCSS(_getFileName(cssToLoad[f]));

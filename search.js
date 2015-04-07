@@ -5,7 +5,7 @@
 * @namespace Search
 * @description Содержит необходимое для поиска
 */
-(function($){
+!(function($){
 
 //TODO: переписать генерацию UI на шаблонах
 

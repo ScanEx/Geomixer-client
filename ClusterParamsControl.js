@@ -1,4 +1,4 @@
-﻿(function()
+﻿!(function()
 {
     _translationsHash.addtext("rus", {
 							"clusterControl.maxMembers" : "Макс. объектов",

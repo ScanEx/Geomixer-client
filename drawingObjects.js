@@ -2,7 +2,7 @@
 * @namespace DrawingObjects
 * @description SDK для редактирования объектов на карте
 */
-(function($){
+!(function($){
 
 nsGmx.Translations.addText('rus', {
     drawingObjects: {

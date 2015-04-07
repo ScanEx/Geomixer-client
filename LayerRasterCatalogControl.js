@@ -179,4 +179,4 @@
             updateVisibility();
         })
     }
-}(jQuery)
+}(jQuery);
