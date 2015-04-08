@@ -82,7 +82,7 @@
             };
         };
         obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
-            if (!boundsLatLgn) initBounds(obj.mercGeometry);
+            if (!boundsLatLgn) initBounds();
             return boundsLatLgn;
         }
 
