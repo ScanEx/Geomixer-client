@@ -37,7 +37,7 @@
                     opt = gmxAPI._leaflet.zoomstart || {};
                 gmxAPI.needZoom = null;
                 gmxAPI.map.needMove = null;
-                LMap.setView(pos, z, opt);
+                nsGmx.leafletMap.setView(pos, z, opt);
             }, zd);
         }
 		,

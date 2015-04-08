@@ -34,6 +34,8 @@
             if (!map) {return;}
             
             var path = gmxCore.getModulePath('Add2MapPlugin');
+            var LMap = nsGmx.leafletMap,
+                layersByID = nsGmx.gmxMap.layersByID;
             
             var parsedParams = parseParams(params);
             $.each(parsedParams, function(id, toolParams) {
@@ -43,14 +45,18 @@
                 var activeImage = toolParams.activeImage || regularImage;
                 
                 var mapListenerId = null;
-                var toolContainer = new map.ToolsContainer('add2map_' + id);
-                var tool = toolContainer.addTool('add2map_' + id, {
-                    hint: _gtxt('add2MapPlugin.iconTitle'),
+                var icon = new L.Control.gmxIcon({
+                    id: 'add2mapIcon', 
+                    togglable: true,
                     regularImageUrl: regularImage.search(/^https?:\/\//) !== -1 ? regularImage : path + regularImage,
-                    activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,
-                    onClick: function() {
-                    
-                        var activeLayer = layerName;
+                    //activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,
+                    title: _gtxt('add2MapPlugin.iconTitle')
+                }).on('statechange', function(ev) {
+                    var control = ev.target,
+                        activeLayer = null;
+                        
+                    if (control.options.isActive) {
+                        activeLayer = layerName;
                         var active = $(_queryMapLayers.treeCanvas).find(".active");
                         
                         if (!activeLayer && active[0] && active[0].parentNode.getAttribute("LayerID") &&
@@ -69,26 +75,26 @@
                             return;
                         }
                         
-                        var toolName = map.layers[activeLayer].properties.GeometryType.toUpperCase();
-                        map.drawing.selectTool(toolName);
-                        
-                        if (mapListenerId === null) {
-                            mapListenerId = map.drawing.addListener('onFinish', function(obj) {
-                                map.drawing.removeListener('onFinish', mapListenerId);
-                                mapListenerId = null;
-                                tool.setActive();
-                                
-                                var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
-                                    drawingObject: obj
-                                });
-                            })
-                        }
-                    },
-                    onCancel: function(){
-                        map.drawing.selectTool('move');
+                        var type = layersByID[activeLayer]._gmx.properties.GeometryType.toUpperCase();
+                        var geojson = L.gmxUtil.geometryToGeoJSON({
+                            type: type
+                        });
+                        var addDone = function (ev) {
+                            LMap.gmxDrawing.off('add', addDone, this);
+                            icon.setActive();
+                            var geojson = ev.object.toGeoJSON();
+                            geojson.geometry.type = geojson.geometry.type.toUpperCase();
+                            var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
+                                drawingObject: ev.object
+                            });
+                        };
+
+                        LMap.gmxDrawing.on('add', addDone, this);
+                        LMap.gmxDrawing.create(geojson.type);
                     }
-                })
-            })
+                });
+                LMap.addControl(icon);
+            });
         }
     };
     
