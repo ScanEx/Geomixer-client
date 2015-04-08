@@ -247,7 +247,7 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         '</label>';
         
     attrTitles.forEach(function(columnName) {
-        var rowUI = $(Mustache.render(rowTemplate, {
+        var rowUI = $(Handlebars.compile(rowTemplate)({
             active: _this._activeColumns[columnName],
             name: columnName
         })).appendTo(columnsList);

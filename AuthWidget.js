@@ -82,20 +82,20 @@ var nsGmx = nsGmx || {};
             '<div class = "loginMainDiv">' +
                 '<form>' +
                     '<div>' +
-                        '<span class="loginLabel">{{i Логин}}</span><br>' +
-                        '<input name="login" class = "inputStyle inputLogin" placeholder = "{{i адрес электронной почты}}"><br>' +
+                        '<span class="loginLabel">{{i "Логин"}}</span><br>' +
+                        '<input name="login" class = "inputStyle inputLogin" placeholder = "{{i "адрес электронной почты"}}"><br>' +
                     '</div>' +
                     '<div>' +
-                        '<span class="loginLabel">{{i Пароль}}</span><br>' +
-                        '<input name="password" class = "inputStyle inputPass" type = "password" placeholder = "{{i пароль}}"><br>' +
+                        '<span class="loginLabel">{{i "Пароль"}}</span><br>' +
+                        '<input name="password" class = "inputStyle inputPass" type = "password" placeholder = "{{i "пароль"}}"><br>' +
                     '</div>' +
-                    '<button class="loginButton">{{i Вход}}</button>' +
+                    '<button class="loginButton">{{i "Вход"}}</button>' +
                 '</form>' + 
             '</div>' +
             '{{#isMapsSite}}' + 
             '<div class="loginLinks">' + 
-                '<span class = "buttonLink registration">{{i Регистрация}}</span><br>' +
-                '<span class = "buttonLink passRecovery">{{i Восстановление пароля}}</span>' +
+                '<span class = "buttonLink registration">{{i "Регистрация"}}</span><br>' +
+                '<span class = "buttonLink passRecovery">{{i "Восстановление пароля"}}</span>' +
             '</div>' +
             '{{/isMapsSite}}' + 
         '</div>';
@@ -189,7 +189,7 @@ var nsGmx = nsGmx || {};
             var isMapsSite = !!window.mapsSite;
             var dialogHeight = isMapsSite ? 210 : 175;
             
-            var canvas = $(Mustache.render(loginDialogTemplate, {isMapsSite: isMapsSite})),
+            var canvas = $(Handlebars.compile(loginDialogTemplate)({isMapsSite: isMapsSite})),
                 loginInput = canvas.find('.inputLogin')[0],
                 passwordInput = canvas.find('.inputPass')[0],
                 loginButton = canvas.find('.loginButton')[0];
