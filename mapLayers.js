@@ -494,16 +494,13 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
     var zoomBounds = globalFlashMap.getZoomBounds();
     z = Math.min(zoomBounds.MaxZoom, Math.max(zoomBounds.MinZoom, z));
     
-	globalFlashMap.moveTo(
-		(bounds.minX + bounds.maxX)/2,
-		(bounds.minY + bounds.maxY)/2,
-		z
-	);
-	// globalFlashMap.moveTo(
-		// from_merc_x((merc_x(bounds.minX) + merc_x(bounds.maxX))/2),
-		// from_merc_y((merc_y(bounds.minY) + merc_y(bounds.maxY))/2),
-		// z
-	// );
+    var proj = nsGmx.leafletMap.options.crs.projection,
+        mercMin = proj.project({lat: bounds.minY, lng: bounds.minX}),
+        mercMax = proj.project({lat: bounds.maxY, lng: bounds.maxX}),
+        mercCenter = {x: (mercMin.x + mercMax.x)/2, y: (mercMin.y + mercMax.y)/2},
+        center = proj.unproject(mercCenter);
+    
+	globalFlashMap.moveTo(center.lng, center.lat, z);
 }
 
 layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)

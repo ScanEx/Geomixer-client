@@ -49,7 +49,7 @@
                     id: 'add2mapIcon', 
                     togglable: true,
                     regularImageUrl: regularImage.search(/^https?:\/\//) !== -1 ? regularImage : path + regularImage,
-                    //activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,
+                    activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,
                     title: _gtxt('add2MapPlugin.iconTitle')
                 }).on('statechange', function(ev) {
                     var control = ev.target,
@@ -80,17 +80,17 @@
                             type: type
                         });
                         var addDone = function (ev) {
-                            LMap.gmxDrawing.off('add', addDone, this);
+                            LMap.gmxDrawing.off('add', addDone);
                             icon.setActive();
-                            var geojson = ev.object.toGeoJSON();
-                            geojson.geometry.type = geojson.geometry.type.toUpperCase();
                             var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
                                 drawingObject: ev.object
                             });
                         };
 
-                        LMap.gmxDrawing.on('add', addDone, this);
+                        LMap.gmxDrawing.on('add', addDone);
                         LMap.gmxDrawing.create(geojson.type);
+                    } else {
+                        LMap.gmxDrawing.create(); //прекратить рисование
                     }
                 });
                 LMap.addControl(icon);

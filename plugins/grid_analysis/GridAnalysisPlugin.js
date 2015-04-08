@@ -26,6 +26,8 @@ var parseMenuItems = function(params){
 var publicInterface = {
 	afterViewer: function(params, map)
     {
+        if (!params || !params.layer) return;
+        
         var layerNames = params.layer.split(','),
             propName = params.column || 'done',
             menus = parseMenuItems(params);

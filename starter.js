@@ -520,13 +520,6 @@ $(function()
             
             parseReferences(parsedURL.params, parsedURL.givenMapName);
             
-            // gmxCore.loadScript(url, null, 'windows-1251').then(function() {
-                // gmxAPI.whenLoaded(function() {
-                    // // addLeafletPlugins().then(parseReferences.bind(null, parsedURL.params, parsedURL.givenMapName));
-                    // parseReferences(parsedURL.params, parsedURL.givenMapName);
-                // });
-            // })
-
         }, function()
         {
             //TODO: обработка ошибок
