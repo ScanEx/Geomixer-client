@@ -499,24 +499,8 @@ $(function()
             nsGmx.widgets.languageWidget.appendTo(langContainer);
         
             window.LeafletPlugins = window.LeafletPlugins || [];
-            var apikeyParam = window.apiKey ? '?key=' + window.apiKey : '';
 
             var parsedURL = parseURLParams();
-            var apiFilename;
-            if (parsedURL.params['apifile'])
-            {
-                apiFilename = parsedURL.params['apifile'] + '.js';
-            }
-            else
-            {
-                if (typeof window.gmxUseLeaflet !== 'undefined') {
-                    apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'apif.js';
-                } else {
-                    apiFilename = 'api.js';
-                }
-            }
-            
-            var url = _mapHostName + apiFilename + apikeyParam;
             
             parseReferences(parsedURL.params, parsedURL.givenMapName);
             
@@ -1022,7 +1006,7 @@ function loadMap(state)
     
     //var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data) {
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
-    L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap}).then(function(gmxMap) {
+    L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey}).then(function(gmxMap) {
         nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
         var data = gmxMap.rawTree;
