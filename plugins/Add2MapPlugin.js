@@ -34,17 +34,16 @@
             if (!map) {return;}
             
             var path = gmxCore.getModulePath('Add2MapPlugin');
-            var LMap = nsGmx.leafletMap,
+            var lmap = nsGmx.leafletMap,
                 layersByID = nsGmx.gmxMap.layersByID;
             
             var parsedParams = parseParams(params);
             $.each(parsedParams, function(id, toolParams) {
-                var layerName = toolParams.layerName;
-                
-                var regularImage = toolParams.regularImage || DEFAULT_ICON;
-                var activeImage = toolParams.activeImage || regularImage;
-                
-                var mapListenerId = null;
+                var layerName = toolParams.layerName,
+                    regularImage = toolParams.regularImage || DEFAULT_ICON,
+                    activeImage = toolParams.activeImage || regularImage,
+                    lastDrawingFeature = null;
+
                 var icon = new L.Control.gmxIcon({
                     id: 'add2mapIcon', 
                     togglable: true,
@@ -80,20 +79,28 @@
                             type: type
                         });
                         var addDone = function (ev) {
-                            LMap.gmxDrawing.off('drawstop', addDone);
+                            lmap.gmxDrawing.off('drawstop', addDone);
+                            lastDrawingFeature = null;
                             icon.setActive();
                             var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
                                 drawingObject: ev.object
                             });
                         };
 
-                        LMap.gmxDrawing.on('drawstop', addDone);
-                        LMap.gmxDrawing.create(geojson.type);
+                        lmap.gmxDrawing.on('drawstop', addDone);
+                        lmap.gmxDrawing.on('add', function (ev) {
+                            lastDrawingFeature = ev.object;
+                        });
+                        lmap.gmxDrawing.create(geojson.type);
                     } else {
-                        LMap.gmxDrawing.create(); //прекратить рисование
+                        if (lastDrawingFeature) {
+                            lastDrawingFeature.remove();
+                            lastDrawingFeature = null;
+                        }
+                        lmap.gmxDrawing.create(); //прекратить рисование
                     }
                 });
-                LMap.addControl(icon);
+                lmap.addControl(icon);
             });
         }
     };
