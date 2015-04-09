@@ -79,18 +79,20 @@
                             type: type
                         });
                         var addDone = function (ev) {
-                            lmap.gmxDrawing.off('drawstop', addDone);
+                            lastDrawingFeature.off('drawstop', addDone);
+                            var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
+                                drawingObject: lastDrawingFeature
+                            });
                             lastDrawingFeature = null;
                             icon.setActive();
-                            var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
-                                drawingObject: ev.object
-                            });
+                        };
+                        var addBegin = function (ev) {
+                            lastDrawingFeature = ev.object;
+                            lastDrawingFeature.on('drawstop', addDone);
+                            lmap.gmxDrawing.off('add', addBegin);
                         };
 
-                        lmap.gmxDrawing.on('drawstop', addDone);
-                        lmap.gmxDrawing.on('add', function (ev) {
-                            lastDrawingFeature = ev.object;
-                        });
+                        lmap.gmxDrawing.on('add', addBegin);
                         lmap.gmxDrawing.create(geojson.type);
                     } else {
                         if (lastDrawingFeature) {
