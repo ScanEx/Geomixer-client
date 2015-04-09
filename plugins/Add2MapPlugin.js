@@ -80,14 +80,14 @@
                             type: type
                         });
                         var addDone = function (ev) {
-                            LMap.gmxDrawing.off('add', addDone);
+                            LMap.gmxDrawing.off('drawstop', addDone);
                             icon.setActive();
                             var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
                                 drawingObject: ev.object
                             });
                         };
 
-                        LMap.gmxDrawing.on('add', addDone);
+                        LMap.gmxDrawing.on('drawstop', addDone);
                         LMap.gmxDrawing.create(geojson.type);
                     } else {
                         LMap.gmxDrawing.create(); //прекратить рисование
