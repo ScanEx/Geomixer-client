@@ -135,7 +135,7 @@ var createMenuNew = function()
         var sel = function() {
             nsGmx.pluginsManager.setUsePlugin(pluginName, true);
             nsGmx.pluginsManager.done(function() {
-                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params);
+                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params, nsGmx.leafletMap);
                 _mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
             })
         }
