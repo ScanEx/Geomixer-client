@@ -687,7 +687,7 @@
 
                     var onError = function(err) {
                         if (!err) err = {};
-                        if (!err.skip && z > 1 && !node.isOverlay) {
+                        if (!err.skip && z > opt.minZ && !node.isOverlay) {
                            //if (err.stID) opt.badTiles[err.stID] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
