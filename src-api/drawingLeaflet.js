@@ -884,6 +884,7 @@
                 //if(gmxAPI._drawing.control) gmxAPI._drawing.control.setVisible(flag);
             }
             ,
+            move: { setVisible: nullFunc },
             zoom: { setVisible: nullFunc },
             POINT: { setVisible: nullFunc },
             LINESTRING: { setVisible: nullFunc },
