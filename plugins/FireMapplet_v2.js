@@ -375,7 +375,7 @@ var dateToString = function(timestamp) {
     
     var lz = function(n) {return n > 9 ? n : '0' + n;};
     
-    return lz(date.getUTCDate()) + '.' + lz(date.getUTCMonth()) + '.' + date.getUTCFullYear();
+    return lz(date.getUTCDate()) + '.' + lz(date.getUTCMonth()+1) + '.' + date.getUTCFullYear();
 }
 //По начальной и конечной дате формирует строчку для отображения интервала дат
 var _datePeriodHelper = function(dateMin, dateMax)
