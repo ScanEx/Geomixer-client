@@ -674,11 +674,11 @@ nsGmx.widgets.commonCalendar = {
         else
             layer.setDateInterval(dateBegin, dateEnd);
     },
-    updateTemporalLayers: function(layersOld)
+    updateTemporalLayers: function(layers)
     {
         if (!this._calendar) {return;}
 
-        var layers = nsGmx.gmxMap.layers,
+        var layers = layers || nsGmx.gmxMap.layers,
             dateBegin = this._calendar.getDateBegin(),
             dateEnd = this._calendar.getDateEnd();
         
@@ -690,7 +690,7 @@ nsGmx.widgets.commonCalendar = {
             // TODO: Only for Temporal layers
             var layer = layers[i];
             if (layer instanceof L.gmx.VectorLayer &&
-                !(layer._gmx.layerID in this._unbindedTemporalLayers)) {
+                !(layer.getGmxProperties().layerID in this._unbindedTemporalLayers)) {
                     this._updateOneLayer(layer, dateBegin, dateEnd);
             }
         }
@@ -706,9 +706,9 @@ nsGmx.widgets.getCommonCalendar = function()
 
 function initTimeline(layers)
 {
-    layers = layers || globalFlashMap.layers;
+    layers = layers || nsGmx.gmxMap.layers;
     for (var i = 0; i < layers.length; i++) {
-        var props = layers[i].properties;
+        var props = layers[i].getGmxProperties();
         if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
             nsGmx.widgets.commonCalendar.show();
             break;
