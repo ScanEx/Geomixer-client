@@ -1357,6 +1357,24 @@ function loadMap(state)
                 _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
             }
             
+            var SliderControl = L.Control.extend({
+                options: {
+                    position: 'topleft'
+                },
+                onAdd: function(map) {
+                    var sliderContainer = $('<div class="gmx-slider-control"></div>');
+                    var widget = new nsGmx.TransparencySliderWidget(sliderContainer);
+                    
+                    $(widget).on('slide', function(event, ui) {
+                        _queryMapLayers.applyOpacityToRasterLayers(ui.value*100, _queryMapLayers.buildedTree);
+                    })
+                    
+                    return sliderContainer[0];
+                },
+                onRemove: function(){}
+            });
+            lmap.addControl(new SliderControl());
+            
             state.mode && map.setMode(state.mode);
             
             if (state.drawnObjects)
