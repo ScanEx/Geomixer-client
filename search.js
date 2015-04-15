@@ -1592,10 +1592,21 @@ var SearchControlGet = function (params){
 	SearchControl.call(this, btnSearch, lstResult, oLogic, oLocationTitleRenderer);
     
     this.addSearchByStringHook(function(searchString) {
-        var pos = gmxAPI.parseCoordinates(searchString);
+        var pos = L.gmxUtil.parseCoordinates(searchString);
         if (pos) {
-            map.moveTo(pos[0], pos[1], map.getZ());
-            map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
+            nsGmx.leafletMap.panTo(pos);
+
+            // Добавим иконку по умолчанию
+            L.Icon.Default.imagePath = 'leaflet/images';
+            nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: searchString }));
+            // Либо задать свою иконку
+            // nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, {
+                // draggable: true, title: searchString,
+                // icon: L.icon({ iconUrl: 'img/flag_blau1.png', iconAnchor: [6, 36] })
+            // }));
+
+            //map.moveTo(pos[0], pos[1], map.getZ());
+            //map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
             return true;
         }
     })

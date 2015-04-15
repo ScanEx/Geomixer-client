@@ -194,7 +194,7 @@ var EditObjectControl = function(layerName, objectId, params)
     
     EditObjectControlsManager.add(layerName, objectId, this);
     
-    var LMap = nsGmx.leafletMap,
+    var lmap = nsGmx.leafletMap,
         layersByID = nsGmx.gmxMap.layersByID;
     var layer = layersByID[layerName];
     //var layer = globalFlashMap.layers[layerName];
@@ -230,7 +230,7 @@ var EditObjectControl = function(layerName, objectId, params)
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
-                arr = LMap.gmxDrawing.addGeoJSON(geojson);
+                arr = lmap.gmxDrawing.addGeoJSON(geojson);
             for (var i = 0, len = arr.length; i < len; i++) {
                 bindDrawingObject(arr[i]);
             }

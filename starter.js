@@ -1421,7 +1421,9 @@ function promptFunction(title, value) {
         var evt = e || window.event;
         if (e.which === 13)
         {
-            globalFlashMap.moveToCoordinates(this.value);
+            var coord = L.gmxUtil.parseCoordinates(this.value);
+            nsGmx.leafletMap.panTo(coord);
+            //globalFlashMap.moveToCoordinates(this.value);
             return false;
         }
     })

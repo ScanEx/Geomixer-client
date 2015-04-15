@@ -72,7 +72,7 @@
         
         gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
 
-        map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : gmxAPI.getAPIHostRoot();
+        map.geoSearchAPIRoot = 'http://maps.kosmosnimki.ru/';
 
         map.setMinMaxZoom = function(z1, z2) {
             if(gmxAPI.proxyType === 'flash' && gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
