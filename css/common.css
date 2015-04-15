@@ -1840,7 +1840,6 @@ div.layersScroll
 
 .leaflet-gmx-icon-gridTool {
     background-position: -268px -59px;
-    margin-right: 10px;
 }
 
 .leaflet-gmx-icon-gridTool-active {
@@ -1849,6 +1848,14 @@ div.layersScroll
 
 .leaflet-gmx-icon-bookmark {
     background-position: -114px -58px;
+}
+
+.leaflet-gmx-icon-gmxprint {
+    background-position: -50px -0px;    
+}
+
+.leaflet-gmx-icon-group-drawing {
+    margin-right: 10px;
 }
 
 .gmx-about {

@@ -833,7 +833,7 @@ function initEditUI() {
         className: 'leaflet-gmx-icon-sprite',
         title: _gtxt("Редактировать"),
         togglable: true,
-        addBefore: 'drawing'
+        addBefore: 'gmxprint'
     }).addTo(gmxAPI._leaflet.LMap);
         
     editIcon.on('statechange', function() {
@@ -1272,6 +1272,17 @@ function loadMap(state)
             
             lmap.gmxControlIconManager.get('drawing').addIcon(uploadFileIcon);
             
+            // выпадающие группы иконок наезжают на слайдер прозрачности.
+            // Эта ф-ция разруливает этот конфликт, скрывая слайдер в нужный момент
+            var resolveToolConflict = function(iconGroup) {
+                iconGroup
+                    .on('collapse', function() {
+                        $('.gmx-slider-control').show();
+                    }).on('expand', function() {
+                        sliderControl.isCollapsed() || $('.gmx-slider-control').hide();
+                    });
+            }
+            
             if (_queryMapLayers.currentMapRights() === "edit") {
 
                 var saveMapIcon = new L.Control.gmxIcon({
@@ -1315,28 +1326,35 @@ function loadMap(state)
                     mapHelp.tabs.load('mapTabs');
                     _queryTabs.add();
                 }).addTo(lmap);
+                
+                resolveToolConflict(createLayerIconGroup);
+            } else {
+                resolveToolConflict(lmap.gmxControlIconManager.get('drawing'));
             }
             
             var printIcon = new L.Control.gmxIcon({
-                id: 'print',
-                title: _gtxt('Печать')
+                id: 'gmxprint',
+                className: 'leaflet-gmx-icon-sprite',
+                title: _gtxt('Печать'),
+                addBefore: 'drawing'
             })
                 .addTo(lmap)
                 .on('click', _mapHelper.print.bind(_mapHelper));
-            
+                
             var permalinkIcon = new L.Control.gmxIcon({
                 id: 'permalink',
-                title: _gtxt('Ссылка на карту')
+                title: _gtxt('Ссылка на карту'),
+                addBefore: 'drawing'
             })
                 .addTo(lmap)
                 .on('click', _mapHelper.showPermalink.bind(_mapHelper));
-            
-            
+                
             var gridIcon = new L.Control.gmxIcon({
                 id: 'gridTool', 
                 className: 'leaflet-gmx-icon-sprite',
                 title: _gtxt("Координатная сетка"),
-                togglable: true
+                togglable: true,
+                addBefore: 'drawing'
             })
                 .addTo(lmap)
                 .on('click', function() {
@@ -1363,17 +1381,19 @@ function loadMap(state)
                 },
                 onAdd: function(map) {
                     var sliderContainer = $('<div class="gmx-slider-control"></div>');
-                    var widget = new nsGmx.TransparencySliderWidget(sliderContainer);
+                    this._widget = new nsGmx.TransparencySliderWidget(sliderContainer);
                     
-                    $(widget).on('slide', function(event, ui) {
+                    $(this._widget).on('slide', function(event, ui) {
                         _queryMapLayers.applyOpacityToRasterLayers(ui.value*100, _queryMapLayers.buildedTree);
                     })
                     
                     return sliderContainer[0];
                 },
-                onRemove: function(){}
+                onRemove: function(){},
+                isCollapsed: function(){ return this._widget.isCollapsed(); }
             });
-            lmap.addControl(new SliderControl());
+            var sliderControl = new SliderControl();
+            lmap.addControl(sliderControl);
             
             state.mode && map.setMode(state.mode);
             
