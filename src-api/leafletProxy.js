@@ -5035,7 +5035,7 @@ var tt = 1;
         var apiHost = gmxAPI.getAPIFolderRoot(),
             cssFiles = [
                 apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
-                ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
+                //,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
             ],
             arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }];
 
