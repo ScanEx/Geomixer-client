@@ -201,7 +201,7 @@ div.user span
     position: absolute;
     width: 12px;
     bottom: 0px;
-    top: 90px;
+    top: 70px;
     cursor: pointer;
 }
 
@@ -247,7 +247,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 90px;
+	top: 70px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -1733,15 +1733,13 @@ div.layersScroll
 }
 
 .mainmap-title {
-    position: absolute;
-    top: 70px;
-    left: 22px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     overflow-x: hidden;
     width: 320px;
     text-overflow: ellipsis;
+    padding: 7px 0px 7px 15px;
 }
 
 .addtabs-lang-placeholder {

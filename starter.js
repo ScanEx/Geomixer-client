@@ -172,6 +172,10 @@ var createMenuNew = function()
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div);
             }, disabled: !isMapEditor},
+            {id:'createGroup', title: _gtxt('Добавить подгруппу'), func:function(){
+                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                nsGmx.addSubGroup(div, _layersTree);
+            }, disabled: !isMapEditor},
 			{id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
                 var securityDialog = new nsGmx.mapSecurity(),
                     props = _layersTree.treeModel.getMapProperties();
@@ -190,10 +194,6 @@ var createMenuNew = function()
 					{id:'createMultiLayer',  title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor}
 				],
                 disabled: !isMapEditor},
-			{id:'createGroup', title: _gtxt('Создать группу'), func:function(){
-                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
-                nsGmx.addSubGroup(div, _layersTree);
-            }, disabled: !isMapEditor},
 			{id:'baseLayers',  title: _gtxt('Базовые слои'),    func:function(){
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div, 1);
@@ -727,7 +727,8 @@ window.resizeAll = function()
 		bottom = 0,
 		right = 0,
 		left = layersShown ? 360 : 12,
-        headerHeight = $('#header').height();
+        headerHeight = $('#header').outerHeight();
+        
 	
 	$$("flash").style.left = left + 'px';
 	$$("flash").style.top = top + 'px';
@@ -740,18 +741,21 @@ window.resizeAll = function()
 	{
 		show($$("leftMenu"));
         
-        var baseHeight = getWindowHeight() - top - bottom - headerHeight - 20;
+        var mapNameHeight = $('.mainmap-title').outerHeight();
+        
+        var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
         $$("leftMenu").style.height = baseHeight + 'px'
         
-        $$("leftContent").style.top = $$("leftPanelHeader").offsetHeight + 'px';
+        $$("leftContent").style.top = ($$("leftPanelHeader").offsetHeight + mapNameHeight) + 'px';
 		$$("leftContent").style.height = baseHeight -
             $$("leftPanelHeader").offsetHeight - 
-            $$("leftPanelFooter").offsetHeight + 'px';
+            $$("leftPanelFooter").offsetHeight -
+            mapNameHeight + 'px';
 	}
 	else
 	{
-		hide($$("leftMenu"))
+		hide($$("leftMenu"));
 
 		// jQuery("#header").find("[hidable]").css("display",'none')
 		// $$('header').style.height = '35px';
@@ -1150,7 +1154,7 @@ function loadMap(state)
             
             _queryMapLayers.addLayers(data, condition, mapStyles);
             
-            var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').appendTo($('body'));
+            var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
             nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
                 {
                     return _queryMapLayers.currentMapRights() == "edit";
