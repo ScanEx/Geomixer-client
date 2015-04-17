@@ -664,10 +664,10 @@ nsGmx.widgets.commonCalendar = {
     },
     _updateOneLayer: function(layer, dateBegin, dateEnd)
     {
-        var prop = layer.properties || layer._gmx.properties;
-        if (prop.maxShownPeriod)
+        var props = layer.getGmxProperties();
+        if (props.maxShownPeriod)
         {
-            var msecPeriod = prop.maxShownPeriod*24*3600*1000;
+            var msecPeriod = props.maxShownPeriod*24*3600*1000;
             var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
             layer.setDateInterval(newDateBegin, dateEnd);
         }
@@ -688,9 +688,10 @@ nsGmx.widgets.commonCalendar = {
 
         for (var i = 0, len = layers.length; i < len; i++) {
             // TODO: Only for Temporal layers
-            var layer = layers[i];
-            if (layer instanceof L.gmx.VectorLayer &&
-                !(layer.getGmxProperties().layerID in this._unbindedTemporalLayers)) {
+            var layer = layers[i],
+                props = layer.getGmxProperties();
+            if (layer instanceof L.gmx.VectorLayer && props.Temporal &&
+                !(props.name in this._unbindedTemporalLayers)) {
                     this._updateOneLayer(layer, dateBegin, dateEnd);
             }
         }
@@ -771,9 +772,6 @@ window.resizeAll = function()
 	else
 	{
 		hide($$("leftMenu"))
-
-		// jQuery("#header").find("[hidable]").css("display",'none')
-		// $$('header').style.height = '35px';
 	}
 }
 
@@ -784,15 +782,17 @@ function initEditUI() {
     }
     
     var isEditableLayer = function(layer) {
-        var layerRights = _queryMapLayers.layerRights(layer.properties.name);
-        return layer.properties.type === 'Vector' &&
-            'tilesVers' in layer.properties &&
+        var props = layer.getGmxProperties(),
+            layerRights = _queryMapLayers.layerRights(props.name);
+            
+        return props.type === 'Vector' &&
+            'tilesVers' in props &&
             (layerRights === 'edit' || layerRights === 'editrows');
     }
     
     var hasEditableLayer = false;
-    for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
-        if (isEditableLayer(globalFlashMap.layers[iL]))
+    for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++)
+        if (isEditableLayer(nsGmx.gmxMap.layers[iL]))
         {
             hasEditableLayer = true;
             break;
@@ -816,7 +816,7 @@ function initEditUI() {
             
             //TODO: проверить тип геометрии
             
-            var layer = globalFlashMap.layers[active[0].parentNode.gmxProperties.content.properties.name];
+            var layer = nsGmx.gmxMap.layersByID[active[0].parentNode.gmxProperties.content.properties.name];
             
             //слой поддерживает редактирование и у нас есть права на это
             return isEditableLayer(layer);
@@ -824,8 +824,8 @@ function initEditUI() {
         clickCallback: function(context)
         {
             var active = $(_queryMapLayers.treeCanvas).find(".active");
-            var layer = globalFlashMap.layers[active[0].parentNode.gmxProperties.content.properties.name];
-            new nsGmx.EditObjectControl(layer.properties.name, null, {drawingObject: context.obj});
+            var layerName = active[0].parentNode.gmxProperties.content.properties.name;
+            new nsGmx.EditObjectControl(layerName, null, {drawingObject: context.obj});
         }
     }, 'DrawingObject');
     
@@ -834,7 +834,7 @@ function initEditUI() {
         title: _gtxt("EditObject.menuTitle"),
         isVisible: function(context)
         {
-            var layer = globalFlashMap.layers[context.elem.name];
+            var layer = nsGmx.gmxMap.layersByID[context.elem.name];
             return !context.layerManagerFlag && isEditableLayer(layer);
         },
         clickCallback: function(context)
@@ -857,39 +857,41 @@ function initEditUI() {
         
     editIcon.on('statechange', function() {
         if (editIcon.options.isActive) {
-            for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
+            
+            var clickHandler = function(attr)
             {
-                var layer = globalFlashMap.layers[iL];
+                // TODO: bringToTopItem? остановить дальнейшую обработку событий?
+                console.log(attr);
+                return;
+                
+                var obj = attr.obj;
+                var layer = attr.attr.layer;
+                var id = obj.properties[layer.properties.identityField];
+                layer.bringToTopItem(id);
+                new nsGmx.EditObjectControl(props.name, id);
+                return true; // oтключить дальнейшую обработку события
+            }
+            
+            for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++)
+            {
+                var layer = nsGmx.gmxMap.layers[iL],
+                    props = layer.getGmxProperties();
+                    
                 if (isEditableLayer(layer))
                 {
                     layer.disableFlip();
                     
-                    listeners[layer.properties.name] = listeners[layer.properties.name] || [];
-                    for (var iF = 0; iF < layer.filters.length; iF++) {
-                        var listenerId = layer.filters[iF].addListener('onClick', function(attr)
-                        {
-                            var obj = attr.obj;
-                            var layer = attr.attr.layer;
-                            var id = obj.properties[layer.properties.identityField];
-                            layer.bringToTopItem(id);
-                            new nsGmx.EditObjectControl(layer.properties.name, id);
-                            return true; // oтключить дальнейшую обработку события
-                        });
-                        
-                        //listeners.push({layerName: layer.properties.name, listenerId: listenerId});
-                        listeners[layer.properties.name].push(listenerId);
-                    }
+                    listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
+                    layer.on('click', listeners[props.name]);
                 }
             }
         } else {
             //for (var i = 0; i < listeners.length; i++) {
             for (var layerName in listeners) {
                 var pt = listeners[layerName];
-                var layer = globalFlashMap.layers[layerName];
+                var layer = nsGmx.gmxMap.layersByID[layerName];
                 if (layer) {
-                    for (var iF = 0; iF < layer.filters.length; iF++) {
-                        layer.filters[iF] && layer.filters[iF].removeListener('onClick', pt[iF]);
-                    }
+                    layer.off('click', listeners[layerName]);
                     layer.enableFlip();
                 }
             }
