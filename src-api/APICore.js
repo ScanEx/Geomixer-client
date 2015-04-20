@@ -731,13 +731,13 @@ gmxAPI.forEachNode = function(layers, callback, notVisible) {
     }
 }
 
-function forEachLayer(layers, callback, notVisible) {
+gmxAPI.forEachLayer = function(layers, callback, notVisible) {
     gmxAPI.forEachNode(layers, function(node, isVisible, nodeDepth) {
         node.type === 'layer' && callback(node.content, isVisible, nodeDepth);
     }, notVisible)
 }
 
-gmxAPI.forEachLayer = forEachLayer;
+// gmxAPI.forEachLayer = forEachLayer;
 
 var APIKeyResponseCache = {};
 var sessionKeyCache = {};
@@ -768,32 +768,32 @@ gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;
 gmxAPI._FMO = FlashMapObject;
 
 FlashMapObject.prototype = {
-    setFilter: function(sql) {
-    },
-    setStyle: function(style, activeStyle) {
-        var attr = {'regularStyle':style, 'hoveredStyle':activeStyle};
-        gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr });
-        gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr);
-        gmxAPI._listeners.dispatchEvent('onStyleChange', this.parent, this);
-    },
-    remove: function() {
-    },
+    // setFilter: function(sql) {
+    // },
+    // setStyle: function(style, activeStyle) {
+        // var attr = {'regularStyle':style, 'hoveredStyle':activeStyle};
+        // gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr });
+        // gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr);
+        // gmxAPI._listeners.dispatchEvent('onStyleChange', this.parent, this);
+    // },
+    // remove: function() {
+    // },
     setVisible: function(flag, notDispatch) {
         gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag, 'notView': notDispatch });
-    },
-    getVisibility: function() {
-    },
-    getVisibleStyle: function() {
-        return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this });
-    },
-    setPolygon: function(coords) {
-        this.setGeometry({ type: "POLYGON", coordinates: [coords] });
-    },
-    setGeometry: function(geometry) {
-        gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geometry });
-    },
-    bringToTop: function() {
-        return gmxAPI._cmdProxy('bringToTop', { 'obj': this });
+    // },
+    // getVisibility: function() {
+    // },
+    // getVisibleStyle: function() {
+        // return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this });
+    // },
+    // setPolygon: function(coords) {
+        // this.setGeometry({ type: "POLYGON", coordinates: [coords] });
+    // },
+    // setGeometry: function(geometry) {
+        // gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geometry });
+    // },
+    // bringToTop: function() {
+        // return gmxAPI._cmdProxy('bringToTop', { 'obj': this });
     },
     getZoomBounds: function() {
         return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this });
@@ -811,17 +811,17 @@ FlashMapObject.prototype = {
         if(propHiden) pObj.propHiden = propHiden;
         pObj.isVisible = true;
         return pObj;
-    },
-    setBackgroundTiles: function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView, attr) {
-    },
-    setZoomBounds: function(minZoom, maxZoom) {
-    },
-    setCopyright: function(copyright, z1, z2, geo) {
+    // },
+    // setBackgroundTiles: function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView, attr) {
+    // },
+    // setZoomBounds: function(minZoom, maxZoom) {
+    // },
+    // setCopyright: function(copyright, z1, z2, geo) {
     }
 };
 if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
 })();
-
+/*
 //Управление ToolsAll
 (function()
 {
@@ -897,3 +897,4 @@ if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация han
     }
     gmxAPI._ToolsContainer = ToolsContainer;
 })();
+*/

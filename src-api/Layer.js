@@ -24,7 +24,7 @@
             isVisible = true;
         
         // var zIndex = parentObj.layers.length;
-        var prop = layer.properties;
+        var prop = layer.getGmxProperties();
 
         //if(!layer) layer = {};
         //if (!layer.properties) layer.properties = {};
