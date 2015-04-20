@@ -1526,6 +1526,7 @@ queryMapLayers.prototype.load = function(data)
 }
 
 queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) {
+
     var active = $(parent).find(".active");
     
     // слой
@@ -1539,15 +1540,23 @@ queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) 
         return;
     }
     
-    // группа или карта
-    var treeElem = !active.length ? {elem: _layersTree.treeModel.getRawTree(), parents:[], index:false} : _layersTree.findTreeElem(active[0].parentNode);
-    
-    _mapHelper.findChilds(treeElem.elem, function(child)
-    {
-        var props = child.content.properties;
-        var layer = globalFlashMap.layers[props.name];
-        layer.setRasterOpacity(opacity);
-    }, true);
+    if (active.length) {
+        // группа или карта
+        var treeElem = _layersTree.findTreeElem(active[0].parentNode);
+        
+        _mapHelper.findChilds(treeElem.elem, function(child)
+        {
+            var props = child.content.properties;
+            var layer = globalFlashMap.layers[props.name];
+            layer.setRasterOpacity(opacity);
+        }, true);
+    } else {
+        // все растровые слои
+        for (var i = 0; i < globalFlashMap.layers.length; i++) {
+            var layer = globalFlashMap.layers[i];
+            layer.setRasterOpacity && layer.setRasterOpacity(opacity);
+        }
+    }
 }
 
 queryMapLayers.prototype.rasterLayersSlider = function(parent)
