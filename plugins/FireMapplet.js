@@ -1528,6 +1528,8 @@ var FireBurntRenderer3 = function( params )
         mapName: 'NDFYK'
     }, params);
     
+    var _isRendererVisible = false;
+    
     buildModisPixelDimensionsTable();
     
     var map = params.map;
@@ -1612,13 +1614,14 @@ var FireBurntRenderer3 = function( params )
         var dailyClustersLayer = map.layers[_params.dailyLayerName];
         dailyClustersLayer.setVisibilityFilter('ogc_fid=-1');
         dailyClustersLayer.setZoomBounds(1, _params.minGeomZoom-1);
-        dailyClustersLayer.setVisible(true);
+        dailyClustersLayer.setVisible(_isRendererVisible);
         
         var minLayerZoom = Math.min(_params.minGeomZoom, _params.minHotspotZoom);
-        layer.setVisible(true);
+        layer.setVisible(true); //из-за бага в API (у изначально невидимых слоёв не работают некоторые методы)
         layer.setZoomBounds(minLayerZoom, 21);
         layer.setDepth(-1000);
         $.each(layer.filters, function(i, filter) { filter.setZoomBounds(minLayerZoom, 21); });
+        layer.setVisible(_isRendererVisible);
         
         map.addListener('positionChanged', function()
         {
@@ -1772,6 +1775,7 @@ var FireBurntRenderer3 = function( params )
     
     this.setVisible = function(flag)
     {
+        _isRendererVisible = flag;
         clusterLayer.setVisible(flag);
         clusterGeomLayer.setVisible(flag);
         map.layers[_params.hotspotLayerName] && map.layers[_params.hotspotLayerName].setVisible(flag);
@@ -2431,7 +2435,7 @@ FireControl.prototype.update = function()
 var FireControl2 = function(map, params)
 {
     params = $.extend({}, params); //чтобы не портить исходный хеш
-    params.data = params.data || "+fires !images";
+    params.data = (params.data || "+fires !images").trim();
     
     var createdDiv = null;
     
@@ -2452,7 +2456,7 @@ var FireControl2 = function(map, params)
         return res;
     }
     
-    var parsedData = parseParams(params.data);
+    var parsedData = parseParams(params.data) || parseParams("+fires !images");
     
     this.getProviderParams = function(providerName)
     {

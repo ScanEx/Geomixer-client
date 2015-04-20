@@ -1528,47 +1528,46 @@ queryMapLayers.prototype.load = function(data)
 	}
 }
 
+queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) {
+
+    var active = $(parent).find(".active");
+    
+    // слой
+    if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")))
+    {
+        var props = active[0].parentNode.gmxProperties.content.properties,
+            layer = globalFlashMap.layers[props.name];
+        
+        layer.setRasterOpacity(opacity);
+
+        return;
+    }
+    
+    if (active.length) {
+        // группа или карта
+        var treeElem = _layersTree.findTreeElem(active[0].parentNode);
+        
+        _mapHelper.findChilds(treeElem.elem, function(child)
+        {
+            var props = child.content.properties;
+            var layer = globalFlashMap.layers[props.name];
+            layer.setRasterOpacity(opacity);
+        }, true);
+    } else {
+        // все растровые слои
+        for (var i = 0; i < globalFlashMap.layers.length; i++) {
+            var layer = globalFlashMap.layers[i];
+            layer.setRasterOpacity && layer.setRasterOpacity(opacity);
+        }
+    }
+}
+
 queryMapLayers.prototype.rasterLayersSlider = function(parent)
 {
-	var templateStyle = {fill: {opacity: 100}},
-		slider = nsGmx.Controls.createSlider(100,
+	var slider = nsGmx.Controls.createSlider(100,
 			function(event, ui)
 			{
-				templateStyle.fill.opacity = ui.value;
-				
-				var active = $(parent).find(".active");
-				
-				// слой
-				if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")))
-				{
-                    var props = active[0].parentNode.gmxProperties.content.properties,
-                        isVector = props.type === "Vector",
-                        layer = globalFlashMap.layers[props.name];
-                    
-                    if (isVector && layer.tilesParent) {
-                        layer.tilesParent.setStyle(templateStyle);
-                    } else {
-                        layer.setStyle(templateStyle);
-                    }
-
-					return;
-				}
-				
-				// группа или карта
-				var treeElem = !active.length ? {elem: _layersTree.treeModel.getRawTree(), parents:[], index:false} : _layersTree.findTreeElem(active[0].parentNode);
-				
-				_mapHelper.findChilds(treeElem.elem, function(child)
-				{
-					var props = child.content.properties;
-					var layer = globalFlashMap.layers[props.name];
-					if (props.type == "Raster" || props.type == "Overlay")
-						layer.setStyle(templateStyle);
-					else if (props.type == "Vector")
-					{
-						if (layer.tilesParent)
-							layer.tilesParent.setStyle(templateStyle);
-					}
-				}, true);
+				_queryMapLayers.applyOpacityToRasterLayers(ui.value, parent);
 			}),
 		elem = _div([slider], [['css','width','120px']]);
 	

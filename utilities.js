@@ -1189,7 +1189,7 @@ $.extend(nsGmx.Utils, {
 			if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
 				hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
 			
-			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined')
+			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
 				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
 			
 			mapObject.setStyle(templateStyle, hoverStyle);
