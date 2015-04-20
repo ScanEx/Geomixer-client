@@ -1365,11 +1365,7 @@ function loadMap(state)
             updateLeftPanelVis();
             
             var lmap = gmxAPI._leaflet.LMap;
-            
-            //лупу совсем убираем
-            //gmxAPI.map.controlsManager.getCurrent().removeControl('boxzoom');
-            lmap.removeControl(lmap.gmxControlIconManager.get('boxzoom'));
-            
+
             //пополняем тулбар
             var uploadFileIcon = new L.Control.gmxIcon({
                 id: 'uploadFile', 
