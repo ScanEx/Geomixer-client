@@ -862,18 +862,15 @@ function initEditUI() {
     editIcon.on('statechange', function() {
         if (editIcon.options.isActive) {
             
-            var clickHandler = function(attr)
+            var clickHandler = function(event)
             {
-                // TODO: bringToTopItem? остановить дальнейшую обработку событий?
-                console.log(attr);
-                return;
-                
-                var obj = attr.obj;
-                var layer = attr.attr.layer;
-                var id = obj.properties[layer.properties.identityField];
+                var layer = event.target,
+                    props = layer.getGmxProperties(),
+                    id = event.gmx.properties[props.identityField];
+                    
                 layer.bringToTopItem(id);
                 new nsGmx.EditObjectControl(props.name, id);
-                return true; // oтключить дальнейшую обработку события
+                return true; // TODO: как oтключить дальнейшую обработку события
             }
             
             for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++)
