@@ -1236,8 +1236,9 @@ function loadMap(state)
             //DEPRICATED. Do not use it!
             _mapHelper.mapTree = data;
             
-            if (window.copyright)
-                map.setCopyright(window.copyright);
+            if (window.copyright && typeof window.copyright === 'string') {
+                lmap.gmxControlsManager.get('copyright').setMapCopyright(window.copyright);
+            }
             
             if (state.position)
             {
@@ -1364,8 +1365,6 @@ function loadMap(state)
             });
             updateLeftPanelVis();
             
-            var lmap = gmxAPI._leaflet.LMap;
-
             //пополняем тулбар
             var uploadFileIcon = new L.Control.gmxIcon({
                 id: 'uploadFile', 
