@@ -688,13 +688,16 @@ var DrawingObjectGeomixer = function() {
         $(oCollection).bind('onAdd', function (){
             if(!bVisible) _this.Load();
         });
-		
-		oMap.drawing.forEachObject(function(ret){
+
+        var lmap = nsGmx.leafletMap,
+            gmxDrawing = lmap.gmxDrawing,
+            features = gmxDrawing.getFeatures();
+
+        features.map(function(ret){
 			fnAddToCollection(ret);
 		});
 		
-        var LMap = gmxAPI._leaflet.LMap;
-        LMap.gmxDrawing.on('add', fnAddToCollection);
+        lmap.gmxDrawing.on('add', fnAddToCollection);
         
         $(oCollection).bind('onRemove onAdd', checkDownloadVisibility);
         

@@ -50,26 +50,26 @@
             ))/Math.log(2)));
         }
 
-        map.baseLayersManager = LMap.gmxBaseLayersManager;
-        gmxAPI.extend(map, {
-            setMode: function(name) {
-                map.baseLayersManager.setCurrentID(name);
-            }
-            ,getModeID: function() {
-                return map.baseLayersManager.getCurrentID();
-            }
-            ,setBaseLayer: function(name) {
-                this.setMode(name);
-            }
-            ,
-            unSetBaseLayer: function() {
-                map.setBaseLayer();
-            }
-            ,getBaseLayer: function() {
-                return this.getModeID();
-            }
-        });
-        
+        //map.baseLayersManager = LMap.gmxBaseLayersManager;
+        // gmxAPI.extend(map, {
+            // setMode: function(name) {
+                // map.baseLayersManager.setCurrentID(name);
+            // }
+            // ,getModeID: function() {
+                // return map.baseLayersManager.getCurrentID();
+            // }
+            // ,setBaseLayer: function(name) {
+                // this.setMode(name);
+            // }
+            // ,
+            // unSetBaseLayer: function() {
+                // map.setBaseLayer();
+            // }
+            // ,getBaseLayer: function() {
+                // return this.getModeID();
+            // }
+        // });
+
         gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
 
         map.geoSearchAPIRoot = 'http://maps.kosmosnimki.ru/';
@@ -80,50 +80,52 @@
         }
         map.setZoomBounds = map.setMinMaxZoom;
 
-        map.drawing = {
-            'setHandlers': function() { return false; }
-            ,'forEachObject': function() { return false; }
-            ,
-            addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel) {
-                LMap.addControl(new L.Control.gmxIcon({
-                    id: tn,
-                    title: hint,
-                    toggle: true,
-                    regularImageUrl: regularImageUrl,
-                    activeImageUrl: activeImageUrl,
-                    stateChange: function (control) {
-                        console.log(tn , ':', control.options.isActive);
-                        if(control.options.isActive) onClick();
-                        else onCancel();
-                    }
-                }));
-            }
-            ,
-            setVisible: function(id, flag) {        // видимость
-                var control = Controls.items[id];
-            }
-            ,
-            selectTool: function (id) {
-                var control = Controls.items.gmxDrawing;
-                if (id === 'POINT') {
-                    control = Controls.items.drawingPoint;
-                    if ('onclick' in control.options) {
-                        control.options.onclick();
-                    }
-                }
-                control.setActive(id);
-            }
-        };
+        // map.drawing = {
+            //forEachObject: function() { return false; }
+            // 'setHandlers': function() { return false; }
+            // ,'forEachObject': function() { return false; }
+            // ,
+            // addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel) {
+                // LMap.addControl(new L.Control.gmxIcon({
+                    // id: tn,
+                    // title: hint,
+                    // toggle: true,
+                    // regularImageUrl: regularImageUrl,
+                    // activeImageUrl: activeImageUrl,
+                    // stateChange: function (control) {
+                        // console.log(tn , ':', control.options.isActive);
+                        // if(control.options.isActive) onClick();
+                        // else onCancel();
+                    // }
+                // }));
+            // }
+            // ,
+            // setVisible: function(id, flag) {        // видимость
+                // var control = Controls.items[id];
+            // }
+            // ,
+            // selectTool: function (id) {
+                // var control = Controls.items.gmxDrawing;
+                // if (id === 'POINT') {
+                    // control = Controls.items.drawingPoint;
+                    // if ('onclick' in control.options) {
+                        // control.options.onclick();
+                    // }
+                // }
+                // control.setActive(id);
+            // }
+        // };
 
         map.addLayers = function(layers, notMoveFlag, notVisible) {
-//return;
-            forEachLayer(layers, function(layer, isVisible) {
-                var prop = layer.properties,
-                    layerID = prop.name;
+            for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
+                var layer = nsGmx.gmxMap.layers[iL],
+                    props = layer.getGmxProperties(),
+                    layerID = props.name;
+
                 if(!gmxAPI.map.layers[layerID]) {
-                    map.addLayer(layer, prop.visible ? true : isVisible, true);
+                    map.addLayer(layer, props.visible ? true : notVisible, true);
                 }
-            }, notVisible);
+            }
 
             if (typeof(map.properties.DefaultLat) === 'number'
                 || typeof(map.properties.DefaultLong) === 'number'
@@ -135,7 +137,7 @@
         map.defaultHostName = map.properties.hostName || '';
         map.addLayers(layers, false, false);
         
-        map.ToolsContainer = gmxAPI._ToolsContainer;
+        // map.ToolsContainer = gmxAPI._ToolsContainer;
         gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Глобальный Listeners
         return map;
     }
