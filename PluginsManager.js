@@ -172,7 +172,7 @@ var PluginsManager = function()
             for (var p = 0; p < _plugins.length; p++)
                 if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined') {
                     try {
-                        _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
+                        _plugins[p].body[funcName]( _plugins[p].params, map || nsGmx.leafletMap );
                     } catch (e) {
                         console && console.error('Error in function ' + funcName + '() of plugin ' + _plugins[p].moduleName + ': ' + e);
                         console && console.error(e.stack);
