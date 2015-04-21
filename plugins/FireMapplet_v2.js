@@ -552,9 +552,8 @@ var FireBurntRenderer3 = function( params )
         clustersGeomLayer.setZIndex(_params.zIndex);
     }
 
-    _lazyLoadFireLayers({map: map, mapName: _params.mapName}).done(function(loadedMap)
+    _lazyLoadFireLayers({map: map, mapName: _params.mapName}).done(function(gmxMap)
     {
-        gmxMap = loadedMap;
         rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
         rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
         
@@ -1449,9 +1448,15 @@ var FireControl2 = function(map, params)
     }
 }
 
+var isInitialized = false;
+
 var publicInterface = {
     pluginName: 'Fire plugin',
     beforeViewer: function(params, map) {
+        if (isInitialized) {
+            return;
+        }
+
         var data = params && params.data;
         if (data && $.isArray(data)) {
             data = data[0];
@@ -1484,6 +1489,7 @@ var publicInterface = {
                 }
             });
         };
+        isInitialized = true;
     },
     afterViewer: function(params, map) {
         this.beforeViewer(params, map);
