@@ -111,7 +111,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 			return;
 		
 		mapElem.extLayersTree.treeModel.forEachLayer(function(layer, isVisible) 
-		{ 
+		{
 			var name = layer.properties.name;
 			
 			if (globalFlashMap.layers[name].external)
@@ -135,9 +135,9 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 
 	_(parent, [loading]);
 	
-	this.loadMap(hostName, mapName, function(treeJSON)
+	this.loadMap(hostName, mapName, function(gmxMap)
 	{
-		if (treeJSON == null)
+		if (gmxMap == null)
 		{
 			loading.parentNode.parentNode.removeNode(true);
 			
@@ -148,7 +148,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 		
         var extLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: true});
 		
-		var	tree = extLayersTree.drawTree(treeJSON, 2);
+		var	tree = extLayersTree.drawTree(gmxMap.rawTree, 2);
 		$(tree).treeview();
 		extLayersTree.runLoadingFuncs();
         
@@ -166,50 +166,44 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 {
     var _this = this;
-	loadMapJSON(hostName, mapName, function(layers)
+	L.gmx.loadMap(mapName, {hostName: hostName, leafletMap: nsGmx.leafletMap}).then(function(gmxMap)
 	{
-		if (layers != null)
-		{
-			gmxAPI.forEachLayer(layers, function(layer, isVisible) 
-			{ 
-				var name = layer.properties.name;
-				
-				if (!globalFlashMap.layers[name])
-				{
-					globalFlashMap.addLayer(layer, isVisible, true);
-					globalFlashMap.layers[name].external = true;
-				}
-			});
-			
-			if (layers.properties.Copyright)
-			{
-				var obj = globalFlashMap.addObject();
-				obj.setCopyright(layers.properties.Copyright);
-			}
-			if (layers.properties.OnLoad)
-			{
-				try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(globalFlashMap); }
-				catch (e) { alert(e); }
-			}
-			
-			layers.properties.hostName = hostName;
-			
-			callback(layers);
-			$(_queryExternalMaps).triggerHandler('map_loaded', layers);
+        for (var i = 0; i < gmxMap.layers.length; i++) {
+            var layer = gmxMap.layers[i];
+            var id = layer.getGmxProperties().name;
             
-            for (var i = 0; i < _this.maps.length; i++) {
-                var map = _this.maps[i];
-                if (map.hostName === hostName && map.mapName === mapName) {
-                    map.tree = layers;
-                    break;
-                }
+            layer.external = true;
+            
+            if (!(id in nsGmx.gmxMap.layersByID)) {
+                nsGmx.gmxMap.addLayer(layer);
             }
-		}
-		else
-		{
-			callback(null);
-			$(_queryExternalMaps).triggerHandler('map_loaded', null);
-		}
+        }
+
+        if (gmxMap.properties.Copyright)
+        {
+            var copyrightLayer = {
+                options: {
+                    attribution: gmxMap.properties.Copyright
+                },
+                onAdd: function() {},
+                onRemove: function() {}
+            }
+            
+            copyrightLayer.addTo(nsGmx.leafletMap);
+        }
+        
+        gmxMap.properties.hostName = hostName;
+        
+        callback(gmxMap);
+        $(_queryExternalMaps).triggerHandler('map_loaded', gmxMap);
+        
+        for (var i = 0; i < _this.maps.length; i++) {
+            var map = _this.maps[i];
+            if (map.hostName === hostName && map.mapName === mapName) {
+                map.tree = layers;
+                break;
+            }
+        }
 	}, 
 	function()
 	{
