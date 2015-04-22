@@ -526,7 +526,7 @@
         };
 
         var attr = utils.prpLayerAttr(layer, node);
-        if (attr.bounds) {
+        if (attr.bounds && attr.bounds.min) {
             node.bounds = attr.bounds;
             node.mercBounds = gmxAPI.bounds([
                 [gmxAPI.merc_x(node.bounds.min.x), gmxAPI.merc_y(node.bounds.min.y)],
