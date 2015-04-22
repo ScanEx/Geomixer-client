@@ -10,14 +10,6 @@
 
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
-		// 'getLastIndex': function(pNode)	{			// Получить следующий zIndex в mapNode
-			// var n = 1;
-			// if(pNode) {
-				// n = pNode.children.length + 1;
-			// }
-			// return n;
-		// }
-        // ,
         'runMoveTo': function(attr, zd)	{				//позиционирует карту по координатам
             if(moveToTimer) clearTimeout(moveToTimer);
             if(!zd) zd = 200;
@@ -56,10 +48,7 @@
             ,id: id
             ,zIndexOffset: 0
             ,parentId: ph.obj.objectId
-            //,'eventsCheck': 
-            //subType
         };
-        //if(ph.attr['hidenAttr']) pt['hidenAttr'] = ph.attr['hidenAttr'];
 
         var pNode = mapNodes[pt.parentId];
         if(!pNode) {
@@ -91,13 +80,6 @@
             if(pt.propHiden.overlaysParent) pt.zIndexOffset = 50000;
         }
         mapNodes[id] = pt;
-        // if(pt.geometry.type) {
-            //if (!pt.propHiden.isLayer) gmxAPI._leaflet.drawManager.add(id); // добавим в менеджер отрисовки
-            // if(pt.leaflet) {
-                // setHandlerObject(id);							// добавить Handler для mapObject
-            // }
-        // }
-        //pt.zIndex = ('zIndex' in pt.propHiden ? pt.propHiden.zIndex : utils.getLastIndex(pNode));
         return id;
     }
     // Изменение видимости
@@ -111,72 +93,6 @@
                 node.setVisible(ph.attr);
                 return;
             }
-/*
-            //node.isVisible = ph.attr;
-            var pNode = mapNodes[node.parentId] || null,
-                pGroup = (pNode ? pNode.group : LMap);
-            if(node.type === 'filter') {							// нода filter
-                // if(pNode) pNode.refreshFilter(id);
-                return;
-            } else {							// нода имеет вид в leaflet
-                if(ph.attr) {
-                    var flag = utils.chkVisibilityByZoom(id);
-                    if(!flag) return;
-                    if(node.leaflet && node.leaflet._map) return;
-                    if(node.type === 'RasterLayer') {
-                        gmxAPI._leaflet.renderingObjects[node.id] = 1;					
-                        if(node.leaflet) {
-                            LMap.addLayer(node.leaflet);
-                            utils.bringToDepth(node, node.zIndex);
-                        } else if('nodeInit' in node) {
-                            node.nodeInit();
-                        }
-                    }
-                    else
-                    {
-                        var isOnScene = ('isOnScene' in node ? node.isOnScene : true);
-                        if(node.parentId) {
-                            if(isOnScene) pGroup.addLayer(node.group);
-                        }
-                        
-                        if(node.leaflet) {
-                            if(isOnScene) {
-                                if(node.subType !== 'drawingFrame' && node.leaflet.setStyle && node.regularStyle) node.leaflet.setStyle(node.regularStyle);
-                                pGroup.addLayer(node.leaflet);
-                            }
-                        } else if(node.geometry.type) {
-                            //gmxAPI._leaflet.drawManager.add(id);				// добавим в менеджер отрисовки
-                        }
-                        if(node.type === 'VectorLayer') {					// нода VectorLayer
-                            node.checkFilters(0);
-                        }
-                    }
-                }
-                else
-                {
-                    if(node.type === 'RasterLayer') {
-                        delete gmxAPI._leaflet.renderingObjects[node.id];
-                        if(node.leaflet) {
-                            LMap.removeLayer(node.leaflet);
-                        }
-                    }
-                    else {
-                        if(node.parentId) {
-                            pGroup.removeLayer(node.group);
-                        }
-                        if(node.leaflet) {
-                            if(pGroup._layers[node.leaflet._leaflet_id]) pGroup.removeLayer(node.leaflet);
-                        }
-                        if(node.mask) {
-                            if(pGroup._layers[node.mask._leaflet_id]) pGroup.removeLayer(node.mask);
-                        }
-                    }
-                }
-            }
-            // for (var i = 0, len = node.children.length; i < len; i++) {
-                // setVisibleRecursive(mapNodes[node.children[i]], ph.attr);
-            // }
-*/
         }
     }
 
@@ -344,10 +260,3 @@ console.log(cmd + ' : ' , hash , ' : ' , ret);
 
     gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
 })();
-
-if (gmxAPI.whenLoadedArray) {
-    for (var i = 0, len = gmxAPI.whenLoadedArray.length; i < len; i++) {
-        gmxAPI.whenLoadedArray[i]();
-    }
-    gmxAPI.whenLoadedArray = null;
-}

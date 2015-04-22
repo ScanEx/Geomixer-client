@@ -38,8 +38,6 @@ if(!window.gmxAPI) window.gmxAPI = {};
 window.gmxAPI.extend = extend;
 extend(window.gmxAPI,
 {
-	kosmosnimki_API: '1D30C72D02914C5FB90D1D448159CAB6'
-    ,
 	mapNodes: {}	// ноды mapObjects
 	,
 	lastFlashMapId: 0
@@ -49,31 +47,6 @@ extend(window.gmxAPI,
 		gmxAPI.lastFlashMapId += 1;
 		return "random_" + gmxAPI.lastFlashMapId;
 	}
-	,
-	uniqueGlobalName: function(thing)
-	{
-		var id = gmxAPI.newFlashMapId();
-		window[id] = thing;
-		return id;
-	}
-	,
-	_tmpMaps: {}
-    ,
-	MAX_LATITUDE: 85.0840591556
-    ,
-	origin: window.document.domain
-    ,
-    defaultMinZoom: 1							// мин.zoom по умолчанию
-	,
-    defaultMaxZoom: 24							// макс.zoom по умолчанию
-	,
-    mousePressed: false							// Флаг мышь нажата
-	,
-    APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
-	,
-    initParams: null							// Параметры заданные при создании карты 
-	,
-    buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
 	,
 	addDebugWarnings: function(attr)
 	{
@@ -88,62 +61,6 @@ extend(window.gmxAPI,
        }
 	},
 	_debugWarnings: [],
-    leafletPlugins: {}
-    ,
-	clone: function (o, level)
-	{
-		if(!level) level = 0;
-		var type = typeof(o);
-		if(!o || type !== 'object')  {
-			return (type === 'function' ? 'function' : o);
-		}
-		var c = 'function' === typeof(o.pop) ? [] : {};
-		var p, v;
-		for(p in o) {
-			if(o.hasOwnProperty(p)) {
-				v = o[p];
-				var type = typeof(v);
-				if(v && type === 'object') {
-					c[p] = (level < 100 ? gmxAPI.clone(v, level + 1) : 'object');
-				}
-				else {
-					c[p] = (type === 'function' ? 'function' : v);
-				}
-			}
-		}
-		return c;
-	}
-	,
-	newElement: function(tagName, props, style, setBorder)
-	{
-		var elem = document.createElement(tagName);
-		if (props)
-		{
-			for (var key in props) elem[key] = props[key];
-		}
-		gmxAPI.setStyleHTML(elem, style, setBorder);
-		return elem;
-	},
-	setStyleHTML: function(elem, style, setBorder)
-	{
-		if(!elem) return false;
-		if(setBorder) {
-			elem.style.border = 0;
-			elem.style.margin = 0;
-			elem.style.padding = 0;
-		}
-		if (style)
-		{
-			for (var key in style)
-			{
-				var value = style[key];
-				elem.style[key] = value;
-				if (key == "opacity") elem.style.filter = "alpha(opacity=" + Math.round(value*100) + ")";
-			}
-		}
-		return true;
-	}
-	,
     loadCSS: function(href) {
         var css = document.createElement("link");
         css.setAttribute("type", "text/css");
@@ -173,67 +90,10 @@ extend(window.gmxAPI,
             document.getElementsByTagName("head").item(0).removeChild(script);
         };
         document.getElementsByTagName("head").item(0).appendChild(script);
-	}
-	,
-    getURLParams: memoize(function() {
-        var q = window.location.search,
-            kvp = (q.length > 1) ? q.substring(1).split("&") : [];
-
-        for (var i = 0; i < kvp.length; i++)
-        {
-            kvp[i] = kvp[i].split("=");
-        }
-        
-        var params = {},
-            givenMapName = false;
-            
-        for (var j=0; j < kvp.length; j++)
-        {
-            if (kvp[j].length == 1)
-            {
-                if (!givenMapName)
-                    givenMapName = kvp[j][0];
-            }
-            else
-                params[kvp[j][0]] = kvp[j][1];
-        }
-        
-        return {params: params, givenMapName: givenMapName};
-    })
-    ,
+	},
     getPatternIcon: function(ph, size) {
         return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size': size || 32, 'style':ph} });
     }
-	,
-	loadVariableFromScript: function(url, name, callback, onError, useTimeout) {
-		window[name] = undefined;
-		var script = document.createElement("script");
-		var done = false;
-		var ready = function() {
-			if ( window[name] !== undefined ) callback(window[name]);
-			else if (onError) onError();
-			done = true;
-		};
-		
-		script.onerror = function()
-		{
-			if (!done) {
-				window[name] = undefined;
-				ready();
-			}
-		}
-		
-		script.onload = function()
-		{
-			if (!done) {
-				ready();
-			}
-		}
-		
-		script.setAttribute("charset", "UTF-8");
-		document.getElementsByTagName("head").item(0).appendChild(script);
-		script.setAttribute("src", url);
-	}
 	,
 	getBounds: function(coords)
 	{
@@ -293,10 +153,6 @@ extend(window.gmxAPI,
 			return ret;
 		}
 	}
-	,
-    whenLoaded: function (func) {
-        func();
-    }
 	,
 	isRectangle: function(coords)
 	{
@@ -461,12 +317,6 @@ extend(window.gmxAPI,
 		return {};
 	})
 	,
-	getAPIKey: memoize(function()
-	{
-		var u = gmxAPI.getAPIUri();
-		return (u.source ? (/key=([a-zA-Z0-9]+)/).exec(u.source) : '');
-	})
-	,
 	getAPIFolderRoot: memoize(function()
 	{
 		var u = gmxAPI.getAPIUri();
@@ -489,25 +339,21 @@ extend(window.gmxAPI,
 	})
 });
 
-window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
-window.gmxAPI.proxyType = 'flash';						// Тип отображения
-window.gmxAPI.miniMapAvailable = false;
-
 })();
 
 // Блок методов глобальной области видимости
 //var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";
 
-var tmp = [
-	'merc_x', 'from_merc_x', 'merc_y', 'from_merc_y'
-];
-var len = tmp.length;
-for (var i=0; i<len; i++) window[tmp[i]] = gmxAPI[tmp[i]];
+// var tmp = [
+	// 'merc_x', 'from_merc_x', 'merc_y', 'from_merc_y'
+// ];
+// var len = tmp.length;
+ // for (var i=0; i<len; i++) window[tmp[i]] = gmxAPI[tmp[i]];
 
-function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
-var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
-var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
-var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
+//function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
+// var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
+// var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
+// var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
 
 // Поддержка setHandler и Listeners
 (function()

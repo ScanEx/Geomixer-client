@@ -3,8 +3,6 @@
 {
     var addNewMap = function(rootObjectId, layers, callback)
     {
-        var LMap = nsGmx.leafletMap;
-    
         var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject основной карты
         window.globalFlashMap = map;
         gmxAPI.map = map;
@@ -15,9 +13,7 @@
         if(!layers.children) layers.children = [];
         map.isVisible = true;
         map.layers = [];
-        // map.rasters = map;
-        // map.tiledQuicklooks = map;
-        // map.vectors = map;
+
         var getDefaultPos = function(prop) {
             return {
                 x: (typeof(prop.DefaultLong) === 'number' ? prop.DefaultLong :(map.needMove ? map.needMove.x : 35))
@@ -43,78 +39,16 @@
         {
             if ((minX == maxX) && (minY == maxY))
                 return 17;
-            var size = LMap.getSize();
+            var size = nsGmx.leafletMap.getSize();
             return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
                 Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/size.x,
                 Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/size.y
             ))/Math.log(2)));
         }
 
-        //map.baseLayersManager = LMap.gmxBaseLayersManager;
-        // gmxAPI.extend(map, {
-            // setMode: function(name) {
-                // map.baseLayersManager.setCurrentID(name);
-            // }
-            // ,getModeID: function() {
-                // return map.baseLayersManager.getCurrentID();
-            // }
-            // ,setBaseLayer: function(name) {
-                // this.setMode(name);
-            // }
-            // ,
-            // unSetBaseLayer: function() {
-                // map.setBaseLayer();
-            // }
-            // ,getBaseLayer: function() {
-                // return this.getModeID();
-            // }
-        // });
-
         gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
 
         map.geoSearchAPIRoot = 'http://maps.kosmosnimki.ru/';
-
-        map.setMinMaxZoom = function(z1, z2) {
-            if(gmxAPI.proxyType === 'flash' && gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
-            return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
-        }
-        map.setZoomBounds = map.setMinMaxZoom;
-
-        // map.drawing = {
-            //forEachObject: function() { return false; }
-            // 'setHandlers': function() { return false; }
-            // ,'forEachObject': function() { return false; }
-            // ,
-            // addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel) {
-                // LMap.addControl(new L.Control.gmxIcon({
-                    // id: tn,
-                    // title: hint,
-                    // toggle: true,
-                    // regularImageUrl: regularImageUrl,
-                    // activeImageUrl: activeImageUrl,
-                    // stateChange: function (control) {
-                        // console.log(tn , ':', control.options.isActive);
-                        // if(control.options.isActive) onClick();
-                        // else onCancel();
-                    // }
-                // }));
-            // }
-            // ,
-            // setVisible: function(id, flag) {        // видимость
-                // var control = Controls.items[id];
-            // }
-            // ,
-            // selectTool: function (id) {
-                // var control = Controls.items.gmxDrawing;
-                // if (id === 'POINT') {
-                    // control = Controls.items.drawingPoint;
-                    // if ('onclick' in control.options) {
-                        // control.options.onclick();
-                    // }
-                // }
-                // control.setActive(id);
-            // }
-        // };
 
         map.addLayers = function(layers, notMoveFlag, notVisible) {
             for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
@@ -144,4 +78,3 @@
     //расширяем namespace
     gmxAPI._addNewMap = addNewMap; // Создать map обьект
 })();
-
