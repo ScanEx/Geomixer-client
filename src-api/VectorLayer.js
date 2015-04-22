@@ -526,7 +526,13 @@
         };
 
         var attr = utils.prpLayerAttr(layer, node);
-        if(attr.bounds) node.bounds = attr.bounds;
+        if (attr.bounds) {
+            node.bounds = attr.bounds;
+            node.mercBounds = gmxAPI.bounds([
+                [gmxAPI.merc_x(node.bounds.min.x), gmxAPI.merc_y(node.bounds.min.y)],
+                [gmxAPI.merc_x(node.bounds.max.x), gmxAPI.merc_y(node.bounds.max.y)]
+            ]);
+        }
         node.minZ = inpAttr.minZoom || attr.minZoom || gmxAPI.defaultMinZoom;
         node.maxZ = inpAttr.maxZoom || attr.maxZoom || gmxAPI.defaultMaxZoom
         var identityField = attr.identityField || 'ogc_fid';
@@ -1926,6 +1932,7 @@
 
                 if(!zoom) zoom = currZ;
                 var attr = vectorUtils.getTileAttr(tilePoint, zoom);
+                if (node.mercBounds && !node.mercBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
                 if (node.clipBounds && !node.clipBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
                 
                 //if (node.fireEvent('onBeforeLoadTile', attr)) return true; // Перед загрузкой или отрисовкой тайла
