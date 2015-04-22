@@ -1932,7 +1932,8 @@
 
                 if(!zoom) zoom = currZ;
                 var attr = vectorUtils.getTileAttr(tilePoint, zoom);
-                if (node.mercBounds && !node.mercBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
+                // TODO: геометрии слоев бывают не правильные
+                //if (node.mercBounds && !node.mercBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
                 if (node.clipBounds && !node.clipBounds.intersects(attr.bounds)) return true; // Тайл не пересекает clipBounds
                 
                 //if (node.fireEvent('onBeforeLoadTile', attr)) return true; // Перед загрузкой или отрисовкой тайла
