@@ -477,30 +477,28 @@ layersTree.prototype.getActive = function()
 
 layersTree.prototype.getMinLayerZoom = function(layer)
 {
-	var minLayerZoom = 20;
-	
-	for (var i = 0; i < layer.properties.styles.length; i++)
-		minLayerZoom = Math.min(minLayerZoom, layer.properties.styles[i].MinZoom);
-	
-	return minLayerZoom
+    var minLayerZoom = 20,
+        styles = layer.getStyles();
+
+    for (var i = 0; i < styles.length; i++) {
+        minLayerZoom = Math.min(minLayerZoom, styles[i].MinZoom);
+    }
+
+    return minLayerZoom;
 }
 
 layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
 {
-	var z = globalFlashMap.getBestZ(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-	if (minZoom != 20)
+    var lmap = nsGmx.leafletMap,
+        z = lmap.getBoundsZoom(bounds);
+
+	if (minZoom !== 20) {
 		z = Math.max(z, minZoom);
-        
-    var zoomBounds = globalFlashMap.getZoomBounds();
-    z = Math.min(zoomBounds.MaxZoom, Math.max(zoomBounds.MinZoom, z));
+    }
+
+    z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
     
-    var proj = nsGmx.leafletMap.options.crs.projection,
-        mercMin = proj.project({lat: bounds.minY, lng: bounds.minX}),
-        mercMax = proj.project({lat: bounds.maxY, lng: bounds.maxX}),
-        mercCenter = {x: (mercMin.x + mercMax.x)/2, y: (mercMin.y + mercMax.y)/2},
-        center = proj.unproject(mercCenter);
-    
-	globalFlashMap.moveTo(center.lng, center.lat, z);
+    lmap.fitBounds(bounds).setZoom(z);
 }
 
 layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
@@ -541,14 +539,13 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         dbclickFunc = function()
         {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
-            var layer = globalFlashMap.layers[elem.name];
+            var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
         
             if (layer)
             {
                 var minLayerZoom = _this.getMinLayerZoom(layer);
-                
-                _this.layerZoomToExtent(layer.getLayerBounds(), minLayerZoom);
+                _this.layerZoomToExtent(layer.getBounds(), minLayerZoom);
             }
         };
     
