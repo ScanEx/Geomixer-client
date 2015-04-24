@@ -6,6 +6,8 @@ var GFWLayer = null;
 
 var GFWSlider = L.Control.extend({
     includes: L.Mixin.Events,
+    _yearBegin: 2001,
+    _yearEnd: 2014,
     onAdd: function(map) {
         var template = Handlebars.compile(
             '<div class = "gfw-slider">' + 
@@ -19,7 +21,7 @@ var GFWSlider = L.Control.extend({
         );
         
         var labels = [];
-        for (var year = 2000; year <= 2014; year++) {
+        for (var year = 2001; year <= 2014; year++) {
             labels.push(year);
         }
         
@@ -28,12 +30,14 @@ var GFWSlider = L.Control.extend({
         }));
         
         ui.find('.gfw-slider-container').slider({
-            min: 2000,
+            min: 2001,
             max: 2014,
-            values: [2000, 2014],
+            values: [this._yearBegin, this._yearEnd],
             range: true,
             change: function(event, ui) {
-                this.fire('yearschange', {yearBegin: ui.values[0], yearEnd: ui.values[1]});
+                this._yearBegin = ui.values[0];
+                this._yearEnd = ui.values[1];
+                this.fire('yearschange', {yearBegin: this._yearBegin, yearEnd: this._yearEnd});
             }.bind(this)
         });
         
@@ -50,7 +54,7 @@ var GFWSlider = L.Control.extend({
 function defineClass() {
     GFWLayer = L.TileLayer.Canvas.Mercator.extend({
         options: {async: true, tilesCRS: L.CRS.EPSG3857},
-        _yearBegin: 2000,
+        _yearBegin: 2001,
         _yearEnd: 2014,
         _drawLayer: function(img, ctx, z) {
             var imgData = ctx.getImageData(0, 0, 256, 256),
