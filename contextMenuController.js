@@ -242,11 +242,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	isVisible: function(context)
 	{
         var layerRights = _queryMapLayers.layerRights(context.elem.name);
-		return !context.layerManagerFlag && (
-            _queryMapLayers.currentMapRights() === "edit" || 
-            layerRights === 'edit' || 
-            layerRights === 'editrows'
-        );
+		return !context.layerManagerFlag && nsGmx.AuthManager.isLogin();
 	},
 	clickCallback: function(context)
 	{
