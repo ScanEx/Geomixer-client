@@ -378,6 +378,7 @@
 					,async: true
 					,unloadInvisibleTiles: true
                     ,gmxCopyright: gmxNode.gmxCopyright
+                    ,attribution: gmxNode.properties.Copyright || ''
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
                 if(node.regularStyle && node.regularStyle.fillOpacity) { // Изменить opacity растрового слоя

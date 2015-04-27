@@ -3083,6 +3083,7 @@
             var createLayerTimer = null;          // Таймер
             var createLayer = function() {          // Создание leaflet слоя
                 option.gmxCopyright = gmxNode.gmxCopyright;
+                option.attribution = gmxNode.properties.Copyright || '';
                 myLayer = new L.TileLayer.VectorTiles(option);
                 node.leaflet = myLayer;
                 node.chkZoomBoundsFilters();

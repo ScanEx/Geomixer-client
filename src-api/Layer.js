@@ -891,11 +891,11 @@
             // Установка видимости по Zoom
             obj.setZoomBounds(stylesMinMaxZoom.minZoom, stylesMinMaxZoom.maxZoom);
 
-            if(!obj.isMiniMap) {     // если это не miniMap
-                if (layer.properties.Copyright) {
-                    obj.setCopyright(layer.properties.Copyright);
-                }
-            }
+            // if(!obj.isMiniMap) {     // если это не miniMap
+                // if (layer.properties.Copyright) {
+                    //obj.setCopyright(layer.properties.Copyright);
+                // }
+            // }
             if(obj_.tilesParent) obj.tilesParent = obj_.tilesParent;
             gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
                 removeContextMenuItem: function(itemId) {

@@ -670,13 +670,19 @@
             };
             gmxAPI.extend(gmxAPI.map, {
                 addCopyrightedObject: function(obj, copyright, z1, z2, geo) {
-                    copyrightControls.setMapCopyright(copyright);
-                    //util.addItem(obj, copyright, z1, z2, geo);
+                    if (obj === gmxAPI.map) {
+                        copyrightControls.setMapCopyright(copyright);
+                    } else {
+                        util.addItem(obj, copyright, z1, z2, geo);
+                    }
                 }
                 ,removeCopyrightedObject: function(obj) {
-                    copyrightControls.setMapCopyright('');
-                    // util.removeItem(obj);
-                    // copyrightControls._redraw();
+                    if (obj === gmxAPI.map) {
+                        copyrightControls.setMapCopyright('');
+                    } else {
+                        util.removeItem(obj);
+                    }
+                    copyrightControls._redraw();
                 }
                 ,setCopyrightVisibility: function(obj) {
                     //copyrightControl.setVisible(obj);
