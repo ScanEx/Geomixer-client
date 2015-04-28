@@ -1030,13 +1030,10 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
-        if (map && map.baseLayersManager) {
-            var baseLayersControl = new nsGmx.BaseLayersControl(map.baseLayersManager, {
-                language: nsGmx.Translations.getLanguage()
-            });
-        
-            baseLayersControl.addTo(lmap);
-        }
+        var baseLayersControl = new nsGmx.BaseLayersControl(lmap.gmxBaseLayersManager, {
+            language: nsGmx.Translations.getLanguage()
+        });
+        baseLayersControl.addTo(lmap);
         
         $('#flash').bind('dragover', function()
         {
