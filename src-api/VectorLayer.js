@@ -1036,7 +1036,7 @@
                         //ctx.fill();
                     ctx.clip();
                     ctx.restore();
-                } else {
+                } else if (node.quicklook || node.IsRasterCatalog) {
                     ctx.fillStyle = tile._fillStyle;
                     itemStyle.pattern = null;
                 }
