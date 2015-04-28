@@ -489,6 +489,8 @@ layersTree.prototype.getMinLayerZoom = function(layer)
 
 layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
 {
+    if (!bounds) return;
+    
     var lmap = nsGmx.leafletMap,
         z = lmap.getBoundsZoom(bounds);
 
@@ -498,7 +500,10 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
 
     z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
     
-    lmap.fitBounds(bounds).setZoom(z);
+    //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
+    //а указать явно zoom в fitBounds нельзя
+    //TODO: enable animation!
+    lmap.fitBounds(bounds, {animation: false}).setZoom(z);
 }
 
 layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
@@ -735,26 +740,17 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (childsUl)
             {
-                var bounds = {
-                        minX: 100000000, 
-                        minY: 100000000, 
-                        maxX: -100000000, 
-                        maxY: -100000000
-                    },
+                var bounds = new L.LatLngBounds(),
                     minLayerZoom = 20;
                 
                 _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
                 {
                     if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
                     {
-                        var layer = globalFlashMap.layers[child.content.properties.name],
-                            layerBounds = layer.getLayerBounds();
-                    
-                        bounds.minX = Math.min(layerBounds.minX, bounds.minX);
-                        bounds.minY = Math.min(layerBounds.minY, bounds.minY);
-                        bounds.maxX = Math.max(layerBounds.maxX, bounds.maxX);
-                        bounds.maxY = Math.max(layerBounds.maxY, bounds.maxY);
+                        var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
                         
+                        bounds.extend(layer.getBounds());
+
                         minLayerZoom = Math.min(minLayerZoom, _this.getMinLayerZoom(layer));
                     }
                 });
