@@ -1028,10 +1028,13 @@
                     } else {
                         gmxAPI.addDebugWarnings({'func': 'objectToCanvas', 'nodeID': node.id, 'alert': 'Bad geometry type for id: ' + geom.id + ' layer: ' + nodeId});
                     }
-                    attr.canvasPattern = null;
+                    //attr.canvasPattern = null;
                         //ctx.fill();
                     ctx.clip();
                     ctx.restore();
+                } else {
+                    ctx.fillStyle = tile._fillStyle;
+                    itemStyle.pattern = null;
                 }
                 geom.paint(attr, itemStyle, ctx);
             }
