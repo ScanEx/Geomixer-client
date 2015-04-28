@@ -35,6 +35,7 @@
 
         node.propHiden = {};     // Свойства внутренние
         //node['tilesRedrawTimers'] = {};   // Таймеры отрисовки тайлов
+        node.tilesPatterns = {};   // BG тайлов
         node.tilesRedrawImages = {};   // Отложенные отрисовки растров по тайлам
         node.tilesKeys = {};     // Соответсвие текущих ключей тайлов
         node.waitStyle = true;    // Ожидание инициализации стилей слоя
@@ -971,6 +972,9 @@
 
             if (!imageObj && curStyle.image) {
                 imageObj = curStyle.image;
+            }
+            if (!imageObj && node.tilesPatterns[attr.drawTileID]) {
+                imageObj = node.tilesPatterns[attr.drawTileID];
             }
             if(curStyle.addStyles) {
                 for (var i = 0, len = curStyle.addStyles.length; i < len; i++) {
@@ -2894,8 +2898,9 @@
                     myLayer.removeTile(tileAttr.tilePoint);  // Удаление ставшего пустым тайла
                 } else {
                     if(tile) {
-                        if (!tile.parentNode) myLayer._tileContainer.appendChild(tile);
+                        var hide = gmxAPI._listeners.dispatchEvent('onTileDrawDone', gmxNode, { tile: tile, drawTileID: tileAttr.drawTileID, tKey: tileAttr.tKey });
                         if(node.clipGeo) node.clipTileByPolygon(tile, tileAttr.x, tileAttr.y);
+                        if (!tile.parentNode && !hide) myLayer._tileContainer.appendChild(tile);
                     }
                     //chkBorders(200);
                 }
@@ -3026,6 +3031,16 @@
                 node.screenTilesToLoad = {};
                 // node.tilesGeometry = {};
                 // node.objectsData = {};
+            }
+            ,
+            addTilePattern: function (attr) {
+                node.tilesPatterns[attr.drawTileID] = attr.tile;
+                node.addTilesNeedRedraw(attr.tKey, true);
+            }
+            ,
+            clearTilePattern: function () {
+                node.tilesPatterns = {};
+                node.redrawTilesNeed(0);
             }
         });
 

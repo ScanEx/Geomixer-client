@@ -898,6 +898,12 @@
             // }
             if(obj_.tilesParent) obj.tilesParent = obj_.tilesParent;
             gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
+                addTilePattern: function(pt) {
+                    return proxy('addTilePattern', { obj: obj, attr: pt });
+                },
+                clearTilePattern: function(pt) {
+                    return proxy('clearTilePattern', { obj: obj, attr: pt });
+                },
                 removeContextMenuItem: function(itemId) {
                     return proxy('removeContextMenuItem', { obj: obj, attr: {
                         id: itemId
@@ -1025,7 +1031,7 @@
             if (!isRaster)
             {
                 obj.getFeatures = function(arg1, arg2, arg3)
-                {       
+                {
                     obj.setVisible(true, true);
                     obj.getFeatures(arg1, arg2, arg3);
                     FlashMapObject.prototype.setVisible.call(obj, false, true);  // без Dispatch события

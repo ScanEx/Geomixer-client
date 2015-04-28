@@ -3280,6 +3280,22 @@
 			if(miniMapFlag) gmxAPI.map.miniMap.setVisible(miniMapFlag);
 			return ret;
 		}
+        ,
+        'clearTilePattern': function(ph) {  // Установка тайлов BG векторного слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node || !node.clearTilePattern) return false;
+            node.clearTilePattern(ph.attr);
+            return true;
+        }
+        ,
+        'addTilePattern':	function(ph) {  // Установка тайлов BG векторного слоя
+            var id = ph.obj.objectId;
+            var node = mapNodes[id];
+            if(!node || !node.addTilePattern) return false;
+            node.addTilePattern(ph.attr);
+            return true;
+        }
 	}
 
 	// Передача команды в leaflet
