@@ -590,6 +590,7 @@
             'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
             'setClusters',
             'setImageProcessingHook', 'addImageProcessingHook', 'removeImageProcessingHook',
+            'addTilePattern', 'clearTilePattern',
             'addClipPolygon', 'removeClipPolygon',
             'addContextMenuItem', 'removeContextMenuItem',
             'enableDragging', 'disableDragging',
@@ -828,6 +829,12 @@
                     var _obj = proxy('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
                     return _obj;
                 }
+                obj.addTilePattern = function(pt) {
+                    return proxy('addTilePattern', { obj: obj, attr: pt });
+                };
+                obj.clearTilePattern = function(pt) {
+                    return proxy('clearTilePattern', { obj: obj, attr: pt });
+                };
                 obj.addClipPolygon = function(geo) {
                     return proxy('addClipPolygon', { 'obj': obj, 'attr':{'geo':geo} });
                 };
@@ -898,12 +905,6 @@
             // }
             if(obj_.tilesParent) obj.tilesParent = obj_.tilesParent;
             gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
-                addTilePattern: function(pt) {
-                    return proxy('addTilePattern', { obj: obj, attr: pt });
-                },
-                clearTilePattern: function(pt) {
-                    return proxy('clearTilePattern', { obj: obj, attr: pt });
-                },
                 removeContextMenuItem: function(itemId) {
                     return proxy('removeContextMenuItem', { obj: obj, attr: {
                         id: itemId

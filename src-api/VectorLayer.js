@@ -3040,7 +3040,7 @@
             ,
             clearTilePattern: function () {
                 node.tilesPatterns = {};
-                node.redrawTilesNeed(0);
+                if (myLayer) myLayer.redraw();
             }
         });
 
