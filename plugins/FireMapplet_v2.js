@@ -817,10 +817,10 @@ var FireBurntRenderer3 = function( params )
     this.setVisible = function(visibilityFlag)
     {
         isVisible = visibilityFlag;
-        updateLayersVisibility();
         [clustersGeomLayer, clustersLayer].forEach(function(layer) {
             map[visibilityFlag ? 'addLayer' : 'removeLayer'](layer);
         })
+        updateLayersVisibility();
     }
 }
 
