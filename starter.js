@@ -992,6 +992,8 @@ function loadMap(state)
         }
     }
     
+    L.Icon.Default.imagePath = 'leaflet/images';
+    
     var lmap = new L.Map($$('flash'), {
         center: [55.7574, 37.5952]
         ,zoom: 5
@@ -1040,21 +1042,13 @@ function loadMap(state)
             return false;
         });
         
-        if (map && map.controlsManager) {
-            var layers = map.controlsManager.getCurrent().getControl('layers');
-            if (layers) {
-                  layers.options.hideBaseLayers = true;
-                  layers._update();
-            }
-        }
-        
         $('#flash').bind('drop', function(e)
         {
             if (!e.originalEvent.dataTransfer) {
                 return;
             }
             
-            var b = getBounds();
+            var b = L.latLngBounds([]);
             var defs = [];
             $.each(e.originalEvent.dataTransfer.files, function(i, file) {
                 var def = $.Deferred();
@@ -1063,8 +1057,12 @@ function loadMap(state)
                 parseDef.then(
                     function(objs) {
                         for (var i = 0; i < objs.length; i++) {
-                            b.update(objs[i].geometry.coordinates);
-                            map.drawing.addObject(objs[i].geometry, objs[i].properties);
+                            var features = lmap.gmxDrawing.addGeoJSON(L.geoJson({
+                                type: "Feature",
+                                geometry: L.gmxUtil.geometryToGeoJSON(objs[i].geometry),
+                                properties: objs[i].properties
+                            }));
+                            b.extend(features[0].getBounds());
                         }
                         def.resolve();
                     },
@@ -1075,9 +1073,9 @@ function loadMap(state)
             })
             
             $.when.apply($, defs).done(function() {
-                if ( b.minX < b.maxX && b.minY < b.maxY ) {
-                    globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
-                }
+                //if ( b.minX < b.maxX && b.minY < b.maxY ) {
+                lmap.fitBounds(b);
+                //}
             })
             
             return false;
