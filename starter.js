@@ -1057,11 +1057,11 @@ function loadMap(state)
                 parseDef.then(
                     function(objs) {
                         for (var i = 0; i < objs.length; i++) {
-                            var features = lmap.gmxDrawing.addGeoJSON(L.geoJson({
+                            var features = lmap.gmxDrawing.addGeoJSON({
                                 type: "Feature",
                                 geometry: L.gmxUtil.geometryToGeoJSON(objs[i].geometry),
                                 properties: objs[i].properties
-                            }));
+                            });
                             b.extend(features[0].getBounds());
                         }
                         def.resolve();
