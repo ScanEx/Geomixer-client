@@ -8,9 +8,9 @@
     function getActiveLayerID(params) {
         var out = null;
         var active = $(_queryMapLayers.treeCanvas).find(".active");
-        if (active && active[0] && active[0].parentNode.getAttribute("LayerID") &&
-            active[0].parentNode.gmxProperties.content.properties.type === "Vector")
-        {
+        if (active && active[0] && active[0].parentNode.getAttribute("LayerID")) {
+            // active[0].parentNode.gmxProperties.content.properties.type === "Vector")
+        // {
             out = active[0].parentNode.gmxProperties.content.properties.name;
         } else if (params.DefaultLayerID) {
             out = params.DefaultLayerID;
@@ -26,20 +26,27 @@
             opt = layer.options,
             layerID = opt.layerID,
             tileKey = opt.tileKey,
-            arr = tileKey.split('_'),
-            url = tileSenderPrefix +
-                '&LayerName=' + layerID +
-                '&z=' + arr[0] +
-                '&x=' + arr[1] +
-                '&y=' + arr[2] +
-                '&v=' + arr[3];
+            title = 'Граница слоя';
 
-        if (arr[4] > 0) {
-            url += '&Level=' + arr[5] + '&Span=' + arr[4];
+        if (tileKey) {
+            title = tileKey;
+            var arr = tileKey.split('_'),
+                url = tileSenderPrefix +
+                    '&LayerName=' + layerID +
+                    '&z=' + arr[0] +
+                    '&x=' + arr[1] +
+                    '&y=' + arr[2] +
+                    '&v=' + arr[3];
+
+            if (arr[4] > 0) {
+                url += '&Level=' + arr[5] + '&Span=' + arr[4];
+            }
         }
-        var str = '<span style="font-size:14px; font-weight:bold; color:#000;">' + tileKey + '</span><br/>';
-        str += '<table style="width:375px;"><tbody>';
-        str += '<tr><td><a href="' + url + '" target=_blank>zxyv:' + tileKey + '</a></td></tr>';
+        var str = '<span style="font-size:14px; font-weight:bold; color:#000;">' + title + '</span><br/>';
+        if (tileKey) {
+            str += '<table style="width:375px;"><tbody>';
+            str += '<tr><td><a href="' + url + '" target=_blank>zxyv:' + tileKey + '</a></td></tr>';
+        }
         str += '</table></tbody>';
         popup.setContent(str);
     };
@@ -74,8 +81,10 @@
                         var layerID = getActiveLayerID(params),
                             testLayer = gmxAPI.layersByID[layerID];
                         if (testLayer) {
-                            var dm = testLayer._gmx.dataManager,
+                            var geo = testLayer._gmx.geometry,
+                                dm = testLayer._gmx.dataManager,
                                 activeTileKeys = dm._getActiveTileKeys();
+                                
                             for (var key in activeTileKeys) {
                                 var bounds = dm._tiles[key].tile.bounds;
                                 var latLngBounds = L.latLngBounds(
@@ -87,9 +96,15 @@
                                         layerID: layerID,
                                         tileKey: key,
                                         color: "#ff7800",
-                                        weight: 3
+                                        weight: 2
                                     }).addTo(featureGroup);
                             }
+                            var geoJson = L.geoJson(L.gmxUtil.geometryToGeoJSON(geo, true), {
+                                style: function (feature) {
+                                    return { color: '#0000FF', weight: 4, opacity: 1, fill: false };
+                                }
+                            })
+                            .addTo(featureGroup);
                         }
                     } else {
                         featureGroup.clearLayers();
