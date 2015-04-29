@@ -128,6 +128,11 @@ var createMenuNew = function()
     //формирует описание элемента меню для включения/выключения плагина
     var getPluginToMenuBinding = function(pluginName, menuItemName, menuTitle) {
         var plugin = nsGmx.pluginsManager.getPluginByName(pluginName);
+        
+        if (!plugin) {
+            return null;
+        }
+        
         var sel = function() {
             nsGmx.pluginsManager.setUsePlugin(pluginName, true);
             nsGmx.pluginsManager.done(function() {
@@ -158,8 +163,7 @@ var createMenuNew = function()
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
-	{id:"mapsMenu", title:_gtxt("Карта"),childs:
-		[
+        {id:"mapsMenu", title:_gtxt("Карта"),childs: [
 			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
 			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
@@ -181,10 +185,11 @@ var createMenuNew = function()
                     props = _layersTree.treeModel.getMapProperties();
                 securityDialog.getRights(props.MapID, props.title);
             }, disabled: !isMapEditor}
-		]});
+		]}
+    );
 	
 	_menuUp.addItem(
-	{id:"dataMenu", title: _gtxt('Данные'), childs:
+        {id:"dataMenu", title: _gtxt('Данные'), childs:
 		[
 			{id:'layerList',   title: _gtxt('Открыть слой'),    func:function(){_queryMapLayers.getLayers()}, disabled: !isMapEditor},
 			{id:'createLayer', title: _gtxt('Создать слой'),    childs:
@@ -201,17 +206,16 @@ var createMenuNew = function()
 			{id:'loadFile',    title: _gtxt('Загрузить файл'),  func:drawingObjects.loadShp.load},
 			{id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
 			{id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
-			
 		]});
 	
 	_menuUp.addItem(
-	{id:"viewMenu", title: _gtxt("Вид"),childs:
+        {id:"viewMenu", title: _gtxt("Вид"),childs:
 		[
 			{id:'externalMaps',   title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
 			{id:'mapTabs',        title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
 			{id:'DrawingObjects', title: _gtxt('Объекты'),              func: oDrawingObjectGeomixer.Load},
 			{id:'searchView',     title: _gtxt('Результаты поиска'),    func: oSearchControl.Load}
-		]});
+    ]});
 	
 	_menuUp.addItem(
         {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
@@ -228,7 +232,7 @@ var createMenuNew = function()
 			{id: 'directions',    title: _gtxt('Маршруты'), func:function(){}, disabled: true}
 		]});
         
-    	_menuUp.addItem(
+    _menuUp.addItem(
         {id: "pluginsMenu", title: _gtxt('Сервисы'), childs:
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', _gtxt('Кадастр Росреестра')),
