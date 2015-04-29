@@ -33,6 +33,9 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 var gmxJSHost = window.gmxJSHost || "";
 
+//другие значения в данный момент не поддерживаются
+window.gmxControls = 'controlsBaseIcons';
+
 //скопирована из API, так как используется до его загрузки
 function parseUri(str) 
 {
