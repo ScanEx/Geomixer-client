@@ -168,6 +168,11 @@
                 ,eng: pt.eng
                 ,icon: pt.icon
             };
+            for (var key in attr) {
+                if (key !== 'layers' && !pt.options[key]) {
+                    pt.options[key] = attr[key];
+                }
+            }
 
             manager.hash[id] = pt;
             manager.arr.push(pt);
