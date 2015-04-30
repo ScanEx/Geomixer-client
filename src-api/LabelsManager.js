@@ -66,7 +66,7 @@
             item = node.getItem({itemId: geom.id, flagMerc: true}),
             bounds = item ? item.bounds : geom.bounds;
 
-        var center = utils.getItemCenter(item);
+        var center = item ? utils.getItemCenter(item) : [bounds.min.x, bounds.min.y];
         if (!center) {return null;}
         if (!style.align) {
             style.align = 'center';
