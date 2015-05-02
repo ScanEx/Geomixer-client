@@ -949,7 +949,7 @@
                 
                 if(style.fill) {
                     var fillStyle = style.fillColor_rgba;
-                    if(tile._fillStyle !== fillStyle) ctx.fillStyle = fillStyle;
+                    if(ctx.fillStyle !== fillStyle) ctx.fillStyle = fillStyle;
                     tile._fillStyle = fillStyle;
                 }
             }
@@ -3040,7 +3040,7 @@
             ,
             clearTilePattern: function () {
                 node.tilesPatterns = {};
-                if (myLayer) myLayer.redraw();
+                node.repaintTilesList();
             }
         });
 
