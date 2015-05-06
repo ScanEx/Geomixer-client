@@ -236,9 +236,7 @@
                 var geom = node.hoverItem,
                     id = geom.id;
                 node.hoverItem = null;
-                if (!node.objectsData[id]) return;
                 var propHiden = geom.propHiden,
-                    item = node.objectsData[id],
                     zoom = LMap.getZoom(),
                     filter = node.getItemFilter(geom),
                     regularStyle = null;
@@ -249,8 +247,8 @@
                 }
                 if (regularStyle && !regularStyle.iconUrl) {
                     propHiden.curStyle = utils.evalStyle(regularStyle, geom.properties);
-
-                    var drawInTiles = item.propHiden.drawInTiles;
+                    var item = node.objectsData[id] || geom,
+                        drawInTiles = item.propHiden.drawInTiles;
                     if(drawInTiles && drawInTiles[zoom]) {
                         var tilesNeed = {};
                         getTKeysFromGmxTileID(tilesNeed, drawInTiles[zoom]);
@@ -262,7 +260,6 @@
                 callHandler('onMouseOut', geom, gmxNode);
                 if(filter) callHandler('onMouseOut', geom, filter);
                 prevID = 0;
-                //gmxAPI._leaflet.LabelsManager.remove(nodeId, geom.id);
             }
         }
         //gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
@@ -1022,18 +1019,11 @@
                     } else {
                         chkGlobalAlpha(ctx);
                     }
-                    //var pattern = ctx.createPattern(pImage, "no-repeat");
-                    //ctx.fillStyle = pattern;
                     attr.canvasPattern = pImage;
                     itemStyle.pattern = true;
-                        //ctx.fillRect(0, 0, 256, 256);
                     if(geom.paintFill) {
                         geom.paintFill(attr, itemStyle, ctx, true);
-                    } else {
-                        gmxAPI.addDebugWarnings({'func': 'objectToCanvas', 'nodeID': node.id, 'alert': 'Bad geometry type for id: ' + geom.id + ' layer: ' + nodeId});
                     }
-                    //attr.canvasPattern = null;
-                        //ctx.fill();
                     ctx.clip();
                     ctx.restore();
                 } else if (node.quicklook || node.IsRasterCatalog) {

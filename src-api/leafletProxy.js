@@ -3368,11 +3368,11 @@
 		}
         // Проверка совпадения с другой точкой
         out.contains = function (chkPoint) {
-            return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out);
+            return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out.testPoint);
         }
         // Проверка пересечения точки с bounds
         out.intersects = function (chkBounds) {
-            return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out);
+            return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out.testPoint);
         }
         // Квадрат растояния до точки
         out.distance2 = function (chkPoint) {
@@ -3396,13 +3396,13 @@
                 else if(scale > style.maxScale) scale = style.maxScale;
                 out._cache._scale = scale;
             }
-            out.sx = scale * (style.imageWidth ? style.imageWidth/2 : size);
-            out.sy = scale * (style.imageHeight ? style.imageHeight/2 : size);
+            out.sx = scale * (style.imageWidth || size);
+            out.sy = scale * (style.imageHeight || size);
             if(style.dx) out.dx = style.dx;
             if(style.dy) out.dy = style.dy;
             out.weight = style.weight || 0;
-            out.sx += out.weight/2;
-            out.sy += out.weight/2;
+            // out.sx += out.weight/2;
+            // out.sy += out.weight/2;
 
             if(style.marker) {
 				var rotateRes = style.rotate || 0;
@@ -3420,7 +3420,7 @@
                     if(rotateRes || 'color' in style) {
                         if(rotateRes) {
                             size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-                            size = Math.ceil(scale * size/2);
+                            size = Math.ceil(scale * size);
                             out.sx = out.sy = isFinite(size) ? size : 0;
                             out.isCircle = true;
                         }
@@ -3450,6 +3450,15 @@
             out._cache.syLabelBottom = out.syLabelBottom ? out.syLabelBottom / mInPixel : 0;
             out._cache.syLabelTop = out.syLabelTop ? out.syLabelTop / mInPixel : 0;
 
+            out.testPoint = {
+                sx: out.sx / 2,
+                sy: out.sy / 2,
+                sxLabelLeft: out.sxLabelLeft,
+                sxLabelRight: out.sxLabelRight,
+                syLabelBottom: out.syLabelBottom,
+                syLabelTop: out.syLabelTop
+            };
+
             var delta = out.weight ? out.weight / mInPixel : 0;
             out._cache.tiles = gmxAPI._leaflet.utils.getTileListByExtent({
                 minX: point.x - out._cache.sx - out._cache.sxLabelLeft - delta
@@ -3470,16 +3479,17 @@
             var prop = out.properties || null,
                 x = attr.x,
                 y = 256 + attr.y,
-                px1 = point.x * mInPixel - x - out.sx,
-                py1 = y - point.y * mInPixel - out.sy;
+                px1 = point.x * mInPixel - x,
+                py1 = y - point.y * mInPixel;
             if(style.dx) px1 += out.dx;
             if(style.dy) py1 += out.dy;
-            if(style.marker && !style.center) {
-                px1 += out.sx;
-                py1 += out.sy;
-            }
+            // if(style.marker && !style.center) {
+                // px1 += out.sx;
+                // py1 += out.sy;
+            // }
             px1 = (0.5 + px1) << 0;
             py1 = (0.5 + py1) << 0;
+            var px1sx = px1 - out.sx / 2, py1sy = py1 - out.sy / 2;
 
             if(style.marker) {
                 if(style.polygons) {
@@ -3510,9 +3520,9 @@
                         for (var j = 0, len1 = pRes.length; j < len1; j++) {
                             var t = pRes[j];
                             if(j == 0)
-                                ctx.moveTo(px1 + out.sx + t.x, py1 + out.sy + t.y);
+                                ctx.moveTo(px1 + t.x, py1 + t.y);
                             else
-                                ctx.lineTo(px1 + out.sx + t.x, py1 + out.sy + t.y);
+                                ctx.lineTo(px1 + t.x, py1 + t.y);
                         }
                         ctx.fill();
                         //ctx.restore();
@@ -3520,20 +3530,10 @@
                 } else if(style.image) {
                     var canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style);
                     if('opacity' in style) ctx.globalAlpha = style.opacity;
-                    ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
+                    ctx.drawImage(canv, px1sx, py1sy, out.sx, out.sy);
                     if('opacity' in style) ctx.globalAlpha = 1;
                 }
             } else {
-                if(style.stroke && style.weight > 0) {
-                    ctx.beginPath();
-                    if(style.circle) {
-                        ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
-                    } else {
-                        ctx.strokeRect(px1, py1, 2*out.sx, 2*out.sy);
-                    }
-                    ctx.stroke();
-                    //sx = sy = size;
-                }
                 if(style.fill) {
                     ctx.beginPath();
                     if(style.radialGradient) {
@@ -3568,10 +3568,20 @@
                             py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
                             ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
                         } else {
-                            ctx.fillRect(px1, py1, 2*out.sx, 2*out.sy);
+                            ctx.fillRect(px1sx, py1sy, out.sx, out.sy);
                         }
                     }
                     ctx.fill();
+                    //sx = sy = size;
+                }
+                if(style.stroke && style.weight > 0) {
+                    ctx.beginPath();
+                    if(style.circle) {
+                        ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
+                    } else {
+                        ctx.strokeRect(px1sx, py1sy, out.sx, out.sy);
+                    }
+                    ctx.stroke();
                     //sx = sy = size;
                 }
             }
