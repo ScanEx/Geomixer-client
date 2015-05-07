@@ -1294,9 +1294,9 @@ function loadMap(state)
                 ServerBase: globalFlashMap.geoSearchAPIRoot,
                 layersSearchFlag: true,
                 mapHelper: _mapHelper,
-                Map: globalFlashMap
+                Map: lmap,
+                gmxMap: gmxMap
             });
-            // }
             
             _menuUp.createMenu = function()
             {
