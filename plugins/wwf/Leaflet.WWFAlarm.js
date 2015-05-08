@@ -1,9 +1,18 @@
-﻿L.WWFAlarm = L.TileLayer.Canvas.extend({
+﻿// WWF Alarm raster layer. Extends L.TileLayer.Canvas
+// Layer creation:
+//   new L.WWFAlarm(<layerID>, <mapID>)
+L.WWFAlarm = L.TileLayer.Canvas.extend({
     options: {
         async: true
     },
     _tileTemplate: 'http://maps.kosmosnimki.ru/TileService.ashx?request=gettile&layername={layerID}&srs=EPSG:3857&z={z}&x={x}&y={y}&format=png&Map={mapID}',
-    
+    _minDate: 1,
+    _maxDate: 365,
+    initialize: function(layerID, mapID, options) {
+        this._layerID = layerID;
+        this._mapID = mapID;
+        L.Util.setOptions(this, options);
+    },
     drawTile: function(canvas, tilePoint, zoom) {
         var img = new Image();
         
@@ -43,10 +52,12 @@
             x: tilePoint.x,
             y: tilePoint.y,
             z: zoom,
-            layerID: 'C53699CEACAF4D8AB0ACF1A4D152D85A',
-            mapID: '1D116AC56D694C0B8CDCA87C06D1961A'
+            layerID: this._layerID,
+            mapID: this._mapID
         });
     },
+    
+    //dateBegin, dateEnd - number of days since beginning of the year (1 - January 1, etc)
     setDateInterval: function(dateBegin, dateEnd) {
         this._minDate = dateBegin;
         this._maxDate = dateEnd;
