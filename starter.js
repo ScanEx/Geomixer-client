@@ -1195,7 +1195,7 @@ function loadMap(state)
             //соответствующий модуль уже загружен
             var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
             window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
-            window.oDrawingObjectGeomixer.Init(globalFlashMap);
+            window.oDrawingObjectGeomixer.Init(nsGmx.leafletMap, nsGmx.gmxMap);
             
             //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
             (function fixVisibilityConstrains (o, isVisible)
@@ -1294,9 +1294,9 @@ function loadMap(state)
                 ServerBase: globalFlashMap.geoSearchAPIRoot,
                 layersSearchFlag: true,
                 mapHelper: _mapHelper,
-                Map: globalFlashMap
+                Map: lmap,
+                gmxMap: gmxMap
             });
-            // }
             
             _menuUp.createMenu = function()
             {
