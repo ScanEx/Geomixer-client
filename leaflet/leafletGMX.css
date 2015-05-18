@@ -343,10 +343,11 @@
 	background: #ffffff !important;
     cursor: inherit;
 }
-
+/*
 .leaflet-tile-container {
 	pointer-events: none;
 }
+*/
 /*
 .leaflet-overlay-pane svg {
 	pointer-events: none;
