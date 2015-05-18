@@ -354,7 +354,7 @@ extend(window.gmxAPI,
 // var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
 // var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 // var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
-
+/*
 // Поддержка setHandler и Listeners
 (function()
 {
@@ -381,6 +381,7 @@ extend(window.gmxAPI,
 	};
 
 	function setHandler(obj, eventName, handler) {
+
 		var func = function(subObjectId, a, attr)
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
@@ -413,6 +414,7 @@ extend(window.gmxAPI,
 				}
 			});
 		}
+
 	}
 
 	// Begin: Блок Listeners
@@ -451,16 +453,6 @@ extend(window.gmxAPI,
 		return out;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
-	* @function addListener
-	* @memberOf api - добавление прослушивателя
-	* @param {eventName} название события
-	* @param {func} вызываемый метод
-	* @param {pID} Listener унаследован от родительского обьекта
-	* @return {id} присвоенный id прослушивателя
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-	*/
 	function addListener(ph)
 	{
 		var eventName = ph['eventName'];
@@ -489,16 +481,6 @@ extend(window.gmxAPI,
 		}
 		return id;
 	}
-
-    /** Пользовательские Listeners изменений состояния карты
-    * @function removeListener
-    * @memberOf api - удаление прослушивателя
-    * @param {eventName} название события
-    * @param {id} вызываемый метод
-    * @return {Bool} true - удален false - не найден
-    * @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-    * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-    */
     function removeListener(obj, eventName, id) {
         var arr = getArr(eventName, obj);
         var out = [];
@@ -558,6 +540,7 @@ extend(window.gmxAPI,
 	//расширяем namespace
 	gmxAPI._handlers = ret;
 })();
+*/
 
 gmxAPI.forEachNode = function(layers, callback, notVisible) {
     var forEachNodeRec = function(o, isVisible, nodeDepth)
@@ -665,7 +648,10 @@ FlashMapObject.prototype = {
     // setCopyright: function(copyright, z1, z2, geo) {
     }
 };
-if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
+//if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
+		// gmxAPI.extendFMO('addListener', function(eventName, func, level) {
+		// });
+
 })();
 /*
 //Управление ToolsAll

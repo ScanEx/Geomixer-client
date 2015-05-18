@@ -46,7 +46,18 @@
             ))/Math.log(2)));
         }
 
-        gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
+        //gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
+        var mapNodes = gmxAPI._leaflet.mapNodes;
+        gmxAPI._cmdProxy = gmxAPI._leaflet.cmdProxy;			// Установка прокси для leaflet
+		var mapID = rootObjectId;
+		mapNodes[mapID] = {
+			'type': 'map'
+			,'handlers': {}
+			,'children': []
+			,'id': mapID
+			,'group': gmxAPI._leaflet.LMap
+			,'parentId': false
+		};
 
         map.geoSearchAPIRoot = 'http://maps.kosmosnimki.ru/';
 
@@ -72,7 +83,7 @@
         map.addLayers(layers, false, false);
         
         // map.ToolsContainer = gmxAPI._ToolsContainer;
-        gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Глобальный Listeners
+        //gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Глобальный Listeners
         return map;
     }
     //расширяем namespace

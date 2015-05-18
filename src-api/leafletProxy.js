@@ -245,18 +245,18 @@ console.log(cmd + ' : ' , hash , ' : ' , ret);
 			,'group': gmxAPI._leaflet.LMap
 			,'parentId': false
 		};
-		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapCreated', 'func': function(ph) {
-			setTimeout(function() {
-				if(gmxAPI.map.needMove) {
-					gmxAPI._leaflet.utils.runMoveTo();
-				}
-			}, 10);
-			if(gmxAPI.map.needSetMode) {
-				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
-				gmxAPI.map.needSetMode = null;
-			}
-		}});
+		// gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapCreated', 'func': function(ph) {
+			// setTimeout(function() {
+				// if(gmxAPI.map.needMove) {
+					// gmxAPI._leaflet.utils.runMoveTo();
+				// }
+			// }, 10);
+			// if(gmxAPI.map.needSetMode) {
+				// gmxAPI.map.setMode(gmxAPI.map.needSetMode);
+				// gmxAPI.map.needSetMode = null;
+			// }
+		// }});
 	}
 
-    gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
+    //gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
 })();
