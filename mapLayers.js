@@ -419,7 +419,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 
 	if (elem.type == "layer")
 	{
-        var elemProperties = !layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties;
+        var elemProperties = !layerManagerFlag ? nsGmx.gmxMap.layersByID[elem.content.properties.name].getGmxProperties(): elem.content.properties;
 		var childs = this.drawLayer(elemProperties, parentParams, layerManagerFlag, parentVisibility);
 		
 		if (typeof elem.content.properties.LayerID != 'undefined')
@@ -429,12 +429,15 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
             
         if (this._renderParams.showVisibilityCheckbox && !layerManagerFlag)
         {
-            globalFlashMap.layers[elemProperties.name].addListener("onChangeVisible", function(attr)
+            nsGmx.leafletMap.on('layeradd layerremove', function(event)
             {
-                var box = div.firstChild;
-                if (attr != box.checked)
-                {
-                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, attr);
+                if (nsGmx.gmxMap.layersByID[elemProperties.name] === event.layer) {
+                    var isVisible = nsGmx.leafletMap.hasLayer(event.layer),
+                        box = div.firstChild;
+
+                    if (isVisible !== box.checked) {
+                        _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, isVisible);
+                    }
                 }
             });
         }
@@ -1244,9 +1247,15 @@ layersTree.prototype.addLayersToMap = function(elem)
         {
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
             
-            var layerOnMap = globalFlashMap.addLayer(layer, visibility);
-            //nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
-            layer.properties.changedByViewer = true;
+            // var layerOnMap = globalFlashMap.addLayer(layer, visibility);
+            var layerOnMap = L.gmx.createLayer(layer);
+            nsGmx.gmxMap.addLayer(layerOnMap);
+            
+            visibility && layerOnMap.addTo(nsGmx.leafletMap);
+            
+            // nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
+            layerOnMap.getGmxProperties().changedByViewer = true;
+            // layer.properties.changedByViewer = true;
         }
         else
         {
@@ -1580,7 +1589,7 @@ queryMapLayers.prototype.currentMapRights = function()
 
 queryMapLayers.prototype.layerRights = function(name)
 {
-	return globalFlashMap.layers[name].properties.Access;
+	return nsGmx.gmxMap.layersByID[name].getGmxProperties().Access;
 }
 
 queryMapLayers.prototype.addUserActions = function()
@@ -1900,8 +1909,8 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
 
 queryMapLayers.prototype.removeLayer = function(name)
 {
-    if ( typeof globalFlashMap.layers[name] !== 'undefined' )
-        globalFlashMap.layers[name].remove();
+    var layer = nsGmx.gmxMap.layersByID[name];
+    layer && nsGmx.leafletMap.removeLayer(layer);
 }
 
 queryMapLayers.prototype.getLayers = function()

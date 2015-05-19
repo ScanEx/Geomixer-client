@@ -562,7 +562,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                         //var bounds = getBounds(geom.coordinates);
                         //globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
                         var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
-                        var bounds = L.gmxUtil.bounds(geom.coordinates[0]);
+                        var bounds = L.gmxUtil.getGeometryBounds(geom);
                         nsGmx.leafletMap.fitBounds([
                             [bounds.min.y, bounds.min.x],
                             [bounds.max.y, bounds.max.x]

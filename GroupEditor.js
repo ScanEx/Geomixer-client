@@ -2,9 +2,8 @@
 
 (function(){
 
-var BaseLayersControl = function(container, map) {
-    var blm = map.baseLayersManager,
-        lang = _translationsHash.getLanguage();
+var BaseLayersControl = function(container, blm) {
+    var lang = _translationsHash.getLanguage();
     
     $(container).append(
         '<table class="group-editor-blm-table">' +
@@ -33,14 +32,14 @@ var BaseLayersControl = function(container, map) {
     
     blm.getAll().forEach(function(baseLayer) {
         if (activeIDs.indexOf(baseLayer.id) === -1) {
-            var item = constructItem(baseLayer.id, baseLayer[lang]);
+            var item = constructItem(baseLayer.id, baseLayer.options[lang]);
             availContainer.append(item);
         }
     })
     
     activeIDs.forEach(function(id) {
         var baseLayer = blm.get(id);
-        mapContainer.append(constructItem(id, baseLayer && baseLayer[lang]));
+        mapContainer.append(constructItem(id, baseLayer && baseLayer.options[lang]));
     });
     
     var updateBaseLayers = function() {
@@ -604,7 +603,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
         
-        var baseLayersControl = new BaseLayersControl(divBaseLayers, globalFlashMap);
+        var baseLayersControl = new BaseLayersControl(divBaseLayers, nsGmx.leafletMap.gmxBaseLayersManager);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);

@@ -1518,7 +1518,7 @@ function loadMap(state)
                 }
             }
 
-            globalFlashMap.addListener('onLayerAdd', function() {
+            nsGmx.leafletMap.on('layeradd', function() {
                 initEditUI();
                 initTimeline();
             });
