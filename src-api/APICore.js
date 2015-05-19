@@ -1,16 +1,5 @@
-/** Пространство имён GeoMixer API
-* @name gmxAPI
-* @namespace
-*/
-
-/** Описание API JS 
-* @name api
-* @namespace
-*/
-
 (function()
 {
-
 var memoize = function(func) {
 	var called = false;
 	var result;
@@ -48,51 +37,8 @@ extend(window.gmxAPI,
 		return "random_" + gmxAPI.lastFlashMapId;
 	}
 	,
-	addDebugWarnings: function(attr)
-	{
-		if(!window.gmxAPIdebugLevel) return;
-		if(!attr.script) attr.script = 'api.js';
-		if(attr.event && attr.event.lineNumber) attr.lineNumber = attr.event.lineNumber;
-		gmxAPI._debugWarnings.push(attr);
-		if(attr.alert) {
-            if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
-            else if(window.gmxAPIdebugLevel === 9) console.log(attr);
-            else if(window.gmxAPIdebugLevel === 11 && attr.event) throw attr.event;
-       }
-	},
-	_debugWarnings: [],
-    loadCSS: function(href) {
-        var css = document.createElement("link");
-        css.setAttribute("type", "text/css");
-        css.setAttribute("rel", "stylesheet");
-        //css.setAttribute("media", "screen");
-        css.setAttribute("href", href);
-        document.getElementsByTagName("head").item(0).appendChild(css);
-	}
-    ,
-    loadJS: function(item, callback, callbackError) {
-        var script = document.createElement("script");
-        script.setAttribute("charset", item.charset || "windows-1251");
-        script.setAttribute("src", item.src);
-        item.readystate = 'loading';
-        script.onload = function(ev) {
-            var count = 0;
-            if(item.count) count = item.count--;
-            if(count === 0) item.readystate = 'loaded';
-            if(callback) callback(item);
-            else if(item.callback) item.callback(item);
-            document.getElementsByTagName("head").item(0).removeChild(script);
-        };
-        script.onerror = function(ev) {
-            item.readystate = 'error';
-            if(callbackError) callbackError(item);
-            else if(item.callbackError) item.callbackError(item);
-            document.getElementsByTagName("head").item(0).removeChild(script);
-        };
-        document.getElementsByTagName("head").item(0).appendChild(script);
-	},
     getPatternIcon: function(ph, size) {
-        return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size': size || 32, 'style':ph} });
+        return null;
     }
 	,
 	getBounds: function(coords)
@@ -341,207 +287,6 @@ extend(window.gmxAPI,
 
 })();
 
-// Блок методов глобальной области видимости
-//var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";
-
-// var tmp = [
-	// 'merc_x', 'from_merc_x', 'merc_y', 'from_merc_y'
-// ];
-// var len = tmp.length;
- // for (var i=0; i<len; i++) window[tmp[i]] = gmxAPI[tmp[i]];
-
-//function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
-// var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
-// var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
-// var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
-/*
-// Поддержка setHandler и Listeners
-(function()
-{
-
-	var flashEvents = {		// События передающиеся в SWF
-		'onClick': true
-		,'onMouseDown': true
-		,'onMouseUp': true
-		,'onMouseOver': true
-		,'onMouseOut': true
-		,'onMove': true
-		,'onMoveBegin': true
-		,'onMoveEnd': true
-		,'onResize': true
-		,'onEdit': true
-		,'onNodeMouseOver': true
-		,'onNodeMouseOut': true
-		,'onEdgeMouseOver': true
-		,'onEdgeMouseOut': true
-		,'onFinish': true
-		,'onRemove': true
-		,'onTileLoaded': true
-		,'onTileLoadedURL': true
-	};
-
-	function setHandler(obj, eventName, handler) {
-
-		var func = function(subObjectId, a, attr)
-		{
-			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
-            if (typeof a === 'object') {
-                pObj.properties = gmxAPI.isArray(a) ? gmxAPI.propertiesFromArray(a) : a;
-            }
-			if('filters' in pObj) attr.layer = pObj.layer = pObj;
-			else if(pObj.parent && 'filters' in pObj.parent) attr.layer = pObj.layer = pObj.parent;
-			else if(pObj.parent && pObj.parent.parent && 'filters' in pObj.parent.parent) {
-                attr.filter = pObj.filter = pObj.parent;
-                attr.layer = pObj.layer = pObj.parent.parent;
-            }
-			if(!attr.latlng && 'mouseX' in attr) {
-				attr.latlng = {
-					'lng': gmxAPI.from_merc_x(attr.mouseX)
-					,'lat': gmxAPI.from_merc_y(attr.mouseY)
-				};
-			}
-			var flag = false;
-			if(obj.handlers[eventName]) flag = handler(pObj, attr);
-			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
-			return flag;
-		};
-
-		var callback = (handler ? func : null);
-		if(callback || !obj.stateListeners[eventName]) { 	// Если есть callback или нет Listeners на обьекте
-			gmxAPI._cmdProxy('setHandler', { 'obj': obj, 'attr': {
-				'eventName':eventName
-				,'callbackName':callback
-				}
-			});
-		}
-
-	}
-
-	// Begin: Блок Listeners
-	var stateListeners = {};	// Глобальные события
-	
-	function getArr(eventName, obj)
-	{
-		var arr = (obj ? 
-			('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
-			: ( eventName in stateListeners ? stateListeners[eventName] : [])
-		);
-		return arr;
-		//return arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
-	}
-	// Обработка пользовательских Listeners на obj
-	function dispatchEvent(eventName, obj, attr)
-	{
-		var out = false;
-		var arr = getArr(eventName, obj);
-		for (var i=0; i<arr.length; i++)	// Вызываем по убыванию 'level'
-		{
-			if(typeof(arr[i].func) === 'function') {
-                if(window.gmxAPIdebugLevel === 11) {
-					out = arr[i].func(attr);
-					if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
-				} else {
-                    try {
-                        out = arr[i].func(attr);
-                        if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
-                    } catch(e) {
-                        gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
-                    }
-				}
-			}
-		}
-		return out;
-	}
-
-	function addListener(ph)
-	{
-		var eventName = ph['eventName'];
-		var pID = ph['pID'];
-		if(pID && !flashEvents[eventName]) return false;		// Если есть наследование от родительского Listener и событие не передается в SWF то выходим
-
-		var obj = ph['obj'];
-		var func = ph['func'];
-		var level = ph['level'] || 0;
-		var arr = getArr(eventName, obj);
-		var id = (ph['evID'] ? ph['evID'] : gmxAPI.newFlashMapId());
-		var pt = {"id": id, "func": func, "level": level };
-		if(pID) pt['pID'] = pID;
-		arr.push(pt);
-		arr = arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
-		
-		if(obj) {	// Это Listener на mapObject
-			obj.stateListeners[eventName] = arr;
-			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) {
-				obj.setHandler(eventName, function(){});
-				delete obj.handlers[eventName];		// для установленных через addListener событий убираем handler
-			}
-		}
-		else {		// Это глобальный Listener
-			stateListeners[eventName] = arr;
-		}
-		return id;
-	}
-    function removeListener(obj, eventName, id) {
-        var arr = getArr(eventName, obj);
-        var out = [];
-        for (var i=0, len = arr.length; i<len; i++) {
-            if(id && id != arr[i].id && id != arr[i].pID) out.push(arr[i]);
-        }
-        if(obj) {
-            obj.stateListeners[eventName] = out;
-            if(out.length === 0) {
-                if('removeHandler' in obj && (!obj.handlers || !obj.handlers[eventName])) obj.removeHandler(eventName);
-                delete obj.stateListeners[eventName];
-            }
-        }
-        else stateListeners[eventName] = out;
-        return true;
-    }
-	gmxAPI._listeners = {
-		'dispatchEvent': dispatchEvent,
-		'addListener': addListener,
-		'removeListener': removeListener
-	};
-	// End: Блок Listeners
-
-	var InitHandlersFunc = function() {
-		gmxAPI.extendFMO('setHandler', function(eventName, handler) {
-			setHandler(this, eventName, handler);
-			this.handlers[eventName] = true;		// true если установлено через setHandler
-			flashEvents[eventName] = true;
-		});
-
-		gmxAPI.extendFMO('removeHandler', function(eventName) {
-			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Если нет Listeners на обьекте
-				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
-			}
-			delete this.handlers[eventName];
-		});
-
-		gmxAPI.extendFMO('setHandlers', function(handlers) {
-			for (var key in handlers)
-				this.setHandler(key, handlers[key]);
-		});
-
-		gmxAPI.extendFMO('addListener', function(eventName, func, level) {
-			var ph = {'obj':this, 'eventName': eventName, 'func': func, 'level': level};
-			return addListener(ph);
-		});
-		//gmxAPI.extendFMO('addListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
-		//gmxAPI.extendFMO('addMapStateListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
-		gmxAPI.extendFMO('removeListener', function(eventName, id) { return removeListener(this, eventName, id); });
-		gmxAPI.extendFMO('removeMapStateListener', function(eventName, id) { return removeListener(this, eventName, id); });
-	};
-	
-	var ret = {
-		'Init': InitHandlersFunc
-	};
-	
-	//расширяем namespace
-	gmxAPI._handlers = ret;
-})();
-*/
-
 gmxAPI.forEachNode = function(layers, callback, notVisible) {
     var forEachNodeRec = function(o, isVisible, nodeDepth)
 	{
@@ -589,47 +334,30 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this._attr = {};			// Дополнительные атрибуты
 	this.stateListeners = {};	// Пользовательские события
 	this.handlers = {};			// Пользовательские события во Flash
-	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев
 	this.childsID = {};			// Хэш ID потомков
 }
 // расширение FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 gmxAPI._FMO = FlashMapObject;
+var nextId = 0;							// следующий ID mapNode
 
 FlashMapObject.prototype = {
-    // setFilter: function(sql) {
-    // },
-    // setStyle: function(style, activeStyle) {
-        // var attr = {'regularStyle':style, 'hoveredStyle':activeStyle};
-        // gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr });
-        // gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr);
-        // gmxAPI._listeners.dispatchEvent('onStyleChange', this.parent, this);
-    // },
-    // remove: function() {
-    // },
     setVisible: function(flag, notDispatch) {
-        gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag, 'notView': notDispatch });
-    // },
-    // getVisibility: function() {
-    // },
-    // getVisibleStyle: function() {
-        // return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this });
-    // },
-    // setPolygon: function(coords) {
-        // this.setGeometry({ type: "POLYGON", coordinates: [coords] });
-    // },
-    // setGeometry: function(geometry) {
-        // gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geometry });
-    // },
-    // bringToTop: function() {
-        // return gmxAPI._cmdProxy('bringToTop', { 'obj': this });
-    },
-    getZoomBounds: function() {
-        return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this });
+        var lmap = nsGmx.leafletMap,
+            layerID = this.properties.name,
+            myLayer = nsGmx.gmxMap.layersByID[layerID];
+
+            if (myLayer) {
+                if (flag) {
+                    lmap.addLayer(myLayer);
+                } else {
+                    lmap.removeLayer(myLayer);
+                }
+            }
     },
     addObject: function(geometry, props, propHiden) {
-        var objID = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props, 'propHiden':propHiden }});
-        if(!objID) objID = false;
+        nextId++;
+        var objID = 'id' + nextId;
         var pObj = new FlashMapObject(objID, props, this);	// обычный MapObject
         // пополнение mapNodes
         var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
@@ -640,93 +368,131 @@ FlashMapObject.prototype = {
         if(propHiden) pObj.propHiden = propHiden;
         pObj.isVisible = true;
         return pObj;
-    // },
-    // setBackgroundTiles: function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView, attr) {
-    // },
-    // setZoomBounds: function(minZoom, maxZoom) {
-    // },
-    // setCopyright: function(copyright, z1, z2, geo) {
     }
 };
-//if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
-		// gmxAPI.extendFMO('addListener', function(eventName, func, level) {
-		// });
-
+    gmxAPI.extendFMO('addListener', function(eventName, func, level) {
+    });
+    gmxAPI._leaflet = {};
 })();
-/*
-//Управление ToolsAll
+
+//Поддержка map
 (function()
 {
-    var _gtxt = function (key, key1) {
-        return L.gmxLocale.getLanguage() === 'rus' ? key : key1;
-    };
-    //Управление ToolsAll
-    function ToolsAll(cont)
+    var addNewMap = function(rootObjectId, layers, callback)
     {
-        this.toolsAllCont = gmxAPI._allToolsDIV;
-        gmxAPI._toolsContHash = {};
-    }
-    var userControls = {};
-    gmxAPI._ToolsAll = ToolsAll;
-    gmxAPI._tools = {
-        standart: {    // интерфейс для обратной совместимости
-            addTool: function (tn, attr) {
-                var LMap = nsGmx.leafletMap;
-                var layersControl = LMap.gmxControlsManager.get('layers');
-                //var layersControl = window.v2.controls.gmxLayers;
-                //console.log('tool addTool', tn, attr); // wheat
-                if(!attr) attr = {};
-                attr.id = tn;
-                if(!attr.rus) attr.rus = attr.hint || attr.id;
-                if(!attr.eng) attr.eng = attr.hint || attr.id;
-                var ret = null;
-                if(attr.overlay && layersControl) {
-                    ret = layersControl.addOverlay(attr, tn);
-                } else {
-                    attr.title = _gtxt(attr.rus, attr.eng);
-                    attr.toggle = !!attr.onCancel;
-                    attr.stateChange = function (control) {
-                        if (control.options.isActive) attr.onClick(gmxAPI._tools[tn]);
-                        else attr.onCancel(gmxAPI._tools[tn]);
-                    };
-                    ret = new L.Control.gmxIcon(attr).addTo(LMap);
-                }
-                gmxAPI._tools[tn] = ret;
-                return ret;
-            }
-            ,getToolByName: function(id) {
-                return Controls.items[id] || null;
-            }
-            ,
-            removeTool: function(id) {              // Удалить control
-                return Controls.removeControl(id);
-            }
-            ,
-            setVisible: function(id, flag) {        // видимость
-                var control = Controls.items[id];
-            }
-            ,
-            selectTool: function (id) {
-                var LMap = nsGmx.leafletMap;
-                var control = gmxAPI._tools[id] || LMap.gmxControlsManager.get(id);
-                if (control) {
-                    if (id === 'POINT') {
-                        //control = Controls.items.drawingPoint;
-                        if ('onclick' in control.options) {
-                            control.options.onclick();
-                        }
-                    }
-                    control.setActive(id);
+        var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject основной карты
+        map.geoSearchAPIRoot = 'http://maps.kosmosnimki.ru/';
+
+        window.globalFlashMap = map;
+        gmxAPI.map = map;
+        gmxAPI.mapNodes[rootObjectId] = map; // основная карта
+
+        if(!layers.properties) layers.properties = {};
+        map.properties = layers.properties;
+        if(!layers.children) layers.children = [];
+        map.isVisible = true;
+        map.layers = [];
+
+        map.addLayers = function(layers, notMoveFlag, notVisible) {
+            for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
+                var layer = nsGmx.gmxMap.layers[iL],
+                    props = layer.getGmxProperties(),
+                    layerID = props.name;
+
+                if(!gmxAPI.map.layers[layerID]) {
+                    map.addLayer(layer, props.visible ? true : notVisible, true);
                 }
             }
         }
-    };
 
-    function ToolsContainer(name, attr) {
-        return {
-            addTool: gmxAPI._tools.standart.addTool
-        };
+        // map.defaultHostName = map.properties.hostName || '';
+        map.addLayers(layers, false, false);
+        
+        return map;
     }
-    gmxAPI._ToolsContainer = ToolsContainer;
+    //расширяем namespace
+    gmxAPI._addNewMap = addNewMap; // Создать map обьект
 })();
-*/
+//Поддержка addLayer
+(function()
+{
+    // Добавление слоя
+    var addLayer = function(parentObj, layer, isVisible, isMerc) {
+        var FlashMapObject = gmxAPI._FMO;
+        if (!parentObj.layers)
+            parentObj.layers = [];
+      
+        if (!parentObj.layersParent) {
+            parentObj.layersParent = parentObj.addObject(null, null, {'layersParent': true});
+        }
+        
+        if (isVisible === undefined)
+            isVisible = true;
+        
+        var prop = layer.getGmxProperties();
+        if (!prop.identityField) prop.identityField = "ogc_fid";
+
+        var layerName = prop.name || prop.image;
+        if(!prop.name) prop.name = layerName;
+
+        var pObj = parentObj.layersParent
+        var obj = pObj.addObject(null, prop);
+        obj.geometry = layer.geometry;
+        obj.properties = prop;
+        if(parentObj.layers[layerName]) {
+            for(var i = parentObj.layers.length - 1; i >= 0; i--) { // Удаление слоя из массива
+                //var prop = parentObj.layers[i].properties;
+                if(parentObj.layers[i].properties.name === layerName) {
+                    parentObj.layers.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        parentObj.layers.push(obj);
+        parentObj.layers[layerName] = obj;
+        if (!prop.LayerVersion) obj.notServer = true;
+        if (!prop.title) prop.title = 'layer from client ' + layerName;
+        if (!prop.title.match(/^\s*[0-9]+\s*$/))
+            parentObj.layers[prop.title] = obj;
+
+        var filters = [],
+            styles = prop.styles || [];
+        for (var i = 0, len = styles.length; i < len; i++) {
+            var filter = obj.addObject(null, {}); // MapObject для фильтра
+            filter.type = 'filter';
+            filter._attr = styles[i];
+            filters.push(filter);
+        }
+        obj.filters = filters;
+
+        var bounds = false;    // в меркаторе
+        var boundsLatLgn = false;
+        var initBounds = function() { // geom в меркаторе
+            var geom = obj.geometry,
+                coords = geom ? geom.coordinates : [[[-20037508, -20037508], [20037508, 20037508]]];
+            bounds = gmxAPI.getBounds(coords);
+            var sw = L.Projection.Mercator.unproject({x: bounds.minX, y: bounds.minY});
+            var ne = L.Projection.Mercator.unproject({x: bounds.maxX, y: bounds.maxY});
+            obj.bounds = boundsLatLgn = {
+                minX: sw.lng,
+                minY: sw.lat,
+                maxX: ne.lng,
+                maxY: ne.lat
+            };
+        };
+        obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
+            if (!boundsLatLgn) initBounds();
+            return boundsLatLgn;
+        }
+        obj.isVisible = isVisible;
+        return obj;
+    }
+
+    //расширяем FlashMapObject
+    gmxAPI.extendFMO('addLayer', function(layer, isVisible, isMerc) {
+        var obj = addLayer(this, layer, isVisible, isMerc);
+        //gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj); // Добавлен внешний слой
+        return obj;
+    } );
+
+})();
