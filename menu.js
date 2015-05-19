@@ -289,6 +289,8 @@ UpMenu.prototype.getNavigatePath = function(path) {
 	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
         var submenu = this.submenus[menuIdx];
+        
+        if (!submenu) {continue};
 
 		if (path == submenu.id)
 		{
@@ -300,12 +302,16 @@ UpMenu.prototype.getNavigatePath = function(path) {
 			var childsLevel2 = submenu.childs;
 			for (var i = 0; i < childsLevel2.length; i++)
 			{
+                if (!childsLevel2[i]) {continue};
+                
 				if (childsLevel2[i].childs)
 				{
 					var childsLevel3 = childsLevel2[i].childs;
 					// есть подменю, смотрим там
 					for(var j = 0; j < childsLevel3.length; j++)
 					{
+                        if (!childsLevel3[j]) {continue};
+                        
 						if (path == childsLevel3[j].id)
 						{
                             return [submenu.title, childsLevel2[i].title, childsLevel3[j].title];
