@@ -5,59 +5,61 @@
 
 var initTranslations = function()
 {
-    _translationsHash.addtext("rus", {
-        "firesWidget.DailyCoverage.Description" : "Космоснимки (MODIS)",
-        "firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
-        "firesWidget.TitleFiresScanEx" : "Пожары ScanEx",
-        "firesWidget.TitleFiresFIRMS" : "Пожары FIRMS",
-        "firesWidget.LayerClusterBalloon" :
+    _translationsHash.addtext("rus", { firesWidget: {
+        "DailyCoverage.Description" : "Космоснимки (MODIS)",
+        "tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
+        "TitleFiresScanEx" : "Пожары ScanEx",
+        "TitleFiresFIRMS" : "Пожары FIRMS",
+        "LayerClusterBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
             "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>" + 
-            "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
-        "firesWidget.LayerClusterBalloonIndustrial" :
+            "<div>[SUMMARY]</div>",
+            // "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+        "LayerClusterBalloonIndustrial" :
             "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" + 
             "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>" + 
-            "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
-        "firesWidget.LayerGeometryBalloon" :
+            "<div>[SUMMARY]</div>",
+            // "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+        "LayerGeometryBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
             "<b>Кол-во термоточек:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>",
-        "firesWidget.timeTitlePrefix" : "За ",
-        "firesWidget.timeTitleLastPrefix" : "За последние ",
-        "firesWidget.timeTitlePostfix" : "ч (UTC)"
-    });
+        "zoomInMessage": "Приблизьте карту, чтобы увидеть контур",
+        "timeTitlePrefix" : "За ",
+        "timeTitleLastPrefix" : "За последние ",
+        "timeTitlePostfix" : "ч (UTC)"
+    }});
                              
-    _translationsHash.addtext("eng", {
-        "firesWidget.DailyCoverage.Description" : "Satellite images (MODIS)",
-        "firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
-        "firesWidget.TitleFiresScanEx" : "Fires from ScanEx",
-        "firesWidget.TitleFiresFIRMS" : "Fires from FIRMS",
-        "firesWidget.LayerClusterBalloon" : 
+    _translationsHash.addtext("eng", { firesWidget: {
+        "DailyCoverage.Description" : "Satellite images (MODIS)",
+        "tooManyDataWarning" : "Too much data - downsize search area!",
+        "TitleFiresScanEx" : "Fires from ScanEx",
+        "TitleFiresFIRMS" : "Fires from FIRMS",
+        "LayerClusterBalloon" : 
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
             "<b>Observation period:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>" + 
-            "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
-        "firesWidget.LayerClusterBalloonIndustrial" : 
+            "<div>[SUMMARY]</div>",
+            // "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
+        "LayerClusterBalloonIndustrial" : 
             "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
             "<b>Observation period:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>" + 
-            "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
-        "firesWidget.LayerGeometryBalloon" :
+            "<div>[SUMMARY]</div>",
+            // "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
+        "LayerGeometryBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
             "<b>Observation period:</b> [dateRange]<br/>" + 
             "<div>[SUMMARY]</div>",
-        "firesWidget.timeTitlePrefix" : "For ",
-        "firesWidget.timeTitleLastPrefix" : "For last ",
-        "firesWidget.timeTitlePostfix" : "h (UTC)"
-    });
+        "zoomInMessage": "Zoom-in to see the outline",
+        "timeTitlePrefix" : "For ",
+        "timeTitleLastPrefix" : "For last ",
+        "timeTitlePostfix" : "h (UTC)"
+    }});
 }
 
 
@@ -521,6 +523,18 @@ var FireBurntRenderer3 = function( params )
             }]
         }
     }).addTo(map);
+    
+    clustersLayer.on('popupopen', function(event) {
+        var popup = event.popup,
+            html = popup.getContent(),
+            zoomLink = $('<div style="margin-top: 5px;"><a href="javascript:void(0)"><i>' + _gtxt('firesWidget.zoomInMessage') + '</i></a></div>').click(function() {
+                map.closePopup(event.popup);
+                map.setView(event.gmx.latlng, _params.minGeomZoom + 3);
+            });
+        
+        var div = $('<div/>').html(html).append(zoomLink);
+        event.popup.setContent(div[0]);
+    })
     
     if (_params.zIndex) {
         clustersLayer.setZIndex(_params.zIndex);
