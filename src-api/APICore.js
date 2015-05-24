@@ -1,18 +1,5 @@
 (function()
 {
-var memoize = function(func) {
-	var called = false;
-	var result;
-	return function()
-	{
-		if (!called)
-		{
-			result = func();
-			called = true;
-		}
-		return result;
-	}
-};
 var extend = function(ph, pt, flag) {
     if(!ph) ph = {};
 	for(var key in pt) {
@@ -22,7 +9,7 @@ var extend = function(ph, pt, flag) {
     return ph;
 };
 
-window.PI = 3.14159265358979; //устарело - обратная совместимость
+//window.PI = 3.14159265358979; //устарело - обратная совместимость
 if(!window.gmxAPI) window.gmxAPI = {};
 window.gmxAPI.extend = extend;
 extend(window.gmxAPI,
@@ -37,32 +24,19 @@ extend(window.gmxAPI,
 		return "random_" + gmxAPI.lastFlashMapId;
 	}
 	,
-    getPatternIcon: function(ph, size) {
+	isRectangle: function(coords)   // drawingObjects.js 601
+	{
+		return (coords && coords[0] && (coords[0].length == 5 || coords[0].length == 4)
+			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
+			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
+			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
+			&& ((coords[0][3][0] == coords[0][0][0]) || (coords[0][3][1] == coords[0][0][1]))
+		);
+	}
+	,
+    getPatternIcon: function(ph, size) {    // Controls.js 32
         return null;
     }
-	,
-	getBounds: function(coords)
-	{
-		var ret = { 
-			minX: 100000000, 
-			minY: 100000000, 
-			maxX: -100000000, 
-			maxY: -100000000,
-			update: function(data)
-			{
-				gmxAPI.forEachPoint(data, function(p)
-				{
-					ret.minX = Math.min(p[0], ret.minX);
-					ret.minY = Math.min(p[1], ret.minY);
-					ret.maxX = Math.max(p[0], ret.maxX);
-					ret.maxY = Math.max(p[1], ret.maxY);
-				});
-			}
-		}
-		if (coords)
-			ret.update(coords);
-		return ret;
-	}
 	,
 	transformGeometry: function(geom, callbackX, callbackY)
 	{
@@ -98,18 +72,6 @@ extend(window.gmxAPI,
 			}
 			return ret;
 		}
-	}
-	,
-	isRectangle: function(coords)
-	{
-		return (coords && coords[0] && (coords[0].length == 5 || coords[0].length == 4)
-			//&& coords[0][4][0] == coords[0][0][0] && coords[0][4][1] == coords[0][0][1]
-			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
-			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
-			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
-			&& ((coords[0][3][0] == coords[0][0][0]) || (coords[0][3][1] == coords[0][0][1]))
-			//&& ((coords[0][3][0] == coords[0][4][0]) || (coords[0][3][1] == coords[0][4][1]))
-		);
 	}
 	,
 	deg_rad: function(ang)
@@ -193,96 +155,6 @@ extend(window.gmxAPI,
 	{
 		return [gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y)];
 	}
-	,
-	parseUri: function(str)
-	{
-		var	o   = {
-				strictMode: false,
-				key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-				q:   {
-					name:   "queryKey",
-					parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-				},
-				parser: {
-					strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-					loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-				}
-			},
-			m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-			uri = {},
-			i   = 14;
-
-		while (i--) uri[o.key[i]] = m[i] || "";
-
-		uri[o.q.name] = {};
-		uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-			if ($1) uri[o.q.name][$1] = $2;
-		});
-
-		uri.hostOnly = uri.host;
-		uri.host = uri.authority; // HACK
-
-		return uri;
-	}
-	,
-	memoize : memoize
-	,
-	getScriptURL: function(scriptName)
-	{
-		var scripts1 = document.getElementsByTagName("script");
-		for (var i = 0; i < scripts1.length; i++)
-		{
-			var src = scripts1[i].getAttribute("src");
-			if (src && (src.indexOf(scriptName) != -1))
-				return src;
-		}
-		return false;
-	}
-	,
-	getHostAndPath: function(url)
-	{
-		var u = gmxAPI.parseUri(url);
-		if (u.host == "")
-			return "";
-		var s = u.host + u.directory;
-		if (s.charAt(s.length - 1) == "/")
-			s = s.substring(0, s.length - 1);
-		return s;
-	},
-	getAPIUri: memoize(function()
-	{
-		var scripts1 = document.getElementsByTagName("script");
-		for (var i = 0; i < scripts1.length; i++)
-		{
-			var src = scripts1[i].getAttribute("src");
-			var u = gmxAPI.parseUri(src);
-			if(u && /\bapi\w*\.js\b/.exec(src)) {
-				return u;
-			}
-		}
-		return {};
-	})
-	,
-	getAPIFolderRoot: memoize(function()
-	{
-		var u = gmxAPI.getAPIUri();
-		return (u.source ? u.source.substring(0, u.source.indexOf(u.file)) : '');
-	})
-	,
-	getAPIHost: memoize(function()
-	{
-		var apiHost = gmxAPI.getHostAndPath(gmxAPI.getAPIFolderRoot());
-		if(apiHost == "") {
-			apiHost = gmxAPI.getHostAndPath(window.location.href);
-		}
-		var arr = /(.*)\/[^\/]*/.exec(apiHost);
-		return (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
-	})
-	,
-	getAPIHostRoot: memoize(function()
-	{
-		return "http://" + gmxAPI.getAPIHost() + "/";
-	})
 });
 
 })();
@@ -309,14 +181,7 @@ gmxAPI.forEachLayer = function(layers, callback, notVisible) {
     gmxAPI.forEachNode(layers, function(node, isVisible, nodeDepth) {
         node.type === 'layer' && callback(node.content, isVisible, nodeDepth);
     }, notVisible)
-}
-
-// gmxAPI.forEachLayer = forEachLayer;
-
-var APIKeyResponseCache = {};
-var sessionKeyCache = {};
-var KOSMOSNIMKI_SESSION_KEY = false;
-var alertedAboutAPIKey = false;
+};
 
 (function(){
 var flashId = gmxAPI.newFlashMapId();
@@ -405,7 +270,6 @@ FlashMapObject.prototype = {
             }
         }
 
-        // map.defaultHostName = map.properties.hostName || '';
         map.addLayers(layers, false, false);
         
         return map;
@@ -430,7 +294,7 @@ FlashMapObject.prototype = {
             isVisible = true;
         
         var prop = layer.getGmxProperties();
-        if (!prop.identityField) prop.identityField = "ogc_fid";
+        // if (!prop.identityField) prop.identityField = "ogc_fid";
 
         var layerName = prop.name || prop.image;
         if(!prop.name) prop.name = layerName;
@@ -439,51 +303,10 @@ FlashMapObject.prototype = {
         var obj = pObj.addObject(null, prop);
         obj.geometry = layer.geometry;
         obj.properties = prop;
-        if(parentObj.layers[layerName]) {
-            for(var i = parentObj.layers.length - 1; i >= 0; i--) { // Удаление слоя из массива
-                //var prop = parentObj.layers[i].properties;
-                if(parentObj.layers[i].properties.name === layerName) {
-                    parentObj.layers.splice(i, 1);
-                    break;
-                }
-            }
-        }
         parentObj.layers.push(obj);
         parentObj.layers[layerName] = obj;
-        if (!prop.LayerVersion) obj.notServer = true;
-        if (!prop.title) prop.title = 'layer from client ' + layerName;
         if (!prop.title.match(/^\s*[0-9]+\s*$/))
             parentObj.layers[prop.title] = obj;
-
-        var filters = [],
-            styles = prop.styles || [];
-        for (var i = 0, len = styles.length; i < len; i++) {
-            var filter = obj.addObject(null, {}); // MapObject для фильтра
-            filter.type = 'filter';
-            filter._attr = styles[i];
-            filters.push(filter);
-        }
-        obj.filters = filters;
-
-        var bounds = false;    // в меркаторе
-        var boundsLatLgn = false;
-        var initBounds = function() { // geom в меркаторе
-            var geom = obj.geometry,
-                coords = geom ? geom.coordinates : [[[-20037508, -20037508], [20037508, 20037508]]];
-            bounds = gmxAPI.getBounds(coords);
-            var sw = L.Projection.Mercator.unproject({x: bounds.minX, y: bounds.minY});
-            var ne = L.Projection.Mercator.unproject({x: bounds.maxX, y: bounds.maxY});
-            obj.bounds = boundsLatLgn = {
-                minX: sw.lng,
-                minY: sw.lat,
-                maxX: ne.lng,
-                maxY: ne.lat
-            };
-        };
-        obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
-            if (!boundsLatLgn) initBounds();
-            return boundsLatLgn;
-        }
         obj.isVisible = isVisible;
         return obj;
     }
@@ -491,7 +314,6 @@ FlashMapObject.prototype = {
     //расширяем FlashMapObject
     gmxAPI.extendFMO('addLayer', function(layer, isVisible, isMerc) {
         var obj = addLayer(this, layer, isVisible, isMerc);
-        //gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj); // Добавлен внешний слой
         return obj;
     } );
 
