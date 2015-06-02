@@ -33,40 +33,6 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 var gmxJSHost = window.gmxJSHost || "";
 
-//скопирована из API, так как используется до его загрузки
-function parseUri(str) 
-{
-	var	o   = parseUri.options,
-		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-		uri = {},
-		i   = 14;
-
-	while (i--) uri[o.key[i]] = m[i] || "";
-
-	uri[o.q.name] = {};
-	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-		if ($1) uri[o.q.name][$1] = $2;
-	});
-
-	uri.hostOnly = uri.host;
-	uri.host = uri.authority; // HACK
-
-	return uri;
-};
-
-parseUri.options = {
-	strictMode: false,
-	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-	q:   {
-		name:   "queryKey",
-		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-	}
-};
-
 if (!window.mapHostName && window.gmxJSHost)
     window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
     
@@ -78,7 +44,7 @@ if (window.mapHostName)
 }
 else
 {
-     var curUri = parseUri(window.location.href);
+     var curUri = L.gmxUtil.parseUri(window.location.href);
      _mapHostName = "http://" + curUri.host + curUri.directory;
 }
 

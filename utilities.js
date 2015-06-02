@@ -728,41 +728,6 @@ function createPostIframe(id, callback)
 }
 
 !function() {
-
-    //скопирована из API для обеспечения независимости от него
-    function parseUri(str)
-    {
-        var	o   = parseUri.options,
-            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-            uri = {},
-            i   = 14;
-
-        while (i--) uri[o.key[i]] = m[i] || "";
-
-        uri[o.q.name] = {};
-        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-            if ($1) uri[o.q.name][$1] = $2;
-        });
-
-        uri.hostOnly = uri.host;
-        uri.host = uri.authority; // HACK
-
-        return uri;
-    };
-
-    parseUri.options = {
-        strictMode: false,
-        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-        q:   {
-            name:   "queryKey",
-            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-        },
-        parser: {
-            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-        }
-    };
-
     var requests = {};
     var lastRequestId = 0;
     
@@ -806,7 +771,7 @@ function createPostIframe(id, callback)
         iframe.callbackName = uniqueId;
         //iframe.onload = window[callbackName];
         
-        var parsedURL = parseUri(url);
+        var parsedURL = L.gmxUtil.parseUri(url);
         var origin = (parsedURL.protocol ? (parsedURL.protocol + ':') : window.location.protocol) + '//' + (parsedURL.host || window.location.host);
         
         requests[origin] = requests[origin] || {};
