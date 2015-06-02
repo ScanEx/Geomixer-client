@@ -438,13 +438,20 @@
 
         if (gmxAPI._drawing) {
             map.addContextMenuItem(
-                gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+                gmxAPI.KOSMOSNIMKI_LOCALIZED('Поставить маркер', 'Add marker'),
                 function(x, y)
                 {
-                    map.drawing.addObject({type: "POINT", coordinates: [x, y]});
+                    map.drawing.addObject({type: 'POINT', coordinates: [x, y]});
                 }
             );
         }
+        map.addContextMenuItem(
+            gmxAPI.KOSMOSNIMKI_LOCALIZED('Центрировать', 'Set center'),
+            function(x, y)
+            {
+                map.moveTo(x, y);
+            }
+        );
 
         var haveOSM = false;
 
