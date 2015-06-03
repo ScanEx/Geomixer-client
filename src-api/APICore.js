@@ -3320,8 +3320,8 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
 		,'projectionCode':projectionCode
 		,'minZoom':minZoom
 		,'maxZoom':maxZoom
-		,'minZoomView':minZoomView
-		,'maxZoomView':maxZoomView
+		,'minZoomView':minZoomView || minZoom
+		,'maxZoomView':maxZoomView || maxZoom
 	};
 	if(attr) {
 		if('subType' in attr) ph['subType'] = attr['subType'];
