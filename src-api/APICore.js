@@ -3344,7 +3344,7 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
     this.repaint = function() {
         return gmxAPI._cmdProxy('repaintLayer', { 'obj': this });
     };
-
+    this.setZoomBounds(ph.minZoomView, ph.maxZoomView);
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
 }
