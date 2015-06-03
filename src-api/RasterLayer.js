@@ -381,6 +381,8 @@
                     ,attribution: gmxNode.properties.Copyright || ''
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
+                node.minZ = option.minZ;
+                node.maxZ = option.maxZ;
                 if(node.regularStyle && node.regularStyle.fillOpacity) { // Изменить opacity растрового слоя
                     option.opacity = 'rasterOpacity' in node ? node.rasterOpacity : node.regularStyle.fillOpacity;
                 }
