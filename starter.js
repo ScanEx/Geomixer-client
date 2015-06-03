@@ -927,11 +927,9 @@ function loadMap(state)
         }
         
         if (map && map.baseLayersManager) {
-            var baseLayersControl = new nsGmx.BaseLayersControl(map.baseLayersManager, {
+            var baseLayersControl = nsGmx.createIconLayersControl(map.baseLayersManager, gmxAPI._leaflet.LMap, {
                 language: nsGmx.Translations.getLanguage()
             });
-        
-            baseLayersControl.addTo(gmxAPI._leaflet.LMap);
         }
         
         $('#flash').bind('dragover', function()
