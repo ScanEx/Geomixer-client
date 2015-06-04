@@ -108,7 +108,7 @@ nsGmx.Controls = {
 		
 		divSlider.style.width = '100px';
 		divSlider.style.border = 'none';
-		divSlider.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/slider.png)';
+		divSlider.style.backgroundImage = 'url(img/slider.png)';
 		
 		divSlider.firstChild.style.border = 'none';
 		divSlider.firstChild.style.width = '12px';
@@ -117,15 +117,15 @@ nsGmx.Controls = {
 
         divSlider.firstChild.style.top = '-3px';
 
-		divSlider.firstChild.style.background = 'transparent url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon.png) no-repeat';
+		divSlider.firstChild.style.background = 'transparent url(img/sliderIcon.png) no-repeat';
 		
 		divSlider.firstChild.onmouseover = function()
 		{
-			divSlider.firstChild.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon_a.png)';
+			divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon_a.png)';
 		}
 		divSlider.firstChild.onmouseout = function()
 		{
-			divSlider.firstChild.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon.png)';
+			divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon.png)';
 		}
 		
 		_title(divSlider.firstChild, opacity)

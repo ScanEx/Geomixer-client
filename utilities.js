@@ -1133,17 +1133,25 @@ $.extend(nsGmx.Utils, {
 	
 	/** Устанавливает обычный стиль и генерит похожий стиль при наведении мышки 
     @memberOf nsGmx.Utils
-	@param mapObject {MapObject} Объект на карте
+	@param layer {L.gmxVectorLayer} Слой
+	@param styleIndex {Number} Номер стиля слоя
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
-	setMapObjectStyle: function(mapObject, templateStyle)
+	setMapObjectStyle: function(layer, styleIndex, templateStyle)
 	{
         var hoverStyle = {};
         $.extend(true, hoverStyle, templateStyle);
+        var style = layer.getStyle(styleIndex);
+        
 		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
 		{
+            var newStyle = $.extend(true, {}, style, {
+                RenderStyle: L.gmxUtil.fromServerStyle(templateStyle),
+                HoverStyle: L.gmxUtil.fromServerStyle(hoverStyle)
+            });
+            
 			try
 			{
-				mapObject.setStyle(templateStyle, hoverStyle);
+                layer.setStyle(newStyle);
 			}
 			catch(e)
 			{
@@ -1157,7 +1165,12 @@ $.extend(nsGmx.Utils, {
 			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
 				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
 			
-			mapObject.setStyle(templateStyle, hoverStyle);
+            var newStyle = $.extend(true, {}, style, {
+                RenderStyle: L.gmxUtil.fromServerStyle(templateStyle),
+                HoverStyle: L.gmxUtil.fromServerStyle(hoverStyle),
+            });
+            
+			layer.setStyle(newStyle, styleIndex);
 		}
 	},
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
