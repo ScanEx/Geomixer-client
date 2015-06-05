@@ -1138,16 +1138,17 @@ $.extend(nsGmx.Utils, {
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
 	setMapObjectStyle: function(layer, styleIndex, templateStyle)
 	{
+        // console.log(JSON.stringify(templateStyle));
+        
         var hoverStyle = {};
         $.extend(true, hoverStyle, templateStyle);
         var style = layer.getStyle(styleIndex);
         
 		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
 		{
-            var newStyle = $.extend(true, {}, style, {
-                RenderStyle: L.gmxUtil.fromServerStyle(templateStyle),
-                HoverStyle: L.gmxUtil.fromServerStyle(hoverStyle)
-            });
+            var newStyle = $.extend(true, {}, style);
+            newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+            newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
             
 			try
 			{
@@ -1165,10 +1166,9 @@ $.extend(nsGmx.Utils, {
 			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
 				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
 			
-            var newStyle = $.extend(true, {}, style, {
-                RenderStyle: L.gmxUtil.fromServerStyle(templateStyle),
-                HoverStyle: L.gmxUtil.fromServerStyle(hoverStyle),
-            });
+            var newStyle = $.extend(true, {}, style);
+            newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+            newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
             
 			layer.setStyle(newStyle, styleIndex);
 		}
