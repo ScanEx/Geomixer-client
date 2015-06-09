@@ -3,7 +3,7 @@
         serverScript = 'http://maps.kosmosnimki.ru/VectorLayer/Search.ashx';
 
     _translationsHash.addtext('rus', {
-        'AISSearch.iconTitle' : 'Поиск кораблей по контурам'
+        'AISSearch.iconTitle' : 'Поиск кораблей по экрану'
     });
     _translationsHash.addtext('eng', {
         'AISSearch.iconTitle' : 'Find ships in polygons'
@@ -24,7 +24,7 @@
             var gmxLayers,
                 lmap, layersByID;
             if (!nsGmx.leafletMap) {    // для старого АПИ
-                gmxCore.loadScript('leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
+                gmxCore.loadScript('http://maps.kosmosnimki.ru/api/leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
                 lmap = gmxAPI._leaflet.LMap;
                 layersByID = gmxAPI.map.layers;
             } else {
