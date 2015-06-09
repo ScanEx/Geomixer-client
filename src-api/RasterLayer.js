@@ -363,8 +363,8 @@
 					minZoom: inpAttr.minZoomView || 1
 					,maxZoom: inpAttr.maxZoomView || 30
                     //,maxNativeZoom: 10
-					,minZ: inpAttr.minZoom || attr.minZoom || gmxAPI.defaultMinZoom
-					,maxZ: inpAttr.maxZoom || attr.maxZoom || gmxAPI.defaultMaxZoom
+					,minZ: inpAttr.minZoomView || inpAttr.minZoom || attr.minZoom || gmxAPI.defaultMinZoom
+					,maxZ: inpAttr.maxZoomView || inpAttr.maxZoom || attr.maxZoom || gmxAPI.defaultMaxZoom
 					,zIndex: node.zIndex + node.zIndexOffset
 					,shiftX: node.shiftX || 0
 					,shiftY: node.shiftY || 0
