@@ -235,7 +235,7 @@ var LayerProperties = Backbone.Model.extend(
                 
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
             }
-        } else {
+        } else if (attrs.Type === 'Raster') {
             var curBorder = _mapHelper.drawingBorders.get(name);
             
             reqParams.Legend = attrs.Legend;
@@ -256,6 +256,29 @@ var LayerProperties = Backbone.Model.extend(
             if (attrs.LayerID) reqParams.RasterLayerID = attrs.LayerID;
             
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
+        } else if (attrs.Type === 'MultiLayer') {
+            var multiLayerInfo = {
+                LayersChanged: false, //изменение состава слоёв пока не поддерживается
+                Properties: {
+                    Title: attrs.Title,
+                    Description: attrs.Description
+                }
+            };
+            
+            if ('MetaProperties' in reqParams) {
+                multiLayerInfo.Properties.MetaProperties = JSON.parse(reqParams.MetaProperties);
+            }
+            
+            if (attrs.LayerID) {
+                multiLayerInfo.Properties.MultiLayerID = attrs.LayerID;
+            }
+            
+            var multiReqParams = {
+                WrapStyle: "window",
+                MultiLayerInfo: JSON.stringify(multiLayerInfo)
+            }
+            
+            def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "MultiLayer/" + (name ? "Update.ashx" : "Insert.ashx"), multiReqParams);
         }
         
         callback && def.done(callback);
