@@ -1122,21 +1122,27 @@
             return res;
         }
         ,
-		'getImageSize': function(pt, flag, id)	{				// определение размеров image
-			var url = pt.iconUrl;
-			if(imagesSize[url]) {
-				pt.imageWidth = imagesSize[url].imageWidth;
-				pt.imageHeight = imagesSize[url].imageHeight;
-				pt.maxWeight = Math.ceil(Math.sqrt(pt.imageWidth*pt.imageWidth + pt.imageHeight*pt.imageHeight));
-				if(flag) {
-					pt.image = imagesSize[url].image;
-				}
-				if(pt.waitStyle) {
-					pt.waitStyle(id);
-				}
-				delete pt.waitStyle;
-				return;
-			}
+        'getImageSize': function(pt, flag, id)	{				// определение размеров image
+            var url = pt.iconUrl;
+            if(imagesSize[url]) {
+                var it = imagesSize[url];
+                if (it.polygons) {
+                    pt.polygons = it.polygons;
+                    pt.width = it.width;
+                    pt.height = it.height;
+                }
+                pt.imageWidth = it.imageWidth;
+                pt.imageHeight = it.imageHeight;
+                pt.maxWeight = Math.ceil(Math.sqrt(pt.imageWidth*pt.imageWidth + pt.imageHeight*pt.imageHeight));
+                if(flag) {
+                    pt.image = it.image;
+                }
+                if(pt.waitStyle) {
+                    pt.waitStyle(id);
+                }
+                delete pt.waitStyle;
+                return;
+            }
 			var ph = {
 				'src': url
 				,'callback': function(it, svgFlag) {
