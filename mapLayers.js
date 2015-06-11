@@ -182,8 +182,8 @@ var layersTree = function( renderParams )
         allowDblClick: true,
         showStyle: true,
         visibilityFunc: function(props, isVisible) {
-            if (props.name in globalFlashMap.layers) {
-                globalFlashMap.layers[props.name].setVisible(isVisible);
+            if (props.name in nsGmx.gmxMap.layersByID) {
+                nsGmx.leafletMap[isVisible ? 'addLayer' : 'removeLayer'](nsGmx.gmxMap.layersByID[props.name]);
             }
         }
     }, renderParams);
@@ -628,13 +628,15 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
             iconSpan = _span([icon]);
         
-        if ( elem.styles.length == 1 && elem.name in globalFlashMap.layers )
+        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID )
         {
-            globalFlashMap.layers[elem.name].addListener('onStyleChange', function(filter) {
-                if (globalFlashMap.layers[elem.name].filters.length == 1)
+            var layer = nsGmx.gmxMap.layersByID[elem.name];
+            layer.on('stylechange', function() {
+                if (layer.getStyles().length === 1)
                 {
+                    var style = L.gmxUtil.toServerStyle(layer.getStyles()[0].RenderStyle);
                     var newIcon = _mapHelper.createStylesEditorIcon(
-                        [{MinZoom:1, MaxZoom: 21, RenderStyle: filter.getStyle().regular}], 
+                        [{MinZoom:1, MaxZoom: 21, RenderStyle: style}], 
                         elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', 
                         {addTitle: !layerManagerFlag}
                     );
@@ -681,8 +683,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 layersTree.prototype.downloadVectorLayer = function(name, mapHostName, format, query)
 {
-    var layer = globalFlashMap.layers[name],
-        url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + layer.properties.name;
+    var url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + encodeURIComponent(name);
                   
     if (format) {
         url += '&format=' + format;
@@ -1239,27 +1240,23 @@ layersTree.prototype.addLayersToMap = function(elem)
     {
         var layer = elem.content,
             name = layer.properties.name;
-            
-            //layer.geometry = from_merc_geometry(layer.geometry);
-            layer.geometry = L.gmxUtil.geometryToGeoJSON(layer.geometry, true);
 
-        if (!globalFlashMap.layers[name])
+        if (!nsGmx.gmxMap.layersByID[name])
         {
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
             
-            // var layerOnMap = globalFlashMap.addLayer(layer, visibility);
-            var layerOnMap = L.gmx.createLayer(layer);
+            var layerOnMap = L.gmx.createLayer(layer, {
+                layerID: name
+            });
             nsGmx.gmxMap.addLayer(layerOnMap);
             
             visibility && layerOnMap.addTo(nsGmx.leafletMap);
             
-            // nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
             layerOnMap.getGmxProperties().changedByViewer = true;
-            // layer.properties.changedByViewer = true;
         }
         else
         {
-            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
+            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", nsGmx.gmxMap.layersByID[name].getGmxProperties().title), true );
             return false;
         }
     }
