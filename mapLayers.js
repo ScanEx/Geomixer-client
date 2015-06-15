@@ -2000,7 +2000,7 @@ queryMapLayers.prototype.createMap = function(name)
         
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         
-        saveTree.properties.BaseLayers = JSON.stringify(globalFlashMap.baseLayersManager.getActiveIDs());
+        saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
