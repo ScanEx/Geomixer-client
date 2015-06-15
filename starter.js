@@ -927,9 +927,11 @@ function loadMap(state)
         }
         
         if (map && map.baseLayersManager) {
-            var baseLayersControl = nsGmx.createIconLayersControl(map.baseLayersManager, gmxAPI._leaflet.LMap, {
+            var baseLayersControl = new L.Control.gmxIconLayers(map.baseLayersManager, {
                 language: nsGmx.Translations.getLanguage()
             });
+            
+            gmxAPI._leaflet.LMap.addControl(baseLayersControl);
         }
         
         $('#flash').bind('dragover', function()
@@ -1035,7 +1037,9 @@ function loadMap(state)
                         def.resolve({
                             Status: 'ok',
                             Result: {
-                                Login: auth.getFullname() || auth.getNickname() || auth.getLogin()
+                                FullName: auth.getFullname(),
+                                Nickname: auth.getNickname(),
+                                Login: auth.getLogin()
                             }
                         });
                     })
