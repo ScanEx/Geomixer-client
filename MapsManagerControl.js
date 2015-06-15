@@ -278,14 +278,13 @@ nsGmx.MapsManagerControl.prototype._deleteMapHandler = function(response, id)
 
 nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
-	loadMapJSON(host, name, function(layers)
-	{
-        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
+	//loadMapJSON(host, name, function(layers)
+    L.gmx.loadMap(name, {hostName: host}).then(function(gmxMap) {
+        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
+            ul = previewLayersTree.drawTree(gmxMap.rawTree, 2);
 
-        var ul = previewLayersTree.drawTree(layers, 2);
-		
-		$(ul).treeview();
-        
+        $(ul).treeview();
+
         //раскрываем группы по клику
         $(ul).click(function(event) {
             if ($(event.target).hasClass('groupLayer')) {
