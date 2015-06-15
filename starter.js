@@ -931,6 +931,48 @@ function addLeafletPlugins() {
     return def.promise();
 }
 
+function initAuthWidget() {
+    var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, function() {
+        window.location.reload();
+    });
+    
+    // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
+    var authManagerProxy = {
+        getUserInfo: function(){
+            var def = $.Deferred();
+            nsGmx.AuthManager.checkUserInfo(function() {
+                var auth = nsGmx.AuthManager;
+                def.resolve({
+                    Status: 'ok',
+                    Result: {
+                        Login: auth.getFullname() || auth.getNickname() || auth.getLogin()
+                    }
+                });
+            })
+            return def;
+        },
+        
+        login: function(){
+            nativeAuthWidget.showLoginDialog();
+        },
+        
+        logout: function(){
+            var def = $.Deferred();
+            nsGmx.AuthManager.logout(function() {
+                def.resolve({Status: 'ok', Result: {}});
+                _mapHelper.reloadMap();
+            });
+            return def;
+        }
+    };
+    nsGmx.widgets.authWidget = new nsGmx.AuthWidget({authManager: authManagerProxy});
+    nsGmx.widgets.authWidget.appendTo(nsGmx.widgets.header.getAuthPlaceholder());
+    
+    //ugly hack
+    nsGmx.widgets.authWidget.showLoginDialog = nativeAuthWidget.showLoginDialog.bind(nativeAuthWidget);
+}
+
+
 function loadMap(state)
 {
 	layersShown = (state.isFullScreen == "false");
@@ -943,21 +985,7 @@ function loadMap(state)
 	
 	window.onresize = resizeAll;
 	resizeAll();
-    
-    // При залогиневании пользователя просто перезагружаем страницу
-    // Если reloadAfterLoginFlag=true, не сохраняем текущее состояние карты, 
-    // иначе сохраняем всё в пермалинке и восстанавливаем после перезагрузки
-    var defaultLoginCallback = function(reloadAfterLoginFlag)
-    {
-        return function()
-        {
-            if (reloadAfterLoginFlag)
-                window.location.reload();
-            else
-                _mapHelper.reloadMap();
-        }
-    }
-    
+        
     L.Icon.Default.imagePath = 'leaflet/images';
     
     var lmap = new L.Map($$('flash'), {
@@ -975,7 +1003,6 @@ function loadMap(state)
     gmxAPI._leaflet.LMap = lmap;
     nsGmx.leafletMap = lmap;
     
-    //var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data) {
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
     L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey}).then(function(gmxMap) {
         nsGmx.gmxMap = gmxMap;
@@ -1039,9 +1066,7 @@ function loadMap(state)
             })
             
             $.when.apply($, defs).done(function() {
-                //if ( b.minX < b.maxX && b.minY < b.maxY ) {
                 lmap.fitBounds(b);
-                //}
             })
             
             return false;
@@ -1091,71 +1116,7 @@ function loadMap(state)
                 return false;
             });
             
-            var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, defaultLoginCallback(true));
-            
-            // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
-            var authManagerProxy = {
-                getUserInfo: function(){
-                    var def = $.Deferred();
-                    nsGmx.AuthManager.checkUserInfo(function() {
-                        var auth = nsGmx.AuthManager;
-                        def.resolve({
-                            Status: 'ok',
-                            Result: {
-                                Login: auth.getFullname() || auth.getNickname() || auth.getLogin()
-                            }
-                        });
-                    })
-                    return def;
-                },
-                
-                login: function(){
-                    nativeAuthWidget.showLoginDialog();
-                },
-                
-                logout: function(){
-                    var def = $.Deferred();
-                    nsGmx.AuthManager.logout(function() {
-                        def.resolve({Status: 'ok', Result: {}});
-                        _mapHelper.reloadMap();
-                    });
-                    return def;
-                }
-            };
-            nsGmx.widgets.authWidget = new nsGmx.AuthWidget({authManager: authManagerProxy});
-            nsGmx.widgets.authWidget.appendTo(nsGmx.widgets.header.getAuthPlaceholder());
-            
-            //ugly hack
-            nsGmx.widgets.authWidget.showLoginDialog = nativeAuthWidget.showLoginDialog.bind(nativeAuthWidget);
-            
-            if (!data)
-            {
-                _menuUp.defaultHash = 'usage';
-                
-                _menuUp.createMenu = function()
-                {
-                    createDefaultMenu();
-                    nsGmx.pluginsManager.addMenuItems(_menuUp);
-                };
-                
-                _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
-                
-                if ($$('left_usage'))
-                    hide($$('left_usage'))
-                                    
-                _menuUp.checkView();
-                
-                nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt("У вас нет прав на просмотр данной карты"), 0);
-                
-                window.onresize = resizeAll;
-                resizeAll();
-                
-                state.originalReference && createCookie("TinyReference", state.originalReference);
-                
-                nsGmx.widgets.authWidget.showLoginDialog();
-                
-                return;
-            }
+            initAuthWidget();
             
             //инициализация контролов пользовательских объектов
             //соответствующий модуль уже загружен
@@ -1496,7 +1457,33 @@ function loadMap(state)
             
             $("#leftContent").mCustomScrollbar();
         });
-	})
+	}, function() {
+        initAuthWidget();
+        
+        _menuUp.defaultHash = 'usage';
+        
+        _menuUp.createMenu = function()
+        {
+            createDefaultMenu();
+            nsGmx.pluginsManager.addMenuItems(_menuUp);
+        };
+        
+        _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
+        
+        if ($$('left_usage'))
+            hide($$('left_usage'))
+                            
+        _menuUp.checkView();
+        
+        nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt("У вас нет прав на просмотр данной карты"), 0);
+        
+        window.onresize = resizeAll;
+        resizeAll();
+        
+        state.originalReference && createCookie("TinyReference", state.originalReference);
+        
+        nsGmx.widgets.authWidget.showLoginDialog();
+    })
 }
 
 function promptFunction(title, value) {
