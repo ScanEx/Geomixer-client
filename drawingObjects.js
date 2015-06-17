@@ -326,7 +326,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
     {
         if (geom.type == "Point")
         {
-            icon = _img(null, [['attr','src', gmxAPI.getAPIHostRoot() + 'api/img/flag_min.png'], ['dir', 'className', 'colorIcon']])
+            icon = _img(null, [['attr','src', (window.gmxJSHost || '') + 'img/flag_min.png'], ['dir', 'className', 'colorIcon']])
         }
         else
         {

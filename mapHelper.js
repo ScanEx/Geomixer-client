@@ -313,17 +313,18 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 {
 	window.suppressDefaultPermalink = true;
     nsGmx.Utils.TinyReference.get(id).then(function(obj) {
-		if (obj.position)
-		{
-			obj.position.x = from_merc_x(obj.position.x);
-			obj.position.y = from_merc_y(obj.position.y);
+		if (obj.position) {
+            var latLngPos = L.Projection.Mercator.unproject(obj.position);
+			obj.position.x = latLngPos.lng;
+			obj.position.y = latLngPos.lat;
 			obj.position.z = 17 - obj.position.z;
-			if (obj.drawnObjects)
-				for (var i in obj.drawnObjects)
-				{
-					obj.drawnObjects[i].geometry = from_merc_geometry(obj.drawnObjects[i].geometry);
-					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '0000ff';
+			if (obj.drawnObjects) {
+				for (var i in obj.drawnObjects) {
+                    //эта двойная конвертация в действительности просто перевод координат из Меркатора в LatLng
+					obj.drawnObjects[i].geometry = L.gmxUtil.geoJSONtoGeometry(L.gmxUtil.geometryToGeoJSON(obj.drawnObjects[i].geometry, true));
+					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '#0000FF';
 				}
+            }
 		}
         obj.originalReference = id;
 		callbackSuccess(obj);
@@ -335,23 +336,32 @@ mapHelper.prototype.getMapState = function()
 	var drawnObjects = [],
 		condition = {expanded:{}, visible:{}};
 	
-	globalFlashMap.drawing.forEachObject(function(o) 
-	{
+	nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(o)
+    {
 		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
 			return;
-			
-		var elem = {properties: o.properties, color: o.color, geometry: merc_geometry(o.geometry)};
+        
+        var geoJSON = o.toGeoJSON();
+        
+		var elem = {
+            properties: geoJSON.properties, 
+            geometry: L.gmxUtil.geoJSONtoGeometry(geoJSON, true)
+        };
 		
-		if (o.geometry.type != "POINT")
+		if (elem.geometry.type !== "POINT")
 		{
-			var style = o.getStyle();
+			var style = o.getOptions().lineStyle;
 			
-			elem.thickness = style.regular.outline.thickness;
-			elem.color = style.regular.outline.color;
-			elem.opacity = style.regular.outline.opacity;
+            if (style) {
+                elem.thickness = style.width || 2;
+                elem.color = style.color;
+                elem.opacity = (style.opacity || 0.8) * 100;
+            }
 		}
 		
-		if ( o.balloon ) elem.isBalloonVisible = o.balloon.isVisible;
+		if ( o.getPopup() ) {
+            elem.isBalloonVisible = true;
+        }
 		
 		drawnObjects.push(elem);
 	});
@@ -381,15 +391,18 @@ mapHelper.prototype.getMapState = function()
 			
 			//condition.visible[elem.content.properties.name] = elem.content.properties.visible;
 		}
-	})
+	});
+    
+    var lmap = nsGmx.leafletMap,
+        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 	
 	return {
-		mode: globalFlashMap.getBaseLayer(),
+		mode: lmap.gmxBaseLayersManager.getCurrentID(),
 		mapName: globalMapName,
 		position: { 
-			x: merc_x(globalFlashMap.getX()), 
-			y: merc_y(globalFlashMap.getY()), 
-			z: 17 - globalFlashMap.getZ() 
+			x: mercCenter.x,
+			y: mercCenter.y, 
+			z: 17 - lmap.getZoom() 
 		},
 		mapStyles: this.getMapStyles(),
 		drawnObjects: drawnObjects,

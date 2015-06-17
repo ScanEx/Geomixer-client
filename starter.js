@@ -1161,20 +1161,7 @@ function loadMap(state)
             
             if (state.position)
             {
-                map.moveTo(state.position.x, state.position.y, state.position.z);
-            }
-            
-            if ( !data.properties.UseKosmosnimkiAPI && map.miniMap )
-            {
-                for (var i = 0; i < map.layers.length; i++)
-                {
-                    var layer = map.layers[i];
-                    if (layer && layer.properties.type == "Raster")
-                    {
-                        map.miniMap.addLayer(layer, false);
-                        layer.miniLayer = map.miniMap.layers[map.miniMap.layers.length - 1];
-                    }
-                }
+                lmap.setView([state.position.y, state.position.x], state.position.z);
             }
             
             var condition = false,
@@ -1411,22 +1398,28 @@ function loadMap(state)
             var sliderControl = new SliderControl();
             lmap.addControl(sliderControl);
             
-            state.mode && map.setMode(state.mode);
+            state.mode && lmap.gmxBaseLayersManager.getCurrentID(state.mode);
             
             if (state.drawnObjects)
             {
-                for (var i = 0; i < state.drawnObjects.length; i++)
-                {
-                    var color = state.drawnObjects[i].color || 0x0000FF,
-                        thickness = state.drawnObjects[i].thickness || 3,
-                        opacity = state.drawnObjects[i].opacity || 80,
-                        elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties);
+                state.drawnObjects.forEach(function(objInfo) {
+                    //старый формат - число, новый - строка
+                    var color = (typeof objInfo.color === 'number' ? '#' + L.gmxUtil.dec2hex(objInfo.color) : objInfo.color) || '#0000FF',
+                        weight = objInfo.thickness || 2,
+                        opacity = (objInfo.opacity / 100) || 0.8;
+                        
+                    var drawnObject = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry))[0];
                     
-                    elem.setStyle({outline: {color: color, thickness: thickness, opacity: opacity }});
+                    var properties = $.extend(true, {}, objInfo.properties,  {
+                        lineStyle: {
+                            color: color,
+                            weight: weight,
+                            opacity: opacity
+                        }
+                    });
                     
-                    if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
-                        elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
-                }
+                    drawnObject.setOptions(properties);
+                });
             }
             else if (state.marker)
                 map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
