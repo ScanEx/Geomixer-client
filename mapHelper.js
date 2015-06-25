@@ -276,18 +276,10 @@ mapHelper.prototype.setBalloon = function(filter, template)
 
 mapHelper.prototype.updateMapStyles = function(newStyles, name)
 {
-    var layer = globalFlashMap.layers[name];
+    var layer = nsGmx.gmxMap.layersByID[name];
     
-	// удалим старые фильтры
-	for (var i = layer.filters.length - 1; i > -1; i--) {
-		layer.filters[i].remove();
-	}
-	
-	layer.filters = [];
-    
-	// добавим новые
-    newStyles.forEach(function(style) {
-        layer.addFilter(style);
+    newStyles.forEach(function(style, i) {
+        nsGmx.Utils.setGmxLayerStyle(layer, i, style);
     });
 }
 

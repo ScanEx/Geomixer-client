@@ -1138,40 +1138,39 @@ $.extend(nsGmx.Utils, {
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
 	setMapObjectStyle: function(layer, styleIndex, templateStyle)
 	{
-        // console.log(JSON.stringify(templateStyle));
-        
-        var hoverStyle = {};
-        $.extend(true, hoverStyle, templateStyle);
+        var hoverStyle = $.extend(true, {}, templateStyle);
         var style = layer.getStyle(styleIndex);
         
-		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
-		{
-            var newStyle = $.extend(true, {}, style);
-            newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
-            newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
-            
-			try
-			{
-                layer.setStyle(newStyle);
-			}
-			catch(e)
-			{
-			}
-		}
-		else
-		{
-			if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
-				hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
-			
-			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
-				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
-			
-            var newStyle = $.extend(true, {}, style);
-            newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
-            newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
-            
-			layer.setStyle(newStyle, styleIndex);
-		}
+        if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+            hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+        
+        if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
+            hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+        
+        var newStyle = $.extend(true, {}, style);
+        newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+        newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
+        
+        layer.setStyle(newStyle);
+	},
+    
+    setGmxLayerStyle: function(layer, styleIndex, style)
+	{
+        var templateStyle = style.RenderStyle,
+            newStyle = $.extend(true, {}, style),
+            hoverStyle = $.extend(true, {}, templateStyle);
+        
+        
+        if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+            hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+        
+        if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
+            hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+        
+        newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+        newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
+        
+        layer.setStyle(newStyle);
 	},
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     *

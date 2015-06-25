@@ -1428,7 +1428,6 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		}
 		else
 		{
-            
             var name = props.name;
 			if (typeof condition.visible[name] != 'undefined') {
                 _layersTree.treeModel.setNodeVisibility(elem, condition.visible[name]);
@@ -1440,25 +1439,14 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				!_this.equalStyles(props.styles, mapLayersParam[name]))
 			{
 				// что-то менялось в стилях
-				var layerProperties = globalFlashMap.layers[name].properties,
-					newStyles = mapLayersParam[name],
-					div = $(_this.buildedTree).find("div[LayerID='" + layerProperties.LayerID + "']")[0];
-				
-				props.styles = newStyles;
-				
-				if (!globalFlashMap.layers[name].objectId)
-				{
-					globalFlashMap.layers[name].setVisible(true);
-					
-					_mapHelper.updateMapStyles(newStyles, name);
-					
-					globalFlashMap.layers[name].setVisible(visibleFlag);
-                    
-                    props.changedByViewer = true;
-				}
-				else
-					_mapHelper.updateMapStyles(newStyles, name);
-				
+				var newStyles = mapLayersParam[name],
+					div = $(_this.buildedTree).find("div[LayerID='" + props.LayerID + "']")[0];
+
+                props.styles = newStyles;
+
+                _mapHelper.updateMapStyles(newStyles, name);
+                props.changedByViewer = true;
+
                 div && _mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
 			}
 		}
