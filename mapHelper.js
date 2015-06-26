@@ -73,26 +73,27 @@ var mapHelper = function()
 				for (var name in _borders)
 					callback(name, _borders[name]);
 			},
-			
+
 			updateBorder: function(name, span)
 			{
 				if (!_borders[name])
 					return;
-				
+
+                var geom = _borders[name].toGeoJSON().geometry,
+                    areaStr = L.gmxUtil.prettifyArea(L.gmxUtil.geoArea(geom, false));
+
 				if (span)
 				{
-                    var geom = _borders[name].geometry || _borders[name].getGeometry();
-					_(span, [_t(prettifyArea(geoArea(geom.coordinates)))]);
-					
+					_(span, [_t(areaStr)]);
 					return;
 				}
-				
+
 				if (!$$('drawingBorderDescr' + name))
 					return;
 				
 				removeChilds($$('drawingBorderDescr' + name));
-				
-				_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+
+				_($$('drawingBorderDescr' + name), [_t(areaStr)]);
 			}, 
 			
 			//Удаляет объект из списка контуров слоя
@@ -102,8 +103,9 @@ var mapHelper = function()
 				if (!(name in _borders))
 					return;
 					
-				if (typeof removeDrawing !== 'undefined' && removeDrawing)
-					_borders[name].remove();
+				if (removeDrawing) {
+					nsGmx.leafletMap.gmxDrawing.remove(_borders[name]);
+                }
 				
 				delete _borders[name];
 				
@@ -939,7 +941,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
             
-			var parentObject = globalFlashMap.layers[layerName],
+			var layer = nsGmx.gmxMap.layersByID[layerName],
 				parentStyle = elemProperties.styles && elemProperties.styles[0] || elemProperties;
                 
             var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
@@ -948,7 +950,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			
             $(zoomPropertiesControl).change(function()
             {
-                parentObject.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+                layer.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
             });
 
 			_(divStyles, [_ul([liMinZoom, liMaxZoom])]);

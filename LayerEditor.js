@@ -984,28 +984,14 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
         else
         {
             shapeVisible(false);
-                    
+
             var geometry = layerProperties.get('Geometry');
 
-            var drawingBorder;
             var geom = L.gmxUtil.geometryToGeoJSON(geometry, true);
-            var geojson = new L.GeoJSON(geom),
-                LMap = nsGmx.leafletMap,
-                arr = LMap.gmxDrawing.addGeoJSON(geojson);
+            var drawingBorder = nsGmx.leafletMap.gmxDrawing.addGeoJSON(geom)[0];
 
-            // if (geometry.type.indexOf('MULTI') === -1) {
-                // drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry), null, {skipFrame: true});
-            // } else {
-                // drawingBorder = globalFlashMap.addObject(from_merc_geometry(geometry));
-            // }
-                
-            // drawingBorder.setStyle(
-                // {outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }}, 
-                // {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }}
-            // );
-                    
             _mapHelper.drawingBorders.set(name, drawingBorder);
-                    
+
             _mapHelper.drawingBorders.updateBorder(name, drawingBorderDescr);
         }
     }
