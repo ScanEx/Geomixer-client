@@ -1359,10 +1359,9 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
                 return;
             }
             
-            var mapLayer = window.globalFlashMap && window.globalFlashMap.layers[layerName];
+            var mapLayer = nsGmx.gmxMap.layersByID[layerName];
             if (mapLayer) {
-                mapLayer.chkLayerVersion(function()
-                {
+                L.gmx.layersVersion.chkVersion(mapLayer, function() {
                     def.resolve();
                 });
             }

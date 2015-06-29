@@ -215,7 +215,7 @@
         
             //объекты каталога растров
             nsGmx.EditObjectControl.addParamsHook(function(layerName, objectId, params) {
-                var metaProps = map.layers[layerName].properties.MetaProperties;
+                var metaProps = nsGmx.gmxMap.layersByID[layerName].getGmxProperties().MetaProperties;
                 if (!metaProps.shiftXfield || !metaProps.shiftYfield) {
                     return params;
                 }
