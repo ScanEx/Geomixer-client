@@ -212,7 +212,7 @@ var EditObjectControl = function(layerName, objectId, params)
         
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
-            globalFlashMap, 
+            lmap, 
             geometryInfoContainer, 
             obj, 
             { editStyle: false, allowDelete: false }

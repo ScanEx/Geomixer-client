@@ -1909,8 +1909,8 @@ queryMapLayers.prototype.createLayersManager = function()
 	var layerManagerControl = new nsGmx.LayerManagerControl(canvas, 'layers');
     
     var existLayers = [];
-    for (var i = 0; i < globalFlashMap.layers.length; i++)
-        existLayers.push(globalFlashMap.layers[i].properties.name);
+    for (var i = 0; i < nsGmx.gmxMap.layers.length; i++)
+        existLayers.push(nsGmx.gmxMap.layers[i].getGmxProperties().name);
         
     layerManagerControl.disableLayers(existLayers);
     

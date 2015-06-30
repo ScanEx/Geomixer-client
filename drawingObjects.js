@@ -273,7 +273,7 @@ var DrawingObjectCollection = function(oInitMap) {
  @class Строка с описанием объекта и ссылкой на него
  @description К строке биндится контекстное меню типа "DrawingObject"
  @memberOf DrawingObjects
- @param {L.gmxMap} oInitMap Карта
+ @param {L.Map} oInitMap Карта Leaflet
  @param oInitContainer Объект, в котором находится контрол (div) 
  @param drawingObject Объект для добавления на карту
  @param options дополнительные параметры
