@@ -8,6 +8,7 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
     _tileTemplate: 'http://maps.kosmosnimki.ru/TileService.ashx?request=gettile&layername={layerID}&srs=EPSG:3857&z={z}&x={x}&y={y}&format=png&Map={mapID}',
     _minDate: 1,
     _maxDate: 365,
+    _probThreshold: 0,
     initialize: function(layerID, mapID, options) {
         this._layerID = layerID;
         this._mapID = mapID;
@@ -25,11 +26,12 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
                 data = imgData.data,
                 minVal = this._minDate,
                 maxVal = this._maxDate,
+                th = this._probThreshold,
                 coeff = 256/365;
             
             for (var p = 0; p < 256*256*4; p += 4) {
                 var v = data[p] + data[p+1];
-                if (v >= minVal && v <= maxVal) {
+                if (v >= minVal && v <= maxVal && data[p+2] >= th) {
                     data[p+0] = Math.floor((365-v)*coeff);
                     data[p+1] = Math.floor(v*coeff);
                 } else {
@@ -61,6 +63,13 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
     setDateInterval: function(dateBegin, dateEnd) {
         this._minDate = dateBegin;
         this._maxDate = dateEnd;
+        this.redraw();
+        return this;
+    },
+    
+    //probThreshold - 0-100
+    setProbabilityThreshold: function(probThreshold) {
+        this._probThreshold = probThreshold;
         this.redraw();
         return this;
     }
