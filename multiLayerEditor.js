@@ -25,28 +25,31 @@ var createMultiLayerEditorServer = function(elemProperties, div, layersTree)
 
 var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
 {
+    var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit';
+    
     var commonLayersListDiv = _div(null, [['css', 'height', '100%'], ['css', 'width', '100%']]);
-    var selectedLayersDiv = _div(null, [['css', 'height', '100%'], ['css', 'margin', '10px 10px 0px 0px']]);
+    var selectedLayersDiv = _div(null, [['css', 'height', '100%'], ['css', 'margin', '10px 0px 0px 0px']]);
     
     var selectedLayersTable = new nsGmx.ScrollTable({height: div ? 255 : 280});
-    
-    var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
-        fixType: ['raster', 'catalog'], 
-        enableDragging: false,
-        onclick: function(context)
-        {
-            selectedLayersTable.getDataProvider().addOriginalItem(context.elem);
-            suggestLayersControl.disableLayers(context.elem.name);
-        }
-    });
-    
-    var suggestLayersTable = suggestLayersControl.getScrollTable();
-    
+        
+    if (!isReadonly) {
+        var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
+            fixType: ['raster', 'catalog'], 
+            enableDragging: false,
+            onclick: function(context)
+            {
+                selectedLayersTable.getDataProvider().addOriginalItem(context.elem);
+                suggestLayersControl.disableLayers(context.elem.name);
+            }
+        });
+    }
+        
     selectedLayersTable.createTable(selectedLayersDiv, 'selectedLayersTables', 0, 
         ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), "", "", ""],
         ['1%','5%','40%','19%','20%', '5%', '5%', '5%'], 
         function(layer)
         {
+            layer = $.extend(layer, {date: nsGmx.Utils.convertFromServer('date', layer.date)});
             var baseTR = nsGmx.drawLayers.apply(this, [layer, {onclick: null, enableDragging: false}]);
             var downButton = makeImageButton('img/down.png', 'img/down_a.png');
             var upButton = makeImageButton('img/up.png', 'img/up_a.png');
@@ -59,7 +62,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                     return elem.LayerID != layer.LayerID;
                 })
                 
-                //suggestLayersTable.getDataProvider().addOriginalItem(layer);
                 suggestLayersControl.enableLayers(layer.name);
             }
             downButton.onclick = function()
@@ -87,9 +89,14 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                     }
             }
             $('td:last', baseTR).remove(); //удаляем правый отступ
-            $(baseTR).append($("<td></td>").append(downButton));
-            $(baseTR).append($("<td></td>").append(upButton));
-            $(baseTR).append($("<td></td>").append(deleteButton));
+            
+            if (!isReadonly) {
+                $(baseTR).append($("<td></td>").append(downButton));
+                $(baseTR).append($("<td></td>").append(upButton));
+                $(baseTR).append($("<td></td>").append(deleteButton));
+            } else {
+                $(baseTR).append($("<td></td><td></td><td></td>").width('5%'));
+            }
             return baseTR;
         }, {});
     
@@ -287,7 +294,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
     div && shownProperties.push({name: _gtxt("ID"), field: 'Name'});
-    shownProperties.push({tr: borderTr});
+    
+    isReadonly || shownProperties.push({tr: borderTr});
     
     var trs = _mapHelper.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 70});
     _(propertiesDiv, [_table([_tbody(trs)],[['dir','className','propertiesTable']])]);
@@ -301,97 +309,103 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     }
     
     var isCreate = div === null;
-    var saveButton = makeLinkButton(isCreate ? _gtxt("Создать") : _gtxt("Изменить"));
-    saveButton.onclick = function()
-    {
-        var errorElems = [];
-        
-        if (title.value === '') errorElems.push(title);
-        if (!selectedLayersTable.getDataProvider().getOriginalItems().length) errorElems.push(selectedLayersDiv);
-        
-        for (var i = 0; i < errorElems.length; i++)
-            inputError(errorElems[i], 2000);
-        
-        if (errorElems.length) return;
-        
-        var layers = [];
-        var selectedItems = selectedLayersTable.getDataProvider().getOriginalItems();
-        for (var l = 0; l < selectedItems.length; l++)
-            layers.push({LayerID: selectedItems[l].LayerID});
+    var saveButton;
+    
+    if (isReadonly) {
+        saveButton = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','color','red']]);
+    } else {
+        saveButton = makeLinkButton(isCreate ? _gtxt("Создать") : _gtxt("Изменить"));
+        saveButton.onclick = function()
+        {
+            var errorElems = [];
             
-        var updateInfo = {
-            Properties: {
-                MultiLayerID: elemProperties.MultiLayerID, 
-                Title: title.value, 
-                Description: descr.value, 
-                WMSAccess: false,
-                UserBorder: getUserBorder()
-            },
-            Layers: layers, 
-            LayersChanged: true
-        };
-        
-        var scriptName = isCreate ? "Insert.ashx" : "Update.ashx";
-        
-        sendCrossDomainPostRequest(serverBase + "MultiLayer/" + scriptName, {
-                WrapStyle: 'window',
-                MultiLayerInfo: JSON.stringify(updateInfo)
-            },
-            function(response)
-            {
-                if ( !parseResponse(response) )
-                    return;
-                    
-                var layerDiv = null;
+            if (title.value === '') errorElems.push(title);
+            if (!selectedLayersTable.getDataProvider().getOriginalItems().length) errorElems.push(selectedLayersDiv);
+            
+            for (var i = 0; i < errorElems.length; i++)
+                inputError(errorElems[i], 2000);
+            
+            if (errorElems.length) return;
+            
+            var layers = [];
+            var selectedItems = selectedLayersTable.getDataProvider().getOriginalItems();
+            for (var l = 0; l < selectedItems.length; l++)
+                layers.push({LayerID: selectedItems[l].LayerID});
                 
-                if (!isCreate)
+            var updateInfo = {
+                Properties: {
+                    MultiLayerID: elemProperties.MultiLayerID, 
+                    Title: title.value, 
+                    Description: descr.value, 
+                    WMSAccess: false,
+                    UserBorder: getUserBorder()
+                },
+                Layers: layers, 
+                LayersChanged: true
+            };
+            
+            var scriptName = isCreate ? "Insert.ashx" : "Update.ashx";
+            
+            sendCrossDomainPostRequest(serverBase + "MultiLayer/" + scriptName, {
+                    WrapStyle: 'window',
+                    MultiLayerInfo: JSON.stringify(updateInfo)
+                },
+                function(response)
                 {
-                    layerDiv = $(_queryMapLayers.buildedTree).find("[MultiLayerID='" + response.Result.properties.MultiLayerID + "']")[0];
-                }
+                    if ( !parseResponse(response) )
+                        return;
+                        
+                    var layerDiv = null;
                     
-                var newLayerProperties = $.extend(true, response.Result.properties,
-                {
-                    mapName:  layersTree.treeModel.getMapProperties().name,
-                    hostName: layersTree.treeModel.getMapProperties().hostName,
-                    visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
-                    styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
-                });
+                    if (!isCreate)
+                    {
+                        layerDiv = $(_queryMapLayers.buildedTree).find("[MultiLayerID='" + response.Result.properties.MultiLayerID + "']")[0];
+                    }
+                        
+                    var newLayerProperties = $.extend(true, response.Result.properties,
+                    {
+                        mapName:  layersTree.treeModel.getMapProperties().name,
+                        hostName: layersTree.treeModel.getMapProperties().hostName,
+                        visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
+                        styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
+                    });
 
-                var layerData = {type:'layer', content:{properties: newLayerProperties, geometry: response.Result.geometry}};
-                
-                if (!isCreate)
-                    _queryMapLayers.removeLayer(newLayerProperties.name);
-
-                _layersTree.addLayersToMap(layerData);
-                
-                var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                
-                var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
-                
-                if (isCreate)
-                {
-                    _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
-                    layersTree.addTreeElem(divParent, 0, layerData);
-                }
-                else
-                {
-                    $(layerDiv.parentNode).replaceWith(li);
-                    _layersTree.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
-                }
-                
-                geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
-                
-                removeMultipolygon();
+                    var layerData = {type:'layer', content:{properties: newLayerProperties, geometry: response.Result.geometry}};
                     
-                _queryMapLayers.addSwappable(li);
-                _queryMapLayers.addDraggable(li);
-                _layersTree.updateListType(li);
-                
-                $(jQueryDialog).dialog("close");
-                $(jQueryDialog).dialog("destroy");
-                jQueryDialog.removeNode(true);
-            }
-        );
+                    if (!isCreate)
+                        _queryMapLayers.removeLayer(newLayerProperties.name);
+
+                    _layersTree.addLayersToMap(layerData);
+                    
+                    var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+                    
+                    var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
+                    
+                    if (isCreate)
+                    {
+                        _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
+                        layersTree.addTreeElem(divParent, 0, layerData);
+                    }
+                    else
+                    {
+                        $(layerDiv.parentNode).replaceWith(li);
+                        _layersTree.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
+                    }
+                    
+                    geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
+                    
+                    removeMultipolygon();
+                        
+                    _queryMapLayers.addSwappable(li);
+                    _queryMapLayers.addDraggable(li);
+                    _layersTree.updateListType(li);
+                    
+                    $(jQueryDialog).dialog("close");
+                    $(jQueryDialog).dialog("destroy");
+                    jQueryDialog.removeNode(true);
+                }
+            );
+        }
     }
     
     var divProperties = _div();
@@ -400,8 +414,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
             _td([_table([_tbody([
                 _tr([_td([propertiesDiv])]),
                 _tr([_td([selectedLayersDiv])])
-            ])], [['css', 'width', '100%']])], [['css', 'verticalAlign', 'top']]),
-            _td([commonLayersListDiv], [['css', 'width', '60%']])]),
+            ])], [['css', 'width', '100%']])], [['css', 'verticalAlign', 'top'], ['css', 'width', '311px']]),
+            _td([commonLayersListDiv], [['css', 'paddingLeft', '10px']])]),
         _tr([_td([saveButton], [['attr', 'colSpan', '2']])])
     ])], [['css', 'width', '100%']])], [['attr','id','properties' + elemProperties.name]]);
     
@@ -453,7 +467,11 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         }
     }
     
-    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title || ''), dialogContainer, 900, 530, false, false, null, closeFunc);
+    if (isReadonly) {
+        $(dialogContainer).find('input, textarea').prop('disabled', true);
+    }
+    
+    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title || ''), dialogContainer, isReadonly ? 340 : 900, 530, false, false, null, closeFunc);
 }
 
 gmxCore.addModule('MultiLayerEditor', {

@@ -98,6 +98,11 @@ var createMenuNew = function()
     //формирует описание элемента меню для включения/выключения плагина
     var getPluginToMenuBinding = function(pluginName, menuItemName, menuTitle) {
         var plugin = nsGmx.pluginsManager.getPluginByName(pluginName);
+        
+        if (!plugin) {
+            return null;
+        }
+        
         var sel = function() {
             nsGmx.pluginsManager.setUsePlugin(pluginName, true);
             nsGmx.pluginsManager.done(function() {
@@ -128,8 +133,7 @@ var createMenuNew = function()
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
-	{id:"mapsMenu", title:_gtxt("Карта"),childs:
-		[
+        {id:"mapsMenu", title:_gtxt("Карта"),childs: [
 			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
 			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
@@ -151,7 +155,8 @@ var createMenuNew = function()
                     props = _layersTree.treeModel.getMapProperties();
                 securityDialog.getRights(props.MapID, props.title);
             }, disabled: !isMapEditor}
-		]});
+		]}
+    );
 	
 	_menuUp.addItem(
 	{id:"dataMenu", title: _gtxt('Данные'), childs:
@@ -171,7 +176,6 @@ var createMenuNew = function()
 			{id:'loadFile',    title: _gtxt('Загрузить файл'),  func:drawingObjects.loadShp.load},
 			{id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
 			{id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
-			
 		]});
 	
 	_menuUp.addItem(

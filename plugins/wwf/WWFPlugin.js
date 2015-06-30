@@ -42,12 +42,18 @@
                 slider = ui.find('.wwf-slider');
                 
             var updateInfo = function(min, max) {
-                ui.find('.wwf-info').html('Фильтр по дням: ' + min + ' - ' + max);
+                var dateMin = new Date(Date.UTC(2014, 0, 0) + min*3600*24*1000),
+                    dateMax = new Date(Date.UTC(2014, 0, 0) + max*3600*24*1000);
+                    
+                var s2 = function(v) {return v < 10 ? '0' + v : v},
+                    date2str = function(date) {return s2(date.getUTCMonth()+1) + '.' + s2(date.getUTCDate())};
+                    
+                ui.find('.wwf-info').html('Фильтр по дням: ' + date2str(dateMin) + ' - ' + date2str(dateMax));
             }
             
             slider.slider({
                 min: 1,
-                max: 356,
+                max: 365,
                 range: true,
                 values: [1, 365],
                 change: function(event, sliderUI) {
@@ -56,7 +62,7 @@
                 }
             });
             
-            updateInfo(1, 356);
+            updateInfo(1, 365);
             
             drawPalette(ui.find('.wwf-palette')[0]);
             
@@ -64,7 +70,7 @@
             var parentContainer = $('#leftContentInner').length ? $('#leftContentInner') : $('#leftContent');
             parentContainer.prepend(leftPanel.panelCanvas);
             
-            var layerID = params && params.layerID || '3F5FA68D2821459D8CF1A6DE493BE337';
+            var layerID = params && params.layerID || 'C53699CEACAF4D8AB0ACF1A4D152D85A';
             map.layers[layerID].setImageProcessingHook(function(image, options) {
                 
                 var canvas = document.createElement('canvas');
@@ -74,21 +80,17 @@
                 
                 var imgData = ctx.getImageData(0, 0, 256, 256),
                     data = imgData.data,
-                    minVal = slider.slider('values', 0) - 1,
-                    maxVal = slider.slider('values', 1) - 1,
-                    coeff = 256/356;
+                    minVal = slider.slider('values', 0),
+                    maxVal = slider.slider('values', 1),
+                    coeff = 256/365;
                 
                 for (var p = 0; p < 256*256*4; p += 4) {
-                    var a = data[p+3];
-                    if (a > 0) {
-                        var v = data[p] + data[p+1];
-                        
-                        if (v >= minVal && v <= maxVal) {
-                            data[p] = Math.floor((356-v)*coeff);
-                            data[p+1] = Math.floor(v*coeff);
-                        } else {
-                            data[p+3] = 0;
-                        }
+                    var v = data[p] + data[p+1];
+                    if (v >= minVal && v <= maxVal) {
+                        data[p] = Math.floor((365-v)*coeff);
+                        data[p+1] = Math.floor(v*coeff);
+                    } else {
+                        data[p+3] = 0;
                     }
                 }
                 

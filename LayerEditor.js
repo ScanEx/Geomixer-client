@@ -331,10 +331,10 @@ var LayerEditor = function(div, type, parent, properties, params) {
      */
 
     var _params = $.extend({
-                addToMap: true, 
-                doneCallback: null, 
-                additionalUI: {}
-            }, params)
+            addToMap: true, 
+            doneCallback: null, 
+            additionalUI: {}
+        }, params)
             
     var _this = this;
     this._originalTabs = [];
@@ -358,6 +358,8 @@ var LayerEditor = function(div, type, parent, properties, params) {
         );
     }
     
+    var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit';
+    
     var createUI = function() {
         var divProperties = div ? div.gmxProperties.content.properties : {},
             layerProperties = new nsGmx.LayerProperties();
@@ -372,50 +374,33 @@ var LayerEditor = function(div, type, parent, properties, params) {
         var advancedContainer = genPageDiv();
         var attrContainer     = genPageDiv();
         
+        
         _this._originalTabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
         
         if (type === 'Vector') {
             _this._originalTabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
         }
         
-        _this._originalTabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
+        if (!isReadonly) {
+            _this._originalTabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
         
-        if (type === 'Vector') {
-            _this._originalTabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
+            if (type === 'Vector') {
+                _this._originalTabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
+            }
         }
         
         _this._saveButton = null;
-        
-        if (div) {
-            var layerRights = _queryMapLayers.layerRights(divProperties.name);
-            var securityDiv = null;
-            
-            if (!layerRights)
-            {
-                securityDiv = _div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
-            }
-            else if (layerRights !== "edit")
-            {
-                securityDiv = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
-            }
-            
-            if (securityDiv) {
-                $([mainContainer.firstChild, metadataContainer.firstChild, advancedContainer.firstChild]).append(securityDiv);
-                _this._saveButton = _div(null, [['css', 'height', '1px']]);
-                return;
-            }
-        }
         
         _this._saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
         
         var origLayerProperties = layerProperties.clone();
         
-        _this._createPageMain(mainContainer.firstChild, layerProperties);
-        _this._createPageMetadata(metadataContainer.firstChild, layerProperties);
+        _this._createPageMain(mainContainer.firstChild, layerProperties, isReadonly);
+        _this._createPageMetadata(metadataContainer.firstChild, layerProperties, isReadonly);
         
         if (type === 'Vector') {
-            _this._createPageAdvanced(advancedContainer.firstChild, layerProperties);
-            _this._createPageAttributes(attrContainer.firstChild, layerProperties);
+            _this._createPageAdvanced(advancedContainer.firstChild, layerProperties, isReadonly);
+            _this._createPageAttributes(attrContainer.firstChild, layerProperties, isReadonly);
         }
         
         for (var i in _params.additionalUI) {
@@ -531,7 +516,11 @@ var LayerEditor = function(div, type, parent, properties, params) {
     
     var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
     
-    var tabs = this._originalTabs.concat(params.additionalTabs || []);
+    var tabs = this._originalTabs;
+    
+    if (!isReadonly) {
+        tabs = tabs.concat(params.additionalTabs || []);
+    }
     
     var lis = [], containers = [];
     for (var t = 0; t < tabs.length; t++) {
@@ -542,7 +531,13 @@ var LayerEditor = function(div, type, parent, properties, params) {
     
     var tabMenu = _div([_ul(lis)].concat(containers));
     
-    var saveMenuCanvas = _div([this._saveButton]);
+    var saveMenuCanvas;
+    
+    if (isReadonly) {
+        saveMenuCanvas = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
+    } else {
+        saveMenuCanvas = _div([this._saveButton]);
+    }
     
     $(parent).empty().append(_table([
         _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
@@ -571,7 +566,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
 }
 
 
-LayerEditor.prototype._createPageMain = function(parent, layerProperties) {
+LayerEditor.prototype._createPageMain = function(parent, layerProperties, isReadonly) {
 
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
     title.onkeyup = function() {
@@ -621,18 +616,25 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties) {
         shownProperties.push({name: _gtxt("ID"), field: 'Name'});
     }
                                 
-        shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
+    shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
         
-    if (layerProperties.get('Type') != "Vector")
+    if (layerProperties.get('Type') != "Vector") {
             shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
-            
-    if (layerProperties.get('Type') === "Vector")
-        shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties));
-    else
-        shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
-        
+    }
+    
+    if (!isReadonly) {
+        if (layerProperties.get('Type') === "Vector")
+            shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties));
+        else
+            shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
+    }
+
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
     _(parent, [_table([_tbody(trs)],[['dir','className','propertiesTable']])]);
+    
+    if (isReadonly) {
+        $(parent).find('input, textarea').prop('disabled', true);
+    }
 }
 
 LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
@@ -678,7 +680,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     //TODO: использовать события модели
     shapeFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv', 'sxf'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
@@ -1129,7 +1131,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
     return shownProperties;
 }
 
-LayerEditor.prototype._createPageAttributes = function(parent, props) {
+LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly) {
 
     var isNewLayer = !props.get('Name');
     var fileColumnsContainer = _div();
@@ -1150,7 +1152,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props) {
     
     var fileAttrView = new ManualAttrView();
     fileAttrView.init(fileColumnsContainer, fileAttrModel);
-    var allowEdit = type === 'manual' || (!isNewLayer && type === 'file');
+    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file'));
     fileAttrView.setActive(allowEdit);
     $(fileAddAttribute).toggle(allowEdit);
     

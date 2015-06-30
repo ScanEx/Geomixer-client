@@ -6,7 +6,7 @@
 */
 nsGmx.addHeaderLinks = function()
 {
-    var isHeaderLinks = true;
+    var isHeaderLinks = false;
     if ( typeof window.headerLinks === 'boolean' ) isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
     if ( typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.headerLinks !== 'undefined' )
         isHeaderLinks = window.gmxViewerUI.headerLinks;

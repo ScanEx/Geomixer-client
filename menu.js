@@ -34,7 +34,7 @@ UpMenu.prototype._iterateMenus = function(elem, callback) {
     }
 
     for (var i = 0; i < elem.childs.length; i++) {
-        if (callback(elem.childs[i]) || this._iterateMenus(elem.childs[i], callback)) {
+        if (elem.childs[i] && (callback(elem.childs[i]) || this._iterateMenus(elem.childs[i], callback))) {
             return true;
         }
     }
@@ -102,12 +102,12 @@ UpMenu.prototype.hidemenu = function(elem)
 
 UpMenu.prototype._template =
 '<div class="headerContainer">\
-{{#childs}}\
+{{#childs}}{{#notNull}}\
     <div class = "header1{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
         <div class = "header1Internal">{{title}}</div>\
         {{#anyChildren}}\
             <ul class = "header2" id="{{id}}">\
-            {{#childs}}\
+            {{#childs}}{{#notNull}}\
                 <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
                     <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
                         <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
@@ -118,29 +118,29 @@ UpMenu.prototype._template =
                     </div>\
                     {{#anyChildren}}\
                         <ul class = "header3" id="{{id}}">\
-                        {{#childs}}\
+                        {{#childs}}{{#notNull}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
                                 <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
                                     <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
-                        {{/childs}}\
+                        {{/notNull}}{{/childs}}\
                         </ul>\
                     {{/anyChildren}}\
                 </li>\
-            {{/childs}}\
+            {{/notNull}}{{/childs}}\
             </ul>\
         {{/anyChildren}}\
     </div>\
-{{/childs}}\
+    {{/notNull}}{{/childs}}\
 </div>';
 
 /** Основная функция  - рисует меню по заданной структуре
 */
 UpMenu.prototype.draw = function()
 {
-    // anyChildren, noChildren, isChecked нужны для того, чтобы Mustache не проверял аналогичные свойства предыдущего уровня дерева
+    // anyChildren, noChildren, isChecked, notNull нужны для того, чтобы Mustache не проверял аналогичные свойства предыдущего уровня дерева
     var ui = $(Mustache.render(this._template, {
             childs: this.submenus,
             anyChildren: function(){
@@ -157,8 +157,12 @@ UpMenu.prototype.draw = function()
                 return function(text, renderer) {
                     return this.checked ? renderer(text) : "";
                 }
+            },
+            notNull: function() {
+                return function(text, renderer) {
+                    return this.id ? renderer(text) : "";
+                }
             }
-
         })),
         _this = this;
 
@@ -285,6 +289,8 @@ UpMenu.prototype.getNavigatePath = function(path) {
 	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
         var submenu = this.submenus[menuIdx];
+        
+        if (!submenu) {continue};
 
 		if (path == submenu.id)
 		{
@@ -296,12 +302,16 @@ UpMenu.prototype.getNavigatePath = function(path) {
 			var childsLevel2 = submenu.childs;
 			for (var i = 0; i < childsLevel2.length; i++)
 			{
+                if (!childsLevel2[i]) {continue};
+                
 				if (childsLevel2[i].childs)
 				{
 					var childsLevel3 = childsLevel2[i].childs;
 					// есть подменю, смотрим там
 					for(var j = 0; j < childsLevel3.length; j++)
 					{
+                        if (!childsLevel3[j]) {continue};
+                        
 						if (path == childsLevel3[j].id)
 						{
                             return [submenu.title, childsLevel2[i].title, childsLevel3[j].title];

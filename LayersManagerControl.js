@@ -174,7 +174,7 @@ var drawLayers = function(layer, params)
     if (_params.disabled)
             $(span).addClass('invisible');
 	
-	if (!_params.disabled)
+	if (!_params.disabled && _params.onclick)
 	{
 		span.onclick = function()
 		{
