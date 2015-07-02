@@ -1420,6 +1420,8 @@ extend(window.gmxAPI,
         var coords = [arg], length = 0;
         if (arg.type === "LINESTRING") {
             coords = [arg.coordinates];
+        } else if (arg.type === "MULTILINESTRING") {
+            coords = arg.coordinates;
         } else if (arg.type === "POLYGON") {
             coords = [arg.coordinates];
         } else if (arg.type === "MULTIPOLYGON") {
