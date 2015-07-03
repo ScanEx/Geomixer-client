@@ -427,8 +427,9 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 'change:Copyright': function() {
                     var copyright = layerProperties.get('Copyright')
                         
-                    globalFlashMap.layers[layerProperties.get('Name')].setCopyright(copyright);
-                        
+                    nsGmx.gmxMap.layersByID[layerProperties.get('Name')].options.attribution = copyright;
+                    nsGmx.leafletMap.gmxControlIconManager.get('copyright')._redraw();
+                    
                     divProperties.Copyright = copyright;
                 },
                 'change:Description': function() {

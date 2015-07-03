@@ -1523,9 +1523,9 @@ queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) 
     if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")))
     {
         var props = active[0].parentNode.gmxProperties.content.properties,
-            layer = globalFlashMap.layers[props.name];
+            layer = nsGmx.gmxMap.layersByID[props.name];
         
-        layer.setRasterOpacity(opacity);
+        layer.setRasterOpacity(opacity/100);
 
         return;
     }
@@ -1537,14 +1537,13 @@ queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) 
         _mapHelper.findChilds(treeElem.elem, function(child)
         {
             var props = child.content.properties;
-            var layer = globalFlashMap.layers[props.name];
-            layer.setRasterOpacity(opacity);
+            var layer = nsGmx.gmxMap.layersByID[props.name];
+            layer.setRasterOpacity(opacity/100);
         }, true);
     } else {
         // все растровые слои
-        for (var i = 0; i < globalFlashMap.layers.length; i++) {
-            var layer = globalFlashMap.layers[i];
-            layer.setRasterOpacity && layer.setRasterOpacity(opacity);
+        for (var i = 0; i < nsGmx.gmxMap.layers.length; i++) {
+            nsGmx.gmxMap.layers[i].setRasterOpacity(opacity/100);
         }
     }
 }
