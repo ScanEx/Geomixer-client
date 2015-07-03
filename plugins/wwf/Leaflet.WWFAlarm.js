@@ -5,7 +5,7 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
     options: {
         async: true
     },
-    _tileTemplate: 'http://maps.kosmosnimki.ru/TileService.ashx?request=gettile&layername={layerID}&srs=EPSG:3857&z={z}&x={x}&y={y}&format=png&Map={mapID}',
+    _tileTemplate: 'http://maps.kosmosnimki.ru/TileService.ashx?request=gettile&NearestNeighbor=true&layername={layerID}&srs=EPSG:3857&z={z}&x={x}&y={y}&format=png&Map={mapID}',
     _minDate: 1,
     _maxDate: 365,
     _probThreshold: 0,
@@ -13,9 +13,11 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
         this._layerID = layerID;
         this._mapID = mapID;
         L.Util.setOptions(this, options);
+        this._colorTable = L.WWFAlarm.genPalette(365);
     },
     drawTile: function(canvas, tilePoint, zoom) {
-        var img = new Image();
+        var img = new Image(),
+            ct = this._colorTable;
         
         img.onload = function() {
             var ctx = canvas.getContext('2d');
@@ -26,14 +28,14 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
                 data = imgData.data,
                 minVal = this._minDate,
                 maxVal = this._maxDate,
-                th = this._probThreshold,
-                coeff = 256/365;
+                th = this._probThreshold;
             
             for (var p = 0; p < 256*256*4; p += 4) {
                 var v = data[p] + data[p+1];
                 if (v >= minVal && v <= maxVal && data[p+2] >= th) {
-                    data[p+0] = Math.floor((365-v)*coeff);
-                    data[p+1] = Math.floor(v*coeff);
+                    data[p+0] = ct[4*v+0];
+                    data[p+1] = ct[4*v+1];
+                    data[p+2] = ct[4*v+2];
                 } else {
                     data[p+3] = 0;
                 }
@@ -74,3 +76,27 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
         return this;
     }
 })
+
+L.WWFAlarm.genPalette = function(size) {
+    var canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = 1;
+    
+    L.WWFAlarm.drawPalette(canvas);
+    
+    var ctxData = canvas.getContext('2d').getImageData(0, 0, size, 1).data;
+    return Array.prototype.slice.call(ctxData);
+}
+
+L.WWFAlarm.drawPalette = function(canvas) {
+    var ctx = canvas.getContext('2d');
+
+    var grad = ctx.createLinearGradient(0,0,canvas.width-1,0);
+    grad.addColorStop(0, 'blue');
+    grad.addColorStop(1/3, 'cyan');
+    grad.addColorStop(2/3, 'yellow');
+    grad.addColorStop(1, 'red');
+    
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+}
