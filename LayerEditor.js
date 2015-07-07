@@ -309,6 +309,7 @@ var ManualAttrView = function()
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог
+ @param {Object} properties Параметры слоя. В том формате, в котором они приходят с сервера.
  @param {Object} [params] Дополнительные параметры
  @param {String[]} [params.standardTabs] Массив с названиями стандартных вкладок, которые нужно показывать. По умолчанию показывать все (main, attrs, metadata, advanced)
  @param {Object[]} [params.additionalTabs] Массив дополнительных вкладок со следующими полями:
