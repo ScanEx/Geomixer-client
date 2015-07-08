@@ -360,7 +360,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-        new nsGmx.RCAddLayerControl(globalFlashMap, context.elem.name);
+        new nsGmx.RCAddLayerControl(nsGmx.gmxMap, context.elem.name);
 	}
 }, 'Layer');
 
