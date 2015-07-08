@@ -166,10 +166,11 @@ nsGmx.Controls = {
         var drawingObjs = [],
             _this = this;
         
-        globalFlashMap.drawing.forEachObject(function(obj)
+        nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(obj)
         {
-            if (!_params.geomType || obj.geometry.type.toLowerCase() === _params.geomType.toLowerCase())
+            if (!_params.geomType || obj.getType().toLowerCase() === _params.geomType.toLowerCase()) {
                 drawingObjs.push(obj);
+            }
         })
         
         if (!drawingObjs.length)
@@ -178,14 +179,14 @@ nsGmx.Controls = {
         {
             gmxCore.loadModule('DrawingObjects').done(function(drawing) {
                 var canvas = _div();
-                var collection = new drawing.DrawingObjectCollection(globalFlashMap);
+                var collection = new drawing.DrawingObjectCollection(nsGmx.leafletMap);
 
                 for (var i = 0; i < drawingObjs.length; i++)
                 {
                     collection.Add(drawingObjs[i]);
                 }
                 
-                var list = new drawing.DrawingObjectList(globalFlashMap, canvas, collection, {
+                var list = new drawing.DrawingObjectList(nsGmx.leafletMap, canvas, collection, {
                     allowDelete: false, 
                     editStyle: false, 
                     showButtons: false,
