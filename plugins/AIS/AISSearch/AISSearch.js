@@ -1,6 +1,7 @@
 ﻿(function() {
     var pluginName = 'AISSearch',
-        serverScript = 'http://maps.kosmosnimki.ru/VectorLayer/Search.ashx';
+        serverPrefix = serverBase || 'http://maps.kosmosnimki.ru/';
+        serverScript = serverPrefix + 'VectorLayer/Search.ashx';
 
     _translationsHash.addtext('rus', {
         'AISSearch.iconTitle' : 'Поиск кораблей по экрану'
@@ -8,7 +9,9 @@
     _translationsHash.addtext('eng', {
         'AISSearch.iconTitle' : 'Find ships in polygons'
     });
-
+    // var plugin = nsGmx.pluginsManager.getPluginByName('AISSearch');
+    // var mmsiArr = [275171000];
+    // if (plugin) { plugin.body.setMMSI(mmsiArr);
     var publicInterface = {
         pluginName: pluginName,
         afterViewer: function(params, map) {
@@ -24,7 +27,7 @@
             var gmxLayers,
                 lmap, layersByID;
             if (!nsGmx.leafletMap) {    // для старого АПИ
-                gmxCore.loadScript('http://maps.kosmosnimki.ru/api/leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
+                gmxCore.loadScript(serverPrefix + 'api/leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
                 lmap = gmxAPI._leaflet.LMap;
                 layersByID = gmxAPI.map.layers;
             } else {
@@ -32,10 +35,10 @@
                 layersByID = nsGmx.gmxMap.layersByID;
             }
 
-            var aisLayerID = null,
-                aisLayer = null,
+            var aisLayerID = '8EE2C7996800458AAF70BABB43321FA4',
+                aisLayer = layersByID[aisLayerID],
                 tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
-                tracksLayer = null,
+                tracksLayer = layersByID[tracksLayerID],
                 sideBar = new L.Control.gmxSidebar({className: 'aissearch'});
                 div = L.DomUtil.create('div', pluginName + '-content'),
                 shap = L.DomUtil.create('div', '', div),
@@ -55,6 +58,49 @@
                 }
                 return null;
             }
+
+            publicInterface.setMMSI = function(mmsiArr, bbox) {
+                if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
+                if (!nsGmx.leafletMap) {    // для старого АПИ
+                    var st = '(' + mmsiArr.join(',') + ')';
+                    if (aisLayer) {
+                        aisLayer.setVisibilityFilter('[mmsi] in ' + st);
+                        aisLayer.setVisible(true);
+                    }
+                    if (tracksLayer) {
+                        tracksLayer.setVisibilityFilter('[MMSI] in ' + st);
+                        tracksLayer.setVisible(true);
+                    }
+                } else {
+                    var filterFunc = function(args) {
+                        var mmsi = args.properties[1];
+                        for (var i = 0, len = mmsiArr.length; i < len; i++) {
+                            if (mmsi === mmsiArr[i]) { return true; }
+                        }
+                        return false;
+                    };
+                    if (aisLayer) {
+                        if (mmsiArr.length) {
+                            aisLayer.setFilter(filterFunc);
+                        } else {
+                            aisLayer.removeFilter();
+                        }
+                        if (!aisLayer._map) {
+                            lmap.addLayer(aisLayer);
+                        }
+                    }
+                    if (tracksLayer) {
+                        if (mmsiArr.length) {
+                            tracksLayer.setFilter(filterFunc);
+                        } else {
+                            tracksLayer.removeFilter();
+                        }
+                        if (!tracksLayer._map) {
+                            lmap.addLayer(tracksLayer);
+                        }
+                    }
+                }
+            };
 
             function getMMSIoptions() {
 
@@ -159,6 +205,8 @@
                                         ];
                                     }
                                 }
+                                publicInterface.setMMSI(filter, bbox);
+                                /*
                                 lmap.fitBounds(bbox, {maxZoom: 11});
                                 if (!nsGmx.leafletMap) {    // для старого АПИ
                                     var st = '(' + filter.join(',') + ')';
@@ -171,19 +219,26 @@
                                         tracksLayer.setVisible(true);
                                     }
                                 } else {
+                                    var filterFunc = function(args) {
+                                        var mmsi = args.properties[1];
+                                        for (var i = 0, len = filter.length; i < len; i++) {
+                                            if (mmsi === filter[i]) { return true; }
+                                        }
+                                        return false;
+                                    };
                                     if (aisLayer) {
-                                        aisLayer.setFilter(function(args) {
-                                            var mmsi = args.properties[1];
-                                            for (var i = 0, len = filter.length; i < len; i++) {
-                                                if (mmsi === filter[i]) { return true; }
-                                            }
-                                            return false;
-                                        });
+                                        aisLayer.setFilter(filterFunc);
                                         if (!aisLayer._map) {
                                             lmap.addLayer(aisLayer);
                                         }
                                     }
-                                }
+                                    if (tracksLayer) {
+                                        tracksLayer.setFilter(filterFunc);
+                                        if (!tracksLayer._map) {
+                                            lmap.addLayer(tracksLayer);
+                                        }
+                                    }
+                                }*/
                             };
 
                             values.map(function(it) {
