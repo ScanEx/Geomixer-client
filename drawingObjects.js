@@ -374,7 +374,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		removeChilds(_text);
 		removeChilds(_summary);
 		
-        var summary = L.gmxUtil.getGeoJSONSummary(geom, false);
+        var summary = L.gmxUtil.getGeoJSONSummary(geom, false, nsGmx.leafletMap.options);
 		if (type == "Point")
 		{
 			_(_title, [_t(_gtxt('drawingObjects.pointTitle'))]);
