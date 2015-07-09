@@ -58,13 +58,23 @@ UpMenu.prototype.addItem = function(elem)
 *
 *    @param {IMenuElem} newElem Вставляемый элемент меню
 *    @param {String} parentID ID элемента меню, к которому добавляется новый элемент
+*    @param {String} [insertBeforeID] ID элемента меню, перед которым нужно вставить пункт меню.
+*                    Если не указан, пункт меню будет добавлен в конец списка.
 */
-UpMenu.prototype.addChildItem = function(newElem, parentID)
+UpMenu.prototype.addChildItem = function(newElem, parentID, insertBeforeID)
 {
     this._iterateMenus({childs: this.submenus}, function(elem) {
         if (elem.id && elem.id === parentID) {
             elem.childs = elem.childs || [];
-            elem.childs.push(newElem);
+            
+            var index = elem.childs.length;
+            elem.childs.forEach(function(childElem, i) {
+                if (childElem.id === insertBeforeID) {
+                    index = i;
+                }
+            })
+            
+            elem.childs.splice(index, 0, newElem);
 
             this._isCreated && this.draw();
 

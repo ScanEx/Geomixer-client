@@ -36,7 +36,14 @@
                 aisLayer = null,
                 tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
                 tracksLayer = null,
-                sideBar;
+                sideBar = new L.Control.gmxSidebar({className: 'aissearch'});
+                div = L.DomUtil.create('div', pluginName + '-content'),
+                shap = L.DomUtil.create('div', '', div),
+                title = L.DomUtil.create('span', '', shap),
+                refresh = L.DomUtil.create('i', 'icon-refresh', shap),
+                node = null;
+
+            refresh.title = 'Обновить';
 
             function getActiveLayer() {
                 var active = $(_queryMapLayers.treeCanvas).find(".active");
@@ -50,6 +57,12 @@
             }
 
             function getMMSIoptions() {
+
+                var cont = sideBar.getContainer();
+                L.DomEvent.disableScrollPropagation(cont);
+                cont.appendChild(div);
+                title.innerHTML = 'Поиск кораблей';
+                
                 aisLayerID = getActiveLayer() || params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
                 if (!layersByID[aisLayerID]) {
                     console.log('Отсутствует слой: АИС данные `' + aisLayerID + '`');
@@ -57,15 +70,12 @@
                 }
                 aisLayer = layersByID[aisLayerID];
                 tracksLayer = layersByID[tracksLayerID];
-                var bounds = lmap.getBounds(),
-                    arr = bounds.toBBoxString().split(','),
-                    coords = [
-                        [arr[0], arr[1]],
-                        [arr[0], arr[3]],
-                        [arr[2], arr[3]],
-                        [arr[2], arr[1]],
-                        [arr[0], arr[1]]
-                    ],
+                var latLngBounds = lmap.getBounds(),
+                    sw = latLngBounds.getSouthWest(),
+                    ne = latLngBounds.getNorthEast();
+                    min = {x: sw.lng, y: sw.lat},
+                    max = {x: ne.lng, y: ne.lat},
+                    //arr = bounds.toBBoxString().split(','),
                     oCalendar = nsGmx.widgets.getCommonCalendar(),
                     dt1 = oCalendar.getDateBegin(),
                     dt2 = oCalendar.getDateEnd(),
@@ -77,10 +87,37 @@
                 columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
                 columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
                 columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
+                L.DomUtil.addClass(refresh, 'animate-spin');
+
+                var minX = min.x,
+                    maxX = max.x,
+                    geo = {type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]]},
+                    w = (maxX - minX) / 2;
+
+                if (w >= 180) {
+                    geo = {type: 'Polygon', coordinates: [[[-180, min.y], [-180, max.y], [180, max.y], [180, min.y], [-180, min.y]]]};
+                } else if (maxX > 180 || minX < -180) {
+                    var center = ((maxX + minX) / 2) % 360;
+                    if (center > 180) { center -= 360; }
+                    else if (center < -180) { center += 360; }
+                    minX = center - w; maxX = center + w;
+                    if (minX < -180) {
+                        geo = {type: 'MultiPolygon', coordinates: [
+                            [[[-180, min.y], [-180, max.y], [maxX, max.y], [maxX, min.y], [-180, min.y]]],
+                            [[[minX + 360, min.y], [minX + 360, max.y], [180, max.y], [180, min.y], [minX + 360, min.y]]]
+                        ]};
+                    } else if (maxX > 180) {
+                        geo = {type: 'MultiPolygon', coordinates: [
+                            [[[minX, min.y], [minX, max.y], [180, max.y], [180, min.y], [minX, min.y]]],
+                            [[[-180, min.y], [-180, max.y], [maxX - 360, max.y], [maxX - 360, min.y], [-180, min.y]]]
+                        ]};
+                    }
+                }
+
                 L.gmxUtil.sendCrossDomainPostRequest(serverScript,
                     {
                         WrapStyle: 'window',
-                        border: JSON.stringify({type: 'Polygon', coordinates: [coords]}),
+                        border: JSON.stringify(geo),
                         border_cs: 'EPSG:4326',
                         // out_cs: 'EPSG:3395',
                         //pagesize: 100,
@@ -92,6 +129,7 @@
                         query: "((["+TemporalColumnName+"] >= '" + dt1.toJSON() + "') and (["+TemporalColumnName+"] < '" + dt2.toJSON() + "'))"
                     }
                 , function(json) {
+                    L.DomUtil.removeClass(refresh, 'animate-spin');
                     if (json && json.Status === 'ok' && json.Result) {
                         var pt = json.Result,
                             fields = pt.fields,
@@ -99,69 +137,72 @@
                         fields.map(function(it, i) {
                             indexes[it] = i;
                         });
-                        var node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle'),
-                            values = pt.values;
-
-                        node.setAttribute('size', 15);
-                        node.setAttribute('multiple', true);
-                        node.onchange = function(ev) {
-                            var bbox = null,
-                                filter = [];
-                            for (var i = 1, len = node.options.length; i < len; i++) {
-                                var it = node.options[i];
-                                if (it.selected) {
-                                    filter.push(Number(it.id));
-                                    var varr = values[i - 1];
-                                    bbox = [
-                                        [varr[5], varr[3]],
-                                        [varr[6], varr[4]]
-                                    ];
-                                }
-                            }
-                            lmap.fitBounds(bbox, {maxZoom: 11});
-                            if (!nsGmx.leafletMap) {    // для старого АПИ
-                                var st = '(' + filter.join(',') + ')';
-                                if (aisLayer) {
-                                    aisLayer.setVisibilityFilter('[mmsi] in ' + st);
-                                    aisLayer.setVisible(true);
-                                }
-                                if (tracksLayer) {
-                                    tracksLayer.setVisibilityFilter('[MMSI] in ' + st);
-                                    tracksLayer.setVisible(true);
-                                }
-                            } else {
-                                if (aisLayer) {
-                                    aisLayer.setFilter(function(args) {
-                                        var mmsi = args.properties[1];
-                                        for (var i = 0, len = filter.length; i < len; i++) {
-                                            if (mmsi === filter[i]) { return true; }
-                                        }
-                                        return false;
-                                    });
-                                    if (!aisLayer._map) {
-                                        lmap.addLayer(aisLayer);
+                        var values = pt.values;
+                        if (node && node.parentNode) {
+                            node.parentNode.removeChild(node);
+                        }
+                        if (values.length) {
+                            node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle', div);
+                            node.setAttribute('size', 15);
+                            node.setAttribute('multiple', true);
+                            node.onchange = function(ev) {
+                                var bbox = null,
+                                    filter = [];
+                                for (var i = 0, len = node.options.length; i < len; i++) {
+                                    var it = node.options[i];
+                                    if (it.selected) {
+                                        filter.push(Number(it.id));
+                                        var varr = values[i];
+                                        bbox = [
+                                            [varr[5], varr[3]],
+                                            [varr[6], varr[4]]
+                                        ];
                                     }
                                 }
-                            }
-                        };
+                                lmap.fitBounds(bbox, {maxZoom: 11});
+                                if (!nsGmx.leafletMap) {    // для старого АПИ
+                                    var st = '(' + filter.join(',') + ')';
+                                    if (aisLayer) {
+                                        aisLayer.setVisibilityFilter('[mmsi] in ' + st);
+                                        aisLayer.setVisible(true);
+                                    }
+                                    if (tracksLayer) {
+                                        tracksLayer.setVisibilityFilter('[MMSI] in ' + st);
+                                        tracksLayer.setVisible(true);
+                                    }
+                                } else {
+                                    if (aisLayer) {
+                                        aisLayer.setFilter(function(args) {
+                                            var mmsi = args.properties[1];
+                                            for (var i = 0, len = filter.length; i < len; i++) {
+                                                if (mmsi === filter[i]) { return true; }
+                                            }
+                                            return false;
+                                        });
+                                        if (!aisLayer._map) {
+                                            lmap.addLayer(aisLayer);
+                                        }
+                                    }
+                                }
+                            };
 
-                        var opt = L.DomUtil.create('option', '', node);
-                        opt.text = 'Выбрать корабли';
-                        values.map(function(it) {
-                            var val = '(' + it[indexes.count] + ') ' + it[indexes.vessel_name];
-                            opt = L.DomUtil.create('option', '', node);
-                            opt.setAttribute('id', it[indexes.mmsi]);
-                            opt.text = val.replace(/\s+$/, '');
-                            return opt;
-                        });
-                        sideBar = new L.Control.gmxSidebar({className: 'aissearch'});
-                        lmap.addControl(sideBar);
-                        var cont = sideBar.getContainer();
-                        L.DomEvent.disableScrollPropagation(cont);
-                        cont.appendChild(node);
+                            values.map(function(it) {
+                                var val = '(' + it[indexes.count] + ') ' + it[indexes.vessel_name];
+                                var opt = L.DomUtil.create('option', '', node);
+                                opt.setAttribute('id', it[indexes.mmsi]);
+                                opt.text = val.replace(/\s+$/, '');
+                                return opt;
+                            });
+                            title.innerHTML = 'Найдено кораблей: <b>' + values.length + '</b>';
+                        } else {
+                            title.innerHTML = '<b>Данных не найдено!</b>';
+                        }
+                    } else {
+                        title.innerHTML = '<b>Ошибка при получении данных!</b>';
                     }
                 });
             }
+            L.DomEvent.on(refresh, 'click', getMMSIoptions, this);
 
             var icon = new L.Control.gmxIcon({
                 id: pluginName, 
@@ -172,6 +213,7 @@
             }).on('statechange', function(ev) {
                 var isActive = ev.target.options.isActive;
                 if (isActive) {
+                    lmap.addControl(sideBar);
                     getMMSIoptions();
                 } else {
                     if (sideBar && sideBar._map) {

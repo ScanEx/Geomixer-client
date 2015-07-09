@@ -309,7 +309,9 @@ var ManualAttrView = function()
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог
+ @param {Object} properties Параметры слоя. В том формате, в котором они приходят с сервера.
  @param {Object} [params] Дополнительные параметры
+ @param {String[]} [params.standardTabs] Массив с названиями стандартных вкладок, которые нужно показывать. По умолчанию показывать все (main, attrs, metadata, advanced)
  @param {Object[]} [params.additionalTabs] Массив дополнительных вкладок со следующими полями:
  
    - {String} title Что будет написано но вкладке
@@ -333,6 +335,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
     var _params = $.extend({
             addToMap: true, 
             doneCallback: null, 
+            standardTabs: ['main', 'attrs', 'metadata', 'advanced'],
             additionalUI: {}
         }, params)
             
@@ -375,16 +378,21 @@ var LayerEditor = function(div, type, parent, properties, params) {
         var attrContainer     = genPageDiv();
         
         
-        _this._originalTabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
+        if (_params.standardTabs.indexOf('main') >= 0) {
+            _this._originalTabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
+        }
         
-        if (type === 'Vector') {
+        if (type === 'Vector' && _params.standardTabs.indexOf('attrs') >= 0) {
             _this._originalTabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
         }
         
         if (!isReadonly) {
-            _this._originalTabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
+            
+            if (_params.standardTabs.indexOf('metadata') >= 0) {
+                _this._originalTabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
+            }
         
-            if (type === 'Vector') {
+            if (type === 'Vector' && _params.standardTabs.indexOf('advanced') >= 0) {
                 _this._originalTabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
             }
         }
@@ -1289,6 +1297,8 @@ LayerEditor.applyInitHooks = function(layerEditor, layerProperties, params) {
 
 var createLayerEditor = function(div, type, parent, properties, params) {
     var def = $.Deferred();
+    
+    params = $.extend(true, {}, params);
     
     params.createdCallback = function() {
         def.resolve(layerEditor);

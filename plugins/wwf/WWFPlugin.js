@@ -8,24 +8,6 @@
         
     });
     
-    var drawPalette = function(canvas) {
-        var w = canvas.width,
-            h = canvas.height,
-            ctx = canvas.getContext('2d'),
-            coeff = 256/w;
-            
-        ctx.lineWidth = 15;
-        for (var l = 0; l < w; l++) {
-            var r = Math.floor((w-l)*coeff),
-                g = Math.floor(l*coeff);
-            ctx.strokeStyle = 'rgb(' + r + ', ' + g + ', 0)';
-            ctx.beginPath();
-            ctx.moveTo(l, 0);
-            ctx.lineTo(l, h-1);
-            ctx.stroke();
-        }
-    }
-    
     var publicInterface = {
         pluginName: 'WWF Plugin',
         afterViewer: function(params, map) {
@@ -46,7 +28,7 @@
                     dateMax = new Date(Date.UTC(2014, 0, 0) + max*3600*24*1000);
                     
                 var s2 = function(v) {return v < 10 ? '0' + v : v},
-                    date2str = function(date) {return s2(date.getUTCMonth()+1) + '.' + s2(date.getUTCDate())};
+                    date2str = function(date) {return s2(date.getUTCMonth()+1) + '.' + s2(date.getUTCDate()) + '.' + date.getUTCFullYear()};
                     
                 ui.find('.wwf-info').html('Фильтр по дням: ' + date2str(dateMin) + ' - ' + date2str(dateMax));
             }
@@ -64,14 +46,15 @@
             
             updateInfo(1, 365);
             
-            drawPalette(ui.find('.wwf-palette')[0]);
+            L.WWFAlarm.drawPalette(ui.find('.wwf-palette')[0]);
+            var palette = L.WWFAlarm.genPalette(365);
             
             ui.appendTo(leftPanel.workCanvas);
             var parentContainer = $('#leftContentInner').length ? $('#leftContentInner') : $('#leftContent');
             parentContainer.prepend(leftPanel.panelCanvas);
             
             var layerID = params && params.layerID || 'C53699CEACAF4D8AB0ACF1A4D152D85A';
-            map.layers[layerID].setImageProcessingHook(function(image, options) {
+            map.layers[layerID].setImageProcessingHook(function(image) {
                 
                 var canvas = document.createElement('canvas');
                 canvas.width = canvas.height = 256;
@@ -87,8 +70,9 @@
                 for (var p = 0; p < 256*256*4; p += 4) {
                     var v = data[p] + data[p+1];
                     if (v >= minVal && v <= maxVal) {
-                        data[p] = Math.floor((365-v)*coeff);
-                        data[p+1] = Math.floor(v*coeff);
+                        data[p+0] = palette[4*v + 0];
+                        data[p+1] = palette[4*v + 1];
+                        data[p+2] = palette[4*v + 2];
                     } else {
                         data[p+3] = 0;
                     }
@@ -101,5 +85,10 @@
         }
     };
     
-    gmxCore.addModule('WWFPlugin', publicInterface, {css: 'WWFPlugin.css'});
+    gmxCore.addModule('WWFPlugin', publicInterface, {
+        css: 'WWFPlugin.css',
+        init: function(module, path) {
+            return gmxCore.loadScript(path + 'Leaflet.WWFAlarm.js');
+        }
+    });
 })();
