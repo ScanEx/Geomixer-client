@@ -1487,6 +1487,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
             PageNum: params.PageNum,
             ShowTotal: params.ShowTotal,
             UseOSM: 'UseOSM' in params ? params.UseOSM : useOSMDefault,
+			layersSearchFlag: params.layersSearchFlag,
 			callback: function(response) {
 				for(var i=0; i<response.length; i++)	response[i].CanDownloadVectors = false;
 				if (params.layersSearchFlag){
