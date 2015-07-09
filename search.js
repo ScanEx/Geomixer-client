@@ -1929,6 +1929,10 @@ var SearchGeomixer = function(){
 	this.SetSearchString = function(value){
 		oSearchControl.SetSearchString(value);
 	}
+    
+    this.getSearchControl = function() {
+        return oSearchControl;
+    }
 }
 
 var publicInterface = {
