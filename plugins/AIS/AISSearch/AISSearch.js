@@ -243,16 +243,14 @@
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
-            var searchControl = window.oSearchControl.getSearchControl();
-            if (searchControl) {
-                searchControl.addSearchByStringHook(function(str) {
+            var searchControl = window.oSearchControl.getSearchControl(),
+                searchHook = function(str) {
                     var res = sideBar && sideBar._map ? true : false;
                     if (res) {
                         getMMSIoptions(str);
                     }
                     return res;
-                });
-            }
+                };
             
             var icon = new L.Control.gmxIcon({
                 id: pluginName, 
@@ -263,9 +261,15 @@
             }).on('statechange', function(ev) {
                 var isActive = ev.target.options.isActive;
                 if (isActive) {
+                    if (searchControl) {
+                        searchControl.addSearchByStringHook(searchHook, 1000);
+                    }
                     lmap.addControl(sideBar);
                     getMMSIoptions();
                 } else {
+                    if (searchControl) {
+                        searchControl.removeSearchByStringHook(searchHook);
+                    }
                     if (sideBar && sideBar._map) {
                         lmap.removeControl(sideBar);
                     }
