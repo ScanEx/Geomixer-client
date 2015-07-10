@@ -102,7 +102,7 @@
                 }
             };
 
-            function getMMSIoptions() {
+            function getMMSIoptions(str) {
 
                 var cont = sideBar.getContainer();
                 L.DomEvent.disableScrollPropagation(cont);
@@ -159,22 +159,35 @@
                         ]};
                     }
                 }
-
-                L.gmxUtil.sendCrossDomainPostRequest(serverScript,
-                    {
-                        WrapStyle: 'window',
-                        border: JSON.stringify(geo),
-                        border_cs: 'EPSG:4326',
-                        // out_cs: 'EPSG:3395',
-                        //pagesize: 100,
-                        //orderdirection: 'desc',
-                        orderby: 'vessel_name',
-                        layer: aisLayerID,
-                        columns: '[' + columns + ']',
-                        groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"}]',
-                        query: "((["+TemporalColumnName+"] >= '" + dt1.toJSON() + "') and (["+TemporalColumnName+"] < '" + dt2.toJSON() + "'))"
+                var query = "(";
+                query += "(["+TemporalColumnName+"] >= '" + dt1.toJSON() + "')";
+                query += " and (["+TemporalColumnName+"] < '" + dt2.toJSON() + "')";
+                if (str) {
+                    if (str.search(/[^\d, ]/) === -1) {
+                        var arr = str.replace(/ /g, '').split(/,/);
+                        query += " and ([mmsi] IN (" + arr.join(',') + "))";
+                    } else {
+                        query += " and ([vessel_name] contains '" + str + "')";
                     }
-                , function(json) {
+                }
+                query += ")";
+
+                var reqParams = {
+                    WrapStyle: 'window',
+                    border: JSON.stringify(geo),
+                    border_cs: 'EPSG:4326',
+                    // out_cs: 'EPSG:3395',
+                    //pagesize: 100,
+                    //orderdirection: 'desc',
+                    orderby: 'vessel_name',
+                    layer: aisLayerID,
+                    columns: '[' + columns + ']',
+                    groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"}]',
+                    query: query
+                };
+                L.gmxUtil.sendCrossDomainPostRequest(serverScript,
+                  reqParams,
+                  function(json) {
                     L.DomUtil.removeClass(refresh, 'animate-spin');
                     if (json && json.Status === 'ok' && json.Result) {
                         var pt = json.Result,
@@ -206,45 +219,15 @@
                                     }
                                 }
                                 publicInterface.setMMSI(filter, bbox);
-                                /*
-                                lmap.fitBounds(bbox, {maxZoom: 11});
-                                if (!nsGmx.leafletMap) {    // для старого АПИ
-                                    var st = '(' + filter.join(',') + ')';
-                                    if (aisLayer) {
-                                        aisLayer.setVisibilityFilter('[mmsi] in ' + st);
-                                        aisLayer.setVisible(true);
-                                    }
-                                    if (tracksLayer) {
-                                        tracksLayer.setVisibilityFilter('[MMSI] in ' + st);
-                                        tracksLayer.setVisible(true);
-                                    }
-                                } else {
-                                    var filterFunc = function(args) {
-                                        var mmsi = args.properties[1];
-                                        for (var i = 0, len = filter.length; i < len; i++) {
-                                            if (mmsi === filter[i]) { return true; }
-                                        }
-                                        return false;
-                                    };
-                                    if (aisLayer) {
-                                        aisLayer.setFilter(filterFunc);
-                                        if (!aisLayer._map) {
-                                            lmap.addLayer(aisLayer);
-                                        }
-                                    }
-                                    if (tracksLayer) {
-                                        tracksLayer.setFilter(filterFunc);
-                                        if (!tracksLayer._map) {
-                                            lmap.addLayer(tracksLayer);
-                                        }
-                                    }
-                                }*/
                             };
 
                             values.map(function(it) {
-                                var val = '(' + it[indexes.count] + ') ' + it[indexes.vessel_name];
-                                var opt = L.DomUtil.create('option', '', node);
-                                opt.setAttribute('id', it[indexes.mmsi]);
+                                var mmsi = it[indexes.mmsi],
+                                    name = it[indexes.vessel_name] || mmsi,
+                                    val = '(' + it[indexes.count] + ') ' + name,
+                                    opt = L.DomUtil.create('option', '', node);
+                                opt.setAttribute('id', mmsi);
+                                opt.setAttribute('title', 'mmsi: ' + mmsi);
                                 opt.text = val.replace(/\s+$/, '');
                                 return opt;
                             });
@@ -257,8 +240,20 @@
                     }
                 });
             }
-            L.DomEvent.on(refresh, 'click', getMMSIoptions, this);
-
+            L.DomEvent.on(refresh, 'click', function(str) {
+                getMMSIoptions();
+            }, this);
+            var searchControl = window.oSearchControl.getSearchControl();
+            if (searchControl) {
+                searchControl.addSearchByStringHook(function(str) {
+                    var res = sideBar && sideBar._map ? true : false;
+                    if (res) {
+                        getMMSIoptions(str);
+                    }
+                    return res;
+                });
+            }
+            
             var icon = new L.Control.gmxIcon({
                 id: pluginName, 
                 togglable: true,
