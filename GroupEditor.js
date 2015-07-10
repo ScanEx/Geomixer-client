@@ -375,14 +375,14 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		{
 			div.gmxProperties.properties.DistanceUnit = this.value;
 			rawTree.properties = div.gmxProperties.properties;
-            globalFlashMap.setDistanceUnit(this.value);
+            nsGmx.leafletMap.options.distanceUnit = this.value;
 		})
         
         $('input', squareUnit).change(function()
 		{
 			div.gmxProperties.properties.SquareUnit = this.value;
 			rawTree.properties = div.gmxProperties.properties;
-            globalFlashMap.setSquareUnit(this.value);
+            nsGmx.leafletMap.options.squareUnit = this.value;
 		})
         
 		useOSM.onclick = function()
