@@ -368,7 +368,7 @@ var EditObjectControl = function(layerName, objectId, params)
                     nsGmx.Controls.chooseDrawingBorderDialog(
                         'editObject',
                         bindDrawingObject,
-                        { geomType: layer.properties.GeometryType }
+                        { geomType: layer.getGmxProperties().GeometryType }
                     );
                 }
             })

@@ -293,9 +293,9 @@ var attrsTable = function(layerName, layerTitle)
 	
 	this.resizeFunc = function(){};
     
-    this._listenerId = null;
+    this._updateVersionHandler = null;
     
-    this._isLayerOnMap = !!globalFlashMap.layers[this.layerName];
+    this._isLayerOnMap = this.layerName in nsGmx.gmxMap.layersByID;
     
     this.tableFields = {
         fieldsAsArray: [],
@@ -360,8 +360,9 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
                 }.bind(this),
                 closeFunc: function()
                 {
-                    if ( _this._listenerId !== null && _this._isLayerOnMap )
-                        globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
+                    if ( _this._updateVersionHandler !== null && _this._isLayerOnMap ) {
+                        nsGmx.gmxMap.layersByID[_this.layerName].off('versionchange', _this._updateVersionHandler);
+                    }
                 },
                 setMinSize: false
             }
@@ -558,9 +559,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 {
                     if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
-                        //var geom = from_merc_geometry(row[i]);
-                        //var bounds = getBounds(geom.coordinates);
-                        //globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
                         var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
                         var bounds = L.gmxUtil.getGeometryBounds(geom);
                         nsGmx.leafletMap.fitBounds([
@@ -656,11 +654,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     
     if (this._isLayerOnMap)
     {
-        this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', 
-            function() {
-                _this._serverDataProvider.serverChanged();
-            }
-        );
+        this._updateVersionHandler = function() {
+            _this._serverDataProvider.serverChanged();
+        }
+        
+        nsGmx.gmxMap.layersByID[this.layerName].on('versionchange', this._updateVersionHandler);
     }
 }
 
@@ -684,7 +682,7 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
 	}
 	else
 	{
-        var title = globalFlashMap.layers[name] ? globalFlashMap.layers[name].properties.title : '';
+        var title = nsGmx.gmxMap.layersByID[name] ? nsGmx.gmxMap.layersByID[name].getGmxProperties().title : '';
         var newAttrsTable = new attrsTable(name, title);
 		newAttrsTable.getInfo(canvas, outerSizeProvider, params);
 		
