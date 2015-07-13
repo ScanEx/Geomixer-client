@@ -312,32 +312,12 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 		{
 			var filterNum = getOwnChildNumber(filterText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
                 layer = nsGmx.gmxMap.layersByID[elemCanvas.parentNode.gmxProperties.content.properties.name],
-				//filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 				filter = layer.getStyle(filterNum);
 			
             var newStyle = $.extend(true, {}, filter);
             
             newStyle.Filter = filterText.value;
             layer.setStyle(newStyle, filterNum);
-            
-            //TODO: check value correctness
-            
-			// if (filterText.value !== '')
-			// {
-				// var parsed = filter.setFilter(filterText.value);
-				
-                
-				// if (!parsed)
-					// $(filterText).addClass("error");
-				// else
-					// $(filterText).removeClass("error");
-			// }
-			// else
-			// {
-				// filter.setFilter();
-					
-				// $(filterText).removeClass("error");
-			// }
 		}
 
 	filterText.value = filter;
@@ -487,11 +467,8 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
                 layer = nsGmx.gmxMap.layersByID[layerName],
                 style = layer.getStyle(filterNum);
                 
-				//filter = globalFlashMap.layers[layerName].filters[filterNum];
             var newStyle = $.extend(true, {}, style, div.getBalloonState());
             layer.setStyle(newStyle);
-            
-			//globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
 		},
 		defaultBalloonText = function()
 		{
@@ -664,7 +641,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
         var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
             layer = nsGmx.gmxMap.layersByID[elemCanvas.parentNode.gmxProperties.content.properties.name],
             style = layer.getStyle(filterNum);
-				//filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 			
         var newStyle = $.extend(true, {}, style, {
             MinZoom: this.getMinZoom(), 
@@ -672,11 +648,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
         });
         
         layer.setStyle(newStyle, filterNum);
-            
-        // if (!globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].objectId)
-            // _click(elemCanvas.parentNode.firstChild)
-            
-        // filter.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
     })
 	
 	// label
@@ -788,8 +759,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	}
 	
 	// balloon
-	//parentStyle = globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
-	
 	var balloonEditor = createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.gmxProperties.content.properties.identityField);
 	
 	_(liBalloon.lastChild, [balloonEditor]);
@@ -940,9 +909,6 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		var lastStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[elemCanvas.parentNode.gmxProperties.content.properties.styles.length - 1],
 			newStyle = {},
             layer = nsGmx.gmxMap.layersByID[elem.name];
-			//newFilter = globalFlashMap.layers[elem.name].addObject();
-		
-		//newFilter.setFilter();
         
         lastStyle = lastStyle || {};
 		
@@ -956,12 +922,9 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		
 		newStyle.MinZoom = lastStyle.MinZoom || 1;
 		newStyle.MaxZoom = lastStyle.MaxZoom || 21;
-		//newFilter.setZoomBounds(Number(newStyle.MinZoom), Number(newStyle.MaxZoom));
 		
 		newStyle.RenderStyle = lastStyle.RenderStyle || {};
-		//newFilter.setStyle(newStyle.RenderStyle);
-		
-		//globalFlashMap.layers[elem.name].filters.push(newFilter);
+
         layer.setStyles(layer.getStyles().concat(newStyle));
         
 		
@@ -986,9 +949,11 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 
 var swapFilters = function(div, firstNum, filterCanvas)
 {
-	var filters = globalFlashMap.layers[div.gmxProperties.content.properties.name].filters,
+    var layerName = div.gmxProperties.content.properties.name,
+        layer = nsGmx.gmxMap.layersByID[layerName],
+        filters = layer.getStyles(),
 		newFilters = [];
-	
+
 	for (var i = 0; i < filters.length; i++)
 	{
 		if (i < firstNum || i > firstNum + 1)
@@ -998,16 +963,11 @@ var swapFilters = function(div, firstNum, filterCanvas)
 		else if (i == firstNum + 1)
 			newFilters.push(filters[i - 1])
 	}
-	
-	globalFlashMap.layers[div.gmxProperties.content.properties.name].filters = newFilters;
-	
-	if (!div.firstChild.checked)
-		_click(div.firstChild)
-	
-	globalFlashMap.layers[div.gmxProperties.content.properties.name].filters[firstNum].bringToDepth(firstNum + 1);
-	
+
+    layer.setStyles(newFilters);
+
 	$(filterCanvas.childNodes[firstNum]).before(filterCanvas.childNodes[firstNum + 1]);
-	
+
 	updateFilterMoveButtons(filterCanvas.childNodes[firstNum]);
 	updateFilterMoveButtons(filterCanvas.childNodes[firstNum + 1]);
 }
@@ -1131,23 +1091,13 @@ var createLoadingFilter = function(layer, styleIndex, parentStyle, geometryType,
 	remove.onclick = function()
 	{
 		var num = getOwnChildNumber(filterCanvas);
-        
-			// filters = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters,
-			// newFilters = [];
-		
-		// for (var i = 0; i < filters.length; i++)
-			// if (i != num)
-				// newFilters.push(filters[i])
-		
-		// globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters = newFilters;
-		
+
 		var filtersParent = filterCanvas.parentNode;
-		
+
 		filterCanvas.removeNode(true);
 
 		updateFilterMoveButtons(filtersParent.childNodes[num - 1])
-		
-		//parentObject.remove();
+
         var styles = layer.getStyles().slice();
         styles.splice(styleIndex, 1);
         layer.setStyles(styles);

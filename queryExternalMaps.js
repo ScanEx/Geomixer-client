@@ -114,7 +114,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 		{
 			var name = layer.properties.name;
 			
-			if (globalFlashMap.layers[name].external)
+			if (nsGmx.layersByID[name].external)
 				_queryMapLayers.removeLayer(name);
 		});
         
