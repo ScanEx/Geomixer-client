@@ -1029,10 +1029,9 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
-        var baseLayersControl = new nsGmx.BaseLayersControl(lmap.gmxBaseLayersManager, {
-            language: nsGmx.Translations.getLanguage()
-        });
-        baseLayersControl.addTo(lmap);
+        var baseLayersControl = new L.Control.gmxIconLayers(lmap.gmxBaseLayersManager);
+            
+        lmap.addControl(baseLayersControl);
         
         $('#flash').bind('dragover', function()
         {
