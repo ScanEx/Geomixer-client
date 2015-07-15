@@ -993,6 +993,7 @@ function loadMap(state)
     L.Icon.Default.imagePath = 'leaflet/images';
     
     var lmap = new L.Map($$('flash'), {
+        contextmenu: true,
         center: [55.7574, 37.5952]
         ,zoom: 5
         ,zoomControl: false
@@ -1029,7 +1030,7 @@ function loadMap(state)
             window.language = data.properties.DefaultLanguage;
         }
         
-        var baseLayersControl = new L.Control.gmxIconLayers(lmap.gmxBaseLayersManager);
+        var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager);
             
         lmap.addControl(baseLayersControl);
         
