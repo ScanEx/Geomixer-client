@@ -35,23 +35,6 @@ _translationsHash.addtext("eng", {timeline: {
     }
 }});
 
-var fromTilesToDate = function(type, value)
-{
-    return new Date(value*1000);
-}
-
-var fromDateToTiles = function(type, date)
-{
-    var timeOffset = 0; //TODO: научить таймлайн работать с UTC временем
-    var dateString = $.datepicker.formatDate('yy.mm.dd', date)
-    if (type === 'datetime')
-    {
-        dateString += nsGmx.Utils.stringDateTime(date.valueOf());
-    }
-    
-    return dateString;
-}
-
 var TimelineData = Backbone.Model.extend({
     defaults: {
         allItems: false,        //все ли данные уже загружены
@@ -61,7 +44,7 @@ var TimelineData = Backbone.Model.extend({
             start: null,        //Date
             end: null           //Date
         },
-        selection: {},          //{layerName1: [id1, id2, ...], layerName2:...}
+        selection: {},          //{layerName1: [{id, date}, {id, date}, ...], layerName2:...}
         layers: [],             //[{name: ..., dateFunction: ..., filterFunction: ...}, ...]
         timelineMode: 'center', //center, screen, none
         mapMode: 'selected'     //selected, range, none
@@ -69,26 +52,13 @@ var TimelineData = Backbone.Model.extend({
     
     _defaultDateFunction: function(layer, obj) {
         var props = layer.getGmxProperties(),
-            temporalColumn = props.TemporalColumnName,
-            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName],
-            type = layer._gmx.tileAttributeTypes[props.TemporalColumnName];
+            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
         
         return new Date(obj.properties[index]*1000);
     },
     
     _defaultFilterFunction: function(layer, startDate, endDate) {
         layer.setDateInterval(startDate, endDate);
-        //TODO: implement
-        // var props = layer.getGmxProperties(),
-            // temporalColumn = props.TemporalColumnName,
-            // type = props.attrTypes[$.inArray(temporalColumn, props.attributes)],
-            // startStr = fromDateToTiles(type, startDate),
-            // endStr = fromDateToTiles(type, endDate),
-            // filterStr = '"' + temporalColumn + '" <= \'' + endStr + '\' AND "' + temporalColumn + '" >= \'' + startStr + '\'';
-            
-        // layer.setFilter(function(item) {
-            // console.log(item);
-        // });
     },
     
     bindLayer: function(layerName, options) {
@@ -136,23 +106,25 @@ var MapController = function(data, gmxMap) {
                     props = layer.getGmxProperties(),
                     temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
                     
-                //var identityField = layer.getGmxProperties().identityField;
                 if (layerName in selection)
                 {
                     var minValue = Number.POSITIVE_INFINITY,
                         maxValue = Number.NEGATIVE_INFINITY;
                         
+                    var ids = {};
+                        
                     var interval = selection[layerName].forEach(function(s) {
                         minValue = Math.min(minValue, s.date);
                         maxValue = Math.max(maxValue, s.date);
-                    });
-                    
-                    layer.setFilter(function(elem) {
-                        //console.log(elem);
-                        return true;
+                        ids[s.id] = true;
                     });
                     
                     layer.setDateInterval(new Date(minValue), new Date(maxValue));
+                    
+                    layer.setFilter(function(elem) {
+                        return elem.id in ids;
+                    });
+                    
                 }
                 else
                 {
@@ -228,6 +200,10 @@ var TimelineController = function(data, map, gmxMap, options) {
         event.stopPropagation();
     })
     
+    container.on('mousewheel', function(event) {
+        event.stopPropagation();
+    })
+    
     var updateControlsVisibility;
     
     var layerObservers = {};
@@ -266,7 +242,7 @@ var TimelineController = function(data, map, gmxMap, options) {
         },
         screen: function(item, mapCenter, mapExtent)
         {
-            return gmxAPI.boundsIntersect(item.bounds, mapExtent);
+            return item.bounds.intersects(mapExtent);
         }
     }
     
@@ -282,7 +258,9 @@ var TimelineController = function(data, map, gmxMap, options) {
         // var center = map.getCenter();
         var mapCenter = L.Projection.Mercator.project(map.getCenter());
         var mapBounds = map.getBounds();
-        var mapExtend = L.gmxUtil.bounds([[mapBounds.getEast(), mapBounds.getSouth()], [mapBounds.getWest(), mapBounds.getNorth()]]);
+        var nw = L.Projection.Mercator.project(mapBounds.getNorthWest());
+        var se = L.Projection.Mercator.project(mapBounds.getSouthEast());
+        var mapExtend = L.gmxUtil.bounds([[nw.x, nw.y], [se.x, se.y]]);
         var items = data.get('items');
         var filters = data.get('userFilters').slice(0);
         
@@ -312,15 +290,18 @@ var TimelineController = function(data, map, gmxMap, options) {
             var item = items[layerName][i],
                 obj = item.obj;
             
-            var showItem = true;
-            for (var f = 0; f < filters.length; f++) {
-                if (!filters[f](item, mapCenter, mapExtend)) {
-                    showItem = false;
-                    break;
+            var showItem = !item.needToRemove;
+            
+            if (!item.needToRemove) {
+                for (var f = 0; f < filters.length; f++) {
+                    if (!filters[f](item, mapCenter, mapExtend)) {
+                        showItem = false;
+                        break;
+                    }
                 }
             }
             
-            if (!items[layerName][i].timelineItem && showItem)
+            if (!item.timelineItem && showItem)
             {
                 var date = layerInfo.dateFunction(layer, obj),
                     content;
@@ -331,7 +312,7 @@ var TimelineController = function(data, map, gmxMap, options) {
                 }
                 else
                 {
-                    content = obj.properties[temporalIndex];
+                    content = nsGmx.Utils.convertFromServer('date', obj.properties[temporalIndex]);
                 }
                 
                 elemsToAdd.push({
@@ -340,19 +321,23 @@ var TimelineController = function(data, map, gmxMap, options) {
                     userdata: {objID: obj.id, layerName: layerName}
                 });
             }
-            else if (items[layerName][i].timelineItem && !showItem)
+            else if (item.timelineItem && !showItem)
             {
                 for (var index = 0; index < timeline.items.length; index++)
                 {
                     var itemData = timeline.getData()[index].userdata;
-                    if (itemData.objID === i && itemData.layerName === layerName)
+                    if (itemData.objID == i && itemData.layerName === layerName)
                     {
                         timeline.deleteItem(index, true);
-                        delete items[layerName][i].timelineItem;
+                        delete item.timelineItem;
                         deletedCount++;
                         break;
                     }
                 }
+            }
+            
+            if (item.needToRemove) {
+                delete items[layerName][i];
             }
         }
         
@@ -469,10 +454,10 @@ var TimelineController = function(data, map, gmxMap, options) {
             if (timeline.eventParams.itemIndex !== undefined) {
                 var items = data.get('items');
                 var userdata = timeline.getData()[timeline.eventParams.itemIndex].userdata;
-                var geom = items[userdata.layerName][userdata.objID].obj.geometry;
-                var b = gmxAPI.getBounds(geom.coordinates);
-                
-                map.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+                var b = items[userdata.layerName][userdata.objID].bounds;
+                var min = L.Projection.Mercator.unproject(b.min);
+                var max = L.Projection.Mercator.unproject(b.max);
+                map.fitBounds(L.latLngBounds([min, max]));
             }
         });
         
@@ -619,48 +604,15 @@ var TimelineController = function(data, map, gmxMap, options) {
     
     map.on('moveend', function() {
         var bounds = getObserversBbox();
-        
         for (var layerName in layerObservers) {
             layerObservers[layerName].setBounds(bounds);
         }
     });
     
     data.on('change:timelineMode', function() {
-        if (data.get('timelineMode') !== 'none') {
-            var bounds = getObserversBbox();
-            for (var layerName in layerObservers) {
-                layerObservers[layerName].setBounds(bounds);
-            }
-        }
-        
-        if (data.get('timelineMode') === 'none' && !data.get('allItems')) {
-            var defs = [];
-            $.each(data.get('layers'), function(i, layerInfo) {
-                var def = $.Deferred();
-                defs.push(def);
-                var layerName = layerInfo.name;
-                var layer = gmxMpa.layersByID[layerName];
-                var items = data.get('items');
-                
-                layer.getFeatures(function(features) {
-                    for (var i = 0; i < features.length; i++)
-                    {
-                        var obj = features[i];
-                        var id = obj.id;
-                        items[layerName][id] = items[layerName][id] || {};
-                        items[layerName][id].obj = obj;
-                        items[layerName][id].bounds = gmxAPI.getBounds(obj.geometry.coordinates);
-                    }
-                    def.resolve();
-                })
-            })
-            
-            $.when.apply($, defs).done(function() {
-                data.set('allItems', true);
-                data.trigger('change change:items');
-            })
-        } else {
-            updateItems();
+        var bounds = getObserversBbox();
+        for (var layerName in layerObservers) {
+            layerObservers[layerName].setBounds(bounds);
         }
     });
     
@@ -686,12 +638,12 @@ var TimelineController = function(data, map, gmxMap, options) {
                 }
                 
                 var items = data.get('items'),
-                    objs = observerData.added,
+                    addedObjs = observerData.added,
                     removedObjs = observerData.removed;
                 
-                if (objs) {
-                    for (var i = 0; i < objs.length; i++) {
-                        var obj = objs[i];
+                if (addedObjs) {
+                    for (var i = 0; i < addedObjs.length; i++) {
+                        var obj = addedObjs[i];
                         var id = obj.id;
                         items[layerName][id] = items[layerName][id] || {};
                         items[layerName][id].obj = obj;
@@ -702,12 +654,11 @@ var TimelineController = function(data, map, gmxMap, options) {
                 if (removedObjs) {
                     for (var i = 0; i < removedObjs.length; i++) {
                         var id = removedObjs[i].id;
-                        if (items[layerName][id] && items[layerName][id].timelineItem)
-                        {
-                            var index = timeline.getItemIndex(items[layerName][id].timelineItem.dom);
-                            timeline.deleteItem(index, true);
+                        
+                        if (items[layerName][id]) {
+                            //пометим для удаления (тут удалять не хочется, чтобы все модификации происходили в одном месте)
+                            items[layerName][id].needToRemove = true;
                         }
-                        delete items[layerName][id];
                     }
                 }
                 
@@ -814,8 +765,6 @@ var TimelineControl = function(map, gmxMap) {
     this.setVisibleRange = function(start, end) {
         data.set('range', {start: start, end: end});
     }
-    
-    this._fromTilesToDate = fromTilesToDate;
     
     /** Установить видимость всего таймлайна
      * @param {Boolean} isVisible Показывать ли таймлайн или нет
