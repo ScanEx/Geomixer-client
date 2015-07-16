@@ -927,7 +927,7 @@ function loadMap(state)
         }
         
         if (map && map.baseLayersManager) {
-            var baseLayersControl = new L.Control.gmxIconLayers(map.baseLayersManager, {
+            var baseLayersControl = new L.Control.GmxIconLayers(map.baseLayersManager, {
                 language: nsGmx.Translations.getLanguage()
             });
             
