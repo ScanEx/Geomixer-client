@@ -312,12 +312,10 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (origGeomString !== curGeomString) {
                     obj.geometry = selectedGeom;
                 }
-                //obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             else
             {
                 obj.geometry = selectedGeom;
-                //obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             
             isSaving = true;
@@ -481,7 +479,6 @@ var prop = layer._gmx.properties;
                 {
                     if (columnNames[i] === 'geomixergeojson')
                     {
-                        //var geom = from_merc_geometry(geometryRow[i]);
                         var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
                         
                         bindGeometry(geom);

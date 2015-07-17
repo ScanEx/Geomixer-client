@@ -1768,7 +1768,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
             var newLayer = taskInfo.Result[l];
             var newProps = newLayer.properties;
             
-            var mapProperties = _layersTree.treeModel.getMapProperties()
+            var mapProperties = _layersTree.treeModel.getMapProperties();
             newProps.mapName = mapProperties.name;
             newProps.hostName = mapProperties.hostName;
             newProps.visible = true;
@@ -1781,7 +1781,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
                     newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
             }
             
-            var convertedCoords = from_merc_geometry(newLayer.geometry);
+            var convertedCoords = L.gmxUtil.convertGeometry(newLayer.geometry, true);
 
             _layersTree.addLayersToMap({content:{properties: newProps, geometry: newLayer.geometry}});
             
