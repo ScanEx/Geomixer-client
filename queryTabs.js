@@ -220,45 +220,45 @@ queryTabs.prototype.draw = function (tabInfo, tabIndex)
 
 queryTabs.prototype.show = function(state)
 {
-	var parsedState = {};
+	var parsedState = {},
+        lmap = nsGmx.leafletMap,
+        gmxDrawing = lmap.gmxDrawing;
+        
 	$.extend(true, parsedState, state);
     var pos = parsedState.position;
 	
-	pos.x = from_merc_x(pos.x);
-	pos.y = from_merc_y(pos.y);
-	pos.z = 17 - pos.z;
+    lmap.setView(L.Projection.Mercator.unproject(L.point(pos.x, pos.y)), 17 - pos.z);
 	
-	if (state.drawnObjects.length)
-	{
-		for (var i = 0; i < state.drawnObjects.length; i++)
-		{
-			parsedState.drawnObjects[i].geometry = from_merc_geometry(state.drawnObjects[i].geometry);
-			parsedState.drawnObjects[i].color = state.drawnObjects[i].color || '0000ff';
-		}
-	}
+    for (var i = 0; i < state.drawnObjects.length; i++)
+    {
+        parsedState.drawnObjects[i].geometry = L.gmxUtil.geometryToGeoJSON(state.drawnObjects[i].geometry, true);
+    }
+    
+    lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(parsedState.mode));
 	
-	globalFlashMap.moveTo(pos.x, pos.y, pos.z);
-	globalFlashMap.setMode(parsedState.mode);
-	
-	globalFlashMap.drawing.forEachObject(function(obj)
-	{
-		obj.remove();
-	})
-	
+    //удаляем все фичи
+    gmxDrawing.getFeatures().slice(0).forEach(gmxDrawing.remove.bind(gmxDrawing)); 
+
 	for (var i = 0; i < parsedState.drawnObjects.length; i++)
 	{
-		var color = parsedState.drawnObjects[i].color || 0x0000FF,
-			thickness = parsedState.drawnObjects[i].thickness || 3,
-			opacity = parsedState.drawnObjects[i].opacity || 80,
-			elem = globalFlashMap.drawing.addObject(parsedState.drawnObjects[i].geometry, parsedState.drawnObjects[i].properties),
-			style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
-		
-		elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
+        //старый формат - число, новый - строка
+		var rawColor = parsedState.drawnObjects[i].color,
+            color = (typeof rawColor === 'number' ? '#' + L.gmxUtil.dec2hex(rawColor) : rawColor) || '#0000FF',
+			thickness = parsedState.drawnObjects[i].thickness || 2,
+			opacity = parsedState.drawnObjects[i].opacity || 80;
+            
+        gmxDrawing.addGeoJSON(parsedState.drawnObjects[i].geometry, {
+            lineStyle: {
+                color: color,
+                weight: thickness,
+                opacity: opacity/100
+            }
+        });
 	}
 	
 	_queryMapLayers.applyState(parsedState.condition, parsedState.mapStyles);
     
-    if ( typeof parsedState.customParamsCollection != 'undefined')
+    if (typeof parsedState.customParamsCollection !== 'undefined')
         _mapHelper.customParamsManager.loadParams(parsedState.customParamsCollection);
 }
 
