@@ -243,7 +243,7 @@
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
-            var searchControl = window.oSearchControl.getSearchControl(),
+            var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null,
                 searchHook = function(str) {
                     var res = sideBar && sideBar._map ? true : false;
                     if (res) {
