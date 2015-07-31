@@ -365,33 +365,27 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	
 	/** Обновляет информацию о геометрии */
 	this.UpdateRow = function(){
-        var geom = _drawingObject.toGeoJSON().geometry;
-		var type = geom.type,
-			coords = geom.coordinates,
-			text = _drawingObject.options.text;
-			
+        var summary = _drawingObject.getSummary(),
+            text = _drawingObject.options.text,
+            type = _drawingObject.getType();
+
 		removeChilds(_title);
 		removeChilds(_text);
 		removeChilds(_summary);
-		
-        var summary = L.gmxUtil.getGeoJSONSummary(geom, {
-            distanceUnit: _map.options.distanceUnit,
-            squareUnit: _map.options.squareUnit
-        });
-		if (type == "Point")
+
+		if (type === 'Point')
 		{
 			_(_title, [_t(_gtxt('drawingObjects.pointTitle'))]);
 			_(_summary, [_t("(" + summary + ")")]);
-			//_(_summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
 		}
-		else if (type == "LineString")
+		else if (type === 'Polyline' || type === 'MultiPolyline')
 		{
 			_(_title, [_t(_gtxt('drawingObjects.lineTitle'))]);
 			_(_summary, [_t("(" + summary + ")")]);
 		}
-		else if (type == "Polygon")
+		else if (type === 'Polygon' || type === 'MultiPolygon' || type === 'Rectangle')
 		{
-			_(_title, [_t(gmxAPI.isRectangle(coords) ? _gtxt('drawingObjects.rectangleTitle') : _gtxt('drawingObjects.polygonTitle'))]);
+			_(_title, [_t(type === 'Rectangle' ? _gtxt('drawingObjects.rectangleTitle') : _gtxt('drawingObjects.polygonTitle'))]);
 			_(_summary, [_t("(" + summary + ")")]);
 		}
 		
