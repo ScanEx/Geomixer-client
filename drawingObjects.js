@@ -335,7 +335,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         }
     }
     else
-        icon = _span(null, [['dir', 'className', geom.type + (gmxAPI.isRectangle(geom.coordinates) ? ' RECTANGLE' : '')]]);
+        icon = _span(null, [['dir', 'className', geom.type + (L.gmxUtil.isRectangle(geom.coordinates) ? ' RECTANGLE' : '')]]);
 	
 	var remove = _span();
     
@@ -595,7 +595,7 @@ var DrawingObjectGeomixer = function() {
 		for (var i=0; i< oCollection.Count(); i++){
             var feature = oCollection.Item(i);
             var geom = feature.toGeoJSON().geometry;
-            isAnyRectangle = isAnyRectangle || gmxAPI.isRectangle(geom.coordinates);
+            isAnyRectangle = isAnyRectangle || L.gmxUtil.isRectangle(geom.coordinates);
             isNonPolygon = isNonPolygon || geom.type !== 'Polygon';
 		}
         

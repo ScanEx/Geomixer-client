@@ -1007,7 +1007,6 @@ function loadMap(state)
     });
     lmap.gmxControlsManager.init();
     lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
-    gmxAPI._leaflet.LMap = lmap;
     nsGmx.leafletMap = lmap;
     
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');

@@ -24,16 +24,6 @@ extend(window.gmxAPI,
 		return "random_" + gmxAPI.lastFlashMapId;
 	}
 	,
-	isRectangle: function(coords)   // drawingObjects.js 601
-	{
-		return (coords && coords[0] && (coords[0].length == 5 || coords[0].length == 4)
-			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
-			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
-			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
-			&& ((coords[0][3][0] == coords[0][0][0]) || (coords[0][3][1] == coords[0][0][1]))
-		);
-	}
-	,
     getPatternIcon: function(ph, size) {    // Controls.js 32
         return null;
     }
@@ -237,7 +227,6 @@ FlashMapObject.prototype = {
 };
     gmxAPI.extendFMO('addListener', function(eventName, func, level) {
     });
-    gmxAPI._leaflet = {};
 })();
 
 //Поддержка map
