@@ -851,7 +851,8 @@ function initEditUI() {
                 if (isEditableLayer(layer))
                 {
                     layer.disableFlip();
-                    
+                    layer.disablePopup();
+
                     listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
                     layer.on('click', listeners[props.name]);
                 }
@@ -864,6 +865,7 @@ function initEditUI() {
                 if (layer) {
                     layer.off('click', listeners[layerName]);
                     layer.enableFlip();
+                    layer.enablePopup();
                 }
             }
             listeners = {};            
