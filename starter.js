@@ -1403,7 +1403,7 @@ function loadMap(state)
             var sliderControl = new SliderControl();
             lmap.addControl(sliderControl);
             
-            state.mode && lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(parsedState.mode));
+            state.mode && lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
             
             if (state.drawnObjects)
             {
