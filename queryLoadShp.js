@@ -64,15 +64,24 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
         showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
         return;
     }
-    
-    var b = getBounds();
+    var lmap = nsGmx.leafletMap,
+        gmxDrawing = lmap.gmxDrawing,
+        latLngBounds;
     for (var i = 0; i < objs.length; i++)
     {
-        var o = objs[i];
-        globalFlashMap.drawing.addObject(o.geometry, o.properties);
-        b.update(o.geometry.coordinates);
+        var it = objs[i],
+            geoJSON = L.gmxUtil.geometryToGeoJSON(it.geometry),
+            b = gmxDrawing.addGeoJSON(geoJSON, {fill: false, properties: it.properties})[0].getBounds();
+
+        if (!latLngBounds) {
+            latLngBounds = L.latLngBounds();
+        } else {
+            latLngBounds.extend(b);
+        }
     }
-    globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+    if (latLngBounds) {
+        lmap.fitBounds(latLngBounds);
+    }
 }
 
 queryLoadShp.prototype.upload = function()
