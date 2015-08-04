@@ -287,9 +287,10 @@ var TimelineController = function(data, map, options) {
                 obj = item.obj;
             
             var showItem = true;
-            $.each(filters, function(i, filterFunc) {
-                showItem = showItem && filterFunc(item, mapCenter, mapExtent);
-            })
+            var l = filters.length;
+            while (l--) {
+                showItem = showItem && filters[l](item, mapCenter, mapExtent);
+            }
             
             if (!items[layerName][i].timelineItem && showItem)
             {
@@ -351,12 +352,12 @@ var TimelineController = function(data, map, options) {
     
     var updateCalendarRange;
     
-    var updateItems = function() {
-        $.each(data.get('layers'), function(i, layerInfo) {
+    var updateItems = L.Util.limitExecByInterval(function () {
+        $.each(data.get('layers'), function (i, layerInfo) {
             updateLayerItems(layerInfo);
         });
         updateCount();
-    }
+    }, 300);
     
     var fireSelectionEvent = function() {
         var selectedItems = [];
