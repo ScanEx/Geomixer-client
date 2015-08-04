@@ -1010,7 +1010,10 @@ function loadMap(state)
     nsGmx.leafletMap = lmap;
     
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
-    L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey}).then(function(gmxMap) {
+    L.gmx.Deferred.all(
+        L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey}),
+        lmap.gmxBaseLayersManager.initDefaults()
+    ).then(function(gmxMap) {
         nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
         var data = gmxMap.rawTree;
@@ -1021,10 +1024,11 @@ function loadMap(state)
         var mapProp = gmxMap.rawTree.properties || {}
         var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
         
-        lmap.gmxBaseLayersManager.initDefaults().then(function() {
-            lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
-            if (baseLayers.length) lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
-        });
+        lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
+        
+        // lmap.gmxBaseLayersManager.initDefaults().then(function() {
+            // if (baseLayers.length) lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
+        // });
         
         //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
         if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
@@ -1403,7 +1407,11 @@ function loadMap(state)
             var sliderControl = new SliderControl();
             lmap.addControl(sliderControl);
             
-            state.mode && lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
+            if (state.mode) {
+                lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
+            } else if (baseLayers.length) {
+                lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
+            }
             
             if (state.drawnObjects)
             {
