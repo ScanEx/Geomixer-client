@@ -161,14 +161,13 @@ var _formatDateForServer = function( datetime, skipTime )
 */
 var ModisImagesProvider = function( params )
 {
-    var _params = $.extend({host: "http://maps.kosmosnimki.ru/", map: window.globalFlashMap}, params)
+    var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
     var layersNamesToLoad = ['C2E8FE742B754B99A3F89A2D850BAF5B']; //слои, в которых хранятся снимки Terra и Aqua
     var initDone = false;
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-        var map = _params.map;
         _lazyLoadFireLayers(_params).done(function(gmxMap) {
             if (!initDone && _params.zIndex) {
                 for (var iL = 0; iL < layersNamesToLoad.length; iL++) {
@@ -447,7 +446,7 @@ var FireBurntProvider3 = function( params )
 }
 
 //рисует кластеры на основе данных о хотспотах векторного слоя
-var FireBurntRenderer3 = function( params )
+var FireBurntRenderer3 = function(params)
 {
     var _params = $.extend(true, {
         minGeomZoom: 8,
@@ -566,7 +565,7 @@ var FireBurntRenderer3 = function( params )
         clustersGeomLayer.setZIndex(_params.zIndex);
     }
 
-    _lazyLoadFireLayers({map: map, mapName: _params.mapName}).done(function(gmxMap)
+    _lazyLoadFireLayers({mapName: _params.mapName}).done(function(gmxMap)
     {
         rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
         rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
