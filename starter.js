@@ -1011,7 +1011,7 @@ function loadMap(state)
     
     var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
     L.gmx.Deferred.all(
-        L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey}),
+        L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey, setZIndex: true}),
         lmap.gmxBaseLayersManager.initDefaults()
     ).then(function(gmxMap) {
         nsGmx.gmxMap = gmxMap;
@@ -1505,7 +1505,6 @@ function promptFunction(title, value) {
         {
             var coord = L.gmxUtil.parseCoordinates(this.value);
             nsGmx.leafletMap.panTo(coord);
-            //globalFlashMap.moveToCoordinates(this.value);
             return false;
         }
     })
