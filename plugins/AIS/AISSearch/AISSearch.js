@@ -48,17 +48,6 @@
 
             refresh.title = 'Обновить';
 
-            function getActiveLayer() {
-                var active = $(_queryMapLayers.treeCanvas).find(".active");
-                    
-                if (active[0] && active[0].parentNode.getAttribute("LayerID") &&
-                    active[0].parentNode.gmxProperties.content.properties.type === "Vector")
-                {
-                    return active[0].parentNode.gmxProperties.content.properties.name;
-                }
-                return null;
-            }
-
             publicInterface.setMMSI = function(mmsiArr, bbox) {
                 if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
                 if (!nsGmx.leafletMap) {    // для старого АПИ
@@ -109,7 +98,7 @@
                 cont.appendChild(div);
                 title.innerHTML = 'Поиск кораблей';
                 
-                aisLayerID = getActiveLayer() || params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
+                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
                 if (!layersByID[aisLayerID]) {
                     console.log('Отсутствует слой: АИС данные `' + aisLayerID + '`');
                    return;
