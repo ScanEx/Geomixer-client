@@ -994,474 +994,480 @@ function loadMap(state)
         
     L.Icon.Default.imagePath = 'leaflet/images';
     
-    var lmap = new L.Map($$('flash'), {
-        contextmenu: true,
-        center: [55.7574, 37.5952]
-        ,zoom: 5
-        ,zoomControl: false
-        ,attributionControl: false
-        ,trackResize: true
-        ,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
-        ,zoomAnimation: (window.gmxPhantom ? false : true)		// отключение zoomAnimation при запуске тестов
-        ,boxZoom: false
-    });
-    lmap.gmxControlsManager.init();
-    lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
-    nsGmx.leafletMap = lmap;
-    
-    var hostName = window.serverBase.replace(/\/$/, '').replace(/^http:\/\//, '');
-    L.gmx.Deferred.all(
-        L.gmx.loadMap(globalMapName, {hostName: hostName, leafletMap: lmap, apiKey: window.apiKey, setZIndex: true}),
-        lmap.gmxBaseLayersManager.initDefaults()
-    ).then(function(gmxMap) {
-        nsGmx.gmxMap = gmxMap;
-        gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
-        var data = gmxMap.rawTree;
-        var map = gmxAPI._addNewMap('_main', gmxMap.rawTree);
-        map.layersByID = gmxMap.layersByID;
-        map.LMap = lmap;
-        
-        var mapProp = gmxMap.rawTree.properties || {}
-        var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
-        
-        lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
-        
-        // lmap.gmxBaseLayersManager.initDefaults().then(function() {
-            // if (baseLayers.length) lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
-        // });
-        
-        //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
-        if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
-            window.language = data.properties.DefaultLanguage;
+    L.gmx.loadMap(globalMapName, {hostName: window.serverBase, apiKey: window.apiKey, setZIndex: true}).then(function(gmxMap) {
+        var defCenter = [55.7574, 37.5952],
+            mapProps = gmxMap.properties,
+            defZoom = mapProps.DefaultZoom || 5;
+
+        if (mapProps.DefaultLat && mapProps.DefaultLong) {
+            defCenter = [mapProps.DefaultLat, mapProps.DefaultLong];
         }
         
-        var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager);
-            
-        lmap.addControl(baseLayersControl);
-        
-        $('#flash').bind('dragover', function()
-        {
-            return false;
+        var lmap = new L.Map($('#flash')[0], {
+            contextmenu: true,
+            center: defCenter,
+            zoom: defZoom,
+            zoomControl: false,
+            attributionControl: false,
+            trackResize: true,
+            fadeAnimation: !window.gmxPhantom,  // отключение fadeAnimation при запуске тестов
+            zoomAnimation: !window.gmxPhantom,  // отключение zoomAnimation при запуске тестов
+            boxZoom: false
         });
         
-        $('#flash').bind('drop', function(e)
-        {
-            if (!e.originalEvent.dataTransfer) {
-                return;
+        lmap.gmxControlsManager.init();
+        lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
+        nsGmx.leafletMap = lmap;
+        
+        lmap.gmxBaseLayersManager.initDefaults().then(function() {
+        
+            gmxMap.addLayersToMap(lmap);
+            
+            nsGmx.gmxMap = gmxMap;
+            gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
+            var data = gmxMap.rawTree;
+            var map = gmxAPI._addNewMap('_main', gmxMap.rawTree);
+            map.layersByID = gmxMap.layersByID;
+            map.LMap = lmap;
+            
+            var mapProp = gmxMap.rawTree.properties || {}
+            var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
+            
+            lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
+
+            //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
+            if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
+                window.language = data.properties.DefaultLanguage;
             }
             
-            var b = L.latLngBounds([]);
-            var defs = [];
-            $.each(e.originalEvent.dataTransfer.files, function(i, file) {
-                var def = $.Deferred();
-                var parseDef = nsGmx.Utils.parseShpFile(file);
-                defs.push(def);
-                parseDef.then(
-                    function(objs) {
-                        for (var i = 0; i < objs.length; i++) {
-                            var features = lmap.gmxDrawing.addGeoJSON({
-                                type: "Feature",
-                                geometry: L.gmxUtil.geometryToGeoJSON(objs[i].geometry),
-                                properties: objs[i].properties
-                            });
-                            b.extend(features[0].getBounds());
-                        }
-                        def.resolve();
-                    },
-                    function() {
-                        def.resolve();
-                    }
-                );
-            })
-            
-            $.when.apply($, defs).done(function() {
-                lmap.fitBounds(b);
-            })
-            
-            return false;
-        })
-        
-        globalFlashMap = map;
-        var userObjects = state.userObjects || (data && data.properties.UserData);
-        
-        userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
-        
-        if (state.dt) {
-            try {
-                var dateLocal = $.datepicker.parseDate('dd.mm.yy', state.dt);
-                var dateBegin = nsGmx.Calendar.fromUTC(dateLocal);
-                var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000 - 1);
-                var calendar = nsGmx.widgets.commonCalendar.get();
-                calendar.setDateBegin(dateBegin, true);
-                calendar.setDateEnd(dateEnd);
-            } catch(e) {}
-        }
-        
-        //в самом начале загружаем только данные о плагинах карты. 
-        //Остальные данные будем загружать чуть позже после частичной инициализации вьюера
-        //О да, формат хранения данных о плагинах часто менялся! 
-        //Поддерживаются все предыдущие форматы из-за старых версий клиента и сложности обновления базы данных
-        nsGmx.userObjectsManager.load('mapPlugins');
-        nsGmx.userObjectsManager.load('mapPlugins_v2');
-        nsGmx.userObjectsManager.load('mapPlugins_v3');
-        
-        //после загрузки списка плагинов карты начали загружаться не глобальные плагины, 
-        //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
-        nsGmx.pluginsManager.done(function()
-        {
-            nsGmx.pluginsManager.beforeViewer();
-            
-            //для каждого ответа сервера об отсутствии авторизации (Status == 'auth') сообщаем об этом пользователю или предлагаем залогиниться
-            addParseResponseHook('auth', function() {
-                if ( nsGmx.AuthManager.isLogin() )
-                {
-                    showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true);
-                }
-                else
-                {
-                    nsGmx.widgets.authWidget.showLoginDialog();
-                }
+            var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager);
                 
+            lmap.addControl(baseLayersControl);
+            
+            $('#flash').bind('dragover', function()
+            {
                 return false;
             });
             
-            initAuthWidget();
-            
-            //инициализация контролов пользовательских объектов
-            //соответствующий модуль уже загружен
-            var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
-            window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
-            window.oDrawingObjectGeomixer.Init(nsGmx.leafletMap, nsGmx.gmxMap);
-            
-            //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
-            (function fixVisibilityConstrains (o, isVisible)
+            $('#flash').bind('drop', function(e)
             {
-                o.content.properties.visible = o.content.properties.visible && isVisible;
-                isVisible = o.content.properties.visible;
-                if (o.type === "group")
-                {
-                    var a = o.content.children;
-                    for (var k = a.length - 1; k >= 0; k--)
-                        fixVisibilityConstrains(a[k], isVisible);
+                if (!e.originalEvent.dataTransfer) {
+                    return;
                 }
-            })({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
-            
-            window.oldTree = JSON.parse(JSON.stringify(data));
-            
-            window.defaultLayersVisibility = {};
-            if (map.layers)
-            {
-                for (var k = 0; k < map.layers.length; k++)
-                    window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
-            }
-            
-            //основная карта всегда загружена с того-же сайта, что и серверные скрипты
-            data.properties.hostName = window.serverBase.slice(7).slice(0, -1); 
-            
-            //DEPRICATED. Do not use it!
-            _mapHelper.mapProperties = data.properties;
-            
-            //DEPRICATED. Do not use it!
-            _mapHelper.mapTree = data;
-            
-            if (window.copyright && typeof window.copyright === 'string') {
-                lmap.gmxControlsManager.get('copyright').setMapCopyright(window.copyright);
-            }
-            
-            if (state.position)
-            {
-                lmap.setView([state.position.y, state.position.x], state.position.z);
-            }
-            
-            var condition = false,
-                mapStyles = false;
-            
-            if (state.condition)
-                condition = state.condition;
-            
-            if (state.mapStyles)
-                mapStyles = state.mapStyles;
-            
-            _queryMapLayers.addLayers(data, condition, mapStyles);
-            
-            var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
-            nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
-                {
-                    return _queryMapLayers.currentMapRights() == "edit";
-                },
-                function() 
-                {
-                    return {
-                        div: $(_layersTree._treeCanvas).find('div[MapID]')[0],
-                        tree: _layersTree
-                    }
-                }
-            );
-            
-            // _menuUp.defaultHash = 'layers';
-            mapLayers.mapLayers.load();
-            
-            //создаём тулбар
-            var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
-            
-            var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
-            
-            //инициализация контролов поиска (модуль уже загружен)
-            var oSearchModule = gmxCore.getModule("search");
-            window.oSearchControl = new oSearchModule.SearchGeomixer();
-            
-            // if (document.getElementById('searchCanvas')) {
-            window.oSearchControl.Init({
-                Menu: oSearchLeftMenu,
-                ContainerInput: searchContainer,
-                ServerBase: globalFlashMap.geoSearchAPIRoot,
-                layersSearchFlag: true,
-                mapHelper: _mapHelper,
-                Map: lmap,
-                gmxMap: gmxMap
-            });
-            
-            _menuUp.createMenu = function()
-            {
-                createMenuNew();
-            };
-
-            _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
-            
-            // Загружаем все пользовательские данные
-            nsGmx.userObjectsManager.load();
-            
-            //динамически добавляем пункты в меню. DEPRICATED.
-            nsGmx.pluginsManager.addMenuItems(_menuUp);
-            
-            // конвертируем старый формат eval-строки в новый формат customParamsManager
-            // старый формат использовался только маплетом пожаров
-            if (typeof state.customParams != 'undefined' && state.customParams)
-            {
-                var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
-                if (newFiresFormat)
-                    state.customParamsCollection = { firesWidget : newFiresFormat };
-                else
-                {
-                    //старый формат данных пожаров...
-                    try
-                    {
-                        eval(state.customParams);
-                    }
-                    catch (e) 
-                    {
-                        alert(e);
-                    }
-                }
-            }
                 
-            if ( typeof state.customParamsCollection != 'undefined')
-                _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
-
-            _mapHelper.gridView = false;
+                var b = L.latLngBounds([]);
+                var defs = [];
+                $.each(e.originalEvent.dataTransfer.files, function(i, file) {
+                    var def = $.Deferred();
+                    var parseDef = nsGmx.Utils.parseShpFile(file);
+                    defs.push(def);
+                    parseDef.then(
+                        function(objs) {
+                            for (var i = 0; i < objs.length; i++) {
+                                var features = lmap.gmxDrawing.addGeoJSON({
+                                    type: "Feature",
+                                    geometry: L.gmxUtil.geometryToGeoJSON(objs[i].geometry),
+                                    properties: objs[i].properties
+                                });
+                                b.extend(features[0].getBounds());
+                            }
+                            def.resolve();
+                        },
+                        function() {
+                            def.resolve();
+                        }
+                    );
+                })
+                
+                $.when.apply($, defs).done(function() {
+                    lmap.fitBounds(b);
+                })
+                
+                return false;
+            })
             
-            //создаём иконку переключения в полноэкранный режим.
-            var mapNameContainer = _div();
-            var leftIconPanelContainer = _div();
-            addMapName(mapNameContainer, data.properties.title);
+            globalFlashMap = map;
+            var userObjects = state.userObjects || (data && data.properties.UserData);
             
-            _leftIconPanel.create(leftIconPanelContainer);
+            userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
             
-            var updateLeftPanelVis = function() {
-                $('.leftCollapser-icon')
-                    .toggleClass('leftCollapser-right', !layersShown)
-                    .toggleClass('leftCollapser-left', !!layersShown);
-                resizeAll();
+            if (state.dt) {
+                try {
+                    var dateLocal = $.datepicker.parseDate('dd.mm.yy', state.dt);
+                    var dateBegin = nsGmx.Calendar.fromUTC(dateLocal);
+                    var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000 - 1);
+                    var calendar = nsGmx.widgets.commonCalendar.get();
+                    calendar.setDateBegin(dateBegin, true);
+                    calendar.setDateEnd(dateEnd);
+                } catch(e) {}
             }
             
-            $('#leftCollapser').click(function() {
-                layersShown = !layersShown;
+            //в самом начале загружаем только данные о плагинах карты. 
+            //Остальные данные будем загружать чуть позже после частичной инициализации вьюера
+            //О да, формат хранения данных о плагинах часто менялся! 
+            //Поддерживаются все предыдущие форматы из-за старых версий клиента и сложности обновления базы данных
+            nsGmx.userObjectsManager.load('mapPlugins');
+            nsGmx.userObjectsManager.load('mapPlugins_v2');
+            nsGmx.userObjectsManager.load('mapPlugins_v3');
+            
+            //после загрузки списка плагинов карты начали загружаться не глобальные плагины, 
+            //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
+            nsGmx.pluginsManager.done(function()
+            {
+                nsGmx.pluginsManager.beforeViewer();
+                
+                //для каждого ответа сервера об отсутствии авторизации (Status == 'auth') сообщаем об этом пользователю или предлагаем залогиниться
+                addParseResponseHook('auth', function() {
+                    if ( nsGmx.AuthManager.isLogin() )
+                    {
+                        showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true);
+                    }
+                    else
+                    {
+                        nsGmx.widgets.authWidget.showLoginDialog();
+                    }
+                    
+                    return false;
+                });
+                
+                initAuthWidget();
+                
+                //инициализация контролов пользовательских объектов
+                //соответствующий модуль уже загружен
+                var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
+                window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
+                window.oDrawingObjectGeomixer.Init(nsGmx.leafletMap, nsGmx.gmxMap);
+                
+                //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
+                (function fixVisibilityConstrains (o, isVisible)
+                {
+                    o.content.properties.visible = o.content.properties.visible && isVisible;
+                    isVisible = o.content.properties.visible;
+                    if (o.type === "group")
+                    {
+                        var a = o.content.children;
+                        for (var k = a.length - 1; k >= 0; k--)
+                            fixVisibilityConstrains(a[k], isVisible);
+                    }
+                })({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
+                
+                window.oldTree = JSON.parse(JSON.stringify(data));
+                
+                window.defaultLayersVisibility = {};
+                if (map.layers)
+                {
+                    for (var k = 0; k < map.layers.length; k++)
+                        window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
+                }
+                
+                //основная карта всегда загружена с того-же сайта, что и серверные скрипты
+                data.properties.hostName = window.serverBase.slice(7).slice(0, -1); 
+                
+                //DEPRICATED. Do not use it!
+                _mapHelper.mapProperties = data.properties;
+                
+                //DEPRICATED. Do not use it!
+                _mapHelper.mapTree = data;
+                
+                if (window.copyright && typeof window.copyright === 'string') {
+                    lmap.gmxControlsManager.get('copyright').setMapCopyright(window.copyright);
+                }
+                
+                if (state.position)
+                {
+                    lmap.setView([state.position.y, state.position.x], state.position.z);
+                }
+                
+                var condition = false,
+                    mapStyles = false;
+                
+                if (state.condition)
+                    condition = state.condition;
+                
+                if (state.mapStyles)
+                    mapStyles = state.mapStyles;
+                
+                _queryMapLayers.addLayers(data, condition, mapStyles);
+                
+                var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
+                nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
+                    {
+                        return _queryMapLayers.currentMapRights() == "edit";
+                    },
+                    function() 
+                    {
+                        return {
+                            div: $(_layersTree._treeCanvas).find('div[MapID]')[0],
+                            tree: _layersTree
+                        }
+                    }
+                );
+                
+                // _menuUp.defaultHash = 'layers';
+                mapLayers.mapLayers.load();
+                
+                //создаём тулбар
+                var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
+                
+                var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
+                
+                //инициализация контролов поиска (модуль уже загружен)
+                var oSearchModule = gmxCore.getModule("search");
+                window.oSearchControl = new oSearchModule.SearchGeomixer();
+                
+                // if (document.getElementById('searchCanvas')) {
+                window.oSearchControl.Init({
+                    Menu: oSearchLeftMenu,
+                    ContainerInput: searchContainer,
+                    ServerBase: globalFlashMap.geoSearchAPIRoot,
+                    layersSearchFlag: true,
+                    mapHelper: _mapHelper,
+                    Map: lmap,
+                    gmxMap: gmxMap
+                });
+                
+                _menuUp.createMenu = function()
+                {
+                    createMenuNew();
+                };
+
+                _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
+                
+                // Загружаем все пользовательские данные
+                nsGmx.userObjectsManager.load();
+                
+                //динамически добавляем пункты в меню. DEPRICATED.
+                nsGmx.pluginsManager.addMenuItems(_menuUp);
+                
+                // конвертируем старый формат eval-строки в новый формат customParamsManager
+                // старый формат использовался только маплетом пожаров
+                if (typeof state.customParams != 'undefined' && state.customParams)
+                {
+                    var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
+                    if (newFiresFormat)
+                        state.customParamsCollection = { firesWidget : newFiresFormat };
+                    else
+                    {
+                        //старый формат данных пожаров...
+                        try
+                        {
+                            eval(state.customParams);
+                        }
+                        catch (e) 
+                        {
+                            alert(e);
+                        }
+                    }
+                }
+                    
+                if ( typeof state.customParamsCollection != 'undefined')
+                    _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
+
+                _mapHelper.gridView = false;
+                
+                //создаём иконку переключения в полноэкранный режим.
+                var mapNameContainer = _div();
+                var leftIconPanelContainer = _div();
+                addMapName(mapNameContainer, data.properties.title);
+                
+                _leftIconPanel.create(leftIconPanelContainer);
+                
+                var updateLeftPanelVis = function() {
+                    $('.leftCollapser-icon')
+                        .toggleClass('leftCollapser-right', !layersShown)
+                        .toggleClass('leftCollapser-left', !!layersShown);
+                    resizeAll();
+                }
+                
+                $('#leftCollapser').click(function() {
+                    layersShown = !layersShown;
+                    updateLeftPanelVis();
+                });
                 updateLeftPanelVis();
-            });
-            updateLeftPanelVis();
-            
-            //пополняем тулбар
-            var uploadFileIcon = new L.Control.gmxIcon({
-                id: 'uploadFile', 
-                className: 'leaflet-gmx-icon-sprite',
-                title: _gtxt("Загрузить файл")
-            }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
-            
-            lmap.gmxControlIconManager.get('drawing').addIcon(uploadFileIcon);
-            
-            // выпадающие группы иконок наезжают на слайдер прозрачности.
-            // Эта ф-ция разруливает этот конфликт, скрывая слайдер в нужный момент
-            var resolveToolConflict = function(iconGroup) {
-                iconGroup
-                    .on('collapse', function() {
-                        $('.gmx-slider-control').show();
-                    }).on('expand', function() {
-                        sliderControl.isCollapsed() || $('.gmx-slider-control').hide();
-                    });
-            }
-            
-            if (_queryMapLayers.currentMapRights() === "edit") {
-
-                var saveMapIcon = new L.Control.gmxIcon({
-                    id: 'saveMap',
+                
+                //пополняем тулбар
+                var uploadFileIcon = new L.Control.gmxIcon({
+                    id: 'uploadFile', 
                     className: 'leaflet-gmx-icon-sprite',
-                    title: _gtxt("Сохранить карту"),
+                    title: _gtxt("Загрузить файл")
+                }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
+                
+                lmap.gmxControlIconManager.get('drawing').addIcon(uploadFileIcon);
+                
+                // выпадающие группы иконок наезжают на слайдер прозрачности.
+                // Эта ф-ция разруливает этот конфликт, скрывая слайдер в нужный момент
+                var resolveToolConflict = function(iconGroup) {
+                    iconGroup
+                        .on('collapse', function() {
+                            $('.gmx-slider-control').show();
+                        }).on('expand', function() {
+                            sliderControl.isCollapsed() || $('.gmx-slider-control').hide();
+                        });
+                }
+                
+                if (_queryMapLayers.currentMapRights() === "edit") {
+
+                    var saveMapIcon = new L.Control.gmxIcon({
+                        id: 'saveMap',
+                        className: 'leaflet-gmx-icon-sprite',
+                        title: _gtxt("Сохранить карту"),
+                        addBefore: 'drawing'
+                    })
+                        .addTo(lmap)
+                        .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
+
+                    //группа создания слоёв
+                    var createVectorLayerIcon = new L.Control.gmxIcon({
+                        id: 'createVectorLayer', 
+                        className: 'leaflet-gmx-icon-sprite',
+                        title: _gtxt("Создать векторный слой"),
+                        addBefore: 'drawing'
+                    }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+                    
+                    var createRasterLayerIcon = new L.Control.gmxIcon({
+                        id: 'createRasterLayer', 
+                        className: 'leaflet-gmx-icon-sprite',
+                        title: _gtxt("Создать растровый слой"),
+                        addBefore: 'drawing'
+                    }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+                    
+                    var createLayerIconGroup = new L.Control.gmxIconGroup({
+                        id: 'createLayer',
+                        isSortable: true,
+                        //isCollapsible: false,
+                        items: [createVectorLayerIcon, createRasterLayerIcon],
+                        addBefore: 'drawing'
+                    }).addTo(lmap);
+                    
+                    var bookmarkIcon = new L.Control.gmxIcon({
+                        id: 'bookmark',
+                        className: 'leaflet-gmx-icon-sprite',
+                        title: _gtxt("Добавить закладку"),
+                        addBefore: 'drawing'
+                    }).on('click', function() {
+                        mapHelp.tabs.load('mapTabs');
+                        _queryTabs.add();
+                    }).addTo(lmap);
+                    
+                    resolveToolConflict(createLayerIconGroup);
+                } else {
+                    resolveToolConflict(lmap.gmxControlIconManager.get('drawing'));
+                }
+                
+                var printIcon = new L.Control.gmxIcon({
+                    id: 'gmxprint',
+                    className: 'leaflet-gmx-icon-sprite',
+                    title: _gtxt('Печать'),
                     addBefore: 'drawing'
                 })
                     .addTo(lmap)
-                    .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
-
-                //группа создания слоёв
-                var createVectorLayerIcon = new L.Control.gmxIcon({
-                    id: 'createVectorLayer', 
-                    className: 'leaflet-gmx-icon-sprite',
-                    title: _gtxt("Создать векторный слой"),
-                    addBefore: 'drawing'
-                }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
-                
-                var createRasterLayerIcon = new L.Control.gmxIcon({
-                    id: 'createRasterLayer', 
-                    className: 'leaflet-gmx-icon-sprite',
-                    title: _gtxt("Создать растровый слой"),
-                    addBefore: 'drawing'
-                }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
-                
-                var createLayerIconGroup = new L.Control.gmxIconGroup({
-                    id: 'createLayer',
-                    isSortable: true,
-                    //isCollapsible: false,
-                    items: [createVectorLayerIcon, createRasterLayerIcon],
-                    addBefore: 'drawing'
-                }).addTo(lmap);
-                
-                var bookmarkIcon = new L.Control.gmxIcon({
-                    id: 'bookmark',
-                    className: 'leaflet-gmx-icon-sprite',
-                    title: _gtxt("Добавить закладку"),
-                    addBefore: 'drawing'
-                }).on('click', function() {
-                    mapHelp.tabs.load('mapTabs');
-                    _queryTabs.add();
-                }).addTo(lmap);
-                
-                resolveToolConflict(createLayerIconGroup);
-            } else {
-                resolveToolConflict(lmap.gmxControlIconManager.get('drawing'));
-            }
-            
-            var printIcon = new L.Control.gmxIcon({
-                id: 'gmxprint',
-                className: 'leaflet-gmx-icon-sprite',
-                title: _gtxt('Печать'),
-                addBefore: 'drawing'
-            })
-                .addTo(lmap)
-                .on('click', _mapHelper.print.bind(_mapHelper));
-                
-            var permalinkIcon = new L.Control.gmxIcon({
-                id: 'permalink',
-                title: _gtxt('Ссылка на карту'),
-                addBefore: 'drawing'
-            })
-                .addTo(lmap)
-                .on('click', _mapHelper.showPermalink.bind(_mapHelper));
-                
-            var gridIcon = new L.Control.gmxIcon({
-                id: 'gridTool', 
-                className: 'leaflet-gmx-icon-sprite',
-                title: _gtxt("Координатная сетка"),
-                togglable: true,
-                addBefore: 'drawing'
-            })
-                .addTo(lmap)
-                .on('click', function() {
-                    var isActive = gridIcon.options.isActive;
-                    gridManager.setState(isActive);
-                });
-            
-            // var ToolsGroup = new L.Control.gmxIconGroup({
-                // id: 'toolsGroup',
-                // isSortable: true,
-                // items: [gridIcon, bookmarkIcon]
-            // }).addTo(lmap);
-            
-            //--------------------------------------
-            
-            var SliderControl = L.Control.extend({
-                options: {
-                    position: 'topleft'
-                },
-                onAdd: function(map) {
-                    var sliderContainer = $('<div class="gmx-slider-control"></div>');
-                    this._widget = new nsGmx.TransparencySliderWidget(sliderContainer);
+                    .on('click', _mapHelper.print.bind(_mapHelper));
                     
-                    $(this._widget).on('slide', function(event, ui) {
-                        _queryMapLayers.applyOpacityToRasterLayers(ui.value*100, _queryMapLayers.buildedTree);
-                    })
+                var permalinkIcon = new L.Control.gmxIcon({
+                    id: 'permalink',
+                    title: _gtxt('Ссылка на карту'),
+                    addBefore: 'drawing'
+                })
+                    .addTo(lmap)
+                    .on('click', _mapHelper.showPermalink.bind(_mapHelper));
                     
-                    return sliderContainer[0];
-                },
-                onRemove: function(){},
-                isCollapsed: function(){ return this._widget.isCollapsed(); }
-            });
-            var sliderControl = new SliderControl();
-            lmap.addControl(sliderControl);
-            
-            if (state.mode) {
-                lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
-            } else if (baseLayers.length) {
-                lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
-            }
-            
-            if (state.drawnObjects)
-            {
-                state.drawnObjects.forEach(function(objInfo) {
-                    //старый формат - число, новый - строка
-                    var color = (typeof objInfo.color === 'number' ? '#' + L.gmxUtil.dec2hex(objInfo.color) : objInfo.color) || '#0000FF',
-                        weight = objInfo.thickness || 2,
-                        opacity = (objInfo.opacity / 100) || 0.8;
-                        
-                    var drawnObject = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry))[0];
-                    
-                    var properties = $.extend(true, {}, objInfo.properties,  {
-                        lineStyle: {
-                            color: color,
-                            weight: weight,
-                            opacity: opacity
-                        }
+                var gridIcon = new L.Control.gmxIcon({
+                    id: 'gridTool', 
+                    className: 'leaflet-gmx-icon-sprite',
+                    title: _gtxt("Координатная сетка"),
+                    togglable: true,
+                    addBefore: 'drawing'
+                })
+                    .addTo(lmap)
+                    .on('click', function() {
+                        var isActive = gridIcon.options.isActive;
+                        gridManager.setState(isActive);
                     });
-                    
-                    drawnObject.setOptions(properties);
-                });
-            }
-            else if (state.marker)
-                map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
-            
-            _menuUp.checkView();
-            
-            _iconPanel.updateVisibility();
-            
-            if (nsGmx.AuthManager.isLogin())
-            {
-                _queryMapLayers.addUserActions();
                 
-                if ( !nsGmx.AuthManager.isAccounts() )
-                {
-                    _iconPanel.updateVisibility();
+                // var ToolsGroup = new L.Control.gmxIconGroup({
+                    // id: 'toolsGroup',
+                    // isSortable: true,
+                    // items: [gridIcon, bookmarkIcon]
+                // }).addTo(lmap);
+                
+                //--------------------------------------
+                
+                var SliderControl = L.Control.extend({
+                    options: {
+                        position: 'topleft'
+                    },
+                    onAdd: function(map) {
+                        var sliderContainer = $('<div class="gmx-slider-control"></div>');
+                        this._widget = new nsGmx.TransparencySliderWidget(sliderContainer);
+                        
+                        $(this._widget).on('slide', function(event, ui) {
+                            _queryMapLayers.applyOpacityToRasterLayers(ui.value*100, _queryMapLayers.buildedTree);
+                        })
+                        
+                        return sliderContainer[0];
+                    },
+                    onRemove: function(){},
+                    isCollapsed: function(){ return this._widget.isCollapsed(); }
+                });
+                var sliderControl = new SliderControl();
+                lmap.addControl(sliderControl);
+                
+                if (state.mode) {
+                    lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
+                } else if (baseLayers.length) {
+                    lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
                 }
-            }
+                
+                if (state.drawnObjects)
+                {
+                    state.drawnObjects.forEach(function(objInfo) {
+                        //старый формат - число, новый - строка
+                        var color = (typeof objInfo.color === 'number' ? '#' + L.gmxUtil.dec2hex(objInfo.color) : objInfo.color) || '#0000FF',
+                            weight = objInfo.thickness || 2,
+                            opacity = (objInfo.opacity / 100) || 0.8;
+                            
+                        var drawnObject = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry))[0];
+                        
+                        var properties = $.extend(true, {}, objInfo.properties,  {
+                            lineStyle: {
+                                color: color,
+                                weight: weight,
+                                opacity: opacity
+                            }
+                        });
+                        
+                        drawnObject.setOptions(properties);
+                    });
+                }
+                else if (state.marker)
+                    map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
+                
+                _menuUp.checkView();
+                
+                _iconPanel.updateVisibility();
+                
+                if (nsGmx.AuthManager.isLogin())
+                {
+                    _queryMapLayers.addUserActions();
+                    
+                    if ( !nsGmx.AuthManager.isAccounts() )
+                    {
+                        _iconPanel.updateVisibility();
+                    }
+                }
 
-            nsGmx.leafletMap.on('layeradd', function() {
+                nsGmx.leafletMap.on('layeradd', function() {
+                    initEditUI();
+                    initTimeline();
+                });
+                
                 initEditUI();
                 initTimeline();
-            });
-            
-            initEditUI();
-            initTimeline();
 
-            nsGmx.pluginsManager.afterViewer();
-            
-            $("#leftContent").mCustomScrollbar();
+                nsGmx.pluginsManager.afterViewer();
+                
+                $("#leftContent").mCustomScrollbar();
+            });
         });
 	}, function() {
         initAuthWidget();
