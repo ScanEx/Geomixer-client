@@ -2599,7 +2599,11 @@
                 node.lastDrawTime = 1;  // старт отрисовки
                 node.isIdle(-1);  // обнуление проверок окончания отрисовки
 
-                var onError = function(e) {
+                var onError = function(ev) {
+                    if (ev && ev.skip) {
+                        callback(null);
+                        return;
+                    }
                     if (node.tileRasterFunc && !geom.properties.GMX_RasterCatalogID) {
                         callback(null);
                         return;
