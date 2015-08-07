@@ -194,6 +194,7 @@ _translationsHash.hash["eng"] = {
     "units.auto": "auto",
     "units.m": "m",
     "units.km": "km",
+    "units.nm": "nmi",
     "units.m2": "m<sup>2</sup>",
     "units.ha": "ha",
     "units.km2": "km<sup>2</sup>",

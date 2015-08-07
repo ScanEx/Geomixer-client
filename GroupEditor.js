@@ -319,19 +319,20 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		var useAPI = _checkbox(elemProperties.UseKosmosnimkiAPI, 'checkbox'),
 			useOSM = _checkbox(elemProperties.UseOpenStreetMap, 'checkbox'),
 			defLang = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="defRus" name="defLang" value="rus"></input><label for="defRus">rus</label>' + 
-                            '<input type="radio" id="defEng" name="defLang" value="eng"></input><label for="defEng">eng</label>' + 
+                            '<label><input type="radio" name="defLang" value="rus">rus</label>' + 
+                            '<label><input type="radio" name="defLang" value="eng">eng</label>' + 
                         '</span>')[0],
             distUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="distUnitAuto" name="distUnit" value="auto"></input><label for="distUnitAuto">' + _gtxt('units.auto') + '</label>' + 
-                            '<input type="radio" id="distUnitM" name="distUnit" value="m"></input><label for="distUnitM">' + _gtxt('units.m') + '</label>' + 
-                            '<input type="radio" id="distUnitKm" name="distUnit" value="km"></input><label for="distUnitKm">' + _gtxt('units.km') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="auto">' + _gtxt('units.auto') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="m">' + _gtxt('units.m') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="km">' + _gtxt('units.km') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="nm">' + _gtxt('units.nm') + '</label>' + 
                         '</span>')[0],
             squareUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="squareUnitAuto" name="squareUnit" value="auto"></input><label for="squareUnitAuto">' + _gtxt('units.auto') + '</label>' + 
-                            '<input type="radio" id="squareUnitM" name="squareUnit" value="m2"></input><label for="squareUnitM">' + _gtxt('units.m2') + '</label>' + 
-                            '<input type="radio" id="squareUnitHa" name="squareUnit" value="ha"></input><label for="squareUnitHa">' + _gtxt('units.ha') + '</label>' + 
-                            '<input type="radio" id="squareUnitKm" name="squareUnit" value="km2"></input><label for="squareUnitKm">' + _gtxt('units.km2') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="auto">' + _gtxt('units.auto') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="m2">' + _gtxt('units.m2') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="ha">' + _gtxt('units.ha') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="km2">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),

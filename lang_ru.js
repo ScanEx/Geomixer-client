@@ -196,6 +196,7 @@ _translationsHash.hash["rus"] = {
     "units.auto": "авто",
     "units.m": "м",
     "units.km": "км",
+    "units.nm": "м. мили",
     "units.m2": "м<sup>2",
     "units.ha": "га",
     "units.km2": "км<sup>2",

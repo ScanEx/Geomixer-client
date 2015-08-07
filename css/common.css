@@ -1465,9 +1465,10 @@ div.layersScroll
     margin-left: 3px;
 }
 
-.defaultMapLangContainer > input
+.defaultMapLangContainer input
 {
     vertical-align: middle;
+    margin-right: 2px;
 }
 
 .defaultMapLangContainer > label
