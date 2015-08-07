@@ -295,6 +295,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		if (isMap)
 		{
+            $('.mainmap-title').text(title.value);
+            
 			div.gmxProperties.properties.title = title.value;
 			
 			rawTree.properties = div.gmxProperties.properties;
