@@ -2382,7 +2382,9 @@
         ,
         getDepth: function(ph) {
             var id = ph.obj.objectId;
-            return gmxAPI._leaflet.utils.getIndexLayer(id);
+            var node = mapNodes[id];
+            if(!node) return;
+            return node.zIndex;
         }
         ,
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
