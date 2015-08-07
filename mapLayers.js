@@ -1250,6 +1250,8 @@ layersTree.prototype.addLayersToMap = function(elem)
             });
             nsGmx.gmxMap.addLayer(layerOnMap);
             
+            layerOnMap.setZIndex(1);
+            
             visibility && layerOnMap.addTo(nsGmx.leafletMap);
             
             layerOnMap.getGmxProperties().changedByViewer = true;
