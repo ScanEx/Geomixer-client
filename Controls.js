@@ -28,8 +28,10 @@ nsGmx.Controls = {
 		{
             if (parentStyle.fill && parentStyle.fill.pattern)
             {
-                var opaqueStyle = $.extend(true, {}, parentStyle, {fill: {opacity: 100}});
-                icon = _img(null, [['attr','src', 'data:image/png;base64,' + gmxAPI.getPatternIcon(opaqueStyle, 13)],['dir','className','icon'],['attr','styleType','icon']]);
+                var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+                    patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+                icon = patternData ? patternData.canvas : document.createElement('canvas');
+                _(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
             }
             else
             {
