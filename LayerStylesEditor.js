@@ -1,6 +1,28 @@
 ﻿//Создание интерфейса редактирования стилей слоя
 !(function() {
 
+//явно прописывает все свойства балунов в стиле.    
+var applyBalloonDefaultStyle = function(style)
+{
+    //слой только что создали - всё по умолчанию!
+    if (typeof style.BalloonEnable === 'undefined')
+    {
+        style.BalloonEnable = true;
+        style.DisableBalloonOnClick = false;
+        style.DisableBalloonOnMouseMove = true;
+    } 
+    else
+    {
+        //поддержка совместимости - если слой уже был, но новых параметров нет 
+        if (typeof style.DisableBalloonOnClick === 'undefined')
+            style.DisableBalloonOnClick = false;
+            
+        if (typeof style.DisableBalloonOnMouseMove === 'undefined')
+            style.DisableBalloonOnMouseMove = false;
+    }
+    return style;
+}
+
 var FillStyleControl = function(initStyle, params)
 {
     var _params = $.extend({showSelectors: true}, params);
@@ -452,6 +474,8 @@ var _balloonEditorId = 0;
 //identityField - будем исключать из списка аттрибутов, показываемых в балуне, так как это внутренняя техническая информация
 var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityField)
 {
+    applyBalloonDefaultStyle(balloonParams);
+    
 	var layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
         textareaID = 'ballooneditor' + layerName + (_balloonEditorId++),
         balloonText = _textarea(null, [
