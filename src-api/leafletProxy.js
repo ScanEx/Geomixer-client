@@ -2380,6 +2380,11 @@
             return ph.attr;
         }
         ,
+        getDepth: function(ph) {
+            var id = ph.obj.objectId;
+            return gmxAPI._leaflet.utils.getIndexLayer(id);
+        }
+        ,
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
 		,
 		'getPatternIcon':	function(hash)	{				// получить иконку pattern
