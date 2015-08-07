@@ -1012,6 +1012,8 @@ function loadMap(state)
             trackResize: true,
             fadeAnimation: !window.gmxPhantom,  // отключение fadeAnimation при запуске тестов
             zoomAnimation: !window.gmxPhantom,  // отключение zoomAnimation при запуске тестов
+            distanceUnit: mapProps.DistanceUnit,
+            squareUnit: mapProps.SquareUnit,
             boxZoom: false
         });
         
