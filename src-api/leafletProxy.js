@@ -435,9 +435,10 @@
 			}
 			
 			var arr = (pattern.colors != null ? pattern.colors : []);
-			var count = arr.length;
-			var resColors = []
 			var rgb = [0xff0000, 0x00ff00, 0x0000ff];
+			var count = arr.length;
+            if (count === 0) { return null; }   // pattern without colors don't exists
+			var resColors = []
 			for (var i = 0; i < arr.length; i++) {
 				var col = arr[i];
 				if(pattern['patternColorsFunction'][i] != null) {
@@ -4007,6 +4008,8 @@
                     if(canvasPattern) {
                         var pattern = ctx.createPattern(canvasPattern, "repeat");
                         ctx.fillStyle = pattern;
+                    } else {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
                     }
                 } else if(style.linearGradient) {
                     var rgr = style.linearGradient;
