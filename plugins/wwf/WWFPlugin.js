@@ -24,8 +24,8 @@
                 slider = ui.find('.wwf-slider');
                 
             var updateInfo = function(min, max) {
-                var dateMin = new Date(Date.UTC(2014, 0, 0) + min*3600*24*1000),
-                    dateMax = new Date(Date.UTC(2014, 0, 0) + max*3600*24*1000);
+                var dateMin = new Date(Date.UTC(2015, 0, 0) + min*3600*24*1000),
+                    dateMax = new Date(Date.UTC(2015, 0, 0) + max*3600*24*1000);
                     
                 var s2 = function(v) {return v < 10 ? '0' + v : v},
                     date2str = function(date) {return s2(date.getUTCMonth()+1) + '.' + s2(date.getUTCDate()) + '.' + date.getUTCFullYear()};
@@ -64,11 +64,10 @@
                 var imgData = ctx.getImageData(0, 0, 256, 256),
                     data = imgData.data,
                     minVal = slider.slider('values', 0),
-                    maxVal = slider.slider('values', 1),
-                    coeff = 256/365;
+                    maxVal = slider.slider('values', 1);
                 
                 for (var p = 0; p < 256*256*4; p += 4) {
-                    var v = data[p] + data[p+1];
+                    var v = data[p] + ((data[p+1]&0xf) << 8);
                     if (v >= minVal && v <= maxVal) {
                         data[p+0] = palette[4*v + 0];
                         data[p+1] = palette[4*v + 1];

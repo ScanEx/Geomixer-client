@@ -8,7 +8,8 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
     _tileTemplate: 'http://maps.kosmosnimki.ru/TileService.ashx?request=gettile&NearestNeighbor=true&layername={layerID}&srs=EPSG:3857&z={z}&x={x}&y={y}&format=png&Map={mapID}',
     _minDate: 1,
     _maxDate: 365,
-    _probThreshold: 0,
+    _lossThreshold: 0,
+    _confThreshold: 0,
     initialize: function(layerID, mapID, options) {
         this._layerID = layerID;
         this._mapID = mapID;
@@ -28,11 +29,13 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
                 data = imgData.data,
                 minVal = this._minDate,
                 maxVal = this._maxDate,
-                th = this._probThreshold;
+                lossTh = this._lossThreshold,
+                confTh = this._confThreshold;
             
             for (var p = 0; p < 256*256*4; p += 4) {
-                var v = data[p] + data[p+1];
-                if (v >= minVal && v <= maxVal && data[p+2] >= th) {
+                var v = data[p] + (data[p+1]&0xf << 8);
+                var c = data[p+1] >> 6;
+                if (v >= minVal && v <= maxVal && data[p+2] >= lossTh && (data[p+1] >> 6) >= confTh) {  
                     data[p+0] = ct[4*v+0];
                     data[p+1] = ct[4*v+1];
                     data[p+2] = ct[4*v+2];
@@ -69,9 +72,16 @@ L.WWFAlarm = L.TileLayer.Canvas.extend({
         return this;
     },
     
-    //probThreshold - 0-100
-    setProbabilityThreshold: function(probThreshold) {
-        this._probThreshold = probThreshold;
+    //lossThreshold - 0-100
+    setLossThreshold: function(lossThreshold) {
+        this._lossThreshold = lossThreshold;
+        this.redraw();
+        return this;
+    },
+    
+    //confThreshold - 0-3
+    setConfThreshold: function(confThreshold) {
+        this._confThreshold = confThreshold;
         this.redraw();
         return this;
     }
