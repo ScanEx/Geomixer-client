@@ -209,10 +209,52 @@
 
         var timeline = null,
             countSpan = null,
-            container = $('<div/>', { 'class': 'timeline-container' }),
             footerContainer = $('<div/>', { 'class': 'timeline-footer' }),
             headerContainer = $('<div/>', { 'class': 'timeline-header' }),
             _this = this;
+
+        var container;
+
+        if (options.bottomRight) {
+            var _BottomRight = L.Control.extend({
+                options: {
+                    position: 'bottomright'
+                },
+
+                onAdd: function (map) {
+                    var container = L.DomUtil.create('div', 'timeline-container');
+                    container.style.display = "none";
+                    return container;
+                }
+            });
+
+            var lCont = new _BottomRight();
+            gmxAPI._leaflet.LMap.addControl(lCont);
+            container = $(lCont.getContainer());
+
+            $(lCont.getContainer()).on('mousedown', function (event) {
+                event.stopPropagation();
+            });
+
+            $(lCont.getContainer()).on('mousewheel', function (event) {
+                event.stopPropagation();
+            });
+
+            $(lCont.getContainer()).on('touchstart', function (event) {
+                event.stopPropagation();
+            });
+        } else {
+            container = $('<div/>', { 'class': 'timeline-container' });
+        }
+
+        this.getContainer = function () {
+            if (options.bottomRight) {
+                return lCont.getContainer();
+            } else {
+                return container[0];
+            }
+        };
+
 
         var updateContrrolsVisibility;
 
@@ -397,7 +439,11 @@
         var createTimelineLazy = function () {
             if (timeline) return;
             //gmxAPI._allToolsDIV.appendChild(container[0]);
-            $('#flash').append(container[0]);
+
+            if (!options.bottomRight) {
+                $('#flash').append(container[0]);
+            }
+
             map.miniMap && map.miniMap.setVisible(false);
             timeline = new links.Timeline(container[0]);
             timeline.addItemType('line', links.Timeline.ItemLine);
@@ -681,12 +727,12 @@
      * @memberOf nsGmx
      * @param {gmxAPI.Map} map Текущая карта ГеоМиксера
     */
-    var TimelineControl = function (map) {
+    var TimelineControl = function (map, options) {
         var data = new TimelineData();
         this.data = data;
 
         var mapController = new MapController(data, map);
-        var timelineController = new TimelineController(data, map);
+        var timelineController = new TimelineController(data, map, options);
 
         /** Добавить векторный мультивременной слой на таймлайн
          * @param {String} layerName Имя векторного слоя
@@ -698,6 +744,10 @@
         this.bindLayer = function (layerName, options) {
             data.bindLayer(layerName, options);
         }
+
+        this.getContainer = function () {
+            return timelineController.getContainer();
+        };
 
         /** Возвращает ссылку на timelineController
          * @return {Object}
@@ -800,7 +850,7 @@
                 nsGmx.timelineControl.toggleVisibility(!isMinimised);
             })
 
-            nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
+            //nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
 
             nsGmx.ContextMenuController.addContextMenuElem({
                 title: function () { return _gtxt("timeline.contextMemuTitle"); },
@@ -811,6 +861,7 @@
                             context.elem.IsRasterCatalog;
                 },
                 clickCallback: function (context) {
+                    nsGmx.timelineControl.toggleVisibility(true);
                     nsGmx.timelineControl.bindLayer(context.elem.name);
                 }
             }, 'Layer');
