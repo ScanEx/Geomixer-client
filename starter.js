@@ -657,7 +657,6 @@ nsGmx.widgets.commonCalendar = {
         }
 
         for (var i = 0, len = layers.length; i < len; i++) {
-            // TODO: Only for Temporal layers
             var layer = layers[i],
                 props = layer.getGmxProperties();
             if (layer instanceof L.gmx.VectorLayer && props.Temporal &&
@@ -858,7 +857,6 @@ function initEditUI() {
                 }
             }
         } else {
-            //for (var i = 0; i < listeners.length; i++) {
             for (var layerName in listeners) {
                 var pt = listeners[layerName];
                 var layer = nsGmx.gmxMap.layersByID[layerName];
@@ -873,68 +871,6 @@ function initEditUI() {
     });
     
     isEditUIInitialized = true;
-}
-
-function addLeafletPlugins() {
-    var apiHost = gmxAPI.getAPIFolderRoot(),
-        cssFiles = [
-            apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
-        ],
-        arr = 'L' in window ? [] : [{charset: 'windows-1251', src: apiHost + "leaflet/leaflet.js" }],
-        def = $.Deferred();
-
-    cssFiles.push(apiHost + 'leaflet/buildAPIV2/dist/css/leaflet-geomixer-all.css');
-    arr.push({src: apiHost + "leaflet/buildAPIV2/dist/leaflet-geomixer-all.js", charset: 'utf8'});
-    if (window.LeafletPlugins) {
-        for (var i = 0, len = window.LeafletPlugins.length; i < len; i++) {
-            var element = window.LeafletPlugins[i],
-                path = element.path || '',
-                prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost);
-            path = prefix + path;
-            if(element.css) cssFiles.push(path + element.css + '?' + gmxAPI.buildGUID);
-            if(element.files) {
-                for (var j = 0, len1 = element.files.length; j < len1; j++) {
-                    var ph = {
-                        charset: element.charset || 'utf8',
-                        src: path + element.files[j] + '?' + gmxAPI.buildGUID
-                    };
-                    if(element.callback) ph.callback = element.callback;
-                    if(element.callbackError) ph.callbackError = element.callbackError;
-                    arr.push(ph);
-                }
-            }
-            gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = element;
-        }
-    }
-    cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
-    gmxAPI.gmxAPIv2DevLoader = function(depsJS, depsCSS) {
-        var gmxControlsPrefix = 'leaflet/buildAPIV2/';
-        depsJS.forEach(function(item) {
-            arr.push({
-                charset: 'utf8',
-                src: gmxControlsPrefix + item + '?' + gmxAPI.buildGUID
-            });
-        });
-        depsCSS.forEach(function(item) {gmxAPI.loadCSS(gmxControlsPrefix + item + '?' + gmxAPI.buildGUID);} );
-    };
-
-    if (arr.length) {
-        var count = 0,
-            loadItem = function() {
-                gmxAPI.loadJS(arr.shift(), function(item) {
-                    if (arr.length === 0) {
-                        def.resolve();
-                    } else {
-                        loadItem();
-                    }
-                });
-            };
-        loadItem();
-    } else {
-        def.resolve();
-    }
-    
-    return def.promise();
 }
 
 function initAuthWidget() {
@@ -1013,6 +949,7 @@ function loadMap(state)
             }
             
             if (visBounds.isValid()) {
+                //вычислям центр и максимальный zoom по bounds (map.fitBounds() использовать не можем, так как ещё нет карты)
                 var proj = L.Projection.Mercator;
                 var mercBounds = L.bounds([proj.project(visBounds.getNorthWest()), proj.project(visBounds.getSouthEast())]);
                 var ws = 2*proj.project(L.latLng(0, 180)).x,
@@ -1481,9 +1418,13 @@ function loadMap(state)
                     }
                 }
 
-                nsGmx.leafletMap.on('layeradd', function() {
-                    initEditUI();
-                    initTimeline();
+                nsGmx.leafletMap.on('layeradd', function(event) {
+                    var layer = event.layer;
+                    
+                    if (layer._gmx) {
+                        initEditUI();
+                        initTimeline([layer]);
+                    }
                 });
                 
                 initEditUI();
