@@ -1001,6 +1001,29 @@ function loadMap(state)
 
         if (mapProps.DefaultLat && mapProps.DefaultLong) {
             defCenter = [mapProps.DefaultLat, mapProps.DefaultLong];
+        } else {
+            //подсчитаем общий extend всех видимых слоёв
+            var visBounds = L.latLngBounds([]);
+            
+            for (var l = 0; l < gmxMap.layers.length; l++) {
+                var layer = gmxMap.layers[l];
+                if (layer.getGmxProperties().visible) {
+                    visBounds.extend(layer.getBounds());
+                }
+            }
+            
+            if (visBounds.isValid()) {
+                var proj = L.Projection.Mercator;
+                var mercBounds = L.bounds([proj.project(visBounds.getNorthWest()), proj.project(visBounds.getSouthEast())]);
+                var ws = 2*proj.project(L.latLng(0, 180)).x,
+                    screenSize = [$('#flash').width(), $('#flash').height()];
+                
+                var zoomX = Math.log( ws * screenSize[0] / (mercBounds.max.x - mercBounds.min.x))/Math.log(2) - 8;
+                var zoomY = Math.log( ws * screenSize[1] / (mercBounds.max.y - mercBounds.min.y))/Math.log(2) - 8;
+                
+                defZoom = Math.floor(Math.min(zoomX, zoomY));
+                defCenter = proj.unproject(mercBounds.getCenter());
+            }
         }
         
         var lmap = new L.Map($('#flash')[0], {
