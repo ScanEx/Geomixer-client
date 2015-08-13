@@ -1717,49 +1717,58 @@ extend(window.gmxAPI,
 		// 55°44'35" N, 37°36'56" E
 		// 4187347, 7472103
 
-		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_:]/))
-			return false;
-		if (text.indexOf(" ") != -1)
-			text = text.replace(/,/g, ".");
-		var regex = /(-?\d+(\.\d+)?)([^\d\-]*)/g;
-		var results = [];
-		while (t = regex.exec(text))
-			results.push(t[1]);
-		if (results.length < 2)
-			return false;
-		var ii = Math.floor(results.length/2);
-		var x = 0;
-		var mul = 1;
-		for (var i = 0; i < ii; i++)
-		{
-			x += parseFloat(results[i])*mul;
-			mul /= 60;
-		}
-		var y = 0;
-		mul = 1;
-		for (var i = ii; i < results.length; i++)
-		{
-			y += parseFloat(results[i])*mul;
-			mul /= 60;
-		}
-		if ((Math.abs(x) < 180) && (Math.abs(y) < 180))
-		{	
-			var tx = x, ty = y;
-			x = gmxAPI.merc_x(ty);
-			y = gmxAPI.merc_y(tx);
-		}
-		if (Math.max(text.indexOf("N"), text.indexOf("S")) > Math.max(text.indexOf("E"), text.indexOf("W")))
-		{
-			var t = gmxAPI.merc_y(gmxAPI.from_merc_x(x));
-			x = gmxAPI.merc_x(gmxAPI.from_merc_y(y));
-			y = t;
-		}
-		if (text.indexOf("W") != -1)
-			x = -x;
-		if (text.indexOf("S") != -1)
-			y = -y;
-		callback && callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
-		return [gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y)];
+		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_:]/)) {
+            return null;
+        }
+        if (text.indexOf(' ') !== -1) {
+            text = text.replace(/,/g, '.');
+        }
+        var regex = /(-?\d+(\.\d+)?)([^\d\-]*)/g;
+        var results = [];
+        var t = null;
+        while (t = regex.exec(text)) {
+            results.push(t[1]);
+        }
+        if (results.length < 2) {
+            return null;
+        }
+        var ii = Math.floor(results.length / 2),
+            y = 0,
+            mul = 1,
+            i;
+        for (i = 0; i < ii; i++) {
+            y += parseFloat(results[i]) * mul;
+            mul /= 60;
+        }
+        var x = 0;
+        mul = 1;
+        for (i = ii; i < results.length; i++) {
+            x += parseFloat(results[i]) * mul;
+            mul /= 60;
+        }
+        
+        if (Math.max(text.indexOf('N'), text.indexOf('S')) > Math.max(text.indexOf('E'), text.indexOf('W'))) {
+            var t = x;
+            x = y;
+            y = t;
+        }
+        
+        if (Math.abs(x) > 180 || Math.abs(y) > 180) {
+            var t = x;
+            x = gmxAPI.from_merc_x(y);
+            y = gmxAPI.from_merc_y(t);
+        }
+        
+        if (text.indexOf('W') !== -1) {
+            x = -x;
+        }
+        
+        if (text.indexOf('S') !== -1) {
+            y = -y;
+        }
+        
+        callback && callback(x, y);
+        return [x, y];
 	}
 	,
 	parseUri: function(str)
