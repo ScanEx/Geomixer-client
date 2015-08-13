@@ -988,9 +988,6 @@ function loadMap(state)
             nsGmx.gmxMap = gmxMap;
             gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
             var data = gmxMap.rawTree;
-            var map = gmxAPI._addNewMap('_main', gmxMap.rawTree);
-            map.layersByID = gmxMap.layersByID;
-            map.LMap = lmap;
             
             var mapProp = gmxMap.rawTree.properties || {}
             var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
@@ -1048,7 +1045,6 @@ function loadMap(state)
                 return false;
             })
             
-            globalFlashMap = map;
             var userObjects = state.userObjects || (data && data.properties.UserData);
             
             userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
@@ -1116,10 +1112,10 @@ function loadMap(state)
                 window.oldTree = JSON.parse(JSON.stringify(data));
                 
                 window.defaultLayersVisibility = {};
-                if (map.layers)
-                {
-                    for (var k = 0; k < map.layers.length; k++)
-                        window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
+
+                for (var k = 0; k < gmxMap.layers.length; k++) {
+                    var props = gmxMap.layers[k].getGmxProperties();
+                    window.defaultLayersVisibility[props.name] = props.visible;
                 }
                 
                 //основная карта всегда загружена с того-же сайта, что и серверные скрипты
@@ -1181,7 +1177,7 @@ function loadMap(state)
                 window.oSearchControl.Init({
                     Menu: oSearchLeftMenu,
                     ContainerInput: searchContainer,
-                    ServerBase: globalFlashMap.geoSearchAPIRoot,
+                    ServerBase: 'http://maps.kosmosnimki.ru/',
                     layersSearchFlag: true,
                     mapHelper: _mapHelper,
                     Map: lmap,
@@ -1401,8 +1397,13 @@ function loadMap(state)
                         drawnObject.setOptions(properties);
                     });
                 }
-                else if (state.marker)
-                    map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
+                else if (state.marker) {
+                    nsGmx.leafletMap.gmxDrawing.addGeoJSON({
+                        type: 'Feature',
+                        geometry: {type: "Point", coordinates: [state.marker.mx, state.marker.my] },
+                        properties: { text: state.marker.mt }
+                    });
+                }
                 
                 _menuUp.checkView();
                 
