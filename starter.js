@@ -917,6 +917,40 @@ function initAuthWidget() {
 
 function loadMap(state)
 {
+    //при переходе на новое API мы изменили место хранения мапплетов карты
+    //раньше мапплеты хранились в свойстве onLoad карты
+    //теперь - внутри клиентских данных (UserData)
+    nsGmx.mappletLoader = {
+        _script: '',
+        
+        //UserObjectsManager interface
+        collect: function() {
+            return this._script;
+        },
+        load: function(data) {
+            this._script = data;
+        },
+        
+        //self public interface
+        execute: function() {
+            if (this._script) {
+                var evalStr = "_kosmosnimki_temp=(" + this._script + ")";
+                try {
+                    eval(evalStr)();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        },
+        get: function() {
+            return this._script;
+        },
+        set: function(data) {
+            this._script = data;
+        }
+    }
+    nsGmx.userObjectsManager.addDataCollector('mapplet_v2', nsGmx.mappletLoader);
+    
 	layersShown = (state.isFullScreen == "false");
 	
 	if (state.language)
@@ -1193,6 +1227,9 @@ function loadMap(state)
                 
                 // Загружаем все пользовательские данные
                 nsGmx.userObjectsManager.load();
+                
+                //выполняем мапплет карты нового формата
+                nsGmx.mappletLoader.execute();
                 
                 //динамически добавляем пункты в меню. DEPRICATED.
                 nsGmx.pluginsManager.addMenuItems(_menuUp);

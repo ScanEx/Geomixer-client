@@ -353,7 +353,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             minZoom = _input(null,[['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
             maxZoom = _input(null,[['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
 		
-		onLoad.value = elemProperties.OnLoad != null ? elemProperties.OnLoad : '';
+		onLoad.value = nsGmx.mappletLoader.get();
 		
 		useAPI.onclick = function()
 		{
@@ -448,9 +448,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		onLoad.onkeyup = function()
 		{
-			div.gmxProperties.properties.OnLoad = this.value;
-			
-			rawTree.properties = div.gmxProperties.properties;
+            nsGmx.mappletLoader.set(this.value);
 			
 			return true;
 		}
