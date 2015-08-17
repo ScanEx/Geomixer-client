@@ -1524,6 +1524,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
             PageNum: params.PageNum,
             ShowTotal: params.ShowTotal,
             UseOSM: 'UseOSM' in params ? params.UseOSM : useOSMDefault,
+			layersSearchFlag: params.layersSearchFlag,
 			callback: function(response) {
 				for(var i=0; i<response.length; i++)	response[i].CanDownloadVectors = false;
 				if (params.layersSearchFlag){
@@ -1730,7 +1731,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		try{
 			fnBeforeSearch();
             for (var h = 0; h < searchByStringHooks.length; h++) {
-                if (searchByStringHooks[h](SearchString)) {
+                if (searchByStringHooks[h].hook(SearchString)) {
                     fnAfterSearch();
                     return;
                 }
@@ -1851,11 +1852,32 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
     
-    /**Добавляет хук поиска объектов по строке. Хуки выполняются в порядке их добавления
+    /**Добавляет хук поиска объектов по строке. Хуки выполняются в порядке их добавления с учётом приоритета
     @param {function} hook - ф-ция, которая принимает на вход строку поиска и возвращает признак прекращения дальнейшего поиска (true - прекратить)
+    @param {Number} [priority=0] - приоритет хука. Чем больше значение, тем раньше будет выполняться
 	@returns {void}*/
-    this.addSearchByStringHook = function(hook) {
-        searchByStringHooks.push(hook);
+    this.addSearchByStringHook = function(hook, priority) {
+        searchByStringHooks.push({
+            hook: hook,
+            priority: priority || 0,
+            index: searchByStringHooks.length
+        });
+        
+        searchByStringHooks.sort(function(a, b) {
+            return b.priority - a.priority || a.index - b.index;
+        })
+    }
+    
+    /**Удаляет хук поиска объектов по строке
+    @param {function} hook - хук, который нужно удалить
+	*/
+    this.removeSearchByStringHook = function(hook) {
+        for (var h = 0; h < searchByStringHooks.length; h++) {
+            if (searchByStringHooks[h].hook === hook) {
+                searchByStringHooks.splice(h, 1);
+                return;
+            }
+        }
     }
 }
 
@@ -1978,6 +2000,10 @@ var SearchGeomixer = function(){
 	this.SetSearchString = function(value){
 		oSearchControl.SetSearchString(value);
 	}
+    
+    this.getSearchControl = function() {
+        return oSearchControl;
+    }
 }
 
 var publicInterface = {

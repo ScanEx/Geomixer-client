@@ -1989,18 +1989,28 @@ queryMapLayers.prototype.createMap = function(name)
         
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         
+        var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
         saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
         {
             var props = child.content.properties;
-            if (child.type == "group")
-            {
+            if (child.type === "group") {
                 props.expanded = typeof props.initExpand !== 'undefined' ? props.initExpand : false;
+                delete props.initVisible;
                 delete props.initExpand;
+            } else {
+                var propsToSave = {};
+                for (var i = 0; i < attributesToSave.length; i++) {
+                    var attrName = attributesToSave[i];
+                    if (attrName in props) {
+                        propsToSave[attrName] = props[attrName];
             }
-            delete props.initVisible;
+                }
+                child.content.properties = propsToSave;
+                delete child.content.geometry;
+            }
         }, true);
         
         var params = {

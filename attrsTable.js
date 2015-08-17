@@ -517,7 +517,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
             editButton = makeImageButton('img/edit.png'),
             deleteButton = makeImageButton("img/recycle.png", "img/recycle_a.png"),
+            tdControl;
+            
+        if (info.Access !== 'edit' && info.Access !== 'editrows') {
+            tdControl = _td([_div([showButton],[['css','width','45px']])], [['css','width','45px']]);
+        } else {
             tdControl = _td([_div([showButton, editButton, deleteButton],[['css','width','45px']])], [['css','width','45px']]);
+        }
         
         editButton.style.marginLeft = '5px';
         editButton.style.width = '12px';
