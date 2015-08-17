@@ -68,16 +68,13 @@
                             L.gmx.WebglFilters.callback = function() {
                                 testLayer.repaint();
                             };
-                            testLayer.setImageProcessingHook(function(img, attrs) {
-                                var texture = canvas.texture(img);
+                            testLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {
+                                var texture = canvas.texture(srcImage);
                                 canvas.draw(texture);
                                 L.gmx.WebglFilters.code(canvas).update();
-                                var canvasOut = document.createElement('canvas');
-                                canvasOut.width = canvasOut.height = 256;
-                                var ctx = canvasOut.getContext('2d');
-                                ctx.drawImage(canvas, 0, 0);
-                                return canvasOut;
-                            }, 'anonymous') ; 
+                                var ptx = dstCanvas.getContext('2d');
+                                ptx.drawImage(canvas, sx, sy, sw, sh, dx, dy, dw, dh);
+                            }); 
                         }
                     } else {
                         if(menu && menu.workCanvas) menu.workCanvas.parentNode.removeNode(menu.workCanvas);
