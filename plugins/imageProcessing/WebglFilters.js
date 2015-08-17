@@ -78,7 +78,7 @@
                         }
                     } else {
                         if(menu && menu.workCanvas) menu.workCanvas.parentNode.removeNode(menu.workCanvas);
-                        if(testLayer) testLayer.removeImageProcessingHook();
+                        if(testLayer) testLayer.removeRasterHook();
                     }
                 });
             lmap.addControl(filtersIcon);
