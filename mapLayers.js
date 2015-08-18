@@ -2046,7 +2046,7 @@ queryMapLayers.prototype.createMap = function(name)
         {
             if (!parseResponse(response))
             {
-                loading.removeNode(true);
+                nsGmx.widgets.notifications.stopAction('saveMap');
                 
                 return;
             }
@@ -2067,7 +2067,8 @@ queryMapLayers.prototype.createMap = function(name)
                 }
                 else
                 {
-                    loading.removeNode(true);
+                    nsGmx.widgets.notifications.stopAction('saveMap');
+                    
                     return;
                 }
             }
