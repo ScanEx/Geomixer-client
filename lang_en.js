@@ -646,5 +646,7 @@ _translationsHash.hash["eng"] = {
     "FileBrowser.ExceedLimitMessage" : "File size exceeds 500 Mb. Use GeoMixerFileBrowser tool to upload large files.",
     "FileBrowser.DropInfo" : "Drop files here",
     "EditObject.drawingMenuTitle" : "Add object to active layer",
+    "Поставить маркер": "Add marker",
+    "Центрировать": "Set center",
     "Пароль изменён": "Password has been changed"
 };

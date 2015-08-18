@@ -1011,6 +1011,20 @@ function loadMap(state)
             boxZoom: false
         });
         
+        lmap.contextmenu.insertItem({
+            text: _gtxt('Поставить маркер'),
+            callback: function(event) {
+                lmap.gmxDrawing.addGeoJSON({type: 'Point', coordinates: [event.latlng.lng, event.latlng.lat]});
+            }
+        })
+        
+        lmap.contextmenu.insertItem({
+            text: _gtxt('Центрировать'),
+            callback: function(event) {
+                lmap.setView(event.latlng);
+            }
+        })
+        
         lmap.gmxControlsManager.init();
         lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
         nsGmx.leafletMap = lmap;
