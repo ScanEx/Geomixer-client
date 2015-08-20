@@ -139,7 +139,7 @@ var createMenuNew = function()
 			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
 			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)},   delimiter: true},
 			{id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
-			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
+			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
 			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
 			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
 			{id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
@@ -207,7 +207,7 @@ var createMenuNew = function()
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', _gtxt('Кадастр Росреестра')),
             getPluginToMenuBinding('Wikimapia', 'wikimapia', _gtxt('Викимапиа')),
-            getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
+            //getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
             getPluginToMenuBinding('Fire Plugin', 'fires', _gtxt('Космоснимки-пожары')),
             getPluginToMenuBinding('GIBS Plugin', 'gibs', _gtxt('GIBS NASA'))
 		]});
