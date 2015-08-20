@@ -1896,7 +1896,10 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
 queryMapLayers.prototype.removeLayer = function(name)
 {
     var layer = nsGmx.gmxMap.layersByID[name];
-    layer && nsGmx.leafletMap.removeLayer(layer);
+    if (layer) {
+        nsGmx.leafletMap.removeLayer(layer);
+        nsGmx.gmxMap.removeLayer(layer);
+    }
 }
 
 queryMapLayers.prototype.getLayers = function()

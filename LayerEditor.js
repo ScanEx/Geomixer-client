@@ -472,7 +472,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
             if (isVector ||
                 layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
                 layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
-                oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
+                oldDrawing && typeof curBorder != 'undefined' && _mapHelper.drawingBorders.isChanged(name) ||
                 !oldDrawing && typeof curBorder != 'undefined' ||
                 oldDrawing && typeof curBorder == 'undefined')
             {

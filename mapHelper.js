@@ -56,11 +56,24 @@ var mapHelper = function()
 		return {
 			set: function(name, obj)
 			{
-				_borders[name] = obj;
+                if (name in _borders) {
+                    _borders[name].drawingFeature.off('edit', _borders[name].editListener);
+                }
+                var editListener = function() {
+                    _borders[name].isChanged = true;
+                }
+                
+                obj.on('edit', editListener);
+                
+				_borders[name] = {
+                    isChanged: false,
+                    drawingFeature: obj,
+                    editListener: editListener
+                }
 			},
 			get: function(name)
 			{
-				return _borders[name];
+				return _borders[name].drawingFeature;
 			},
 			length: function()
 			{
@@ -71,15 +84,19 @@ var mapHelper = function()
 			forEach: function(callback)
 			{
 				for (var name in _borders)
-					callback(name, _borders[name]);
+					callback(name, _borders[name].drawingFeature);
 			},
 
+            isChanged: function(name) {
+                return !!_borders[name] && _borders[name].isChanged;
+            },
+            
 			updateBorder: function(name, span)
 			{
 				if (!_borders[name])
 					return;
 
-                var geom = _borders[name].toGeoJSON().geometry,
+                var geom = _borders[name].drawingFeature.toGeoJSON().geometry,
                     areaStr = L.gmxUtil.prettifyArea(L.gmxUtil.geoArea(geom, false));
 
 				if (span)
@@ -102,15 +119,18 @@ var mapHelper = function()
 			{
 				if (!(name in _borders))
 					return;
-					
+                
+                _borders[name].drawingFeature.off('edit', _borders[name].editListener);
+
 				if (removeDrawing) {
-					nsGmx.leafletMap.gmxDrawing.remove(_borders[name]);
+					nsGmx.leafletMap.gmxDrawing.remove(_borders[name].drawingFeature);
                 }
 				
 				delete _borders[name];
 				
-				if ($$('drawingBorderDescr' + name))
+				if ($$('drawingBorderDescr' + name)) {
 					removeChilds($$('drawingBorderDescr' + name));
+                }
 			}
 		}
 	})();
