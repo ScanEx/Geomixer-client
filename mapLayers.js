@@ -2009,8 +2009,15 @@ queryMapLayers.prototype.createMap = function(name)
                     var attrName = attributesToSave[i];
                     if (attrName in props) {
                         propsToSave[attrName] = props[attrName];
-            }
+                    }
                 }
+                
+                var styles = props.styles || [];
+                
+                for (var s = 0; s < styles.length; s++) {
+                    delete styles[s].HoverStyle;
+                }
+                
                 child.content.properties = propsToSave;
                 delete child.content.geometry;
             }
