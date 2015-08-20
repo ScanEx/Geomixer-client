@@ -19,38 +19,6 @@
         return out;
     }
 
-    var tileSenderPrefix = 'http://maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&key=&ModeKey=tile&r=j';
-    function popupFunc(ev) {
-        var layer = ev.layer,
-            popup = ev.popup,
-            opt = layer.options,
-            layerID = opt.layerID,
-            tileKey = opt.tileKey,
-            title = 'Граница слоя';
-
-        if (tileKey) {
-            title = tileKey;
-            var arr = tileKey.split('_'),
-                url = tileSenderPrefix +
-                    '&LayerName=' + layerID +
-                    '&z=' + arr[0] +
-                    '&x=' + arr[1] +
-                    '&y=' + arr[2] +
-                    '&v=' + arr[3];
-
-            if (arr[4] > 0) {
-                url += '&Level=' + arr[5] + '&Span=' + arr[4];
-            }
-        }
-        var str = '<span style="font-size:14px; font-weight:bold; color:#000;">' + title + '</span><br/>';
-        if (tileKey) {
-            str += '<table style="width:375px;"><tbody>';
-            str += '<tr><td><a href="' + url + '" target=_blank>zxyv:' + tileKey + '</a></td></tr>';
-        }
-        str += '</table></tbody>';
-        popup.setContent(str);
-    };
-
     var publicInterface = {
         pluginName: 'TileBounds',
         afterViewer: function(params, map) {
@@ -63,6 +31,74 @@
 
             var LMap = nsGmx.leafletMap,
                 featureGroup = L.featureGroup();
+
+            var tileSenderPrefix = 'http://maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=func&key=&ModeKey=tile&r=j',
+                testLayer = null;
+                tileKeyBboxHash = {};
+            function popupFunc(ev) {
+                var layer = ev.layer,
+                    popup = ev.popup,
+                    opt = layer.options,
+                    layerID = opt.layerID,
+                    tileKey = opt.tileKey,
+                    title = 'Граница слоя';
+
+                if (tileKey) {
+                    title = tileKey;
+                    var arr = tileKey.split('_'),
+                        url = tileSenderPrefix +
+                            '&LayerName=' + layerID +
+                            '&z=' + arr[0] +
+                            '&x=' + arr[1] +
+                            '&y=' + arr[2] +
+                            '&v=' + arr[3];
+
+                    if (arr[4] > 0) {
+                        url += '&Level=' + arr[5] + '&Span=' + arr[4];
+                    }
+                }
+                var tile = testLayer._gmx.dataManager._tiles[tileKey].tile;
+                var content = L.DomUtil.create('div', 'TileBounds-popup-wrapper'),
+                    titleDiv = L.DomUtil.create('div', 'TileBounds-popup-title', content),
+                    link = L.DomUtil.create('div', 'TileBounds-popup-link', content),
+                    linkHref = L.DomUtil.create('a', 'TileBounds-popup-href', link),
+                    showBbox = L.DomUtil.create('button', 'TileBounds-popup-bbox', content),
+                    objCount = L.DomUtil.create('div', 'TileBounds-popup-count', content);
+                    
+                if (tile.data.length) {
+                    objCount.innerHTML = '<br>Объектов: <b>' + tile.data.length + '</b>';
+                }
+                titleDiv.innerHTML = title;
+                linkHref.target = '_blank';
+                linkHref.href = url;
+                linkHref.innerHTML = 'zxyv:' + tileKey;
+                showBbox.innerHTML = 'Показать/Скрыть BBOX';
+                showBbox.onclick = function(ev) {
+                    if (tileKeyBboxHash[tileKey]) {
+                        featureGroup.removeLayer(tileKeyBboxHash[tileKey]);
+                        tileKeyBboxHash[tileKey] = null;
+                    } else {
+                        tile.load().then(function() {
+                            objCount.innerHTML = '<br>Объектов: <b>' + tile.data.length + '</b>';
+                            if (tile.bbox) {
+                                var proj = L.Projection.Mercator,
+                                    latLngBounds = L.latLngBounds([
+                                        proj.unproject({x: tile.bbox[0], y: tile.bbox[1]}),
+                                        proj.unproject({x: tile.bbox[2], y: tile.bbox[3]})
+                                    ]);
+                                if (tile.data.length > 1) {
+                                    obj = L.rectangle(latLngBounds, {color: "#ff0000", weight: 1, pointerEvents: 'none'});
+                                } else {
+                                    obj = L.marker(latLngBounds.getSouthWest());
+                                }
+                                tileKeyBboxHash[tileKey] = obj.addTo(featureGroup);
+                            }
+                        });
+                    }
+                    
+                };
+                popup.setContent(content);
+            };
 
             featureGroup.bindPopup('temp', {maxWidth: 170});
             featureGroup.on('popupopen', popupFunc, featureGroup);
@@ -78,8 +114,8 @@
                     var control = ev.target,
                         testLayerID = null;
                     if (control.options.isActive) {
-                        var layerID = getActiveLayerID(params),
-                            testLayer = gmxAPI.layersByID[layerID];
+                        var layerID = getActiveLayerID(params);
+                        testLayer = nsGmx.gmxMap.layersByID[layerID];
                         if (testLayer) {
                             var geo = testLayer._gmx.geometry,
                                 dm = testLayer._gmx.dataManager,
@@ -108,6 +144,7 @@
                         }
                     } else {
                         featureGroup.clearLayers();
+                        LMap.closePopup();
                     }
                 });
             LMap.addControl(tileIcon);
