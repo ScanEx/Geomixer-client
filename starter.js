@@ -60,11 +60,6 @@ var _getFileName = function( localName )
 nsGmx.initGeoMixer = function()
 {
 
-nsGmx.mapLayersList = {
-    load:   gmxCore.createDeferredFunction('mapLayersList', 'load'),
-    unload: gmxCore.createDeferredFunction('mapLayersList', 'unload')
-}
-
 var oSearchLeftMenu = new leftMenu();
 
 // используется для сохранения специфичных параметров в пермалинке
@@ -196,7 +191,6 @@ var createMenuNew = function()
                 checked: _mapHelper.gridView
             },
 			{id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
-			{id: 'search',        title: _gtxt('Поиск слоев на карте'), func:nsGmx.mapLayersList.load},
 			{id: 'crowdsourcing', title: _gtxt('Краудсорсинг данных'), func:function(){}, disabled: true},
 			{id: 'geocoding',     title: _gtxt('Пакетный геокодинг'), func:function(){}, disabled: true},
 			{id: 'directions',    title: _gtxt('Маршруты'), func:function(){}, disabled: true}
