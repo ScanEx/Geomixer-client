@@ -73,7 +73,7 @@ var mapHelper = function()
 			},
 			get: function(name)
 			{
-				return _borders[name].drawingFeature;
+				return _borders[name] && _borders[name].drawingFeature;
 			},
 			length: function()
 			{
