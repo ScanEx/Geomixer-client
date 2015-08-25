@@ -1246,13 +1246,14 @@ layersTree.prototype.addLayersToMap = function(elem)
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
             
             var layerOnMap = L.gmx.createLayer(layer, {
-                layerID: name
+                layerID: name,
+                hostName: window.serverBase
             });
             nsGmx.gmxMap.addLayer(layerOnMap);
             
-            layerOnMap.setZIndex(1);
-            
             visibility && layerOnMap.addTo(nsGmx.leafletMap);
+            
+            layerOnMap.bringToFront();
             
             layerOnMap.getGmxProperties().changedByViewer = true;
         }
