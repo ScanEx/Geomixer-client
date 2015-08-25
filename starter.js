@@ -1023,7 +1023,7 @@ function loadMap(state)
         lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
         nsGmx.leafletMap = lmap;
         
-        lmap.gmxBaseLayersManager.initDefaults().then(function() {
+        lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey}).then(function() {
         
             gmxMap.addLayersToMap(lmap);
             
@@ -1481,7 +1481,7 @@ function loadMap(state)
                 $("#leftContent").mCustomScrollbar();
             });
         });
-	}, function() {
+    }, function() {
         initAuthWidget();
         
         _menuUp.defaultHash = 'usage';
