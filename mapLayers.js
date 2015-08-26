@@ -897,44 +897,11 @@ layersTree.prototype.removeGroup = function(div)
 		span.parentNode.parentNode.removeNode(true);
 		
 		_mapHelper.updateUnloadEvent(true);
+        
+        _this.updateZIndexes();
 	}
 	
 	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
-}
-
-layersTree.prototype.showSaveStatus = function(parent)
-{
-	if (this.timer)
-		clearTimeout(this.timer)
-	
-	$(parent).find("[savestatus]").remove();
-			
-	var divStatus = _div([_span([_t(_gtxt("Сохранено"))],[['css','marginLeft','10px'],['css','color','#33AB33']])], [['css','paddingTop','10px'],['attr','savestatus',true]]);
-	
-	$(parent).append(divStatus);
-	
-	this.timer = setTimeout(function()
-		{
-			divStatus.removeNode(true);
-		}, 1500)
-}
-
-// выключает все остальные радиобаттоны
-layersTree.prototype.disableRadioGroups = function(box)
-{
-	var parentGroupCanvas = box.parentNode.parentNode.parentNode;
-	for (var i = 0; i < parentGroupCanvas.childNodes.length; i++)
-	{
-		var childDiv = $(parentGroupCanvas.childNodes[i]).children("div[LayerID],div[MultiLayerID]");
-		
-		if (!childDiv.length)
-			childDiv = $(parentGroupCanvas.childNodes[i]).children("div[GroupID]");
-		
-		var childBox = childDiv[0].firstChild;
-		
-		if (childBox != box && !childBox.isDummyCheckbox)
-			this.setVisibility(childBox, false);
-	}
 }
 
 //по элементу дерева слоёв ищет соответствующий элемент в DOM представлении
@@ -998,6 +965,22 @@ layersTree.prototype.dummyNode = function(node)
 	return div = _div([_t(text)],[['dir','className','dragableDummy']]);
 }
 
+//проходится по всем слоям дерева и устанавливает им z-индексы в соответствии с их порядком в дереве
+layersTree.prototype.updateZIndexes = function() {
+    var curZIndex = 0,
+        vectorLayersOffset = 2000000;
+
+    this.treeModel.forEachLayer(function(layerContent, isVisible, nodeDepth) {
+        var layer = nsGmx.gmxMap.layersByID[layerContent.properties.name];
+        
+        var zIndex = curZIndex++;
+        if (layer.getGmxProperties().type === 'Vector') {
+            zIndex += vectorLayersOffset;
+        }
+        layer.setZIndex(zIndex);
+    })
+}
+
 layersTree.prototype.moveHandler = function(spanSource, divDestination)
 {
 	var node = divDestination.parentNode,
@@ -1033,6 +1016,8 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
 	_mapHelper.updateUnloadEvent(true);
+    
+    this.updateZIndexes();
 }
 
 layersTree.prototype.swapHandler = function(spanSource, divDestination)
@@ -1063,6 +1048,8 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
 	_mapHelper.updateUnloadEvent(true);
+    
+    this.updateZIndexes();
 }
 
 layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapFlag, addToMap)
@@ -1174,6 +1161,8 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 			}
 			
 			_mapHelper.updateUnloadEvent(true);
+            
+            _this.updateZIndexes();
 		},
 		_this = this;
 	
@@ -1252,8 +1241,6 @@ layersTree.prototype.addLayersToMap = function(elem)
             nsGmx.gmxMap.addLayer(layerOnMap);
             
             visibility && layerOnMap.addTo(nsGmx.leafletMap);
-            
-            layerOnMap.bringToFront();
             
             layerOnMap.getGmxProperties().changedByViewer = true;
         }
