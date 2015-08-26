@@ -241,6 +241,16 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
             $(_this).triggerHandler('layerVisibilityChange', [elem]);
         }
     })
+    
+    nsGmx.leafletMap.on('layeradd layerremove', function(event) {
+        if (event.layer.getGmxProperties) {
+            var props = event.layer.getGmxProperties();
+            var searchRes = _this.treeModel.findElem('name', props.name);
+            if (searchRes) {
+                _this.treeModel.setNodeVisibility(searchRes.elem, nsGmx.leafletMap.hasLayer(event.layer));
+            }
+        }
+    });
 
     return this._treeCanvas;
 }
@@ -426,22 +436,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 			div = _div(childs, [['attr','LayerID',elem.content.properties.LayerID]]);
 		else
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
-            
-        if (this._renderParams.showVisibilityCheckbox && !layerManagerFlag)
-        {
-            nsGmx.leafletMap.on('layeradd layerremove', function(event)
-            {
-                if (nsGmx.gmxMap.layersByID[elemProperties.name] === event.layer) {
-                    var isVisible = nsGmx.leafletMap.hasLayer(event.layer),
-                        box = div.firstChild;
 
-                    if (isVisible !== box.checked) {
-                        _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, isVisible);
-                    }
-                }
-            });
-        }
-		
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
         
