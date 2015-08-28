@@ -1277,11 +1277,12 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 
 		if (layersToSearch.length > 0){
             layersToSearch.forEach(function(props) {
+                var mapName = gmxMap.layersByID[props.name].options.mapName;
                 var url = "http://" + props.hostName + "/SearchObject/SearchVector.ashx" + 
                     "?LayerNames=" + props.name +
-                    "&MapName=" + props.mapName +
+                    "&MapName=" + mapName +
                     (sInitSearchString ? ("&SearchString=" + encodeURIComponent(sInitSearchString)) : "") +
-                    (oInitGeometry ? ("&border=" + encodeURIComponent(JSON.stringify(merc_geometry(oInitGeometry)))) : "");
+                    (oInitGeometry ? ("&border=" + encodeURIComponent(JSON.stringify(L.gmxUtil.convertGeometry(oInitGeometry)))) : "");
                 sendCrossDomainJSONRequest(
                     url,
                     function(searchReq)
@@ -1317,7 +1318,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
                                     arrLayerResult.push({
                                         ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
                                         properties: arrDisplayProperties, 
-                                        Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
+                                        Geometry: L.gmxUtil.convertGeometry(req.SearchResult[j].geometry, true)
                                     });
                                 }
                             }
