@@ -201,7 +201,7 @@ var createMenuNew = function()
 		[
             getPluginToMenuBinding('Cadastre', 'cadastre', _gtxt('Кадастр Росреестра')),
             getPluginToMenuBinding('Wikimapia', 'wikimapia', _gtxt('Викимапиа')),
-            //getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
+            getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
             getPluginToMenuBinding('Fire Plugin', 'fires', _gtxt('Космоснимки-пожары')),
             getPluginToMenuBinding('GIBS Plugin', 'gibs', _gtxt('GIBS NASA'))
 		]});
