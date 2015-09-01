@@ -1056,33 +1056,7 @@ function loadMap(state)
                     return;
                 }
                 
-                var b = L.latLngBounds([]);
-                var defs = [];
-                $.each(e.originalEvent.dataTransfer.files, function(i, file) {
-                    var def = $.Deferred();
-                    var parseDef = nsGmx.Utils.parseShpFile(file);
-                    defs.push(def);
-                    parseDef.then(
-                        function(objs) {
-                            for (var i = 0; i < objs.length; i++) {
-                                var features = lmap.gmxDrawing.addGeoJSON({
-                                    type: "Feature",
-                                    geometry: L.gmxUtil.geometryToGeoJSON(objs[i].geometry),
-                                    properties: objs[i].properties
-                                });
-                                b.extend(features[0].getBounds());
-                            }
-                            def.resolve();
-                        },
-                        function() {
-                            def.resolve();
-                        }
-                    );
-                })
-                
-                $.when.apply($, defs).done(function() {
-                    lmap.fitBounds(b);
-                })
+                _queryLoadShp.loadAndShowFiles(e.originalEvent.dataTransfer.files);
                 
                 return false;
             })
