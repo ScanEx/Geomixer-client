@@ -241,6 +241,18 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
             $(_this).triggerHandler('layerVisibilityChange', [elem]);
         }
     })
+    
+    gmxAPI._leaflet.LMap.on('layeradd layerremove', function(event) {
+        if (event.layer.options) {
+            var id = event.layer.options.id || event.layer.options.nodeID;
+            
+            if (id) {
+                var props = gmxAPI.mapNodes[id] && gmxAPI.mapNodes[id].properties,
+                    isVisible = gmxAPI._leaflet.LMap.hasLayer(event.layer);
+                _this.treeModel.setNodeVisibility(_this.treeModel.findElem('name', props.name).elem, isVisible);
+            }
+        }
+    })
 
     return this._treeCanvas;
 }
@@ -421,27 +433,15 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 	{
         var elemProperties = !layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties;
 		var childs = this.drawLayer(elemProperties, parentParams, layerManagerFlag, parentVisibility);
-		
+
 		if (typeof elem.content.properties.LayerID != 'undefined')
 			div = _div(childs, [['attr','LayerID',elem.content.properties.LayerID]]);
 		else
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
-            
-        if (this._renderParams.showVisibilityCheckbox && !layerManagerFlag)
-        {
-            globalFlashMap.layers[elemProperties.name].addListener("onChangeVisible", function(attr)
-            {
-                var box = div.firstChild;
-                if (attr != box.checked)
-                {
-                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, attr);
-                }
-            });
-        }
-		
+
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
-        
+
         this._applyLayerViewHooks(div, elemProperties);
 	}
 	else
