@@ -248,8 +248,12 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
             
             if (id) {
                 var props = gmxAPI.mapNodes[id] && gmxAPI.mapNodes[id].properties,
-                    isVisible = gmxAPI._leaflet.LMap.hasLayer(event.layer);
-                _this.treeModel.setNodeVisibility(_this.treeModel.findElem('name', props.name).elem, isVisible);
+                    isVisible = gmxAPI._leaflet.LMap.hasLayer(event.layer),
+                    findResult = _this.treeModel.findElem('name', props.name);
+                    
+                if (findResult) {
+                    _this.treeModel.setNodeVisibility(findResult.elem, isVisible);
+                }
             }
         }
     })
