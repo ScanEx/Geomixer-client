@@ -1113,6 +1113,7 @@
 
         obj.addListener('onChangeVisible', function(flag) {    // Изменилась видимость слоя
             gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId}); // Проверка map Listeners на hideBalloons
+            gmxAPI._listeners.dispatchEvent('onLayerChangeVisible', gmxAPI.map, {'from': obj}); // Событие на карте об изменении видимости одного из слоёв
         }, -10);
 
         obj.addListener('BeforeLayerRemove', function() {    // Удаляется слой
