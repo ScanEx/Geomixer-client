@@ -242,7 +242,8 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
         }
     })
     
-    gmxAPI._leaflet.LMap.on('layeradd layerremove', function(event) {
+    //временно отключаем отслеживание программного изменения видимости слоёв
+    /*gmxAPI._leaflet.LMap.on('layeradd layerremove', function(event) {
         if (event.layer.options) {
             var id = event.layer.options.id || event.layer.options.nodeID;
             
@@ -256,7 +257,7 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
                 }
             }
         }
-    })
+    })*/
 
     return this._treeCanvas;
 }
