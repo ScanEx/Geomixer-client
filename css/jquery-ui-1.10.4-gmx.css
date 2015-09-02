@@ -37,6 +37,7 @@
 .ui-widget-content {
     border: none;
     color: #000000;
+    background: #ffffff;
 }
 
 .ui-dialog.ui-widget-content {
@@ -192,7 +193,7 @@
 
 /*autocomplete*/ 
 .ui-autocomplete .ui-state-focus {
-    border: 1px solid #74B2E2;
+    border: 1px solid #999999;
     background: #E4F1FB;
 }
 
