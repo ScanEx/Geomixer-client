@@ -225,11 +225,13 @@ nsGmx.LayersTree = function( tree )
      * @param {Boolean} isVisible Видимость узла (true - виден)
      */
     this.setNodeVisibility = function(node, isVisible) {
-        //устанавливаем видимость поддерева, которое начинается с этого элемента
-        setSubtreeVisibility(node, isVisible);
-        
-        //идём вверх по дереву до корня и меняем видимость родителей
-        var parentElem = _this.findElemByGmxProperties(node).parents[0];
-        parentElem && parentElem.content && this.updateNodeVisibility(parentElem, node); 
+        if (node.content.properties.visible != isVisible) {
+            //устанавливаем видимость поддерева, которое начинается с этого элемента
+            setSubtreeVisibility(node, isVisible);
+            
+            //идём вверх по дереву до корня и меняем видимость родителей
+            var parentElem = _this.findElemByGmxProperties(node).parents[0];
+            parentElem && parentElem.content && this.updateNodeVisibility(parentElem, node);
+        }
     }
 }
