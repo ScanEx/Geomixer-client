@@ -242,22 +242,15 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
         }
     })
     
-    //временно отключаем отслеживание программного изменения видимости слоёв
-    /*gmxAPI._leaflet.LMap.on('layeradd layerremove', function(event) {
-        if (event.layer.options) {
-            var id = event.layer.options.id || event.layer.options.nodeID;
-            
-            if (id) {
-                var props = gmxAPI.mapNodes[id] && gmxAPI.mapNodes[id].properties,
-                    isVisible = gmxAPI._leaflet.LMap.hasLayer(event.layer),
-                    findResult = _this.treeModel.findElem('name', props.name);
+    globalFlashMap.addListener('onLayerChangeVisible', function(event) {
+        var layer = event.from,
+            props = layer.properties,
+            findResult = _this.treeModel.findElem('name', props.name);
                     
-                if (findResult) {
-                    _this.treeModel.setNodeVisibility(findResult.elem, isVisible);
-                }
-            }
+        if (findResult) {
+            _this.treeModel.setNodeVisibility(findResult.elem, layer.isVisible);
         }
-    })*/
+    })
 
     return this._treeCanvas;
 }
