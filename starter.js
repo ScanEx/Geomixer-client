@@ -1002,6 +1002,8 @@ function loadMap(state)
             zoomAnimation: !window.gmxPhantom,  // отключение zoomAnimation при запуске тестов
             distanceUnit: mapProps.DistanceUnit,
             squareUnit: mapProps.SquareUnit,
+            minZoom: mapProps.MinZoom || undefined,
+            maxZoom: mapProps.MaxZoom || undefined,
             boxZoom: false
         });
         
