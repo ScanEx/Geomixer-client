@@ -1391,7 +1391,7 @@ function loadMap(state)
                 
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
-                } else if (baseLayers.length) {
+                } else if (baseLayers.length && !lmap.gmxBaseLayersManager.getCurrentID()) {
                     lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
                 }
                 
