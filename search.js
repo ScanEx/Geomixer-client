@@ -250,6 +250,10 @@ var SearchInput = function (oInitContainer, params) {
 				@name Search.SearchInput.AutoCompleteSelect
 				@event
 				@param {object} AutoCompleteItem Выбранное значение*/
+				if (ui.item.GeoObject.ObjNameShort){
+                    ui.item.label = ui.item.GeoObject.ObjNameShort;
+                    ui.item.value = ui.item.GeoObject.ObjNameShort;
+				}
 				$(_this).triggerHandler('AutoCompleteSelect', [ui.item]);
 			}
 		}
