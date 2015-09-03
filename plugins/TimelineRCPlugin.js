@@ -61,19 +61,19 @@ var TimelineData = Backbone.Model.extend({
         layer.setDateInterval(startDate, endDate);
     },
     
-    bindLayer: function(layerName, options) {
+    bindLayer: function(layer, options) {
+        options = options || {};
+        var layerName = options.layerName || layer.getGmxProperties().name || L.stamp(layer);
         var newLayerInfo = {
-            name: layerName, 
-            dateFunction: (options && options.dateFunction) || this._defaultDateFunction,
-            filterFunction: (options && options.filterFunction) || this._defaultFilterFunction
+            layer: layer,
+            name: layerName,
+            dateFunction: options.dateFunction || this._defaultDateFunction,
+            filterFunction: options.filterFunction || this._defaultFilterFunction
         }
         this.trigger('preBindLayer', newLayerInfo);
         
-        var layers = this.attributes.layers.slice(0);
-        layers.push(newLayerInfo);
-        
-        this.set('layers', layers);
-        this.trigger('bindLayer', layerName);
+        this.set('layers', this.attributes.layers.concat(newLayerInfo));
+        this.trigger('bindLayer', newLayerInfo);
     },
     
     addFilter: function(filterFunc) {
@@ -83,11 +83,11 @@ var TimelineData = Backbone.Model.extend({
     }
 })
 
-var MapController = function(data, gmxMap) {
+var MapController = function(data) {
     var updateFunctions = {
         none: function(layers) {
             (layers || data.get('layers')).forEach(function(layerInfo) {
-                var layer = gmxMap.layersByID[layerInfo.name],
+                var layer = layerInfo.layer,
                     props = layer.getGmxProperties(),
                     dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
                     dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
@@ -102,7 +102,7 @@ var MapController = function(data, gmxMap) {
             
             (layers || data.get('layers')).forEach(function(layerInfo) {
                 var layerName = layerInfo.name,
-                    layer = gmxMap.layersByID[layerName],
+                    layer = layerInfo.layer,
                     props = layer.getGmxProperties(),
                     temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
                     
@@ -136,7 +136,7 @@ var MapController = function(data, gmxMap) {
         range: function(layers) {
             var range = data.get('range');
             (layers || data.get('layers')).forEach(function(layerInfo) {
-                layerInfo.filterFunction(gmxMap.layersByID[layerInfo.name], range.start, range.end);
+                layerInfo.filterFunction(layerInfo.layer, range.start, range.end);
             })
         }
     }
@@ -163,7 +163,7 @@ var MapController = function(data, gmxMap) {
     })
 }
 
-var TimelineController = function(data, map, gmxMap, options) {
+var TimelineController = function(data, map, options) {
     options = $.extend({
         showModeControl: true,
         showSelectionControl: true,
@@ -249,7 +249,7 @@ var TimelineController = function(data, map, gmxMap, options) {
     var updateLayerItems = function(layerInfo)
     {
         var layerName = layerInfo.name,
-            layer = gmxMap.layersByID[layerName],
+            layer = layerInfo.layer,
             props = layer.getGmxProperties(),
             temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName],
             identityField = props.identityField;
@@ -616,8 +616,9 @@ var TimelineController = function(data, map, gmxMap, options) {
         }
     });
     
-    data.on('bindLayer', function(layerName) {
-        var layer = gmxMap.layersByID[layerName],
+    data.on('bindLayer', function(layerInfo) {
+        var layerName = layerInfo.name,
+            layer = layerInfo.layer,
             props = layer.getGmxProperties(),
             dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
             dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
@@ -625,7 +626,6 @@ var TimelineController = function(data, map, gmxMap, options) {
         createTimelineLazy();
 
         nsGmx.widgets.commonCalendar.unbindLayer(layerName);
-        //layer.setDateInterval(new Date(2000, 1, 1), new Date());
         
         var items = data.get('items');
         items[layerName] = items[layerName] || {};
@@ -717,24 +717,23 @@ var TimelineController = function(data, map, gmxMap, options) {
  * @class
  * @memberOf nsGmx
  * @param {L.Map} map Текущая Leaflet карта
- * @param {L.gmxMap} gmxMap Текущая карта со слоями ГеоМиксера
 */
-var TimelineControl = function(map, gmxMap) {
+var TimelineControl = function(map) {
     var data = new TimelineData();
     this.data = data;
     
-    var mapController = new MapController(data, gmxMap);
-    var timelineController = new TimelineController(data, map, gmxMap);
+    var mapController = new MapController(data);
+    var timelineController = new TimelineController(data, map);
     
     /** Добавить векторный мультивременной слой на таймлайн
-     * @param {String} layerName Имя векторного слоя
+     * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
      * @param {Object} options Дополнительные опции
      * @param {function(layer, object): Date} options.dateFunction Пользовательская ф-ция указания даты для объекта слоя. По описанию объекта возвращает его дату
      * @param {function(layer, startDate, endDate)} options.filterFunction Пользовательская ф-ция для фильтрации слоя по временному интервалу
               Ф-ция должна сама установить фильтры на слое или сделать другие нужные действия над слоем
      */
-    this.bindLayer = function(layerName, options) {
-        data.bindLayer(layerName, options);
+    this.bindLayer = function(layer, options) {
+        data.bindLayer(layer, options);
     }
 
     /** Возвращает ссылку на timelineController
@@ -827,7 +826,7 @@ var publicInterface = {
     beforeViewer: function(params, map) {
         if (!map) return;
         
-        nsGmx.timelineControl = new TimelineControl(map, nsGmx.gmxMap);
+        nsGmx.timelineControl = new TimelineControl(map);
     },
 	afterViewer: function(params, map)
     {
@@ -850,7 +849,7 @@ var publicInterface = {
             },
             clickCallback: function(context)
             {
-                nsGmx.timelineControl.bindLayer(context.elem.name);
+                nsGmx.timelineControl.bindLayer(nsGmx.gmxMap.layersByID[context.elem.name]);
             }
         }, 'Layer');
     }
