@@ -191,6 +191,10 @@ var gmxCore = function()
 				
                 var pathPostfix = "";
                 
+                newScript.onerror = function() {
+                    def.reject();
+                }
+                
                 newScript.type = 'text/javascript';
                 newScript.src = withCachePostfix(path);
                 newScript.charset = "utf-8";
