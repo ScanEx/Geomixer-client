@@ -83,7 +83,7 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
 queryLoadShp.prototype.loadAndShowFiles = function(files) {
     nsGmx.widgets.notifications.startAction('uploadShp');
     
-    var def = $.when.apply($.when, [].slice.call(files).map(function(file) {
+    var def = $.when.apply($, [].slice.call(files).map(function(file) {
         return nsGmx.Utils.parseShpFile(file);
     }));
     
