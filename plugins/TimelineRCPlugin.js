@@ -294,7 +294,7 @@ var TimelineController = function(data, map, options) {
             
             if (!item.needToRemove) {
                 for (var f = 0; f < filters.length; f++) {
-                    if (!filters[f](item, mapCenter, mapExtend)) {
+                    if (!filters[f](item, mapCenter, mapExtend, layer)) {
                         showItem = false;
                         break;
                     }
