@@ -12,12 +12,15 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
             return;
             
         _this.isLoading = true;
-        gmxCore.loadModule(moduleName, file).done(function()
+        gmxCore.loadModule(moduleName, file).then(function()
         {
             _this.body = gmxCore.getModule(moduleName);
             _this.isLoading = false;
             _this.pluginName = _this.pluginName || _this.body.pluginName;
             _this.def.resolve();
+        }, function() {
+            _this.isLoading = false;
+            _this.def.reject();
         });
     }
     
@@ -114,9 +117,9 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 */
 var PluginsManager = function()
 {
-	var _plugins = [];
+    var _plugins = [];
     var _pluginsWithName = {};
-	
+    
     var joinedPluginInfo = {};
     
     //сначала загружаем инфу о плагинах из переменной nsGmx._defaultPlugins - плагины по умолчанию
@@ -170,7 +173,7 @@ var PluginsManager = function()
         return function(map)
         {
             for (var p = 0; p < _plugins.length; p++)
-                if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined') {
+                if ( _plugins[p].isUsed() && _plugins[p].body && _plugins[p].body[funcName]) {
                     try {
                         _plugins[p].body[funcName]( _plugins[p].params, map || nsGmx.leafletMap );
                     } catch (e) {
@@ -181,71 +184,76 @@ var PluginsManager = function()
         }
     }
     
-	//public interface
+    //public interface
     
     /**
-	 Вызывет callback когда будут загружены все плагины, загружаемые в данный момент
-	 @memberOf PluginsManager
+    Вызывет callback когда будут загружены все плагины, загружаемые в данный момент
+    @memberOf PluginsManager
      @name done
      @method
      @param {Function} callback Ф-ция, которую нужно будет вызвать
-	*/
-    this.done = function(f)
-    {
-        var deferreds = [];
-        $.each(_plugins, function(i, plugin){ plugin.isLoading && deferreds.push(plugin.def); });
+    */
+    
+    this.done = function(f) {
+        //не можем использовать $.when, так как при первой ошибке результирующий promise сразу же reject'ится, а нам нужно дождаться загрузки всех плагинов
+        var loadingPlugins = nsGmx._.where(_plugins, {isLoading: true}),
+            deferredCount = loadingPlugins.length;
         
-        $.when.apply($, deferreds).done(f);
+        loadingPlugins.forEach(function(plugin) {
+            plugin.def.always(function() {
+                --deferredCount || f();
+            })
+        })
     }
     
-	/**
-	 Вызывает beforeMap() у всех плагинов
-	 @memberOf PluginsManager
+    /**
+     Вызывает beforeMap() у всех плагинов
+     @memberOf PluginsManager
      @name beforeMap
      @method
-	*/
-	this.beforeMap = _genIterativeFunction('beforeMap');
-	
-	/**
-	 Вызывает beforeViewer() у всех плагинов
-     @memberOf PluginsManager
-     @name beforeViewer
-	 @method
-	*/
-	this.beforeViewer = _genIterativeFunction('beforeViewer');
-	
-	/**
-	 Вызывает afterViewer() у всех плагинов
-     @memberOf PluginsManager
-     @name afterViewer
-	 @method
-	*/
-	this.afterViewer = _genIterativeFunction('afterViewer');
-	
-	/**
-	 Добавляет пункты меню всех плагинов к меню upMenu
-     Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
-	 @method
-     @ignore
-	*/
-	this.addMenuItems = function( upMenu )
-	{
-		for (var p = 0; p < _plugins.length; p++)
-			if ( _plugins[p].isUsed() && typeof _plugins[p].body.addMenuItems != 'undefined')
-			{
-				var menuItems = _plugins[p].body.addMenuItems();
-				for (var i = 0; i < menuItems.length; i++)
-					upMenu.addChildItem(menuItems[i].item, menuItems[i].parentID);
-			}
-	};
+    */
+    this.beforeMap = _genIterativeFunction('beforeMap');
     
     /**
-	 Вызывает callback(plugin) для каждого плагина
+     Вызывает beforeViewer() у всех плагинов
+     @memberOf PluginsManager
+     @name beforeViewer
+     @method
+    */
+    this.beforeViewer = _genIterativeFunction('beforeViewer');
+    
+    /**
+     Вызывает afterViewer() у всех плагинов
+     @memberOf PluginsManager
+     @name afterViewer
+     @method
+    */
+    this.afterViewer = _genIterativeFunction('afterViewer');
+    
+    /**
+     Добавляет пункты меню всех плагинов к меню upMenu
+     Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
+     @method
+     @ignore
+    */
+    this.addMenuItems = function( upMenu )
+    {
+        for (var p = 0; p < _plugins.length; p++) {
+            if ( _plugins[p].isUsed() && _plugins[p].body && _plugins[p].body.addMenuItems) {
+                var menuItems = _plugins[p].body.addMenuItems();
+                for (var i = 0; i < menuItems.length; i++)
+                    upMenu.addChildItem(menuItems[i].item, menuItems[i].parentID);
+            }
+        }
+    };
+    
+    /**
+     Вызывает callback(plugin) для каждого плагина
      @memberOf PluginsManager
      @name forEachPlugin
-	 @method
+     @method
      @param {Function} callback Ф-ция для итерирования. Первый аргумент ф-ции - модуль плагина.
-	*/
+    */
     this.forEachPlugin = function(callback)
     {
         //if (!_initDone) return;
@@ -254,13 +262,13 @@ var PluginsManager = function()
     }
     
     /**
-	 Задаёт, нужно ли в дальнейшем использовать данный плагин
+     Задаёт, нужно ли в дальнейшем использовать данный плагин
      @memberOf PluginsManager
      @name setUsePlugin
-	 @method
+     @method
      @param {String} pluginName Имя плагина
      @param {Bool} isInUse Использовать ли его для карты
-	*/
+    */
     this.setUsePlugin = function(pluginName, isInUse)
     {
         if (pluginName in _pluginsWithName)
@@ -268,39 +276,39 @@ var PluginsManager = function()
     }
     
     /**
-	 Получить плагин по имени
+     Получить плагин по имени
      @memberOf PluginsManager
      @name getPluginByName
-	 @method
+     @method
      @param {String} pluginName Имя плагина
      @returns {IGeomixerPlugin} Модуль плагина, ничего не возвращает, если плагина нет
-	*/
+    */
     this.getPluginByName = function(pluginName)
     {
         return _pluginsWithName[pluginName];
     }
     
     /**
-	 Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
+     Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
      @memberOf PluginsManager
      @name isPublic
-	 @method
+     @method
      @param {String} pluginName Имя плагина
      @returns {Bool} Является ли плагин публичным
-	*/
+    */
     this.isPublic = function(pluginName)
     {
         return _pluginsWithName[pluginName] && _pluginsWithName[pluginName].isPublic;
     }
     
     /**
-	 Обновление параметров плагина
+     Обновление параметров плагина
      @memberOf PluginsManager
      @name updateParams
-	 @method
+     @method
      @param {String} pluginName Имя плагина
      @param {Object} newParams Новые параметры плагина. Параметры с совпадающими именами будут перезатёрты
-	*/
+    */
     this.updateParams = function(pluginName, newParams) {
         _pluginsWithName[pluginName] && _pluginsWithName[pluginName].updateParams(newParams);
     }
