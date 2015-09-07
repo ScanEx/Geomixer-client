@@ -50,8 +50,10 @@ nsGmx.LayersTree = function( tree )
         
         for (var i = 0; i < childs.length; i++)
         {
-            if (childs[i].content.properties[propName] == propValue)
+            var props = childs[i].content.properties;
+            if (propName in props && props[propName] === propValue) {
                 return {elem:childs[i], parents: [elem].concat(parents || []), index: i};
+            }
             
             if (typeof childs[i].content.children != 'undefined')
             {
