@@ -153,10 +153,11 @@ TranslationsManager.prototype.addErrorHandler = function(handler) {
  * В куках отдельно записываются языки для каждого pathname, а не только для домена целиком
  @func getLanguageFromCookies
  @memberOf nsGmx.Translations
+ @param {String} [pathname] Идентификатор проекта, для которого нужно запомнить куку. По умолчанию `window.location.pathname`.
  @return {String} Язык, записанный в куках для данного pathname
 */
-TranslationsManager.prototype.getLanguageFromCookies = function() {
-    return _parseLanguageCookie()[window.location.pathname];
+TranslationsManager.prototype.getLanguageFromCookies = function(pathname) {
+    return _parseLanguageCookie()[pathname || window.location.pathname];
 }
 
 /** Записать в куки текущий язык локализации.
@@ -164,10 +165,11 @@ TranslationsManager.prototype.getLanguageFromCookies = function() {
  @func updateLanguageCookies
  @memberOf nsGmx.Translations
  @param {String} lang Язык, который нужно записать в куку
+ @param {String} [pathname] Идентификатор проекта, для которого нужно запомнить куку. По умолчанию `window.location.pathname`.
 */
-TranslationsManager.prototype.updateLanguageCookies = function(lang) {
+TranslationsManager.prototype.updateLanguageCookies = function(lang, pathname) {
     var langs = _parseLanguageCookie();
-    langs[window.location.pathname] = lang;
+    langs[pathname || window.location.pathname] = lang;
     _saveLanguageCookie(langs);
 }
 
