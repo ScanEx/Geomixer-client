@@ -498,13 +498,26 @@ CatalogPageController.prototype = {
 	},
 
 	_nodeDblClick: function(node) {
-		if (node.type == 'satellite' && node.data.extent) {
-			this._mapController.zoomToExtent(node.data.extent[0], node.data.extent[1],
-			node.data.extent[2], node.data.extent[3]);
-		} else if (node.type == 'GroundOverlay') {
-			var extent = this._mapObjectsHelper.getExtent(node.data.latLonQuad.coordinates);
-			this._mapController.zoomToExtent(extent.minX, extent.minY, extent.maxX, extent.maxY);
-		}
+		var rd = new jsts.io.GeoJSONReader();
+		var q = node.data.latLonQuad.coordinates;
+		var g = rd.read({
+			type: 'Polygon',
+			coordinates: [
+				[
+					[q[0].latitude,q[0].longitude],
+					[q[1].latitude,q[1].longitude],
+					[q[2].latitude,q[2].longitude],
+					[q[3].latitude,q[3].longitude],
+					[q[0].latitude,q[0].longitude]
+				]
+			]
+		});
+		var coords = g.getEnvelope().getCoordinates();
+		var sw = L.latLng(coords[3].x, coords[3].y);
+		var ne = L.latLng(coords[1].x, coords[1].y);
+		var bounds = L.latLngBounds(sw, ne);
+		this._mapController.fitBounds(bounds);
+		this._mapController.invalidateSize();		
 	},
 
 	_nodeCheckedChanged: function(node, tasksChain) {
