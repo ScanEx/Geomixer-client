@@ -341,9 +341,8 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
     
     if (_options.allowDelete)
     {
-        //remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
         remove.setAttribute('title', _gtxt('drawingObjects.removeObject'));
-        remove.className = 'removeGeometry';
+        remove.className = 'gmx-icon-close';
         remove.onclick = function(){
             $(_this).triggerHandler('onRemove', [_drawingObject]);
         }
