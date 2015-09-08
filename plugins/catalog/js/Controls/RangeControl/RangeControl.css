@@ -1,0 +1,12 @@
+.scanex-range{
+}
+.scanex-range-value{	
+	padding: 5px;
+	cursor: default;
+}
+.scanex-range-value:hover{
+	background-color: #87CEFA;
+}
+.scanex-range-value-selected{
+	background-color: #B0C4DE;
+}

@@ -1,0 +1,92 @@
+﻿.ui-datepicker {
+	background: #EEE;
+	border: solid 2px #289;
+	width: 15em;
+	display: none;
+	padding: 2px;
+}
+
+.ui-datepicker-header {
+	text-align: center;
+}
+
+.ui-datepicker-header *{
+	padding: 2px 0;
+}
+
+.ui-datepicker-prev {
+	float: left;
+}
+.ui-datepicker-next {
+	float: right;
+}
+.ui-datepicker-prev, .ui-datepicker-next {
+	width: 4em;
+	background-color: #4AB;
+	cursor: pointer;
+	display: none;
+}
+.ui-datepicker-prev-hover, .ui-datepicker-next-hover {
+	background-color: #6CD;
+}
+
+.ui-datepicker-title {
+	background-color: #4AB;
+	font-weight: bold;
+	color: Orange;	
+}
+
+.ui-datepicker-month-year {	width: 100%; }
+.ui-datepicker-month, .ui-datepicker-year {
+	width: 49%;
+}
+
+.ui-datepicker-calendar {
+	font-size: .9em;
+}
+
+.ui-datepicker-calendar th {
+	width: 2.1em;
+}
+
+.ui-datepicker-calendar td {
+	background-color: #DDD;
+	text-align: center;
+	cursor: pointer;
+}
+.ui-datepicker-calendar td:hover { background-color: #CCC; }
+
+td.ui-datepicker-current-day {
+	background-color: #CCC;
+	border: solid 1px #4AB;
+}
+td.ui-datepicker-current-day a.ui-state-active {
+	color: #289;
+	font-weight: bold;
+}
+
+.ui-datepicker-calendar td a {
+	text-decoration: none;
+	color: Black;
+}
+
+.ui-datepicker-week-end { color: Gray; }
+td.ui-datepicker-week-end a { color: Gray; }
+
+td.ui-datepicker-unselectable {
+	background-color: #EEE !important;
+	cursor: auto !important;
+}
+
+/* IE6 IFRAME FIX (taken from datepicker 1.5.3 */
+.ui-datepicker-cover {
+    display: none; /*sorry for IE5*/
+    display/**/: block; /*sorry for IE5*/
+    position: absolute; /*must have*/
+    z-index: -1; /*must have*/
+    filter: mask(); /*must have*/
+    top: -4px; /*must have*/
+    left: -4px; /*must have*/
+    width: 200px; /*must have*/
+    height: 200px; /*must have*/
+}

@@ -1,0 +1,196 @@
+﻿.search-options {
+	background-color: Transparent;
+}
+
+.search-options, .search-options * {
+	font-family: Arial;
+    font-size: auto;
+}
+
+.search-options-content {
+    background-color: Transparent;
+    padding: 8px;
+}
+
+.search-options-content .search-options-block {
+    margin: 0 0 18px 0;
+}
+
+.search-options-content .search-options-block-short {
+    margin: 0;
+}
+
+.search-options-content .invalid-value {
+	background-color: #FDD;
+}
+
+.search-options-content .digital-values {
+	padding-left: 6px;
+}
+.search-options-content .digital-values input {
+	width: 38px;
+	text-align: center;
+	border: 1px solid #999;
+}
+
+.search-options-content h3 {
+    font-size: 100.01%;
+    font-weight: bold;
+    margin: 0 0 6px 0;
+}
+
+.search-options-content .period-box { }
+.search-options-content .period-box table {	font-size: 100.01%; border-collapse: separate; }
+
+/* Table cells */
+.search-options-content .period-box .la, .search-options-content .period-box .ca {
+	padding-left: 6px;
+	padding-right: 6px; 
+}
+
+.search-options-content .period-box .date-box {
+    border: 1px solid #999;
+    padding: 2px 4px 1px 4px;
+}
+.search-options-content .period-box .date-box input {
+    border: 0;
+    padding: 0;
+    vertical-align: top;
+    margin-top: 1px;
+    background-color: Transparent;
+}
+.search-options-content .period-box table .date-box input.date { width: 70px; }
+
+.search-options-content .period-box table .date-box img {
+    cursor: pointer;
+    margin-left: 2px;
+    margin-bottom: 0;
+}
+
+.search-options-content .period-box table .annually {
+	padding-top: 5px;
+}
+.search-options-content .period-box table .annually label {
+	vertical-align: top;
+}
+.search-options-content .period-box table .annually input { 
+	width: 14px;
+	height: 14px;
+}
+
+.search-options-content #satellitesList {
+    font-size: 90%;
+    padding-left: 7px;
+}
+.search-options-content #satellitesList .satellites-column {
+    width: 120px;
+    float: left;
+    margin-right: 30px;
+}
+.search-options-content #satellitesList .satellites-column div {
+    white-space: nowrap;
+    margin: 0 0 4px 0;
+}
+.search-options-content #satellitesList .satellites-column div input {
+	position: relative;
+	margin-right: 6px;
+	width: 14px;
+	height: 14px;
+}
+.search-options-content #satellitesList .satellites-column div label {
+	vertical-align: top; 
+}
+.search-options-content #satellitesList .satellites-column div label.disabled { color: #999; }
+
+.search-options-content .slider-container {
+	margin-top: 20px;
+	padding: 2px 25px 12px 18px !important;
+}
+
+.search-options-content .ui-slider {
+    height: 3px;
+    background-color: #cfcfc0;
+    border: none;
+    position: relative;
+    font-size: 0px;
+}
+
+.search-options-content .ui-slider .ui-slider-selectable-region {
+    position: absolute;
+    font-size: 0px;
+    top: -3px;
+    height: 6px;
+    cursor: pointer;
+    z-index: 3;
+}
+
+.search-options-content .ui-slider .ui-slider-tick {
+    position: absolute;
+    border-left: solid 1px Black;
+    font-size: 0px;
+    top: -2px;
+    height: 5px;
+    width: 2px;
+    z-index: 5;
+}
+
+.search-options-content .ui-slider .ui-slider-tick-text {
+	font-size: 7pt;
+    position: absolute;
+    top: -1.5em;
+    margin-left: -0.25em;
+    width: auto;
+}
+
+.search-options-content .ui-slider .cloud-image {
+    position: absolute;
+    margin-top: -6px;
+    margin-left: -8px !important;
+}
+
+.search-options-content .ui-slider .cloud-image img {
+    cursor: pointer;
+}
+
+.search-options-content .ui-slider-range {
+	background-color: #09F;
+	height: 3px;
+	position: relative;
+	z-index: 4;
+}
+
+.search-options-content .ui-slider-handle {
+	width: 13px !important;
+    height: 13px !important;
+    background-color: Transparent;
+    top: auto;
+    margin: 0;
+    background-image: url('../../../img/slider-r.png');
+    background-repeat: no-repeat;
+    background-position: top left;
+    border: none;
+    position: absolute;
+    outline: none;
+    cursor: pointer;
+}
+
+.search-options-content .ui-slider-handle-left {
+	width: 13px !important;
+    height: 13px;
+    background-color: Transparent;
+    background-image: url('../../../img/slider-l.png');
+    background-repeat: no-repeat;
+    background-position: top left;
+    border: none;
+    margin-left: -12px;
+    position: absolute;
+    outline: none;
+    cursor: pointer;
+}
+
+.search-options-content #btnSearch {
+	float: right;
+	margin-right: 20px;
+	width: 60px;
+	height: 20px;
+}
