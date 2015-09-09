@@ -624,7 +624,7 @@ nsGmx.widgets.commonCalendar = {
     },
     unbindLayer: function(layerName)
     {
-        this._unbindedTemporalLayers[layerName] = nsGmx.gmxMap.layersByID[layerName];
+        this._unbindedTemporalLayers[layerName] = true;
     },
     _updateOneLayer: function(layer, dateBegin, dateEnd)
     {

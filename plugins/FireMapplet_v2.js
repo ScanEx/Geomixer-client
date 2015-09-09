@@ -1,7 +1,11 @@
 ﻿/** Пожарный виджет
  * @module FireMapplet
  */
+
+
 (function($){
+
+"use strict";
 
 var initTranslations = function()
 {
@@ -272,16 +276,17 @@ var _hq = {
 	},
 	MultiPolygonUnion: function(multiPolygon)
 	{
-		var matrixMultiPolygon = [];
-		var unitedMultiPolygon = [];
-		var nStartPolygons = 0;
+		var matrixMultiPolygon = [],
+            unitedMultiPolygon = [],
+            nStartPolygons = 0,
+            currentPolygon;
 		
 		do {
 			nStartPolygons = multiPolygon.length;
 			unitedMultiPolygon = [];
 			
 			while(multiPolygon.length > 0){
-				currentPolygon = multiPolygon.pop()
+				currentPolygon = multiPolygon.pop();
 				var iOther = 0;
 				
 				// Check if it overlaps with any remaining polygons
@@ -311,7 +316,7 @@ var _hq = {
 		return matrixMultiPolygon;
 	},
 	getPixelMultiPolygon: function(points) {
-		results = [];
+		var results = [];
 		
 		for(var i = 0;i < points.length;i++) {
 			var pt = points[i];
@@ -570,6 +575,12 @@ var FireBurntRenderer3 = function(params)
         rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
         rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
         
+        if (nsGmx.widgets && nsGmx.widgets.getCommonCalendar) {
+            var commonCalendar = nsGmx.widgets.getCommonCalendar()
+            commonCalendar.unbindLayer(_params.hotspotLayerName);
+            commonCalendar.unbindLayer(_params.rawClustersLayer);
+        }
+        
         if (_params.zIndex) {
             rawHotspotsLayer.setZIndex(_params.zIndex);
         }
@@ -655,8 +666,8 @@ var FireBurntRenderer3 = function(params)
                     clustersToRepaint[clusterId] = true;
                 }
                 
-                var clustersToAdd = []
-                itemIDsToRemove = [];
+                var clustersToAdd = [],
+                    itemIDsToRemove = [];
                 
                 for (var k in clustersToRepaint)
                 {
@@ -852,9 +863,11 @@ var ModisImagesRenderer = function( params )
 	
 	this.setVisible = function(flag)
 	{
-		if (modisLayers)
-            for (iL in modisLayers)
+		if (modisLayers) {
+            for (var iL in modisLayers) {
                 params.map[flag ? 'addLayer' : 'removeLayer'](modisLayers[iL]);
+            }
+        }
 	}
 }
 
@@ -1024,8 +1037,8 @@ FireControl.prototype._updateCheckboxList = function()
             '{{/providers}}' +
         '</table>';
         
-	var providers = [];
-        _this = this
+	var providers = [],
+        _this = this;
         
     for (var name in this.dataControllers) {
         var dc = this.dataControllers[name];
@@ -1197,7 +1210,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             new ModisImagesProvider( {host: this._firesOptions.modisHost, map: this._map} ),
             new ModisImagesRenderer({
                 map: this._map,
-                zIndex: zIndex 
+                zIndex: zIndex || 10000
             }),
             {isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
     }
@@ -1215,7 +1228,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
                 hotspotIDAttr: 'HotSpotID',
                 minHotspotZoom: firesOptions.minHotspotZoom,
                 minGeomZoom: firesOptions.minGeomZoom,
-                zIndex: zIndex ? zIndex + 1 : 0
+                zIndex: zIndex ? zIndex + 1 : 2010000
             }),
             { isVisible: !!this._firesOptions.firesInit }
         );
@@ -1234,7 +1247,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
                 hotspotIDAttr: 'SpotID',
                 minHotspotZoom: firesOptions.minHotspotZoom,
                 minGeomZoom: firesOptions.minGeomZoom,
-                zIndex: zIndex ? zIndex + 2 : 0
+                zIndex: zIndex ? zIndex + 2 : 2010000
             }),
             { isVisible: !!this._firesOptions.firesGlobalInit }
         );
@@ -1347,7 +1360,7 @@ var FireControl2 = function(map, params)
                 params.calendar = new mCalendar.Calendar();
                 params.calendar.init('FireCalendar', {
 					minimized: true,
-					dateMin: new Date(2009, 05, 29),
+					dateMin: new Date(2009, 5, 29),
 					dateMax: new Date(),
                     dateFormat: "dd.mm.yy"
                 });
@@ -1539,7 +1552,7 @@ if ( typeof gmxCore !== 'undefined' )
                 }
             ]);
 		},
-        require: ['translations', 'DateTimePeriodControl_v2']
+        require: ['translations', 'DateTimePeriodControl']
 	});
 }
 else
