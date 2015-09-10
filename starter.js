@@ -742,12 +742,7 @@ window.resizeAll = function()
 	}
 }
 
-var isEditUIInitialized = false;
-function initEditUI() {
-    if (isEditUIInitialized) {
-        return;
-    }
-    
+var initEditUI = nsGmx._.once(function(){
     var isEditableLayer = function(layer) {
         var props = layer.getGmxProperties(),
             layerRights = _queryMapLayers.layerRights(props.name);
@@ -863,9 +858,7 @@ function initEditUI() {
             listeners = {};            
         }
     });
-    
-    isEditUIInitialized = true;
-}
+})
 
 function initAuthWidget() {
     var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, function() {
