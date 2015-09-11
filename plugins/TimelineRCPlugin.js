@@ -267,6 +267,7 @@ var TimelineController = function(data, map, options) {
         filters.unshift(modeFilters[data.get('timelineMode')]);
         
         if (!layer._map) {
+            layerObservers[layerName].deactivate();
             var index = 0;
             while (index < timeline.items.length) {
                 var itemData = timeline.getData()[index].userdata;
@@ -282,6 +283,9 @@ var TimelineController = function(data, map, options) {
             }
             
             timeline.render();
+            return;
+        } else {
+            layerObservers[layerName].activate();
         }
 
         var deletedCount = 0;
@@ -665,7 +669,8 @@ var TimelineController = function(data, map, options) {
                 data.trigger('change change:items');
             },
             bounds: getObserversBbox(),
-            dateInterval: [dateBegin, dateEnd]
+            dateInterval: [dateBegin, dateEnd],
+            active: !!layer._map
         });
         
         map.on('layeradd layerremove', function(event) {
