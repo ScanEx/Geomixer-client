@@ -23,7 +23,7 @@ var NASA_LAYERS = {
 
 /** Слой для подгрузки данных из NASA Global Imagery Browse Services (GIBS)
  * @param {String} layerName Имя слоя GIBS (см https://wiki.earthdata.nasa.gov/display/GIBS/GIBS+Available+Imagery+Products)
- * @param {gmxAPI.Map} Карта ГеоМиксера
+ * @param {L.Map} Карта ГеоМиксера
  * @param {Object} [params] Дополнительные параметры
  * @param {Boolean} [params.visible] Видим ли слой по умолчанию
  * @param {nsGmx.Calendar} [params.calendar] Календарь, который задаёт за какое число показывать данные
@@ -50,17 +50,19 @@ var GIBSLayer = function(layerName, map, params) {
     var initLayer = function() {
         var isVisible;
         if (gmxLayer) {
-            isVisible = gmxLayer.getVisibility();
-            gmxLayer.remove();
+            isVisible = map.hasLayer(gmxLayer);
+            map.removeLayer(gmxLayer);
         } else {
             isVisible = params.visible;
         }
         
-        gmxLayer = map.addObject(null);
-        gmxLayer.setZoomBounds(1, layerZoom);
-        gmxLayer.setPolygon([-180, -85, -180, 85, 180, 85, 180, -85, -180, -85]);
-        gmxLayer.setVisible(isVisible);
-        gmxLayer.setCopyright("<a href='https://earthdata.nasa.gov/gibs'>NASA EOSDIS GIBS</a>");
+        gmxLayer = L.tileLayer(_this._url, {
+            minZoom: 1,
+            maxZoom: layerZoom,
+            attribution: '<a href="https://earthdata.nasa.gov/gibs">NASA EOSDIS GIBS</a>'
+        })
+        
+        isVisible && map.addLayer(gmxLayer);
     }
     
     initLayer();
@@ -74,20 +76,13 @@ var GIBSLayer = function(layerName, map, params) {
     */
     this.setDate = function(newDate) {
         var dateStr = $.datepicker.formatDate('yy-mm-dd', nsGmx.Calendar.toUTC(newDate));
-        var url = urlPrefix + dateStr + '/GoogleMapsCompatible_Level' + layerZoom + '/';
+        this._url = urlPrefix + dateStr + '/GoogleMapsCompatible_Level' + layerZoom + '/{z}/{y}/{x}.jpg';
         
         initLayer();
-        gmxLayer.setBackgroundTiles(function(i, j, z) {
-            var size = Math.pow(2, z - 1);
-                x = i + size,
-                y = size - j - 1;
-                
-            return url + z + '/' + y + '/' + x + '.jpg';
-        }, 1);
     }
     
     this.remove = function() {
-        gmxLayer.remove();
+        map.removeLayer(gmxLayer);
     }
     
     /** Связать с календарём для задания даты снимков. Будет использована конечная дата интервала календаря.
@@ -97,28 +92,28 @@ var GIBSLayer = function(layerName, map, params) {
         calendar && $(calendar).off('change', updateDate);
         $(newCalendar).on('change', updateDate);
         calendar = newCalendar;
+        updateDate();
     }
     
     /** Задать видимость слоя
      @param {Boolean} isVisible Видимость слоя
      */
     this.setVisibility = function(isVisible) {
-        gmxLayer.setVisible(isVisible);
+        map[isVisible ? 'addLayer' : 'removeLayer'](gmxLayer);
     }
     
     calendar && this.bindToCalendar(calendar);
     params.initDate && this.setDate(params.initDate);
 }
 
-var toolContainer = null;
-var gibsLayers = [];
+var overlayLayerProxies = [];
  
 var publicInterface = {
     pluginName: 'GIBS Plugin',
     GIBSLayer: GIBSLayer,
     
     //параметры: layer (может быть несколько) - имя слоя в GIBS
-	afterViewer: function(params, map)
+	afterViewer: function(params)
     {
         params = $.extend({
             layer: ['MODIS_Terra_CorrectedReflectance_TrueColor']
@@ -130,30 +125,36 @@ var publicInterface = {
         
         var calendar = nsGmx.widgets.commonCalendar.get();
         
-        toolContainer = new gmxAPI._ToolsContainer('gibs');
+        var layersControl = nsGmx.leafletMap.gmxControlsManager.get('layers');
             
         params.layer.forEach(function(layerName) {
-            var gibsLayer = new GIBSLayer(layerName, map, {
+            var gibsLayer = new GIBSLayer(layerName, nsGmx.leafletMap, {
                 calendar: calendar,
                 visible: false
             });
             
-            toolContainer.addTool(layerName, {
-                overlay: true,
-                onClick: gibsLayer.setVisibility.bind(gibsLayer, true),
-                onCancel: gibsLayer.setVisibility.bind(gibsLayer, false),
-                hint: NASA_LAYERS[layerName].title
-            })
+            var proxyLayer = {
+                onAdd: function() {
+                    gibsLayer.setVisibility(true);
+                },
+                onRemove: function() {
+                    gibsLayer.setVisibility(false);
+                }
+            }
             
-            gibsLayers.push(gibsLayer);
+            layersControl.addOverlay(proxyLayer, NASA_LAYERS[layerName].title);
+            overlayLayerProxies.push(proxyLayer);
         })
         
         params.layer.length && nsGmx.widgets.commonCalendar.show();
     },
     
     unload: function() {
-        toolContainer && toolContainer.remove();
-        gibsLayers.forEach(function(layer) {layer.remove();});
+        var layersControl = nsGmx.leafletMap.gmxControlsManager.get('layers');
+        overlayLayerProxies.forEach(function(layer){
+            layersControl.removeLayer(layer);
+            nsGmx.leafletMap.removeLayer(layer);
+        });
     }
 }
 
