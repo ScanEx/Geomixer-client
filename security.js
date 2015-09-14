@@ -319,11 +319,10 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			var sortFuncs = {};
 			sortFuncs[_gtxt('Логин')     ] = genSortFunction('Login');
 			sortFuncs[_gtxt('Псевдоним') ] = genSortFunction('Nickname');
-			sortFuncs[_gtxt('Полное имя')] = genSortFunction('Fullname');
+			sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
 				
 			var drawOwnersFunction = function(user)
 			{
-                user = $.extend({Login: "", Fullname: "", Nickname: ""}, user);
                 var tdNickname = _td([_div([_t(user.Nickname)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
 
                 var tds;
@@ -331,7 +330,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 if (isShowFullname)
                 {
                     var tdLogin = _td([_div([_t(user.Login)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-                    var tdFullname = _td([_div([_t(user.Fullname)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+                    var tdFullname = _td([_div([_t(user.FullName || '')], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
                     tds = [tdLogin, tdNickname, tdFullname];
                 }
                 else
@@ -409,7 +408,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 
 	sortFuncs[_gtxt('Логин')]      = genSortFunction('Login');
 	sortFuncs[_gtxt('Псевдоним')]  = genSortFunction('Nickname');
-	sortFuncs[_gtxt('Полное имя')] = genSortFunction('Fullname');
+	sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
 	sortFuncs[_gtxt('Роль')]       = genSortFunction('Role');
 	
     this._createFilterWidget(this._securityUsersProvider, $('.access-filters-placeholder', canvas)[0]);
@@ -439,7 +438,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             
             var tdLogin = _td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
             var tdNickname = _td([_div([_t(user.Nickname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-            var tdFullname = _td([_div([_t(user.Fullname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+            var tdFullname = _td([_div([_t(user.FullName || '')], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
             var tdRole = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
             
             tr = _tr([tdLogin, tdNickname, tdFullname, tdRole, tdAdd]);
@@ -620,7 +619,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
     if (isShowFullname)
     {
         var tdLogin = _td([_div([_t(user.Login)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-        var tdFullname = _td([_div([_t(user.Fullname)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+        var tdFullname = _td([_div([_t(user.FullName || '')], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
         
         tr = _tr([
             tdLogin,
