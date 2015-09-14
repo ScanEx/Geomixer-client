@@ -68,12 +68,29 @@ var TimelineData = Backbone.Model.extend({
             layer: layer,
             name: layerName,
             dateFunction: options.dateFunction || this._defaultDateFunction,
-            filterFunction: options.filterFunction || this._defaultFilterFunction
+            filterFunction: options.filterFunction || this._defaultFilterFunction,
+            trackVisibility: 'trackVisibility' in options ? !!options.trackVisibility : true
         }
         this.trigger('preBindLayer', newLayerInfo);
         
         this.set('layers', this.attributes.layers.concat(newLayerInfo));
         this.trigger('bindLayer', newLayerInfo);
+    },
+    
+    unbindLayer: function(layer) {
+        var layerInfos = this.attributes.layers;
+        for (var l = 0; l < layerInfos.length; l++) {
+            var layerInfo = layerInfos[l];
+            if (layerInfo.layer === layer) {
+                this.set('layers', layerInfos.slice(0).splice(i, 1));
+                this.trigger('unbindLayer', layerInfo);
+                return;
+            }
+        }
+    },
+    
+    getLayerInfo: function(layer) {
+        return nsGmx._.findWhere(this.attributes.layers, {layer: layer});
     },
     
     addFilter: function(filterFunc) {
@@ -246,6 +263,19 @@ var TimelineController = function(data, map, options) {
         }
     }
     
+    var deleteLayerItemsFromTimeline = function(layerName) {
+        var index = 0;
+        while (index < timeline.items.length) {
+            var itemData = timeline.getData()[index].userdata;
+            if (itemData.layerName === layerName) {
+                timeline.deleteItem(index, true);
+            } else {
+                index++;
+            }
+        }
+        timeline.render();
+    }
+    
     var updateLayerItems = function(layerInfo)
     {
         var layerName = layerInfo.name,
@@ -266,23 +296,14 @@ var TimelineController = function(data, map, options) {
         
         filters.unshift(modeFilters[data.get('timelineMode')]);
         
-        if (!layer._map) {
+        if (!layer._map && layerInfo.trackVisibility) {
             layerObservers[layerName].deactivate();
-            var index = 0;
-            while (index < timeline.items.length) {
-                var itemData = timeline.getData()[index].userdata;
-                if (itemData.layerName === layerName) {
-                    timeline.deleteItem(index, true);
-                } else {
-                    index++;
-                }
-            }
+            deleteLayerItemsFromTimeline(layerName);
             
             for (var id in items[layerName]) {
                 delete items[layerName][id].timelineItem;
             }
             
-            timeline.render();
             return;
         } else {
             layerObservers[layerName].activate();
@@ -672,13 +693,23 @@ var TimelineController = function(data, map, options) {
             dateInterval: [dateBegin, dateEnd],
             active: !!layer._map
         });
-        
-        map.on('layeradd layerremove', function(event) {
-            if (event.layer === layer) {
-                updateItems();
-            }
-        });
-    })
+    });
+    
+    map.on('layeradd layerremove', function(event) {
+        var layerInfo = data.getLayerInfo(event.layer);
+        if (layerInfo && layerInfo.trackVisibility) {
+            updateLayerItems(layerInfo);
+        }
+    }, this);
+    
+    data.on('unbindLayer', function(layerInfo) {
+        var layerName = layerInfo.name;
+        layerInfo.layer.removeObserver(layerObservers[layerName]);
+        delete layerObservers[layerName];
+        deleteLayerItemsFromTimeline(layerName);
+        var items = data.get('items');
+        delete items[layerName];
+    });
     
     data.on('change:range', function(){
         if (!timeline) return;
@@ -736,9 +767,17 @@ var TimelineControl = function(map) {
      * @param {function(layer, object): Date} options.dateFunction Пользовательская ф-ция указания даты для объекта слоя. По описанию объекта возвращает его дату
      * @param {function(layer, startDate, endDate)} options.filterFunction Пользовательская ф-ция для фильтрации слоя по временному интервалу
               Ф-ция должна сама установить фильтры на слое или сделать другие нужные действия над слоем
+     * @param {Boolean} [options.trackVisibility = true] Нужно ли удалять с таймлайна объекты слоя если слой удалят с карты
      */
     this.bindLayer = function(layer, options) {
         data.bindLayer(layer, options);
+    }
+    
+    /** Удалить ранее добавленный векторный мультивременной слой с таймлайна
+     * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
+     */
+    this.unbindLayer = function(layer) {
+        data.unbindLayer(layer);
     }
 
     /** Возвращает ссылку на timelineController
