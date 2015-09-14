@@ -733,6 +733,10 @@ var TimelineController = function(data, map, options) {
     this.getHeaderContainer = function () {
         return headerContainer;
     }
+
+    this.getContainer = function () {
+        return container;
+    }
     
     this.setOptions = function(newOptions) {
         options = $.extend(options, newOptions);
@@ -844,6 +848,13 @@ var TimelineControl = function(map) {
         return timelineController.getHeaderContainer();
     }
     
+    /** Получить контейнер для встраивания дополнительных контролов для всего таймлайна
+     * @return {HTMLElem}
+     */
+    this.getContainer = function () {
+        return timelineController.getContainer();
+    }
+
     /** Задать видимость контролов таймлайна
      * @param {Object} visInfo Видимость контролов
      * @param {Boolean} [visInfo.showModeControl=true] Установить видимость контрола переключения режимов отображения информации
