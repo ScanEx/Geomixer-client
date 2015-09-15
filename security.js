@@ -159,14 +159,6 @@ multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 //добавляет в container поля поиска и связывает их с фильтрами dataProvider'a
 security.prototype._createFilterWidget = function(dataProvider, container)
 {
-    var inputPredicate = function(value, fieldName, fieldValue)
-	{
-		if (!value[fieldName])
-			return false;
-		
-		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
-	};
-    
     var filterLoginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
     var filterNicknameInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
     
@@ -175,33 +167,19 @@ security.prototype._createFilterWidget = function(dataProvider, container)
         _span([_t(_gtxt("Псевдоним")), filterNicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
     ]);
     
-    dataProvider.attachFilterEvents(filterLoginInput, 'Login', function(fieldName, fieldValue, vals)
-    {
-        if (fieldValue == "")
+    var inputFilterFunc = function(fieldName, fieldValue, vals) {
+        if (fieldValue == '')
             return vals;
         
-        var filterFunc = function(value)
-            {
-                return inputPredicate(value, fieldName, fieldValue);
-            },
-            local = _filter(filterFunc, vals);
+        fieldValue = fieldValue.toLowerCase();
         
-        return local;
-    });
+        return vals.filter(function(value) {
+            return String(value[fieldName]).toLowerCase().indexOf(fieldValue) > -1;
+        });
+    };
     
-    dataProvider.attachFilterEvents(filterNicknameInput, 'Nickname', function(fieldName, fieldValue, vals)
-    {
-        if (fieldValue == "")
-            return vals;
-        
-        var filterFunc = function(value)
-            {
-                return inputPredicate(value, fieldName, fieldValue);
-            },
-            local = _filter(filterFunc, vals);
-        
-        return local;
-    });
+    dataProvider.attachFilterEvents(filterLoginInput, 'Login', inputFilterFunc);
+    dataProvider.attachFilterEvents(filterNicknameInput, 'Nickname', inputFilterFunc);
 }
 
 security.prototype.getRights = function(value, title)

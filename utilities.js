@@ -911,17 +911,6 @@ function _title(elem, title)
 	elem.setAttribute('title', title);
 }
 
-function _filter(callback, obj) 
-{
-    var result = [];
-    
-    for(var i = 0; i < obj.length; ++i)
-		if (callback(obj[i]))
-			result.push(obj[i]);
-	
-    return result;
-}
-
 function parseXML(str)
 {
 	var xmlDoc;
