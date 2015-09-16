@@ -59,6 +59,10 @@
 			{
 				var iconContainer = weatherParent.addObject();
 				iconContainer.setStyle({marker:{image: params.imagesHost + '24/' + i + '.png', dx: -12, dy:-16}});
+
+// Bug with iconLoader
+var regularStyle = gmxAPI._leaflet.mapNodes[iconContainer.objectId].regularStyle;
+regularStyle.imageWidth = regularStyle.imageHeight = 24;
 				iconContainters.push(iconContainer);
 				iconGeometries[i] = [];
 				iconTexts[i] = [];
@@ -166,7 +170,7 @@
 				return;
 		  
 			var elem = windParent.addObject();
-		  
+
 			var angle = city.Forecast[0].WindDirection * 45,
 				wind = Math.floor((city.Forecast[0].WindMax + city.Forecast[0].WindMin) / 2),
 				scale,
@@ -205,7 +209,7 @@
 		  
 			elem.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
 			elem.setStyle({marker:{image: params.imagesHost + 'wind.png', center:true, angle: angle, scale: scale, color: color}})
-		  
+
 			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
 				tods = ['ночь','утро','день','вечер'],
 				dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
@@ -245,7 +249,12 @@
 			if ( _serverResponce )
 			{
 				weathers.setVisible(weathers.visibleFlag);
-				winds.setVisible(winds.visibleFlag);
+                setTimeout(function () {
+                    if (winds.visibleFlag) {
+                        winds.setVisible(false);    // Чтобы ветер был выше
+                    }
+                    winds.setVisible(winds.visibleFlag);
+                }, 0);
 				return;
 			}
 			
@@ -259,15 +268,15 @@
 				
 				_serverResponce = response;
 				
-				weathers.setVisible(false);
-				showWeather(weathers, response.Result)
-				
-				weathers.setVisible(weathers.visibleFlag);
-				
 				winds.setVisible(false);
 				for (var i = 0; i < response.Result.length; ++i)
 					showWind(winds, response.Result[i]);
 				winds.setVisible(winds.visibleFlag);
+
+				weathers.setVisible(false);
+				showWeather(weathers, response.Result)
+				
+				weathers.setVisible(weathers.visibleFlag);
 			})
 		}
         
@@ -302,7 +311,7 @@
             });
         }
 	}
-	
+
     gmxCore.addModule('WeatherPlugin', {
         pluginName: 'Weather',
         weather: weather, //Depricated: use addToMap
