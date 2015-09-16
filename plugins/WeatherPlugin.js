@@ -160,6 +160,7 @@
                             L.marker(latlng,
                             {
                                 type: 'wind',
+                                zIndexOffset: 100,
                                 num: i,
                                 icon: L.icon(windOptions),
                                 //opacity: scale,
