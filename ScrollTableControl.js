@@ -637,8 +637,8 @@ scrollTable.prototype.updateHeight = function( height )
     }
     else
     {
-        this.tableParent.firstChild.style.height = (height - 20) + 'px';
-        this.tableParent.style.height = this._params.height + 'px';
+        $(this.tableParent).find('.tableBody').height(height - 20);
+        $(this.tableParent).height(height);
     }
 }
 
