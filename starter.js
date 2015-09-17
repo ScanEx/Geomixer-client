@@ -874,7 +874,9 @@ function initAuthWidget() {
                 def.resolve({
                     Status: 'ok',
                     Result: {
-                        Login: auth.getFullname() || auth.getNickname() || auth.getLogin()
+                        Login: auth.getLogin(),
+                        Nickname: auth.getNickname(),
+                        FullName: auth.getFullname()
                     }
                 });
             })
