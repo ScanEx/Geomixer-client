@@ -17,7 +17,12 @@ nsGmx.Translations.addText('rus', {security: {
     share: {
         'public': 'публичный',
         'private': 'частный'
-    }
+    },
+    accessHeaderLabel: 'Права доступа',
+    addUserTitle: 'Добавить доступ пользователю',
+    addUserPlaceholder: 'псевдоним',
+    addOkText: 'Добавить',
+    addCancelText: 'Готово'
 }});
 
 nsGmx.Translations.addText('eng', {security: {
@@ -33,7 +38,12 @@ nsGmx.Translations.addText('eng', {security: {
     share: {
         'public': 'public',
         'private': 'private'
-    }
+    },
+    accessHeaderLabel: 'Access rules',
+    addUserTitle: 'Add aceess to user',
+    addUserPlaceholder: 'nickname',
+    addOkText: 'Add',
+    addCancelText: 'Cancel'
 }});
 
 
@@ -49,8 +59,8 @@ var removeMapUser = function(user, dataProvider)
 var UserInputWidget = function(container)
 {
     var isLogin = true;
-    var loginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
-    var nicknameInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    var loginInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
+    var nicknameInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
     $(nicknameInput).addClass('uiw-inactive');
     
     loginInput.onfocus = function()
@@ -91,24 +101,28 @@ var UserInputWidget = function(container)
     
     //запрашивает с сервера информацию о пользователе, имя которого сейчас введено в виджете
     this.getUserFromServer = function(urlPrefix) {
-        var def = $.Deferred();
-        
         var res = this.getUserInfo(),
-            userParam = (res.isLogin ? "Login=" : "Nickname=") + res.value;
-                            
-        sendCrossDomainJSONRequest(urlPrefix + "&WrapStyle=func&" + userParam, function(response)
-        {
-            if (!parseResponse(response) || response.Result == null) {
-                this.showError();
-                def.reject();
-                return;
-            }
+            def = UserInputWidget.sendRequest(urlPrefix, res.isLogin, res.value);
             
-            def.resolve(response.Result);
-        }.bind(this));
-
+        def.fail(this.showError);
+        
         return def;
     }
+}
+
+UserInputWidget.sendRequest = function(urlPrefix, userName, isLogin) {
+    var userParam = (isLogin ? "Login=" : "Nickname=") + userName,
+        def = $.Deferred();
+        
+    sendCrossDomainJSONRequest(urlPrefix + "&WrapStyle=func&" + userParam, function(response) {
+        if (!parseResponse(response) || response.Result == null) {
+            def.reject();
+        } else {
+            def.resolve(response.Result);
+        }
+    });
+    
+    return def;
 }
 
 var security = function()
@@ -180,12 +194,10 @@ multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 //добавляет в container поля поиска и связывает их с фильтрами dataProvider'a
 security.prototype._createFilterWidget = function(dataProvider, container)
 {
-    var filterLoginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
-    var filterNicknameInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    var filterInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
     
     _(container, [
-        _span([_t(_gtxt("Логин")), filterLoginInput], [['css','fontSize','12px']]), 
-        _span([_t(_gtxt("Псевдоним")), filterNicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
+        _span([filterInput], [['css','fontSize','12px']])
     ]);
     
     var inputFilterFunc = function(fieldName, fieldValue, vals) {
@@ -195,12 +207,12 @@ security.prototype._createFilterWidget = function(dataProvider, container)
         fieldValue = fieldValue.toLowerCase();
         
         return vals.filter(function(value) {
-            return String(value[fieldName]).toLowerCase().indexOf(fieldValue) > -1;
+            return value.Nickname.toLowerCase().indexOf(fieldValue) > -1 || 
+                   (value.FullName && value.FullName.toLowerCase().indexOf(fieldValue) > -1);
         });
     };
     
-    dataProvider.attachFilterEvents(filterLoginInput, 'Login', inputFilterFunc);
-    dataProvider.attachFilterEvents(filterNicknameInput, 'Nickname', inputFilterFunc);
+    dataProvider.attachFilterEvents(filterInput, 'Login', inputFilterFunc);
 }
 
 security.prototype.getRights = function(value, title)
@@ -254,19 +266,15 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 '</select>' +
             '</div>' + 
         '</div>' +
-        '{{#isShowUserSuggest}}' +
-            '<div class="security-suggest-header">{{i Пользователи без прав доступа:}}</div>' +
-            '<div class="suggest-filters-placeholder"></div>' +
-            '<div class="suggest-table-placeholder"></div>' +
-        '{{/isShowUserSuggest}}' +
-        '{{^isShowUserSuggest}}' +
-            '<div>' +
-                '<span class="add-user-placeholder"></span>' +
-                '<span class="buttonLink add-user-button">{{i Добавить пользователя}}</span>' +
+        '<div class="security-access-header">' +
+            '{{i security.accessHeaderLabel}} <span class="access-filters-placeholder"></span>' +
+            '<div class="security-add-icon" title="{{i security.addUserTitle}}"></div>' +
+            '<div class="security-add-container" style="display: none">' +
+                '<input class="security-add-input inputStyle" placeholder="{{i security.addUserPlaceholder}}">' +
+                '<button class="security-add-ok">{{i security.addOkText}}</button>' +
+                '<button class="security-add-cancel">{{i security.addCancelText}}</button>' +
             '</div>' +
-        '{{/isShowUserSuggest}}' +
-        '<div class="security-access-header">{{i Пользователи с правами доступа:}}</div>' +
-        '<div class="access-filters-placeholder"></div>' +
+        '</div>' +
         '<div class="access-table-placeholder"></div>' +
     '</div>';
     
@@ -340,7 +348,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 return ui[0];
             }
             
-            var filterContainer = _div();
+            var filterContainer = _div([_t("Пользователи: ")], [['css', 'margin', '0px 0px 2px 2px']]);
             _this._createFilterWidget(usersProvider, filterContainer);
             usersProvider.setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
                         
@@ -353,8 +361,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
           
             _(ownerCanvas, [filterContainer, tableSuggestParent]);
-            
-            
             
             usersTable.tableParent.style.height = '150px';
             usersTable.tableBody.parentNode.parentNode.style.height = '130px';
@@ -385,100 +391,69 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             $(ownerCanvas).append(changeOwnerButton);
         }
         
-        var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), ownerCanvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 250 : 90);
+        var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), ownerCanvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 260 : 90);
     })
     
     var sortFuncs = {};
 
     sortFuncs[_gtxt('Логин')]      = genSortFunction('Login');
-    sortFuncs[_gtxt('Псевдоним')]  = genSortFunction('Nickname');
     sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
     sortFuncs[_gtxt('Роль')]       = genSortFunction('Role');
     
+    $('.security-add-icon', canvas).click(function() {
+        $('.security-add-container', canvas).toggle();
+        $('.security-add-input', canvas).val('').focus();
+        $(this).toggle();
+    });
+    
+    $('.security-add-cancel', canvas).click(function() {
+        $('.security-add-icon', canvas).click();
+    });
+    
+    $('.security-add-ok', canvas).click(function() {
+        var doAddUser = function(user) {
+            removeMapUser(user, _this._securitySuggestProvider);
+            _this._addMapUser(user, _this._securityUsersProvider);
+            input.val('').focus();
+        }
+        
+        var input = $('.security-add-input', canvas),
+            name = input.val();
+        
+        if (isShowUserSuggest) {
+            var allUsers = _this._securitySuggestProvider.getOriginalItems(),
+                user = nsGmx._.findWhere(allUsers, {Nickname: name});
+            
+            if (user) {
+                doAddUser(user);
+            } else {
+                inputError(input[0]);
+            }
+        } else {
+            var urlPrefix = serverBase + _this.getUserSecurityName + "?" + _this.propertyName + "=" + _this.propertyValue;
+            UserInputWidget.sendRequest(urlPrefix, name, false).then(doAddUser, inputError.bind(null, input[0]));
+        }
+    });
+    
+    $('.security-add-input', canvas).on('keydown', function(event) {
+        if (event.keyCode === 13) {
+            //setTimeout нужен чтобы autocomplete не дописывал выбранное значение в input после того, как мы его очистим
+            setTimeout(function() {
+                $('.security-add-ok', canvas).click();
+            }, 0);
+        }
+    });
+    
     this._createFilterWidget(this._securityUsersProvider, $('.access-filters-placeholder', canvas)[0]);
     
-    if (isShowUserSuggest)
-    {
-        this._createFilterWidget(this._securitySuggestProvider, $('.suggest-filters-placeholder', canvas)[0]);
-
-        //Предполагаем, что если мы показываем всех пользователей, то имеем всю инфу о них
-        var drawMapUsersSuggest = function(user)
-        {
-            var add = makeImageButton("img/choose.png", "img/choose_a.png"),
-                tr,
-                tdAdd = _td([add]);
-            
-            add.onclick = function()
-            {
-                if (tr)
-                    tr.removeNode(true);
-                
-                // уберем пользователя из одного списка
-                removeMapUser(user, _this._securitySuggestProvider);
-                
-                // добавим в другой
-                _this._addMapUser(user, _this._securityUsersProvider);
-            }
-            
-            var tdLogin = _td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-            var tdNickname = _td([_div([_t(user.Nickname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-            var tdFullname = _td([_div([_t(user.FullName || '')], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-            var tdRole = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
-            
-            tr = _tr([tdLogin, tdNickname, tdFullname, tdRole, tdAdd]);
-            
-            for (var i = 0; i < tr.childNodes.length; i++)
-                tr.childNodes[i].style.width = this._fields[i].width;
-            
-            attachEffects(tr, 'hover')
-            
-            return tr;
-        }
-    
-        this._securitySuggestProvider.setSortFunctions(sortFuncs);
-        this._securityTableSuggest.setDataProvider(this._securitySuggestProvider);
-        this._securityTableSuggest.createTable($('.suggest-table-placeholder', canvas)[0], 'securitySuggestTable', 0, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), ""], ['25%','25%','30%','15%','5%'], drawMapUsersSuggest, sortFuncs);
-    }
-    else
-    {
-        var userInputWidget = new UserInputWidget($('.add-user-placeholder', canvas)[0]);
-        
-        $('.add-user-button', canvas).click(function(){
-            userInputWidget.getUserFromServer(serverBase + _this.getUserSecurityName + "?" + _this.propertyName + "=" + _this.propertyValue).then(function(result) {
-                if (result.IsOwner == true || result.Role == 'admin') {
-                    userInputWidget.showError();
-                    return;
-                }
-                
-                var addedUsers = _this._securityUsersProvider.getOriginalItems();
-                
-                //нет ли у нас в таблице такого пользователя?
-                for (var i = 0; i < addedUsers.length; ++i)
-                    if (addedUsers[i].UserID == result.UserID)
-                    {
-                        userInputWidget.showError();
-                        return;
-                    }
-                
-                delete result.IsOwner;
-                result.Access = _this.defaultAccess;
-                
-                userInputWidget.clear();
-                
-                // добавим в список пользователей с правами
-                _this._addMapUser(result, _this._securityUsersProvider);
-            });
-        });
-    }
-    
-    var fieldNames   = isShowFullname ? [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), _gtxt("Доступ"), ""] : [_gtxt("Псевдоним"), _gtxt("Роль"), _gtxt("Доступ"), ""]
-    var fieldWidthes = isShowFullname ? ['20%','20%', '20%', '10%', '25%', '5%'] : ['60%','10%','25%','5%'];
+    var fieldNames   = [_gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), _gtxt("Доступ"), ""];
+    var fieldWidthes = ['30%', '30%', '10%','25%','5%'];
     
     this._securityUsersProvider.setSortFunctions(sortFuncs);
     this._securityTable.setDataProvider(this._securityUsersProvider);
     this._securityTable.createTable($('.access-table-placeholder', canvas)[0], 'securityTable', 0, fieldNames, fieldWidthes, function(arg)
     {
-        return _this.drawMapUsers.call(this, arg, _this);
+        return _this._drawMapUsers.call(this, arg, _this);
     }, sortFuncs);
 
     var resize = function()
@@ -489,23 +464,16 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         var nonTableHeight = 
                 $('.security-header', canvas).height() + 
                 $('.security-suggest-header', canvas).height() + $('.suggest-filters-placeholder', canvas).height() +
-                $('.security-access-header', canvas).height() + $('.access-filters-placeholder', canvas).height() + 15;
+                $('.security-access-header', canvas).height() + 15;
+
+        mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 60;
         
-        if (isShowUserSuggest)
-        {
-            mapTableHeight = Math.floor((canvas.parentNode.offsetHeight - nonTableHeight - 11)/2) - 30;
-
-            _this._securityTableSuggest.updateHeight(mapTableHeight);
-        }
-        else
-        {
-            mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 60;
-        }
-
         _this._securityTable.updateHeight(mapTableHeight);
     }
 
     showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, isShowUserSuggest ? 470 : 370, false, false, resize);
+    
+    $('.access-filters-placeholder input', canvas).focus();
     
     resize();
     
@@ -517,13 +485,27 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             if ( securityInfo.UsersWithoutAccess[u].Role != nsGmx.ROLE_ADMIN )
                 vals.push(securityInfo.UsersWithoutAccess[u]);
 
+        var logins;
+        var updateAutocompleteSource = function() {
+            logins = nsGmx._.pluck(_this._securitySuggestProvider.getOriginalItems(), 'Nickname');
+        }
+        $(this._securitySuggestProvider).change(updateAutocompleteSource);
+        
         this._securitySuggestProvider.setOriginalItems(vals);
+        
+        // console.log(nsGmx._.pluck(this._securitySuggestProvider.getOriginalItems(), 'Login'));
+        $('.security-add-input', canvas).autocomplete({
+            source: function(request, response) {
+                var results = $.ui.autocomplete.filter(logins, request.term);
+                response(results.slice(0, 10));
+            }
+        });
     }
 
     this._securityUsersProvider.setOriginalItems( securityInfo.SecurityInfo.Users );
 }
 
-security.prototype.drawMapUsers = function(user, securityScope)
+security.prototype._drawMapUsers = function(user, securityScope)
 {
     //иногда бывает, что админы тоже попадают в список людей с доступом
     //но показывать их в этом списке не имеет смысла
@@ -531,7 +513,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
         return null;
     }
     
-    var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
+    var remove = makeImageButton('img/recycle.png', 'img/recycle_a.png'),
         tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
         accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','130px']]),
         isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
@@ -568,34 +550,21 @@ security.prototype.drawMapUsers = function(user, securityScope)
     var tdRole  = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
     var tdAccess = _td([accessSel],[['css','textAlign','center']]);
     
-    if (isShowFullname)
-    {
-        var tdLogin = _td([_div([_t(user.Login)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-        var tdFullname = _td([_div([_t(user.FullName || '')], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-        
-        tr = _tr([
-            tdLogin,
-            tdNickname,
-            tdFullname,
-            tdRole,
-            tdAccess,
-            tdRemove
-        ]);
-    }
-    else
-    {
-        tr = _tr([
-            tdNickname,
-            tdRole,
-            tdAccess,
-            tdRemove
-        ]);
-    }
+    var tdLogin = _td([_div([_t(user.Login)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+    var tdFullname = _td([_div([_t(user.FullName || '')], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+    
+    tr = _tr([
+        tdNickname,
+        tdFullname,
+        tdRole,
+        tdAccess,
+        tdRemove
+    ]);
     
     for (var i = 0; i < tr.childNodes.length; i++)
         tr.childNodes[i].style.width = this._fields[i].width;
     
-    attachEffects(tr, 'hover')
+    attachEffects(tr, 'hover');
     
     return tr;
 }

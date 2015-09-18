@@ -15,14 +15,11 @@
     padding: 0px 5px;
 }
 
-.security-suggest-header, .security-access-header {
+.security-access-header {
     font-size: 12px;
     font-weight: bold;
-}
-
-.suggest-table-placeholder {
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgb(153, 153, 153);
+    position: relative;
+    margin-bottom: 5px;
 }
 
 .security-canvas {
@@ -39,4 +36,30 @@
 
 .security-owner:hover {
     background-color: #DEDEDE;
+}
+
+.access-table-placeholder table {
+    table-layout: fixed;
+}
+
+.security-add-icon {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin-right: 2px;
+    background: url(../img/add_user.png);
+    cursor: pointer;
+}
+
+.security-add-container {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+.security-add-container > button {
+    margin-left: 10px;
+    padding: 0px 5px;
 }
