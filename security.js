@@ -46,83 +46,56 @@ nsGmx.Translations.addText('eng', {security: {
     addCancelText: 'Cancel'
 }});
 
+//делает запрос на сервер и возвращает список пользователей по запросу query
+var findUsers = function(query, maxRecords) {
+    var def = new L.gmx.Deferred();
+    var maxRecordsParamStr = maxRecords ? '&maxRecords=' + maxRecords : '';
+    sendCrossDomainJSONRequest(serverBase + 'User/FindUser?query=' + encodeURIComponent(query) + maxRecordsParamStr, function(response) {
+        if (!parseResponse(response)) {
+            def.reject(response);
+            return;
+        }
+        
+        def.resolve(response.Result);
+    })
+    
+    return def;
+}
+
+var usersHash = {};
+
+var automplateLabelTemplate = Handlebars.compile('{{Nickname}}{{#if Login}}\u00A0({{Login}}){{/if}}');
+//на input вешается autocomplete со списком пользователей.
+//кроме того, по нажатию enter происходит генерация события enterpress
+var wrapUserListInput = function(input) {
+    input.on('keydown', function(event) {
+        if (event.keyCode === 13) {
+            //setTimeout нужен чтобы autocomplete не дописывал выбранное значение в input после того, как мы его очистим
+            setTimeout(function() {
+                $(this).trigger('enterpress');
+            }.bind(this), 0);
+        }
+    });
+    input.autocomplete({
+        source: function(request, cbResponse) {
+            findUsers(request.term, 10).then(function(userInfos) {
+                cbResponse(userInfos.map(function(userInfo) {
+                    usersHash[userInfo.Nickname] = userInfo;
+                    return {value: userInfo.Nickname, label: automplateLabelTemplate(userInfo)};
+                }));
+            }, cbResponse.bind(null, []));
+        }
+    });
+    
+    
+}
 
 var removeMapUser = function(user, dataProvider)
 {
     dataProvider.filterOriginalItems(function(elem)
     {
-        return elem.Login != user.Login;
+        return elem.Nickname !== user.Nickname;
     });
-    
-}
-
-var UserInputWidget = function(container)
-{
-    var isLogin = true;
-    var loginInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
-    var nicknameInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
-    $(nicknameInput).addClass('uiw-inactive');
-    
-    loginInput.onfocus = function()
-    {
-        isLogin = true;
-        $(loginInput).removeClass('uiw-inactive');
-        $(nicknameInput).addClass('uiw-inactive');
-    }
-    
-    nicknameInput.onfocus = function()
-    {
-        isLogin = false;
-        $(nicknameInput).removeClass('uiw-inactive');
-        $(loginInput).addClass('uiw-inactive');
-    }
-    
-    _(container, [
-                _span([_t(_gtxt("Логин")), loginInput], [['css','fontSize','12px']]), 
-                _span([_t(_gtxt("Псевдоним")), nicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
-            ]);
-            
-    this.getUserInfo = function()
-    {
-        var value = isLogin ? loginInput.value : nicknameInput.value;
-        return {isLogin: isLogin, value: value}
-    }
-    
-    this.showError = function()
-    {
-        inputError( isLogin ? loginInput : nicknameInput );
-    }
-    
-    this.clear = function()
-    {
-        loginInput.value = "";
-        nicknameInput.value = "";
-    }
-    
-    //запрашивает с сервера информацию о пользователе, имя которого сейчас введено в виджете
-    this.getUserFromServer = function(urlPrefix) {
-        var res = this.getUserInfo(),
-            def = UserInputWidget.sendRequest(urlPrefix, res.isLogin, res.value);
-            
-        def.fail(this.showError);
-        
-        return def;
-    }
-}
-
-UserInputWidget.sendRequest = function(urlPrefix, userName, isLogin) {
-    var userParam = (isLogin ? "Login=" : "Nickname=") + userName,
-        def = $.Deferred();
-        
-    sendCrossDomainJSONRequest(urlPrefix + "&WrapStyle=func&" + userParam, function(response) {
-        if (!parseResponse(response) || response.Result == null) {
-            def.reject();
-        } else {
-            def.resolve(response.Result);
-        }
-    });
-    
-    return def;
 }
 
 var security = function()
@@ -141,9 +114,6 @@ var security = function()
     
     this._securityTable = new nsGmx.ScrollTable({limit:20, pagesCount: 5});
     this._securityUsersProvider = new nsGmx.ScrollTable.StaticDataProvider();
-    
-    this._securityTableSuggest = new nsGmx.ScrollTable({limit:20, pagesCount: 5});
-    this._securitySuggestProvider = new nsGmx.ScrollTable.StaticDataProvider();
 }
 
 var mapSecurity = function()
@@ -241,7 +211,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         ];
     }
             
-    var isShowUserSuggest = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS);
     var isShowFullname    = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME);
     
     $$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
@@ -251,10 +220,16 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
         '<div class="security-header">' + 
             '<table class="security-header-table"><tr>' +
-                '<td><div>' +
-                    '{{i security.ownerName}}: <span class="buttonLink changeOwnerLink">{{ownerName}}</span>' +
-                '</div></td>' +
                 '<td>' +
+                    '<span>{{i security.ownerName}}: </span>' +
+                '</td><td class="security-owner-cell">' +
+                    '<span class="buttonLink changeOwnerLink security-owner-change">{{ownerName}}</span>' +
+                    '<div class="security-owner-container ui-front" style="display:none">' +
+                        '<input class="security-owner-input inputStyle">' +
+                        '<button class="security-owner-ok">Сменить</button>' +
+                        '<button class="security-owner-cancel">Отмена</button>' +
+                    '</div>' +
+                '</td><td>' +
                     '<button class="security-save">{{i Сохранить}}</button>' +
                 '</td>' +
             '</tr></table>' + 
@@ -269,7 +244,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         '<div class="security-access-header">' +
             '{{i security.accessHeaderLabel}} <span class="access-filters-placeholder"></span>' +
             '<div class="security-add-icon" title="{{i security.addUserTitle}}"></div>' +
-            '<div class="security-add-container" style="display: none">' +
+            '<div class="security-add-container ui-front" style="display: none">' +
                 '<input class="security-add-input inputStyle" placeholder="{{i security.addUserPlaceholder}}">' +
                 '<button class="security-add-ok">{{i security.addOkText}}</button>' +
                 '<button class="security-add-cancel">{{i security.addCancelText}}</button>' +
@@ -280,7 +255,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     
     var canvas = $(Mustache.render(uiTemplate, {
         ownerName: securityInfo.SecurityInfo.Owner,
-        isShowUserSuggest: isShowUserSuggest,
         defAccessTypes: this.accessTypes.map(function(type) {
             return {
                 value: type, 
@@ -313,92 +287,50 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         })
     })
     
-    //смена владельца карты
-    $('.changeOwnerLink', canvas).click(function() {
-        var ownerCanvas = _div();
-        var tableSuggestParent = _div();
-        
-        var usersTable = new nsGmx.ScrollTable({limit: 20, pagesCount: 5});
-        var usersProvider = new nsGmx.ScrollTable.StaticDataProvider();
-        
-        if (isShowUserSuggest)
-        {
-            var sortFuncs = {};
-            sortFuncs[_gtxt('Логин')     ] = genSortFunction('Login');
-            sortFuncs[_gtxt('Псевдоним') ] = genSortFunction('Nickname');
-            sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
-            
-            var template = Handlebars.compile(isShowFullname ?
-                '<tr class="security-owner"><td>{{Login}}</td><td>{{Nickname}}</td><td>{{FullName}}</td></tr>'
-                : 
-                '<tr class="security-owner"><td>{{Nickname}}</td></tr>');
-                
-            var drawOwnersFunction = function(user)
-            {
-                var ui = $(template(user)).click(function() {
-                    removeDialog(dialogCanvas);
-                    $('.changeOwnerLink', canvas).text(user.Nickname);
-                    securityInfo.SecurityInfo.NewOwnerID = user.UserID;
-                });
-                
-                ui.children().each(function(i, td) {
-                    td.style.width = this._fields[i].width;
-                }.bind(this));
-                
-                return ui[0];
-            }
-            
-            var filterContainer = _div([_t("Пользователи: ")], [['css', 'margin', '0px 0px 2px 2px']]);
-            _this._createFilterWidget(usersProvider, filterContainer);
-            usersProvider.setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
-                        
-            usersProvider.setSortFunctions(sortFuncs);
-            usersTable.setDataProvider(usersProvider);
-                        
-            if (isShowFullname)
-                usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя")], ['33%', '33%', '34%'], drawOwnersFunction, sortFuncs);
-            else
-                usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
-          
-            _(ownerCanvas, [filterContainer, tableSuggestParent]);
-            
-            usersTable.tableParent.style.height = '150px';
-            usersTable.tableBody.parentNode.parentNode.style.height = '130px';
-        }
-        else
-        {
-            var userInputWidget = new UserInputWidget(ownerCanvas);
-            var changeOwnerButton = makeLinkButton(_gtxt("Сменить владельца"));
-            changeOwnerButton.onclick = function()
-            {
-                userInputWidget.getUserFromServer(serverBase + _this.getUserSecurityName + "?" + _this.propertyName + "=" + _this.propertyValue).then(function(result) {
-                    if (result.IsOwner == true)
-                    {
-                        userInputWidget.showError();
-                        return;
-                    }
-                    
-                    removeDialog(dialogCanvas);
-                    $('.changeOwnerLink', canvas).text(result.Nickname);
-                    securityInfo.SecurityInfo.NewOwnerID = result.UserID;
-                })
-                
-                var res = userInputWidget.getUserInfo();
-                var userParam = (res.isLogin ? "Login=" : "Nickname=") + res.value;
-            }
-            
-            changeOwnerButton.style.marginLeft = '10px';
-            $(ownerCanvas).append(changeOwnerButton);
-        }
-        
-        var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), ownerCanvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 260 : 90);
-    })
+    $('.security-owner-cancel', canvas).click(function() {
+        $('.changeOwnerLink', canvas).click();
+    });
     
+    $('.changeOwnerLink', canvas).click(function() {
+        $(this).toggle();
+        $('.security-owner-container', canvas).toggle();
+        $('.security-owner-input', canvas).val('').focus();
+    });
+    
+    var ownerAddInput = $('.security-owner-input', canvas);
+    ownerAddInput.on('enterpress', function() {
+        $('.security-owner-ok', canvas).click();
+    });
+    
+    wrapUserListInput(ownerAddInput);
+    
+    $('.security-owner-ok', canvas).click(function() {
+        var input = $('.security-owner-input', canvas),
+            name = input.val();
+            
+        var doChangeUser = function(user) {
+            $('.changeOwnerLink', canvas).text(user.Nickname);
+            securityInfo.SecurityInfo.NewOwnerID = user.UserID;
+            $('.changeOwnerLink', canvas).click();
+        }
+        
+        if (name in usersHash) {
+            doChangeUser(usersHash[name]);
+        } else {
+            findUsers(name, 1).then(function(userInfos) {
+                if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
+                    doAddUser(userInfos[0]);
+                } else {
+                    inputError(input[0]);
+                }
+            }, inputError.bind(null, input[0]));
+        }
+    });
+
     var sortFuncs = {};
 
-    sortFuncs[_gtxt('Логин')]      = genSortFunction('Login');
+    sortFuncs[_gtxt('Псевдоним')]      = genSortFunction('Nickname');
     sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
-    sortFuncs[_gtxt('Роль')]       = genSortFunction('Role');
     
     $('.security-add-icon', canvas).click(function() {
         $('.security-add-container', canvas).toggle();
@@ -411,43 +343,37 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     });
     
     $('.security-add-ok', canvas).click(function() {
+        var input = $('.security-add-input', canvas),
+            name = input.val();
+        
+        var addedUsers = _this._securityUsersProvider.getOriginalItems();
+        if (nsGmx._.findWhere(addedUsers, {Nickname: name})) {
+            inputError(input[0]);
+            return;
+        }
+        
         var doAddUser = function(user) {
-            removeMapUser(user, _this._securitySuggestProvider);
             _this._addMapUser(user, _this._securityUsersProvider);
             input.val('').focus();
         }
         
-        var input = $('.security-add-input', canvas),
-            name = input.val();
-        
-        if (isShowUserSuggest) {
-            var allUsers = _this._securitySuggestProvider.getOriginalItems(),
-                user = nsGmx._.findWhere(allUsers, {Nickname: name});
-            
-            if (user) {
-                doAddUser(user);
-            } else {
-                inputError(input[0]);
-            }
+        if (name in usersHash) {
+            doAddUser(usersHash[name]);
         } else {
-            var urlPrefix = serverBase + _this.getUserSecurityName + "?" + _this.propertyName + "=" + _this.propertyValue;
-            UserInputWidget.sendRequest(urlPrefix, name, false).then(doAddUser, inputError.bind(null, input[0]));
-        }
-    });
-    
-    $('.security-add-input', canvas).on('keydown', function(event) {
-        if (event.keyCode === 13) {
-            //setTimeout нужен чтобы autocomplete не дописывал выбранное значение в input после того, как мы его очистим
-            setTimeout(function() {
-                $('.security-add-ok', canvas).click();
-            }, 0);
+            findUsers(name, 1).then(function(userInfos) {
+                if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
+                    doAddUser(userInfos[0]);
+                } else {
+                    inputError(input[0]);
+                }
+            }, inputError.bind(null, input[0]));
         }
     });
     
     this._createFilterWidget(this._securityUsersProvider, $('.access-filters-placeholder', canvas)[0]);
     
-    var fieldNames   = [_gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), _gtxt("Доступ"), ""];
-    var fieldWidthes = ['30%', '30%', '10%','25%','5%'];
+    var fieldNames   = [_gtxt("Псевдоним"), _gtxt("Полное имя"), /*_gtxt("Роль"),*/ _gtxt("Доступ"), ""];
+    var fieldWidthes = ['35%', '35%', '25%','5%'];
     
     this._securityUsersProvider.setSortFunctions(sortFuncs);
     this._securityTable.setDataProvider(this._securityUsersProvider);
@@ -462,59 +388,33 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
         
         var nonTableHeight = 
-                $('.security-header', canvas).height() + 
-                $('.security-suggest-header', canvas).height() + $('.suggest-filters-placeholder', canvas).height() +
-                $('.security-access-header', canvas).height() + 15;
+            $('.security-header', canvas).height() + 
+            $('.security-access-header', canvas).height() + 15;
 
         mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 60;
         
         _this._securityTable.updateHeight(mapTableHeight);
     }
 
-    showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, isShowUserSuggest ? 470 : 370, false, false, resize);
+    showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, 370, false, false, resize);
     
     $('.access-filters-placeholder input', canvas).focus();
     
-    resize();
+    var addInput = $('.security-add-input', canvas);
+    addInput.on('enterpress', function() {
+        $('.security-add-ok', canvas).click();
+    })
+    wrapUserListInput(addInput);
     
-    if ( isShowUserSuggest )
-    {
-        var vals = [];
-        
-        for ( var u = 0; u < securityInfo.UsersWithoutAccess.length; u++)
-            if ( securityInfo.UsersWithoutAccess[u].Role != nsGmx.ROLE_ADMIN )
-                vals.push(securityInfo.UsersWithoutAccess[u]);
-
-        var logins;
-        var updateAutocompleteSource = function() {
-            logins = nsGmx._.pluck(_this._securitySuggestProvider.getOriginalItems(), 'Nickname');
-        }
-        $(this._securitySuggestProvider).change(updateAutocompleteSource);
-        
-        this._securitySuggestProvider.setOriginalItems(vals);
-        
-        // console.log(nsGmx._.pluck(this._securitySuggestProvider.getOriginalItems(), 'Login'));
-        $('.security-add-input', canvas).autocomplete({
-            source: function(request, response) {
-                var results = $.ui.autocomplete.filter(logins, request.term);
-                response(results.slice(0, 10));
-            }
-        });
-    }
+    resize();
 
     this._securityUsersProvider.setOriginalItems( securityInfo.SecurityInfo.Users );
 }
 
 security.prototype._drawMapUsers = function(user, securityScope)
 {
-    //иногда бывает, что админы тоже попадают в список людей с доступом
-    //но показывать их в этом списке не имеет смысла
-    if (user.Role === 'admin') {
-        return null;
-    }
-    
     var remove = makeImageButton('img/recycle.png', 'img/recycle_a.png'),
-        tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
+        tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove], [['css', 'textAlign', 'center']]),
         accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','130px']]),
         isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
         tr;
@@ -529,14 +429,8 @@ security.prototype._drawMapUsers = function(user, securityScope)
         if (tr)
             tr.removeNode(true);
         
-        // уберем пользователя из одного списка
+        // уберем пользователя из списка
         removeMapUser(user, securityScope._securityUsersProvider);
-        
-        if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS))
-        {
-            // добавим в другой
-            securityScope._addMapUser(user, securityScope._securitySuggestProvider);
-        }
     }
     
     switchSelect(accessSel, user.Access);
@@ -547,7 +441,7 @@ security.prototype._drawMapUsers = function(user, securityScope)
     }
     
     var tdNickname = _td([_div([_t(user.Nickname)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    var tdRole  = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
+    //var tdRole  = _td([_t(user.Role || '')], [['css','textAlign','center'],['css','color','#999999']]);
     var tdAccess = _td([accessSel],[['css','textAlign','center']]);
     
     var tdLogin = _td([_div([_t(user.Login)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
@@ -556,7 +450,7 @@ security.prototype._drawMapUsers = function(user, securityScope)
     tr = _tr([
         tdNickname,
         tdFullname,
-        tdRole,
+        //tdRole,
         tdAccess,
         tdRemove
     ]);

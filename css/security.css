@@ -1,5 +1,7 @@
 .security-header-table {
     width: 100%;
+    height: 22px;
+    margin-bottom: 12px;
 }
 
 .security-header {
@@ -59,7 +61,21 @@
     top: 0px;
 }
 
-.security-add-container > button {
+.security-add-container > button, .security-owner-container > button {
     margin-left: 10px;
     padding: 0px 5px;
+}
+
+.security-canvas .ui-autocomplete {
+    border: 1px solid #AAA;
+    padding: 0px;
+}
+
+.security-owner-container {
+    display: inline-block;
+}
+
+.security-owner-cell {
+    width: 100%;
+    padding-left: 5px;
 }
