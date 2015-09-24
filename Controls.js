@@ -154,6 +154,12 @@ nsGmx.Controls = {
     */
     chooseDrawingBorderDialog: function(name, callback, params)
     {
+        var TYPE_CONVERT_DICT = {
+            Polyline: 'linestring',
+            Rectangle: 'polygon',
+            Polygon: 'polygon',
+            Point: 'point'
+        }
         var _params = $.extend({
             title:         _gtxt("Выбор контура"),
             geomType:      null,
@@ -170,7 +176,7 @@ nsGmx.Controls = {
         
         nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(obj)
         {
-            if (!_params.geomType || obj.getType().toLowerCase() === _params.geomType.toLowerCase()) {
+            if (!_params.geomType || TYPE_CONVERT_DICT[obj.getType()] === _params.geomType.toLowerCase()) {
                 drawingObjs.push(obj);
             }
         })
