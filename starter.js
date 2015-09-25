@@ -1029,7 +1029,7 @@ function loadMap(state)
             var data = gmxMap.rawTree;
             
             var mapProp = gmxMap.rawTree.properties || {}
-            var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['map', 'hybrid', 'satellite'];
+            var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['OSM', 'OSMHybrid', 'satellite'];
             
             lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
 
