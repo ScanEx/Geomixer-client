@@ -20,7 +20,7 @@ nsGmx.Translations.addText('rus', {security: {
     },
     accessHeaderLabel: 'Права доступа',
     addUserTitle: 'Добавить доступ пользователю',
-    addUserPlaceholder: 'псевдоним',
+    addUserPlaceholder: 'псевдоним или почта',
     addOkText: 'Добавить',
     addCancelText: 'Готово'
 }});
@@ -41,7 +41,7 @@ nsGmx.Translations.addText('eng', {security: {
     },
     accessHeaderLabel: 'Access rules',
     addUserTitle: 'Add aceess to user',
-    addUserPlaceholder: 'nickname',
+    addUserPlaceholder: 'nickname or e-mail',
     addOkText: 'Add',
     addCancelText: 'Cancel'
 }});
@@ -86,8 +86,6 @@ var wrapUserListInput = function(input) {
             }, cbResponse.bind(null, []));
         }
     });
-    
-    
 }
 
 var removeMapUser = function(user, dataProvider)
@@ -112,7 +110,7 @@ var security = function()
     this.propertyValue = null;
     this.title = null;
     
-    this._securityTable = new nsGmx.ScrollTable({limit:20, pagesCount: 5});
+    this._securityTable = new nsGmx.ScrollTable({limit: 500, showFooter: false});
     this._securityUsersProvider = new nsGmx.ScrollTable.StaticDataProvider();
 }
 
@@ -160,30 +158,6 @@ var multiLayerSecurity = function()
 
 multiLayerSecurity.prototype = new security();
 multiLayerSecurity.prototype.constructor = multiLayerSecurity;
-
-//добавляет в container поля поиска и связывает их с фильтрами dataProvider'a
-security.prototype._createFilterWidget = function(dataProvider, container)
-{
-    var filterInput = _input(null, [['css','width','110px'],['dir','className','inputStyle']]);
-    
-    _(container, [
-        _span([filterInput], [['css','fontSize','12px']])
-    ]);
-    
-    var inputFilterFunc = function(fieldName, fieldValue, vals) {
-        if (fieldValue == '')
-            return vals;
-        
-        fieldValue = fieldValue.toLowerCase();
-        
-        return vals.filter(function(value) {
-            return value.Nickname.toLowerCase().indexOf(fieldValue) > -1 || 
-                   (value.FullName && value.FullName.toLowerCase().indexOf(fieldValue) > -1);
-        });
-    };
-    
-    dataProvider.attachFilterEvents(filterInput, 'Login', inputFilterFunc);
-}
 
 security.prototype.getRights = function(value, title)
 {
@@ -242,7 +216,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             '</div>' + 
         '</div>' +
         '<div class="security-access-header">' +
-            '{{i security.accessHeaderLabel}} <span class="access-filters-placeholder"></span>' +
+            '<span class="security-access-label">{{i security.accessHeaderLabel}}</span>' +
             '<div class="security-add-icon" title="{{i security.addUserTitle}}"></div>' +
             '<div class="security-add-container ui-front" style="display: none">' +
                 '<input class="security-add-input inputStyle" placeholder="{{i security.addUserPlaceholder}}">' +
@@ -319,7 +293,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         } else {
             findUsers(name, 1).then(function(userInfos) {
                 if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
-                    doAddUser(userInfos[0]);
+                    doChangeUser(userInfos[0]);
                 } else {
                     inputError(input[0]);
                 }
@@ -329,8 +303,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 
     var sortFuncs = {};
 
-    sortFuncs[_gtxt('Псевдоним')]      = genSortFunction('Nickname');
+    sortFuncs[_gtxt('Псевдоним')]  = genSortFunction('Nickname');
     sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
+    sortFuncs[_gtxt('Доступ')]     = genSortFunction('Access');
     
     $('.security-add-icon', canvas).click(function() {
         $('.security-add-container', canvas).toggle();
@@ -361,6 +336,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             doAddUser(usersHash[name]);
         } else {
             findUsers(name, 1).then(function(userInfos) {
+                //TODO: обработать ситуацию, когда пользователь вводит email
                 if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
                     doAddUser(userInfos[0]);
                 } else {
@@ -369,12 +345,10 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             }, inputError.bind(null, input[0]));
         }
     });
-    
-    this._createFilterWidget(this._securityUsersProvider, $('.access-filters-placeholder', canvas)[0]);
-    
+
     var fieldNames   = [_gtxt("Псевдоним"), _gtxt("Полное имя"), /*_gtxt("Роль"),*/ _gtxt("Доступ"), ""];
     var fieldWidthes = ['35%', '35%', '25%','5%'];
-    
+
     this._securityUsersProvider.setSortFunctions(sortFuncs);
     this._securityTable.setDataProvider(this._securityUsersProvider);
     this._securityTable.createTable($('.access-table-placeholder', canvas)[0], 'securityTable', 0, fieldNames, fieldWidthes, function(arg)
@@ -391,14 +365,12 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             $('.security-header', canvas).height() + 
             $('.security-access-header', canvas).height() + 15;
 
-        mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 60;
+        mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 10;
         
         _this._securityTable.updateHeight(mapTableHeight);
     }
 
     showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, 370, false, false, resize);
-    
-    $('.access-filters-placeholder input', canvas).focus();
     
     var addInput = $('.security-add-input', canvas);
     addInput.on('enterpress', function() {
@@ -421,7 +393,10 @@ security.prototype._drawMapUsers = function(user, securityScope)
     
     var accessList = securityScope.accessTypes;
     for (var i = 0; i < accessList.length; ++i) {
-        _(accessSel, [_option([_t(_gtxt('security.access.' + accessList[i]))],[['attr', 'value', accessList[i]]])]);
+        //в списках пользователей нет смысла показывать пункт "нет доступа"
+        if (accessList[i] !== 'no') {
+            _(accessSel, [_option([_t(_gtxt('security.access.' + accessList[i]))],[['attr', 'value', accessList[i]]])]);
+        }
     }
 
     remove.onclick = function()
@@ -441,7 +416,6 @@ security.prototype._drawMapUsers = function(user, securityScope)
     }
     
     var tdNickname = _td([_div([_t(user.Nickname)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    //var tdRole  = _td([_t(user.Role || '')], [['css','textAlign','center'],['css','color','#999999']]);
     var tdAccess = _td([accessSel],[['css','textAlign','center']]);
     
     var tdLogin = _td([_div([_t(user.Login)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
@@ -450,7 +424,6 @@ security.prototype._drawMapUsers = function(user, securityScope)
     tr = _tr([
         tdNickname,
         tdFullname,
-        //tdRole,
         tdAccess,
         tdRemove
     ]);
