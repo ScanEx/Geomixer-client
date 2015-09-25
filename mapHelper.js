@@ -66,7 +66,7 @@ var mapHelper = function()
                 obj.on('edit', editListener);
                 
 				_borders[name] = {
-                    isChanged: false,
+                    isChanged: !!_borders[name],
                     drawingFeature: obj,
                     editListener: editListener
                 }
