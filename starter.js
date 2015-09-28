@@ -981,7 +981,7 @@ function loadMap(state)
                 var zoomX = Math.log( ws * screenSize[0] / (mercBounds.max.x - mercBounds.min.x))/Math.log(2) - 8;
                 var zoomY = Math.log( ws * screenSize[1] / (mercBounds.max.y - mercBounds.min.y))/Math.log(2) - 8;
                 
-                defZoom = Math.floor(Math.min(zoomX, zoomY));
+                defZoom = Math.floor(Math.min(zoomX, zoomY, 17));
                 defCenter = proj.unproject(mercBounds.getCenter());
             }
         }
