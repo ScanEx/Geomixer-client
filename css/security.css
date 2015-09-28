@@ -17,15 +17,6 @@
     padding: 0px 5px;
 }
 
-.security-access-header {
-    font-size: 12px;
-    font-weight: bold;
-    position: relative;
-    margin-bottom: 5px;
-    line-height: 22px;
-    height: 22px;
-}
-
 .security-access-header > * {
     vertical-align: middle;
 }
@@ -50,9 +41,9 @@
     display: inline-block;
 }
 
-
 .security-add-container {
-    display: inline-block;
+    font-size: 12px;
+    margin-bottom: 5px;
 }
 
 .security-add-container > button, .security-owner-container > button {
@@ -72,4 +63,8 @@
 .security-owner-cell {
     width: 100%;
     padding-left: 5px;
+}
+
+.security-add-input {
+    width: 170px;
 }

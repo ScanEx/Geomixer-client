@@ -18,11 +18,8 @@ nsGmx.Translations.addText('rus', {security: {
         'public': 'публичный',
         'private': 'частный'
     },
-    accessHeaderLabel: 'Права доступа',
-    addUserTitle: 'Добавить доступ пользователю',
-    addUserPlaceholder: 'псевдоним или почта',
-    addOkText: 'Добавить',
-    addCancelText: 'Готово'
+    addHeaderLabel: 'Введите пользователя или группу',
+    addOkText: 'Добавить'
 }});
 
 nsGmx.Translations.addText('eng', {security: {
@@ -39,11 +36,8 @@ nsGmx.Translations.addText('eng', {security: {
         'public': 'public',
         'private': 'private'
     },
-    accessHeaderLabel: 'Access rules',
-    addUserTitle: 'Add aceess to user',
-    addUserPlaceholder: 'nickname or e-mail',
-    addOkText: 'Add',
-    addCancelText: 'Cancel'
+    addHeaderLabel: 'Enter user or group',
+    addOkText: 'Add'
 }});
 
 //делает запрос на сервер и возвращает список пользователей по запросу query
@@ -215,14 +209,10 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 '</select>' +
             '</div>' + 
         '</div>' +
-        '<div class="security-access-header">' +
-            '<span class="security-access-label">{{i security.accessHeaderLabel}}</span>' +
-            '<div class="security-add-icon" title="{{i security.addUserTitle}}"></div>' +
-            '<div class="security-add-container ui-front" style="display: none">' +
-                '<input class="security-add-input inputStyle" placeholder="{{i security.addUserPlaceholder}}">' +
-                '<button class="security-add-ok">{{i security.addOkText}}</button>' +
-                '<button class="security-add-cancel">{{i security.addCancelText}}</button>' +
-            '</div>' +
+        '<div class="security-add-container ui-front">' +
+            '<span class="security-access-label">{{i security.addHeaderLabel}}</span>' +
+            '<input class="security-add-input inputStyle">' +
+            '<button class="security-add-ok">{{i security.addOkText}}</button>' +
         '</div>' +
         '<div class="access-table-placeholder"></div>' +
     '</div>';
@@ -307,16 +297,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     sortFuncs[_gtxt('Полное имя')] = genSortFunction('FullName');
     sortFuncs[_gtxt('Доступ')]     = genSortFunction('Access');
     
-    $('.security-add-icon', canvas).click(function() {
-        $('.security-add-container', canvas).toggle();
-        $('.security-add-input', canvas).val('').focus();
-        $(this).toggle();
-    });
-    
-    $('.security-add-cancel', canvas).click(function() {
-        $('.security-add-icon', canvas).click();
-    });
-    
     $('.security-add-ok', canvas).click(function() {
         var input = $('.security-add-input', canvas),
             name = input.val();
@@ -363,7 +343,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         
         var nonTableHeight = 
             $('.security-header', canvas).height() + 
-            $('.security-access-header', canvas).height() + 15;
+            $('.security-add-container', canvas).height() + 15;
 
         mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 10;
         
