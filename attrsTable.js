@@ -565,12 +565,16 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 {
                     if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
+                        var layer = nsGmx.gmxMap.layersByID[_this.layerName];
+                        
+                        var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
+                        
                         var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
                         var bounds = L.gmxUtil.getGeometryBounds(geom);
                         nsGmx.leafletMap.fitBounds([
                             [bounds.min.y, bounds.min.x],
                             [bounds.max.y, bounds.max.x]
-                        ]);
+                        ], fitBoundsOptions);
                     }
                 }
             })
