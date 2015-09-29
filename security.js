@@ -210,7 +210,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             '</div>' + 
         '</div>' +
         '<div class="security-add-container ui-front">' +
-            '<span class="security-access-label">{{i security.addHeaderLabel}}</span>' +
+            '<span class="security-access-label">{{i security.addHeaderLabel}}: </span>' +
             '<input class="security-add-input inputStyle">' +
             '<button class="security-add-ok">{{i security.addOkText}}</button>' +
         '</div>' +
