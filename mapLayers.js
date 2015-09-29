@@ -1766,7 +1766,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
                     newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
             }
             
-            var convertedCoords = L.gmxUtil.convertGeometry(newLayer.geometry, true);
+            var convertedCoords = newLayer.geometry ? L.gmxUtil.convertGeometry(newLayer.geometry, true) : null;
 
             _layersTree.addLayersToMap({content:{properties: newProps, geometry: newLayer.geometry}});
             
