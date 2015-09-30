@@ -51,13 +51,13 @@
             publicInterface.setMMSI = function(mmsiArr, bbox) {
                 if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
                 if (!nsGmx.leafletMap) {    // для старого АПИ
-                    var st = '(' + mmsiArr.join(',') + ')';
+                    var st = mmsiArr.length ? '(' + mmsiArr.join(',') + ')' : '';
                     if (aisLayer) {
-                        aisLayer.setVisibilityFilter('[mmsi] in ' + st);
+                        aisLayer.setVisibilityFilter(st ? '[mmsi] in ' + st : '');
                         aisLayer.setVisible(true);
                     }
                     if (tracksLayer) {
-                        tracksLayer.setVisibilityFilter('[MMSI] in ' + st);
+                        tracksLayer.setVisibilityFilter(st ? '[MMSI] in ' + st : '');
                         tracksLayer.setVisible(true);
                     }
                 } else {
@@ -265,11 +265,11 @@
                     if (!nsGmx.leafletMap) {    // для старого АПИ
                         if (aisLayer) {
                             aisLayer.setVisibilityFilter('');
-                            aisLayer.setVisible(false);
+                            // aisLayer.setVisible(false);
                         }
                         if (tracksLayer) {
                             tracksLayer.setVisibilityFilter('');
-                            tracksLayer.setVisible(false);
+                            // tracksLayer.setVisible(false);
                         }
                     } else {
                         if (aisLayer) {
