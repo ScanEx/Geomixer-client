@@ -390,6 +390,7 @@ _translationsHash.hash["eng"] = {
 		
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
 	"Редактирование прав доступа слоя [value0]" : "Layer [value0] access editor",
+	"Состав группы [value0]" : "Users of group [value0]",
 	"Роль" : "Role",
 	"Добавить пользователя" : "Add user",
 	"Права доступа" : "Access permissions",

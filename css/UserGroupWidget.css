@@ -1,0 +1,42 @@
+.uglw-list-placeholder {
+    margin-top: 5px;
+}
+
+.uglw-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.uglw-row:hover {
+    background-color: #DEDEDE;
+    cursor: default;
+}
+
+.uglw-table-title {
+    width: 45%;
+}
+
+.uglw-table-descr {
+    width: 50%;
+}
+
+.gmx-icon-recycle {
+    display: inline-block;
+    width: 10px;
+    height: 12px;
+    background: url(../img/recycle.png);
+    cursor: pointer;
+}
+
+.gmx-icon-recycle:hover {
+    background: url(../img/recycle_a.png);
+}
+
+.uglw-group-name {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.uglw-add-icon {
+    float: right;
+}

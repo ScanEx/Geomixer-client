@@ -221,6 +221,16 @@ var createMenuNew = function()
             }}
 		]
     });
+    
+    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+        _menuUp.addChildItem({id: 'userGroups', title: 'Управление группами', func: function(){
+            gmxCore.loadModule('UserGroupWidget').then(function(module) {
+                var canvas = $('<div/>');
+                new module.UserGroupListWidget(canvas);
+                canvas.dialog({width: 400, height: 400});
+            });
+        }}, 'mapsMenu');
+    }
 }
 
 var createToolbar = function() {
