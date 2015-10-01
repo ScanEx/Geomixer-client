@@ -152,8 +152,7 @@ var SearchInput = function (oInitContainer, params) {
 	@function
 	@see Search.SearchInput#SetPlaceholder*/
 	this.SetPlaceholder = function(value) {
-        searchField.value = '';
-        searchField.placeholder = sDefaultValue = value;
+        searchField.value = searchField.placeholder = sDefaultValue = value;
     };
 
 	if (params.Search != null) $(this).bind('Search', params.Search);
