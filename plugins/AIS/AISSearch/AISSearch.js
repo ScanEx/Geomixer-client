@@ -1,17 +1,19 @@
 ﻿(function() {
     var pluginName = 'AISSearch',
-        serverPrefix = serverBase || 'http://maps.kosmosnimki.ru/';
+        serverPrefix = serverBase || 'http://maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx';
 
     _translationsHash.addtext('rus', {
-        'AISSearch.iconTitle' : 'Поиск кораблей по экрану'
+        'AISSearch.iconTitle' : 'Поиск кораблей по экрану',
+        'AISSearch.placeholder_0' : 'Поиск по адресам, координатам.',
+        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам.'
     });
     _translationsHash.addtext('eng', {
-        'AISSearch.iconTitle' : 'Find ships in polygons'
+        'AISSearch.iconTitle' : 'Find ships in polygons',
+        'AISSearch.placeholder_0' : 'Search for addresses, coordinates.',
+        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number.'
     });
-    // var plugin = nsGmx.pluginsManager.getPluginByName('AISSearch');
-    // var mmsiArr = [275171000];
-    // if (plugin) { plugin.body.setMMSI(mmsiArr);
+    
     var publicInterface = {
         pluginName: pluginName,
         afterViewer: function(params, map) {
@@ -21,7 +23,9 @@
                 activeImage: 'active.png',
                 layerName: null
             }, params);
-            
+
+            var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null;
+            var placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0');
             var layerName = _params.layerName;
             
             var gmxLayers,
@@ -191,6 +195,9 @@
                         }
                         if (values.length) {
                             node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle', div);
+                            if (params.height) {
+                                node.style.height = params.height + 'px';
+                            }
                             node.setAttribute('size', 15);
                             node.setAttribute('multiple', true);
                             node.onchange = function(ev) {
@@ -232,8 +239,7 @@
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
-            var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null,
-                searchHook = function(str) {
+            var searchHook = function(str) {
                     var res = sideBar && sideBar._map ? true : false;
                     if (res) {
                         getMMSIoptions(str);
@@ -252,12 +258,14 @@
                 if (isActive) {
                     if (searchControl) {
                         searchControl.addSearchByStringHook(searchHook, 1000);
+                        searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1'));
                     }
                     lmap.addControl(sideBar);
                     getMMSIoptions();
                 } else {
                     if (searchControl) {
                         searchControl.removeSearchByStringHook(searchHook);
+                        searchControl.SetPlaceholder(placeholderDefault);
                     }
                     if (sideBar && sideBar._map) {
                         lmap.removeControl(sideBar);
