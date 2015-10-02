@@ -146,7 +146,12 @@ var SearchInput = function (oInitContainer, params) {
 	/** Устанавливает содержимое поля поиска
 	@function
 	@see Search.SearchInput#GetSearchString*/
-	this.SetSearchString = function(value) {searchField.value = value};
+	this.SetSearchString = function(value) {searchField.value = value;};
+
+	/** Устанавливает содержимое поля поиска
+	@function
+	@see Search.SearchInput#SetSearchStringFocus*/
+	this.SetSearchStringFocus = function(flag) {if (flag) searchField.focus(); else searchField.blur();};
 
 	/** Устанавливает подсказку поля поиска
 	@function
@@ -1854,6 +1859,10 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	this.SetSearchString = function(value){
 		btnSearch.SetSearchString(value);
 	}
+	this.SetSearchStringFocus = function(value){
+		btnSearch.SetSearchStringFocus(value);
+	}
+    
 	/**Устанавливает подсказку строки поиска*/
 	this.SetPlaceholder = function(value){
 		btnSearch.SetPlaceholder(value);
@@ -2016,6 +2025,9 @@ var SearchGeomixer = function(){
 	/**Устанавливает строку поиска*/
 	this.SetSearchString = function(value){
 		oSearchControl.SetSearchString(value);
+	}
+	this.SetSearchStringFocus = function(value){
+		oSearchControl.SetSearchStringFocus(value);
 	}
 	/**Устанавливает подсказку строки поиска*/
 	this.SetPlaceholder = function(value){

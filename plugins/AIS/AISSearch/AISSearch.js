@@ -5,13 +5,13 @@
 
     _translationsHash.addtext('rus', {
         'AISSearch.iconTitle' : 'Поиск кораблей по экрану',
-        'AISSearch.placeholder_0' : 'Поиск по адресам, координатам.',
-        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам.'
+        'AISSearch.placeholder_0' : 'Поиск по адресам, координатам',
+        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам'
     });
     _translationsHash.addtext('eng', {
         'AISSearch.iconTitle' : 'Find ships in polygons',
-        'AISSearch.placeholder_0' : 'Search for addresses, coordinates.',
-        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number.'
+        'AISSearch.placeholder_0' : 'Search for addresses, coordinates',
+        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
     });
     
     var publicInterface = {
@@ -257,7 +257,7 @@
                 var isActive = ev.target.options.isActive;
                 if (isActive) {
                     if (searchControl) {
-                        searchControl.addSearchByStringHook(searchHook, 1000);
+                        searchControl.addSearchByStringHook(searchHook, 1002);
                         searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1'));
                     }
                     lmap.addControl(sideBar);
