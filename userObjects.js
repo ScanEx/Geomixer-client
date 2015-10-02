@@ -27,7 +27,6 @@ nsGmx.userObjectsManager = {
 	 @method
 	*/
     collect: function() {
-        this._data = {};
         for (var id in this._collectors) {
             if ('collect' in this._collectors[id]) {
                 var data = this._collectors[id].collect();
