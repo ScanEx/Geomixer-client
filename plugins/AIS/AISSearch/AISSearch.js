@@ -4,11 +4,19 @@
         serverScript = serverPrefix + 'VectorLayer/Search.ashx';
 
     _translationsHash.addtext('rus', {
+        'AISSearch.title' : 'Поиск кораблей',
+        'AISSearch.title1' : 'Найдено кораблей',
+        'AISSearch.title2' : '<b>Данных не найдено!</b>',
+        'AISSearch.error' : '<b>Ошибка при получении данных!</b>',
         'AISSearch.iconTitle' : 'Поиск кораблей по экрану',
         'AISSearch.placeholder_0' : 'Поиск по адресам, координатам',
         'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам'
     });
     _translationsHash.addtext('eng', {
+        'AISSearch.title' : 'Searching vessels',
+        'AISSearch.title1' : 'Vessels found',
+        'AISSearch.title2' : '<b>Vessels not found!</b>',
+        'AISSearch.error' : '<b>Vessels not found!</b>',
         'AISSearch.iconTitle' : 'Find ships in polygons',
         'AISSearch.placeholder_0' : 'Search for addresses, coordinates',
         'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
@@ -100,7 +108,7 @@
                 var cont = sideBar.getContainer();
                 L.DomEvent.disableScrollPropagation(cont);
                 cont.appendChild(div);
-                title.innerHTML = 'Поиск кораблей';
+                title.innerHTML = _gtxt(pluginName + '.title');
                 
                 aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
                 if (!layersByID[aisLayerID]) {
@@ -227,12 +235,12 @@
                                 opt.text = val.replace(/\s+$/, '');
                                 return opt;
                             });
-                            title.innerHTML = 'Найдено кораблей: <b>' + values.length + '</b>';
+                            title.innerHTML = _gtxt(pluginName + '.title1') + ': <b>' + values.length + '</b>';
                         } else {
-                            title.innerHTML = '<b>Данных не найдено!</b>';
+                            title.innerHTML = _gtxt(pluginName + '.title2');
                         }
                     } else {
-                        title.innerHTML = '<b>Ошибка при получении данных!</b>';
+                        title.innerHTML = _gtxt(pluginName + '.error');
                     }
                 });
             }
