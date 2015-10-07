@@ -17,7 +17,7 @@
         'AISSearch.title1' : 'Vessels found',
         'AISSearch.title2' : '<b>Vessels not found!</b>',
         'AISSearch.error' : '<b>Vessels not found!</b>',
-        'AISSearch.iconTitle' : 'Find ships in polygons',
+        'AISSearch.iconTitle' : 'Search vessels within the view area',
         'AISSearch.placeholder_0' : 'Search for addresses, coordinates',
         'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
     });
@@ -266,14 +266,14 @@
                 if (isActive) {
                     if (searchControl) {
                         searchControl.addSearchByStringHook(searchHook, 1002);
-                        searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1'));
+                        if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
                     }
                     lmap.addControl(sideBar);
                     getMMSIoptions();
                 } else {
                     if (searchControl) {
                         searchControl.removeSearchByStringHook(searchHook);
-                        searchControl.SetPlaceholder(placeholderDefault);
+                        if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(placeholderDefault); }
                     }
                     if (sideBar && sideBar._map) {
                         lmap.removeControl(sideBar);
