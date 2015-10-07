@@ -145,6 +145,19 @@ var SearchInput = function (oInitContainer, params) {
 	@function
 	@see Search.SearchInput#GetSearchString*/
 	this.SetSearchString = function(value) {searchField.value = value};
+
+	/** Устанавливает содержимое поля поиска
+	@function
+	@see Search.SearchInput#SetSearchStringFocus*/
+	this.SetSearchStringFocus = function(flag) {if (flag) searchField.focus(); else searchField.blur();};
+
+	/** Устанавливает подсказку поля поиска
+	@function
+	@see Search.SearchInput#SetPlaceholder*/
+	this.SetPlaceholder = function(value) {
+        searchField.value = searchField.placeholder = sDefaultValue = value;
+    };
+
 	if (params.Search != null) $(this).bind('Search', params.Search);
 	if (params.AutoCompleteSelect != null) $(this).bind('AutoCompleteSelect', params.AutoCompleteSelect)
 		
@@ -1796,6 +1809,14 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	this.SetSearchString = function(value){
 		btnSearch.SetSearchString(value);
 	}
+	this.SetSearchStringFocus = function(value){
+		btnSearch.SetSearchStringFocus(value);
+	}
+    
+	/**Устанавливает подсказку строки поиска*/
+	this.SetPlaceholder = function(value){
+		btnSearch.SetPlaceholder(value);
+	}
 	
 	/**Показывает режим загрузки
 	@returns {void}*/
@@ -1953,6 +1974,13 @@ var SearchGeomixer = function(){
 	/**Устанавливает строку поиска*/
 	this.SetSearchString = function(value){
 		oSearchControl.SetSearchString(value);
+	}
+	this.SetSearchStringFocus = function(value){
+		oSearchControl.SetSearchStringFocus(value);
+	}
+	/**Устанавливает подсказку строки поиска*/
+	this.SetPlaceholder = function(value){
+		oSearchControl.SetPlaceholder(value);
 	}
     
     this.getSearchControl = function() {
