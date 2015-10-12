@@ -324,7 +324,7 @@ var mapSecurity = function()
 mapSecurity.prototype = new security();
 mapSecurity.prototype.constructor = mapSecurity;
 
-var layerSecurity = function()
+var layerSecurity = function(layerType)
 {
     this.getSecurityName = "Layer/GetSecurity.ashx";
     this.updateSecurityName = "Layer/UpdateSecurity.ashx";
@@ -332,7 +332,7 @@ var layerSecurity = function()
     this.propertyName = "LayerID";
     this.dialogTitle = "Редактирование прав доступа слоя [value0]";
     
-    this.accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
+    this.accessTypes = layerType === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
 }
 
 layerSecurity.prototype = new security();

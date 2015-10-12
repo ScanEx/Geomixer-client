@@ -49,6 +49,7 @@
 .security-add-container {
     font-size: 12px;
     margin-bottom: 5px;
+    position: relative;
 }
 
 .security-add-container > button, .security-owner-container > button {
