@@ -4,7 +4,11 @@
 
 nsGmx.Translations.addText('rus', {uglw: {
     headerTitle: 'Фильтр',
-    listhead: {
+    listheader: {
+        title: 'Название',
+        description: 'Описание'
+    },
+    groupProps: {
         title: 'Название',
         description: 'Описание'
     }
@@ -12,7 +16,11 @@ nsGmx.Translations.addText('rus', {uglw: {
 
 nsGmx.Translations.addText('eng', {uglw: {
     headerTitle: 'Filter',
-    listhead: {
+    listheader: {
+        title: 'Title',
+        description: 'Description'
+    },
+    groupProps: {
         title: 'Title',
         description: 'Description'
     }
@@ -46,13 +54,13 @@ var GroupListView = Backbone.View.extend({
     template: Handlebars.compile(
         '<table class="uglw-table">' +
             '<thead class="tableHeader">' +
-                '<th class="uglw-table-title">{{i "uglw.listhead.title"}}</th>' +
-                '<th class="uglw-table-descr">{{i "uglw.listhead.description"}}</th>' +
+                '<th class="uglw-table-title">{{i "uglw.listheader.title"}}</th>' +
+                '<th class="uglw-table-descr">{{i "uglw.listheader.description"}}</th>' +
                 '<th></th>' +
             '</thead><tbody class="tableBody">' +
             '{{#users}}' +
             '<tr class="uglw-row">' +
-                '<td><span class="uglw-group-name" data-groupid="{{UserID}}">{{Title}}</span></td>' +
+                '<td><span class="uglw-group-name" data-groupid="{{UserID}}">{{Nickname}}</span></td>' +
                 '<td>{{Description}}</td>' +
                 '<td><div class="gmx-icon-recycle" data-groupid="{{UserID}}"></div></td>' +
             '</tr>' +
@@ -117,23 +125,18 @@ nsGmx.UserGroupListWidget._mainTemplate = Handlebars.compile('<div>' +
 var ShowUserGroupDialog = function(groupID) {
     
     var doShow = function(groupInfo) {
-        // var container = $('<div/>');
-        // var userGroupWidget = new nsGmx.UserGroupWidget(container, groupInfo);
-        // container.dialog();
-        
         if (groupID) {
-            var groupSecurity = new nsGmx.userGroupSecurity();
+            var groupSecurity = new UserGroupSecurity();
+            groupSecurity.propertyValue = groupID;
             groupSecurity.getSecurityFromServer(groupID).then(function(res) {
-                groupSecurity.createGroupSecurityDialog(res);
+                groupSecurity.createMapSecurityDialog(res);
             })
         } else {
-            // groupSecurity.createGroupSecurityDialog({SecurityInfo: {}});
+
         }
-        // groupSecurity.getRights(groupID, groupInfo.Title);
     }
     
     if (groupID) {
-    
         sendCrossDomainJSONRequest(serverBase + 'User/GroupInfo?groupID=' + groupID, function(response) {
             if (!parseResponse(response)) {
                 return;
@@ -148,73 +151,38 @@ var ShowUserGroupDialog = function(groupID) {
     }
 }
 
-
-var UserList = Backbone.Model.extend({});
-var UserListView = Backbone.View.extend({
-    template: Handlebars.compile(
-        '<table class="uglw-table">' +
-            '<thead class="tableHeader">' +
-                '<th class="uglw-table-title">{{i "ugw.listhead.nickname"}}</th>' +
-                '<th class="uglw-table-descr">{{i "ugw.listhead.fullname"}}</th>' +
-                '<th class="uglw-table-descr">{{i "ugw.listhead.fullname"}}</th>' +
-                '<th></th>' +
-            '</thead><tbody class="tableBody">' +
-            '{{#users}}' +
-            '<tr class="uglw-row">' +
-                '<td><span class="uglw-group-name" data-groupid="{{UserID}}">{{Title}}</span></td>' +
-                '<td>{{Description}}</td>' +
-                '<td><div class="gmx-icon-recycle" data-groupid="{{UserID}}"></div></td>' +
-            '</tr>' +
-        '{{/users}}</tbody></table>'
-    ),
-    initialize: function() {
-        this.listenTo(this.model, 'reset', this.render);
-    },
-    render: function() {
-        var rawAttributes = this.model.map(function(user) {
-            return user.attributes;
-        });
-        
-        this.$el.empty().append($(this.template({users: rawAttributes})));
-        this.$el.find('.uglw-group-name').click(function() {
-            var groupID = Number($(this).data('groupid'));
-            ShowUserGroupDialog(groupID);
-        })
-        
-        this.$el.find('.gmx-icon-recycle').click(function() {
-            var groupID = Number($(this).data('groupid'));
-            console.log('remove', groupID);
-        })
-    }
-});
-
-
-/*nsGmx.UserGroupWidget = function(container, groupInfo) {
-    this._groupInfo = groupInfo;
-    this._ui = $(nsGmx.UserGroupWidget._mainTemplate(groupInfo)).appendTo(container);
+var UserGroupSecurity = function()
+{
+    this.getSecurityName = "User/GetUserGroupSecurity";
+    this.updateSecurityName = "User/UpdateUserGroupSecurity";
+    
+    this.propertyName = "UserID";
+    this.dialogTitle = "Состав группы [value0]";
+    
+    this.accessTypes = ['no', 'view', 'edit'];
 }
 
-nsGmx.UserGroupWidget.prototype = {
-    getGroupInfo: function() {
-        return {
-            
-        }
-    }
+UserGroupSecurity.prototype = new nsGmx.security();
+UserGroupSecurity.prototype.constructor = UserGroupSecurity;
+
+UserGroupSecurity.prototype.saveCustomParams = function(securityInfo, postParams, ui) {
+    postParams.Nickname = ui.find('.security-props-title').val();
+    postParams.Description = ui.find('.security-props-description').val();
 }
 
-nsGmx.UserGroupWidget._mainTemplate = Handlebars.compile('<div>' +
-    '<table>' +
-        '<tr>' +
-            '<td>Название</td>' +
-            '<td><input class="inputStyle" value="{{Title}}"></td>' +
-        '</tr>' +
-        '<tr>' +
-            '<td>Описание</td>' +
-            '<td><input class="inputStyle" value="{{Description}}"></td>' +
-        '</tr>' +
-    '</table>' +
-    '<div class="ugw-users-placeholder"></div>' +
-'</div>');*/
+UserGroupSecurity.prototype.addCustomUI = function(ui, securityInfo) {
+    var propsTemplate = Handlebars.compile(
+        '<div class="security-props">' +
+            '<div><span>{{i "uglw.groupProps.title"}}</span><input class="security-props-title inputStyle" value="{{Nickname}}"></div>' +
+            '<div><span>{{i "uglw.groupProps.description"}}</span><input class="security-props-description inputStyle" value="{{Description}}"></div>' +
+        '</div>'
+    );
+
+    $(propsTemplate({
+        Nickname: securityInfo.Nickname,
+        Description: securityInfo.Description
+    })).appendTo(ui.find('.security-custom-ui'));
+}
 
 gmxCore.addModule('UserGroupWidget', {
         UserGroupListWidget: nsGmx.UserGroupListWidget

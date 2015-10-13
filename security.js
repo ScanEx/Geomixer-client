@@ -305,9 +305,6 @@ var security = function()
     
     this.propertyValue = null;
     this.title = null;
-    
-    //this._securityTable = new nsGmx.ScrollTable({limit: 500, showFooter: false});
-    //this._securityUsersProvider = new nsGmx.ScrollTable.StaticDataProvider();
 }
 
 var mapSecurity = function()
@@ -353,20 +350,6 @@ multiLayerSecurity.prototype = new security();
 multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 
 
-var userGroupSecurity = function()
-{
-    this.getSecurityName = "User/GetUserGroupSecurity";
-    this.updateSecurityName = "User/UpdateUserGroupSecurity";
-    
-    this.propertyName = "UserID";
-    this.dialogTitle = "Состав группы [value0]";
-    
-    this.accessTypes = ['no', 'view', 'edit'];
-}
-
-userGroupSecurity.prototype = new security();
-userGroupSecurity.prototype.constructor = userGroupSecurity;
-
 security.prototype.getSecurityFromServer = function(id) {
     var def = $.Deferred();
     
@@ -393,10 +376,36 @@ security.prototype.getRights = function(value, title)
     this.getSecurityFromServer(value).then(this.createMapSecurityDialog.bind(this));
 }
 
+//ф-ция выделена из-за различий между диалогами прав слоёв и диалога состава группы
+security.prototype.addCustomUI = function(ui, securityInfo) {
+    var defAccessTemplate = Handlebars.compile(
+        '<div class="security-def-access">{{i "security.defAccess"}}: ' +
+            '<select class="security-defaccess-select selectStyle">' +
+                '{{#defAccessTypes}}' +
+                    '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
+                '{{/defAccessTypes}}' +
+            '</select>' +
+        '</div>'
+    );
+    
+    $(defAccessTemplate({
+        defAccessTypes: this.accessTypes.map(function(type) {
+            return {
+                value: type, 
+                title: _gtxt('security.access.' + type), 
+                isSelected: type === securityInfo.SecurityInfo.DefAccess
+            };
+        })
+    })).appendTo(ui.find('.security-custom-ui'));
+}
+
+//ф-ция выделена из-за различий между диалогами прав слоёв и диалога состава группы
+security.prototype.saveCustomParams = function(securityInfo, postParams, ui) {
+    securityInfo.SecurityInfo.DefAccess = ui.find('.security-defaccess-select').val();
+}
+
 security.prototype.createMapSecurityDialog = function(securityInfo)
 {
-    $$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
-
     var _this = this;
 
     var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
@@ -405,36 +414,24 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             '<div class="security-owner-placeholder"></div>' +
         '</div>' +
         
-        '<div class="security-def-access">{{i security.defAccess}}: ' +
-            '<select class="security-defaccess-select selectStyle">' +
-                '{{#defAccessTypes}}' +
-                    '<option value="{{value}}"{{#isSelected}} selected{{/isSelected}}>{{title}}</option>' +
-                '{{/defAccessTypes}}' +
-            '</select>' +
-        '</div>' + 
+        '<div class="security-custom-ui"></div>' +
         
         '<div class="security-userlist-placeholder"></div>' +
     '</div>';
     
-    var canvas = $(Mustache.render(uiTemplate, {
-        defAccessTypes: this.accessTypes.map(function(type) {
-            return {
-                value: type, 
-                title: _gtxt('security.access.' + type), 
-                isSelected: type === securityInfo.SecurityInfo.DefAccess
-            };
-        })
-    }))[0];
+    var canvas = $(Mustache.render(uiTemplate));
     
-    $('.security-defaccess-select', canvas).change(function() {
-        securityInfo.SecurityInfo.DefAccess = this.value;
-    })
-    
+    this.addCustomUI(canvas, securityInfo);
+
     $('.security-save', canvas).click(function(){
         securityInfo.SecurityInfo.Users = _this.securityUserListWidget.securityUsersProvider.getOriginalItems();
         
         nsGmx.widgets.notifications.startAction('securitySave');
-        var postParams = {WrapStyle: 'window', SecurityInfo: JSON.stringify(securityInfo.SecurityInfo)};
+        var postParams = {WrapStyle: 'window'};
+        
+        _this.saveCustomParams(securityInfo, postParams, canvas);
+        
+        postParams.SecurityInfo = JSON.stringify(securityInfo.SecurityInfo);
         postParams[_this.propertyName] = _this.propertyValue;
         
         sendCrossDomainPostRequest(serverBase + _this.updateSecurityName, postParams, function(response) {
@@ -453,109 +450,26 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     var resize = function()
     {
         var mapTableHeight;
-        var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
+        var dialogWidth = canvas[0].parentNode.parentNode.offsetWidth;
         
         var nonTableHeight = 
             $('.security-header', canvas).height() + 
-            $('.security-def-access', canvas).height() + 
+            $('.security-custom-ui', canvas).height() + 
             $('.security-add-container', canvas).height() + 15;
 
-        mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 10;
+        mapTableHeight = canvas[0].parentNode.offsetHeight - nonTableHeight - 10;
         
         _this.securityUserListWidget.updateHeight(mapTableHeight);
     }
 
-    showDialog(_gtxt(this.dialogTitle, this.title), canvas, 571, 370, false, false, resize);
-    
-    resize();
-}
-
-security.prototype._addMapUser = function(user, dataProvider)
-{
-    var existedUser = $.extend( {Access: this.defaultAccess}, user );
-    
-    dataProvider.addOriginalItem(existedUser);
-}
-
-
-//TODO: refactor
-userGroupSecurity.prototype.createGroupSecurityDialog = function(securityInfo)
-{
-    $$('securityDialog') && removeDialog($$('securityDialog').parentNode.parentNode);
-
-    var _this = this;
-
-    var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
-        '<div class="security-header">' + 
-            '<button class="security-save">{{i Сохранить}}</button>' +
-            '<div class="security-owner-placeholder"></div>' +
-        '</div>' +
-        
-        '<div class="security-props">' +
-            '<div><span>Название</span><input class="security-props-title inputStyle" value={{Title}}></div>' +
-            '<div><span>Описание</span><input class="security-props-description inputStyle" value={{Description}}></div>' +
-        '</div>' +
-
-        '<div class="security-userlist-placeholder"></div>' +
-    '</div>';
-    
-    var canvas = $(Mustache.render(uiTemplate, {
-        Title: securityInfo.Title,
-        Description: securityInfo.Description
-    }))[0];
-    
-    $('.security-save', canvas).click(function(){
-        securityInfo.SecurityInfo.Users = _this.securityUserListWidget.securityUsersProvider.getOriginalItems();
-        securityInfo.Title = $('.security-props-title', canvas).val();
-        securityInfo.Description = $('.security-props-description', canvas).val();
-        
-        nsGmx.widgets.notifications.startAction('securitySave');
-        
-        var postParams = {
-            WrapStyle: 'window', 
-            SecurityInfo: JSON.stringify(securityInfo.SecurityInfo),
-            Title: securityInfo.Title,
-            Description: securityInfo.Description
-        };
-        
-        postParams[_this.propertyName] = securityInfo.ID;
-        
-        sendCrossDomainPostRequest(serverBase + _this.updateSecurityName, postParams, function(response) {
-            if (!parseResponse(response)) {
-                nsGmx.widgets.notifications.stopAction('securitySave');
-                return;
-            }
-            
-            nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
-        })
-    });
-    
-    new SecurityOwnerWidget(securityInfo.SecurityInfo, $('.security-owner-placeholder', canvas));
-    this.securityUserListWidget = new SecurityUserListWidget(securityInfo.SecurityInfo, $('.security-userlist-placeholder', canvas), {accessTypes: this.accessTypes});
-    
-    var resize = function()
-    {
-        var mapTableHeight;
-        var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
-        
-        var nonTableHeight = 
-            $('.security-header', canvas).height() + 
-            $('.security-props', canvas).height() + 
-            $('.security-add-container', canvas).height() + 15;
-
-        mapTableHeight = canvas.parentNode.offsetHeight - nonTableHeight - 10;
-        
-        _this.securityUserListWidget.updateHeight(mapTableHeight);
-    }
-
-    showDialog(_gtxt(this.dialogTitle, this.title), canvas, 571, 370, false, false, resize);
+    showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
     
     resize();
 }
 
 nsGmx.mapSecurity = mapSecurity;
+nsGmx.security = security;
 nsGmx.layerSecurity = layerSecurity;
 nsGmx.multiLayerSecurity = multiLayerSecurity;
-nsGmx.userGroupSecurity = userGroupSecurity;
 
 })();
