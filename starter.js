@@ -221,16 +221,6 @@ var createMenuNew = function()
             }}
 		]
     });
-    
-    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-        _menuUp.addChildItem({id: 'userGroups', title: 'Управление группами', func: function(){
-            gmxCore.loadModule('UserGroupWidget').then(function(module) {
-                var canvas = $('<div/>');
-                new module.UserGroupListWidget(canvas);
-                canvas.dialog({width: 400, height: 400});
-            });
-        }}, 'mapsMenu');
-    }
 }
 
 var createToolbar = function() {
@@ -456,7 +446,14 @@ $(function()
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
                 rightLinks.push({
                     title: _gtxt('Администрирование'),
-                    link: serverBase + 'Administration/SettingsAdmin.aspx'
+                    dropdown: [{
+                        title: _gtxt('Системные настройки'),
+                        link: serverBase + 'Administration/SettingsAdmin.aspx'
+                    }, {
+                        title: _gtxt('Управление группами'),
+                        link: '#',
+                        id: 'usergroupMenuItem'
+                    }]
                 })
             }
                         
@@ -467,6 +464,14 @@ $(function()
             });
 
             nsGmx.widgets.header.appendTo($('.header'));
+            
+            $('.header').find('#usergroupMenuItem').click(function() {
+                gmxCore.loadModule('UserGroupWidget').then(function(module) {
+                    var canvas = $('<div/>');
+                    new module.UserGroupListWidget(canvas);
+                    canvas.dialog({width: 400, height: 400});
+                });
+            })
 
             var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
             nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();

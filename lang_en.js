@@ -630,6 +630,8 @@ _translationsHash.hash["eng"] = {
     "Мультилиния": "Multipolyline",
     "Мультиточка": "Multipoint",
     "Администрирование": "Administration",
+    "Системные настройки": "System settings",
+    "Управление группами": "User group management",
     "Добавить снимки": "Add rasters",
     "Существующие слои": "Existing layers",
     "Слои из карты": "Layers from map",
