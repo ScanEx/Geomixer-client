@@ -1605,6 +1605,18 @@ div.layersScroll
     height: 16px;
 }
 
+.gmx-icon-recycle {
+    display: inline-block;
+    width: 10px;
+    height: 12px;
+    background: url(../img/recycle.png);
+    cursor: pointer;
+}
+
+.gmx-icon-recycle:hover {
+    background: url(../img/recycle_a.png);
+}
+
 /* Tabs panel */
 .tabsCanvas .gmx-icon-close {
     position: absolute;

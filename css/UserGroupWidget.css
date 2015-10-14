@@ -20,18 +20,6 @@
     width: 50%;
 }
 
-.gmx-icon-recycle {
-    display: inline-block;
-    width: 10px;
-    height: 12px;
-    background: url(../img/recycle.png);
-    cursor: pointer;
-}
-
-.gmx-icon-recycle:hover {
-    background: url(../img/recycle_a.png);
-}
-
 .uglw-group-name {
     cursor: pointer;
     text-decoration: underline;
@@ -39,4 +27,9 @@
 
 .uglw-add-icon {
     float: right;
+}
+
+.security-props-title, .security-props-description {
+    margin-left: 10px;
+    width: 200px;
 }

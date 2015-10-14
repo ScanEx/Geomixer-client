@@ -82,3 +82,17 @@
 .security-userlist-placeholder {
     margin-top: 5px;
 }
+
+.security-row-nickname, .security-row-fullname {
+    overflow-x: hidden;
+    white-space: nowrap;
+    padding: 1px 0px 1px 3px;
+}
+
+.security-row-access {
+    width: 130px;
+}
+
+.security-row-remove-cell {
+    text-align: center;
+}

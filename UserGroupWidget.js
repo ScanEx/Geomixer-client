@@ -172,10 +172,10 @@ UserGroupSecurity.prototype.saveCustomParams = function(securityInfo, postParams
 
 UserGroupSecurity.prototype.addCustomUI = function(ui, securityInfo) {
     var propsTemplate = Handlebars.compile(
-        '<div class="security-props">' +
-            '<div><span>{{i "uglw.groupProps.title"}}</span><input class="security-props-title inputStyle" value="{{Nickname}}"></div>' +
-            '<div><span>{{i "uglw.groupProps.description"}}</span><input class="security-props-description inputStyle" value="{{Description}}"></div>' +
-        '</div>'
+        '<table class="security-props">' +
+            '<tr><td>{{i "uglw.groupProps.title"}}:</td><td><input class="security-props-title inputStyle" value="{{Nickname}}"></td></tr>' +
+            '<tr><td>{{i "uglw.groupProps.description"}}:</td><td><input class="security-props-description inputStyle" value="{{Description}}"></td></tr>' +
+        '</table>'
     );
 
     $(propsTemplate({

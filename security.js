@@ -218,61 +218,49 @@ SecurityUserListWidget.prototype._addMapUser = function(user) {
     this.securityUsersProvider.addOriginalItem(existedUser);
 }
 
-SecurityUserListWidget.prototype._removeMapUser = function(user)
-{
-    this.securityUsersProvider.filterOriginalItems(function(elem) {
-        return elem.Nickname !== user.Nickname;
-    });
-}
-
 SecurityUserListWidget.prototype.updateHeight = function(height) {
     this._securityTable.updateHeight(height);
 }
 
+SecurityUserListWidget._userRowTemplate = Handlebars.compile(
+    '<tr>' +
+        '<td><div class="security-row-nickname">{{Nickname}}</div></td>' +
+        '<td><div class="security-row-fullname">{{Fullname}}</div></td>' +
+        '<td><select class="selectStyle security-row-access">{{#access}}' +
+            '<option value = "{{value}}"{{#if selected}} selected{{/if}}>{{title}}</option>' +
+        '{{/access}}</select></td>' +
+        '<td class="security-row-remove-cell"><div class="gmx-icon-recycle"></div></td>' +
+    '</tr>'
+);
+
 SecurityUserListWidget._drawMapUsers = function(user, securityScope)
 {
-    var remove = makeImageButton('img/recycle.png', 'img/recycle_a.png'),
-        tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove], [['css', 'textAlign', 'center']]),
-        accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','130px']]),
-        isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
-        tr;
+    var ui = $(SecurityUserListWidget._userRowTemplate({
+        Nickname: user.Nickname,
+        Fullname: user.FullName,
+        access: securityScope.options.accessTypes
+            .filter(function(type) {return type !== 'no';})
+            .map(function(type) {
+                return {
+                    title: _gtxt('security.access.' + type),
+                    value: type,
+                    selected: type === user.Access
+                }
+            })
+    }));
     
-    var accessList = securityScope.options.accessTypes;
-    for (var i = 0; i < accessList.length; ++i) {
-        //в списках пользователей нет смысла показывать пункт "нет доступа"
-        if (accessList[i] !== 'no') {
-            _(accessSel, [_option([_t(_gtxt('security.access.' + accessList[i]))],[['attr', 'value', accessList[i]]])]);
-        }
-    }
-
-    remove.onclick = function()
-    {
-        if (tr)
-            tr.removeNode(true);
-        
+    var tr = ui[0];
+    
+    ui.find('.gmx-icon-recycle').click(function() {
         // уберем пользователя из списка
-        securityScope._removeMapUser(user);
-    }
+        securityScope.securityUsersProvider.filterOriginalItems(function(elem) {
+            return elem.Nickname !== user.Nickname;
+        });
+    });
     
-    switchSelect(accessSel, user.Access);
-    
-    accessSel.onchange = function()
-    {
+    ui.find('.security-row-access').change(function() {
         user.Access = this.value;
-    }
-    
-    var tdNickname = _td([_div([_t(user.Nickname)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    var tdAccess = _td([accessSel],[['css','textAlign','center']]);
-    
-    var tdLogin = _td([_div([_t(user.Login)], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    var tdFullname = _td([_div([_t(user.FullName || '')], [['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    
-    tr = _tr([
-        tdNickname,
-        tdFullname,
-        tdAccess,
-        tdRemove
-    ]);
+    });
     
     for (var i = 0; i < tr.childNodes.length; i++)
         tr.childNodes[i].style.width = this._fields[i].width;
