@@ -1140,7 +1140,7 @@ $.extend(nsGmx.Utils, {
         newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
         newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
         
-        layer.setStyle(newStyle);
+        layer.setStyle(newStyle, styleIndex);
 	},
     
     setGmxLayerStyle: function(layer, styleIndex, style)
