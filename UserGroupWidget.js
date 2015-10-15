@@ -105,13 +105,13 @@ var GroupListView = Backbone.View.extend({
             })
         });
         
-        var popoverUI = $('<div>' +
+        var popoverUI = $(Handlebars.compile('<div>' +
             '<div>{{i "uglw.popover.title"}}?</div>' +
             '<div class="uglw-popover-buttons">' +
                 '<button class="uglw-popover-ok">{{i "uglw.popover.ok"}}</button>' +
                 '<button class="uglw-popover-cancel">{{i "uglw.popover.cancel"}}</button>' + 
             '</div>' +
-        '</div>');
+        '</div>')());
         
         popoverUI.find('.uglw-popover-ok').click(function() {
             sendCrossDomainJSONRequest(serverBase + 'User/DeleteGroup?GroupID=' + _this._popoverGroupID, function(response) {
