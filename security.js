@@ -429,6 +429,8 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
             }
             
             nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
+            
+            $(_this).trigger('savedone', securityInfo);
         })
     });
     

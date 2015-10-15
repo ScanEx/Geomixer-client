@@ -451,7 +451,7 @@ $(function()
                         link: serverBase + 'Administration/SettingsAdmin.aspx'
                     }, {
                         title: _gtxt('Управление группами'),
-                        link: '#',
+                        link: 'javascript:void(0)',
                         id: 'usergroupMenuItem'
                     }]
                 })
@@ -469,7 +469,11 @@ $(function()
                 gmxCore.loadModule('UserGroupWidget').then(function(module) {
                     var canvas = $('<div/>');
                     new module.UserGroupListWidget(canvas);
-                    canvas.dialog({width: 400, height: 400});
+                    canvas.dialog({
+                        width: 400, 
+                        height: 400,
+                        title: _gtxt('Управление группами пользователей')
+                    });
                 });
             })
 

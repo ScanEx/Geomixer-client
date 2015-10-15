@@ -632,6 +632,7 @@ _translationsHash.hash["eng"] = {
     "Администрирование": "Administration",
     "Системные настройки": "System settings",
     "Управление группами": "User group management",
+    "Управление группами пользователей": "User group management",
     "Добавить снимки": "Add rasters",
     "Существующие слои": "Existing layers",
     "Слои из карты": "Layers from map",

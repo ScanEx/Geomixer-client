@@ -11,6 +11,11 @@ nsGmx.Translations.addText('rus', {uglw: {
     groupProps: {
         title: 'Название',
         description: 'Описание'
+    },
+    popover: {
+        title: 'Удалить группу',
+        ok: 'Ok',
+        cancel: 'Отмена'
     }
 }});
 
@@ -23,10 +28,17 @@ nsGmx.Translations.addText('eng', {uglw: {
     groupProps: {
         title: 'Title',
         description: 'Description'
+    },
+    popover: {
+        title: 'Delete group',
+        ok: 'Ok',
+        cancel: 'Cancel'
     }
 }});
 
-var Group = Backbone.Model.extend({});
+var Group = Backbone.Model.extend({
+    idAttribute: 'UserID'
+});
 
 var GroupList = Backbone.Collection.extend({
     model: Group
@@ -70,20 +82,66 @@ var GroupListView = Backbone.View.extend({
         this.listenTo(this.model, 'reset', this.render);
     },
     render: function() {
+        var _this = this;
         var rawAttributes = this.model.map(function(user) {
             return user.attributes;
         });
         
         this.$el.empty().append($(this.template({users: rawAttributes})));
+        
         this.$el.find('.uglw-group-name').click(function() {
             var groupID = Number($(this).data('groupid'));
-            ShowUserGroupDialog(groupID);
-        })
+                
+            var groupSecurity = new UserGroupSecurity();
+            
+            $(groupSecurity).on('savedone', function() {
+                _this.trigger('needupdate');
+            });
+            
+            groupSecurity.propertyValue = groupID;
+            groupSecurity.title = _this.model.get(groupID).get('Nickname');
+            groupSecurity.getSecurityFromServer(groupID).then(function(res) {
+                groupSecurity.createMapSecurityDialog(res);
+            })
+        });
+        
+        var popoverUI = $('<div>' +
+            '<div>{{i "uglw.popover.title"}}?</div>' +
+            '<div class="uglw-popover-buttons">' +
+                '<button class="uglw-popover-ok">{{i "uglw.popover.ok"}}</button>' +
+                '<button class="uglw-popover-cancel">{{i "uglw.popover.cancel"}}</button>' + 
+            '</div>' +
+        '</div>');
+        
+        popoverUI.find('.uglw-popover-ok').click(function() {
+            sendCrossDomainJSONRequest(serverBase + 'User/DeleteGroup?GroupID=' + _this._popoverGroupID, function(response) {
+                if (!parseResponse(response)) {
+                    return;
+                };
+                
+                _this.trigger('needupdate');
+                _this.$el.find('.gmx-icon-recycle').popover('hide');
+            });
+        });
+        
+        popoverUI.find('.uglw-popover-cancel').click(function() {
+            _this.$el.find('.gmx-icon-recycle').popover('hide');
+        });
         
         this.$el.find('.gmx-icon-recycle').click(function() {
             var groupID = Number($(this).data('groupid'));
-            console.log('remove', groupID);
-        })
+            _this._popoverGroupID = groupID;
+        }).popover({
+            content: popoverUI[0],
+            placement: 'left',
+            html: true
+        }).on('shown.bs.popover', function(event) {
+            _this.$el.find('.gmx-icon-recycle').each(function(i, icon) {
+                if (icon !== event.target) {
+                    $(icon).popover('hide');
+                }
+            })
+        });
     }
 });
     
@@ -96,6 +154,12 @@ nsGmx.UserGroupListWidget = function(container) {
         el: ui.find('.uglw-list-placeholder')[0],
         model: groupList
     });
+    
+    listView.on('needupdate', function() {
+        findUsers(ui.find('.uglw-filter-input').val(), {type: 'Group'}).then(function(users) {
+            groupList.reset(users);
+        })
+    })
     
     var lastValue = null;
     ui.find('.uglw-filter-input').on('keyup change', function(){
@@ -110,7 +174,6 @@ nsGmx.UserGroupListWidget = function(container) {
     ui.find('.uglw-filter-input').change();
     
     ui.find('.uglw-add-icon').click(function() {
-        ShowUserGroupDialog();
     });
 }
 
@@ -121,35 +184,6 @@ nsGmx.UserGroupListWidget._mainTemplate = Handlebars.compile('<div>' +
     '</div>' +
     '<div class="uglw-list-placeholder"></div>' +
 '</div>');
-
-var ShowUserGroupDialog = function(groupID) {
-    
-    var doShow = function(groupInfo) {
-        if (groupID) {
-            var groupSecurity = new UserGroupSecurity();
-            groupSecurity.propertyValue = groupID;
-            groupSecurity.getSecurityFromServer(groupID).then(function(res) {
-                groupSecurity.createMapSecurityDialog(res);
-            })
-        } else {
-
-        }
-    }
-    
-    if (groupID) {
-        sendCrossDomainJSONRequest(serverBase + 'User/GroupInfo?groupID=' + groupID, function(response) {
-            if (!parseResponse(response)) {
-                return;
-            }
-            
-            var container = $('<div/>');
-            
-            doShow(response.Result);
-        })
-    } else {
-        doShow();
-    }
-}
 
 var UserGroupSecurity = function()
 {
@@ -166,8 +200,8 @@ UserGroupSecurity.prototype = new nsGmx.security();
 UserGroupSecurity.prototype.constructor = UserGroupSecurity;
 
 UserGroupSecurity.prototype.saveCustomParams = function(securityInfo, postParams, ui) {
-    postParams.Nickname = ui.find('.security-props-title').val();
-    postParams.Description = ui.find('.security-props-description').val();
+    securityInfo.SecurityInfo.Nickname = ui.find('.security-props-title').val();
+    securityInfo.SecurityInfo.Description = ui.find('.security-props-description').val();
 }
 
 UserGroupSecurity.prototype.addCustomUI = function(ui, securityInfo) {
