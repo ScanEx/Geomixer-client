@@ -238,9 +238,9 @@ var TimelineController = function(data, map, options) {
     
     var modeFilters = {
         none: function() {return true;},
-        center: function(item, mapCenter, mapExtent)
+        center: function(item, mapCenter, mapExtent, layer)
         {
-            var geom = item.obj.properties[item.obj.properties.length - 1],
+            var geom = item.geom = item.geom || nsGmx.Utils.joinPolygons(layer._gmx.dataManager.getItemGeometries(item.obj.id)),
                 c = geom.coordinates,
                 intersects = false;
                 
@@ -342,7 +342,7 @@ var TimelineController = function(data, map, options) {
                 
                 elemsToAdd.push({
                     start: date,
-                    content: content,
+                    content: content + '|' + obj.id,
                     userdata: {objID: obj.id, layerName: layerName}
                 });
             }
@@ -651,31 +651,21 @@ var TimelineController = function(data, map, options) {
         createTimelineLazy();
 
         nsGmx.widgets.commonCalendar.unbindLayer(layerName);
-        
+
         var items = data.get('items');
         items[layerName] = items[layerName] || {};
-        
+
         layerObservers[layerName] = layer.addObserver({
             callback: function(observerData) {
                 //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
                 if (data.get('allItems')) {
                     return;
                 }
-                
+
                 var items = data.get('items'),
                     addedObjs = observerData.added,
                     removedObjs = observerData.removed;
-                
-                if (addedObjs) {
-                    for (var i = 0; i < addedObjs.length; i++) {
-                        var obj = addedObjs[i];
-                        var id = obj.id;
-                        items[layerName][id] = items[layerName][id] || {};
-                        items[layerName][id].obj = obj;
-                        items[layerName][id].bounds = obj.dataOption.bounds;
-                    }
-                }
-                
+
                 if (removedObjs) {
                     for (var i = 0; i < removedObjs.length; i++) {
                         var id = removedObjs[i].id;
@@ -687,6 +677,23 @@ var TimelineController = function(data, map, options) {
                     }
                 }
                 
+                if (addedObjs) {
+                    for (var i = 0; i < addedObjs.length; i++) {
+                        var obj = addedObjs[i];
+                        var id = obj.id;
+
+                        items[layerName][id] = items[layerName][id] || {};
+                        items[layerName][id].obj = obj;
+                        items[layerName][id].bounds = obj.item.bounds;
+                        
+                        //геометрию объекта нужно пересчитывать, так как мы получили какой-то новый кусок этого объекта
+                        delete items[layerName][id].geom;
+                        
+                        //обработка ситуации, когда за одно изменение удалился и добавился кусок одного из объектов векторного слоя
+                        delete items[layerName][id].needToRemove;
+                    }
+                }
+
                 data.trigger('change change:items');
             },
             bounds: getObserversBbox(),
