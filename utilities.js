@@ -1389,12 +1389,12 @@ $.extend(nsGmx.Utils, {
         var polygonObjects = [];
         for (var i = 0; i < objs.length; i++)
         {
-            var geom = objs[i].geometry;
+            var geom = objs[i];
             if (geom.type == 'POLYGON')
             {
                 polygonObjects.push(geom.coordinates);
             }
-            else if (objs[i].geometry.type == 'MULTIPOLYGON')
+            else if (geom.type == 'MULTIPOLYGON')
             {
                 for (var iC = 0; iC < geom.coordinates.length; iC++)
                     polygonObjects.push(geom.coordinates[iC]);
@@ -1405,7 +1405,6 @@ $.extend(nsGmx.Utils, {
             return {type: "MULTIPOLYGON", coordinates: polygonObjects}
         else if (polygonObjects.length == 1)
         {
-            isCreatedDrawing = true;
             return {type: "POLYGON", coordinates: polygonObjects[0]}
         }
         else

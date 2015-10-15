@@ -248,7 +248,7 @@ var EditObjectControl = function(layerName, objectId, params)
         $(canvas).bind('drop', function(e) {
             var files = e.originalEvent.dataTransfer.files;
             nsGmx.Utils.parseShpFile(files[0]).done(function(objs) {
-                bindGeometry(nsGmx.Utils.joinPolygons(objs));
+                bindGeometry(nsGmx.Utils.joinPolygons(nsGmx._.pluck(objs, 'geometry')));
             });
             return false;
         });
