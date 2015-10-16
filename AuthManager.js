@@ -72,7 +72,7 @@ var nsGmx = nsGmx || {};
         this.getFullname = function()
         {
             if (!_userInfo) return null;
-            return _userInfo.Fullname || null;
+            return _userInfo.FullName || null;
         };
         
         this.getUserFolder = function()
