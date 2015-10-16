@@ -915,7 +915,11 @@ function initAuthWidget() {
             return def;
         }
     };
-    nsGmx.widgets.authWidget = new nsGmx.AuthWidget({authManager: authManagerProxy});
+    nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
+        authManager: authManagerProxy,
+        showAccountLink: !!window.mapsSite,
+        showMapLink: !!window.mapsSite
+    });
     nsGmx.widgets.authWidget.appendTo(nsGmx.widgets.header.getAuthPlaceholder());
     
     //ugly hack
