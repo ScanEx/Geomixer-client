@@ -361,7 +361,7 @@ security.prototype.getRights = function(value, title)
     this.propertyValue = value;
     this.title = title;
     
-    this.getSecurityFromServer(value).then(this.createMapSecurityDialog.bind(this));
+    this.getSecurityFromServer(value).then(this.createSecurityDialog.bind(this));
 }
 
 //ф-ция выделена из-за различий между диалогами прав слоёв и диалога состава группы
@@ -388,18 +388,45 @@ security.prototype.addCustomUI = function(ui, securityInfo) {
 }
 
 //ф-ция выделена из-за различий между диалогами прав слоёв и диалога состава группы
-security.prototype.saveCustomParams = function(securityInfo, postParams, ui) {
-    securityInfo.SecurityInfo.DefAccess = ui.find('.security-defaccess-select').val();
+security.prototype.saveCustomParams = function() {
+    this._securityInfo.SecurityInfo.DefAccess = this._ui.find('.security-defaccess-select').val();
 }
 
-security.prototype.createMapSecurityDialog = function(securityInfo)
+security.prototype._save = function() {
+    var si = this._securityInfo;
+    si.SecurityInfo.Users = this.securityUserListWidget.securityUsersProvider.getOriginalItems();
+        
+    nsGmx.widgets.notifications.startAction('securitySave');
+    var postParams = {WrapStyle: 'window'};
+    
+    this.saveCustomParams();
+    
+    postParams.SecurityInfo = JSON.stringify(si.SecurityInfo);
+    postParams[this.propertyName] = this.propertyValue;
+    
+    sendCrossDomainPostRequest(serverBase + this.updateSecurityName, postParams, function(response) {
+        if (!parseResponse(response)) {
+            nsGmx.widgets.notifications.stopAction('securitySave');
+            return;
+        }
+        
+        nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
+        
+        $(this).trigger('savedone', si);
+    })
+}
+
+security.prototype.createSecurityDialog = function(securityInfo, options)
 {
+    options = $.extend({showOwner: true}, options);
     var _this = this;
+    
+    this._securityInfo = securityInfo;
 
     var uiTemplate = '<div id="securityDialog" class="security-canvas">' +
         '<div class="security-header">' + 
-            '<button class="security-save">{{i Сохранить}}</button>' +
-            '<div class="security-owner-placeholder"></div>' +
+            '<button class="security-save">{{i "Сохранить"}}</button>' +
+                '{{#if showOwner}}<div class="security-owner-placeholder"></div>{{/if}}' +
         '</div>' +
         
         '<div class="security-custom-ui"></div>' +
@@ -407,31 +434,14 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         '<div class="security-userlist-placeholder"></div>' +
     '</div>';
     
-    var canvas = $(Mustache.render(uiTemplate));
+    var canvas = this._ui = $(Handlebars.compile(uiTemplate)({
+        showOwner: options.showOwner
+    }));
     
     this.addCustomUI(canvas, securityInfo);
 
     $('.security-save', canvas).click(function(){
-        securityInfo.SecurityInfo.Users = _this.securityUserListWidget.securityUsersProvider.getOriginalItems();
-        
-        nsGmx.widgets.notifications.startAction('securitySave');
-        var postParams = {WrapStyle: 'window'};
-        
-        _this.saveCustomParams(securityInfo, postParams, canvas);
-        
-        postParams.SecurityInfo = JSON.stringify(securityInfo.SecurityInfo);
-        postParams[_this.propertyName] = _this.propertyValue;
-        
-        sendCrossDomainPostRequest(serverBase + _this.updateSecurityName, postParams, function(response) {
-            if (!parseResponse(response)) {
-                nsGmx.widgets.notifications.stopAction('securitySave');
-                return;
-            }
-            
-            nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
-            
-            $(_this).trigger('savedone', securityInfo);
-        })
+        _this._save();
     });
     
     new SecurityOwnerWidget(securityInfo.SecurityInfo, $('.security-owner-placeholder', canvas));
@@ -452,7 +462,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         _this.securityUserListWidget.updateHeight(mapTableHeight);
     }
 
-    showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
+    this._dialogDiv = showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
     
     resize();
 }

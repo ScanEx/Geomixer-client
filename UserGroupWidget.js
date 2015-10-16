@@ -101,7 +101,7 @@ var GroupListView = Backbone.View.extend({
             groupSecurity.propertyValue = groupID;
             groupSecurity.title = _this.model.get(groupID).get('Nickname');
             groupSecurity.getSecurityFromServer(groupID).then(function(res) {
-                groupSecurity.createMapSecurityDialog(res);
+                groupSecurity.createSecurityDialog(res);
             })
         });
         
@@ -155,25 +155,60 @@ nsGmx.UserGroupListWidget = function(container) {
         model: groupList
     });
     
-    listView.on('needupdate', function() {
+    var refilterUsers = function() {
         findUsers(ui.find('.uglw-filter-input').val(), {type: 'Group'}).then(function(users) {
             groupList.reset(users);
         })
-    })
+    }
+    
+    listView.on('needupdate', refilterUsers);
     
     var lastValue = null;
     ui.find('.uglw-filter-input').on('keyup change', function(){
         if (lastValue !== this.value) {
             lastValue = this.value;
-            findUsers(this.value, {type: 'Group'}).then(function(users) {
-                groupList.reset(users);
-            })
+            refilterUsers();
         }
     });
     
     ui.find('.uglw-filter-input').change();
     
     ui.find('.uglw-add-icon').click(function() {
+        var groupSecurity = new UserGroupSecurity();
+        
+        groupSecurity._save = function() {
+            var _this = this,
+                si = this._securityInfo.SecurityInfo;
+            this.saveCustomParams();
+            
+            var membersJson = si.Users.map(function(user) {
+                return {
+                    Access: user.Access,
+                    UserID: user.UserID
+                }
+            });
+            
+            sendCrossDomainPostRequest(serverBase + 'User/CreateGroup', {
+                    WrapStyle: 'message',
+                    Nickname: si.Nickname,
+                    Description: si.Description,
+                    MembersJson: JSON.stringify(membersJson),
+                }, function(response) {
+                    if (!parseResponse(response)) {
+                        return;
+                    }
+                    
+                    $(groupSecurity._dialogDiv).dialog('close');
+                    refilterUsers();
+                }
+            )
+        }
+        
+        groupSecurity.createSecurityDialog({
+            SecurityInfo: {
+                Users: []
+            }
+        }, {showOwner: false});
     });
 }
 
@@ -199,9 +234,9 @@ var UserGroupSecurity = function()
 UserGroupSecurity.prototype = new nsGmx.security();
 UserGroupSecurity.prototype.constructor = UserGroupSecurity;
 
-UserGroupSecurity.prototype.saveCustomParams = function(securityInfo, postParams, ui) {
-    securityInfo.SecurityInfo.Nickname = ui.find('.security-props-title').val();
-    securityInfo.SecurityInfo.Description = ui.find('.security-props-description').val();
+UserGroupSecurity.prototype.saveCustomParams = function() {
+    this._securityInfo.SecurityInfo.Nickname = this._ui.find('.security-props-title').val();
+    this._securityInfo.SecurityInfo.Description = this._ui.find('.security-props-description').val();
 }
 
 UserGroupSecurity.prototype.addCustomUI = function(ui, securityInfo) {
