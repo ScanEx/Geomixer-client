@@ -518,9 +518,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	isVisible: function(context)
 	{
-		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (context.tree.treeModel.getMapProperties().Owner == nsGmx.AuthManager.getNickname()) || 
-		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
+		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS) && 
+            (_queryMapLayers.currentMapRights() === "edit" || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN));
 	}
 }, 'Map');
 
