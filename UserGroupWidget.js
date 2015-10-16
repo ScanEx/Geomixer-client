@@ -102,7 +102,9 @@ var GroupListView = Backbone.View.extend({
             groupSecurity.title = _this.model.get(groupID).get('Nickname');
             groupSecurity.getSecurityFromServer(groupID).then(function(res) {
                 groupSecurity.createSecurityDialog(res);
+                $(groupSecurity._dialogDiv).find('.security-props-title').focus();
             })
+            
         });
         
         var popoverUI = $(Handlebars.compile('<div>' +
@@ -179,15 +181,18 @@ nsGmx.UserGroupListWidget = function(container) {
         groupSecurity._save = function() {
             var _this = this,
                 si = this._securityInfo.SecurityInfo;
-            this.saveCustomParams();
-            
+
+            if (this.saveCustomParams()) {
+                return;
+            }
+
             var membersJson = si.Users.map(function(user) {
                 return {
                     Access: user.Access,
                     UserID: user.UserID
                 }
             });
-            
+
             sendCrossDomainPostRequest(serverBase + 'User/CreateGroup', {
                     WrapStyle: 'message',
                     Nickname: si.Nickname,
@@ -209,13 +214,15 @@ nsGmx.UserGroupListWidget = function(container) {
                 Users: []
             }
         }, {showOwner: false});
+        
+        $(groupSecurity._dialogDiv).find('.security-props-title').focus();
     });
 }
 
 nsGmx.UserGroupListWidget._mainTemplate = Handlebars.compile('<div>' +
     '<div class="uglw-header">' +
         '{{i "uglw.headerTitle"}} <input class="uglw-filter-input inputStyle">' +
-        '<div class="uglw-add-icon security-add-icon" title="Добавить группу"></div>' +
+        '<div class="uglw-add-icon" title="Добавить группу"></div>' +
     '</div>' +
     '<div class="uglw-list-placeholder"></div>' +
 '</div>');
@@ -235,8 +242,16 @@ UserGroupSecurity.prototype = new nsGmx.security();
 UserGroupSecurity.prototype.constructor = UserGroupSecurity;
 
 UserGroupSecurity.prototype.saveCustomParams = function() {
-    this._securityInfo.SecurityInfo.Nickname = this._ui.find('.security-props-title').val();
-    this._securityInfo.SecurityInfo.Description = this._ui.find('.security-props-description').val();
+    var nicknameInput = this._ui.find('.security-props-title'),
+        nickname = nicknameInput.val();
+    
+    if (nickname) {
+        this._securityInfo.SecurityInfo.Nickname = nickname;
+        this._securityInfo.SecurityInfo.Description = this._ui.find('.security-props-description').val();
+    } else {
+        inputError(nicknameInput[0]);
+        return true;
+    }
 }
 
 UserGroupSecurity.prototype.addCustomUI = function(ui, securityInfo) {

@@ -399,7 +399,9 @@ security.prototype._save = function() {
     nsGmx.widgets.notifications.startAction('securitySave');
     var postParams = {WrapStyle: 'window'};
     
-    this.saveCustomParams();
+    if (this.saveCustomParams()) {
+        return;
+    }
     
     postParams.SecurityInfo = JSON.stringify(si.SecurityInfo);
     postParams[this.propertyName] = this.propertyValue;

@@ -26,6 +26,11 @@
 }
 
 .uglw-add-icon {
+    width: 24px;
+    height: 24px;
+    background: url(../img/add_usergroup.png);
+    cursor: pointer;
+    display: inline-block;
     float: right;
 }
 
