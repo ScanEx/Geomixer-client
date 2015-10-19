@@ -375,15 +375,13 @@ $(function()
     })
     
     var languageFromSettings = translationsHash.getLanguageFromCookies() || window.defaultLang;
-    window.language = languageFromSettings || "rus"
-	if (languageFromSettings == "eng")
-		window.KOSMOSNIMKI_LANGUAGE = "English";
-	
+    window.language = languageFromSettings || "rus";
+
 	window.shownTitle =  window.pageTitle || _gtxt('ScanEx Web Geomixer - просмотр карты');
 	document.title = window.shownTitle;
-    
+
     window.serverBase = _serverBase;
-    
+
     addParseResponseHook('*', function(response, customErrorDescriptions) {
         if (response.Warning) {
             //мы дожидаемся загрузки дерева слоёв, чтобы не добавлять notification widget слишком рано (до инициализации карты в контейнере)
@@ -477,9 +475,11 @@ $(function()
                 });
             })
 
-            var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
-            nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
-            nsGmx.widgets.languageWidget.appendTo(langContainer);
+            if (!window.gmxViewerUI || !window.gmxViewerUI.hideLanguage) {
+                var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
+                nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
+                nsGmx.widgets.languageWidget.appendTo(langContainer);
+            }
         
             window.LeafletPlugins = window.LeafletPlugins || [];
 
