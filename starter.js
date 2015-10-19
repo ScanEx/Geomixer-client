@@ -210,6 +210,7 @@ var createMenuNew = function()
 	{id:"helpMenu", title:_gtxt("Справка"), childs:
 		[
 			{id:'about',        title:_gtxt('О проекте'),                 func: _mapHelper.version},
+        ].concat(window.mapsSite ? [
 			{id:'usage',        title: _gtxt('Руководство пользователя'), func: function(){
                 window.open('http://geomixer.ru/docs/manual/', '_blank');
             }},
@@ -219,7 +220,7 @@ var createMenuNew = function()
 			{id:'pluginsUsage', title: _gtxt('Использование плагинов'),   func: function(){
                 window.open('http://geomixer.ru/docs/plugins/', '_blank');
             }}
-		]
+		] : [])
     });
 }
 
