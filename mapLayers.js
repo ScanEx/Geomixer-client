@@ -501,7 +501,12 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
     //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
     //а указать явно zoom в fitBounds нельзя
     //TODO: enable animation!
-    lmap.fitBounds(bounds, {animation: false}).setZoom(z);
+    lmap.fitBounds(bounds, {animation: false});
+    
+    //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
+    if (z !== lmap.getZoom()) {
+        lmap.setZoom(z);
+    }
 }
 
 layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
