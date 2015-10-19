@@ -447,7 +447,7 @@ $(function()
                     title: _gtxt('Администрирование'),
                     dropdown: [{
                         title: _gtxt('Системные настройки'),
-                        link: serverBase + 'Administration/SettingsAdmin.aspx'
+                        link: serverBase + 'Administration/Actions.aspx'
                     }, {
                         title: _gtxt('Управление группами'),
                         link: 'javascript:void(0)',
