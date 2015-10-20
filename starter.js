@@ -1214,7 +1214,7 @@ function loadMap(state)
                 window.oSearchControl.Init({
                     Menu: oSearchLeftMenu,
                     ContainerInput: searchContainer,
-                    ServerBase: 'http://maps.kosmosnimki.ru/',
+                    ServerBase: window.serverBase,
                     layersSearchFlag: true,
                     mapHelper: _mapHelper,
                     Map: lmap,
