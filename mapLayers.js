@@ -1827,20 +1827,21 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 newLayerProperties.styles = layerDiv.gmxProperties.content.properties.styles;
                 
                 //var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
-                var convertedCoords = L.gmxUtil.geometryToGeoJSON(taskInfo.Result.geometry, true);
+                var origGeometry = taskInfo.Result.geometry,
+                    convertedGeometry = origGeometry ? L.gmxUtil.geometryToGeoJSON(origGeometry, true) : null;
                 
                 _this.removeLayer(newLayerProperties.name);
                 
-                _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:taskInfo.Result.geometry}});
+                _layersTree.addLayersToMap({content: {properties: newLayerProperties, geometry: origGeometry}});
                 
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
+                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
                     
                     $(li).find('[multiStyle]').treeview();
                 
                     $(layerDiv.parentNode).replaceWith(li);
                     
-                    _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}				
+                    _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties: newLayerProperties, geometry: convertedGeometry}}
 
                     _queryMapLayers.addSwappable(li);
                     
