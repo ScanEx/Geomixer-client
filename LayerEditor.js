@@ -435,8 +435,9 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 'change:Copyright': function() {
                     var copyright = layerProperties.get('Copyright')
                         
-                    globalFlashMap.layers[layerProperties.get('Name')].setCopyright(copyright);
-                        
+                    nsGmx.gmxMap.layersByID[layerProperties.get('Name')].options.attribution = copyright;
+                    nsGmx.leafletMap.gmxControlIconManager.get('copyright')._redraw();
+                    
                     divProperties.Copyright = copyright;
                 },
                 'change:Description': function() {
@@ -471,7 +472,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
             if (isVector ||
                 layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
                 layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
-                oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
+                oldDrawing && typeof curBorder != 'undefined' && _mapHelper.drawingBorders.isChanged(name) ||
                 !oldDrawing && typeof curBorder != 'undefined' ||
                 oldDrawing && typeof curBorder == 'undefined')
             {
@@ -994,23 +995,14 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
         else
         {
             shapeVisible(false);
-                    
+
             var geometry = layerProperties.get('Geometry');
 
-            var drawingBorder;
-            if (geometry.type.indexOf('MULTI') === -1) {
-                drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry), null, {skipFrame: true});
-            } else {
-                drawingBorder = globalFlashMap.addObject(from_merc_geometry(geometry));
-            }
-                
-            drawingBorder.setStyle(
-                {outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }}, 
-                {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }}
-            );
-                    
+            var geom = L.gmxUtil.geometryToGeoJSON(geometry, true);
+            var drawingBorder = nsGmx.leafletMap.gmxDrawing.addGeoJSON(geom)[0];
+
             _mapHelper.drawingBorders.set(name, drawingBorder);
-                    
+
             _mapHelper.drawingBorders.updateBorder(name, drawingBorderDescr);
         }
     }

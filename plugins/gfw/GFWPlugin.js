@@ -104,26 +104,23 @@ function defineClass() {
 var publicInterface = {
     pluginName: 'GFW Plugin',
     
-    afterViewer: function(params, map){
+    afterViewer: function(params){
         defineClass();
         var layer = new GFWLayer();
         var slider = new GFWSlider({position: 'bottomright'});
         
-        var lmap = gmxAPI._leaflet.LMap;
-        
         var proxyLayer = {
-            overlay: true,
-            onClick: function() {
-                lmap.addLayer(layer);
-                lmap.addControl(slider);
+            onAdd: function(map) {
+                map.addLayer(layer);
+                map.addControl(slider);
             },
-            onCancel: function() {
-                lmap.removeLayer(layer);
-                lmap.removeControl(slider);
+            onRemove: function(map) {
+                map.removeLayer(layer);
+                map.removeControl(slider);
             }
         }
         
-        map.controlsManager.getCurrent().getControl('layers').addOverlay(proxyLayer, 'GFW Tree Loss');
+        nsGmx.leafletMap.gmxControlsManager.get('layers').addOverlay(proxyLayer, 'GFW Tree Loss');
         
         slider.on('yearschange', function(data) {
             layer.setYearInterval(data.yearBegin, data.yearEnd);

@@ -56,11 +56,24 @@ var mapHelper = function()
 		return {
 			set: function(name, obj)
 			{
-				_borders[name] = obj;
+                if (name in _borders) {
+                    _borders[name].drawingFeature.off('edit', _borders[name].editListener);
+                }
+                var editListener = function() {
+                    _borders[name].isChanged = true;
+                }
+                
+                obj.on('edit', editListener);
+                
+				_borders[name] = {
+                    isChanged: !!_borders[name],
+                    drawingFeature: obj,
+                    editListener: editListener
+                }
 			},
 			get: function(name)
 			{
-				return _borders[name];
+				return _borders[name] && _borders[name].drawingFeature;
 			},
 			length: function()
 			{
@@ -71,28 +84,33 @@ var mapHelper = function()
 			forEach: function(callback)
 			{
 				for (var name in _borders)
-					callback(name, _borders[name]);
+					callback(name, _borders[name].drawingFeature);
 			},
-			
+
+            isChanged: function(name) {
+                return !!_borders[name] && _borders[name].isChanged;
+            },
+            
 			updateBorder: function(name, span)
 			{
 				if (!_borders[name])
 					return;
-				
+
+                var geom = _borders[name].drawingFeature.toGeoJSON().geometry,
+                    areaStr = L.gmxUtil.prettifyArea(L.gmxUtil.geoArea(geom, false));
+
 				if (span)
 				{
-                    var geom = _borders[name].geometry || _borders[name].getGeometry();
-					_(span, [_t(prettifyArea(geoArea(geom.coordinates)))]);
-					
+					_(span, [_t(areaStr)]);
 					return;
 				}
-				
+
 				if (!$$('drawingBorderDescr' + name))
 					return;
 				
 				removeChilds($$('drawingBorderDescr' + name));
-				
-				_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+
+				_($$('drawingBorderDescr' + name), [_t(areaStr)]);
 			}, 
 			
 			//Удаляет объект из списка контуров слоя
@@ -101,14 +119,18 @@ var mapHelper = function()
 			{
 				if (!(name in _borders))
 					return;
-					
-				if (typeof removeDrawing !== 'undefined' && removeDrawing)
-					_borders[name].remove();
+                
+                _borders[name].drawingFeature.off('edit', _borders[name].editListener);
+
+				if (removeDrawing) {
+					nsGmx.leafletMap.gmxDrawing.remove(_borders[name].drawingFeature);
+                }
 				
 				delete _borders[name];
 				
-				if ($$('drawingBorderDescr' + name))
+				if ($$('drawingBorderDescr' + name)) {
 					removeChilds($$('drawingBorderDescr' + name));
+                }
 			}
 		}
 	})();
@@ -276,18 +298,10 @@ mapHelper.prototype.setBalloon = function(filter, template)
 
 mapHelper.prototype.updateMapStyles = function(newStyles, name)
 {
-    var layer = globalFlashMap.layers[name];
+    var layer = nsGmx.gmxMap.layersByID[name];
     
-	// удалим старые фильтры
-	for (var i = layer.filters.length - 1; i > -1; i--) {
-		layer.filters[i].remove();
-	}
-	
-	layer.filters = [];
-    
-	// добавим новые
-    newStyles.forEach(function(style) {
-        layer.addFilter(style);
+    newStyles.forEach(function(style, i) {
+        nsGmx.Utils.setGmxLayerStyle(layer, i, style);
     });
 }
 
@@ -313,17 +327,18 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 {
 	window.suppressDefaultPermalink = true;
     nsGmx.Utils.TinyReference.get(id).then(function(obj) {
-		if (obj.position)
-		{
-			obj.position.x = from_merc_x(obj.position.x);
-			obj.position.y = from_merc_y(obj.position.y);
+		if (obj.position) {
+            var latLngPos = L.Projection.Mercator.unproject(obj.position);
+			obj.position.x = latLngPos.lng;
+			obj.position.y = latLngPos.lat;
 			obj.position.z = 17 - obj.position.z;
-			if (obj.drawnObjects)
-				for (var i in obj.drawnObjects)
-				{
-					obj.drawnObjects[i].geometry = from_merc_geometry(obj.drawnObjects[i].geometry);
-					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '0000ff';
+			if (obj.drawnObjects) {
+				for (var i in obj.drawnObjects) {
+                    //эта двойная конвертация в действительности просто перевод координат из Меркатора в LatLng
+					obj.drawnObjects[i].geometry = L.gmxUtil.geoJSONtoGeometry(L.gmxUtil.geometryToGeoJSON(obj.drawnObjects[i].geometry, true));
+					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '#0000FF';
 				}
+            }
 		}
         obj.originalReference = id;
 		callbackSuccess(obj);
@@ -335,23 +350,32 @@ mapHelper.prototype.getMapState = function()
 	var drawnObjects = [],
 		condition = {expanded:{}, visible:{}};
 	
-	globalFlashMap.drawing.forEachObject(function(o) 
-	{
+	nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(o)
+    {
 		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
 			return;
-			
-		var elem = {properties: o.properties, color: o.color, geometry: merc_geometry(o.geometry)};
+        
+        var geoJSON = o.toGeoJSON();
+        
+		var elem = {
+            properties: geoJSON.properties, 
+            geometry: L.gmxUtil.geoJSONtoGeometry(geoJSON, true)
+        };
 		
-		if (o.geometry.type != "POINT")
+		if (elem.geometry.type !== "POINT")
 		{
-			var style = o.getStyle();
+			var style = o.getOptions().lineStyle;
 			
-			elem.thickness = style.regular.outline.thickness;
-			elem.color = style.regular.outline.color;
-			elem.opacity = style.regular.outline.opacity;
+            if (style) {
+                elem.thickness = style.width || 2;
+                elem.color = style.color;
+                elem.opacity = (style.opacity || 0.8) * 100;
+            }
 		}
 		
-		if ( o.balloon ) elem.isBalloonVisible = o.balloon.isVisible;
+		if ( o.getPopup() ) {
+            elem.isBalloonVisible = true;
+        }
 		
 		drawnObjects.push(elem);
 	});
@@ -381,15 +405,18 @@ mapHelper.prototype.getMapState = function()
 			
 			//condition.visible[elem.content.properties.name] = elem.content.properties.visible;
 		}
-	})
+	});
+    
+    var lmap = nsGmx.leafletMap,
+        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 	
 	return {
-		mode: globalFlashMap.getBaseLayer(),
+		mode: lmap.gmxBaseLayersManager.getCurrentID(),
 		mapName: globalMapName,
 		position: { 
-			x: merc_x(globalFlashMap.getX()), 
-			y: merc_y(globalFlashMap.getY()), 
-			z: 17 - globalFlashMap.getZ() 
+			x: mercCenter.x,
+			y: mercCenter.y, 
+			z: 17 - lmap.getZoom() 
 		},
 		mapStyles: this.getMapStyles(),
 		drawnObjects: drawnObjects,
@@ -934,7 +961,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
             
-			var parentObject = globalFlashMap.layers[layerName],
+			var layer = nsGmx.gmxMap.layersByID[layerName],
 				parentStyle = elemProperties.styles && elemProperties.styles[0] || elemProperties;
                 
             var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
@@ -943,7 +970,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			
             $(zoomPropertiesControl).change(function()
             {
-                parentObject.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+                layer.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
             });
 
 			_(divStyles, [_ul([liMinZoom, liMaxZoom])]);
@@ -1325,21 +1352,25 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
  *    * Если указан id, то модифицируем
  *    * Для удаления объекта нужно явно прописать параметр
 */
-mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
+mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 {
     var def = $.Deferred();
     
     $.each(objs, function(i, obj)
     {
         obj.action = obj.action || (obj.id ? 'update' : 'insert');
-    })
-    
+    });
+    var params = {
+        WrapStyle: 'window', 
+        LayerName: layerName, 
+        objects: JSON.stringify(objs)
+    };
+    if (crs) {
+        params.geometry_cs = crs;
+    }
     sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
-        {
-            WrapStyle: 'window', 
-            LayerName: layerName, 
-            objects: JSON.stringify(objs)
-        },
+        params
+        ,
         function(addResponse)
         {
             if (!parseResponse(addResponse))
@@ -1348,10 +1379,9 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
                 return;
             }
             
-            var mapLayer = window.globalFlashMap && window.globalFlashMap.layers[layerName];
+            var mapLayer = nsGmx.gmxMap.layersByID[layerName];
             if (mapLayer) {
-                mapLayer.chkLayerVersion(function()
-                {
+                L.gmx.layersVersion.chkVersion(mapLayer, function() {
                     def.resolve();
                 });
             }

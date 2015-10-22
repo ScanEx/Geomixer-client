@@ -116,10 +116,9 @@ tableBrowser.prototype.loadInfoHandler = function(tables)
     $(tableParent).prepend(filterInput).prepend($('<span/>', {'class': 'tableFilter'}).text(_gtxt("tableBrowser.filterText") + ": "));
     tableProvider.attachFilterEvents(filterInput, 'Table', function(fieldName, fieldValue, vals)
     {
-        return _filter(function(val)
-        {
+        return vals.filter(function(val) {
             return String(val).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
-        }, vals);
+        });
     });
     
     showDialog( _gtxt("tableBrowser.title"), tableParent, {width: 300, height: 300} );

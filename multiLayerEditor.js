@@ -153,7 +153,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         _td([borderContainer, shpContainer])
     ]);
     
-    var shpGeometry = null;
     var multiObj = null;
     var fileInput = _input(null, [['attr', 'type', 'file'], ['attr', 'name', 'file'], ['attr', 'id', 'upload_shapefile']]);
 	fileInput.onchange = function()
@@ -169,20 +168,13 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                 return;
             }
             
-            var joinedPolygon = nsGmx.Utils.joinPolygons(objs);
+            var joinedPolygon = nsGmx.Utils.joinPolygons(nsGmx._.pluck(objs, 'geometry'));
             
-            if (!joinedPolygon)
-            {
+            if (!joinedPolygon) {
                 //TODO: ошибка
-            }
-            else if (joinedPolygon.type === "MULTIPOLYGON")
-            {
-                bindMultipolygon(joinedPolygon)
-            }
-            else if (joinedPolygon.type === "POLYGON")
-            {
+            } else {
                 isCreatedDrawing = true;
-                bindPolygon(globalFlashMap.drawing.addObject(joinedPolygon))
+                bindPolygon(nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(joinedPolygon))[0]);
             }
             
             $(borderContainer).show();
@@ -200,7 +192,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         $(shpContainer).hide();
         
         geometryInfoRow && geometryInfoRow.RemoveRow();
-        removeMultipolygon();
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
             globalFlashMap, 
@@ -220,44 +211,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
             
             geometryInfoRow = null;
         })
-    }
-    
-    var removeMultipolygon = function()
-    {
-        if (multiObj || shpGeometry)
-        {
-            multiObj && multiObj.remove();
-            multiObj = null;
-            shpGeometry = null;
-            $(borderContainer).empty();
-        }
-    }
-    
-    var bindMultipolygon = function(multigeometry)
-    {
-        multiObj = globalFlashMap.addObject(multigeometry);
-        multiObj.setStyle({outline: {color: 0x0000ff, thickness: 3}});
-        
-        if (geometryInfoRow && geometryInfoRow.getDrawingObject())
-        {
-            if (isCreatedDrawing)
-                 geometryInfoRow.getDrawingObject().remove();
-            else
-                geometryInfoRow.RemoveRow();
-                
-            isCreatedDrawing = false;
-        }
-        
-        geometryInfoRow = null;
-        
-        $(borderContainer).append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
-        shpGeometry = multigeometry;
-        var remove = makeImageButton(serverBase + 'api/img/closemin.png', serverBase + 'api/img/close_orange.png');
-        remove.setAttribute('title', _gtxt('Удалить'));
-        remove.onclick = removeMultipolygon;
-        remove.style.verticalAlign = 'middle';
-        
-        $(borderContainer).append(remove);
     }
     
     var geometryInfoRow = null;
@@ -280,15 +233,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     
     if (elemProperties.UserBorder)
     {
-        if (elemProperties.UserBorder.type == "MULTIPOLYGON")
-        {
-            bindMultipolygon(gmxAPI.from_merc_geometry(elemProperties.UserBorder));
-        }
-        else
-        {
-            isCreatedDrawing = true;
-            bindPolygon(globalFlashMap.drawing.addObject(gmxAPI.from_merc_geometry(elemProperties.UserBorder)));
-        }
+        isCreatedDrawing = true;
+        bindPolygon(nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(elemProperties.UserBorder, true))[0]);
     }
     
     shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
@@ -302,10 +248,11 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     
     var getUserBorder = function()
     {
-        if (geometryInfoRow && geometryInfoRow.getDrawingObject())
-            return merc_geometry(geometryInfoRow.getDrawingObject().geometry);
-        
-        return merc_geometry(shpGeometry) || null;
+        if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
+            return L.gmxUtil.geoJSONtoGeometry(geometryInfoRow.getDrawingObject().toGeoJSON().geometry, true);
+        } else {
+            return null;
+        }
     }
     
     var isCreate = div === null;
@@ -394,13 +341,10 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                     
                     geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
                     
-                    removeMultipolygon();
-                        
                     _queryMapLayers.addSwappable(li);
                     _queryMapLayers.addDraggable(li);
                     _layersTree.updateListType(li);
                     
-                    $(jQueryDialog).dialog("close");
                     $(jQueryDialog).dialog("destroy");
                     jQueryDialog.removeNode(true);
                 }
@@ -454,8 +398,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         
     var closeFunc = function()
     {
-        removeMultipolygon();
-        
         if (geometryInfoRow && geometryInfoRow.getDrawingObject())
         {
             if (isCreatedDrawing)

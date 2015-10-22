@@ -1,4 +1,4 @@
-(function() {
+!(function() {
 //Контроллёр контектных меню и соответствующие пункты всех меню...
 
 nsGmx = nsGmx || {};
@@ -291,7 +291,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		if (context.elem.LayerID)
         {
-            var securityDialog = new nsGmx.layerSecurity();
+            var securityDialog = new nsGmx.layerSecurity(context.elem.type);
 			securityDialog.getRights(context.elem.LayerID, context.elem.title);
         }
 		else if (context.elem.MultiLayerID)
@@ -360,7 +360,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-        new nsGmx.RCAddLayerControl(globalFlashMap, context.elem.name);
+        new nsGmx.RCAddLayerControl(nsGmx.gmxMap, context.elem.name);
 	}
 }, 'Layer');
 
@@ -518,9 +518,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	isVisible: function(context)
 	{
-		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (context.tree.treeModel.getMapProperties().Owner == nsGmx.AuthManager.getNickname()) || 
-		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
+		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS) && 
+            (_queryMapLayers.currentMapRights() === "edit" || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN));
 	}
 }, 'Map');
 

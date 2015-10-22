@@ -64,32 +64,50 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
         showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
         return;
     }
-    
-    var b = getBounds();
-    for (var i = 0; i < objs.length; i++)
-    {
-        var o = objs[i];
-        globalFlashMap.drawing.addObject(o.geometry, o.properties);
-        b.update(o.geometry.coordinates);
+    var lmap = nsGmx.leafletMap,
+        gmxDrawing = lmap.gmxDrawing,
+        latLngBounds = L.latLngBounds([]);
+    for (var i = 0; i < objs.length; i++) {
+        var it = objs[i],
+            geoJSON = L.gmxUtil.geometryToGeoJSON(it.geometry),
+            b = gmxDrawing.addGeoJSON(geoJSON, {fill: false, properties: it.properties})[0].getBounds();
+
+        latLngBounds.extend(b);
     }
-    globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+    if (latLngBounds.isValid()) {
+        lmap.fitBounds(latLngBounds);
+    }
 }
 
+//files - массив File или WebForms
+queryLoadShp.prototype.loadAndShowFiles = function(files) {
+    nsGmx.widgets.notifications.startAction('uploadShp');
+    
+    var def = $.when.apply($, [].slice.call(files).map(function(file) {
+        return nsGmx.Utils.parseShpFile(file);
+    }));
+    
+    def.then(function() {
+        this._showObjectsOnMap(nsGmx._.flatten([].slice.call(arguments)));
+        nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
+    }.bind(this), function() {
+        nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));
+    });
+    
+    return def;
+}
+
+
+//Загружает файлы из поля "file"
 queryLoadShp.prototype.upload = function()
 {
 	hide(this.inputControl);
 	show(this.progress);
-	
-	var _this = this;
-    
-    var regenerateGUI = function() {
-        _this.inputControl.removeChild(_this.postForm);
-        _this._regenerateControl();
-    }
-    
-    //TODO: update jQuery and use always()
-    nsGmx.Utils.parseShpFile(this.postForm)
-        .then(this._showObjectsOnMap).always(regenerateGUI);
+
+    this.loadAndShowFiles([this.postForm]).always(function() {
+        this.inputControl.removeChild(this.postForm);
+        this._regenerateControl();
+    }.bind(this));
 }
 
 var _queryLoadShp = new queryLoadShp();
@@ -97,17 +115,8 @@ var _queryLoadShp = new queryLoadShp();
 
 drawingObjects.loadShp.load = function() {
     if ('File' in window) {
-        $('<input type="file">').change(function(e) {
-            nsGmx.widgets.notifications.startAction('uploadShp');
-            nsGmx.Utils.parseShpFile(e.target.files[0]).then(
-                function(objs) {
-                    _queryLoadShp._showObjectsOnMap(objs);
-                    nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
-                }, 
-                function() {
-                    nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));
-                }
-            );
+        $('<input type="file" multiple>').change(function(e) {
+            _queryLoadShp.loadAndShowFiles(e.target.files);
         }).click();
     } else { //IE9
         var alreadyLoaded = _queryLoadShp.createWorkCanvas(arguments[0] || "shp");

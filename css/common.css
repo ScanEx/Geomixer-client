@@ -230,6 +230,7 @@ div.user span
 .flashMap
 {
 	position: relative;
+    z-index: 0;
 }
 .tooltip
 {
@@ -786,9 +787,10 @@ tr td.invisible
 {
 	display:inline !important;
 }
+
 skype_pnh_container
 {
-	display:none !important;
+	display: none !important;
 }
 
 .attrsTableBody #attrsTableParent td
@@ -1283,12 +1285,12 @@ div.layersScroll
 
 .collabsible-icon-hidden
 {
-    background: url(http://kosmosnimki.ru/img/expand.gif);
+    background: url(img/expand.gif);
 }
 
 .collabsible-icon-shown
 {
-    background: url(http://kosmosnimki.ru/img/collapse.gif);
+    background: url(img/collapse.gif);
 }
 
 .collabsible-title
@@ -1463,9 +1465,10 @@ div.layersScroll
     margin-left: 3px;
 }
 
-.defaultMapLangContainer > input
+.defaultMapLangContainer input
 {
     vertical-align: middle;
+    margin-right: 2px;
 }
 
 .defaultMapLangContainer > label
@@ -1602,6 +1605,18 @@ div.layersScroll
     height: 16px;
 }
 
+.gmx-icon-recycle {
+    display: inline-block;
+    width: 10px;
+    height: 12px;
+    background: url(../img/recycle.png);
+    cursor: pointer;
+}
+
+.gmx-icon-recycle:hover {
+    background: url(../img/recycle_a.png);
+}
+
 /* Tabs panel */
 .tabsCanvas .gmx-icon-close {
     position: absolute;
@@ -1643,7 +1658,6 @@ div.layersScroll
 .addtabs-info {
     text-align: left;
     padding-left: 12px;
-    margin-
 }
 
 .leftmenu-canvas#left_layers {
@@ -1905,4 +1919,7 @@ div.layersScroll
     background-color: rgba(255, 255, 255, 0.3);
     
     z-index: -1;
+}
+.gmxPopup div p {
+    margin: 2px 0px;
 }

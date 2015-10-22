@@ -840,7 +840,7 @@ var SearchWalrusWidget = function(map, container, imageCollection, walrusCollect
             }
         })
             
-        map.toolsAll.standartTools.selectTool('POLYGON');
+        //map.toolsAll.standartTools.selectTool('POLYGON');
     });
     
     var cancelSearchButton = $('<button/>', {'class': 'walrus-button'}).text('Отмена').click(function()

@@ -28,8 +28,10 @@ nsGmx.Controls = {
 		{
             if (parentStyle.fill && parentStyle.fill.pattern)
             {
-                var opaqueStyle = $.extend(true, {}, parentStyle, {fill: {opacity: 100}});
-                icon = _img(null, [['attr','src', 'data:image/png;base64,' + gmxAPI.getPatternIcon(opaqueStyle, 13)],['dir','className','icon'],['attr','styleType','icon']]);
+                var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+                    patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+                icon = patternData ? patternData.canvas : document.createElement('canvas');
+                _(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
             }
             else
             {
@@ -108,7 +110,7 @@ nsGmx.Controls = {
 		
 		divSlider.style.width = '100px';
 		divSlider.style.border = 'none';
-		divSlider.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/slider.png)';
+		divSlider.style.backgroundImage = 'url(img/slider.png)';
 		
 		divSlider.firstChild.style.border = 'none';
 		divSlider.firstChild.style.width = '12px';
@@ -117,15 +119,15 @@ nsGmx.Controls = {
 
         divSlider.firstChild.style.top = '-3px';
 
-		divSlider.firstChild.style.background = 'transparent url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon.png) no-repeat';
+		divSlider.firstChild.style.background = 'transparent url(img/sliderIcon.png) no-repeat';
 		
 		divSlider.firstChild.onmouseover = function()
 		{
-			divSlider.firstChild.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon_a.png)';
+			divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon_a.png)';
 		}
 		divSlider.firstChild.onmouseout = function()
 		{
-			divSlider.firstChild.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon.png)';
+			divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon.png)';
 		}
 		
 		_title(divSlider.firstChild, opacity)
@@ -152,6 +154,12 @@ nsGmx.Controls = {
     */
     chooseDrawingBorderDialog: function(name, callback, params)
     {
+        var TYPE_CONVERT_DICT = {
+            Polyline: 'linestring',
+            Rectangle: 'polygon',
+            Polygon: 'polygon',
+            Point: 'point'
+        }
         var _params = $.extend({
             title:         _gtxt("Выбор контура"),
             geomType:      null,
@@ -166,10 +174,11 @@ nsGmx.Controls = {
         var drawingObjs = [],
             _this = this;
         
-        globalFlashMap.drawing.forEachObject(function(obj)
+        nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(obj)
         {
-            if (!_params.geomType || obj.geometry.type.toLowerCase() === _params.geomType.toLowerCase())
+            if (!_params.geomType || TYPE_CONVERT_DICT[obj.getType()] === _params.geomType.toLowerCase()) {
                 drawingObjs.push(obj);
+            }
         })
         
         if (!drawingObjs.length)
@@ -178,14 +187,14 @@ nsGmx.Controls = {
         {
             gmxCore.loadModule('DrawingObjects').done(function(drawing) {
                 var canvas = _div();
-                var collection = new drawing.DrawingObjectCollection(globalFlashMap);
+                var collection = new drawing.DrawingObjectCollection(nsGmx.leafletMap);
 
                 for (var i = 0; i < drawingObjs.length; i++)
                 {
                     collection.Add(drawingObjs[i]);
                 }
                 
-                var list = new drawing.DrawingObjectList(globalFlashMap, canvas, collection, {
+                var list = new drawing.DrawingObjectList(nsGmx.leafletMap, canvas, collection, {
                     allowDelete: false, 
                     editStyle: false, 
                     showButtons: false,

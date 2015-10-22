@@ -92,7 +92,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         }
     }
     
-    var id = map.layers[layerName].properties.name;
+    var id = layerName;
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
     var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id});
     var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
@@ -151,7 +151,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                         var idfield = currAttrControl.getLayerInfo().identityField;
                         var objid = elem.values[elem.fields[idfield].index];
                         
-                        var dstProps = map.layers[layerName].properties;
+                        var dstProps = map.layersByID[layerName].getGmxProperties();
                         
                         var properties = {};
                         
@@ -248,10 +248,29 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var clearListeners = function() {
         for (var i = 0; i < listeners.length; i++) {
             var pt = listeners[i];
-            var layer = globalFlashMap.layers[pt['layerName']];
-            layer && layer.removeListener('onClick', pt['listenerId']);
+            var layer = map.layersByID[pt.layerName];
+            layer && layer.off('click', pt.listener);
         }
         listeners = [];
+    }
+    
+    var clickListener = function(event) {
+        
+        var layerProps = event.gmx.layer.getGmxProperties(),
+            objProps = event.gmx.properties;
+        
+        if (!objProps['GMX_RasterCatalogID']) {
+            infoControl.warning(_gtxt('Выбранный объект не имеет растра'));
+            return true;
+        }
+        
+        if (visLayersWidget.isExist(layerProps, objProps)) {
+            infoControl.warning(_gtxt('Этот растр уже был выбран'));
+            return true;
+        }
+        
+        visLayersWidget.addObject(layerProps, objProps);
+        return true;	// Отключить дальнейшую обработку события
     }
     
     $(tabMenu).tabs({
@@ -259,32 +278,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             var index = $(tabMenu).tabs('option', 'active');
             if (index === 4) { //выбираем на карте - добавляем ко всем растрам listeners
                 listeners = [];
-                for (var iL = 0; iL < globalFlashMap.layers.length; iL++) (function(layer) 
-                {
-                    if (layer.properties.type === 'Vector' && layer.properties.IsRasterCatalog)
+                map.layers.forEach(function(layer) {
+                    var props = layer.getGmxProperties();
+                    if (props.type === 'Vector' && props.IsRasterCatalog)
                     {
-                        var listenerId = layer.addListener('onClick', function(attr)
-                        {
-                            var obj = attr.obj;
-                            //var layer = obj.parent;
-                            var id = obj.properties[layer.properties.identityField];
-                            
-                            if (!obj.properties['GMX_RasterCatalogID']) {
-                                infoControl.warning(_gtxt('Выбранный объект не имеет растра'));
-                                return true;
-                            }
-                            
-                            if (visLayersWidget.isExist(layer.properties, obj.properties)) {
-                                infoControl.warning(_gtxt('Этот растр уже был выбран'));
-                                return true;
-                            }
-                            
-                            visLayersWidget.addObject(layer.properties, obj.properties);
-                            return true;	// Отключить дальнейшую обработку события
-                        });
-                        listeners.push({layerName: layer.properties.name, listenerId: listenerId});
+                        //тут нужна уникальная ф-ция для дальнейшей очистки слушателей
+                        var listener = clickListener.bind(null); 
+                        
+                        layer.on('click', listener);
+                        listeners.push({layerName: props.name, listener: listener});
                     }
-                })(globalFlashMap.layers[iL]);
+                })
             } else {
                 clearListeners();
             }

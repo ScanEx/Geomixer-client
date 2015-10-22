@@ -5,7 +5,7 @@
 * @namespace Search
 * @description Содержит необходимое для поиска
 */
-(function($){
+!(function($){
 
 //TODO: переписать генерацию UI на шаблонах
 
@@ -18,9 +18,11 @@ $('#flash').droppable({
         
         if (obj) {
             var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
-            globalFlashMap.drawing.addObject(obj.Geometry, {text: text});
+            nsGmx.leafletMap.gmxDrawing.addGeoJSON({
+                type: 'Feature',
+                geometry: L.gmxUtil.geometryToGeoJSON(obj.Geometry),
+            }, {text: text});
         }
-        
     }
 })
 
@@ -144,7 +146,7 @@ var SearchInput = function (oInitContainer, params) {
 	/** Устанавливает содержимое поля поиска
 	@function
 	@see Search.SearchInput#GetSearchString*/
-	this.SetSearchString = function(value) {searchField.value = value};
+	this.SetSearchString = function(value) {searchField.value = value;};
 
 	/** Устанавливает содержимое поля поиска
 	@function
@@ -848,12 +850,11 @@ var ResultList = function(oInitContainer, ImagesHost){
 /** Конструктор
  @class Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
- @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {L.Map} map карта, на которой будут рисоваться объекты
  @param {string} sInitImagesHost - строка пути к картинкам
  @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту*/
-var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
-	var oMap = oInitMap;
-	if (oMap == null)  throw "ResultRenderer.Map is null";
+var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
+	if (map == null)  throw "ResultRenderer.Map is null";
 	
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
@@ -862,13 +863,23 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var counts = [];
 	
 	/** возвращает стили найденных объектов, используется только для точки*/
-	var getSearchStyle = function(iPosition) {
+	var getSearchIcon = function(iPosition) {
         iPosition = Math.min(iPosition, 9);
-		return [
-						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png", dx: -14, dy: -38} },
-						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + "a.png", dx: -14, dy: -38} }
-				];
+        return L.icon({
+            iconUrl: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png",
+            iconAnchor: [15, 38],
+            popupAnchor: [0, -28]
+        });
+        
+		// return [
+						// { marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png", dx: -14, dy: -38} },
+						// { marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + "a.png", dx: -14, dy: -38} }
+				// ];
 	}
+    
+    var bindHoverPopup = function(layer, content) {
+        layer.bindPopup(content);
+    }
 
 	/**Помещает объект на карту
 	@param {MapObject} oContainer контейнер, содержащий в себе объекты текущей группы результатов поиска
@@ -880,6 +891,9 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
         var color = Math.round(0x22 + 0x99*iPosition/iCount);
 		var sDescr = "<b>" + Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + Functions.GetPath(oFoundObject.Parent, "<br/>", true);
 		if (oFoundObject.properties != null) sDescr += "<br/>" + Functions.GetPropertiesString(oFoundObject.properties, "<br/>");
+        
+        sDescr = sDescr.replace(/;/g, "<br/>");
+        
 		var fnBaloon = function(o) {
 			return o.properties.Descr.replace(/;/g, "<br/>");
 		};
@@ -887,23 +901,41 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
             boundaryMapElem;
 		//Рисуем центр объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type == 'POINT') {
-			centerMapElem = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			centerMapElem.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
-			centerMapElem.enableHoverBalloon(fnBaloon);
+            centerMapElem = L.marker([oFoundObject.Geometry.coordinates[1], oFoundObject.Geometry.coordinates[0]], {
+                icon: getSearchIcon(iPosition)
+            });
+            bindHoverPopup(centerMapElem, sDescr);
+            oContainer.addLayer(centerMapElem);
 		}
 		else if (oFoundObject.CntrLon != null && oFoundObject.CntrLat != null){
-			centerMapElem = oContainer.addObject({ type: "POINT", coordinates: [oFoundObject.CntrLon, oFoundObject.CntrLat] }, { Descr: sDescr });
-			centerMapElem.setStyle(getSearchStyle(iPosition)[0], getSearchStyle(iPosition)[1]);
-			centerMapElem.enableHoverBalloon(fnBaloon);
+            centerMapElem = L.marker([oFoundObject.CntrLat, oFoundObject.CntrLon], {
+                icon: getSearchIcon(iPosition)
+            });
+            
+            bindHoverPopup(centerMapElem, sDescr);
+            oContainer.addLayer(centerMapElem);
 		}
 		
 
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
-			boundaryMapElem = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			boundaryMapElem.setStyle({ outline: { color: (color << 16) + (color << 8) + color, thickness: 3, opacity: 60} });
-
-			boundaryMapElem.enableHoverBalloon(fnBaloon);
+            boundaryMapElem = L.geoJson(L.gmxUtil.geometryToGeoJSON(oFoundObject.Geometry), {
+                style: function(feature) {
+                    return 
+                },
+                onEachFeature: function(feature, layer) {
+                    layer.setStyle({
+                        color: '#' + (0x1000000 + (color << 16) + (color << 8) + color).toString(16).substr(-6),
+                        weight: 3,
+                        opacity: 0.6,
+                        fill: false
+                    });
+                    
+                    bindHoverPopup(layer, sDescr)
+                }
+            });
+            
+            oContainer.addLayer(boundaryMapElem);
 		}
         
         return {center: centerMapElem, boundary: boundaryMapElem};
@@ -916,21 +948,24 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
         if (oFoundObject.Geometry == null) {
 		    if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null
                 && oFoundObject.MaxLon - oFoundObject.MinLon < 1e-9 && oFoundObject.MaxLat - oFoundObject.MinLat < 1e-9)
-			    oMap.moveTo(oFoundObject.CntrLon, oFoundObject.CntrLat, iZoom);
+			    map.setView([oFoundObject.CntrLat, oFoundObject.CntrLon], iZoom);
 		    else
-			    oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
+			    map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
         }
 		else
 		{
            if (oFoundObject.Geometry.type == 'POINT') {
-		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat)
-			        oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
-                else
-			        oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
+		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat) {
+			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
+                } else {
+                    var c = oFoundObject.Geometry.coordinates;
+			        map.setView([c[1], c[0]], iZoom);
+                }
 		    }
 		    else {
-			    var oExtent = getBounds(oFoundObject.Geometry.coordinates);
-			    oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
+                var bounds = L.gmxUtil.getGeometryBounds(oFoundObject.Geometry);
+			    //var oExtent = getBounds(oFoundObject.Geometry.coordinates);
+			    map.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
             }
 		}
 	};
@@ -952,13 +987,12 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
         options = $.extend({append: false}, options);
         
         if (!options.append && arrContainer[iDataSourceN]) {
-            arrContainer[iDataSourceN].remove();
+            map.removeLayer(arrContainer[iDataSourceN]);
             delete arrContainer[iDataSourceN];
         }
         
         if (!arrContainer[iDataSourceN]) {
-            arrContainer[iDataSourceN] = oMap.addObject();
-            arrContainer[iDataSourceN].setVisible(false);
+            arrContainer[iDataSourceN] = L.layerGroup();
             counts[iDataSourceN] = 0;
         }
         
@@ -973,7 +1007,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 			mapObjects.unshift(DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], counts[iDataSourceN] + i - arrFoundObjects.length, counts[iDataSourceN]));
 		}
         
-		arrContainer[iDataSourceN].setVisible(true);
+		arrContainer[iDataSourceN].addTo(map);
 		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
         
         return mapObjects;
@@ -1131,12 +1165,12 @@ var ResultListMap = function(lstResult, oRenderer){
  @class SearchDataProvider Посылает запрос к поисковому серверу
  @memberof Search
  @param {string} sInitServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
- @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {L.gmxMap} gmxMap карта, содержащая слои, по которым должен производиться поиск
  @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска*/
-var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
+var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 	var sServerBase = sInitServerBase;
 	if (sServerBase == null || sServerBase.length < 7) {throw "Error in SearchDataProvider: sServerBase is not supplied"};
-	var oMap = oInitMap;
+	// var oMap = oInitMap;
 	var iDefaultLimit = 100;
 	var _this = this;
 	/**Осуществляет поиск по произвольным параметрам
@@ -1243,26 +1277,29 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	/**Осуществляет поиск по векторным слоям
 	@returns {void}*/
 	this.LayerSearch = function(sInitSearchString, oInitGeometry, callback){
-		var arrResult = [];
-		if(!oMap){
-			callback(arrResult);
+		if (!gmxMap){
+			callback([]);
 			return;
 		}
+		var arrResult = [];
 		
 		var layersToSearch = [];
-		for(var i=0; i< oMap.layers.length; i++){
-            if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch && oMap.layers[i].isVisible)
-                layersToSearch.push(oMap.layers[i]);
+		for (var i=0; i< gmxMap.layers.length; i++) {
+            var props = gmxMap.layers[i].getGmxProperties();
+            if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                layersToSearch.push(props);
+            }
         }
 		var iRespCount = 0;
 
 		if (layersToSearch.length > 0){
-            layersToSearch.forEach(function(layer) {
-                var url = "http://" + layer.properties.hostName + "/SearchObject/SearchVector.ashx" + 
-                    "?LayerNames=" + layer.properties.name +
-                    "&MapName=" + layer.properties.mapName +
+            layersToSearch.forEach(function(props) {
+                var mapName = gmxMap.layersByID[props.name].options.mapName;
+                var url = "http://" + props.hostName + "/SearchObject/SearchVector.ashx" + 
+                    "?LayerNames=" + props.name +
+                    "&MapName=" + mapName +
                     (sInitSearchString ? ("&SearchString=" + encodeURIComponent(sInitSearchString)) : "") +
-                    (oInitGeometry ? ("&border=" + encodeURIComponent(JSON.stringify(merc_geometry(oInitGeometry)))) : "");
+                    (oInitGeometry ? ("&border=" + encodeURIComponent(JSON.stringify(L.gmxUtil.convertGeometry(oInitGeometry)))) : "");
                 sendCrossDomainJSONRequest(
                     url,
                     function(searchReq)
@@ -1291,19 +1328,19 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
                                     }
                                     
                                     for (var p in arrDisplayProperties) {
-                                        var type = layer.properties.attrTypes[layer.properties.attributes.indexOf(p)];
+                                        var type = props.attrTypes[props.attributes.indexOf(p)];
                                         arrDisplayProperties[p] = nsGmx.Utils.convertFromServer(type, arrDisplayProperties[p]);
                                     }
                                     
                                     arrLayerResult.push({
                                         ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
                                         properties: arrDisplayProperties, 
-                                        Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
+                                        Geometry: L.gmxUtil.convertGeometry(req.SearchResult[j].geometry, true)
                                     });
                                 }
                             }
                         }
-                        if(arrLayerResult.length > 0) arrResult.push({name: layer.properties.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
+                        if(arrLayerResult.length > 0) arrResult.push({name: props.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
 
                         if (iRespCount == layersToSearch.length){
                             callback(arrResult);
@@ -1327,14 +1364,15 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 /**Возращает класс, который предоставляет функции обработки найденных данных
  @memberof Search
  @param {string} ServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
- @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {L.gmxMap} gmxMap карта с векторными слоями для поиска
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
  @param {object} [params] дополнительные параметры
  @param {object} [params.UseOSM] использовать ли геокодер OSM
  @returns {Search.SearchLogic}*/
-var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, params){
-    SearchLogic.call(this, new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, params);
+var SearchLogicGet = function(ServerBase, gmxMap, WithoutGeometry, params){
+    SearchLogic.call(this, new SearchDataProvider(ServerBase, gmxMap), WithoutGeometry, params);
 }
+
 SearchLogicGet.prototype = SearchLogic;
 
 /**Конструктор
@@ -1588,13 +1626,14 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
 *  * layersSearchFlag - Признак видимости кнопки поиска по векторным слоям
 *  * ContainerList - Объект, в котором находится контрол результатов поиска в виде списка(div)
 *  * Map - карта, на которой будут рисоваться объекты
+*  * gmxMap - карта с векторными слоями
 *  * WithoutGeometry - не передавать геометрию в результатах поиска
 *
 * @returns {Search.SearchControl}
 */
 var SearchControlGet = function (params){
     var map = params.Map;
-	var oLogic = new SearchLogicGet(params.ServerBase, map, params.WithoutGeometry);
+	var oLogic = new SearchLogicGet(params.ServerBase, params.gmxMap, params.WithoutGeometry);
 	var fnAutoCompleteSource = function (request, response) {
 		oLogic.AutoCompleteData(request.term, response);
 	}
@@ -1610,10 +1649,21 @@ var SearchControlGet = function (params){
 	SearchControl.call(this, btnSearch, lstResult, oLogic, oLocationTitleRenderer);
     
     this.addSearchByStringHook(function(searchString) {
-        var pos = gmxAPI.parseCoordinates(searchString);
+        var pos = L.gmxUtil.parseCoordinates(searchString);
         if (pos) {
-            map.moveTo(pos[0], pos[1], map.getZ());
-            map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
+            nsGmx.leafletMap.panTo(pos);
+
+            // Добавим иконку по умолчанию
+            // L.Icon.Default.imagePath = 'leaflet/images';
+            nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: searchString }));
+            // Либо задать свою иконку
+            // nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, {
+                // draggable: true, title: searchString,
+                // icon: L.icon({ iconUrl: 'img/flag_blau1.png', iconAnchor: [6, 36] })
+            // }));
+
+            //map.moveTo(pos[0], pos[1], map.getZ());
+            //map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
             return true;
         }
     })
@@ -1926,12 +1976,13 @@ var SearchGeomixer = function(){
 		if (oMenu == null) oMenu = params.Menu;
 		if (oMenu == null) throw "Error in SearchGeomixer: Menu is null";
 		_(params.ContainerInput, [oSearchInputDiv]);
-		oSearchControl = new SearchControlGet({ServerBase: params.ServerBase, 
+		oSearchControl = new SearchControlGet({ServerBase: params.ServerBase,
 											ImagesHost: params.ServerBase + "/api/img",
 											ContainerInput: oSearchInputDiv, 
 											layersSearchFlag: params.layersSearchFlag,
 											ContainerList: oSearchResultDiv,
-											Map: params.Map});
+											Map: params.Map,
+                                            gmxMap: params.gmxMap});
 		$(oSearchControl).bind('onBeforeSearch', fnBeforeSearch);
 		$(oSearchControl).bind('onAfterSearch', fnAfterSearch);
 		$(oSearchControl).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);

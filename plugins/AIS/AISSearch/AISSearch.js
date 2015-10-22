@@ -1,17 +1,27 @@
 ﻿(function() {
     var pluginName = 'AISSearch',
-        serverPrefix = serverBase || 'http://maps.kosmosnimki.ru/';
+        serverPrefix = serverBase || 'http://maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx';
 
     _translationsHash.addtext('rus', {
-        'AISSearch.iconTitle' : 'Поиск кораблей по экрану'
+        'AISSearch.title' : 'Поиск кораблей',
+        'AISSearch.title1' : 'Найдено кораблей',
+        'AISSearch.title2' : '<b>Данных не найдено!</b>',
+        'AISSearch.error' : '<b>Ошибка при получении данных!</b>',
+        'AISSearch.iconTitle' : 'Поиск кораблей по экрану',
+        'AISSearch.placeholder_0' : 'Поиск по адресам, координатам',
+        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам'
     });
     _translationsHash.addtext('eng', {
-        'AISSearch.iconTitle' : 'Find ships in polygons'
+        'AISSearch.title' : 'Searching vessels',
+        'AISSearch.title1' : 'Vessels found',
+        'AISSearch.title2' : '<b>Vessels not found!</b>',
+        'AISSearch.error' : '<b>Vessels not found!</b>',
+        'AISSearch.iconTitle' : 'Search vessels within the view area',
+        'AISSearch.placeholder_0' : 'Search for addresses, coordinates',
+        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
     });
-    // var plugin = nsGmx.pluginsManager.getPluginByName('AISSearch');
-    // var mmsiArr = [275171000];
-    // if (plugin) { plugin.body.setMMSI(mmsiArr);
+    
     var publicInterface = {
         pluginName: pluginName,
         afterViewer: function(params, map) {
@@ -21,7 +31,9 @@
                 activeImage: 'active.png',
                 layerName: null
             }, params);
-            
+
+            var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null;
+            var placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0');
             var layerName = _params.layerName;
             
             var gmxLayers,
@@ -96,7 +108,7 @@
                 var cont = sideBar.getContainer();
                 L.DomEvent.disableScrollPropagation(cont);
                 cont.appendChild(div);
-                title.innerHTML = 'Поиск кораблей';
+                title.innerHTML = _gtxt(pluginName + '.title');
                 
                 aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
                 if (!layersByID[aisLayerID]) {
@@ -191,6 +203,9 @@
                         }
                         if (values.length) {
                             node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle', div);
+                            if (params.height) {
+                                node.style.height = params.height + 'px';
+                            }
                             node.setAttribute('size', 15);
                             node.setAttribute('multiple', true);
                             node.onchange = function(ev) {
@@ -220,20 +235,19 @@
                                 opt.text = val.replace(/\s+$/, '');
                                 return opt;
                             });
-                            title.innerHTML = 'Найдено кораблей: <b>' + values.length + '</b>';
+                            title.innerHTML = _gtxt(pluginName + '.title1') + ': <b>' + values.length + '</b>';
                         } else {
-                            title.innerHTML = '<b>Данных не найдено!</b>';
+                            title.innerHTML = _gtxt(pluginName + '.title2');
                         }
                     } else {
-                        title.innerHTML = '<b>Ошибка при получении данных!</b>';
+                        title.innerHTML = _gtxt(pluginName + '.error');
                     }
                 });
             }
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
-            var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null,
-                searchHook = function(str) {
+            var searchHook = function(str) {
                     var res = sideBar && sideBar._map ? true : false;
                     if (res) {
                         getMMSIoptions(str);
@@ -251,13 +265,15 @@
                 var isActive = ev.target.options.isActive;
                 if (isActive) {
                     if (searchControl) {
-                        searchControl.addSearchByStringHook(searchHook, 1000);
+                        searchControl.addSearchByStringHook(searchHook, 1002);
+                        if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
                     }
                     lmap.addControl(sideBar);
                     getMMSIoptions();
                 } else {
                     if (searchControl) {
                         searchControl.removeSearchByStringHook(searchHook);
+                        if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(placeholderDefault); }
                     }
                     if (sideBar && sideBar._map) {
                         lmap.removeControl(sideBar);

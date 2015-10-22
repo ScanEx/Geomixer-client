@@ -34,23 +34,28 @@
             if (!map) {return;}
             
             var path = gmxCore.getModulePath('Add2MapPlugin');
+            var lmap = nsGmx.leafletMap,
+                layersByID = nsGmx.gmxMap.layersByID;
             
             var parsedParams = parseParams(params);
             $.each(parsedParams, function(id, toolParams) {
-                var layerName = toolParams.layerName;
-                
-                var regularImage = toolParams.regularImage || DEFAULT_ICON;
-                var activeImage = toolParams.activeImage || regularImage;
-                
-                var mapListenerId = null;
-                var toolContainer = new map.ToolsContainer('add2map_' + id);
-                var tool = toolContainer.addTool('add2map_' + id, {
-                    hint: _gtxt('add2MapPlugin.iconTitle'),
+                var layerName = toolParams.layerName,
+                    regularImage = toolParams.regularImage || DEFAULT_ICON,
+                    activeImage = toolParams.activeImage || regularImage,
+                    lastDrawingFeature = null;
+
+                var icon = new L.Control.gmxIcon({
+                    id: 'add2mapIcon', 
+                    togglable: true,
                     regularImageUrl: regularImage.search(/^https?:\/\//) !== -1 ? regularImage : path + regularImage,
                     activeImageUrl:  activeImage.search(/^https?:\/\//) !== -1 ? activeImage : path + activeImage,
-                    onClick: function() {
-                    
-                        var activeLayer = layerName;
+                    title: _gtxt('add2MapPlugin.iconTitle')
+                }).on('statechange', function(ev) {
+                    var control = ev.target,
+                        activeLayer = null;
+                        
+                    if (control.options.isActive) {
+                        activeLayer = layerName;
                         var active = $(_queryMapLayers.treeCanvas).find(".active");
                         
                         if (!activeLayer && active[0] && active[0].parentNode.getAttribute("LayerID") &&
@@ -69,26 +74,36 @@
                             return;
                         }
                         
-                        var toolName = map.layers[activeLayer].properties.GeometryType.toUpperCase();
-                        map.drawing.selectTool(toolName);
-                        
-                        if (mapListenerId === null) {
-                            mapListenerId = map.drawing.addListener('onFinish', function(obj) {
-                                map.drawing.removeListener('onFinish', mapListenerId);
-                                mapListenerId = null;
-                                tool.setActive();
-                                
-                                var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
-                                    drawingObject: obj
-                                });
-                            })
+                        var type = layersByID[activeLayer]._gmx.properties.GeometryType.toUpperCase();
+                        var geojson = L.gmxUtil.geometryToGeoJSON({
+                            type: type
+                        });
+                        var addDone = function (ev) {
+                            lastDrawingFeature.off('drawstop', addDone);
+                            var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
+                                drawingObject: lastDrawingFeature
+                            });
+                            lastDrawingFeature = null;
+                            icon.setActive();
+                        };
+                        var addBegin = function (ev) {
+                            lastDrawingFeature = ev.object;
+                            lastDrawingFeature.on('drawstop', addDone);
+                            lmap.gmxDrawing.off('add', addBegin);
+                        };
+
+                        lmap.gmxDrawing.on('add', addBegin);
+                        lmap.gmxDrawing.create(geojson.type);
+                    } else {
+                        if (lastDrawingFeature) {
+                            lastDrawingFeature.remove();
+                            lastDrawingFeature = null;
                         }
-                    },
-                    onCancel: function(){
-                        map.drawing.selectTool('move');
+                        lmap.gmxDrawing.create(); //прекратить рисование
                     }
-                })
-            })
+                });
+                lmap.addControl(icon);
+            });
         }
     };
     

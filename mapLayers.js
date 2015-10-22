@@ -182,8 +182,8 @@ var layersTree = function( renderParams )
         allowDblClick: true,
         showStyle: true,
         visibilityFunc: function(props, isVisible) {
-            if (props.name in globalFlashMap.layers) {
-                globalFlashMap.layers[props.name].setVisible(isVisible);
+            if (props.name in nsGmx.gmxMap.layersByID) {
+                nsGmx.leafletMap[isVisible ? 'addLayer' : 'removeLayer'](nsGmx.gmxMap.layersByID[props.name]);
             }
         }
     }, renderParams);
@@ -242,15 +242,15 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
         }
     })
     
-    globalFlashMap.addListener('onLayerChangeVisible', function(event) {
-        var layer = event.from,
-            props = layer.properties,
-            findResult = _this.treeModel.findElem('name', props.name);
-                    
-        if (findResult) {
-            _this.treeModel.setNodeVisibility(findResult.elem, layer.isVisible);
+    nsGmx.leafletMap.on('layeradd layerremove', function(event) {
+        if (event.layer.getGmxProperties) {
+            var props = event.layer.getGmxProperties();
+            var searchRes = _this.treeModel.findElem('name', props.name);
+            if (searchRes) {
+                _this.treeModel.setNodeVisibility(searchRes.elem, nsGmx.leafletMap.hasLayer(event.layer));
+            }
         }
-    })
+    });
 
     return this._treeCanvas;
 }
@@ -429,9 +429,9 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 
 	if (elem.type == "layer")
 	{
-        var elemProperties = !layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties;
+        var elemProperties = !layerManagerFlag ? nsGmx.gmxMap.layersByID[elem.content.properties.name].getGmxProperties(): elem.content.properties;
 		var childs = this.drawLayer(elemProperties, parentParams, layerManagerFlag, parentVisibility);
-
+		
 		if (typeof elem.content.properties.LayerID != 'undefined')
 			div = _div(childs, [['attr','LayerID',elem.content.properties.LayerID]]);
 		else
@@ -439,7 +439,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
-
+        
         this._applyLayerViewHooks(div, elemProperties);
 	}
 	else
@@ -475,28 +475,38 @@ layersTree.prototype.getActive = function()
 
 layersTree.prototype.getMinLayerZoom = function(layer)
 {
-	var minLayerZoom = 20;
-	
-	for (var i = 0; i < layer.properties.styles.length; i++)
-		minLayerZoom = Math.min(minLayerZoom, layer.properties.styles[i].MinZoom);
-	
-	return minLayerZoom
+    var minLayerZoom = 20,
+        styles = layer.getStyles();
+
+    for (var i = 0; i < styles.length; i++) {
+        minLayerZoom = Math.min(minLayerZoom, styles[i].MinZoom);
+    }
+
+    return minLayerZoom;
 }
 
 layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
 {
-	var z = globalFlashMap.getBestZ(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-	if (minZoom != 20)
-		z = Math.max(z, minZoom);
-        
-    var zoomBounds = globalFlashMap.getZoomBounds();
-    z = Math.min(zoomBounds.MaxZoom, Math.max(zoomBounds.MinZoom, z));
+    if (!bounds) return;
     
-	globalFlashMap.moveTo(
-		from_merc_x((merc_x(bounds.minX) + merc_x(bounds.maxX))/2),
-		from_merc_y((merc_y(bounds.minY) + merc_y(bounds.maxY))/2),
-		z
-	);
+    var lmap = nsGmx.leafletMap,
+        z = lmap.getBoundsZoom(bounds);
+
+	if (minZoom !== 20) {
+		z = Math.max(z, minZoom);
+    }
+
+    z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
+    
+    //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
+    //а указать явно zoom в fitBounds нельзя
+    //TODO: enable animation!
+    lmap.fitBounds(bounds, {animation: false});
+    
+    //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
+    if (z !== lmap.getZoom()) {
+        lmap.setZoom(z);
+    }
 }
 
 layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
@@ -537,14 +547,13 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         dbclickFunc = function()
         {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
-            var layer = globalFlashMap.layers[elem.name];
+            var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
         
             if (layer)
             {
                 var minLayerZoom = _this.getMinLayerZoom(layer);
-                
-                _this.layerZoomToExtent(layer.getLayerBounds(), minLayerZoom);
+                _this.layerZoomToExtent(layer.getBounds(), minLayerZoom);
             }
         };
     
@@ -619,13 +628,15 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
             iconSpan = _span([icon]);
         
-        if ( elem.styles.length == 1 && elem.name in globalFlashMap.layers )
+        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID )
         {
-            globalFlashMap.layers[elem.name].addListener('onStyleChange', function(filter) {
-                if (globalFlashMap.layers[elem.name].filters.length == 1)
+            var layer = nsGmx.gmxMap.layersByID[elem.name];
+            layer.on('stylechange', function() {
+                if (layer.getStyles().length === 1)
                 {
+                    var style = L.gmxUtil.toServerStyle(layer.getStyles()[0].RenderStyle);
                     var newIcon = _mapHelper.createStylesEditorIcon(
-                        [{MinZoom:1, MaxZoom: 21, RenderStyle: filter.getStyle().regular}], 
+                        [{MinZoom:1, MaxZoom: 21, RenderStyle: style}], 
                         elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', 
                         {addTitle: !layerManagerFlag}
                     );
@@ -672,8 +683,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 layersTree.prototype.downloadVectorLayer = function(name, mapHostName, format, query)
 {
-    var layer = globalFlashMap.layers[name],
-        url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + layer.properties.name;
+    var url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + encodeURIComponent(name);
                   
     if (format) {
         url += '&format=' + format;
@@ -734,26 +744,17 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (childsUl)
             {
-                var bounds = {
-                        minX: 100000000, 
-                        minY: 100000000, 
-                        maxX: -100000000, 
-                        maxY: -100000000
-                    },
+                var bounds = new L.LatLngBounds(),
                     minLayerZoom = 20;
                 
                 _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
                 {
                     if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
                     {
-                        var layer = globalFlashMap.layers[child.content.properties.name],
-                            layerBounds = layer.getLayerBounds();
-                    
-                        bounds.minX = Math.min(layerBounds.minX, bounds.minX);
-                        bounds.minY = Math.min(layerBounds.minY, bounds.minY);
-                        bounds.maxX = Math.max(layerBounds.maxX, bounds.maxX);
-                        bounds.maxY = Math.max(layerBounds.maxY, bounds.maxY);
+                        var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
                         
+                        bounds.extend(layer.getBounds());
+
                         minLayerZoom = Math.min(minLayerZoom, _this.getMinLayerZoom(layer));
                     }
                 });
@@ -896,44 +897,11 @@ layersTree.prototype.removeGroup = function(div)
 		span.parentNode.parentNode.removeNode(true);
 		
 		_mapHelper.updateUnloadEvent(true);
+        
+        _this.updateZIndexes();
 	}
 	
 	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
-}
-
-layersTree.prototype.showSaveStatus = function(parent)
-{
-	if (this.timer)
-		clearTimeout(this.timer)
-	
-	$(parent).find("[savestatus]").remove();
-			
-	var divStatus = _div([_span([_t(_gtxt("Сохранено"))],[['css','marginLeft','10px'],['css','color','#33AB33']])], [['css','paddingTop','10px'],['attr','savestatus',true]]);
-	
-	$(parent).append(divStatus);
-	
-	this.timer = setTimeout(function()
-		{
-			divStatus.removeNode(true);
-		}, 1500)
-}
-
-// выключает все остальные радиобаттоны
-layersTree.prototype.disableRadioGroups = function(box)
-{
-	var parentGroupCanvas = box.parentNode.parentNode.parentNode;
-	for (var i = 0; i < parentGroupCanvas.childNodes.length; i++)
-	{
-		var childDiv = $(parentGroupCanvas.childNodes[i]).children("div[LayerID],div[MultiLayerID]");
-		
-		if (!childDiv.length)
-			childDiv = $(parentGroupCanvas.childNodes[i]).children("div[GroupID]");
-		
-		var childBox = childDiv[0].firstChild;
-		
-		if (childBox != box && !childBox.isDummyCheckbox)
-			this.setVisibility(childBox, false);
-	}
 }
 
 //по элементу дерева слоёв ищет соответствующий элемент в DOM представлении
@@ -997,6 +965,22 @@ layersTree.prototype.dummyNode = function(node)
 	return div = _div([_t(text)],[['dir','className','dragableDummy']]);
 }
 
+//проходится по всем слоям дерева и устанавливает им z-индексы в соответствии с их порядком в дереве
+layersTree.prototype.updateZIndexes = function() {
+    var curZIndex = 0,
+        vectorLayersOffset = 2000000;
+
+    this.treeModel.forEachLayer(function(layerContent, isVisible, nodeDepth) {
+        var layer = nsGmx.gmxMap.layersByID[layerContent.properties.name];
+        
+        var zIndex = curZIndex++;
+        if (layer.getGmxProperties().type === 'Vector') {
+            zIndex += vectorLayersOffset;
+        }
+        layer.setZIndex(zIndex);
+    })
+}
+
 layersTree.prototype.moveHandler = function(spanSource, divDestination)
 {
 	var node = divDestination.parentNode,
@@ -1032,6 +1016,8 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
 	_mapHelper.updateUnloadEvent(true);
+    
+    this.updateZIndexes();
 }
 
 layersTree.prototype.swapHandler = function(spanSource, divDestination)
@@ -1062,6 +1048,8 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
 	_mapHelper.updateUnloadEvent(true);
+    
+    this.updateZIndexes();
 }
 
 layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapFlag, addToMap)
@@ -1173,6 +1161,8 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 			}
 			
 			_mapHelper.updateUnloadEvent(true);
+            
+            _this.updateZIndexes();
 		},
 		_this = this;
 	
@@ -1239,20 +1229,24 @@ layersTree.prototype.addLayersToMap = function(elem)
     {
         var layer = elem.content,
             name = layer.properties.name;
-            
-            layer.geometry = from_merc_geometry(layer.geometry);
 
-        if (!globalFlashMap.layers[name])
+        if (!nsGmx.gmxMap.layersByID[name])
         {
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
             
-            var layerOnMap = globalFlashMap.addLayer(layer, visibility);
-            //nsGmx.widgets.commonCalendar.updateTemporalLayers([layerOnMap]);
-            layer.properties.changedByViewer = true;
+            var layerOnMap = L.gmx.createLayer(layer, {
+                layerID: name,
+                hostName: window.serverBase
+            });
+            nsGmx.gmxMap.addLayer(layerOnMap);
+            
+            visibility && layerOnMap.addTo(nsGmx.leafletMap);
+            
+            layerOnMap.getGmxProperties().changedByViewer = true;
         }
         else
         {
-            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
+            showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", nsGmx.gmxMap.layersByID[name].getGmxProperties().title), true );
             return false;
         }
     }
@@ -1424,7 +1418,6 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		}
 		else
 		{
-            
             var name = props.name;
 			if (typeof condition.visible[name] != 'undefined') {
                 _layersTree.treeModel.setNodeVisibility(elem, condition.visible[name]);
@@ -1436,25 +1429,14 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				!_this.equalStyles(props.styles, mapLayersParam[name]))
 			{
 				// что-то менялось в стилях
-				var layerProperties = globalFlashMap.layers[name].properties,
-					newStyles = mapLayersParam[name],
-					div = $(_this.buildedTree).find("div[LayerID='" + layerProperties.LayerID + "']")[0];
-				
-				props.styles = newStyles;
-				
-				if (!globalFlashMap.layers[name].objectId)
-				{
-					globalFlashMap.layers[name].setVisible(true);
-					
-					_mapHelper.updateMapStyles(newStyles, name);
-					
-					globalFlashMap.layers[name].setVisible(visibleFlag);
-                    
-                    props.changedByViewer = true;
-				}
-				else
-					_mapHelper.updateMapStyles(newStyles, name);
-				
+				var newStyles = mapLayersParam[name],
+					div = $(_this.buildedTree).find("div[LayerID='" + props.LayerID + "']")[0];
+
+                props.styles = newStyles;
+
+                _mapHelper.updateMapStyles(newStyles, name);
+                props.changedByViewer = true;
+
                 div && _mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
 			}
 		}
@@ -1531,9 +1513,9 @@ queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) 
     if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")))
     {
         var props = active[0].parentNode.gmxProperties.content.properties,
-            layer = globalFlashMap.layers[props.name];
+            layer = nsGmx.gmxMap.layersByID[props.name];
         
-        layer.setRasterOpacity(opacity);
+        layer.setRasterOpacity(opacity/100);
 
         return;
     }
@@ -1545,14 +1527,13 @@ queryMapLayers.prototype.applyOpacityToRasterLayers = function(opacity, parent) 
         _mapHelper.findChilds(treeElem.elem, function(child)
         {
             var props = child.content.properties;
-            var layer = globalFlashMap.layers[props.name];
-            layer.setRasterOpacity(opacity);
+            var layer = nsGmx.gmxMap.layersByID[props.name];
+            layer.setRasterOpacity(opacity/100);
         }, true);
     } else {
         // все растровые слои
-        for (var i = 0; i < globalFlashMap.layers.length; i++) {
-            var layer = globalFlashMap.layers[i];
-            layer.setRasterOpacity && layer.setRasterOpacity(opacity);
+        for (var i = 0; i < nsGmx.gmxMap.layers.length; i++) {
+            nsGmx.gmxMap.layers[i].setRasterOpacity(opacity/100);
         }
     }
 }
@@ -1582,7 +1563,7 @@ queryMapLayers.prototype.currentMapRights = function()
 
 queryMapLayers.prototype.layerRights = function(name)
 {
-	return globalFlashMap.layers[name].properties.Access;
+	return nsGmx.gmxMap.layersByID[name].getGmxProperties().Access;
 }
 
 queryMapLayers.prototype.addUserActions = function()
@@ -1777,7 +1758,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
             var newLayer = taskInfo.Result[l];
             var newProps = newLayer.properties;
             
-            var mapProperties = _layersTree.treeModel.getMapProperties()
+            var mapProperties = _layersTree.treeModel.getMapProperties();
             newProps.mapName = mapProperties.name;
             newProps.hostName = mapProperties.hostName;
             newProps.visible = true;
@@ -1790,7 +1771,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
                     newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
             }
             
-            var convertedCoords = from_merc_geometry(newLayer.geometry);
+            var convertedCoords = newLayer.geometry ? L.gmxUtil.convertGeometry(newLayer.geometry, true) : null;
 
             _layersTree.addLayersToMap({content:{properties: newProps, geometry: newLayer.geometry}});
             
@@ -1845,20 +1826,22 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 
                 newLayerProperties.styles = layerDiv.gmxProperties.content.properties.styles;
                 
-                var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
+                //var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
+                var origGeometry = taskInfo.Result.geometry,
+                    convertedGeometry = origGeometry ? L.gmxUtil.geometryToGeoJSON(origGeometry, true) : null;
                 
                 _this.removeLayer(newLayerProperties.name);
                 
-                _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:taskInfo.Result.geometry}});
+                _layersTree.addLayersToMap({content: {properties: newLayerProperties, geometry: origGeometry}});
                 
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
+                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
                     
                     $(li).find('[multiStyle]').treeview();
                 
                     $(layerDiv.parentNode).replaceWith(li);
                     
-                    _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}				
+                    _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties: newLayerProperties, geometry: convertedGeometry}}
 
                     _queryMapLayers.addSwappable(li);
                     
@@ -1901,8 +1884,11 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
 
 queryMapLayers.prototype.removeLayer = function(name)
 {
-    if ( typeof globalFlashMap.layers[name] !== 'undefined' )
-        globalFlashMap.layers[name].remove();
+    var layer = nsGmx.gmxMap.layersByID[name];
+    if (layer) {
+        nsGmx.leafletMap.removeLayer(layer);
+        nsGmx.gmxMap.removeLayer(layer);
+    }
 }
 
 queryMapLayers.prototype.getLayers = function()
@@ -1916,8 +1902,8 @@ queryMapLayers.prototype.createLayersManager = function()
 	var layerManagerControl = new nsGmx.LayerManagerControl(canvas, 'layers');
     
     var existLayers = [];
-    for (var i = 0; i < globalFlashMap.layers.length; i++)
-        existLayers.push(globalFlashMap.layers[i].properties.name);
+    for (var i = 0; i < nsGmx.gmxMap.layers.length; i++)
+        existLayers.push(nsGmx.gmxMap.layers[i].getGmxProperties().name);
         
     layerManagerControl.disableLayers(existLayers);
     
@@ -1996,8 +1982,7 @@ queryMapLayers.prototype.createMap = function(name)
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         
         var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
-        
-        saveTree.properties.BaseLayers = JSON.stringify(globalFlashMap.baseLayersManager.getActiveIDs());
+        saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
@@ -2015,6 +2000,13 @@ queryMapLayers.prototype.createMap = function(name)
                         propsToSave[attrName] = props[attrName];
                     }
                 }
+                
+                var styles = props.styles || [];
+                
+                for (var s = 0; s < styles.length; s++) {
+                    delete styles[s].HoverStyle;
+                }
+                
                 child.content.properties = propsToSave;
                 delete child.content.geometry;
             }
@@ -2053,7 +2045,7 @@ queryMapLayers.prototype.createMap = function(name)
         {
             if (!parseResponse(response))
             {
-                loading.removeNode(true);
+                nsGmx.widgets.notifications.stopAction('saveMap');
                 
                 return;
             }
@@ -2074,7 +2066,8 @@ queryMapLayers.prototype.createMap = function(name)
                 }
                 else
                 {
-                    loading.removeNode(true);
+                    nsGmx.widgets.notifications.stopAction('saveMap');
+                    
                     return;
                 }
             }

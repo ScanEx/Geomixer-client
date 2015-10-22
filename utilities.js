@@ -728,41 +728,6 @@ function createPostIframe(id, callback)
 }
 
 !function() {
-
-    //скопирована из API для обеспечения независимости от него
-    function parseUri(str)
-    {
-        var	o   = parseUri.options,
-            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-            uri = {},
-            i   = 14;
-
-        while (i--) uri[o.key[i]] = m[i] || "";
-
-        uri[o.q.name] = {};
-        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-            if ($1) uri[o.q.name][$1] = $2;
-        });
-
-        uri.hostOnly = uri.host;
-        uri.host = uri.authority; // HACK
-
-        return uri;
-    };
-
-    parseUri.options = {
-        strictMode: false,
-        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-        q:   {
-            name:   "queryKey",
-            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-        },
-        parser: {
-            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-        }
-    };
-
     var requests = {};
     var lastRequestId = 0;
     
@@ -793,6 +758,41 @@ function createPostIframe(id, callback)
     } else {
         window.attachEvent('onmessage', processMessage);
     }
+    
+    //скопирована из API для обеспечения независимости от него
+    var parseUri = function (str) {
+        var	o   = parseUri.options,
+            m   = o.parser[o.strictMode ? 'strict' : 'loose'].exec(str),
+            uri = {},
+            i   = 14;
+
+        while (i--) {
+            uri[o.key[i]] = m[i] || '';
+        }
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) { uri[o.q.name][$1] = $2; }
+        });
+
+        uri.hostOnly = uri.host;
+        uri.host = uri.authority; // HACK
+
+        return uri;
+    };
+    
+    parseUri.options = {
+        strictMode: false,
+        key: ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'],
+        q:   {
+            name:   'queryKey',
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    };
     
     function createPostIframe2(id, callback, url)
     {
@@ -944,17 +944,6 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 function _title(elem, title)
 {
 	elem.setAttribute('title', title);
-}
-
-function _filter(callback, obj) 
-{
-    var result = [];
-    
-    for(var i = 0; i < obj.length; ++i)
-		if (callback(obj[i]))
-			result.push(obj[i]);
-	
-    return result;
 }
 
 function parseXML(str)
@@ -1168,32 +1157,44 @@ $.extend(nsGmx.Utils, {
 	
 	/** Устанавливает обычный стиль и генерит похожий стиль при наведении мышки 
     @memberOf nsGmx.Utils
-	@param mapObject {MapObject} Объект на карте
+	@param layer {L.gmxVectorLayer} Слой
+	@param styleIndex {Number} Номер стиля слоя
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
-	setMapObjectStyle: function(mapObject, templateStyle)
+	setMapObjectStyle: function(layer, styleIndex, templateStyle)
 	{
-        var hoverStyle = {};
-        $.extend(true, hoverStyle, templateStyle);
-		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
-		{
-			try
-			{
-				mapObject.setStyle(templateStyle, hoverStyle);
-			}
-			catch(e)
-			{
-			}
-		}
-		else
-		{
-			if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
-				hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
-			
-			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
-				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
-			
-			mapObject.setStyle(templateStyle, hoverStyle);
-		}
+        var hoverStyle = $.extend(true, {}, templateStyle);
+        var style = layer.getStyle(styleIndex);
+        
+        if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+            hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+        
+        if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
+            hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+        
+        var newStyle = $.extend(true, {}, style);
+        newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+        newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
+        
+        layer.setStyle(newStyle, styleIndex);
+	},
+    
+    setGmxLayerStyle: function(layer, styleIndex, style)
+	{
+        var templateStyle = style.RenderStyle,
+            newStyle = $.extend(true, {}, style),
+            hoverStyle = $.extend(true, {}, templateStyle);
+        
+        
+        if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+            hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+        
+        if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
+            hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+        
+        newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
+        newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
+        
+        layer.setStyle(newStyle);
 	},
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     *
@@ -1423,12 +1424,12 @@ $.extend(nsGmx.Utils, {
         var polygonObjects = [];
         for (var i = 0; i < objs.length; i++)
         {
-            var geom = objs[i].geometry;
+            var geom = objs[i];
             if (geom.type == 'POLYGON')
             {
                 polygonObjects.push(geom.coordinates);
             }
-            else if (objs[i].geometry.type == 'MULTIPOLYGON')
+            else if (geom.type == 'MULTIPOLYGON')
             {
                 for (var iC = 0; iC < geom.coordinates.length; iC++)
                     polygonObjects.push(geom.coordinates[iC]);
@@ -1439,7 +1440,6 @@ $.extend(nsGmx.Utils, {
             return {type: "MULTIPOLYGON", coordinates: polygonObjects}
         else if (polygonObjects.length == 1)
         {
-            isCreatedDrawing = true;
             return {type: "POLYGON", coordinates: polygonObjects[0]}
         }
         else

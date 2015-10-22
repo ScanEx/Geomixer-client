@@ -1,0 +1,82 @@
+.PeriodCalendar select
+{
+	font-size: 100%;
+}
+
+.PeriodCalendar
+{
+	margin: 2px 0px 0px 0px
+}
+
+.PeriodCalendar *, #ui-datepicker-div, #ui-datepicker-div *
+{
+	font-family: sans-serif;
+	font-size: 11px;
+	color: #003366;
+}
+
+.PeriodCalendar .inputStyle
+{
+	margin: 1px 3px;
+}
+
+.PeriodCalendar table, .PeriodCalendar tr, .PeriodCalendar td
+{
+	border:none;
+	margin:0px;
+	padding:0px;
+	border-collapse: collapse;
+}
+
+.kosmosnimki_balloon
+{
+	font-family: sans-serif;
+	font-size: 11px;
+}
+
+.PeriodCalendar #dateBeginInfo, .PeriodCalendar #dateEndInfo, .PeriodCalendar #UTCInfoText
+{
+	text-align: center;
+}
+
+.PeriodCalendar-iconScroll {
+    width: 20px;
+    height: 20px;
+    margin-bottom: -2px;
+    cursor: pointer;
+}
+
+.PeriodCalendar-iconFirst {
+    background: url(img/first.png);
+}
+
+.PeriodCalendar-iconLast {
+    background: url(img/last.png);
+}
+
+.PeriodCalendar-iconFirst:hover {
+    background: url(img/first_a.png);
+}
+
+.PeriodCalendar-iconLast:hover {
+    background: url(img/last_a.png);
+}
+
+.PeriodCalendar-iconMore {
+    width: 9px;
+    height: 9px;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+.PeriodCalendar-iconExpand {
+    background: url(img/expand.gif);
+}
+
+.PeriodCalendar-iconCollapse {
+    background: url(img/collapse.gif);
+}
+
+.PeriodCalendar-dateBegin, .PeriodCalendar-dateEnd {
+    width: 70px;
+}

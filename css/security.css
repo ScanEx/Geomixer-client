@@ -1,9 +1,16 @@
 .security-header-table {
     width: 100%;
+    height: 22px;
+    margin-bottom: 7px;
+}
+
+.security-owner {
+    line-height: 22px;
+    height: 22px;
 }
 
 .security-header {
-    margin: 2px 0px 13px 0px;
+    margin: 2px 0px 5px 0px;
 }
 
 .security-header * {
@@ -15,16 +22,77 @@
     padding: 0px 5px;
 }
 
-.security-suggest-header, .security-access-header {
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.suggest-table-placeholder {
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgb(153, 153, 153);
+.security-access-header > * {
+    vertical-align: middle;
 }
 
 .security-canvas {
     overflow: hidden;
+}
+
+.access-table-placeholder table {
+    table-layout: fixed;
+}
+
+.security-access-label {
+    padding-right: 5px;
+}
+
+.security-add-icon {
+    width: 24px;
+    height: 24px;
+    background: url(../img/add_user.png);
+    cursor: pointer;
+    display: inline-block;
+}
+
+.security-add-container {
+    font-size: 12px;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.security-add-container > button, .security-owner-container > button {
+    margin-left: 10px;
+    padding: 0px 5px;
+}
+
+.security-canvas .ui-autocomplete {
+    border: 1px solid #AAA;
+    padding: 0px;
+}
+
+.security-owner-container {
+    display: inline-block;
+}
+
+.security-owner-cell {
+    width: 100%;
+    padding-left: 5px;
+}
+
+.security-add-input {
+    width: 170px;
+}
+
+.security-owner-placeholder {
+    margin-bottom: 6px;
+}
+
+.security-userlist-placeholder {
+    margin-top: 5px;
+}
+
+.security-row-nickname, .security-row-fullname {
+    overflow-x: hidden;
+    white-space: nowrap;
+    padding: 1px 0px 1px 3px;
+}
+
+.security-row-access {
+    width: 130px;
+}
+
+.security-row-remove-cell {
+    text-align: center;
 }

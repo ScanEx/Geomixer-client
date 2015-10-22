@@ -1,0 +1,49 @@
+.uglw-list-placeholder {
+    margin-top: 5px;
+}
+
+.uglw-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.uglw-row:hover {
+    background-color: #DEDEDE;
+    cursor: default;
+}
+
+.uglw-table-title {
+    width: 45%;
+}
+
+.uglw-table-descr {
+    width: 50%;
+}
+
+.uglw-group-name {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.uglw-add-icon {
+    width: 24px;
+    height: 24px;
+    background: url(../img/add_usergroup.png);
+    cursor: pointer;
+    display: inline-block;
+    float: right;
+}
+
+.security-props-title, .security-props-description {
+    margin-left: 10px;
+    width: 200px;
+}
+
+.uglw-popover-buttons {
+    text-align: center;
+}
+
+.uglw-popover-buttons > button {
+    padding: 3px;
+    margin: 0px 5px;
+}

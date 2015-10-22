@@ -97,12 +97,9 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
     
     mapsTable.getDataProvider().setSortFunctions(sortFuncs);
 	
-	var inputPredicate = function(value, fieldName, fieldValue)
+	var inputPredicate = function(value, fieldValue)
     {
-        if (!value[fieldName])
-            return false;
-    
-        return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
+        return !!value && String(value).toLowerCase().indexOf(fieldValue) > -1;
     };
 
     $([mapNameInput, mapOwnerInput]).bind('keydown', function(event) {
@@ -128,30 +125,28 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
     
 	mapsTable.getDataProvider().attachFilterEvents(mapNameInput, 'Title', function(fieldName, fieldValue, vals)
 	{
-		if (fieldValue == "")
+		if (fieldValue == "") {
 			return vals;
+        }
+        
+        fieldValue = fieldValue.toLowerCase();
 		
-		var filterFunc = function(value)
-				{
-					return inputPredicate(value, fieldName, fieldValue) || inputPredicate(value, 'Name', fieldValue);
-				},
-			local = _filter(filterFunc, vals);
-		
-		return local;
+        return vals.filter(function(value) {
+            return inputPredicate(value[fieldName], fieldValue) || value['Name'].toLowerCase() === fieldValue;
+        });
 	})
 	
 	mapsTable.getDataProvider().attachFilterEvents(mapOwnerInput, 'Owner', function(fieldName, fieldValue, vals)
 	{
-		if (fieldValue == "")
+		if (fieldValue == "") {
 			return vals;
-		
-		var filterFunc = function(value)
-				{
-					return inputPredicate(value, fieldName, fieldValue);
-				},
-			local = _filter(filterFunc, vals);
-		
-		return local;
+        }
+        
+        fieldValue = fieldValue.toLowerCase();
+        
+        return vals.filter(function(value) {
+            return inputPredicate(value[fieldName], fieldValue);
+        });
 	})
 
 	_(canvas, [tableParent]);
@@ -278,14 +273,13 @@ nsGmx.MapsManagerControl.prototype._deleteMapHandler = function(response, id)
 
 nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
-	loadMapJSON(host, name, function(layers)
-	{
-        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
+	//loadMapJSON(host, name, function(layers)
+    L.gmx.loadMap(name, {hostName: host}).then(function(gmxMap) {
+        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
+            ul = previewLayersTree.drawTree(gmxMap.rawTree, 2);
 
-        var ul = previewLayersTree.drawTree(layers, 2);
-		
-		$(ul).treeview();
-        
+        $(ul).treeview();
+
         //раскрываем группы по клику
         $(ul).click(function(event) {
             if ($(event.target).hasClass('groupLayer')) {

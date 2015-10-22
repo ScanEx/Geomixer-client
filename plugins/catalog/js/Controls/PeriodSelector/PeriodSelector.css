@@ -1,0 +1,40 @@
+﻿.period-selector {
+	background-color: #FAFAFE;
+	border: solid 1px #387EAA;
+	width: 400px;
+	height: 100px;
+	position: absolute;
+	padding: 5px 25px 10px 25px;
+	z-index: 1000;
+	margin: auto;
+}
+
+.period-selector .row-container {
+	padding: 3px 0px;
+}
+
+.period-selector .slider-container {
+	width: 395px;
+	*width: 370px;
+	border: solid 1px gray;
+	margin: 5px 0px;
+}
+
+.period-selector .slider-container .tick {
+	z-index: 2;
+	position: absolute;
+	font-size: 0.8em;
+	color: Gray;
+	top:-1.6em;
+	*margin-left:-2px;
+	border: none;
+	text-align: center;
+}
+
+.period-selector .selected-period {
+	color: #387EAA;
+}
+
+.period-selector .row-title {
+	margin-right: 10px;
+}

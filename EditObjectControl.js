@@ -194,63 +194,38 @@ var EditObjectControl = function(layerName, objectId, params)
     
     EditObjectControlsManager.add(layerName, objectId, this);
     
-    var layer = globalFlashMap.layers[layerName];
+    var lmap = nsGmx.leafletMap,
+        layersByID = nsGmx.gmxMap.layersByID;
+    var layer = layersByID[layerName];
     var geometryInfoContainer = _div(null, [['css','color','#215570'], ['css','fontSize','12px']]);
     
     var originalGeometry = null;
     var drawingBorderDialog = null;
-    var identityField = layer.properties.identityField;
+    var identityField = layer._gmx.properties.identityField;
     
     var geometryInfoRow = null;
-    var geometryMapObject = null;
     var bindDrawingObject = function(obj)
     {
         geometryInfoRow && geometryInfoRow.RemoveRow();
-        if (geometryMapObject) {
-            geometryMapObject.remove();
-            geometryMapObject = null;
-            $(geometryInfoContainer).empty();
-        }
-        
+
         if (!obj) return;
         
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
-            globalFlashMap, 
+            lmap, 
             geometryInfoContainer, 
             obj, 
             { editStyle: false, allowDelete: false }
         );
     }
     
-    //geom может быть либо классом gmxAPI.DrawingObject, либо просто описанием геометрии
     var bindGeometry = function(geom) {
-        if (!geom) {
-            return;
-        }
-        
-        //проверка на gmxAPI.DrawingObject
-        if (geom.getGeometry) {
-            bindDrawingObject(geom);
-            return;
-        }
-        
-        if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON") {
-            bindDrawingObject(globalFlashMap.drawing.addObject(geom, null, {skipFrame: true}));
-        } else {            
-            geometryInfoRow && geometryInfoRow.RemoveRow();
-            geometryInfoRow = null;
-            
-            var titles = {
-                'MULTIPOLYGON':    _gtxt("Мультиполигон"),
-                'MULTILINESTRING': _gtxt("Мультилиния"),
-                'MULTIPOINT':      _gtxt("Мультиточка")
-            };
-            
-            $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(titles[geom.type]));
-            
-            geometryMapObject = globalFlashMap.addObject(geom);
-            geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}, marker: {size: 3}});
+        if (geom) {
+            var geojson = new L.GeoJSON(geom),
+                arr = lmap.gmxDrawing.addGeoJSON(geojson);
+            for (var i = 0, len = arr.length; i < len; i++) {
+                bindDrawingObject(arr[i]);
+            }
         }
     }
 
@@ -273,7 +248,7 @@ var EditObjectControl = function(layerName, objectId, params)
         $(canvas).bind('drop', function(e) {
             var files = e.originalEvent.dataTransfer.files;
             nsGmx.Utils.parseShpFile(files[0]).done(function(objs) {
-                bindGeometry(nsGmx.Utils.joinPolygons(objs));
+                bindGeometry(nsGmx.Utils.joinPolygons(nsGmx._.pluck(objs, 'geometry')));
             });
             return false;
         });
@@ -334,17 +309,18 @@ var EditObjectControl = function(layerName, objectId, params)
                 var curGeomString = JSON.stringify(selectedGeom);
                 var origGeomString = JSON.stringify(originalGeometry);
                 
-                if (origGeomString !== curGeomString)
-                    obj.geometry = gmxAPI.merc_geometry(selectedGeom);
+                if (origGeomString !== curGeomString) {
+                    obj.geometry = selectedGeom;
+                }
             }
             else
             {
-                obj.geometry = gmxAPI.merc_geometry(selectedGeom);
+                obj.geometry = selectedGeom;
             }
             
             isSaving = true;
             
-            _mapHelper.modifyObjectLayer(layerName, [obj]).done(function()
+            _mapHelper.modifyObjectLayer(layerName, [obj], 'EPSG:4326').done(function()
             {
                 $(_this).trigger('modify');
                 removeDialog(dialogDiv);
@@ -362,8 +338,7 @@ var EditObjectControl = function(layerName, objectId, params)
         
         var closeFunc = function()
         {
-            geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
-            geometryMapObject && geometryMapObject.remove();
+            geometryInfoRow && geometryInfoRow.getDrawingObject() && nsGmx.leafletMap.gmxDrawing.remove(geometryInfoRow.getDrawingObject());
                 
             originalGeometry = null;
             
@@ -391,7 +366,7 @@ var EditObjectControl = function(layerName, objectId, params)
                     nsGmx.Controls.chooseDrawingBorderDialog(
                         'editObject',
                         bindDrawingObject,
-                        { geomType: layer.properties.GeometryType }
+                        { geomType: layer.getGmxProperties().GeometryType }
                     );
                 }
             })
@@ -477,8 +452,9 @@ var EditObjectControl = function(layerName, objectId, params)
             
             resizeFunc();
         }
+var prop = layer._gmx.properties;
         
-        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
+        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", prop.title) : _gtxt("Редактировать объект слоя [value0]", prop.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
         
         if (!isNew)
         {
@@ -503,7 +479,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 {
                     if (columnNames[i] === 'geomixergeojson')
                     {
-                        var geom = from_merc_geometry(geometryRow[i]);
+                        var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
+                        
                         bindGeometry(geom);
                         if (geom) {
                             originalGeometry = $.extend(true, {}, geom);
@@ -533,9 +510,9 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         else
         {
-            for (var i = 0; i < layer.properties.attributes.length; ++i)
+            for (var i = 0; i < prop.attributes.length; ++i)
             {
-                fieldsCollection.append({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]})
+                fieldsCollection.append({type: prop.attrTypes[i], name: prop.attributes[i]})
             }
             
             _params.fields.forEach(fieldsCollection.append);
@@ -597,19 +574,13 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     this.getGeometryObj = function() {
-        return geometryInfoRow ? geometryInfoRow.getDrawingObject() : geometryMapObject;
+        return geometryInfoRow ? geometryInfoRow.getDrawingObject() : null;
     }
     
     this.getGeometry = function() {
-        var geom = null;
-            
-        if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
-            geom = geometryInfoRow.getDrawingObject().getGeometry();
-        } else if (geometryMapObject) {
-            geom = geometryMapObject.getGeometry();
-        }
-        
-        return geom;
+        var geom = geometryInfoRow.getDrawingObject();
+        var geojson = geom.toGeoJSON();
+        return geojson.geometry;
     }
     
     this.getLayer = function() { return layer; };

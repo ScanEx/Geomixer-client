@@ -242,15 +242,17 @@ var LayerProperties = Backbone.Model.extend(
             if (attrs.TilePath.Path) reqParams.TilePath = attrs.TilePath.Path;
             reqParams.GeometryChanged = geometryChanged;
             
-            if (typeof curBorder === 'undefined') {
-                if (attrs.ShapePath.Path) {
-                    reqParams.BorderFile = attrs.ShapePath.Path;
-                } else if (typeof attrs.Geometry !== 'undefined') {
-                    //может быть как null (удалили), так и undefined (не поменялась)
-                    reqParams.BorderGeometry = JSON.stringify(attrs.Geometry);
+            if (geometryChanged) {
+                if (typeof curBorder === 'undefined') {
+                    if (attrs.ShapePath.Path) {
+                        reqParams.BorderFile = attrs.ShapePath.Path;
+                    } else if (typeof attrs.Geometry !== 'undefined') {
+                        //может быть как null (удалили), так и undefined (не поменялась)
+                        reqParams.BorderGeometry = JSON.stringify(attrs.Geometry);
+                    }
+                } else {
+                    reqParams.BorderGeometry = JSON.stringify(L.gmxUtil.geoJSONtoGeometry(curBorder.toGeoJSON(), true));
                 }
-            } else {
-                reqParams.BorderGeometry = JSON.stringify(merc_geometry(curBorder.geometry));
             }
             
             if (attrs.LayerID) reqParams.RasterLayerID = attrs.LayerID;

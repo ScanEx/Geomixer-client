@@ -1,377 +1,301 @@
 ﻿(function(){
-    var windTool = null,
-        weatherTool = null,
-        onClickCallback = null;
-    
-	var winds = null;
-	var weathers = null;
-	var weather = function (params, map)
-	{
-		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
-		if (!_map) return;
-
-		_translationsHash.addtext("rus", {WeatherPlugin: {
-								WindButton : "Ветер",
-								WeatherButton : "Погода",
-								AccordingTo : "По данным"
-							 }});
-		_translationsHash.addtext("eng", {WeatherPlugin: {
-								WindButton : "Wind",
-								WeatherButton : "Weather",
-								AccordingTo : "According to the data from"
-							 }});
-
-		//если подгружать jquery, можно использовать $.extent
-		if (!params) params = {};
-		params.countryCode = params.countryCode || 0;
-		if (typeof params.initWeather === 'undefined') params.initWeather = false;
-		if (typeof params.initWind === 'undefined') params.initWind = false;
-		if (typeof params.addToolbar === 'undefined') params.addToolbar = true;
-		if (typeof params.imagesHost === 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
-
-		var _serverResponce = null;
-		var _serverError = false;
-
-		function parseResponse(response)
-		{
-			return response.Status === 'ok';
-		}
-		
-		var getTHClass = function(THs, value)
-		{
-			for (var i = 0; i < THs.length; i++)
-				if (value <= THs[i]) 
-					return i;
-			
-			return THs.length;
-		}
-
-		function showWeather(weatherParent, cities)
-		{
-			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
-			tods = ['ночь','утро','день','вечер'],
-			dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
-
-			var iconContainters = [];
-			var iconGeometries = [];
-			var iconTexts = [];
-			for (var i = 0; i < 9; i++)
-			{
-				var iconContainer = weatherParent.addObject();
-				iconContainer.setStyle({marker:{image: params.imagesHost + '24/' + i + '.png', dx: -12, dy:-16}});
-
-// Bug with iconLoader
-var regularStyle = gmxAPI._leaflet.mapNodes[iconContainer.objectId].regularStyle;
-regularStyle.imageWidth = regularStyle.imageHeight = 24;
-				iconContainters.push(iconContainer);
-				iconGeometries[i] = [];
-				iconTexts[i] = [];
-			}
-
-			var textColors = [0x003fe0, 0x05cdff, 0x00f7b1, 0x7dfa00, 0xeeff00, 0xfc0d00];
-			var temperatureTHs = [-25, -10, 5, 20, 30];
-			
-			var cityContainter = weatherParent.addObject();
-			cityContainter.setStyle({label: { size: 14, color: 0xfaf087, haloColor: 0x8f6525, align: 'right'}});
-			var cityGeometries = [];
-			var cityNames = [];
-			
-			var tInfo = [];
-			var tGeometries = [];
-			for (var i = 0; i < textColors.length; i++)
-			{
-				tInfo[i] = [];
-				tGeometries[i] = [];
-			}
-			
-			for (var c = 0; c < cities.length; c++)
-			{
-				var city = cities[c];
-				
-				if (city.Error != null)
-					continue;
-			  
-				var icon = 0;
-			  
-				if (city.Forecast[0].Precipitation < 9)
-					icon = city.Forecast[0].Precipitation;
-				else
-					icon = city.Forecast[0].Cloudiness;
-					
-				var geometry = {geometry: {type:'POINT', coordinates: [city.Lng, city.Lat]}};
-				cityGeometries.push(geometry);
-				iconGeometries[icon].push(geometry);
-				
-				cityNames.push(city.Name);
-			  
-				var temperaure = Math.floor((city.Forecast[0].TemperatureMax + city.Forecast[0].TemperatureMin) / 2);
-					
-				var tClass = getTHClass(temperatureTHs, temperaure);
-				tInfo[tClass].push((city.Forecast[0].TemperatureMin > 0 ? "+" : '') + city.Forecast[0].TemperatureMin + '..' + (city.Forecast[0].TemperatureMax > 0 ? "+" : '') + city.Forecast[0].TemperatureMax);
-				tGeometries[tClass].push(geometry);
-				
-				var str = "<table style=\"width:375px;\"><tbody>";
-			  
-				for (var i = 0; i < city.Forecast.length; ++i)
-				{
-					var imgIcon = (city.Forecast[i].Precipitation < 9) ? city.Forecast[i].Precipitation : city.Forecast[i].Cloudiness,
-						pres = Math.round((city.Forecast[i].PressureMax + city.Forecast[i].PressureMin) / 2),
-						rel = Math.round((city.Forecast[i].HumidityMax + city.Forecast[i].HumidityMin) / 2),
-						date = new Date(Number(city.Forecast[i].DateTime.replace("/Date(","").replace(")/","")));
-				  
-					str += "<tr><td style=\"width:70px\">" + weekdays[date.getDay()] + ", " + tods[city.Forecast[i].TimeOfDay] + "</td><td style=\"width:80px;text-align:center;\">" + (city.Forecast[i].TemperatureMin > 0 ? "+" : '') + city.Forecast[i].TemperatureMin + '..' + (city.Forecast[i].TemperatureMax > 0 ? "+" : '') + city.Forecast[i].TemperatureMax + "</td><td style=\"width:20px;text-align:right;\">" + dir[city.Forecast[i].WindDirection] + "</td><td style=\"width:80px;text-align:center;\">" + city.Forecast[i].WindMin + '-' + city.Forecast[i].WindMax + ' м/с' + "</td><td style=\"width:70px;text-align:center;\">" + pres + " м.р.с.</td><td style=\"width:35px;text-align:center;\">" + rel + "%</td><td style=\"width:20px;\"><img style=\"width:16px;height:16px;\" src=\"" + params.imagesHost + "16/" + imgIcon + ".png\"></td></tr>";
-				}
-			  
-				str += "</table></tbody>";
-				str += "<div style=\"margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;\">" + _gtxt('WeatherPlugin.AccordingTo') + " <a href=\"http://gismeteo.ru\" target=\"_blank\">Gismeteo.ru</a></div>";
-				
-				iconTexts[icon].push({text: str, name: city.Name});
-			}
-			
-			for (var i = 0; i < tInfo.length; i++)
-			{
-				var tempContainer = weatherParent.addObject();
-				tempContainer.setStyle({label: { size: 14, color: textColors[i], align: 'left'}});
-				var objs = tempContainer.addObjects(tGeometries[i]);
-				for (var o = 0; o < objs.length; o++)
-				{
-					(function(info){
-						objs[o].setLabel(info);
-					})(tInfo[i][o]);
-				}
-			}
-			
-			for (var i = 0; i < 9; i++)
-			{
-				var objs = iconContainters[i].addObjects(iconGeometries[i]);
-				for (var o = 0; o < objs.length; o++)
-				{
-					(function(info){
-						objs[o].enableHoverBalloon(function(o)
-						{
-							return "<span style=\"font-size:14px; font-weight:bold; color:#000;\">" + info.name + "</span><br/>" + info.text;
-						})
-					})(iconTexts[i][o]);
-				}
-			}
-			
-			var objs = cityContainter.addObjects(cityGeometries);
-			for (var o = 0; o < objs.length; o++)
-				{
-					(function(name){
-						objs[o].setLabel(name);
-					})(cityNames[o]);
-				}
-		}
-	  
-		function showWind(windParent, city)
-		{
-			if (city.Error != null)
-				return;
-		  
-			var elem = windParent.addObject();
-
-			var angle = city.Forecast[0].WindDirection * 45,
-				wind = Math.floor((city.Forecast[0].WindMax + city.Forecast[0].WindMin) / 2),
-				scale,
-				color;
-		  
-			if (wind <= 4)
-			{
-				color = 0x003fe0;
-				scale = 0.5;
-			}
-			else if (wind <= 8)
-			{
-				color = 0x05cdff;
-				scale = 0.6;
-			}
-			else if (wind <= 12)
-			{
-				color = 0x00f7b1;
-				scale = 0.7;
-			}
-			else if (wind <= 16)
-			{
-				color = 0x7dfa00;
-				scale = 0.8;
-			}
-			else if (wind <= 20)
-			{
-				color = 0xeeff00;
-				scale = 0.8;
-			}
-			else
-			{
-				color = 0xfc0d00;
-				scale = 1;
-			}
-		  
-			elem.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-			elem.setStyle({marker:{image: params.imagesHost + 'wind.png', center:true, angle: angle, scale: scale, color: color}})
-
-			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
-				tods = ['ночь','утро','день','вечер'],
-				dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
-				str = "<table style=\"width:175px;\"></tbody>",
-				trs = [];
-		  
-			for (var i = 0; i < city.Forecast.length; ++i)
-			{
-				var imgIcon = (city.Forecast[i].Precipitation < 9) ? city.Forecast[i].Precipitation : city.Forecast[i].Cloudiness,
-					pres = Math.round((city.Forecast[i].PressureMax + city.Forecast[i].PressureMin) / 2),
-					rel = Math.round((city.Forecast[i].HumidityMax + city.Forecast[i].HumidityMin) / 2),
-					date = new Date(Number(city.Forecast[i].DateTime.replace("/Date(","").replace(")/","")));
-			  
-				str += "<tr><td style=\"width:70px\">" + weekdays[date.getDay()] + ", " + tods[city.Forecast[i].TimeOfDay] + "</td><td style=\"width:20px;text-align:right;\">" + dir[city.Forecast[i].WindDirection] + "</td><td style=\"width:80px;text-align:center;\">" + city.Forecast[i].WindMin + '-' + city.Forecast[i].WindMax + ' м/с' + "</td></tr>";
-			}
-		  
-			str += "</table></tbody>",
-		  
-			elem.enableHoverBalloon(function(o)
-			{
-				return "<span style=\"font-size:14px; font-weight:bold; color:#000;\">" + city.Name + "</span><br/>" + str;
-			})
-		}
-		
-		weathers = _map.addObject();
-		winds = _map.addObject();
-        
-        weathers.visibleFlag = !!params.initWeather;
-        winds.visibleFlag = !!params.initWind;
-			
-		weathers.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
-		winds.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
-		
-		var lazyInitData = function()
-		{
-			if ( _serverError || (!_serverResponce && !weathers.visibleFlag && !winds.visibleFlag) ) return;
-			if ( _serverResponce )
-			{
-				weathers.setVisible(weathers.visibleFlag);
-                setTimeout(function () {
-                    if (winds.visibleFlag) {
-                        winds.setVisible(false);    // Чтобы ветер был выше
-                    }
-                    winds.setVisible(winds.visibleFlag);
-                }, 0);
-				return;
-			}
-			
-			sendCrossDomainJSONRequest("http://maps.kosmosnimki.ru/Weather.ashx?WrapStyle=func&country=" + params.countryCode, function(response)
-			{
-				if (!parseResponse(response))
-				{
-					_serverError = true;
-					return;
-				}
-				
-				_serverResponce = response;
-				
-				winds.setVisible(false);
-				for (var i = 0; i < response.Result.length; ++i)
-					showWind(winds, response.Result[i]);
-				winds.setVisible(winds.visibleFlag);
-
-				weathers.setVisible(false);
-				showWeather(weathers, response.Result)
-				
-				weathers.setVisible(weathers.visibleFlag);
-			})
-		}
-        
-        lazyInitData();
-        
-        onClickCallback = function(container, isVisible) {
-            if (container.visibleFlag !== isVisible) {
-                container.visibleFlag = isVisible;
-                lazyInitData();
-                if (params.changeCallback) params.changeCallback();
-            }
-        };
-
-        //создание weatherTools
-        if (params.addToolbar) {
-            var weatherTools = new gmxAPI._ToolsContainer('weatherContainer');
-
-            
-            
-            weatherTool = weatherTools.addTool( 'weather', {
-                overlay: true,
-                onClick: onClickCallback.bind(null, weathers, true),
-                onCancel: onClickCallback.bind(null, weathers, false),
-                hint: _gtxt("WeatherPlugin.WeatherButton")
-            });
-            
-            windTool = weatherTools.addTool( 'wind', {
-                overlay: true,
-                onClick: onClickCallback.bind(null, winds, true),
-                onCancel: onClickCallback.bind(null, winds, false),
-                hint: _gtxt("WeatherPlugin.WindButton")
-            });
-        }
-	}
+    _translationsHash.addtext('rus', {WeatherPlugin: {
+        WindButton : 'Ветер',
+        WeatherButton : 'Погода'
+    }});
+    _translationsHash.addtext('eng', {WeatherPlugin: {
+        WindButton : 'Wind',
+        WeatherButton : 'Weather'
+    }});
 
     gmxCore.addModule('WeatherPlugin', {
         pluginName: 'Weather',
-        weather: weather, //Depricated: use addToMap
-        
-        /** Получить текущую видимость данных с ветром
-         * @return {Boolean} Видимы ли данные
-        */
-        isWindVisible: function()
-        {
-            return 'visibleFlag' in winds ? winds.visibleFlag : false; 
-        },
-        
-        /** Получить текущую видимость данных с погодой
-         * @return {Boolean} Видимы ли данные
-        */
-        isWeatherVisible: function()
-        {
-            return 'visibleFlag' in weathers ? weathers.visibleFlag : false;
-        },
-        
-        /** Установить видимость данных с погодой
-         * @param {Boolean} isVisible Видимы ли данные или нет
-        */
-        setWeatherVisibility: function(isVisible) {
-            if (weatherTool) {
-                weatherTool.setActiveTool(isVisible);
-            } else {
-                onClickCallback && onClickCallback(weathers, isVisible);
-            }
-        },
-        
-        /** Установить видимость данных с ветром
-         * @param {Boolean} isVisible Видимы ли данные или нет
-        */
-        setWindVisibility: function(isVisible) {
-            if (windTool) {
-                windTool.setActiveTool(isVisible);
-            } else {
-                onClickCallback && onClickCallback(winds, isVisible);
-            }
-        },
-        
-        /** Добавить данные о погоде на карту
-         * @param {Object} params Параметры отображения
-         * @param {String}   [params.countryCode = "0"] ID страны. "0" для России
-         * @param {Boolean}  [params.initWeather = true] Показывать ли погоду по умолчанию
-         * @param {Boolean}  [params.initWind = true] Показывать ли ветер по умолчанию
-         * @param {String}   [params.imagesHost = 'http://maps.kosmosnimki.ru/api/img/weather/'] откуда подгружать картинки для иконок
-         * @param {function} [params.changeCallback] ф-ция, которую нужно дёргать, когда что-нибудь изменилось
-         * @param {Boolean}  [params.addToolbar = true] Добавлять ли тулбар на карту
-        */
-        addToMap: function(params, map)
-        {
-            weather(params, map);
-        },
-        
-        afterViewer: function(params, map)
-        {
-            weather(params, map);
-        },
-    })
+        afterViewer: function(params, map) {
+            /*
+             * L.WindWeatherLayer  - wind and weather layers for leaflet
+            */
+            (function(){
+                var rus = {
+                    weekdays: ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
+                    tods: ['ночь','утро','день','вечер'],
+                    dir: ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
+                    accordingTo: 'По данным'
+                };
+                var _gtxt = function (key) {
+                    return L.gmxLocale ? L.gmxLocale.getText(key) : null;
+                };
+                if (L.gmxLocale) {
+                    L.gmxLocale.addText({
+                        eng: {
+                            WeatherPlugin: {
+                                weekdays: ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
+                                tods: ['ночь','утро','день','вечер'],
+                                dir: ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
+                                AccordingTo: 'According to the data from'
+                             }
+                        },
+                        rus: {
+                            WeatherPlugin: rus
+                        }
+                    });
+                }
+                var dataGlobal = null,
+                    weatherURL = 'http://maps.kosmosnimki.ru/Weather.ashx',
+                    imagesHost = 'http://maps.kosmosnimki.ru/api/img/weather/',
+                    accordingTo = _gtxt('WeatherPlugin.AccordingTo') || rus.accordingTo,
+                    weekdays = _gtxt('WeatherPlugin.weekdays') || rus.weekdays,
+                    tods = _gtxt('WeatherPlugin.tods') || rus.tods,
+                    dir = _gtxt('WeatherPlugin.dir') || rus.dir,
+                    styles = [],
+                    callbacks = [],
+                    defGlobal = new L.gmx.Deferred(),
+                    weatherOptions = {
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    },
+                    windOptions = {
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16],
+                        iconUrl: imagesHost + 'wind.png'
+                    },
+                    hsl2filter = function (h, s, l) {
+                        return 'hue-rotate(' + h + 'deg) saturate(' + s + '%) brightness(' + l + '%)';
+                    },
+                    popupFunc = function (ev) {
+                        var layer = ev.layer,
+                            opt = layer.options,
+                            num = opt.num,
+                            type = opt.type,
+                            it = dataGlobal.items[num],
+                            popup = ev.popup;
 
+                        var str = '<span style="font-size:14px; font-weight:bold; color:#000;">' + it.Name + '</span><br/>';
+                        str += '<table style="width:'+(type === 'weather' ? 375 : 200) + 'px;"><tbody>';
+                        for (var i = 0, len = it.Forecast.length; i < len; ++i) {
+                            var pt = it.Forecast[i];
+                            var imgIcon = (pt.Precipitation < 9) ? pt.Precipitation : pt.Cloudiness,
+                                pres = Math.round((pt.PressureMax + pt.PressureMin) / 2),
+                                rel = Math.round((pt.HumidityMax + pt.HumidityMin) / 2),
+                                date = new Date(Number(pt.DateTime.replace("/Date(","").replace(")/","")));
+                          
+                            str += '<tr>' +
+                                '<td style="width:70px">' + weekdays[date.getDay()] + ', ' + tods[pt.TimeOfDay] + '</td>';
+
+                            if (type === 'weather') {
+                                str += '<td style="width:80px;text-align:center;">' + (pt.TemperatureMin > 0 ? '+' : '') + pt.TemperatureMin + '..' + (pt.TemperatureMax > 0 ? '+' : '') + pt.TemperatureMax + '</td>';
+                            }
+                            str += '<td style="width:20px;text-align:right;">' + dir[pt.WindDirection] + '</td>' +
+                                '<td style="width:80px;text-align:center;">' + pt.WindMin + '-' + pt.WindMax + ' м/с' +'</td>';
+                            if (type === 'weather') {
+                                str += '<td style="width:70px;text-align:center;">' + pres + ' м.р.с.</td>' +
+                                    '<td style="width:35px;text-align:center;">' + rel + '%</td>' +
+                                    '<td style="width:20px;"><img style="width:16px;height:16px;" src="' + imagesHost + '16/' + imgIcon + '.png"></td>';
+                            }
+                            str += '</tr>';
+                        }
+                        str += '</table></tbody>';
+                        str += '<div style="margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;">' + accordingTo + ' <a href="http://gismeteo.ru" target="_blank">Gismeteo.ru</a></div>';
+                        popup.setContent(str);
+                    };
+
+                var parseData = function (arr) {
+                    var weather = [],
+                        wind = [],
+                        items = [];
+                    for (var i = 0, len = arr.length; i < len; i++) {
+                        var it = arr[i];
+                        if (it.Error !== null) {continue;}
+                        var forecast = it.Forecast,
+                            icon = 0,
+                            angle = 0,
+                            scale = 1,
+                            filter = '',
+                            latlng = [it.Lat, it.Lng];
+
+                        if (forecast && forecast.length) {
+                            icon = forecast[0].Precipitation < 9
+                                ? forecast[0].Precipitation
+                                : forecast[0].Cloudiness
+                            ;
+                            angle = forecast[0].WindDirection * 45;
+                            var pow = Math.floor((forecast[0].WindMax + forecast[0].WindMin) / 2);
+                            if (pow <= 4) {
+                                filter = hsl2filter(223, 100, 44);
+                                scale = 0.5;
+                            } else if (pow <= 8) {
+                                filter = hsl2filter(5, 100, 51);
+                                scale = 0.6;
+                            } else if (pow <= 12) {
+                                filter = hsl2filter(163, 100, 48);
+                                scale = 0.7;
+                            } else if (pow <= 16) {
+                                filter = hsl2filter(90, 100, 49);
+                                scale = 0.8;
+                            } else if (pow <= 20) {
+                                filter = hsl2filter(64, 100, 50);
+                                scale = 0.8;
+                            } else {
+                                filter = hsl2filter(3, 100, 43);
+                                scale = 1;
+                            }
+                        }
+                        items.push(it);
+
+                        weatherOptions.iconUrl = imagesHost + '24/' + icon + '.png';
+                        weather.push(
+                            L.marker(latlng,
+                            {
+                                type: 'weather',
+                                num: i,
+                                icon: L.icon(weatherOptions)
+                            })
+                        );
+
+                        var w = 32 * scale,
+                            w2 = w / 2;
+                        windOptions.iconSize = [w, w];
+                        windOptions.iconAnchor = [w2, w2];
+
+                        wind.push(
+                            L.marker(latlng,
+                            {
+                                type: 'wind',
+                                zIndexOffset: 100,
+                                num: i,
+                                icon: L.icon(windOptions),
+                                //opacity: scale,
+                                filter: filter,
+                                iconAngle: angle
+                            })
+                        );
+                    }
+                    dataGlobal = {
+                        items: items,
+                        weather: weather,
+                        wind: wind
+                    };
+                    defGlobal.resolve(arr);
+                };
+
+                var getData = function (params) {
+                    if (!params) params = {};
+                    if ('callback' in params) {callbacks.push(params.callback);}
+                    if (!dataGlobal) {
+                        dataGlobal = {};
+                        L.gmxUtil.requestJSONP(
+                            params.weatherURL || 'http://maps.kosmosnimki.ru/Weather.ashx',
+                            {
+                                WrapStyle: 'func',
+                                country: params.countryCode || 0
+                            }
+                        ).then(function(json) {
+                            parseData(
+                                json && json.Status === 'ok' && json.Result ?
+                                json.Result :
+                                null
+                            );
+                        });
+                    }
+                };
+
+                var _old__setPos = L.Marker.prototype._setPos;
+                L.Marker.include({
+                    _updateImg: function(i, a, s) {
+                        a = L.point(s).divideBy(2)._subtract(L.point(a));
+                        var opt = this.options,
+                            transform = '';
+                        transform += ' translate(' + -a.x + 'px, ' + -a.y + 'px)';
+                        transform += ' rotate(' + opt.iconAngle + 'deg)';
+                        transform += ' translate(' + a.x + 'px, ' + a.y + 'px)';
+                        i.style[L.DomUtil.TRANSFORM] += transform;
+                        if ('filter' in opt) {
+                            i.style.filter = opt.filter;
+                        }
+                    },
+
+                    setIconAngle: function (iconAngle) {
+                        this.options.iconAngle = iconAngle;
+                        if (this._map) {
+                            this.update();
+                        }
+                    },
+
+                    _setPos: function (pos) {
+                        if (this._icon) {
+                            this._icon.style[L.DomUtil.TRANSFORM] = '';
+                        }
+                        if (this._shadow) {
+                            this._shadow.style[L.DomUtil.TRANSFORM] = '';
+                        }
+
+                        _old__setPos.apply(this,[pos]);
+
+                        var opt = this.options;
+                        if (opt.iconAngle) {
+                            var a = opt.icon.options.iconAnchor,
+                                s = opt.icon.options.iconSize,
+                                i;
+                            if (this._icon) {
+                                i = this._icon;
+                                this._updateImg(i, a, s);
+                            }
+                            if (this._shadow) {
+                                if (opt.icon.options.shadowAnchor) {
+                                    a = opt.icon.options.shadowAnchor;
+                                }
+                                s = opt.icon.options.shadowSize;
+                                i = this._shadow;
+                                this._updateImg(i, a, s);
+                            }
+                        }
+                    }
+                });
+
+                L.WindWeatherLayer = L.FeatureGroup.extend({
+                    options: {
+                        type: 'weather'
+                    },
+
+                    _addItems: function (arr) {
+                        var type = this.options.type,
+                            arr = dataGlobal[type];
+                        for (var i = 0, len = arr.length; i < len; i++) {
+                            this.addLayer(arr[i]);
+                        }
+                    },
+
+                    onAdd: function (map) {
+                        L.FeatureGroup.prototype.onAdd.call(this, map);
+                        if (!dataGlobal) {
+                            getData();
+                        }
+                        var _this = this;
+                        defGlobal.then(function() {
+                            _this._addItems();
+                        });
+                    },
+
+                    initialize: function (options) {
+                        L.setOptions(this, options);
+                        if ('imagesHost' in this.options) {imagesHost = this.options.imagesHost;}
+                        if ('weatherURL' in this.options) {weatherURL = this.options.weatherURL;}
+                        L.FeatureGroup.prototype.initialize.call(this, []);
+                        this.bindPopup('temp', {maxWidth: options.type === 'weather' ? 370 : 170});
+                        this.on('popupopen', popupFunc, this)
+                    }
+                });
+                L.windWeatherLayer = function (options) {
+                    return new L.WindWeatherLayer(options);
+                };
+            })();
+            var lmap = nsGmx.leafletMap,
+                controlsManager = lmap.gmxControlsManager,
+                gmxLayers = controlsManager.get('layers'),
+                weatherLayer = L.windWeatherLayer({type: 'weather'}),
+                windLayer = L.windWeatherLayer({type: 'wind'});
+
+            gmxLayers.addOverlay(weatherLayer, _gtxt('WeatherPlugin.WeatherButton'));
+            gmxLayers.addOverlay(windLayer, _gtxt('WeatherPlugin.WindButton'));
+        }
+    })
 })();

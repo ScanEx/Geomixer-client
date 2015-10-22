@@ -194,6 +194,7 @@ _translationsHash.hash["eng"] = {
     "units.auto": "auto",
     "units.m": "m",
     "units.km": "km",
+    "units.nm": "nmi",
     "units.m2": "m<sup>2</sup>",
     "units.ha": "ha",
     "units.km2": "km<sup>2</sup>",
@@ -389,6 +390,7 @@ _translationsHash.hash["eng"] = {
 		
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
 	"Редактирование прав доступа слоя [value0]" : "Layer [value0] access editor",
+	"Состав группы [value0]" : "Users of group [value0]",
 	"Роль" : "Role",
 	"Добавить пользователя" : "Add user",
 	"Права доступа" : "Access permissions",
@@ -628,6 +630,9 @@ _translationsHash.hash["eng"] = {
     "Мультилиния": "Multipolyline",
     "Мультиточка": "Multipoint",
     "Администрирование": "Administration",
+    "Системные настройки": "System settings",
+    "Управление группами": "User group management",
+    "Управление группами пользователей": "User group management",
     "Добавить снимки": "Add rasters",
     "Существующие слои": "Existing layers",
     "Слои из карты": "Layers from map",
@@ -645,5 +650,7 @@ _translationsHash.hash["eng"] = {
     "FileBrowser.ExceedLimitMessage" : "File size exceeds 500 Mb. Use GeoMixerFileBrowser tool to upload large files.",
     "FileBrowser.DropInfo" : "Drop files here",
     "EditObject.drawingMenuTitle" : "Add object to active layer",
+    "Поставить маркер": "Add marker",
+    "Центрировать": "Set center",
     "Пароль изменён": "Password has been changed"
 };

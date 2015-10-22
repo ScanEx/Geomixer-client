@@ -50,8 +50,10 @@ nsGmx.LayersTree = function( tree )
         
         for (var i = 0; i < childs.length; i++)
         {
-            if (childs[i].content.properties[propName] == propValue)
+            var props = childs[i].content.properties;
+            if (propName in props && props[propName] === propValue) {
                 return {elem:childs[i], parents: [elem].concat(parents || []), index: i};
+            }
             
             if (typeof childs[i].content.children != 'undefined')
             {
@@ -98,21 +100,42 @@ nsGmx.LayersTree = function( tree )
     }
     
     /** Итерирование по всем слоям группы дерева
-     * @param {nsGmx.LayersTree~LayerVisitor} callback Будет вызвана для каждого слоя внутри группы.
+     * @param {nsGmx.LayersTree~LayerVisitor} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
      * @param {nsGmx.LayersTree~Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
      */
     this.forEachLayer = function(callback, groupNode)
     {
-        gmxAPI.forEachLayer(groupNode ? groupNode.content : _tree, callback);
+        this.forEachNode(function(node, isVisible, nodeDepth) {
+            if (node.type === 'layer') {
+                callback(node.content, isVisible, nodeDepth);
+            }
+        }, groupNode)
     }
     
     /** Итерирование по всем под-узлам узла дерева
-     * @param {nsGmx.LayersTree~NodeVisitor} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
+     * @param {nsGmx.LayersTree~NodeVisitor} callback Будет вызвана для каждого узла внутри группы. Первый аргумент - узел, второй - видимость узла
      * @param {nsGmx.LayersTree~Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
      */
     this.forEachNode = function(callback, groupNode)
     {
-        gmxAPI.forEachNode(groupNode ? groupNode.content : _tree, callback);
+        var forEachNodeRec = function(o, isVisible, nodeDepth)
+        {
+            isVisible = isVisible && !!o.content.properties.visible;
+            
+            callback(o, isVisible, nodeDepth);
+            
+            if (o.type === 'group') {
+                var a = o.content.children;
+                for (var k = a.length - 1; k >= 0; k--)
+                    forEachNodeRec(a[k], isVisible, nodeDepth + 1);
+            }
+        }
+        
+        var layers = groupNode ? groupNode.content : _tree;
+        
+        for (var k = layers.children.length - 1; k >= 0; k--) {
+            forEachNodeRec(layers.children[k], true, 0);
+        }
     }
     
     /** Клонирование дерева с возможностью его модификации

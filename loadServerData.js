@@ -1,4 +1,182 @@
-var loadServerData = 
+(function() {
+    
+var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
+    
+var getTextContent = function(node) {
+    if (typeof node.textContent != 'undefined')
+        return node.textContent;
+    
+    var data = '';
+    for (var i = 0; i < node.childNodes.length; i++)
+        data += node.childNodes[i].data;
+    
+    return data;
+}
+
+var getScale = function(z)
+{
+    return Math.pow(2, -z)*156543.033928041;
+}
+
+/** Формирует URL картинки, который можно использовать для получения WMS слоя для данного положения карты
+ * @property {String} url - WMS ссылка.
+ * @property {object} props - атрибуты.
+ * @property {String} props.srs - тип проекции.
+ * @property {String} props.version - версия.
+ * @property {String} props.name - Идентификатор слоя.
+ * @property {object} props.bbox - ограничение по bounds(в географических координатах).
+ * @property {object} requestProperties - атрибуты формата результирующего image.
+ * @property {String} requestProperties.format - тип (по умолчанию 'image/jpeg').
+ * @property {String} requestProperties.transparent - прозрачность подложки ('TRUE'/'FALSE' по умолчанию 'FALSE').
+ * @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
+*/
+var getWMSMapURL = function(url, props, requestProperties)
+{
+    var CRSParam = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
+    
+    requestProperties = requestProperties || {};
+
+    var lmap = nsGmx.leafletMap,
+        extend = lmap.getBounds();
+    
+    var miny = Math.max(extend.getSouth(), -90);
+    var maxy = Math.min(extend.getNorth(), 90);
+    var minx = Math.max(extend.getWest(), -180);
+    var maxx = Math.min(extend.getEast(), 180);
+    
+    if (props.bbox)
+    {
+        minx = Math.max(props.bbox.minx, minx);
+        miny = Math.max(props.bbox.miny, miny);
+        maxx = Math.min(props.bbox.maxx, maxx);
+        maxy = Math.min(props.bbox.maxy, maxy);
+
+        if (minx >= maxx || miny >= maxy)
+            return;
+    }
+    
+    var mercMin = L.Projection.Mercator.project({lat: miny, lng: minx}),
+        mercMax = L.Projection.Mercator.project({lat: maxy, lng: maxx});
+    
+    var scale = getScale(lmap.getZoom());
+    var w = Math.round((mercMax.x - mercMin.x)/scale);
+    var h = Math.round((mercMax.y - mercMin.y)/scale);
+
+    var isMerc = !(props.srs == wmsProjections[1]);
+
+    var st = url;
+    var format = requestProperties.format || 'image/jpeg';
+    var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
+    var version = props.version || '1.1.1';
+    
+    //st = st.replace(/Service=WMS[\&]*/i, '');
+    //st = st.replace(/\&$/, '');
+    
+    st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap&Service=WMS';
+    st += "&layers=" + encodeURIComponent(props.name) +
+        "&VERSION=" + encodeURIComponent(version) +
+        "&" + CRSParam[version] + "=" + encodeURIComponent(props.srs) +
+        "&styles=" +
+        "&width=" + w +
+        "&height=" + h +
+        "&bbox=" + (isMerc ? mercMin.x : minx) +
+             "," + (isMerc ? mercMin.y : miny) +
+             "," + (isMerc ? mercMax.x : maxx) +
+             "," + (isMerc ? mercMax.y : maxy);
+
+    if (url.indexOf('format=') == -1) st += "&format=" + encodeURIComponent(format);
+    if (url.indexOf('transparent=') == -1) st += "&transparent=" + encodeURIComponent(transparentParam);
+   
+    return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
+}
+
+/**
+ * Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
+ * @returns {Array} - массив объектов с описанием слоёв
+*/
+var parseWMSCapabilities = function(response)
+{
+    var supportedVersions = {'1.1.1': true, '1.3.0': true};
+    var SRSTagName = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
+    var BBOXTagName = {'1.1.1': 'LatLonBoundingBox', '1.3.0': 'EX_GeographicBoundingBox'};
+    var serviceLayers = [],
+        strResp = response.replace(/[\t\n\r]/g, ' '),
+        strResp = strResp.replace(/\s+/g, ' '),
+        xml = parseXML(response),
+        mainTag = xml.getElementsByTagName('WMS_Capabilities')[0] || xml.getElementsByTagName('WMT_MS_Capabilities')[0],
+        version = mainTag.getAttribute('version'),
+        layersXML = xml.getElementsByTagName('Layer');
+    
+    if (!(version in supportedVersions)) {
+        return [];
+    }
+    
+    for (var i = 0; i < layersXML.length; i++)
+    {
+        var layer = {version: version},
+            name = layersXML[i].getElementsByTagName('Name'),
+            title = layersXML[i].getElementsByTagName('Title'),
+            bbox = layersXML[i].getElementsByTagName(BBOXTagName[version]),
+            srs = layersXML[i].getElementsByTagName(SRSTagName[version]);
+        
+        if (srs.length)
+        {
+            layer.srs = null;
+            var supportedSrs = {};
+            for (var si = 0; si < srs.length; si++)
+            {
+                var srsName = strip(getTextContent(srs[si]));
+                supportedSrs[srsName] = true;
+            }
+            
+            //порядок имеет значение!
+            for (var p = 0; p < wmsProjections.length; p++) {
+                if (wmsProjections[p] in supportedSrs) {
+                    layer.srs = wmsProjections[p];
+                    break;
+                }
+            }
+            if (!layer.srs) continue;
+        }
+        else {
+            layer.srs = wmsProjections[0];
+        }
+
+        if (name.length)
+            layer.name = getTextContent(name[0]);
+        
+        if (bbox.length)
+        {
+            if (version == '1.1.1') {
+                layer.bbox = 
+                {
+                    minx: Number(bbox[0].getAttribute('minx')),
+                    miny: Number(bbox[0].getAttribute('miny')),
+                    maxx: Number(bbox[0].getAttribute('maxx')),
+                    maxy: Number(bbox[0].getAttribute('maxy'))
+                };
+            } else {
+                layer.bbox = 
+                {
+                    minx: Number(getTextContent(bbox[0].getElementsByTagName('westBoundLongitude')[0])),
+                    miny: Number(getTextContent(bbox[0].getElementsByTagName('southBoundLatitude')[0])),
+                    maxx: Number(getTextContent(bbox[0].getElementsByTagName('eastBoundLongitude')[0])),
+                    maxy: Number(getTextContent(bbox[0].getElementsByTagName('northBoundLatitude')[0]))
+                };
+            }
+        }
+        
+        if (title.length)
+            layer.title = getTextContent(title[0]);
+        
+        if (layer.name)
+            serviceLayers.push(layer);
+    }
+    
+    return serviceLayers;
+}
+
+var loadServerData = window.loadServerData =
 {
 	WFS:{},
 	WMS:{}
@@ -472,13 +650,13 @@ queryServerData.prototype.parseWFSCapabilities = function(response)
 			srs = featuresXML[i].getElementsByTagName('DefaultSRS');
 		
 		if (name.length)
-			layer.name = gmxAPI.getTextContent(name[0]);
+			layer.name = getTextContent(name[0]);
 		
 		if (title.length)
-			layer.title = gmxAPI.getTextContent(title[0]);
+			layer.title = getTextContent(title[0]);
 		
 		if (srs.length)
-			layer.srs = gmxAPI.getTextContent(srs[0]);
+			layer.srs = getTextContent(srs[0]);
 		
 		if (layer.name)
 			serviceLayers.push(layer);
@@ -670,7 +848,8 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	var ulCanvas = _ul(null, [['css','paddingBottom','5px'], ['attr','url',url]]),
 		ulChilds = _ul(),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
-		_this = this;
+		_this = this,
+        lmap = nsGmx.leafletMap;
 	
 	$(replaceElem).replaceWith(ulCanvas)
     
@@ -681,7 +860,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
         {
 			ulChilds.childNodes[i].firstChild.lastChild.clear && ulChilds.childNodes[i].firstChild.lastChild.clear();
-            ulChilds.childNodes[i].firstChild.lastChild.gmxObject.remove();
+            lmap.removeLayer(ulChilds.childNodes[i].firstChild.lastChild.gmxObject);
 		}
         
 		this.parentNode.parentNode.parentNode.removeNode(true);
@@ -694,15 +873,14 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	
 	var clickFunc = function(layer, parent, flag)
 	{
-		if (!flag)
-			parent.setVisible(false);
-		else
-		{
+		if (!flag) {
+			lmap.removeLayer(parent);
+        } else {
 			updateFunc(layer, parent);
-						
-			parent.setVisible(true);
+			lmap.addLayer(parent);
 		}
 	}
+
 	var updateFunc = function(layer, parent)
 	{
         var requestParams = {}
@@ -712,60 +890,58 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
             requestParams.transparent = serverParams.format === 'png';
         }
         
-        var res = gmxAPI.getWMSMapURL(url, layer, requestParams);
+        var res = getWMSMapURL(url, layer, requestParams);
         
         if (res)
         {
             var b = res.bounds;
-            parent.setImageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY, 'tilePane');
-            console.log('overlay', b);
+            parent.clearLayers();
+            parent.addLayer(L.imageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), L.latLngBounds([[b.minY, b.minX], [b.maxY, b.maxX]])));
         }
 	}
 	
-	for (var i = 0; i < serviceLayers.length; i++)
+	serviceLayers.forEach(function(layer)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px']]),
 			box = _checkbox(false, 'checkbox'),
-			spanElem = _span([_t(serviceLayers[i].title)], [['css','cursor','pointer'],['dir','className','layerfeature']]),
-			parent = globalFlashMap.rasters.addObject();
-            
+			spanElem = _span([_t(layer.title)], [['css','cursor','pointer'],['dir','className','layerfeature']]),
+			parent = L.layerGroup().addTo(nsGmx.leafletMap);
+
         spanElem.gmxObject = parent;
-		
+
 		box.className = 'floatLeft';
 
-		(function(layer, parent, box){
-			spanElem.onclick = function()
-			{
-				if (!box.checked)
-					box.checked = true;
-				
-				clickFunc.call(_this, layer, parent, true);
-			}
-			box.onclick = function()
-			{
-				clickFunc.call(_this, layer, parent, this.checked);
-			}
-			box.update = function()
-			{
-				updateFunc(layer, parent);
-			}
-		})(serviceLayers[i], parent, box);
+        spanElem.onclick = function()
+        {
+            if (!box.checked)
+                box.checked = true;
+            
+            clickFunc(layer, parent, true);
+        }
+        box.onclick = function()
+        {
+            clickFunc(layer, parent, this.checked);
+        }
+        box.update = function()
+        {
+            updateFunc(layer, parent);
+        }
 		
-		box.setAttribute('layerName', serviceLayers[i].name);
+		box.setAttribute('layerName', layer.name);
 		
 		_(elemCanvas, [box, spanElem]);
 		_(ulChilds, [_li([elemCanvas])]);
 		
-		if (typeof loadParams != 'undefined' && loadParams[serviceLayers[i].name])
+		if (typeof loadParams != 'undefined' && loadParams[layer.name])
 			$(spanElem).trigger("click");
-	}
-	
+	});
+
 	$(ulCanvas).treeview();
-	
-	globalFlashMap.addListener('onMoveEnd', function()
+
+	nsGmx.leafletMap.on('moveend', function()
 	{
         var boxes = ulChilds.getElementsByTagName('input');
-        
+
         for (var i = 0; i < boxes.length; i++)
         {
             if (boxes[i].checked)
@@ -922,7 +1098,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
+		_queryServerDataWMS.load(parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
 }
 loadServerData.WMS.unload = function()
 {
@@ -981,7 +1157,7 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                     loadParams = {layersVisibility: loadParams};
                 }
                 
-                _queryServerDataWMS.getCapabilities(url, gmxAPI.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
+                _queryServerDataWMS.getCapabilities(url, parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
                 })
@@ -1050,3 +1226,5 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
         }
     }
 });
+
+})();

@@ -4,15 +4,18 @@ var publicInterface = {
     pluginName: '3DDemo',
     afterViewer: function()
     {
-        gmxAPI.baseLayersTools.addTool('3DDemo', {
-            hint: '3D',
-            onClick: function()
-            {
-                var x = Math.round(merc_x(globalFlashMap.getX()));
-                var y = Math.round(merc_y(globalFlashMap.getY()));
-                window.open("http://kosmosnimki.ru/3d/index.html?x=" + x + "&y=" + y, '_blank');
-            }
-        })
+        var LMap = nsGmx.leafletMap;
+        var icon = new L.Control.gmxIcon({
+            id: '3D', 
+            text: '3D'
+        }).on('click', function(ev) {
+            var center = LMap.getCenter(),
+                x = Math.round(center.lng),
+                y = Math.round(center.lat);
+
+            window.open("http://kosmosnimki.ru/3d/index.html?x=" + x + "&y=" + y, '_blank');
+        });
+        LMap.addControl(icon);
     }
 }
 

@@ -2,9 +2,8 @@
 
 (function(){
 
-var BaseLayersControl = function(container, map) {
-    var blm = map.baseLayersManager,
-        lang = _translationsHash.getLanguage();
+var BaseLayersControl = function(container, blm) {
+    var lang = _translationsHash.getLanguage();
     
     $(container).append(
         '<table class="group-editor-blm-table">' +
@@ -33,14 +32,14 @@ var BaseLayersControl = function(container, map) {
     
     blm.getAll().forEach(function(baseLayer) {
         if (activeIDs.indexOf(baseLayer.id) === -1) {
-            var item = constructItem(baseLayer.id, baseLayer[lang]);
+            var item = constructItem(baseLayer.id, baseLayer.options[lang]);
             availContainer.append(item);
         }
     })
     
     activeIDs.forEach(function(id) {
         var baseLayer = blm.get(id);
-        mapContainer.append(constructItem(id, baseLayer && baseLayer[lang]));
+        mapContainer.append(constructItem(id, baseLayer && baseLayer.options[lang]));
     });
     
     var updateBaseLayers = function() {
@@ -296,6 +295,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		if (isMap)
 		{
+            $('.mainmap-title').text(title.value);
+            
 			div.gmxProperties.properties.title = title.value;
 			
 			rawTree.properties = div.gmxProperties.properties;
@@ -320,19 +321,20 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		var useAPI = _checkbox(elemProperties.UseKosmosnimkiAPI, 'checkbox'),
 			useOSM = _checkbox(elemProperties.UseOpenStreetMap, 'checkbox'),
 			defLang = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="defRus" name="defLang" value="rus"></input><label for="defRus">rus</label>' + 
-                            '<input type="radio" id="defEng" name="defLang" value="eng"></input><label for="defEng">eng</label>' + 
+                            '<label><input type="radio" name="defLang" value="rus">rus</label>' + 
+                            '<label><input type="radio" name="defLang" value="eng">eng</label>' + 
                         '</span>')[0],
             distUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="distUnitAuto" name="distUnit" value="auto"></input><label for="distUnitAuto">' + _gtxt('units.auto') + '</label>' + 
-                            '<input type="radio" id="distUnitM" name="distUnit" value="m"></input><label for="distUnitM">' + _gtxt('units.m') + '</label>' + 
-                            '<input type="radio" id="distUnitKm" name="distUnit" value="km"></input><label for="distUnitKm">' + _gtxt('units.km') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="auto">' + _gtxt('units.auto') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="m">' + _gtxt('units.m') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="km">' + _gtxt('units.km') + '</label>' + 
+                            '<label><input type="radio" name="distUnit" value="nm">' + _gtxt('units.nm') + '</label>' + 
                         '</span>')[0],
             squareUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="squareUnitAuto" name="squareUnit" value="auto"></input><label for="squareUnitAuto">' + _gtxt('units.auto') + '</label>' + 
-                            '<input type="radio" id="squareUnitM" name="squareUnit" value="m2"></input><label for="squareUnitM">' + _gtxt('units.m2') + '</label>' + 
-                            '<input type="radio" id="squareUnitHa" name="squareUnit" value="ha"></input><label for="squareUnitHa">' + _gtxt('units.ha') + '</label>' + 
-                            '<input type="radio" id="squareUnitKm" name="squareUnit" value="km2"></input><label for="squareUnitKm">' + _gtxt('units.km2') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="auto">' + _gtxt('units.auto') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="m2">' + _gtxt('units.m2') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="ha">' + _gtxt('units.ha') + '</label>' + 
+                            '<label><input type="radio" name="squareUnit" value="km2">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
@@ -351,7 +353,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             minZoom = _input(null,[['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
             maxZoom = _input(null,[['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
 		
-		onLoad.value = elemProperties.OnLoad != null ? elemProperties.OnLoad : '';
+		onLoad.value = nsGmx.mappletLoader.get();
 		
 		useAPI.onclick = function()
 		{
@@ -376,14 +378,14 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		{
 			div.gmxProperties.properties.DistanceUnit = this.value;
 			rawTree.properties = div.gmxProperties.properties;
-            globalFlashMap.setDistanceUnit(this.value);
+            nsGmx.leafletMap.options.distanceUnit = this.value;
 		})
         
         $('input', squareUnit).change(function()
 		{
 			div.gmxProperties.properties.SquareUnit = this.value;
 			rawTree.properties = div.gmxProperties.properties;
-            globalFlashMap.setSquareUnit(this.value);
+            nsGmx.leafletMap.options.squareUnit = this.value;
 		})
         
 		useOSM.onclick = function()
@@ -446,9 +448,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		onLoad.onkeyup = function()
 		{
-			div.gmxProperties.properties.OnLoad = this.value;
-			
-			rawTree.properties = div.gmxProperties.properties;
+            nsGmx.mappletLoader.set(this.value);
 			
 			return true;
 		}
@@ -604,7 +604,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
         
-        var baseLayersControl = new BaseLayersControl(divBaseLayers, globalFlashMap);
+        var baseLayersControl = new BaseLayersControl(divBaseLayers, nsGmx.leafletMap.gmxBaseLayersManager);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
