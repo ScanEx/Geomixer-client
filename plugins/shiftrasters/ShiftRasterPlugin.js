@@ -37,27 +37,91 @@
                 {{/showButtons}}\
             </div>\
         </span>';
-        
+
+L.Draggable.RightButton = L.Draggable.extend({
+    initialize: function (layer) {
+        this._element = layer._tileContainer;
+        this._dragStartTarget = layer.getContainer();
+    },
+
+    _onDown: function (e) {
+        this._moved = false;
+
+        if (e.shiftKey || ((e.button !== 2) && !e.touches)) { return; }
+
+        L.DomEvent.stopPropagation(e);
+
+        if (L.Draggable._disabled) { return; }
+
+        L.DomUtil.disableImageDrag();
+        L.DomUtil.disableTextSelection();
+
+        if (this._moving) { return; }
+
+        var first = e.touches ? e.touches[0] : e;
+
+        this._startPoint = new L.Point(first.clientX, first.clientY);
+        this._startPos = this._newPos = L.DomUtil.getPosition(this._element);
+
+        L.DomEvent
+            .on(document, L.Draggable.MOVE[e.type], this._onMove, this)
+            .on(document, L.Draggable.END[e.type], this._onUp, this);
+    }
+});
+
     //события: click:save, click:cancel, click:start
     var ShiftLayerView = function(canvas, shiftParams, layer, params) {
         params = $.extend({
             initState: false,
             showButtons: true
         }, params)
-        var _this = this;
-        
-        var sx, sy;
-        
-        var drag = function( x, y, o ) {        // Вызывается при mouseMove при нажатой мышке
-            shiftParams.set({
-                dx: gmxAPI.merc_x(x) - sx,
-                dy: gmxAPI.merc_y(y) - sy
-            });
-        };
-        
-        var dragStart = function( x, y, o ) {      // Вызывается при mouseDown
-            sx = gmxAPI.merc_x( x ) - shiftParams.get('dx');
-            sy = gmxAPI.merc_y( y ) - shiftParams.get('dy');
+        var _this = this,
+            lmap = nsGmx.leafletMap,
+            dragging;
+
+        var dragUtils = {
+            curOffset: null,
+            dragstart: function (ev) {
+                lmap.dragging.disable();
+                L.DomUtil.disableImageDrag();
+                var posOffset = layer.getPositionOffset();
+                dragUtils.curOffset = {
+                    shiftX: posOffset.shiftX,
+                    shiftY: posOffset.shiftY,
+                    _startPos: ev.target._startPos
+                };
+            },
+            drag: function (ev) {
+                var target = ev.target,
+                    deltaPos = target._newPos.subtract(dragUtils.curOffset._startPos),
+                    deltaPosMerc = deltaPos.divideBy(256 / L.gmxUtil.tileSizes[lmap.getZoom()]);
+
+                shiftParams.set({
+                    dx: dragUtils.curOffset.shiftX + deltaPosMerc.x,
+                    dy: dragUtils.curOffset.shiftY - deltaPosMerc.y
+                });
+            },
+            dragend: function (ev) {
+                lmap.dragging.enable();
+                L.DomUtil.enableImageDrag();
+            },
+            createDragging: function () {
+                dragging = new L.Draggable.RightButton(layer);
+                dragging
+                    .on('dragstart', dragUtils.dragstart)
+                    .on('dragend', dragUtils.dragend)
+                    .on('drag', dragUtils.drag);
+
+                dragging.enable();
+            },
+            deleteDragging: function () {
+                dragging
+                    .off('dragstart', dragUtils.dragstart)
+                    .off('dragend', dragUtils.dragend)
+                    .off('drag', dragUtils.drag);
+
+                dragging.disable();
+            }
         };
         
         var updateLayerOpacity = function(opacity) {
@@ -75,13 +139,38 @@
             } else {
                 updateLayerOpacity(100);
             }
-            
+
             if (isActiveState) {
-                layer.addDragHandlers(drag, dragStart, null, {rightButton: true});
+                dragUtils.createDragging();
+                if (lmap.contextmenu) { lmap.contextmenu.removeHooks(); }
+                layer.fire('dragenabled');
             } else {
-                layer.removeDragHandlers();
+                if (dragging) {
+                    dragUtils.deleteDragging();
+                    dragging = null;
+                }
+                if (lmap.contextmenu) { lmap.contextmenu.addHooks(); }
+                layer.fire('dragdisabled');
             }
         }
+        lmap.on({
+            mouseout: function() {
+                if (isActiveState) {
+                    dragging.disable();
+                }
+            },
+            mouseover: function() {
+                if (isActiveState) {
+                    dragging.enable();
+                }
+            },
+            zoomend: function() {
+                if (dragging) {
+                    dragUtils.deleteDragging();
+                    dragUtils.createDragging();
+                }
+            }
+        });
 
         var ui = $(Mustache.render(rowUITemplate, {showButtons: params.showButtons})).appendTo(canvas);
         
@@ -320,7 +409,7 @@
                 },
                 clickCallback: function(context) {
                     var layerName = context.elem.name,
-                        layer = map.layers[layerName],
+                        layer = nsGmx.gmxMap.layersByID[layerName],
                         posOffset = layer.getPositionOffset(),
                         shiftParams = new Backbone.Model({
                             dx: parseFloat(posOffset.shiftX) || 0,
@@ -364,7 +453,6 @@
                     })
 
                     $(currentView).on('click:cancel', function() {
-                        layer.setPositionOffset(originalShiftParams.get('dx'), originalShiftParams.get('dy'));
                         removeView();
                     })
                 }
