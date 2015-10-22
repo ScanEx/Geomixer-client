@@ -739,9 +739,9 @@ var DrawingObjectGeomixer = function() {
         sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
             name:     fileName,
             format:   format,
-            points:   objectsByType["Point"] ? JSON.stringify(objectsByType["Point"]) : '',
-            lines:    objectsByType["LineString"] ? JSON.stringify(objectsByType["LineString"]) : '',
-            polygons: objectsByType["Polygon"] ? JSON.stringify(objectsByType["Polygon"]) : ''
+            points:   JSON.stringify(objectsByType["Point"] || []),
+            lines:    JSON.stringify([].concat(objectsByType["LineString"] || [], objectsByType["MultiLineString"] || [])),
+            polygons: JSON.stringify([].concat(objectsByType["Polygon"] || [], objectsByType["MultiPolygon"] || []))
         })
 	}
 	
