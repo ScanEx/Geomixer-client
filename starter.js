@@ -975,7 +975,8 @@ function loadMap(state)
 	window.onresize = resizeAll;
 	resizeAll();
         
-    L.Icon.Default.imagePath = 'leaflet/images';
+    
+    L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'leaflet/images';
     
     L.gmx.loadMap(globalMapName, {hostName: window.serverBase, apiKey: window.apiKey, setZIndex: true}).then(function(gmxMap) {
         var defCenter = [55.7574, 37.5952],
