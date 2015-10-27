@@ -107,7 +107,7 @@ var MapController = function(data) {
                 var layer = layerInfo.layer,
                     props = layer.getGmxProperties(),
                     dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
-                    dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
+                    dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
                     
                 layer.setDateInterval(dateBegin, dateEnd);
                 layer.removeFilter();
@@ -646,7 +646,7 @@ var TimelineController = function(data, map, options) {
             layer = layerInfo.layer,
             props = layer.getGmxProperties(),
             dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
-            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
+            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
 
         createTimelineLazy();
 
