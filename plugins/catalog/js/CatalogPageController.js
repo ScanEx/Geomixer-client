@@ -44,7 +44,6 @@
 	this._currentSearchCriteria = null;
 	this._shapeFileController = null;
 	this._mapController = inits.Map;
-	this._callback = inits.callback;
 	this._initialize();
 }
 
@@ -146,10 +145,6 @@ CatalogPageController.prototype = {
 			SearchOptionsController: this._searchOptionsController,
 			UrlProviders: this._urlProviders
 		});
-
-		if(this._callback) {
-			this._callback();
-		}
 
 		this._waitingDialog.close();
 	},
@@ -517,7 +512,7 @@ CatalogPageController.prototype = {
 		var ne = L.latLng(coords[1].x, coords[1].y);
 		var bounds = L.latLngBounds(sw, ne);
 		this._mapController.fitBounds(bounds);
-		this._mapController.invalidateSize();		
+		this._mapController.invalidateSize();
 	},
 
 	_nodeCheckedChanged: function(node, tasksChain) {

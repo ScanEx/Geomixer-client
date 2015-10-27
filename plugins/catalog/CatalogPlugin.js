@@ -10,13 +10,13 @@
 
 	var bLoaded = false;
 	var oPageController;
-	var oPermalinkController;
 	var oLeftMenu = new leftMenu();
 	var sCadastreHost = false;
 
 	var unloadMenu = function(){	}
 
-	var loadPlugin = function(callback){
+	var loadPlugin = function(oPermalinkController){
+		var def = new $.Deferred();
 		var alreadyLoaded = oLeftMenu.createWorkCanvas("catalog", unloadMenu);
 		if (!alreadyLoaded){
 			$LAB.script(pluginPath + 'js/L.ImageTransform.js');
@@ -26,21 +26,40 @@
 					Map: nsGmx.leafletMap,
 					TreeView: null,
 					Path: pluginPath,
-					PermalinkController: oPermalinkController,
-					callback: callback
+					PermalinkController: oPermalinkController
 				});
+				def.resolve();
 			});
 		}
 		else{
-			if(callback) callback();
+			def.resolve();
 		}
 		bLoaded = true;
+		return def;
 	}
 
 	var publicInterface = {
 		pluginName: 'ScanEx catalog',
 		afterViewer: function(map, params) {
-			loadPlugin();
+			gmxCore.loadScript(pluginPath + 'js/AppCode/PermalinkController.js')
+				.done(function(){
+					var oPermalinkController = new PermalinkController();
+					_mapHelper.customParamsManager.addProvider({
+						name: 'Catalog',
+						loadState: function(state) {
+							if(state || state.nodes || state.searchOptions) {
+								loadPlugin(oPermalinkController).done(function(){
+									oPermalinkController.fromPermalink(state);
+								});
+							}
+						},
+						saveState: function() {
+							return oPermalinkController.toPermalink();
+						}
+					});
+					loadPlugin(oPermalinkController);
+				})
+				.fail(console.log.bind(console));
 		},
 		unload: function() {
 			if(oPageController) {
@@ -48,28 +67,13 @@
 				oPageController._clearSearchResults();
 			}
 			oLeftMenu && $(oLeftMenu.parentWorkCanvas).remove();
+			_mapHelper.customParamsManager.removeProvider('Catalog');
 		}
-	}
+	};
 
-	gmxCore.addModule("Catalog", publicInterface, {init: function(module, path)
-		{
+	gmxCore.addModule("Catalog", publicInterface, {
+		'init': function(module, path){
 			pluginPath = path;
-			return gmxCore.loadScript(pluginPath + 'js/AppCode/PermalinkController.js').then(function(){
-				oPermalinkController = new PermalinkController();
-				_mapHelper.customParamsManager.addProvider({
-					name: 'Catalog',
-					loadState: function(state) {
-						if(state || state.nodes || state.searchOptions) {
-							loadPlugin(function(){
-								oPermalinkController.fromPermalink(state);
-							});
-						}
-					},
-					saveState: function() {
-						return oPermalinkController.toPermalink();
-					}
-				});
-			});
 		}
 	});
 })(jQuery)
