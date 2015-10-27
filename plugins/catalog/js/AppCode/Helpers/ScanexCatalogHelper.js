@@ -1,6 +1,6 @@
 ﻿ScanexCatalogHelper = { }
 
-ScanexCatalogHelper.satellites = [       
+ScanexCatalogHelper.satellites = [
 		{source: 'scanex', name: 'Сканэкс',
 			options: {
 				title: 'Дополнительные параметры',
@@ -17,32 +17,32 @@ ScanexCatalogHelper.satellites = [
 					'LANDSAT_8': {id: 'LANDSAT_8', name: 'LANDSAT 8', source: 'search', resolution: 15, color: 0x0000ff, checked: true }
 				}
 			}
-		},
-		{ source: 'rl_images', name: 'РЛИ-снимки', layerId: '9B87EC9626D24B9D8311AFCAF046105C', color: 0x2f4f4f,
-			options: {
-				title: 'Дополнительные параметры',
-				items: {
-					'RE-2': {id: 'RE-2', name: 'RE-2', checked: true},
-					'RE-3': {id: 'RE-3', name: 'RE-3', checked: true},
-					'FORMOSAT2': {id: 'FORMOSAT2', name: 'FORMOSAT2', checked: true},
-					'SPOT4': {id: 'SPOT4', name: 'SPOT-4', checked: true},
-					'SPOT5': {id: 'SPOT5', name: 'SPOT-5', checked: true},
-					'SPOT6': {id: 'SPOT6', name: 'SPOT-6', checked: true}
-				}				
-			},
-			infoFields: ['acqdate','acqtime','platform','sensor','viewangle','sunelev','resolution','product','contract'],
-			useDate: true},
-		{ source: 'rl_sheets', name: 'РЛИ-карты', layerId: '466F5E8A052148FDA0D45133F0F64124', color: 0xdc143c,
-			options: {				
-				title: 'Дополнительные параметры',
-				range: [],
-				initial: 1990
-			},
-			infoFields: ['scale','year','type','filename','contract']
 		}
+		// ,{ source: 'rl_images', name: 'РЛИ-снимки', layerId: '9B87EC9626D24B9D8311AFCAF046105C', color: 0x2f4f4f,
+		// 	options: {
+		// 		title: 'Дополнительные параметры',
+		// 		items: {
+		// 			'RE-2': {id: 'RE-2', name: 'RE-2', checked: true},
+		// 			'RE-3': {id: 'RE-3', name: 'RE-3', checked: true},
+		// 			'FORMOSAT2': {id: 'FORMOSAT2', name: 'FORMOSAT2', checked: true},
+		// 			'SPOT4': {id: 'SPOT4', name: 'SPOT-4', checked: true},
+		// 			'SPOT5': {id: 'SPOT5', name: 'SPOT-5', checked: true},
+		// 			'SPOT6': {id: 'SPOT6', name: 'SPOT-6', checked: true}
+		// 		}
+		// 	},
+		// 	infoFields: ['acqdate','acqtime','platform','sensor','viewangle','sunelev','resolution','product','contract'],
+		// 	useDate: true}
+		// ,{ source: 'rl_sheets', name: 'РЛИ-карты', layerId: '466F5E8A052148FDA0D45133F0F64124', color: 0xdc143c,
+		// 	options: {
+		// 		title: 'Дополнительные параметры',
+		// 		range: [],
+		// 		initial: 1990
+		// 	},
+		// 	infoFields: ['scale','year','type','filename','contract']
+		// }
     ];
-	
-ScanexCatalogHelper.findSpot5 = function(items, product){	
+
+ScanexCatalogHelper.findSpot5 = function(items, product){
 	for(var id in items){
 		var item = items[id];
 		if(item.id == 'SPOT 5' && item.product == product){
@@ -51,7 +51,7 @@ ScanexCatalogHelper.findSpot5 = function(items, product){
 	}
 	return null;
 };
-    
+
 ScanexCatalogHelper.findSatelliteById = function(source, id, product) {
 	for (var satelliteIndex in this.satellites) {
 		var satellite = this.satellites[satelliteIndex];
@@ -59,7 +59,7 @@ ScanexCatalogHelper.findSatelliteById = function(source, id, product) {
 			if(id && satellite.options.items){
 				switch(id){
 					case 'SPOT 6':
-					case 'SPOT 7':							
+					case 'SPOT 7':
 						return satellite.options.items['SPOT 6'];
 					case 'SPOT 5':
 						return this.findSpot5(satellite.options.items, product);
