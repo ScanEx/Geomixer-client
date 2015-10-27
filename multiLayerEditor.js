@@ -43,19 +43,30 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
             }
         });
     }
+    
+    var uiSelectedRowTemplate = Handlebars.compile('<tr>' +
+        '<td><div class="gmx-icon-{{iconClass}}"></div></td>' +
+        '<td><div class="multilayer-row-title-outer"><div class="multilayer-row-title-inner" title="{{title}}">{{title}}</div></div></td>' +
+        '{{#unless isReadonly}}' +
+            '<td><div class="gmx-icon-downtriangle"></div></td>' +
+            '<td><div class="gmx-icon-uptriangle"></div></td>' +
+            '<td class="multilayer-row-td"><div class="gmx-icon-recycle"></div></td>' +
+        '{{/unless}}' +
+    '</tr>');
         
     selectedLayersTable.createTable(selectedLayersDiv, 'selectedLayersTables', 0, 
-        ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), "", "", ""],
-        ['1%','5%','40%','19%','20%', '5%', '5%', '5%'], 
+        isReadonly ? [_gtxt("Тип"), _gtxt("Имя")] : [_gtxt("Тип"), _gtxt("Имя"), "", "", ""],
+        isReadonly ? ['5%','95%'] : ['5%','80%', '5%', '5%', '5%'], 
         function(layer)
         {
-            layer = $.extend(layer, {date: nsGmx.Utils.convertFromServer('date', layer.date)});
-            var baseTR = nsGmx.drawLayers.apply(this, [layer, {onclick: null, enableDragging: false}]);
-            var downButton = makeImageButton('img/down.png', 'img/down_a.png');
-            var upButton = makeImageButton('img/up.png', 'img/up_a.png');
-            var deleteButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');
+            var ui = $(uiSelectedRowTemplate({
+                title: layer.title,
+                iconClass: layer.type == "Vector" ? 'vector' : 'raster',
+                isReadonly: isReadonly
+            }));
+
             var _this = this;
-            deleteButton.onclick = function()
+            ui.find('.gmx-icon-recycle').click(function()
             {
                 _this.getDataProvider().filterOriginalItems(function(elem)
                 {
@@ -63,41 +74,39 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                 })
                 
                 suggestLayersControl.enableLayers(layer.name);
-            }
-            downButton.onclick = function()
+            });
+            
+            ui.find('.gmx-icon-downtriangle').click(function()
             {
                 var vals = _this.getDataProvider().getOriginalItems();
-                for (var i = 0; i < vals.length-1; i++)
-                    if (vals[i].LayerID === layer.LayerID)
-                    {
+                for (var i = 0; i < vals.length-1; i++) {
+                    if (vals[i].LayerID === layer.LayerID) {
                         vals.splice(i, 1);
                         vals.splice(i+1, 0, layer);
                         _this.getDataProvider().setOriginalItems(vals);
                         break;
                     }
-            }
-            upButton.onclick = function()
+                }
+            });
+            
+            ui.find('.gmx-icon-uptriangle').click(function()
             {
                 var vals = _this.getDataProvider().getOriginalItems();
-                for (var i = 1; i < vals.length; i++)
-                    if (vals[i].LayerID === layer.LayerID)
-                    {
+                for (var i = 1; i < vals.length; i++) {
+                    if (vals[i].LayerID === layer.LayerID) {
                         vals.splice(i, 1);
                         vals.splice(i-1, 0, layer);
                         _this.getDataProvider().setOriginalItems(vals);
                         break;
                     }
-            }
-            $('td:last', baseTR).remove(); //удаляем правый отступ
+                }
+            });
             
-            if (!isReadonly) {
-                $(baseTR).append($("<td></td>").append(downButton));
-                $(baseTR).append($("<td></td>").append(upButton));
-                $(baseTR).append($("<td></td>").append(deleteButton));
-            } else {
-                $(baseTR).append($("<td></td><td></td><td></td>").width('5%'));
-            }
-            return baseTR;
+            ui.children().each(function(i, elem) {
+                elem.style.width = _this._fields[i].width;
+            });
+            
+            return ui[0];
         }, {});
     
     selectedLayersTable.getDataProvider().setOriginalItems(layers);    
