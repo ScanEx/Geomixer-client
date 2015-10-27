@@ -208,7 +208,6 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     $(addVisLayersButton).appendTo(visLayerCanvas);
     
     var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
-    //previewLayersTree.mapHelper = _mapHelper;
     
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
     
@@ -224,12 +223,19 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         
         var objectsToAdd = [];
         
-        $(activeElem.parentNode).find("div[LayerID],div[MultiLayerID]").each(function()
-        {
-            var props = this.gmxProperties.content.properties;
-            if (props.type === 'Raster' && props.LayerID)
-                objectsToAdd.push({source: {layerName: props.name}});
-        })
+        //если выбрали карту, то elem тут окажется равным undefined
+        var elem = activeElem.gmxProperties.content && previewLayersTree.treeModel.findElemByGmxProperties(activeElem.gmxProperties).elem;
+        
+        if (!elem || elem.type === 'group') {
+            previewLayersTree.treeModel.forEachLayer(function(layerElem) {
+                var props = layerElem.properties;
+                if (props.type === 'Raster' && props.LayerID) {
+                    objectsToAdd.push({source: {layerName: props.name}});
+                }
+            }, elem);
+        } else {
+            objectsToAdd.push({source: {layerName: elem.content.properties.name}});
+        }
         
         if (objectsToAdd.length > 0)
         {
