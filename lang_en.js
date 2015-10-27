@@ -643,7 +643,7 @@ _translationsHash.hash["eng"] = {
     "Добавлены растры": "Rasters are added",
     "Выбранный объект не имеет растра": "Selected object has no raster",
     "Этот растр уже был выбран": "This raster is already selected",
-    "Каталог Растров": "Raster Catalog",
+    "Каталог Растров": "Raster catalog",
     "Растр": "Raster",
     "Добавить выбранные растры": "Add selected rasters",
     "EditObject.menuTitle" : "Add object",

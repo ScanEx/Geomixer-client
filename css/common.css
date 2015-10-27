@@ -1365,6 +1365,10 @@ div.layersScroll
     margin: 3px;
 }
 
+.RCAdd-maplayers-container .treeview{
+    margin-left: -5px;
+}
+
 .manual-type-widget div
 {
     width: 24px;
