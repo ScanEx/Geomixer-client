@@ -58,7 +58,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     })
                 }
                 //либо однострочное имя, либо просто id
-                var objname = item.layerprops.NameObject ? gmxAPI.applyTemplate(item.layerprops.NameObject, item.obj) : item.obj[item.layerprops.identityField];
+                var objname;
+
+                if (item.layerprops.NameObject) {
+                    objname = L.gmxUtil.parseBalloonTemplate(item.layerprops.NameObject, {
+                        properties: item.obj, 
+                        tileAttributeTypes: item.attrTypes
+                    });
+                } else {
+                    objname = item.obj[item.layerprops.identityField];
+                }
+                
                 var tr = _tr([
                     _td([_t(item.layerprops.title)], [['dir', 'className', 'RCAdd-vis-td']]),
                     _td([_t(objname)],               [['dir', 'className', 'RCAdd-vis-td']]),
@@ -72,10 +82,10 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             }
         })
         
-        this.addObject = function(layerprops, obj) {
+        this.addObject = function(layerprops, attrTypes, obj) {
             objsByLayer[layerprops.name] = objsByLayer[layerprops.name] || {};
             objsByLayer[layerprops.name][obj[layerprops.identityField]] = true;
-            dataProvider.addOriginalItem({layerprops: layerprops, obj: obj});
+            dataProvider.addOriginalItem({layerprops: layerprops, attrTypes: attrTypes, obj: obj});
         }
         
         this.getObjects = function() {
@@ -263,6 +273,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var clickListener = function(event) {
         
         var layerProps = event.gmx.layer.getGmxProperties(),
+            attrTypes = event.gmx.layer._gmx.tileAttributeTypes,
             objProps = event.gmx.properties;
         
         if (!objProps['GMX_RasterCatalogID']) {
@@ -275,7 +286,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             return true;
         }
         
-        visLayersWidget.addObject(layerProps, objProps);
+        visLayersWidget.addObject(layerProps, attrTypes, objProps);
         return true;	// Отключить дальнейшую обработку события
     }
     
