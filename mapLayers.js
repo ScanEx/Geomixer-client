@@ -731,9 +731,13 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                var div = span.parentNode.parentNode;
+                
+                if (div.gmxProperties.content.properties.ShowCheckbox) {
+                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, true);
+                }
 
-                var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
+                var clickDiv = $(div.parentNode).children("div.hitarea");
                 if (clickDiv.length)
                     $(clickDiv[0]).trigger("click");
             }
