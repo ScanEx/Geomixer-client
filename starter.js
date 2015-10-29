@@ -1135,16 +1135,24 @@ function loadMap(state)
                 window.oDrawingObjectGeomixer.Init(nsGmx.leafletMap, nsGmx.gmxMap);
                 
                 //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
-                (function fixVisibilityConstrains (o, isVisible)
-                {
+                (function fixVisibilityConstrains (o, isVisible) {
                     o.content.properties.visible = o.content.properties.visible && isVisible;
                     isVisible = o.content.properties.visible;
-                    if (o.type === "group")
-                    {
+                    if (o.type === "group") {
                         var a = o.content.children;
-                        for (var k = a.length - 1; k >= 0; k--)
-                            fixVisibilityConstrains(a[k], isVisible);
+                        
+                        var isAnyVisibleChild = false;
+                        for (var k = a.length - 1; k >= 0; k--) {
+                            var childrenVisibility = fixVisibilityConstrains(a[k], isVisible);
+                            isAnyVisibleChild = isAnyVisibleChild || childrenVisibility;
+                        }
+                        
+                        //если в поддереве нет видимых слоёв, сделать группу тоже невидимой
+                        if (!isAnyVisibleChild) {
+                            o.content.properties.visible = false;
+                        }
                     }
+                    return o.content.properties.visible;
                 })({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
                 
                 window.oldTree = JSON.parse(JSON.stringify(data));
