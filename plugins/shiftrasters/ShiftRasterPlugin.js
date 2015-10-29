@@ -39,11 +39,6 @@
         </span>';
 
 L.Draggable.RightButton = L.Draggable.extend({
-    initialize: function (layer) {
-        this._element = layer._tileContainer;
-        this._dragStartTarget = layer.getContainer();
-    },
-
     _onDown: function (e) {
         this._moved = false;
 
@@ -90,6 +85,7 @@ L.Draggable.RightButton = L.Draggable.extend({
                     shiftY: posOffset.shiftY,
                     _startPos: ev.target._startPos
                 };
+                shiftParams.set({state: 'dragstart'});
             },
             drag: function (ev) {
                 var target = ev.target,
@@ -97,6 +93,7 @@ L.Draggable.RightButton = L.Draggable.extend({
                     deltaPosMerc = deltaPos.divideBy(256 / L.gmxUtil.tileSizes[lmap.getZoom()]);
 
                 shiftParams.set({
+                    state: 'drag',
                     dx: dragUtils.curOffset.shiftX + deltaPosMerc.x,
                     dy: dragUtils.curOffset.shiftY - deltaPosMerc.y
                 });
@@ -104,9 +101,10 @@ L.Draggable.RightButton = L.Draggable.extend({
             dragend: function (ev) {
                 lmap.dragging.enable();
                 L.DomUtil.enableImageDrag();
+                shiftParams.set({state: 'dragend'});
             },
             createDragging: function () {
-                dragging = new L.Draggable.RightButton(layer);
+                dragging = new L.Draggable.RightButton(layer._tileContainer, lmap.getContainer());
                 dragging
                     .on('dragstart', dragUtils.dragstart)
                     .on('dragend', dragUtils.dragend)
@@ -226,15 +224,13 @@ L.Draggable.RightButton = L.Draggable.extend({
     
     //geom в latlng, а dx и dy в меркаторе
     var shiftMercGeometry = function(geom, dx, dy) {
-        var transformX = function(x) {
-            return gmxAPI.from_merc_x(gmxAPI.merc_x(x) + dx);
+        var transform = function(p) {
+            var merc = L.Projection.Mercator.project({lat: p[1], lng: p[0]}),
+                latlng = L.Projection.Mercator.unproject({y: merc.y + dy, x: merc.x + dx});
+            merc = L.Projection.Mercator.project(latlng);
+            return [merc.x, merc.y];
         }
-        
-        var transformY = function(y) {
-            return gmxAPI.from_merc_y(gmxAPI.merc_y(y) + dy);
-        }
-        
-        return gmxAPI.transformGeometry(geom, transformX, transformY);
+        return L.gmxUtil.transformGeometry(geom, transform);
     }
 
     var publicInterface = {
@@ -333,8 +329,8 @@ L.Draggable.RightButton = L.Draggable.extend({
                         getUI: function(editDialog) {
                             var layer = editDialog.getLayer();
                             $(editDialog).on('close', function() {
-                                shiftLayer.remove();
-                                layer.setVisibilityFilter();
+                                map.removeLayer(shiftLayer);
+                                layer.removeFilter();
                             });
 
                             var canvas = $('<div/>'),
@@ -345,29 +341,53 @@ L.Draggable.RightButton = L.Draggable.extend({
                                     dy: dy
                                 }),
                                 originalShiftParams,
-                                shiftLayer = map.addLayer({properties: {
-                                    IsRasterCatalog: true,
-                                    RCMinZoomForRasters: 1,
-                                    Quicklook: layer.properties.Quicklook,
-                                    styles: [{BalloonEnable: false}]
-                                }}),
+                                props = L.extend({}, layer.getGmxProperties()),
                                 geomDx = dx,
                                 geomDy = dy;
-                                
+
+                            props.LayerID = props.name = null;
+                            props.tiles = props.tilesVers = [];
+                            
+                            var shiftLayer = L.gmx.createLayer({properties: props, geometry: layer._gmx.geometry}).addTo(map).setZIndex(5000000);
+                            shiftLayer._gmx.tileAttributeIndexes = layer._gmx.tileAttributeIndexes;
+
                             var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, {initState: true, showButtons: false});
                             
+                            var startPos = [dx, dy];
+                            var shiftPos = [0, 0];
                             shiftParams.on('change', function() {
+                                var dx = shiftParams.get('dx'),
+                                    dy = shiftParams.get('dy'),
+                                    state = shiftParams.get('state'),
+                                    drawingObj = editDialog.getGeometryObj();
+
                                 editDialog.set(shiftXfield, shiftParams.get('dx'));
                                 editDialog.set(shiftYfield, shiftParams.get('dy'));
                                 
                                 var ddx = shiftParams.get('dx') - geomDx,
-                                    ddy = shiftParams.get('dy') - geomDy,
-                                    shiftedGeom = shiftMercGeometry(editDialog.getGeometry(), ddx, ddy);
+                                    ddy = shiftParams.get('dy') - geomDy;
                                     
                                 geomDx += ddx;
                                 geomDy += ddy;
                                 
-                                editDialog.getGeometryObj().setGeometry(shiftedGeom);
+                                if (state === 'dragstart') {
+                                    shiftPos = [0, 0];
+                                } else if (state === 'dragend') {
+                                    drawingObj.setOffsetToGeometry(shiftPos[0], shiftPos[1]);
+                                    shiftPos = [0, 0];
+                                    startPos = [dx, dy];
+                                    shiftParams.set({
+                                        state: ''
+                                    })
+                                } else if (state === 'drag') {
+                                    shiftPos[0] += ddx;
+                                    shiftPos[1] += ddy;
+                                    drawingObj.setPositionOffset(shiftPos[0], shiftPos[1]);
+                                } else {
+                                    var deltaY = layer._gmx.getDeltaY();
+                                    drawingObj.setOffsetToGeometry(dx - startPos[0], dy - startPos[1]);
+                                    startPos = [dx, dy];
+                                }
                             })
                             
                             var initLayer = function() {
@@ -381,14 +401,23 @@ L.Draggable.RightButton = L.Draggable.extend({
 
                                 originalShiftParams = shiftParams.clone();
 
-                                shiftLayer.addItems([{
-                                    id: 1,
-                                    properties: editDialog.getAll(),
-                                    geometry: shiftMercGeometry(editDialog.getGeometry(), -dx, -dy)
-                                }]);
-                            
-                                var identityField = layer.properties.identityField;
-                                layer.setVisibilityFilter('"' + identityField + '" <> \'' + editDialog.get(identityField) + '\'');
+                                var gmx = layer._gmx,
+                                    indexes = gmx.tileAttributeIndexes,
+                                    properties = editDialog.getAll(),
+                                    id = editDialog.get(gmx.identityField),
+                                    geo = shiftMercGeometry(editDialog.getGeometry(), -dx, -dy);
+                                    data = [];
+
+                                for (var key in indexes) {
+                                    data[indexes[key]] = shiftXfield === key || shiftYfield === key ? 0 : properties[key];
+                                }
+                                        
+                                geo.type = geo.type.toUpperCase();
+                                data.push(geo);
+                                shiftLayer.addData([data]);
+                                layer.setFilter(function(it) {
+                                    return it.id !== id;
+                                });
                             }
                             
                             initLayer();
