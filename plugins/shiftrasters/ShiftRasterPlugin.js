@@ -121,7 +121,7 @@ L.Draggable.RightButton = L.Draggable.extend({
                 dragging.disable();
             }
         };
-        
+
         var updateLayerOpacity = function(opacity) {
             (layer.tilesParent || layer).setStyle({fill: {opacity: opacity}});
         }
@@ -328,10 +328,6 @@ L.Draggable.RightButton = L.Draggable.extend({
                     view: {
                         getUI: function(editDialog) {
                             var layer = editDialog.getLayer();
-                            $(editDialog).on('close', function() {
-                                map.removeLayer(shiftLayer);
-                                layer.removeFilter();
-                            });
 
                             var canvas = $('<div/>'),
                                 dx = parseFloat(editDialog.get(shiftXfield)) || 0,
@@ -352,6 +348,11 @@ L.Draggable.RightButton = L.Draggable.extend({
                             shiftLayer._gmx.tileAttributeIndexes = layer._gmx.tileAttributeIndexes;
 
                             var shiftView = new ShiftLayerView(canvas, shiftParams, shiftLayer, {initState: true, showButtons: false});
+                            $(editDialog).on('close', function() {
+                                shiftView.setState(false);
+                                map.removeLayer(shiftLayer);
+                                layer.removeFilter();
+                            });
                             
                             var startPos = [dx, dy];
                             var shiftPos = [0, 0];
