@@ -512,13 +512,34 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     */
     this.close = options.closeFunc;
 
-    var _this = this;
+    var isUICollapsed = false,
+        _this = this;
+    
+    var toggleContentVisibility = function(isCollapsed) {
+        if (isUICollapsed !== isCollapsed) {
+            isUICollapsed = !isUICollapsed;
+            $(_this.workCanvas).toggle();
+            $(_this.panelCanvas).find('.leftmenu-toggle-zone div').toggleClass('leftmenu-down-icon leftmenu-right-icon');
+            $(_this).trigger('changeVisibility');
+        }
+    }
 
     $('.leftmenu-toggle-zone', this.panelCanvas).click(function() {
-        $(_this.workCanvas).toggle();
-        $(this).find('div').toggleClass('leftmenu-down-icon leftmenu-right-icon');
-        $(_this).trigger('changeVisibility');
+        toggleContentVisibility(!isUICollapsed);
     });
+    
+    /** Свернуть панель
+        @function
+    */
+    this.hide = toggleContentVisibility.bind(null, true);
+    
+    /** Развернуть панель
+        @function
+    */
+    this.show = toggleContentVisibility.bind(null, false);
+    
+    /** Свёрнута ли панель */
+    this.isCollapsed = function() {return isUICollapsed};
 
     $('.leftTitle .gmx-icon-close',  this.panelCanvas).click(options.closeFunc);
 
