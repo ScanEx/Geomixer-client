@@ -200,7 +200,7 @@ var TimelineController = function(data, map, options) {
     var timelineOptions = {
         style: "line",
         start: new Date(2010, 0, 1),
-        end: new Date(2013, 5, 1),
+        end: new Date(),
         width: "100%",
         height: "85px",
         style: "line"
@@ -342,7 +342,7 @@ var TimelineController = function(data, map, options) {
                 
                 elemsToAdd.push({
                     start: date,
-                    content: content + '|' + obj.id,
+                    content: content,
                     userdata: {objID: obj.id, layerName: layerName}
                 });
             }
@@ -457,10 +457,19 @@ var TimelineController = function(data, map, options) {
         
     var createTimelineLazy = function()
     {
-        //TODO: отнаследоваться от L.Control
         if (timeline) return;
         
-        $('#flash').append(container[0]);
+        var LeafletTimelineControl = L.Control.extend({
+            onAdd: function() {
+                return this.options.timelineContainer;
+            },
+            onRemove: function() {}
+        });
+        
+        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: 'topright', timelineContainer: container[0]}));
+        
+        //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
+        container.parent().prepend(container);
         
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
