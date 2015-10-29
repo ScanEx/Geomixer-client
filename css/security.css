@@ -57,7 +57,7 @@
 .security-user-icon {
     width: 16px;
     height: 16px;
-    background: url(../img/user.png);
+    /* background: url(../img/user.png); */
     cursor: pointer;
     display: inline-block;
 }
