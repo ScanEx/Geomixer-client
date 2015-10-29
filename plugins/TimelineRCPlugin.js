@@ -184,7 +184,8 @@ var TimelineController = function(data, map, options) {
     options = $.extend({
         showModeControl: true,
         showSelectionControl: true,
-        showCalendar: true
+        showCalendar: true,
+        position: 'topright'
     }, options);
     
     function isPointInPoly(poly, pt){
@@ -466,7 +467,7 @@ var TimelineController = function(data, map, options) {
             onRemove: function() {}
         });
         
-        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: 'topright', timelineContainer: container[0]}));
+        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: options.position, timelineContainer: container[0]}));
         
         //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
         container.parent().prepend(container);
@@ -774,12 +775,12 @@ var TimelineController = function(data, map, options) {
  * @memberOf nsGmx
  * @param {L.Map} map Текущая Leaflet карта
 */
-var TimelineControl = function(map) {
+var TimelineControl = function(map, options) {
     var data = new TimelineData();
     this.data = data;
     
     var mapController = new MapController(data);
-    var timelineController = new TimelineController(data, map);
+    var timelineController = new TimelineController(data, map, options);
     
     /** Добавить векторный мультивременной слой на таймлайн
      * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
