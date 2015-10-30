@@ -1747,7 +1747,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
         _abstractTree.delNode(null, parentTree, parentTree.parentNode);
 	}).done(function(taskInfo)
     {
-        if (!isArray(taskInfo.Result)) {
+        if (!$.isArray(taskInfo.Result)) {
             taskInfo.Result = [taskInfo.Result];
         }
         

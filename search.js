@@ -605,8 +605,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 			@param {object[]} SearchResult Результаты поиска, которые необходимо сохранить в файл*/
 			$(_this).triggerHandler('onDownloadSHP', [filename.value, oDataSource.SearchResult]);
 			
-			$(canvas.parentNode).dialog("destroy");
-			canvas.parentNode.removeNode(true);
+			$(canvas.parentNode).dialog("destroy").remove();
 		}
 
 		_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename], [['dir', 'className', 'DownloadSHPButtonText']]), _div([downloadButton], [['dir', 'className', 'DownloadSHPButton']])]);
