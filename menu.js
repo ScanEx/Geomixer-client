@@ -589,13 +589,13 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
         var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, options);
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
+        this.leftPanelItem = leftPanelItem;
+        
+        // так как мы используем dom элементы для поиска панелей после первого добавления
+        // возможно, лучше сделать полноценный менеджер панелей левой вкладки
+        this.parentWorkCanvas.leftPanelItem = leftPanelItem;
 
-		if ($$('leftContentInner').childNodes.length == 0) {
-            $()
-			_($$('leftContentInner'), [this.parentWorkCanvas]);
-        }
-		else
-			$$('leftContentInner').insertBefore(this.parentWorkCanvas, $$('leftContentInner').firstChild);
+        $('#leftContentInner').prepend(this.parentWorkCanvas);
 
 		return false;
 	}
@@ -603,11 +603,12 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
 	{
 		this.parentWorkCanvas = $$('left_' + canvasID);
 		this.workCanvas = this.parentWorkCanvas.lastChild;
+        this.leftPanelItem = this.parentWorkCanvas.leftPanelItem;
+        this.leftPanelItem.close = options.closeFunc;
 
-		show(this.parentWorkCanvas)
-
-		if (this.parentWorkCanvas.parentNode.childNodes.length > 0)
-			this.parentWorkCanvas.parentNode.insertBefore(this.parentWorkCanvas, this.parentWorkCanvas.parentNode.firstChild);
+		$(this.parentWorkCanvas).show();
+        
+        $('#leftContentInner').prepend(this.parentWorkCanvas);
 
 		return true;
 	}
