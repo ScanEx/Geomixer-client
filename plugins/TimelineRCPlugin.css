@@ -1,9 +1,6 @@
 ﻿.timeline-container
 {
     width: 500px;
-    position: absolute;
-    top: 5px;
-    right: 5px;
     background-color: rgba(1, 106, 138, 0.498039);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A);
 }
