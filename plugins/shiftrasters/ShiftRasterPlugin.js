@@ -38,31 +38,31 @@
             </div>\
         </span>';
 
-L.Draggable.RightButton = L.Draggable.extend({
-    _onDown: function (e) {
-        this._moved = false;
+    L.Draggable.RightButton = L.Draggable.extend({
+        _onDown: function (e) {
+            this._moved = false;
 
-        if (e.shiftKey || ((e.button !== 2) && !e.touches)) { return; }
+            if (e.shiftKey || ((e.button !== 2) && !e.touches)) { return; }
 
-        L.DomEvent.stopPropagation(e);
+            L.DomEvent.stopPropagation(e);
 
-        if (L.Draggable._disabled) { return; }
+            if (L.Draggable._disabled) { return; }
 
-        L.DomUtil.disableImageDrag();
-        L.DomUtil.disableTextSelection();
+            L.DomUtil.disableImageDrag();
+            L.DomUtil.disableTextSelection();
 
-        if (this._moving) { return; }
+            if (this._moving) { return; }
 
-        var first = e.touches ? e.touches[0] : e;
+            var first = e.touches ? e.touches[0] : e;
 
-        this._startPoint = new L.Point(first.clientX, first.clientY);
-        this._startPos = this._newPos = L.DomUtil.getPosition(this._element);
+            this._startPoint = new L.Point(first.clientX, first.clientY);
+            this._startPos = this._newPos = L.DomUtil.getPosition(this._element);
 
-        L.DomEvent
-            .on(document, L.Draggable.MOVE[e.type], this._onMove, this)
-            .on(document, L.Draggable.END[e.type], this._onUp, this);
-    }
-});
+            L.DomEvent
+                .on(document, L.Draggable.MOVE[e.type], this._onMove, this)
+                .on(document, L.Draggable.END[e.type], this._onUp, this);
+        }
+    });
 
     //события: click:save, click:cancel, click:start
     var ShiftLayerView = function(canvas, shiftParams, layer, params) {
@@ -123,7 +123,7 @@ L.Draggable.RightButton = L.Draggable.extend({
         };
 
         var updateLayerOpacity = function(opacity) {
-            (layer.tilesParent || layer).setStyle({fill: {opacity: opacity}});
+            layer.setRasterOpacity(opacity/100);
         }
         
         var isActiveState = params.initState;
@@ -438,6 +438,9 @@ L.Draggable.RightButton = L.Draggable.extend({
                     return layerRights == 'edit' || layerRights == 'editrows';
                 },
                 clickCallback: function(context) {
+                    currentView && currentView.setState(false);
+                    menu && menu.leftPanelItem.close();
+                    
                     var layerName = context.elem.name,
                         layer = nsGmx.gmxMap.layersByID[layerName],
                         posOffset = layer.getPositionOffset(),
@@ -447,19 +450,19 @@ L.Draggable.RightButton = L.Draggable.extend({
                         }),
                         originalShiftParams = shiftParams.clone();
                     
-                    if (!menu) {
-                        menu = new leftMenu();
-                        menu.createWorkCanvas("", function(){});
-                        $(menu.workCanvas).css('width', '100%');
-                    }
+                    menu = new leftMenu();
+                    menu.createWorkCanvas('ShiftRasters', {
+                        closeFunc: function() {
+                            currentView.setState(false);
+                            if (originalShiftParams) {
+                                layer.setPositionOffset(originalShiftParams.get('dx'), originalShiftParams.get('dy'));
+                            }
+                            menu = null;
+                        },
+                        path: ['Сдвиг растрового слоя']
+                    });
                     
-                    var removeView = function() {
-                        currentView.setState(false);
-                        $(menu.workCanvas).empty();
-                    }
-                    
-                    currentView && removeView();
-                    
+                    $(menu.workCanvas).empty();
                     var canvas = $('<div/>').css({height: '45px', width: '100%'}).appendTo(menu.workCanvas);
                     
                     currentView = new ShiftLayerView(canvas, shiftParams, layer, {initState: true});
@@ -479,11 +482,14 @@ L.Draggable.RightButton = L.Draggable.extend({
                                 });
                             });
                         });
-                        removeView();
+                        originalShiftParams = null;
+                        currentView.setState(false);
+                        menu.leftPanelItem.close();
                     })
 
                     $(currentView).on('click:cancel', function() {
-                        removeView();
+                        currentView.setState(false);
+                        menu.leftPanelItem.close();
                     })
                 }
             }, 'Layer');
