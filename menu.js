@@ -489,7 +489,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
                         '<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>' + 
                     '</div>' +
                 '{{/showMinimizeButton}}' +
-                '<table class="leftmenu-path">{{{pathTR}}}</table>' +
+                '<table class="leftmenu-path ui-helper-noselect">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
@@ -524,7 +524,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
         }
     }
 
-    $('.leftmenu-toggle-zone', this.panelCanvas).click(function() {
+    $('.leftmenu-toggle-zone, .leftmenu-path', this.panelCanvas).click(function() {
         toggleContentVisibility(!isUICollapsed);
     });
     
