@@ -1293,7 +1293,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 
 		if (layersToSearch.length > 0){
             layersToSearch.forEach(function(props) {
-                var mapName = gmxMap.layersByID[props.name].options.mapName;
+                var mapName = gmxMap.layersByID[props.name].options.mapID;
                 var url = "http://" + props.hostName + "/SearchObject/SearchVector.ashx" + 
                     "?LayerNames=" + props.name +
                     "&MapName=" + mapName +
