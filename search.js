@@ -1695,7 +1695,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var downloadVectorForm = _form([_input(null, [['attr', 'name', 'name']]),
 							 _input(null, [['attr', 'name', 'points']]),
 							 _input(null, [['attr', 'name', 'lines']]),
-							 _input(null, [['attr', 'name', 'polygons']])], [['css', 'display', 'none'], ['attr', 'method', 'POST'], ['attr', 'action', oLogic.GetServerBase() + "/Shapefile.ashx"]]);
+							 _input(null, [['attr', 'name', 'polygons']])], [['css', 'display', 'none'], ['attr', 'method', 'POST'], ['attr', 'action', oLogic.GetServerBase() + "/Shapefile"]]);
 	
 	_(oInitResultListMap.getContainerList(), [downloadVectorForm]);
 	

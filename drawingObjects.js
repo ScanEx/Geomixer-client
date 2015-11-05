@@ -736,7 +736,7 @@ var DrawingObjectGeomixer = function() {
             });
 		}
 		        
-        sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
+        sendCrossDomainPostRequest(serverBase + "Shapefile", {
             name:     fileName,
             format:   format,
             points:   JSON.stringify(objectsByType["Point"] || []),
