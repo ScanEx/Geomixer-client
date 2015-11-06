@@ -971,16 +971,12 @@ layersTree.prototype.dummyNode = function(node)
 
 //проходится по всем слоям дерева и устанавливает им z-индексы в соответствии с их порядком в дереве
 layersTree.prototype.updateZIndexes = function() {
-    var curZIndex = 0,
-        vectorLayersOffset = 2000000;
+    var curZIndex = 0;
 
     this.treeModel.forEachLayer(function(layerContent, isVisible, nodeDepth) {
         var layer = nsGmx.gmxMap.layersByID[layerContent.properties.name];
         
         var zIndex = curZIndex++;
-        if (layer.getGmxProperties().type === 'Vector') {
-            zIndex += vectorLayersOffset;
-        }
         layer.setZIndex(zIndex);
     })
 }
