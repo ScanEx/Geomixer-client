@@ -107,7 +107,7 @@ var MapController = function(data) {
                 var layer = layerInfo.layer,
                     props = layer.getGmxProperties(),
                     dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
-                    dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
+                    dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
                     
                 layer.setDateInterval(dateBegin, dateEnd);
                 layer.removeFilter();
@@ -184,7 +184,8 @@ var TimelineController = function(data, map, options) {
     options = $.extend({
         showModeControl: true,
         showSelectionControl: true,
-        showCalendar: true
+        showCalendar: true,
+        position: 'topright'
     }, options);
     
     function isPointInPoly(poly, pt){
@@ -200,7 +201,7 @@ var TimelineController = function(data, map, options) {
     var timelineOptions = {
         style: "line",
         start: new Date(2010, 0, 1),
-        end: new Date(2013, 5, 1),
+        end: new Date(),
         width: "100%",
         height: "85px",
         style: "line"
@@ -342,7 +343,7 @@ var TimelineController = function(data, map, options) {
                 
                 elemsToAdd.push({
                     start: date,
-                    content: content + '|' + obj.id,
+                    content: content,
                     userdata: {objID: obj.id, layerName: layerName}
                 });
             }
@@ -457,10 +458,19 @@ var TimelineController = function(data, map, options) {
         
     var createTimelineLazy = function()
     {
-        //TODO: отнаследоваться от L.Control
         if (timeline) return;
         
-        $('#flash').append(container[0]);
+        var LeafletTimelineControl = L.Control.extend({
+            onAdd: function() {
+                return this.options.timelineContainer;
+            },
+            onRemove: function() {}
+        });
+        
+        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: options.position, timelineContainer: container[0]}));
+        
+        //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
+        container.parent().prepend(container);
         
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
@@ -646,7 +656,7 @@ var TimelineController = function(data, map, options) {
             layer = layerInfo.layer,
             props = layer.getGmxProperties(),
             dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
-            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000);
+            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
 
         createTimelineLazy();
 
@@ -765,12 +775,12 @@ var TimelineController = function(data, map, options) {
  * @memberOf nsGmx
  * @param {L.Map} map Текущая Leaflet карта
 */
-var TimelineControl = function(map) {
+var TimelineControl = function(map, options) {
     var data = new TimelineData();
     this.data = data;
     
     var mapController = new MapController(data);
-    var timelineController = new TimelineController(data, map);
+    var timelineController = new TimelineController(data, map, options);
     
     /** Добавить векторный мультивременной слой на таймлайн
      * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой

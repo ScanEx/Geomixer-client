@@ -610,11 +610,11 @@ var FireBurntRenderer3 = function(params)
                         geometry: props[props.length - 1]
                     };
                 };
-                (data.added || []).map(function(it) {
-                    objects.push({ onExtent: true, item: parseItem(it) });
-                });
                 (data.removed || []).map(function(it) {
                     objects.push({ onExtent: false, item: parseItem(it) });
+                });
+                (data.added || []).map(function(it) {
+                    objects.push({ onExtent: true, item: parseItem(it) });
                 });
                 for (var k = 0; k < objects.length; k++)
                 {
@@ -627,7 +627,7 @@ var FireBurntRenderer3 = function(params)
                         
                     var clusterId = '_' + props[clusterAttr];
                     var hotspotId = '_' + props[hotspotAttr];
-                    
+
                     if (!clusters[clusterId]) {
                         clusters[clusterId] = {
                             spots: {},
@@ -644,7 +644,7 @@ var FireBurntRenderer3 = function(params)
                     //два раза одну и ту же точку не добавляем
                     if (hotspotId in cluster.spots && objects[k].onExtent)
                         continue;
-                    
+
                     var coords = objects[k].item.geometry.coordinates,
                         latlng = L.Projection.Mercator.unproject({y: coords[1], x: coords[0]});
                     

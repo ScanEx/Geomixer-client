@@ -24,11 +24,13 @@ var tableBrowser = function()
 
 tableBrowser.prototype.createBrowser = function(closeFunc)
 {
-	if ($$('tableBrowserDialog'))
+    var canvas = $('#tableBrowserDialog');
+    
+	if (canvas)
 	{
-		$($$('tableBrowserDialog').parentNode).dialog("destroy");
+		canvas.parent().dialog("destroy");
 		
-		$$('tableBrowserDialog').parentNode.removeNode(true);
+		canvas.parent().remove();
 	}
 		
 	this.closeFunc = closeFunc;
@@ -43,11 +45,11 @@ tableBrowser.prototype.close = function(name)
 {
 	this.closeFunc(name);
 	
-	var canvas = $$('tableBrowserDialog');
+	var canvas = $('#tableBrowserDialog');
 	
-	$(canvas.parentNode).dialog("destroy");
+	$(canvas).parent().dialog("destroy");
 	
-	canvas.parentNode.removeNode(true);
+	$(canvas).parent().remove();
 }
 
 tableBrowser.prototype.loadInfo = function()

@@ -51,7 +51,7 @@ nsGmx.Utils = nsGmx.Utils || {};
         _attr: function(el, attrs)
         {
             for (var i = 0; i < attrs.length; ++i)
-            {	
+            {
                 var atr = attrs[i],
                     type = atr[0];
 
@@ -83,7 +83,6 @@ nsGmx.Utils = nsGmx.Utils || {};
         _li: function(children,attrs){return _el('LI',children,attrs);},
         _ul: function(children,attrs){return _el('UL',children,attrs);},
         _div: function(children,attrs){return _el('DIV',children,attrs);},
-        //_checkbox: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','checkbox']]))||[['attr','type','checkbox']]);},
         _radio: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','radio']]))||[['attr','type','radio']])},
         _button: function(children,attrs){return _el('BUTTON',children,attrs)},
         _a: function(children,attrs){return _el('A',children,attrs)},
@@ -98,13 +97,7 @@ nsGmx.Utils = nsGmx.Utils || {};
         _p: function(children,attrs){return _el('P',children,attrs)},
         _b: function(children,attrs){return _el('B',children,attrs)},
         _i: function(children,attrs){return _el('I',children,attrs)},
-        _nobr: function(children,attrs){return _el('NOBR',children,attrs)},
-        _parametrs: function(children){return _el('PARAMS',children)},
-        _input: function(children,attrs){return _el('INPUT',children,attrs)},
-        _tinput: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','text']]))||[['attr','type','text']])},
-        _embed: function(children,attrs){return _el('EMBED',children,attrs)},
-        _object: function(children,attrs){return _el('OBJECT',children,attrs)},
-        _param: function(children,attrs){return _el('PARAM',children,attrs)}
+        _input: function(children,attrs){return _el('INPUT',children,attrs)}
     }
     
     var _el = domManipulation._el;
@@ -127,11 +120,6 @@ nsGmx.Utils = nsGmx.Utils || {};
     jQuery.extend(window, domManipulation);      //для обратной совместимости
     jQuery.extend(nsGmx.Utils, domManipulation);
 })();
-
-function isArray(a)
-{
-	return a && (typeof a =='object') && (a.constructor == Array)
-}
 
 if (window.Node && window.Node.prototype)
 {
@@ -445,7 +433,7 @@ function showErrorMessage(message, removeFlag, title)
 			if (canvas)
 			{
                 jQuery(jQueryDiv).dialog("destroy");
-				canvas.parentNode.removeNode(true);
+				jQuery(canvas.parentNode).remove();
 			}
 		}, 2500)
 	}
@@ -680,7 +668,7 @@ function loadFunc(iframe, callback)
 	if (iframe.loaded)
 	{
 		var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
-        iframe.removeNode(true);
+        jQuery(iframe).remove();
 		
 		var parsedData;
 		try
@@ -748,7 +736,7 @@ function createPostIframe(id, callback)
         delete request[dataObj.CallbackName];
         delete dataObj.CallbackName;
         
-        request.iframe.removeNode(true);
+        request.iframe.parentNode.removeChild(request.iframe);
         request.callback && request.callback(dataObj);
     }
     
@@ -1028,7 +1016,7 @@ function stringDateTime(msec, isUtc)
 function inputError(input, delay)
 {
     delay = delay || 1000;
-    if (!isArray(input)) 
+    if (!jQuery.isArray(input))
         input = [input];
     
     for (var k = 0; k < input.length; k++)

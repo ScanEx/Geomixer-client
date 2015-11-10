@@ -1365,6 +1365,10 @@ div.layersScroll
     margin: 3px;
 }
 
+.RCAdd-maplayers-container .treeview{
+    margin-left: -5px;
+}
+
 .manual-type-widget div
 {
     width: 24px;
@@ -1615,6 +1619,54 @@ div.layersScroll
 
 .gmx-icon-recycle:hover {
     background: url(../img/recycle_a.png);
+}
+
+.gmx-icon-vector {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: url(../img/vector.png);
+    cursor: pointer;
+}
+
+.gmx-icon-multiraster {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: url(../img/multi.png);
+    cursor: pointer;
+}
+
+.gmx-icon-raster {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: url(../img/rastr.png);
+    cursor: pointer;
+}
+
+.gmx-icon-downtriangle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: url(../img/down.png);
+    cursor: pointer;
+}
+
+.gmx-icon-downtriangle:hover {
+    background: url(../img/down_a.png);
+}
+
+.gmx-icon-uptriangle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: url(../img/up.png);
+    cursor: pointer;
+}
+
+.gmx-icon-uptriangle:hover {
+    background: url(../img/up_a.png);
 }
 
 /* Tabs panel */
@@ -1922,4 +1974,23 @@ div.layersScroll
 }
 .gmxPopup div p {
     margin: 2px 0px;
+}
+
+.multilayer-row-title-outer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.multilayer-row-title-inner {
+    white-space: nowrap;
+    position: absolute;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    padding: 1px 0px 0px 3px;
+}
+
+.multilayer-row-td {
+    text-align: center;
 }

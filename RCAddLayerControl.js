@@ -58,7 +58,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     })
                 }
                 //либо однострочное имя, либо просто id
-                var objname = item.layerprops.NameObject ? gmxAPI.applyTemplate(item.layerprops.NameObject, item.obj) : item.obj[item.layerprops.identityField];
+                var objname;
+
+                if (item.layerprops.NameObject) {
+                    objname = L.gmxUtil.parseBalloonTemplate(item.layerprops.NameObject, {
+                        properties: item.obj, 
+                        tileAttributeTypes: item.attrTypes
+                    });
+                } else {
+                    objname = item.obj[item.layerprops.identityField];
+                }
+                
                 var tr = _tr([
                     _td([_t(item.layerprops.title)], [['dir', 'className', 'RCAdd-vis-td']]),
                     _td([_t(objname)],               [['dir', 'className', 'RCAdd-vis-td']]),
@@ -72,10 +82,10 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             }
         })
         
-        this.addObject = function(layerprops, obj) {
+        this.addObject = function(layerprops, attrTypes, obj) {
             objsByLayer[layerprops.name] = objsByLayer[layerprops.name] || {};
             objsByLayer[layerprops.name][obj[layerprops.identityField]] = true;
-            dataProvider.addOriginalItem({layerprops: layerprops, obj: obj});
+            dataProvider.addOriginalItem({layerprops: layerprops, attrTypes: attrTypes, obj: obj});
         }
         
         this.getObjects = function() {
@@ -94,9 +104,9 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     var id = layerName;
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
-    var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id});
+    var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id, 'class': 'RCAdd-maplayers-container'});
     var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
-    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '478px');
+    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '465px');
     var visLayerCanvas   = $('<div/>', {id: 'vislayer' + id});
     
     var tabMenu = _div([_ul([_li([_a([_t(_gtxt("Существующие слои"))],[['attr','href','#existlayer' + id]])]),
@@ -208,7 +218,6 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     $(addVisLayersButton).appendTo(visLayerCanvas);
     
     var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
-    //previewLayersTree.mapHelper = _mapHelper;
     
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
     
@@ -224,12 +233,19 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         
         var objectsToAdd = [];
         
-        $(activeElem.parentNode).find("div[LayerID],div[MultiLayerID]").each(function()
-        {
-            var props = this.gmxProperties.content.properties;
-            if (props.type === 'Raster' && props.LayerID)
-                objectsToAdd.push({source: {layerName: props.name}});
-        })
+        //если выбрали карту, то elem тут окажется равным undefined
+        var elem = activeElem.gmxProperties.content && previewLayersTree.treeModel.findElemByGmxProperties(activeElem.gmxProperties).elem;
+        
+        if (!elem || elem.type === 'group') {
+            previewLayersTree.treeModel.forEachLayer(function(layerElem) {
+                var props = layerElem.properties;
+                if (props.type === 'Raster' && props.LayerID) {
+                    objectsToAdd.push({source: {layerName: props.name}});
+                }
+            }, elem);
+        } else {
+            objectsToAdd.push({source: {layerName: elem.content.properties.name}});
+        }
         
         if (objectsToAdd.length > 0)
         {
@@ -257,6 +273,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var clickListener = function(event) {
         
         var layerProps = event.gmx.layer.getGmxProperties(),
+            attrTypes = event.gmx.layer._gmx.tileAttributeTypes,
             objProps = event.gmx.properties;
         
         if (!objProps['GMX_RasterCatalogID']) {
@@ -269,7 +286,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             return true;
         }
         
-        visLayersWidget.addObject(layerProps, objProps);
+        visLayersWidget.addObject(layerProps, attrTypes, objProps);
         return true;	// Отключить дальнейшую обработку события
     }
     

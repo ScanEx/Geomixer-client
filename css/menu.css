@@ -262,6 +262,7 @@ div.leftTitle
     color: #293D6B;
     height: 30px;
     float: left;
+    cursor: pointer;
 }
 
 .leftmenu-path-item {

@@ -46,10 +46,27 @@
     display: inline-block;
 }
 
+.security-group-icon {
+    width: 16px;
+    height: 16px;
+    background: url(../img/usergroup.png);
+    cursor: pointer;
+    display: inline-block;
+}
+
+.security-user-icon {
+    width: 16px;
+    height: 16px;
+    /* background: url(../img/user.png); */
+    cursor: pointer;
+    display: inline-block;
+}
+
 .security-add-container {
     font-size: 12px;
     margin-bottom: 5px;
     position: relative;
+    z-index: 0;
 }
 
 .security-add-container > button, .security-owner-container > button {
@@ -86,7 +103,16 @@
 .security-row-nickname, .security-row-fullname {
     overflow-x: hidden;
     white-space: nowrap;
+    text-overflow: ellipsis;
     padding: 1px 0px 1px 3px;
+}
+
+.security-row-nickname > * {
+    vertical-align: middle;
+}
+
+.security-row-nickname  > .security-group-icon, .security-row-nickname > .security-user-icon{
+    margin-right: 3px;
 }
 
 .security-row-access {
@@ -95,4 +121,16 @@
 
 .security-row-remove-cell {
     text-align: center;
+}
+
+.security-autocomplete-item  {
+    white-space: nowrap;
+}
+
+.security-autocomplete-item  > *{
+    vertical-align: middle;
+}
+
+.security-autocomplete-item  > .security-group-icon, .security-autocomplete-item  > .security-user-icon{
+    margin-right: 3px;
 }
