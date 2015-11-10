@@ -1,0 +1,129 @@
+.profilePanel
+{
+    width:480px;
+    background-color:White;
+    opacity:0.8;
+}
+
+.profilePanel-content
+{
+    background-color:White;
+    width:330px;
+    text-align: center;
+}
+
+.profilePanel-content div div
+{
+    /*font: normal normal bold 12pt Verdana;*/
+    font-weight:bold;
+    border:1px solid #ddd;
+    margin: 6px 12px 0px 12px;
+    padding: 1px 12px 3px 12px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.profilePanel-content div div.form-caption
+{
+    /*font: normal normal bold 12pt Verdana;*/
+    font-weight:bold;
+    border:none;
+    margin: 6px 12px 0px 12px;
+    padding: 1px 12px 3px 12px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.profilePanel-content div div.newpass-request
+{
+    text-decoration:underline;
+    border:none;
+    cursor:pointer;
+    color:Orange;
+    font-weight:normal;
+}
+
+.profilePanel-content div div.newpass-form
+{
+    display:none;
+    padding-top: 12px;
+    text-align:right;
+}
+
+.profilePanel-content div div.newpass-form div
+{
+    text-align:center;
+    margin-bottom: 12px;
+    border: none;
+}
+
+.profilePanel-content div div.newpass-form input[type="password"]
+{
+    width:160px;
+    border: 1px solid #ddd;
+}
+
+.profilePanel-content table
+{
+    margin: 18px 18px 0px 18px;
+}
+
+.profilePanel-content td
+{
+    padding: 6px;
+    vertical-align: top;
+    text-align: left;
+}
+
+.profilePanel-content input[type="checkbox"]
+{
+    margin-top: 1px;
+    margin-left: 8px;
+}
+
+.profilePanel-content input[type="text"]
+{
+    margin-top: 1px;
+    border: none;
+    width: 190px;
+}
+
+.profilePanel-content input[type="button"]
+{
+    border:none;
+    border-radius:2px;
+    margin-top: 12px;
+    background-color: Orange;
+    color:White;
+    padding: 6px 12px 8px 12px;
+    cursor:pointer;
+}
+
+.profilePanel-content div div span
+{
+    font-weight:normal;
+}
+
+.profilePanel-menu
+{
+    width:150px;
+}
+
+.profilePanel-menu div
+{
+    padding: 6px 18px 6px 18px;
+    color:Black;
+    cursor:pointer;
+}
+
+.profilePanel-menu div.selected
+{
+    background-color:Orange;
+    color:White;
+}
+
+.profilePanel-menu div.targeted
+{
+    background-color:#ffedcc;
+    color:Black;
+}
