@@ -492,7 +492,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
                 style = layer.getStyle(filterNum);
                 
             var newStyle = $.extend(true, {}, style, div.getBalloonState());
-            layer.setStyle(newStyle);
+            layer.setStyle(newStyle, filterNum);
 		},
 		defaultBalloonText = function()
 		{
