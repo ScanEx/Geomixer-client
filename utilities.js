@@ -1182,7 +1182,7 @@ $.extend(nsGmx.Utils, {
         newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
         newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
         
-        layer.setStyle(newStyle);
+        layer.setStyle(newStyle, styleIndex);
 	},
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     *
