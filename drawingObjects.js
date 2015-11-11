@@ -58,7 +58,23 @@ nsGmx.Translations.addText('eng', {
             title: 'Object style editing'
         }
     }
-})
+});
+
+var setDrawingFeatureStyle = function(drawingFeature, templateStyle) {
+    var color = '#' + L.gmxUtil.dec2hex(templateStyle.outline.color),
+        opacity = templateStyle.outline.opacity/100;
+    drawingFeature.setOptions({
+        lineStyle: {
+            color: color,
+            opacity: opacity,
+            weight: templateStyle.outline.thickness
+        },
+        pointStyle: {
+            color: color,
+            opacity: opacity
+        }
+    });
+}
 
 var CreateDrawingStylesEditorIcon = function(style, type)
 {
@@ -100,7 +116,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				
 				$(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				setDrawingFeatureStyle(parentObject, templateStyle);
 			});
 		
 		outlineColor.hex = templateStyle.outline.color;
@@ -114,7 +130,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				{
 					templateStyle.outline.opacity = ui.value;
 					
-					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+                    setDrawingFeatureStyle(parentObject, templateStyle);
 				})
 		
 		_title(divSlider, _gtxt('drawingObjects.edit.transparency'));
@@ -126,13 +142,13 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				{
 					templateStyle.outline.thickness = Number(this.value);
 					
-					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+                    setDrawingFeatureStyle(parentObject, templateStyle);
 					
 					return true;
 				}),
 			closeFunc = function()
 			{
-				var newIcon = CreateDrawingStylesEditorIcon(templateStyle, parentObject.geometry.type.toLowerCase());
+				var newIcon = CreateDrawingStylesEditorIcon(templateStyle, parentObject.toGeoJSON().geometry.type.toLowerCase());
 				CreateDrawingStylesEditor(parentObject, templateStyle, newIcon);
 				
 				$(elemCanvas).replaceWith(newIcon);
@@ -149,7 +165,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		
 		_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds)])])],[['attr','fade',true]])])));
 		
-		var text = _input(null, [['attr','value', parentObject.properties.text ? parentObject.properties.text : ""],['dir','className','inputStyle'],['css','width','180px']]);
+		var text = _input(null, [['attr','value', parentObject.options.title || ""],['dir','className','inputStyle'],['css','width','180px']]);
 		text.onkeyup = function(evt)
 		{
             if (getkey(evt) == 13) 
@@ -158,7 +174,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
                 return;
             }
             
-            parentObject.setText(this.value);
+            parentObject.setOptions({title: this.value});
 			
 			$(parentObject).triggerHandler('onEdit', [parentObject]);
 			
@@ -168,7 +184,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt('drawingObjects.edit.description'))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 		
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
-		var jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
+		var jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc)
 	}
 	
 	elemCanvas.getStyle = function()
@@ -240,9 +256,6 @@ var DrawingObjectCollection = function(oInitMap) {
 	this.RemoveAt = function(index){
 		var obj = _objects.splice(index, 1)[0];
         
-        //obj.item.removeListener('onEdit', obj.editID);
-        //obj.item.removeListener('onRemove', obj.removeID);
-		
 		/** Вызывается при удалении объекта из коллекции
 		@name DrawingObjects.DrawingObjectCollection.onRemove
 		@event
@@ -315,11 +328,10 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             }
         };
     }
+    
+    var lineOptions = _drawingObject.options.lineStyle;
 
-	var regularDrawingStyle = {
-			outline: { color: 0x0000ff, thickness: 3, opacity: 80 }
-		},
-		icon = null;
+	var icon = null;
 
     var geom = _drawingObject.toGeoJSON().geometry;
     if (_options.editStyle)
@@ -330,6 +342,14 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         }
         else
         {
+            var regularDrawingStyle = {
+                outline: {
+                    color: parseInt('0x' + lineOptions.color.split('#')[1]),
+                    thickness: lineOptions.weight,
+                    opacity: lineOptions.opacity*100
+                }
+            };
+            
             icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, geom.type.toLowerCase());
             CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
         }
@@ -365,7 +385,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	/** Обновляет информацию о геометрии */
 	this.UpdateRow = function(){
         var summary = _drawingObject.getSummary(),
-            text = _drawingObject.options.text,
+            text = _drawingObject.options.title,
             type = _drawingObject.getType();
 
 		removeChilds(_title);
@@ -682,6 +702,10 @@ var DrawingObjectGeomixer = function() {
         $(oCollection).bind('onAdd', function (){
             if(!bVisible) _this.Load();
         });
+        
+        $(oCollection).bind('onRemove', function (){
+            oCollection.Count() || oMenu.leftPanelItem.close();
+        });
 
         var lmap = nsGmx.leafletMap,
             gmxDrawing = lmap.gmxDrawing,
@@ -715,24 +739,25 @@ var DrawingObjectGeomixer = function() {
         fileName = fileName || 'markers';
         format = format || 'Shape';
 		
-		for (var i=0; i<oCollection.Count(); i++){
+		for (var i = 0; i<oCollection.Count(); i++){
 			var ret = oCollection.Item(i);
             var geom = ret.toGeoJSON().geometry;
 			var type = geom.type;
 
 			if (!objectsByType[type])
 				objectsByType[type] = [];
-			if (type == "Point" && ((ret.options.text == "") || !ret.options.text))
-			{
-				ret.options.text = "marker " + markerIdx;
-				markerIdx++;
+            
+            var title = ret.options.title || '';
+            
+			if (type == "Point" && !title) {
+				title = "marker " + markerIdx++;
 			}
 			
-			objectsByType[type].push({ geometry: {
+			objectsByType[type].push({geometry: {
                     type: type.toUpperCase(),
                     coordinates: geom.coordinates
                 },
-                properties: ret.options
+                properties: {text: title}
             });
 		}
 		        

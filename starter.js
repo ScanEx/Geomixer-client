@@ -1433,9 +1433,8 @@ function loadMap(state)
                             weight = objInfo.thickness || 2,
                             opacity = (objInfo.opacity / 100) || 0.8;
                             
-                        var drawnObject = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry))[0];
                         
-                        var properties = $.extend(true, {}, objInfo.properties,  {
+                        var featureOptions = $.extend(true, {}, objInfo.properties,  {
                             lineStyle: {
                                 color: color,
                                 weight: weight,
@@ -1443,14 +1442,14 @@ function loadMap(state)
                             }
                         });
                         
-                        drawnObject.setOptions(properties);
+                        lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];
                     });
                 }
                 else if (state.marker) {
                     nsGmx.leafletMap.gmxDrawing.addGeoJSON({
                         type: 'Feature',
                         geometry: {type: "Point", coordinates: [state.marker.mx, state.marker.my] },
-                        properties: { text: state.marker.mt }
+                        properties: { title: state.marker.mt }
                     });
                 }
                 
