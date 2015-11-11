@@ -185,7 +185,8 @@ var TimelineController = function(data, map, options) {
         showModeControl: true,
         showSelectionControl: true,
         showCalendar: true,
-        position: 'topright'
+        position: 'topright',
+        hideWithoutActiveLayers: false
     }, options);
     
     function isPointInPoly(poly, pt){
@@ -235,6 +236,18 @@ var TimelineController = function(data, map, options) {
         }
         
         return null;
+    }
+    
+    var updateTimelineVisibility = function() {
+        if (options.hideWithoutActiveLayers) {
+            for (var i in layerObservers) {
+                if (layerObservers[i].isActive()) {
+                    container.show();
+                    return;
+                }
+            }
+            container.hide();
+        }
     }
     
     var modeFilters = {
@@ -305,11 +318,13 @@ var TimelineController = function(data, map, options) {
                 delete items[layerName][id].timelineItem;
             }
             
+            updateTimelineVisibility();
             return;
         } else {
             layerObservers[layerName].activate();
+            updateTimelineVisibility();
         }
-
+        
         var deletedCount = 0;
         for (var i in items[layerName])
         {
@@ -710,6 +725,8 @@ var TimelineController = function(data, map, options) {
             dateInterval: [dateBegin, dateEnd],
             active: !!layer._map
         });
+        
+        updateTimelineVisibility();
     });
     
     map.on('layeradd layerremove', function(event) {
@@ -726,6 +743,7 @@ var TimelineController = function(data, map, options) {
         deleteLayerItemsFromTimeline(layerName);
         var items = data.get('items');
         delete items[layerName];
+        updateTimelineVisibility();
     });
     
     data.on('change:range', function(){
@@ -898,17 +916,11 @@ var publicInterface = {
     beforeViewer: function(params, map) {
         if (!map) return;
         
-        nsGmx.timelineControl = new TimelineControl(map);
+        nsGmx.timelineControl = new TimelineControl(map, {hideWithoutActiveLayers: true});
     },
 	afterViewer: function(params, map)
     {
         if (!map) return;
-        
-        /*map.addListener('onToolsMinimized', function(isMinimised) {
-            nsGmx.timelineControl.toggleVisibility(!isMinimised);
-        })*/
-        
-        //nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
         
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() { return _gtxt("timeline.contextMemuTitle"); },
