@@ -53,7 +53,11 @@ var GFWSlider = L.Control.extend({
 
 function defineClass() {
     GFWLayer = L.TileLayer.Canvas.Mercator.extend({
-        options: {async: true, tilesCRS: L.CRS.EPSG3857},
+        options: {
+            async: true, 
+            tilesCRS: L.CRS.EPSG3857,
+            attribution: '<a href="http://glad.umd.edu/"> Hansen|UMD|Google|USGS|NASA </a>'
+        },
         _yearBegin: 2001,
         _yearEnd: 2014,
         _drawLayer: function(img, ctx, z) {
@@ -117,6 +121,9 @@ var publicInterface = {
             onRemove: function(map) {
                 map.removeLayer(layer);
                 map.removeControl(slider);
+            }, 
+            options: {
+                attribution: layer.options.attribution
             }
         }
         
