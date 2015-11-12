@@ -50,25 +50,15 @@ var TimelineData = Backbone.Model.extend({
         mapMode: 'selected'     //selected, range, none
     },
     
-    _defaultDateFunction: function(layer, obj) {
-        var props = layer.getGmxProperties(),
-            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
-        
-        return new Date(obj.properties[index]*1000);
-    },
-    
-    _defaultFilterFunction: function(layer, startDate, endDate) {
-        layer.setDateInterval(startDate, endDate);
-    },
-    
     bindLayer: function(layer, options) {
         options = options || {};
         var layerName = options.layerName || layer.getGmxProperties().name || L.stamp(layer);
         var newLayerInfo = {
             layer: layer,
             name: layerName,
-            dateFunction: options.dateFunction || this._defaultDateFunction,
-            filterFunction: options.filterFunction || this._defaultFilterFunction,
+            dateFunction: options.dateFunction || TimelineData._defaultDateFunction,
+            filterFunction: options.filterFunction || TimelineData._defaultFilterFunction,
+            selectFunction: options.selectFunction || TimelineData._defaultSelectFunction,
             trackVisibility: 'trackVisibility' in options ? !!options.trackVisibility : true
         }
         this.trigger('preBindLayer', newLayerInfo);
@@ -98,6 +88,43 @@ var TimelineData = Backbone.Model.extend({
         filters.push(filterFunc);
         this.set('userFilters', filters);
     }
+}, {
+    _defaultDateFunction: function(layer, obj) {
+        var props = layer.getGmxProperties(),
+            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
+        
+        return new Date(obj.properties[index]*1000);
+    },
+    
+    _defaultSelectFunction: function(layer, layerSelection) {
+        if (layerSelection) {
+            var minValue = Number.POSITIVE_INFINITY,
+                maxValue = Number.NEGATIVE_INFINITY;
+                
+            var ids = {};
+                
+            var interval = layerSelection.forEach(function(s) {
+                minValue = Math.min(minValue, s.date);
+                maxValue = Math.max(maxValue, s.date);
+                ids[s.id] = true;
+            });
+            
+            layer.setDateInterval(new Date(minValue), new Date(maxValue));
+            
+            layer.setFilter(function(elem) {
+                return elem.id in ids;
+            });
+        }
+        else
+        {
+            layer.setDateInterval();
+        }
+    },
+    
+    _defaultFilterFunction: function(layer, startDate, endDate) {
+        layer.setDateInterval(startDate, endDate);
+        layer.removeFilter();
+    }
 })
 
 var MapController = function(data) {
@@ -118,35 +145,7 @@ var MapController = function(data) {
             var selection = data.get('selection');
             
             (layers || data.get('layers')).forEach(function(layerInfo) {
-                var layerName = layerInfo.name,
-                    layer = layerInfo.layer,
-                    props = layer.getGmxProperties(),
-                    temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
-                    
-                if (layerName in selection)
-                {
-                    var minValue = Number.POSITIVE_INFINITY,
-                        maxValue = Number.NEGATIVE_INFINITY;
-                        
-                    var ids = {};
-                        
-                    var interval = selection[layerName].forEach(function(s) {
-                        minValue = Math.min(minValue, s.date);
-                        maxValue = Math.max(maxValue, s.date);
-                        ids[s.id] = true;
-                    });
-                    
-                    layer.setDateInterval(new Date(minValue), new Date(maxValue));
-                    
-                    layer.setFilter(function(elem) {
-                        return elem.id in ids;
-                    });
-                    
-                }
-                else
-                {
-                    layer.setDateInterval();
-                }
+                layerInfo.selectFunction(layerInfo.layer, selection[layerInfo.name]);
             })
         },
         
@@ -723,7 +722,7 @@ var TimelineController = function(data, map, options) {
             },
             bounds: getObserversBbox(),
             dateInterval: [dateBegin, dateEnd],
-            active: !!layer._map
+            active: !!layer._map || !layerInfo.trackVisibility
         });
         
         updateTimelineVisibility();
@@ -936,7 +935,8 @@ var publicInterface = {
                 nsGmx.timelineControl.bindLayer(nsGmx.gmxMap.layersByID[context.elem.name]);
             }
         }, 'Layer');
-    }
+    },
+    TimelineData: TimelineData
 }
 
 gmxCore.addModule("TimelineRCPlugin", publicInterface, {
