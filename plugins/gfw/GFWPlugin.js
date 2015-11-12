@@ -7,7 +7,7 @@ var GFWLayer = null;
 var GFWSlider = L.Control.extend({
     includes: L.Mixin.Events,
     _yearBegin: 2001,
-    _yearEnd: 2014,
+    _yearEnd: 2015,
     onAdd: function(map) {
         var template = Handlebars.compile(
             '<div class = "gfw-slider">' + 
@@ -31,7 +31,7 @@ var GFWSlider = L.Control.extend({
         
         ui.find('.gfw-slider-container').slider({
             min: 2001,
-            max: 2014,
+            max: 2015,
             values: [this._yearBegin, this._yearEnd],
             range: true,
             change: function(event, ui) {
@@ -59,7 +59,7 @@ function defineClass() {
             attribution: '<a href="http://glad.umd.edu/"> Hansen|UMD|Google|USGS|NASA </a>'
         },
         _yearBegin: 2001,
-        _yearEnd: 2014,
+        _yearEnd: 2015,
         _drawLayer: function(img, ctx, z) {
             var imgData = ctx.getImageData(0, 0, 256, 256),
                 data = imgData.data,
@@ -95,7 +95,7 @@ function defineClass() {
                 this.tileDrawn(canvas);
             }.bind(this);
             
-            img.src = 'http://earthengine.google.org/static/hansen_2014/gfw_loss_tree_year_25_2014/' + zoom + '/' + tilePoint.x + '/' + tilePoint.y + '.png';
+            img.src = 'http://storage.googleapis.com/earthenginepartners-hansen/tiles/gfw2015/loss_tree_year_25/' + zoom + '/' + tilePoint.x + '/' + tilePoint.y + '.png';
         },
         setYearInterval: function(yearBegin, yearEnd) {
             this._yearBegin = yearBegin;
