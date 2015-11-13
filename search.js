@@ -1746,13 +1746,12 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var fnSearchByString = function(event, SearchString, layersSearchFlag)
 	{
 		try{
-			fnBeforeSearch();
             for (var h = 0; h < searchByStringHooks.length; h++) {
                 if (searchByStringHooks[h].hook(SearchString)) {
-                    fnAfterSearch();
                     return;
                 }
             }
+			fnBeforeSearch();
             lstResult.ShowLoading();
             oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1,
             callback: function (response) {
