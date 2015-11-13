@@ -23,7 +23,7 @@ var mapHelper = function()
 	
 	this.defaultStyles = 
 	{
-		'point':{outline:{color:0x0000FF, thickness:1},marker:{size:3}, fill:{color:0xFFFFFF, opacity:20}},
+		'point':{outline:{color:0x0000FF, thickness:1},marker:{size:8}, fill:{color:0xFFFFFF, opacity:20}},
 		'linestring':{outline:{color:0x0000FF, thickness:1}},
 		'polygon':{outline:{color:0x0000FF, thickness:1}, fill:{color:0xFFFFFF, opacity:20}}
 	}
