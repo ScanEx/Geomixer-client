@@ -329,7 +329,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         };
     }
     
-    var lineOptions = _drawingObject.options.lineStyle;
+    var lineOptions = _drawingObject.options.lineStyle || L.GmxDrawing.utils.defaultStyles.lineStyle;
 
 	var icon = null;
 
@@ -346,7 +346,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
                 outline: {
                     color: parseInt('0x' + lineOptions.color.split('#')[1]),
                     thickness: lineOptions.weight,
-                    opacity: lineOptions.opacity*100
+                    opacity: lineOptions.opacity * 100
                 }
             };
             
