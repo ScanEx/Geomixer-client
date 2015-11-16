@@ -123,34 +123,41 @@ var createMenuNew = function()
         }
     }
     
-    var isMapEditor = _queryMapLayers.currentMapRights() === "edit";
+    var isMapEditor = _queryMapLayers.currentMapRights() === "edit",
+        isLogined = nsGmx.AuthManager.isLogin();
     
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
-        {id:"mapsMenu", title:_gtxt("Карта"),childs: [
-			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
-			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
-			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
-			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)},   delimiter: true},
-			{id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
-			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
-			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
-			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
-			{id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
-                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
-                nsGmx.createMapEditor(div);
-            }, disabled: !isMapEditor},
-            {id:'createGroup', title: _gtxt('Добавить подгруппу'), func:function(){
-                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
-                nsGmx.addSubGroup(div, _layersTree);
-            }, disabled: !isMapEditor},
-			{id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
-                var securityDialog = new nsGmx.mapSecurity(),
-                    props = _layersTree.treeModel.getMapProperties();
-                securityDialog.getRights(props.MapID, props.title);
-            }, disabled: !isMapEditor}
-		]}
+        {id:"mapsMenu", title:_gtxt("Карта"),childs: [].concat(
+			isLogined ? [{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}}] : [],
+			[
+                {id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){
+                    _queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)
+                }},
+                {id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
+                {id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){
+                    _queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)
+                }, delimiter: true},
+                {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
+                {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
+                {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
+                {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
+                {id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
+                    var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                    nsGmx.createMapEditor(div);
+                }, disabled: !isMapEditor},
+                {id:'createGroup', title: _gtxt('Добавить подгруппу'), func:function(){
+                    var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                    nsGmx.addSubGroup(div, _layersTree);
+                }, disabled: !isMapEditor},
+                {id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
+                    var securityDialog = new nsGmx.mapSecurity(),
+                        props = _layersTree.treeModel.getMapProperties();
+                    securityDialog.getRights(props.MapID, props.title);
+                }, disabled: !isMapEditor}
+            ]
+		)}
     );
 	
 	_menuUp.addItem(
