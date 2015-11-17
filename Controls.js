@@ -156,8 +156,10 @@ nsGmx.Controls = {
     {
         var TYPE_CONVERT_DICT = {
             Polyline: 'linestring',
+            MultiPolyline: 'linestring',
             Rectangle: 'polygon',
             Polygon: 'polygon',
+            MultiPolygon: 'polygon',
             Point: 'point'
         }
         var _params = $.extend({
