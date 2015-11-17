@@ -8,6 +8,11 @@ var GFWSlider = L.Control.extend({
     includes: L.Mixin.Events,
     _yearBegin: 2001,
     _yearEnd: 2015,
+    _setYears: function(yearBegin, yearEnd) {
+        this._yearBegin = yearBegin;
+        this._yearEnd = yearEnd;
+        this.fire('yearschange', {yearBegin: this._yearBegin, yearEnd: this._yearEnd});
+    },
     onAdd: function(map) {
         var template = Handlebars.compile(
             '<div class = "gfw-slider">' + 
@@ -25,7 +30,7 @@ var GFWSlider = L.Control.extend({
             labels.push(year);
         }
         
-        var ui = $(template({
+        var ui = this._ui = $(template({
             labels: labels
         }));
         
@@ -35,9 +40,7 @@ var GFWSlider = L.Control.extend({
             values: [this._yearBegin, this._yearEnd],
             range: true,
             change: function(event, ui) {
-                this._yearBegin = ui.values[0];
-                this._yearEnd = ui.values[1];
-                this.fire('yearschange', {yearBegin: this._yearBegin, yearEnd: this._yearEnd});
+                this._setYears(ui.values[0], ui.values[1]);
             }.bind(this)
         });
         
@@ -47,7 +50,24 @@ var GFWSlider = L.Control.extend({
         
         return ui[0];
     },
+    
     onRemove: function() {
+    },
+    
+    saveData: function() {
+        return {
+            version: '1.0.0',
+            yearBegin: this._yearBegin,
+            yearEnd: this._yearEnd
+        }
+    },
+    
+    loadData: function(data) {
+        if (this._ui) {
+            this._ui.find('.gfw-slider-container').slider('option', 'values', [data.yearBegin, data.yearEnd]);
+        } else {
+            this._setYears(data.yearBegin, data.yearEnd);
+        }
     }
 });
 
@@ -132,6 +152,21 @@ var publicInterface = {
         slider.on('yearschange', function(data) {
             layer.setYearInterval(data.yearBegin, data.yearEnd);
         })
+        
+        _mapHelper.customParamsManager.addProvider({
+            name: 'gfwplugin',
+            loadState: function(state) {
+                state.visible && nsGmx.leafletMap.addLayer(proxyLayer);
+                slider.loadData(state.slider);
+            },
+            saveState: function() {
+                return {
+                    version: '1.0.0',
+                    visible: nsGmx.leafletMap.hasLayer(proxyLayer),
+                    slider: slider.saveData()
+                }
+            }
+        });
     },
     
     unload: function() {
