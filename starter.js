@@ -1070,9 +1070,11 @@ function loadMap(state)
                 window.language = data.properties.DefaultLanguage;
             }
             
-            var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager);
-                
+            var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager, {id: 'iconLayers'});
+            lmap.gmxControlsManager.add(baseLayersControl);
+            
             lmap.addControl(baseLayersControl);
+            
             
             $('#flash').bind('dragover', function()
             {
