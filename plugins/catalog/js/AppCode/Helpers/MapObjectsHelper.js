@@ -2,6 +2,7 @@ var nsCatalog = nsCatalog || {};
 nsCatalog.Helpers = nsCatalog.Helpers || {};
 
 (function($){
+  
   var MapHelper = function(map, treeHelper) {
     this._map = map;
     this._treeHelper = treeHelper;
@@ -39,87 +40,6 @@ nsCatalog.Helpers = nsCatalog.Helpers || {};
       this._f(arr, acc, swap);
       return acc;
     },
-
-    // transformAnchors: function (p) {
-    //   switch (p.platform) {
-    //       case 'WV02':
-    //           if (p.is_local) {
-    //               return [[p.x1, p.y1], [p.x2, p.y2], [p.x3, p.y3], [p.x4, p.y4]];
-    //           }
-    //           else {
-    //               var MinX = Math.min(p.x1, p.x2, p.x3, p.x4);
-    //               var MaxX = Math.max(p.x1, p.x2, p.x3, p.x4);
-    //               var MinY = Math.min(p.y1, p.y2, p.y3, p.y4);
-    //               var MaxY = Math.max(p.y1, p.y2, p.y3, p.y4);
-    //
-    //               var sw = Math.max((MaxX - MinX), (MaxY - MinY)) / 2;
-    //               var cx = (MaxX + MinX) / 2;
-    //               var cy = (MaxY + MinY) / 2;
-    //               return [[cx - sw, cy + sw], [cx + sw, cy + sw], [cx + sw, cy - sw], [cx - sw, cy - sw]];
-    //           }
-    //       case 'WV01':
-    //       case 'WV03':
-    //       case 'QB02':
-    //           var MinX = Math.min(p.x1, p.x2, p.x3, p.x4);
-    //           var MaxX = Math.max(p.x1, p.x2, p.x3, p.x4);
-    //           var MinY = Math.min(p.y1, p.y2, p.y3, p.y4);
-    //           var MaxY = Math.max(p.y1, p.y2, p.y3, p.y4);
-    //
-    //           var sw = Math.max((MaxX - MinX), (MaxY - MinY)) / 2;
-    //           var cx = (MaxX + MinX) / 2;
-    //           var cy = (MaxY + MinY) / 2;
-    //           return [[cx - sw, cy + sw], [cx + sw, cy + sw], [cx + sw, cy - sw], [cx - sw, cy - sw]];
-    //       case 'EROS-B':
-    //       case 'SPOT 5':
-    //       case 'SPOT 6':
-    //       case 'SPOT 7':
-    //       case 'KOMPSAT3':
-    //       case 'IK-2':
-    //       case 'EROS-A1':
-    //           return [[p.x1, p.y1], [p.x2, p.y2], [p.x3, p.y3], [p.x4, p.y4]];
-    //       case 'Pleiades':
-    //           return [[p.x2, p.y2], [p.x3, p.y3], [p.x4, p.y4], [p.x1, p.y1]];
-    //       case 'GE01':
-    //       case 'GE-1':
-    //           if (p.is_local) {
-    //               return [[p.x1, p.y1], [p.x2, p.y2], [p.x3, p.y3], [p.x4, p.y4]];
-    //           }
-    //           else {
-    //               if (p.id.length == 16) {
-    //                   var MinX = Math.min(p.x1, p.x2, p.x3, p.x4);
-    //                   var MaxX = Math.max(p.x1, p.x2, p.x3, p.x4);
-    //                   var MinY = Math.min(p.y1, p.y2, p.y3, p.y4);
-    //                   var MaxY = Math.max(p.y1, p.y2, p.y3, p.y4);
-    //
-    //                   var sw = Math.max((MaxX - MinX), (MaxY - MinY)) / 2;
-    //                   var cx = (MaxX + MinX) / 2;
-    //                   var cy = (MaxY + MinY) / 2;
-    //                   return [[cx - sw, cy + sw], [cx + sw, cy + sw], [cx + sw, cy - sw], [cx - sw, cy - sw]];
-    //               }
-    //               else {
-    //                   var minx = Math.min(p.x1, p.x2, p.x3, p.x4);
-    //                   var maxx = Math.max(p.x1, p.x2, p.x3, p.x4);
-    //                   var miny = Math.min(p.y1, p.y2, p.y3, p.y4);
-    //                   var maxy = Math.max(p.y1, p.y2, p.y3, p.y4);
-    //
-    //                   return [[maxx, miny], [maxx, maxy], [minx, maxy], [minx, miny]];
-    //               }
-    //           }
-    //       case 'LANDSAT_8':
-    //         var x1 = Math.min(p.x1, p.x2, p.x3, p.x4), x4 = x1;
-    //         var x2 = Math.max(p.x1, p.x2, p.x3, p.x4), x3 = x2;
-    //         var y3 = Math.min(p.y1, p.y2, p.y3, p.y4), y4 = y3;
-    //         var y1 = Math.max(p.y1, p.y2, p.y3, p.y4), y2 = y1;
-    //         return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
-    //
-    //       default:
-    //         var minx = Math.min(p.x1, p.x2, p.x3, p.x4);
-    //         var maxx = Math.max(p.x1, p.x2, p.x3, p.x4);
-    //         var miny = Math.min(p.y1, p.y2, p.y3, p.y4);
-    //         var maxy = Math.max(p.y1, p.y2, p.y3, p.y4);
-    //         return [[maxx, miny], [maxx, maxy], [minx, maxy], [minx, miny]];
-    //   }
-    // },
 
     createGroundOverlay: function(node, clickHandler) {
       var data = node.data;
@@ -219,6 +139,74 @@ nsCatalog.Helpers = nsCatalog.Helpers || {};
 
     hasGeometries: function(){
       return this.getGeometries().length > 0;
+    },
+
+    getGeometry: function (){
+      var gs = this._map.gmxDrawing.getFeatures().reduce(function(a, f){
+        a.push(f.toGeoJSON().geometry);
+        return a;
+      }, []);
+      var bounds = this._map.getBounds();
+      var nw = bounds.getNorthWest(),
+        ne = bounds.getNorthEast(),
+        se = bounds.getSouthEast(),
+        sw = bounds.getSouthWest();
+      var x1 = nw.lng, y1 = nw.lat,
+        x2 = ne.lng, y2 = ne.lat,
+        x3 = se.lng, y3 = se.lat,
+        x4 = sw.lng, y4 = sw.lat;
+      return {
+        type: 'GeometryCollection',
+        geometries: gs.length > 0 ? gs :
+          [
+            {
+              type: 'Polygon',
+              coordinates: [[[x1,y1],[x2,y2],[x3,y3],[x4,y4],[x1,y1]]]
+            }
+          ]
+      };
+    },
+
+    moveToView: function(objects) {
+      if(objects && objects.length) {
+        var centerX = this._map.getCenter().lng;
+        for (var i = 0, len = objects.length; i < len; i++){
+          var obj = objects[i];
+          var g = obj.geometry;
+          switch(g.type.toUpperCase()){
+            case 'POLYGON':
+            case 'MULTIPOLYGON':
+              this.movePolygonToView(g.coordinates[0], centerX);
+              obj.x1 += this.moveLonToView(obj.x1, centerX);
+              obj.x2 += this.moveLonToView(obj.x2, centerX);
+              obj.x3 += this.moveLonToView(obj.x3, centerX);
+              obj.x4 += this.moveLonToView(obj.x4, centerX);
+              break;
+            default:
+              throw 'Unsupported geometry type';
+          }
+        }
+      }
+    },
+
+    movePolygonToView: function (coordinates, viewX){
+      for(var i = 0; i < coordinates.length; i++){
+        coordinates[i][0] += this.moveLonToView(coordinates[i][0], viewX);
+      }
+    },
+
+    moveLonToView: function(x, viewX){
+      var min = Math.abs(viewX - x);
+      var diff = 0;
+      var d = Math.abs(viewX - (x + 360));
+      if(d < min){
+        diff = 360;
+        min = d;
+      }
+      if(Math.abs(viewX - (x - 360)) < min){
+        diff = -360;
+      }
+      return diff;
     },
 
   	// style: {outline: {color: color, thickness: 1, opacity: 100}, fill: {color: color, opacity: 0}}

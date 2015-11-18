@@ -12,66 +12,57 @@ nsCatalog.Helpers = nsCatalog.Helpers || {};
   };
 
   Permalink.prototype.toPermalink = function() {
-    var nodes = this._selectedImagesView.getSelectedNodes();
-    var searchCriteria = this._searchOptionsView.get_searchCriteria();
-    var result = { nodes: [], searchCriteria: searchCriteria};
-    var satellites = null;
-    result.searchSatellites = [];
-    if(searchCriteria.scanexSatellites){
-      satellites = this._urlProviders['catalog'].getSatellitesIDs(searchCriteria);
-      if(satellites) {
-        result.searchSatellites = result.searchSatellites.concat(satellites);
-      }
-      satellites = this._urlProviders['search'].getSatellitesIDs(searchCriteria);
-      if(satellites) {
-        result.searchSatellites = result.searchSatellites.concat(satellites);
-      }
-    }
-    if(searchCriteria.rlImages){
-      satellites = this._urlProviders['rl_images'].getSatellitesIDs(searchCriteria);
-      if(satellites) {
-        result.rlImages = satellites;
-      }
-    }
-    if(searchCriteria.rlSheets){
-      var range = this._urlProviders['rl_sheets'].getRange(searchCriteria);
-      if(range && range.length > 0) {
-        result.rlSheets = range;
-      }
-    }
-    for (var nodeKey in nodes) {
-      var data = nodes[nodeKey].data;
-      result.nodes.push({
-        color: data.color,
-        icon: data.icon,
-        crs: data.crs,
-        info: data.info,
-        latLonQuad: data.latLonQuad,
-        geometry: data.geometry,
-        tooltip: data.tooltip
-      });
-    }
-    return result;
+    var selectedNodes = this._selectedImagesView.getSelectedNodes();
+    var searchCriteria = this._searchOptionsView.getSearchOptions();
+    var dataSources = Object.keys(this._dataSources)
+      .map(function(k) { return {k: k, v: nsCatalog.DataSources[k] }; })
+      .filter(function(x) { return x.v.checked; })
+      .reduce(function(a, x) {
+        a[x.k] = x.v.getOptions();
+        return a;
+      }, {});
+    return {
+      selectedNodes: Object.keys(selectedNodes),
+      searchCriteria: {
+        queryType: searchCriteria.queryType,
+        dateStart: searchCriteria.dateStart.toISOString(),
+        dateEnd: searchCriteria.dateEnd.toISOString(),
+        isYearly: searchCriteria.isYearly,
+        cloudCover: searchCriteria.cloudCover
+      },
+      dataSources: dataSources,
+      geometries: this._mapHelper.getGeometries()
+    };
   };
-  
+
   Permalink.prototype.fromPermalink = function(persistedData) {
-    var nodes = [];
-    for (var dataKey in persistedData.nodes) {
-      var dataItem = persistedData.nodes[dataKey];
-      var node = new TreeNode('GroundOverlay', '[not in tree]', dataItem);
-      node.data.mapObjects = {};
-      node.isChecked = true;
-      this._mapHelper.createPolygon(node, this._pageController._polygonClicked.bind(this._pageController));
-      nodes.push(node);
-    }
-    for (var nodeKey in nodes) {
-      var node = nodes[nodeKey];
-      this._mapHelper.createGroundOverlay(node);
-      this._mapHelper.createInfoIcon(node);
-      node.data.isOverlayVisible = node.isChecked;
-      this._selectedImagesView.addNode(node);
-    }
-    this._searchOptionsView.set_searchCriteria(persistedData);
+    this._searchOptionsView.setSearchOptions(persistedData);
+    this._pageController._performSearch(persistedData.geometries).done(function(){
+      this._pageController._treeView.getNodes().filter(function(x) {
+        return x.type == 'GroundOverlay' &&
+          Array.isArray(persistedData.selectedNodes) &&
+          persistedData.selectedNodes.indexOf(x.data.info.sceneid) >= 0;
+      }).forEach(function(x){
+        this._pageController._polygonClicked(x);
+      }.bind(this));
+    }.bind(this));
+    // var nodes = [];
+    // for (var dataKey in persistedData.selectedNodes) {
+    //   var dataItem = persistedData.selectedNodes[dataKey];
+    //   var node = new nsCatalog.Controls.TreeNode('GroundOverlay', '[not in tree]', dataItem);
+    //   node.data.mapObjects = {};
+    //   node.isChecked = true;
+    //   this._mapHelper.createPolygon(node, this._pageController._polygonClicked.bind(this._pageController));
+    //   nodes.push(node);
+    // }
+    // for (var nodeKey in nodes) {
+    //   var node = nodes[nodeKey];
+    //   this._mapHelper.createGroundOverlay(node);
+    //   this._mapHelper.createInfoIcon(node);
+    //   node.data.isOverlayVisible = node.isChecked;
+    //   this._selectedImagesView.addNode(node);
+    // }
+
   };
 
   Permalink.prototype.attach = function() {

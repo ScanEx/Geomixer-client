@@ -2,8 +2,8 @@ var nsCatalog = nsCatalog || {};
 
 (function($){
 
-  var DataSource = function(map, resultView){
-    nsCatalog.InternalDataSource.call(this, map, resultView);
+  var DataSource = function(mapHelper, resultView){
+    nsCatalog.InternalDataSource.call(this, mapHelper, resultView);
     this.id = 'external';
     this.title = 'Глобальные данные';
     this.satellites['Pleiades'].platforms = ['PHR1A','PHR1B'];
@@ -14,12 +14,12 @@ var nsCatalog = nsCatalog || {};
 
   DataSource.prototype.getCriteria = function(options) {
     var cr = [];
-    cr.push('(cloudness IS NULL OR cloudness < 0 OR (cloudness >= 0 AND cloudness <= ' + options.cloudCover + '))');
+    cr.push('(cloudness IS NULL OR cloudness < 0 OR (cloudness >= 0 AND cloudness <= ' + this._cloudCoverMap[options.cloudCover - 1] + '))');
     if (options.dateStart) {
-      cr.push("acqdate >= '" + options.dateStart.toISOString() + "'");
+      cr.push("acqdate >= '" + this._dataAdapter.dateToString(options.dateStart) + "'");
     }
     if (options.dateEnd) {
-      cr.push("acqdate <= '" + options.dateEnd.toISOString() + "'");
+      cr.push("acqdate <= '" + this._dataAdapter.dateToString(options.dateEnd) + "'");
     }
 
     var sat = [];
@@ -42,19 +42,12 @@ var nsCatalog = nsCatalog || {};
 
     cr.push("(" + sat.join(' OR ') + ")");
 
-    var gj = this.getGeometry(this._map);
+    var gj = this._dataAdapter.getGeometry();
     if (gj) {
       cr.push("Intersects([geomixergeojson], buffer(GeometryFromGeoJson('" + JSON.stringify(gj) + "', 4326), 0.001))");
     }
 
     cr.push('islocal = FALSE');
-
-    // if (options.product) {
-    //   cr.push("product = TRUE");
-    // }
-    // else if (options.source) {
-    //   cr.push("product = FALSE");
-    // }
 
     return cr.join(' AND ');
   };

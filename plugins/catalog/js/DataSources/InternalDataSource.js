@@ -2,8 +2,8 @@ var nsCatalog = nsCatalog || {};
 
 (function($){
 
-  var DataAdapter = function(map){
-    nsCatalog.BaseDataAdapter.call(this, map);
+  var DataAdapter = function(mapHelper){
+    nsCatalog.BaseDataAdapter.call(this, mapHelper);
   };
 
   DataAdapter.prototype = Object.create(nsCatalog.BaseDataAdapter.prototype);
@@ -16,16 +16,17 @@ var nsCatalog = nsCatalog || {};
       var item = data[index];
       if (!item) continue;
       var source = this.getSatellite(item.platform);
-      var folderNode = this._ensureSatelliteFolderNode(targetNode, source);
-      if (!satNodes[item.platform]) {
-        satNodes[item.platform] = folderNode;
+      var sat_name = source.name;
+      var folderNode = this._ensureSatelliteFolderNode(targetNode, sat_name, L.gmxUtil.dec2hex(source.color));
+      if (!satNodes[sat_name]) {
+        satNodes[sat_name] = folderNode;
         folderNode.data.extent = extent;
         folderNode.data.size = 0;
       }
       folderNode.data.size += 1;
       folderNode = this._ensureFolderNode(folderNode, item.acqdate.getFullYear().toString());
       folderNode = this._ensureFolderNode(folderNode, (item.acqdate.getMonth() + 1).toString());
-      folderNode.addChild(this._createOverlayNode(source, item));
+      folderNode.addChild(this._createOverlayNode(source, item.sceneid, item));
     }
     for (var folderKey in satNodes) {
       this._sortFolders(satNodes[folderKey]);
@@ -33,22 +34,17 @@ var nsCatalog = nsCatalog || {};
     targetNode.isCollapsed = !targetNode.children.length;
   };
 
-  DataAdapter.prototype.getInfo = function(satellite, data) {
-    var info = nsCatalog.BaseDataAdapter.prototype.getInfo(satellite, data);
-    info.sat_name = satellite.name;
-    return info;
+  DataAdapter.prototype.getImageUrl = function(data) {
+    return 'http://wikimixer.kosmosnimki.ru/QuickLookImage.ashx?id=' + data.sceneid;
   };
 
-  DataAdapter.prototype.getImageUrl = function(sceneid) {
-    return 'http://wikimixer.kosmosnimki.ru/QuickLookImage.ashx?id=' + sceneid;
-  };
+  nsCatalog.InternalDataAdapter = DataAdapter;
 
-  var DataSource = function(map, resultView){
-    nsCatalog.BaseDataSource.call(this, map, resultView);
+  var DataSource = function(mapHelper, resultView){
+    nsCatalog.BaseDataSource.call(this, mapHelper, resultView);
     this.id = 'internal';
     this.title = 'Сканэкс';
-    this.useDate = true;
-    this._dataAdapter = new DataAdapter(map);
+    this._dataAdapter = new DataAdapter(mapHelper);
     this.satellites = this._dataAdapter.satellites;
   };
 
@@ -57,12 +53,12 @@ var nsCatalog = nsCatalog || {};
 
   DataSource.prototype.getCriteria = function(options) {
     var cr = [];
-    cr.push('(cloudness IS NULL OR cloudness < 0 OR (cloudness >= 0 AND cloudness <= ' + options.cloudCover + '))');
+    cr.push('(cloudness IS NULL OR cloudness < 0 OR (cloudness >= 0 AND cloudness <= ' + this._cloudCoverMap[options.cloudCover - 1] + '))');
     if (options.dateStart) {
-      cr.push("acqdate >= '" + options.dateStart.toISOString() + "'");
+      cr.push("acqdate >= '" +  this._dataAdapter.dateToString(options.dateStart) + "'");
     }
     if (options.dateEnd) {
-      cr.push("acqdate <= '" + options.dateEnd.toISOString() + "'");
+      cr.push("acqdate <= '" + this._dataAdapter.dateToString(options.dateEnd) + "'");
     }
 
     var sat = [];
@@ -85,19 +81,12 @@ var nsCatalog = nsCatalog || {};
 
     cr.push("(" + sat.join(' OR ') + ")");
 
-    var gj = this.getGeometry(this._map);
+    var gj = this._dataAdapter.getGeometry();
     if (gj) {
       cr.push("Intersects([geomixergeojson], buffer(GeometryFromGeoJson('" + JSON.stringify(gj) + "', 4326), 0.001))");
     }
 
     cr.push('islocal = TRUE');
-
-    // if (options.product) {
-    //   cr.push("product = TRUE");
-    // }
-    // else if (options.source) {
-    //   cr.push("product = FALSE");
-    // }
 
     return cr.join(' AND ');
   };
@@ -113,25 +102,6 @@ var nsCatalog = nsCatalog || {};
       count: 'add',
       query: this.getCriteria(options)
     };
-  };
-
-  DataSource.prototype.setResults = function(results) {
-    var root = this._resultView.treeView.root;
-    this._dataAdapter.setResults(results, root);
-    this._resultView.treeView.updateNode(root).done(function(){
-      var nodes = this._resultView
-        .treeView
-        .getNodes()
-        .filter(function(x) { return x.type == 'GroundOverlay'; });
-      if(results.Count > 0){
-        this._resultView._disableGeometryOperations(false);
-        this._resultView.show();
-      }
-      else {
-        this._resultView._disableGeometryOperations(true);
-        this._resultView.hide();
-      }
-    }.bind(this));
   };
 
   nsCatalog.InternalDataSource = DataSource;

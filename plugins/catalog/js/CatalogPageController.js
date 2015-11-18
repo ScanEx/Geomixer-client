@@ -84,47 +84,84 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 
 	CatalogPage.prototype._performSearch = function(geometries) {
 
+		var def = new $.Deferred();
+
 		var tasks = new nsCatalog.DelegatesChain();
 
 		var validationErrors = [];
 		var dsCount = 0;
-		for (var id in nsCatalog.DataSources) {
-			var ds = nsCatalog.DataSources[id];
-			if(ds.checked) {
-				var searchOptions = this._searchOptionsView.getSearchOptions();
-				if(ds.validateSearchOptions(searchOptions, validationErrors)) {
-					++dsCount;
-					var f = function(dataSource){
-						return function () {
-							dataSource.search(searchOptions).done(function(response){
-								switch (response.status) {
-									case 'exceeds':
-										alert(dataSource.title + ':\r\nСлишком много снимков.\r\nПожалуйста, измените настройки поиска.');
-										break;
-									case 'nothing':
-										alert(dataSource.title + ':\r\nНичего не найдено.\r\nПожалуйста, измените настройки поиска.');
-										break;
-									default:
-										break;
-								}
-								if(--dsCount == 0){
-									this._waitingDialog.close();
-								}
-							}.bind(this));
-						}.bind(this);
-					}.bind(this);
-					tasks.add(f(ds));
-				}
-			}
-		}
+		var searchOptions = this._searchOptionsView.getSearchOptions();
+		var ts = Object.keys(this._dataSources).map(function(k){
+			return this._dataSources[k];
+		}.bind(this))
+		.filter(function(ds){
+			return ds.checked && ds.validateSearchOptions(searchOptions, validationErrors);
+		})
+		.map(function(ds){
+			++dsCount;
+			return function(){
+				ds.search(searchOptions)
+					.done(function(response){
+						switch (response.status) {
+							case 'exceeds':
+								alert(ds.title + ':\r\nСлишком много снимков.\r\nПожалуйста, измените настройки поиска.');
+								break;
+							case 'nothing':
+								alert(ds.title + ':\r\nНичего не найдено.\r\nПожалуйста, измените настройки поиска.');
+								break;
+							default:
+								break;
+						}
+						if(--dsCount == 0){
+							this._waitingDialog.close();
+							def.resolve();
+						}
+					}.bind(this));
+			}.bind(this);
+		}.bind(this));
 
-		if(validationErrors.length == 0) {
+		if(ts.length > 0){
+			ts.forEach(function(t){
+				tasks.add(t);
+			});
 			this._waitingDialog.open();
 			tasks.execute();
 		}
-		else {
+		else if(validationErrors.length > 0){
 			alert(validationErrors.join('\r\n'));
+			def.reject();
 		}
+
+		// for (var id in this._dataSources) {
+		// 	var ds = nsCatalog.DataSources[id];
+		// 	if(ds.checked) {
+		//
+		// 		if(ds.validateSearchOptions(searchOptions, validationErrors)) {
+		// 			++dsCount;
+		// 			var f = function(dataSource){
+		// 				return function () {
+		// 					dataSource.search(searchOptions).done(function(response){
+		// 						switch (response.status) {
+		// 							case 'exceeds':
+		// 								alert(dataSource.title + ':\r\nСлишком много снимков.\r\nПожалуйста, измените настройки поиска.');
+		// 								break;
+		// 							case 'nothing':
+		// 								alert(dataSource.title + ':\r\nНичего не найдено.\r\nПожалуйста, измените настройки поиска.');
+		// 								break;
+		// 							default:
+		// 								break;
+		// 						}
+		// 						if(--dsCount == 0){
+		// 							this._waitingDialog.close();
+		// 							def.resolve();
+		// 						}
+		// 					}.bind(this));
+		// 				}.bind(this);
+		// 			}.bind(this);
+		// 			tasks.add(f(ds));
+		// 		}
+		// 	}
+		// }
 
 		// this._resultList.set_CatalogResults([]);
 		// this._resultList.set_SearchResults([]);
@@ -155,6 +192,8 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 		// jobChain.add(function() { this._waitingDialog.open('Подождите', 'Загрузка данных...'); }.bind(this));
 		// jobChain.add(function() { this._requestCatalogData(this._currentSearchCriteria); }.bind(this));
 		// jobChain.execute();
+
+		return def;
 	};
 
 	// CatalogPage.prototype._validateSearchCriteria = function(searchCriteria) {

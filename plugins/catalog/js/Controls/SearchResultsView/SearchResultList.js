@@ -222,30 +222,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 				this.$contentContainer.hide();
 			}
 		},
-
-		// _showNonCovered: function(e){
-		// 	var t = $(e.target);
-		// 	if(!this._nonCoveredDrawing){
-		// 		this._refreshNonCovered();
-		// 	}
-		// 	else {
-		// 		var checked = !!this.$nonCoveredHandle.prop('checked');
-		// 		if(checked) {
-		// 			this._mapHelper.addObject(this._nonCoveredDrawing);
-		// 		}
-		// 		else {
-		// 			this._mapHelper.removeObject(this._nonCoveredDrawing);
-		// 		}
-		// 	}
-		// },
-		//
-		// hideNonCovered: function(){
-		// 	this.$nonCoveredHandle.prop('checked', false);
-		// 	if(this._nonCoveredDrawing){
-		// 		this._mapHelper.removeObject(this._nonCoveredDrawing);
-		// 	}
-		// },
-
+		
 		_searchNonCovered: function(){
 			if(!this.$nonCoveredHandle.attr('disabled')){
 				if(this._nonCoveredDrawing){

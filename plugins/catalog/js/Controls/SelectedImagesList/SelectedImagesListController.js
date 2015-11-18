@@ -80,41 +80,9 @@ nsCatalog.Controls = nsCatalog.Controls || {};
     },
 
     _downloadShapeFile: function() {
-      // var data = {
-      //   searchIds: this._getSearchSelectedIds(),
-      //   catalogIds: this._getCatalogSelectedImages()
-      // };
-      // this._shapeFileController.downloadShapeFile('my', data);
       this._searchResultView._downloadShapeFile(true);
       return false;
-    },
-
-    _getSearchSelectedIds: function() {
-      var ids = [];
-      for (var nodeKey in this._nodes) {
-        if (ScanexCatalogHelper.findSatelliteById(this._nodes[nodeKey].data.info.satName).source != 'search')
-        continue;
-        ids.push(this._nodes[nodeKey].data.info.id);
-      }
-      return ids;
-    },
-
-    _getCatalogSelectedImages: function() {
-      var result = {};
-      var hasImages = false;
-      for (var nodeKey in this._nodes) {
-        var nodeInfo = this._nodes[nodeKey].data.info;
-        if (!result[nodeInfo.satName]) {
-          if (ScanexCatalogHelper.findSatelliteById(nodeInfo.satName).source != 'catalog') {
-            continue;
-          }
-          result[nodeInfo.satName] = [];
-        }
-        result[nodeInfo.satName].push(nodeInfo.id);
-        hasImages = true;
-      }
-      return { empty: !hasImages, data: result };
-    },
+    },  
 
     _setEmpty: function() {
       this._contentContainer.html('<p>Нет выбранных снимков.</p>');
@@ -126,12 +94,12 @@ nsCatalog.Controls = nsCatalog.Controls || {};
     },
 
     addNode: function(node) {
-      if (!this._nodes[node.data.info.id]) {
+      if (!this._nodes[node.data.info.sceneid]) {
         node.data.isSelected = true;
         this._createItemUi(node);
         this._appendHighlighting(node);
         this._appendItem(node.selectedUi.container);
-        this._nodes[node.data.info.id] = node;
+        this._nodes[node.data.info.sceneid] = node;
         ++this._nodesCount;
         this._updateCountLabel();
       }
@@ -196,7 +164,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
     },
 
     _createItemUi: function(node) {
-      var itemId = node.data.info.id;
+      var itemId = node.data.info.sceneid;
       var container = $.create('div', { 'class':'item-container' })
         .mouseover(function() { this._doHighlight(itemId); }.bind(this))
         .mouseout(function() { this._doUnhighlight(itemId); }.bind(this));
@@ -205,7 +173,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
         .prop('checked', node.isChecked)
         .prop('disabled', node.parent || !node.data.isSelected)
         .click(function() { this._itemVisibilityChange(itemId); }.bind(this));
-      $.create('div', { 'class':'item-title' }, node.data.info.sat_name + ' / ' + node.data.info.id)
+      $.create('div', { 'class':'item-title' }, node.data.info.platform + ' / ' + node.data.info.sceneid)
         .appendTo(container).dblclick(function() {
         this._itemDblClick(itemId);
         }.bind(this));
@@ -236,16 +204,16 @@ nsCatalog.Controls = nsCatalog.Controls || {};
     _appendHighlighting: function(node) {
       var mapObjects = node.data.mapObjects;
       if(mapObjects.polygon){
-        mapObjects.polygon.on('onMouseOver', function () { this._doHighlight(node.data.info.id); }.bind(this));
-        mapObjects.polygon.on('onMouseOut', function () { this._doUnhighlight(node.data.info.id); }.bind(this));
+        mapObjects.polygon.on('onMouseOver', function () { this._doHighlight(node.data.info.sceneid); }.bind(this));
+        mapObjects.polygon.on('onMouseOut', function () { this._doUnhighlight(node.data.info.sceneid); }.bind(this));
       }
       if(mapObjects.overlay){
-        mapObjects.overlay.on('onMouseOver', function () { this._doHighlight(node.data.info.id); }.bind(this));
-        mapObjects.overlay.on('onMouseOut', function () { this._doUnhighlight(node.data.info.id); }.bind(this));
+        mapObjects.overlay.on('onMouseOver', function () { this._doHighlight(node.data.info.sceneid); }.bind(this));
+        mapObjects.overlay.on('onMouseOut', function () { this._doUnhighlight(node.data.info.sceneid); }.bind(this));
       }
       if (mapObjects.infoIcon) {
-        mapObjects.infoIcon.on('onMouseOver', function () { this._doHighlight(node.data.info.id); }.bind(this));
-        mapObjects.infoIcon.on('onMouseOut', function () { this._doUnhighlight(node.data.info.id); }.bind(this));
+        mapObjects.infoIcon.on('onMouseOver', function () { this._doHighlight(node.data.info.sceneid); }.bind(this));
+        mapObjects.infoIcon.on('onMouseOut', function () { this._doUnhighlight(node.data.info.sceneid); }.bind(this));
       }
     },
 
@@ -313,7 +281,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
       for (var nodeKey in nodesList) {
         var node = nodesList[nodeKey];
         if (node.type == 'GroundOverlay') {
-          var selectedItem = this._nodes[node.data.info.id];
+          var selectedItem = this._nodes[node.data.info.sceneid];
           if (selectedItem) {
             this._removeMapObjects(selectedItem);
             node.selectedUi = selectedItem.selectedUi;
@@ -326,7 +294,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
               this._catalogPage.toggleOverlayVisibility(node);
             }
             this._appendHighlighting(node);
-            this._nodes[node.data.info.id] = node;
+            this._nodes[node.data.info.sceneid] = node;
           }
         }
         this.mergeNodesList(node.children);

@@ -155,19 +155,26 @@ nsCatalog.Controls = nsCatalog.Controls || {};
       .blur(function() { if (!this._tryParseDate(target.val())) target.parent().addClass('invalid-value'); }.bind(this));
     },
 
+    updateDataSources: function (){
+      var ds = Object.keys(this._dataSources).reduce(function(a, k) {
+        var d = this._dataSources[k];
+        a[d.id] = d;
+        return a;
+      }.bind(this), {});
+      this._view.find('.satellites-column input[type="checkbox"]').each(function(i, x){
+        var $x = $(x);
+        $x.prop('checked', ds[$x.val()].checked);
+      });
+    },
+
     _createSatellitesList: function(target) {
       var createColumn = function() {
         return $.create('div', { 'class':'satellites-column' }).appendTo(target);
       };
-      var i = 0, currentColumn;
+      var currentColumn = createColumn();
       for (var id in this._dataSources) {
-        if(i++ % 11 == 0) {
-          currentColumn = createColumn();
-        }
         var dataSource = this._dataSources[id];
-        if(!dataSource.restricted || this._userInfo.Role == 'scanex') {
-          currentColumn.append(this._createSatelliteItem(dataSource, id));
-        }
+        currentColumn.append(this._createSatelliteItem(dataSource, id));
       }
     },
 
@@ -303,7 +310,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
         .append(label)
         .append(btn);
       },
-        
+
       _createCloudSlider: function(target) {
         $(target).slider({
           range: "min",
@@ -325,88 +332,41 @@ nsCatalog.Controls = nsCatalog.Controls || {};
         }
       },
 
-      _validateSearchOptions: function(options){
-        if (options.useDate && !options.dateStart) {
-          alert('Начальная дата поиска задана неверно.');
-          return false;
-        }
-        if (options.useDate && !options.dateEnd) {
-          alert('Конечная дата поиска задана неверно.');
-          return false;
-        }
-        if (!options.queryType || (options.useDate && options.dateStart.valueOf() > options.dateEnd.valueOf())) {
-          alert('Параметры поиска заданы неверно.');
-          return false;
-        }
-        return true;
-      },
-
       getSearchOptions: function() {
-        var scanexSatellites = null,
-        rlSheets = null,
-        rlImages = null,
-        useDate = false;
-        // this._satellitesList.find(':enabled:checked').each(function() {
-        //   var satellite = nsCatalog.Helpers.ScanexCatalogHelper.satellites[$(this).val()-0];
-        //   // if (satellite.source == 'catalog') catalogSatellites.push(satellite.id);
-        //   // if (satellite.source == 'search') searchSatellites.push(satellite.id);
-        //   if (satellite.source == 'scanex') scanexSatellites = satellite.source;
-        //   if (satellite.source == 'rl_sheets') rlSheets = satellite.source;
-        //   if (satellite.source == 'rl_images') rlImages = satellite.source;
-        //   useDate = !!satellite.useDate;
-        // });
-        var options = {
+        return {
           queryType: 'box',
           dateStart: this._tryParseDate(this._startDate.val()),
           dateEnd: this._tryParseDate(this._endDate.val()),
           isYearly: this._yearly[0].checked,
           cloudCover: this._cloudCover.slider('value')
-          //, scanexSatellites: scanexSatellites,
-          // rlSheets: rlSheets,
-          // rlImages: rlImages,
-          // useDate: useDate
         };
-        return this._validateSearchOptions(options) ? options : null;
       },
 
-      set_searchCriteria: function(data){
+      setSearchOptions: function(data){
         var searchCriteria = data.searchCriteria;
         if(searchCriteria.dateStart) {
-          $(this._startDate).datepicker('setDate',new Date(searchCriteria.dateStart));
+          $(this._startDate).datepicker('setDate', new Date(searchCriteria.dateStart));
         }
         if(searchCriteria.dateEnd) {
-          $(this._endDate).datepicker('setDate',new Date(searchCriteria.dateEnd));
+          $(this._endDate).datepicker('setDate', new Date(searchCriteria.dateEnd));
         }
         this._yearly.prop('checked', searchCriteria.isYearly);
         $(this._cloudCover).slider('value',searchCriteria.cloudCover);
         var source = null;
         var sources = $('.satellites-column input[type="checkbox"]');
-        if(searchCriteria.scanexSatellites && data.searchSatellites){
-          $(sources.get(0)).prop('checked', true);
-          source = nsCatalog.Helpers.ScanexCatalogHelper.findSatelliteById(searchCriteria.scanexSatellites);
-          for (var id in source.options.items){
-            var sat = source.options.items[id];
-            if(sat.id == 'SPOT 5'){
-              sat.checked = (data.searchSatellites.indexOf(sat.id) >= 0) && (searchCriteria.spot5products.indexOf(sat.product.toString()) >= 0);
-            }
-            else {
-              sat.checked = data.searchSatellites.indexOf(sat.id) >= 0;
-            }
+
+        var ds = data.dataSources;
+        Object.keys(this._dataSources).forEach(function(s){
+          var d = this._dataSources[s];
+          d.checked = ds.hasOwnProperty(s);
+          if(d.checked){
+            Object.keys(d.satellites).forEach(function(k){
+              d.satellites[k].checked = ds[s].indexOf(k) >= 0;
+            });
           }
-        }
-        if(searchCriteria.rlImages && data.rlImages){
-          $(sources.get(1)).prop('checked', true);
-          source = nsCatalog.Helpers.ScanexCatalogHelper.findSatelliteById(searchCriteria.rlImages);
-          for (var id in source.options.items){
-            var sat = source.options.items[id];
-            sat.checked = data.rlImages.indexOf(sat.id) >= 0;
-          }
-        }
-        if(searchCriteria.rlSheets && data.rlSheets){
-          $(sources.get(2)).prop('checked', true);
-          source = nsCatalog.Helpers.ScanexCatalogHelper.findSatelliteById(searchCriteria.rlSheets);
-          source.options.range = data.rlSheets;
-        }
+        }.bind(this));
+
+        this.updateDataSources();        
       },
 
       _tryParseDate: function(value) {

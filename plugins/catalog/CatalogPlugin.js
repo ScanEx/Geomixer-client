@@ -36,22 +36,11 @@ var nsCatalog = nsCatalog || {};
 	var scripts = [
 		'js/AppCode/Extensions.js',
 		'js/AppCode/DelegatesChain.js',
-		'js/AppCode/Helpers/ScanexCatalogHelper.js',
-		'js/DataSources/BaseDataAdapter.js',
 		'js/DataSources/BaseDataSource.js',
 		'js/DataSources/InternalDataSource.js',
 		'js/DataSources/ExternalDataSource.js',
-		// 'js/AppCode/UrlDataProvider.js',
-		// 'js/AppCode/DataAdapters/BaseDataAdapter.js',
-		// 'js/AppCode/DataAdapters/CatalogDataAdapter.js',
-		// 'js/AppCode/DataAdapters/SearchDataAdapter.js',
-		// 'js/AppCode/DataAdapters/RLImagesDataAdapter.js',
-		// 'js/AppCode/DataAdapters/RLSheetsDataAdapter.js',
-		// 'js/AppCode/UrlProviders/CatalogUrlProvider.js',
-		// 'js/AppCode/UrlProviders/SearchUrlProvider.js',
-		// 'js/AppCode/UrlProviders/RLImagesUrlProvider.js',
-		// 'js/AppCode/UrlProviders/RLSheetsUrlProvider.js',
-		'js/AppCode/Helpers/TreeHelper.js',
+		'js/DataSources/RLImagesDataSource.js',
+		'js/DataSources/RLSheetsDataSource.js',
 		'js/AppCode/Helpers/MapObjectsHelper.js',
 		'js/AppCode/ShapeFileController.js',
 		'js/AppCode/Popover/popover.js',
@@ -80,6 +69,7 @@ var nsCatalog = nsCatalog || {};
 		'js/Controls/SearchOptionsView/SearchOptionsView.css',
 		'js/Controls/SelectedImagesList/SelectedImagesList.css',
 		'js/Controls/SearchResultsView/SearchResultsView.css',
+		'js/Controls/TreeView/TreeView.css',
 		'js/AppCode/Popover/popover.css',
 		'js/Controls/RangeControl/RangeControl.css'
 	];
@@ -99,8 +89,13 @@ var nsCatalog = nsCatalog || {};
 					{position: 'left', insertBefore: false, addBefore: 'hide'});
 
 				nsCatalog.DataSources = {};
-				nsCatalog.DataSources.InternalDataSource = new nsCatalog.InternalDataSource(nsGmx.leafletMap, nsCatalog.ResultList);
-				nsCatalog.DataSources.ExternalDataSource = new nsCatalog.ExternalDataSource(nsGmx.leafletMap, nsCatalog.ResultList);
+
+				if(userInfo.Role == 'scanex'){
+					nsCatalog.DataSources.InternalDataSource = new nsCatalog.InternalDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
+					nsCatalog.DataSources.RLImagesDataSource = new nsCatalog.RLImagesDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
+					nsCatalog.DataSources.RLSheetsDataSource = new nsCatalog.RLSheetsDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
+				}
+				nsCatalog.DataSources.ExternalDataSource = new nsCatalog.ExternalDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
 
 				nsCatalog.CatalogPage = new nsCatalog.Controls.CatalogPage(
 					oLeftMenu.workCanvas, nsGmx.leafletMap, nsCatalog.MapHelper, nsCatalog.TreeHelper,
