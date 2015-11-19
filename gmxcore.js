@@ -97,7 +97,6 @@ var gmxCore = function()
     var publicInterface = 
     /** @lends gmxCore */
     {
-    
         /** Добавить новый модуль
         * @param {String} moduleName Уникальное имя модуля
         * @param {Object|Function} moduleObj Тело модуля или ф-ция, возвращающая тело. Аргумент ф-ции - путь к модулю. Будет вызвана после загрузки всех зависимостей.
@@ -234,6 +233,15 @@ var gmxCore = function()
 		{
 			_modulesDefaultHost = defaultHost;
 		},
+        
+        /** Явно задать полный путь к модулю
+        * @param {String} moduleName Имя модуля
+        * @param {String} defaultHost Путь к файлу модулю. При загрузке модуля будет загружен файл по указанному пути
+        */
+        setModuleFile: function(moduleName, moduleFile)
+        {
+            _moduleFiles[moduleName] = moduleFile;
+        },
 		
         pushModule2GlobalNamespace: function(moduleName)
         {
