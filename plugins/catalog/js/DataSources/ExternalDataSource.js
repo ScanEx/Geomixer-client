@@ -6,7 +6,31 @@ var nsCatalog = nsCatalog || {};
     nsCatalog.InternalDataSource.call(this, mapHelper, resultView);
     this.id = 'external';
     this.title = 'Глобальные данные';
+    this.anchorTransform = {
+      'LS_8': function(x1,y1,x2,y2,x3,y3,x4,y4){
+        var _x1 = Math.min(x1, x2, x3, x4), _x4 = _x1;
+        var _x2 = Math.max(x1, x2, x3, x4), _x3 = _x2;
+        var _y3 = Math.min(y1, y2, y3, y4), _y4 = _y3;
+        var _y1 = Math.max(y1, y2, y3, y4), _y2 = _y1;
+        return [[_x1, _y1], [_x2, _y2], [_x3, _y3], [_x4, _y4]];
+      },
+      'RE': function(x1,y1,x2,y2,x3,y3,x4,y4){
+        return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
+      }
+    };
+    delete this.satellites['EROS-A'];
+    delete this.satellites['EROS-B'];
     this.satellites['Pleiades'].platforms = ['PHR1A','PHR1B'];
+    this.satellites['LANDSAT_8'] = {
+      platforms: ['LANDSAT_8'], name: 'LANDSAT 8',
+      resolution: 15, color: 0x0000ff, checked: true,
+      anchorTransform: this.anchorTransform['LS_8']
+    };
+    // this.satellites['RE'] = {
+    //   platforms: ['RE'], name: 'RapidEye',
+    //   resolution: 15, color: 0xff4500, checked: true,
+    //   anchorTransform: this.anchorTransform['RE']
+    // };
   };
 
   DataSource.prototype = Object.create(nsCatalog.InternalDataSource.prototype);

@@ -59,19 +59,20 @@ var nsCatalog = nsCatalog || {};
     return objects;
   };
 
-  DataAdapter.prototype.setResults = function(result, targetNode, extent) {
+  DataAdapter.prototype.setResults = function(result, targetNode, dataSourceName) {
     var satNodes = {};
     var data = this._fromResult(result);
+    var dataSourceFolder = this._ensureFolderNode(targetNode, dataSourceName);
   	for (var i = 0, len = data.length; i < len; i++) {
   		var item = data[i];
   		if (!item) continue;
   		var date = new Date(item.acqdate + 'T' + item.acqtime);
       item['date'] = date;
   		var source = this.getSatellite(item.platform);
-  		var folderNode = this._ensureSatelliteFolderNode(targetNode, source.name, L.gmxUtil.dec2hex(source.color), source);
+  		var folderNode = this._ensureSatelliteFolderNode(dataSourceFolder, source.name, L.gmxUtil.dec2hex(source.color), source);
   		if (!satNodes[source.name]) {
   			satNodes[source.name] = folderNode;
-  			folderNode.data.extent = extent;
+  			// folderNode.data.extent = extent;
   			folderNode.data.size = 0;
   		}
   		folderNode.data.size += 1;

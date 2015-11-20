@@ -76,7 +76,7 @@ var nsCatalog = nsCatalog || {};
 
 	getUserInfo().done(function(userInfo){
 
-		var loadPlugin = function(){
+		var loadPlugin = function(params){
 			var alreadyLoaded = oLeftMenu.createWorkCanvas("catalog", unloadMenu);
 			if (!alreadyLoaded){
 
@@ -92,10 +92,21 @@ var nsCatalog = nsCatalog || {};
 
 				if(userInfo.Role == 'scanex'){
 					nsCatalog.DataSources.InternalDataSource = new nsCatalog.InternalDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
-					nsCatalog.DataSources.RLImagesDataSource = new nsCatalog.RLImagesDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
-					nsCatalog.DataSources.RLSheetsDataSource = new nsCatalog.RLSheetsDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
 				}
 				nsCatalog.DataSources.ExternalDataSource = new nsCatalog.ExternalDataSource(nsCatalog.MapHelper, nsCatalog.ResultList);
+				if(params && params.dataSources){
+					var dataSources =
+						Array.isArray(params.dataSources) ?
+							params.dataSources :
+							typeof params.dataSources == 'string' ?
+								[params.dataSources] :
+								[];
+
+					 dataSources.forEach(function(x){
+					 	eval('var ds = new nsCatalog.' + x + '(nsCatalog.MapHelper, nsCatalog.ResultList);');
+						nsCatalog.DataSources[x] = ds;
+					});
+				}
 
 				nsCatalog.CatalogPage = new nsCatalog.Controls.CatalogPage(
 					oLeftMenu.workCanvas, nsGmx.leafletMap, nsCatalog.MapHelper, nsCatalog.TreeHelper,
@@ -109,7 +120,7 @@ var nsCatalog = nsCatalog || {};
 
 		var publicInterface = {
 			pluginName: 'ScanEx catalog',
-			afterViewer: function(map, params) {
+			afterViewer: function(params, map) {
 				// var waitingDialog = new nsCatalog.Controls.LoaderDialogController();
 				// waitingDialog.open('Загрузка', 'Загрузка скриптов...');
 				// waitingDialog.setMessage('Почти готово...');
@@ -130,7 +141,7 @@ var nsCatalog = nsCatalog || {};
 						name: 'Catalog',
 						loadState: function(state) {
 							if(state || state.nodes || state.searchOptions) {
-								loadPlugin();
+								loadPlugin(params);
 								nsCatalog.Permalink.fromPermalink(state);
 							}
 						},
@@ -138,7 +149,7 @@ var nsCatalog = nsCatalog || {};
 							return nsCatalog.Permalink.toPermalink();
 						}
 					});
-					loadPlugin();
+					loadPlugin(params);
 				});
 			},
 			unload: function() {
