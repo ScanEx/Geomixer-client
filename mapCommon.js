@@ -95,127 +95,52 @@
 		//    onAfterGenerate: function(). Вызывается непосредственно после генерации кода
 		createAPIMapDialog: function(mapName, hostName, options)
 		{
-			_translationsHash.addtext("rus", {
-    								  	"Создать" : "Создать",
-										"Получить API-ключ" : "Получить API-ключ",
-										"Введите API-ключ" : "Введите API-ключ",
-										"Код для вставки" : "Код для вставки карты",
-										"Согласен с " : "Согласен с ",
-										"Пользовательским соглашением" : "Пользовательским соглашением"
-								     });
-									 
-			_translationsHash.addtext("eng", {
-    								  	"Создать" : "Create",
-										"Получить API-ключ" : "Get API-key",
-										"Введите API-ключ" : "Enter API-key",
-										"Код для вставки" : "Embed code",
-										"Согласен с " : "Aggree with ",
-										"Пользовательским соглашением" : "Terms of usage"
-								     });
-			
-			var requestAPIKey = options && 'requestAPIKey' in options ? options.requestAPIKey : true;
-			var requestTerms = options && 'requestTerms' in options ? options.requestTerms : false;
+            var mapProps = nsGmx.gmxMap.properties,
+                lmap = nsGmx.leafletMap,
+                center = lmap.getCenter(),
+                layersState = {expanded: {}, visible: {}};
+                
+            _layersTree.treeModel.forEachNode(function(elem) {
+                var props = elem.content.properties;
+                if (elem.type == 'group') {
+                    var groupId = props.GroupID;
 
-			var input = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
-				button = makeButton(_gtxt("Создать")),
-				getAPI = makeLinkButton(_gtxt("Получить API-ключ")),
-				mapTextArea = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]),
-				canvas = _div([_span([_div([_span([_t(_gtxt("Введите API-ключ"))],[['css','fontSize','12px'],['css','margin','0px 7px']]), getAPI, _div([input, button], [['css','margin','10px 0px 10px 5px']])])], [['attr', 'id', 'embedCodeControls'], ['css', 'display', 'block']]), mapTextArea]),
-				resize = function()
-				{
-					mapTextArea.style.height = mapTextArea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 15 + 'px';
-				},
-				boxTerms = null,
-				_this = this;
-				
-			if (requestTerms)
-			{
-				boxTerms = _checkbox(false, "checkbox");
-				var divTerms = _div([boxTerms, _span([_t(_gtxt("Согласен с "))], [['css','fontSize','12px'], ['css','marginLeft','3px']]), _a([_t(_gtxt("Пользовательским соглашением"))], [['attr', 'href', options.termsURL], ['attr', 'target', '_blank'], ['css','fontSize','12px']])], [['css', 'margin', '3px']]);
-					
-				boxTerms.onclick = function()
-				{
-					button.disabled = !this.checked;
-				}
-				
-				button.disabled = true;
-					
-				$('#embedCodeControls', canvas).append(divTerms);
-			}
-			
-			var creationOptions = {};
-			if (options && options.defaultLayersVisibility) 
-				creationOptions.defaultLayersVisibility = options.defaultLayersVisibility;
-				
-			if (options && options.saveBaseLayers)
-				creationOptions.saveBaseLayers = options.saveBaseLayers;
-				
-			var _generate = function(keyValue)
-			{
-				removeChilds(mapTextArea);
-				
-				if (keyValue)
-					creationOptions['apiKey'] = keyValue;
-				
-				if (options && options.onBeforeGenerate) options.onBeforeGenerate();
-				
-				mapTextArea.value = nsMapCommon.createAPIMap(mapName, hostName, creationOptions);
-				
-				if (options && options.onAfterGenerate) options.onAfterGenerate();
-				
-				mapTextArea.select();
-				
-				if (boxTerms) boxTerms.disabled = true;			
-			}
-			
-			if ( !requestAPIKey )
-			{
-				canvas.firstChild.style.display = 'none';
-				
-				showDialog(_gtxt("Код для вставки"), canvas, 325, 240, false, false, resize);
-				resize();
-				
-				//mapTextArea.value = nsMapCommon.createAPIMap(mapName, hostName, creationOptions);
-				//mapTextArea.select();
-				_generate();
-			}
-			else
-			{
-				getAPI.onclick = function()
-				{
-					window.open("http://my.kosmosnimki.ru", "_blank");
-				}
-				
-				input.onkeydown = function(e)
-				{
-					var evt = e || window.event;
-					if (getkey(evt) == 13) 
-					{
-						if (input.value != '')
-							_generate(input.value);
-						else
-							inputError(input);
-						
-						return false;
-					}
-				}
-				
-				button.onclick = function()
-				{
-					if (input.value != '')
-					{
-						_generate(input.value);
-					}
-					else
-						inputError(input);
-				}
-				
-				getAPI.style.marginLeft = '5px';
-				
-				showDialog(_gtxt("Код для вставки"), canvas, 325, 240, false, false, resize);
-				
-				resize();
-			}
+                    if ($("div[GroupID='" + groupId + "']").length || props.changedByViewer) {
+                        layersState.expanded[groupId] = props.expanded;
+                    }
+                } else {
+                    if (props.changedByViewer) {
+                        layersState.visible[props.name] = props.visible;
+                    }
+                }
+            });
+                
+                
+            
+            var config = {
+                app: {
+                    gmxMap: {
+                        mapID: mapProps.name
+                    }
+                },
+                state: {
+                    map: {
+                        position: {
+                            x: center.lng,
+                            y: center.lat,
+                            z: lmap.getZoom()
+                        }
+                    },
+                    calendar: nsGmx.widgets.commonCalendar.get().saveState(),
+                    drawingManager: lmap.gmxDrawing.saveState(),
+                    baseLayersManager: lmap.gmxBaseLayersManager.saveState(),
+                    layersTree: layersState
+                }
+            }
+            
+            nsGmx.Utils.TinyReference.create(config).then(function(id) {
+                console.log('http://winnie.kosmosnimki.ru/viewer.html?config=' + id);
+            })
 		},
 		/**
 		* Выбирает данные из дерева слоёв по описанию слоёв и групп
