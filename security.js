@@ -1,6 +1,8 @@
 var nsGmx = nsGmx || {};
 
 (function() {
+    
+'use strict';
 
 var SHARE_TYPES = ['public', 'private'];
 
@@ -40,28 +42,18 @@ nsGmx.Translations.addText('eng', {security: {
     addOkText: 'Add'
 }});
 
-//делает запрос на сервер и возвращает список пользователей по запросу query
-var findUsers = function(query, maxRecords) {
-    var def = new L.gmx.Deferred();
-    var maxRecordsParamStr = maxRecords ? '&maxRecords=' + maxRecords : '';
-    sendCrossDomainJSONRequest(serverBase + 'User/FindUser?query=' + encodeURIComponent(query) + maxRecordsParamStr, function(response) {
-        if (!parseResponse(response)) {
-            def.reject(response);
-            return;
-        }
-        
-        def.resolve(response.Result);
-    })
-    
-    return def;
-}
-
 var usersHash = {};
 
-var automplateLabelTemplate = Handlebars.compile('{{Nickname}}{{#if Login}}\u00A0({{Login}}){{/if}}');
+var autocompleteLabelTemplate = Handlebars.compile(
+    '<a class="security-autocomplete-item">' +
+    '{{#if showIcon}}<span class="{{#if IsGroup}}security-group-icon{{else}}security-user-icon{{/if}}"></span>{{/if}}' +
+        '<span>{{Nickname}}{{#if Login}}\u00A0({{Login}}){{/if}}</span>' +
+    '</a>'
+);
+
 //на input вешается autocomplete со списком пользователей.
 //кроме того, по нажатию enter происходит генерация события enterpress
-var wrapUserListInput = function(input) {
+var wrapUserListInput = function(input, options) {
     input.on('keydown', function(event) {
         if (event.keyCode === 13) {
             //setTimeout нужен чтобы autocomplete не дописывал выбранное значение в input после того, как мы его очистим
@@ -72,14 +64,22 @@ var wrapUserListInput = function(input) {
     });
     input.autocomplete({
         source: function(request, cbResponse) {
-            findUsers(request.term, 10).then(function(userInfos) {
+            security.findUsers(request.term, {maxRecords: 10, type: options && options.type}).then(function(userInfos) {
                 cbResponse(userInfos.map(function(userInfo) {
                     usersHash[userInfo.Nickname] = userInfo;
-                    return {value: userInfo.Nickname, label: automplateLabelTemplate(userInfo)};
+                    return {value: userInfo.Nickname, label: ''};
                 }));
             }, cbResponse.bind(null, []));
         }
     });
+    
+    $(input).data("ui-autocomplete")._renderItem = function(ul, item) {
+        var userInfo = usersHash[item.value],
+            templateParams = $.extend({showIcon: options && options.showIcon}, userInfo);
+        return $('<li></li>')
+            .append($(autocompleteLabelTemplate(templateParams)))
+            .appendTo(ul);
+    }
 }
 
 var SecurityOwnerWidget = function(securityInfo, container) {
@@ -102,7 +102,7 @@ var SecurityOwnerWidget = function(securityInfo, container) {
         $('.security-owner-ok', ui).click();
     });
     
-    wrapUserListInput(ownerAddInput);
+    wrapUserListInput(ownerAddInput, {type: 'User'});
     
     $('.security-owner-ok', ui).click(function() {
         var input = $('.security-owner-input', ui),
@@ -117,7 +117,7 @@ var SecurityOwnerWidget = function(securityInfo, container) {
         if (name in usersHash) {
             doChangeUser(usersHash[name]);
         } else {
-            findUsers(name, 1).then(function(userInfos) {
+            security.findUsers(name, {maxRecords: 1}).then(function(userInfos) {
                 if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
                     doChangeUser(userInfos[0]);
                 } else {
@@ -177,7 +177,7 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
     addInput.on('enterpress', function() {
         $('.security-add-ok', ui).click();
     })
-    wrapUserListInput(addInput);
+    wrapUserListInput(addInput, {showIcon: true});
     
     $('.security-add-ok', ui).click(function() {
         var input = $('.security-add-input', ui),
@@ -197,7 +197,7 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
         if (name in usersHash) {
             doAddUser(usersHash[name]);
         } else {
-            findUsers(name, 1).then(function(userInfos) {
+            security.findUsers(name, {maxRecords: 1}).then(function(userInfos) {
                 //TODO: обработать ситуацию, когда пользователь вводит email
                 if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
                     doAddUser(userInfos[0]);
@@ -224,8 +224,11 @@ SecurityUserListWidget.prototype.updateHeight = function(height) {
 
 SecurityUserListWidget._userRowTemplate = Handlebars.compile(
     '<tr>' +
-        '<td><div class="security-row-nickname">{{Nickname}}</div></td>' +
-        '<td><div class="security-row-fullname">{{Fullname}}</div></td>' +
+        '<td class="security-row-nickname">' +
+            '<span class="{{#if IsGroup}}security-group-icon{{else}}security-user-icon{{/if}}"></span>' +
+            '<span title="{{Nickname}}">{{Nickname}}</span>' +
+        '</td>' +
+        '<td><div class="security-row-fullname" title="{{Fullname}}">{{Fullname}}</div></td>' +
         '<td><select class="selectStyle security-row-access">{{#access}}' +
             '<option value = "{{value}}"{{#if selected}} selected{{/if}}>{{title}}</option>' +
         '{{/access}}</select></td>' +
@@ -237,7 +240,8 @@ SecurityUserListWidget._drawMapUsers = function(user, securityScope)
 {
     var ui = $(SecurityUserListWidget._userRowTemplate({
         Nickname: user.Nickname,
-        Fullname: user.FullName,
+        Fullname: user[user.IsGroup ? 'Description' : 'FullName'],
+        IsGroup: user.IsGroup,
         access: securityScope.options.accessTypes
             .filter(function(type) {return type !== 'no';})
             .map(function(type) {
@@ -446,7 +450,10 @@ security.prototype.createSecurityDialog = function(securityInfo, options)
         _this._save();
     });
     
-    new SecurityOwnerWidget(securityInfo.SecurityInfo, $('.security-owner-placeholder', canvas));
+    if (options.showOwner) {
+        new SecurityOwnerWidget(securityInfo.SecurityInfo, $('.security-owner-placeholder', canvas));
+    }
+    
     this.securityUserListWidget = new SecurityUserListWidget(securityInfo.SecurityInfo, $('.security-userlist-placeholder', canvas), {accessTypes: this.accessTypes});
     
     var resize = function()
@@ -467,6 +474,24 @@ security.prototype.createSecurityDialog = function(securityInfo, options)
     this._dialogDiv = showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
     
     resize();
+}
+
+//делает запрос на сервер и возвращает список пользователей по запросу query
+//options = {maxRecords, type}; type: All / User / Group
+security.findUsers = function(query, options) {
+    var def = new L.gmx.Deferred();
+    var maxRecordsParamStr = options && options.maxRecords ? '&maxRecords=' + options.maxRecords : '';
+    var typeParamStr = '&type=' + (options && options.type || 'All');
+    sendCrossDomainJSONRequest(serverBase + 'User/FindUser?query=' + encodeURIComponent(query) + maxRecordsParamStr + typeParamStr, function(response) {
+        if (!parseResponse(response)) {
+            def.reject(response);
+            return;
+        }
+        
+        def.resolve(response.Result);
+    })
+    
+    return def;
 }
 
 nsGmx.mapSecurity = mapSecurity;

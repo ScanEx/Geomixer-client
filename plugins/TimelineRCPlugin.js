@@ -50,25 +50,15 @@ var TimelineData = Backbone.Model.extend({
         mapMode: 'selected'     //selected, range, none
     },
     
-    _defaultDateFunction: function(layer, obj) {
-        var props = layer.getGmxProperties(),
-            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
-        
-        return new Date(obj.properties[index]*1000);
-    },
-    
-    _defaultFilterFunction: function(layer, startDate, endDate) {
-        layer.setDateInterval(startDate, endDate);
-    },
-    
     bindLayer: function(layer, options) {
         options = options || {};
         var layerName = options.layerName || layer.getGmxProperties().name || L.stamp(layer);
         var newLayerInfo = {
             layer: layer,
             name: layerName,
-            dateFunction: options.dateFunction || this._defaultDateFunction,
-            filterFunction: options.filterFunction || this._defaultFilterFunction,
+            dateFunction: options.dateFunction || TimelineData._defaultDateFunction,
+            filterFunction: options.filterFunction || TimelineData._defaultFilterFunction,
+            selectFunction: options.selectFunction || TimelineData._defaultSelectFunction,
             trackVisibility: 'trackVisibility' in options ? !!options.trackVisibility : true
         }
         this.trigger('preBindLayer', newLayerInfo);
@@ -98,6 +88,43 @@ var TimelineData = Backbone.Model.extend({
         filters.push(filterFunc);
         this.set('userFilters', filters);
     }
+}, {
+    _defaultDateFunction: function(layer, obj) {
+        var props = layer.getGmxProperties(),
+            index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
+        
+        return new Date(obj.properties[index]*1000);
+    },
+    
+    _defaultSelectFunction: function(layer, layerSelection) {
+        if (layerSelection) {
+            var minValue = Number.POSITIVE_INFINITY,
+                maxValue = Number.NEGATIVE_INFINITY;
+                
+            var ids = {};
+                
+            var interval = layerSelection.forEach(function(s) {
+                minValue = Math.min(minValue, s.date);
+                maxValue = Math.max(maxValue, s.date);
+                ids[s.id] = true;
+            });
+            
+            layer.setDateInterval(new Date(minValue), new Date(maxValue));
+            
+            layer.setFilter(function(elem) {
+                return elem.id in ids;
+            });
+        }
+        else
+        {
+            layer.setDateInterval();
+        }
+    },
+    
+    _defaultFilterFunction: function(layer, startDate, endDate) {
+        layer.setDateInterval(startDate, endDate);
+        layer.removeFilter();
+    }
 })
 
 var MapController = function(data) {
@@ -118,35 +145,7 @@ var MapController = function(data) {
             var selection = data.get('selection');
             
             (layers || data.get('layers')).forEach(function(layerInfo) {
-                var layerName = layerInfo.name,
-                    layer = layerInfo.layer,
-                    props = layer.getGmxProperties(),
-                    temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
-                    
-                if (layerName in selection)
-                {
-                    var minValue = Number.POSITIVE_INFINITY,
-                        maxValue = Number.NEGATIVE_INFINITY;
-                        
-                    var ids = {};
-                        
-                    var interval = selection[layerName].forEach(function(s) {
-                        minValue = Math.min(minValue, s.date);
-                        maxValue = Math.max(maxValue, s.date);
-                        ids[s.id] = true;
-                    });
-                    
-                    layer.setDateInterval(new Date(minValue), new Date(maxValue));
-                    
-                    layer.setFilter(function(elem) {
-                        return elem.id in ids;
-                    });
-                    
-                }
-                else
-                {
-                    layer.setDateInterval();
-                }
+                layerInfo.selectFunction(layerInfo.layer, selection[layerInfo.name]);
             })
         },
         
@@ -184,7 +183,9 @@ var TimelineController = function(data, map, options) {
     options = $.extend({
         showModeControl: true,
         showSelectionControl: true,
-        showCalendar: true
+        showCalendar: true,
+        position: 'topright',
+        hideWithoutActiveLayers: false
     }, options);
     
     function isPointInPoly(poly, pt){
@@ -200,7 +201,7 @@ var TimelineController = function(data, map, options) {
     var timelineOptions = {
         style: "line",
         start: new Date(2010, 0, 1),
-        end: new Date(2013, 5, 1),
+        end: new Date(),
         width: "100%",
         height: "85px",
         style: "line"
@@ -234,6 +235,18 @@ var TimelineController = function(data, map, options) {
         }
         
         return null;
+    }
+    
+    var updateTimelineVisibility = function() {
+        if (options.hideWithoutActiveLayers) {
+            for (var i in layerObservers) {
+                if (layerObservers[i].isActive()) {
+                    container.show();
+                    return;
+                }
+            }
+            container.hide();
+        }
     }
     
     var modeFilters = {
@@ -304,11 +317,13 @@ var TimelineController = function(data, map, options) {
                 delete items[layerName][id].timelineItem;
             }
             
+            updateTimelineVisibility();
             return;
         } else {
             layerObservers[layerName].activate();
+            updateTimelineVisibility();
         }
-
+        
         var deletedCount = 0;
         for (var i in items[layerName])
         {
@@ -342,7 +357,7 @@ var TimelineController = function(data, map, options) {
                 
                 elemsToAdd.push({
                     start: date,
-                    content: content + '|' + obj.id,
+                    content: content,
                     userdata: {objID: obj.id, layerName: layerName}
                 });
             }
@@ -457,10 +472,19 @@ var TimelineController = function(data, map, options) {
         
     var createTimelineLazy = function()
     {
-        //TODO: отнаследоваться от L.Control
         if (timeline) return;
         
-        $('#flash').append(container[0]);
+        var LeafletTimelineControl = L.Control.extend({
+            onAdd: function() {
+                return this.options.timelineContainer;
+            },
+            onRemove: function() {}
+        });
+        
+        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: options.position, timelineContainer: container[0]}));
+        
+        //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
+        container.parent().prepend(container);
         
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
@@ -698,8 +722,10 @@ var TimelineController = function(data, map, options) {
             },
             bounds: getObserversBbox(),
             dateInterval: [dateBegin, dateEnd],
-            active: !!layer._map
+            active: !!layer._map || !layerInfo.trackVisibility
         });
+        
+        updateTimelineVisibility();
     });
     
     map.on('layeradd layerremove', function(event) {
@@ -716,6 +742,7 @@ var TimelineController = function(data, map, options) {
         deleteLayerItemsFromTimeline(layerName);
         var items = data.get('items');
         delete items[layerName];
+        updateTimelineVisibility();
     });
     
     data.on('change:range', function(){
@@ -765,12 +792,12 @@ var TimelineController = function(data, map, options) {
  * @memberOf nsGmx
  * @param {L.Map} map Текущая Leaflet карта
 */
-var TimelineControl = function(map) {
+var TimelineControl = function(map, options) {
     var data = new TimelineData();
     this.data = data;
     
     var mapController = new MapController(data);
-    var timelineController = new TimelineController(data, map);
+    var timelineController = new TimelineController(data, map, options);
     
     /** Добавить векторный мультивременной слой на таймлайн
      * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
@@ -888,17 +915,11 @@ var publicInterface = {
     beforeViewer: function(params, map) {
         if (!map) return;
         
-        nsGmx.timelineControl = new TimelineControl(map);
+        nsGmx.timelineControl = new TimelineControl(map, {hideWithoutActiveLayers: true});
     },
 	afterViewer: function(params, map)
     {
         if (!map) return;
-        
-        /*map.addListener('onToolsMinimized', function(isMinimised) {
-            nsGmx.timelineControl.toggleVisibility(!isMinimised);
-        })*/
-        
-        //nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
         
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() { return _gtxt("timeline.contextMemuTitle"); },
@@ -914,7 +935,8 @@ var publicInterface = {
                 nsGmx.timelineControl.bindLayer(nsGmx.gmxMap.layersByID[context.elem.name]);
             }
         }, 'Layer');
-    }
+    },
+    TimelineData: TimelineData
 }
 
 gmxCore.addModule("TimelineRCPlugin", publicInterface, {

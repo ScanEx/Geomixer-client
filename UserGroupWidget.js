@@ -44,24 +44,6 @@ var GroupList = Backbone.Collection.extend({
     model: Group
 });
 
-//делает запрос на сервер и возвращает список пользователей по запросу query
-//options = {maxRecords, type}; type: All / User / Group
-var findUsers = function(query, options) {
-    var def = new L.gmx.Deferred();
-    var maxRecordsParamStr = options && options.maxRecords ? '&maxRecords=' + maxRecords : '';
-    var typeParamStr = '&type=' + (options && options.type || 'All');
-    sendCrossDomainJSONRequest(serverBase + 'User/FindUser?query=' + encodeURIComponent(query) + maxRecordsParamStr + typeParamStr, function(response) {
-        if (!parseResponse(response)) {
-            def.reject(response);
-            return;
-        }
-        
-        def.resolve(response.Result);
-    })
-    
-    return def;
-}
-
 var GroupListView = Backbone.View.extend({
     template: Handlebars.compile(
         '<table class="uglw-table">' +
@@ -158,7 +140,7 @@ nsGmx.UserGroupListWidget = function(container) {
     });
     
     var refilterUsers = function() {
-        findUsers(ui.find('.uglw-filter-input').val(), {type: 'Group'}).then(function(users) {
+        nsGmx.security.findUsers(ui.find('.uglw-filter-input').val(), {type: 'Group'}).then(function(users) {
             groupList.reset(users);
         })
     }

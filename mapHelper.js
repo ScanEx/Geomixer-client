@@ -23,7 +23,7 @@ var mapHelper = function()
 	
 	this.defaultStyles = 
 	{
-		'point':{outline:{color:0x0000FF, thickness:1},marker:{size:3}, fill:{color:0xFFFFFF, opacity:20}},
+		'point':{outline:{color:0x0000FF, thickness:1},marker:{size:8}, fill:{color:0xFFFFFF, opacity:20}},
 		'linestring':{outline:{color:0x0000FF, thickness:1}},
 		'polygon':{outline:{color:0x0000FF, thickness:1}, fill:{color:0xFFFFFF, opacity:20}}
 	}
@@ -689,7 +689,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
     var _params = $.extend({addTitle: true}, params);
 	var icon;
 	
-	if (isArray(parentStyles) && parentStyles.length > 1)
+	if ($.isArray(parentStyles) && parentStyles.length > 1)
 		icon =  _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
 	else 
 	{

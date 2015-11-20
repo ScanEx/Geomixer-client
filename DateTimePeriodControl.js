@@ -175,7 +175,7 @@ var Calendar = function(name, params)
 	 */
     this.setDates = function(dateBegin, dateEnd) {
         this.setDateBegin(dateBegin, true);
-        this.setDateBegin(dateEnd);
+        this.setDateEnd(dateEnd);
     }
 	
 	/** Получить верхнюю границу возможных дат периода

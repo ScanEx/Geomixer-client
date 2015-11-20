@@ -489,7 +489,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
                         '<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>' + 
                     '</div>' +
                 '{{/showMinimizeButton}}' +
-                '<table class="leftmenu-path">{{{pathTR}}}</table>' +
+                '<table class="leftmenu-path ui-helper-noselect">{{{pathTR}}}</table>' +
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
@@ -512,13 +512,34 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     */
     this.close = options.closeFunc;
 
-    var _this = this;
+    var isUICollapsed = false,
+        _this = this;
+    
+    var toggleContentVisibility = function(isCollapsed) {
+        if (isUICollapsed !== isCollapsed) {
+            isUICollapsed = !isUICollapsed;
+            $(_this.workCanvas).toggle();
+            $(_this.panelCanvas).find('.leftmenu-toggle-zone div').toggleClass('leftmenu-down-icon leftmenu-right-icon');
+            $(_this).trigger('changeVisibility');
+        }
+    }
 
-    $('.leftmenu-toggle-zone', this.panelCanvas).click(function() {
-        $(_this.workCanvas).toggle();
-        $(this).find('div').toggleClass('leftmenu-down-icon leftmenu-right-icon');
-        $(_this).trigger('changeVisibility');
+    $('.leftmenu-toggle-zone, .leftmenu-path', this.panelCanvas).click(function() {
+        toggleContentVisibility(!isUICollapsed);
     });
+    
+    /** Свернуть панель
+        @function
+    */
+    this.hide = toggleContentVisibility.bind(null, true);
+    
+    /** Развернуть панель
+        @function
+    */
+    this.show = toggleContentVisibility.bind(null, false);
+    
+    /** Свёрнута ли панель */
+    this.isCollapsed = function() {return isUICollapsed};
 
     $('.leftTitle .gmx-icon-close',  this.panelCanvas).click(options.closeFunc);
 
@@ -568,13 +589,13 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
         var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, options);
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
+        this.leftPanelItem = leftPanelItem;
+        
+        // так как мы используем dom элементы для поиска панелей после первого добавления
+        // возможно, лучше сделать полноценный менеджер панелей левой вкладки
+        this.parentWorkCanvas.leftPanelItem = leftPanelItem;
 
-		if ($$('leftContentInner').childNodes.length == 0) {
-            $()
-			_($$('leftContentInner'), [this.parentWorkCanvas]);
-        }
-		else
-			$$('leftContentInner').insertBefore(this.parentWorkCanvas, $$('leftContentInner').firstChild);
+        $('#leftContentInner').prepend(this.parentWorkCanvas);
 
 		return false;
 	}
@@ -582,11 +603,12 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
 	{
 		this.parentWorkCanvas = $$('left_' + canvasID);
 		this.workCanvas = this.parentWorkCanvas.lastChild;
+        this.leftPanelItem = this.parentWorkCanvas.leftPanelItem;
+        this.leftPanelItem.close = options.closeFunc;
 
-		show(this.parentWorkCanvas)
-
-		if (this.parentWorkCanvas.parentNode.childNodes.length > 0)
-			this.parentWorkCanvas.parentNode.insertBefore(this.parentWorkCanvas, this.parentWorkCanvas.parentNode.firstChild);
+		$(this.parentWorkCanvas).show();
+        
+        $('#leftContentInner').prepend(this.parentWorkCanvas);
 
 		return true;
 	}

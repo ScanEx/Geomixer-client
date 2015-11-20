@@ -731,9 +731,13 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                var div = span.parentNode.parentNode;
+                
+                if (div.gmxProperties.content.properties.ShowCheckbox) {
+                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, true);
+                }
 
-                var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
+                var clickDiv = $(div.parentNode).children("div.hitarea");
                 if (clickDiv.length)
                     $(clickDiv[0]).trigger("click");
             }
@@ -967,16 +971,12 @@ layersTree.prototype.dummyNode = function(node)
 
 //проходится по всем слоям дерева и устанавливает им z-индексы в соответствии с их порядком в дереве
 layersTree.prototype.updateZIndexes = function() {
-    var curZIndex = 0,
-        vectorLayersOffset = 2000000;
+    var curZIndex = 0;
 
     this.treeModel.forEachLayer(function(layerContent, isVisible, nodeDepth) {
         var layer = nsGmx.gmxMap.layersByID[layerContent.properties.name];
         
         var zIndex = curZIndex++;
-        if (layer.getGmxProperties().type === 'Vector') {
-            zIndex += vectorLayersOffset;
-        }
         layer.setZIndex(zIndex);
     })
 }
@@ -1743,7 +1743,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
         _abstractTree.delNode(null, parentTree, parentTree.parentNode);
 	}).done(function(taskInfo)
     {
-        if (!isArray(taskInfo.Result)) {
+        if (!$.isArray(taskInfo.Result)) {
             taskInfo.Result = [taskInfo.Result];
         }
         

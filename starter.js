@@ -123,34 +123,41 @@ var createMenuNew = function()
         }
     }
     
-    var isMapEditor = _queryMapLayers.currentMapRights() === "edit";
+    var isMapEditor = _queryMapLayers.currentMapRights() === "edit",
+        isLogined = nsGmx.AuthManager.isLogin();
     
 	_menuUp.submenus = [];
 	
 	_menuUp.addItem(
-        {id:"mapsMenu", title:_gtxt("Карта"),childs: [
-			{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}},
-			{id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
-			{id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
-			{id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)},   delimiter: true},
-			{id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
-			{id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
-			{id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
-			{id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
-			{id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
-                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
-                nsGmx.createMapEditor(div);
-            }, disabled: !isMapEditor},
-            {id:'createGroup', title: _gtxt('Добавить подгруппу'), func:function(){
-                var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
-                nsGmx.addSubGroup(div, _layersTree);
-            }, disabled: !isMapEditor},
-			{id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
-                var securityDialog = new nsGmx.mapSecurity(),
-                    props = _layersTree.treeModel.getMapProperties();
-                securityDialog.getRights(props.MapID, props.title);
-            }, disabled: !isMapEditor}
-		]}
+        {id:"mapsMenu", title:_gtxt("Карта"),childs: [].concat(
+			isLogined ? [{id: 'mapList',      title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}}] : [],
+			[
+                {id: 'mapCreate',    title: _gtxt('Создать'),           func: function(){
+                    _queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)
+                }},
+                {id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
+                {id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){
+                    _queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)
+                }, delimiter: true},
+                {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
+                {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
+                {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
+                {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
+                {id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
+                    var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                    nsGmx.createMapEditor(div);
+                }, disabled: !isMapEditor},
+                {id:'createGroup', title: _gtxt('Добавить подгруппу'), func:function(){
+                    var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
+                    nsGmx.addSubGroup(div, _layersTree);
+                }, disabled: !isMapEditor},
+                {id: 'mapSecurity',  title: _gtxt('Права доступа'),     func: function(){
+                    var securityDialog = new nsGmx.mapSecurity(),
+                        props = _layersTree.treeModel.getMapProperties();
+                    securityDialog.getRights(props.MapID, props.title);
+                }, disabled: !isMapEditor}
+            ]
+		)}
     );
 	
 	_menuUp.addItem(
@@ -1063,9 +1070,11 @@ function loadMap(state)
                 window.language = data.properties.DefaultLanguage;
             }
             
-            var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager);
-                
+            var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager, {id: 'iconLayers'});
+            lmap.gmxControlsManager.add(baseLayersControl);
+            
             lmap.addControl(baseLayersControl);
+            
             
             $('#flash').bind('dragover', function()
             {
@@ -1135,16 +1144,24 @@ function loadMap(state)
                 window.oDrawingObjectGeomixer.Init(nsGmx.leafletMap, nsGmx.gmxMap);
                 
                 //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
-                (function fixVisibilityConstrains (o, isVisible)
-                {
+                (function fixVisibilityConstrains (o, isVisible) {
                     o.content.properties.visible = o.content.properties.visible && isVisible;
                     isVisible = o.content.properties.visible;
-                    if (o.type === "group")
-                    {
+                    if (o.type === "group") {
                         var a = o.content.children;
-                        for (var k = a.length - 1; k >= 0; k--)
-                            fixVisibilityConstrains(a[k], isVisible);
+                        
+                        var isAnyVisibleChild = false;
+                        for (var k = a.length - 1; k >= 0; k--) {
+                            var childrenVisibility = fixVisibilityConstrains(a[k], isVisible);
+                            isAnyVisibleChild = isAnyVisibleChild || childrenVisibility;
+                        }
+                        
+                        //если в поддереве нет видимых слоёв, сделать группу тоже невидимой
+                        if (!isAnyVisibleChild) {
+                            o.content.properties.visible = false;
+                        }
                     }
+                    return o.content.properties.visible;
                 })({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
                 
                 window.oldTree = JSON.parse(JSON.stringify(data));
@@ -1425,9 +1442,8 @@ function loadMap(state)
                             weight = objInfo.thickness || 2,
                             opacity = (objInfo.opacity / 100) || 0.8;
                             
-                        var drawnObject = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry))[0];
                         
-                        var properties = $.extend(true, {}, objInfo.properties,  {
+                        var featureOptions = $.extend(true, {}, objInfo.properties,  {
                             lineStyle: {
                                 color: color,
                                 weight: weight,
@@ -1435,14 +1451,14 @@ function loadMap(state)
                             }
                         });
                         
-                        drawnObject.setOptions(properties);
+                        lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];
                     });
                 }
                 else if (state.marker) {
                     nsGmx.leafletMap.gmxDrawing.addGeoJSON({
                         type: 'Feature',
                         geometry: {type: "Point", coordinates: [state.marker.mx, state.marker.my] },
-                        properties: { text: state.marker.mt }
+                        properties: { title: state.marker.mt }
                     });
                 }
                 

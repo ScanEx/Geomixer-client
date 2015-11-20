@@ -7,7 +7,12 @@ var GFWLayer = null;
 var GFWSlider = L.Control.extend({
     includes: L.Mixin.Events,
     _yearBegin: 2001,
-    _yearEnd: 2014,
+    _yearEnd: 2015,
+    _setYears: function(yearBegin, yearEnd) {
+        this._yearBegin = yearBegin;
+        this._yearEnd = yearEnd;
+        this.fire('yearschange', {yearBegin: this._yearBegin, yearEnd: this._yearEnd});
+    },
     onAdd: function(map) {
         var template = Handlebars.compile(
             '<div class = "gfw-slider">' + 
@@ -25,19 +30,17 @@ var GFWSlider = L.Control.extend({
             labels.push(year);
         }
         
-        var ui = $(template({
+        var ui = this._ui = $(template({
             labels: labels
         }));
         
         ui.find('.gfw-slider-container').slider({
             min: 2001,
-            max: 2014,
+            max: 2015,
             values: [this._yearBegin, this._yearEnd],
             range: true,
             change: function(event, ui) {
-                this._yearBegin = ui.values[0];
-                this._yearEnd = ui.values[1];
-                this.fire('yearschange', {yearBegin: this._yearBegin, yearEnd: this._yearEnd});
+                this._setYears(ui.values[0], ui.values[1]);
             }.bind(this)
         });
         
@@ -47,15 +50,36 @@ var GFWSlider = L.Control.extend({
         
         return ui[0];
     },
+    
     onRemove: function() {
+    },
+    
+    saveData: function() {
+        return {
+            version: '1.0.0',
+            yearBegin: this._yearBegin,
+            yearEnd: this._yearEnd
+        }
+    },
+    
+    loadData: function(data) {
+        if (this._ui) {
+            this._ui.find('.gfw-slider-container').slider('option', 'values', [data.yearBegin, data.yearEnd]);
+        } else {
+            this._setYears(data.yearBegin, data.yearEnd);
+        }
     }
 });
 
 function defineClass() {
     GFWLayer = L.TileLayer.Canvas.Mercator.extend({
-        options: {async: true, tilesCRS: L.CRS.EPSG3857},
+        options: {
+            async: true, 
+            tilesCRS: L.CRS.EPSG3857,
+            attribution: '<a href="http://glad.umd.edu/"> Hansen|UMD|Google|USGS|NASA </a>'
+        },
         _yearBegin: 2001,
-        _yearEnd: 2014,
+        _yearEnd: 2015,
         _drawLayer: function(img, ctx, z) {
             var imgData = ctx.getImageData(0, 0, 256, 256),
                 data = imgData.data,
@@ -91,7 +115,7 @@ function defineClass() {
                 this.tileDrawn(canvas);
             }.bind(this);
             
-            img.src = 'http://earthengine.google.org/static/hansen_2014/gfw_loss_tree_year_25_2014/' + zoom + '/' + tilePoint.x + '/' + tilePoint.y + '.png';
+            img.src = 'http://storage.googleapis.com/earthenginepartners-hansen/tiles/gfw2015/loss_tree_year_25/' + zoom + '/' + tilePoint.x + '/' + tilePoint.y + '.png';
         },
         setYearInterval: function(yearBegin, yearEnd) {
             this._yearBegin = yearBegin;
@@ -117,6 +141,9 @@ var publicInterface = {
             onRemove: function(map) {
                 map.removeLayer(layer);
                 map.removeControl(slider);
+            }, 
+            options: {
+                attribution: layer.options.attribution
             }
         }
         
@@ -125,6 +152,21 @@ var publicInterface = {
         slider.on('yearschange', function(data) {
             layer.setYearInterval(data.yearBegin, data.yearEnd);
         })
+        
+        _mapHelper.customParamsManager.addProvider({
+            name: 'gfwplugin',
+            loadState: function(state) {
+                state.visible && nsGmx.leafletMap.addLayer(proxyLayer);
+                slider.loadData(state.slider);
+            },
+            saveState: function() {
+                return {
+                    version: '1.0.0',
+                    visible: nsGmx.leafletMap.hasLayer(proxyLayer),
+                    slider: slider.saveData()
+                }
+            }
+        });
     },
     
     unload: function() {

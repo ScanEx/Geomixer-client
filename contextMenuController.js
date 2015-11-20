@@ -285,7 +285,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		return !context.layerManagerFlag && 
 				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-				( context.elem.Owner == nsGmx.AuthManager.getNickname() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
+				_queryMapLayers.layerRights(context.elem.name) === 'edit';
 	},
 	clickCallback: function(context)
 	{
