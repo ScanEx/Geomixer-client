@@ -467,7 +467,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             }
         }
 
-        _layersTree.downloadVectorLayer({
+        _mapHelper.downloadVectorLayer({
             name: _this.layerName, 
             host: hostName,
             format: format,

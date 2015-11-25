@@ -313,7 +313,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-		_layersTree.downloadVectorLayer({
+		_mapHelper.downloadVectorLayer({
             name: context.elem.name,
             host: context.elem.hostName
         });
