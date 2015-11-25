@@ -681,19 +681,32 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.downloadVectorLayer = function(name, mapHostName, format, query)
+/** Скачать векторный слой с сервера
+ * @param {String} params.name ID векторного слоя, который нужно скачать
+ * @param {String} params.host хост, с которого будем скачивать слой
+ * @param {String} [params.format=Shape] В каком формате хотим получить (Shape, Tab, gpx, csv, csv_wkt, excel, kml или несколько через запятую)
+ * @param {String} [params.query] SQL запрос для сохранения выборки данных вместо всех данных слоя
+ * @param {Array} [params.columns] Атрибуты, которые нужно скачать. Массив объектов с ключами {Value, Alias}
+*/
+layersTree.prototype.downloadVectorLayer = function(params)
 {
-    var url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + encodeURIComponent(name);
-                  
-    if (format) {
-        url += '&format=' + format;
+    var requestParams = {
+        t: params.name
+    };
+    
+    if (params.format) {
+        requestParams.format = params.format;
     }
     
-    if (query) {
-        url += '&query=' + encodeURIComponent(query);
+    if (params.query) {
+        requestParams.query = params.query;
     }
-                  
-    window.location.href = url;
+    
+    if (params.columns) {
+        requestParams.columns = JSON.stringify(params.columns);
+    }
+
+    sendCrossDomainPostRequest("http://" + params.host + "/" + "DownloadLayer.ashx", requestParams);
 }
 
 layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)

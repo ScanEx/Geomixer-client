@@ -455,12 +455,25 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this._updateSearchString('');
     
     var downloadLayer = function(format) {
-        _layersTree.downloadVectorLayer(
-            _this.layerName, 
-            hostName,
-            format,
-            _params.searchParamsManager.getQuery()
-        );
+        var activeColumns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash,
+            columnsForServer = [];
+
+        for (var c in activeColumns) {
+            if (activeColumns[c]) {
+                columnsForServer.push({
+                    Value: _this.tableFields.titleToField[c],
+                    Alias: c
+                })
+            }
+        }
+
+        _layersTree.downloadVectorLayer({
+            name: _this.layerName, 
+            host: hostName,
+            format: format,
+            query: _params.searchParamsManager.getQuery(),
+            columns: columnsForServer
+        });
     }
 
     if (info.GeometryType === 'polygon') {
