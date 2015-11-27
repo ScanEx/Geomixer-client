@@ -93,7 +93,7 @@ UpMenu.prototype.setParent = function(parent)
 	if (parent)
     {
 		removeChilds(parent);
-        _(parent, [_span()]);
+        parent.appendChild(_span());
     }
 
 	this.disabledTabs = {};

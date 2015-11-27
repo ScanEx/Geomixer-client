@@ -19,21 +19,6 @@ nsGmx.Utils = nsGmx.Utils || {};
             
             return el;
         },
-        // _(elem, [childs], [attrs])
-        _: function(ent,childs,attributes)
-        {
-            var el = ent,
-                children = childs,
-                attrs = attributes;
-
-            if (children)
-                domManipulation._childs(el, children)
-                
-            if (attrs && attrs.length)
-                domManipulation._attr(el, attrs)
-            
-            return el;
-        },
         // _t("some text")
         _t: function(str)
         {
@@ -102,6 +87,22 @@ nsGmx.Utils = nsGmx.Utils || {};
     
     var _el = domManipulation._el;
     
+    // _(elem, [childs], [attrs])
+    var _ = function(ent,childs,attributes)
+    {
+        var el = ent,
+            children = childs,
+            attrs = attributes;
+
+        if (children)
+            domManipulation._childs(el, children)
+            
+        if (attrs && attrs.length)
+            domManipulation._attr(el, attrs)
+        
+        return el;
+    };
+    
     var prevGlobals = {};
     for (var k in domManipulation) {
         prevGlobals[k] = window[k];
@@ -119,6 +120,7 @@ nsGmx.Utils = nsGmx.Utils || {};
     
     jQuery.extend(window, domManipulation);      //для обратной совместимости
     jQuery.extend(nsGmx.Utils, domManipulation);
+    nsGmx.Utils._ = _;
 })();
 
 if (window.Node && window.Node.prototype)
@@ -371,7 +373,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
     }
 	var canvas = _div([content]);
 	
-	_(document.body, [canvas])
+	document.body.appendChild(canvas);
+    
 	var dialogParams = {
         width: params.width,
         height: params.height,

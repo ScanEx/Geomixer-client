@@ -1,7 +1,7 @@
 ﻿//Управление показом списка слоёв и поиска по этому списку
 var nsGmx = nsGmx || {};
 
-(function(){
+(function(_){
 
 var LayersListProvider = function(filtersProvider)
 {
@@ -407,4 +407,4 @@ gmxCore.addModule('LayersManagerControl', {
     drawLayers: drawLayers
 });
 
-})();
+})(nsGmx.Utils._);

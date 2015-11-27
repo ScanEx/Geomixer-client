@@ -301,8 +301,7 @@ var createToolbar = function() {
     })
         .addTo(lmap)
         .on('click', _mapHelper.showPermalink.bind(_mapHelper));
-    
-    
+        
     var gridIcon = new L.Control.gmxIcon({
         id: 'gridTool', 
         className: 'leaflet-gmx-icon-sprite',
@@ -707,28 +706,6 @@ function initTimeline(layers)
     }
     
     nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
-}
-
-function addMapName(container, name)
-{
-    var parent;
-    if (!$$('iconMapName'))
-    {
-        var div = _div([_t(name)], [['attr','id','iconMapName'], ['dir','className','iconMapName']])
-            td = _td([div],[['css','paddingTop','2px']]);
-        
-        _(container, [_table([_tbody([_tr(
-            [_td([_t(_gtxt("Карта"))], [['css','color','#153069'],['css','fontSize','12px'],['css','paddingTop','2px'],['css','fontFamily','tahoma'], ['css','height','30px']]),
-                      _td([_div(null,[['dir','className','markerRight']])],[['attr','vAlign','top'],['css','paddingTop','10px']]),
-                       td]
-                       )])])]);
-    }
-    else
-    {
-        removeChilds($$('iconMapName'));
-        
-        $($$('iconMapName'), [_t(name)])
-    }
 }
 
 window.resizeAll = function()
@@ -1241,7 +1218,6 @@ function loadMap(state)
                     ContainerInput: searchContainer,
                     ServerBase: window.serverBase,
                     layersSearchFlag: true,
-                    mapHelper: _mapHelper,
                     Map: lmap,
                     gmxMap: gmxMap
                 });
@@ -1287,13 +1263,6 @@ function loadMap(state)
                     _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
 
                 _mapHelper.gridView = false;
-                
-                //создаём иконку переключения в полноэкранный режим.
-                var mapNameContainer = _div();
-                var leftIconPanelContainer = _div();
-                addMapName(mapNameContainer, data.properties.title);
-                
-                _leftIconPanel.create(leftIconPanelContainer);
                 
                 var updateLeftPanelVis = function() {
                     $('.leftCollapser-icon')
@@ -1470,17 +1439,10 @@ function loadMap(state)
                 }
                 
                 _menuUp.checkView();
-                
-                _iconPanel.updateVisibility();
-                
+
                 if (nsGmx.AuthManager.isLogin())
                 {
                     _queryMapLayers.addUserActions();
-                    
-                    if ( !nsGmx.AuthManager.isAccounts() )
-                    {
-                        _iconPanel.updateVisibility();
-                    }
                 }
 
                 nsGmx.leafletMap.on('layeradd', function(event) {

@@ -11,7 +11,6 @@ var initTranslations = function()
 {
     _translationsHash.addtext("rus", { firesWidget: {
         "DailyCoverage.Description" : "Космоснимки (MODIS)",
-        "tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
         "TitleFiresScanEx" : "Пожары ScanEx",
         "TitleFiresFIRMS" : "Пожары FIRMS",
         "LayerClusterBalloon" :
@@ -39,7 +38,6 @@ var initTranslations = function()
                              
     _translationsHash.addtext("eng", { firesWidget: {
         "DailyCoverage.Description" : "Satellite images (MODIS)",
-        "tooManyDataWarning" : "Too much data - downsize search area!",
         "TitleFiresScanEx" : "Fires from ScanEx",
         "TitleFiresFIRMS" : "Fires from FIRMS",
         "LayerClusterBalloon" : 

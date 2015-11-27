@@ -2,7 +2,7 @@
 * @namespace DrawingObjects
 * @description SDK для редактирования объектов на карте
 */
-!(function($){
+!(function($, _){
 
 nsGmx.Translations.addText('rus', {
     drawingObjects: {
@@ -864,4 +864,4 @@ var publicInterface = {
 
 gmxCore.addModule("DrawingObjects", publicInterface);
 
-})(jQuery);
+})(jQuery, nsGmx.Utils._);

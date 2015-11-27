@@ -1,4 +1,4 @@
-﻿(function() {
+﻿!(function(_) {
 
     _translationsHash.addtext('rus', {
         'WebglFilters.title' : 'Включить/Выключить фильтры растров активного слоя'
@@ -93,4 +93,4 @@
         },
         css: 'demo.css'
     });
-})();
+})(nsGmx.Utils._);

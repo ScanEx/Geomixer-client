@@ -1,5 +1,5 @@
 ﻿//Создание интерфейса редактирования стилей слоя
-!(function() {
+!(function(_) {
 
 //явно прописывает все свойства балунов в стиле.    
 var applyBalloonDefaultStyle = function(style)
@@ -1862,4 +1862,4 @@ gmxCore.addModule('LayerStylesEditor', {
     }
 )
 
-})();
+})(nsGmx.Utils._);

@@ -1,7 +1,7 @@
 var nsCatalog = nsCatalog || {};
 nsCatalog.Controls = nsCatalog.Controls || {};
 
-(function($){
+(function($, _){
 
   var ﻿ShapeFileController = function(mapController) {
     this._mapController = mapController;
@@ -182,4 +182,4 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 
   nsCatalog.Controls.ShapeFileController = ShapeFileController;
 
-}(jQuery));
+}(jQuery, nsGmx.Utils._));

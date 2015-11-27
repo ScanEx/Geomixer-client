@@ -1,7 +1,11 @@
+!(function(_) {
+    
 var mapLayers = 
 {
 	mapLayers:{}
 }
+
+window.mapLayers = mapLayers;
 
 AbstractTree = function()
 {
@@ -161,6 +165,7 @@ AbstractTree.prototype.swapNode = function(node, newNodeCanvas)
 }
 
 var _abstractTree = new AbstractTree();
+window._abstractTree = _abstractTree;
 
 //renderParams:
 //  * showVisibilityCheckbox {Bool} - показывать или нет checkbox видимости
@@ -1336,6 +1341,9 @@ layersTree.prototype.findTreeElem = function(div)
 //Дерево основной карты
 var _layersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: true});
 
+window.layersTree = layersTree;
+window._layersTree = _layersTree;
+
 //Виджет в левой панели для отображения основного дерева
 var queryMapLayers = function()
 {
@@ -2070,6 +2078,7 @@ queryMapLayers.prototype.createMap = function(name)
 })();
 
 var _queryMapLayers = new queryMapLayers();
+window._queryMapLayers = _queryMapLayers;
 
 mapLayers.mapLayers.load = function()
 {
@@ -2085,3 +2094,5 @@ mapLayers.mapLayers.load = function()
 mapLayers.mapLayers.unload = function()
 {
 }
+
+})(nsGmx.Utils._);

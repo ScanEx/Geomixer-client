@@ -46,7 +46,7 @@ nsGmx.ContextMenuController = (function()
             var evt = e || window.event;
             
             hidden(contextMenu);
-            _(document.body, [contextMenu])
+            document.body.appendChild(contextMenu)
             
             // определение координат курсора для ie
             if (evt.pageX == null && evt.clientX != null )

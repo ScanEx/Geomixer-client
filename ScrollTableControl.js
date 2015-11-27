@@ -1,4 +1,4 @@
-(function($) {
+!(function($, _) {
 
 var modulePath = "";
 
@@ -962,4 +962,4 @@ if (typeof window.gmxCore !== 'undefined')
     );
 }
 
-})(jQuery);
+})(jQuery, nsGmx.Utils._);

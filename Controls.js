@@ -1,4 +1,5 @@
-﻿/** Разнообразные вспомогательные контролы (базовые элементы GUI)
+﻿!(function(_) {
+/** Разнообразные вспомогательные контролы (базовые элементы GUI)
     @namespace nsGmx.Controls
 */
 nsGmx.Controls = {
@@ -371,3 +372,5 @@ nsGmx.Controls = {
 }
 
 gmxCore.addModule('Controls', nsGmx.Controls);
+
+})(nsGmx.Utils._);

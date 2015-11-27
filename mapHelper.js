@@ -3,10 +3,10 @@ var nsGmx = nsGmx || {};
 /** Вспомогательные ф-ции ГеоМиксера
 @namespace _mapHelper
 */
-
 nsGmx.mapHelper = {
     
 }
+
 
 var mapHelp =
 {
@@ -15,6 +15,8 @@ var mapHelp =
 	tabs: {},
 	externalMaps : {}
 }
+
+!(function(_) {
 
 var mapHelper = function()
 {
@@ -1478,6 +1480,8 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 }
 
 var _mapHelper = new mapHelper();
+window._mapHelper = _mapHelper;
+window.mapHelper = mapHelper;
 
 mapHelp.mapHelp.load = function()
 {
@@ -1536,6 +1540,7 @@ serviceHelper.prototype.load = function()
 }	
 
 var _serviceHelper = new serviceHelper();
+window._serviceHelper = _serviceHelper;
 
 mapHelp.tabs.load = function()
 {
@@ -1578,3 +1583,5 @@ nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', '
 
 //Библиотека стилей
 nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');
+
+})(nsGmx.Utils._);

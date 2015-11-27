@@ -1,7 +1,7 @@
 var nsCatalog = nsCatalog || {};
 nsCatalog.Controls = nsCatalog.Controls || {};
 
-(function($){
+(function($, _){
 
 	nsCatalog.Controls.SearchResultList = L.Control.extend({
 
@@ -544,4 +544,4 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 
 			});
 
-		}(jQuery));
+		}(jQuery, nsGmx.Utils._));

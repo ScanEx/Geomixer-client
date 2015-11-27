@@ -1,4 +1,4 @@
-(function(){
+!(function(_){
 
 //для отслеживания того, что не открыли диалог редактирования одного и того же объекта несколько раз
 var EditObjectControlsManager = {
@@ -601,4 +601,4 @@ nsGmx.EditObjectControl = EditObjectControl;
 */
 nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.bind(EditObjectControlsManager);
 
-})();
+})(nsGmx.Utils._);

@@ -5,7 +5,7 @@
  @name GeoMixerAuthWidget
 */
 var nsGmx = nsGmx || {};
-(function($)
+(function($, _)
 {
     var _dialogCanvas = null;
 
@@ -67,7 +67,7 @@ var nsGmx = nsGmx || {};
         {
             var evt = e || window.event;
             if (getkey(evt) == 13) 
-            {	
+            {
                 checkPassw();
                 
                 return false;
@@ -267,4 +267,4 @@ var nsGmx = nsGmx || {};
         nsGmx.AuthWidget = nsGmx.GeoMixerAuthWidget;
     }
     
-})(jQuery);
+})(jQuery, nsGmx.Utils._);

@@ -46,7 +46,7 @@ queryLoadShp.prototype._regenerateControl = function()
 
     this.inputControl = _div([_span([_t(_gtxt("loadShape.inputTitle") + ":")]), this.postForm]);
 
-    _(this.workCanvas, [_div([this.inputControl, this.progress], [['css','padding','10px 0px 5px 20px']])])
+    this.workCanvas.appendChild(_div([this.inputControl, this.progress], [['css','padding','10px 0px 5px 20px']]));
 }
 
 queryLoadShp.prototype.load = function()

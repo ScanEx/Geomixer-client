@@ -1,5 +1,5 @@
 ﻿//Создание интерфейса редактирования свойств слоя
-!function($){
+!function($, _){
 
 /** Виджет для выбора полей для X и Y координат из списка полей
 * @function
@@ -1319,4 +1319,4 @@ gmxCore.addModule('LayerEditor', {
     }
 )
     
-}(jQuery)
+}(jQuery, nsGmx.Utils._)

@@ -1,5 +1,6 @@
 //Загрузка и отображение дополнительных карт в левой панели
-
+!(function(_) {
+    
 var queryExternalMaps = function()
 {
 	this.maps = [];
@@ -213,6 +214,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 }
 
 var _queryExternalMaps = new queryExternalMaps();
+window._queryExternalMaps = _queryExternalMaps;
 
 nsGmx.userObjectsManager.addDataCollector('externalMaps', {
     collect: function()
@@ -246,3 +248,5 @@ nsGmx.userObjectsManager.addDataCollector('externalMaps', {
         mapHelp.externalMaps.load('externalMaps');
     }
 });
+
+})(nsGmx.Utils._);

@@ -1,5 +1,5 @@
 ﻿//Диалог создания/редактирования мультислоя.
-(function(){
+!(function(_){
 
 //params:
 //  properties - свойства слоя по умолчанию
@@ -430,4 +430,4 @@ gmxCore.addModule('MultiLayerEditor', {
     createMultiLayerEditorNew: createMultiLayerEditorNew
 })
 
-})();
+})(nsGmx.Utils._);

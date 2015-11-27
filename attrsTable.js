@@ -1,4 +1,4 @@
-(function(){
+!(function(_){
 
 /** Провайдер данных для {@link nsGmx.ScrollTable}. Получает данные от сервера в формате ГеоМиксера
 * @alias nsGmx.ScrollTable.AttributesServerDataProvider
@@ -788,4 +788,4 @@ window.nsGmx.removeAttributesTableHook = function(hookID) {
     window._attrsTableHash.removeHook(hookID);
 };
 
-})();
+})(nsGmx.Utils._);
