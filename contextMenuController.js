@@ -6,10 +6,12 @@ nsGmx = nsGmx || {};
 /** 
 * Контроллёр контекстных меню.
 * @class
-* @classdesc Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам. 
+* @name ContextMenuController
+* @memberOf nsGmx
+* 
+* @description Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам. 
 * Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст, 
 * указанный при привязке меню к элементу (он так же может создаваться в момент клика на элементе)
-*
 * Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер. 
 * При создании меню определённого типа из этого набора выбираются нужные элементы.
 */
@@ -313,7 +315,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-		_layersTree.downloadVectorLayer(context.elem.name, context.elem.hostName);
+		_mapHelper.downloadVectorLayer({
+            name: context.elem.name,
+            host: context.elem.hostName
+        });
 	}
 }, 'Layer');
 

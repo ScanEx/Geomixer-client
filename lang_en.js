@@ -39,7 +39,7 @@ _translationsHash.hash["eng"] = {
     "Маршруты": "Directions",
     "Кадастр Росреестра": "Cadastre data of Rosreestr",
     "Викимапиа": "Wikimapia",
-    "Каталог СКАНЭКС": "ScanEx catalog",
+    "Каталог СКАНЭКС": "Search imagery",
     "Космоснимки-пожары": "Kosmosnimki-fires",
     "GIBS NASA": "MODIS Images (NASA)",
     "Руководство пользователя": "User manual",

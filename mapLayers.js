@@ -681,21 +681,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.downloadVectorLayer = function(name, mapHostName, format, query)
-{
-    var url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + encodeURIComponent(name);
-                  
-    if (format) {
-        url += '&format=' + format;
-    }
-    
-    if (query) {
-        url += '&query=' + encodeURIComponent(query);
-    }
-                  
-    window.location.href = url;
-}
-
 layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
 {
 	var box,

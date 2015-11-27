@@ -49,6 +49,10 @@ loadJS(thirdpartyList, function() {
     {
         gmxCore.setDefaultModulesHost(gmxJSHost);
         
+        for (var m in moduleFiles) {
+            gmxCore.setModuleFile(m, gmxJSHost + moduleFiles[m]);
+        }
+        
         nsGmx.initGeoMixer();
     });
 })

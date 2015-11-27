@@ -139,7 +139,7 @@ SecurityOwnerWidget._template = Handlebars.compile(
         '</div>' +
     '</div>');
     
-//@param {String[]} options.accessTypes массив прав доступа
+// @param {String[]} options.accessTypes массив прав доступа
 var SecurityUserListWidget = function(securityInfo, container, options) {
     var _this = this;
     
