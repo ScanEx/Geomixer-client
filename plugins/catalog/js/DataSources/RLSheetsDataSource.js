@@ -56,7 +56,7 @@ var nsCatalog = nsCatalog || {};
     return objects;
   };
 
-  DataAdapter.prototype.setResults = function(result, targetNode, extent) {
+  DataAdapter.prototype.setResults = function(result, targetNode, dataSourceName) {
     var satNodes = {};
     var data = this._fromResult(result);
   	for (var i = 0, len = data.length; i < len; i++) {
@@ -67,7 +67,7 @@ var nsCatalog = nsCatalog || {};
   		var folderNode = this._ensureSatelliteFolderNode(targetNode, source.title, L.gmxUtil.dec2hex(source.color));
   		if (!satNodes[source.title]) {
   			satNodes[source.title] = folderNode;
-  			folderNode.data.extent = extent;
+  			// folderNode.data.extent = extent;
   			folderNode.data.size = 0;
   		}
   		folderNode.data.size += 1;

@@ -21,50 +21,39 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       'Z';
   };
 
-  var anchorTransform = {
-    'WV02': function(x1,y1,x2,y2,x3,y3,x4,y4){
-      return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
-    },
-    'WV01': function(x1,y1,x2,y2,x3,y3,x4,y4){
-      var MinX = Math.min(x1, x2, x3, x4);
-      var MaxX = Math.max(x1, x2, x3, x4);
-      var MinY = Math.min(y1, y2, y3, y4);
-      var MaxY = Math.max(y1, y2, y3, y4);
-
-      var sw = Math.max((MaxX - MinX), (MaxY - MinY)) / 2;
-      var cx = (MaxX + MinX) / 2;
-      var cy = (MaxY + MinY) / 2;
-      return [[cx - sw, cy + sw], [cx + sw, cy + sw], [cx + sw, cy - sw], [cx - sw, cy - sw]];
-    },
-    'PHR': function(x1,y1,x2,y2,x3,y3,x4,y4){
-      return [[x2, y2], [x3, y3], [x4, y4], [x1, y1]];
-    },
-    'LS8':function(x1,y1,x2,y2,x3,y3,x4,y4){
-      var _x1 = Math.min(x1, x2, x3, x4), _x4 = _x1;
-      var _x2 = Math.max(x1, x2, x3, x4), _x3 = _x2;
-      var _y3 = Math.min(y1, y2, y3, y4), _y4 = _y3;
-      var _y1 = Math.max(y1, y2, y3, y4), _y2 = _y1;
-      return [[_x1, _y1], [_x2, _y2], [_x3, _y3], [_x4, _y4]];
-    }
-  };
-
   var BaseDataAdapter = function(mapHelper){
     this._mapHelper = mapHelper;
     this._dateRegex = /(\d{4})-(\d{2})-(\d{2})/;
+    this.anchorTransform = {
+      'WV02': function(x1,y1,x2,y2,x3,y3,x4,y4){
+        return [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
+      },
+      'WV01': function(x1,y1,x2,y2,x3,y3,x4,y4){
+        var MinX = Math.min(x1, x2, x3, x4);
+        var MaxX = Math.max(x1, x2, x3, x4);
+        var MinY = Math.min(y1, y2, y3, y4);
+        var MaxY = Math.max(y1, y2, y3, y4);
+
+        var sw = Math.max((MaxX - MinX), (MaxY - MinY)) / 2;
+        var cx = (MaxX + MinX) / 2;
+        var cy = (MaxY + MinY) / 2;
+        return [[cx - sw, cy + sw], [cx + sw, cy + sw], [cx + sw, cy - sw], [cx - sw, cy - sw]];
+      },
+      'PHR': function(x1,y1,x2,y2,x3,y3,x4,y4){
+        return [[x2, y2], [x3, y3], [x4, y4], [x1, y1]];
+      }
+    };
     this.satellites = {
-      'WV01': {platforms: ['WV01'], name: 'WorldView-1', resolution: 0.5, color: 0xff0000, checked: true, anchorTransform: anchorTransform['WV01']},
-      'WV02': {platforms: ['WV02'], name: 'WorldView-2', resolution: 0.5, color: 0x800000, checked: true, anchorTransform: anchorTransform['WV02']},
-      'WV03': {platforms: ['WV03'], name: 'WorldView-3', resolution: 0.5, color: 0x800000, checked: true, anchorTransform: anchorTransform['WV01']},
-      'GE-1': {platforms: ['GE-1'], name: 'GeoEye-1', resolution: 0.5, color: 0x0000ff, checked: true, anchorTransform: anchorTransform['WV01']},
-      'Pleiades': {platforms: ['PHR1A','PHR1B'], name: 'Pleiades A-B', resolution: 0.5, color: 0x0000ff, checked: true, anchorTransform: anchorTransform['PHR']},
-      'QB02': {platforms: ['QB02'], name: 'QuickBird', resolution: 0.6, color: 0x808080, checked: true, anchorTransform: anchorTransform['WV01']},
-      'EROS-A': {platforms: ['EROS-A1'], name: 'EROS-A', resolution: 0.7, color: 0x008080, checked: true, anchorTransform: anchorTransform['WV02']},
-      'EROS-B': {platforms: ['EROS-B'], name: 'EROS-B', resolution: 0.7, color: 0x008080, checked: true, anchorTransform: anchorTransform['WV02']},
-      'IK-2': {platforms: ['IK-2'], name: 'IKONOS', resolution: 1, color: 0x000080, checked: true, anchorTransform: anchorTransform['WV02']},
-      'SP5-J': {platforms: ['SPOT 5'], name: 'SPOT 5 (J)', product: 5, resolution: 2.5, color: 0x000080, checked: true, anchorTransform: anchorTransform['WV02']},
-      'SP5-A': {platforms: ['SPOT 5'], name: 'SPOT 5 (A)', product: 4, resolution: 2.5, color: 0x808080, checked: true, anchorTransform: anchorTransform['WV02']},
-      'SPOT 6': {platforms: ['SPOT 6','SPOT6','SPOT 7','SPOT7'], name: 'SPOT-6,7', color: 0x006400, checked: true, anchorTransform: anchorTransform['WV02']},
-      'LANDSAT_8': {platforms: ['LANDSAT_8'], name: 'LANDSAT 8', resolution: 15, color: 0x0000ff, checked: true, anchorTransform: anchorTransform['LS8']}
+      'WV01': {platforms: ['WV01'], name: 'WorldView-1', resolution: 0.5, color: 0xff0000, checked: true, anchorTransform: this.anchorTransform['WV01']},
+      'WV02': {platforms: ['WV02'], name: 'WorldView-2', resolution: 0.5, color: 0x800000, checked: true, anchorTransform: this.anchorTransform['WV02']},
+      'WV03': {platforms: ['WV03'], name: 'WorldView-3', resolution: 0.5, color: 0x800000, checked: true, anchorTransform: this.anchorTransform['WV01']},
+      'GE-1': {platforms: ['GE-1','GE01'], name: 'GeoEye-1', resolution: 0.5, color: 0x0000ff, checked: true, anchorTransform: this.anchorTransform['WV01']},
+      'Pleiades': {platforms: ['PHR1A','PHR1B'], name: 'Pleiades A-B', resolution: 0.5, color: 0x0000ff, checked: true, anchorTransform: this.anchorTransform['PHR']},
+      'QB02': {platforms: ['QB02'], name: 'QuickBird', resolution: 0.6, color: 0x808080, checked: true, anchorTransform: this.anchorTransform['WV01']},
+      'IK-2': {platforms: ['IK-2'], name: 'IKONOS', resolution: 1, color: 0x000080, checked: true, anchorTransform: this.anchorTransform['WV02']},
+      'SP5-J': {platforms: ['SPOT 5'], name: 'SPOT 5 (J)', product: 5, resolution: 2.5, color: 0x000080, checked: true, anchorTransform: this.anchorTransform['WV02']},
+      'SP5-A': {platforms: ['SPOT 5'], name: 'SPOT 5 (A)', product: 4, resolution: 2.5, color: 0x808080, checked: true, anchorTransform: this.anchorTransform['WV02']},
+      'SPOT 6': {platforms: ['SPOT 6','SPOT6','SPOT 7','SPOT7'], name: 'SPOT-6,7', color: 0x006400, checked: true, anchorTransform: this.anchorTransform['WV02']}
     };
   };
 
@@ -184,6 +173,9 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
         newNode.isClickable = true;
       return newNode;
     },
+    setResults: function (result, targetNode, dataSourceName) {
+      throw 'Not implemented';
+    },
     getGeometry: function(){
       return this._mapHelper.getGeometry();
     },
@@ -251,9 +243,6 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
     clearResults(){
       this._resultView.clearResults();
     },
-    setResults() {
-      throw 'Not implemented';
-    },
     search(options){
       var def = new $.Deferred();
       this.clearResults();
@@ -281,7 +270,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
     },
     setResults(results) {
       var root = this._resultView.treeView.root;
-      this._dataAdapter.setResults(results, root);
+      this._dataAdapter.setResults(results, root, this.title);
       this._resultView.treeView.updateNode(root).done(function(){
         var nodes = this._resultView
           .treeView
