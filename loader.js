@@ -42,6 +42,8 @@ loadJS(thirdpartyList, function() {
     for (var f = 0; f < cssToLoad.length; f++) {
         $.getCSS(_getFileName(cssToLoad[f]));
     }
+    
+    nsGmx._ = window._;
 
     loadJS(gmxFilesList, function()
     {
