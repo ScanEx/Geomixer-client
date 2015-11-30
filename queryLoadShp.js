@@ -88,7 +88,7 @@ queryLoadShp.prototype.loadAndShowFiles = function(files) {
     }));
     
     def.then(function() {
-        this._showObjectsOnMap(nsGmx._.flatten([].slice.call(arguments)));
+        this._showObjectsOnMap(_.flatten([].slice.call(arguments)));
         nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
     }.bind(this), function() {
         nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));

@@ -80,7 +80,7 @@ var TimelineData = Backbone.Model.extend({
     },
     
     getLayerInfo: function(layer) {
-        return nsGmx._.findWhere(this.attributes.layers, {layer: layer});
+        return _.findWhere(this.attributes.layers, {layer: layer});
     },
     
     addFilter: function(filterFunc) {

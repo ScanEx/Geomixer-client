@@ -193,10 +193,10 @@ mapHelper.prototype.customParamsManager = (function()
 		},
         
         isProvider: function(providerName) {
-            return !!nsGmx._.findWhere(_providers, {name: providerName});
+            return !!_.findWhere(_providers, {name: providerName});
         },
         removeProvider: function(providerName) {
-            _providers = nsGmx._.filter(_providers, function(provider) {
+            _providers = _.filter(_providers, function(provider) {
                 return provider.name !== providerName;
             })
         }
@@ -1215,22 +1215,22 @@ mapHelper.prototype.version = function()
     }, window.nsGmx.GeomixerFrameworkVersion, '' );
 }
 
-mapHelper.prototype.createAPIMapDialog = function()
-{
-    var mapProperties = _layersTree.treeModel.getMapProperties();
-	var options = {
-			requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
-			saveBaseLayers: false
-		};
+// mapHelper.prototype.createAPIMapDialog = function()
+// {
+    // var mapProperties = _layersTree.treeModel.getMapProperties();
+	// var options = {
+			// requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
+			// saveBaseLayers: false
+		// };
 		
-	if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
+	// if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
 	
-	nsMapCommon.createAPIMapDialog(
-		mapProperties.name, 
-		mapProperties.hostName, 
-		options
-	);
-}
+	// nsMapCommon.createAPIMapDialog(
+		// mapProperties.name, 
+		// mapProperties.hostName, 
+		// options
+	// );
+// }
 
 mapHelper.prototype.print = function()
 {

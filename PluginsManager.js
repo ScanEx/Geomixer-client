@@ -198,7 +198,7 @@ var PluginsManager = function()
     
     this.done = function(f) {
         //не можем использовать $.when, так как при первой ошибке результирующий promise сразу же reject'ится, а нам нужно дождаться загрузки всех плагинов
-        var loadingPlugins = nsGmx._.where(_plugins, {isLoading: true}),
+        var loadingPlugins = _.where(_plugins, {isLoading: true}),
             count = loadingPlugins.length;
         
         count || f();

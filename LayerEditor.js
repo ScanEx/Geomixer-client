@@ -165,7 +165,7 @@ var ManualAttrModel = function() {
     this.initFromServerFormat = function(serverColumns) {
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
-            var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase()});
+            var type = _.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase()});
             _attributes.push({
                 type: type || {server: column.ColumnSimpleType.toLowerCase()}, 
                 name: column.Name,
@@ -412,7 +412,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
         }
         
         for (var i in _params.additionalUI) {
-            var tab = nsGmx._.findWhere(_this._originalTabs, {name: i});
+            var tab = _.findWhere(_this._originalTabs, {name: i});
             if (tab) {
                 var container = tab.container.firstChild;
                 _params.additionalUI[i].forEach(function(ui) {
@@ -483,7 +483,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 layerTitle = layerProperties.get('Title');
                 
             //doneCallback вызываем при первом progress notification - признаке того, что вызов непосредственно скрипта модификации слоя прошёл успешно
-            var onceCallback = nsGmx._.once(function(){
+            var onceCallback = _.once(function(){
                 _params.doneCallback && _params.doneCallback(def, layerTitle);
             });
             def.always(parseResponse);

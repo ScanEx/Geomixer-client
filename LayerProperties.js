@@ -53,7 +53,7 @@ var LayerProperties = Backbone.Model.extend(
     /** @lends nsGmx.LayerProperties.prototype */
 {
     initialize: function(attrs) {
-        this.attributes = nsGmx._.clone(attrs || {});
+        this.attributes = _.clone(attrs || {});
     },
     
     initFromViewer: function(type, divProperties, layerProperties) {

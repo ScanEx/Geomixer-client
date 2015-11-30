@@ -43,8 +43,6 @@ loadJS(thirdpartyList, function() {
         $.getCSS(_getFileName(cssToLoad[f]));
     }
 
-    nsGmx._ = _.noConflict(); //пересекается с utilities :(
-    
     loadJS(gmxFilesList, function()
     {
         gmxCore.setDefaultModulesHost(gmxJSHost);

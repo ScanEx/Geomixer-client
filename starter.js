@@ -140,7 +140,7 @@ var createMenuNew = function()
                     _queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)
                 }, delimiter: true},
                 {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
-                {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
+                // {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
                 {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
                 {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
                 {id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
@@ -1362,6 +1362,15 @@ function loadMap(state)
                 })
                     .addTo(lmap)
                     .on('click', _mapHelper.showPermalink.bind(_mapHelper));
+                    
+                /*var shareIconControl = new nsGmx.ShareIconControl({
+                    permalinkManager: {
+                        save: nsMapCommon.generateWinniePermalink
+                    },
+                    embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{permlalinkId}}',
+                    previewUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{embeddedUrl}}'
+                });
+                lmap.addControl(shareIconControl);*/
                     
                 var gridIcon = new L.Control.gmxIcon({
                     id: 'gridTool', 

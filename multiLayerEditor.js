@@ -177,7 +177,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                 return;
             }
             
-            var joinedPolygon = nsGmx.Utils.joinPolygons(nsGmx._.pluck(objs, 'geometry'));
+            var joinedPolygon = nsGmx.Utils.joinPolygons(_.pluck(objs, 'geometry'));
             
             if (!joinedPolygon) {
                 //TODO: ошибка

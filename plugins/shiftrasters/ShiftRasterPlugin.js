@@ -280,11 +280,11 @@
                         if (isRC && isChecked) {
                             var columns = layerProperties.get('Columns').slice();
                             
-                            if (!nsGmx._.findWhere(columns, {Name: shiftXDefault})) {
+                            if (!_.findWhere(columns, {Name: shiftXDefault})) {
                                 columns.push({Name: shiftXDefault, ColumnSimpleType: 'Float'});
                             }
                             
-                            if (!nsGmx._.findWhere(columns, {Name: shiftYDefault})) {
+                            if (!_.findWhere(columns, {Name: shiftYDefault})) {
                                 columns.push({Name: shiftYDefault, ColumnSimpleType: 'Float'});
                             }
                             
@@ -312,7 +312,7 @@
                 params.fields = params.fields || [];
                 
                 var hideField = function(name) {
-                    var fieldDescription = nsGmx._.findWhere(params.fields, {name: name});
+                    var fieldDescription = _.findWhere(params.fields, {name: name});
                     if (fieldDescription) {
                         fieldDescription.hide = true;
                     } else {

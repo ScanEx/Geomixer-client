@@ -184,7 +184,7 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
             name = input.val();
         
         var addedUsers = _this.securityUsersProvider.getOriginalItems();
-        if (nsGmx._.findWhere(addedUsers, {Nickname: name})) {
+        if (_.findWhere(addedUsers, {Nickname: name})) {
             inputError(input[0]);
             return;
         }
