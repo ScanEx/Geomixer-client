@@ -209,6 +209,10 @@ var Calendar = function(name, params)
             utcDate.setMinutes(59);
             utcDate.setSeconds(59);
             $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', utcDate);
+            
+            this.dateMax.setHours(23);
+            this.dateMax.setMinutes(59);
+            this.dateMax.setSeconds(59);
         } else {
             $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', null);
         }
