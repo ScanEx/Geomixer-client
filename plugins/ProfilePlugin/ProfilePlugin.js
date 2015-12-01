@@ -24,18 +24,18 @@
 
             "fileStorageUsed": "Хранилище файлов используется",
             "fileStorageRemain": "Хранилище файлов осталось",
-            "vectorLayerStorageUsed": "Хранилище векторных слоев используется" ,
-            "vectorLayerStorageRemain": "Хранилище векторных слоев осталось" ,
-            "subscriptionUsed": "Подписок (Live Alerts) имеется" ,
-            "subscriptionRemain": "Подписок (Live Alerts) осталось" ,
+            "vectorLayerStorageUsed": "Хранилище векторных слоев используется",
+            "vectorLayerStorageRemain": "Хранилище векторных слоев осталось",
+            "subscriptionUsed": "Подписок (Live Alerts) имеется",
+            "subscriptionRemain": "Подписок (Live Alerts) осталось",
             "smsAvailable": "Sms (Live Alerts) доступны",
 
-            "clientRegistration": "Регистрация клиента" ,
-            "appName": "Название приложения" ,
-            "clientID": "ID клиента (client_id)" ,
-            "clientSecret": "oAuth ключ клиента (client_secret)" ,
-            "redirectUri": "URI скрипта абратного вызова (redirect_uri)" ,
-            "registerClient": "Получить новый ключ", 
+            "clientRegistration": "Регистрация клиента",
+            "appName": "Название приложения",
+            "clientID": "ID клиента (client_id)",
+            "clientSecret": "oAuth ключ клиента (client_secret)",
+            "redirectUri": "URI скрипта абратного вызова (redirect_uri)",
+            "registerClient": "Получить новый ключ",
 
             "password": "Пароль",
             "getNew": "изменить?",
@@ -43,7 +43,7 @@
             "passwordChanged": "изменен",
             "old": "Старый пароль",
             "newp": "Новый пароль",
-            "repeat": "Повтор пароля",
+            "repeat": "Подтверждение",
             "submitp": "Изменить",
 
             "ErrorNOT_AUTHORIZED": "Пользователь не авторизован",
@@ -63,31 +63,31 @@
             "billing": "Billing",
             "developer": "Developer",
 
-            "email": "Email", //"Электронная почта",
-            "login": "Nickname", //"Псевдоним",
-            "fullName": "Full name", //"Полное имя",
-            "phone": "Phone", //"Телефон",
-            "company": "Company", //"Название организации",
-            "companyProfile": "Type of company activity", //"Вид деятельности организации",
-            "companyPosition": "Company position", //"Должность",
-            "isCompany": "I am speaking on behalf of the organization", //"Я выступаю от имени организации",
-            "subscribe": "I agree to receive updates and news by email", // "Я согласен получать сообщения по почте",
-            "saveChanges": "Save", //"Сохранить",
+            "email": "Email",
+            "login": "Nickname",
+            "fullName": "Full name",
+            "phone": "Phone",
+            "company": "Company",
+            "companyProfile": "Type of company activity",
+            "companyPosition": "Company position",
+            "isCompany": "I am speaking on behalf of the organization",
+            "subscribe": "I agree to receive updates and news by email",
+            "saveChanges": "Save",
 
-            "fileStorageUsed": "File storage consumtion", //"Хранилище файлов используется",
-            "fileStorageRemain": "File storage remain", //"Хранилище файлов осталось",
-            "vectorLayerStorageUsed": "Vector storage consumption", //"Хранилище векторных слоев используется" ,
-            "vectorLayerStorageRemain": "Vector storage remain", //"Хранилище векторных слоев осталось" ,
-            "subscriptionUsed": "Subscription consumption", //"Подписок (Live Alerts) имеется" ,
-            "subscriptionRemain": "Subscription remain", //"Подписок (Live Alerts) осталось" ,
-            "smsAvailable": "Sms", //"Sms (Live Alerts) доступны"
+            "fileStorageUsed": "File storage consumtion",
+            "fileStorageRemain": "File storage remain",
+            "vectorLayerStorageUsed": "Vector storage consumption",
+            "vectorLayerStorageRemain": "Vector storage remain",
+            "subscriptionUsed": "Subscription consumption",
+            "subscriptionRemain": "Subscription remain",
+            "smsAvailable": "Sms",
 
-            "clientRegistration": "Client Registration", //"Регистрация клиента" ,
-            "appName": "Client Application", //"Название приложения" ,
-            "clientID": "Client ID (client_id)", //"ID клиента (client_id)" ,
-            "clientSecret": "Client secret key (client_secret)", //"oAuth ключ клиента (client_secret)" ,
-            "redirectUri": "Redirect endpoint URI", //"URI скрипта абратного вызова (redirect_uri)" ,
-            "registerClient": "Issue new secret key", //"Получить новый ключ" 
+            "clientRegistration": "Client Registration",
+            "appName": "Client Application",
+            "clientID": "Client ID (client_id)",
+            "clientSecret": "Client secret key (client_secret)",
+            "redirectUri": "Redirect endpoint URI",
+            "registerClient": "Issue new secret key",
 
             "password": "Password",
             "getNew": "change?",
@@ -119,6 +119,8 @@
             // Create
             ppBackScreen = $('<div class="profilePanel"><table width="100%" height="100%"><tr><td><img src="img/progress.gif"></td></tr></table></div>').hide().appendTo('#all');
             var ppFrame = $('<div class="profilePanel-content"></div>');
+            var ppMenu = $('<div class="profilePanel-menu"></div>');
+            var wait = $('<table width="100%" height="20%"><tr><td align="center"><img src="img/progress.gif"></td></tr></table>');
 
             // Pages
             var pageTemplate =
@@ -194,6 +196,8 @@
 
             // Profile submit
             page1.find('.SaveChanges').click(function () {
+                changePassForm.hide();
+                wait.show();
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Settings", { WrapStyle: 'message',
                     Login: page1.find('.Login').val(),
                     FullName: page1.find('.FullName').val(),
@@ -205,6 +209,7 @@
                     Subscribe: page1.find('.Subscribe').is(":checked")
                 },
                       function (response) {
+                          wait.hide();
                           if (response.Status.toLowerCase() == 'ok' && response.Result) {
                               page1.children('.ErrorSummary').text('error').css('visibility', 'hidden');
                           }
@@ -219,10 +224,12 @@
 
             // Register client submit
             page3.find('.RegisterClient').click(function () {
+                wait.show();
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/RegisterClient", { WrapStyle: 'message',
                     AppName: page3.find('.AppName').val(), RedirectUri: page3.find('.RedirectUri').val()
                 },
                       function (response) {
+                          wait.hide();
                           if (response.Status.toLowerCase() == 'ok' && response.Result) {
                               page3.find('.ClientSecret').text(response.Result.Key);
                               page3.children('.ErrorSummary').css('visibility', 'hidden');
@@ -249,12 +256,14 @@
             '</div>')());
             changePassForm.insertAfter(changePassControls.last());
             changePassForm.find('.ChangePassword').click(function () {
+                wait.show();
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/ChangePassword", { WrapStyle: 'message',
                     oldpassword: changePassForm.children('.OldPassword').val(),
                     password: changePassForm.children('.NewPassword').val(),
                     repeat: changePassForm.children('.PasswordRepeat').val()
                 },
                 function (response) {
+                    wait.hide();
                     if (response.Status.toLowerCase() == 'ok' && response.Result)
                         changePassForm.hide().prev().find('.PasswordState').text(_gtxt('ProfilePlugin.passwordChanged'));
                     else
@@ -267,13 +276,15 @@
             });
 
             // Error display
+            var page1Errors = page1.find('.ErrorSummary');
             changePassForm.bind('onerror', function (e, m) {
+                page1Errors.text('error').css('visibility', 'hidden');
                 $(this).children('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + m)).css('visibility', 'visible');
                 return false;
             });
             changePassForm.bind('onrender', function () {
                 $(this).children('input[type="password"]').val('');
-                $(this).children('.ErrorSummary').css('visibility', 'hidden');
+                page1Errors.text('error').css('visibility', 'hidden');
                 return false;
             });
             ppPages.bind('onerror', function (e, m1, m2) {
@@ -281,7 +292,6 @@
                 if (m2)
                     m += " " + m2;
                 $(this).children('.ErrorSummary').text(m).css('visibility', 'visible');
-                changePassForm.hide();
                 return false;
             })
             ppPages.bind('onrender', function () {
@@ -294,7 +304,6 @@
             ppFrame.hide().appendTo('#all');
 
             // Menu
-            var ppMenu = $('<div class="profilePanel-menu"></div>');
             var menuEntryTemplate = '<div>{{text}}</div>';
             var showPage = function (e, page) {
                 ppMenu.children().attr({ 'class': '' });
@@ -306,6 +315,7 @@
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.profile') })).appendTo(ppMenu).click(function (e) { showPage(e, page1); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.billing') })).appendTo(ppMenu).click(function (e) { showPage(e, page2); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.developer') })).appendTo(ppMenu).click(function (e) { showPage(e, page3); });
+            wait.appendTo(ppMenu).hide();
             ppMenu.hide().appendTo('#all');
             var ppMenuEntries = ppMenu.children();
             ppMenuEntries.first().attr({ 'class': 'selected' });
@@ -315,11 +325,13 @@
             // All together
             ppMainParts = $([ppFrame, ppMenu]).map(function () { return this[0]; });
             ppMainParts.data('ondataload', function () {
-                ppPages.trigger('onrender');
-                ppMainParts.show();
+                if (ppBackScreen.is(':visible')) {
+                    ppPages.trigger('onrender');
+                    ppMainParts.show();
+                }
             });
-            ppMainParts.mouseout(function (e) {
-                if (!ppMainParts.is($(e.relatedTarget)) && !ppMainParts.find($(e.relatedTarget)).length) {
+            $('body>div>div').mousedown(function (e) {
+                if (!ppMainParts.is($(e.target)) && !ppMainParts.find($(e.target)).length) {
                     ppBackScreen.hide();
                     ppMainParts.hide();
                 }
@@ -349,7 +361,6 @@
                 content.find('.IsCompany').prop('checked', response.Result[0].IsCompany);
                 fillBillingPage(content, response);
                 fillDeveloperPage(content, response);
-
                 onsuccess();
             }
             else {
