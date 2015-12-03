@@ -7,106 +7,121 @@
 
         _translationsHash.addtext("rus", { ProfilePlugin: {
 
-            "profile": "Профиль",
-            "billing": "Биллинг",
-            "developer": "Разработчикам",
+            profile: "Профиль",
+            billing: "Биллинг",
+            developer: "Разработчикам",
 
-            "email": "Электронная почта",
-            "login": "Псевдоним",
-            "fullName": "Полное имя",
-            "phone": "Телефон",
-            "company": "Название организации",
-            "companyProfile": "Вид деятельности организации",
-            "companyPosition": "Должность",
-            "isCompany": "Я выступаю от имени организации",
-            "subscribe": "Я согласен получать сообщения по почте",
-            "saveChanges": "Сохранить",
+            email: "Электронная почта",
+            login: "Псевдоним",
+            fullName: "Полное имя",
+            phone: "Телефон",
+            company: "Название организации",
+            companyProfile: "Вид деятельности организации",
+            companyPosition: "Должность",
+            isCompany: "Я выступаю от имени организации",
+            subscribe: "Я согласен получать сообщения по почте",
+            saveChanges: "Сохранить",
 
-            "fileStorageUsed": "Хранилище файлов используется",
-            "fileStorageRemain": "Хранилище файлов осталось",
-            "vectorLayerStorageUsed": "Хранилище векторных слоев используется",
-            "vectorLayerStorageRemain": "Хранилище векторных слоев осталось",
-            "subscriptionUsed": "Подписок (Live Alerts) имеется",
-            "subscriptionRemain": "Подписок (Live Alerts) осталось",
-            "smsAvailable": "Sms (Live Alerts) доступны",
+            fileStorageUsed: "Хранилище файлов используется",
+            fileStorageRemain: "Хранилище файлов осталось",
+            vectorLayerStorageUsed: "Хранилище векторных слоев используется",
+            vectorLayerStorageRemain: "Хранилище векторных слоев осталось",
+            subscriptionUsed: "Подписок (Live Alerts) имеется",
+            subscriptionRemain: "Подписок (Live Alerts) осталось",
+            smsAvailable: "Sms (Live Alerts) доступны",
 
-            "clientRegistration": "Регистрация клиента",
-            "appName": "Название приложения",
-            "clientID": "ID клиента (client_id)",
-            "clientSecret": "oAuth ключ клиента (client_secret)",
-            "redirectUri": "URI скрипта абратного вызова (redirect_uri)",
-            "registerClient": "Получить новый ключ",
+            clientRegistration: "Регистрация клиента",
+            appName: "Название приложения",
+            clientID: "ID клиента (client_id)",
+            clientSecret: "oAuth ключ клиента (client_secret)",
+            redirectUri: "URI скрипта абратного вызова (redirect_uri)",
+            registerClient: "Получить новый ключ",
 
-            "password": "Пароль",
-            "getNew": "изменить?",
-            "passwordSaved": "сохранен",
-            "passwordChanged": "изменен",
-            "old": "Старый пароль",
-            "newp": "Новый пароль",
-            "repeat": "Подтверждение",
-            "submitp": "Изменить",
+            password: "Пароль",
+            getNew: "изменить?",
+            passwordSaved: "сохранен",
+            passwordChanged: "изменен",
+            old: "Старый пароль",
+            newp: "Новый пароль",
+            repeat: "Подтверждение",
+            submitp: "Изменить",
 
-            "ErrorNOT_AUTHORIZED": "Пользователь не авторизован",
-            "ErrorLoginEmpty": "Требуется указать псевдоним!",
-            "ErrorLoginFormat": "Неправильный псевдоним! Допустимый вариант ",
-            "ErrorLoginExists": "Псевдоним уже используется!",
-            "ErrorAppName": "Не указано название приложения!",
-            "ErrorRedirectUri": "Требуется действительный uri обратного вызыва!",
-            "ErrorOldPassword": "Текущий пароль указан неверно",
-            "ErrorNewPassword": "Пароль не может быть пустым",
-            "ErrorNotMatch": "Введённые пароли не совпадают"
+            ErrorNOT_AUTHORIZED: "Пользователь не авторизован",
+            ErrorLoginEmpty: "Требуется указать псевдоним!",
+            ErrorLoginFormat: "Неправильный псевдоним! Допустимый вариант ",
+            ErrorLoginExists: "Псевдоним уже используется!",
+            ErrorAppName: "Не указано название приложения!",
+            ErrorRedirectUri: "Требуется действительный uri обратного вызыва!",
+            ErrorOldPassword: "Текущий пароль указан неверно",
+            ErrorNewPassword: "Пароль не может быть пустым",
+            ErrorNotMatch: "Введённые пароли не совпадают",
+
+            registration: "Регистрация",
+            registrationPageAnnotation: "Введите ваш адрес электронной почты, укажите желаемый пароль и число с картинки",
+            capcha: "Введите число",
+            register: "Зарегистрироваться",
+            backOn: "Повторить",
+            loginPage: "вход"
+
         }
         });
 
         _translationsHash.addtext("eng", { ProfilePlugin: {
-            "profile": "Profile",
-            "billing": "Billing",
-            "developer": "Developer",
+            profile: "Profile",
+            billing: "Billing",
+            developer: "Developer",
 
-            "email": "Email",
-            "login": "Nickname",
-            "fullName": "Full name",
-            "phone": "Phone",
-            "company": "Company",
-            "companyProfile": "Type of company activity",
-            "companyPosition": "Company position",
-            "isCompany": "I am speaking on behalf of the organization",
-            "subscribe": "I agree to receive updates and news by email",
-            "saveChanges": "Save",
+            email: "Email",
+            login: "Nickname",
+            fullName: "Full name",
+            phone: "Phone",
+            company: "Company",
+            companyProfile: "Type of company activity",
+            companyPosition: "Company position",
+            isCompany: "I am speaking on behalf of the organization",
+            subscribe: "I agree to receive updates and news by email",
+            saveChanges: "Save",
 
-            "fileStorageUsed": "File storage consumtion",
-            "fileStorageRemain": "File storage remain",
-            "vectorLayerStorageUsed": "Vector storage consumption",
-            "vectorLayerStorageRemain": "Vector storage remain",
-            "subscriptionUsed": "Subscription consumption",
-            "subscriptionRemain": "Subscription remain",
-            "smsAvailable": "Sms",
+            fileStorageUsed: "File storage consumtion",
+            fileStorageRemain: "File storage remain",
+            vectorLayerStorageUsed: "Vector storage consumption",
+            vectorLayerStorageRemain: "Vector storage remain",
+            subscriptionUsed: "Subscription consumption",
+            subscriptionRemain: "Subscription remain",
+            smsAvailable: "Sms",
 
-            "clientRegistration": "Client Registration",
-            "appName": "Client Application",
-            "clientID": "Client ID (client_id)",
-            "clientSecret": "Client secret key (client_secret)",
-            "redirectUri": "Redirect endpoint URI",
-            "registerClient": "Issue new secret key",
+            clientRegistration: "Client Registration",
+            appName: "Client Application",
+            clientID: "Client ID (client_id)",
+            clientSecret: "Client secret key (client_secret)",
+            redirectUri: "Redirect endpoint URI",
+            registerClient: "Issue new secret key",
 
-            "password": "Password",
-            "getNew": "change?",
-            "passwordSaved": "saved",
-            "passwordChanged": "changed",
-            "old": "Old password",
-            "newp": "New password",
-            "repeat": "Repeat",
-            "submitp": "Change",
+            password: "Password",
+            getNew: "change?",
+            passwordSaved: "saved",
+            passwordChanged: "changed",
+            old: "Old password",
+            newp: "New password",
+            repeat: "Repeat",
+            submitp: "Change",
 
-            "ErrorNOT_AUTHORIZED": "Authorization is required!",
-            "ErrorLoginEmpty": "Nickname is required!",
-            "ErrorLoginFormat": "Invalid nickname! Allowable nickname ",
-            "ErrorLoginExists": "Nickname duplicates!",
-            "ErrorAppName": "Application name is required!",
-            "ErrorRedirectUri": "Valid redirect uri is required!",
-            "ErrorOldPassword": "Password is invalid!",
-            "ErrorNewPassword": "Password is required!",
-            "ErrorNotMatch": "Passwords does not match!"
+            ErrorNOT_AUTHORIZED: "Authorization is required!",
+            ErrorLoginEmpty: "Nickname is required!",
+            ErrorLoginFormat: "Invalid nickname! Allowable nickname ",
+            ErrorLoginExists: "Nickname duplicates!",
+            ErrorAppName: "Application name is required!",
+            ErrorRedirectUri: "Valid redirect uri is required!",
+            ErrorOldPassword: "Password is invalid!",
+            ErrorNewPassword: "Password is required!",
+            ErrorNotMatch: "Passwords does not match!",
+
+            registration: "Registration",
+            registrationPageAnnotation: "Please fill all fields",
+            capcha: "Input a number",
+            register: "Register",
+            backOn: "Back to",
+            loginPage: "Login"
         }
         });
     }
@@ -147,7 +162,7 @@
                         '{{#if checkbox_group}}' +
                             '<table>' +
                             '{{#each checkbox_group}}' +
-                                '<tr><td><input type="checkbox" class="{{id}}"></td><td><label for="{{id}}">{{text}}</label></td></tr>' +
+                                '<tr><td><input type="checkbox" class="{{id}}" id="pp{{id}}"></td><td><label for="pp{{id}}">{{text}}</label></td></tr>' +
                             '{{/each}}' +
                             '</table>' +
                         '{{/if}}' +
@@ -315,6 +330,9 @@
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.profile') })).appendTo(ppMenu).click(function (e) { showPage(e, page1); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.billing') })).appendTo(ppMenu).click(function (e) { showPage(e, page2); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.developer') })).appendTo(ppMenu).click(function (e) { showPage(e, page3); });
+
+            $('<span style="padding-left:40px; position:relative; top:40px; cursor:pointer">Регистрация</span>').appendTo(ppMenu).click(showRegistrationForm);
+
             wait.appendTo(ppMenu).hide();
             ppMenu.hide().appendTo('#all');
             var ppMenuEntries = ppMenu.children();
@@ -409,9 +427,23 @@
         object.css({ 'position': 'absolute' });
     }
 
+    var showRegistrationForm = function () {
+        window.showDialog(_gtxt('ProfilePlugin.registration'),
+            $(Handlebars.compile('<table class="registrationForm" width="100%" height="100%">' +
+            '<tr><td colspan="3" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
+            '<tr><td colspan="3">{{i "ProfilePlugin.email"}} <input type="text" class="Login"/></td></tr>' +
+            '<tr><td>{{i "ProfilePlugin.password"}} <input type="password" class="Password"/></td><td colspan="2">{{i "ProfilePlugin.repeat"}} <input type="password" class="Repeat"/></td></tr>' +
+            '<tr><td>{{i "ProfilePlugin.login"}} <input type="text" class="NickName"/></td><td>{{i "ProfilePlugin.capcha"}} <input type="text" class="Capcha"/></td><td><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=882164954"></td></tr>' +
+            '<tr><td colspan="3" class="submit"><div class="ErrorSummary">error</div><input type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
+            //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
+            '</table>')())[0],
+            600, 350);
+    };
+
     gmxCore.addModule('ProfilePlugin', {
         pluginName: 'ProfilePlugin',
         showProfile: showProfile,
+        showRegistrationForm: showRegistrationForm,
         afterViewer: function () {
             var checkExist = setInterval(function () {
                 var a = $('a:contains("' + nsGmx.Translations.getText('auth.myAccount') + '")')
