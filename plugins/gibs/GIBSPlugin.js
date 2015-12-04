@@ -107,10 +107,44 @@ var GIBSLayer = function(layerName, map, params) {
 }
 
 var overlayLayerProxies = [];
+
+var GIBSProxyLayer = function() {}
+
+GIBSProxyLayer.prototype.initFromDescription = function(layerDescription) {
+    var props = layerDescription.properties;
+    
+    if (!props.MetaProperties['gibs-layername']) {
+         return new L.gmx.DummyLayer(props);
+    }
+    
+    var layerName = props.MetaProperties['gibs-layername'].Value,
+        isTransparent = !!props.MetaProperties['gibs-transparent'];
+
+    try {
+        var layer = new L.GIBSLayer(layerName, {transparent: isTransparent});
+    } catch(e) {
+        return new L.gmx.DummyLayer(props);
+    }
+
+    layer.getGmxProperties = function() {
+        return props;
+    }
+
+    layer.setDateInterval = function(dateBegin, dateEnd) {
+        this.setDate(dateEnd);
+        return this;
+    }
+    
+    return layer;
+}
  
 var publicInterface = {
     pluginName: 'GIBS Plugin',
     GIBSLayer: GIBSLayer,
+    
+    beforeMap: function() {
+        L.gmx.addLayerClass('GIBS', GIBSProxyLayer);
+    },
     
     //параметры: layer (может быть несколько) - имя слоя в GIBS
 	afterViewer: function(params)
@@ -158,6 +192,13 @@ var publicInterface = {
     }
 }
 
-gmxCore.addModule('GIBSPlugin', publicInterface);
+gmxCore.addModule('GIBSPlugin', publicInterface, {
+    init: function(module, path) {
+        return $.when(
+            gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSLayer.js'),
+            gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSMetadata.js')
+        )
+    }
+});
 
 })(jQuery);
