@@ -678,10 +678,11 @@ nsGmx.widgets.commonCalendar = {
 
         for (var i = 0, len = layers.length; i < len; i++) {
             var layer = layers[i],
-                props = layer.getGmxProperties();
-            if (layer instanceof L.gmx.VectorLayer && props.Temporal &&
-                !(props.name in this._unbindedTemporalLayers)) {
-                    this._updateOneLayer(layer, dateBegin, dateEnd);
+                props = layer.getGmxProperties(),
+                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                
+            if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
+                this._updateOneLayer(layer, dateBegin, dateEnd);
             }
         }
     }
@@ -1457,7 +1458,7 @@ function loadMap(state)
                 nsGmx.leafletMap.on('layeradd', function(event) {
                     var layer = event.layer;
                     
-                    if (layer._gmx) {
+                    if (layer.getGmxProperties) {
                         initEditUI();
                         initTimeline([layer]);
                     }

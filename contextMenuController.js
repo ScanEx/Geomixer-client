@@ -249,10 +249,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		var div;
-		if (context.elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-		else
+		if (context.elem.MultiLayerID)
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+		else
+			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
 		_mapHelper.createLayerEditor(div, context.tree, 'main', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 	}
 }, 'Layer');

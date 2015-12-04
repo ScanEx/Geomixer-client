@@ -769,7 +769,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
     }
     else
     {
-        if (elemProperties.LayerID)
+        if (elemProperties.name)
         {
             _(parent, [loading]);
         
@@ -950,7 +950,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			createTabs(response.Result);
 		})
 	}
-	else
+	else if (elemProperties.type == "Raster")
 	{
 		if (elemProperties.LayerID)
 		{
@@ -1013,7 +1013,23 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		{
             nsGmx.createMultiLayerEditorServer(elemProperties, div, treeView);
         }
-	}
+	} else if (elemProperties.type == "Virtual"){
+        var divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]);
+        
+        this.createLoadingLayerEditorProperties(div, divProperties, null, {
+            doneCallback: function() {
+                $(divDialog).dialog('close');
+            }
+        });
+        
+        var closeFunc = function() {
+            delete _this.layerEditorsHash[layerName];
+        };
+        
+        var pos = nsGmx.Utils.getDialogPos(div, true, 330);
+        
+        var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 330, 410, pos.left, pos.top, null);
+    }
 }
 
 mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geometryType, divCanvas)

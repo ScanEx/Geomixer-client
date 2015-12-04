@@ -21,7 +21,7 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @class
  * @memberOf nsGmx
  * @extends Backbone.Model
- * @property {String} Type Тип слоя. Vector/Raster
+ * @property {String} Type Тип слоя. Vector/Raster/MultiLayer/Virtual
  * @property {Number} LayerID Серверный ID слоя
  * @property {String} Name Уникальный неитерируемый ID слоя
  * @property {String} Title Заголовок слоя
@@ -69,7 +69,7 @@ var LayerProperties = Backbone.Model.extend(
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
             Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
-            //MetaProperties: layerProperties.MetaProperties || {},
+            ContentID:      divProperties ? divProperties.ContentID : layerProperties.ContentID,
             ShapePath:      layerProperties.ShapePath || {},
             TilePath:       layerProperties.TilePath || {},
             Name:           layerProperties.name,
@@ -281,6 +281,18 @@ var LayerProperties = Backbone.Model.extend(
             }
             
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "MultiLayer/" + (name ? "Update.ashx" : "Insert.ashx"), multiReqParams);
+        } else if (attrs.Type === 'Virtual') {
+            if (name) {
+                reqParams.VectorLayerID = name;
+            } else {
+                reqParams.SourceType = 'Virtual';
+            }
+            
+            if (attrs.ContentID) {
+                reqParams.ContentID = attrs.ContentID;
+            }
+            
+            def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
         }
         
         callback && def.done(callback);

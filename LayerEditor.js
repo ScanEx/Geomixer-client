@@ -630,12 +630,13 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
     if (layerProperties.get('Type') != "Vector") {
             shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
     }
-    
+
     if (!isReadonly) {
-        if (layerProperties.get('Type') === "Vector")
+        if (layerProperties.get('Type') === "Vector") {
             shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties));
-        else
+        } else if (layerProperties.get('Type') === "Raster") {
             shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
+        }
     }
 
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
@@ -848,20 +849,6 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
                     
     /*------------ Переключалка источника слоя ------------*/
     var sourceContainers = [sourceFile, sourceTable, sourceManual];
-                    
-    var sourceCheckbox = $('<form/>')
-        .append($('<label/>')
-            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
-            .text(_gtxt('Файл')))
-        .append('<br/>')
-        .append($('<label/>')
-            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
-            .text(_gtxt('Таблица')))
-        .append('<br/>')
-        .append($('<label/>')
-            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
-            .text(_gtxt('Вручную'))
-        );
         
     var sourceCheckbox = $(
         '<form>' +
