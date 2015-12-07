@@ -1033,7 +1033,7 @@ function processGmxMap(state, gmxMap) {
         
         for (var l = 0; l < gmxMap.layers.length; l++) {
             var layer = gmxMap.layers[l];
-            if (layer.getGmxProperties().visible) {
+            if (layer.getGmxProperties().visible && layer.getBounds) {
                 visBounds.extend(layer.getBounds());
             }
         }
