@@ -142,7 +142,7 @@ var publicInterface = {
     pluginName: 'GIBS Plugin',
     GIBSLayer: GIBSLayer,
     
-    beforeMap: function() {
+    preloadMap: function() {
         L.gmx.addLayerClass('GIBS', GIBSProxyLayer);
     },
     
