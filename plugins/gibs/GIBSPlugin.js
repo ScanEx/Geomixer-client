@@ -142,10 +142,6 @@ var publicInterface = {
     pluginName: 'GIBS Plugin',
     GIBSLayer: GIBSLayer,
     
-    preloadMap: function() {
-        L.gmx.addLayerClass('GIBS', GIBSProxyLayer);
-    },
-    
     //параметры: layer (может быть несколько) - имя слоя в GIBS
 	afterViewer: function(params)
     {
@@ -195,9 +191,12 @@ var publicInterface = {
 gmxCore.addModule('GIBSPlugin', publicInterface, {
     init: function(module, path) {
         return $.when(
-            gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSLayer.js'),
-            gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSMetadata.js')
-        )
+                gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSLayer.js'),
+                gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSMetadata.js')
+            )
+            .then(function() {
+                return gmxCore.loadScript(path + 'leaflet-GIBS/src/GeoMixerGIBSLayer.js')
+            });
     }
 });
 
