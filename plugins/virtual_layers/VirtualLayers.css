@@ -1,0 +1,12 @@
+﻿.vlayer-container {
+}
+
+.vlayer-label {
+    width: 70px;
+    display: inline-block;
+    margin: 10px 4px 0px 3px;
+}
+
+.vlayer-contentid {
+    width: 100px;
+}
