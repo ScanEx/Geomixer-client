@@ -74,7 +74,17 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
   @memberOf IGeomixerPlugin.prototype
   @method
   @name beforeMap
-  @desc Вызывется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)
+  @desc Вызывется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.).
+        Ещё нет информации о пользователе, но пока можно сменить карту для загрузки.
+  @param {Object} params Параметры плагина
+*/
+
+/**
+  @memberOf IGeomixerPlugin.prototype
+  @method
+  @name preloadMap
+  @desc Вызывется непосредственно перед началом создания слоёв по загруженной информации о карте.
+        Карту сменить уже нельзя, но можно как-нибудь повлиять на процесс создания слоёв (например, добавить новые классы слоёв)
   @param {Object} params Параметры плагина
 */
 
@@ -217,6 +227,14 @@ var PluginsManager = function()
      @method
     */
     this.beforeMap = _genIterativeFunction('beforeMap');
+    
+    /**
+     Вызывает preloadMap() у всех плагинов
+     @memberOf PluginsManager
+     @name preloadMap
+     @method
+    */
+    this.preloadMap = _genIterativeFunction('preloadMap');
     
     /**
      Вызывает beforeViewer() у всех плагинов
