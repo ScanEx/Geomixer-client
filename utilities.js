@@ -719,9 +719,10 @@ function createPostIframe(id, callback)
 }
 
 !function() {
-    var requests = {};
-    var lastRequestId = 0;
-    
+    var requests = {},
+        lastRequestId = 0,
+        uniquePrefix = 'id' + Math.random();
+
     var processMessage = function(e) {
         if (!(e.origin in requests)) {
             return;
@@ -736,7 +737,7 @@ function createPostIframe(id, callback)
         var request = requests[e.origin][dataObj.CallbackName];
         if(!request) return;    // message от других запросов
         
-        delete request[dataObj.CallbackName];
+        delete requests[e.origin][dataObj.CallbackName];
         delete dataObj.CallbackName;
         
         request.iframe.parentNode.removeChild(request.iframe);
@@ -787,7 +788,7 @@ function createPostIframe(id, callback)
     
     function createPostIframe2(id, callback, url)
     {
-        var uniqueId = 'id'+(lastRequestId++);
+        var uniqueId = uniquePrefix + (lastRequestId++);
         
         iframe = document.createElement("iframe");
         iframe.style.display = 'none';
