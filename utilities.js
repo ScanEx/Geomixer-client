@@ -1407,6 +1407,53 @@ $.extend(nsGmx.Utils, {
         
     })(),
     
+    /** Позволяет скачать в браузере геометрию в одном из форматов (упакованный в zip архив).
+    * @memberof nsGmx.Utils
+    * @function
+    * @param {Object[]} geoJSONFeatures Массив GeoJSON Features. К сожалению, другие типы GeoJSON объектов не поддерживаются.
+    * @param {Object} [options] Доп. параметры
+    * @param {String} [options.fileName=markers] Имя файла для скачивания
+    * @param {String} [options.format=Shape] В каком формате скачать (Shape, Tab, gpx или несколько через запятую)
+    */
+    downloadGeometry: function(geoJSONFeatures, options) {
+        var objectsByType = {},
+            markerIdx = 1;
+
+        options = $.extend({
+            fileName: 'markers',
+            format: 'Shape'
+        }, options);
+
+        geoJSONFeatures.forEach(function(item) {
+            var geom = item.geometry,
+                type = geom.type;
+
+            objectsByType[type] = objectsByType[type] || [];
+            
+            var title = item.properties && item.properties.title || '';
+            
+            if (type == "Point" && !title) {
+                title = "marker " + markerIdx++;
+            }
+            
+            objectsByType[type].push({
+                geometry: {
+                    type: type.toUpperCase(),
+                    coordinates: geom.coordinates
+                },
+                properties: {text: title}
+            });
+        });
+
+        sendCrossDomainPostRequest(serverBase + "Shapefile", {
+            name:     options.fileName,
+            format:   options.format,
+            points:   JSON.stringify(objectsByType["Point"] || []),
+            lines:    JSON.stringify([].concat(objectsByType["LineString"] || [], objectsByType["MultiLineString"] || [])),
+            polygons: JSON.stringify([].concat(objectsByType["Polygon"] || [], objectsByType["MultiPolygon"] || []))
+        })
+    },
+    
     /** Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
     * @memberof nsGmx.Utils
     */
