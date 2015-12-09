@@ -1283,9 +1283,15 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 		
 		var layersToSearch = [];
 		for (var i=0; i< gmxMap.layers.length; i++) {
-            var props = gmxMap.layers[i].getGmxProperties();
-            if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
-                layersToSearch.push(props);
+            //свойства мы берём из дерева слоёв, а не из API. Cвойство AllowSearch относится к карте и не поддерживаются API
+            var searchRes = _layersTree.treeModel.findElem('name', gmxMap.layers[i].getGmxProperties().name);
+            
+            if (searchRes) {
+                var props = searchRes.elem.content.properties;
+                
+                if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                    layersToSearch.push(props);
+                }
             }
         }
 		var iRespCount = 0;
