@@ -1,18 +1,20 @@
-(function (_) {
+(function () {
     'use strict';
 
 var ZINDEX_DEFAULT_FIELD = '_zIndex';
 nsGmx.Translations.addText("rus", {
-    'VectorSorting.menuTitle' : 'Сохранить порядок объектов',
-    'VectorSorting.done' : 'Порядок объектов сохранён',
-    'VectorSorting.button' : 'Создать',
-    'VectorSorting.askField' : 'Создать поле "' + ZINDEX_DEFAULT_FIELD + '"?'
+    VectorSorting: {
+        menuTitle : 'Сохранить порядок объектов',
+        done:       'Порядок объектов сохранён',
+        button:     'Установить'
+    }
 });
 nsGmx.Translations.addText("eng", {
-    "VectorSorting.menuTitle" : 'Save the order of objects',
-    'VectorSorting.done' : 'The order of objects saved',
-    'VectorSorting.button' : 'Create',
-    'VectorSorting.askField' : 'Create field "' + ZINDEX_DEFAULT_FIELD + '"?'
+    VectorSorting: {
+        menuTitle:  'Save the order of objects',
+        done:       'The order of objects saved',
+        button:     'Set'
+    }
 });
 
 var pluginPath = gmxCore.getModulePath('VectorSorting');
@@ -22,9 +24,8 @@ var publicInterface = {
     ,
 	afterViewer: function(params, map) {
         nsGmx.ContextMenuController.addContextMenuElem({
-            title: function() {
-                return _gtxt('VectorSorting.menuTitle'); 
-            },
+            title: _gtxt('VectorSorting.menuTitle')
+            ,
 
             isVisible: function(context) {
                 var elem = context.elem,
@@ -35,9 +36,8 @@ var publicInterface = {
                 return isNeedMenu &&
                     props.type === 'Vector' && 
                     (props.GeometryType === 'polygon' || props.GeometryType === 'linestring') &&
-                    // props.ZIndexField &&
-                    !context.layerManagerFlag && 
-                    _queryMapLayers.currentMapRights() === "edit";
+                    !context.layerManagerFlag &&
+                    _queryMapLayers.layerRights(elem.name) == 'edit';
             },
 
             clickCallback: function(context) {
@@ -50,6 +50,16 @@ var publicInterface = {
 
                 if (isNeedMenu) {
                     var ZIndexField = props.ZIndexField || ZINDEX_DEFAULT_FIELD;
+                    nsGmx.Translations.addText("rus", {
+                        VectorSorting: {
+                            askField:   'Поле сортировки: "' + ZIndexField + '"?'
+                        }
+                    });
+                    nsGmx.Translations.addText("eng", {
+                        VectorSorting: {
+                            askField:   'Sort field: "' + ZIndexField + '"?'
+                        }
+                    });
                     var saveReorderArrays = function() {
                         L.gmxUtil.sendCrossDomainPostRequest(
                             'http://' + layer._gmx.hostName + '/VectorLayer/Search.ashx',
@@ -60,23 +70,17 @@ var publicInterface = {
                             },
                             function(ph) {
                                 if (ph.Status === 'ok' && ph.Result) {
-                                    var minmax = ph.Result.values[0],
-                                        minStart =  minmax[0] - 1,
-                                        maxStart =  minmax[1] + 1,
-                                        out = [];
-
-                                    sorted.bottom.map(function(id, i) {
+                                    var minmax = ph.Result.values[0];
+                                    var updater = function(startIndex, delta, id, i) {
                                         var properties = {};
-                                        properties[ZIndexField] = minStart - i;
-                                        out.push({id: id, properties: properties, action: 'update'});
-                                    });
+                                        properties[ZIndexField] = startIndex + delta * i;
+                                        return {id: id, properties: properties, action: 'update'};
+                                    };
 
-                                    sorted.top.map(function(id, i) {
-                                        var properties = {};
-                                        properties[ZIndexField] = maxStart + i;
-                                        out.push({id: id, properties: properties, action: 'update'});
-                                    });
-
+                                    var out = [].concat(
+                                        sorted.bottom.map(updater.bind(null, minmax[0] - 1, -1)), 
+                                        sorted.top.map(updater.bind(null, minmax[1] + 1, 1))
+                                    );
                                     if (out.length) {
                                         _mapHelper.modifyObjectLayer(layerID, out).done(function() {
                                             layer.clearReorderArrays();
@@ -92,25 +96,25 @@ var publicInterface = {
                     
                     var isFieldFound = layer._gmx.tileAttributeIndexes[ZIndexField];
                     if (!props.ZIndexField || !isFieldFound) {
-                        var addField = makeButton(_gtxt('VectorSorting.button'));
-                        addField.onclick = function() {
-                            var lp = new nsGmx.LayerProperties();
-                            lp.initFromServer(layerID).done(function() {
-                                if (!props.ZIndexField) {
-                                    lp.set('ZIndexField', ZINDEX_DEFAULT_FIELD);
-                                }
-                                if (!isFieldFound) {
-                                    var columns = lp.get('Columns').slice();
-                                    columns.push({Name: ZIndexField, ColumnSimpleType: 'integer'});
-                                    lp.set('Columns', columns);
-                                }
-                                lp.save().done(function() {
-                                    saveReorderArrays();
+                        var dialogGUI = $('<div class="vectorSortingDialog"><button class="vectorSortingDialogButton">'+_gtxt('VectorSorting.button')+'</button></div>').css("text-align", 'center');
+                        $('.vectorSortingDialogButton', dialogGUI)
+                            .css({padding: '0px 5px', cursor: 'pointer'})
+                            .click(function() {
+                                var lp = new nsGmx.LayerProperties();
+                                lp.initFromServer(layerID).done(function() {
+                                    if (!props.ZIndexField) {
+                                        lp.set('ZIndexField', ZINDEX_DEFAULT_FIELD);
+                                    }
+                                    if (!isFieldFound) {
+                                        var columns = lp.get('Columns').slice();
+                                        columns.push({Name: ZIndexField, ColumnSimpleType: 'integer'});
+                                        lp.set('Columns', columns);
+                                    }
+                                    lp.save().done(saveReorderArrays);
                                 });
+                                removeDialog(jDialog);
                             });
-                            removeDialog(jDialog);
-                        };
-                        var jDialog = showDialog(_gtxt('VectorSorting.askField'), _div([addField],[['css','textAlign','center']]), 220, 75);
+                        var jDialog = showDialog(_gtxt('VectorSorting.askField'), dialogGUI[0], 300, 75);
                     } else {
                         saveReorderArrays();
                     }
@@ -122,4 +126,4 @@ var publicInterface = {
 
 gmxCore.addModule('VectorSorting', publicInterface);
 
-})(nsGmx.Utils._);
+})();
