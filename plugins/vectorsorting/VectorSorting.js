@@ -1,15 +1,21 @@
 (function (_) {
     'use strict';
-// todo:
-//  1. Если у слоя нет атрибута для сохранения порядка объектов, ему показывается предупреждающий диалог (как в плагине описаний)
-//  2. В процессе сохранения изменений показывается стандартная крутилка Редактора, после окончания - надписть “Порядок объектов сохранён”
 
+var ZINDEX_DEFAULT_FIELD = '_zIndex';
 nsGmx.Translations.addText("rus", {
-    'VectorSorting.menuTitle' : 'Сохранить порядок объектов'
+    'VectorSorting.menuTitle' : 'Сохранить порядок объектов',
+    'VectorSorting.done' : 'Порядок объектов сохранён',
+    'VectorSorting.button' : 'Создать',
+    'VectorSorting.askField' : 'Создать поле "' + ZINDEX_DEFAULT_FIELD + '"?'
 });
 nsGmx.Translations.addText("eng", {
-    "VectorSorting.menuTitle" : 'Save the order of objects'
+    "VectorSorting.menuTitle" : 'Save the order of objects',
+    'VectorSorting.done' : 'The order of objects saved',
+    'VectorSorting.button' : 'Create',
+    'VectorSorting.askField' : 'Create field "' + ZINDEX_DEFAULT_FIELD + '"?'
 });
+
+var pluginPath = gmxCore.getModulePath('VectorSorting');
 
 var publicInterface = {
     pluginName: 'Sorting Plugin'
@@ -17,7 +23,7 @@ var publicInterface = {
 	afterViewer: function(params, map) {
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() {
-                return _gtxt("VectorSorting.menuTitle"); 
+                return _gtxt('VectorSorting.menuTitle'); 
             },
 
             isVisible: function(context) {
@@ -29,7 +35,7 @@ var publicInterface = {
                 return isNeedMenu &&
                     props.type === 'Vector' && 
                     (props.GeometryType === 'polygon' || props.GeometryType === 'linestring') &&
-                    props.ZIndexField &&
+                    // props.ZIndexField &&
                     !context.layerManagerFlag && 
                     _queryMapLayers.currentMapRights() === "edit";
             },
@@ -43,43 +49,71 @@ var publicInterface = {
                     isNeedMenu = sorted.top.length + sorted.bottom.length;
 
                 if (isNeedMenu) {
-                    L.gmxUtil.sendCrossDomainPostRequest(
-                        'http://' + layer._gmx.hostName + '/VectorLayer/Search.ashx',
-                        {
-                            WrapStyle: 'window',
-                            layer: layerID,
-                            columns: '[{"Value":"min([' + props.ZIndexField + '])","Alias":"min"},{"Value":"max([' + props.ZIndexField + '])","Alias":"max"}]'
-                        },
-                        function(ph) {
-                            if (ph.Status === 'ok' && ph.Result) {
-                                var minmax = ph.Result.values[0],
-                                    minStart =  minmax[0] - 1,
-                                    maxStart =  minmax[1] + 1,
-                                    out = [];
+                    var ZIndexField = props.ZIndexField || ZINDEX_DEFAULT_FIELD;
+                    var saveReorderArrays = function() {
+                        L.gmxUtil.sendCrossDomainPostRequest(
+                            'http://' + layer._gmx.hostName + '/VectorLayer/Search.ashx',
+                            {
+                                WrapStyle: 'window',
+                                layer: layerID,
+                                columns: '[{"Value":"min([' + ZIndexField + '])","Alias":"min"},{"Value":"max([' + ZIndexField + '])","Alias":"max"}]'
+                            },
+                            function(ph) {
+                                if (ph.Status === 'ok' && ph.Result) {
+                                    var minmax = ph.Result.values[0],
+                                        minStart =  minmax[0] - 1,
+                                        maxStart =  minmax[1] + 1,
+                                        out = [];
 
-                                sorted.bottom.map(function(id, i) {
-                                    var properties = {};
-                                    properties[props.ZIndexField] = minStart - i;
-                                    out.push({id: id, properties: properties, action: 'update'});
-                                });
-
-                                sorted.top.map(function(id, i) {
-                                    var properties = {};
-                                    properties[props.ZIndexField] = maxStart + i;
-                                    out.push({id: id, properties: properties, action: 'update'});
-                                });
-
-                                if (out.length) {
-                                    _mapHelper.modifyObjectLayer(layerID, out).done(function() {
-                                        layer.clearReorderArrays();
-                                        //mediaDescDialog.dialog('close').remove();
+                                    sorted.bottom.map(function(id, i) {
+                                        var properties = {};
+                                        properties[ZIndexField] = minStart - i;
+                                        out.push({id: id, properties: properties, action: 'update'});
                                     });
+
+                                    sorted.top.map(function(id, i) {
+                                        var properties = {};
+                                        properties[ZIndexField] = maxStart + i;
+                                        out.push({id: id, properties: properties, action: 'update'});
+                                    });
+
+                                    if (out.length) {
+                                        _mapHelper.modifyObjectLayer(layerID, out).done(function() {
+                                            layer.clearReorderArrays();
+                                            nsGmx.widgets.notifications.stopAction('saveOrders', 'success', _gtxt('VectorSorting.done'));
+                                        });
+                                    }
+                                } else {
+                                    console.error('Server return:', ph);
                                 }
-                            } else {
-                                console.error('Server return:', ph);
                             }
-                        }
-                    );
+                        );
+                    };
+                    
+                    var isFieldFound = layer._gmx.tileAttributeIndexes[ZIndexField];
+                    if (!props.ZIndexField || !isFieldFound) {
+                        var addField = makeButton(_gtxt('VectorSorting.button'));
+                        addField.onclick = function() {
+                            var lp = new nsGmx.LayerProperties();
+                            lp.initFromServer(layerID).done(function() {
+                                if (!props.ZIndexField) {
+                                    lp.set('ZIndexField', ZINDEX_DEFAULT_FIELD);
+                                }
+                                if (!isFieldFound) {
+                                    var columns = lp.get('Columns').slice();
+                                    columns.push({Name: ZIndexField, ColumnSimpleType: 'integer'});
+                                    lp.set('Columns', columns);
+                                }
+                                lp.save().done(function() {
+                                    saveReorderArrays();
+                                });
+                            });
+                            removeDialog(jDialog);
+                        };
+                        var jDialog = showDialog(_gtxt('VectorSorting.askField'), _div([addField],[['css','textAlign','center']]), 220, 75);
+                    } else {
+                        saveReorderArrays();
+                    }
                 }
             }
         }, 'Layer');
