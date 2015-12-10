@@ -58,7 +58,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
   };
 
   BaseDataAdapter.prototype = {
-    getSatellite(platform){
+    getSatellite: function(platform){
       for (var id in this.satellites) {
         var s = this.satellites[id];
         if (s.platforms.indexOf(platform) >= 0){
@@ -67,21 +67,21 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       }
       return null;
     },
-    dateToString(date) {
+    dateToString: function(date) {
       var d = this.addPaddingZeros(date.getDate(), 2),
       m = this.addPaddingZeros(date.getMonth() + 1, 2),
       y = date.getFullYear();
       return [y, m, d].join('-');
     },
-    parseDate(dateString){
+    parseDate: function(dateString){
       var matches = this._dateRegex.exec(dateString);
       return { year: matches[1], month: matches[2] };
     },
-    addPaddingZeros(input, length){
+    addPaddingZeros: function(input, length){
       var withPadding = '00000000000000000000000000000000' + input;
       return withPadding.substring(withPadding.length - length);
     },
-    _fromResult(result){
+    _fromResult: function(result){
       var objects = result.values.map(function(v){
         var a = {};
         result.fields.map(function(k,i){
@@ -108,13 +108,13 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       this._mapHelper.moveToView(objects);
       return objects;
     },
-    _sortFolders(node) {
+    _sortFolders: function(node) {
       node.children.sort(function (a, b) { return b.text - a.text; });
       for (var childKey in node.children) {
         node.children[childKey].children.sort(function (a, b) { return b.text - a.text; });
       }
     },
-    _ensureSatelliteFolderNode(parentNode, nodeName, nodeColor, nodeData) {
+    _ensureSatelliteFolderNode: function(parentNode, nodeName, nodeColor, nodeData) {
       for (var nodeKey in parentNode.children) {
         var node = parentNode.children[nodeKey];
         if (node.text == nodeName) {
@@ -125,7 +125,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       parentNode.addChild(newNode);
       return newNode;
     },
-    _ensureFolderNode(parentNode, nodeName) {
+    _ensureFolderNode: function(parentNode, nodeName) {
       for (var nodeKey in parentNode.children) {
         var node = parentNode.children[nodeKey];
         if (node.text == nodeName) return node;
@@ -134,12 +134,12 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       parentNode.addChild(newNode);
       return newNode;
     },
-    _createFolderNode(name) {
+    _createFolderNode: function(name) {
       var newNode = new nsCatalog.Controls.TreeNode('Folder', name);
       newNode.isClickable = true;
       return newNode;
     },
-    _createSatelliteNode(nodeName, nodeColor, nodeData) {
+    _createSatelliteNode: function(nodeName, nodeColor, nodeData) {
       var newNode = new nsCatalog.Controls.TreeNode('satellite', nodeName, nodeData);
       newNode.data.isLoaded = true;
       newNode.ui.customHeader =
@@ -148,7 +148,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       newNode.isClickable = true;
       return newNode;
     },
-    _createOverlayNode(source, nodeName, nodeData) {
+    _createOverlayNode: function(source, nodeName, nodeData) {
       var newNode = new nsCatalog.Controls.TreeNode('GroundOverlay', nodeName);
       newNode.data.mapObjects = {};
       newNode.data.info = this.getInfo(source, nodeData);
@@ -179,7 +179,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
     getGeometry: function(){
       return this._mapHelper.getGeometry();
     },
-    getInfo(satellite, data){
+    getInfo: function(satellite, data){
       return ['sceneid','platform','acqdate','cloudness'].reduce(function(a,x){
         if(data[x]){
           switch (x) {
@@ -197,7 +197,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
         return a;
       },{});
     },
-    getTooltip(satellite, data){
+    getTooltip: function(satellite, data){
       var text = [];
       var fields = this.getInfo(satellite, data);
       for (var f in fields){
@@ -205,7 +205,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       }
       return text.join('<br/>');
     },
-    getImageUrlfunction(){
+    getImageUrlfunction: function(){
       throw 'Not implemented';
     }
   };
@@ -225,10 +225,10 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
   };
 
   DataSource.prototype = {
-    getRequestOptions() {
+    getRequestOptions: function() {
       throw 'Not implemented';
     },
-    validateSearchOptions (options, errors){
+    validateSearchOptions: function (options, errors){
       if (this.useDate && !options.dateStart) {
         errors.push('Начальная дата поиска задана неверно.');
       }
@@ -240,10 +240,10 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
       }
       return errors.length == 0;
     },
-    clearResults(){
+    clearResults: function(){
       this._resultView.clearResults();
     },
-    search(options){
+    search: function(options){
       var def = new $.Deferred();
       this.clearResults();
       sendCrossDomainPostRequest(
@@ -268,7 +268,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
         }.bind(this));
       return def;
     },
-    setResults(results) {
+    setResults: function(results) {
       var root = this._resultView.treeView.root;
       this._dataAdapter.setResults(results, root, this.title);
       this._resultView.treeView.updateNode(root).done(function(){
@@ -286,7 +286,7 @@ nsCatalog.DataSources = nsCatalog.DataSources || {};
         }
       }.bind(this));
     },
-    getOptions(){
+    getOptions: function(){
       return Object.keys(this.satellites).filter(function(x){
         return this.satellites[x].checked;
       }.bind(this));
