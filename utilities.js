@@ -146,14 +146,6 @@ function _click(el)
 	}
 }
 
-var gmxPrev$$ = typeof $$ == 'undefined' ? undefined : $$;
-function gmxRestore$$() { if (typeof gmxPrev$$ != 'undefined') $$ = gmxPrev$$; }
-
-var $$ = function(element) 
-{
-	return document.getElementById(element);
-}
-
 function removeChilds(el)
 {
 	while (el.firstChild)

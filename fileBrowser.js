@@ -161,11 +161,10 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
     if (this._params.startDir !== null)
         this._path.set(this._params.startDir);
     
-	if ($$('fileBrowserDialog'))
+	if ($('#fileBrowserDialog').length)
 	{
-		$($$('fileBrowserDialog').parentNode).dialog("destroy");
-		
-		$$('fileBrowserDialog').parentNode.removeNode(true);
+		$('#fileBrowserDialog').parent().dialog("destroy");
+		$('#fileBrowserDialog').parent().remove();
 	}
 	
 	var canvas = _div(null, [['attr','id','fileBrowserDialog']]);
@@ -189,17 +188,20 @@ fileBrowser.prototype.resize = function()
 {
 	if (!$("#fileBrowserDialog").find(".fileCanvas").length)
 		return;
+    
+    var container = $('#fileBrowserDialog')[0];
 	
-	var titleHeight = $$('fileBrowserDialog').parentNode.parentNode.firstChild.offsetHeight;
+	var titleHeight = container.parentNode.parentNode.firstChild.offsetHeight;
+    
 	
-	$$('fileBrowserDialog').childNodes[1].lastChild.style.height = $$('fileBrowserDialog').parentNode.parentNode.offsetHeight - titleHeight - 6 - $$('fileBrowserDialog').lastChild.offsetHeight - $$('fileBrowserDialog').firstChild.offsetHeight - $$('fileBrowserDialog').childNodes[1].firstChild.offsetHeight - 20 + 'px';
+	container.childNodes[1].lastChild.style.height = container.parentNode.parentNode.offsetHeight - titleHeight - 6 - container.lastChild.offsetHeight - container.firstChild.offsetHeight - container.childNodes[1].firstChild.offsetHeight - 20 + 'px';
 }
 
 fileBrowser.prototype.close = function(path)
 {
 	this.closeFunc(path);
 	
-	var canvas = $$('fileBrowserDialog');
+	var canvas = $('#fileBrowserDialog')[0];
 	
 	$(canvas.parentNode).dialog("destroy");
 	

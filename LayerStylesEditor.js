@@ -872,12 +872,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	{
 		$(liStyle.lastChild).find(".colorSelector").each(function()
 		{
-			if ($$($(this).data("colorpickerId")))
-				$$($(this).data("colorpickerId")).removeNode(true);
+            $('#' + $(this).data("colorpickerId")).remove();
 		})
 		
-        if ($$($(labelColor).data("colorpickerId")))
-            $$($(labelColor).data("colorpickerId")).removeNode(true);
+        $('#' + $(labelColor).data("colorpickerId")).remove();
 	}
 }
 

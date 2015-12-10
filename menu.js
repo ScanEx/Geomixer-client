@@ -253,8 +253,8 @@ UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 	{
 		$(this).addClass(className);
 
-		if ($$(this.getAttribute('hash')))
-			_this.showmenu($$(this.getAttribute('hash')));
+		if ($('#' + this.getAttribute('hash'))[0])
+			_this.showmenu($('#' + this.getAttribute('hash'))[0]);
 	}
 }
 UpMenu.prototype.attachEventOnMouseout = function(elem, className)
@@ -282,15 +282,15 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 
 			$(elem).removeClass(className)
 
-			if ($$(elem.getAttribute('hash')))
-				_this.hidemenu($$(elem.getAttribute('hash')));
+			if ($('#' + elem.getAttribute('hash')).length)
+				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
 		}
 		catch (e)
 		{
 			$(elem).removeClass(className)
 
-			if ($$(elem.getAttribute('hash')))
-				_this.hidemenu($$(elem.getAttribute('hash')));
+			if ($('#' + elem.getAttribute('hash')).length)
+				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
 		}
 	}
 }
@@ -584,7 +584,7 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
     }
 
     var _this = this;
-	if (!$$('left_' + canvasID))
+	if (!$('#left_' + canvasID).length)
 	{
         var leftPanelItem = new nsGmx.LeftPanelItem(canvasID, options);
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
@@ -601,7 +601,7 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
 	}
 	else
 	{
-		this.parentWorkCanvas = $$('left_' + canvasID);
+		this.parentWorkCanvas = $('#left_' + canvasID)[0];
 		this.workCanvas = this.parentWorkCanvas.lastChild;
         this.leftPanelItem = this.parentWorkCanvas.leftPanelItem;
         this.leftPanelItem.close = options.closeFunc;

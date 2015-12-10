@@ -171,7 +171,7 @@ nsGmx.Controls = {
 			width:        250
         }, params);
         
-        if ($$('drawingBorderDialog' + name))
+        if ($('#drawingBorderDialog' + name).length)
             return;
         
         var drawingObjs = [],
@@ -297,9 +297,9 @@ nsGmx.Controls = {
             summary = _span(null, [['dir','className','summary']]),
             div;
         
-        if ($$('layerPropertiesInfo'))
+        if ($('#layerPropertiesInfo').length)
         {
-            div = $$('layerPropertiesInfo');
+            div = $('#layerPropertiesInfo')[0];
             
             if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
             {
@@ -350,9 +350,9 @@ nsGmx.Controls = {
         
         setTimeout(function()
         {
-            var titleHeight = $$('layerPropertiesInfo').parentNode.parentNode.firstChild.offsetHeight;
+            var titleHeight = $('#layerPropertiesInfo')[0].parentNode.parentNode.firstChild.offsetHeight;
 
-            var dialogDiv = $$('layerPropertiesInfo').parentNode;
+            var dialogDiv = $('#layerPropertiesInfo')[0].parentNode;
             $(dialogDiv).dialog('option', 'height', titleHeight + 6 + div.offsetHeight);
             $(dialogDiv).dialog('option', 'minHeight', titleHeight + 6 + div.offsetHeight);
             

@@ -715,35 +715,35 @@ window.resizeAll = function()
 		bottom = 0,
 		right = 0,
 		left = layersShown ? 360 : 12,
-        headerHeight = $('#header').outerHeight();
+        headerHeight = $('#header').outerHeight(),
+        mainDiv = $("#flash")[0];
 	
-	
-	$$("flash").style.left = left + 'px';
-	$$("flash").style.top = top + 'px';
-	$$("flash").style.width = getWindowWidth() - left - right + 'px';
-	$$("flash").style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
+	mainDiv.style.left = left + 'px';
+	mainDiv.style.top = top + 'px';
+	mainDiv.style.width = getWindowWidth() - left - right + 'px';
+	mainDiv.style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
     
     nsGmx.leafletMap && nsGmx.leafletMap.invalidateSize();
 	
 	if (layersShown)
 	{
-		show($$("leftMenu"));
+		$("#leftMenu").show();
         
         var mapNameHeight = $('.mainmap-title').outerHeight();
         
         var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
-        $$("leftMenu").style.height = baseHeight + 'px'
+        $("#leftMenu")[0].style.height = baseHeight + 'px'
         
-        $$("leftContent").style.top = ($$("leftPanelHeader").offsetHeight + mapNameHeight) + 'px';
-		$$("leftContent").style.height = baseHeight -
-            $$("leftPanelHeader").offsetHeight - 
-            $$("leftPanelFooter").offsetHeight -
+        $("#leftContent")[0].style.top = ($("#leftPanelHeader")[0].offsetHeight + mapNameHeight) + 'px';
+		$("#leftContent")[0].style.height = baseHeight -
+            $("#leftPanelHeader")[0].offsetHeight - 
+            $("#leftPanelFooter")[0].offsetHeight -
             mapNameHeight + 'px';
 	}
 	else
 	{
-		hide($$("leftMenu"));
+		$("#leftMenu").hide();
 	}
 }
 
@@ -1003,9 +1003,7 @@ function loadMap(state) {
 
         _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
         
-        if ($$('left_usage')) {
-            hide($$('left_usage'));
-        }
+        $('#left_usage').hide();
 
         _menuUp.checkView();
 

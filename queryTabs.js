@@ -287,9 +287,8 @@ nsGmx.userObjectsManager.addDataCollector('tabs', {
     {
         if (!data || !data.length)
             return;
-	
-        if ($$('left_mapTabs'))
-            $$('left_mapTabs').removeNode(true);
+
+        $('#left_mapTabs').remove();
         
         _queryTabs.builded = false;
         _queryTabs.tabs = data;

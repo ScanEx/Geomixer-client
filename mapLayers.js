@@ -1630,10 +1630,10 @@ queryMapLayers._droppableHandler = function(ev, ui)
     var isFromExternalMaps = false;
     $(ui.draggable[0].parentNode.parentNode).parents().each(function()
     {
-        if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+        if (this == $('#layersList')[0] || this == $('#mapsList')[0] || this == $('#externalMapsCanvas')[0] )
             layerManager = true;
             
-        if ( this == $$('externalMapsCanvas') )
+        if ( this == $('#externalMapsCanvas')[0] )
             isFromExternalMaps = true;
     })
     
@@ -1697,10 +1697,10 @@ queryMapLayers._swapHandler = function(ev, ui)
     var isFromExternalMaps = false;
     $(ui.draggable[0].parentNode.parentNode).parents().each(function()
     {
-        if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
+        if ( this == $('#layersList')[0] || this == $('#mapsList')[0] || this == $('#externalMapsCanvas')[0] )
             layerManager = true;
             
-        if ( this == $$('externalMapsCanvas') )
+        if ( this == $('#externalMapsCanvas')[0] )
             isFromExternalMaps = true;
     })
     
@@ -1851,19 +1851,19 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
             }
             else
             {
-                $$(taskInfo.TaskID).removeNode(true);
+                $('#' + taskInfo.TaskID).remove();
                     
                 layerDiv.style.display = '';
             }
         }).fail(function(taskInfo)
         {
-            $$(taskInfo.TaskID).removeNode(true);
+            $('#' + taskInfo.TaskID).remove();
             layerDiv.style.display = '';
         }).progress(function(taskInfo)
         {
             var taskDiv;
             
-            if (!$$(taskInfo.TaskID))
+            if (!$('#' + taskInfo.TaskID).length)
             {
                 taskDiv = _div(null, [['attr','id',taskInfo.TaskID]]);
                 
@@ -1873,7 +1873,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
             }
             else
             {
-                taskDiv = $$(taskInfo.TaskID);
+                taskDiv = $('#' + taskInfo.TaskID)[0];
                 
                 removeChilds(taskDiv);
             }
@@ -1912,7 +1912,7 @@ queryMapLayers.prototype.createLayersManager = function()
 
 queryMapLayers.prototype.getMaps = function()
 {
-	if (!$$('mapsList'))
+	if (!$('#mapsList').length)
         new nsGmx.MapsManagerControl();
 }
 

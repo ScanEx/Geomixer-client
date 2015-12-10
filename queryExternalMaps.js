@@ -239,8 +239,7 @@ nsGmx.userObjectsManager.addDataCollector('externalMaps', {
         if (!data || !data.length)
             return;
         
-        if ($$('left_externalMaps'))
-            $$('left_externalMaps').removeNode(true);
+        $('#left_externalMaps').remove();
         
         _queryExternalMaps.builded = false;
         _queryExternalMaps.maps = data;
