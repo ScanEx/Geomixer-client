@@ -1,4 +1,4 @@
-(function() {
+!(function(_) {
     
 var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
     
@@ -1227,4 +1227,4 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
     }
 });
 
-})();
+})(nsGmx.Utils._);

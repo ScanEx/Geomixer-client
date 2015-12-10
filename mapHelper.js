@@ -3,10 +3,10 @@ var nsGmx = nsGmx || {};
 /** Вспомогательные ф-ции ГеоМиксера
 @namespace _mapHelper
 */
-
 nsGmx.mapHelper = {
     
 }
+
 
 var mapHelp =
 {
@@ -15,6 +15,8 @@ var mapHelp =
 	tabs: {},
 	externalMaps : {}
 }
+
+!(function(_) {
 
 var mapHelper = function()
 {
@@ -767,7 +769,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
     }
     else
     {
-        if (elemProperties.LayerID)
+        if (elemProperties.name)
         {
             _(parent, [loading]);
         
@@ -948,7 +950,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			createTabs(response.Result);
 		})
 	}
-	else
+	else if (elemProperties.type == "Raster")
 	{
 		if (elemProperties.LayerID)
 		{
@@ -1011,7 +1013,23 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		{
             nsGmx.createMultiLayerEditorServer(elemProperties, div, treeView);
         }
-	}
+	} else if (elemProperties.type == "Virtual"){
+        var divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]);
+        
+        this.createLoadingLayerEditorProperties(div, divProperties, null, {
+            doneCallback: function() {
+                $(divDialog).dialog('close');
+            }
+        });
+        
+        var closeFunc = function() {
+            delete _this.layerEditorsHash[layerName];
+        };
+        
+        var pos = nsGmx.Utils.getDialogPos(div, true, 330);
+        
+        var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 330, 410, pos.left, pos.top, null);
+    }
 }
 
 mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geometryType, divCanvas)
@@ -1213,22 +1231,22 @@ mapHelper.prototype.version = function()
     }, window.nsGmx.GeomixerFrameworkVersion, '' );
 }
 
-mapHelper.prototype.createAPIMapDialog = function()
-{
-    var mapProperties = _layersTree.treeModel.getMapProperties();
-	var options = {
-			requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
-			saveBaseLayers: false
-		};
+// mapHelper.prototype.createAPIMapDialog = function()
+// {
+    // var mapProperties = _layersTree.treeModel.getMapProperties();
+	// var options = {
+			// requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
+			// saveBaseLayers: false
+		// };
 		
-	if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
+	// if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
 	
-	nsMapCommon.createAPIMapDialog(
-		mapProperties.name, 
-		mapProperties.hostName, 
-		options
-	);
-}
+	// nsMapCommon.createAPIMapDialog(
+		// mapProperties.name, 
+		// mapProperties.hostName, 
+		// options
+	// );
+// }
 
 mapHelper.prototype.print = function()
 {
@@ -1478,6 +1496,8 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 }
 
 var _mapHelper = new mapHelper();
+window._mapHelper = _mapHelper;
+window.mapHelper = mapHelper;
 
 mapHelp.mapHelp.load = function()
 {
@@ -1536,6 +1556,7 @@ serviceHelper.prototype.load = function()
 }	
 
 var _serviceHelper = new serviceHelper();
+window._serviceHelper = _serviceHelper;
 
 mapHelp.tabs.load = function()
 {
@@ -1578,3 +1599,5 @@ nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', '
 
 //Библиотека стилей
 nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');
+
+})(nsGmx.Utils._);

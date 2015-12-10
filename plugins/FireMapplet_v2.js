@@ -11,7 +11,6 @@ var initTranslations = function()
 {
     _translationsHash.addtext("rus", { firesWidget: {
         "DailyCoverage.Description" : "Космоснимки (MODIS)",
-        "tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
         "TitleFiresScanEx" : "Пожары ScanEx",
         "TitleFiresFIRMS" : "Пожары FIRMS",
         "LayerClusterBalloon" :
@@ -39,7 +38,6 @@ var initTranslations = function()
                              
     _translationsHash.addtext("eng", { firesWidget: {
         "DailyCoverage.Description" : "Satellite images (MODIS)",
-        "tooManyDataWarning" : "Too much data - downsize search area!",
         "TitleFiresScanEx" : "Fires from ScanEx",
         "TitleFiresFIRMS" : "Fires from FIRMS",
         "LayerClusterBalloon" : 
@@ -570,6 +568,21 @@ var FireBurntRenderer3 = function(params)
         clustersGeomLayer.setZIndex(_params.zIndex);
     }
 
+    var updateLayersVisibility = function() {
+        var zoom = map.getZoom();
+        
+        observerHotspots && observerHotspots.toggleActive(zoom >= _params.minGeomZoom && isVisible);
+        observerClusters && observerClusters.toggleActive(zoom < _params.minGeomZoom && isVisible);
+
+        if (rawHotspotsLayer) {
+            if (zoom < _params.minHotspotZoom || !isVisible) {
+                if (rawHotspotsLayer._map) map.removeLayer(rawHotspotsLayer);
+            } else {
+                if (!rawHotspotsLayer._map) map.addLayer(rawHotspotsLayer);
+            }
+        }
+    };
+
     _lazyLoadFireLayers({mapName: _params.mapName}).done(function(gmxMap)
     {
         rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
@@ -802,23 +815,8 @@ var FireBurntRenderer3 = function(params)
         updateBbox();
         
         updateLayersDateInterval();
-    })
-    
-    var updateLayersVisibility = function() {
-        var zoom = map.getZoom();
-        
-        observerHotspots && observerHotspots.toggleActive(zoom >= _params.minGeomZoom && isVisible);
-        observerClusters && observerClusters.toggleActive(zoom < _params.minGeomZoom && isVisible);
+    });
 
-        if (rawHotspotsLayer) {
-            if (zoom < _params.minHotspotZoom || !isVisible) {
-                if (rawHotspotsLayer._map) map.removeLayer(rawHotspotsLayer);
-            } else {
-                if (!rawHotspotsLayer._map) map.addLayer(rawHotspotsLayer);
-            }
-        }
-    };
-    
     var updateLayersDateInterval = function() {
         if (!dateBegin || !dateEnd) {
             return;

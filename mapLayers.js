@@ -1,7 +1,11 @@
+!(function(_) {
+    
 var mapLayers = 
 {
 	mapLayers:{}
 }
+
+window.mapLayers = mapLayers;
 
 AbstractTree = function()
 {
@@ -161,6 +165,7 @@ AbstractTree.prototype.swapNode = function(node, newNodeCanvas)
 }
 
 var _abstractTree = new AbstractTree();
+window._abstractTree = _abstractTree;
 
 //renderParams:
 //  * showVisibilityCheckbox {Bool} - показывать или нет checkbox видимости
@@ -434,8 +439,10 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 		
 		if (typeof elem.content.properties.LayerID != 'undefined')
 			div = _div(childs, [['attr','LayerID',elem.content.properties.LayerID]]);
-		else
+		else if (typeof elem.content.properties.MultiLayerID != 'undefined')
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
+        else 
+            div = _div(childs, [['attr','LayerID',elem.content.properties.name]]);
 
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
@@ -475,6 +482,10 @@ layersTree.prototype.getActive = function()
 
 layersTree.prototype.getMinLayerZoom = function(layer)
 {
+    if (!layer.getStyles) {
+        return 1;
+    }
+    
     var minLayerZoom = 20,
         styles = layer.getStyles();
 
@@ -550,8 +561,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
         
-            if (layer)
-            {
+            if (layer && layer.getBounds) {
                 var minLayerZoom = _this.getMinLayerZoom(layer);
                 _this.layerZoomToExtent(layer.getBounds(), minLayerZoom);
             }
@@ -903,9 +913,11 @@ layersTree.prototype.findUITreeElem = function(elem)
 		searchStr = "div[LayerID='" + props.LayerID + "']";
 	else if (props.MultiLayerID)
 		searchStr = "div[MultiLayerID='" + props.MultiLayerID + "']";
-	else
+	else if (props.GroupID)
 		searchStr = "div[GroupID='" + props.GroupID + "']";
-	
+    else
+        searchStr = "div[LayerID='" + props.name + "']";
+
     return $(this._treeCanvas).find(searchStr)[0];
 }
 
@@ -962,7 +974,7 @@ layersTree.prototype.updateZIndexes = function() {
         var layer = nsGmx.gmxMap.layersByID[layerContent.properties.name];
         
         var zIndex = curZIndex++;
-        layer.setZIndex(zIndex);
+        layer.setZIndex && layer.setZIndex(zIndex);
     })
 }
 
@@ -1225,7 +1237,7 @@ layersTree.prototype.addLayersToMap = function(elem)
             });
             nsGmx.gmxMap.addLayer(layerOnMap);
             
-            visibility && layerOnMap.addTo(nsGmx.leafletMap);
+            visibility && nsGmx.leafletMap.addLayer(layerOnMap);
             
             layerOnMap.getGmxProperties().changedByViewer = true;
         }
@@ -1328,13 +1340,16 @@ layersTree.prototype.findTreeElem = function(div)
 	else if (div.getAttribute("GroupID"))
 		return this.treeModel.findElem("GroupID", div.getAttribute("GroupID"));
 	else if (div.getAttribute("LayerID"))
-		return this.treeModel.findElem("LayerID", div.getAttribute("LayerID"));
+		return this.treeModel.findElem("name", div.getAttribute("LayerID"));
 	else if (div.getAttribute("MultiLayerID"))
-		return this.treeModel.findElem("MultiLayerID", div.getAttribute("MultiLayerID"));
+		return this.treeModel.findElem("name", div.getAttribute("MultiLayerID"));
 }
 
 //Дерево основной карты
 var _layersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: true});
+
+window.layersTree = layersTree;
+window._layersTree = _layersTree;
 
 //Виджет в левой панели для отображения основного дерева
 var queryMapLayers = function()
@@ -2070,6 +2085,7 @@ queryMapLayers.prototype.createMap = function(name)
 })();
 
 var _queryMapLayers = new queryMapLayers();
+window._queryMapLayers = _queryMapLayers;
 
 mapLayers.mapLayers.load = function()
 {
@@ -2085,3 +2101,5 @@ mapLayers.mapLayers.load = function()
 mapLayers.mapLayers.unload = function()
 {
 }
+
+})(nsGmx.Utils._);

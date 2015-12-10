@@ -3,6 +3,7 @@
     width:480px;
     background-color:White;
     opacity:0.8;
+    text-align: center;
 }
 
 .profilePanel-content
@@ -53,14 +54,29 @@
 .profilePanel-content div div.newpass-form div
 {
     text-align:center;
-    margin-bottom: 12px;
+    margin: 0;
     border: none;
+}
+
+.profilePanel-content .ErrorSummary
+{
+    text-align:center;
+    margin: 0;
+    border: none;
+    font-weight:normal;
+    color:Red;
+    visibility:hidden;
 }
 
 .profilePanel-content div div.newpass-form input[type="password"]
 {
     width:160px;
     border: 1px solid #ddd;
+}
+
+.profilePanel-content div div.newpass-form input[type="button"]
+{
+    margin-top: 0px;
 }
 
 .profilePanel-content table
@@ -92,7 +108,7 @@
 {
     border:none;
     border-radius:2px;
-    margin-top: 12px;
+    margin-top: 0px;
     background-color: Orange;
     color:White;
     padding: 6px 12px 8px 12px;
@@ -126,4 +142,100 @@
 {
     background-color:#ffedcc;
     color:Black;
+}
+
+.profilePanel-menu span.targeted
+{
+    text-decoration:underline;
+}
+
+   
+.registrationForm tr td
+{
+    font-weight:bold;
+    padding-left: 20px;
+    padding-top: 10px;
+    padding-bottom: 0px;
+}
+   
+.registrationForm tr td:first-of-type
+{
+    padding-left: 30px;
+}   
+
+.registrationForm tr td:last-of-type
+{
+    padding-right: 30px;
+}
+
+.registrationForm td.header
+{
+    font-weight:normal;
+}
+
+.registrationForm td.footer
+{
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color:#eee;
+    font-weight:normal;
+    color:#777;
+}
+
+.registrationForm td.footer .entrance
+{
+    text-decoration:underline;
+}
+.registrationForm td.submit
+{
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align:center;
+    vertical-align:top;
+}
+
+.registrationForm td.submit .ErrorSummary
+{
+    color:Red;
+    font-weight:normal;
+    margin-bottom:10px;
+}
+
+.registrationForm input[type="button"]
+{
+    border:none;
+    border-radius:2px;
+    margin-top: 0px;
+    background-color: Orange;
+    color:White;
+    padding: 6px 12px 8px 12px;
+    cursor:pointer;
+}
+
+.registrationForm input[type="text"], .registrationForm input[type="password"]
+{
+    line-height: 2em;
+    border: 1px solid #ddd;
+    padding:0 5px 0 5px;
+    margin-left:10px;
+}
+
+.registrationForm input.Login
+{
+    width:370px;
+}
+
+.registrationForm input.Password
+{
+    width:155px;
+}
+
+.registrationForm input.Repeat
+{
+    width:140px;
+}
+
+.registrationForm input.Capcha
+{
+    width:80px;
 }

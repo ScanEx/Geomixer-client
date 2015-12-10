@@ -2,7 +2,7 @@
 * @namespace DrawingObjects
 * @description SDK для редактирования объектов на карте
 */
-!(function($){
+!(function($, _){
 
 nsGmx.Translations.addText('rus', {
     drawingObjects: {
@@ -730,46 +730,21 @@ var DrawingObjectGeomixer = function() {
         
 		checkDownloadVisibility();
 	}
-	
-	/** Скачивает shp файл*/
-	var downloadMarkers = function(fileName, format){
-		var objectsByType = {},
-			markerIdx = 1;
-            
-        fileName = fileName || 'markers';
-        format = format || 'Shape';
-		
-		for (var i = 0; i<oCollection.Count(); i++){
-			var ret = oCollection.Item(i);
-            var geom = ret.toGeoJSON().geometry;
-			var type = geom.type;
 
-			if (!objectsByType[type])
-				objectsByType[type] = [];
-            
-            var title = ret.options.title || '';
-            
-			if (type == "Point" && !title) {
-				title = "marker " + markerIdx++;
-			}
-			
-			objectsByType[type].push({geometry: {
-                    type: type.toUpperCase(),
-                    coordinates: geom.coordinates
-                },
-                properties: {text: title}
-            });
-		}
-		        
-        sendCrossDomainPostRequest(serverBase + "Shapefile", {
-            name:     fileName,
-            format:   format,
-            points:   JSON.stringify(objectsByType["Point"] || []),
-            lines:    JSON.stringify([].concat(objectsByType["LineString"] || [], objectsByType["MultiLineString"] || [])),
-            polygons: JSON.stringify([].concat(objectsByType["Polygon"] || [], objectsByType["MultiPolygon"] || []))
-        })
+	/** Скачивает shp файл*/
+	var downloadMarkers = function(fileName, format) {
+        var geoms = [];
+        
+		for (var i = 0; i < oCollection.Count(); i++) {
+            geoms.push(oCollection.Item(i).toGeoJSON());
+        }
+        
+        nsGmx.Utils.downloadGeometry(geoms, {
+            fileName: fileName,
+            format: format
+        });
 	}
-	
+
 	/** Скачивает растровые слои*/
 	var checkRasterLayer = function(){
 		var obj = false,
@@ -864,4 +839,4 @@ var publicInterface = {
 
 gmxCore.addModule("DrawingObjects", publicInterface);
 
-})(jQuery);
+})(jQuery, nsGmx.Utils._);

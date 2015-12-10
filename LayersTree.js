@@ -93,10 +93,8 @@ nsGmx.LayersTree = function( tree )
     {
         if (gmxProperties.type == 'group') //группа
             return this.findElem("GroupID", gmxProperties.content.properties.GroupID);
-        else if (typeof gmxProperties.content.properties.LayerID !== 'undefined') //слой
-            return this.findElem("LayerID", gmxProperties.content.properties.LayerID);
-        else if (typeof gmxProperties.content.properties.MultiLayerID !== 'undefined') //мультислой
-            return this.findElem("MultiLayerID", gmxProperties.content.properties.MultiLayerID);
+        else
+            return this.findElem("name", gmxProperties.content.properties.name);
     }
     
     /** Итерирование по всем слоям группы дерева

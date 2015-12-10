@@ -222,7 +222,7 @@ window._translationsHash = new DumpClass();
 _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTranslationsManager),
 _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
 _translationsHash.showLanguages = function() {
-    var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
+    var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']]);
     
     for (var lang in this.hash)
     {
@@ -246,13 +246,15 @@ _translationsHash.showLanguages = function() {
             
             _title(button, this.titles[lang]);
             
-            _(langCanvas, [button]);
+            langCanvas.appendChild(button);
         }
-        else
-            _(langCanvas, [_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']])]);
+        else 
+        {
+            langCanvas.appendChild(_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']]));
+        }
     }
 
-    _(document.getElementById("headerLinks"), [langCanvas]);
+    document.getElementById("headerLinks").appendChild(langCanvas);
 }
 
 window._gtxt = function() {

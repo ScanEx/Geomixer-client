@@ -55,7 +55,7 @@ queryTabs.prototype.load = function()
 		var _this = this;
 		this.tabsCanvas = _div(null, [['dir','className','tabsCanvas']])
 		
-		_(this.workCanvas, [this.tabsCanvas]);
+		this.workCanvas.appendChild(this.tabsCanvas);
 		
 		for (var i = 0; i < this.tabs.length; i++)
 			this.draw(this.tabs[i]);
@@ -212,7 +212,7 @@ queryTabs.prototype.draw = function (tabInfo, tabIndex)
     }).toggle(_queryMapLayers.currentMapRights() === "edit");
 
     if (typeof tabIndex === 'undefined') {
-        _(this.tabsCanvas, [canvas]);
+        $(this.tabsCanvas).append(canvas);
     } else {
         $(this.tabsCanvas).find('.canvas').eq(tabIndex).replaceWith(canvas);
     }

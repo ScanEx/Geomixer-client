@@ -1,4 +1,4 @@
-﻿(function ($){
+﻿(function ($, _){
 var publicInterface = {
     pluginName: 'HelpEmail',
     afterViewer: function(params)
@@ -33,4 +33,4 @@ var publicInterface = {
 
 gmxCore.addModule("HelpEmailPlugin", publicInterface);
 
-})(jQuery);
+})(jQuery, nsGmx.Utils._);

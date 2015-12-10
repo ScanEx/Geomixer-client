@@ -46,7 +46,7 @@ queryLoadShp.prototype._regenerateControl = function()
 
     this.inputControl = _div([_span([_t(_gtxt("loadShape.inputTitle") + ":")]), this.postForm]);
 
-    _(this.workCanvas, [_div([this.inputControl, this.progress], [['css','padding','10px 0px 5px 20px']])])
+    this.workCanvas.appendChild(_div([this.inputControl, this.progress], [['css','padding','10px 0px 5px 20px']]));
 }
 
 queryLoadShp.prototype.load = function()
@@ -88,7 +88,7 @@ queryLoadShp.prototype.loadAndShowFiles = function(files) {
     }));
     
     def.then(function() {
-        this._showObjectsOnMap(nsGmx._.flatten([].slice.call(arguments)));
+        this._showObjectsOnMap(_.flatten([].slice.call(arguments)));
         nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
     }.bind(this), function() {
         nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));

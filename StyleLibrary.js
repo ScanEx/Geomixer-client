@@ -1,4 +1,4 @@
-(function(_) {
+!(function() {
 
     //Взаимодействие с сервером
     var actionsManager = {
@@ -740,4 +740,4 @@
     }, {
         css: 'css/StyleLibrary.css'
     })
-})(nsGmx._);
+})();

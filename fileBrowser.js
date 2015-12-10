@@ -1,3 +1,5 @@
+!(function(_){
+
 /** 
 * @class Веб браузер для выбора и загрузки файлов на сервер
 */
@@ -929,13 +931,12 @@ fileBrowser.prototype.makeSize = function(size)
 	return size + ' б';
 }
 
-var _fileBrowser = new fileBrowser();
+window.fileBrowser = fileBrowser;
+window._fileBrowser = new fileBrowser();
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////// Контекстное меню браузера //////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-(function(){
 
 //фабрика, которая может возвращать элементы меню для архивирования (isZip=true) и разархивирования (isZip=false)
 var zipUnzipActionFactory = function(isZip)
@@ -1019,4 +1020,4 @@ nsGmx.ContextMenuController.addContextMenuElem(zipUnzipActionFactory(true), ['Fi
 //распаковываем только файлы
 nsGmx.ContextMenuController.addContextMenuElem(zipUnzipActionFactory(false), 'FileBrowserFile');
 
-})();
+})(nsGmx.Utils._);

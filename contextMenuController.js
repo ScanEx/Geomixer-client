@@ -46,7 +46,7 @@ nsGmx.ContextMenuController = (function()
             var evt = e || window.event;
             
             hidden(contextMenu);
-            _(document.body, [contextMenu])
+            document.body.appendChild(contextMenu)
             
             // определение координат курсора для ie
             if (evt.pageX == null && evt.clientX != null )
@@ -249,10 +249,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		var div;
-		if (context.elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-		else
+		if (context.elem.MultiLayerID)
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+		else
+			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
 		_mapHelper.createLayerEditor(div, context.tree, 'main', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 	}
 }, 'Layer');
@@ -289,17 +289,13 @@ nsGmx.ContextMenuController.addContextMenuElem({
 				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
 				_queryMapLayers.layerRights(context.elem.name) === 'edit';
 	},
-	clickCallback: function(context)
-	{
-		if (context.elem.LayerID)
-        {
-            var securityDialog = new nsGmx.layerSecurity(context.elem.type);
-			securityDialog.getRights(context.elem.LayerID, context.elem.title);
-        }
-		else if (context.elem.MultiLayerID)
-        {
+	clickCallback: function(context) {
+		if (context.elem.MultiLayerID) {
             var securityDialog = new nsGmx.multiLayerSecurity();
 			securityDialog.getRights(context.elem.MultiLayerID, context.elem.title);
+        } else {
+            var securityDialog = new nsGmx.layerSecurity(context.elem.type);
+			securityDialog.getRights(context.elem.name, context.elem.title);
         }
 	}
 }, 'Layer');
@@ -334,10 +330,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		
 		var div;
 			
-		if (context.elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-		else
+		if (context.elem.MultiLayerID)
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+		else
+			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
 		
 		var treeElem = _layersTree.findTreeElem(div).elem,
 			node = div.parentNode,
@@ -384,10 +380,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{            
 		var rawTree = context.tree.treeModel,
             elem;
-        if (context.elem.LayerID)
-			elem = rawTree.findElem("LayerID", context.elem.LayerID).elem;
-		else
+        if (context.elem.MultiLayerID)
 			elem = rawTree.findElem("MultiLayerID", context.elem.MultiLayerID).elem;
+		else
+			elem = rawTree.findElem("LayerID", context.elem.name).elem;
 
         nsGmx.ClipboardController.addItem('LayerStyle', {type: context.elem.GeometryType, style: elem.content.properties.styles});
 	}
@@ -419,10 +415,10 @@ var applyStyleContentMenuItem = {
             
 		if (context.contentMenuType === 'Layer') {
             var div;
-            if (context.elem.LayerID)
-                div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-            else
+            if (context.elem.MultiLayerID)
                 div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+            else
+                div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
             
             div.gmxProperties.content.properties.styles = newStyles;
             

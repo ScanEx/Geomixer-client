@@ -1,4 +1,4 @@
-﻿(function($){
+﻿(function($, _){
 	var coverageContainers = {};
 	var layerStatus = {};
 
@@ -81,4 +81,4 @@
 		}
 	});
 
-})(jQuery)
+})(jQuery, nsGmx.Utils._);

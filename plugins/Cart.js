@@ -1,4 +1,4 @@
-﻿(function($){
+﻿(function($, _){
 	var pluginPath, oMap;
 	_translationsHash.addtext("rus", {
 		"Корзина": "Корзина",
@@ -119,4 +119,4 @@
 			pluginPath = path;
 		}
 	});
-})(jQuery)
+})(jQuery, nsGmx.Utils._)

@@ -1,6 +1,6 @@
 ﻿var nsGmx = nsGmx || {};
 
-(function(){
+!(function(_){
 
 var BaseLayersControl = function(container, blm) {
     var lang = _translationsHash.getLanguage();
@@ -769,4 +769,4 @@ gmxCore.addModule('GroupEditor', {
     createMapEditor: createMapEditor
 })
 
-})();
+})(nsGmx.Utils._);

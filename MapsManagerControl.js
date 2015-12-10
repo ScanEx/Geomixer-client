@@ -1,6 +1,6 @@
 ﻿//рисует диалог со списком карт.
 //позволяет загрузить карту, просмотреть слои карты, перетащить слой в текущую карту
-(function(){
+!(function(_){
 
 nsGmx.MapsManagerControl = function()
 {
@@ -306,4 +306,4 @@ nsGmx.ContextMenuController.addContextMenuElem({
     }
 }, 'MapListItem');
 
-})();
+})(nsGmx.Utils._);

@@ -19,21 +19,6 @@ nsGmx.Utils = nsGmx.Utils || {};
             
             return el;
         },
-        // _(elem, [childs], [attrs])
-        _: function(ent,childs,attributes)
-        {
-            var el = ent,
-                children = childs,
-                attrs = attributes;
-
-            if (children)
-                domManipulation._childs(el, children)
-                
-            if (attrs && attrs.length)
-                domManipulation._attr(el, attrs)
-            
-            return el;
-        },
         // _t("some text")
         _t: function(str)
         {
@@ -102,6 +87,22 @@ nsGmx.Utils = nsGmx.Utils || {};
     
     var _el = domManipulation._el;
     
+    // _(elem, [childs], [attrs])
+    var _ = function(ent,childs,attributes)
+    {
+        var el = ent,
+            children = childs,
+            attrs = attributes;
+
+        if (children)
+            domManipulation._childs(el, children)
+            
+        if (attrs && attrs.length)
+            domManipulation._attr(el, attrs)
+        
+        return el;
+    };
+    
     var prevGlobals = {};
     for (var k in domManipulation) {
         prevGlobals[k] = window[k];
@@ -119,6 +120,7 @@ nsGmx.Utils = nsGmx.Utils || {};
     
     jQuery.extend(window, domManipulation);      //для обратной совместимости
     jQuery.extend(nsGmx.Utils, domManipulation);
+    nsGmx.Utils._ = _;
 })();
 
 if (window.Node && window.Node.prototype)
@@ -371,7 +373,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
     }
 	var canvas = _div([content]);
 	
-	_(document.body, [canvas])
+	document.body.appendChild(canvas);
+    
 	var dialogParams = {
         width: params.width,
         height: params.height,
@@ -716,9 +719,10 @@ function createPostIframe(id, callback)
 }
 
 !function() {
-    var requests = {};
-    var lastRequestId = 0;
-    
+    var requests = {},
+        lastRequestId = 0,
+        uniquePrefix = 'id' + Math.random();
+
     var processMessage = function(e) {
         if (!(e.origin in requests)) {
             return;
@@ -733,7 +737,7 @@ function createPostIframe(id, callback)
         var request = requests[e.origin][dataObj.CallbackName];
         if(!request) return;    // message от других запросов
         
-        delete request[dataObj.CallbackName];
+        delete requests[e.origin][dataObj.CallbackName];
         delete dataObj.CallbackName;
         
         request.iframe.parentNode.removeChild(request.iframe);
@@ -784,7 +788,7 @@ function createPostIframe(id, callback)
     
     function createPostIframe2(id, callback, url)
     {
-        var uniqueId = 'id'+(lastRequestId++);
+        var uniqueId = uniquePrefix + (lastRequestId++);
         
         iframe = document.createElement("iframe");
         iframe.style.display = 'none';
@@ -1403,6 +1407,53 @@ $.extend(nsGmx.Utils, {
         }
         
     })(),
+    
+    /** Позволяет скачать в браузере геометрию в одном из форматов (упакованный в zip архив).
+    * @memberof nsGmx.Utils
+    * @function
+    * @param {Object[]} geoJSONFeatures Массив GeoJSON Features. К сожалению, другие типы GeoJSON объектов не поддерживаются.
+    * @param {Object} [options] Доп. параметры
+    * @param {String} [options.fileName=markers] Имя файла для скачивания
+    * @param {String} [options.format=Shape] В каком формате скачать (Shape, Tab, gpx или несколько через запятую)
+    */
+    downloadGeometry: function(geoJSONFeatures, options) {
+        var objectsByType = {},
+            markerIdx = 1;
+
+        options = $.extend({
+            fileName: 'markers',
+            format: 'Shape'
+        }, options);
+
+        geoJSONFeatures.forEach(function(item) {
+            var geom = item.geometry,
+                type = geom.type;
+
+            objectsByType[type] = objectsByType[type] || [];
+            
+            var title = item.properties && item.properties.title || '';
+            
+            if (type == "Point" && !title) {
+                title = "marker " + markerIdx++;
+            }
+            
+            objectsByType[type].push({
+                geometry: {
+                    type: type.toUpperCase(),
+                    coordinates: geom.coordinates
+                },
+                properties: {text: title}
+            });
+        });
+
+        sendCrossDomainPostRequest(serverBase + "Shapefile", {
+            name:     options.fileName,
+            format:   options.format,
+            points:   JSON.stringify(objectsByType["Point"] || []),
+            lines:    JSON.stringify([].concat(objectsByType["LineString"] || [], objectsByType["MultiLineString"] || [])),
+            polygons: JSON.stringify([].concat(objectsByType["Polygon"] || [], objectsByType["MultiPolygon"] || []))
+        })
+    },
     
     /** Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
     * @memberof nsGmx.Utils

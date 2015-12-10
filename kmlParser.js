@@ -1,3 +1,4 @@
+!(function(_) {
 var KML = {
 	KML: {}
 }
@@ -287,3 +288,9 @@ nsGmx.userObjectsManager.addDataCollector('kml', {
         })(data[k], k)
     }
 });
+
+window.KML = KML;
+window.queryKML = queryKML;
+window._queryKML = _queryKML;
+
+})(nsGmx.Utils._);

@@ -480,8 +480,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 			drawObject(arrObjects[i], elemTD);
 
 			// загрузка SHP Файла
-			if (window.gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
-                    (arrObjects[i].Geometry.type == "POINT" || arrObjects[i].Geometry.type == "LINESTRING" || arrObjects[i].Geometry.type == "POLYGON")) {
+			if (window.gmxGeoCodeShpDownload && arrObjects[i].Geometry != null) {
 			    var shpFileLink = _span([_t(".shp")], [['dir', 'className', 'searchElem'], ['attr', 'title', 'скачать SHP-файл'], ['attr', 'number', i]]);
                 
 			    shpFileLink.onclick = function () {
@@ -1284,9 +1283,15 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 		
 		var layersToSearch = [];
 		for (var i=0; i< gmxMap.layers.length; i++) {
-            var props = gmxMap.layers[i].getGmxProperties();
-            if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
-                layersToSearch.push(props);
+            //свойства мы берём из дерева слоёв, а не из API. Cвойство AllowSearch относится к карте и не поддерживаются API
+            var searchRes = _layersTree.treeModel.findElem('name', gmxMap.layers[i].getGmxProperties().name);
+            
+            if (searchRes) {
+                var props = searchRes.elem.content.properties;
+                
+                if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                    layersToSearch.push(props);
+                }
             }
         }
 		var iRespCount = 0;
@@ -1691,41 +1696,18 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var oLocationTitleRenderer = oInitLocationTitleRenderer;
     
     var searchByStringHooks = [];
-	
-	var downloadVectorForm = _form([_input(null, [['attr', 'name', 'name']]),
-							 _input(null, [['attr', 'name', 'points']]),
-							 _input(null, [['attr', 'name', 'lines']]),
-							 _input(null, [['attr', 'name', 'polygons']])], [['css', 'display', 'none'], ['attr', 'method', 'POST'], ['attr', 'action', oLogic.GetServerBase() + "/Shapefile"]]);
-	
-	_(oInitResultListMap.getContainerList(), [downloadVectorForm]);
-	
+
 	/**Осуществляет загрузку SHP-файла*/
 	var fnDownloadSHP = function(event, filename, arrObjectsToDownload){
-        var geomNormalizationTable = {
-            "POINT": "POINT",
-            "MULTIPOINT": "POINT",
-            "LINESTRING": "LINESTRING",
-            "MULTILINESTRING": "LINESTRING",
-            "POLYGON": "POLYGON",
-            "MULTIPOLYGON": "POLYGON"
-        }
-		var objectsByType = {};
+        var features = arrObjectsToDownload.map(function(obj) {
+            return {
+                type: 'Feature',
+                geometry: L.gmxUtil.geometryToGeoJSON(obj.Geometry),
+                properties: {title: '' + obj.Path}
+            }
+        });
 
-		for (var i = 0; i < arrObjectsToDownload.length; i++) {
-			var type = geomNormalizationTable[arrObjectsToDownload[i].Geometry.type];
-
-			if (!objectsByType[type])
-				objectsByType[type] = [];
-
-			objectsByType[type].push({ geometry: arrObjectsToDownload[i].Geometry, properties: { title: ''+arrObjectsToDownload[i].Path } });
-		}
-
-		downloadVectorForm.childNodes[0].value = filename;
-		downloadVectorForm.childNodes[1].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]).split("%22").join("\\\"") : '';
-		downloadVectorForm.childNodes[2].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]).split("%22").join("\\\"") : '';
-		downloadVectorForm.childNodes[3].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]).split("%22").join("\\\"") : '';
-
-		downloadVectorForm.submit();
+        nsGmx.Utils.downloadGeometry(features, {FileName: filename});
 	};
 
 	var fnBeforeSearch = function(){

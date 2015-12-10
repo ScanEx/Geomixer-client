@@ -57,7 +57,7 @@ var publicInterface =
             if (menuCreated) return;
             var menu = new leftMenu();
             menu.createWorkCanvas("monitoring_demo", function(){});
-            _(menu.workCanvas, [menuCanvas]);
+            menu.workCanvas.appendChild(menuCanvas);
             menuCreated = true;
         }
         // var _params = $.extend({eventLayerName: '4B4E9CB3FF9C4B01B378486FFDA42C9B', imagesLayerName: '14D281B634BE445F83781B528275AF64'}, params);

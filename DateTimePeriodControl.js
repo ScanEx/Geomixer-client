@@ -195,6 +195,12 @@ var Calendar = function(name, params)
     {
         this.dateMin = dateMin;
         $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', dateMin ? Calendar.toUTC(dateMin) : null);
+        
+        if (dateMin) {
+            this.dateMin.setHours(0);
+            this.dateMin.setMinutes(0);
+            this.dateMin.setSeconds(0);
+        }
     }
     
     /** Установить верхнюю границу возможных дат периода
@@ -209,6 +215,10 @@ var Calendar = function(name, params)
             utcDate.setMinutes(59);
             utcDate.setSeconds(59);
             $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', utcDate);
+            
+            this.dateMax.setHours(23);
+            this.dateMax.setMinutes(59);
+            this.dateMax.setSeconds(59);
         } else {
             $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', null);
         }
@@ -340,6 +350,12 @@ Calendar.prototype.init = function( name, params )
         this.dateMax.setMinutes(59);
         this.dateMax.setSeconds(59);
     };
+    
+    if (this.dateMin) {
+        this.dateMin.setHours(0);
+        this.dateMin.setMinutes(0);
+        this.dateMin.setSeconds(0);
+    }
     
     this.lazyDate = this._params.periodDefault || (this._params.minimized ? 'day': '');
 

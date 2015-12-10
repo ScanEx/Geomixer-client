@@ -72,7 +72,7 @@
             ColumnTagLinks: {}
         },
         isAnyLinks: function() {
-            return nsGmx._.size(this.attributes.ColumnTagLinks) > 0;
+            return _.size(this.attributes.ColumnTagLinks) > 0;
         }
     });
 

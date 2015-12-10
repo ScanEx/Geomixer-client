@@ -1,6 +1,6 @@
 ﻿//Плагин для импорта csv файлов из системы AIS в Геомиксер. 
 //Просто перетаскиваешь файл на левую панель - получается слой в дереве слоёв со всеми точками судов
-(function()
+!(function(_)
 {
     var addDataToLayer = function(map, layerName, data, headers)
     {
@@ -246,4 +246,4 @@
 	{
         require: ['utilities', 'LayerProperties']
 	});
-})();
+})(nsGmx.Utils._);
