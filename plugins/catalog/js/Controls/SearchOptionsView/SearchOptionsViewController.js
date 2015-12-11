@@ -174,7 +174,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
       var currentColumn = createColumn();
       for (var id in this._dataSources) {
         var dataSource = this._dataSources[id];
-        currentColumn.append(this._createSatelliteItem(dataSource, id));
+        this._createSatelliteItem(dataSource, currentColumn);
       }
     },
 
@@ -187,21 +187,27 @@ nsCatalog.Controls = nsCatalog.Controls || {};
       }
     },
 
-    _createSatelliteItem: function(dataSource) {
-      var that = this;
-      var box = $.create('input', {
-        'type':'checkbox',
-        'value': dataSource.id,
-        'id': 'chkSatellite' + '_' + dataSource.id});
+    _createSatelliteItem: function(dataSource, column) {
+		var div = $.create('div');
+		column.append (div);
+		var that = this;
+		var box = $.create('input', {
+			'type':'checkbox',
+			'value': dataSource.id,
+			'id': 'chkSatellite' + '_' + dataSource.id
+		});
+		
+		div.append(box);
 
-        box.prop('checked', dataSource.checked);
-        box.on('click', function(e) { dataSource.checked = $(e.target).prop('checked'); });
+		box.prop('checked', dataSource.checked);
+		box.on('click', function(e) { dataSource.checked = $(e.target).prop('checked'); });
 
-        var label = $.create('label', { 'for':'chkSatellite' + '_' + dataSource.id }, dataSource.title);
-        box[0].label = label;
-        var btn = $.create('img', {src: gmxCore.getModulePath('Catalog') + 'img/preferences.png'});
-        btn.prop('disabled', true);
-        btn.css({marginLeft: 5, cursor: 'pointer', width: 12, height: 12});
+		var label = $.create('label', { 'for':'chkSatellite' + '_' + dataSource.id }, dataSource.title);
+		box[0].label = label;
+		div.append(label);
+		var btn = $.create('img', {src: gmxCore.getModulePath('Catalog') + 'img/preferences.png'});
+		div.append(btn);		
+		btn.css({marginLeft: 5, cursor: 'pointer', width: 12, height: 12});
 
         if(dataSource.satellites) {
           var opts = [];
@@ -212,10 +218,11 @@ nsCatalog.Controls = nsCatalog.Controls || {};
           var tsid = 'search-options-satellites_' + dataSource.id;
           var html = '<div><input id="' + tsid + '" type="checkbox" /><label for="' + tsid + '">Все спутники</label><ul>' + opts.join('') + '</ul></div>';
           btn.popover({
-            title: dataSource.title,
+            title: dataSource.title,			
             content: html,
             html: true
-          }).on('shown.bs.popover',function(e){
+          });
+		  btn.on('shown.bs.popover',function(e){
             that._hideOtherPopovers(dataSource.id);
             var parent = $(e.target).parent();
             var container = parent.find('.popover-content');
@@ -269,9 +276,10 @@ nsCatalog.Controls = nsCatalog.Controls || {};
           };
           btn.popover({
             title: dataSource.title,
-            content: html,
+            content: html,			
             html: true
-          }).on('shown.bs.popover',function(e){
+          });
+		  btn.on('shown.bs.popover',function(e){
             that._hideOtherPopovers(dataSource.id);
             var root = $(e.target).parent().find('.popover-content');
             update(root);
@@ -299,16 +307,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
             });
           });
         }
-        this._popovers[dataSource.id] = btn;
-        // box.click(function() {
-        // btn.prop('disabled', false);
-        // that._updateResolutionsSlider();
-        // });
-
-        return $.create('div')
-        .append(box)
-        .append(label)
-        .append(btn);
+        this._popovers[dataSource.id] = btn;        
       },
 
       _createCloudSlider: function(target) {
