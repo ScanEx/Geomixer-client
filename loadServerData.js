@@ -1140,8 +1140,7 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
         if (!data)
             return;
 
-        if ($$('left_wms'))
-            $$('left_wms').removeNode(true);
+        $('#left_wms').remove();
         
         _queryServerDataWMS.builded = false;
         
@@ -1207,8 +1206,7 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
         if (!data)
             return;
 
-        if ($$('left_wfs'))
-            $$('left_wfs').removeNode(true);
+        $('#left_wfs').remove();
         
         _queryServerDataWFS.builded = false;
         

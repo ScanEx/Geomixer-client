@@ -275,7 +275,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
 						for (var id in shapes){
 							files.push(shapes[id]);
 						}
-						var area = getOffsetRect($$('leftMenu'));
+						var area = getOffsetRect($('#leftMenu')[0]);
 						var canvas = _div(),
 						filename = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','value','my']]),
 						that = this;

@@ -62,7 +62,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
   };
 
   ShapeFileController.prototype.downloadVectorsShapeFile = function(shapes){
-    var area = getOffsetRect($$('leftMenu'));
+    var area = getOffsetRect($('#leftMenu')[0]);
     var canvas = _div(), filename = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','value','my']]), that = this;
     var downloadButton = makeButton(_gtxt("Скачать"));
     downloadButton.onclick = function() {
@@ -118,7 +118,7 @@ nsCatalog.Controls = nsCatalog.Controls || {};
     } else this._search.fieldWkt.attr('name', 'dummy');
 
     if (images.searchIds.length || !images.catalogIds.empty || images.rlImagesIds.length) {
-      var area = getOffsetRect($$('leftMenu'));
+      var area = getOffsetRect($('#leftMenu')[0]);
       var canvas = _div(),
       filename = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','value','my']]),
       that = this;

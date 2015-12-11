@@ -11,7 +11,7 @@ var nsGmx = nsGmx || {};
 
     function changePasswordDialog()
     {
-        if ($$('changePasswordCanvas'))
+        if ($('#changePasswordCanvas').length)
             return;
         
         var oldInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),

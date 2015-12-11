@@ -398,38 +398,32 @@ $(function()
         }
     })
     
+    var customErrorTemplate = Handlebars.compile('<div class="CustomErrorText">{{description}}</div>'),
+        commonErrorTemplate = Handlebars.compile(
+            '<div class="CommonErrorText"><table class="CommonErrorTable">' +
+                '<tr><td>{{message}}</td></tr>' +
+                '<tr class="StacktraceContainer"><td class="StacktraceContainer">{{#if stacktrace}}<textarea class="inputStyle error StacktraceErrorText">{{stacktrace}}</textarea>{{/if}}</td></tr>' +
+            '</table></div>'
+        );
+    
     //при каждой ошибке от сервера будем показывать диалог с ошибкой и стектрейсом.
     addParseResponseHook('error', function(response, customErrorDescriptions) {
-        if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
+        var errInfo = response.ErrorInfo;
+        if (customErrorDescriptions && errInfo.ExceptionType in customErrorDescriptions)
         {
-            var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
-            showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
+            var canvas = $(customErrorTemplate({
+                description: customErrorDescriptions[errInfo.ExceptionType]
+            }));
+            showDialog(_gtxt("Ошибка!"), canvas[0], 220, 100);
         }
         else
         {
-            var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
-                textarea = false,
-                resize = function()
-                {
-                    if (textarea)
-                        textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
-                }
-            
-            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-            {
-                textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
-                
-                textarea.value = response.ErrorInfo.StackTrace;
-                _(canvas, [textarea]);
-            }
-            
-            showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
-            
-            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-                resize();
-                
-            canvas.parentNode.style.overflow = 'hidden';
-            
+            var stackTrace = response.ErrorInfo.ExceptionType && response.ErrorInfo.StackTrace;
+            var canvas = $(commonErrorTemplate({
+                message: errInfo.ErrorMessage,
+                stacktrace: stackTrace
+            }));
+            showDialog(_gtxt("Ошибка сервера"), canvas[0], 220, 170, false, false);
             return false;
         }
     })
@@ -715,35 +709,35 @@ window.resizeAll = function()
 		bottom = 0,
 		right = 0,
 		left = layersShown ? 360 : 12,
-        headerHeight = $('#header').outerHeight();
+        headerHeight = $('#header').outerHeight(),
+        mainDiv = $("#flash")[0];
 	
-	
-	$$("flash").style.left = left + 'px';
-	$$("flash").style.top = top + 'px';
-	$$("flash").style.width = getWindowWidth() - left - right + 'px';
-	$$("flash").style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
+	mainDiv.style.left = left + 'px';
+	mainDiv.style.top = top + 'px';
+	mainDiv.style.width = getWindowWidth() - left - right + 'px';
+	mainDiv.style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
     
     nsGmx.leafletMap && nsGmx.leafletMap.invalidateSize();
 	
 	if (layersShown)
 	{
-		show($$("leftMenu"));
+		$("#leftMenu").show();
         
         var mapNameHeight = $('.mainmap-title').outerHeight();
         
         var baseHeight = getWindowHeight() - top - bottom - headerHeight;
         
-        $$("leftMenu").style.height = baseHeight + 'px'
+        $("#leftMenu")[0].style.height = baseHeight + 'px'
         
-        $$("leftContent").style.top = ($$("leftPanelHeader").offsetHeight + mapNameHeight) + 'px';
-		$$("leftContent").style.height = baseHeight -
-            $$("leftPanelHeader").offsetHeight - 
-            $$("leftPanelFooter").offsetHeight -
+        $("#leftContent")[0].style.top = ($("#leftPanelHeader")[0].offsetHeight + mapNameHeight) + 'px';
+		$("#leftContent")[0].style.height = baseHeight -
+            $("#leftPanelHeader")[0].offsetHeight - 
+            $("#leftPanelFooter")[0].offsetHeight -
             mapNameHeight + 'px';
 	}
 	else
 	{
-		hide($$("leftMenu"));
+		$("#leftMenu").hide();
 	}
 }
 
@@ -1003,9 +997,7 @@ function loadMap(state) {
 
         _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
         
-        if ($$('left_usage')) {
-            hide($$('left_usage'));
-        }
+        $('#left_usage').hide();
 
         _menuUp.checkView();
 

@@ -330,7 +330,7 @@ attrsTable.prototype.getLayerInfo = function()
 
 attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 {
-	if (!origCanvas && $$('attrsTableDialog' + this.layerName))
+	if (!origCanvas && $('#attrsTableDialog' + this.layerName).length)
 		return;
         
     origCanvas && $(origCanvas).empty();

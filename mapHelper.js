@@ -107,12 +107,12 @@ var mapHelper = function()
 					return;
 				}
 
-				if (!$$('drawingBorderDescr' + name))
+				if (!$('#drawingBorderDescr' + name).length)
 					return;
 				
-				removeChilds($$('drawingBorderDescr' + name));
+				$('#drawingBorderDescr' + name).empty();
 
-				_($$('drawingBorderDescr' + name), [_t(areaStr)]);
+				_($('#drawingBorderDescr' + name)[0], [_t(areaStr)]);
 			}, 
 			
 			//Удаляет объект из списка контуров слоя
@@ -130,9 +130,7 @@ var mapHelper = function()
 				
 				delete _borders[name];
 				
-				if ($$('drawingBorderDescr' + name)) {
-					removeChilds($$('drawingBorderDescr' + name));
-                }
+				$('#drawingBorderDescr' + name).empty();
 			}
 		}
 	})();
@@ -788,7 +786,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createNewLayer = function(type)
 {
-	if ($$('new' + type + 'Layer'))
+	if ($('#new' + type + 'Layer').length)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer'], ['css', 'height', '100%']]),
@@ -1001,8 +999,8 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					
 					_this.drawingBorders.removeRoute(layerName, true);
 					
-					if ($$('drawingBorderDialog' + layerName))
-						removeDialog($$('drawingBorderDialog' + layerName).parentNode);
+					if ($('#drawingBorderDialog' + layerName).length)
+						removeDialog($('#drawingBorderDialog' + layerName)[0].parentNode);
 					
 					return false;
 				};
@@ -1056,9 +1054,7 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 			{
 				$(canvasStyles).find(".colorSelector").each(function()
 				{
-					var colorPicker = $$($(this).data("colorpickerId"));
-                    if (colorPicker)
-                         colorPicker.removeNode(true);
+					$('#' + $(this).data("colorpickerId")).remove();
 				});
 				
 				var layerElemCanvas = $(divCanvas).find("[geometryType='" + geometryType.toUpperCase() + "']")[0];

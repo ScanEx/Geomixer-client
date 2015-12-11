@@ -155,7 +155,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				
 				$(canvas).find(".colorSelector").each(function()
 				{
-					$$($(this).data("colorpickerId")).removeNode(true);
+					$('#' + $(this).data("colorpickerId")).remove();
 				});
 			};
 		

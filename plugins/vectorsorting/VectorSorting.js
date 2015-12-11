@@ -78,7 +78,7 @@ var publicInterface = {
                                     };
 
                                     var out = [].concat(
-                                        sorted.bottom.map(updater.bind(null, minmax[0] - 1, -1)), 
+                                        sorted.bottom.reverse().map(updater.bind(null, minmax[0] - 1, -1)), 
                                         sorted.top.map(updater.bind(null, minmax[1] + 1, 1))
                                     );
                                     if (out.length) {

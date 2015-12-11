@@ -100,8 +100,7 @@ nsGmx.ContextMenuController = (function()
 	
 	var _contextClose = function()
 	{
-		if ($$('contextMenuCanvas'))
-			$$('contextMenuCanvas').removeNode(true)
+        $('#contextMenuCanvas').remove();
 	}	
 	
 	var _generateMenuDiv = function(type, context)
