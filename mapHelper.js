@@ -786,7 +786,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createNewLayer = function(type)
 {
-	if ($('#new' + type + 'Layer'))
+	if ($('#new' + type + 'Layer').length)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer'], ['css', 'height', '100%']]),
