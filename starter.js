@@ -398,38 +398,32 @@ $(function()
         }
     })
     
+    var customErrorTemplate = Handlebars.compile('<div class="CustomErrorText">{{description}}</div>'),
+        commonErrorTemplate = Handlebars.compile(
+            '<div class="CommonErrorText"><table class="CommonErrorTable">' +
+                '<tr><td>{{message}}</td></tr>' +
+                '<tr class="StacktraceContainer"><td class="StacktraceContainer">{{#if stacktrace}}<textarea class="inputStyle error StacktraceErrorText">{{stacktrace}}</textarea>{{/if}}</td></tr>' +
+            '</table></div>'
+        );
+    
     //при каждой ошибке от сервера будем показывать диалог с ошибкой и стектрейсом.
     addParseResponseHook('error', function(response, customErrorDescriptions) {
-        if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
+        var errInfo = response.ErrorInfo;
+        if (customErrorDescriptions && errInfo.ExceptionType in customErrorDescriptions)
         {
-            var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
-            showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
+            var canvas = $(customErrorTemplate({
+                description: customErrorDescriptions[errInfo.ExceptionType]
+            }));
+            showDialog(_gtxt("Ошибка!"), canvas[0], 220, 100);
         }
         else
         {
-            var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
-                textarea = false,
-                resize = function()
-                {
-                    if (textarea)
-                        textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
-                }
-            
-            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-            {
-                textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
-                
-                textarea.value = response.ErrorInfo.StackTrace;
-                _(canvas, [textarea]);
-            }
-            
-            showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
-            
-            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-                resize();
-                
-            canvas.parentNode.style.overflow = 'hidden';
-            
+            var stackTrace = response.ErrorInfo.ExceptionType && response.ErrorInfo.StackTrace;
+            var canvas = $(commonErrorTemplate({
+                message: errInfo.ErrorMessage,
+                stacktrace: stackTrace
+            }));
+            showDialog(_gtxt("Ошибка сервера"), canvas[0], 220, 170, false, false);
             return false;
         }
     })
