@@ -16,8 +16,7 @@ _translationsHash.addtext("eng", {
                         "pluginsEditor.paramsTitle" : "Parameter of plugin"
                      });
 
-// plugins - массив с именами и параметрами плагина. Каждый элемент: {name: <имя>, params: <хеш параметров>}.
-// Сохращённый вариант описания - "<имя>" соответствует {name: <имя>, params: {}}
+
 var MapPlugins = function()
 {
     var _plugins = [];

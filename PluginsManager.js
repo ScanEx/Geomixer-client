@@ -47,9 +47,6 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
         if (usageState === 'used') {
             doLoad();
         }
-        else {
-            this.def.resolve();
-        }
     }
     
     this.isUsed = function()

@@ -434,6 +434,31 @@ $(function()
     
     nsGmx.pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
     
+    //будем сохранять в пермалинке все активные плагины
+    _mapHelper.customParamsManager.addProvider({
+        name: 'PluginManager',
+        loadState: function(state) {
+            for (var p in state.usage) {
+                var plugin = nsGmx.pluginsManager.getPluginByName(p);
+                
+                plugin && plugin.setUsage(state.usage[p] ? 'used' : 'notused');
+            }
+        },
+        saveState: function() {
+            var usage = {};
+            nsGmx.pluginsManager.forEachPlugin(function(plugin) {
+                if (plugin.pluginName) {
+                    usage[plugin.pluginName] = plugin.isUsed();
+                }
+            })
+            
+            return {
+                version: '1.0.0',
+                usage: usage
+            }
+        }
+    });
+    
     //сейчас подгружаются все глобальные плагины + все плагины карт, у которых нет имени в конфиге
     nsGmx.pluginsManager.done(function()
     {
@@ -979,6 +1004,12 @@ function loadMap(state) {
         nsGmx.userObjectsManager.load('mapPlugins_v2');
         nsGmx.userObjectsManager.load('mapPlugins_v3');
         
+        //вызываем сразу после загрузки списка плагинов ГеоМиксера, 
+        //так как в state может содержаться информация о включённых плагинах
+        if (state.customParamsCollection) {
+            _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
+        }
+        
         //после загрузки списка плагинов карты начали загружаться не глобальные плагины, 
         //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
         nsGmx.pluginsManager.done(function() {
@@ -1286,9 +1317,6 @@ function processGmxMap(state, gmxMap) {
             }
         }
             
-        if ( typeof state.customParamsCollection != 'undefined')
-            _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
-
         _mapHelper.gridView = false;
         
         var updateLeftPanelVis = function() {
