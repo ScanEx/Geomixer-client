@@ -25,7 +25,7 @@ nsCatalog.Helpers = nsCatalog.Helpers || {};
       selectedNodes: Object.keys(selectedNodes),
       searchCriteria: {
         queryType: searchCriteria.queryType,
-        dateStart: searchCriteria.dateStart.toISOString(),
+        dateStart: searchCriteria.dateStart ? searchCriteria.dateStart.toISOString() : null,
         dateEnd: searchCriteria.dateEnd.toISOString(),
         isYearly: searchCriteria.isYearly,
         cloudCover: searchCriteria.cloudCover
