@@ -1,6 +1,6 @@
 ﻿
 (function ($) {
-    var mykosmosnimki = "http://my.kosmosnimki.ru"; //"http://localhost:56319";
+    var mykosmosnimki = "http://localhost:56319"; //"http://my.kosmosnimki.ru"; //
 
     var initTranslations = function () {
 
@@ -55,6 +55,12 @@
             ErrorOldPassword: "Текущий пароль указан неверно",
             ErrorNewPassword: "Пароль не может быть пустым",
             ErrorNotMatch: "Введённые пароли не совпадают",
+
+            ErrorCapchaRequired: "Введите число!",
+            ErrorWrongCapcha: "Числа не совпадают!",
+            ErrorEmailEmpty: "Требуется указать email!",
+            ErrorWrongEmail: "Недопустимый email!",
+            ErrorEmailExists: "Email уже зарегистрирован",
 
             registration: "Регистрация",
             registrationPageAnnotation: "Введите ваш адрес электронной почты, укажите желаемый пароль и число с картинки",
@@ -116,12 +122,20 @@
             ErrorNewPassword: "Password is required!",
             ErrorNotMatch: "Passwords does not match!",
 
+            ErrorCapchaRequired: "Input a number!",
+            ErrorWrongCapcha: "Number mismatch!",
+            ErrorEmailEmpty: "Email is required!",
+            ErrorWrongEmail: "Invalid email!",
+            ErrorEmailExists: "Email duplicates",
+
             registration: "Registration",
             registrationPageAnnotation: "Please fill all fields",
             capcha: "Input a number",
             register: "Register",
             backOn: "Back to",
             loginPage: "Login"
+
+
         }
         });
     }
@@ -290,6 +304,15 @@
                 if (changePassForm.is(':visible')) changePassForm.hide(); else changePassForm.show();
             });
 
+            ppPages.find('input[type="text"], input[type="password"]').keydown(function (e) {
+                if (e.which == 13) {
+                    var submit = $(this).siblings('div').children('input[type="button"]');
+                    if (!submit.length)
+                        submit = $(this).parent('div').siblings('input[type="button"]');
+                        submit.click();
+                }
+            });
+
             // Error display
             var page1Errors = page1.find('.ErrorSummary');
             changePassForm.bind('onerror', function (e, m) {
@@ -330,8 +353,6 @@
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.profile') })).appendTo(ppMenu).click(function (e) { showPage(e, page1); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.billing') })).appendTo(ppMenu).click(function (e) { showPage(e, page2); });
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.developer') })).appendTo(ppMenu).click(function (e) { showPage(e, page3); });
-
-            $('<span style="padding-left:40px; position:relative; top:40px; cursor:pointer">Регистрация</span>').appendTo(ppMenu).click(showRegistrationForm);
 
             wait.appendTo(ppMenu).hide();
             ppMenu.hide().appendTo('#all');
@@ -385,7 +406,7 @@
                 onerror();
             }
         });
-    }
+    };
 
     var fillBillingPage = function (content, response) {
         content.find('.FileStorageUsed').text((response.Result[0].FileStorageUsed / 1000000).toFixed(2) + 'мб');
@@ -427,17 +448,49 @@
         object.css({ 'position': 'absolute' });
     }
 
-    var showRegistrationForm = function () {
-        window.showDialog(_gtxt('ProfilePlugin.registration'),
-            $(Handlebars.compile('<table class="registrationForm" width="100%" height="100%">' +
-            '<tr><td colspan="3" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
-            '<tr><td colspan="3">{{i "ProfilePlugin.email"}} <input type="text" class="Login"/></td></tr>' +
-            '<tr><td>{{i "ProfilePlugin.password"}} <input type="password" class="Password"/></td><td colspan="2">{{i "ProfilePlugin.repeat"}} <input type="password" class="Repeat"/></td></tr>' +
-            '<tr><td>{{i "ProfilePlugin.login"}} <input type="text" class="NickName"/></td><td>{{i "ProfilePlugin.capcha"}} <input type="text" class="Capcha"/></td><td><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=882164954"></td></tr>' +
-            '<tr><td colspan="3" class="submit"><div class="ErrorSummary">error</div><input type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
-            //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
-            '</table>')())[0],
-            600, 350);
+    var showRegistrationForm = function (afterRegistration) {
+        var registrationForm = $(Handlebars.compile('<table class="registrationForm" width="100%" height="100%">' +
+        '<tr><td colspan="3" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
+        '<tr><td colspan="3">{{i "ProfilePlugin.email"}} <input type="text" class="Login"/></td></tr>' +
+        '<tr><td>{{i "ProfilePlugin.password"}} <input type="password" class="Password"/></td><td colspan="2">{{i "ProfilePlugin.repeat"}} <input type="password" class="Repeat"/></td></tr>' +
+        '<tr><td>{{i "ProfilePlugin.login"}} <input type="text" class="NickName"/></td><td>{{i "ProfilePlugin.capcha"}} <input type="text" class="Capcha"/></td><td><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)) + '"></td></tr>' +
+        '<tr><td colspan="3" class="submit"><div class="ErrorSummary">error</div><input type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
+        //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
+        '</table>')()),
+        regFormDialog,
+        submit = registrationForm.find('input[type="button"]').click(function () {
+            //wait.show();
+            sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Registration", { WrapStyle: 'message',
+                email: registrationForm.find('.Login').val(),
+                login: registrationForm.find('.NickName').val(),
+                password: registrationForm.find('.Password').val(),
+                repeat: registrationForm.find('.Repeat').val(),
+                captcha: registrationForm.find('.Capcha').val(),
+                debug: true
+            },
+            function (response) {
+                //wait.hide();
+                if (response.Status.toLowerCase() == 'ok' && response.Result) {
+                    removeDialog(regFormDialog);
+                    afterRegistration();
+                }
+                else {
+                    if (response.Result.length > 0 && response.Result[0].Key)
+                        registrationForm.find('.ErrorSummary').text(
+                        _gtxt('ProfilePlugin.Error' + response.Result[0].Key) + " " + response.Result[0].Value.Errors[0].ErrorMessage)
+                        .css('visibility', 'visible');
+                    else
+                        registrationForm.find('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + response.Result.Message)).css('visibility', 'visible');
+                    registrationForm.find('img').attr("src", mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)));
+                }
+            });
+        });
+        registrationForm.find('input[type="text"], input[type="password"]').keydown(function (e) {
+            if (e.which == 13)
+                submit.click();
+        });
+        regFormDialog = window.showDialog(_gtxt('ProfilePlugin.registration'), registrationForm[0], 610, 350);
+        return regFormDialog;
     };
 
     gmxCore.addModule('ProfilePlugin', {
@@ -445,18 +498,37 @@
         showProfile: showProfile,
         showRegistrationForm: showRegistrationForm,
         afterViewer: function () {
-            var checkExist = setInterval(function () {
-                var a = $('a:contains("' + nsGmx.Translations.getText('auth.myAccount') + '")')
-                if (a.length) {
-                    a.attr({ 'class': 'dropdownMenuWidget-dropdownItemAnchor' });
-                    a.siblings('div').remove();
-                    a.attr('href', 'javascript:void(0)');
-                    a.removeAttr('target');
-                    a.click(function (event) {
-                        showProfile();
-                        event.stopPropagation();
-                    });
-                    //a.click();
+            checkExist = setInterval(function () {
+                if (nsGmx.widgets.authWidget && nsGmx.widgets.authWidget.getUserInfo() != null) {
+                    if (nsGmx.widgets.authWidget.getUserInfo().Login != null) {
+                        var a = $('a:contains("' + nsGmx.Translations.getText('auth.myAccount') + '")');
+                        a.attr({ 'class': 'dropdownMenuWidget-dropdownItemAnchor' });
+                        a.siblings('div').remove();
+                        a.attr('href', 'javascript:void(0)');
+                        a.removeAttr('target');
+                        a.click(function (event) {
+                            showProfile();
+                            event.stopPropagation();
+                        });
+                    }
+                    else {
+                        var showLoginDialog = nsGmx.widgets.authWidget._authManager.login,
+                        regForm;
+                        nsGmx.widgets.authWidget._authManager.login = function () {
+                            if (regForm && $(regForm).is(':visible')) {
+                                removeDialog(regForm);
+                                regForm = false;
+                            }
+                            showLoginDialog();
+                            var regLink = $(':ui-dialog .registration');
+                            regLink.off("click").click(function () {
+                                regLink.parents(':ui-dialog').dialog("close");
+                                regForm = showRegistrationForm(function () {
+                                    window.location.reload();
+                                });
+                            });
+                        };
+                    }
                     clearInterval(checkExist);
                 }
             }, 100);

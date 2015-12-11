@@ -35,6 +35,16 @@
     text-align: left;
 }
 
+.profilePanel-content .ErrorSummary
+{
+    text-align:center;
+    margin: 0;
+    border: none;
+    font-weight:normal;
+    color:Red;
+    visibility:hidden;
+}
+
 .profilePanel-content div div.newpass-request
 {
     text-decoration:underline;
@@ -56,16 +66,6 @@
     text-align:center;
     margin: 0;
     border: none;
-}
-
-.profilePanel-content .ErrorSummary
-{
-    text-align:center;
-    margin: 0;
-    border: none;
-    font-weight:normal;
-    color:Red;
-    visibility:hidden;
 }
 
 .profilePanel-content div div.newpass-form input[type="password"]
@@ -199,6 +199,7 @@
     color:Red;
     font-weight:normal;
     margin-bottom:10px;
+    visibility:hidden;
 }
 
 .registrationForm input[type="button"]
@@ -214,15 +215,14 @@
 
 .registrationForm input[type="text"], .registrationForm input[type="password"]
 {
-    line-height: 2em;
     border: 1px solid #ddd;
-    padding:0 5px 0 5px;
+    padding:4px 8px 4px 8px;
     margin-left:10px;
 }
 
 .registrationForm input.Login
 {
-    width:370px;
+    width:377px;
 }
 
 .registrationForm input.Password
