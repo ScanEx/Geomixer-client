@@ -142,7 +142,7 @@ var createMenuNew = function()
                 {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
                 // {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
                 {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
-                {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
+                {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true, disabled: true},
                 {id: 'mapProperties',title: _gtxt('Свойства'),          func: function(){
                     var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                     nsGmx.createMapEditor(div);
