@@ -372,15 +372,16 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	
 	_(oInitContainer, [_canvas])
     
-    var mouseOverListenerId = _drawingObject.on('mouseover', function()
-    {
+    this._mouseOverHandler = function() {
         $(_canvas).addClass('drawingObjectsActiveItemCanvas');
-    })
+    };
     
-    var mouseOutListenerId = _drawingObject.on('mouseout', function()
-    {
+    this._mouseOutHandler = function() {
         $(_canvas).removeClass('drawingObjectsActiveItemCanvas');
-    })    
+    }
+    
+    _drawingObject.on('mouseover', this._mouseOverHandler);
+    _drawingObject.on('mouseout', this._mouseOutHandler);
 	
 	/** Обновляет информацию о геометрии */
 	this.UpdateRow = function(){
@@ -424,10 +425,10 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             
         if (_drawingObject === null) return;
             
-        _drawingObject.off('edit', editListenerID);
-        _drawingObject.off('remove', removeListenerID);
-        _drawingObject.off('mouseover', mouseOverListenerId);
-        _drawingObject.off('mouseout', mouseOutListenerId);
+        _drawingObject.off('edit', this.UpdateRow);
+        _drawingObject.off('remove', this.RemoveRow);
+        _drawingObject.off('mouseover', this._mouseOverHandler);
+        _drawingObject.off('mouseout', this._mouseOutHandler);
         
         _drawingObject = null;
 	}
@@ -443,8 +444,8 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         return _drawingObject;
     }
     
-    var editListenerID = _drawingObject.on('edit', this.UpdateRow);
-    var removeListenerID = _drawingObject.on('remove', this.RemoveRow);
+    _drawingObject.on('edit', this.UpdateRow);
+    _drawingObject.on('remove', this.RemoveRow);
     
 	this.UpdateRow();
 }
