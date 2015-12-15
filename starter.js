@@ -501,14 +501,6 @@ $(function()
                 });
             })
 
-            if (!window.gmxViewerUI || !window.gmxViewerUI.hideLanguage) {
-                var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
-                nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
-                nsGmx.widgets.languageWidget.appendTo(langContainer);
-            }
-        
-            window.LeafletPlugins = window.LeafletPlugins || [];
-
             var parsedURL = parseURLParams();
             
             parseReferences(parsedURL.params, parsedURL.givenMapName);
@@ -1046,7 +1038,8 @@ function loadMap(state) {
 function processGmxMap(state, gmxMap) {
     var defCenter = [55.7574, 37.5952],
         mapProps = gmxMap.properties,
-        defZoom = mapProps.DefaultZoom || 5;
+        defZoom = mapProps.DefaultZoom || 5,
+        data = gmxMap.rawTree;
 
     if (mapProps.DefaultLat && mapProps.DefaultLong) {
         defCenter = [mapProps.DefaultLat, mapProps.DefaultLong];
@@ -1074,6 +1067,17 @@ function processGmxMap(state, gmxMap) {
             defZoom = Math.floor(Math.min(zoomX, zoomY, 17));
             defCenter = proj.unproject(mercBounds.getCenter());
         }
+    }
+    
+    //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
+    if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
+        window.language = data.properties.DefaultLanguage;
+    }
+    
+    if (!window.gmxViewerUI || !window.gmxViewerUI.hideLanguage) {
+        var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
+        nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
+        nsGmx.widgets.languageWidget.appendTo(langContainer);
     }
     
     var lmap = new L.Map($('#flash')[0], {
@@ -1116,18 +1120,12 @@ function processGmxMap(state, gmxMap) {
         
         nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
-        var data = gmxMap.rawTree;
         
         var mapProp = gmxMap.rawTree.properties || {}
         var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['OSM', 'OSMHybrid', 'satellite'];
         
         lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
 
-        //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
-        if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
-            window.language = data.properties.DefaultLanguage;
-        }
-        
         var baseLayersControl = new L.Control.GmxIconLayers(lmap.gmxBaseLayersManager, {id: 'iconLayers'});
         lmap.gmxControlsManager.add(baseLayersControl);
         
