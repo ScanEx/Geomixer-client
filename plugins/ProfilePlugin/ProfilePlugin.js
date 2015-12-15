@@ -1,6 +1,6 @@
 ﻿
 (function ($) {
-    var mykosmosnimki = "http://localhost:56319"; //"http://my.kosmosnimki.ru"; //
+    var mykosmosnimki = "http://my.kosmosnimki.ru"; //
 
     var initTranslations = function () {
 
