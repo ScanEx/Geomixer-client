@@ -1798,8 +1798,9 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
 
             _layersTree.updateListType(li);
         }
-		
+
 		_mapHelper.updateUnloadEvent(true);
+        _layersTree.updateZIndexes();
     }).progress(function(taskInfo)
 	{
         removeChilds(taskDiv);
@@ -1837,17 +1838,18 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
                     li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
                     
-                    $(li).find('[multiStyle]').treeview();
+                $(li).find('[multiStyle]').treeview();
+            
+                $(layerDiv.parentNode).replaceWith(li);
                 
-                    $(layerDiv.parentNode).replaceWith(li);
-                    
-                    _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties: newLayerProperties, geometry: convertedGeometry}}
+                _layersTree.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties: newLayerProperties, geometry: convertedGeometry}}
 
-                    _queryMapLayers.addSwappable(li);
-                    
-                    _queryMapLayers.addDraggable(li);
+                _queryMapLayers.addSwappable(li);
+                
+                _queryMapLayers.addDraggable(li);
 
-                    _layersTree.updateListType(li);
+                _layersTree.updateListType(li);
+                _layersTree.updateZIndexes();
             }
             else
             {
