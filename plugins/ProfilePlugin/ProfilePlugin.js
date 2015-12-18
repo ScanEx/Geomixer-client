@@ -185,7 +185,7 @@
             var page1 = $(Handlebars.compile(pageTemplate)(
             { id: "page1", items: [
                 { span: true, id: "Email", text: _gtxt('ProfilePlugin.email') },
-                { text_input: true, id: "Login", text: _gtxt('ProfilePlugin.login') },
+                { text_input: true, id: "Login LoginEmpty LoginFormat LoginExists", text: _gtxt('ProfilePlugin.login') },
                 { text_input: true, id: "FullName", text: _gtxt('ProfilePlugin.fullName') },
                 { text_input: true, id: "Phone", text: _gtxt('ProfilePlugin.phone') },
                 { text_input: true, id: "Company", text: _gtxt('ProfilePlugin.company') },
@@ -228,12 +228,12 @@
                 changePassForm.hide();
                 wait.show();
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Settings", { WrapStyle: 'message',
-                    Login: page1.find('.Login').val(),
-                    FullName: page1.find('.FullName').val(),
-                    Phone: page1.find('.Phone').val(),
-                    Company: page1.find('.Company').val(),
-                    Profile: page1.find('.CompanyProfile').val(),
-                    Position: page1.find('.CompanyPosition').val(),
+                    Login: page1.find('.Login').val().trim(),
+                    FullName: page1.find('.FullName').val().trim(),
+                    Phone: page1.find('.Phone').val().trim(),
+                    Company: page1.find('.Company').val().trim(),
+                    Profile: page1.find('.CompanyProfile').val().trim(),
+                    Position: page1.find('.CompanyPosition').val().trim(),
                     IsCompany: page1.find('.IsCompany').is(":checked"),
                     Subscribe: page1.find('.Subscribe').is(":checked")
                 },
@@ -278,18 +278,20 @@
             var changePassForm = $(Handlebars.compile(
             '<div class="newpass-form">' +
                 '{{i "ProfilePlugin.old"}}: <input type="password" class="OldPassword" value=""><br/>' +
-                '{{i "ProfilePlugin.newp"}}: <input type="password" class="NewPassword" value=""><br/>' +
-                '{{i "ProfilePlugin.repeat"}}: <input type="password" class="PasswordRepeat" value=""><br/>' +
+                '{{i "ProfilePlugin.newp"}}: <input type="password" class="NewPassword NotMatch" value=""><br/>' +
+                '{{i "ProfilePlugin.repeat"}}: <input type="password" class="PasswordRepeat NotMatch" value=""><br/>' +
                 '<div class="ErrorSummary">error</div>' +
                 '<div><input type="button" class="ChangePassword" value="{{i "ProfilePlugin.submitp"}}"></div>' +
             '</div>')());
             changePassForm.insertAfter(changePassControls.last());
             changePassForm.find('.ChangePassword').click(function () {
+                clearPageErrors($(this));
+                clearPageErrors(page1);
                 wait.show();
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/ChangePassword", { WrapStyle: 'message',
-                    oldpassword: changePassForm.children('.OldPassword').val(),
-                    password: changePassForm.children('.NewPassword').val(),
-                    repeat: changePassForm.children('.PasswordRepeat').val()
+                    oldpassword: changePassForm.children('.OldPassword').val().trim(),
+                    password: changePassForm.children('.NewPassword').val().trim(),
+                    repeat: changePassForm.children('.PasswordRepeat').val().trim()
                 },
                 function (response) {
                     wait.hide();
@@ -299,30 +301,62 @@
                         changePassForm.trigger('onerror', response.Result.Message);
                 });
             });
+
             changePassControls.first().click(function (e) {
-                changePassForm.trigger('onrender');
-                if (changePassForm.is(':visible')) changePassForm.hide(); else changePassForm.show();
+                if (changePassForm.is(':visible')) {
+                    changePassForm.hide();
+                } else {
+                    changePassForm.show();
+                    changePassForm.trigger('onrender');
+                }
             });
 
-            ppPages.find('input[type="text"], input[type="password"]').keydown(function (e) {
+            ppPages.find('input[type="text"], input[type="password"]').keyup(function (e) {
                 if (e.which == 13) {
                     var submit = $(this).siblings('div').children('input[type="button"]');
                     if (!submit.length)
                         submit = $(this).parent('div').siblings('input[type="button"]');
-                        submit.click();
+                    submit.click();
                 }
+                clearInputErrors($(this));
+            })
+            .focusin(function (e) {
+                clearInputErrors($(this));
             });
 
             // Error display
-            var page1Errors = page1.find('.ErrorSummary');
+            var clearInputErrors = function (input) {
+                if (input.val().search(/\S/) != -1) {
+                    var es = input.nextAll('.ErrorSummary');
+                    if (es.length == 0)
+                        es = input.parent().nextAll('.ErrorSummary');
+                    es.text('error').css('visibility', 'hidden');
+                    if (input.is('.NotMatch')) {
+                        var s = input.siblings('.NotMatch');
+                        if (s.val() === input.val()) {
+                            input.removeClass('error');
+                            s.removeClass('error');
+                        }
+                    }
+                    else {
+                        input.removeClass('error');
+                    }
+                }
+            }
+            var clearPageErrors = function (page) {
+                page.find('.ErrorSummary').text('error').css('visibility', 'hidden');
+                page.find('.error').removeClass('error');
+            }
             changePassForm.bind('onerror', function (e, m) {
-                page1Errors.text('error').css('visibility', 'hidden');
                 $(this).children('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + m)).css('visibility', 'visible');
+                $(this).find('.' + m).addClass('error');
+                $(this).find(':password,:text').filter(function () { return $(this).val() == ""; }).addClass('error');
                 return false;
             });
             changePassForm.bind('onrender', function () {
                 $(this).children('input[type="password"]').val('');
-                page1Errors.text('error').css('visibility', 'hidden');
+                clearPageErrors($(this));
+                clearPageErrors(page1);
                 return false;
             });
             ppPages.bind('onerror', function (e, m1, m2) {
@@ -330,10 +364,11 @@
                 if (m2)
                     m += " " + m2;
                 $(this).children('.ErrorSummary').text(m).css('visibility', 'visible');
+                $(this).find('.' + m1).addClass('error');
                 return false;
             })
             ppPages.bind('onrender', function () {
-                $(this).children('.ErrorSummary').css('visibility', 'hidden');
+                clearPageErrors($(this));
                 changePassForm.hide();
                 return false;
             });
@@ -449,12 +484,22 @@
     }
 
     var showRegistrationForm = function (afterRegistration) {
-        var registrationForm = $(Handlebars.compile('<table class="registrationForm" width="100%" height="100%">' +
-        '<tr><td colspan="3" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
-        '<tr><td colspan="3">{{i "ProfilePlugin.email"}} <input type="text" class="Login"/></td></tr>' +
-        '<tr><td>{{i "ProfilePlugin.password"}} <input type="password" class="Password"/></td><td colspan="2">{{i "ProfilePlugin.repeat"}} <input type="password" class="Repeat"/></td></tr>' +
-        '<tr><td>{{i "ProfilePlugin.login"}} <input type="text" class="NickName"/></td><td>{{i "ProfilePlugin.capcha"}} <input type="text" class="Capcha"/></td><td><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)) + '"></td></tr>' +
-        '<tr><td colspan="3" class="submit"><div class="ErrorSummary">error</div><input type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
+        var registrationForm = $(Handlebars.compile('<table class="registrationForm" border="0">' +
+        '<tr><td colspan="2" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
+        '<tr><td colspan="2">{{i "ProfilePlugin.email"}} <input type="text" tabindex="1" class="Login EmailEmpty WrongEmail EmailExists"/></td></tr>' +
+        '<tr>' +
+            '<td>' +
+                '<table border="0"><tr><td>{{i "ProfilePlugin.password"}}</td><td align="right"><input tabindex="2" type="password" class="Password NewPassword NotMatch"/></td></tr></table>' +
+                '<table border="0"><tr><td>{{i "ProfilePlugin.login"}}</td><td align="right"><input type="text" tabindex="4" class="NickName LoginEmpty LoginFormat LoginExists"/></td></tr></table>' +
+            '</td>' +
+            '<td>' +
+                '<table border="0">' +
+                    '<tr><td>{{i "ProfilePlugin.repeat"}}</td><td colspan="2" align="right"><input type="password" tabindex="3" class="Repeat NotMatch"/></td></tr>' +
+                    '<tr><td>{{i "ProfilePlugin.capcha"}}</td><td align="left"><input type="text" tabindex="5" class="Capcha CapchaRequired WrongCapcha"/></td><td align="right"><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)) + '"></td></tr>' +
+                '</table>' +
+            '</td>' +
+        '</tr>' +
+        '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="6" type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
         //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
         '</table>')()),
         regFormDialog,
@@ -475,21 +520,34 @@
                     afterRegistration();
                 }
                 else {
-                    if (response.Result.length > 0 && response.Result[0].Key)
+                    clearError();
+                    registrationForm.find(':password,:text').filter(function () { return $(this).val() == ""; }).addClass('error');
+                    if (response.Result.length > 0 && response.Result[0].Key) {
                         registrationForm.find('.ErrorSummary').text(
                         _gtxt('ProfilePlugin.Error' + response.Result[0].Key) + " " + response.Result[0].Value.Errors[0].ErrorMessage)
                         .css('visibility', 'visible');
-                    else
+                        registrationForm.find('.' + response.Result[0].Key).addClass('error');
+                    }
+                    else {
                         registrationForm.find('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + response.Result.Message)).css('visibility', 'visible');
+                        registrationForm.find('.' + response.Result.Message).addClass('error');
+                    }
                     registrationForm.find('img').attr("src", mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)));
                 }
             });
         });
-        registrationForm.find('input[type="text"], input[type="password"]').keydown(function (e) {
+        var clearError = function () {
+            registrationForm.find('.error').removeClass('error');
+            registrationForm.find('.ErrorSummary').css('visibility', 'hidden');
+            registrationForm.find('.Capcha').val("");
+        };
+        registrationForm.find('input[type="text"], input[type="password"]')
+        .keydown(function (e) {
             if (e.which == 13)
                 submit.click();
-        });
-        regFormDialog = window.showDialog(_gtxt('ProfilePlugin.registration'), registrationForm[0], 610, 350);
+        })
+        .focusin(clearError);
+        regFormDialog = window.showDialog(_gtxt('ProfilePlugin.registration'), registrationForm[0], 605, 300);
         return regFormDialog;
     };
 

@@ -50,7 +50,7 @@
     text-decoration:underline;
     border:none;
     cursor:pointer;
-    color:Orange;
+    color:#2372C4;
     font-weight:normal;
 }
 
@@ -109,10 +109,15 @@
     border:none;
     border-radius:2px;
     margin-top: 0px;
-    background-color: Orange;
+    background-color: #2372C4;
     color:White;
     padding: 6px 12px 8px 12px;
     cursor:pointer;
+}
+
+.profilePanel input[type="text"].error, .profilePanel input[type="password"].error
+{
+    background-color:#ffabab;
 }
 
 .profilePanel-content div div span
@@ -134,14 +139,13 @@
 
 .profilePanel-menu div.selected
 {
-    background-color:Orange;
+    background-color:#2372C4;
     color:White;
 }
 
 .profilePanel-menu div.targeted
 {
-    background-color:#ffedcc;
-    color:Black;
+    color:#2372C4;
 }
 
 .profilePanel-menu span.targeted
@@ -149,15 +153,21 @@
     text-decoration:underline;
 }
 
-   
+/*****************************************/
+  
 .registrationForm tr td
 {
     font-weight:bold;
     padding-left: 20px;
-    padding-top: 10px;
+    padding-top: 15px;
     padding-bottom: 0px;
 }
-   
+
+.registrationForm tr:nth-of-type(3)>td
+{
+    padding-top: 0px;
+}
+
 .registrationForm tr td:first-of-type
 {
     padding-left: 30px;
@@ -173,23 +183,14 @@
     font-weight:normal;
 }
 
-.registrationForm td.footer
-{
-    padding-top: 10px;
-    padding-bottom: 10px;
-    background-color:#eee;
-    font-weight:normal;
-    color:#777;
-}
-
 .registrationForm td.footer .entrance
 {
     text-decoration:underline;
 }
+
 .registrationForm td.submit
 {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 15px;
     text-align:center;
     vertical-align:top;
 }
@@ -198,7 +199,7 @@
 {
     color:Red;
     font-weight:normal;
-    margin-bottom:10px;
+    margin-bottom:15px;
     visibility:hidden;
 }
 
@@ -207,7 +208,7 @@
     border:none;
     border-radius:2px;
     margin-top: 0px;
-    background-color: Orange;
+    background-color: #2372C4;
     color:White;
     padding: 6px 12px 8px 12px;
     cursor:pointer;
@@ -220,9 +221,29 @@
     margin-left:10px;
 }
 
+.registrationForm input[type="text"].error, .registrationForm input[type="password"].error
+{
+    background-color:#ffabab;
+}
+
+.registrationForm table
+{
+    width: 100%;
+}
+
+.registrationForm table td, .registrationForm table td:first-of-type, .registrationForm table td:last-of-type
+{
+    padding: 15px 0 0 0;
+}
+
 .registrationForm input.Login
 {
-    width:377px;
+    width:373px;
+}
+
+.registrationForm input.NickName
+{
+    width:130px;
 }
 
 .registrationForm input.Password
@@ -232,10 +253,11 @@
 
 .registrationForm input.Repeat
 {
-    width:140px;
+    width:145px;
 }
 
 .registrationForm input.Capcha
 {
     width:80px;
+    margin-right:10px;
 }
