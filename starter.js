@@ -219,13 +219,13 @@ var createMenuNew = function()
 			{id:'about',        title:_gtxt('О проекте'),                 func: _mapHelper.version},
         ].concat(window.mapsSite ? [
 			{id:'usage',        title: _gtxt('Руководство пользователя'), func: function(){
-                window.open('http://geomixer.ru/docs/manual/', '_blank');
+                window.open('http://geomixer.ru/index.php/ru/docs/', '_blank');
             }},
 			{id:'api',          title: _gtxt('GeoMixer API'),             func: function(){
-                window.open('http://geomixer.ru/docs/api_reference/', '_blank');
+                window.open('http://geomixer.ru/index.php/ru/docs/dev-manual/getting-started', '_blank');
             }},
 			{id:'pluginsUsage', title: _gtxt('Использование плагинов'),   func: function(){
-                window.open('http://geomixer.ru/docs/plugins/', '_blank');
+                window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
             }}
 		] : [])
     });
