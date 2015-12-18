@@ -123,9 +123,9 @@
                     min = {x: sw.lng, y: sw.lat},
                     max = {x: ne.lng, y: ne.lat},
                     //arr = bounds.toBBoxString().split(','),
-                    oCalendar = nsGmx.widgets.getCommonCalendar(),
-                    dt1 = oCalendar.getDateBegin(),
-                    dt2 = oCalendar.getDateEnd(),
+                    dateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                    dt1 = dateInterval.get('dateBegin'),
+                    dt2 = dateInterval.get('dateEnd'),
                     prop = (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties,
                     TemporalColumnName = prop.TemporalColumnName,
                     columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';

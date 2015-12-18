@@ -40,7 +40,7 @@ var LayersListProvider = function(filtersProvider)
         var dateEnd = filtersProvider.getDateEnd();
         
         dateBegin && filterStrings.push("[DateCreate] >= '" + $.datepicker.formatDate('yy.mm.dd', dateBegin) + "'");
-        dateEnd   && filterStrings.push("[DateCreate] < '"  + $.datepicker.formatDate('yy.mm.dd', new Date(dateEnd.valueOf() + 24*3600*1000)) + "'"); //день включительно
+        dateEnd   && filterStrings.push("[DateCreate] < '"  + $.datepicker.formatDate('yy.mm.dd', dateEnd) + "'");
         
         var layerTags = filtersProvider.getTags();
         
@@ -247,19 +247,23 @@ var LayerManagerControl = function( parentDiv, name, params )
 					   _option([_t(_gtxt("Мультислой"))], [['attr','value','multilayer']]),
 					   _option([_t(_gtxt("Каталог растров"))], [['attr','value','catalog']])], [['dir','className','selectStyle'], ['css','width','100px']]);
                        
-    var calendar = new nsGmx.Calendar();
-    calendar.init('layerManager', {
+    var calendar = new nsGmx.CalendarWidget({
         minimized: false, 
         showSwitcher: false,
-        dateBegin: null,
-        dateEnd: null
+        dateInterval: new nsGmx.DateInterval({dateBegin: null, dateEnd: null})
     });
+    // calendar.init('layerManager', {
+        // minimized: false, 
+        // showSwitcher: false,
+        // dateBegin: null,
+        // dateEnd: null
+    // });
     
     var _disabledLayers = {};
 					   
 	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])]), _td([layerName])]),
 										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner])]),
-                                           _tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]),_td([calendar.canvas])]),
+                                           _tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]),_td([calendar.canvas[0]])]),
 										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel])])])])], [['css','marginBottom','10px']])]);
 								
     $.each(_params.fixType, function(i, type) {
@@ -310,7 +314,7 @@ var LayerManagerControl = function( parentDiv, name, params )
             $(pi).change();
         }
             
-        $(calendar).change(function()
+        calendar.getDateInterval().on('change', function()
         {
             $(pi).change();
         });
@@ -328,8 +332,8 @@ var LayerManagerControl = function( parentDiv, name, params )
             },
             getTitle:     function() { return layerName.value; },
             getOwner:     function() { return layerOwner.value; },
-            getDateBegin: function() { return calendar.getDateBegin(); },
-            getDateEnd:   function() { return calendar.getDateEnd(); },
+            getDateBegin: function() { return calendar.getDateInterval().get('dateBegin'); },
+            getDateEnd:   function() { return calendar.getDateInterval().get('dateEnd'); },
             getTags:      function() { return _layerTags; },
             getTypes:     function() { return _params.fixType.length > 0 ? _params.fixType : [$("option:selected", typeSel).val()]; }
         }

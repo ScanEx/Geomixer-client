@@ -108,9 +108,9 @@
                     layerID = this._gmx.layerID,
                     popup = ev.target._popup,
                     aisLayerID = layerName || getActiveLayer() || '8EE2C7996800458AAF70BABB43321FA4',    // по умолчанию поиск по слою АИС 
-                    oCalendar = nsGmx.widgets.getCommonCalendar(),
-                    dt1 = oCalendar.getDateBegin(),
-                    dt2 = oCalendar.getDateEnd();
+                    dateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                    dt1 = dateInterval.get('dateBegin'),
+                    dt2 = dateInterval.get('dateEnd');
 
                 var aisLayer = layersByID[aisLayerID],
                     prop = aisLayer._gmx.properties,
