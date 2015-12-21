@@ -1209,6 +1209,23 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 		copyFunc();
 }
 
+//не работает для мультислоёв
+layersTree.prototype.addLayerToTree = function(layerName) {
+    var gmxProperties = {
+        type: 'layer',
+        content: {
+            properties: {
+                LayerID: layerName,
+                name: layerName
+            }
+        }
+    };
+
+    var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+    
+    this.copyHandler(gmxProperties, targetDiv, false, true);
+}
+
 //геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
