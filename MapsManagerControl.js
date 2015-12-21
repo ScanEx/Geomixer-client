@@ -23,7 +23,7 @@ nsGmx.MapsManagerControl = function()
 
         _this._drawMapsDialog(response.Result);
     })
-    
+    this._previewMapName = null;
 }
 
 nsGmx.MapsManagerControl.prototype._resize = function() {
@@ -163,9 +163,10 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManager)
 {
 	var name = makeLinkButton(map.Title),
-		load = makeImageButton("img/collapse-arrow-right.gif", "img/collapse-arrow-right.gif"),
+        img_url = map.Name === mapsManager._previewMapName ? 'img/collapse-arrow-se.png' : 'img/collapse-arrow-right.gif',
+		load = makeImageButton(img_url, img_url),
 		remove = makeImageButton("img/recycle.png", "img/recycle_a.png");
-	
+
 	_title(name, _gtxt("Загрузить"));
 	_title(load, _gtxt("Показать"));
 	_title(remove, _gtxt("Удалить"));
@@ -197,9 +198,12 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
             
         }
 		_(mapsManager._mapPreview, [loading]);
-		
+        
+
 		// раз уж мы список получили с сервера, то и карты из этого списка точно нужно загружать с него же...
 		mapsManager._loadMapJSON(window.serverBase, map.Name, mapsManager._mapPreview); 
+
+        $(mapsManager._mapsTable.getDataProvider()).change();
 	}
 	
 	remove.onclick = function()
@@ -242,7 +246,7 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this._fields[i].width;
 	
-	attachEffects(tr, 'hover')
+	attachEffects(tr, 'hover');
     
     if (mapsManager._activeIndex === mapIndex) {
         $(tr).addClass('maps-manager-active');
@@ -274,6 +278,7 @@ nsGmx.MapsManagerControl.prototype._deleteMapHandler = function(response, id)
 nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
 	//loadMapJSON(host, name, function(layers)
+    this._previewMapName = name;
     L.gmx.loadMap(name, {hostName: host}).then(function(gmxMap) {
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
             ul = previewLayersTree.drawTree(gmxMap.rawTree, 2);
