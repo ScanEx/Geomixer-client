@@ -124,12 +124,51 @@ function defineClass() {
         }
     })
 }
+
+var GeoMixerGFWLayer = function() {
+    this._layer = new GFWLayer();
+    this._slider = new GFWSlider({position: 'bottomright'});
+    this.options = {
+        attribution: this._layer.options.attribution
+    }
+    
+    this._slider.on('yearschange', function(data) {
+        this._layer.setYearInterval(data.yearBegin, data.yearEnd);
+    }, this)
+};
+
+GeoMixerGFWLayer.prototype.initFromDescription = function(layerDescription) {
+    this._gmxProperties = layerDescription.properties;
+    return this;
+}
+
+GeoMixerGFWLayer.prototype.getGmxProperties = function() {
+    return this._gmxProperties;
+}
+
+GeoMixerGFWLayer.prototype.onAdd = function(map) {
+    map.addLayer(this._layer);
+    map.addControl(this._slider);
+}
+
+GeoMixerGFWLayer.prototype.onRemove = function(map) {
+    map.removeLayer(this._layer);
+    map.removeControl(this._slider);
+}
+
+GeoMixerGFWLayer.prototype.setZIndex = function() {
+    return this._layer.setZIndex.apply(this._layer, arguments);
+}
+
  
 var publicInterface = {
     pluginName: 'GFW Plugin',
     
+    preloadMap: function() {
+        L.gmx.addLayerClass('GFW', GeoMixerGFWLayer);
+    },
+    
     afterViewer: function(params){
-        defineClass();
         var layer = new GFWLayer();
         var slider = new GFWSlider({position: 'bottomright'});
         
@@ -179,7 +218,7 @@ gmxCore.addModule('GFWPlugin', publicInterface, {
         return gmxCore.loadScriptWithCheck([{
             check: function() {return L.TileLayer.Canvas.Mercator; },
             script: path + 'TileLayer.Mercator.js'
-        }])
+        }]).then(defineClass);
     },
     css: 'GFWPlugin.css'
 });
