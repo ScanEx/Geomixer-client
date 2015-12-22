@@ -461,7 +461,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         for (var c in activeColumns) {
             if (activeColumns[c]) {
                 columnsForServer.push({
-                    Value: _this.tableFields.titleToField[c],
+                    Value: '[' + _this.tableFields.titleToField[c] + ']',
                     Alias: c
                 })
             }
