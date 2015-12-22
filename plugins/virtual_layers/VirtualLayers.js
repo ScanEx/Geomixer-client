@@ -9,9 +9,10 @@ var TiledRaster = function(options) {
 
 TiledRaster.prototype.initFromDescription = function(layerDescription) {
     var props = layerDescription.properties,
-        urlTemplate = props.MetaProperties['url-template'].Value;
+        urlTemplate = props.MetaProperties['url-template'].Value,
+        isMercator = !!props.MetaProperties['merc-projection'];
     
-    var layer = L.tileLayer(urlTemplate);
+    var layer = (isMercator ? L.tileLayer.Mercator : L.tileLayer)(urlTemplate);
     
     layer.getGmxProperties = function() {
         return props;
@@ -23,7 +24,7 @@ TiledRaster.prototype.initFromDescription = function(layerDescription) {
 var publicInterface = {
     pluginName: 'Virtual Layers',
     
-    beforeMap: function() {
+    preloadMap: function() {
         L.gmx.addLayerClass('TiledRaster', TiledRaster);
     },
     
