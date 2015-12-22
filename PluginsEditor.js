@@ -138,6 +138,11 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
         }
     })
     
+    //по алфавиту
+    _allPlugins.sort(function(a, b) {
+        return a.name > b.name ? 1 : -1;
+    })
+    
     var update = function()
     {
         $(container).empty();
@@ -241,7 +246,7 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
             _gtxt('pluginsEditor.paramsTitle') + " " + pluginName, 
             container[0], 
             {
-                width: 300, 
+                width: 320, 
                 height: 200, 
                 closeFunc: function() {
                     updateParams();
@@ -266,26 +271,36 @@ var MapPluginsWidget = function(container, mapPlugins)
         container.empty();
         container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.selectedTitle')));
         
-        nsGmx.pluginsManager.forEachPlugin(function(plugin)
-        {
-            if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) )
-            {
-                var editButton = makeImageButton("img/edit.png", "img/edit.png");
-                $(editButton).addClass('pluginEditor-edit');
-                editButton.onclick = function()
-                {
-                    new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
-                }
-                
-                var divRow = $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
-                    .append($('<span/>').text(plugin.pluginName))
-                    .append(editButton)
-                    .appendTo(container);
+        var globalPluginsToShow = [];
+        nsGmx.pluginsManager.forEachPlugin(function(plugin) {
+            if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) ) {
+                globalPluginsToShow.push(plugin);
             }
+        });
+        
+        globalPluginsToShow.sort(function(a, b) {
+            return a.pluginName > b.pluginName ? 1 : -1;
+        });
+        
+        globalPluginsToShow.forEach(function(plugin) {
+            var editButton = makeImageButton("img/edit.png", "img/edit.png");
+            $(editButton).addClass('pluginEditor-edit');
+            editButton.onclick = function() {
+                new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
+            }
+            
+            $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
+                .append($('<span/>').text(plugin.pluginName))
+                .append(editButton)
+                .appendTo(container);
         })
         
-        mapPlugins.each(function(name)
-        {
+        var mapPluginNames = [];
+        mapPlugins.each(function(name) {
+            mapPluginNames.push(name);
+        });
+        
+        mapPluginNames.sort().forEach(function(name) {
             var divRow = $('<div/>', {'class': 'pluginEditor-widgetElem'});
             var remove = makeImageButton("img/close.png", "img/close_orange.png");
             var editButton = makeImageButton("img/edit.png", "img/edit.png");
