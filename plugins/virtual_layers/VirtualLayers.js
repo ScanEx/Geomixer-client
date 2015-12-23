@@ -3,29 +3,9 @@
 /** Тестирование виртуальных слоёв в ГеоМиксере
 */
 (function (){
-    
-var TiledRaster = function(options) {
-}
-
-TiledRaster.prototype.initFromDescription = function(layerDescription) {
-    var props = layerDescription.properties,
-        urlTemplate = props.MetaProperties['url-template'].Value;
-    
-    var layer = L.tileLayer(urlTemplate);
-    
-    layer.getGmxProperties = function() {
-        return props;
-    }
-    
-    return layer;
-}
 
 var publicInterface = {
     pluginName: 'Virtual Layers',
-    
-    beforeMap: function() {
-        L.gmx.addLayerClass('TiledRaster', TiledRaster);
-    },
     
     afterViewer: function() {
         gmxCore.loadModule('LayerEditor').then(function() {
