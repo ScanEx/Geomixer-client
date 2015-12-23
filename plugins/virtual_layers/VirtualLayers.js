@@ -7,10 +7,6 @@
 var publicInterface = {
     pluginName: 'Virtual Layers',
     
-    preloadMap: function() {
-        L.gmx.addLayerClass('TiledRaster', TiledRaster);
-    },
-    
     afterViewer: function() {
         gmxCore.loadModule('LayerEditor').then(function() {
             nsGmx.LayerEditor.addInitHook(function(layerEditor, layerProperties, params) {
