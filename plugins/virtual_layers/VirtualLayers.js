@@ -3,23 +3,6 @@
 /** Тестирование виртуальных слоёв в ГеоМиксере
 */
 (function (){
-    
-var TiledRaster = function(options) {
-}
-
-TiledRaster.prototype.initFromDescription = function(layerDescription) {
-    var props = layerDescription.properties,
-        urlTemplate = props.MetaProperties['url-template'].Value,
-        isMercator = !!props.MetaProperties['merc-projection'];
-    
-    var layer = (isMercator ? L.tileLayer.Mercator : L.tileLayer)(urlTemplate);
-    
-    layer.getGmxProperties = function() {
-        return props;
-    }
-    
-    return layer;
-}
 
 var publicInterface = {
     pluginName: 'Virtual Layers',
