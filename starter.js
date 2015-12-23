@@ -101,7 +101,8 @@ var createMenuNew = function()
         var sel = function() {
             nsGmx.pluginsManager.setUsePlugin(pluginName, true);
             nsGmx.pluginsManager.done(function() {
-                plugin.body.afterViewer && plugin.body.afterViewer(plugin.params, nsGmx.leafletMap);
+                var paramsClone = $.extend(true, {}, plugin.params);
+                plugin.body.afterViewer && plugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
                 _mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
             })
         }
