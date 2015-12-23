@@ -942,22 +942,25 @@ FireControl.prototype.saveState = function()
 
 FireControl.prototype.loadState = function( data )
 {
-	var dc = data.dataContrololersState;
-	for (var k = 0; k < dc.length; k++)
-		if (dc[k].name in this.dataControllers)
-		{
-			var curController = this.dataControllers[dc[k].name];
-			
-			curController.visible = dc[k].visible;
-			$("#" + dc[k].name, this._parentDiv).attr({checked: dc[k].visible});
-			curController.renderer.setVisible(curController.visible && this._currentVisibility);
-		}
-		
-	if (data.timeShift)
-    {
-		this._timeShift = $.extend({}, data.timeShift);
-        this._updateCalendarTime(this._timeShift);
-    }
+    this._initDeferred.then(function() {
+        var dc = data.dataContrololersState;
+        for (var k = 0; k < dc.length; k++)
+            if (dc[k].name in this.dataControllers)
+            {
+                var curController = this.dataControllers[dc[k].name];
+                
+                curController.visible = dc[k].visible;
+                $("#" + dc[k].name, this._parentDiv).attr({checked: dc[k].visible});
+                curController.renderer.setVisible(curController.visible && this._currentVisibility);
+            }
+            
+        if (data.timeShift)
+        {
+            this._timeShift = $.extend({}, data.timeShift);
+            this._updateCalendarTime(this._timeShift);
+        }
+        this.update();
+    }.bind(this));
 }
 
 //вызывает callback когда календарик проинициализирован
@@ -1491,7 +1494,7 @@ var publicInterface = {
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
             _mapHelper.customParamsManager.addProvider({
                 name: 'firesWidget2',
-                loadState: function(state) { fireControl.loadState(state); fireControl.update(); },
+                loadState: function(state) { fireControl.loadState(state);},
                 saveState: function() { return fireControl.saveState(); }
             });
         }
