@@ -22,7 +22,7 @@ Filter.prototype.addSlider = function(name, label, min, max, value, step) {
 };
 
 Filter.prototype.setCode = function(code, func) {
-    $('#codeWebgl').html(code);
+    $('.codeWebgl').html(code);
     L.gmx.WebglFilters.code = func;
     if (L.gmx.WebglFilters.callback) L.gmx.WebglFilters.callback(code);
 var tt = 1;
@@ -38,7 +38,7 @@ Filter.prototype.use = function() {
     canvas.draw(image.texture).update();
 */
     // Clear all rows but the first two (which contain the filter selector and code sample)
-    var tbody = $('#properties')[0].firstChild;
+    var tbody = $('.properties')[0].firstChild;
     for (var tr = tbody.firstChild.nextSibling.nextSibling; tr; tr = next) {
         var next = tr.nextSibling;
         tbody.removeChild(tr);
@@ -47,12 +47,12 @@ Filter.prototype.use = function() {
     // Add a row for each slider
     for (var i = 0; i < this.sliders.length; i++) {
         var slider = this.sliders[i];
-        $('<tr><th>' + slider.label.replace(/ /g, '&nbsp;') + ':</th><td><div id="slider' + i + '"></div></td></tr>').appendTo(tbody);
+        $('<tr><th>' + slider.label.replace(/ /g, '&nbsp;') + ':</th><td><div class="slider' + i + '"></div></td></tr>').appendTo(tbody);
         var onchange = (function(this_, slider) { return function(event, ui) {
             this_[slider.name] = ui.value;
             this_.update();
         }; })(this, slider);
-        $('#slider' + i).slider({
+        $('.slider' + i).slider({
             slide: onchange,
             change: onchange,
             min: slider.min,
@@ -62,7 +62,7 @@ Filter.prototype.use = function() {
         });
         this[slider.name] = slider.value;
     }
-
+/*
     // Add a div for each nub
     $('#nubs').html('');
     for (var i = 0; i < this.nubs.length; i++) {
@@ -84,7 +84,7 @@ Filter.prototype.use = function() {
         }).css({ left: x, top: y });
         this[nub.name] = { x: x, y: y };
     }
-
+*/
     // Provide a link to the documentation
     //$('<tr><th></th><td><br>See the documentation for <kbd><a href="/glfx.js/docs/#' + this.func + '">' + this.func + '()</a></kbd> for more information.</td></tr>').appendTo(tbody);
 
@@ -103,7 +103,7 @@ var filters = {
             this.addSlider('contrast', 'Contrast', -1, 1, 0, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).brightnessContrast(' + this.brightness + ', ' + this.contrast + ').update();'
+            this.setCode('brightnessContrast(' + this.brightness + ', ' + this.contrast + ').update();'
             ,
                 function(it) {
                     return it.brightnessContrast(_this.brightness, _this.contrast);
@@ -115,7 +115,7 @@ var filters = {
             this.addSlider('saturation', 'Saturation', -1, 1, 0, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).hueSaturation(' + this.hue + ', ' + this.saturation + ').update();'
+            this.setCode('hueSaturation(' + this.hue + ', ' + this.saturation + ').update();'
             ,
                 function(it) {
                     return it.hueSaturation(_this.hue, _this.saturation);
@@ -126,7 +126,7 @@ var filters = {
             this.addSlider('amount', 'Amount', -1, 1, 0.5, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).vibrance(' + this.amount + ').update();'
+            this.setCode('vibrance(' + this.amount + ').update();'
             ,
                 function(it) {
                     return it.vibrance(_this.amount);
@@ -137,7 +137,7 @@ var filters = {
             this.addSlider('exponent', 'Exponent', 0, 50, 20, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).denoise(' + this.exponent + ').update();'
+            this.setCode('denoise(' + this.exponent + ').update();'
             ,
                 function(it) {
                     return it.denoise(_this.exponent);
@@ -149,7 +149,7 @@ var filters = {
             this.addSlider('strength', 'Strength', 0, 5, 2, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).unsharpMask(' + this.radius + ', ' + this.strength + ').update();'
+            this.setCode('unsharpMask(' + this.radius + ', ' + this.strength + ').update();'
             ,
                 function(it) {
                     return it.unsharpMask(_this.radius, _this.strength);
@@ -160,7 +160,7 @@ var filters = {
             this.addSlider('amount', 'Amount', 0, 1, 0.5, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).noise(' + this.amount + ').update();'
+            this.setCode('noise(' + this.amount + ').update();'
             ,
                 function(it) {
                     return it.noise(_this.amount);
@@ -171,7 +171,7 @@ var filters = {
             this.addSlider('amount', 'Amount', 0, 1, 1, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).sepia(' + this.amount + ').update();'
+            this.setCode('sepia(' + this.amount + ').update();'
             ,
                 function(it) {
                     return it.sepia(_this.amount);
@@ -183,7 +183,7 @@ var filters = {
             this.addSlider('amount', 'Amount', 0, 1, 0.5, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).vignette(' + this.size + ', ' + this.amount + ').update();'
+            this.setCode('vignette(' + this.size + ', ' + this.amount + ').update();'
             ,
                 function(it) {
                     return it.vignette(_this.size, _this.amount);
@@ -197,7 +197,7 @@ var filters = {
             this.addSlider('strength', 'Strength', 0, 1, 0.3, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).zoomBlur(' + this.center.x + ', ' + this.center.y + ', ' + this.strength + ').update();'
+            this.setCode('zoomBlur(' + this.center.x + ', ' + this.center.y + ', ' + this.strength + ').update();'
             ,
                 function(it) {
                     return it.zoomBlur(_this.x, _this.y, _this.strength);
@@ -208,7 +208,7 @@ var filters = {
             this.addSlider('radius', 'Radius', 0, 200, 50, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).triangleBlur(' + this.radius + ').update();'
+            this.setCode('triangleBlur(' + this.radius + ').update();'
             ,
                 function(it) {
                     return it.triangleBlur(_this.radius);
@@ -222,7 +222,7 @@ var filters = {
             this.addSlider('gradientRadius', 'Gradient Radius', 0, 400, 200, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).tiltShift(' + this.start.x + ', ' + this.start.y + ', ' + this.end.x + ', ' + this.end.y + ', ' + this.blurRadius + ', ' + this.gradientRadius + ').update();'
+            this.setCode('tiltShift(' + this.start.x + ', ' + this.start.y + ', ' + this.end.x + ', ' + this.end.y + ', ' + this.blurRadius + ', ' + this.gradientRadius + ').update();'
             ,
                 function(it) {
                     return it.tiltShift(_this.start.x, _this.start.y, _this.end.x, _this.end.y, _this.blurRadius, _this.gradientRadius);
@@ -235,7 +235,7 @@ var filters = {
             this.addSlider('angle', 'Angle', -Math.PI, Math.PI, 0, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).lensBlur(' + this.radius + ', ' + this.brightness + ', ' + this.angle + ').update();'
+            this.setCode('lensBlur(' + this.radius + ', ' + this.brightness + ', ' + this.angle + ').update();'
             ,
                 function(it) {
                     return it.lensBlur(_this.radius, _this.brightness, _this.angle);
@@ -250,7 +250,7 @@ var filters = {
             this.addSlider('radius', 'Radius', 0, 600, 200, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).swirl(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.angle + ').update();'
+            this.setCode('swirl(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.angle + ').update();'
             ,
                 function(it) {
                     return it.swirl(_this.x, _this.y, _this.radius, _this.angle);
@@ -263,7 +263,7 @@ var filters = {
             this.addSlider('radius', 'Radius', 0, 600, 200, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).bulgePinch(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.strength + ').update();'
+            this.setCode('bulgePinch(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.strength + ').update();'
             ,
                 function(it) {
                     return it.bulgePinch(_this.center.x, _this.center.y, _this.radius, _this.strength);
@@ -280,7 +280,7 @@ var filters = {
         }, function() {
             var before = perspectiveNubs;
             var after = [this.a.x, this.a.y, this.b.x, this.b.y, this.c.x, this.c.y, this.d.x, this.d.y];
-            this.setCode('canvas.draw(texture).perspective([' + before + '], [' + after + ']).update();'
+            this.setCode('perspective([' + before + '], [' + after + ']).update();'
             ,
                 function(it) {
                     return it.perspective([before], [after]);
@@ -293,7 +293,7 @@ var filters = {
             this.addSlider('strength', 'Strength', 0, 1, 0.25, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).ink(' + this.strength + ').update();'
+            this.setCode('ink(' + this.strength + ').update();'
             ,
                 function(it) {
                     return it.ink(_this.strength);
@@ -304,7 +304,7 @@ var filters = {
             this.addSlider('radius', 'Radius', 0, 200, 10, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).edgeWork(' + this.radius + ').update();'
+            this.setCode('edgeWork(' + this.radius + ').update();'
             ,
                 function(it) {
                     return it.edgeWork(_this.radius);
@@ -316,7 +316,7 @@ var filters = {
             this.addSlider('scale', 'Scale', 10, 100, 20, 1);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).hexagonalPixelate(' + this.center.x + ', ' + this.center.y + ', ' + this.scale + ').update();'
+            this.setCode('hexagonalPixelate(' + this.center.x + ', ' + this.center.y + ', ' + this.scale + ').update();'
             ,
                 function(it) {
                     return it.hexagonalPixelate(_this.center.x, _this.center.y, _this.scale);
@@ -329,7 +329,7 @@ var filters = {
             this.addSlider('size', 'Size', 3, 20, 3, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).dotScreen(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
+            this.setCode('dotScreen(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
             ,
                 function(it) {
                     return it.dotScreen(_this.center.x, _this.center.y, _this.angle, _this.size);
@@ -342,7 +342,7 @@ var filters = {
             this.addSlider('size', 'Size', 3, 20, 4, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('canvas.draw(texture).colorHalftone(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
+            this.setCode('colorHalftone(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
             ,
                 function(it) {
                     return it.colorHalftone(_this.center.x, _this.center.y, _this.angle, _this.size);
@@ -371,7 +371,7 @@ var WebglFilters = {
 
     initFiltersSelector: function () {
         // Call use() on the currently selected filter when the selection is changed
-        var select = $('#filters')[0];
+        var select = $('.filters')[0];
         function switchToFilter(index) {
             if (select.selectedIndex != index) select.selectedIndex = index;
             for (var category in filters) {
@@ -382,7 +382,7 @@ var WebglFilters = {
                 }
             }
         }
-        $('#filters').change(function() {
+        $('.filters').change(function() {
             switchToFilter(select.selectedIndex);
         });
         switchToFilter(1);

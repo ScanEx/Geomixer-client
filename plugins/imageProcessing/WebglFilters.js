@@ -34,12 +34,12 @@
                     if (control.options.isActive) {
                         var canvas = fx.canvas(),
                             WebglFilters = L.gmx.WebglFilters,
-                            div = $('<div/>');
-                        var str = '<table id="properties">'
+                            div = $('<div class="webglFilters"/>');
+                        var str = '<table class="properties">'
                             + '<tbody><tr>'
                             + '<th>Filter:</th>'
-                            + '<td><select id="filters">'+WebglFilters.getFiltersOptions()+'</select></td>'
-                            + '</tr><tr><th>Code:</th><td><code id="codeWebgl"></code>'
+                            + '<td><select class="filters">'+WebglFilters.getFiltersOptions()+'</select></td>'
+                            + '</tr><tr><th>Code:</th><td><code class="codeWebgl"></code>'
                             + '</td></tr></tbody></table>';
     
                         div.append(
@@ -66,6 +66,7 @@
                         testLayer = getActiveLayer();
                         if(testLayer) {
                             L.gmx.WebglFilters.callback = function() {
+                                testLayer.clearScreenCache();
                                 testLayer.repaint();
                             };
                             testLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {

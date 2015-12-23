@@ -16,20 +16,20 @@
     width: 12px;
 }
 
-.workCanvas {
+.webglFilters {
     margin-bottom: 20px;
     width: 100%;
 }
 
-.workCanvas div table th {
+.webglFilters table th {
     padding-right: 10px;
     width: 100px;
 }
-.workCanvas div table th, .workCanvas div table td {
+.webglFilters table th, .workCanvas table td {
     padding: 0;
     text-align: left;
     vertical-align: top;
 }
-.workCanvas div table {
+.webglFilters table {
     border-collapse: collapse;
 }
