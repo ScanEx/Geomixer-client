@@ -516,7 +516,7 @@ var TimelineController = function(data, map, options) {
         {
             _this.shiftActiveItem(-1);
         }
-        $(prevDiv).addClass('timeline-controls');
+        $(prevDiv).addClass('timeline-shift-icon');
         
         var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
         _title(nextDiv, _gtxt("Следующий слой"));
@@ -525,7 +525,7 @@ var TimelineController = function(data, map, options) {
         {
             _this.shiftActiveItem(1);
         }
-        $(nextDiv).addClass('timeline-controls');
+        $(nextDiv).addClass('timeline-shift-icon');
         
         // container.keypress(function(event) {
             // console.log(event);
@@ -575,20 +575,32 @@ var TimelineController = function(data, map, options) {
         })
         
         var calendarContainer = $('<div/>', {'class': 'timeline-calendar'});
-        var calendarControl = new nsGmx.Calendar('timelineCalendar', {minimized: false, showSwitcher: false, container: calendarContainer});
+        var dateInterval = new nsGmx.DateInterval();
+        var calendarControl = new nsGmx.CalendarWidget({
+            name: 'timelineCalendar',
+            minimized: false, 
+            showSwitcher: false, 
+            container: calendarContainer,
+            dateInterval: dateInterval
+        });
         
         updateCalendarRange = function() {
             if (!timeline) return;
             var range = timeline.getVisibleChartRange();
             
             //TODO: не использовать UTC даты в таймлайне (нужна поддержка отображения UTC).
-            var trueStart = nsGmx.Calendar.fromUTC(range.start);
-            var trueEnd = nsGmx.Calendar.fromUTC(range.end);
+            var trueStart = nsGmx.CalendarWidget.fromUTC(range.start);
+            var trueEnd = nsGmx.CalendarWidget.fromUTC(range.end);
             
-            trueStart.setUTCHours(0, 0, 0, 0);
-            trueEnd.setUTCHours(23, 59, 59, 0);
-            calendarControl.setDateBegin(trueStart, true);
-            calendarControl.setDateEnd(trueEnd, true);
+            // trueStart.setUTCHours(0, 0, 0, 0);
+            // trueEnd.setUTCHours(23, 59, 59, 0);
+            // calendarControl.setDateBegin(trueStart, true);
+            // calendarControl.setDateEnd(trueEnd, true);
+            dateInterval.set({
+                dateBegin: trueStart,
+                dateEnd: trueEnd,
+            });
+            
             data.set('range', range);
             updateCount();
         };  
@@ -596,9 +608,9 @@ var TimelineController = function(data, map, options) {
         links.events.addListener(timeline, 'rangechanged', updateCalendarRange);
         updateCalendarRange();
         
-        $(calendarControl).change(function () {
+        dateInterval.on('change', function () {
             // timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
-            data.set('range', { start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd() })
+            data.set('range', { start: dateInterval.get('dateBegin'), end: dateInterval.get('dateEnd') });
         });
          
         $(headerContainer).prependTo(container);

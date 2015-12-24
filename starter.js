@@ -590,57 +590,60 @@ function checkUserInfo(defaultState)
         loadMap(defaultState);
 }
 
+var now = new Date();
 nsGmx.widgets.commonCalendar = {
     _calendar: null,
+    _dateInterval: new nsGmx.DateInterval(),
     _isAppended: false,
     _unbindedTemporalLayers: {},
+    getDateInterval: function() {
+        return this._dateInterval;
+    },
     get: function()
     {
         var _this = this;
         if (!this._calendar)
         {
-            this._calendar = new nsGmx.Calendar();
-            this._calendar.init('CalendarCommon', {
+            this._calendar = new nsGmx.CalendarWidget({
                 minimized: true,
                 dateMin: new Date(2000, 01, 01),
                 dateMax: new Date(),
-                showTime: false
+                dateInterval: this._dateInterval
             });
             
-            this._calendar.setTimeBegin(0, 0, 0);
-            this._calendar.setTimeEnd(23, 59, 59);
-            
-            _mapHelper.customParamsManager.addProvider({
-                name: 'commonCalendar',
-                loadState: function(state) {
-                    _this._calendar.loadState(state);
-                    $(_this._calendar).change();
-                },
-                saveState: function() {
-                    return _this._calendar.saveState();
-                }
-            });
-            
-            $(this._calendar).change(this.updateTemporalLayers.bind(this, null));
+            this._dateInterval.on('change', this.updateTemporalLayers.bind(this, null));
             this.updateTemporalLayers();
-            
-            //depricated: use nsGmx.widgets.commonCalendar.(un)bindLayer
-            this._calendar.bindLayer = this.bindLayer.bind(this);
-            this._calendar.unbindLayer = this.unbindLayer.bind(this);
         }
 
         return this._calendar;
     },
+    replaceCalendarWidget: function(newCalendar) {
+        this._calendar = newCalendar;
+        
+        //заменим виджет перед деревом слоёв
+        if (this._isAppended) {
+            var doChange = function() {
+                var calendarDiv = $('<div class="common-calendar-container"></div>').append(newCalendar.canvas);
+                _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
+            }
+            //явная проверка, так как хочется быть максимально синхронными в этом методе
+            if (_queryMapLayers.loadDeferred.state() === 'resolved') {
+                doChange();
+            } else {
+                _queryMapLayers.loadDeferred.then(doChange);
+            }
+        }
+    },
     show: function()
     {
         var doAdd = function() {
-            var calendarDiv = $("<div/>").append(this.get().canvas);
+            var calendarDiv = $('<div class="common-calendar-container"></div>').append(this.get().canvas);
             _queryMapLayers.getContainerBefore().append(calendarDiv);
+            this._isAppended = true;
         }.bind(this);
         
         if (!this._isAppended)
         {
-            this._isAppended = true;
             //явная проверка, так как хочется быть максимально синхронными в этом методе
             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
                 doAdd();
@@ -681,12 +684,8 @@ nsGmx.widgets.commonCalendar = {
         if (!this._calendar) {return;}
 
         var layers = layers || nsGmx.gmxMap.layers,
-            dateBegin = this._calendar.getDateBegin(),
-            dateEnd = this._calendar.getDateEnd();
-        
-        if (dateBegin.valueOf() == dateEnd.valueOf()) {
-            dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
-        }
+            dateBegin = this._dateInterval.get('dateBegin'),
+            dateEnd = this._dateInterval.get('dateEnd');
 
         for (var i = 0, len = layers.length; i < len; i++) {
             var layer = layers[i],
@@ -699,6 +698,29 @@ nsGmx.widgets.commonCalendar = {
         }
     }
 }
+
+_mapHelper.customParamsManager.addProvider({
+    name: 'commonCalendar',
+    loadState: function(state) {
+        if (!('version' in state)) {
+            var tmpDateInterval = new nsGmx.DateInterval({
+                dateBegin: new Date(state.dateBegin),
+                dateEnd: new Date(state.dateEnd)
+            });
+            nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
+        } else if (state.version === '1.0.0') {
+            nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
+        } else {
+            throw 'Unknown params version';
+        }
+    },
+    saveState: function() {
+        return {
+            version: '1.0.0',
+            dateInterval: nsGmx.widgets.commonCalendar.getDateInterval().saveState()
+        };
+    }
+});
 
 //устарело, используйте commonCalendar
 nsGmx.widgets.getCommonCalendar = function()

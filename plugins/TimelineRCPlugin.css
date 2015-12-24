@@ -5,9 +5,15 @@
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A);
 }
 
+.timeline-container .timeline-controls {
+    margin-bottom: 4px;
+}
+
 .timeline-container div.timeline-axis-text-major,
 .timeline-container div.timeline-axis-text,
-.timeline-container .timeline-controls
+.timeline-container .timeline-controls,
+.timeline-container .CalendarWidget-iconScrollLeft, 
+.timeline-container .CalendarWidget-iconScrollRight
 {
     color: white;
 }
@@ -32,9 +38,9 @@
     vertical-align: middle;
 }
 
-.timeline-container  .timeline-controls > img
+.timeline-shift-icon
 {
-    margin-top: -6px;
+    margin-top: 2px;
 }
 
 .timeline-container  .timeline-controls label, .timeline-container  .timeline-controls span
@@ -43,10 +49,10 @@
     margin-left: 3px;
 }
 
-.timeline-container  .timeline-controls input
+/*.timeline-container  .timeline-controls input
 {
     margin-bottom: 4px;
-}
+}*/
 
 .timeline-container #timeline-only-selected
 {
@@ -55,8 +61,6 @@
 
 .timeline-container .timeline-calendar
 {
-    line-height: 10px;
-    margin-top: -10px;
     display: inline-block;
 }
 
