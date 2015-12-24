@@ -1288,7 +1288,15 @@ var initGeoMixerFireControl = _.once(function(params, map) {
     }
     
     _queryMapLayers.loadDeferred.done(function() {
-        params.dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+        var dateInterval = params.dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+        
+        var defaultDateInterval = new nsGmx.DateInterval();
+        if (defaultDateInterval.get('dateBegin').valueOf() === dateInterval.get('dateBegin').valueOf() && 
+            defaultDateInterval.get('dateEnd').valueOf() === dateInterval.get('dateEnd').valueOf())
+        {
+            //если сейчас на календарике установлен дефолтный интервал, мы его заменяем на дефолтный интервал пожарного календарика
+            dateInterval.set(nsGmx.FireCalendarWidget.defaultFireDateInterval());
+        }
         
         //если не указан календарик, то мы будем использовать общий. 
         //Однако в этом случае мы хотим, чтобы календарик был под списком провайдеров
@@ -1299,13 +1307,7 @@ var initGeoMixerFireControl = _.once(function(params, map) {
         nsGmx.widgets.commonCalendar.replaceCalendarWidget(fireCalendar);
 
         var div = $('<div/>').css('margin', '5px');
-        if (_queryMapLayers.getContainerBefore) {
-            _queryMapLayers.getContainerBefore().prepend(div);
-        } else {
-            //старый вариант интерфейса
-            var table = $(_queryMapLayers.workCanvas).children("table");
-            table.after(div);
-        }
+        _queryMapLayers.getContainerBefore().prepend(div);
         
         params.container = div;
         
@@ -1319,24 +1321,6 @@ var initGeoMixerFireControl = _.once(function(params, map) {
                 saveState: function() { return fireControl.saveState(); }
             });
         }
-        
-        //Читаем старый формат
-        if (!_mapHelper.customParamsManager.isProvider('firesWidget')) {
-            _mapHelper.customParamsManager.addProvider({
-                name: 'firesWidget',
-                loadState: function(state)
-                {
-                    if (!state) return;
-                    
-                    var calendar = fireControl.getCalendar();
-                    
-                    state.calendar.vismode = state.vismode;
-                    calendar.loadState(state.calendar);
-                    fireControl.loadState(state.fires);
-                    $(calendar).change();
-                }
-            });
-        };
     })
 });
 

@@ -701,7 +701,17 @@ nsGmx.widgets.commonCalendar = {
 _mapHelper.customParamsManager.addProvider({
     name: 'commonCalendar',
     loadState: function(state) {
-        nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
+        if (!('version' in state)) {
+            var tmpDateInterval = new nsGmx.DateInterval({
+                dateBegin: new Date(state.dateBegin),
+                dateEnd: new Date(state.dateEnd)
+            });
+            nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
+        } else if (state.version === '1.0.0') {
+            nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
+        } else {
+            throw 'Unknown params version';
+        }
     },
     saveState: function() {
         return {
