@@ -516,7 +516,7 @@ var TimelineController = function(data, map, options) {
         {
             _this.shiftActiveItem(-1);
         }
-        $(prevDiv).addClass('timeline-controls');
+        $(prevDiv).addClass('timeline-shift-icon');
         
         var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
         _title(nextDiv, _gtxt("Следующий слой"));
@@ -525,7 +525,7 @@ var TimelineController = function(data, map, options) {
         {
             _this.shiftActiveItem(1);
         }
-        $(nextDiv).addClass('timeline-controls');
+        $(nextDiv).addClass('timeline-shift-icon');
         
         // container.keypress(function(event) {
             // console.log(event);
