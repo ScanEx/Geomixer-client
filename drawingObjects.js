@@ -797,10 +797,10 @@ var DrawingObjectGeomixer = function() {
         for (var iLayerN = 0; iLayerN < gmxMap.layers.length; iLayerN++) {
             var l = gmxMap.layers[iLayerN],
                 props = l.getGmxProperties(),
-                layerBounds = l.getBounds(),
+                layerBounds = l.getBounds && l.getBounds(),
                 isProperType = props.type == "Raster" || props.IsRasterCatalog;
 
-            if (isProperType && l._map && layerBounds.isValid() && layerBounds.contains(center)) {
+            if (isProperType && oMap.hasLayer(l) && layerBounds && layerBounds.isValid() && layerBounds.contains(center)) {
                 var geom = l.getGeometry(),
                     coords = geom.coordinates,
                     bIsPolygonBad = false;
