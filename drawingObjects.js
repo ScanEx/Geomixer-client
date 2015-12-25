@@ -668,10 +668,13 @@ var DrawingObjectGeomixer = function() {
             if (props.Temporal) {
                 var dateInterval = layer.getDateInterval();
                 if (dateInterval) {
-                    temporalParam = "&StartDate=" + parseInt(dateInterval.beginDate/1000, 10) + "&EndDate=" + parseInt(dateInterval.endDate/1000, 10);
+                    var dateBeginStr = nsGmx.Utils.convertFromServer('date', dateInterval.beginDate/1000),
+                        dateEndStr = nsGmx.Utils.convertFromServer('date', dateInterval.endDate/1000);
+
+                    temporalParam = "&StartDate=" + encodeURIComponent(dateBeginStr) + "&EndDate=" + encodeURIComponent(dateEndStr);
                 }
             }
-            
+
             var truncate9 = function(x) { return ("" + x).substring(0, 9); };
 
             window.location.href = 
