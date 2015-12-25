@@ -33,8 +33,8 @@ var publicInterface = {
                 var elem = context.elem,
                     layer = nsGmx.gmxMap.layersByID[elem.name],
                     props = layer.getGmxProperties(),
-                    sorted = layer.getReorderArrays(),
-                    isNeedMenu = sorted.top.length + sorted.bottom.length;
+                    sorted = layer.getReorderArrays && layer.getReorderArrays(),
+                    isNeedMenu = sorted && sorted.top.length + sorted.bottom.length > 0;
                 return isNeedMenu &&
                     props.type === 'Vector' && 
                     (props.GeometryType === 'polygon' || props.GeometryType === 'linestring') &&
