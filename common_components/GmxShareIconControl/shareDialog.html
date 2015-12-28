@@ -1,0 +1,45 @@
+<div class="shareDialog-row shareDialog-title">
+    <span><%= nsGmx.Translations.getText('shareDialog.permalinkBelow') %></span>
+    <a class="gmx-link gmx-link_icon shareDialog-socialShareLink shareDialog-socialShareLink_twitter" target="_blank"><i class="icon-twitter"></i></a>
+    <a class="gmx-link gmx-link_icon shareDialog-socialShareLink shareDialog-socialShareLink_facebook" target="_blank"><i class="icon-facebook"></i></a>
+    <a class="gmx-link gmx-link_icon shareDialog-socialShareLink shareDialog-socialShareLink_vk" target="_blank"><i class="icon-vk"></i></a>
+</div>
+<div class="shareDialog-row">
+    <div class="gmx-table">
+        <div class="gmx-table-cell shareDialog-permalinkUrlCell">
+            <input class="gmx-input-text gmx-input-text_maxwidth gmx-input-text_readonly shareDialog-inputPermalinkUrl" type="text" readonly="readonly" />
+        </div>
+        <div class="gmx-table-cell shareDialog-permalinkUrlPreviewButtonCell">
+            <a class="gmx-link gmx-link_icon shareDialog-permalinkUrlPreviewButton" target="_blank"><i class="icon-link-ext" title="<%= nsGmx.Translations.getText('shareDialog.newWin') %>"></i></a>
+        </div>
+    </div>
+</div>
+<div class="shareDialog-row shareDialog-title"><%= nsGmx.Translations.getText('shareDialog.embeddedBelow') %></div>
+<div class="shareDialog-row">
+    <table><tr><td class="shareDialog-resolutionTable-cell">
+    <div class="gmx-table shareDialog-resolutionTable">
+        <div class="gmx-table-cell shareDialog-previewResolutionCell">
+            <input class="gmx-input-text shareDialog-inputIframeWidth" type="text" value="<%= iframeWidth %>"/>
+            <span class="shareDialog-resolutionCross">x</span>
+            <input class="gmx-input-text shareDialog-inputIframeHeight" type="text" value="<%= iframeHeight %>" />
+        </div>
+    </div>
+    </td><td>
+    <div class="gmx-table-cell shareDialog-winnieLinkCell shareDialog-validationOk">
+        <a class="shareDialog-winnieLink gmx-link" href="#" target="_blank"><%= nsGmx.Translations.getText('shareDialog.winnieLink') %></a><i class="gmx-icon icon-link-ext"></i>
+    </div>
+    </td></tr></table>
+</div>
+<div class="shareDialog-row">
+    <textarea class="shareDialog-inputEmbedCode gmx-input-text gmx-input-text_maxwidth gmx-input-text_readonly shareDialog-validationOk" readonly="readonly">
+        <%= embedCode %>
+    </textarea>
+    <div class="shareDialog-validationError shareDialog-validationErrorView"></div>
+</div>
+
+<div class="gmx-table-cell shareDialog-previewLinkCell ui-state-disabled shareDialog-validationError">
+    <span><%= nsGmx.Translations.getText('shareDialog.preview') %></span><i class="icon-link-ext"></i>
+</div>
+<div class="gmx-table-cell shareDialog-previewLinkCell shareDialog-validationOk">
+    <a class="shareDialog-previewLink gmx-link" href="#" target="_blank"><%= nsGmx.Translations.getText('shareDialog.preview') %></a><i class="gmx-icon icon-link-ext"></i>
+</div>
