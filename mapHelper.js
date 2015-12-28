@@ -455,8 +455,11 @@ mapHelper.prototype.showPermalink = function()
 
 mapHelper.prototype.createPermalink = function(callback)
 {
-	var mapState = this.getMapState();
-    nsGmx.Utils.TinyReference.create(mapState).then(callback);
+	var mapState = this.getMapState()
+        def = nsGmx.Utils.TinyReference.create(mapState);
+    
+    def.then(callback);
+    return def;
 }
 
 mapHelper.prototype.createSuggestCanvas = function(values, textarea, textTamplate, func, valuesArr, addValueFlag)

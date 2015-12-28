@@ -35,7 +35,7 @@
                             z: lmap.getZoom()
                         }
                     },
-                    calendar: nsGmx.widgets.commonCalendar.get().saveState(),
+                    calendar: nsGmx.widgets.commonCalendar.getDateInterval().saveState(),
                     baseLayersManager: lmap.gmxBaseLayersManager.saveState(),
                     layersTree: layersState
                 }
