@@ -53,6 +53,12 @@ var TimelineData = Backbone.Model.extend({
     bindLayer: function(layer, options) {
         options = options || {};
         var layerName = options.layerName || layer.getGmxProperties().name || L.stamp(layer);
+        
+        //если уже есть такой слой, ничего не делаем
+        if (_.pluck(this.attributes.layers, 'name').indexOf(layerName) !== -1) {
+            return this;
+        }
+        
         var newLayerInfo = {
             layer: layer,
             name: layerName,
@@ -65,6 +71,8 @@ var TimelineData = Backbone.Model.extend({
         
         this.set('layers', this.attributes.layers.concat(newLayerInfo));
         this.trigger('bindLayer', newLayerInfo);
+        
+        return this;
     },
     
     unbindLayer: function(layer) {
@@ -74,9 +82,10 @@ var TimelineData = Backbone.Model.extend({
             if (layerInfo.layer === layer) {
                 this.set('layers', layerInfos.slice(0).splice(i, 1));
                 this.trigger('unbindLayer', layerInfo);
-                return;
+                return this;
             }
         }
+        return this;
     },
     
     getLayerInfo: function(layer) {
@@ -103,7 +112,7 @@ var TimelineData = Backbone.Model.extend({
                 
             var ids = {};
                 
-            var interval = layerSelection.forEach(function(s) {
+            layerSelection.forEach(function(s) {
                 minValue = Math.min(minValue, s.date);
                 maxValue = Math.max(maxValue, s.date);
                 ids[s.id] = true;
@@ -114,9 +123,7 @@ var TimelineData = Backbone.Model.extend({
             layer.setFilter(function(elem) {
                 return elem.id in ids;
             });
-        }
-        else
-        {
+        } else {
             layer.setDateInterval();
         }
     },
@@ -125,7 +132,7 @@ var TimelineData = Backbone.Model.extend({
         layer.setDateInterval(startDate, endDate);
         layer.removeFilter();
     }
-})
+});
 
 var MapController = function(data) {
     var updateFunctions = {
@@ -289,6 +296,36 @@ var TimelineController = function(data, map, options) {
         timeline.render();
     }
     
+    var sortSelectionFunction = function(a, b) {
+        return a.row < b.row ? -1 : 1;
+    }
+    
+    var updateCalendarSelection = function() {
+        var modelSelection = data.get('selection'),
+            curSelection = timeline.getSelection().slice(0),
+            timelineData = timeline.getData(),
+            modelSelectionHash = {},
+            newSelection = [];
+            
+            for (var l in modelSelection) {
+                var byID = {};
+                for (var k = 0; k < modelSelection[l].length; k++) {
+                    byID[modelSelection[l][k].id] = true;
+                }
+                modelSelectionHash[l] = byID;
+            };
+
+        for (var k = 0; k < timelineData.length; k++) {
+            var userdata = timelineData[k].userdata;
+            
+            if (userdata.layerName in modelSelectionHash && userdata.objID in modelSelectionHash[userdata.layerName]) {
+                newSelection.push({row: k});
+            }
+        }
+        
+        timeline.setSelection(newSelection);
+    }
+    
     var updateLayerItems = function(layerInfo)
     {
         var layerName = layerInfo.name,
@@ -386,6 +423,7 @@ var TimelineController = function(data, map, options) {
             $.each(elemsToAdd, function(i, elem) {
                 items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length - elemsToAdd.length + i];
             });
+            updateCalendarSelection();
         } else if (deletedCount > 0) {
             timeline.render();
         }
@@ -489,6 +527,12 @@ var TimelineController = function(data, map, options) {
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
 
+        var modelRange = data.get('range');
+        if (modelRange.start && modelRange.end) {
+            timelineOptions.start = modelRange.start;
+            timelineOptions.end = modelRange.end;
+        }
+        
         timeline.draw([], timelineOptions);
 
         //подписываемся на событие reflow, которое возникает 
@@ -591,11 +635,7 @@ var TimelineController = function(data, map, options) {
             //TODO: не использовать UTC даты в таймлайне (нужна поддержка отображения UTC).
             var trueStart = nsGmx.CalendarWidget.fromUTC(range.start);
             var trueEnd = nsGmx.CalendarWidget.fromUTC(range.end);
-            
-            // trueStart.setUTCHours(0, 0, 0, 0);
-            // trueEnd.setUTCHours(23, 59, 59, 0);
-            // calendarControl.setDateBegin(trueStart, true);
-            // calendarControl.setDateEnd(trueEnd, true);
+
             dateInterval.set({
                 dateBegin: trueStart,
                 dateEnd: trueEnd,
@@ -609,8 +649,10 @@ var TimelineController = function(data, map, options) {
         updateCalendarRange();
         
         dateInterval.on('change', function () {
-            // timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
-            data.set('range', { start: dateInterval.get('dateBegin'), end: dateInterval.get('dateEnd') });
+            data.set('range', {
+                start: dateInterval.get('dateBegin'), 
+                end: dateInterval.get('dateEnd') 
+            });
         });
          
         $(headerContainer).prependTo(container);
@@ -634,31 +676,6 @@ var TimelineController = function(data, map, options) {
         updateControlsVisibility();
         
         $(footerContainer).appendTo(container);
-        
-        _mapHelper.customParamsManager.addProvider({
-            name: 'Timeline',
-            loadState: function(state) 
-            {
-                data.set({
-                    range: {
-                        start: new Date(state.dateStart),
-                        end:   new Date(state.dateEnd)
-                    },
-                    timelineMode: state.timelineMode,
-                    mapMode:      state.mapMode
-                })
-            },
-            saveState: function() 
-            {
-                var range = data.get('range');
-                return {
-                    dateStart:    range.start.valueOf(),
-                    dateEnd:      range.end.valueOf(),
-                    timelineMode: data.get('timelineMode'),
-                    mapMode:      data.get('mapMode')
-                }
-            }
-        });
     }
     
     data.on('change:userFilters change:items', updateItems);
@@ -928,9 +945,70 @@ var publicInterface = {
         if (!map) return;
         
         nsGmx.timelineControl = new TimelineControl(map, {hideWithoutActiveLayers: true});
+        
+        _mapHelper.customParamsManager.addProvider({
+            name: 'Timeline',
+            loadState: function(state) 
+            {
+                var data = nsGmx.timelineControl.data;
+                
+                var attributes = {
+                    range: {
+                        start: new Date(state.dateStart),
+                        end:   new Date(state.dateEnd)
+                    },
+                    timelineMode: state.timelineMode,
+                    mapMode:      state.mapMode
+                };
+                
+                if ('selection' in state) {
+                    for (var layerName in state.selection) {
+                        state.selection[layerName].forEach(function(item) {
+                            item.date = new Date(item.date)
+                        })
+                    }
+                    attributes.selection = state.selection;
+                }
+                
+                data.set(attributes);
+                
+                if ('layers' in state) {
+                    state.layers.forEach(function(layerName) {
+                        if (layerName in nsGmx.gmxMap.layersByID) {
+                            nsGmx.timelineControl.bindLayer(nsGmx.gmxMap.layersByID[layerName]);
+                        }
+                    });
+                }
+            },
+            saveState: function() 
+            {
+                var data = nsGmx.timelineControl.data,
+                    range = data.get('range'),
+                    selection = data.get('selection');
+                
+                //сохраняем дату как число
+                for (var layerName in selection) {
+                    selection[layerName] = selection[layerName].map(function(item) {
+                        return {
+                            date: item.date.valueOf(),
+                            id: item.id
+                        }
+                    })
+                }
+
+                return {
+                    version: '1.1.0',
+                    dateStart:    range.start.valueOf(),
+                    dateEnd:      range.end.valueOf(),
+                    timelineMode: data.get('timelineMode'),
+                    mapMode:      data.get('mapMode'),
+                    layers:       _.pluck(data.get('layers'), 'name'), //layer ids
+                    selection:    selection
+                }
+            }
+        });
     },
-	afterViewer: function(params, map)
-    {
+    afterViewer: function(params, map){
         if (!map) return;
         
         nsGmx.ContextMenuController.addContextMenuElem({
