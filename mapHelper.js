@@ -423,7 +423,6 @@ mapHelper.prototype.getMapState = function()
 		isFullScreen: layersShown ? "false" : "true",
 		condition: condition,
 		language: window.language,
-		customParams : typeof window.collectCustomParams != 'undefined' ? window.collectCustomParams() : null,
 		customParamsCollection: this.customParamsManager.saveParams()
 	}
 }

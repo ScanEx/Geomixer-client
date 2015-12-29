@@ -1316,28 +1316,7 @@ function processGmxMap(state, gmxMap) {
         
         //динамически добавляем пункты в меню. DEPRICATED.
         nsGmx.pluginsManager.addMenuItems(_menuUp);
-        
-        // конвертируем старый формат eval-строки в новый формат customParamsManager
-        // старый формат использовался только маплетом пожаров
-        if (typeof state.customParams != 'undefined' && state.customParams)
-        {
-            var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
-            if (newFiresFormat)
-                state.customParamsCollection = { firesWidget : newFiresFormat };
-            else
-            {
-                //старый формат данных пожаров...
-                try
-                {
-                    eval(state.customParams);
-                }
-                catch (e) 
-                {
-                    alert(e);
-                }
-            }
-        }
-            
+
         _mapHelper.gridView = false;
         
         var updateLeftPanelVis = function() {
