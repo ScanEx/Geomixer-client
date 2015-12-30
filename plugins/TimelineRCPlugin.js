@@ -954,8 +954,8 @@ var publicInterface = {
                 
                 var attributes = {
                     range: {
-                        start: new Date(state.dateStart),
-                        end:   new Date(state.dateEnd)
+                        start: state.dateStart ? new Date(state.dateStart) : null,
+                        end:   state.dateEnd ? new Date(state.dateEnd) : null
                     },
                     timelineMode: state.timelineMode,
                     mapMode:      state.mapMode
@@ -998,8 +998,8 @@ var publicInterface = {
 
                 return {
                     version: '1.1.0',
-                    dateStart:    range.start.valueOf(),
-                    dateEnd:      range.end.valueOf(),
+                    dateStart:    range.start ? range.start.valueOf() : null,
+                    dateEnd:      range.end ? range.end.valueOf() : null,
                     timelineMode: data.get('timelineMode'),
                     mapMode:      data.get('mapMode'),
                     layers:       _.pluck(data.get('layers'), 'name'), //layer ids
