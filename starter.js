@@ -62,12 +62,6 @@ nsGmx.initGeoMixer = function()
 
 var oSearchLeftMenu = new leftMenu();
 
-// используется для сохранения специфичных параметров в пермалинке
-window.collectCustomParams = function()
-{
-	return null;
-}
-
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 var gridManager = {
     state: false,
