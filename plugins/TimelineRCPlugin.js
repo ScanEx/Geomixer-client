@@ -323,7 +323,7 @@ var TimelineController = function(data, map, options) {
             }
         }
         
-        timeline.setSelection(newSelection);
+        timeline.setSelection(newSelection, true);
     }
     
     var updateLayerItems = function(layerInfo)
