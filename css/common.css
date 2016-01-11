@@ -1546,6 +1546,7 @@ div.layersScroll
 
 .group-editor-blm-available, .group-editor-blm-map {
     width: 50%;
+    height: 100%;
     vertical-align: top;
     border: 1px #DEDEDE solid;
 }
