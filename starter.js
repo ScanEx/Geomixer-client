@@ -1425,7 +1425,7 @@ function processGmxMap(state, gmxMap) {
                 permalinkUrlTemplate: '{{origin}}api/index.html?permalink={{permalinkId}}',
                 embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
                 winnieUrlTemplate: 'http://winnie.kosmosnimki.ru/?config={{winnieId}}',
-                previewUrlTemplate: '{{origin}}api/iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
+                previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
             });
             lmap.addControl(shareIconControl);
         }
