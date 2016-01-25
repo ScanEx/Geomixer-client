@@ -1,0 +1,12 @@
+﻿.wind-hour {
+    padding: 0px 2px;
+    background-color: #DDD;
+    border: 1px solid #808080;
+    cursor: pointer;
+    margin: 1px;
+}
+
+.wind-active-hour {
+    background-color: #AAA;
+    border: 1px solid #000;
+}
