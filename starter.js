@@ -285,6 +285,7 @@ var createToolbar = function() {
     
     var printIcon = new L.Control.gmxIcon({
         id: 'print',
+        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Печать')
     })
         .addTo(lmap)
@@ -292,6 +293,7 @@ var createToolbar = function() {
     
     var permalinkIcon = new L.Control.gmxIcon({
         id: 'permalink',
+        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Ссылка на карту')
     })
         .addTo(lmap)
@@ -1406,6 +1408,7 @@ function processGmxMap(state, gmxMap) {
             
         var permalinkIcon = new L.Control.gmxIcon({
             id: 'permalink',
+            className: 'leaflet-gmx-icon-sprite',
             title: _gtxt('Ссылка на карту'),
             addBefore: 'drawing'
         })
