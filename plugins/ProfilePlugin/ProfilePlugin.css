@@ -22,6 +22,11 @@
     padding: 1px 12px 3px 12px;
     line-height: 1.5;
     text-align: left;
+    cursor:default;
+}
+
+.profilePanel-content div div.editable
+{
 }
 
 .profilePanel-content div div.form-caption
@@ -96,12 +101,37 @@
     margin-top: 1px;
     margin-left: 8px;
 }
-
+/*
 .profilePanel-content input[type="text"]
 {
     margin-top: 1px;
     border: none;
     width: 190px;
+}
+*/
+.profilePanel-content textarea
+{
+    resize: none;
+    overflow:hidden;
+    margin: 1px 0 2px 0px;
+    /*padding:2px 0px 2px 0px;*/
+    border: none;
+    width: 278px;
+    background-color:#fff
+}
+
+.profilePanel-content input[type="text"]
+{
+    margin: 1px 0 2px 0px;
+    padding:2px 0px 2px 0px;
+    border: none;
+    width: 278px;
+    /*border-bottom:1px dashed #777*/
+}
+
+.profilePanel-content input[type="text"].correct
+{
+    background-color:#fff
 }
 
 .profilePanel-content input[type="button"]
@@ -123,6 +153,7 @@
 .profilePanel-content div div span
 {
     font-weight:normal;
+    white-space:nowrap;
 }
 
 .profilePanel-menu

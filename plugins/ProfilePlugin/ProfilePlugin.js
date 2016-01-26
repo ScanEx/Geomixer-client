@@ -34,17 +34,21 @@
             appName: "Название приложения",
             clientID: "ID клиента (client_id)",
             clientSecret: "oAuth ключ клиента (client_secret)",
-            redirectUri: "URI скрипта абратного вызова (redirect_uri)",
+            redirectUri: "URI скрипта обратного вызова (redirect_uri)",
             registerClient: "Получить новый ключ",
 
             password: "Пароль",
-            getNew: "изменить?",
+            getNew: "изменить",
             passwordSaved: "сохранен",
             passwordChanged: "изменен",
             old: "Старый пароль",
             newp: "Новый пароль",
-            repeat: "Подтверждение",
+            repeat: "Повтор пароля",
             submitp: "Изменить",
+
+            megabyte: " MБайт",
+            yes: "да",
+            no: "нет",
 
             ErrorNOT_AUTHORIZED: "Пользователь не авторизован",
             ErrorLoginEmpty: "Требуется указать псевдоним!",
@@ -52,15 +56,15 @@
             ErrorLoginExists: "Псевдоним уже используется!",
             ErrorAppName: "Не указано название приложения!",
             ErrorRedirectUri: "Требуется действительный uri обратного вызыва!",
-            ErrorOldPassword: "Текущий пароль указан неверно",
-            ErrorNewPassword: "Пароль не может быть пустым",
-            ErrorNotMatch: "Введённые пароли не совпадают",
+            ErrorOldPassword: "Старый пароль указан неверно!",
+            ErrorNewPassword: "Пароль не может быть пустым!",
+            ErrorNotMatch: "Введённые пароли не совпадают!",
 
             ErrorCapchaRequired: "Введите число!",
             ErrorWrongCapcha: "Числа не совпадают!",
             ErrorEmailEmpty: "Требуется указать email!",
-            ErrorWrongEmail: "Недопустимый email!",
-            ErrorEmailExists: "Email уже зарегистрирован",
+            ErrorWrongEmail: "Недопустимый адрес электронной почты!",
+            ErrorEmailExists: "Такой адрес электронной почты уже зарегистрирован!",
 
             registration: "Регистрация",
             registrationPageAnnotation: "Введите ваш адрес электронной почты, укажите желаемый пароль и число с картинки",
@@ -104,13 +108,17 @@
             registerClient: "Issue new secret key",
 
             password: "Password",
-            getNew: "change?",
+            getNew: "change",
             passwordSaved: "saved",
             passwordChanged: "changed",
             old: "Old password",
             newp: "New password",
             repeat: "Repeat",
             submitp: "Change",
+
+            megabyte: " MB",
+            yes: "yes",
+            no: "no",
 
             ErrorNOT_AUTHORIZED: "Authorization is required!",
             ErrorLoginEmpty: "Nickname is required!",
@@ -126,7 +134,7 @@
             ErrorWrongCapcha: "Number mismatch!",
             ErrorEmailEmpty: "Email is required!",
             ErrorWrongEmail: "Invalid email!",
-            ErrorEmailExists: "Email duplicates",
+            ErrorEmailExists: "Email duplicates!",
 
             registration: "Registration",
             registrationPageAnnotation: "Please fill all fields",
@@ -165,7 +173,10 @@
                             '<div>{{text}}:<br/><span {{#if id}}class="{{id}}"{{/if}}></span></div>' +
                         '{{/if}}' +
                         '{{#if text_input}}' +
-                            '<div onclick="$(this).children().focus()">{{text}}: <input {{#if id}}class="{{id}}"{{/if}} type="text" value=""></div>' +
+                            '<div onclick="$(this).children().focus()" class="editable">{{text}}: <input {{#if id}}class="{{id}}"{{/if}} type="text" value=""></div>' +
+                        '{{/if}}' +
+                        '{{#if text_area}}' +
+                            '<div onclick="$(this).children().focus()" class="editable">{{text}}: <textarea {{#if id}}class="{{id}}"{{/if}}></textarea></div>' +
                         '{{/if}}' +
                         '{{#if error}}' +
                             '<div class="ErrorSummary">error</div>' +
@@ -185,12 +196,12 @@
             var page1 = $(Handlebars.compile(pageTemplate)(
             { id: "page1", items: [
                 { span: true, id: "Email", text: _gtxt('ProfilePlugin.email') },
-                { text_input: true, id: "Login LoginEmpty LoginFormat LoginExists", text: _gtxt('ProfilePlugin.login') },
-                { text_input: true, id: "FullName", text: _gtxt('ProfilePlugin.fullName') },
-                { text_input: true, id: "Phone", text: _gtxt('ProfilePlugin.phone') },
-                { text_input: true, id: "Company", text: _gtxt('ProfilePlugin.company') },
-                { text_input: true, id: "CompanyProfile", text: _gtxt('ProfilePlugin.companyProfile') },
-                { text_input: true, id: "CompanyPosition", text: _gtxt('ProfilePlugin.companyPosition') },
+                { text_input: true, id: "Login LoginEmpty LoginFormat LoginExists correct", text: _gtxt('ProfilePlugin.login') },
+                { text_input: true, id: "FullName correct", text: _gtxt('ProfilePlugin.fullName') },
+                { text_input: true, id: "Phone correct", text: _gtxt('ProfilePlugin.phone') },
+                { text_area: true, id: "Company correct", text: _gtxt('ProfilePlugin.company') },
+                { text_area: true, id: "CompanyProfile correct", text: _gtxt('ProfilePlugin.companyProfile') },
+                { text_area: true, id: "CompanyPosition correct", text: _gtxt('ProfilePlugin.companyPosition') },
                 { checkbox_group: [
                     { id: "IsCompany", text: _gtxt('ProfilePlugin.isCompany') },
                     { id: "Subscribe", text: _gtxt('ProfilePlugin.subscribe') }
@@ -214,10 +225,10 @@
             page3 = $(Handlebars.compile(pageTemplate)(
             { id: "page3", items: [
                 { form_caption: true, text: _gtxt('ProfilePlugin.clientRegistration') },
-                { text_input: true, id: "AppName", text: _gtxt('ProfilePlugin.appName') },
+                { text_input: true, id: "AppName correct", text: _gtxt('ProfilePlugin.appName') },
                 { span: true, id: "ClientID", text: _gtxt('ProfilePlugin.clientID') },
                 { span_nl: true, id: "ClientSecret", text: _gtxt('ProfilePlugin.clientSecret') },
-                { text_input: true, id: "RedirectUri", text: _gtxt('ProfilePlugin.redirectUri') },
+                { text_input: true, id: "RedirectUri correct", text: _gtxt('ProfilePlugin.redirectUri') },
                 { error: true },
                 { button_input: true, id: "RegisterClient", text: _gtxt('ProfilePlugin.registerClient') }
             ]
@@ -339,7 +350,7 @@
                         }
                     }
                     else {
-                        input.removeClass('error');
+                        input.removeClass('error').addClass('correct');
                     }
                 }
             }
@@ -364,7 +375,7 @@
                 if (m2)
                     m += " " + m2;
                 $(this).children('.ErrorSummary').text(m).css('visibility', 'visible');
-                $(this).find('.' + m1).addClass('error');
+                $(this).find('.' + m1).removeClass('correct').addClass('error');
                 return false;
             })
             ppPages.bind('onrender', function () {
@@ -444,14 +455,14 @@
     };
 
     var fillBillingPage = function (content, response) {
-        content.find('.FileStorageUsed').text((response.Result[0].FileStorageUsed / 1000000).toFixed(2) + 'мб');
-        content.find('.FileStorageRemain').text(response.Result[0].FileStorageAvailable == null ? '' : ((response.Result[0].FileStorageAvailable - response.Result[0].FileStorageUsed) / 1000000).toFixed(2) + 'мб');
-        content.find('.VectorLayerStorageUsed').text((response.Result[0].VectorLayerStorageUsed / 1000000).toFixed(2) + 'мб');
-        content.find('.VectorLayerStorageRemain').text(response.Result[0].VectorLayerStorageAvailable == null ? '' : ((response.Result[0].VectorLayerStorageAvailable - response.Result[0].VectorLayerStorageUsed) / 1000000).toFixed(2) + 'мб');
+        content.find('.FileStorageUsed').text((response.Result[0].FileStorageUsed / 1000000).toFixed(2) + _gtxt('ProfilePlugin.megabyte'));
+        content.find('.FileStorageRemain').text(response.Result[0].FileStorageAvailable == null ? '' : ((response.Result[0].FileStorageAvailable - response.Result[0].FileStorageUsed) / 1000000).toFixed(2) + _gtxt('ProfilePlugin.megabyte'));
+        content.find('.VectorLayerStorageUsed').text((response.Result[0].VectorLayerStorageUsed / 1000000).toFixed(2) + _gtxt('ProfilePlugin.megabyte'));
+        content.find('.VectorLayerStorageRemain').text(response.Result[0].VectorLayerStorageAvailable == null ? '' : ((response.Result[0].VectorLayerStorageAvailable - response.Result[0].VectorLayerStorageUsed) / 1000000).toFixed(2) + _gtxt('ProfilePlugin.megabyte'));
         content.find('.VectorLayers').text(response.Result[0].VectorLayers);
         content.find('.VectorLayerObjects').text(response.Result[0].VectorLayerObjects);
 
-        content.find('.SmsAvailable').text(response.Result[0].SmsAvailable == null || response.Result[0].SmsAvailable > 0 ? 'да' : 'нет');
+        content.find('.SmsAvailable').text(response.Result[0].SmsAvailable == null || response.Result[0].SmsAvailable > 0 ? _gtxt('ProfilePlugin.yes') : _gtxt('ProfilePlugin.no'));
         content.find('.SubscriptionUsed').text(response.Result[0].SubscriptionUsed != null ? response.Result[0].SubscriptionUsed : '');
         content.find('.SubscriptionRemain').text(response.Result[0].SubscriptionRemain != null ? response.Result[0].SubscriptionRemain : '');
     }
