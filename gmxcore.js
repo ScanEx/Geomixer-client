@@ -116,9 +116,7 @@ var gmxCore = function()
                 
             this.addModulesCallback( requiredModules, function()
             {
-                if (typeof moduleObj === 'function')
-                        moduleObj = moduleObj( _modulePathes[moduleName] );
-                        
+
                 if (options && 'init' in options)
 				{
                     initDeferred = options.init(moduleObj, _modulePathes[moduleName]);
@@ -132,16 +130,19 @@ var gmxCore = function()
                     for (var iF = 0; iF < cssFiles.length; iF++)
                         _this.loadCSS(withCachePostfix(path + cssFiles[iF]));
 				}
-                
-                
-                if (initDeferred) {
-                    initDeferred.done(function() {
-                        _modules[moduleName] = moduleObj;
-                        invokeCallbacks();
-                    });
-                } else {
+
+                var doAdd = function() {
+                    if (typeof moduleObj === 'function') {
+                        moduleObj = moduleObj( _modulePathes[moduleName] );
+                    }
                     _modules[moduleName] = moduleObj;
                     invokeCallbacks();
+                }
+                
+                if (initDeferred) {
+                    initDeferred.done(doAdd);
+                } else {
+                    doAdd();
                 }
             });
         },
