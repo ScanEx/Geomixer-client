@@ -190,13 +190,7 @@ var publicInterface = {
 
 gmxCore.addModule('GIBSPlugin', publicInterface, {
     init: function(module, path) {
-        return $.when(
-                gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSLayer.js'),
-                gmxCore.loadScript(path + 'leaflet-GIBS/src/GIBSMetadata.js')
-            )
-            .then(function() {
-                return gmxCore.loadScript(path + 'leaflet-GIBS/src/GeoMixerGIBSLayer.js')
-            });
+        return gmxCore.loadModule('GIBSVirtualLayer', path + 'leaflet-GIBS/src/GeoMixerGIBSLayer.js');
     }
 });
 
