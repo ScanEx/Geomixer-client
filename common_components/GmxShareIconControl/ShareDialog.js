@@ -153,19 +153,23 @@ nsGmx.ShareIconControl.ShareDialog = nsGmx.GmxWidget.extend({
         var urls = {};
 
         var origin = window.location.protocol + '//' + window.location.host + '/';
+        var href = window.location.search ? window.location.href.split(window.location.search)[0] : window.location.href;
 
         var permalinkUrl = urls.permalinkUrl = tpl(this.options.permalinkUrlTemplate)({
             origin: origin,
+            href: href,
             permalinkId: this.model.get('permalinkId')
         });
 
         var embeddedUrl = urls.embeddedUrl = tpl(this.options.embeddedUrlTemplate)({
             origin: origin,
+            href: href,
             winnieId: this.model.get('includePermalink') ? this.model.get('winnieId') : false            
         });
 
         var previewUrl = urls.previewUrl = tpl(this.options.previewUrlTemplate)({
             origin: origin,
+            href: href,
             embeddedUrl: encodeURIComponent(embeddedUrl),
             width: this.model.get('iframeWidth'),
             height: this.model.get('iframeHeight')
@@ -173,11 +177,13 @@ nsGmx.ShareIconControl.ShareDialog = nsGmx.GmxWidget.extend({
         
         var winnieUrl = urls.winnieUrl = tpl(this.options.winnieUrlTemplate)({
             origin: origin,
+            href: href,
             winnieId: this.model.get('winnieId')
         });
 
         var embedCode = urls.embedCode = escapeHtml(tpl(this.options.embedCodeTemplate)({
             embeddedUrl: embeddedUrl,
+            href: href,
             width: this.model.get('iframeWidth'),
             height: this.model.get('iframeHeight')
         }));

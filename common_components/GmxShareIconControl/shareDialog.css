@@ -1,7 +1,10 @@
 .shareIcon { cursor: pointer; }
 .shareDialogContainer { width: 230px; }
 
-.shareDialog { padding: 2px 0; }
+/* more specific selector to ensure that Leaflet style isn't applied */
+.leaflet-container .shareDialog a { color: #121212; }
+
+.shareDialog { padding: 2px 0; cursor: default; }
 .shareDialog a { color: #121212; }
 .shareDialog-title { font-weight: bold; font-size: 12px; }
 .shareDialog-row { padding-bottom: 8px; }

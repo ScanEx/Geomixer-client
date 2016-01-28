@@ -16,10 +16,14 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     onAdd: function(map) {
         this._container = L.Control.gmxIcon.prototype.onAdd.apply(this, arguments);
         this._shareDialogContainer = L.DomUtil.create('div', 'shareDialogContainer');
+        
+        L.DomEvent.addListener(this._shareDialogContainer, 'click', function (e) {
+            L.DomEvent.stopPropagation(e);
+        });
 
         $(this._container).popover({
             content: this._shareDialogContainer,
-            container: 'body',
+            container: this._container,
             placement: 'bottom',
             html: true
         });

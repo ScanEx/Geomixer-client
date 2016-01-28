@@ -1367,7 +1367,7 @@ function processGmxMap(state, gmxMap) {
                     )
                 }
             },
-            permalinkUrlTemplate: '{{origin}}api/index.html?permalink={{permalinkId}}',
+            permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
             embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
             winnieUrlTemplate: 'http://winnie.kosmosnimki.ru/?config={{winnieId}}',
             previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
