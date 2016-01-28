@@ -354,6 +354,9 @@ $(function() {
     Mustache.addCustomTag('i', function (contents, value) {
         return nsGmx.Translations.getText(contents);
     });
+    
+    var virtualLayerManager = new nsGmx.VirtualLayerManager();
+    L.gmx.addLayerClassLoader(virtualLayerManager.loader);
 
     $('body').on('keyup', function(event) {
         if ((event.target === document.body || $(event.target).hasClass('leaflet-container')) && event.keyCode === 79) {
