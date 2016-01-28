@@ -9,8 +9,14 @@
 .profilePanel-content
 {
     background-color:White;
-    width:330px;
     text-align: center;
+    padding-bottom:5px;
+}
+
+.profilePanel-scrollable
+{
+    background-color:White;
+    width:330px;
 }
 
 .profilePanel-content div div
@@ -48,6 +54,11 @@
     font-weight:normal;
     color:Red;
     visibility:hidden;
+}
+
+.profilePanel-content .UpadateSuccess
+{
+    color:Green;
 }
 
 .profilePanel-content div div.newpass-request
@@ -116,7 +127,7 @@
     margin: 1px 0 2px 0px;
     /*padding:2px 0px 2px 0px;*/
     border: none;
-    width: 278px;
+    width: 100%;
     background-color:#fff
 }
 
@@ -125,13 +136,18 @@
     margin: 1px 0 2px 0px;
     padding:2px 0px 2px 0px;
     border: none;
-    width: 278px;
-    /*border-bottom:1px dashed #777*/
+    width: 100%;/*278px;*/
+    border-bottom:1px dashed #cdcdcd
 }
 
 .profilePanel-content input[type="text"].correct
 {
     background-color:#fff
+}
+
+.profilePanel-content span.new
+{
+    color:Green
 }
 
 .profilePanel-content input[type="button"]

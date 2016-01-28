@@ -66,6 +66,8 @@
             ErrorWrongEmail: "Недопустимый адрес электронной почты!",
             ErrorEmailExists: "Такой адрес электронной почты уже зарегистрирован!",
 
+            dataUpdateSuccess: "Изменения сохранены",
+
             registration: "Регистрация",
             registrationPageAnnotation: "Введите ваш адрес электронной почты, укажите желаемый пароль и число с картинки",
             capcha: "Введите число",
@@ -136,6 +138,8 @@
             ErrorWrongEmail: "Invalid email!",
             ErrorEmailExists: "Email duplicates!",
 
+            dataUpdateSuccess: "Saved successfully",
+
             registration: "Registration",
             registrationPageAnnotation: "Please fill all fields",
             capcha: "Input a number",
@@ -156,8 +160,9 @@
             // Create
             ppBackScreen = $('<div class="profilePanel"><table width="100%" height="100%"><tr><td><img src="img/progress.gif"></td></tr></table></div>').hide().appendTo('#all');
             var ppFrame = $('<div class="profilePanel-content"></div>');
+            var ppScrollableContainer = $('<div class="profilePanel-scrollable"></div>');
             var ppMenu = $('<div class="profilePanel-menu"></div>');
-            var wait = $('<table width="100%" height="20%"><tr><td align="center"><img src="img/progress.gif"></td></tr></table>');
+            var wait = $('<div style="padding-top:50px;padding-left:45%"><img src="img/progress.gif"></div>');
 
             // Pages
             var pageTemplate =
@@ -199,9 +204,9 @@
                 { text_input: true, id: "Login LoginEmpty LoginFormat LoginExists correct", text: _gtxt('ProfilePlugin.login') },
                 { text_input: true, id: "FullName correct", text: _gtxt('ProfilePlugin.fullName') },
                 { text_input: true, id: "Phone correct", text: _gtxt('ProfilePlugin.phone') },
-                { text_area: true, id: "Company correct", text: _gtxt('ProfilePlugin.company') },
-                { text_area: true, id: "CompanyProfile correct", text: _gtxt('ProfilePlugin.companyProfile') },
-                { text_area: true, id: "CompanyPosition correct", text: _gtxt('ProfilePlugin.companyPosition') },
+                { text_input: true, id: "Company correct", text: _gtxt('ProfilePlugin.company') },
+                { text_input: true, id: "CompanyProfile correct", text: _gtxt('ProfilePlugin.companyProfile') },
+                { text_input: true, id: "CompanyPosition correct", text: _gtxt('ProfilePlugin.companyPosition') },
                 { checkbox_group: [
                     { id: "IsCompany", text: _gtxt('ProfilePlugin.isCompany') },
                     { id: "Subscribe", text: _gtxt('ProfilePlugin.subscribe') }
@@ -235,9 +240,13 @@
             })).appendTo(ppFrame);
 
             // Profile submit
+            var successmess_timeout;
             page1.find('.SaveChanges').click(function () {
                 changePassForm.hide();
                 wait.show();
+                var message = page1.children('.ErrorSummary').css({ visibility: 'hidden' }).text('error');
+                clearTimeout(successmess_timeout);
+
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Settings", { WrapStyle: 'message',
                     Login: page1.find('.Login').val().trim(),
                     FullName: page1.find('.FullName').val().trim(),
@@ -251,7 +260,10 @@
                       function (response) {
                           wait.hide();
                           if (response.Status.toLowerCase() == 'ok' && response.Result) {
-                              page1.children('.ErrorSummary').text('error').css('visibility', 'hidden');
+                              //page1.children('.ErrorSummary').text('error').css('visibility', 'hidden');
+                              message.text('').append('<span class="UpadateSuccess">' + _gtxt('ProfilePlugin.dataUpdateSuccess') + '</span>')
+                              .css({ visibility: 'visible' });
+                              successmess_timeout = setTimeout(function () { message.css({ visibility: 'hidden' }).text('error'); }, 2000);
                           }
                           else {
                               if (response.Result.length > 0 && response.Result[0].Key)
@@ -263,15 +275,20 @@
             });
 
             // Register client submit
+            var newsecret_timeout;
             page3.find('.RegisterClient').click(function () {
                 wait.show();
+                var client_secret = page3.find('.ClientSecret').removeClass('new');
+                clearTimeout(newsecret_timeout);
+
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/RegisterClient", { WrapStyle: 'message',
                     AppName: page3.find('.AppName').val(), RedirectUri: page3.find('.RedirectUri').val()
                 },
                       function (response) {
                           wait.hide();
                           if (response.Status.toLowerCase() == 'ok' && response.Result) {
-                              page3.find('.ClientSecret').text(response.Result.Key);
+                              client_secret.addClass('new').text(response.Result.Key);
+                              newsecret_timeout = setTimeout(function () { client_secret.removeClass('new'); }, 2000);
                               page3.children('.ErrorSummary').css('visibility', 'hidden');
                           }
                           else {
@@ -385,7 +402,7 @@
             });
 
             ppPages.first().show();
-            ppFrame.hide().appendTo('#all');
+            ppScrollableContainer.hide().appendTo('#all').append(ppFrame);
 
             // Menu
             var menuEntryTemplate = '<div>{{text}}</div>';
@@ -408,7 +425,7 @@
             ppMenuEntries.mouseout(function (e) { if (e.target.className != 'selected') e.target.className = '' });
 
             // All together
-            ppMainParts = $([ppFrame, ppMenu]).map(function () { return this[0]; });
+            ppMainParts = $([ppScrollableContainer, ppMenu]).map(function () { return this[0]; });
             ppMainParts.data('ondataload', function () {
                 if (ppBackScreen.is(':visible')) {
                     ppPages.trigger('onrender');
@@ -421,6 +438,7 @@
                     ppMainParts.hide();
                 }
             });
+            ppScrollableContainer.mCustomScrollbar();
             $(window).resize(resizePanel);
         }
 
