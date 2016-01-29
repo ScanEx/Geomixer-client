@@ -65,9 +65,8 @@
                     showBbox = L.DomUtil.create('button', 'TileBounds-popup-bbox', content),
                     objCount = L.DomUtil.create('div', 'TileBounds-popup-count', content);
                     
-                if (tile.data.length) {
-                    objCount.innerHTML = '<br>Объектов: <b>' + tile.data.length + '</b>';
-                }
+                objCount.innerHTML = (tile.isGeneralized ? '<br>Генерализованный' : '') +
+                    '<br>Объектов: <b>' + (tile.data ? tile.data.length : 0) + '</b>';
                 titleDiv.innerHTML = title;
                 linkHref.target = '_blank';
                 linkHref.href = url;
@@ -119,19 +118,27 @@
                         if (testLayer) {
                             var geo = testLayer._gmx.geometry,
                                 dm = testLayer._gmx.dataManager,
-                                activeTileKeys = dm._getActiveTileKeys();
-                                
+                                activeTileKeys = dm._getActiveTileKeys(),
+                                zoom = LMap.getZoom(),
+                                z = zoom + (zoom % 2 ? 1 : 0),
+                                isGeneralized = testLayer.options.isGeneralized;
                             for (var key in activeTileKeys) {
-                                var bounds = dm._tiles[key].tile.bounds;
+                                var tile = dm._tiles[key].tile;
+                                if (isGeneralized &&
+                                    (tile.z > z || (tile.isGeneralized && tile.z !== z))
+                                    ) { continue; }
+
                                 var latLngBounds = L.latLngBounds(
-                                    L.Projection.Mercator.unproject(bounds.min),
-                                    L.Projection.Mercator.unproject(bounds.max)
+                                    L.Projection.Mercator.unproject(tile.bounds.min),
+                                    L.Projection.Mercator.unproject(tile.bounds.max)
                                     );
                                 L.rectangle(latLngBounds,
                                     {
                                         layerID: layerID,
                                         tileKey: key,
-                                        color: "#ff7800",
+                                        color: tile.isGeneralized ? '#ff0000' : 'gray',
+                                        dashArray: tile.isGeneralized ? [2, 10] : null,
+                                        fillColor: tile.isGeneralized ? '#ff7800' : '#ff78ff',
                                         weight: 2
                                     }).addTo(featureGroup);
                             }
