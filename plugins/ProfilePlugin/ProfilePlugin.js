@@ -22,15 +22,20 @@
             subscribe: "Я согласен получать сообщения по почте",
             saveChanges: "Сохранить",
 
+            used: "используется",
+            remain: "осталось",
+            fileStorage: "Хранилище файлов",
             fileStorageUsed: "Хранилище файлов используется",
             fileStorageRemain: "Хранилище файлов осталось",
+            vectorLayerStorage: "Хранилище векторных слоев",
             vectorLayerStorageUsed: "Хранилище векторных слоев используется",
             vectorLayerStorageRemain: "Хранилище векторных слоев осталось",
+            subscription: "Подписок (Live Alerts)",
             subscriptionUsed: "Подписок (Live Alerts) имеется",
             subscriptionRemain: "Подписок (Live Alerts) осталось",
             smsAvailable: "Sms (Live Alerts) доступны",
 
-            clientRegistration: "Регистрация клиента",
+            clientRegistration: "Регистрация oAuth клиента",
             appName: "Название приложения",
             clientID: "ID клиента (client_id)",
             clientSecret: "oAuth ключ клиента (client_secret)",
@@ -39,6 +44,7 @@
 
             password: "Пароль",
             getNew: "изменить",
+            cancelNew: "закрыть",
             passwordSaved: "сохранен",
             passwordChanged: "изменен",
             old: "Старый пароль",
@@ -46,7 +52,7 @@
             repeat: "Повтор пароля",
             submitp: "Изменить",
 
-            megabyte: " MБайт",
+            megabyte: " мБ",
             yes: "да",
             no: "нет",
 
@@ -94,15 +100,20 @@
             subscribe: "I agree to receive updates and news by email",
             saveChanges: "Save",
 
+            used: "used",
+            remain: "rest",
+            fileStorage: "File storage",
             fileStorageUsed: "File storage consumtion",
             fileStorageRemain: "File storage remain",
+            vectorLayerStorage: "Vector storage",
             vectorLayerStorageUsed: "Vector storage consumption",
             vectorLayerStorageRemain: "Vector storage remain",
+            subscription: "Subscriptions",
             subscriptionUsed: "Subscription consumption",
             subscriptionRemain: "Subscription remain",
             smsAvailable: "Sms",
 
-            clientRegistration: "Client Registration",
+            clientRegistration: "oAuth Client Registration",
             appName: "Client Application",
             clientID: "Client ID (client_id)",
             clientSecret: "Client secret key (client_secret)",
@@ -111,6 +122,7 @@
 
             password: "Password",
             getNew: "change",
+            cancelNew: "close",
             passwordSaved: "saved",
             passwordChanged: "changed",
             old: "Old password",
@@ -162,7 +174,9 @@
             var ppFrame = $('<div class="profilePanel-content"></div>');
             var ppScrollableContainer = $('<div class="profilePanel-scrollable"></div>');
             var ppMenu = $('<div class="profilePanel-menu"></div>');
-            var wait = $('<div style="padding-top:50px;padding-left:45%"><img src="img/progress.gif"></div>');
+            var wait = $('<div class="Wait"><img src="img/progress.gif"></div>');
+            var success = $('<div class="UpdateMessage"><div class="success">' + _gtxt('ProfilePlugin.dataUpdateSuccess') + '</div></div>');
+            var fail = $('<div class="UpdateMessage"><div class="fail">' + 'Error' + '</div></div>');
 
             // Pages
             var pageTemplate =
@@ -196,6 +210,12 @@
                             '{{/each}}' +
                             '</table>' +
                         '{{/if}}' +
+                        '{{#if table}}' +
+                            '<table border=0 class="{{id}}">' +
+                            '{{#columns}}' + '<tr><th>{{column1}}</th><th>{{column2}}</th><th>{{column3}}</th></tr>' + '{{/columns}}' +
+                            '{{#rows}}' + '<tr>{{#cells}}<td class="{{id}}">{{text}}</td>{{/cells}}</tr>' + '{{/rows}}' +
+                            '</table>' +
+                        '{{/if}}' +
                     '{{/each}}' +
                 '</div>';
             var page1 = $(Handlebars.compile(pageTemplate)(
@@ -218,13 +238,35 @@
             })).appendTo(ppFrame),
             page2 = $(Handlebars.compile(pageTemplate)(
             { id: "page2", items: [
-                { span: true, id: "FileStorageUsed", text: _gtxt('ProfilePlugin.fileStorageUsed') },
-                { span: true, id: "FileStorageRemain", text: _gtxt('ProfilePlugin.fileStorageRemain') },
-                { span: true, id: "VectorLayerStorageUsed", text: _gtxt('ProfilePlugin.vectorLayerStorageUsed') },
-                { span: true, id: "VectorLayerStorageRemain", text: _gtxt('ProfilePlugin.vectorLayerStorageRemain') },
-                { span: true, id: "SubscriptionUsed", text: _gtxt('ProfilePlugin.subscriptionUsed') },
-                { span: true, id: "SubscriptionRemain", text: _gtxt('ProfilePlugin.subscriptionRemain') },
+                { table: true, id:"ResourceTable",
+                    columns: [{ column1: "", column2: _gtxt('ProfilePlugin.used'), column3: _gtxt('ProfilePlugin.remain')}],
+                    rows: [
+                        { cells: [
+                        { id: "FileStorage", text: _gtxt('ProfilePlugin.fileStorage') },
+                        { id: "FileStorageUsed value", text: "b1" },
+                        { id: "FileStorageRemain value", text: "c1"}] 
+                        },
+                        { cells: [
+                        { id: "VectorLayerStorage", text: _gtxt('ProfilePlugin.vectorLayerStorage') },
+                        { id: "VectorLayerStorageUsed value", text: "b2" },
+                        { id: "VectorLayerStorageRemain value", text: "c2"}]
+                        },
+                        { cells: [
+                        { id: "Subscription", text: _gtxt('ProfilePlugin.subscription') },
+                        { id: "SubscriptionUsed value", text: "b3" },
+                        { id: "SubscriptionRemain value", text: "c3"}]
+                        }
+                    ]
+
+                },
                 { span: true, id: "SmsAvailable", text: _gtxt('ProfilePlugin.smsAvailable') }
+
+                //{ span: true, id: "FileStorageUsed", text: _gtxt('ProfilePlugin.fileStorageUsed') },
+                //{ span: true, id: "FileStorageRemain", text: _gtxt('ProfilePlugin.fileStorageRemain') },
+                //{span: true, id: "VectorLayerStorageUsed", text: _gtxt('ProfilePlugin.vectorLayerStorageUsed') },
+                //{ span: true, id: "VectorLayerStorageRemain", text: _gtxt('ProfilePlugin.vectorLayerStorageRemain') },
+                //{ span: true, id: "SubscriptionUsed", text: _gtxt('ProfilePlugin.subscriptionUsed') },
+                //{ span: true, id: "SubscriptionRemain", text: _gtxt('ProfilePlugin.subscriptionRemain') },
             ]
             })).appendTo(ppFrame),
             page3 = $(Handlebars.compile(pageTemplate)(
@@ -242,9 +284,10 @@
             // Profile submit
             var successmess_timeout;
             page1.find('.SaveChanges').click(function () {
-                changePassForm.hide();
+                changePassForm.slideUp("fast");
+                changePassControls.first().text(_gtxt('ProfilePlugin.getNew'));
+                success.hide();
                 wait.show();
-                var message = page1.children('.ErrorSummary').css({ visibility: 'hidden' }).text('error');
                 clearTimeout(successmess_timeout);
 
                 sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Settings", { WrapStyle: 'message',
@@ -260,10 +303,9 @@
                       function (response) {
                           wait.hide();
                           if (response.Status.toLowerCase() == 'ok' && response.Result) {
-                              //page1.children('.ErrorSummary').text('error').css('visibility', 'hidden');
-                              message.text('').append('<span class="UpadateSuccess">' + _gtxt('ProfilePlugin.dataUpdateSuccess') + '</span>')
-                              .css({ visibility: 'visible' });
-                              successmess_timeout = setTimeout(function () { message.css({ visibility: 'hidden' }).text('error'); }, 2000);
+                              page1.children('.ErrorSummary').text('error').css('visibility', 'hidden');
+                              success.show();
+                              successmess_timeout = setTimeout(function () { success.hide(); }, 2000);
                           }
                           else {
                               if (response.Result.length > 0 && response.Result[0].Key)
@@ -332,9 +374,11 @@
 
             changePassControls.first().click(function (e) {
                 if (changePassForm.is(':visible')) {
-                    changePassForm.hide();
+                    changePassForm.slideUp("fast");
+                    $(this).text(_gtxt('ProfilePlugin.getNew'));
                 } else {
-                    changePassForm.show();
+                    changePassForm.slideDown("fast");
+                    $(this).text(_gtxt('ProfilePlugin.cancelNew'));
                     changePassForm.trigger('onrender');
                 }
             });
@@ -405,12 +449,12 @@
             ppScrollableContainer.hide().appendTo('#all').append(ppFrame);
 
             // Menu
-            var menuEntryTemplate = '<div>{{text}}</div>';
+            var menuEntryTemplate = '<div class="MenuEntry">{{text}}</div>';
             var showPage = function (e, page) {
-                ppMenu.children().attr({ 'class': '' });
+                ppMenu.children('.MenuEntry').removeClass('selected');
                 ppPages.hide();
                 page.show();
-                e.target.className = 'selected';
+                $(e.target).removeClass('targeted').addClass('selected');
                 page.trigger('onrender');
             };
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.profile') })).appendTo(ppMenu).click(function (e) { showPage(e, page1); });
@@ -418,11 +462,13 @@
             $(Handlebars.compile(menuEntryTemplate)({ text: _gtxt('ProfilePlugin.developer') })).appendTo(ppMenu).click(function (e) { showPage(e, page3); });
 
             wait.appendTo(ppMenu).hide();
+            success.appendTo(ppMenu).hide();
+            fail.appendTo(ppMenu).hide();
             ppMenu.hide().appendTo('#all');
-            var ppMenuEntries = ppMenu.children();
-            ppMenuEntries.first().attr({ 'class': 'selected' });
-            ppMenuEntries.mouseover(function (e) { if (e.target.className != 'selected') e.target.className = 'targeted' });
-            ppMenuEntries.mouseout(function (e) { if (e.target.className != 'selected') e.target.className = '' });
+            var ppMenuEntries = ppMenu.children('.MenuEntry');
+            ppMenuEntries.first().addClass('selected');
+            ppMenuEntries.mouseover(function (e) { if (!$(e.target).is('.selected')) $(e.target).addClass('targeted') });
+            ppMenuEntries.mouseout(function (e) { if (!$(e.target).is('.selected')) $(e.target).removeClass('targeted') });
 
             // All together
             ppMainParts = $([ppScrollableContainer, ppMenu]).map(function () { return this[0]; });

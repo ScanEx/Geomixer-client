@@ -24,11 +24,34 @@
     /*font: normal normal bold 12pt Verdana;*/
     font-weight:bold;
     border:1px solid #ddd;
-    margin: 6px 12px 0px 12px;
+    margin:  6px 12px 0px 12px;
     padding: 1px 12px 3px 12px;
     line-height: 1.5;
     text-align: left;
     cursor:default;
+}
+
+.profilePanel-content div div:first-of-type
+{
+    margin-top:  0;
+}
+
+.profilePanel-content .ResourceTable
+{
+    margin: 0 12px 6px 12px;
+}
+
+.profilePanel-content .ResourceTable td,
+.profilePanel-content .ResourceTable th
+{
+   border:1px solid #ddd;
+   padding: 6px; 
+}
+
+.profilePanel-content .ResourceTable td.value
+{
+   font-weight:normal; 
+   white-space:nowrap;
 }
 
 .profilePanel-content div div.editable
@@ -56,10 +79,38 @@
     visibility:hidden;
 }
 
-.profilePanel-content .UpadateSuccess
+.profilePanel-menu .Wait
+{
+    padding-top:40px; 
+    padding-left:45%;
+    cursor:default;
+}
+
+.profilePanel-menu .UpdateMessage
+{
+    text-align:center;
+    cursor:default;
+}
+
+.profilePanel-menu .UpdateMessage div
+{
+    background:white;
+    padding:10px;
+    margin-top:20px;
+    text-align:center;
+    cursor:default;
+}
+
+.profilePanel-menu .UpdateMessage div.success
 {
     color:Green;
 }
+
+.profilePanel-menu .UpdateMessage div.fail
+{
+    color:Red;
+}
+
 
 .profilePanel-content div div.newpass-request
 {
@@ -134,10 +185,10 @@
 .profilePanel-content input[type="text"]
 {
     margin: 1px 0 2px 0px;
-    padding:2px 0px 2px 0px;
+    padding: 2px 1px 2px 1px;
     border: none;
     width: 100%;/*278px;*/
-    border-bottom:1px dashed #cdcdcd
+    border-bottom:1px dashed #888
 }
 
 .profilePanel-content input[type="text"].correct
