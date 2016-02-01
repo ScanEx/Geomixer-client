@@ -15,6 +15,8 @@ var ServerDataProvider = function(params)
         _dataURL = null,
         _countParams = null,
         _dataParams = null;
+        
+    var _lastCountResult;
     
     //IDataProvider interface
     this.getCount = function(callback)
@@ -32,6 +34,7 @@ var ServerDataProvider = function(params)
                 callback();
                 return;
             }
+            _lastCountResult = response.Result;
             callback(response.Result);
         })
     }
@@ -102,6 +105,10 @@ var ServerDataProvider = function(params)
     this.serverChanged = function()
     {
         $(this).change();
+    }
+    
+    this.getLastCountResult = function() {
+        return _lastCountResult;
     }
 }
 
@@ -419,14 +426,75 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		oldCanvasWidth = false,
 		_this = this;
         
-    var downloadSection = $('<div>' +
-        '<span class="buttonLink attrsDownloadLink" data-format="Shape">' + _gtxt("Скачать shp") + '</span>' +
-        '<span class="buttonLink attrsDownloadLink" data-format="gpx">'   + _gtxt("Скачать gpx") + '</span>' +
-        '<span class="buttonLink attrsDownloadLink" data-format="csv">'   + _gtxt("Скачать csv") + '</span>' +
-    '</div>');
+    var downloadSection = $(Handlebars.compile('<div>' +
+        '<span class="buttonLink attrsDownloadLink" data-format="Shape">{{i "Скачать shp"}}</span>' +
+        '{{#if isPolygon}}<span class="buttonLink attrsDownloadLink" data-format="gpx">{{i "Скачать gpx"}}</span>{{/if}}' +
+        '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
+        '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
+    '</div>')({
+        isPolygon: info.GeometryType === 'polygon' 
+    }));
     
-    $('span', downloadSection).click(function() {
+    
+    downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
+    });
+    
+    var squareLink = downloadSection.find('.attrs-table-square-link');
+    
+    //пока что только для админов
+    nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || squareLink.hide();
+    
+    var popoverUI = $(Handlebars.compile('<div class="attrs-table-square-popover">' +
+        '<div class="attrs-table-square-toomuch">Слишком много объектов</div>' +
+        '<div class="attrs-table-square-process">Подсчитываем...</div>' +
+        '<div class="attrs-table-square-result">Площадь: ' +
+            '<span class="attrs-table-square"></span>' +
+        '</div>' +
+    '</div>')());
+    
+    popoverUI.find('.attrs-table-square-toomuch').hide();
+    popoverUI.find('.attrs-table-square-result').hide();
+    
+    $(squareLink).popover({
+        content: popoverUI[0],
+        placement: 'left',
+        html: true
+    });
+    
+    $(squareLink).on('shown.bs.popover', function() {
+        if (_this._serverDataProvider.getLastCountResult() > 10000) {
+            popoverUI.find('.attrs-table-square-toomuch').show();
+            popoverUI.find('.attrs-table-square-process').hide();
+            popoverUI.find('.attrs-table-square-result').hide();
+            return;
+        } else {
+            popoverUI.find('.attrs-table-square-toomuch').hide();
+            popoverUI.find('.attrs-table-square-process').show();
+            popoverUI.find('.attrs-table-square-result').hide();
+        }
+        
+        sendCrossDomainPostRequest(serverBase + 'VectorLayer/Search.ashx', {
+            layer: _this.layerName,
+            query: _params.searchParamsManager.getQuery(),
+            columns: '[{value: "[GeomixerGeoJson]"}]',
+            WrapStyle: 'message'
+        }, function(response) {
+            if (!parseResponse(response)) {
+                return;
+            }
+            
+            popoverUI.find('.attrs-table-square-process').hide();
+            popoverUI.find('.attrs-table-square-result').show();
+            
+            var items = response.Result.values;
+            var totalSquare = 0;
+            for (var g = 0; g < items.length; g++) {
+                totalSquare += L.gmxUtil.geoArea(items[g][0]);
+            }
+            
+            popoverUI.find('.attrs-table-square').text(L.gmxUtil.prettifyArea(totalSquare));
+        })
     });
 
     this.tableFields.init(_params.attributes, info);
@@ -474,10 +542,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             query: _params.searchParamsManager.getQuery(),
             columns: columnsForServer
         });
-    }
-
-    if (info.GeometryType === 'polygon') {
-        $('[data-format="gpx"]', downloadSection).hide();
     }
     
 	paramsButton.onclick = function()

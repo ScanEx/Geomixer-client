@@ -581,6 +581,7 @@ _translationsHash.hash["eng"] = {
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",
     "Скачать csv": "Download csv",
+    "Рассчитать площадь": "Total square",
 	"Создать столбец" : "Create column",
 	"Мультислой" : "Multilayer",
 	"В дереве слоев остались несохраненные изменения!" : "There are unsaved changes on layers tree!",
