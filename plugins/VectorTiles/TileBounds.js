@@ -102,7 +102,7 @@
             featureGroup.bindPopup('temp', {maxWidth: 170});
             featureGroup.on('popupopen', popupFunc, featureGroup);
             featureGroup.addTo(LMap);
-            var tileIcon = new L.Control.gmxIcon({
+            var tileIcon = L.control.gmxIcon({
                     id: 'tileIcon', 
                     togglable: true,
                     className: 'leaflet-gmx-icon-sprite',

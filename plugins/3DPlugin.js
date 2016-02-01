@@ -5,7 +5,7 @@ var publicInterface = {
     afterViewer: function()
     {
         var LMap = nsGmx.leafletMap;
-        var icon = new L.Control.gmxIcon({
+        var icon = L.control.gmxIcon({
             id: '3D', 
             text: '3D'
         }).on('click', function(ev) {

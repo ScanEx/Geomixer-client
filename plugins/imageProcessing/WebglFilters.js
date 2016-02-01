@@ -21,7 +21,7 @@
                 menu = null,
                 testLayer = null;
             
-            var filtersIcon = new L.Control.gmxIcon({
+            var filtersIcon = L.control.gmxIcon({
                     id: 'filtersIcon', 
                     togglable: true,
                     className: 'leaflet-gmx-icon-sprite',

@@ -191,7 +191,7 @@
             }
 
             //var cont = null;
-            var icon = new L.Control.gmxIcon({
+            var icon = L.control.gmxIcon({
                 id: 'aisIntersectIcon', 
                 togglable: true,
                 regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,

@@ -51,7 +51,7 @@
                 aisLayer = layersByID[aisLayerID],
                 tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
                 tracksLayer = layersByID[tracksLayerID],
-                sideBar = new L.Control.gmxSidebar({className: 'aissearch'});
+                sideBar = L.control.gmxSidebar({className: 'aissearch'});
                 div = L.DomUtil.create('div', pluginName + '-content'),
                 shap = L.DomUtil.create('div', '', div),
                 title = L.DomUtil.create('span', '', shap),
@@ -255,7 +255,7 @@
                     return res;
                 };
             
-            var icon = new L.Control.gmxIcon({
+            var icon = L.control.gmxIcon({
                 id: pluginName, 
                 togglable: true,
                 regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,

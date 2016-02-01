@@ -44,7 +44,7 @@
                     activeImage = toolParams.activeImage || regularImage,
                     lastDrawingFeature = null;
 
-                var icon = new L.Control.gmxIcon({
+                var icon = L.control.gmxIcon({
                     id: 'add2mapIcon', 
                     togglable: true,
                     regularImageUrl: regularImage.search(/^https?:\/\//) !== -1 ? regularImage : path + regularImage,
