@@ -49,6 +49,9 @@ var publicInterface = {
                     if (node.type === 'layer') {
                         return props.type === 'Vector' && node;
                     } else {
+                        props.ShowCheckbox = true;
+                        props.list = false;
+                        props.expanded = false;
                         return node.content.children.length > 0 && node;
                     }
                 }));
