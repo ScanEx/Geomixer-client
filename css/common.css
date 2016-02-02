@@ -596,6 +596,16 @@ div.unit .unitInfo
     margin-right: 3px;
 }
 
+.attrs-table-square-link
+{
+    float: right;
+}
+
+.attrs-table-square-popover {
+    width: 160px;
+    text-align: right;
+}
+
 .styleTitle
 {
 	width: 70px;
