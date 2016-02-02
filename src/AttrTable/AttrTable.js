@@ -1,293 +1,6 @@
 !(function(_){
 
-/** Провайдер данных для {@link nsGmx.ScrollTable}. Получает данные от сервера в формате ГеоМиксера
-* @alias nsGmx.ScrollTable.AttributesServerDataProvider
-* @class
-* @extends nsGmx.ScrollTable.IDataProvider
-*/
-var ServerDataProvider = function(params)
-{
-    var _params = $.extend({
-            defaultSortParam: 'ogc_fid',
-            titleToParams: {}
-        }, params);
-    var _countURL = null,
-        _dataURL = null,
-        _countParams = null,
-        _dataParams = null;
-        
-    var _lastCountResult;
-    
-    //IDataProvider interface
-    this.getCount = function(callback)
-    {
-        if (!_countURL)
-        {
-            callback();
-            return;
-        }
-        
-        sendCrossDomainPostRequest(_countURL, _countParams, function(response)
-        {
-            if (!parseResponse(response))
-            {
-                callback();
-                return;
-            }
-            _lastCountResult = response.Result;
-            callback(response.Result);
-        })
-    }
-    
-    this.getItems = function(page, pageSize, sortParam, sortDec, callback)
-    {
-        if (!_dataURL)
-        {
-            callback();
-            return;
-        }
-        
-        var explicitSortParam = (sortParam || sortParam === '') ? (_params.titleToParams[sortParam] || sortParam) : _params.defaultSortParam;
-
-        var params = $.extend({
-            page: page,
-            pagesize: pageSize,
-            orderby: explicitSortParam,
-            orderdirection: sortDec ? "DESC" : "ASC"
-        }, _dataParams);
-            
-        sendCrossDomainPostRequest(_dataURL, params, function(response)
-        {
-            if (!parseResponse(response))
-            {
-                callback();
-                return;
-            }
-            
-            var fieldsSet = {};
-            
-            if (response.Result.fields)
-            {
-                for (var f = 0; f < response.Result.fields.length; f++)
-                    fieldsSet[response.Result.fields[f]] = { index: f, type: response.Result.types[f] };
-            }
-            
-            var res = [];
-            for (var i = 0; i < response.Result.values.length; i++)
-                res.push({
-                    fields: fieldsSet,
-                    values: response.Result.values[i]
-                });
-            
-            callback(res);
-        })
-    }
-    
-    /** Задать endpoint для получения от сервера данных об объекта и их количестве
-     * @param {String} countURL URL скрипта для запроса общего количества объектов
-     * @param {Object} countParams Параметры запроса для количеством объектов
-     * @param {String} dataURL URL скрипта для запроса самих объектов
-     * @param {Object} dataParams Параметры запроса самих объектов. К этим параметрам будут добавлены параметры для текущей страницы в формате запросов ГеоМиксера
-    */
-    this.setRequests = function(countURL, countParams, dataURL, dataParams)
-    {
-        _countURL = countURL;
-        _countParams = countParams || {};
-        _countParams.WrapStyle = 'message';
-        
-        _dataURL = dataURL;
-        _dataParams = dataParams || {};
-        _dataParams.WrapStyle = 'message';
-        
-        $(this).change();
-    }
-    
-    this.serverChanged = function()
-    {
-        $(this).change();
-    }
-    
-    this.getLastCountResult = function() {
-        return _lastCountResult;
-    }
-}
-
-ServerDataProvider.convertValuesToHash = function(objParameters)
-{
-    var resHash = {};
-    for (var i in objParameters.fields)
-        resHash[i] = objParameters.values[objParameters.fields[i].index];
-        
-    return resHash;
-}
-
-// events: queryChange, columnsChange
-var DefaultSearchParamsManager = function() {
-    this._activeColumns = null;
-    this._queryTextarea = null;
-    this._container = null;
-}
-
-DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
-    var info = attributesTable.getLayerInfo(),
-        paramsWidth = 300,
-        searchButton = makeButton(_gtxt("Найти")),
-        cleanButton = makeButton(_gtxt("Очистить поиск")),
-        _this = this;
-        
-    var columnsList = this._columnsList = _div(null, [['dir','className','attrsColumnsList'], ['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]);
-    
-    this._container = container;
-
-    searchButton.onclick = function()
-    {
-        $(_this).trigger('queryChange');
-    }
-    
-    cleanButton.onclick = function()
-    {
-        _this._queryTextarea.value = "";
-        $(_this).trigger('queryChange');
-    }
-    
-    this._queryTextarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
-    
-    var attrNames = [info.identityField].concat(info.attributes);
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) 
-        attrHash[attrNames[a]] = [];
-        
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.name );
-    var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this._queryTextarea, "\"suggest\"", function(){}, attrProvider, true),
-        valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this._queryTextarea, "\"suggest\"", function(){}, attrProvider),
-        opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this._queryTextarea, " suggest ", function(){});
-        
-    opsSuggest.style.width = '80px';
-    $(opsSuggest).children().css('width','60px');
-    
-    var divAttr = _div([_t(_gtxt("Атрибут >")), attrsSuggest], [['dir','className','attrsHelperCanvas']]),
-        divValue = _div([_t(_gtxt("Значение >")), valuesSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-        divOp = _div([_t(_gtxt("Операция >")), opsSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-        clickFunc = function(div)
-        {
-            if (document.selection)
-            {
-                _this._queryTextarea.focus();
-                var sel = document.selection.createRange();
-                div.sel = sel;
-                _this._queryTextarea.blur();
-            }
-            
-            $(divAttr.parentNode.parentNode.parentNode).find(".attrsHelperCanvas").children("[arr]").fadeOut(300, function()
-            {
-                $(this).remove();
-            })
-        };
-
-    divAttr.onclick = function()
-    {
-        clickFunc(attrsSuggest);
-        
-        $(attrsSuggest).fadeIn(300);
-        $(valuesSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        return true;
-    }
-    
-    divValue.onclick = function()
-    {
-        clickFunc(valuesSuggest);
-        
-        $(valuesSuggest).fadeIn(300);
-        $(attrsSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        return true;
-    }
-    
-    divOp.onclick = function()
-    {
-        clickFunc(opsSuggest);
-        
-        $(opsSuggest).fadeIn(300);
-        $(attrsSuggest).fadeOut(300);
-        $(valuesSuggest).fadeOut(300);
-        
-        return true;
-    }
-    
-    this._queryTextarea.onclick = function()
-    {
-        $(attrsSuggest).fadeOut(300);
-        $(valuesSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        if (divAttr.childNodes.length > 2)
-            divAttr.lastChild.removeNode(true);
-        if (divValue.childNodes.length > 2)
-            divValue.lastChild.removeNode(true);
-        
-        return true;
-    }
-    
-    var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])]),
-                                             _td([_div([divValue],[['css','position','relative']])]),
-                                             _td([_div([divOp],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
-    _(container, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas],[['attr','filterTable',true]])])
-    
-    _(container, [_div([_t(_gtxt("Показывать столбцы") + ":")],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']])])
-    
-    var attrTitles = attributesTable.tableFields.fieldsAsArray;
-    if (!this._activeColumns)
-    {
-        this._activeColumns = {};
-        
-        for (var i = 0; i < attrTitles.length; ++i)
-            this._activeColumns[attrTitles[i]] = true;
-    }
-
-    var rowTemplate = 
-        '<label title="{{name}}" class="attrs-table-active-row">' + 
-            '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
-            '{{name}}' + 
-        '</label>';
-        
-    attrTitles.forEach(function(columnName) {
-        var rowUI = $(Handlebars.compile(rowTemplate)({
-            active: _this._activeColumns[columnName],
-            name: columnName
-        })).appendTo(columnsList);
-        
-        $('input', rowUI).click(function() {
-            _this._activeColumns[columnName] = this.checked;
-            $(_this).trigger('columnsChange');
-        })
-    });
-    
-    
-    _(container, [columnsList]);
-    
-    searchButton.style.marginRight = '17px';
-    cleanButton.style.marginRight = '3px';
-    _(container, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])]);
-};
-    
-DefaultSearchParamsManager.prototype.getQuery = function() {
-    return this._queryTextarea && this._queryTextarea.value;
-}
-    
-DefaultSearchParamsManager.prototype.getActiveColumns = function() {
-    return this._activeColumns;
-}
-    
-DefaultSearchParamsManager.prototype.resize = function(dims) {
-    if (this._columnsList) {
-        var container = this._container,
-            height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
-        $(this._container).find('.attrsColumnsList')[0].style.height = height;
-    }
-}
+nsGmx.AttrTable = nsGmx.AttrTable || {};
 
 var attrsTable = function(layerName, layerTitle)
 {
@@ -414,7 +127,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         hideRowActions: false,
         hideSearchParams: false,
         onClick: null,
-        searchParamsManager: new DefaultSearchParamsManager()
+        searchParamsManager: new nsGmx.AttrTable.DefaultSearchParamsManager()
         /*attributes: [] */
     }, params);
         
@@ -440,66 +153,16 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         downloadLayer($(this).data('format'));
     });
     
+    this.tableFields.init(_params.attributes, info);
+    
+    this._serverDataProvider = new nsGmx.AttrTable.ServerDataProvider({titleToParams: $.extend(this.tableFields.titleToField, {'': '__GeomIsEmpty__'})});
+    
     var squareLink = downloadSection.find('.attrs-table-square-link');
     
     //пока что только для админов
     nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || squareLink.hide();
-    
-    var popoverUI = $(Handlebars.compile('<div class="attrs-table-square-popover">' +
-        '<div class="attrs-table-square-toomuch">Слишком много объектов</div>' +
-        '<div class="attrs-table-square-process">Подсчитываем...</div>' +
-        '<div class="attrs-table-square-result">Площадь: ' +
-            '<span class="attrs-table-square"></span>' +
-        '</div>' +
-    '</div>')());
-    
-    popoverUI.find('.attrs-table-square-toomuch').hide();
-    popoverUI.find('.attrs-table-square-result').hide();
-    
-    $(squareLink).popover({
-        content: popoverUI[0],
-        placement: 'left',
-        html: true
-    });
-    
-    $(squareLink).on('shown.bs.popover', function() {
-        if (_this._serverDataProvider.getLastCountResult() > 10000) {
-            popoverUI.find('.attrs-table-square-toomuch').show();
-            popoverUI.find('.attrs-table-square-process').hide();
-            popoverUI.find('.attrs-table-square-result').hide();
-            return;
-        } else {
-            popoverUI.find('.attrs-table-square-toomuch').hide();
-            popoverUI.find('.attrs-table-square-process').show();
-            popoverUI.find('.attrs-table-square-result').hide();
-        }
-        
-        sendCrossDomainPostRequest(serverBase + 'VectorLayer/Search.ashx', {
-            layer: _this.layerName,
-            query: _params.searchParamsManager.getQuery(),
-            columns: '[{value: "[GeomixerGeoJson]"}]',
-            WrapStyle: 'message'
-        }, function(response) {
-            if (!parseResponse(response)) {
-                return;
-            }
-            
-            popoverUI.find('.attrs-table-square-process').hide();
-            popoverUI.find('.attrs-table-square-result').show();
-            
-            var items = response.Result.values;
-            var totalSquare = 0;
-            for (var g = 0; g < items.length; g++) {
-                totalSquare += L.gmxUtil.geoArea(items[g][0]);
-            }
-            
-            popoverUI.find('.attrs-table-square').text(L.gmxUtil.prettifyArea(totalSquare));
-        })
-    });
 
-    this.tableFields.init(_params.attributes, info);
-    
-    this._serverDataProvider = new ServerDataProvider({titleToParams: $.extend(this.tableFields.titleToField, {'': '__GeomIsEmpty__'})});
+    new nsGmx.AttrTable.SquareCalc(squareLink, this.layerName, this._serverDataProvider, _params.searchParamsManager);
     
     var hostName = serverBase.match(/^https?:\/\/(.*)\/$/)[1];
     
@@ -795,8 +458,6 @@ attrsTableHash.prototype.removeHook = function(hookID) {
 }
 
 window.nsGmx = window.nsGmx || {};
-
-window.nsGmx.ScrollTable.AttributesServerDataProvider = ServerDataProvider;
 
 window._attrsTableHash = new attrsTableHash();
 

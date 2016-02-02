@@ -189,7 +189,7 @@ var publicInterface =
         })
         
         var eventsTable = new nsGmx.ScrollTable();
-        var eventsDataProvider = new nsGmx.ScrollTable.AttributesServerDataProvider();
+        var eventsDataProvider = new nsGmx.AttrTable.ServerDataProvider();
         
         var updateEventRequests = function(query)
         {
