@@ -19,6 +19,25 @@
     width:330px;
 }
 
+.profilePanel-content p
+{
+    text-align:left;
+    font-weight:normal;
+    margin:1px 0 6px
+}
+
+.profilePanel-content div.link_button
+{
+    text-align:left;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+    color:#2372C4;
+    padding:0;
+    margin: 6px 0 0 0;
+    text-decoration:underline;
+}
+
 .profilePanel-content div div
 {
     /*font: normal normal bold 12pt Verdana;*/
@@ -63,10 +82,15 @@
     /*font: normal normal bold 12pt Verdana;*/
     font-weight:bold;
     border:none;
-    margin: 6px 12px 0px 12px;
+    margin: 16px 12px 0px 12px;
     padding: 1px 12px 3px 12px;
     line-height: 1.5;
     text-align: left;
+}
+
+.profilePanel-content div div.first
+{
+    margin-top:0;
 }
 
 .profilePanel-content .ErrorSummary
@@ -252,7 +276,99 @@
 }
 
 /*****************************************/
-  
+.apiKeyForm  tr td
+{
+    font-weight:bold;
+    padding-left: 20px;
+    padding-top: 15px;
+    padding-bottom: 0px;
+} 
+
+.apiKeyForm td.submit
+{
+    text-align:center;
+}
+
+.apiKeyForm td.submit .ErrorSummary
+{
+    color:Red;
+    font-weight:normal;
+    margin-bottom:15px;
+    visibility:hidden;
+    text-align:center;
+}
+
+.apiKeyForm input[type="button"]
+{
+    border:none;
+    border-radius:2px;
+    margin-top: 0px;
+    background-color: #2372C4;
+    color:White;
+    padding: 6px 12px 8px 12px;
+    cursor:pointer;
+}
+
+.apiKeyForm input[type="text"]
+{
+    border: 1px solid #ddd;
+    padding:4px 8px 4px 8px;
+    margin-left:10px;
+    width:400px;
+}
+
+.apiKeyForm input[type="text"].error
+{
+    background-color:#ffabab;
+}
+
+.apiKeyForm .showLicence
+{
+    text-decoration:underline;
+    cursor:pointer;
+    color:#2372C4;  
+}
+
+.apiKeyForm .licence
+{
+    width:500px;
+    height:160px;
+    margin-top: 16px;
+    border: 1px solid #ddd;
+    padding: 1px 0 1px 1px;
+}
+
+.apiKeyForm .licence .mCSB_container
+{
+    padding:4px;
+}
+
+.apiKeyForm .licence p
+{
+    font-weight:normal;
+    padding: 0 2px  4px  2px;
+}
+
+/*
+.apiKeyForm .licence iframe
+{
+    width:500px;
+    height:3000px;
+    border: none;
+}
+*/
+
+.apiKeyForm  table
+{
+    width:100%;
+}
+/*
+.apiKeyForm  div.spacer
+{
+    height:30px;
+}
+*/
+/*****************************************/
 .registrationForm tr td
 {
     font-weight:bold;

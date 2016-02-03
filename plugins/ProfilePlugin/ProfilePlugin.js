@@ -24,16 +24,30 @@
 
             used: "используется",
             remain: "осталось",
-            fileStorage: "Хранилище файлов",
+            fileStorage: "Файлы",
             fileStorageUsed: "Хранилище файлов используется",
             fileStorageRemain: "Хранилище файлов осталось",
-            vectorLayerStorage: "Хранилище векторных слоев",
+            vectorLayerStorage: "Векторные данные",
             vectorLayerStorageUsed: "Хранилище векторных слоев используется",
             vectorLayerStorageRemain: "Хранилище векторных слоев осталось",
             subscription: "Подписок (Live Alerts)",
             subscriptionUsed: "Подписок (Live Alerts) имеется",
             subscriptionRemain: "Подписок (Live Alerts) осталось",
             smsAvailable: "Sms (Live Alerts) доступны",
+
+            apiKeys: "API-ключи",
+            apiKeyInvite: "Для получения ключей воспользуйтесь соответсвующими ссылками",
+            apiKeyDomain: "API-Ключа для домена (для сайтов)",
+            apiKeyDirect: "API-Ключа прямого доступа (для приложений)",
+            apiKeyList: "Список API-ключей",
+
+            directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
+            directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
+            keyDomain: "Сайт:",
+            keyLicense: "Лицензия:",
+            keyAgreement: "я согласен с ",
+            keyConditions: "условиями использования",
+            apiKeyGet: "Получить ключ",
 
             clientRegistration: "Регистрация oAuth клиента",
             appName: "Название приложения",
@@ -102,16 +116,30 @@
 
             used: "used",
             remain: "rest",
-            fileStorage: "File storage",
+            fileStorage: "Files",
             fileStorageUsed: "File storage consumtion",
             fileStorageRemain: "File storage remain",
-            vectorLayerStorage: "Vector storage",
+            vectorLayerStorage: "Vector data",
             vectorLayerStorageUsed: "Vector storage consumption",
             vectorLayerStorageRemain: "Vector storage remain",
             subscription: "Subscriptions",
             subscriptionUsed: "Subscription consumption",
             subscriptionRemain: "Subscription remain",
             smsAvailable: "Sms",
+
+            apiKeys: "API-keys",
+            apiKeyInvite: "To get a key use apropriate links below",
+            apiKeyDomain: "Domain API-key (for sites)",
+            apiKeyDirect: "Direct access API-key (for applications)",
+            apiKeyList: "Issued API-keys list",
+
+            directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
+            directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
+            keyDomain: "Site:",
+            keyLicense: "License:",
+            keyAgreement: "я согласен с ",
+            keyConditions: "условиями использования",
+            apiKeyGet: "Get the key",
 
             clientRegistration: "oAuth Client Registration",
             appName: "Client Application",
@@ -183,13 +211,21 @@
                 '<div class="page">' +
                     '{{#each items}}' +
                         '{{#if form_caption}}' +
-                            '<div class="form-caption">{{text}}</div>' +
+                            '<div class="form-caption {{#if first}}first{{/if}}">{{text}}</div>' +
                         '{{/if}}' +
                         '{{#if span}}' +
                             '<div>{{text}}: <span {{#if id}}class="{{id}}"{{/if}}></span></div>' +
                         '{{/if}}' +
                         '{{#if span_nl}}' +
                             '<div>{{text}}:<br/><span {{#if id}}class="{{id}}"{{/if}}></span></div>' +
+                        '{{/if}}' +
+                        '{{#if block}}' +
+                            '<div>' +
+                                '{{#content}}' +
+                                    '{{#if p}}<p>{{text}}</p>{{/if}}' +
+                                    '{{#if link_button}}<div {{#if id}}class="{{id}} link_button"{{/if}}>{{text}}</div>{{/if}}' +
+                                '{{/content}}' +
+                            '</div>' +
                         '{{/if}}' +
                         '{{#if text_input}}' +
                             '<div onclick="$(this).children().focus()" class="editable">{{text}}: <input {{#if id}}class="{{id}}"{{/if}} type="text" value=""></div>' +
@@ -238,13 +274,13 @@
             })).appendTo(ppFrame),
             page2 = $(Handlebars.compile(pageTemplate)(
             { id: "page2", items: [
-                { table: true, id:"ResourceTable",
+                { table: true, id: "ResourceTable",
                     columns: [{ column1: "", column2: _gtxt('ProfilePlugin.used'), column3: _gtxt('ProfilePlugin.remain')}],
                     rows: [
                         { cells: [
                         { id: "FileStorage", text: _gtxt('ProfilePlugin.fileStorage') },
                         { id: "FileStorageUsed value", text: "b1" },
-                        { id: "FileStorageRemain value", text: "c1"}] 
+                        { id: "FileStorageRemain value", text: "c1"}]
                         },
                         { cells: [
                         { id: "VectorLayerStorage", text: _gtxt('ProfilePlugin.vectorLayerStorage') },
@@ -260,17 +296,18 @@
 
                 },
                 { span: true, id: "SmsAvailable", text: _gtxt('ProfilePlugin.smsAvailable') }
-
-                //{ span: true, id: "FileStorageUsed", text: _gtxt('ProfilePlugin.fileStorageUsed') },
-                //{ span: true, id: "FileStorageRemain", text: _gtxt('ProfilePlugin.fileStorageRemain') },
-                //{span: true, id: "VectorLayerStorageUsed", text: _gtxt('ProfilePlugin.vectorLayerStorageUsed') },
-                //{ span: true, id: "VectorLayerStorageRemain", text: _gtxt('ProfilePlugin.vectorLayerStorageRemain') },
-                //{ span: true, id: "SubscriptionUsed", text: _gtxt('ProfilePlugin.subscriptionUsed') },
-                //{ span: true, id: "SubscriptionRemain", text: _gtxt('ProfilePlugin.subscriptionRemain') },
             ]
             })).appendTo(ppFrame),
             page3 = $(Handlebars.compile(pageTemplate)(
             { id: "page3", items: [
+                { form_caption: true, text: _gtxt('ProfilePlugin.apiKeys'), first: true },
+                { block: true, content: [{ link_button: true, text: _gtxt('ProfilePlugin.apiKeyList'), id: "apiKeyList"}] },
+                { block: true, content: [
+                     { p: true, text: _gtxt('ProfilePlugin.apiKeyInvite') },
+                     { link_button: true, text: _gtxt('ProfilePlugin.apiKeyDomain'), id: "apiKeyDomain" },
+                     { link_button: true, text: _gtxt('ProfilePlugin.apiKeyDirect'), id: "apiKeyDirect" }
+                ]
+                },
                 { form_caption: true, text: _gtxt('ProfilePlugin.clientRegistration') },
                 { text_input: true, id: "AppName correct", text: _gtxt('ProfilePlugin.appName') },
                 { span: true, id: "ClientID", text: _gtxt('ProfilePlugin.clientID') },
@@ -319,6 +356,9 @@
             // Register client submit
             var newsecret_timeout;
             page3.find('.RegisterClient').click(function () {
+
+                closeApiKeyDialog();
+
                 wait.show();
                 var client_secret = page3.find('.ClientSecret').removeClass('new');
                 clearTimeout(newsecret_timeout);
@@ -383,6 +423,123 @@
                 }
             });
 
+            // API-keys dialogs
+            var closeApiKeyDialog = function () {
+                if ($('.apiKeyForm').length > 0)
+                    removeDialog($('.apiKeyForm').parent()[0]);
+            },
+            showApiKeyForm = function (key_type) {
+                if ($('.apiKeyForm').length > 0)
+                    return;
+                clearPageErrors($('.page:visible'));
+                var fordirect = key_type == 'Direct' ?
+                '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose1"}}</td></tr>' +
+                '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose2"}}</td></tr>'
+                : '';
+                var fordomain = key_type == 'Domain' ?
+                '<tr><td colspan="2">{{i "ProfilePlugin.keyDomain"}}<input type="text" tabindex="2" class="Site" value="http://"></td></tr>'
+                : '';
+                var akForm = $(Handlebars.compile('<div class="apiKeyForm"><div class="first"><table border="0">' +
+                //'<tr><td colspan="3">'+//'Пожалуйста, ознакомьтесь с <span class="showLicence">условиями использования</span>' +
+                //'' +
+                //'</td></tr>' +
+                '<tr><td colspan="2">{{i "ProfilePlugin.keyLicense"}}</td></tr>' +
+                '<tr><td style="width:1%"><input type="checkbox" tabindex="1" id="agree" class="agree"></td><td><label for="agree">{{i "ProfilePlugin.keyAgreement"}}</label><span class="showLicence">{{i "ProfilePlugin.keyConditions"}}</span></td></tr>' +
+                '<tr><td colspan="2"><div class="licence"></div></td></tr>' +
+                fordomain +
+                fordirect +
+                '<tr><td colspan="2"><div class="spacer"></div></td></tr>' +
+                '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="3" type="button" value="{{i "ProfilePlugin.apiKeyGet"}}"/></td></tr>' +
+                '</table></div>')());
+                var licence = akForm.find('.licence').hide();
+                if (key_type == 'Domain')
+                    akForm.find('.spacer').height('50px');
+                var initH = 320;
+                akForm.find('.showLicence').click(function () {
+                    if (licence.is(':visible')) {
+                        //akForm.parent().dialog("option", "height", initH);
+                        licence.slideUp("fast");
+                    } else {
+                        //if (key_type == 'Direct') akForm.parent().dialog("option", "height", 380);
+                        licence.slideDown("fast");
+                    }
+                });
+                window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akForm[0], 555, initH);
+                akForm.parent('.ui-dialog-content').css('overflow', 'hidden');
+                licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
+                /*
+                var registrationForm = $(Handlebars.compile('<table class="registrationForm" border="0">' +
+                '<tr><td colspan="2" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
+                '<tr><td colspan="2">{{i "ProfilePlugin.email"}} <input type="text" tabindex="1" class="Login EmailEmpty WrongEmail EmailExists"/></td></tr>' +
+                '<tr>' +
+                '<td>' +
+                '<table border="0"><tr><td>{{i "ProfilePlugin.password"}}</td><td align="right"><input tabindex="2" type="password" class="Password NewPassword NotMatch"/></td></tr></table>' +
+                '<table border="0"><tr><td>{{i "ProfilePlugin.login"}}</td><td align="right"><input type="text" tabindex="4" class="NickName LoginEmpty LoginFormat LoginExists"/></td></tr></table>' +
+                '</td>' +
+                '<td>' +
+                '<table border="0">' +
+                '<tr><td>{{i "ProfilePlugin.repeat"}}</td><td colspan="2" align="right"><input type="password" tabindex="3" class="Repeat NotMatch"/></td></tr>' +
+                '<tr><td>{{i "ProfilePlugin.capcha"}}</td><td align="left"><input type="text" tabindex="5" class="Capcha CapchaRequired WrongCapcha"/></td><td align="right"><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)) + '"></td></tr>' +
+                '</table>' +
+                '</td>' +
+                '</tr>' +
+                '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="6" type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
+                //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
+                '</table>')()),
+                regFormDialog,
+                submit = registrationForm.find('input[type="button"]').click(function () {
+                //wait.show();
+                sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Registration", { WrapStyle: 'message',
+                email: registrationForm.find('.Login').val(),
+                login: registrationForm.find('.NickName').val(),
+                password: registrationForm.find('.Password').val(),
+                repeat: registrationForm.find('.Repeat').val(),
+                captcha: registrationForm.find('.Capcha').val(),
+                debug: true
+                },
+                function (response) {
+                //wait.hide();
+                if (response.Status.toLowerCase() == 'ok' && response.Result) {
+                removeDialog(regFormDialog);
+                afterRegistration();
+                }
+                else {
+                clearError();
+                registrationForm.find(':password,:text').filter(function () { return $(this).val() == ""; }).addClass('error');
+                if (response.Result.length > 0 && response.Result[0].Key) {
+                registrationForm.find('.ErrorSummary').text(
+                _gtxt('ProfilePlugin.Error' + response.Result[0].Key) + " " + response.Result[0].Value.Errors[0].ErrorMessage)
+                .css('visibility', 'visible');
+                registrationForm.find('.' + response.Result[0].Key).addClass('error');
+                }
+                else {
+                registrationForm.find('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + response.Result.Message)).css('visibility', 'visible');
+                registrationForm.find('.' + response.Result.Message).addClass('error');
+                }
+                registrationForm.find('img').attr("src", mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)));
+                }
+                });
+                });
+                var clearError = function () {
+                registrationForm.find('.error').removeClass('error');
+                registrationForm.find('.ErrorSummary').css('visibility', 'hidden');
+                registrationForm.find('.Capcha').val("");
+                };
+                registrationForm.find('input[type="text"], input[type="password"]')
+                .keydown(function (e) {
+                if (e.which == 13)
+                submit.click();
+                })
+                .focusin(clearError);
+                regFormDialog = window.showDialog(_gtxt('ProfilePlugin.registration'), registrationForm[0], 605, 300);
+                return regFormDialog;
+                */
+            };
+            page3.find('.apiKeyDomain').click(function () { showApiKeyForm('Domain'); });
+            page3.find('.apiKeyDirect').click(function () { showApiKeyForm('Direct'); });
+
+            /////////////////////////////
+
             ppPages.find('input[type="text"], input[type="password"]').keyup(function (e) {
                 if (e.which == 13) {
                     var submit = $(this).siblings('div').children('input[type="button"]');
@@ -393,6 +550,7 @@
                 clearInputErrors($(this));
             })
             .focusin(function (e) {
+                closeApiKeyDialog();
                 clearInputErrors($(this));
             });
 
@@ -451,6 +609,9 @@
             // Menu
             var menuEntryTemplate = '<div class="MenuEntry">{{text}}</div>';
             var showPage = function (e, page) {
+
+                closeApiKeyDialog();
+
                 ppMenu.children('.MenuEntry').removeClass('selected');
                 ppPages.hide();
                 page.show();
@@ -482,6 +643,7 @@
                 if (!ppMainParts.is($(e.target)) && !ppMainParts.find($(e.target)).length) {
                     ppBackScreen.hide();
                     ppMainParts.hide();
+                    closeApiKeyDialog();
                 }
             });
             ppScrollableContainer.mCustomScrollbar();
