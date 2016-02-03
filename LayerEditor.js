@@ -690,7 +690,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     //TODO: использовать события модели
     shapeFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv', 'sxf', 'gdbtable'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv', 'sxf', 'gdbtable', 'geojson'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
