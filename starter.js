@@ -1081,6 +1081,11 @@ function processGmxMap(state, gmxMap) {
     lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
     nsGmx.leafletMap = lmap;
 
+    var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
+    loc.on('coordinatesformatchange', function(ev) {
+        nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
+    });
+
     lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey}).then(function() {
 
         gmxMap.addLayersToMap(lmap);
