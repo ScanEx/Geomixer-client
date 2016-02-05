@@ -142,7 +142,7 @@
     border:none;
     cursor:pointer;
     color:#2372C4;
-    font-weight:normal;
+    font-weight:bold;
 }
 
 .profilePanel-content div div.newpass-form
@@ -276,7 +276,7 @@
 }
 
 /*****************************************/
-.apiKeyForm  tr td
+.apiKeyDialog  tr td
 {
     font-weight:bold;
     padding-left: 20px;
@@ -284,12 +284,12 @@
     padding-bottom: 0px;
 } 
 
-.apiKeyForm td.submit
+.apiKeyDialog td.submit
 {
     text-align:center;
 }
 
-.apiKeyForm td.submit .ErrorSummary
+.apiKeyDialog td.submit .ErrorSummary
 {
     color:Red;
     font-weight:normal;
@@ -298,7 +298,7 @@
     text-align:center;
 }
 
-.apiKeyForm input[type="button"]
+.apiKeyDialog input[type="button"]
 {
     border:none;
     border-radius:2px;
@@ -309,27 +309,27 @@
     cursor:pointer;
 }
 
-.apiKeyForm input[type="text"]
+.apiKeyDialog input[type="text"]
 {
     border: 1px solid #ddd;
     padding:4px 8px 4px 8px;
     margin-left:10px;
-    width:400px;
+    width:415px;
 }
 
-.apiKeyForm input[type="text"].error
+.apiKeyDialog input[type="text"].error
 {
     background-color:#ffabab;
 }
 
-.apiKeyForm .showLicence
+.apiKeyDialog .showLicence
 {
     text-decoration:underline;
     cursor:pointer;
     color:#2372C4;  
 }
 
-.apiKeyForm .licence
+.apiKeyDialog .licence
 {
     width:500px;
     height:160px;
@@ -338,19 +338,19 @@
     padding: 1px 0 1px 1px;
 }
 
-.apiKeyForm .licence .mCSB_container
+.apiKeyDialog .licence .mCSB_container
 {
     padding:4px;
 }
 
-.apiKeyForm .licence p
+.apiKeyDialog .licence p
 {
     font-weight:normal;
     padding: 0 2px  4px  2px;
 }
 
 /*
-.apiKeyForm .licence iframe
+.apiKeyDialog .licence iframe
 {
     width:500px;
     height:3000px;
@@ -358,12 +358,45 @@
 }
 */
 
-.apiKeyForm  table
+.apiKeyDialog  table
 {
     width:100%;
 }
+
+.apiKeyDialog  .list
+{ 
+    margin-top:10px;
+    height:245px;
+    width:100%; 
+}
+
+.apiKeyDialog  .list td
+{
+    font-weight:normal;
+    padding:5px;
+}
+
+.apiKeyDialog  .list tr td:first-of-type
+{
+    font-weight:bold;
+}
+
+.apiKeyDialog .list td.enabled
+{
+    color:Green;
+}
+
+.apiKeyDialog .list td.disabled
+{
+    color:Red;
+}
+
+.apiKeyDialog  .list tr:nth-child(odd)
+{
+    background-color: #eee
+}
 /*
-.apiKeyForm  div.spacer
+.apiKeyDialog  div.spacer
 {
     height:30px;
 }

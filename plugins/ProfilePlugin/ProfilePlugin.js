@@ -30,16 +30,24 @@
             vectorLayerStorage: "Векторные данные",
             vectorLayerStorageUsed: "Хранилище векторных слоев используется",
             vectorLayerStorageRemain: "Хранилище векторных слоев осталось",
-            subscription: "Подписок (Live Alerts)",
+            subscription: "Подписки (Live Alerts)",
             subscriptionUsed: "Подписок (Live Alerts) имеется",
             subscriptionRemain: "Подписок (Live Alerts) осталось",
             smsAvailable: "Sms (Live Alerts) доступны",
 
             apiKeys: "API-ключи",
             apiKeyInvite: "Для получения ключей воспользуйтесь соответсвующими ссылками",
-            apiKeyDomain: "API-Ключа для домена (для сайтов)",
-            apiKeyDirect: "API-Ключа прямого доступа (для приложений)",
+            apiKeyDomain: "API-Ключ для домена (для сайтов)",
+            apiKeyDomainCap: "API-Ключ для домена",
+            apiKeyDirect: "API-Ключ прямого доступа (для приложений)",
+            apiKeyDirectCap: "API-Ключ прямого доступа",
             apiKeyList: "Список API-ключей",
+            apiKeyDirectShort: "Ключ прямого доступа",
+            apiKeyFilter: "API-ключ или домен",
+            apiKeyFilterApply: "Найти",
+            apiKeyEnabled: "активен",
+            apiKeyDisabled: "не активен",
+            apiKeyCreated: "получен",
 
             directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
             directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
@@ -130,8 +138,16 @@
             apiKeys: "API-keys",
             apiKeyInvite: "To get a key use apropriate links below",
             apiKeyDomain: "Domain API-key (for sites)",
+            apiKeyDomainCap: "Domain API-key",
             apiKeyDirect: "Direct access API-key (for applications)",
+            apiKeyDirectCap: "Direct access API-key",
             apiKeyList: "Issued API-keys list",
+            apiKeyDirectShort: "Direct access key",
+            apiKeyFilter: "Key or domain",
+            apiKeyFilterApply: "Search",
+            apiKeyEnabled: "enabled",
+            apiKeyDisabled: "disabled",
+            apiKeyCreated: "created",
 
             directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
             directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
@@ -405,8 +421,10 @@
                 },
                 function (response) {
                     wait.hide();
-                    if (response.Status.toLowerCase() == 'ok' && response.Result)
+                    if (response.Status.toLowerCase() == 'ok' && response.Result) {
                         changePassForm.hide().prev().find('.PasswordState').text(_gtxt('ProfilePlugin.passwordChanged'));
+                        changePassControls.first().text(_gtxt('ProfilePlugin.getNew'));
+                    }
                     else
                         changePassForm.trigger('onerror', response.Result.Message);
                 });
@@ -425,24 +443,77 @@
 
             // API-keys dialogs
             var closeApiKeyDialog = function () {
-                if ($('.apiKeyForm').length > 0)
-                    removeDialog($('.apiKeyForm').parent()[0]);
+                var akd = $('.apiKeyDialog');
+                if (akd.length > 0) {
+                    akd.find('.licence').mCustomScrollbar("destroy");
+                    akd.find('.list').mCustomScrollbar("destroy");
+                    removeDialog($('.apiKeyDialog').parent()[0]);
+                }
             },
-            showApiKeyForm = function (key_type) {
-                if ($('.apiKeyForm').length > 0)
-                    return;
+            showApiKeyDialog = function (key_type) {
+                //if ($('.apiKeyDialog').length > 0) {
+                //  return;
+                //}
+
+                closeApiKeyDialog();
                 clearPageErrors($('.page:visible'));
-                var fordirect = key_type == 'Direct' ?
+
+                if (key_type == 'List') {
+                    var akDialog = $('<div class="apiKeyDialog"></div>'),
+                    wait = $('<div style="position:absolute; top:100px; left:270px"><img src="img/progress.gif"></div>');
+                    akDialog.append(wait);
+                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akDialog[0], 555, 340);
+                    sendCrossDomainJSONRequest(mykosmosnimki + "/apikeys.ashx", function (response) {
+                        if (parseResponse(response) || response.Status == 'OK') {
+                            wait.remove();
+                            if (response.Result && response.Result.length > 0) {
+                                list = $('<div class="list"></div>'),
+                                createTbl = function (filter) {
+                                    var tbl = '<div style="padding-right:1px"><table style="height:10px;">';
+                                    var re = new RegExp(filter, 'i');
+                                    for (var i = 0; i < response.Result.length; ++i)
+                                        if (filter == null ||  filter.search(/\S/)<0 ||response.Result[i].Apikey.search(re) != -1 || response.Result[i].Domain.search(re) != -1)
+                                            tbl += '<tr><td>' + response.Result[i].Apikey + '</td><td style="word-break:break-all">' + (response.Result[i].AllowDirect ? _gtxt('ProfilePlugin.apiKeyDirectShort') : response.Result[i].Domain) +
+                                '</td><td class="' + (response.Result[i].IsActive ? 'enabled' : 'disabled') + '">' + (response.Result[i].IsActive ? _gtxt('ProfilePlugin.apiKeyEnabled') : _gtxt('ProfilePlugin.apiKeyDisabled')) +
+                                '</td><td>' + _gtxt('ProfilePlugin.apiKeyCreated') + '<br>' + response.Result[i].Created + '</td></tr>';
+                                    tbl += '</table></div>';
+                                    return tbl;
+                                };
+                                var filter = $('<div><input type="text" placeholder="' + _gtxt('ProfilePlugin.apiKeyFilter') + '">&nbsp;&nbsp;&nbsp;<input type="button" value="' + _gtxt('ProfilePlugin.apiKeyFilterApply') + '"></div>').appendTo(akDialog);
+                                filter.find('input[type="text"]').keydown(function (e) {
+                                    if (e.which == 13) {
+                                        list.find('table').parent().remove();
+                                        list.mCustomScrollbar('destroy')
+                                        .append(createTbl($(this).val())).mCustomScrollbar();
+                                    }
+                                });
+                                filter.find('input[type="button"]').click(function () {
+                                    list.find('table').parent().remove();
+                                    list.mCustomScrollbar('destroy')
+                                    .append(createTbl($(this).prev().val())).mCustomScrollbar();
+                                });
+                                list.appendTo(akDialog)
+                                .append($(createTbl()))
+                                .mCustomScrollbar();
+                            }
+                        }
+                        else {
+                            removeDialog(akDialog.parent()[0]);
+                        }
+                    });
+                }
+                else {
+                    var fordirect = key_type == 'Direct' ?
                 '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose1"}}</td></tr>' +
                 '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose2"}}</td></tr>'
                 : '';
-                var fordomain = key_type == 'Domain' ?
+                    var fordomain = key_type == 'Domain' ?
                 '<tr><td colspan="2">{{i "ProfilePlugin.keyDomain"}}<input type="text" tabindex="2" class="Site" value="http://"></td></tr>'
                 : '';
-                var akForm = $(Handlebars.compile('<div class="apiKeyForm"><div class="first"><table border="0">' +
-                //'<tr><td colspan="3">'+//'Пожалуйста, ознакомьтесь с <span class="showLicence">условиями использования</span>' +
-                //'' +
-                //'</td></tr>' +
+                    var akForm = $(Handlebars.compile('<div class="apiKeyDialog"><div class="first"><table border="0">' +
+                    //'<tr><td colspan="3">'+//'Пожалуйста, ознакомьтесь с <span class="showLicence">условиями использования</span>' +
+                    //'' +
+                    //'</td></tr>' +
                 '<tr><td colspan="2">{{i "ProfilePlugin.keyLicense"}}</td></tr>' +
                 '<tr><td style="width:1%"><input type="checkbox" tabindex="1" id="agree" class="agree"></td><td><label for="agree">{{i "ProfilePlugin.keyAgreement"}}</label><span class="showLicence">{{i "ProfilePlugin.keyConditions"}}</span></td></tr>' +
                 '<tr><td colspan="2"><div class="licence"></div></td></tr>' +
@@ -451,92 +522,27 @@
                 '<tr><td colspan="2"><div class="spacer"></div></td></tr>' +
                 '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="3" type="button" value="{{i "ProfilePlugin.apiKeyGet"}}"/></td></tr>' +
                 '</table></div>')());
-                var licence = akForm.find('.licence').hide();
-                if (key_type == 'Domain')
-                    akForm.find('.spacer').height('50px');
-                var initH = 320;
-                akForm.find('.showLicence').click(function () {
-                    if (licence.is(':visible')) {
-                        //akForm.parent().dialog("option", "height", initH);
-                        licence.slideUp("fast");
-                    } else {
-                        //if (key_type == 'Direct') akForm.parent().dialog("option", "height", 380);
-                        licence.slideDown("fast");
-                    }
-                });
-                window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akForm[0], 555, initH);
-                akForm.parent('.ui-dialog-content').css('overflow', 'hidden');
-                licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
-                /*
-                var registrationForm = $(Handlebars.compile('<table class="registrationForm" border="0">' +
-                '<tr><td colspan="2" class="header">{{i "ProfilePlugin.registrationPageAnnotation"}}</td></tr>' +
-                '<tr><td colspan="2">{{i "ProfilePlugin.email"}} <input type="text" tabindex="1" class="Login EmailEmpty WrongEmail EmailExists"/></td></tr>' +
-                '<tr>' +
-                '<td>' +
-                '<table border="0"><tr><td>{{i "ProfilePlugin.password"}}</td><td align="right"><input tabindex="2" type="password" class="Password NewPassword NotMatch"/></td></tr></table>' +
-                '<table border="0"><tr><td>{{i "ProfilePlugin.login"}}</td><td align="right"><input type="text" tabindex="4" class="NickName LoginEmpty LoginFormat LoginExists"/></td></tr></table>' +
-                '</td>' +
-                '<td>' +
-                '<table border="0">' +
-                '<tr><td>{{i "ProfilePlugin.repeat"}}</td><td colspan="2" align="right"><input type="password" tabindex="3" class="Repeat NotMatch"/></td></tr>' +
-                '<tr><td>{{i "ProfilePlugin.capcha"}}</td><td align="left"><input type="text" tabindex="5" class="Capcha CapchaRequired WrongCapcha"/></td><td align="right"><img src="' + mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)) + '"></td></tr>' +
-                '</table>' +
-                '</td>' +
-                '</tr>' +
-                '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="6" type="button" value="{{i "ProfilePlugin.register"}}"/></td></tr>' +
-                //'<tr><td colspan="3" class="footer">{{i "ProfilePlugin.backOn"}} <span class="entrance">{{i "ProfilePlugin.loginPage"}}</span></td></tr>' +
-                '</table>')()),
-                regFormDialog,
-                submit = registrationForm.find('input[type="button"]').click(function () {
-                //wait.show();
-                sendCrossDomainPostRequest(mykosmosnimki + "/Handler/Registration", { WrapStyle: 'message',
-                email: registrationForm.find('.Login').val(),
-                login: registrationForm.find('.NickName').val(),
-                password: registrationForm.find('.Password').val(),
-                repeat: registrationForm.find('.Repeat').val(),
-                captcha: registrationForm.find('.Capcha').val(),
-                debug: true
-                },
-                function (response) {
-                //wait.hide();
-                if (response.Status.toLowerCase() == 'ok' && response.Result) {
-                removeDialog(regFormDialog);
-                afterRegistration();
+                    var licence = akForm.find('.licence').hide();
+                    if (key_type == 'Domain')
+                        akForm.find('.spacer').height('50px');
+                    var initH = 320;
+                    akForm.find('.showLicence').click(function () {
+                        if (licence.is(':visible')) {
+                            //akForm.parent().dialog("option", "height", initH);
+                            licence.slideUp("fast");
+                        } else {
+                            //if (key_type == 'Direct') akForm.parent().dialog("option", "height", 380);
+                            licence.slideDown("fast");
+                        }
+                    });
+                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akForm[0], 555, initH);
+                    akForm.parent('.ui-dialog-content').css('overflow', 'hidden');
+                    licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
                 }
-                else {
-                clearError();
-                registrationForm.find(':password,:text').filter(function () { return $(this).val() == ""; }).addClass('error');
-                if (response.Result.length > 0 && response.Result[0].Key) {
-                registrationForm.find('.ErrorSummary').text(
-                _gtxt('ProfilePlugin.Error' + response.Result[0].Key) + " " + response.Result[0].Value.Errors[0].ErrorMessage)
-                .css('visibility', 'visible');
-                registrationForm.find('.' + response.Result[0].Key).addClass('error');
-                }
-                else {
-                registrationForm.find('.ErrorSummary').text(_gtxt('ProfilePlugin.Error' + response.Result.Message)).css('visibility', 'visible');
-                registrationForm.find('.' + response.Result.Message).addClass('error');
-                }
-                registrationForm.find('img').attr("src", mykosmosnimki + '/Account/Captcha/sort?r=' + Math.round(Math.random() * Math.pow(10, 9)));
-                }
-                });
-                });
-                var clearError = function () {
-                registrationForm.find('.error').removeClass('error');
-                registrationForm.find('.ErrorSummary').css('visibility', 'hidden');
-                registrationForm.find('.Capcha').val("");
-                };
-                registrationForm.find('input[type="text"], input[type="password"]')
-                .keydown(function (e) {
-                if (e.which == 13)
-                submit.click();
-                })
-                .focusin(clearError);
-                regFormDialog = window.showDialog(_gtxt('ProfilePlugin.registration'), registrationForm[0], 605, 300);
-                return regFormDialog;
-                */
             };
-            page3.find('.apiKeyDomain').click(function () { showApiKeyForm('Domain'); });
-            page3.find('.apiKeyDirect').click(function () { showApiKeyForm('Direct'); });
+            page3.find('.apiKeyDomain').click(function () { showApiKeyDialog('Domain'); });
+            page3.find('.apiKeyDirect').click(function () { showApiKeyDialog('Direct'); });
+            page3.find('.apiKeyList').click(function () { showApiKeyDialog('List'); });
 
             /////////////////////////////
 
@@ -600,6 +606,7 @@
             ppPages.bind('onrender', function () {
                 clearPageErrors($(this));
                 changePassForm.hide();
+                changePassControls.first().text(_gtxt('ProfilePlugin.getNew'));
                 return false;
             });
 
