@@ -33,21 +33,21 @@
             return true;
         }
         
-        var atrsSuggest = _mapHelper.createSuggestCanvas(layerProperties.get('Attributes') || [], quicklookText, '[suggest]', setQuicklook);
+        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText, '[suggest]', setQuicklook);
         
         quicklookText.onfocus = function()
         {
-            atrsSuggest.style.display = 'none';
+            suggestWidget.el.style.display = 'none';
             
             return true;
         }
         
-        var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
+        var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
         
         divAttr.onclick = function()
         {
-            if (atrsSuggest.style.display == 'none')
-                $(atrsSuggest).fadeIn(500);
+            if (suggestWidget.el.style.display == 'none')
+                $(suggestWidget.el).fadeIn(500);
             
             return true;
         }

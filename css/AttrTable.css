@@ -1,0 +1,79 @@
+.attrsHelperBounding {
+    width: 140px;
+    height: 80px;
+    position: absolute;
+    left: -8px;
+    top: -75px;
+}
+
+.attrsDownloadLink {
+    margin-right: 10px;
+}
+
+.attrs-table-active-row {
+    display: block;
+    width: 258px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    margin: 4px 0px 2px 3px;
+    font-size: 12px;
+}
+
+.attrs-table-active-checkbox {
+    margin-right: 3px;
+}
+
+.attrs-table-square-link {
+    float: right;
+}
+
+.attrs-table-square-popover {
+    width: 160px;
+    text-align: right;
+}
+
+.attr-table-query-title {
+    font-size: 12px;
+    margin: 7px 0px 3px 1px;
+}
+
+.attr-table-query {
+    overflow: auto;
+    width: 280px;
+    height: 70px;
+}
+
+.attr-table-query-suggest {
+    margin: 0px 3px;
+}
+
+.attr-table-fields-header {
+    font-size: 12px;
+    margin: 7px 0px 3px 1px;
+}
+
+.attr-table-columns-container {
+    overflow-y: auto;
+    width: 279px;
+    height: 220px;
+}
+
+.attr-table-params-buttons {
+    text-align: right;
+    margin: 5px 0px 0px;
+    width: 300px;
+}
+
+.attr-table-params-clear {
+    padding: 0px 5px;
+    margin-right: 3px;
+}
+
+.attr-table-params-find {
+    padding: 0px 5px;
+    margin-right: 17px;
+}
+
+.attr-query-container .suggest-container {
+    margin-left: 3px;
+}

@@ -1,0 +1,43 @@
+/* nsGmx.SuggestWidget */
+.suggest-helper {
+    overflow-y: auto;
+    width: 130px;
+    height: 70px;
+    position: absolute;
+    left: -3px;
+    top: -70px;
+    border: 1px solid #AFC0D5;
+    background-color: #FFFFFF;
+}
+
+.suggest-helper-elem {
+    width: 110px;
+    height: 14px;
+    padding: 2px 0px 1px 3px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.suggest-helper-hover {
+    background-color: #91C1D2;
+}
+
+.suggest-link-container {
+    cursor: pointer;
+    color: #999999;
+    position: relative;
+}
+
+/* nsGmx.AttrSuggestWidget */
+.suggest-value {
+    margin: 0px 10px;
+}
+
+.suggest-op > .suggest-helper {
+    width: 80px;
+}
+
+.suggest-op .suggest-helper-elem {
+    width: 60px;
+}

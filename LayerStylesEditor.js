@@ -335,102 +335,30 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 			var filterNum = getOwnChildNumber(filterText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
                 layer = nsGmx.gmxMap.layersByID[elemCanvas.parentNode.gmxProperties.content.properties.name],
 				filter = layer.getStyle(filterNum);
-			
+
             var newStyle = $.extend(true, {}, filter);
-            
+
             newStyle.Filter = filterText.value;
             layer.setStyle(newStyle, filterNum);
 		}
 
 	filterText.value = filter;
-	
+
 	filterText.onkeyup = function()
 	{
 		setFilter();
-		
+
 		return true;
 	}
-	
+
 	var mapName = elemCanvas.parentNode.gmxProperties.content.properties.mapName,
 		layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
-		attrsSuggest = _mapHelper.createSuggestCanvas(attrs ? attrs : [], filterText, "\"suggest\"", setFilter, _mapHelper.attrValues[mapName][layerName], true),
-		valuesSuggest = _mapHelper.createSuggestCanvas(attrs ? attrs : [], filterText, "\"suggest\"", setFilter, _mapHelper.attrValues[mapName][layerName]),
-		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','IN','LIKE','()'], filterText, " suggest ", setFilter);
-	
-	opsSuggest.style.width = '80px';
-	$(opsSuggest).children().css('width','60px');
-	
-	var divAttr = _div([_t(_gtxt("Атрибут >")), attrsSuggest], [['dir','className','attrsHelperCanvas']]),
-		divValue = _div([_t(_gtxt("Значение >")), valuesSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-		divOp = _div([_t(_gtxt("Операция >")), opsSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-		clickFunc = function(div)
-		{
-			if (document.selection)
-			{
-				filterText.focus();
-				var sel = document.selection.createRange();
-				div.sel = sel;
-				filterText.blur();
-			}
-			
-			$(divAttr.parentNode.parentNode.parentNode).find(".attrsHelperCanvas").children("[arr]").fadeOut(300, function()
-			{
-				$(this).remove();
-			})
-		};
+        attrSuggestWidget = new nsGmx.AttrSuggestWidget(filterText, attrs || [], _mapHelper.attrValues[mapName][layerName]);
 
-	divAttr.onclick = function()
-	{
-		clickFunc(attrsSuggest);
-		
-		$(attrsSuggest).fadeIn(300);
-		$(valuesSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	divValue.onclick = function()
-	{
-		clickFunc(valuesSuggest);
-		
-		$(valuesSuggest).fadeIn(300);
-		$(attrsSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	divOp.onclick = function()
-	{
-		clickFunc(opsSuggest);
-		
-		$(opsSuggest).fadeIn(300);
-		$(attrsSuggest).fadeOut(300);
-		$(valuesSuggest).fadeOut(300);
-		
-		return true;
-	}
-	
-	filterText.onclick = function()
-	{
-		$(attrsSuggest).fadeOut(300);
-		$(valuesSuggest).fadeOut(300);
-		$(opsSuggest).fadeOut(300);
-		
-		if (divAttr.childNodes.length > 2)
-			divAttr.lastChild.removeNode(true);
-		if (divValue.childNodes.length > 2)
-			divValue.lastChild.removeNode(true);
-		
-		return true;
-	}
-	
-	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])]),
-											 _td([_div([divValue],[['css','position','relative']])]),
-											 _td([_div([divOp],[['css','position','relative']])])])])],[['css','margin','0px 3px']]),
-		div = _div([filterText, suggestCanvas],[['attr','filterTable',true]])
-	
+    var suggestCanvas = attrSuggestWidget.el[0];
+
+    var div = _div([filterText, suggestCanvas],[['attr','filterTable',true]]);
+
 	div.getFilter = function()
 	{
 		return filterText.value;
@@ -439,7 +367,7 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 	{
 		setFilter();
 	};
-	
+
 	return div;
 }
 
@@ -546,14 +474,14 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 	
 	balloonText.value = (balloonParams.Balloon) ? balloonParams.Balloon : defaultBalloonText();
 	
-	var atrsSuggest = _mapHelper.createSuggestCanvas(attrs ? attrs : [], balloonText, '[suggest]', setBalloon);
+	var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], balloonText, '[suggest]', setBalloon);
 	
-	var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
+	var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
 	
 	divAttr.onclick = function()
 	{
-		if (atrsSuggest.style.display == 'none')
-			$(atrsSuggest).fadeIn(300);
+		if (suggestWidget.el.style.display == 'none')
+			$(suggestWidget.el).fadeIn(300);
 		
 		return true;
 	}

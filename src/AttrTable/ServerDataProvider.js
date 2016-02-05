@@ -1,9 +1,9 @@
 !(function(){
 
 /** Провайдер данных для {@link nsGmx.ScrollTable}. Получает данные от сервера в формате ГеоМиксера
-* @alias nsGmx.ScrollTable.AttributesServerDataProvider
+* @alias nsGmx.AttrTable.ServerDataProvider
 * @class
-* @extends nsGmx.AttrTable.ServerDataProvider
+* @extends nsGmx.ScrollTable.IDataProvider
 */
 var ServerDataProvider = function(params)
 {

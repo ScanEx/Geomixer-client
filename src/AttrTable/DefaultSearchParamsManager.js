@@ -7,6 +7,21 @@ var DefaultSearchParamsManager = function() {
     this._container = null;
 }
 
+/*var template = Handlebars.compile('<div>' +
+    '<div>' +
+        '<div class="attr-table-query-title">{{i "SQL-условие WHERE"}}</div>' +
+        '<textarea class="inputStyle attr-table-query"></textarea>' +
+        '<table class="attr-table-query-suggest"></table>' +
+    '</div>' +
+    '<div class="attr-table-fields-header">{{i "Показывать столбцы"}}:</div>' +
+    '<div class="attr-table-columns-container">' +
+    '</div>' +
+    '<div class="attr-table-params-buttons">' +
+        '<input class="btn attr-table-params-clear" type="submit" value="{{i "Очистить поиск"}}">' +
+        '<input class="btn attr-table-params-find" type="submit" value="{{i "Найти"}}">' +
+    '</div>' +
+'</div>');*/
+
 DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
         paramsWidth = 300,
@@ -37,83 +52,12 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         attrHash[attrNames[a]] = [];
         
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.name );
-    var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this._queryTextarea, "\"suggest\"", function(){}, attrProvider, true),
-        valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this._queryTextarea, "\"suggest\"", function(){}, attrProvider),
-        opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this._queryTextarea, " suggest ", function(){});
-        
-    opsSuggest.style.width = '80px';
-    $(opsSuggest).children().css('width','60px');
     
-    var divAttr = _div([_t(_gtxt("Атрибут >")), attrsSuggest], [['dir','className','attrsHelperCanvas']]),
-        divValue = _div([_t(_gtxt("Значение >")), valuesSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-        divOp = _div([_t(_gtxt("Операция >")), opsSuggest], [['dir','className','attrsHelperCanvas'],['css','marginLeft','10px']]),
-        clickFunc = function(div)
-        {
-            if (document.selection)
-            {
-                _this._queryTextarea.focus();
-                var sel = document.selection.createRange();
-                div.sel = sel;
-                _this._queryTextarea.blur();
-            }
-            
-            $(divAttr.parentNode.parentNode.parentNode).find(".attrsHelperCanvas").children("[arr]").fadeOut(300, function()
-            {
-                $(this).remove();
-            })
-        };
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
 
-    divAttr.onclick = function()
-    {
-        clickFunc(attrsSuggest);
-        
-        $(attrsSuggest).fadeIn(300);
-        $(valuesSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        return true;
-    }
+    var suggestCanvas = attrSuggestWidget.el[0];
     
-    divValue.onclick = function()
-    {
-        clickFunc(valuesSuggest);
-        
-        $(valuesSuggest).fadeIn(300);
-        $(attrsSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        return true;
-    }
-    
-    divOp.onclick = function()
-    {
-        clickFunc(opsSuggest);
-        
-        $(opsSuggest).fadeIn(300);
-        $(attrsSuggest).fadeOut(300);
-        $(valuesSuggest).fadeOut(300);
-        
-        return true;
-    }
-    
-    this._queryTextarea.onclick = function()
-    {
-        $(attrsSuggest).fadeOut(300);
-        $(valuesSuggest).fadeOut(300);
-        $(opsSuggest).fadeOut(300);
-        
-        if (divAttr.childNodes.length > 2)
-            divAttr.lastChild.removeNode(true);
-        if (divValue.childNodes.length > 2)
-            divValue.lastChild.removeNode(true);
-        
-        return true;
-    }
-    
-    var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])]),
-                                             _td([_div([divValue],[['css','position','relative']])]),
-                                             _td([_div([divOp],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
-    _(container, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas],[['attr','filterTable',true]])])
+    _(container, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas],[['dir','className','attr-query-container'], ['attr','filterTable',true]])])
     
     _(container, [_div([_t(_gtxt("Показывать столбцы") + ":")],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']])])
     
@@ -164,6 +108,7 @@ DefaultSearchParamsManager.prototype.resize = function(dims) {
     if (this._columnsList) {
         var container = this._container,
             height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
+        // $(this._container).find('.attr-table-columns-container')[0].style.height = height;
         $(this._container).find('.attrsColumnsList')[0].style.height = height;
     }
 }
