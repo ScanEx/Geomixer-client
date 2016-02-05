@@ -480,9 +480,8 @@ var prop = layer._gmx.properties;
                     if (columnNames[i] === 'geomixergeojson')
                     {
                         var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
-                        
-                        bindGeometry(geom);
                         if (geom) {
+                            bindGeometry(geom);
                             originalGeometry = $.extend(true, {}, geom);
                         }
                     }
