@@ -77,3 +77,15 @@
 .attr-query-container .suggest-container {
     margin-left: 3px;
 }
+
+.attr-table-geomtitle {
+    margin-right: 3px;
+}
+
+.attr-table-geom-placeholder .drawingObjectsItemTitle {
+    margin-left: 0px;
+}
+
+.attr-table-geom-placeholder {
+    color: #215570;
+}

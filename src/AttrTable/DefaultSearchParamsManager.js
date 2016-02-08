@@ -40,7 +40,10 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
     
     cleanButton.onclick = function()
     {
-        _this._queryTextarea.value = "";
+        _this._queryTextarea.value = '';
+        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+        _this._geometryInfoRow = null;
+        
         $(_this).trigger('queryChange');
     }
     
@@ -56,6 +59,41 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
     var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
 
     var suggestCanvas = attrSuggestWidget.el[0];
+
+    this._geometryInfoRow = null;
+
+    var geomUI = $(Handlebars.compile('<span>' +
+        '<span class="attr-table-geomtitle">{{i "Искать внутри полигона"}}</span>' +
+        '<span class="gmx-icon-choose"></span>' +
+        '<span class="attr-table-geom-placeholder"></span>' +
+    '</span>')());
+
+    geomUI.find('.gmx-icon-choose').click(function() {
+        nsGmx.Controls.chooseDrawingBorderDialog(
+            'attrTable',
+            function(drawingObject) {
+                _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+                var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
+                _this._geometryInfoRow = new InfoRow(
+                    nsGmx.leafletMap,
+                    geomUI.find('.attr-table-geom-placeholder')[0],
+                    drawingObject, 
+                    {
+                        editStyle: false, 
+                        allowDelete: true 
+                    }
+                );
+                
+                $(_this._geometryInfoRow).on('onRemove', function() {
+                    _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+                    _this._geometryInfoRow = null;
+                });
+            },
+            {geomType: 'POLYGON'}
+        );
+    })
+    
+    $(container).append(geomUI);
     
     _(container, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas],[['dir','className','attr-query-container'], ['attr','filterTable',true]])])
     
@@ -97,9 +135,15 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
 };
     
 DefaultSearchParamsManager.prototype.getQuery = function() {
-    return this._queryTextarea && this._queryTextarea.value;
+    var query = this._queryTextarea && this._queryTextarea.value,
+        drawingObject = this._geometryInfoRow && this._geometryInfoRow.getDrawingObject(),
+        geom = drawingObject && drawingObject.toGeoJSON().geometry,
+        geomStr = geom ? 'intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(geom) + '\', 4326))' : '',
+        resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
+
+    return resQuery;
 }
-    
+
 DefaultSearchParamsManager.prototype.getActiveColumns = function() {
     return this._activeColumns;
 }
@@ -108,7 +152,6 @@ DefaultSearchParamsManager.prototype.resize = function(dims) {
     if (this._columnsList) {
         var container = this._container,
             height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
-        // $(this._container).find('.attr-table-columns-container')[0].style.height = height;
         $(this._container).find('.attrsColumnsList')[0].style.height = height;
     }
 }
