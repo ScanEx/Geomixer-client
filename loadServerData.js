@@ -305,7 +305,7 @@ wfsParser.prototype.parsePoint = function(node)
 		}
 	}
 	
-	return {feature:{}, geometry:{type: 'POINT', coordinates: this.swapCoordinates([Number(coords[0]), Number(coords[1])])}}
+	return {feature:{}, geometry:{type: 'Point', coordinates: this.swapCoordinates([Number(coords[0]), Number(coords[1])])}}
 }
 
 wfsParser.prototype.parseLineString = function(node)
@@ -352,7 +352,7 @@ wfsParser.prototype.parseLineString = function(node)
 	
 	if (points.length != 0)
 	{
-		return {feature:{}, geometry:{type: 'LINESTRING', coordinates: points}}
+		return {feature:{}, geometry:{type: 'LineString', coordinates: points}}
 	}
 	else
 		return false
@@ -377,7 +377,7 @@ wfsParser.prototype.parsePolygon = function(node)
 		}
 	}
 	
-	return {feature:{}, geometry:{type: 'POLYGON', coordinates: components}}
+	return {feature:{}, geometry:{type: 'Polygon', coordinates: components}}
 }
 
 wfsParser.prototype.swapCoordinates = function(arr)
@@ -516,6 +516,7 @@ queryServerData.prototype = new leftMenu();
 
 /**
     Загружает виджет для добавления/просмотра WMS/WFS слоёв
+ @param protocol
  @param parseFunc 
  @param drawFunc
  @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/> 
@@ -523,7 +524,7 @@ queryServerData.prototype = new leftMenu();
         - collect()->Object Возвращает выбранные пользователем объекты<br/>
  @param version {string} Версия протокола, которая будет использоваться
 */
-queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManager, version)
+queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customParamsManager, version)
 {
 	window.convertCoords = function(coordsStr)
 	{
@@ -572,7 +573,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 			if ( customParamsManager )
 				_this.customParams = customParamsManager.collect();
 				
-			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc);
+			_this.getCapabilities(protocol, strip(inputField.value), parseFunc, drawFunc);
 				
 			inputField.value = '';
 		}
@@ -604,7 +605,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 	_(this.workCanvas, [canvas, this.parentCanvas])
 }
 
-queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc, version)
+queryServerData.prototype.getCapabilities = function(protocol, url, parseFunc, drawFunc, version)
 {
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
@@ -616,11 +617,11 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc, v
 	
     var capabilitiesUrl = 
             url.replace(/REQUEST=GetCapabilities[\&]*/i, '')
-               .replace(/SERVICE=WMS[\&]*/i, '')
+               .replace(new RegExp('SERVICE=' + protocol + '[\&]', 'i'), '')
                .replace(/\&$/, '');
     
     capabilitiesUrl += capabilitiesUrl.indexOf('?') !== -1 ? '&' : '?';
-    capabilitiesUrl += 'REQUEST=GetCapabilities&SERVICE=WMS';
+    capabilitiesUrl += 'REQUEST=GetCapabilities&SERVICE=' + protocol;
     
     if (version) {
         capabilitiesUrl += '&VERSION=' + version;
@@ -700,27 +701,30 @@ queryServerData.prototype.saveGML = function(geometries)
 queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, box, header, loadLayerParams)
 {
 	var parent = {
-					'POINT': globalFlashMap.addObject(),
-					'LINESTRING': globalFlashMap.addObject(),
-					'POLYGON': globalFlashMap.addObject()
+					'Point': L.gmx.createLayer({properties: {}}).addTo(nsGmx.leafletMap),
+					'LineString': L.gmx.createLayer({properties: {}}).addTo(nsGmx.leafletMap),
+					'Polygon': L.gmx.createLayer({properties: {}}).addTo(nsGmx.leafletMap)
 				},
 		styles = {
-					'POINT': typeof loadLayerParams != 'undefined' && loadLayerParams['point'] ? loadLayerParams['point'].RenderStyle : { marker: { size: 2 }, outline: { color: 0x0000ff, thickness: 1 } },
-					'LINESTRING': typeof loadLayerParams != 'undefined' && loadLayerParams['linestring'] ? loadLayerParams['linestring'].RenderStyle : { outline: { color: 0x0000ff, thickness: 2 } },
-					'POLYGON': typeof loadLayerParams != 'undefined' && loadLayerParams['polygon'] ? loadLayerParams['polygon'].RenderStyle : { outline: { color: 0x0000ff, thickness: 2, opacity: 100 }, fill: {color: 0xffffff, opacity: 20} }
+					'Point': typeof loadLayerParams != 'undefined' && loadLayerParams['point'] ? loadLayerParams['point'].RenderStyle : { marker: { size: 2 }, outline: { color: 0x0000ff, thickness: 1 } },
+					'LineString': typeof loadLayerParams != 'undefined' && loadLayerParams['linestring'] ? loadLayerParams['linestring'].RenderStyle : { outline: { color: 0x0000ff, thickness: 2 } },
+					'Polygon': typeof loadLayerParams != 'undefined' && loadLayerParams['polygon'] ? loadLayerParams['polygon'].RenderStyle : { outline: { color: 0x0000ff, thickness: 2, opacity: 100 }, fill: {color: 0xffffff, opacity: 20} }
 				};
-	parent['POINT'].setStyle(styles['POINT']);
-	parent['LINESTRING'].setStyle(styles['LINESTRING']);
-	parent['POLYGON'].setStyle(styles['POLYGON']);
+	// parent['POINT'].setStyle(styles['POINT']);
+	// parent['LINESTRING'].setStyle(styles['LINESTRING']);
+	// parent['POLYGON'].setStyle(styles['POLYGON']);
 	
 	var geomsPresent = {},
-		bounds = getBounds();
+		bounds = L.gmxUtil.bounds(),
+        items = {'Point': [], 'LineString': [], 'Polygon': []};
 	
 	for (var i = 0; i < geometries.length; i++)
 	{
-		var elem = parent[geometries[i].geometry.type].addObject(geometries[i].geometry);
+		//var elem = parent[geometries[i].geometry.type].addObject(geometries[i].geometry);
+        items[geometries[i].geometry.type].push([L.gmxUtil.geoJSONtoGeometry(geometries[i].geometry, true)]);
+        //parent[geometries[i].geometry.type].addItems();
 		
-		if (objLength(geometries[i].feature) > 0)
+		/*if (objLength(geometries[i].feature) > 0)
 		{
 			(function(i)
 			{
@@ -741,13 +745,17 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 						_diagram.oldBalloon.resize();
 				})
 			})(i);
-		}
-		
+		}*/
+
 		geomsPresent[geometries[i].geometry.type] = true;
-		
-		bounds.update(geometries[i].geometry.coordinates);
+
+		bounds.extendArray(geometries[i].geometry.coordinates[0]);
 	}
-	
+
+    parent['Point'].addData(items['Point']);
+    parent['LineString'].addData(items['LineString']);
+    parent['Polygon'].addData(items['Polygon']);
+
 	var divCanvas = _div(),
 		divChilds = _div(),
 		spanHeader = _span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')]),
@@ -755,10 +763,12 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	
 	var clickFunc = function(flag)
 	{
-		parent['POINT'].setVisible(flag);
-		parent['LINESTRING'].setVisible(flag);
-		parent['POLYGON'].setVisible(flag);
-		
+        var lmap = nsGmx.leafletMap,
+            method = flag ? 'addLayer' : 'removeLayer';
+        lmap[method](parent['Point']);
+        lmap[method](parent['LineString']);
+        lmap[method](parent['Polygon']);
+
 		if (flag)
 			show(divChilds);
 		else
@@ -774,14 +784,16 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 			box.checked = true;
 		}
 		
-		globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+		//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+        nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
 	}
 	
 	parentTreeCanvas.clear = function()
 	{
-		parent['POINT'].remove();
-		parent['LINESTRING'].remove();
-		parent['POLYGON'].remove();
+        var lmap = nsGmx.leafletMap;
+		lmap.removeLayer(parent['Point']);
+		lmap.removeLayer(parent['LineString']);
+		lmap.removeLayer(parent['Polygon']);
 		
 		divCanvas.removeNode(true);
 	}
@@ -800,43 +812,44 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	
 	_(divCanvas, [divChilds]);
 	
-	for (var type in geomsPresent)
-	{
-		var elemCanvas = _div(null, [['css','padding','2px'],['attr','geometryType', type]]),
-			//icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
-			spanElem = _span(null, [['dir','className','layerfeature']]);
+	// for (var type in geomsPresent)
+	// {
+		// var elemCanvas = _div(null, [['css','padding','2px'],['attr','geometryType', type]]),
+			// //icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
+			// spanElem = _span(null, [['dir','className','layerfeature']]);
 		
-		if (type == 'POINT')
-			_(spanElem, [_t(_gtxt('точки'))]);
-		else if (type == 'LINESTRING')
-			_(spanElem, [_t(_gtxt('линии'))]);
-		else if (type == 'POLYGON')
-			_(spanElem, [_t(_gtxt('многоугольники'))]);
+		// if (type == 'Point')
+			// _(spanElem, [_t(_gtxt('точки'))]);
+		// else if (type == 'LineString')
+			// _(spanElem, [_t(_gtxt('линии'))]);
+		// else if (type == 'Polygon')
+			// _(spanElem, [_t(_gtxt('многоугольники'))]);
 		
-        var icon;
-		(function(type){
-			icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)
-		})(type);
+        // var icon;
+		// (function(type){
+			// icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)
+		// })(type);
 		
-		if (typeof loadLayerParams != 'undefined' && loadLayerParams[type.toLowerCase()])
-		{
-			var info = loadLayerParams[type.toLowerCase()];
+		// if (typeof loadLayerParams != 'undefined' && loadLayerParams[type.toLowerCase()])
+		// {
+			// var info = loadLayerParams[type.toLowerCase()];
 			
-			elemCanvas.graphDataType = info.graphDataType;
-			elemCanvas.graphDataProperties = info.graphDataProperties;
-		}
-		else
-		{
-			elemCanvas.graphDataType = "func";
-			elemCanvas.graphDataProperties = "";
-		}
+			// elemCanvas.graphDataType = info.graphDataType;
+			// elemCanvas.graphDataProperties = info.graphDataProperties;
+		// }
+		// else
+		// {
+			// elemCanvas.graphDataType = "func";
+			// elemCanvas.graphDataProperties = "";
+		// }
 		
-		_(elemCanvas, [icon, spanElem])
-		_(divChilds, [elemCanvas]);
+		// _(elemCanvas, [icon, spanElem])
+		// _(divChilds, [elemCanvas]);
 		
-	}
+	// }
 	
-	globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+	//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+    nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
 	
 	box.checked = true;
 }
@@ -982,26 +995,23 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
 			ulChilds.childNodes[i].firstChild.lastChild.clear && ulChilds.childNodes[i].firstChild.lastChild.clear();
-		
+
 		this.parentNode.parentNode.parentNode.removeNode(true);
 	}
-	
+
 	remove.className = 'remove';
 	remove.style.right = '0px';
-	
+
 	_(ulCanvas, [_li([_div([_span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')],[['dir','className','urlHeader']]), divFormat, remove],[['css','position','relative']]), ulChilds])]);
-	
+
 	var formatSelect = nsGmx.Utils._select([_option([_t("JSON")], [['attr','value','json']]),
-								_option([_t("GML / KML")], [['attr','value','gml']])], [['dir','className','selectStyle'],['css','width','100px']])
-	
-	_(divFormat, [_table([_tbody([_tr([_td([formatSelect])])])], [['css','marginLeft','5px']])])
-	
-	var clickFunc = function(layer, parent, flag, elemCanvas, box, header, loadLayerParams)
+								_option([_t("GML / KML")], [['attr','value','gml']])], [['dir','className','selectStyle'],['css','width','100px']]);
+
+	_(divFormat, [formatSelect]);
+
+	var clickFunc = function(layer, flag, elemCanvas, box, header, loadLayerParams)
 	{
-		if (!flag)
-			parent.setVisible(false);
-		else
-		{
+		if (flag) {
 			var newFormat = formatSelect.value;
 			
 			// загружаем данные только один раз
@@ -1030,8 +1040,6 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 				if (typeof elemCanvas.loaded == 'function')
 					elemCanvas.loaded();
 			}
-			
-			parent.setVisible(true);
 		}
 	}
 	
@@ -1040,26 +1048,25 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		var elemCanvas = _div(null, [['css','padding','2px']]),
 			box = _checkbox(false, 'checkbox'),
 			spanElem = _span([_t(serviceLayers[i].title != '' ? serviceLayers[i].title : serviceLayers[i].name)],[['css','cursor','pointer'],['dir','className','layerfeature']]),
-			elemChilds = _div(null, [['css','marginLeft','20px']]),
-			parent = globalFlashMap.addObject();
-		
+			elemChilds = _div(null, [['css','marginLeft','20px']]);
+
 		box.className = 'floatLeft';
-		
+
 		box.setAttribute('layerName', serviceLayers[i].name);
 		
-		(function(layer, parent, parentTreeCanvas, box, header){
+		(function(layer, parentTreeCanvas, box, header){
 			spanElem.onclick = function()
 			{
 				if (!box.checked)
 					box.checked = true;
 				
-				clickFunc.call(_this, layer, parent, true, parentTreeCanvas, box, header);
+				clickFunc.call(_this, layer, true, parentTreeCanvas, box, header);
 			}
 			box.onclick = function()
 			{
-				clickFunc.call(_this, layer, parent, this.checked, parentTreeCanvas, box, header);
+				clickFunc.call(_this, layer, this.checked, parentTreeCanvas, box, header);
 			}
-		})(serviceLayers[i], parent, elemChilds, box, spanElem);
+		})(serviceLayers[i], elemChilds, box, spanElem);
 		
 		_(elemCanvas, [box, _div([spanElem],[['css','display','inline']]), elemChilds])
 		_(ulChilds, [_li([elemCanvas])])
@@ -1070,7 +1077,7 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 				box.checked = true;
 			
 			formatSelect.value = loadParams[serviceLayers[i].name].format;
-			clickFunc.call(_this, serviceLayers[i], parent, true, elemChilds, box, spanElem, loadParams[serviceLayers[i].name].info);
+			clickFunc.call(_this, serviceLayers[i], true, elemChilds, box, spanElem, loadParams[serviceLayers[i].name].info);
 		}
 	}
 	
@@ -1086,7 +1093,7 @@ loadServerData.WFS.load = function()
 	var alreadyLoaded = _queryServerDataWFS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWFS.load(_queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS, null, '1.0.0');
+		_queryServerDataWFS.load('WFS', _queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS, null, '1.0.0');
 }
 loadServerData.WFS.unload = function()
 {
@@ -1098,7 +1105,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
+		_queryServerDataWMS.load('WMS', parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
 }
 loadServerData.WMS.unload = function()
 {
@@ -1156,7 +1163,7 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                     loadParams = {layersVisibility: loadParams};
                 }
                 
-                _queryServerDataWMS.getCapabilities(url, parseWMSCapabilities, function(serviceLayers, url, replaceElem)
+                _queryServerDataWMS.getCapabilities('WMS', url, parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
                 })
@@ -1216,7 +1223,7 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
         {
             (function(loadParams)
             {
-                _queryServerDataWFS.getCapabilities(url, _queryServerDataWFS.parseWFSCapabilities, function(serviceLayers, url, replaceElem)
+                _queryServerDataWFS.getCapabilities('WFS', url, _queryServerDataWFS.parseWFSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWFS.drawWFS(serviceLayers, url, replaceElem, loadParams);
                 }, '1.0.0')

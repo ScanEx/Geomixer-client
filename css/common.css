@@ -357,7 +357,8 @@ textarea.error
 /* loadServerData */
 .serverDataCanvas
 {
-	width: 340px;
+    width: 315px;
+    margin-left: 16px;
 }
 .serverDataInput
 {
