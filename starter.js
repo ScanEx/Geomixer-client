@@ -1122,10 +1122,12 @@ function processGmxMap(state, gmxMap) {
             try {
                 var dateLocal = $.datepicker.parseDate('dd.mm.yy', state.dt);
                 var dateBegin = nsGmx.Calendar.fromUTC(dateLocal);
-                var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000 - 1);
-                var calendar = nsGmx.widgets.commonCalendar.get();
-                calendar.setDateBegin(dateBegin, true);
-                calendar.setDateEnd(dateEnd);
+                var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000);
+                var dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+                dateInterval.set({
+                    dateBegin: dateBegin,
+                    dateEnd: dateEnd
+                });
             } catch(e) {}
         }
 
