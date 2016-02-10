@@ -641,6 +641,13 @@ var DrawingObjectGeomixer = function() {
     downloadGpx.style.margin = '0px 3px';
     
     var downloadNameInput = $('<input/>', {title: _gtxt('drawingObjects.downloadNameTitle')}).val('markers').addClass('inputStyle');
+    
+    downloadNameInput.keyup(function(e) {
+        if (e.keyCode == 13) {
+            downloadNameButton.click();
+        }
+    })
+    
     var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('drawingObjects.download')).addClass('btn').click(function() {
         downloadMarkers(downloadNameInput.val(), downloadFormat);
         downloadNameContainer.hide();
