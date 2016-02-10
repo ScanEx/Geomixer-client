@@ -33,7 +33,7 @@
 
     link.rel   = 'stylesheet';
     link.type  = 'text/css';
-    link.media = options.media || 'screen';
+    //link.media = options.media || 'screen';
     link.href  = url;
 
     if (options.charset) {
