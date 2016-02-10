@@ -1,5 +1,7 @@
 !(function(_){
 
+"use strict";
+
 nsGmx.AttrTable = nsGmx.AttrTable || {};
 
 var attrsTable = function(layerName, layerTitle)
@@ -55,7 +57,7 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
         
     origCanvas && $(origCanvas).empty();
 	
-	var canvas = origCanvas || _div(null,[['attr','id','attrsTableDialog' + this.layerName]])
+	var canvas = origCanvas || _div(null,[['attr','id','attrsTableDialog' + this.layerName], ['css', 'overflow', 'hidden']]),
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
 	
