@@ -160,9 +160,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this._serverDataProvider = new nsGmx.AttrTable.ServerDataProvider({titleToParams: $.extend(this.tableFields.titleToField, {'': '__GeomIsEmpty__'})});
     
     var squareLink = downloadSection.find('.attrs-table-square-link');
-    
-    //пока что только для админов
-    nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || squareLink.hide();
 
     new nsGmx.AttrTable.SquareCalc(squareLink, this.layerName, this._serverDataProvider, _params.searchParamsManager);
     
