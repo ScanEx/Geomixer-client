@@ -701,6 +701,10 @@ function initTimeline(layers) {
 }
 
 window.resizeAll = function() {
+    if (window.printMode) {
+        return;
+    }
+
     var top = 0,
         bottom = 0,
         right = 0,

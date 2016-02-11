@@ -1,0 +1,47 @@
+@media print {
+
+    #header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div, .print-ui {
+        display: none !important;
+    }
+
+    .leaflet-gmx-icon-hide {
+        display: none !important;
+    }
+
+}
+
+@media screen {
+    .print-preview-hide {
+        display: none !important;
+    }
+
+    .print-ui {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+    }
+
+    .print-ui > label {
+        display: block;
+        margin: 2px;
+    }
+    
+    .print-ui-close {
+        padding: 3px;
+        width: 100%;
+        margin-top: 9px;
+    }
+
+
+    .print-preview-all {
+        height: 100%;
+        overflow: scroll;
+    }
+
+    .print-preview-all .leaflet-gmx-icon-hide {
+        display: none !important;
+    }
+
+}

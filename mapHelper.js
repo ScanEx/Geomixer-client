@@ -1082,27 +1082,47 @@ mapHelper.prototype.version = function()
 }
 
 mapHelper.prototype.print = function() {
-    /*window.printMode = true;
-    $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').addClass('print-preview-hide');
-    var ratio = Math.sqrt(2);
-    var mw = $('#flash').width(),
-        mh = $('#flash').height(),
-        sw = $('body').width(),
-        sh = $('body').height(),
+    if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+        return;
+    }
+    
+    var toggleMode = function(isPreviewMode) {
+        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(!isPreviewMode);
+        window.printMode = isPreviewMode;
+        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
+        $('#all').toggleClass('print-preview-all', isPreviewMode);
+    }
+    
+    var updateMapSize = function() {
+        var isPortrait = ui.find('[value=portrait]').prop('checked');
+        $('#flash').css({
+            top: '0px',
+            left: '0px',
+            width: isPortrait ? '8.27in' : '11.7in',
+            height: isPortrait ? '11.7in' : '8.27in'
+        });
         
-        tw = Math.floor(Math.min(sw, sh/ratio)),
-        th = Math.floor(Math.min(sh, sw*ratio));
-        
-    $('#flash').css({
-        top: '0px',
-        left: '0px',
-        // width: tw + 'px',
-        // height: th + 'px'
-        width: '8.27in',
-        height: '11.7in'
+        nsGmx.leafletMap.invalidateSize();
+    }
+    
+    toggleMode(true);
+    
+    var ui = $(Handlebars.compile('<div class="print-ui">' +
+        '<label><input type="radio" name="print-orientation" value="portrait" checked>Portrait</label>' +
+        '<label><input type="radio" name="print-orientation" value="landscape">Landscape</label>' +
+        '<button class="print-ui-close">Закрыть</button>' +
+    '</div>')());
+    
+    ui.find('input[type=radio]').change(updateMapSize);
+    ui.find('.print-ui-close').click(function() {
+        toggleMode(false);
+        window.resizeAll();
+        ui.remove();
     });
     
-    nsGmx.leafletMap.invalidateSize();*/
+    $('body').append(ui);
+    
+    updateMapSize();
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
@@ -1315,7 +1335,6 @@ mapHelp.serviceHelp.unload = function()
 var serviceHelper = function()
 {
 	this.builded = false;
-
 }
 
 serviceHelper.prototype = new leftMenu();
