@@ -947,8 +947,10 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
         drawingBorderDescr = _span(null, [['attr','id','drawingBorderDescr' + name],['css','color','#215570'],['css','marginLeft','3px']]),
         removeBorder = makeImageButton('img/closemin.png','img/close_orange.png'),
         divBorder = _div([drawingBorderDescr, removeBorder]),
-        trPath = _tr([_td([_t(_gtxt("Каталог")), tileCatalogLink, _br(), _t(_gtxt("Файл")), tileFileLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-                      _td([tilePathInput])]),
+        isAdmin = nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN),
+        catalogPathElems = [_t(_gtxt("Каталог")), tileCatalogLink, _br()],
+        filePathElems = [_t(_gtxt("Файл")), tileFileLink],
+        trPath = _tr([_td(isAdmin ? catalogPathElems.concat(filePathElems) : filePathElems, [['css','paddingLeft','5px'],['css','fontSize','12px']]), _td([tilePathInput])]),
         trShape = _tr([_td([_t(_gtxt("Граница")), shapeLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
                        _td([shapePathInput, divBorder])]),
         shapeVisible = function(flag)
