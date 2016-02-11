@@ -42,6 +42,7 @@
             apiKeyDirect: "API-Ключ прямого доступа (для приложений)",
             apiKeyDirectCap: "API-Ключ прямого доступа",
             apiKeyList: "Список API-ключей",
+            apiKeyListCap: "Список API-ключей",
             apiKeyDirectShort: "Ключ прямого доступа",
             apiKeyFilter: "API-ключ или домен",
             apiKeyFilterApply: "Найти",
@@ -51,11 +52,19 @@
 
             directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
             directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
-            keyDomain: "Сайт:",
-            keyLicense: "Лицензия:",
-            keyAgreement: "я согласен с ",
-            keyConditions: "условиями использования",
+            apiKeySite: "Сайт:",
+            apiKeyReadAgreement: "Пожалуйста, ознакомьтесь с ",
+            apiKeyAgreement: "я согласен с ",
+            apiKeyConditions: "условиями использования",
             apiKeyGet: "Получить ключ",
+            apiKeyUrge: "Необходимо принять условия использования",
+            apiKeyAccept: "Принять",
+            apiKeyCancel: "Отклонить",
+            apiKeyReceive: "Ваш новый ключ",
+
+            ErrorApiKeySiteEmpty: "Поле сайт не может быть пустым!",
+            ErrorApiKeySiteInvalid: "Введите корректный адрес вашего сайта! Например, http://kosmosnimki.ru",
+            ErrorApiKeyConditionsNotAccepted: "Для получения ключа необходимо согласиться с условиями использования!",
 
             clientRegistration: "Регистрация oAuth клиента",
             appName: "Название приложения",
@@ -78,7 +87,7 @@
             yes: "да",
             no: "нет",
 
-            ErrorNOT_AUTHORIZED: "Пользователь не авторизован",
+            ErrorNOT_AUTHORIZED: "Пользователь не авторизован!",
             ErrorLoginEmpty: "Требуется указать псевдоним!",
             ErrorLoginFormat: "Неправильный псевдоним! Допустимый вариант ",
             ErrorLoginExists: "Псевдоним уже используется!",
@@ -142,6 +151,7 @@
             apiKeyDirect: "Direct access API-key (for applications)",
             apiKeyDirectCap: "Direct access API-key",
             apiKeyList: "Issued API-keys list",
+            apiKeyListCap: "Issued API-keys list",
             apiKeyDirectShort: "Direct access key",
             apiKeyFilter: "Key or domain",
             apiKeyFilterApply: "Search",
@@ -151,11 +161,19 @@
 
             directKeyPurpose1: "Ключ прямого доступа используется для подключения данных в настольных ГИС-приложениях и в иных случаях, когда использование сайта и клиентского API невозможно.",
             directKeyPurpose2: "Ключ прямого доступа не может быть использован на сайте.",
-            keyDomain: "Site:",
-            keyLicense: "License:",
-            keyAgreement: "я согласен с ",
-            keyConditions: "условиями использования",
+            apiKeySite: "Site:",
+            apiKeyReadAgreement: "Пожалуйста, ознакомьтесь с ",
+            apiKeyAgreement: "я согласен с ",
+            apiKeyConditions: "условиями использования",
             apiKeyGet: "Get the key",
+            apiKeyUrge: "Необходимо принять условия использования",
+            apiKeyAccept: "Accept",
+            apiKeyCancel: "Cancel",
+            apiKeyReceive: "Ваш новый ключ",
+
+            ErrorApiKeySiteEmpty: "Поле сайт не может быть пустым!",
+            ErrorApiKeySiteInvalid: "Введите корректный адрес вашего сайта! Например, http://kosmosnimki.ru",
+            ErrorApiKeyConditionsNotAccepted: "Для получения ключа необходимо согласиться с условиями использования!",
 
             clientRegistration: "oAuth Client Registration",
             appName: "Client Application",
@@ -239,7 +257,7 @@
                             '<div>' +
                                 '{{#content}}' +
                                     '{{#if p}}<p>{{text}}</p>{{/if}}' +
-                                    '{{#if link_button}}<div {{#if id}}class="{{id}} link_button"{{/if}}>{{text}}</div>{{/if}}' +
+                                    '{{#if link_button}}<div {{#if id}}class="{{id}} link_button"{{/if}}><span>{{text}}</span></div>{{/if}}' +
                                 '{{/content}}' +
                             '</div>' +
                         '{{/if}}' +
@@ -450,7 +468,7 @@
                     removeDialog($('.apiKeyDialog').parent()[0]);
                 }
             },
-            showApiKeyDialog = function (key_type) {
+            showApiKeyDialog = function (dtype) {
                 //if ($('.apiKeyDialog').length > 0) {
                 //  return;
                 //}
@@ -458,86 +476,177 @@
                 closeApiKeyDialog();
                 clearPageErrors($('.page:visible'));
 
-                if (key_type == 'List') {
+                if (dtype == 'List') {
                     var akDialog = $('<div class="apiKeyDialog"></div>'),
-                    wait = $('<div style="position:absolute; top:100px; left:270px"><img src="img/progress.gif"></div>');
+                    wait = $('<div style="position:absolute; top:120px; left:270px"><img src="img/progress.gif"></div>');
                     akDialog.append(wait);
-                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akDialog[0], 555, 340);
-                    sendCrossDomainJSONRequest(mykosmosnimki + "/apikeys.ashx", function (response) {
-                        if (parseResponse(response) || response.Status == 'OK') {
-                            wait.remove();
-                            if (response.Result && response.Result.length > 0) {
-                                list = $('<div class="list"></div>'),
+                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + dtype + 'Cap'), akDialog[0], 555, 340);
+                    var startH;
+                    akDialog.parent().on("dialogresizestart", function (event, ui) { startH = ui.size.height; })
+                    .on("dialogresize", function (event, ui) {
+                        var list = akDialog.find('.list');
+                        list.height(list.height() + ui.size.height - startH);
+                        startH = ui.size.height;
+                    });
+                    sendCrossDomainJSONRequest(mykosmosnimki
+                     + "/handler/apikeys?wrapstyle=func", function (response) {
+                         if (parseResponse(response) || response.Status == 'OK') {
+                             wait.remove();
+                             if (response.Result && response.Result.length > 0) {
+                                 list = $('<div class="list"></div>'),
                                 createTbl = function (filter) {
                                     var tbl = '<div style="padding-right:1px"><table style="height:10px;">';
                                     var re = new RegExp(filter, 'i');
                                     for (var i = 0; i < response.Result.length; ++i)
-                                        if (filter == null ||  filter.search(/\S/)<0 ||response.Result[i].Apikey.search(re) != -1 || response.Result[i].Domain.search(re) != -1)
+                                        if (filter == null || filter.search(/\S/) < 0 || response.Result[i].Apikey.search(re) != -1 || (response.Result[i].Domain != 'Direct' && response.Result[i].Domain.search(re) != -1))
                                             tbl += '<tr><td>' + response.Result[i].Apikey + '</td><td style="word-break:break-all">' + (response.Result[i].AllowDirect ? _gtxt('ProfilePlugin.apiKeyDirectShort') : response.Result[i].Domain) +
                                 '</td><td class="' + (response.Result[i].IsActive ? 'enabled' : 'disabled') + '">' + (response.Result[i].IsActive ? _gtxt('ProfilePlugin.apiKeyEnabled') : _gtxt('ProfilePlugin.apiKeyDisabled')) +
-                                '</td><td>' + _gtxt('ProfilePlugin.apiKeyCreated') + '<br>' + response.Result[i].Created + '</td></tr>';
+                                '</td><td>' + response.Result[i].Created + '</td></tr>';
                                     tbl += '</table></div>';
                                     return tbl;
                                 };
-                                var filter = $('<div><input type="text" placeholder="' + _gtxt('ProfilePlugin.apiKeyFilter') + '">&nbsp;&nbsp;&nbsp;<input type="button" value="' + _gtxt('ProfilePlugin.apiKeyFilterApply') + '"></div>').appendTo(akDialog);
-                                filter.find('input[type="text"]').keydown(function (e) {
-                                    if (e.which == 13) {
-                                        list.find('table').parent().remove();
-                                        list.mCustomScrollbar('destroy')
+                                 //var filter = $('<div><input type="text" placeholder="' + _gtxt('ProfilePlugin.apiKeyFilter') + '">&nbsp;&nbsp;&nbsp;<input type="button" value="' + _gtxt('ProfilePlugin.apiKeyFilterApply') + '"></div>').appendTo(akDialog);
+                                 var filter = $('<div style="padding-left:10px">' + _gtxt('ProfilePlugin.apiKeyFilterApply') + ': <input type="text" placeholder="' + _gtxt('ProfilePlugin.apiKeyFilter') + '"></div>').appendTo(akDialog);
+                                 filter.find('input[type="text"]').keyup(function (e) {
+                                     list.find('table').parent().remove();
+                                     list.mCustomScrollbar('destroy')
                                         .append(createTbl($(this).val())).mCustomScrollbar();
-                                    }
-                                });
-                                filter.find('input[type="button"]').click(function () {
-                                    list.find('table').parent().remove();
-                                    list.mCustomScrollbar('destroy')
-                                    .append(createTbl($(this).prev().val())).mCustomScrollbar();
-                                });
-                                list.appendTo(akDialog)
+                                     keys = list.find('table');
+                                     resize();
+                                 });
+                                 list.appendTo(akDialog)
                                 .append($(createTbl()))
                                 .mCustomScrollbar();
-                            }
-                        }
-                        else {
-                            removeDialog(akDialog.parent()[0]);
-                        }
-                    });
+                                 var header = list.before($(Handlebars.compile('<table border=0><tr><th>ключ</th><th>тип/сайт</th><th>состояние</th><th>{{i "ProfilePlugin.apiKeyCreated"}}</th></tr></table>')())).prev(),
+                                keys = list.find('table'),
+                                resize = function () {
+                                    var th = header.find('tr th')
+                                    var td = keys.find('tr:eq(0) td');
+                                    th.eq(0).width(td.eq(0).width());
+                                    th.eq(1).width(td.eq(1).width() - 20);
+                                    th.eq(2).width(td.eq(2).width());
+                                    th.eq(3).width(td.eq(3).width() + 20);
+                                };
+                                 akDialog.parent().on("dialogresize", function (event, ui) {
+                                     resize();
+                                 });
+                                 resize();
+                             }
+                         }
+                         else {
+                             removeDialog(akDialog.parent()[0]);
+                         }
+                     });
                 }
                 else {
-                    var fordirect = key_type == 'Direct' ?
-                '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose1"}}</td></tr>' +
-                '<tr><td colspan="2">{{i "ProfilePlugin.directKeyPurpose2"}}</td></tr>'
-                : '';
-                    var fordomain = key_type == 'Domain' ?
-                '<tr><td colspan="2">{{i "ProfilePlugin.keyDomain"}}<input type="text" tabindex="2" class="Site" value="http://"></td></tr>'
-                : '';
-                    var akForm = $(Handlebars.compile('<div class="apiKeyDialog"><div class="first"><table border="0">' +
-                    //'<tr><td colspan="3">'+//'Пожалуйста, ознакомьтесь с <span class="showLicence">условиями использования</span>' +
-                    //'' +
-                    //'</td></tr>' +
-                '<tr><td colspan="2">{{i "ProfilePlugin.keyLicense"}}</td></tr>' +
-                '<tr><td style="width:1%"><input type="checkbox" tabindex="1" id="agree" class="agree"></td><td><label for="agree">{{i "ProfilePlugin.keyAgreement"}}</label><span class="showLicence">{{i "ProfilePlugin.keyConditions"}}</span></td></tr>' +
-                '<tr><td colspan="2"><div class="licence"></div></td></tr>' +
-                fordomain +
-                fordirect +
-                '<tr><td colspan="2"><div class="spacer"></div></td></tr>' +
-                '<tr><td colspan="2" class="submit"><div class="ErrorSummary">error</div><input tabindex="3" type="button" value="{{i "ProfilePlugin.apiKeyGet"}}"/></td></tr>' +
-                '</table></div>')());
-                    var licence = akForm.find('.licence').hide();
-                    if (key_type == 'Domain')
-                        akForm.find('.spacer').height('50px');
-                    var initH = 320;
+                    var fordirect = dtype == 'Direct' ?
+                    '<div>{{i "ProfilePlugin.directKeyPurpose1"}}</div>' +
+                    '<div>{{i "ProfilePlugin.directKeyPurpose2"}}</div>'
+                    : '';
+                    var fordomain = dtype == 'Domain' ?
+                    '<div>{{i "ProfilePlugin.apiKeySite"}}<input type="text" tabindex="2" class="ApiKeySite ApiKeySiteEmpty ApiKeySiteInvalid" value="http://"></div>'
+                    : '';
+                    var akForm = $(Handlebars.compile('<div class="apiKeyDialog">' +
+                    '<div class="first">' +
+                    '<div>{{i "ProfilePlugin.apiKeyReadAgreement"}}<span class="showLicence">{{i "ProfilePlugin.apiKeyConditions"}}</span></div>' +
+                    '<div><div style="float:left;margin:0"><input type="checkbox" tabindex="1" id="agree" class="agree"></div><div style="padding-left:10px"><label for="agree">{{i "ProfilePlugin.apiKeyAgreement"}} {{i "ProfilePlugin.apiKeyConditions"}}</div></div>' +
+                    fordomain +
+                    fordirect +
+                    '<div class="spacer"></div>' +
+                    '<div class="ErrorSummary"><span class="fail"></span><span class="success"></span><img class="wait" src="img/progress.gif"></div>' +
+                    '<div class="submit"><input tabindex="3" type="button" class="get" title="{{i "ProfilePlugin.apiKeyUrge"}}" value="{{i "ProfilePlugin.apiKeyGet"}}"/></div>' +
+                    '</div>' +
+                    '<div class="licence"></div>' +
+                    '<div class="submit"><input tabindex="1" type="button" class="accept" value="{{i "ProfilePlugin.apiKeyAccept"}}"/><input tabindex="2" type="button" class="cancel" value="{{i "ProfilePlugin.apiKeyCancel"}}"/></div>' +
+                    '</div>')());
+
+                    var licence = akForm.find('.licence'),
+                    spacer = akForm.find('.spacer'),
+                    startH;
+                    licence.hide().next().hide();
+                    if (dtype == 'Domain')
+                        spacer.height('20px');
+
+                    var summary = akForm.find('.ErrorSummary'),
+                    wait = summary.children('.wait'),
+                    site = akForm.find('.ApiKeySite'),
+                    agree = akForm.find('.agree'),
+                    getKey = akForm.find('.get').css('opacity', 0.5)
+                    .click(function () {
+                        var respHandler = function (response) {
+                            wait.css('visibility', 'hidden');
+                            if (response.Status.toLowerCase() == 'ok' && response.Result) {
+                                summary.children('span.success').text(_gtxt('ProfilePlugin.apiKeyReceive') + ' ' + response.Result.Key);
+                            }
+                            else {
+                                summary.children('span.fail').text(_gtxt('ProfilePlugin.Error' + response.Result.Message));
+                                akForm.find('.' + response.Result.Message).addClass('error')
+                            }
+                        };
+                        clearError();
+                        wait.css('visibility', 'visible');
+                        if (site.length)
+                            sendCrossDomainPostRequest(mykosmosnimki
+                        + "/Handler/CreateKey", { WrapStyle: 'message', domain: site.val(), agree: agree.is(':checked'), debug: true }
+                        , respHandler);
+                        else
+                            sendCrossDomainPostRequest(mykosmosnimki
+                        + "/Handler/CreateDirect", { WrapStyle: 'message', agree: agree.is(':checked'), debug: true }
+                        , respHandler);
+                    });
+                    getKey.prop('disabled', true);
+                    site.prop('disabled', true).keydown(function (e) {
+                        if ($(this).is('.error')) clearError();
+                        if (e.which == 13)
+                            getKey.click();
+                    });
+                    var clearError = function () {
+                        summary.children('span').text('');
+                        site.removeClass('error');
+                    };
                     akForm.find('.showLicence').click(function () {
-                        if (licence.is(':visible')) {
-                            //akForm.parent().dialog("option", "height", initH);
-                            licence.slideUp("fast");
-                        } else {
-                            //if (key_type == 'Direct') akForm.parent().dialog("option", "height", 380);
-                            licence.slideDown("fast");
+                        clearError();
+                        licence.show().prev().hide();
+                        licence.next().show();
+                        if (licence.text() == '')
+                            licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
+                    });
+                    licence.next('div').children('input').click(function () {
+                        licence.next().hide();
+                        licence.hide().prev().show();
+                    })
+                    .first().click(function () {
+                        agree[0].checked = true;
+                        agree.change();
+                    })
+                    .next('.cancel').click(function () {
+                        agree[0].checked = false;
+                        agree.change();
+                    });
+                    agree.change(function () {
+                        getKey.prop('disabled', !agree.is(':checked'));
+                        site.prop('disabled', !agree.is(':checked'));
+
+                        if (agree.is(':checked')) {
+                            getKey.css('opacity', 1)
+                            .focus()
+                            .attr('title', _gtxt('ProfilePlugin.apiKeyGet'));
+                        }
+                        else {
+                            getKey.css('opacity', 0.5)
+                            .attr('title', _gtxt('ProfilePlugin.apiKeyUrge'));
                         }
                     });
-                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + key_type), akForm[0], 555, initH);
+
+                    window.showDialog(_gtxt('ProfilePlugin.apiKey' + dtype + 'Cap'), akForm[0], 555, 320);
                     akForm.parent('.ui-dialog-content').css('overflow', 'hidden');
-                    licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
+                    akForm.parent().on("dialogresizestart", function (event, ui) { startH = ui.size.height; })
+                    .on("dialogresize", function (event, ui) {
+                        licence.height(licence.height() + ui.size.height - startH);
+                        spacer.height(spacer.height() + ui.size.height - startH);
+                        startH = ui.size.height;
+                    });
+                    //licence.load('plugins/profileplugin/license.html', function () { licence.mCustomScrollbar() });
                 }
             };
             page3.find('.apiKeyDomain').click(function () { showApiKeyDialog('Domain'); });

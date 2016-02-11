@@ -23,19 +23,24 @@
 {
     text-align:left;
     font-weight:normal;
-    margin:1px 0 6px
+    margin:1px 0 0
 }
 
 .profilePanel-content div.link_button
 {
     text-align:left;
-    font-weight:bold;
     border:none;
+    padding:2px 0 2px 0;
+    margin: 0;
+}
+
+.profilePanel-content div.link_button span
+{
+    font-weight:bold;
     cursor:pointer;
     color:#2372C4;
-    padding:0;
-    margin: 6px 0 0 0;
     text-decoration:underline;
+    white-space:normal;
 }
 
 .profilePanel-content div div
@@ -276,33 +281,47 @@
 }
 
 /*****************************************/
-.apiKeyDialog  tr td
+
+
+.apiKeyDialog .first div
 {
-    font-weight:bold;
-    padding-left: 20px;
-    padding-top: 15px;
-    padding-bottom: 0px;
+    font-weight:normal;
+    margin:15px;
 } 
 
-.apiKeyDialog td.submit
+.apiKeyDialog .first div td
+{
+    padding:5px;
+} 
+
+.apiKeyDialog div.submit
 {
     text-align:center;
 }
 
-.apiKeyDialog td.submit .ErrorSummary
+.apiKeyDialog .ErrorSummary
 {
     color:Red;
     font-weight:normal;
     margin-bottom:15px;
-    visibility:hidden;
     text-align:center;
+}
+
+.apiKeyDialog .ErrorSummary span.success
+{
+    color:Green;
+}
+
+.apiKeyDialog .ErrorSummary img
+{
+    visibility:hidden;
 }
 
 .apiKeyDialog input[type="button"]
 {
     border:none;
     border-radius:2px;
-    margin-top: 0px;
+    margin: 10px;
     background-color: #2372C4;
     color:White;
     padding: 6px 12px 8px 12px;
@@ -314,7 +333,13 @@
     border: 1px solid #ddd;
     padding:4px 8px 4px 8px;
     margin-left:10px;
-    width:415px;
+    margin-bottom:16px;
+    width:80%;
+}
+
+.apiKeyDialog input[type="text"].ApiKeySite
+{
+    width:85%;
 }
 
 .apiKeyDialog input[type="text"].error
@@ -327,13 +352,13 @@
     text-decoration:underline;
     cursor:pointer;
     color:#2372C4;  
+    font-weight:bold;
 }
 
 .apiKeyDialog .licence
 {
-    width:500px;
-    height:160px;
-    margin-top: 16px;
+    height:190px;
+    margin: 10px;
     border: 1px solid #ddd;
     padding: 1px 0 1px 1px;
 }
@@ -356,8 +381,8 @@
     height:3000px;
     border: none;
 }
-*/
 
+*/
 .apiKeyDialog  table
 {
     width:100%;
@@ -366,7 +391,7 @@
 .apiKeyDialog  .list
 { 
     margin-top:10px;
-    height:245px;
+    height:220px;
     width:100%; 
 }
 
