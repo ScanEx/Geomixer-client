@@ -573,6 +573,12 @@ div.unit .unitInfo
     margin-left: 4px;
 }
 
+.propertiesTable-title
+{
+    padding-left: 5px;
+    font-size: 12px;
+}
+
 .layerProperties td
 {
 	height: 18px;
@@ -1536,18 +1542,18 @@ div.layersScroll
 }
 
 /* Common icons */
-.gmx-icon-choose {
-    width: 11px;
-    height: 9px;
-    background-image: url(../img/choose2.png);
-    display: inline-block;
-    cursor: pointer;
-}
-
 .gmx-icon-edit {
     width: 11px;
     height: 11px;
     background-image: url(../img/edit_small.png);
+    display: inline-block;
+    cursor: pointer;
+}
+
+.gmx-icon-choose {
+    width: 11px;
+    height: 9px;
+    background-image: url(../img/choose2.png);
     display: inline-block;
     cursor: pointer;
 }
@@ -1954,4 +1960,8 @@ div.layersScroll
 
 .multilayer-row-td {
     text-align: center;
+}
+
+.layer-editor-legend-image {
+    margin-left: 3px;
 }

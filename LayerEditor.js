@@ -597,7 +597,7 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
     }
             
     var legend = _input(null,[['attr','fieldName','Legend'],['attr','value',layerProperties.get('Legend')],['dir','className','inputStyle'],['css','width','220px']])
-    legend.onkeyup = function() {
+    legend.onkeyup = legend.onchange = function() {
         layerProperties.set('Legend', this.value);
         return true;
     }
@@ -628,7 +628,20 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
         
     if (layerProperties.get('Type') != "Vector") {
-            shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
+        var selectImage = new mapHelper.ImageSelectionWidget();
+        selectImage.on('selected', function(url) {
+            var imgHtml = '<img src="' + url + '"></img>';
+            legend.value = imgHtml;
+            layerProperties.set('Legend', imgHtml);
+        })
+        
+        var tr = $(Handlebars.compile('<tr>' +
+            '<td class="propertiesTable-title">{{i "Легенда"}}<span class="layer-editor-legend-image"></span></td>' +
+            '<td class="layer-editor-legend"></td>' +
+        '</tr>')());
+        tr.find('.layer-editor-legend-image').append(selectImage.el);
+        tr.find('.layer-editor-legend').append(legend);
+        shownProperties.push({tr: tr[0]});
     }
 
     if (!isReadonly) {

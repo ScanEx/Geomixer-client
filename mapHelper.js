@@ -472,49 +472,58 @@ mapHelper.prototype.updateTinyMCE = function(container) {
     });
 }
 
-mapHelper.ImageInputControl = function(initURL)
-{
+//event: selected(url)
+mapHelper.ImageSelectionWidget = Backbone.View.extend({
+    tagName: 'span',
+    className: 'gmx-icon-choose',
+    events: {
+        'click': function() {
+            var imagesDir = nsGmx.AuthManager.getUserFolder() + 'images'
+                _this = this;
+            sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response) {
+                if (!parseResponse(response))
+                    return;
+
+                _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'jpeg', 'png', 'gif', 'swf'], function(path) {
+                    var relativePath = path.substring(imagesDir.length);
+                    if (relativePath[0] == '\\') {
+                        relativePath = relativePath.substring(1);
+                    }
+
+                    var url = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
+
+                    _this.trigger('selected', url);
+                }, {startDir: imagesDir, restrictDir: imagesDir});
+            });
+        }
+    }
+});
+
+mapHelper.ImageInputControl = function(initURL) {
     var prevValue = initURL || '';
     var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','170px']]);
-    _title(inputUrl, _gtxt("URL изображения"));
+    _title(inputUrl, _gtxt('URL изображения'));
     
     var _this = this;
     
-    var update = function()
-    {
-        if (inputUrl.value != prevValue)
-        {
+    var update = function() {
+        if (inputUrl.value != prevValue) {
             prevValue = inputUrl.value;
             $(_this).change();
         }
     }
     
-    var mainDiv = $("<div/>").append(inputUrl);
+    var mainDiv = $('<div/>').append(inputUrl);
     inputUrl.onkeyup = inputUrl.change = update;
     
-    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES))
-    {
-        var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
-        userImageIcon.onclick = function()
-        {
-            var imagesDir = nsGmx.AuthManager.getUserFolder() + 'images';
-            sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
-            {
-                if (!parseResponse(response))
-                    return;
-                    
-                _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'jpeg', 'png', 'gif', 'swf'], function(path)
-                {
-                    var relativePath = path.substring(imagesDir.length);
-                    if (relativePath[0] == '\\') 
-                        relativePath = relativePath.substring(1);
-                        
-                    inputUrl.value = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
-                    update();
-                }, {startDir: imagesDir, restrictDir: imagesDir})
-            })
-        }
-        mainDiv.append(userImageIcon);
+    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES)) {
+        var imageSelectionWidget = new mapHelper.ImageSelectionWidget();
+        imageSelectionWidget.on('selected', function(url) {
+            inputUrl.value = url;
+            update();
+        });
+        
+        mainDiv.append(imageSelectionWidget.el);
     }
 
     this.getControl = function()
@@ -690,12 +699,11 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 		else
 			td = _td([_t(layerProperties[shownProperties[i].field] != null ? layerProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
             
-        var tdTitle = _td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]);
+        var tdTitle = _td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px']]);
         
 		var tr = _tr([tdTitle, td]);
         
-        if (_styles.leftcolumnclass)
-            _(tdTitle, [], [['dir', 'className', _styles.leftcolumnclass]]);
+        _(tdTitle, [], [['dir', 'className', 'propertiesTable-title ' + (_styles.leftcolumnclass || '')]]);
             
         if (_styles.rightcolumnclass)
             _(td, [], [['dir', 'className', _styles.rightcolumnclass]]);
@@ -1073,88 +1081,28 @@ mapHelper.prototype.version = function()
     }, window.nsGmx.GeomixerFrameworkVersion, '' );
 }
 
-// mapHelper.prototype.createAPIMapDialog = function()
-// {
-    // var mapProperties = _layersTree.treeModel.getMapProperties();
-	// var options = {
-			// requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
-			// saveBaseLayers: false
-		// };
-		
-	// if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
-	
-	// nsMapCommon.createAPIMapDialog(
-		// mapProperties.name, 
-		// mapProperties.hostName, 
-		// options
-	// );
-// }
-
-mapHelper.prototype.print = function()
-{
-		var printPage = 'print-iframe' + (gmxAPI.proxyType == 'leaflet' ? '_leaflet' : '');
-		//var printMap = this.createAPIMap(false),
-		var loadFunc = uniqueGlobalName(function()
-			{
-				var drawnObjects = [],
-					layersVisibility = {};
-				
-				_layersTree.treeModel.forEachLayer(function(layer)
-				{
-					layersVisibility[layer.properties.name] = layer.isVisible;
-				});
-				
-				globalFlashMap.drawing.forEachObject(function(o) 
-				{
-					var elem = {properties: o.properties, color: o.color, geometry: o.geometry};
-					
-					if (o.geometry.type != "POINT")
-					{
-						var style = o.getStyle();
-						
-						elem.thickness = style.regular.outline.thickness;
-						elem.color = style.regular.outline.color;
-						elem.opacity = style.regular.outline.opacity;
-					}
-					
-					drawnObjects.push(elem);
-				});
-				
-				var mapState = {
-					host: _layersTree.treeModel.getMapProperties().hostName,
-					mode: globalFlashMap.getBaseLayer(),
-					mapName: globalMapName,
-					position: { 
-						x: globalFlashMap.getX(), 
-						y: globalFlashMap.getY(), 
-						z: globalFlashMap.getZ()
-					},
-					layersVisibility: layersVisibility,
-					drawnObjects: drawnObjects,
-					language: window.language,
-					grid: _mapHelper.gridView
-				}
-				
-				if ( window.apiKey )
-					mapState.apiKey = window.apiKey;
-				
-				return mapState;
-			}),
-			printDoc = window.open(printPage + ".html?" + loadFunc, "_blank", "width=" + String(640) + ",height=" + String(getWindowHeight()) + ",resizable=yes,scrollbars=yes");
-		
-		printDoc.document.close();
-		
-		var interval = setInterval(function()
-		{
-			if (printDoc.createFlashMap)
-			{
-				clearInterval(interval);
-				
-				printDoc.resize();
-			}
-		}, 200)
-		
-		return false;
+mapHelper.prototype.print = function() {
+    /*window.printMode = true;
+    $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').addClass('print-preview-hide');
+    var ratio = Math.sqrt(2);
+    var mw = $('#flash').width(),
+        mh = $('#flash').height(),
+        sw = $('body').width(),
+        sh = $('body').height(),
+        
+        tw = Math.floor(Math.min(sw, sh/ratio)),
+        th = Math.floor(Math.min(sh, sw*ratio));
+        
+    $('#flash').css({
+        top: '0px',
+        left: '0px',
+        // width: tw + 'px',
+        // height: th + 'px'
+        width: '8.27in',
+        height: '11.7in'
+    });
+    
+    nsGmx.leafletMap.invalidateSize();*/
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
