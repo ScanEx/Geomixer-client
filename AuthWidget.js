@@ -100,12 +100,14 @@ var nsGmx = nsGmx || {};
             '{{/isMapsSite}}' + 
         '</div>';
     
-    nsGmx.GeoMixerAuthWidget = function( container, authManager, loginCallback )
+    nsGmx.GeoMixerAuthWidget = function( container, authManager, loginCallback, options )
     {
         var _container = container;
         var _authManager = authManager;
         var _this = this;
-                
+        
+        options = options || {};
+
         var _createLogin = function()
         {
             var span = makeLinkButton(_gtxt('Вход'));
@@ -234,7 +236,7 @@ var nsGmx = nsGmx || {};
                 e.preventDefault();
             })
             
-            canvas.find('.registration').click(function(){
+            canvas.find('.registration').click(options.registrationCallback || function(){
                 window.open(window.gmxAuthServer + 'Account/Registration', '_blank');
             });
             

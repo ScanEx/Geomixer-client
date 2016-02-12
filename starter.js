@@ -856,9 +856,17 @@ var initEditUI = function(){
 }
 
 function initAuthWidget() {
+    var registrationCallback = function() {
+        gmxCore.loadModule('ProfilePlugin').then(function(AccountModule) {
+            AccountModule.showRegistrationForm(function () {
+                window.location.reload();
+            });
+        })
+    };
+    
     var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, function() {
         window.location.reload();
-    });
+    }, {registrationCallback: registrationCallback});
 
     // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
     var authManagerProxy = {
@@ -894,9 +902,18 @@ function initAuthWidget() {
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
+        accountLink: 'javascript:void(0)',
         showMapLink: !!window.mapsSite
     });
-    nsGmx.widgets.authWidget.appendTo(nsGmx.widgets.header.getAuthPlaceholder());
+    
+    var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
+    nsGmx.widgets.authWidget.appendTo(authPlaceholder);
+    
+    authPlaceholder.on('click', '#AuthWidgetAccountLink', function() {
+        gmxCore.loadModule('ProfilePlugin').then(function(AccountModule) {
+            AccountModule.showProfile();
+        })
+    });
 
     //ugly hack
     nsGmx.widgets.authWidget.showLoginDialog = nativeAuthWidget.showLoginDialog.bind(nativeAuthWidget);
