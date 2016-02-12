@@ -118,7 +118,8 @@ var TimelineData = Backbone.Model.extend({
                 ids[s.id] = true;
             });
             
-            layer.setDateInterval(new Date(minValue), new Date(maxValue));
+            //верхняя граница интервала не включается в интервал, поэтому добавляем к ней миллисекунду
+            layer.setDateInterval(new Date(minValue), new Date(maxValue + 1));
             
             layer.setFilter(function(elem) {
                 return elem.id in ids;
