@@ -264,75 +264,76 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
     
 }
 
-var MapPluginsWidget = function(container, mapPlugins)
-{
-    var update = function()
-    {
-        container.empty();
-        container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.selectedTitle')));
+var MapPluginsWidget = Backbone.View.extend({
+    template: Handlebars.compile(
+        '<div class="pluginEditor-widgetHeader">{{i "pluginsEditor.selectedTitle"}}</div>' +
+        '<div class="pluginEditor-currentMapPlugins">' +
+            '{{#plugins}}' +
+                '<div class="pluginEditor-widgetElem">' +
+                    '{{#unless isCommon}}' +
+                        '<span class="pluginEditor-remove gmx-icon-close" data-plugin-name="{{name}}"></span>' +
+                    '{{/unless}}' +
+                    '<span class="pluginEditor-edit gmx-icon-edit" data-plugin-name="{{name}}"></span>' +
+                    '<span class="pluginEditor-title {{#if isCommon}} pluginEditor-commonPlugin{{/if}}">{{name}}</span>' +
+                '</div>' +
+            '{{/plugins}}' +
+        '</div>'
+    ),
+
+    events: {
+        'click .gmx-icon-close': function(event) {
+            var pluginName = $(event.target).data('pluginName');
+            this._mapPlugins.remove(pluginName);
+        },
         
-        var globalPluginsToShow = [];
+        'click .gmx-icon-edit': function(event) {
+            var pluginName = $(event.target).data('pluginName');
+            new MapPluginParamsWidget(this._mapPlugins, pluginName);
+        }
+    },
+
+    initialize: function(options) {
+        this._mapPlugins = options.mapPlugins;
+        $(this._mapPlugins).change(this.render.bind(this));
+        this.render();
+    },
+
+    render: function() {
+        var mapPlugins = this._mapPlugins,
+            pluginsToShow = [];
+
         nsGmx.pluginsManager.forEachPlugin(function(plugin) {
             if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) ) {
-                globalPluginsToShow.push(plugin);
+                pluginsToShow.push({
+                    name: plugin.pluginName,
+                    isCommon: true
+                });
             }
         });
         
-        globalPluginsToShow.sort(function(a, b) {
-            return a.pluginName > b.pluginName ? 1 : -1;
-        });
-        
-        globalPluginsToShow.forEach(function(plugin) {
-            var editButton = makeImageButton("img/edit.png", "img/edit.png");
-            $(editButton).addClass('pluginEditor-edit');
-            editButton.onclick = function() {
-                new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
-            }
-            
-            $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
-                .append($('<span/>').text(plugin.pluginName))
-                .append(editButton)
-                .appendTo(container);
-        })
-        
-        var mapPluginNames = [];
         mapPlugins.each(function(name) {
-            mapPluginNames.push(name);
+            pluginsToShow.push({
+                name: name,
+                isCommon: false
+            });
         });
         
-        mapPluginNames.sort().forEach(function(name) {
-            var divRow = $('<div/>', {'class': 'pluginEditor-widgetElem'});
-            var remove = makeImageButton("img/close.png", "img/close_orange.png");
-            var editButton = makeImageButton("img/edit.png", "img/edit.png");
-            $(remove).addClass('pluginEditor-remove');
-            $(editButton).addClass('pluginEditor-edit');
-            
-            remove.onclick = function()
-            {
-                mapPlugins.remove(name);
-            }
-            editButton.onclick = function()
-            {
-                new MapPluginParamsWidget(mapPlugins, name);
-            }
-            
-            divRow.append(remove, editButton, $('<span/>').text(name));
-            
-            container.append(divRow);
+        pluginsToShow.sort(function(a, b) {
+            return a.isCommon != b.isCommon ? Number(b.isCommon) - Number(a.isCommon) : (a.name > b.name ? 1 : -1);
         });
+        
+        this.$el.empty().append(this.template({plugins: pluginsToShow}));
     }
-    
-    $(mapPlugins).change(update);
-    update();
-}
+});
 
 var createPluginsEditor = function(container, mapPlugins)
 {
-    //var mapPlugins = _mapHelper.mapPlugins;
-        
     var widgetContainer = $('<div/>', {'class': 'pluginEditor-widgetContainer'});
     var allPluginsContainer = $('<div/>', {'class': 'pluginEditor-allContainer'});
-    var mapPluginsWidget = new MapPluginsWidget(widgetContainer, mapPlugins);
+    var mapPluginsWidget = new MapPluginsWidget({
+        el: widgetContainer,
+        mapPlugins: mapPlugins
+    });
     var allPluginsWidget = new GeomixerPluginsWidget(allPluginsContainer, mapPlugins);
     
     $(container)
