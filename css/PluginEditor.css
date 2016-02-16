@@ -135,3 +135,8 @@
     right: 0px;
     overflow: auto;
 }
+
+.pluginEditor-groupTitle {
+    font-weight: bold;
+    cursor: pointer;
+}

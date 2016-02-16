@@ -137,40 +137,74 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
             '<button class="pluginEditor-addButton">{{i "pluginsEditor.add"}}</button>' +
         '</div>' +
     '</div>');
+    
+    var lang = window.nsGmx.Translations.getLanguage();
 
-    var _allPlugins = [];
-    var isListActive = false;
+    var DEFAULT_GROUP_NAME = {
+        eng: 'Main',
+        rus: 'Основные'
+    };
+    
+    var _allPluginGroups = {},
+        configGroups = window.gmxPluginGroups || [],
+        groupByPluginName = [],
+        groupOrder = {};
+    
+    configGroups.forEach(function(group, index) {
+        groupOrder[group[lang]] = index;
+        group.plugins.forEach(function(plugin) {
+            groupByPluginName[plugin] = group[lang];
+        })
+    })
     
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
         if ( plugin.pluginName && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
         {
-            _allPlugins.push({name: plugin.pluginName, isPublic: plugin.isPublic});
+            var groupName = groupByPluginName[plugin.pluginName] || DEFAULT_GROUP_NAME[lang];
+            _allPluginGroups[groupName] = _allPluginGroups[groupName] || {groupName: groupName, plugins: []};
+            _allPluginGroups[groupName].plugins.push({name: plugin.pluginName, isPublic: plugin.isPublic});
+            //_allPlugins.push({name: plugin.pluginName, isPublic: plugin.isPublic});
         }
     })
     
     //по алфавиту
-    _allPlugins.sort(function(a, b) {
-        return a.name > b.name ? 1 : -1;
-    })
+    for (var g in _allPluginGroups) {
+        _allPluginGroups[g].plugins.sort(function(a, b) {
+            return a.name > b.name ? 1 : -1;
+        })
+    }
     
+    var isListActive = false;
     var update = function()
     {
         $(container).empty();
+        
+        var filteredGroups = [];
+        for (var g in _allPluginGroups) {
+            var plugins = _allPluginGroups[g].plugins.filter(function(plugin) {return !mapPlugins.isExist(plugin.name);});
+            //если в группе нет плагинов, не показываем её
+            plugins.length && filteredGroups.push({
+                groupName: _allPluginGroups[g].groupName,
+                plugins: plugins
+            });
+        };
+        
+        //сохраняем порядок, как в конфиге, default group - первой
+        filteredGroups.sort(function(a, b) {
+            return groupOrder[a.groupName] - groupOrder[b.groupName];
+        });
 
         var pluginGroupTemplate = Handlebars.compile('<ul class="pluginEditor-pluginsTree ui-helper-noselect">{{#groups}}' +
             '<li>' +
-                '<div>{{groupName}}</div>' +
+                '<div class="pluginEditor-groupTitle">{{groupName}}</div>' +
                 '<ul>{{#plugins}}' +
                     '<li class="pluginEditor-pluginItem ui-helper-noselect" data-plugin-name="{{name}}">{{name}}</li>' +
                 '{{/plugins}}</ul>' +
             '</li>' +
             '{{/groups}}</ul>');
 
-        var pluginsTree = $(pluginGroupTemplate({groups: [{
-            groupName: 'Основные',
-            plugins: _allPlugins.filter(function(plugin) {return !mapPlugins.isExist(plugin.name);})
-        }]}));
+        var pluginsTree = $(pluginGroupTemplate({groups: filteredGroups}));
 
         pluginsTree.find('.pluginEditor-pluginItem').click(function(e) {
             isListActive = true;
@@ -183,6 +217,10 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                 $(this).addClass('pluginEditor-activePluginItem');
             }
         });
+        
+        pluginsTree.find('.pluginEditor-groupTitle').click(function() {
+            $(this).siblings('.hitarea').click();
+        })
         
         var ui = $(template());
         
@@ -214,7 +252,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
 
         ui.appendTo(container);
             
-        pluginsTree.treeview();
+        pluginsTree.treeview(/*{collapsed: true}*/);
     }
     
     $(mapPlugins).change(update);
