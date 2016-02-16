@@ -2,6 +2,8 @@
 
 (function($){
 
+"use strict";
+
 _translationsHash.addtext("rus", {
                         "pluginsEditor.selectedTitle" : "Плагины карты",
                         "pluginsEditor.availableTitle" : "Доступные плагины",
@@ -127,8 +129,17 @@ var MapPlugins = function()
 
 var GeomixerPluginsWidget = function(container, mapPlugins)
 {
+    var template = Handlebars.compile('<div class="pluginsEditor-allPlugins-container">' +
+        '<div class="pluginEditor-widgetHeader">{{i "pluginsEditor.availableTitle"}}</div>' +
+        '<div class="pluginEditor-treePlaceholder"></div>' +
+        '<div class="pluginEditor-controls">' +
+            '<input class="inputStyle inputFullWidth pluginEditor-pluginInput"><br>' +
+            '<button class="pluginEditor-addButton">{{i "pluginsEditor.add"}}</button>' +
+        '</div>' +
+    '</div>');
+
     var _allPlugins = [];
-    var isListActive = [];
+    var isListActive = false;
     
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
@@ -146,55 +157,64 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     var update = function()
     {
         $(container).empty();
-        var pluginSelect = $('<select/>', {multiple: 'multiple', 'class': 'pluginEditor-pluginList'}).bind('focus', function()
-        {
+
+        var pluginGroupTemplate = Handlebars.compile('<ul class="pluginEditor-pluginsTree ui-helper-noselect">{{#groups}}' +
+            '<li>' +
+                '<div>{{groupName}}</div>' +
+                '<ul>{{#plugins}}' +
+                    '<li class="pluginEditor-pluginItem ui-helper-noselect" data-plugin-name="{{name}}">{{name}}</li>' +
+                '{{/plugins}}</ul>' +
+            '</li>' +
+            '{{/groups}}</ul>');
+
+        var pluginsTree = $(pluginGroupTemplate({groups: [{
+            groupName: 'Основные',
+            plugins: _allPlugins.filter(function(plugin) {return !mapPlugins.isExist(plugin.name);})
+        }]}));
+
+        pluginsTree.find('.pluginEditor-pluginItem').click(function(e) {
             isListActive = true;
+            var pluginName = $(this).data('pluginName');
+            
+            if (e.ctrlKey) {
+                $(this).toggleClass('pluginEditor-activePluginItem');
+            } else {
+                pluginsTree.find('.pluginEditor-pluginItem').removeClass('pluginEditor-activePluginItem');
+                $(this).addClass('pluginEditor-activePluginItem');
+            }
         });
         
-        for (var p = 0; p < _allPlugins.length; p++)
-            if (!mapPlugins.isExist(_allPlugins[p].name)) {
-                var pluginOption = $('<option/>').text(_allPlugins[p].name);
-                if (!_allPlugins[p].isPublic)
-                    pluginOption.addClass('pluginEditor-hiddenPluginOption');
-                pluginSelect.append(pluginOption);
-            }
-                
-        var pluginInput = $('<input/>', {'class': 'inputStyle inputFullWidth pluginEditor-pluginInput'}).bind('focus', function()
-        {
+        var ui = $(template());
+        
+        ui.find('.pluginEditor-treePlaceholder').append(pluginsTree);
+        
+        ui.find('.pluginEditor-pluginInput').bind('focus', function() {
             isListActive = false;
         });
-        
-        var addPluginButton = $('<button/>', {'class': 'pluginEditor-addButton'}).text(_gtxt("pluginsEditor.add")).click(function()
-        {
+
+        ui.find('.pluginEditor-addButton').click(function() {
             var selected = [];
-            
-            if (isListActive)
-            {
-                $(":selected", pluginSelect).each(function()
-                {
-                    selected.push($(this).val());
-                })
-            }
-            else
-            {
-                if ( nsGmx.pluginsManager.getPluginByName(pluginInput.val()) )
-                {
+
+            if (isListActive) {
+                pluginsTree.find('.pluginEditor-activePluginItem').each(function(i, elem) {
+                    selected.push($(elem).data('pluginName'));
+                });
+            } else {
+                var pluginInput = ui.find('.pluginEditor-pluginInput');
+                if (nsGmx.pluginsManager.getPluginByName(pluginInput.val())) {
                     selected.push(pluginInput.val());
-                }
-                else
-                {
+                } else {
                     inputError(pluginInput[0]);
                 }
             }
             
             for (var sp = 0; sp < selected.length; sp++)
                 mapPlugins.addPlugin( selected[sp] );
-        })
-        $(container)
-            .append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.availableTitle')))
-            .append(pluginSelect).append($('<br/>'))
-            .append(pluginInput).append($('<br/>'))
-            .append(addPluginButton);
+        });
+
+        ui.appendTo(container);
+            
+        pluginsTree.treeview();
     }
     
     $(mapPlugins).change(update);

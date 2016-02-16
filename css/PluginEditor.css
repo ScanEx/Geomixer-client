@@ -11,8 +11,40 @@
 
 .pluginEditor-allContainer
 {
-    padding-right: 10px;
-    text-align: center;
+    margin-right: 10px;
+    height: 100%;
+}
+
+.pluginsEditor-allPlugins-container {
+    height: 100%;
+    position: relative;
+}
+
+.treeview.pluginEditor-pluginsTree {
+    padding-left: 10px;
+}
+
+.pluginEditor-pluginItem {
+    cursor: pointer;
+}
+
+.pluginEditor-pluginsTree {
+    position: absolute;
+    top: 20px;
+    bottom: 50px;
+    right: 0px;
+    left: 0px;
+    overflow: auto;
+}
+
+.pluginEditor-controls {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.pluginEditor-activePluginItem {
+    background: #EEE;
 }
 
 .pluginEditor-widgetContainer
@@ -61,6 +93,7 @@
 {
     vertical-align: top;
     width: 50%;
+    height: 100%;
 }
 
 .pluginEditor-widgetElem
