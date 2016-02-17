@@ -337,7 +337,7 @@ function stopEvent(e)
 // - content {HTMLDomElement} контент диалога
 // - width, height {int} высота и ширина диалога (обязательные параметры!)
 // - posX, posY {int} положение диалога относительно экрана. Если не задано - по центру
-// - resizeFunc {function} будет вызываться при изменении размера диалога
+// - resizeFunc {function} будет вызываться при изменении размера диалога. Аргумент ф-ции - объект с атриубтами width и height
 // - closeFunc {function} будет вызываться при закрытии диалога
 // - setMinSize {bool} если true (по умолчанию), будут заданы минимальная ширина и высота, равные начальным размерам (width, height)
 function showDialog(title, content, width, height, posX, posY, resizeFunc, closeFunc)
@@ -373,9 +373,9 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
         title: title,
         position: params.posX == false ? 'center' : [params.posX, params.posY],
         resizable: true,
-        resize: function()
+        resize: function(event, ui)
         {
-            params.resizeFunc && params.resizeFunc();
+            params.resizeFunc && params.resizeFunc(ui.size);
         },
         close: function(ev, ui)
         {
