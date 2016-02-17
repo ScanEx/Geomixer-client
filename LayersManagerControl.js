@@ -401,6 +401,10 @@ var LayerManagerControl = function( parentDiv, name, params )
             
         layersTable.repaint();
     }
+
+    this.resize = function(h) {
+        layersTable.updateHeight(h - 130);
+    }
 }
 
 nsGmx.LayerManagerControl = LayerManagerControl;

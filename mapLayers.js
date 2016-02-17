@@ -1926,7 +1926,9 @@ queryMapLayers.prototype.createLayersManager = function()
         
     layerManagerControl.disableLayers(existLayers);
     
-	showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130);
+	var dialogDiv = showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130, function(size) {
+        layerManagerControl.resize(size.height - 55);
+    });
 }
 
 queryMapLayers.prototype.getMaps = function()
