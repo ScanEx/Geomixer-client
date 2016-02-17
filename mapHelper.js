@@ -1092,37 +1092,41 @@ mapHelper.prototype.print = function() {
         $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
         $('#all').toggleClass('print-preview-all', isPreviewMode);
     }
-    
-    var updateMapSize = function() {
-        var isPortrait = ui.find('[value=portrait]').prop('checked');
-        $('#flash').css({
-            top: '0px',
-            left: '0px',
-            width: isPortrait ? '8.27in' : '11.7in',
-            height: isPortrait ? '11.7in' : '8.27in'
-        });
-        
-        nsGmx.leafletMap.invalidateSize();
-    }
-    
+
     toggleMode(true);
     
-    var ui = $(Handlebars.compile('<div class="print-ui">' +
-        '<label><input type="radio" name="print-orientation" value="portrait" checked>Portrait</label>' +
-        '<label><input type="radio" name="print-orientation" value="landscape">Landscape</label>' +
+    var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
-    '</div>')());
+        '<button class="print-ui-print">Печать</button>' +
+    '</span></div>')());
     
-    ui.find('input[type=radio]').change(updateMapSize);
+    ui.find('.print-ui-print').click(function() {
+        window.print();
+    })
+    
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
+
+        $('#flash').css({
+            marginLeft: '0px',
+            marginTop: '0px'
+        });
+
         window.resizeAll();
         ui.remove();
     });
     
     $('body').append(ui);
     
-    updateMapSize();
+    $('#flash').css({
+        top: '50%',
+        left: '50%',
+        width: '1400px',
+        height: '1400px',
+        marginLeft: '-700px',
+        marginTop: '-700px'
+    });
+    nsGmx.leafletMap.invalidateSize();
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
