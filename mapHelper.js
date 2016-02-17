@@ -258,6 +258,10 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
 
 mapHelper.prototype.reloadMap = function()
 {
+    if (!nsGmx.gmxMap) {
+        window.location.reload();
+    }
+
     _mapHelper.getMapStateAsPermalink(function(permalinkID)
     {
         createCookie("TempPermalink", permalinkID);

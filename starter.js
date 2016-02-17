@@ -857,7 +857,7 @@ var initEditUI = function(){
 
 function initAuthWidget() {
     var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, function() {
-        window.location.reload();
+        _mapHelper.reloadMap();
     });
 
     // прокси между nsGmx.AuthManager редактора и AuthManager'а из общей библиотеки
