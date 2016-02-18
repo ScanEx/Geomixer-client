@@ -1872,3 +1872,15 @@ div.layersScroll
 .layer-editor-legend-image {
     margin-left: 3px;
 }
+
+.removeGroup-container {
+    text-align: center;
+}
+
+.removeGroup-remove {
+    margin-top: 10px;
+}
+
+.removeGroup-layers {
+    margin-right: 5px;
+}
