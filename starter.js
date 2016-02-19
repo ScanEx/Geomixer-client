@@ -355,6 +355,19 @@ var createToolbar = function() {
             gridManager.setState(isActive);
         });
 
+    _mapHelper.customParamsManager.addProvider({
+        name: 'GridManager',
+        loadState: function(state) {
+            gridManager.setState(state.isActive);
+        },
+        saveState: function() {
+            return {
+                version: '1.0.0',
+                isActive: gridIcon.options.isActive
+            }
+        }
+    });
+
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
         // isSortable: true,
