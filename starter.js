@@ -1360,17 +1360,17 @@ function processGmxMap(state, gmxMap) {
         if (state.drawnObjects) {
             state.drawnObjects.forEach(function(objInfo) {
                 //старый формат - число, новый - строка
-                var color = (typeof objInfo.color === 'number' ? '#' + L.gmxUtil.dec2hex(objInfo.color) : objInfo.color) || '#0000FF',
-                    weight = objInfo.thickness || 2,
-                    opacity = (objInfo.opacity / 100) || 0.8;
+                var lineStyle = {};
 
+                if (objInfo.color) {
+                    lineStyle.color = typeof objInfo.color === 'number' ? '#' + L.gmxUtil.dec2hex(objInfo.color) : objInfo.color;
+                }
+
+                if (objInfo.thickness) {lineStyle.weight = objInfo.thickness};
+                if (objInfo.opacity) {lineStyle.opacity = objInfo.opacity/100};
 
                 var featureOptions = $.extend(true, {}, objInfo.properties,  {
-                    lineStyle: {
-                        color: color,
-                        weight: weight,
-                        opacity: opacity
-                    }
+                    lineStyle: lineStyle
                 });
 
                 lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];

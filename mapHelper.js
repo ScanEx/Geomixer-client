@@ -340,7 +340,6 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 				for (var i in obj.drawnObjects) {
                     //эта двойная конвертация в действительности просто перевод координат из Меркатора в LatLng
 					obj.drawnObjects[i].geometry = L.gmxUtil.geoJSONtoGeometry(L.gmxUtil.geometryToGeoJSON(obj.drawnObjects[i].geometry, true));
-					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '#0000FF';
 				}
             }
 		}
@@ -371,7 +370,7 @@ mapHelper.prototype.getMapState = function()
 			var style = o.getOptions().lineStyle;
 			
             if (style) {
-                elem.thickness = style.width || 2;
+                elem.thickness = style.weight || 2;
                 elem.color = style.color;
                 elem.opacity = (style.opacity || 0.8) * 100;
             }
