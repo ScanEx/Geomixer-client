@@ -253,9 +253,9 @@ var createToolbar = function() {
     var resolveToolConflict = function(iconGroup) {
         iconGroup
             .on('collapse', function() {
-                $('.gmx-slider-control').show();
+                $('.gmx-slider-control').removeClass('invisible');
             }).on('expand', function() {
-                sliderControl.isCollapsed() || $('.gmx-slider-control').hide();
+                sliderControl.isCollapsed() || $('.gmx-slider-control').addClass('invisible');
             });
     }
 

@@ -1846,6 +1846,12 @@ div.layersScroll
     
     z-index: -1;
 }
+
+.gmx-slider-control.invisible {
+    display: none;
+}
+
+
 .gmxPopup div p {
     margin: 2px 0px;
 }
