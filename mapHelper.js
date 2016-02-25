@@ -348,86 +348,73 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
     }, errorCallback);
 }
 
-mapHelper.prototype.getMapState = function()
-{
-	var drawnObjects = [],
-		condition = {expanded:{}, visible:{}};
-	
-	nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(o)
-    {
-		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
-			return;
+mapHelper.prototype.getMapState = function() {
+    var drawnObjects = [],
+        condition = {expanded:{}, visible:{}},
+        lmap = nsGmx.leafletMap,
+        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
+
+    lmap.gmxDrawing.getFeatures().forEach(function(feature) {
+        if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature)) {
+            return;
+        }
         
-        var geoJSON = o.toGeoJSON();
+        var geoJSON = feature.toGeoJSON();
         
-		var elem = {
+        var elem = {
             properties: geoJSON.properties, 
             geometry: L.gmxUtil.geoJSONtoGeometry(geoJSON, true)
         };
-		
-		if (elem.geometry.type !== "POINT")
-		{
-			var style = o.getOptions().lineStyle;
-			
+        
+        if (elem.geometry.type !== "POINT") {
+            var style = feature.getOptions().lineStyle;
+            
             if (style) {
                 elem.thickness = style.weight || 2;
                 elem.color = style.color;
                 elem.opacity = (style.opacity || 0.8) * 100;
             }
-		}
-		
-		if ( o.getPopup() ) {
+        }
+        
+        if (lmap.hasLayer(feature.getPopup())) {
             elem.isBalloonVisible = true;
         }
-		
-		drawnObjects.push(elem);
-	});
-	
-	this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem)
-	{
-        var props = elem.content.properties;
-		if (elem.type == 'group')
-		{
-			var groupId = props.GroupID;
+        
+        drawnObjects.push(elem);
+    });
 
-			if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
-				return;
-			
-			condition.visible[groupId] = props.visible;
-			condition.expanded[groupId] = props.expanded;
-		}
-		else
-		{
+    this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem) {
+        var props = elem.content.properties;
+        if (elem.type == 'group') {
+            var groupId = props.GroupID;
+
+            if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
+                return;
+            
+            condition.visible[groupId] = props.visible;
+            condition.expanded[groupId] = props.expanded;
+        } else {
             if (props.changedByViewer) {
                 condition.visible[props.name] = props.visible;
             }
-			// if (props.LayerID && !$("div[LayerID='" + props.LayerID + "']").length && !props.changedByViewer)
-				// return;
-			// else if (props.MultiLayerID && !$("div[MultiLayerID='" + props.MultiLayerID + "']").length && !props.changedByViewer)
-				// return;
-			
-			//condition.visible[elem.content.properties.name] = elem.content.properties.visible;
-		}
-	});
-    
-    var lmap = nsGmx.leafletMap,
-        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
-	
-	return {
-		mode: lmap.gmxBaseLayersManager.getCurrentID(),
-		mapName: globalMapName,
-		position: { 
-			x: mercCenter.x,
-			y: mercCenter.y, 
-			z: 17 - lmap.getZoom() 
-		},
-		mapStyles: this.getMapStyles(),
-		drawnObjects: drawnObjects,
-		isFullScreen: layersShown ? "false" : "true",
-		condition: condition,
-		language: window.language,
-		customParamsCollection: this.customParamsManager.saveParams()
-	}
+        }
+    });
+
+    return {
+        mode: lmap.gmxBaseLayersManager.getCurrentID(),
+        mapName: globalMapName,
+        position: { 
+            x: mercCenter.x,
+            y: mercCenter.y, 
+            z: 17 - lmap.getZoom() 
+        },
+        mapStyles: this.getMapStyles(),
+        drawnObjects: drawnObjects,
+        isFullScreen: layersShown ? "false" : "true",
+        condition: condition,
+        language: window.language,
+        customParamsCollection: this.customParamsManager.saveParams()
+    }
 }
 
 mapHelper.prototype.getMapStyles = function()

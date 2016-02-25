@@ -1373,7 +1373,11 @@ function processGmxMap(state, gmxMap) {
                     lineStyle: lineStyle
                 });
 
-                lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];
+                var drawingFeature = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];
+                
+                if (objInfo.isBalloonVisible) {
+                    drawingFeature.openPopup();
+                }
             });
         } else if (state.marker) {
             nsGmx.leafletMap.gmxDrawing.addGeoJSON({
