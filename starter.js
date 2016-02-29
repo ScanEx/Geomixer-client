@@ -969,7 +969,7 @@ function initAuthWidget() {
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
-        accountLink: 'javascript:void(0)',
+        accountLink: null,
         showMapLink: !!window.mapsSite
     });
     
