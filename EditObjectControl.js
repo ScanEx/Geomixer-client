@@ -577,9 +577,13 @@ var prop = layer._gmx.properties;
     }
     
     this.getGeometry = function() {
-        var geom = geometryInfoRow.getDrawingObject();
-        var geojson = geom.toGeoJSON();
-        return geojson.geometry;
+        if (geometryInfoRow) {
+            var geom = geometryInfoRow.getDrawingObject();
+            var geojson = geom.toGeoJSON();
+            return geojson.geometry;
+        } else {
+            return null;
+        }
     }
     
     this.getLayer = function() { return layer; };

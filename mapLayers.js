@@ -846,61 +846,57 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 
 layersTree.prototype.removeGroup = function(div)
 {
-	var box = _checkbox(false, 'checkbox'),
-		remove = makeButton(_gtxt("Удалить")),
-		span = _span([_t(_gtxt("Включая вложенные слои"))]),
-		pos = nsGmx.Utils.getDialogPos(div, true, 90),
-		_this = this;
-	
-	remove.style.marginTop = '10px';
+    var template = Handlebars.compile('<div class="removeGroup-container">' +
+        '{{#if anyChildren}}' +
+            '<label><input type="checkbox" checked class="removeGroup-layers">{{i "Включая вложенные слои"}}</label><br>' +
+        '{{/if}}' +
+        '<button class="removeGroup-remove">{{i "Удалить"}}</button>' +
+    '</div>');
+    var groupNode = _layersTree.treeModel.findElemByGmxProperties(div.gmxProperties).elem;
 
-	remove.onclick = function()
-	{
-		var parentTree = div.parentNode.parentNode,
-			childsUl = _abstractTree.getChildsUl(div.parentNode);
-		
-		if (box.checked)
-		{
-			if (childsUl)
-			{
-				// удаляем все слои
-				$(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
-				{
-					_queryMapLayers.removeLayer(this.gmxProperties.content.properties.name);
-				})
-			}
-		}
-		else
-		{
-			var divDestination = $(parentTree.parentNode).children("div[MapID],div[GroupID]")[0];
-			
-			if (childsUl)
-			{
-				// переносим все слои наверх
-				$(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
-				{
-					var spanSource = $(this).find("span.layer")[0];
-						
-					_this.moveHandler(spanSource, divDestination);
-				})
-			}
-		}
-		
-		_this.removeTreeElem(div);
-		
-		div.parentNode.removeNode(true);
-		
-		_abstractTree.delNode(null, parentTree, parentTree.parentNode)
-		
-		$(span.parentNode.parentNode).dialog('destroy');
-		span.parentNode.parentNode.removeNode(true);
-		
-		_mapHelper.updateUnloadEvent(true);
+    var ui = $(template({anyChildren: groupNode.content.children.length > 0})),
+        pos = nsGmx.Utils.getDialogPos(div, true, 90),
+        _this = this;
+
+    ui.find('.removeGroup-remove').click(function() {
+        var parentTree = div.parentNode.parentNode,
+            childsUl = _abstractTree.getChildsUl(div.parentNode);
+
+        if (ui.find('.removeGroup-layers').prop('checked')) {
+            _layersTree.treeModel.forEachLayer(function(layerContent) {
+                _queryMapLayers.removeLayer(layerContent.properties.name);
+            }, groupNode);
+        } else {
+            //TODO: не работает, когда группа не раскрыта или раскрыта не полностью
+            var divDestination = $(parentTree.parentNode).children("div[MapID],div[GroupID]")[0];
+
+            if (childsUl) {
+                // переносим все слои наверх
+                $(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
+                {
+                    var spanSource = $(this).find("span.layer")[0];
+
+                    _this.moveHandler(spanSource, divDestination);
+                })
+            }
+        }
+        
+        _this.removeTreeElem(div);
+        
+        div.parentNode.removeNode(true);
+        
+        _abstractTree.delNode(null, parentTree, parentTree.parentNode)
+        
+        $(dialogDiv).dialog('destroy');
+        dialogDiv.removeNode(true);
+        
+        _mapHelper.updateUnloadEvent(true);
         
         _this.updateZIndexes();
-	}
-	
-	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 100, pos.left, pos.top)
+    });
+
+    var title = _gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title);
+    var dialogDiv = showDialog(title, ui[0], 250, 100, pos.left, pos.top);
 }
 
 //по элементу дерева слоёв ищет соответствующий элемент в DOM представлении
@@ -1926,7 +1922,9 @@ queryMapLayers.prototype.createLayersManager = function()
         
     layerManagerControl.disableLayers(existLayers);
     
-	showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130);
+	var dialogDiv = showDialog(_gtxt("Список слоев"), canvas, 571, 485, 535, 130, function(size) {
+        layerManagerControl.resize(size.height - 55);
+    });
 }
 
 queryMapLayers.prototype.getMaps = function()

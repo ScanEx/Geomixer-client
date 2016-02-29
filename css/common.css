@@ -1042,99 +1042,6 @@ div.layersScroll
     background-color: #ffcccc
 }
 
-/* Plugin Editor */
-.pluginEditor-pluginList
-{
-    height: 190px;
-    width: 100%;
-}
-
-.pluginEditor-pluginInput
-{
-    margin: 2px 0px;
-}
-
-.pluginEditor-allContainer
-{
-    padding-right: 10px;
-    text-align: center;
-}
-
-.pluginEditor-widgetContainer
-{
-    height: 200px;
-}
-
-.pluginEditor-table
-{
-    width: 100%;
-}
-
-.pluginEditor-remove, .pluginEditor-edit
-{
-    vertical-align: middle;
-    float: right;
-}
-
-.pluginEditor-edit
-{
-    height: 11px;
-    margin-top: 3px;
-}
-
-.pluginEditor-widgetHeader
-{
-    text-align: center;
-    padding-bottom: 6px;
-    font-weight: bold;
-}
-
-.pluginEditor-widgetTD
-{
-    vertical-align: top;
-}
-
-.pluginEditor-allTD
-{
-    vertical-align: top;
-    width: 50%;
-}
-
-.pluginEditor-widgetElem
-{
-    padding: 3px 0px
-}
-
-.pluginEditor-widgetElemCommon
-{
-    padding: 2px 0px;
-}
-
-.pluginEditor-widgetElemCommon > span
-{
-    color: gray;
-}
-
-.pluginEditor-widgetElem > span, .pluginEditor-widgetElemCommon > span
-{
-    cursor: default;
-}
-
-.pluginEditor-widgetElem:hover, .pluginEditor-widgetElemCommon:hover
-{
-    background-color: #eeeeee;
-}
-
-.pluginEditor-addButton
-{
-    width: 100%
-}
-
-.pluginEditor-hiddenPluginOption
-{
-    color: gray;
-}
-
 .uiw-inactive
 {
     color: #bbbbbb;
@@ -1939,6 +1846,12 @@ div.layersScroll
     
     z-index: -1;
 }
+
+.gmx-slider-control.invisible {
+    display: none;
+}
+
+
 .gmxPopup div p {
     margin: 2px 0px;
 }
@@ -1964,4 +1877,16 @@ div.layersScroll
 
 .layer-editor-legend-image {
     margin-left: 3px;
+}
+
+.removeGroup-container {
+    text-align: center;
+}
+
+.removeGroup-remove {
+    margin-top: 10px;
+}
+
+.removeGroup-layers {
+    margin-right: 5px;
 }

@@ -258,6 +258,10 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
 
 mapHelper.prototype.reloadMap = function()
 {
+    if (!nsGmx.gmxMap) {
+        window.location.reload();
+    }
+
     _mapHelper.getMapStateAsPermalink(function(permalinkID)
     {
         createCookie("TempPermalink", permalinkID);
@@ -336,7 +340,6 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 				for (var i in obj.drawnObjects) {
                     //эта двойная конвертация в действительности просто перевод координат из Меркатора в LatLng
 					obj.drawnObjects[i].geometry = L.gmxUtil.geoJSONtoGeometry(L.gmxUtil.geometryToGeoJSON(obj.drawnObjects[i].geometry, true));
-					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '#0000FF';
 				}
             }
 		}
@@ -345,86 +348,73 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
     }, errorCallback);
 }
 
-mapHelper.prototype.getMapState = function()
-{
-	var drawnObjects = [],
-		condition = {expanded:{}, visible:{}};
-	
-	nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(function(o)
-    {
-		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
-			return;
+mapHelper.prototype.getMapState = function() {
+    var drawnObjects = [],
+        condition = {expanded:{}, visible:{}},
+        lmap = nsGmx.leafletMap,
+        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
+
+    lmap.gmxDrawing.getFeatures().forEach(function(feature) {
+        if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature)) {
+            return;
+        }
         
-        var geoJSON = o.toGeoJSON();
+        var geoJSON = feature.toGeoJSON();
         
-		var elem = {
+        var elem = {
             properties: geoJSON.properties, 
             geometry: L.gmxUtil.geoJSONtoGeometry(geoJSON, true)
         };
-		
-		if (elem.geometry.type !== "POINT")
-		{
-			var style = o.getOptions().lineStyle;
-			
+        
+        if (elem.geometry.type !== "POINT") {
+            var style = feature.getOptions().lineStyle;
+            
             if (style) {
-                elem.thickness = style.width || 2;
+                elem.thickness = style.weight || 2;
                 elem.color = style.color;
                 elem.opacity = (style.opacity || 0.8) * 100;
             }
-		}
-		
-		if ( o.getPopup() ) {
+        }
+        
+        if (lmap.hasLayer(feature.getPopup())) {
             elem.isBalloonVisible = true;
         }
-		
-		drawnObjects.push(elem);
-	});
-	
-	this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem)
-	{
-        var props = elem.content.properties;
-		if (elem.type == 'group')
-		{
-			var groupId = props.GroupID;
+        
+        drawnObjects.push(elem);
+    });
 
-			if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
-				return;
-			
-			condition.visible[groupId] = props.visible;
-			condition.expanded[groupId] = props.expanded;
-		}
-		else
-		{
+    this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem) {
+        var props = elem.content.properties;
+        if (elem.type == 'group') {
+            var groupId = props.GroupID;
+
+            if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
+                return;
+            
+            condition.visible[groupId] = props.visible;
+            condition.expanded[groupId] = props.expanded;
+        } else {
             if (props.changedByViewer) {
                 condition.visible[props.name] = props.visible;
             }
-			// if (props.LayerID && !$("div[LayerID='" + props.LayerID + "']").length && !props.changedByViewer)
-				// return;
-			// else if (props.MultiLayerID && !$("div[MultiLayerID='" + props.MultiLayerID + "']").length && !props.changedByViewer)
-				// return;
-			
-			//condition.visible[elem.content.properties.name] = elem.content.properties.visible;
-		}
-	});
-    
-    var lmap = nsGmx.leafletMap,
-        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
-	
-	return {
-		mode: lmap.gmxBaseLayersManager.getCurrentID(),
-		mapName: globalMapName,
-		position: { 
-			x: mercCenter.x,
-			y: mercCenter.y, 
-			z: 17 - lmap.getZoom() 
-		},
-		mapStyles: this.getMapStyles(),
-		drawnObjects: drawnObjects,
-		isFullScreen: layersShown ? "false" : "true",
-		condition: condition,
-		language: window.language,
-		customParamsCollection: this.customParamsManager.saveParams()
-	}
+        }
+    });
+
+    return {
+        mode: lmap.gmxBaseLayersManager.getCurrentID(),
+        mapName: globalMapName,
+        position: { 
+            x: mercCenter.x,
+            y: mercCenter.y, 
+            z: 17 - lmap.getZoom() 
+        },
+        mapStyles: this.getMapStyles(),
+        drawnObjects: drawnObjects,
+        isFullScreen: layersShown ? "false" : "true",
+        condition: condition,
+        language: window.language,
+        customParamsCollection: this.customParamsManager.saveParams()
+    }
 }
 
 mapHelper.prototype.getMapStyles = function()
@@ -1092,37 +1082,41 @@ mapHelper.prototype.print = function() {
         $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
         $('#all').toggleClass('print-preview-all', isPreviewMode);
     }
-    
-    var updateMapSize = function() {
-        var isPortrait = ui.find('[value=portrait]').prop('checked');
-        $('#flash').css({
-            top: '0px',
-            left: '0px',
-            width: isPortrait ? '8.27in' : '11.7in',
-            height: isPortrait ? '11.7in' : '8.27in'
-        });
-        
-        nsGmx.leafletMap.invalidateSize();
-    }
-    
+
     toggleMode(true);
     
-    var ui = $(Handlebars.compile('<div class="print-ui">' +
-        '<label><input type="radio" name="print-orientation" value="portrait" checked>Portrait</label>' +
-        '<label><input type="radio" name="print-orientation" value="landscape">Landscape</label>' +
+    var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
-    '</div>')());
+        '<button class="print-ui-print">Печать</button>' +
+    '</span></div>')());
     
-    ui.find('input[type=radio]').change(updateMapSize);
+    ui.find('.print-ui-print').click(function() {
+        window.print();
+    })
+    
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
+
+        $('#flash').css({
+            marginLeft: '0px',
+            marginTop: '0px'
+        });
+
         window.resizeAll();
         ui.remove();
     });
     
     $('body').append(ui);
     
-    updateMapSize();
+    $('#flash').css({
+        top: '50%',
+        left: '50%',
+        width: '1400px',
+        height: '1400px',
+        marginLeft: '-700px',
+        marginTop: '-700px'
+    });
+    nsGmx.leafletMap.invalidateSize();
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)

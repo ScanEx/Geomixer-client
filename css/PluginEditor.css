@@ -1,0 +1,142 @@
+.pluginEditor-pluginList
+{
+    height: 190px;
+    width: 100%;
+}
+
+.pluginEditor-pluginInput
+{
+    margin: 2px 0px;
+}
+
+.pluginEditor-allContainer
+{
+    margin-right: 10px;
+    height: 100%;
+}
+
+.pluginsEditor-allPlugins-container {
+    height: 100%;
+    position: relative;
+}
+
+.treeview.pluginEditor-pluginsTree {
+    padding-left: 10px;
+}
+
+.pluginEditor-pluginItem {
+    cursor: pointer;
+}
+
+.pluginEditor-pluginsTree {
+    position: absolute;
+    top: 20px;
+    bottom: 50px;
+    right: 0px;
+    left: 0px;
+    overflow: auto;
+}
+
+.pluginEditor-controls {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.pluginEditor-activePluginItem {
+    background: #EEE;
+}
+
+.pluginEditor-widgetContainer
+{
+    height: 100%;
+    position: relative;
+}
+
+.pluginEditor-table
+{
+    width: 100%;
+    height: 100%;
+}
+
+.pluginEditor-remove, .pluginEditor-edit
+{
+    vertical-align: middle;
+    float: right;
+}
+
+.pluginEditor-edit
+{
+    height: 11px;
+    margin-top: 3px;
+}
+
+.pluginEditor-remove
+{
+    margin: 4px 0px 0px 5px;
+}
+
+.pluginEditor-widgetHeader
+{
+    text-align: center;
+    padding-bottom: 6px;
+    font-weight: bold;
+}
+
+.pluginEditor-widgetTD
+{
+    vertical-align: top;
+    height: 100%;
+}
+
+.pluginEditor-allTD
+{
+    vertical-align: top;
+    width: 50%;
+    height: 100%;
+}
+
+.pluginEditor-widgetElem
+{
+    padding: 2px 0px;
+    margin-right: 3px;
+}
+
+.pluginEditor-commonPlugin
+{
+    color: gray;
+}
+
+.pluginEditor-title
+{
+    cursor: default;
+}
+
+.pluginEditor-widgetElem:hover
+{
+    background-color: #eeeeee;
+}
+
+.pluginEditor-addButton
+{
+    width: 100%
+}
+
+.pluginEditor-hiddenPluginOption
+{
+    color: gray;
+}
+
+.pluginEditor-currentMapPlugins {
+    position: absolute;
+    top: 20px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: auto;
+}
+
+.pluginEditor-groupTitle {
+    font-weight: bold;
+    cursor: pointer;
+}

@@ -80,7 +80,9 @@ var TimelineData = Backbone.Model.extend({
         for (var l = 0; l < layerInfos.length; l++) {
             var layerInfo = layerInfos[l];
             if (layerInfo.layer === layer) {
-                this.set('layers', layerInfos.slice(0).splice(i, 1));
+                var newLayersInfo = layerInfos.slice(0);
+                newLayersInfo.splice(l, 1);
+                this.set('layers', newLayersInfo);
                 this.trigger('unbindLayer', layerInfo);
                 return this;
             }
