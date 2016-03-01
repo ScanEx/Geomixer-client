@@ -10,7 +10,8 @@
         'AISSearch.error' : '<b>Ошибка при получении данных!</b>',
         'AISSearch.iconTitle' : 'Поиск кораблей по экрану',
         'AISSearch.placeholder_0' : 'Поиск по адресам, координатам',
-        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам'
+        'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI'
+        // 'AISSearch.placeholder_1' : 'Поиск судна по названию / MMSI. Поиск по адресам, координатам, кадастровым номерам'
     });
     _translationsHash.addtext('eng', {
         'AISSearch.title' : 'Searching vessels',
@@ -19,7 +20,8 @@
         'AISSearch.error' : '<b>Vessels not found!</b>',
         'AISSearch.iconTitle' : 'Search vessels within the view area',
         'AISSearch.placeholder_0' : 'Search for addresses, coordinates',
-        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
+        'AISSearch.placeholder_1' : 'Search by vessel name / MMSI'
+        // 'AISSearch.placeholder_1' : 'Search by vessel name / MMSI. Search by addresses, coordinates, cadastre number'
     });
     
     var publicInterface = {
