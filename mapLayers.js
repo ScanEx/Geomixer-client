@@ -470,8 +470,13 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 layersTree.prototype.setActive = function(span)
 {
 	$(this._treeCanvas).find(".active").removeClass("active");
-	$(span.parentNode).addClass("active");
-    $(this).triggerHandler("activeNodeChange", [span.parentNode.parentNode]);
+
+    if (span) {
+        $(span.parentNode).addClass("active");
+        $(this).triggerHandler("activeNodeChange", [span.parentNode.parentNode]);
+    } else {
+        $(this).triggerHandler("activeNodeChange", [null]);
+    }
 }
 
 layersTree.prototype.getActive = function()
@@ -1501,7 +1506,17 @@ queryMapLayers.prototype.load = function(data)
 		_layersTree.runLoadingFuncs();
 		
 		_layersTree.addExpandedEvents(this.buildedTree);
-        
+
+        //при клике на любом пустом месте дерева слоёв снимаем выделение
+        $(this.treeCanvas).click(function(event) {
+            var t = $(event.target);
+            //все элементы, на которых можно кликнуть без снятия выделения
+            if (t.hasClass('hitarea') || t.hasClass('groupLayer') || t.attr('styletype') || t.parents('div[layerid],div[MultiLayerID]').length) {
+                return;
+            }
+            _layersTree.setActive(null);
+        });
+
         $(this.treeCanvas).droppable({
             accept: "span[dragg]", 
             drop: function(ev, ui) {
