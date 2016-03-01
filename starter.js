@@ -1039,7 +1039,7 @@ function loadMap(state) {
 
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
-    L.gmx.gmxMapManager.getMap(hostName, window.apiKey, globalMapName).then(function(mapInfo) {
+    L.gmx.gmxMapManager.getMap(hostName, window.apiKey, globalMapName, window.gmxSkipTiles).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
 

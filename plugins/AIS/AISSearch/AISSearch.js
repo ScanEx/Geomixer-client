@@ -36,7 +36,7 @@
             var placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0');
             var layerName = _params.layerName;
             
-            var gmxLayers,
+            var searchBorder = {},
                 lmap, layersByID;
             if (!nsGmx.leafletMap) {    // для старого АПИ
                 gmxCore.loadScript(serverPrefix + 'api/leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
@@ -56,6 +56,7 @@
                 shap = L.DomUtil.create('div', '', div),
                 title = L.DomUtil.create('span', '', shap),
                 refresh = L.DomUtil.create('i', 'icon-refresh', shap),
+                bboxInfo = L.DomUtil.create('div', pluginName + '-bboxInfo', div),
                 node = null;
 
             refresh.title = 'Обновить';
@@ -103,40 +104,15 @@
                 }
             };
 
-            function getMMSIoptions(str) {
-
-                var cont = sideBar.getContainer();
-                L.DomEvent.disableScrollPropagation(cont);
-                cont.appendChild(div);
-                title.innerHTML = _gtxt(pluginName + '.title');
-                
-                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
-                if (!layersByID[aisLayerID]) {
-                    console.log('Отсутствует слой: АИС данные `' + aisLayerID + '`');
-                   return;
-                }
-                aisLayer = layersByID[aisLayerID];
-                tracksLayer = layersByID[tracksLayerID];
+            function getBorder() {
+                var dFeatures = nsGmx.leafletMap.gmxDrawing.getFeatures();
+                if (dFeatures.length) { return dFeatures[dFeatures.length - 1].toGeoJSON(); }
                 var latLngBounds = lmap.getBounds(),
                     sw = latLngBounds.getSouthWest(),
                     ne = latLngBounds.getNorthEast();
                     min = {x: sw.lng, y: sw.lat},
                     max = {x: ne.lng, y: ne.lat},
-                    //arr = bounds.toBBoxString().split(','),
-                    dateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-                    dt1 = dateInterval.get('dateBegin'),
-                    dt2 = dateInterval.get('dateEnd'),
-                    prop = (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties,
-                    TemporalColumnName = prop.TemporalColumnName,
-                    columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';
-
-                columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
-                columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
-                columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
-                columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
-                L.DomUtil.addClass(refresh, 'animate-spin');
-
-                var minX = min.x,
+                    minX = min.x,
                     maxX = max.x,
                     geo = {type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]]},
                     w = (maxX - minX) / 2;
@@ -160,6 +136,37 @@
                         ]};
                     }
                 }
+                return geo;
+            };
+
+            function getMMSIoptions(str) {
+
+                var cont = sideBar.getContainer();
+                L.DomEvent.disableScrollPropagation(cont);
+                cont.appendChild(div);
+                title.innerHTML = _gtxt(pluginName + '.title');
+                
+                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
+                if (!layersByID[aisLayerID]) {
+                    console.log('Отсутствует слой: АИС данные `' + aisLayerID + '`');
+                   return;
+                }
+                aisLayer = layersByID[aisLayerID];
+                tracksLayer = layersByID[tracksLayerID];
+
+                var dateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                    dt1 = dateInterval.get('dateBegin'),
+                    dt2 = dateInterval.get('dateEnd'),
+                    prop = (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties,
+                    TemporalColumnName = prop.TemporalColumnName,
+                    columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';
+
+                columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
+                columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
+                columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
+                columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
+                L.DomUtil.addClass(refresh, 'animate-spin');
+
                 var query = "(";
                 query += "(["+TemporalColumnName+"] >= '" + dt1.toJSON() + "')";
                 query += " and (["+TemporalColumnName+"] < '" + dt2.toJSON() + "')";
@@ -173,9 +180,10 @@
                 }
                 query += ")";
 
+                searchBorder = getBorder();
                 var reqParams = {
                     WrapStyle: 'window',
-                    border: JSON.stringify(geo),
+                    border: JSON.stringify(searchBorder),
                     border_cs: 'EPSG:4326',
                     // out_cs: 'EPSG:3395',
                     //pagesize: 100,
@@ -208,21 +216,29 @@
                             }
                             node.setAttribute('size', 15);
                             node.setAttribute('multiple', true);
-                            node.onchange = function(ev) {
+                            var setView = function(fitBoundsFlag) {
                                 var bbox = null,
                                     filter = [];
-                                for (var i = 0, len = node.options.length; i < len; i++) {
-                                    var it = node.options[i];
-                                    if (it.selected) {
-                                        filter.push(Number(it.id));
-                                        var varr = values[i];
-                                        bbox = [
-                                            [varr[5], varr[3]],
-                                            [varr[6], varr[4]]
-                                        ];
+                                    for (var i = 0, len = node.options.length; i < len; i++) {
+                                        var it = node.options[i];
+                                        if (it.selected) {
+                                            filter.push(Number(it.id));
+                                            var varr = values[i];
+                                            if (fitBoundsFlag) {
+                                                bbox = [
+                                                    [varr[5], varr[3]],
+                                                    [varr[6], varr[4]]
+                                                ];
+                                            }
+                                        }
                                     }
-                                }
                                 publicInterface.setMMSI(filter, bbox);
+                            };
+                            node.onchange = function() {
+                                setView(false);
+                            };
+                            node.ondblclick = function() {
+                                setView(true);
                             };
 
                             values.map(function(it) {
@@ -243,6 +259,7 @@
                         title.innerHTML = _gtxt(pluginName + '.error');
                     }
                 });
+                bboxInfo.innerHTML = '(<b>по ' + (searchBorder.type !== 'Feature' ? 'экрану' : 'контуру') + '</b>)';
             }
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
