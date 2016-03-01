@@ -767,6 +767,8 @@ function initTimeline(layers) {
     nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
 }
 
+window.layersShown = true;
+
 window.resizeAll = function() {
     if (window.printMode) {
         return;

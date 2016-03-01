@@ -613,41 +613,41 @@ function strip(s)
 	return s.replace(/^\s*/, "").replace(/\s*$/, "");
 }
 
-var replacements = {};
-for (var rus in (temp = {
-	"qwertyuiopasdfghjklzxcvbnm_1234567890" :
-	"qwertyuiopasdfghjklzxcvbnm_1234567890",
-	"абвгдезийклмнопрстуфыэ ":
-	"abvgdeziyklmnoprstufye_",
-	"ёжчхцшщюя":
-	"yozhchkhtsshshyuya",
-	"ьъ":
-	"",
-	".":
-	"."
-}))
-{
-	var eng = temp[rus],
-		k = eng.length/rus.length;
-	for (var i = 0; i < rus.length; i++)
-	{
-		var r = rus.substring(i, i + 1),
-			e = eng.substring(i*k, (i + 1)*k);
-		replacements[r] = e;
-		replacements[r.toUpperCase()] = e.toUpperCase();
-	}
-}
+(function() {
+    var replacements = {};
+    for (var rus in (temp = {
+        "qwertyuiopasdfghjklzxcvbnm_1234567890" :
+        "qwertyuiopasdfghjklzxcvbnm_1234567890",
+        "абвгдезийклмнопрстуфыэ ":
+        "abvgdeziyklmnoprstufye_",
+        "ёжчхцшщюя":
+        "yozhchkhtsshshyuya",
+        "ьъ":
+        "",
+        ".":
+        "."
+    }))
+    {
+        var eng = temp[rus],
+            k = eng.length/rus.length;
+        for (var i = 0; i < rus.length; i++)
+        {
+            var r = rus.substring(i, i + 1),
+                e = eng.substring(i*k, (i + 1)*k);
+            replacements[r] = e;
+            replacements[r.toUpperCase()] = e.toUpperCase();
+        }
+    }
 
-function translit(name)
-{
-	var result = "";
-	for (var i = 0; i < name.length; i++)
-		result += (replacements[name.substring(i, i + 1)] || "");
-	
-	return result;
-}
-
-var layersShown = true;
+    nsGmx.Utils.translit = function(name)
+    {
+        var result = "";
+        for (var i = 0; i < name.length; i++)
+            result += (replacements[name.substring(i, i + 1)] || "");
+        
+        return result;
+    }
+})();
 
 function loadFunc(iframe, callback)
 {

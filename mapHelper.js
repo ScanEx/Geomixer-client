@@ -410,7 +410,7 @@ mapHelper.prototype.getMapState = function() {
         },
         mapStyles: this.getMapStyles(),
         drawnObjects: drawnObjects,
-        isFullScreen: layersShown ? "false" : "true",
+        isFullScreen: window.layersShown ? "false" : "true",
         condition: condition,
         language: window.language,
         customParamsCollection: this.customParamsManager.saveParams()

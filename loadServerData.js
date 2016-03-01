@@ -692,7 +692,7 @@ queryServerData.prototype.saveGML = function(geometries)
 	
 	window.promptFunction(_gtxt('Введите имя gml-файла для скачивания:'), 'objects.gml', function(fileName)
 	{
-		globalFlashMap.saveObjects(geometries, translit(fileName));
+		globalFlashMap.saveObjects(geometries, nsGmx.Utils.translit(fileName));
 	});
 	
 	return false;
