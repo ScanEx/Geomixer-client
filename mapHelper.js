@@ -1217,6 +1217,19 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
     return def.promise();
 }
 
+/** Запросить с сервера объекты векторного слоя
+ * @memberOf _mapHelper
+ * @name searchObjectLayer
+ * @function
+ * @param {String} layerName ID векторного слоя
+ * @param {Object} options Параметры запроса
+ * @param {String} [options.query] SQL-подобное выражение для выборки объектов
+ * @param {Boolean} [options.includeGeometry=false] Возвращать ли геометрию с сервера или нет
+ * @param {Object} [options.border=null] GeoJSON для ограничения выборки по геометрии
+ * @param {Number} [options.page=0] номер страницы результатов (0 - результаты с самого первого)
+ * @param {Number} [options.pagesize=100000] максимальное кол-во объектов в ответе
+ * @return {jQuery.Deferred} Promise, который ресолвится массивом найденных объектов. Каждый объект имеет свойства properties и, возможно, geometry
+*/
 mapHelper.prototype.searchObjectLayer = function(layerName, options) {
     options = options || {};
     
@@ -1273,6 +1286,7 @@ mapHelper.prototype.searchObjectLayer = function(layerName, options) {
  * @memberOf _mapHelper
  * @name downloadVectorLayer
  * @function 
+ * @param {Object} params Параметры запроса
  * @param {String} params.name ID векторного слоя, который нужно скачать
  * @param {String} params.host хост, с которого будем скачивать слой
  * @param {String} [params.format=Shape] В каком формате хотим получить (Shape, Tab, gpx, csv, csv_wkt, excel, kml или несколько через запятую)
