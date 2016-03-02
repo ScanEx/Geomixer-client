@@ -818,7 +818,6 @@ var initEditUI = function(){
             layerRights = _queryMapLayers.layerRights(props.name);
 
         return props.type === 'Vector' &&
-            'tilesVers' in props &&
             (layerRights === 'edit' || layerRights === 'editrows');
     }
 
