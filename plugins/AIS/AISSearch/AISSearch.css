@@ -1,3 +1,16 @@
+.AISSearch-tableIcon input {
+    bottom: -3px;
+    position: relative;
+}
+.AISSearch-infoDialog {
+    max-height: 800px;
+}
+.AISSearch-infoDialog  table{
+    width: 100%;
+}
+.AISSearch-infoDialog  td{
+    padding-left: 6px;
+}
 .leaflet-gmx-sidebar.aissearch {
     position: absolute;
     bottom: 0px;

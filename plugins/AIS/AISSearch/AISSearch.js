@@ -59,9 +59,18 @@
                 title = L.DomUtil.create('span', '', shap),
                 refresh = L.DomUtil.create('i', 'icon-refresh', shap),
                 bboxInfo = L.DomUtil.create('div', pluginName + '-bboxInfo', div),
-                node = null;
+                tableIcon = L.DomUtil.create('div', pluginName + '-tableIcon'),
+                tableIconInput = L.DomUtil.create('input', '', tableIcon),
+                tableIconSpan = L.DomUtil.create('span', '', tableIcon),
+                node = null,
+                dialogObj = null,
+                trs = [];
 
             refresh.title = 'Обновить';
+
+            tableIconInput.type = 'checkbox';
+            tableIcon.title = 'Показать таблицу результатов';
+            tableIconSpan.innerHTML = ' таблица результатов';
 
             publicInterface.setMMSI = function(mmsiArr, bbox) {
                 if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
@@ -141,7 +150,31 @@
                 return geo;
             };
 
+            var showTable = function() {
+                if (tableIconInput.checked) {
+                    var size = nsGmx.leafletMap.getSize(),
+                        div = L.DomUtil.create('div', pluginName + '-infoDialog'),
+                        table = L.DomUtil.create('table', pluginName + '-infoDialogTable', div);
+
+                    table.innerHTML = trs.join('\n');
+                    div.style.maxHeight = size.y + 'px';
+                    
+                    dialogObj = showDialog('Таблица результатов поиска', div, 320, 'auto', false, false, false);
+                    $(dialogObj).on( "dialogclose", function() {
+                        tableIconInput.checked = false;
+                        dialogObj = null;
+                    });
+                } else if (dialogObj) {
+                    $(dialogObj).dialog( "close" );
+                    dialogObj = null;
+                }
+            }
+
             function getMMSIoptions(str) {
+                if (dialogObj) {
+                    $(dialogObj).dialog( "close" );
+                    // dialogObj = null;
+                }
 
                 var cont = sideBar.getContainer();
                 L.DomEvent.disableScrollPropagation(cont);
@@ -211,6 +244,9 @@
                         if (node && node.parentNode) {
                             node.parentNode.removeChild(node);
                         }
+                        trs = [      // чистка строк таблицы
+                            '<tr><th>#</th><th>Vessel name</th><th>MMSI</th><th>count</th></tr>'
+                        ];
                         if (values.length) {
                             node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle', div);
                             if (params.height) {
@@ -243,17 +279,26 @@
                                 setView(true);
                             };
 
-                            values.map(function(it) {
+                            values.map(function(it, i) {
                                 var mmsi = it[indexes.mmsi],
                                     name = it[indexes.vessel_name] || mmsi,
-                                    val = '(' + it[indexes.count] + ') ' + name,
+                                    count = it[indexes.count],
+                                    val = '(' + count + ') ' + name,
                                     opt = L.DomUtil.create('option', '', node);
                                 opt.setAttribute('id', mmsi);
                                 opt.setAttribute('title', 'mmsi: ' + mmsi);
                                 opt.text = val.replace(/\s+$/, '');
+
+                                trs.push(
+                                    '<tr><td>' + (i + 1) + '</td>' +
+                                    '</td><td>' + name + '</td>' +
+                                    '<td>' + mmsi + '</td>' +
+                                    '<td align="center">' + count + '</td></tr>'
+                                );
                                 return opt;
                             });
                             title.innerHTML = _gtxt(pluginName + '.title1') + ': <b>' + values.length + '</b>';
+                            bboxInfo.appendChild(tableIcon);
                         } else {
                             title.innerHTML = _gtxt(pluginName + '.title2');
                         }
@@ -263,6 +308,8 @@
                 });
                 bboxInfo.innerHTML = '(<b>по ' + (searchBorder.type !== 'Feature' ? 'экрану' : 'контуру') + '</b>)';
             }
+
+            L.DomEvent.on(tableIconInput, 'change', showTable, this);
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
