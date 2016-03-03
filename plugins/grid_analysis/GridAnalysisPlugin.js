@@ -32,45 +32,42 @@ var publicInterface = {
             propName = params.column || 'done',
             menus = parseMenuItems(params);
             
-        $.each(menus, function(menuName, value) {
-            map.contextmenu.insertItem({
-                text: menuName, 
-                callback: function(event) {
-                    var defs = [];
-                    
-                    nsGmx.widgets.notifications.startAction('gridAnalysis');
-                    
-                    layerNames.forEach(function(layerName) {
-                        var identityField = nsGmx.gmxMap.layersByID[layerName].getGmxProperties().identityField,
-                            def = $.Deferred();
-                            
-                        defs.push(def);
+            
+        layerNames.forEach(function(layerName) {
+            var layer = nsGmx.gmxMap.layersByID[layerName],
+                identityField = layer.getGmxProperties().identityField,
+                items = [{separator: true}];
+                
+            for (var menuText in menus) {
+                items.push({
+                    text: menuText,
+                    callback: function(value, ev) {
+                        var prevProps = ev.relatedEvent.gmx.properties,
+                            newValue = prevProps[propName] == value ? 0 : value,
+                            props = {};
                         
-                        var mercPoint = L.Projection.Mercator.project(event.latlng);
-                        _mapHelper.searchObjectLayer(layerName, {
-                            pagesize: 1,
-                            border: {type: 'POINT', coordinates: [mercPoint.x, mercPoint.y]}
-                        }).then(function(objects) {
-                            if (objects.length) {
-                                var props = {};
-                                var newValue = objects[0].properties[propName] == value ? 0 : value;
-                                props[propName] = Number(newValue);
-                                _mapHelper.modifyObjectLayer(layerName, [{
-                                    id: objects[0].properties[identityField],
-                                    properties: props
-                                }]).then(function() {
-                                    def.resolve();
-                                })
-                            } else {
-                                def.resolve();
-                            }
-                        })
-                    })
-                    $.when.apply($, defs).then(function() {
-                        nsGmx.widgets.notifications.stopAction('gridAnalysis', 'success', _gtxt('Сохранено'));
-                    });
-                }
-            })
+                        props[propName] = Number(newValue);
+                        
+                        nsGmx.widgets.notifications.startAction('gridAnalysis');
+                        
+                        _mapHelper.modifyObjectLayer(layerName, [{
+                            id: prevProps[identityField],
+                            properties: props
+                        }]).then(function() {
+                            nsGmx.widgets.notifications.stopAction('gridAnalysis', 'success', _gtxt('Сохранено'));
+                        });
+
+                    }.bind(null, menus[menuText])
+                });
+            }
+
+            L.setOptions(layer, {
+                contextmenu: false,
+                contextmenuItems: items,
+                contextmenuInheritItems: true
+            });
+            L.extend(layer, L.Mixin.ContextMenu);
+            layer.bindContextMenu();
         });
     }
 }
