@@ -349,9 +349,15 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 }
 
 mapHelper.prototype.getMapState = function() {
+    var lmap = nsGmx.leafletMap;
+
+    if (!lmap) {
+        return {};
+    }
+
     var drawnObjects = [],
         condition = {expanded:{}, visible:{}},
-        lmap = nsGmx.leafletMap,
+
         mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 
     lmap.gmxDrawing.getFeatures().forEach(function(feature) {
@@ -444,7 +450,7 @@ mapHelper.prototype.showPermalink = function()
 
 mapHelper.prototype.createPermalink = function(callback)
 {
-	var mapState = this.getMapState()
+	var mapState = this.getMapState(),
         def = nsGmx.Utils.TinyReference.create(mapState);
     
     def.then(callback);
