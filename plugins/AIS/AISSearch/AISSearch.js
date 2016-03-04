@@ -57,20 +57,23 @@
                 div = L.DomUtil.create('div', pluginName + '-content'),
                 shap = L.DomUtil.create('div', '', div),
                 title = L.DomUtil.create('span', '', shap),
+                exportIcon = L.DomUtil.create('a', 'icon-export', shap),
                 refresh = L.DomUtil.create('i', 'icon-refresh', shap),
                 bboxInfo = L.DomUtil.create('div', pluginName + '-bboxInfo', div),
-                tableIcon = L.DomUtil.create('div', pluginName + '-tableIcon'),
-                tableIconInput = L.DomUtil.create('input', '', tableIcon),
-                tableIconSpan = L.DomUtil.create('span', '', tableIcon),
                 node = null,
-                dialogObj = null,
+                file = 'test.csv',
+                blob = null,
                 trs = [];
 
             refresh.title = 'Обновить';
 
-            tableIconInput.type = 'checkbox';
-            tableIcon.title = 'Показать таблицу результатов';
-            tableIconSpan.innerHTML = ' таблица результатов';
+            exportIcon.setAttribute('target', '_blank');  
+            exportIcon.title = 'Экспорт в CSV';
+            if (navigator.msSaveBlob) { // IE 10+
+               exportIcon.addEventListener("click", function() {
+                    navigator.msSaveBlob(blob, file);
+                }, false);
+            }
 
             publicInterface.setMMSI = function(mmsiArr, bbox) {
                 if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
@@ -150,31 +153,8 @@
                 return geo;
             };
 
-            var showTable = function() {
-                if (tableIconInput.checked) {
-                    var size = nsGmx.leafletMap.getSize(),
-                        div = L.DomUtil.create('div', pluginName + '-infoDialog'),
-                        table = L.DomUtil.create('table', pluginName + '-infoDialogTable', div);
-
-                    table.innerHTML = trs.join('\n');
-                    div.style.maxHeight = size.y + 'px';
-                    
-                    dialogObj = showDialog('Таблица результатов поиска', div, 320, 'auto', false, false, false);
-                    $(dialogObj).on( "dialogclose", function() {
-                        tableIconInput.checked = false;
-                        dialogObj = null;
-                    });
-                } else if (dialogObj) {
-                    $(dialogObj).dialog( "close" );
-                    dialogObj = null;
-                }
-            }
-
             function getMMSIoptions(str) {
-                if (dialogObj) {
-                    $(dialogObj).dialog( "close" );
-                    // dialogObj = null;
-                }
+                exportIcon.style.visibility = 'hidden';
 
                 var cont = sideBar.getContainer();
                 L.DomEvent.disableScrollPropagation(cont);
@@ -245,7 +225,7 @@
                             node.parentNode.removeChild(node);
                         }
                         trs = [      // чистка строк таблицы
-                            '<tr><th>#</th><th>Vessel name</th><th>MMSI</th><th>count</th></tr>'
+                            ['#', 'Vessel name', 'MMSI', 'count'].join(';')
                         ];
                         if (values.length) {
                             node = L.DomUtil.create('select', pluginName + '-selectItem selectStyle', div);
@@ -289,16 +269,15 @@
                                 opt.setAttribute('title', 'mmsi: ' + mmsi);
                                 opt.text = val.replace(/\s+$/, '');
 
-                                trs.push(
-                                    '<tr><td>' + (i + 1) + '</td>' +
-                                    '</td><td>' + name + '</td>' +
-                                    '<td>' + mmsi + '</td>' +
-                                    '<td align="center">' + count + '</td></tr>'
-                                );
+                                trs.push([(i + 1), name, mmsi, count].join(';'));
                                 return opt;
                             });
                             title.innerHTML = _gtxt(pluginName + '.title1') + ': <b>' + values.length + '</b>';
-                            bboxInfo.appendChild(tableIcon);
+                            blob = new Blob([trs.join('\n')], {type: "text/csv;charset=utf-8;"});
+                            file = 'data_' + Date.now() + '.csv';
+                            exportIcon.setAttribute('href', window.URL.createObjectURL(blob));
+                            exportIcon.setAttribute('download', file);
+                            exportIcon.style.visibility = 'visible';
                         } else {
                             title.innerHTML = _gtxt(pluginName + '.title2');
                         }
@@ -309,7 +288,6 @@
                 bboxInfo.innerHTML = '(<b>по ' + (searchBorder.type !== 'Feature' ? 'экрану' : 'контуру') + '</b>)';
             }
 
-            L.DomEvent.on(tableIconInput, 'change', showTable, this);
             L.DomEvent.on(refresh, 'click', function(str) {
                 getMMSIoptions();
             }, this);
