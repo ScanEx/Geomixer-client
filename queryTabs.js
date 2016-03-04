@@ -11,13 +11,13 @@ nsGmx.Controls.LanguageSelector = function(container, defLang) {
         lang = null,
         _this = this;
     
-    var template = '<div class = "language-container">' + 
+    var template = Handlebars.compile('<div class = "language-container">' + 
         '{{#langs}}' +
             '<span data-lang = "{{lang}}" class="language-item">{{title}}</span>' + 
         '{{/langs}}' +
-    '</div>';
+    '</div>');
     
-    $(container).empty().append($(Mustache.render(template, {langs: LANGUAGES})));
+    $(container).empty().append($(template({langs: LANGUAGES})));
     
     var update = function() {
         var newLang = $(this).data('lang'),
@@ -98,20 +98,20 @@ queryTabs.prototype.add = function(tabInfo, tabIndex)
         tabInfo.description_rus = tabInfo.description;
     }
     
-    var uiTemplate = 
+    var uiTemplate = Handlebars.compile(
         '<div class = "addtabs-container">' +
-            '<div class = "addtabs-info">{{i Название}}</div>' + 
+            '<div class = "addtabs-info">{{i "Название"}}</div>' + 
             '<input class = "addtabs-title-input inputStyle" value="{{title}}"><br>' + 
-            '<div class = "addtabs-info">{{i Описание}}</div>' + 
+            '<div class = "addtabs-info">{{i "Описание"}}</div>' + 
             '<textarea class = "addtabs-title-description inputStyle">{{description}}</textarea><br>' + 
             '<button class = "addtabs-create">{{buttonTitle}}</button>' +
             '<div class = "addtabs-lang-placeholder"></div>' + 
-        '</div>';
+        '</div>');
         
         
     var titleLoc = {rus: tabInfo.name_rus, eng: tabInfo.name_eng};
     var descrLoc = {rus: tabInfo.description_rus, eng: tabInfo.description_eng};
-    var ui = $(Mustache.render(uiTemplate, {
+    var ui = $(uiTemplate({
             title: titleLoc.rus, 
             description: descrLoc.rus,
             buttonTitle: isNew ? _gtxt('Создать') : _gtxt('Изменить')
@@ -182,13 +182,14 @@ queryTabs.prototype.draw = function (tabInfo, tabIndex)
         return tabInfo[paramName + '_' + lang] || tabInfo[paramName];
     }
     
-    var tmpl = '<div class="canvas">' +
+    var tmpl = Handlebars.compile('<div class="canvas">' +
         '<div class="buttonLink tabName" title="{{description}}">{{name}}</div>' +
         '<div class="gmx-icon-edit"></div>' +
         '<div class="gmx-icon-close"></div>' +
-    '</div>';
+    '</div>');
     
-    var canvas = $(Mustache.render(tmpl, {
+    
+    var canvas = $(tmpl({
             name: selectValLoc('name'),
             description: selectValLoc('description')
         }))[0];

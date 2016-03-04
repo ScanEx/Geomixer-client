@@ -418,10 +418,7 @@ var parseURLParams = function() {
 }
 
 $(function() {
-    Mustache.addCustomTag('i', function (contents, value) {
-        return nsGmx.Translations.getText(contents);
-    });
-    
+
     var virtualLayerManager = new nsGmx.VirtualLayerManager();
     L.gmx.addLayerClassLoader(virtualLayerManager.loader);
 
@@ -1439,10 +1436,10 @@ function processGmxMap(state, gmxMap) {
 }
 
 function promptFunction(title, value) {
-    var ui = $(Mustache.render(
+    var ui = $(Handlebars.compile(
             '<div class="gmx-prompt-canvas">' +
                 '<input class="inputStyle gmx-prompt-input" value="{{value}}">' +
-            '</div>', {value: value})
+            '</div>')({value: value})
         );
 
     ui.find('input').on('keydown', function(e) {

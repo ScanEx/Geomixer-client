@@ -1951,13 +1951,13 @@ queryMapLayers.prototype.getMaps = function()
 
 queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, addLink)
 {
-	var uiTemplate = 
+	var uiTemplate = Handlebars.compile(
         '<div class = "createMap-container">' + 
             '<input class = "inputStyle inputFullWidth createMap-input">' +
             '<button class = "createMap-button">{{buttonName}}</button>' +
-        '</div>';
+        '</div>');
     
-    var ui = $(Mustache.render(uiTemplate, {buttonName: buttonName})),
+    var ui = $(uiTemplate({buttonName: buttonName})),
         input = $('.createMap-input', ui)[0];
     
     var tryCreateMap = function() {

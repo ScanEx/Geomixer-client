@@ -1054,11 +1054,8 @@ mapHelper.prototype.load = function()
 
 mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, data )
 {
-	var proceess = function( text )
-	{
-		//if (num ) text = text.replace("{gmxVersion}", num);
-		//if (data) text = text.replace("{gmxData}", data);
-		callback(Mustache.render(text, {gmxVersion: num, gmxData: data}));
+	var proceess = function( text ) {
+		callback(Handlebars.compile(text)({gmxVersion: num, gmxData: data}));
 	}
 	
 	if (fileName.indexOf("http://") !== 0)

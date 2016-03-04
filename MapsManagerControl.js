@@ -49,18 +49,18 @@ nsGmx.MapsManagerControl.prototype._resize = function() {
 
 nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 {
-    var searchUITemplate = 
+    var searchUITemplate = Handlebars.compile(
         '<div class="mapslist-search">' +
             '<table class="mapslist-search-table"><tr>' +
                 '<td>' +
-                    '{{i Название}}<input class="inputStyle mapslist-search-name">' +
+                    '{{i "Название"}}<input class="inputStyle mapslist-search-name">' +
                 '</td><td>' +
-                    '{{i Владелец}}<input class="inputStyle mapslist-search-owner">' +
+                    '{{i "Владелец"}}<input class="inputStyle mapslist-search-owner">' +
                 '</td>' +
             '</tr></table>' +
-        '</div>';
+        '</div>');
         
-    var searchCanvas = $(Mustache.render(searchUITemplate))[0];
+    var searchCanvas = $(searchUITemplate())[0];
 	var canvas = this._canvas,
 		name = 'maps',
         mapsTable = this._mapsTable,

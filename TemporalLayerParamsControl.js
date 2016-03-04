@@ -1,4 +1,8 @@
 (function(){
+    
+Handlebars.registerPartial('TemporalLayerWidgetOptions', 
+    '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}'
+);
 
 _translationsHash.addtext("rus", {
     "Макс. период на экране": "На экране не более",
@@ -60,30 +64,28 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
     var PERIODS = [1, 4, 16, 64, 256];
     var optionsHtml = '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}';
     
-    var html = 
-        //'<input id="isTemporalCheckbox" type="checkbox"></input>' + 
+    var template = Handlebars.compile(
         '<table><tbody>' + 
             '<tr>' +
-                '<td>{{i Макс. период на экране}}</td>' + 
-                '<td><input id="maxShownPeriod" class="inputStyle temporal-maxshow"></input> <span>{{i дней}}</span> </td>' + 
+                '<td>{{i "Макс. период на экране"}}</td>' + 
+                '<td><input id="maxShownPeriod" class="inputStyle temporal-maxshow"></input> <span>{{i "дней"}}</span> </td>' + 
             '</tr>' + 
             '<tr class="temporal-columns">' +
-                '<td>{{i Колонка даты}}</td>' + 
+                '<td>{{i "Колонка даты"}}</td>' + 
                 '<td><select id="columnSelect" class="selectStyle"></select></td>' + 
             '</tr>' + 
             '<tr class="temporal-advanced">' +
-                '<td>{{i Тайлы с}}</td>' + 
-                '<td><select id="minPeriod" class="selectStyle">{{>options}}</select></td>' + 
+                '<td>{{i "Тайлы с"}}</td>' + 
+                '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' + 
             '</tr>' + 
             '<tr class="temporal-advanced">' +
-                '<td>{{i Тайлы до}}</td>' + 
-                '<td><select id="maxPeriod" class="selectStyle">{{>options}}</select></td>' + 
-            '</tr>' + 
-        '</tbody></table>' + 
-        //'<div class="temporal-control-noattr">{{i Отсутствует временной атрибут}}</div>' +
-        '<span class="buttonLink RCCreate-advanced-link">{{i LayerRCControl.advancedLink}}</span>';
+                '<td>{{i "Тайлы до"}}</td>' + 
+                '<td><select id="maxPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' + 
+            '</tr>' +
+        '</tbody></table>' +
+        '<span class="buttonLink RCCreate-advanced-link">{{i "LayerRCControl.advancedLink"}}</span>');
 
-    $(parentDiv).html(Mustache.render(html, {periods: PERIODS}, {options: optionsHtml}));
+    $(parentDiv).html(template({periods: PERIODS}));
     
     var updateVisibility = function() {
         var isTemporal = paramsModel.get('isTemporal');

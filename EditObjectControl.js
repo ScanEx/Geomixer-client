@@ -356,9 +356,12 @@ var EditObjectControl = function(layerName, objectId, params)
                 firstInput;
             
             //сначала идёт геометрия
-            var geomTitleTmpl = '<span><span class="edit-obj-geomtitle">{{i Геометрия}}</span><span id = "choose-geom" class="gmx-icon-choose"></span></span>';
+            var geomTitleTmpl = Handlebars.compile('<span>' +
+                '<span class="edit-obj-geomtitle">{{i "Геометрия"}}</span>' +
+                '<span id = "choose-geom" class="gmx-icon-choose"></span>' +
+            '</span>');
             
-            var geometryUI = _params.geometryUI || $(Mustache.render(geomTitleTmpl))[0];
+            var geometryUI = _params.geometryUI || $(geomTitleTmpl())[0];
             $('#choose-geom', geometryUI).click(function() {
                 if (_params.onGeometrySelection) {
                     _params.onGeometrySelection(bindGeometry);

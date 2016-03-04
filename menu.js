@@ -110,69 +110,48 @@ UpMenu.prototype.hidemenu = function(elem)
 	elem.style.visibility = 'hidden';
 }
 
-UpMenu.prototype._template =
+UpMenu.prototype._template = Handlebars.compile(
 '<div class="headerContainer">\
-{{#childs}}{{#notNull}}\
-    <div class = "header1{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
+{{#childs}}{{#if id}}\
+    <div class = "header1{{#unless childs}} menuClickable{{/unless}}" hash = "{{id}}">\
         <div class = "header1Internal">{{title}}</div>\
-        {{#anyChildren}}\
+        {{#if childs}}\
             <ul class = "header2" id="{{id}}">\
-            {{#childs}}{{#notNull}}\
-                <li class = "header2{{#noChildren}} menuClickable{{/noChildren}}" hash = "{{id}}">\
-                    <div class = "header2{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
+            {{#childs}}{{#if id}}\
+                <li class = "header2{{#unless childs}} menuClickable{{/unless}}" hash = "{{id}}">\
+                    <div class = "header2{{#if disabled}} menuDisabled{{/if}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
                         <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                         {{title}}\
-                        {{#anyChildren}}\
+                        {{#if childs}}\
                             <div class = "menuMarkerRight"></div>\
-                        {{/anyChildren}}\
+                        {{/if}}\
                     </div>\
-                    {{#anyChildren}}\
+                    {{#if childs}}\
                         <ul class = "header3" id="{{id}}">\
-                        {{#childs}}{{#notNull}}\
+                        {{#childs}}{{#if id}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
-                                <div class = "header3{{#disabled}} menuDisabled{{/disabled}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
+                                <div class = "header3{{#if disabled}} menuDisabled{{/if}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
                                     <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
-                        {{/notNull}}{{/childs}}\
+                        {{/if}}{{/childs}}\
                         </ul>\
-                    {{/anyChildren}}\
+                    {{/if}}\
                 </li>\
-            {{/notNull}}{{/childs}}\
+            {{/if}}{{/childs}}\
             </ul>\
-        {{/anyChildren}}\
+        {{/if}}\
     </div>\
-    {{/notNull}}{{/childs}}\
-</div>';
+    {{/if}}{{/childs}}\
+</div>');
 
 /** Основная функция  - рисует меню по заданной структуре
 */
 UpMenu.prototype.draw = function()
 {
-    // anyChildren, noChildren, isChecked, notNull нужны для того, чтобы Mustache не проверял аналогичные свойства предыдущего уровня дерева
-    var ui = $(Mustache.render(this._template, {
-            childs: this.submenus,
-            anyChildren: function(){
-                return function(text, renderer) {
-                    return this.childs && this.childs.length ? renderer(text) : "";
-                }
-            },
-            noChildren: function(){
-                return function(text, renderer) {
-                    return this.childs && this.childs.length ? "" : renderer(text);
-                }
-            },
-            isChecked: function() {
-                return function(text, renderer) {
-                    return this.checked ? renderer(text) : "";
-                }
-            },
-            notNull: function() {
-                return function(text, renderer) {
-                    return this.id ? renderer(text) : "";
-                }
-            }
+    var ui = $(this._template({
+            childs: this.submenus
         })),
         _this = this;
 
@@ -466,22 +445,22 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     var getPathHTML = function(path) {
         if (!path) return '';
 
-        return Mustache.render(
+        return Handlebars.compile(
             '<tr>' +
                 '{{#path}}' +
                     '<td class="leftmenu-path-item {{#last}}menuNavigateCurrent{{/last}}">{{name}}</td>' +
                     '{{^last}}<td><div class="markerRight"></div></td>{{/last}}' +
                 '{{/path}}' +
-            '</tr>',
+            '</tr>')(
             {
                 path: path.map(function(item, index, arr) {
                     return {name: item, last: index === arr.length-1};
                 })
             }
-        )
+        );
     }
 
-    var ui =
+    var ui = Handlebars.compile(
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
             '{{#isTitle}}<div class="leftTitle">' +
                 '{{#showMinimizeButton}}' + 
@@ -493,10 +472,10 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
                 '{{#showCloseButton}}<div class="gmx-icon-close"></div>{{/showCloseButton}}' +
             '</div>{{/isTitle}}' +
             '<div class = "workCanvas"></div>' +
-        '</div>';
+        '</div>');
 
     /**HTML элемент с блоком (содержит шапку и рабочую область)*/
-    this.panelCanvas = $(Mustache.render(ui, {
+    this.panelCanvas = $(ui({
         isTitle: !!(options.path.length || options.showCloseButton || options.showMinimizeButton),
         id: 'left_' + canvasID,
         pathTR: getPathHTML(options.path),

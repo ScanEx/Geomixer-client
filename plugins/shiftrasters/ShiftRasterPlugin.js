@@ -21,9 +21,9 @@
         contextTitle: 'Shift Layer'
     }});
     
-    var rowUITemplate = 
+    var rowUITemplate = Handlebars.compile(
         '<span>\
-            <div class="shift-rasters-title">{{i shiftRastersPlugin.title}}</div>\
+            <div class="shift-rasters-title">{{i "shiftRastersPlugin.title"}}</div>\
             <div class="shift-rasters-container">\
                 <div id="slider-placeholder" class="shift-rasters-slider"></div>\
                 <span class = "shift-rasters-label">dx</span> \
@@ -31,12 +31,12 @@
                 <span class = "shift-rasters-label">dy</span> \
                 <input class="inputStyle shift-rasters-input" id="dy"></input> \
                 {{#showButtons}}\
-                    <button class="shift-rasters-btn" id="btnStart">{{i shiftRastersPlugin.startBtnTitle}}</button> \
-                    <button class="shift-rasters-btn" id="btnSave">{{i shiftRastersPlugin.saveBtnTitle}}</button> \
-                    <button class="shift-rasters-btn" id="btnCancel">{{i shiftRastersPlugin.cancelBtnTitle}}</button>\
+                    <button class="shift-rasters-btn" id="btnStart">{{i "shiftRastersPlugin.startBtnTitle"}}</button> \
+                    <button class="shift-rasters-btn" id="btnSave">{{i "shiftRastersPlugin.saveBtnTitle"}}</button> \
+                    <button class="shift-rasters-btn" id="btnCancel">{{i "shiftRastersPlugin.cancelBtnTitle"}}</button>\
                 {{/showButtons}}\
             </div>\
-        </span>';
+        </span>');
 
     L.Draggable.RightButton = L.Draggable.extend({
         _onDown: function (e) {
@@ -170,7 +170,7 @@
             }
         });
 
-        var ui = $(Mustache.render(rowUITemplate, {showButtons: params.showButtons})).appendTo(canvas);
+        var ui = $(rowUITemplate({showButtons: params.showButtons})).appendTo(canvas);
         
         var sliderUI = nsGmx.Controls.createSlider(80, function(event, ui) {
             updateLayerOpacity(ui.value);
@@ -253,13 +253,13 @@
                         return;
                     }
 
-                    var uiTemplate = 
+                    var uiTemplate = Handlebars.compile(
                         '<label class = "shift-rasters-properties">' +
                             '<input type="checkbox" id="shift-rasters" {{#isShift}}checked{{/isShift}}>' + 
-                            '{{i shiftRastersPlugin.layerPropertiesTitle}}' +
-                        '</label>';
+                            '{{i "shiftRastersPlugin.layerPropertiesTitle"}}' +
+                        '</label>');
                     
-                    var ui = $(Mustache.render(uiTemplate, {isShift: isShift}));
+                    var ui = $(uiTemplate({isShift: isShift}));
                     
                     $(layerEditor).on('premodify', function() {
                         var xId = metaProps.getTagIdByName(shiftXName);
@@ -385,7 +385,6 @@
                                     shiftPos[1] += ddy;
                                     drawingObj.setPositionOffset(shiftPos[0], shiftPos[1]);
                                 } else {
-                                    var deltaY = layer._gmx.getDeltaY();
                                     drawingObj.setOffsetToGeometry(dx - startPos[0], dy - startPos[1]);
                                     startPos = [dx, dy];
                                 }

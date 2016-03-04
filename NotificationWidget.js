@@ -59,11 +59,11 @@
                 return;
             }
             
-            this._container = $(Mustache.render(
+            this._container = $(Handlebars.compile(
                 '<div class="notification-container">' +
                     '<span class="notification-process"></span>' +
                     '<span class="notification-message"></span>' +
-                '</div>')).appendTo($('#flash'));
+                '</div>')()).appendTo($('#flash'));
                 
             this._container.find('.notification-message, .notification-process').hide();
         }
