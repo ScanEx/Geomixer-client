@@ -356,6 +356,7 @@ mapHelper.prototype.getMapState = function() {
     }
 
     var drawnObjects = [],
+        openPopups = {},
         condition = {expanded:{}, visible:{}},
 
         mercCenter = L.Projection.Mercator.project(lmap.getCenter());
@@ -388,6 +389,17 @@ mapHelper.prototype.getMapState = function() {
         
         drawnObjects.push(elem);
     });
+    
+    for (var l in nsGmx.gmxMap.layersByID) {
+        var layer = nsGmx.gmxMap.layersByID[l];
+        
+        if (layer.getPopups) {
+            var popups = layer.getPopups();
+            if (popups.length) {
+                openPopups[l] = popups;
+            }
+        }
+    }
 
     this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem) {
         var props = elem.content.properties;
@@ -419,6 +431,7 @@ mapHelper.prototype.getMapState = function() {
         isFullScreen: window.layersShown ? "false" : "true",
         condition: condition,
         language: window.language,
+        openPopups: openPopups,
         customParamsCollection: this.customParamsManager.saveParams()
     }
 }

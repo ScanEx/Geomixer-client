@@ -1404,6 +1404,15 @@ function processGmxMap(state, gmxMap) {
                 properties: { title: state.marker.mt }
             });
         }
+        
+        if (state.openPopups) {
+            for (var l in state.openPopups) {
+                var layer = nsGmx.gmxMap.layersByID[l];
+                if (layer && layer.addPopup) {
+                    state.openPopups[l].forEach(layer.addPopup.bind(layer));
+                }
+            }
+        }
 
         _menuUp.checkView();
 
