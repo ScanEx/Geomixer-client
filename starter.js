@@ -1,6 +1,4 @@
-﻿var globalFlashMap;
-
-//Тут кратко описываются разные внешние классы для системы генерации документации
+﻿//Тут кратко описываются разные внешние классы для системы генерации документации
 
 /** ГеоМиксер активно использует {@link http://jquery.com/|jQuery}
  * @namespace jQuery
@@ -30,6 +28,8 @@ var nsGmx = nsGmx || {};
 nsGmx.widgets = nsGmx.widgets || {};
 
 (function(){
+
+'use strict';
 
 var gmxJSHost = window.gmxJSHost || '';
 
@@ -640,7 +640,7 @@ nsGmx.widgets.commonCalendar = {
         if (!this._calendar) {
             this._calendar = new nsGmx.CalendarWidget({
                 minimized: true,
-                dateMin: new Date(2000, 01, 01),
+                dateMin: new Date(2000, 1, 1),
                 dateMax: new Date(),
                 dateInterval: this._dateInterval
             });
@@ -1006,7 +1006,7 @@ function loadMap(state) {
         //self public interface
         execute: function() {
             if (this._script) {
-                var evalStr = '_kosmosnimki_temp=(' + this._script + ')';
+                var evalStr = '(' + this._script + ')';
                 try {
                     eval(evalStr)();
                 } catch (e) {
