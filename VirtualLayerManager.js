@@ -17,4 +17,4 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
     }, promise.reject);
     
     return promise;
-}
+};
