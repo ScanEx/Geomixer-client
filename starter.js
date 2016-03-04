@@ -227,7 +227,7 @@ var createToolbar = function() {
             var sliderContainer = $('<div class="gmx-slider-control"></div>');
             this._widget = new nsGmx.TransparencySliderWidget(sliderContainer);
 
-            $(this._widget).on('slidechange', function(event, ui) {
+            $(this._widget).on('slide slidechange', function(event, ui) {
                 _queryMapLayers.applyOpacityToRasterLayers(ui.value*100, _queryMapLayers.buildedTree);
             })
 
