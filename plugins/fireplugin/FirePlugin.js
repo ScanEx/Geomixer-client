@@ -883,7 +883,7 @@ FireControl.DEFAULT_OPTIONS =
 FireControl.prototype.saveState = function()
 {
     var dc = [];
-    for (k in this.dataControllers)
+    for (var k in this.dataControllers)
         dc.push({name: this.dataControllers[k].name, visible: this.dataControllers[k].visible});
     
     var resData = {
