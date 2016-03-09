@@ -260,6 +260,15 @@ queryTabs.prototype.show = function(state)
     
     if (typeof parsedState.customParamsCollection !== 'undefined')
         _mapHelper.customParamsManager.loadParams(parsedState.customParamsCollection);
+
+    if (parsedState.openPopups) {
+        for (var l in parsedState.openPopups) {
+            var layer = nsGmx.gmxMap.layersByID[l];
+            if (layer && layer.addPopup) {
+                parsedState.openPopups[l].forEach(layer.addPopup.bind(layer));
+            }
+        }
+    }
 }
 
 var _queryTabs = new queryTabs();
