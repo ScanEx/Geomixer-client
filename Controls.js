@@ -345,19 +345,18 @@ nsGmx.Controls = {
                 _(div, [legend])
             }
             
-            showDialog(_gtxt("Слой [value0]", layer.properties.title), div, 360, 200, false, false, null, function(){return true})
+            showDialog(_gtxt("Слой [value0]", layer.properties.title), div, 360, 'auto', false, false, null, function(){return true});
+            
         }
         
+        //подстраиваем ширину
         setTimeout(function()
         {
-            var titleHeight = $('#layerPropertiesInfo')[0].parentNode.parentNode.firstChild.offsetHeight;
-
             var dialogDiv = $('#layerPropertiesInfo')[0].parentNode;
-            $(dialogDiv).dialog('option', 'height', titleHeight + 6 + div.offsetHeight);
-            $(dialogDiv).dialog('option', 'minHeight', titleHeight + 6 + div.offsetHeight);
-            
-            dialogDiv.style.height = div.offsetHeight + 'px';
-            dialogDiv.style.minHeight = div.offsetHeight + 'px';
+            var width = $(div).find('.vectorInfoParams').width();
+            if (width > 340) {
+                $(dialogDiv).dialog('option', 'width', width + 18);
+            }
         }, 100)
         
         nsGmx.TagMetaInfo.loadFromServer(function(tagInfo)
