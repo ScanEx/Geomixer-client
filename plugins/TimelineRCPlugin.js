@@ -783,7 +783,10 @@ var TimelineController = function(data, map, options) {
         var newRange = data.get('range');
         
         if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf() ) {
-            timeline.setVisibleChartRange(nsGmx.Calendar.toUTC(newRange.start), nsGmx.Calendar.toUTC(newRange.end));
+            timeline.setVisibleChartRange(
+                nsGmx.CalendarWidget.toUTC(newRange.start), 
+                nsGmx.CalendarWidget.toUTC(newRange.end)
+            );
             updateCalendarRange && updateCalendarRange();
         }
     })

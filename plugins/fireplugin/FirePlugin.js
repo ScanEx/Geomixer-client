@@ -1161,7 +1161,7 @@ FireControl.prototype.update = function() {
     @param {gmxAPI.Map} map Карта ГеоМиксера
     @param {Object} params Параметры виджета
     @param {String} [params.data='+fires !images'] Описание данных виджета и их начальной видимости
-    @param {nsGmx.Calendar} [params.calendar] Календарь для управления периодом показа пожаров
+    @param {nsGmx.CalendarWidget} [params.calendar] Календарь для управления периодом показа пожаров
     @param {DOMNode} [params.container] Контейнер для размещения виджета
 */
 var FireControl2 = function(map, params)

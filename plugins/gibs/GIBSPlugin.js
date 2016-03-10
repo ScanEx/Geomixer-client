@@ -26,7 +26,7 @@ var NASA_LAYERS = {
  * @param {L.Map} Карта ГеоМиксера
  * @param {Object} [params] Дополнительные параметры
  * @param {Boolean} [params.visible] Видим ли слой по умолчанию
- * @param {nsGmx.Calendar} [params.calendar] Календарь, который задаёт за какое число показывать данные
+ * @param {nsGmx.CalendarWidget} [params.calendar] Календарь, который задаёт за какое число показывать данные
  * @param {Date} [params.initDate] Начальная дата (если не указан params.calendar)
 */
 var GIBSLayer = function(layerName, map, params) {
@@ -75,7 +75,7 @@ var GIBSLayer = function(layerName, map, params) {
       @param {Date} newDate Дата (используется с точностью до дня)
     */
     this.setDate = function(newDate) {
-        var dateStr = $.datepicker.formatDate('yy-mm-dd', nsGmx.Calendar.toUTC(newDate));
+        var dateStr = $.datepicker.formatDate('yy-mm-dd', nsGmx.CalendarWidget.toUTC(newDate));
         this._url = urlPrefix + dateStr + '/GoogleMapsCompatible_Level' + layerZoom + '/{z}/{y}/{x}.jpg';
         
         initLayer();
@@ -86,7 +86,7 @@ var GIBSLayer = function(layerName, map, params) {
     }
     
     /** Связать с календарём для задания даты снимков. Будет использована конечная дата интервала календаря.
-     * @param {nsGmx.Calendar} newCalendar Календарь
+     * @param {nsGmx.CalendarWidget} newCalendar Календарь
     */
     this.bindToCalendar = function(newCalendar) {
         calendar && $(calendar).off('change', updateDate);

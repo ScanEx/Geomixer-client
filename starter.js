@@ -1207,7 +1207,7 @@ function processGmxMap(state, gmxMap) {
         if (state.dt) {
             try {
                 var dateLocal = $.datepicker.parseDate('dd.mm.yy', state.dt);
-                var dateBegin = nsGmx.Calendar.fromUTC(dateLocal);
+                var dateBegin = nsGmx.CalendarWidget.fromUTC(dateLocal);
                 var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000);
                 var dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
                 dateInterval.set({
