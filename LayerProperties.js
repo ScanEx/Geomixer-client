@@ -292,6 +292,8 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.ContentID = attrs.ContentID;
             }
             
+            reqParams.Legend = attrs.Legend || '';
+            
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
         }
         
