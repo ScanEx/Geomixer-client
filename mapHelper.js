@@ -302,11 +302,10 @@ mapHelper.prototype.setBalloon = function(filter, template)
 
 mapHelper.prototype.updateMapStyles = function(newStyles, name)
 {
-    var layer = nsGmx.gmxMap.layersByID[name];
-    
-    newStyles.forEach(function(style, i) {
-        nsGmx.Utils.setGmxLayerStyle(layer, i, style);
-    });
+    var layer = nsGmx.gmxMap.layersByID[name],
+        styles = newStyles.map(nsGmx.Utils.prepareGmxLayerStyle);
+
+    layer.setStyles(styles);
 }
 
 //TODO: remove isEditableStyles

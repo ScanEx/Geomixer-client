@@ -1162,7 +1162,9 @@ $.extend(nsGmx.Utils, {
         layer.setStyle(newStyle, styleIndex);
 	},
     
-    setGmxLayerStyle: function(layer, styleIndex, style)
+    // берёт стиль в формате сервера, добавляет в него hover-подсветку 
+    // и возвращает этот стиль в новом формате Leafelt-Geomixer
+    prepareGmxLayerStyle: function(style)
 	{
         var templateStyle = style.RenderStyle,
             newStyle = $.extend(true, {}, style),
@@ -1178,7 +1180,7 @@ $.extend(nsGmx.Utils, {
         newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
         newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
         
-        layer.setStyle(newStyle, styleIndex);
+        return newStyle;
 	},
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     *
