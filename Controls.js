@@ -301,7 +301,7 @@ nsGmx.Controls = {
         {
             div = $('#layerPropertiesInfo')[0];
             
-            if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
+            if (!trs.length && !layer.properties.Legend)
             {
                 $(div.parentNode).dialog('close');
                 
@@ -312,7 +312,7 @@ nsGmx.Controls = {
             
             _(div, [_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
             
-            if (layer.properties.type == "Raster" && layer.properties.Legend)
+            if (layer.properties.Legend)
             {
                 var legend = _div();
                 
@@ -331,12 +331,12 @@ nsGmx.Controls = {
         }
         else
         {
-            if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
+            if (!trs.length && !layer.properties.Legend)
                 return;
             
             div = _div([_table([_tbody(trs)], [['dir','className','vectorInfoParams']])], [['attr','id','layerPropertiesInfo']]);
 
-            if (layer.properties.type == "Raster" && layer.properties.Legend)
+            if (layer.properties.Legend)
             {
                 var legend = _div();
                 
