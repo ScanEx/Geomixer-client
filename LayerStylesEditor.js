@@ -353,7 +353,7 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 
 	var mapName = elemCanvas.parentNode.gmxProperties.content.properties.mapName,
 		layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
-        attrSuggestWidget = new nsGmx.AttrSuggestWidget(filterText, attrs || [], _mapHelper.attrValues[mapName][layerName]);
+        attrSuggestWidget = new nsGmx.AttrSuggestWidget(filterText, attrs || [], _mapHelper.attrValues[mapName][layerName], setFilter);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
