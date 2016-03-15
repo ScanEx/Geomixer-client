@@ -1087,10 +1087,6 @@ mapHelper.prototype.version = function()
 }
 
 mapHelper.prototype.print = function() {
-    if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-        return;
-    }
-    
     var toggleMode = function(isPreviewMode) {
         nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(!isPreviewMode);
         window.printMode = isPreviewMode;
