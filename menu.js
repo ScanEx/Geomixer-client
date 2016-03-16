@@ -120,7 +120,7 @@ UpMenu.prototype._template = Handlebars.compile(
             {{#childs}}{{#if id}}\
                 <li class = "header2{{#unless childs}} menuClickable{{/unless}}" hash = "{{id}}">\
                     <div class = "header2{{#if disabled}} menuDisabled{{/if}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                        <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
+                        <div class = "menuMarkerLeft {{#if checked}} ui-icon ui-icon-check{{/if}}"></div>\
                         {{title}}\
                         {{#if childs}}\
                             <div class = "menuMarkerRight"></div>\
@@ -131,7 +131,7 @@ UpMenu.prototype._template = Handlebars.compile(
                         {{#childs}}{{#if id}}\
                             <li class = "header3 menuClickable" hash = "{{id}}">\
                                 <div class = "header3{{#if disabled}} menuDisabled{{/if}}{{#delimiter}} menuDelimiter{{/delimiter}}">\
-                                    <div class = "menuMarkerLeft {{#isChecked}} ui-icon ui-icon-check{{/isChecked}}"></div>\
+                                    <div class = "menuMarkerLeft {{#if checked}} ui-icon ui-icon-check{{/if}}"></div>\
                                     {{title}}\
                                 </div>\
                             </li>\
