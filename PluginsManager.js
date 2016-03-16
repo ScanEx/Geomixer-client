@@ -32,6 +32,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     this.mapPlugin = mapPlugin || (body && body.pluginName);
     this.pluginName = pluginName || (this.body && this.body.pluginName);
     this.isPublic = isPublic;
+    this.file = file;
     
     if (this.body)
         this.def.resolve();
