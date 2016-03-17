@@ -1367,7 +1367,7 @@ function processGmxMap(state, gmxMap) {
         createToolbar();
 
         if (state.mode) {
-            lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode));
+            lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);
         } else if (baseLayers.length && !lmap.gmxBaseLayersManager.getCurrentID()) {
             lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
         }
