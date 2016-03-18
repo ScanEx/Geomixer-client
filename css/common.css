@@ -997,7 +997,7 @@ div.layersScroll
 	height: 10px;
 }
 
-.fillStyleControls .patternColorControl table
+.fillStyleControls table.patternColorControl
 {
 	width: 100%
 }
