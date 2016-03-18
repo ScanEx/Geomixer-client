@@ -67,7 +67,7 @@ var LayerProperties = Backbone.Model.extend(
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
-            Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
+            //Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
             ContentID:      divProperties ? divProperties.ContentID : layerProperties.ContentID,
             ShapePath:      layerProperties.ShapePath || {},
@@ -119,6 +119,23 @@ var LayerProperties = Backbone.Model.extend(
 
         if (layerProperties.Name) {
             this.set("Name", layerProperties.Name);
+        }
+        
+        var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklook;
+        if (quicklookString) {
+            //раньше это была просто строка с шаблоном квиклука, а теперь стало JSON'ом
+            if (quicklookString[0] === '{') {
+                var quicklookParams = JSON.parse(quicklookString);
+                this.set({
+                    Quicklook: quicklookParams.template,
+                    MinZoomQuicklooks: quicklookParams.minZoom
+                });
+            } else {
+                this.set({
+                    Quicklook: quicklookString,
+                    MinZoomQuicklooks: this.get('RC').get('RCMinZoomForRasters')
+                });
+            }
         }
     },
     
@@ -208,10 +225,20 @@ var LayerProperties = Backbone.Model.extend(
             }
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
-            reqParams.Quicklook = attrs.Quicklook || '';
+
+            if (attrs.Quicklook) {
+                reqParams.Quicklook = JSON.stringify({
+                    minZoom: attrs.MinZoomQuicklooks,
+                    template: attrs.Quicklook
+                });
+            } else {
+                attrs.Quicklook = '';
+            }
             
-            if (attrs.ZIndexField) reqParams.ZIndexField = attrs.ZIndexField;
             
+            
+            reqParams.ZIndexField = attrs.ZIndexField || '';
+
             if (!name && stype === 'manual')
             {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
