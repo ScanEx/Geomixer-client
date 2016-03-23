@@ -30,27 +30,18 @@
             var path = gmxCore.getModulePath(pluginName);
             var _params = $.extend({
                 regularImage: 'ship.png',
-                activeImage: 'active.png',
-                layerName: null
+                activeImage: 'active.png'
             }, params);
-
+    
             var searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null;
             var placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0');
-            var layerName = _params.layerName;
             
             var searchBorder = {},
-                lmap, layersByID;
-            if (!nsGmx.leafletMap) {    // для старого АПИ
-                gmxCore.loadScript(serverPrefix + 'api/leaflet/plugins/Leaflet-GeoMixer/src/Deferred.js')
-                lmap = gmxAPI._leaflet.LMap;
-                layersByID = gmxAPI.map.layers;
-            } else {
-                lmap = nsGmx.leafletMap;
-                layersByID = nsGmx.gmxMap.layersByID;
-            }
-
-            var aisLayerID = '8EE2C7996800458AAF70BABB43321FA4',
+                lmap = nsGmx.leafletMap,
+                layersByID = nsGmx.gmxMap.layersByID,
+                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4',
                 aisLayer = layersByID[aisLayerID],
+                aisSearchLayerID = params.aisSearchLayerID || aisLayerID,
                 tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
                 tracksLayer = layersByID[tracksLayerID],
                 sideBar = L.control.gmxSidebar({className: 'aissearch'});
@@ -60,9 +51,11 @@
                 exportIcon = L.DomUtil.create('a', 'icon-export', shap),
                 refresh = L.DomUtil.create('i', 'icon-refresh', shap),
                 bboxInfo = L.DomUtil.create('div', pluginName + '-bboxInfo', div),
+                calendarCont = L.DomUtil.create('div', pluginName + '-calendarCont', div),
                 node = null,
                 file = 'test.csv',
                 blob = null,
+                state = {},
                 trs = [];
 
             refresh.title = 'Обновить';
@@ -74,46 +67,66 @@
                     navigator.msSaveBlob(blob, file);
                 }, false);
             }
+            if (lmap.hasLayer(aisLayer)) {
+                state[aisLayerID] = true;
+            }
+            if (lmap.hasLayer(tracksLayer)) {
+                state[tracksLayerID] = true;
+            }
+
+            var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                dateInterval = new nsGmx.DateInterval(),
+                isActivePlugin = false;
+
+            dateInterval
+                .set('dateBegin', mapDateInterval.get('dateBegin'))
+                .set('dateEnd', mapDateInterval.get('dateEnd'))
+                .on('change', function() {
+                    if (isActivePlugin) {
+                        var now = Date.now(),
+                            d1 = dateInterval.get('dateBegin'),
+                            d2 = dateInterval.get('dateEnd');
+
+                        aisLayer.setDateInterval(d1, d2);
+                        tracksLayer.setDateInterval(d1, d2);
+                    }
+                });            
+            var calendar = new nsGmx.CalendarWidget({
+                // name: 'calendarAIS',
+                dateMax: new Date(),
+                dateInterval: dateInterval,
+                minimized: true,
+                showSwitcher: true
+            });
+            calendarCont.appendChild(calendar.el);
 
             publicInterface.setMMSI = function(mmsiArr, bbox) {
                 if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
-                if (!nsGmx.leafletMap) {    // для старого АПИ
-                    var st = mmsiArr.length ? '(' + mmsiArr.join(',') + ')' : '';
-                    if (aisLayer) {
-                        aisLayer.setVisibilityFilter(st ? '[mmsi] in ' + st : '');
-                        aisLayer.setVisible(true);
+                var filterFunc = function(args) {
+                    var mmsi = args.properties[1];
+                    for (var i = 0, len = mmsiArr.length; i < len; i++) {
+                        if (mmsi === mmsiArr[i]) { return true; }
                     }
-                    if (tracksLayer) {
-                        tracksLayer.setVisibilityFilter(st ? '[MMSI] in ' + st : '');
-                        tracksLayer.setVisible(true);
+                    return false;
+                };
+                if (aisLayer) {
+                    if (mmsiArr.length) {
+                        aisLayer.setFilter(filterFunc);
+                    } else {
+                        aisLayer.removeFilter();
                     }
-                } else {
-                    var filterFunc = function(args) {
-                        var mmsi = args.properties[1];
-                        for (var i = 0, len = mmsiArr.length; i < len; i++) {
-                            if (mmsi === mmsiArr[i]) { return true; }
-                        }
-                        return false;
-                    };
-                    if (aisLayer) {
-                        if (mmsiArr.length) {
-                            aisLayer.setFilter(filterFunc);
-                        } else {
-                            aisLayer.removeFilter();
-                        }
-                        if (!aisLayer._map) {
-                            lmap.addLayer(aisLayer);
-                        }
+                    if (!aisLayer._map) {
+                        lmap.addLayer(aisLayer);
                     }
-                    if (tracksLayer) {
-                        if (mmsiArr.length) {
-                            tracksLayer.setFilter(filterFunc);
-                        } else {
-                            tracksLayer.removeFilter();
-                        }
-                        if (!tracksLayer._map) {
-                            lmap.addLayer(tracksLayer);
-                        }
+                }
+                if (tracksLayer) {
+                    if (mmsiArr.length) {
+                        tracksLayer.setFilter(filterFunc);
+                    } else {
+                        tracksLayer.removeFilter();
+                    }
+                    if (!tracksLayer._map) {
+                        lmap.addLayer(tracksLayer);
                     }
                 }
             };
@@ -160,17 +173,8 @@
                 L.DomEvent.disableScrollPropagation(cont);
                 cont.appendChild(div);
                 title.innerHTML = _gtxt(pluginName + '.title');
-                
-                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';    // по умолчанию поиск по слою АИС 
-                if (!layersByID[aisLayerID]) {
-                    console.log('Отсутствует слой: АИС данные `' + aisLayerID + '`');
-                   return;
-                }
-                aisLayer = layersByID[aisLayerID];
-                tracksLayer = layersByID[tracksLayerID];
 
-                var dateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-                    dt1 = dateInterval.get('dateBegin'),
+                var dt1 = dateInterval.get('dateBegin'),
                     dt2 = dateInterval.get('dateEnd'),
                     prop = (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties,
                     TemporalColumnName = prop.TemporalColumnName,
@@ -204,7 +208,7 @@
                     //pagesize: 100,
                     //orderdirection: 'desc',
                     orderby: 'vessel_name',
-                    layer: aisLayerID,
+                    layer: aisSearchLayerID,
                     columns: '[' + columns + ']',
                     groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"}]',
                     query: query
@@ -213,6 +217,12 @@
                   reqParams,
                   function(json) {
                     L.DomUtil.removeClass(refresh, 'animate-spin');
+                    if (!aisLayer._map) {
+                        lmap.addLayer(aisLayer);
+                    }
+                    if (!tracksLayer._map) {
+                        lmap.addLayer(tracksLayer);
+                    }
                     if (json && json.Status === 'ok' && json.Result) {
                         var pt = json.Result,
                             fields = pt.fields,
@@ -306,8 +316,15 @@
                 activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
                 title: _gtxt(pluginName + '.iconTitle')
             }).on('statechange', function(ev) {
-                var isActive = ev.target.options.isActive;
-                if (isActive) {
+                isActivePlugin = ev.target.options.isActive;
+                
+                if (isActivePlugin) {
+                    nsGmx.widgets.commonCalendar.unbindLayer(aisLayerID);
+                    nsGmx.widgets.commonCalendar.unbindLayer(tracksLayerID);
+                    var d1 = dateInterval.get('dateBegin'),
+                        d2 = dateInterval.get('dateEnd');
+                    aisLayer.setDateInterval(d1, d2);
+                    tracksLayer.setDateInterval(d1, d2);
                     if (searchControl) {
                         searchControl.addSearchByStringHook(searchHook, 1002);
                         if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
@@ -322,22 +339,19 @@
                     if (sideBar && sideBar._map) {
                         lmap.removeControl(sideBar);
                     }
-                    if (!nsGmx.leafletMap) {    // для старого АПИ
-                        if (aisLayer) {
-                            aisLayer.setVisibilityFilter('');
-                            // aisLayer.setVisible(false);
+                    if (aisLayer) {
+                        if (!state[aisLayerID]) {
+                            lmap.removeLayer(aisLayer)
                         }
-                        if (tracksLayer) {
-                            tracksLayer.setVisibilityFilter('');
-                            // tracksLayer.setVisible(false);
+                        nsGmx.widgets.commonCalendar.bindLayer(aisLayerID);
+                        aisLayer.removeFilter();
+                    }
+                    if (tracksLayer) {
+                        if (!state[tracksLayerID]) {
+                            lmap.removeLayer(tracksLayer)
                         }
-                    } else {
-                        if (aisLayer) {
-                            aisLayer.removeFilter();
-                        }
-                        if (tracksLayer) {
-                            tracksLayer.removeFilter();
-                        }
+                        nsGmx.widgets.commonCalendar.bindLayer(tracksLayerID);
+                        tracksLayer.removeFilter();
                     }
                 }
             });
