@@ -272,7 +272,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit') && context.elem.type === "Vector";
+		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
 	},
 	clickCallback: function(context)
 	{
