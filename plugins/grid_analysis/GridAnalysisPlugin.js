@@ -3,6 +3,8 @@
 // * layer - ID слоёв, через запятую
 // * column - название колонки для изменения
 // * menu<N> - добавить новый пункт меню и именем, равным значению параметра и которое устанавливает значение "N" в колонке
+// * menus - массив объетов со свойствами title и value. Value может быть как числом, так и ф-цией 
+//           (принимает на вход свойство 'gmx' из события слоя contextmenu, должна выдавать число)
 (function ($){
 var parseMenuItems = function(params){
     var reg = /menu(\d+)/i;
@@ -14,6 +16,13 @@ var parseMenuItems = function(params){
             isMatched = true;
             res[params[p]] = Number(match[1]);
         }
+    }
+    
+    if (params.menus) {
+        isMatched = true;
+        params.menus.forEach(function(menuItem) {
+            res[menuItem.title] = menuItem.value;
+        });
     }
     
     if (!isMatched) {
@@ -43,11 +52,16 @@ var publicInterface = {
                     text: menuText,
                     callback: function(value, ev) {
                         var prevProps = ev.relatedEvent.gmx.properties,
-                            newValue = prevProps[propName] == value ? 0 : value,
                             props = {};
-                        
+                            
+                        if (typeof value === 'function') {
+                            value = value(ev.relatedEvent.gmx);
+                        }
+
+                        var newValue = prevProps[propName] == value ? 0 : value;
+
                         props[propName] = Number(newValue);
-                        
+
                         nsGmx.widgets.notifications.startAction('gridAnalysis');
                         
                         _mapHelper.modifyObjectLayer(layerName, [{
