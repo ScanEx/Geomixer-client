@@ -1,0 +1,27 @@
+﻿.lqw-textarea {
+    overflow: auto;
+    width: 250px;
+    height: 50px;
+}
+
+.lqw-textarea.inputStyle {
+    margin: 3px 0px 0px 0px;
+}
+
+.lqw-minzoom-input {
+    width: 30px;
+}
+
+.selectStyle.lqw-point-select {
+    width: 100px;
+    margin: 3px 10px 3px 5px;
+}
+
+.lqw-registration-link {
+    margin: 3px 0px;
+    display: inline-block;
+}
+
+.lqw-reg-error {
+    background-color: rgba(255, 0, 0, 0.2);
+}

@@ -34,7 +34,7 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @property {String} Legend Легенда слоя. Только для растровых слоёв
  
  * @property {String} NameObject Шаблон названий объектов. Только для векторных слоёв
- * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв
+ * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв (point/linestring/polygon)
  * @property {String} Quicklook Шаблон URL для квиклуков. Только для векторных слоёв
  * @property {Object} TilePath Имеет атрибут Path. Путь к файлу с тайлами. Только для векторных слоёв
  * @property {String} EncodeSource Кодировка источника данных слоя. Только для векторных слоёв
@@ -122,7 +122,8 @@ var LayerProperties = Backbone.Model.extend(
         }
         
         var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklook;
-        if (quicklookString) {
+        this.set('Quicklook', new nsGmx.QuicklookParams(quicklookString));
+        /*if (quicklookString) {
             //раньше это была просто строка с шаблоном квиклука, а теперь стало JSON'ом
             if (quicklookString[0] === '{') {
                 var quicklookParams = JSON.parse(quicklookString);
@@ -136,7 +137,7 @@ var LayerProperties = Backbone.Model.extend(
                     MinZoomQuicklooks: this.get('RC').get('RCMinZoomForRasters')
                 });
             }
-        }
+        }*/
     },
     
     /** Инициализирует класс, используя информацию о слое с сервера.
@@ -227,10 +228,11 @@ var LayerProperties = Backbone.Model.extend(
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
 
             if (attrs.Quicklook) {
-                reqParams.Quicklook = JSON.stringify({
+                reqParams.Quicklook = attrs.Quicklook.toServerString();
+                /*JSON.stringify({
                     minZoom: attrs.MinZoomQuicklooks,
                     template: attrs.Quicklook
-                });
+                });*/
             } else {
                 attrs.Quicklook = '';
             }

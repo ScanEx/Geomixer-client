@@ -1879,6 +1879,10 @@ div.layersScroll
     margin-left: 3px;
 }
 
+.layer-editor-quicklooks {
+    margin: 3px 0px 3px 6px;
+}
+
 .removeGroup-container {
     text-align: center;
 }
