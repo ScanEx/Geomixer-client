@@ -35,7 +35,7 @@ var LatLngColumnsModel = Backbone.Model.extend({
  
  * @property {String} NameObject Шаблон названий объектов. Только для векторных слоёв
  * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв (point/linestring/polygon)
- * @property {String} Quicklook Шаблон URL для квиклуков. Только для векторных слоёв
+ * @property {nsGmx.QuicklookParams} Quicklook Параметры квиклуков. Только для векторных слоёв
  * @property {Object} TilePath Имеет атрибут Path. Путь к файлу с тайлами. Только для векторных слоёв
  * @property {String} EncodeSource Кодировка источника данных слоя. Только для векторных слоёв
  * @property {nsGmx.LayerProperties.Column[]} Columns Описание типов и названий атрибутов слоя. Только для векторных слоёв
@@ -123,23 +123,8 @@ var LayerProperties = Backbone.Model.extend(
         
         var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklook;
         this.set('Quicklook', new nsGmx.QuicklookParams(quicklookString));
-        /*if (quicklookString) {
-            //раньше это была просто строка с шаблоном квиклука, а теперь стало JSON'ом
-            if (quicklookString[0] === '{') {
-                var quicklookParams = JSON.parse(quicklookString);
-                this.set({
-                    Quicklook: quicklookParams.template,
-                    MinZoomQuicklooks: quicklookParams.minZoom
-                });
-            } else {
-                this.set({
-                    Quicklook: quicklookString,
-                    MinZoomQuicklooks: this.get('RC').get('RCMinZoomForRasters')
-                });
-            }
-        }*/
     },
-    
+
     /** Инициализирует класс, используя информацию о слое с сервера.
      * @param {String} layerName ID слоя, информацию о котором нужно получить
      * @return {jQuery.Deferred} Deferred, который будет заполнен после инициализации класса

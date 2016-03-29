@@ -1,3 +1,12 @@
+/** Связанные с квиклуками параметры векторных слоёв. Умеет сериализовать/десериализовать себя в строку для хранения на сервере.
+ * @class
+ * @memberOf nsGmx
+ * @extends Backbone.Model
+ * @param {String} quicklookString Строка с параметрами с сервера
+ * @property {String} template Шаблон URL квиклука
+ * @property {Number} minZoom Минимальный зум показа квиклуков
+ * @property {Number} X1-X4,Y1-Y4 Названия полей слоя, в которых хранятся координаты привязки 4 углов изображения. Если не указаны, будут использованы значения по умолчанию (поля "X1"-"X4", "Y1"-"Y4" или их аналоги в нижнем регистре)
+ */
 nsGmx.QuicklookParams = Backbone.Model.extend({
     initialize: function(quicklookString) {
         if (quicklookString) {
@@ -19,6 +28,9 @@ nsGmx.QuicklookParams = Backbone.Model.extend({
             }
         }
     },
+    /** Сохраняет все параметры в строку, которую можно передать серверу.
+     * @return {String}
+     */
     toServerString: function() {
         //$.extend чтобы удалить undefined поля
         return this.attributes.template ? JSON.stringify($.extend({}, this.attributes)) : '';
