@@ -176,8 +176,8 @@
 
                 var dt1 = dateInterval.get('dateBegin'),
                     dt2 = dateInterval.get('dateEnd'),
-                    prop = (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties,
-                    TemporalColumnName = prop.TemporalColumnName,
+                    prop = aisLayer ? (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties : {},
+                    TemporalColumnName = prop.TemporalColumnName || 'ts_pos_utc',
                     columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';
 
                 columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
@@ -217,10 +217,10 @@
                   reqParams,
                   function(json) {
                     L.DomUtil.removeClass(refresh, 'animate-spin');
-                    if (!aisLayer._map) {
+                    if (aisLayer && !aisLayer._map) {
                         lmap.addLayer(aisLayer);
                     }
-                    if (!tracksLayer._map) {
+                    if (tracksLayer && !tracksLayer._map) {
                         lmap.addLayer(tracksLayer);
                     }
                     if (json && json.Status === 'ok' && json.Result) {
@@ -317,14 +317,19 @@
                 title: _gtxt(pluginName + '.iconTitle')
             }).on('statechange', function(ev) {
                 isActivePlugin = ev.target.options.isActive;
-                
                 if (isActivePlugin) {
-                    nsGmx.widgets.commonCalendar.unbindLayer(aisLayerID);
-                    nsGmx.widgets.commonCalendar.unbindLayer(tracksLayerID);
                     var d1 = dateInterval.get('dateBegin'),
                         d2 = dateInterval.get('dateEnd');
-                    aisLayer.setDateInterval(d1, d2);
-                    tracksLayer.setDateInterval(d1, d2);
+                    if (aisLayer) {
+                        nsGmx.widgets.commonCalendar.unbindLayer(aisLayerID);
+                        aisLayer.setDateInterval(d1, d2);
+                    } else {
+                        console.log("Not found AIS layer: ", aisLayerID);
+                    }
+                    if (tracksLayer) {
+                        nsGmx.widgets.commonCalendar.unbindLayer(tracksLayerID);
+                        tracksLayer.setDateInterval(d1, d2);
+                    }
                     if (searchControl) {
                         searchControl.addSearchByStringHook(searchHook, 1002);
                         if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
