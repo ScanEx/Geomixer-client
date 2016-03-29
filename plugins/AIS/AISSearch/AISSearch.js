@@ -87,8 +87,12 @@
                             d1 = dateInterval.get('dateBegin'),
                             d2 = dateInterval.get('dateEnd');
 
-                        aisLayer.setDateInterval(d1, d2);
-                        tracksLayer.setDateInterval(d1, d2);
+                        if (aisLayer) {
+                            aisLayer.setDateInterval(d1, d2);
+                        }
+                        if (tracksLayer) {
+                            tracksLayer.setDateInterval(d1, d2);
+                        }
                     }
                 });            
             var calendar = new nsGmx.CalendarWidget({
@@ -323,8 +327,8 @@
                     if (aisLayer) {
                         nsGmx.widgets.commonCalendar.unbindLayer(aisLayerID);
                         aisLayer.setDateInterval(d1, d2);
-                    } else {
-                        console.log("Not found AIS layer: ", aisLayerID);
+                    // } else {
+                        // console.log("Not found AIS layer: ", aisLayerID);
                     }
                     if (tracksLayer) {
                         nsGmx.widgets.commonCalendar.unbindLayer(tracksLayerID);
