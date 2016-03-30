@@ -67,7 +67,6 @@ var LayerProperties = Backbone.Model.extend(
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
-            //Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
             ContentID:      divProperties ? divProperties.ContentID : layerProperties.ContentID,
             ShapePath:      layerProperties.ShapePath || {},
@@ -121,8 +120,11 @@ var LayerProperties = Backbone.Model.extend(
             this.set("Name", layerProperties.Name);
         }
         
-        var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklook;
-        this.set('Quicklook', new nsGmx.QuicklookParams(quicklookString));
+        var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklookб
+            quicklookParams = new nsGmx.QuicklookParams();
+            
+        quicklookParams.fromServerString(quicklookString);
+        this.set('Quicklook', quicklookParams);
     },
 
     /** Инициализирует класс, используя информацию о слое с сервера.
