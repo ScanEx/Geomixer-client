@@ -100,7 +100,7 @@
         var quicklookText = ui.find('.lqw-textarea');
         
         var setQuicklook = function() {
-            layerProperties.set('Quicklook', quicklookText.val());
+            layerProperties.get('Quicklook').set('template', quicklookText.val());
         };
         
         var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText[0], '[suggest]', setQuicklook);
