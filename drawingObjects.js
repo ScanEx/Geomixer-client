@@ -15,6 +15,7 @@ nsGmx.Translations.addText('rus', {
         removeAll: 'Очистить',
         downloadShp: 'shp-файл',
         downloadGpx: 'gpx-файл',
+        downloadCsv: 'csv-файл',
         downloadNameTitle: 'Введите имя файла для скачивания',
         download: 'Скачать',
         downloadRaster: 'Скачать фрагмент растра',
@@ -43,6 +44,7 @@ nsGmx.Translations.addText('eng', {
         removeAll: 'Delete',
         downloadShp: 'shp-file',
         downloadGpx: 'gpx-file',
+        downloadCsv: 'csv-file',
         downloadNameTitle: 'Enter file name to download',
         download: 'Download',
         downloadRaster: 'Download fragment of raster',
@@ -640,6 +642,13 @@ var DrawingObjectGeomixer = function() {
 	}
     downloadGpx.style.margin = '0px 3px';
     
+    var downloadCsv = makeLinkButton(_gtxt('drawingObjects.downloadCsv'));
+	downloadCsv.onclick = function(){ 
+        downloadFormat = 'csv_wkt';
+        downloadNameContainer.toggle();
+	}
+    downloadCsv.style.margin = '0px 3px';
+    
     var downloadNameInput = $('<input/>', {title: _gtxt('drawingObjects.downloadNameTitle')}).val('markers').addClass('inputStyle');
     
     downloadNameInput.keyup(function(e) {
@@ -732,7 +741,7 @@ var DrawingObjectGeomixer = function() {
         
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
         _(downloadContainer, [
-            _div([_span([_t(_gtxt('drawingObjects.download'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), 
+            _div([_span([_t(_gtxt('drawingObjects.download'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx, downloadCsv]), 
             downloadNameContainer[0], 
             _div([downloadRaster]),
             downloadRasterOptions[0]
