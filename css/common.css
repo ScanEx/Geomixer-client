@@ -776,6 +776,10 @@ skype_pnh_container
 	background-color: 0xffffff;
 }
 
+.customAttr-typesselect {
+    width: 83px;
+}
+
 .VectorLayerEncoding td
 {
 	border: none;

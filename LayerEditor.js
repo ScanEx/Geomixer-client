@@ -93,216 +93,6 @@ var getFileExt = function(path)
     return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
 }
 
-function capitaliseFirstLetter(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-//events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
-var ManualAttrModel = function() {
-    var _attributes = [];
-    
-    this.addAttribute = function(type, name)
-    {
-        _attributes.push({
-            type: type, 
-            name: name,
-            IsPrimary: false,
-            IsIdentity: false,
-            IsComputed: false
-        });
-        
-        $(this).triggerHandler('newAttribute');
-        $(this).triggerHandler('change');
-    };
-        
-    this.changeName = function(idx, newName)
-    {
-        _attributes[idx].name = newName;
-        $(this).triggerHandler('updateAttribute');
-        $(this).triggerHandler('change');
-    };
-        
-    this.changeType = function(idx, newType)
-    {
-        _attributes[idx].type = newType;
-        $(this).triggerHandler('updateAttribute');
-        $(this).triggerHandler('change');
-    };
-    
-    this.deleteAttribute = function(idx)
-    {
-        _attributes.splice(idx, 1);
-        $(this).triggerHandler('delAttribute');
-        $(this).triggerHandler('change');
-    };
-            
-    this.getAttribute = function(idx){ return _attributes[idx]; };
-    this.getCount = function(){ return _attributes.length; };
-    this.each = function(callback, addInternalColumns) { 
-        for (var k = 0; k < _attributes.length; k++) {
-            var column = _attributes[k];
-            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || column.type.server === 'geometry' || column.name === 'GMX_RasterCatalogID';
-            if (!isInternal || addInternalColumns) {
-                callback(column, k);
-            }
-        }
-    }
-    
-    this.moveAttribute = function(oldIdx, newIdx) {
-        if (newIdx > oldIdx) {
-            newIdx--;
-        }
-        
-        if (oldIdx !== newIdx) {
-            _attributes.splice(newIdx, 0, _attributes.splice(oldIdx, 1)[0]);
-            $(this).triggerHandler('moveAttribute');
-            $(this).triggerHandler('change');
-        }
-        
-    }
-    
-    this.initFromServerFormat = function(serverColumns) {
-        _attributes = [];
-        $.each(serverColumns || [], function(i, column) {
-            var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase()});
-            _attributes.push({
-                type: type || {server: column.ColumnSimpleType.toLowerCase()}, 
-                name: column.Name,
-                oldName: column.Name,
-                IsPrimary: column.IsPrimary,
-                IsIdentity: column.IsIdentity,
-                IsComputed: column.IsComputed
-            });
-        })
-        $(this).triggerHandler('newAttribute');
-        $(this).triggerHandler('change');
-    }
-    
-    this.toServerFormat = function() {
-        var res = [];
-        $.each(_attributes, function(i, attr) {
-            res.push({ 
-                Name: attr.name,
-                OldName: attr.oldName,
-                ColumnSimpleType: capitaliseFirstLetter(attr.type.server), 
-                IsPrimary: attr.IsPrimary, 
-                IsIdentity: attr.IsIdentity, 
-                IsComputed: attr.IsComputed});
-        })
-        
-        return res;
-    }
-};
-
-ManualAttrModel.TYPES = {
-    DOUBLE:   {user: 'Float',    server: 'float'    },
-    INTEGER:  {user: 'Integer',  server: 'integer'  },
-    STRING:   {user: 'String',   server: 'string'   },
-    TIME:     {user: 'Time',     server: 'time'     },
-    DATE:     {user: 'Date',     server: 'date'     },
-    DATETIME: {user: 'DateTime', server: 'datetime' },
-    INTEGER:  {user: 'Integer',  server: 'integer'  },
-    BOOL:     {user: 'Boolean',  server: 'boolean'  }
-};
-
-var ManualAttrView = function()
-{
-    var _parent = null;
-    var _model = null;
-    var _trs = [];
-    var _isActive = true;
-    var _this = this;
-                
-    var createTypeSelector = function()
-    {
-        var s = nsGmx.Utils._select(null, [['css', 'width', '83px'], ['dir', 'className', 'selectStyle']]);
-        for (var type in ManualAttrModel.TYPES) {
-            $(s).append(_option([_t(ManualAttrModel.TYPES[type].user)], [['dir', 'attrType', ManualAttrModel.TYPES[type]], ['attr', 'id', ManualAttrModel.TYPES[type].server]]));
-        }
-        return s;
-    }
-            
-    var redraw = function()
-    {
-        if (!_model) return;
-        
-        $(_parent).empty();
-        _trs = [];
-        
-        _model.each(function(attr, i) {
-
-            var typeSelector = createTypeSelector();
-            typeSelector.attrIdx = i;
-            $('#' + attr.type.server, typeSelector).attr('selected', 'selected');
-            
-            $(typeSelector).bind('change', function()
-            {
-                var attrType = $('option:selected', this)[0].attrType;
-                _model.changeType(this.attrIdx, attrType);
-            });
-            
-            var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', '80px']]);
-        
-            $(nameSelector).attr({attrIdx: i}).val(attr.name);
-            
-            $(nameSelector).bind('keyup', function()
-            {
-                var idx = $(this).attr('attrIdx');
-                var name = $(this).val();
-                
-                _model.changeName(idx, name);
-            });
-            
-            var deleteIcon = makeImageButton("img/close.png", "img/close_orange.png");
-            $(deleteIcon).addClass('removeIcon');
-            deleteIcon.attrIdx = i;
-            deleteIcon.onclick = function()
-            {
-                _model.deleteAttribute(this.attrIdx);
-            }
-                
-            var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
-                
-            _trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon])]));
-        })
-            
-        var tbody = _tbody(_trs);
-        $(tbody).sortable({
-            axis: 'y', 
-            handle: '.moveIcon',
-            stop: function(event, ui) {
-                var oldIdx = ui.item.find('input[attrIdx]').attr('attrIdx');
-
-                var elem = ui.item.next()[0] || ui.item.prev()[0];
-                var delta = ui.item.next()[0] ? 0 : 1;
-                _model.moveAttribute(parseInt(oldIdx), parseInt($(elem).find('input[attrIdx]').attr('attrIdx')) + delta);
-            }
-        });
-        $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([tbody], [['dir', 'className', 'customAttributes']])));
-        _this.setActive(_isActive);
-    }
-    
-    this.setActive = function(isActive) {
-        _isActive = isActive;
-        var fieldset = $(_parent).children('fieldset');
-        if (isActive) {
-            fieldset.removeAttr('disabled');
-        } else {
-            fieldset.attr('disabled', 'disabled');
-        }
-        $('.moveIcon, .removeIcon', fieldset).toggle(isActive);
-    }
-    
-    this.init = function(parent, model)
-    {
-        _parent = parent;
-        _model = model;
-        $(_model).bind('newAttribute delAttribute moveAttribute', redraw);
-        redraw();
-    }
-};
-
 /**
  Диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
  @memberOf nsGmx
@@ -793,7 +583,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
         
     /*------------ Источник: вручную ------------*/
-    var attrModel = new ManualAttrModel();
+    var attrModel = new nsGmx.ManualAttrModel();
         
     var geometryTypes = [
         {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
@@ -1146,7 +936,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
 
     var isNewLayer = !props.get('Name');
     var fileColumnsContainer = _div();
-    var fileAttrModel = new ManualAttrModel();
+    var fileAttrModel = new nsGmx.ManualAttrModel();
     var type = props.get('SourceType');
     
     if (isNewLayer) {
@@ -1161,7 +951,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     
     var fileAddAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
     
-    var fileAttrView = new ManualAttrView();
+    var fileAttrView = new nsGmx.ManualAttrView();
     fileAttrView.init(fileColumnsContainer, fileAttrModel);
     var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file'));
     fileAttrView.setActive(allowEdit);
@@ -1169,7 +959,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     
     fileAddAttribute.onclick = function()
     {
-        fileAttrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+        fileAttrModel.addAttribute(nsGmx.ManualAttrModel.TYPES.STRING, "NewAttribute");
     }
     
     $(fileAttrModel).change(function() {
