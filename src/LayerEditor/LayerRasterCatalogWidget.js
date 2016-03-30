@@ -17,52 +17,6 @@
         attributeTitle  : "Object Attribute"
     }});
     
-    var createQuicklookCanvas = function(layerProperties)
-    {
-        var quicklookText = _textarea(null, [['attr','paramName','Quicklook'],['dir','className','inputStyle'],['css','overflow','auto'],['css','width','250px'],['css','height','50px']]),
-            setQuicklook = function()
-            {
-                layerProperties.set('Quicklook', quicklookText.value);
-            }
-        
-        quicklookText.value = layerProperties.get('Quicklook') || '';
-        
-        quicklookText.onkeyup = quicklookText.onchange = function()
-        {
-            setQuicklook();
-            return true;
-        }
-        
-        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText, '[suggest]', setQuicklook);
-        
-        quicklookText.onfocus = function()
-        {
-            suggestWidget.el.style.display = 'none';
-            
-            return true;
-        }
-        
-        var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
-        
-        divAttr.onclick = function()
-        {
-            if (suggestWidget.el.style.display == 'none')
-                $(suggestWidget.el).fadeIn(500);
-            
-            return true;
-        }
-        
-        var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 4px']]);
-
-        var canvas = $('<div/>').append(
-            $('<span>' + _gtxt("Накладываемое изображение") + '</span><br/>').css('margin-left', '4px'),
-            quicklookText,
-            suggestCanvas
-        ).css('margin', '10px 0px');
-        
-        return canvas;
-    }
-    
     nsGmx.LayerRCProperties = Backbone.Model.extend({
         defaults: {
             IsRasterCatalog: false,
@@ -81,10 +35,9 @@
     @memberOf nsGmx
     @class
     */
-    nsGmx.LayerRasterCatalogControl = function(container, rcProperties, layerProperties)
+    nsGmx.LayerRasterCatalogWidget = function(container, rcProperties)
     {
         var advancedMode = !!(
-                layerProperties.get('Quicklook') || 
                 rcProperties.get('RCMaskForRasterPath') || 
                 rcProperties.get('RCMaskForRasterTitle') || 
                 rcProperties.isAnyLinks()
@@ -95,7 +48,6 @@
             var isRasterCatalog = rcProperties.get('IsRasterCatalog');
             $('.RCCreate-advanced', container).toggle(advancedMode);
             $('.RCCreate-advanced-link', container).toggle(!advancedMode);
-            //$('.RCCreate-tagContainer', container).toggle(advancedMode && isRasterCatalog);
             $('.RCCreate-tagContainer', container).toggle(advancedMode);
         }
         
@@ -158,8 +110,6 @@
             
             var layerTags = new nsGmx.LayerTagsWithInfo(fakeTagManager, initTags);
             
-            createQuicklookCanvas(layerProperties).addClass('RCCreate-advanced').appendTo(container);
-            
             var tagContainer = $('<div/>', {'class': 'RCCreate-tagContainer RCCreate-advanced'}).addClass().appendTo(container);
             var tagsControl = new nsGmx.LayerTagSearchControl(layerTags, tagContainer, {
                 inputWidth: 100, 
@@ -174,7 +124,6 @@
             })
             
             advancedParamsLink.appendTo(container);
-            //var RCHeader = $('<div/>', {'class': 'RCCreate-header'}).append(advancedParamsLink).appendTo(container);
             
             updateVisibility();
         })

@@ -1201,7 +1201,7 @@ LayerEditor.prototype._createPageAdvanced = function(parent, layerProperties) {
     //мультивременной слой
     var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
     var temporalProperties = layerProperties.get('Temporal');
-    var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalProperties, []);
+    var temporalLayerView = new nsGmx.TemporalLayerParamsWidget(temporalLayerParent, temporalProperties, []);
     var isTemporalCheckbox = $('<input/>')
         .attr({type: 'checkbox'})
         .change(function() {
@@ -1263,8 +1263,19 @@ LayerEditor.prototype._createPageAdvanced = function(parent, layerProperties) {
             isRC: layerProperties.get('RC').get('IsRasterCatalog')
         })).appendTo(parent);
     
-    var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl($('#rc-params-div', rcFieldset), layerProperties.get('RC'), layerProperties);
-        
+    var rasterCatalogControl = new nsGmx.LayerRasterCatalogWidget($('#rc-params-div', rcFieldset), layerProperties.get('RC'));
+    
+    var quicklookTemplate = Handlebars.compile(
+        '<fieldset class="layer-fieldset">' +
+            '<legend>{{i "Накладываемое изображение"}}</legend>' +
+            '<div class="layer-editor-quicklooks"></div>' +
+        '</fieldset>'
+    );
+    
+    var quicklookFieldset = $(quicklookTemplate()).appendTo(parent);
+    
+    var quicklookWidget = new nsGmx.LayerQuicklookWidget($('.layer-editor-quicklooks', quicklookFieldset), layerProperties);
+
     $('#rc-params-isRC', rcFieldset).change(function() {
         layerProperties.get('RC').set('IsRasterCatalog', this.checked);
         rcFieldset.children('fieldset').prop('disabled', !this.checked);

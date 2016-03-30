@@ -34,8 +34,8 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @property {String} Legend Легенда слоя. Только для растровых слоёв
  
  * @property {String} NameObject Шаблон названий объектов. Только для векторных слоёв
- * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв
- * @property {String} Quicklook Шаблон URL для квиклуков. Только для векторных слоёв
+ * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв (point/linestring/polygon)
+ * @property {nsGmx.QuicklookParams} Quicklook Параметры квиклуков. Только для векторных слоёв
  * @property {Object} TilePath Имеет атрибут Path. Путь к файлу с тайлами. Только для векторных слоёв
  * @property {String} EncodeSource Кодировка источника данных слоя. Только для векторных слоёв
  * @property {nsGmx.LayerProperties.Column[]} Columns Описание типов и названий атрибутов слоя. Только для векторных слоёв
@@ -67,7 +67,6 @@ var LayerProperties = Backbone.Model.extend(
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
-            Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
             ContentID:      divProperties ? divProperties.ContentID : layerProperties.ContentID,
             ShapePath:      layerProperties.ShapePath || {},
@@ -120,8 +119,14 @@ var LayerProperties = Backbone.Model.extend(
         if (layerProperties.Name) {
             this.set("Name", layerProperties.Name);
         }
+        
+        var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklookб
+            quicklookParams = new nsGmx.QuicklookParams();
+            
+        quicklookParams.fromServerString(quicklookString);
+        this.set('Quicklook', quicklookParams);
     },
-    
+
     /** Инициализирует класс, используя информацию о слое с сервера.
      * @param {String} layerName ID слоя, информацию о котором нужно получить
      * @return {jQuery.Deferred} Deferred, который будет заполнен после инициализации класса
@@ -208,10 +213,21 @@ var LayerProperties = Backbone.Model.extend(
             }
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
-            reqParams.Quicklook = attrs.Quicklook || '';
+
+            if (attrs.Quicklook) {
+                reqParams.Quicklook = attrs.Quicklook.toServerString();
+                /*JSON.stringify({
+                    minZoom: attrs.MinZoomQuicklooks,
+                    template: attrs.Quicklook
+                });*/
+            } else {
+                attrs.Quicklook = '';
+            }
             
-            if (attrs.ZIndexField) reqParams.ZIndexField = attrs.ZIndexField;
             
+            
+            reqParams.ZIndexField = attrs.ZIndexField || '';
+
             if (!name && stype === 'manual')
             {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
