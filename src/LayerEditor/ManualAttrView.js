@@ -1,8 +1,19 @@
 (function() {
+    
+_translationsHash.addtext("rus", {ManualAttrView: {
+    headerName: "Название",
+    headerType: "Тип"
+}});
+
+_translationsHash.addtext("eng", {ManualAttrView: {
+    headerName: "Name",
+    headerType: "Type"
+}});
+
 
 var selectorTemplate = Handlebars.compile('<select class="selectStyle customAttr-typesselect">' +
         '{{#each types}}' +
-            '<option value="{{server}}" id="{{server}}"{{#if isSelected}} selected{{/if}}>{{user}}</option>' +
+            '<option value="{{server}}" id="{{server}}"{{#if @root.isSelected}} selected{{/if}}>{{user}}</option>' +
         '{{/each}}' +
     '</select>'
 );
@@ -14,14 +25,10 @@ nsGmx.ManualAttrView = function()
     var _trs = [];
     var _isActive = true;
     var _this = this;
+    var isAddingNew = false;
     
     var createTypeSelector = function(selectedType)
     {
-        /*var s = nsGmx.Utils._select(null, [['css', 'width', '83px'], ['dir', 'className', 'selectStyle']]);
-        for (var type in nsGmx.ManualAttrModel.TYPES) {
-            $(s).append(_option([_t(nsGmx.ManualAttrModel.TYPES[type].user)], [['dir', 'attrType', nsGmx.ManualAttrModel.TYPES[type]], ['attr', 'id', nsGmx.ManualAttrModel.TYPES[type].server]]));
-        }
-        return s;*/
         return $(selectorTemplate({
             types: nsGmx.ManualAttrModel.TYPES, 
             isSelected: function() {
@@ -29,64 +36,86 @@ nsGmx.ManualAttrView = function()
             }
         }));
     }
+    
+    var createRow = function(attr, i) {
+        var typeSelector = createTypeSelector(attr.type.server)[0];
+        $(typeSelector).data('idx', i);
+        
+        $(typeSelector).change(function() {
+            var serverType = $('option:selected', this).val(),
+                attrType = _.findWhere(nsGmx.ManualAttrModel.TYPES, {server: serverType});
+
+            _model.changeType($(this).data('idx'), attrType);
+        });
+        
+        var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', '120px']]);
+    
+        $(nameSelector).data('idx', i).val(attr.name);
+        
+        $(nameSelector).on('keyup', function()
+        {
+            var idx = $(this).data('idx');
+            var name = $(this).val();
+            
+            if (idx >= 0) {
+                _model.changeName(idx, name);
+            } else if (name) {
+                isAddingNew = true;
+                $(tr).find('td:gt(0)').show();
+                $(tr).removeClass('customAttributes-new');
+                var newIdx = _model.addAttribute(nsGmx.ManualAttrModel.TYPES.STRING, name);
+                $([nameSelector, typeSelector, deleteIcon]).data('idx', newIdx);
+                isAddingNew = false;
+            }
+        });
+        
+        var deleteIcon = makeImageButton("img/recycle.png", "img/recycle_a.png");
+        $(deleteIcon).addClass('removeIcon').data('idx', i);
+        deleteIcon.onclick = function()
+        {
+            _model.deleteAttribute($(this).data('idx'));
+        }
+            
+        //var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
+        var moveIcon = $('<div class="icon-resize-vertical moveIcon"></div>');
+        var tr = _tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon[0]])]);
+        return tr;
+    }
             
     var redraw = function()
     {
-        if (!_model) return;
+        if (!_model || isAddingNew) return;
         
         $(_parent).empty();
         _trs = [];
         
         _model.each(function(attr, i) {
-            var typeSelector = createTypeSelector(attr.type.server)[0];
-            typeSelector.attrIdx = i;
-            //$('#' + attr.type.server, typeSelector).attr('selected', 'selected');
-            
-            $(typeSelector).change(function() {
-                var serverType = $('option:selected', this).val(),
-                    attrType = _.findWhere(nsGmx.ManualAttrModel.TYPES, {server: serverType});
-                // var attrType = $('option:selected', this)[0].attrType;
-                _model.changeType(this.attrIdx, attrType);
-            });
-            
-            var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', '80px']]);
+            _trs.push(createRow(attr, i));
+        });
         
-            $(nameSelector).attr({attrIdx: i}).val(attr.name);
-            
-            $(nameSelector).on('keyup', function()
-            {
-                var idx = $(this).attr('attrIdx');
-                var name = $(this).val();
-                
-                _model.changeName(idx, name);
-            });
-            
-            var deleteIcon = makeImageButton("img/close.png", "img/close_orange.png");
-            $(deleteIcon).addClass('removeIcon');
-            deleteIcon.attrIdx = i;
-            deleteIcon.onclick = function()
-            {
-                _model.deleteAttribute(this.attrIdx);
-            }
-                
-            var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
-                
-            _trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon])]));
-        })
-            
+        var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1);
+        $(newAttr).find('td:gt(0)').hide();
+        $(newAttr).addClass('customAttributes-new');
+        
+        _trs.push(newAttr);
+
         var tbody = _tbody(_trs);
         $(tbody).sortable({
+            items: '> :not(.customAttributes-new)',
             axis: 'y', 
             handle: '.moveIcon',
             stop: function(event, ui) {
-                var oldIdx = ui.item.find('input[attrIdx]').attr('attrIdx');
+                var oldIdx = ui.item.find('input').data('idx');
 
                 var elem = ui.item.next()[0] || ui.item.prev()[0];
                 var delta = ui.item.next()[0] ? 0 : 1;
-                _model.moveAttribute(parseInt(oldIdx), parseInt($(elem).find('input[attrIdx]').attr('attrIdx')) + delta);
+                _model.moveAttribute(oldIdx, $(elem).find('input').data('idx') + delta);
             }
         });
-        $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([tbody], [['dir', 'className', 'customAttributes']])));
+        
+        var theader = $(Handlebars.compile('<thead><tr><th>{{i "ManualAttrView.headerName"}}</th><th>{{i "ManualAttrView.headerType"}}</th></tr></thead>')());
+        
+        $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([theader[0], tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);
     }
     
@@ -105,7 +134,16 @@ nsGmx.ManualAttrView = function()
     {
         _parent = parent;
         _model = model;
-        $(_model).bind('newAttribute delAttribute moveAttribute', redraw);
+        $(_model).on('newAttribute delAttribute moveAttribute', redraw);
+        
+        $(_model).on('newAttribute', function() {
+            if (!$(_parent).find('.customAttributes-new').length) {
+                var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1);
+                $(newAttr).find('td:gt(0)').hide();
+                $(newAttr).addClass('customAttributes-new');
+                $(_parent).find('tbody').append(newAttr);
+            }
+        });
         redraw();
     }
 };

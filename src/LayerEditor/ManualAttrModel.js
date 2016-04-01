@@ -21,6 +21,8 @@ nsGmx.ManualAttrModel = function() {
         
         $(this).triggerHandler('newAttribute');
         $(this).triggerHandler('change');
+        
+        return _attributes.length - 1;
     };
         
     this.changeName = function(idx, newName)

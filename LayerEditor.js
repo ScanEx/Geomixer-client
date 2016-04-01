@@ -949,32 +949,23 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     
     fileAttrModel.initFromServerFormat(props.get('Columns'));
     
-    var fileAddAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
-    
     var fileAttrView = new nsGmx.ManualAttrView();
     fileAttrView.init(fileColumnsContainer, fileAttrModel);
     var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file'));
     fileAttrView.setActive(allowEdit);
-    $(fileAddAttribute).toggle(allowEdit);
-    
-    fileAddAttribute.onclick = function()
-    {
-        fileAttrModel.addAttribute(nsGmx.ManualAttrModel.TYPES.STRING, "NewAttribute");
-    }
     
     $(fileAttrModel).change(function() {
         var isManual = props.get('SourceType') === 'manual';
         props.set('Columns', fileAttrModel.toServerFormat());
     });
     
-    _(parent, [fileAddAttribute, fileColumnsContainer]);
+    _(parent, [fileColumnsContainer]);
 
     props.on('change:SourceType', function() {
         var type = props.get('SourceType');
         var allowEdit = type === 'manual' || (!isNewLayer && type === 'file');
         fileAttrModel.initFromServerFormat(props.get('Columns'));
         fileAttrView.setActive(allowEdit);
-        $(fileAddAttribute).toggle(allowEdit);
     });
 }
 

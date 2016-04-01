@@ -771,6 +771,10 @@ skype_pnh_container
 	line-height: 1.5;
 }
 
+.customAttributes {
+    margin-top: 5px;
+}
+
 .customAttributes td {
 	border-width: 0px;
 	background-color: 0xffffff;
@@ -778,6 +782,15 @@ skype_pnh_container
 
 .customAttr-typesselect {
     width: 83px;
+}
+
+.customAttributes .moveIcon {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.customAttributes .removeIcon {
+    margin-left: 4px;
 }
 
 .VectorLayerEncoding td
