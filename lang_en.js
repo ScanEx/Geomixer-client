@@ -42,7 +42,7 @@ _translationsHash.hash["eng"] = {
     "Каталог СКАНЭКС": "Search imagery",
     "Космоснимки-пожары": "Kosmosnimki-fires",
     "GIBS NASA": "MODIS Images (NASA)",
-    "Руководство пользователя": "User manual",
+    "Руководство пользователя": "Documentation",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
     
@@ -70,7 +70,7 @@ _translationsHash.hash["eng"] = {
 	"Справка" : "Help",
 	"Использование" : "Usage",
 	"Сервисы" : "Services",
-	"О проекте" : "About",
+	"О проекте" : "About/Contacts",
 	"$$phrase$$_1" : "Choose parameter defaultMapID in config.js file",
 	"У вас нет прав на просмотр данной карты" : "Sorry, you don’t have permission to view this map",
 	"Развернуть карту" : "Unfold map",
