@@ -6,7 +6,7 @@ function capitaliseFirstLetter(str)
 }
 
 //events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
-nsGmx.ManualAttrModel = function() {
+nsGmx.ManualAttrModel = function(isRCLayer) {
     var _attributes = [];
     
     this.addAttribute = function(type, name)
@@ -51,7 +51,9 @@ nsGmx.ManualAttrModel = function() {
     this.each = function(callback, addInternalColumns) { 
         for (var k = 0; k < _attributes.length; k++) {
             var column = _attributes[k];
-            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || column.type.server === 'geometry' || column.name === 'GMX_RasterCatalogID';
+            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || 
+                             column.type.server === 'geometry' || (isRCLayer && column.name === 'GMX_RasterCatalogID');
+
             if (!isInternal || addInternalColumns) {
                 callback(column, k);
             }

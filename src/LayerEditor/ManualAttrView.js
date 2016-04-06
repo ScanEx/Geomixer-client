@@ -127,7 +127,7 @@ nsGmx.ManualAttrView = function()
         } else {
             fieldset.attr('disabled', 'disabled');
         }
-        $('.moveIcon, .removeIcon', fieldset).toggle(isActive);
+        $('.moveIcon, .removeIcon, .customAttributes-new', fieldset).toggle(isActive);
     }
     
     this.init = function(parent, model)

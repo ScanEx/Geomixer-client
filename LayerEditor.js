@@ -582,9 +582,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
 
     var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
         
-    /*------------ Источник: вручную ------------*/
-    var attrModel = new nsGmx.ManualAttrModel();
-        
+    /*------------ Источник: вручную ------------*/        
     var geometryTypes = [
         {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
         {title: _gtxt('линии'),          type: 'linestring', className: 'manual-linestring'},
@@ -936,7 +934,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
 
     var isNewLayer = !props.get('Name');
     var fileColumnsContainer = _div();
-    var fileAttrModel = new nsGmx.ManualAttrModel();
+    var fileAttrModel = new nsGmx.ManualAttrModel(props.get('RC').get('IsRasterCatalog'));
     var type = props.get('SourceType');
     
     if (isNewLayer) {
