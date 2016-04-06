@@ -1033,11 +1033,12 @@ function loadMap(state) {
 
     L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'leaflet/images';
 
-    var hostName = L.gmxUtil.normalizeHostname(window.serverBase);
+    var hostName = L.gmxUtil.normalizeHostname(window.serverBase),
+        apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
 
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
-    L.gmx.gmxMapManager.getMap(hostName, window.apiKey, globalMapName, window.gmxSkipTiles).then(function(mapInfo) {
+    L.gmx.gmxMapManager.getMap(hostName, apiKey, globalMapName, window.gmxSkipTiles).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
 
@@ -1059,7 +1060,7 @@ function loadMap(state) {
         //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
         nsGmx.pluginsManager.done(function() {
             nsGmx.pluginsManager.preloadMap();
-            L.gmx.loadMap(globalMapName, {hostName: window.serverBase, apiKey: window.apiKey, setZIndex: true}).then(processGmxMap.bind(null, state));
+            L.gmx.loadMap(globalMapName, {hostName: window.serverBase, apiKey: apiKey, setZIndex: true}).then(processGmxMap.bind(null, state));
         })
     }, function() {
         initAuthWidget();
