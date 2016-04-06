@@ -384,11 +384,12 @@ var TimelineController = function(data, map, options) {
             if (!item.timelineItem && showItem)
             {
                 var date = layerInfo.dateFunction(layer, obj),
-                    content;
+                    content, propHash;
                 
                 if (props.NameObject)
                 {
-                    content = gmxAPI.applyTemplate(props.NameObject, obj.properties);
+                    propHash = L.gmxUtil.getPropertiesHash(obj.properties, layer._gmx.tileAttributeIndexes);
+                    content = L.gmxUtil.parseTemplate(props.NameObject, propHash);
                 }
                 else
                 {
