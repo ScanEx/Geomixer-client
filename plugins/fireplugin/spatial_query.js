@@ -245,15 +245,15 @@ _polygon.prototype = {
     if(this.count < 3) {
 	  return _polygon.DIRECTION_INVALID;
 	}
-	minXNode = this.head;
-	this.foreach(function(node){
-	  if( node.x < minXNode.x) {
+	var minXNode = this.head;
+	this.foreach(function(node) {
+	  if ( node.x < minXNode.x) {
 	    minXNode = node;
 	  }
 	});
-	if(minXNode.next.y > minXNode.prev.y){
+	if (minXNode.next.y > minXNode.prev.y) {
 	  return _polygon.DIRECTION_CLOCKWISE;
-	}else{
+	} else {
 	  return _polygon.DIRECTION_COUNTERCLOCKWISE;
 	}
   },
