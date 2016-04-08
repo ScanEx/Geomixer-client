@@ -242,7 +242,6 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Свойства"); },
 	isVisible: function(context)
 	{
-        var layerRights = _queryMapLayers.layerRights(context.elem.name);
 		return !context.layerManagerFlag && nsGmx.AuthManager.isLogin();
 	},
 	clickCallback: function(context)

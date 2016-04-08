@@ -1592,7 +1592,8 @@ queryMapLayers.prototype.currentMapRights = function()
 
 queryMapLayers.prototype.layerRights = function(name)
 {
-	return nsGmx.gmxMap.layersByID[name].getGmxProperties().Access;
+    var layer = nsGmx.gmxMap.layersByID[name];
+	return layer ? layer.getGmxProperties().Access : null;
 }
 
 queryMapLayers.prototype.addUserActions = function()
