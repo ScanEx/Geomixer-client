@@ -321,7 +321,7 @@ mapHelper.prototype.updateTreeStyles = function(newStyles, div, treeView, isEdit
 		
 	$(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
 	
-	removeChilds(multiStyleParent);
+	$(multiStyleParent).empty();
 	
 	_mapHelper.createMultiStyle(div.gmxProperties.content.properties, treeView, multiStyleParent)
 }

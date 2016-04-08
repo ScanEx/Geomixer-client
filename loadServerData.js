@@ -803,7 +803,7 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		clickFunc.call(_this, this.checked);
 	}
 	
-	removeChilds(parentTreeCanvas);
+	$(parentTreeCanvas).empty();
 	
 	if (parentTreeCanvas.childNodes.length == 0)
 		_(parentTreeCanvas, [divCanvas]);

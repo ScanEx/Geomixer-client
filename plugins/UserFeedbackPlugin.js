@@ -87,7 +87,7 @@
             feedbackMarkers[0].setGeometry({type:'POINT', coordinates: [globalFlashMap.getX(),globalFlashMap.getY()]})
             feedbackMarkers[1].setGeometry({type:'POINT', coordinates: [mapBounds.minX + 0.6 * (mapBounds.maxX - mapBounds.minX), mapBounds.minY + 0.4 * (mapBounds.maxY - mapBounds.minY)]})
             
-            removeChilds(spanAction);
+            $(spanAction).empty();
                 
             switch (this.selectedIndex)
             {

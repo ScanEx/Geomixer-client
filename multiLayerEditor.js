@@ -121,7 +121,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         {
             var span = $(div).find(".layer")[0];
         
-            removeChilds(span);
+            $(span).empty();
             
             _(span, [_t(title.value)]);
 
@@ -141,7 +141,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         {
             var span = $(div).find(".layerDescription")[0];
         
-            removeChilds(span);
+            $(span).empty();
             
             span.innerHTML = descr.value;
 

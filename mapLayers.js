@@ -1832,7 +1832,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
         _layersTree.updateZIndexes();
     }).progress(function(taskInfo)
 	{
-        removeChilds(taskDiv);
+        $(taskDiv).empty();
 		_(taskDiv, [_span([_t(title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])
 	})
 }
@@ -1906,7 +1906,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
             {
                 taskDiv = $('#' + taskInfo.TaskID)[0];
                 
-                removeChilds(taskDiv);
+                $(taskDiv).empty();
             }
             
             _(taskDiv, [_span([_t(properties.Title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)]);

@@ -1736,7 +1736,7 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
             $(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
         }
         
-        removeChilds(multiStyleParent);
+        $(multiStyleParent).empty();
         
         _mapHelper.createMultiStyle(elemProperties, treeView, multiStyleParent);
     

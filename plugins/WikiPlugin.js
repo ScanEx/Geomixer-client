@@ -284,7 +284,7 @@ WikiObjectsHandler.prototype = {
 					divContent.innerHTML = pageInfo.Content;
 					var divBaloon = _div([divTitle, divContent, divEdit]);
 					
-					removeChilds(div); 
+					$(div).empty();
 					fnShare(pageInfo, divBaloon);
 					
 					_(div, [divBaloon]);
@@ -354,7 +354,7 @@ WikiFilter.prototype = {
 	filter: function(){
 		var _this = this;
 		var sFilter = new RegExp(this._input.value, "i");
-		removeChilds(this._list);
+		$(this._list).empty();
 		for(var i=0; i<this.pagesCache.length; i++){
 			var page = this.pagesCache[i];
 			var layerOK = !page.BadLayer && (!page.LayerID || oFlashMap.layers[page.LayerID].isVisible)
@@ -529,7 +529,7 @@ WikiEditor.prototype = {
 	setGeometry: function(drawing){
 		if (drawing && this._drawing) this._drawing.remove();
 		if (drawing) {
-			removeChilds(this._geometryRowContainer);
+			$(this._geometryRowContainer).empty();
 			this._drawingObjectInfoRow = new oDrawingObjectsModule.DrawingObjectInfoRow(this._wikiPlugin._map, this._geometryRowContainer, drawing);
 			$(this._drawingObjectInfoRow).bind('onRemove', function(){
 				this._drawing.remove();

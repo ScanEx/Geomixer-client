@@ -7,7 +7,7 @@
 		if (!layerStatus[layerId]) return;
 		
 		if(layerId in coverageContainers) {
-			removeChilds(coverageContainers[layerId]);
+			$(coverageContainers[layerId]).empty();
 		}
 		else {
 			coverageContainers[layerId] = _span();

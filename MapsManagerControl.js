@@ -293,7 +293,7 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
             }
         })
 		
-		removeChilds(parent);
+		$(parent).empty();
         
         var hint = $('<div class="mapslist-hint">' + _gtxt('maplist.hint') + '</div>');
 

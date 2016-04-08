@@ -391,9 +391,9 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             text = _drawingObject.options.title,
             type = _drawingObject.getType();
 
-		removeChilds(_title);
-		removeChilds(_text);
-		removeChilds(_summary);
+		$(_title).empty();
+		$(_text).empty();
+		$(_summary).empty();
 
 		if (type === 'Point')
 		{

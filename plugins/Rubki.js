@@ -190,7 +190,7 @@ var clsScenesList = function(oContainer){
 	}
 	
 	this.ClearFilter = function(){
-		removeChilds(oContainer);
+		$(oContainer).empty();
 		arrFilters = [];
 		if (bFilterApplied) {
 			for (var i=0; i<oMap.layers[scenesLayerID].filters.length; i++)	{

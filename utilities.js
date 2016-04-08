@@ -131,28 +131,6 @@ if (window.Node && window.Node.prototype)
 		parent && parent.removeChild(this);
 	}
 }
-
-function _click(el)
-{
-	if (el.click)
-		el.click();
-	else if (el.onclick)
-		el.onclick();
-	else
-	{
-		var evt = document.createEvent("MouseEvents");
-		evt.initMouseEvent("click", true, true, window,0, 0, 0, 0, 0, false, false, false, false, 0, null);
-		el.dispatchEvent(evt);
-	}
-}
-
-function removeChilds(el)
-{
-	while (el.firstChild)
-		el.removeChild(el.firstChild);
-	
-	return el;
-}
  
 function getkey(e)
 {

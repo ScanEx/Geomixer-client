@@ -638,7 +638,7 @@ fileBrowser.prototype.findContent = function(value)
 
 fileBrowser.prototype.reloadFiles = function()
 {
-    removeChilds(this.fileCanvas);
+    $(this.fileCanvas).empty();
     
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 	

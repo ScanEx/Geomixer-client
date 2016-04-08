@@ -65,8 +65,8 @@
 	var drawList = function(){
 		totalPrice = 0;
 		idsString = "";
-		removeChilds(oItemList);
-		removeChilds(oItemSummary);
+		$(oItemList).empty();
+		$(oItemSummary).empty();
 		
 		for (var id in arrCartObjects){
 			drawRow(id);

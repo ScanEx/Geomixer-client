@@ -289,7 +289,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		var span = $(div).find(".groupLayer")[0];
 		
-		removeChilds(span);
+		$(span).empty();
 		
 		_(span, [_t(title.value)]);
 		

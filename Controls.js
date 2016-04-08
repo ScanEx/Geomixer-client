@@ -308,7 +308,7 @@ nsGmx.Controls = {
                 return;
             }
             
-            removeChilds(div);
+            $(div).empty();
             
             _(div, [_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
             
@@ -323,7 +323,7 @@ nsGmx.Controls = {
             
             var dialogTitle = div.parentNode.parentNode.firstChild.firstChild;
 
-            removeChilds(dialogTitle);
+            $(dialogTitle).empty();
 
             _(dialogTitle, [_t(_gtxt("Слой [value0]", layer.properties.title))]);
             

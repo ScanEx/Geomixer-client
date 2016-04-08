@@ -369,7 +369,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		for(i=0; i<arrDisplayedObjects.length; i++){
 			SetDisplayedObjects(i, []);
 		}
-		removeChilds(oResultCanvas);
+		$(oResultCanvas).empty();
 	}
     /** Переход на следующие страницы*/
     var next = function(iDataSourceN, divChilds, divPages) {
@@ -471,7 +471,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/** Рисует строки списка*/
 	var drawRows = function(iDataSourceN, divChilds) {
 		var arrObjects = arrDisplayedObjects[iDataSourceN];
-		removeChilds(divChilds);
+		$(divChilds).empty();
 		var tbody = _tbody();
 		for (var i = 0; i < arrObjects.length; i++) {
 			var elemTR = _tr(null, [['dir', 'className', 'SearchResultRow']]);
@@ -547,7 +547,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 		
 		// перерисовывем номера страниц
-		removeChilds(divPages);
+		$(divPages).empty();
 
 		var end = (oDataSource.start + iPagesCount <= oDataSource.allPages) ? oDataSource.start + iPagesCount : oDataSource.allPages;
 
@@ -571,7 +571,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 		
 		if (oDataSource.SearchResult.length <= iLimit) {
-			removeChilds(divPages);
+			$(divPages).empty();
 			SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult);
 			drawRows(iDataSourceN, divChilds);
 		}
@@ -658,7 +658,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	*/
 	this.ShowResult = function(sTotalListName, arrTotalList){
 		arrTotalResultSet = arrTotalList;
-	    removeChilds(oResultCanvas);
+	    $(oResultCanvas).empty();
 		arrDisplayedObjects = [];
 		if (!objLength(arrTotalResultSet)) {
 			fnNotFound();
@@ -827,14 +827,14 @@ var ResultList = function(oInitContainer, ImagesHost){
 	@returns {void}*/
 	this.ShowLoading = function(){
 	    $('#respager').remove();
-        removeChilds(oResultCanvas);
+        $(oResultCanvas).empty();
 		_(oResultCanvas, [oLoading]);
 	}
 	
 	/**Показывает сообщение об ошибке
 	@returns {void}*/
 	this.ShowError = function(){
-		removeChilds(oResultCanvas);
+		$(oResultCanvas).empty();
 		_(oResultCanvas, [_t("Произошла ошибка")]);
 	}
 	
@@ -1047,7 +1047,7 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		var locationTitleDiv = div;
 
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
-			removeChilds(locationTitleDiv);
+			$(locationTitleDiv).empty();
 			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0){
 				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
 			}

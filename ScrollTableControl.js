@@ -272,7 +272,7 @@ scrollTable.prototype._drawRows = function()
     
     $(this).triggerHandler('beforeRedraw');
 
-	removeChilds(this.tableBody);
+	$(this.tableBody).empty();
     
     var activeFields = this._getActiveFields();
 	
@@ -287,7 +287,7 @@ scrollTable.prototype._drawRows = function()
 	if (this._pageVals.length == 0)
 		_(this.tableBody, [_tr(null,[['css','height','1px'],['attr','empty', true]])])
 	
-	removeChilds(this.tableCount);
+	$(this.tableCount).empty();
     
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 	
@@ -433,7 +433,7 @@ scrollTable.prototype._drawPagesRow = function()
     this._updatePageData(function()
     {
         // перерисовывем номера страниц
-        removeChilds(_this.tablePages);
+        $(_this.tablePages).empty();
         
         if (_this._currValsCount > _this.limit)
         {

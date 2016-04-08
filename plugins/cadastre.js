@@ -128,7 +128,7 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 		oCostByAreaLayer.setVisible(false);
 		oUseTypeLayer.setVisible(false);
 		oCategoryLayer.setVisible(false);
-		removeChilds(oContainer);
+		$(oContainer).empty();
 		bVisible = false;
 	}
 }

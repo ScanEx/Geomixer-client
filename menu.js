@@ -92,7 +92,7 @@ UpMenu.prototype.setParent = function(parent)
 
 	if (parent)
     {
-		removeChilds(parent);
+		$(parent).empty();
         parent.appendChild(_span());
     }
 

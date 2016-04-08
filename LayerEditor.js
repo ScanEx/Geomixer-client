@@ -12,7 +12,7 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
     var updateWidget = function() {
         var parsedColumns = nsGmx.LayerProperties.parseColumns(sourceColumns);
 
-        removeChilds(parent);
+        $(parent).empty();
         
         if (!parsedColumns.geomCount && parsedColumns.coordColumns.length) {
             var fields = parsedColumns.coordColumns;
@@ -217,7 +217,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
                     var title =  layerProperties.get('Title');
                 
                     var span = $(div).find(".layer")[0];
-                    removeChilds(span);
+                    $(span).empty();
                     _(span, [_t(title)]);
 
                     divProperties.title = title;
@@ -234,7 +234,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
                     var description = layerProperties.get('Description');
                         
                     var span = $(div).find(".layerDescription")[0];
-                    removeChilds(span);
+                    $(span).empty();
                     span.innerHTML = description;
                     
                     divProperties.description = description;
