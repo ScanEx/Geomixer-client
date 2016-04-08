@@ -30,6 +30,7 @@ var publicInterface = {
             ,
 
             isVisible: function(context) {
+                if (context.layerManagerFlag) {return false;}
                 var elem = context.elem,
                     layer = nsGmx.gmxMap.layersByID[elem.name],
                     props = layer.getGmxProperties(),
