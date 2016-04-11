@@ -450,7 +450,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
                 ed.onKeyUp.add(setBalloon);
                 ed.onChange.add(setBalloon);
                 ed.onClick.add(function() {
-                    $(atrsSuggest).fadeOut(300);
+                    $(suggestWidget.el).fadeOut(300);
                 });
                 
             }
