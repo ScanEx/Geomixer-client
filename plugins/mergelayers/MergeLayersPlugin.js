@@ -7,7 +7,7 @@ nsGmx.Translations.addText("rus", {
 });
 
 nsGmx.Translations.addText("eng", {
-    VectorSorting: {
+    MergeLayersPlugin: {
         menuTitle:  'MergeLayers'
     }
 });
