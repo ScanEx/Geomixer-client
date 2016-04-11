@@ -167,7 +167,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 {
     var _this = this;
-	L.gmx.loadMap(mapName, {hostName: hostName, leafletMap: nsGmx.leafletMap, apiKey: window.apiKey}).then(function(gmxMap)
+	L.gmx.loadMap(mapName, {hostName: hostName, leafletMap: nsGmx.leafletMap, apiKey: window.apiKey, isGeneralized: 'isGeneralized' in window ? window.isGeneralized : true}).then(function(gmxMap)
 	{
         for (var i = 0; i < gmxMap.layers.length; i++) {
             var layer = gmxMap.layers[i];
