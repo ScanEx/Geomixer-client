@@ -1972,7 +1972,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
     }
     
 	$(input, ui).on('keydown', function(e) {
-	  	if (getkey(e.originalEvent) === 13) {
+	  	if (e.keyCode === 13) {
             tryCreateMap();
 	  		return false;
 	  	}

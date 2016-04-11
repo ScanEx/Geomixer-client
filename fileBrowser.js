@@ -418,10 +418,9 @@ fileBrowser.prototype.createHeader = function()
 	newFolderName.style.display = 'none';
 	newFolderButton.style.display = 'none';
 		
-	newFolderName.onkeydown = function(e)
+	$(newFolderName).on('keydown', function(e)
 	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
+		if (e.keyCode === 13)
 	  	{
 	  		if (newFolderName.value != '')
 				createFolder();
@@ -430,7 +429,7 @@ fileBrowser.prototype.createHeader = function()
 	  		
 	  		return false;
 	  	}
-	}
+	});
 	
 	newFolderButton.onclick = function()
 	{

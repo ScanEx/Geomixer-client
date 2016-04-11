@@ -220,9 +220,8 @@ var SearchInput = function (oInitContainer, params) {
     var searchFieldCanvas = _table(	[_tbody([_tr([tdSearchBegin, _td([searchField], [['dir', 'className', 'searchCenterTD']]), tdSearchButton])])], 
 									[['dir', 'className', 'SearchInputControl']]);
 
-    searchField.onkeyup = function(e) {
-        var evt = e || window.event;
-        if (getkey(evt) == 13) {
+    $(searchField).on('keyup', function(event) {
+        if (event.keyCode === 13) {
 			if (Number(new Date()) - dtLastSearch < 1000 || $("#ui-active-menuitem").get().length > 0) return; //Если уже ведется поиск по автозаполнению, то обычный не ведем
 			dtLastSearch = new Date();
 			if($(searchField).data('ui-autocomplete')) {
@@ -231,7 +230,7 @@ var SearchInput = function (oInitContainer, params) {
             fnSearch();
             return true;
         }
-    }
+    });
 
     searchField.onfocus = function() {
         if (this.value == sDefaultValue) {

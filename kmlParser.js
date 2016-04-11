@@ -62,10 +62,9 @@ queryKML.prototype.load = function()
 			inputError(inputField);
 	}
 	
-	inputField.onkeydown = function(e)
+	$(inputField).on('keydown', function(e)
 	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13)
+		if (e.keyCode === 13)
 	  	{	
 			if (inputField.value != '')
 			{
@@ -98,7 +97,7 @@ queryKML.prototype.load = function()
 	  		
 	  		return false;
 	  	}
-	}
+	})
 	
     
     

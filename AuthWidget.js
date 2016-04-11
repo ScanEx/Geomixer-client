@@ -63,10 +63,9 @@ var nsGmx = nsGmx || {};
             checkPassw();
         }
         
-        confirmInput.onkeyup = function(e)
+        $(confirmInput).on('keyup', function(e)
         {
-            var evt = e || window.event;
-            if (getkey(evt) == 13) 
+            if (e.keyCode === 13)
             {
                 checkPassw();
                 
@@ -74,7 +73,7 @@ var nsGmx = nsGmx || {};
             }
             
             return true;
-        }
+        });
     }
     
     var loginDialogTemplate = 
@@ -244,10 +243,9 @@ var nsGmx = nsGmx || {};
                 window.open(window.gmxAuthServer + 'Account/Retrive', '_blank');
             });
             
-            passwordInput.onkeyup = function(e)
+            $(passwordInput).on('keyup', function(e)
             {
-                var evt = e || window.event;
-                if (getkey(evt) == 13) 
+                if (e.keyCode === 13)
                 {
                     checkLogin();
                     
@@ -255,7 +253,7 @@ var nsGmx = nsGmx || {};
                 }
                 
                 return true;
-            }
+            });
         }
         
         this.getContainer = function()

@@ -194,23 +194,22 @@ var addSubGroup = function(div, layersTree)
 	
 	create.onclick = createSubGroup;
 	
-	inputIndex.onkeyup = function(e)
+	$(inputIndex).on('keyup', function(e)
 	{
 		if (this.value == '')
 			$(this).addClass('error');
 		else
 			$(this).removeClass('error');
 		
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
+		if (e.keyCode === 13)
+	  	{
 			createSubGroup();
 	  		
 	  		return false;
 	  	}
-		
+
 		return true;
-	}
+	});
 	
 	create.style.marginTop = '5px';
 	

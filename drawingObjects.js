@@ -168,9 +168,9 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds)])])],[['attr','fade',true]])])));
 		
 		var text = _input(null, [['attr','value', parentObject.options.title || ""],['dir','className','inputStyle'],['css','width','180px']]);
-		text.onkeyup = function(evt)
+		$(text).on('keyup', function(evt)
 		{
-            if (getkey(evt) == 13) 
+            if (evt.keyCode === 13)
             {
                 $(jQueryDialog).dialog('destroy');
                 return;
@@ -181,7 +181,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 			$(parentObject).triggerHandler('onEdit', [parentObject]);
 			
 			return true;
-		}
+		})
 		
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt('drawingObjects.edit.description'))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 		

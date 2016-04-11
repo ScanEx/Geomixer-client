@@ -583,15 +583,14 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 	
 	goButton.onclick = doGetCapabilities;
 	
-	inputField.onkeydown = function(e)
+	$(inputField).on('keydown', function(e)
 	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
+		if (e.keyCode === 13)
+	  	{
 			doGetCapabilities();
 	  		return false;
 	  	}
-	}
+	});
 	
 	var canvas = _div([_div([_span([_t(_gtxt("URL сервера"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
 	
