@@ -1060,7 +1060,12 @@ function loadMap(state) {
         //у которых имя плагина было прописано в конфиге. Ждём их загрузки.
         nsGmx.pluginsManager.done(function() {
             nsGmx.pluginsManager.preloadMap();
-            L.gmx.loadMap(globalMapName, {hostName: window.serverBase, apiKey: apiKey, setZIndex: true}).then(processGmxMap.bind(null, state));
+            L.gmx.loadMap(globalMapName, {
+                hostName: window.serverBase,
+                apiKey: apiKey,
+                setZIndex: true,
+                isGeneralized: 'isGeneralized' in window ? window.isGeneralized : true
+            }).then(processGmxMap.bind(null, state));
         })
     }, function() {
         initAuthWidget();
