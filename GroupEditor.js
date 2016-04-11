@@ -336,6 +336,10 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                             '<label><input type="radio" name="squareUnit" value="ha">' + _gtxt('units.ha') + '</label>' + 
                             '<label><input type="radio" name="squareUnit" value="km2">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
+            layerOrder = $('<select class="selectStyle">' + 
+                            '<option value="Native">' + _gtxt('layerOrder.native') + '</label>' + 
+                            '<option value="VectorOnTop">' + _gtxt('layerOrder.vectorOnTop') + '</label>' + 
+                           '</select>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
             WMSLink = _a([_t(_gtxt('ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?map=' + elemProperties.name]]),
@@ -367,6 +371,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
         $('input[value=' + elemProperties.DistanceUnit + ']', distUnit).attr('checked', 'checked');
         $('input[value=' + elemProperties.SquareUnit + ']', squareUnit).attr('checked', 'checked');
+        $('option[value=' + (elemProperties.LayerOrder || 'Native') + ']', layerOrder).attr('selected', 'selected');
         
         $('input', defLang).change(function()
 		{
@@ -386,6 +391,12 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			div.gmxProperties.properties.SquareUnit = this.value;
 			rawTree.properties = div.gmxProperties.properties;
             nsGmx.leafletMap.options.squareUnit = this.value;
+		})
+        
+        $(layerOrder).change(function()
+		{
+			div.gmxProperties.properties.LayerOrder = this.value;
+			rawTree.properties = div.gmxProperties.properties;
 		})
         
 		useOSM.onclick = function()
@@ -547,6 +558,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},
+										{name: _gtxt("layerOrder.title"), elem: layerOrder},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink}]
 									),
 			shownPolicyProperties = [
@@ -753,7 +765,7 @@ var createMapEditor = function(div, activePage)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 450, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 450, 350, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };
