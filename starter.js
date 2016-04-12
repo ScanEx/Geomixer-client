@@ -1094,6 +1094,63 @@ function loadMap(state) {
     });
 }
 
+//создаём подложки в BaseLayerManager по описанию из config.js
+function initDefaultBaseLayers() {
+    var hostName = window.baseMap.hostName || 'maps.kosmosnimki.ru',
+        mapID = window.baseMap.id;
+    
+    var layersToLoad = {};
+    
+    var iconPrefix = 'img/baseLayers/';
+    
+    if (window.baseMap.mapLayerID) {
+        layersToLoad.OSM = {
+            layerID: window.baseMap.mapLayerID,
+            rus: 'Карта',
+            eng: 'Map',
+            icon: iconPrefix + 'basemap_osm_ru.png'
+        }
+    }
+    
+    if (window.baseMap.satelliteLayerID) {
+        layersToLoad.satellite = {
+            layerID: window.baseMap.satelliteLayerID,
+            rus: 'Снимки',
+            eng: 'Satellite',
+            overlayColor: '#ffffff',
+            icon: iconPrefix + 'basemap_satellite.png'
+        }
+    }
+    
+    if (window.baseMap.overlayLayerID) {
+        layersToLoad.OSMHybrid = {
+            layerID: window.baseMap.overlayLayerID,
+            rus: 'Гибрид',
+            eng: 'Hybrid',
+            overlayColor: '#ffffff',
+            icon: iconPrefix + 'basemap_osm_hybrid.png'
+        }
+    }
+    
+    var promises = _.map(layersToLoad, function(l, name) {
+        return L.gmx.loadLayer(mapID, l.layerID, {hostName: hostName}).then(function(layer) {
+            l.layers = [layer];
+        });
+    });
+    
+    return L.gmx.Deferred.all.apply(null, promises).then(function() {
+        var blm = nsGmx.leafletMap.gmxBaseLayersManager;
+        
+        if (layersToLoad.OSMHybrid && layersToLoad.satellite) {
+            layersToLoad.OSMHybrid.layers.push(layersToLoad.satellite.layers[0]);
+        }
+        
+        _.each(layersToLoad, function(l, name) {
+            blm.add(name, l);
+        });
+    });
+}
+
 function processGmxMap(state, gmxMap) {
     var defCenter = [55.7574, 37.5952],
         mapProps = gmxMap.properties,
@@ -1177,8 +1234,10 @@ function processGmxMap(state, gmxMap) {
     loc.on('coordinatesformatchange', function(ev) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
+    
+    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey});
 
-    lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey}).then(function() {
+    baseLayerDef.always(function() {
 
         gmxMap.addLayersToMap(lmap);
 
