@@ -509,41 +509,6 @@ $(function() {
         nsGmx.AuthManager.checkUserInfo(function() {
             nsGmx.pluginsManager.beforeMap();
 
-            var rightLinks = [];
-            if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-                rightLinks.push({
-                    title: _gtxt('Администрирование'),
-                    dropdown: [{
-                        title: _gtxt('Системные настройки'),
-                        link: serverBase + 'Administration/Actions.aspx'
-                    }, {
-                        title: _gtxt('Управление группами'),
-                        link: 'javascript:void(0)',
-                        id: 'usergroupMenuItem'
-                    }]
-                })
-            }
-
-            nsGmx.widgets.header = new nsGmx.HeaderWidget({
-                leftLinks: nsGmx.addHeaderLinks(),
-                rightLinks: rightLinks,
-                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
-            });
-
-            nsGmx.widgets.header.appendTo($('.header'));
-
-            $('.header').find('#usergroupMenuItem').click(function() {
-                gmxCore.loadModule('UserGroupWidget').then(function(module) {
-                    var canvas = $('<div/>');
-                    new module.UserGroupListWidget(canvas);
-                    canvas.dialog({
-                        width: 400,
-                        height: 400,
-                        title: _gtxt('Управление группами пользователей')
-                    });
-                });
-            })
-
             var parsedURL = parseURLParams();
 
             parseReferences(parsedURL.params, parsedURL.givenMapName);
@@ -1068,6 +1033,7 @@ function loadMap(state) {
             }).then(processGmxMap.bind(null, state));
         })
     }, function() {
+        initHeader();
         initAuthWidget();
 
         _menuUp.defaultHash = 'usage';
@@ -1151,6 +1117,45 @@ function initDefaultBaseLayers() {
     });
 }
 
+// Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации 
+// требуется знать текущий язык, а он становится известен только после загрузки карты
+function initHeader() {
+    var rightLinks = [];
+    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+        rightLinks.push({
+            title: _gtxt('Администрирование'),
+            dropdown: [{
+                title: _gtxt('Системные настройки'),
+                link: serverBase + 'Administration/Actions.aspx'
+            }, {
+                title: _gtxt('Управление группами'),
+                link: 'javascript:void(0)',
+                id: 'usergroupMenuItem'
+            }]
+        })
+    }
+    
+    nsGmx.widgets.header = new nsGmx.HeaderWidget({
+        leftLinks: nsGmx.addHeaderLinks(),
+        rightLinks: rightLinks,
+        logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
+    });
+
+    nsGmx.widgets.header.appendTo($('.header'));
+
+    $('.header').find('#usergroupMenuItem').click(function() {
+        gmxCore.loadModule('UserGroupWidget').then(function(module) {
+            var canvas = $('<div/>');
+            new module.UserGroupListWidget(canvas);
+            canvas.dialog({
+                width: 400,
+                height: 400,
+                title: _gtxt('Управление группами пользователей')
+            });
+        });
+    })
+}
+
 function processGmxMap(state, gmxMap) {
     var defCenter = [55.7574, 37.5952],
         mapProps = gmxMap.properties,
@@ -1189,6 +1194,8 @@ function processGmxMap(state, gmxMap) {
     if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
         window.language = data.properties.DefaultLanguage;
     }
+    
+    initHeader();
 
     if (!window.gmxViewerUI || !window.gmxViewerUI.hideLanguage) {
         var langContainer = nsGmx.widgets.header.getLanguagePlaceholder();
