@@ -203,7 +203,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
         geometryInfoRow && geometryInfoRow.RemoveRow();
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
-            globalFlashMap, 
+            nsGmx.leafletMap, 
             borderContainer, 
             polygon, 
             { editStyle: false }
@@ -386,7 +386,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                 
         $(zoomPropertiesControl).change(function()
         {
-            globalFlashMap.layers[elemProperties.name].setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+            nsGmx.gmxMap.layersByID[elemProperties.name].setZoomBounds(this.getMinZoom(), this.getMaxZoom());
             
             elemProperties.styles = elemProperties.styles || [];
             elemProperties.styles[0] = elemProperties.styles[0] || {};
