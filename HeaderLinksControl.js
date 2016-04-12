@@ -17,8 +17,8 @@ nsGmx.addHeaderLinks = function()
 
     var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
         [
-            {title: _gtxt("Карта пожаров"), href: "http://fires.kosmosnimki.ru", newWindow: true},
-            {title: _gtxt("Поиск снимков"), href: "http://search.kosmosnimki.ru", newWindow: true},
+            {title: _gtxt("Карта пожаров"), href: _gtxt("http://fires.kosmosnimki.ru"), newWindow: true},
+            {title: _gtxt("Поиск снимков"), href: _gtxt("http://search.kosmosnimki.ru"), newWindow: true},
             {title: _gtxt("Платформа Геомиксер"), newWindow: true, id: 'HeaderLinkGeoMixer'}
         ];
         
