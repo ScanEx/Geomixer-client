@@ -494,7 +494,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 	
 	div.getBalloon = function()
 	{
-        var value = tinyMCE && tinyMCE.get(textareaID) ? tinyMCE.get(textareaID).getContent() : balloonText.value;
+        var value = window.tinyMCE && tinyMCE.get(textareaID) ? tinyMCE.get(textareaID).getContent() : balloonText.value;
         return value == defaultBalloonText() ? '' : value;
 	};
 	
