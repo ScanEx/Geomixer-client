@@ -120,7 +120,7 @@ var LayerProperties = Backbone.Model.extend(
             this.set("Name", layerProperties.Name);
         }
         
-        var quicklookString = divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
+        var quicklookString = divProperties.Quicklook || layerProperties.Quicklook,
             quicklookParams = new nsGmx.QuicklookParams();
             
         quicklookParams.fromServerString(quicklookString);
