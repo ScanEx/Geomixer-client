@@ -68,17 +68,15 @@ nsGmx.ManualAttrView = function()
                 isAddingNew = false;
             }
         });
-        
+
         var deleteIcon = makeImageButton("img/recycle.png", "img/recycle_a.png");
         $(deleteIcon).addClass('removeIcon').data('idx', i);
         deleteIcon.onclick = function()
         {
             _model.deleteAttribute($(this).data('idx'));
         }
-            
-        //var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
-        var moveIcon = $('<div class="icon-resize-vertical moveIcon"></div>');
-        var tr = _tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon[0]])]);
+
+        var tr = _tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon])]);
         return tr;
     }
             
@@ -100,19 +98,6 @@ nsGmx.ManualAttrView = function()
         _trs.push(newAttr);
 
         var tbody = _tbody(_trs);
-        $(tbody).sortable({
-            items: '> :not(.customAttributes-new)',
-            axis: 'y', 
-            handle: '.moveIcon',
-            stop: function(event, ui) {
-                var oldIdx = ui.item.find('input').data('idx');
-
-                var elem = ui.item.next()[0] || ui.item.prev()[0];
-                var delta = ui.item.next()[0] ? 0 : 1;
-                _model.moveAttribute(oldIdx, $(elem).find('input').data('idx') + delta);
-            }
-        });
-        
         var theader = $(Handlebars.compile('<thead><tr><th>{{i "ManualAttrView.headerName"}}</th><th>{{i "ManualAttrView.headerType"}}</th></tr></thead>')());
         
         $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([theader[0], tbody], [['dir', 'className', 'customAttributes']])));
@@ -127,7 +112,7 @@ nsGmx.ManualAttrView = function()
         } else {
             fieldset.attr('disabled', 'disabled');
         }
-        $('.moveIcon, .removeIcon, .customAttributes-new', fieldset).toggle(isActive);
+        $('.removeIcon, .customAttributes-new', fieldset).toggle(isActive);
     }
     
     this.init = function(parent, model)
