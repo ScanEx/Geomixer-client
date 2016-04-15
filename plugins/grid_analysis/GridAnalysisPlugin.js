@@ -4,7 +4,8 @@
 // * column - название колонки для изменения
 // * menu<N> - добавить новый пункт меню и именем, равным значению параметра и которое устанавливает значение "N" в колонке
 // * menus - массив объетов со свойствами title и value. Value может быть как числом, так и ф-цией 
-//           (принимает на вход свойство 'gmx' из события слоя contextmenu, должна выдавать число)
+//           (принимает на вход свойство 'gmx' из события слоя contextmenu, должна вернуть объект со свойством 'value'. 
+//           Если ф-ция ничего не возвращает, никаких дополнительных действий плагин не совершает)
 (function ($){
 var parseMenuItems = function(params){
     var reg = /menu(\d+)/i;
@@ -52,15 +53,19 @@ var publicInterface = {
                     text: menuText,
                     callback: function(value, ev) {
                         var prevProps = ev.relatedEvent.gmx.properties,
-                            props = {};
+                            props = {},
+                            funcRes;
                             
                         if (typeof value === 'function') {
-                            value = value(ev.relatedEvent.gmx);
+                            funcRes = value(ev.relatedEvent.gmx);
+                            if (funcRes && ('value' in funcRes)) {
+                                value = funcRes.value;
+                            } else {
+                                return;
+                            }
                         }
 
-                        var newValue = prevProps[propName] == value ? 0 : value;
-
-                        props[propName] = Number(newValue);
+                        props[propName] = Number(value);
 
                         nsGmx.widgets.notifications.startAction('gridAnalysis');
                         
