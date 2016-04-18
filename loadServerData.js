@@ -68,6 +68,7 @@ var getWMSMapURL = function(url, props, requestProperties)
     var format = requestProperties.format || 'image/jpeg';
     var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
     var version = props.version || '1.1.1';
+    var isV130 = version === '1.3.0';
     
     //st = st.replace(/Service=WMS[\&]*/i, '');
     //st = st.replace(/\&$/, '');
@@ -79,10 +80,10 @@ var getWMSMapURL = function(url, props, requestProperties)
         "&styles=" +
         "&width=" + w +
         "&height=" + h +
-        "&bbox=" + (isMerc ? mercMin.x : minx) +
-             "," + (isMerc ? mercMin.y : miny) +
-             "," + (isMerc ? mercMax.x : maxx) +
-             "," + (isMerc ? mercMax.y : maxy);
+        "&bbox=" + (isMerc ? mercMin.x : isV130 ? miny : minx) +
+             "," + (isMerc ? mercMin.y : isV130 ? minx : miny) +
+             "," + (isMerc ? mercMax.x : isV130 ? maxy : maxx) +
+             "," + (isMerc ? mercMax.y : isV130 ? maxx : maxy);
 
     if (url.indexOf('format=') == -1) st += "&format=" + encodeURIComponent(format);
     if (url.indexOf('transparent=') == -1) st += "&transparent=" + encodeURIComponent(transparentParam);
