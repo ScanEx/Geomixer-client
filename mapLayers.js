@@ -1796,7 +1796,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
             if (!newProps.styles)
             {
                 if (newProps.type == 'Vector')
-                    newProps.styles = [{MinZoom:newProps.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newProps.GeometryType]}]
+                    newProps.styles = [{MinZoom:1, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newProps.GeometryType]}]
                 else if (newProps.type != 'Vector' && !newProps.MultiLayerID)
                     newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
             }
