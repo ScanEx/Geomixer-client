@@ -249,10 +249,14 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
     
     nsGmx.leafletMap.on('layeradd layerremove', function(event) {
         if (event.layer.getGmxProperties) {
-            var props = event.layer.getGmxProperties();
-            var searchRes = _this.treeModel.findElem('name', props.name);
-            if (searchRes) {
-                _this.treeModel.setNodeVisibility(searchRes.elem, nsGmx.leafletMap.hasLayer(event.layer));
+            var name = event.layer.getGmxProperties().name;
+            
+            //добавился именно слой из основной карты, а не просто с таким же ID
+            if (event.layer === nsGmx.gmxMap.layersByID[name]) {
+                var searchRes = _this.treeModel.findElem('name', name);
+                if (searchRes) {
+                    _this.treeModel.setNodeVisibility(searchRes.elem, nsGmx.leafletMap.hasLayer(event.layer));
+                }
             }
         }
     });
