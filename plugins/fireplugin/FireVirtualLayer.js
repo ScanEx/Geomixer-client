@@ -298,7 +298,6 @@ var FireVirtualLayer = L.Class.extend({
         this._clustersLayer = L.gmx.createLayer({
             properties: {
                 title: 'FireClusters',
-                name: 'fireClustersLayer' + this.options.hotspotLayerName,
                 attributes: ['scale', 'count', 'label', 'startDate', 'endDate', 'dateRange', 'isIndustrial'],
                 styles: [{
                     Filter: '"isIndustrial"=0',
@@ -348,7 +347,6 @@ var FireVirtualLayer = L.Class.extend({
             properties: {
                 type: 'Vector',
                 title: 'FirePolygons',
-                name: 'fireClustersGeomLayer' + this.options.dailyLayerName,
                 attributes: ['scale', 'count', 'label', 'startDate', 'endDate', 'dateRange', 'isIndustrial'],
                 styles: [{
                     Balloon: _gtxt('FireVirtualLayer.LayerGeometryBalloon'),
