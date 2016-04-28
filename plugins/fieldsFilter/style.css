@@ -1,0 +1,30 @@
+#leftPanelHeader{
+    top: initial;
+}
+
+#fieldsFilterTableBody .currentField {
+    background-color: lightgray;
+}
+#fieldsFilterTableBody td {
+    cursor: pointer;
+    padding: 0px 5px 0px 5px;
+    border: 0px;
+    border-right: 1px solid #dedede;
+    font-size: 12px;
+    font-weight: normal;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    white-space: nowrap;
+}
+
+#fieldsFilterTableParent, #fieldsFilterTableHeader td {
+    background-color: white;
+}
+
+.disable-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
