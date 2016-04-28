@@ -1,8 +1,7 @@
 ﻿(function () {
     'use strict';
 
-    var utils = nsGmx.Utils,
-        publicInterface = {
+    var publicInterface = {
             pluginName: 'fieldsFilter',
             afterViewer: function (params) {
                 if ('layerId' in params) { layerId = params.layerId; }
@@ -19,13 +18,14 @@
             'Хозяйство': 'farm'
         },
         panelTitle = ['Список полей'],
-        bboxColumns = '[{"Value":"gmx_id"},\
+        bboxColumns = '[{"Value":"name"},\
             {"Value":"STEnvelopeMinX([GeomixerGeoJson])", "Alias":"xmin"},\
             {"Value":"STEnvelopeMaxX([GeomixerGeoJson])", "Alias":"xmax"},\
             {"Value":"STEnvelopeMinY([GeomixerGeoJson])", "Alias":"ymin"},\
             {"Value":"STEnvelopeMaxY([GeomixerGeoJson])", "Alias":"ymax"}]',
         fieldsWidths = ['25%', '25%', '50%'],
         currentFilters = {},
+        useLayerFilter = false,
         recOptions = {
             WrapStyle: 'func',
             layer: layerId
@@ -78,9 +78,7 @@
             var attrNames = Object.keys(titleToField),
                 lastIndex = attrNames.length - 1,
                 sortedAliaces = {},
-                sortFuncs = {},
-                filterFunc = this.filterFunc,
-                items = this.items;
+                sortFuncs = {};
 
             var sortStrFun = function (_a, _b, key, dir) {
                 var a = String(_a[key]).toLowerCase(), b = String(_b[key]).toLowerCase(),
@@ -101,7 +99,26 @@
                     if (!currentFilters[fname]) { delete currentFilters[fname]; }
                     staticDataProvider.setOriginalItems(this.items);
                     staticDataProvider.filterOriginalItems(this.filterFunc);
+                    if (useLayerFilter) { layer.repaint(); }
                 }, this);
+            }, this);
+
+            var _this = this,
+                layer = nsGmx.gmxMap.layersByID[layerId],
+                layerFilterFunc = function (it) {
+                    return _this.filterFunc(layer.getItemProperties(it.properties));
+                };
+
+            var div = L.DomUtil.create('div', 'chkBoxDiv', this.filterCanvas),
+                chkBox = L.DomUtil.create('input', '', div),
+                span = L.DomUtil.create('span', '', div);
+
+            span.innerHTML = 'фильтрация объектов на карте';
+            chkBox.type = 'checkbox';
+            L.DomEvent.on(chkBox, 'change', function (ev) {
+                useLayerFilter = ev.target.checked;
+                if (useLayerFilter) { layer.setFilter(layerFilterFunc); }
+                else { layer.removeFilter(); }
             }, this);
 
             var staticDataProvider = new nsGmx.ScrollTable.StaticDataProvider();
@@ -109,9 +126,7 @@
             staticDataProvider.setOriginalItems(this.items);
             staticDataProvider.filterOriginalItems(this.filterFunc);
 
-            var _this = this,
-                _scrollTable = new nsGmx.ScrollTable({ showFooter: true, pagesCount: 1, limit: 100 });
-
+            var _scrollTable = new nsGmx.ScrollTable({ showFooter: true, pagesCount: 1, limit: 100 });
             _scrollTable.setDataProvider(staticDataProvider);
             _scrollTable.createTable({
                 parent: this.innerCanvas,
@@ -150,7 +165,7 @@
 
         _createTableRow: function (elem, curIndex, activeHeaders) {     //рисует строку scrollTable
             var _this = this,
-                tr = L.DomUtil.create('tr');
+                tr = L.DomUtil.create('tr', '');
 
             activeHeaders.forEach(function (it, i) {
                 var td = L.DomUtil.create('td', '', tr);
@@ -163,7 +178,9 @@
                     if (_this._lastCurrentField) { L.DomUtil.removeClass(_this._lastCurrentField, 'currentField'); }
                     _this._lastCurrentField = this;
                     L.DomUtil.addClass(this, 'currentField');
-                    L.gmxUtil.requestJSONP(serverScript, L.extend({columns: bboxColumns, query : '[gmx_id]=' + _this.items[curIndex].id}, recOptions)).then(function(response) {
+
+                    var name = this.childNodes[0].innerText;
+                    L.gmxUtil.requestJSONP(serverScript, L.extend({columns: bboxColumns, query : '[name]=\'' + name + '\''}, recOptions)).then(function(response) {
                         if (response && response.Status === 'ok' && response.Result.values.length) {
                             var arr = response.Result.values[0];
                             nsGmx.leafletMap.fitBounds(new L.LatLngBounds(

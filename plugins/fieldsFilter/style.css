@@ -3,7 +3,7 @@
 }
 
 #fieldsFilterTableBody .currentField {
-    background-color: lightgray;
+    background-color: orange;
 }
 #fieldsFilterTableBody td {
     cursor: pointer;
@@ -20,6 +20,14 @@
 
 #fieldsFilterTableParent, #fieldsFilterTableHeader td {
     background-color: white;
+}
+.chkBoxDiv {
+    padding-top: 4px;
+}
+.chkBoxDiv span {
+    padding-left: 4px;
+    position: relative;
+    top: -3px;
 }
 
 .disable-select {
