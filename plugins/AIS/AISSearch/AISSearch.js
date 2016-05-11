@@ -1,7 +1,7 @@
-﻿(function() {
+﻿(function () {
     'use strict';
     var pluginName = 'AISSearch',
-        serverPrefix = window.serverBase || 'http://maps.kosmosnimki.ru/',
+        serverPrefix = 'http://geomixer.scanex.ru/', // window.serverBase || 'http://maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx',
         publicInterface = {
             pluginName: pluginName,
@@ -12,9 +12,9 @@
                         activeImage: 'active.png'
                     }, params),
                     searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null,
-/* eslint-disable new-cap*/
+                /* eslint-disable new-cap*/
                     placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0'),
-/* eslint-enable */
+                /* eslint-enable */
                     searchBorder = {},
                     lmap = nsGmx.leafletMap,
                     layersByID = nsGmx.gmxMap.layersByID,
@@ -23,7 +23,7 @@
                     aisSearchLayerID = params.aisSearchLayerID || aisLayerID,
                     tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
                     tracksLayer = layersByID[tracksLayerID],
-                    sideBar = L.control.gmxSidebar({className: 'aissearch'}),
+                    sideBar = L.control.gmxSidebar({ className: 'aissearch' }),
                     div = L.DomUtil.create('div', pluginName + '-content'),
                     shap = L.DomUtil.create('div', '', div),
                     title = L.DomUtil.create('span', '', shap),
@@ -39,7 +39,7 @@
                     mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
                     dateInterval = new nsGmx.DateInterval(),
                     isActivePlugin = false,
-                    calendar, searchHook, icon;
+                    calendar, searchHook, icon, autoCompleteSearchObserver;
 
                 refresh.title = 'Обновить';
 
@@ -91,7 +91,7 @@
                         }
                         return false;
                     };
-                    if (bbox) { lmap.fitBounds(bbox, {maxZoom: 11}); }
+                    if (bbox) { lmap.fitBounds(bbox, { maxZoom: 11 }); }
                     if (aisLayer) {
                         if (mmsiArr.length) {
                             aisLayer.setFilter(filterFunc);
@@ -120,30 +120,32 @@
                     var latLngBounds = lmap.getBounds(),
                         sw = latLngBounds.getSouthWest(),
                         ne = latLngBounds.getNorthEast(),
-                        min = {x: sw.lng, y: sw.lat},
-                        max = {x: ne.lng, y: ne.lat},
+                        min = { x: sw.lng, y: sw.lat },
+                        max = { x: ne.lng, y: ne.lat },
                         minX = min.x,
                         maxX = max.x,
-                        geo = {type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]]},
+                        geo = { type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]] },
                         w = (maxX - minX) / 2;
 
                     if (w >= 180) {
-                        geo = {type: 'Polygon', coordinates: [[[-180, min.y], [-180, max.y], [180, max.y], [180, min.y], [-180, min.y]]]};
+                        geo = { type: 'Polygon', coordinates: [[[-180, min.y], [-180, max.y], [180, max.y], [180, min.y], [-180, min.y]]] };
                     } else if (maxX > 180 || minX < -180) {
                         var center = ((maxX + minX) / 2) % 360;
                         if (center > 180) { center -= 360; }
                         else if (center < -180) { center += 360; }
                         minX = center - w; maxX = center + w;
                         if (minX < -180) {
-                            geo = {type: 'MultiPolygon', coordinates: [
+                            geo = { type: 'MultiPolygon', coordinates: [
                                 [[[-180, min.y], [-180, max.y], [maxX, max.y], [maxX, min.y], [-180, min.y]]],
                                 [[[minX + 360, min.y], [minX + 360, max.y], [180, max.y], [180, min.y], [minX + 360, min.y]]]
-                            ]};
+                            ]
+                            };
                         } else if (maxX > 180) {
-                            geo = {type: 'MultiPolygon', coordinates: [
+                            geo = { type: 'MultiPolygon', coordinates: [
                                 [[[minX, min.y], [minX, max.y], [180, max.y], [180, min.y], [minX, min.y]]],
                                 [[[-180, min.y], [-180, max.y], [maxX - 360, max.y], [maxX - 360, min.y], [-180, min.y]]]
-                            ]};
+                            ]
+                            };
                         }
                     }
                     return geo;
@@ -176,7 +178,7 @@
                             var arr = str.replace(/ /g, '').split(/,/);
                             query += ' and ([mmsi] IN (' + arr.join(',') + '))';
                         } else {
-                            query += ' and ([vessel_name] contains "' + str + '")';
+                            query += ' and ([vessel_name] contains \'' + str + '\')';
                         }
                     }
                     query += ')';
@@ -186,9 +188,9 @@
                         {
                             WrapStyle: 'window',
                             border: JSON.stringify(searchBorder),
-/* eslint-disable camelcase */
+                            /* eslint-disable camelcase */
                             border_cs: 'EPSG:4326',
-/* eslint-enable */
+                            /* eslint-enable */
                             // out_cs: 'EPSG:3395',
                             // pagesize: 100,
                             // orderdirection: 'desc',
@@ -267,7 +269,7 @@
                                         return opt;
                                     });
                                     title.innerHTML = _gtxt(pluginName + '.title1') + ': <b>' + values.length + '</b>';
-                                    blob = new Blob([trs.join('\n')], {type: 'text/csv;charset=utf-8;'});
+                                    blob = new Blob([trs.join('\n')], { type: 'text/csv;charset=utf-8;' });
                                     file = 'data_' + Date.now() + '.csv';
                                     exportIcon.setAttribute('href', window.URL.createObjectURL(blob));
                                     exportIcon.setAttribute('download', file);
@@ -292,6 +294,117 @@
                     }
                     return res;
                 };
+
+                /**************************************************************************/
+
+                //Поиск судна для подсказки
+                var requestParams = function (searchString) {
+                    searchString = searchString.replace(/(^\s+|\s+$)/g, '');
+                    //console.log('searchString=' + searchString);
+                    var //cont = sideBar.getContainer(),
+                    dt1 = dateInterval.get('dateBegin'),
+                    dt2 = dateInterval.get('dateEnd'),
+                    prop = aisLayer ? (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties : {},
+                    TemporalColumnName = prop.TemporalColumnName || 'ts_pos_utc',
+                    query = '(',
+                    columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';
+
+                    //exportIcon.style.visibility = 'hidden';
+                    //L.DomEvent.disableScrollPropagation(cont);
+                    //cont.appendChild(div);
+                    //title.innerHTML = _gtxt(pluginName + '.title');
+
+                    columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
+                    columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
+                    columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
+                    columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
+                    //L.DomUtil.addClass(refresh, 'animate-spin');
+
+                    query += '([' + TemporalColumnName + '] >= \'' + dt1.toJSON() + '\')';
+                    query += ' and ([' + TemporalColumnName + '] < \'' + dt2.toJSON() + '\')';
+                    if (searchString) {
+                        if (searchString.search(/[^\d, ]/) === -1) {
+                            var arr = searchString.replace(/ /g, '').split(/,/);
+                            query += ' and ([mmsi] IN (' + arr.join(',') + '))';
+                        } else {
+                            query += ' and ([vessel_name] contains \'' + searchString + '\')';
+                        }
+                    }
+                    query += ')';
+
+                    searchBorder = getBorder();
+                    return {
+                        WrapStyle: 'window',
+                        border: JSON.stringify(searchBorder),
+                        /* eslint-disable camelcase */
+                        border_cs: 'EPSG:4326',
+                        /* eslint-enable */
+                        // out_cs: 'EPSG:3395',
+                        // pagesize: 100,
+                        // orderdirection: 'desc',
+                        orderby: 'vessel_name',
+                        layer: aisSearchLayerID,
+                        columns: '[' + columns + ']',
+                        groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"}]',
+                        query: query
+                    }
+                };
+
+                //Наблюдатель за началом обработки запроса для подсказки
+                autoCompleteSearchObserver = function (next, deferred, params) {
+                    if ( params.searchString && params.searchString.search(/\S/g) != -1 ) {
+                        var rp = requestParams(params.searchString);
+                        rp.pagesize = 10;
+                        L.gmxUtil.sendCrossDomainPostRequest(serverScript,
+                        rp,
+                        function (json) {
+                            //console.log(json.Result.values);
+                            var arrResult = [];
+                            for (var i = 0; i < json.Result.values.length; ++i)
+                                arrResult.push({
+                                    label: json.Result.values[i][1],
+                                    value: json.Result.values[i][1],
+                                    AISObject: json.Result.values[i],
+                                    GeoObject: null
+                                });
+                            if (arrResult.length > 0) {
+                                // отобразить полученные данные, дальнейшую обработку и геокодер не использовать
+                                //console.log('stop ' + next);
+                                params.callback(arrResult);
+                                deferred.resolve(-1);
+                            }
+                            else {
+                                // использовать следующий обработчик запроса
+                                //console.log('continue ' + next);
+                                deferred.resolve(next);
+                            }
+                        });
+                    }
+                    else
+                        deferred.resolve(next);
+                };
+
+                // Добавим обработку поискового запроса перед отправкой геокодеру
+                if (searchControl) 
+                    searchControl.onAutoCompleteDataSearchStarting({
+                        observer: { add: true, observer: autoCompleteSearchObserver },
+                        selectItem: function (event, oAutoCompleteItem) {
+                            if (oAutoCompleteItem && oAutoCompleteItem.value && oAutoCompleteItem.AISObject != null) {
+                                //console.log(oAutoCompleteItem.AISObject);
+                                //console.log('select ' + oAutoCompleteItem.AISObject[0]);
+                                var bbox = null, filter = [];
+                                filter.push(Number(oAutoCompleteItem.AISObject[0]));
+                                bbox = [
+                                    [oAutoCompleteItem.AISObject[5], oAutoCompleteItem.AISObject[3]],
+                                    [oAutoCompleteItem.AISObject[6], oAutoCompleteItem.AISObject[4]]
+                                ];
+                                publicInterface.setMMSI(filter, bbox);
+                            }
+                        }
+                    });
+
+                /**********************************************************************************/
+
                 icon = L.control.gmxIcon({
                     id: pluginName,
                     togglable: true,
@@ -306,7 +419,7 @@
                         if (aisLayer) {
                             nsGmx.widgets.commonCalendar.unbindLayer(aisLayerID);
                             aisLayer.setDateInterval(d1, d2);
-                        // } else {
+                            // } else {
                             // console.log("Not found AIS layer: ", aisLayerID);
                         }
                         if (tracksLayer) {
@@ -315,18 +428,19 @@
                         }
                         if (searchControl) {
                             searchControl.addSearchByStringHook(searchHook, 1002);
-/* eslint-disable new-cap*/
+
+                            /* eslint-disable new-cap*/
                             if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
-/* eslint-enable */
+                            /* eslint-enable */
                         }
                         lmap.addControl(sideBar);
                         getMMSIoptions();
                     } else {
                         if (searchControl) {
                             searchControl.removeSearchByStringHook(searchHook);
-/* eslint-disable new-cap*/
+                            /* eslint-disable new-cap*/
                             if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(placeholderDefault); }
-/* eslint-enable */
+                            /* eslint-enable */
                         }
                         if (sideBar && sideBar._map) {
                             lmap.removeControl(sideBar);
