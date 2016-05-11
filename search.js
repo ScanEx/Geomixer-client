@@ -1413,60 +1413,112 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
         }
 		return sLabel;
 	}
+
+    /** Cинхронное последовательное обращение к наблюдателям 
+        @param queue {Array} очередь наблюдателей    
+    */   
+    var deferredsChain = function(queue, params){
+        var deferred = $.Deferred(),
+        promise = $.when(deferred);
+        if(queue.length>0){
+            queue[0](1, deferred, params);
+            for (var i=1; i<queue.length; ++i) {
+                promise = promise.then(function(current) {
+                    if (current<0) return current;
+                    var d = $.Deferred();
+                    queue[current](current+1, d, params);
+                    return d;
+                });
+            }
+        }
+        else{
+            deferred.resolve(0);  
+        }
+        return promise;  
+    }	
+
+    /** Очередь наблюдателей за началом обработки запроса для подсказки     
+    */
+    var AutoCompleteDataSearchStarting = [];
+
+    /** Событие в начале обработки запроса для подсказки  (перед обращением к геокдеру)
+        @param {{add:bool, remove:bool, obserber:function(next, deferred, params)}} 
+        observer возвращает $.Deferred() для синхронной последовательной обработки, $.Deferred().resolve(next) 
+        для перехода к очередному наблюдателю или $.Deferred().resolve(-1) для остановки всей обработки
+    */
+    this.AutoCompleteDataSearchStarting = function(params){
+        for (var i = 0; i < AutoCompleteDataSearchStarting.length; i++)
+            if(AutoCompleteDataSearchStarting[i] === params.observer)
+                if(params.remove){
+                    //console.log("remove observer");
+                    AutoCompleteDataSearchStarting.splice(i, 1);
+                }
+                else
+                    return;        
+        if(params.add){
+            console.log("add observer");
+            AutoCompleteDataSearchStarting.push(params.observer);
+        }
+    }
 	
 	/**Возращает сгуппированные данные для отображения подсказок поиска в функции callback
 	    @param {String} SearchString строка, по которой надо выдать подсказку
 	    @param {function(arrResult)} callback вызывается когда подсказка готова
     */
 	this.AutoCompleteData = function (SearchString, callback){
-	    _this.SearchByString({
-            SearchString: SearchString, 
-            IsStrongSearch: 0,
-            Limit: iLimitAutoComplete,
-            WithoutGeometry: 1,
-	        UseOSM: useOSMDefault, 
-        callback: function(arrResultDataSources){
-			var arrResult = [];
-			var sSearchRegExp = new RegExp("("+SearchString.replace(/^\s|\s$/, "").replace(/[^\wа-яА-Я]+/g, "|")+")", "i");
-			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
-				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
-					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
-					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
-					if(/[a-zA-Z]/.test(SearchString)){
-                        if(oFoundObject.ObjAltNameEng || oFoundObject.ObjNameEng){
-						    if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
-							    sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
-							    sValue = sLabel;
-							    //if (oFoundObject.ObjAltName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
-						    }
-						    else{
-							    sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-							    sValue = sLabel;
-							    //if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
-						    }
-						}
-					}
-					else{
-						if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
-							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
-							sValue = sLabel;
-							//if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
-						}
-						else{
-							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							sValue = sLabel;
-							//if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-						}
-					}
-					arrResult.push({
-						label: sLabel,
-						value: sValue,
-						GeoObject: oFoundObject});
-				}
-				if(arrResult.length>0) break;
-			}
-			callback(arrResult);
-		}});
+            deferredsChain(AutoCompleteDataSearchStarting, {searchString:SearchString, callback:callback}).done(function(fin){
+            //console.log('finally ' + fin);
+            if (fin!=-1)
+	            _this.SearchByString({
+                    SearchString: SearchString, 
+                    IsStrongSearch: 0,
+                    Limit: iLimitAutoComplete,
+                    WithoutGeometry: 1,
+	                UseOSM: useOSMDefault, 
+                callback: function(arrResultDataSources){
+			        var arrResult = [];
+			        var sSearchRegExp = new RegExp("("+SearchString.replace(/^\s|\s$/, "").replace(/[^\wа-яА-Я]+/g, "|")+")", "i");
+			        for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
+				        for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
+					        var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
+					        var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+					        if(/[a-zA-Z]/.test(SearchString)){
+                                if(oFoundObject.ObjAltNameEng || oFoundObject.ObjNameEng){
+						            if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
+							            sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							            sValue = sLabel;
+							            //if (oFoundObject.ObjAltName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+						            }
+						            else{
+							            sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							            sValue = sLabel;
+							            //if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
+						            }
+						        }
+					        }
+					        else{
+						        if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
+							        sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+							        sValue = sLabel;
+							        //if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+						        }
+						        else{
+							        sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
+							        sValue = sLabel;
+							        //if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+						        }
+					        }
+					        arrResult.push({
+						        label: sLabel,
+						        value: sValue,
+						        GeoObject: oFoundObject});
+				        }
+				        if(arrResult.length>0) break;
+			        }
+			        callback(arrResult);
+		        }
+            });
+        });
 	}
 	
 	/** Группирует по категории
@@ -1856,7 +1908,17 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	/**Очищает результаты поиска
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
-    
+
+    /**
+    Добавление наблюдателя события начала оработки запроса для подсказки
+        @param {obserber:params, select:function(){}}} 
+    */
+    this.onAutoCompleteDataSearchStarting = function(params){
+        oLogic.AutoCompleteDataSearchStarting(params.observer);
+        params.selectItem();
+        $(btnSearch).bind('AutoCompleteSelect', params.selectItem);
+    }
+        
     /**Добавляет хук поиска объектов по строке. Хуки выполняются в порядке их добавления с учётом приоритета
     @param {function} hook - ф-ция, которая принимает на вход строку поиска и возвращает признак прекращения дальнейшего поиска (true - прекратить)
     @param {Number} [priority=0] - приоритет хука. Чем больше значение, тем раньше будет выполняться
