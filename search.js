@@ -264,7 +264,7 @@ var SearchInput = function (oInitContainer, params) {
 				@name Search.SearchInput.AutoCompleteSelect
 				@event
 				@param {object} AutoCompleteItem Выбранное значение*/
-				if (ui.item.GeoObject.ObjNameShort){
+				if (ui.item.GeoObject && ui.item.GeoObject.ObjNameShort){
                     ui.item.label = ui.item.GeoObject.ObjNameShort;
                     ui.item.value = ui.item.GeoObject.ObjNameShort;
 				}
@@ -1442,8 +1442,8 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
     var AutoCompleteDataSearchStarting = [];
 
     /** Событие в начале обработки запроса для подсказки  (перед обращением к геокдеру)
-        @param {{add:bool, remove:bool, obserber:function(next, deferred, params)}} 
-        observer возвращает $.Deferred() для синхронной последовательной обработки, $.Deferred().resolve(next) 
+        @param {{add:bool, remove:bool, observer:function(next, deferred, params)}} 
+        observer возвращает $.Deferred() для асинхронной последовательной обработки, $.Deferred().resolve(next) 
         для перехода к очередному наблюдателю или $.Deferred().resolve(-1) для остановки всей обработки
     */
     this.AutoCompleteDataSearchStarting = function(params){
@@ -1456,7 +1456,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
                 else
                     return;        
         if(params.add){
-            console.log("add observer");
+            //console.log("add observer");
             AutoCompleteDataSearchStarting.push(params.observer);
         }
     }
@@ -1812,6 +1812,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	
 	/**Осуществляет выбор объекта из подсказки*/
 	var fnSelect = function(event, oAutoCompleteItem){
+        if(oAutoCompleteItem.GeoObject==null)
+            return;
 	    if (fnBeforeSearch != null) fnBeforeSearch();
 	    $('#respager').remove();
 	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode,
@@ -1911,7 +1913,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 
     /**
     Добавление наблюдателя события начала оработки запроса для подсказки
-        @param {obserber:params, select:function(){}}} 
+        @param {observer:params, select:function(){}}} 
     */
     this.onAutoCompleteDataSearchStarting = function(params){
         oLogic.AutoCompleteDataSearchStarting(params.observer);

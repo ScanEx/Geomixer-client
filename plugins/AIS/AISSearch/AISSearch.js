@@ -352,30 +352,36 @@
 
                 //Наблюдатель за началом обработки запроса для подсказки
                 autoCompleteSearchObserver = function (next, deferred, params) {
-                    if ( params.searchString && params.searchString.search(/\S/g) != -1 ) {
+                    if (params.searchString && params.searchString.search(/\S/g) != -1) {
                         var rp = requestParams(params.searchString);
                         rp.pagesize = 10;
                         L.gmxUtil.sendCrossDomainPostRequest(serverScript,
                         rp,
                         function (json) {
-                            //console.log(json.Result.values);
-                            var arrResult = [];
-                            for (var i = 0; i < json.Result.values.length; ++i)
-                                arrResult.push({
-                                    label: json.Result.values[i][1],
-                                    value: json.Result.values[i][1],
-                                    AISObject: json.Result.values[i],
-                                    GeoObject: null
-                                });
-                            if (arrResult.length > 0) {
-                                // отобразить полученные данные, дальнейшую обработку и геокодер не использовать
-                                //console.log('stop ' + next);
-                                params.callback(arrResult);
-                                deferred.resolve(-1);
+                            if (json.Result) {
+                                //console.log(json.Result.values);
+                                var arrResult = [];
+                                for (var i = 0; i < json.Result.values.length; ++i)
+                                    arrResult.push({
+                                        label: json.Result.values[i][1],
+                                        value: json.Result.values[i][1],
+                                        AISObject: json.Result.values[i],
+                                        GeoObject: null
+                                    });
+                                if (arrResult.length > 0) {
+                                    // отобразить полученные данные, дальнейшую обработку и геокодер не использовать
+                                    //console.log('stop ' + next);
+                                    params.callback(arrResult);
+                                    deferred.resolve(-1);
+                                }
+                                else {
+                                    // использовать следующий обработчик запроса
+                                    //console.log('continue ' + next);
+                                    deferred.resolve(next);
+                                }
                             }
                             else {
-                                // использовать следующий обработчик запроса
-                                //console.log('continue ' + next);
+                                //console.log(json);
                                 deferred.resolve(next);
                             }
                         });
@@ -385,11 +391,11 @@
                 };
 
                 // Добавим обработку поискового запроса перед отправкой геокодеру
-                if (searchControl) 
+                if (searchControl)
                     searchControl.onAutoCompleteDataSearchStarting({
                         observer: { add: true, observer: autoCompleteSearchObserver },
                         selectItem: function (event, oAutoCompleteItem) {
-                            if (oAutoCompleteItem && oAutoCompleteItem.value && oAutoCompleteItem.AISObject != null) {
+                            if (oAutoCompleteItem && oAutoCompleteItem.AISObject != null) {
                                 //console.log(oAutoCompleteItem.AISObject);
                                 //console.log('select ' + oAutoCompleteItem.AISObject[0]);
                                 var bbox = null, filter = [];
