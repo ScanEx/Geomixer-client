@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     var pluginName = 'AISSearch',
-        serverPrefix = 'http://geomixer.scanex.ru/', // window.serverBase || 'http://maps.kosmosnimki.ru/',
+        serverPrefix = window.serverBase || 'http://maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx',
         publicInterface = {
             pluginName: pluginName,
@@ -301,27 +301,23 @@
                 var requestParams = function (searchString) {
                     searchString = searchString.replace(/(^\s+|\s+$)/g, '');
                     //console.log('searchString=' + searchString);
-                    var //cont = sideBar.getContainer(),
-                    dt1 = dateInterval.get('dateBegin'),
-                    dt2 = dateInterval.get('dateEnd'),
+                    var mapDateInterval = nsGmx.widgets.commonCalendar ? nsGmx.widgets.commonCalendar.getDateInterval() :
+		            {
+		                get: function (when) {
+		                    var dt = Date.now();
+		                    if (when == 'dateBegin') return new Date(new Date(dt).setDate(new Date(dt).getDate() - 1));
+		                    if (when == 'dateEnd') return new Date(dt);
+		                } 
+		            };
+                    var dt1 = mapDateInterval.get('dateBegin'),
+			            dt2 = mapDateInterval.get('dateEnd'),
                     prop = aisLayer ? (aisLayer._gmx ? aisLayer._gmx : aisLayer).properties : {},
                     TemporalColumnName = prop.TemporalColumnName || 'ts_pos_utc',
                     query = '(',
-                    columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"count(*)", "Alias":"count"}';
-
-                    //exportIcon.style.visibility = 'hidden';
-                    //L.DomEvent.disableScrollPropagation(cont);
-                    //cont.appendChild(div);
-                    //title.innerHTML = _gtxt(pluginName + '.title');
-
-                    columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
-                    columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
-                    columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
-                    columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
-                    //L.DomUtil.addClass(refresh, 'animate-spin');
-
+                    columns = '{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"max([ts_pos_utc])", Alias:"Last"}';
                     query += '([' + TemporalColumnName + '] >= \'' + dt1.toJSON() + '\')';
                     query += ' and ([' + TemporalColumnName + '] < \'' + dt2.toJSON() + '\')';
+                    //console.log(dt1.toJSON() + ' ' + dt2.toJSON());
                     if (searchString) {
                         if (searchString.search(/[^\d, ]/) === -1) {
                             var arr = searchString.replace(/ /g, '').split(/,/);
@@ -341,8 +337,8 @@
                         /* eslint-enable */
                         // out_cs: 'EPSG:3395',
                         // pagesize: 100,
-                        // orderdirection: 'desc',
-                        orderby: 'vessel_name',
+                        orderdirection: 'desc',
+                        orderby: 'Last',
                         layer: aisSearchLayerID,
                         columns: '[' + columns + ']',
                         groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"}]',
@@ -381,7 +377,7 @@
                                 }
                             }
                             else {
-                                //console.log(json);
+                                console.log(json);
                                 deferred.resolve(next);
                             }
                         });
@@ -397,14 +393,31 @@
                         selectItem: function (event, oAutoCompleteItem) {
                             if (oAutoCompleteItem && oAutoCompleteItem.AISObject != null) {
                                 //console.log(oAutoCompleteItem.AISObject);
-                                //console.log('select ' + oAutoCompleteItem.AISObject[0]);
-                                var bbox = null, filter = [];
-                                filter.push(Number(oAutoCompleteItem.AISObject[0]));
-                                bbox = [
-                                    [oAutoCompleteItem.AISObject[5], oAutoCompleteItem.AISObject[3]],
-                                    [oAutoCompleteItem.AISObject[6], oAutoCompleteItem.AISObject[4]]
-                                ];
-                                publicInterface.setMMSI(filter, bbox);
+                                var dt = new Date(oAutoCompleteItem.AISObject[2] * 1000);
+                                //console.log(dt);			    
+                                var query = '[mmsi]=' + oAutoCompleteItem.AISObject[0] + ' and [ts_pos_utc]=\'' + dt.toJSON() + '\'',
+				columns = '[{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"ts_pos_utc"}';
+                                //console.log(query);
+                                columns += ',{"Value":"min(STEnvelopeMinX([GeomixerGeoJson]))", "Alias":"xmin"}';
+                                columns += ',{"Value":"max(STEnvelopeMaxX([GeomixerGeoJson]))", "Alias":"xmax"}';
+                                columns += ',{"Value":"min(STEnvelopeMinY([GeomixerGeoJson]))", "Alias":"ymin"}';
+                                columns += ',{"Value":"max(STEnvelopeMaxY([GeomixerGeoJson]))", "Alias":"ymax"}';
+                                columns += ']';
+                                L.gmxUtil.sendCrossDomainPostRequest(serverScript,
+				                { WrapStyle: 'window', query: query, columns: columns, layer: aisSearchLayerID,
+				                    groupby: '[{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"ts_pos_utc"}]'
+				                },
+				                function (json) {
+				                    if (json.Result) {
+				                        var AISObject = json.Result.values[0],
+						                bbox = [
+						                    [AISObject[5], AISObject[3]],
+						                    [AISObject[6], AISObject[4]]
+						                ];
+				                        //console.log(AISObject);
+				                        publicInterface.setMMSI([], bbox);
+				                    }
+				                });
                             }
                         }
                     });
