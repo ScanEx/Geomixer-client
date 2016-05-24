@@ -1799,6 +1799,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
                             for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
                             $(active).attr('class', 'page');
                             attachEffects(active, '');
+							fnAfterSearch();
                         }
                     });
                 });
