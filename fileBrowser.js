@@ -176,7 +176,7 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
 	this.closeFunc = closeFunc;
     this._homeDir = nsGmx.AuthManager.getUserFolder();
 	
-	if (this._discs === null && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
+	if (this._discs === null )// && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE )
 		this.loadInfo();
 	else
 		this.loadInfoHandler()
@@ -359,8 +359,8 @@ fileBrowser.prototype.createHeader = function()
 		_this.getFiles(_layersTree.treeModel.getMapProperties().LayersDir);
 	}
 	
-	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
-	{
+	//if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
+	//{
 		for (var i = 0; i < this._discs.length; i++)
 		{
 			var discButtons = makeButton(this._discs[i]);
@@ -375,7 +375,7 @@ fileBrowser.prototype.createHeader = function()
 			
 			discButtonTds.push(_td([discButtons]))
 		}
-	}
+	//}
 	
 	discButtonTds.push(_td([reloadButton], [['attr','vAlign','top']]));
 	discButtonTds.push(_td([homeButton], [['attr','vAlign','top']]));
