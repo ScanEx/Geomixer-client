@@ -41,7 +41,25 @@
             gmxLayers.addOverlay(L.tileLayer.traffic('http://tile.digimap.ru/jams_prediction_{d}_{t}/{z}/{x}/{y}.png?t={tstamp}', {
                 // minZoom: 1,
                 maxNativeZoom: 20
-            }), _gtxt('YtrafficPlugin.trafficButton'));
+            }), _gtxt('YtrafficPlugin.trafficButton') + '_текущая');
+
+			var now = Date.now();
+            gmxLayers.addOverlay(L.tileLayer('http://tile.digimap.ru/jams_prediction_03_19/{z}/{x}/{y}.png?t=' + now, {
+                // minZoom: 1,
+                maxNativeZoom: 20
+            }), _gtxt('YtrafficPlugin.trafficButton') + '_Среда 9.30');
+            gmxLayers.addOverlay(L.tileLayer('http://tile.digimap.ru/jams_prediction_03_28/{z}/{x}/{y}.png?t=' + now, {
+                // minZoom: 1,
+                maxNativeZoom: 20
+            }), _gtxt('YtrafficPlugin.trafficButton') + '_Среда 14.00');
+            gmxLayers.addOverlay(L.tileLayer('http://tile.digimap.ru/jams_prediction_03_36/{z}/{x}/{y}.png?t=' + now, {
+                // minZoom: 1,
+                maxNativeZoom: 20
+            }), _gtxt('YtrafficPlugin.trafficButton') + '_Среда 18.00');
+            gmxLayers.addOverlay(L.tileLayer('http://tile.digimap.ru/jams_prediction_03_42/{z}/{x}/{y}.png?t=' + now, {
+                // minZoom: 1,
+                maxNativeZoom: 20
+            }), _gtxt('YtrafficPlugin.trafficButton') + '_Среда 21.00');
         }
     })
 })();
