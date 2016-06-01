@@ -1252,7 +1252,7 @@ function processGmxMap(state, gmxMap) {
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
 
         var mapProp = gmxMap.rawTree.properties || {}
-        var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : ['OSM', 'OSMHybrid', 'satellite'];
+        var baseLayers = mapProp.BaseLayers ? JSON.parse(mapProp.BaseLayers) : [window.language === 'eng' ? 'mapbox' : 'sputnik', 'OSMHybrid', 'satellite'];
 
         lmap.gmxBaseLayersManager.setActiveIDs(baseLayers);
 
