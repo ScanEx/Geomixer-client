@@ -522,6 +522,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName, errorCallb
 	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
+nsGmx.Utils.sendCrossDomainJSONRequest = sendCrossDomainJSONRequest;
 
 function createCookie(name, value, days)
 {
@@ -1635,7 +1636,9 @@ $.extend(nsGmx.Utils, {
             return {type: 'MULTIPOLYGON', coordinates: finalPolygon};
         }
     },
-    showDialog: window.showDialog,
+    showDialog: showDialog,
+	removeDialog: removeDialog,
+    makeImageButton: makeImageButton,
     
     /** Методы для работы с сохранёнными на сервере данными. 
     * Сервер позволяет сохранять произвольный текст на сервере и получить ID, по которому можно этот текст получить.
