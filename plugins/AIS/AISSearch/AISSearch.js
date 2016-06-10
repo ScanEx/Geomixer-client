@@ -41,6 +41,7 @@
                     isActivePlugin = false,
                     calendar, searchHook, icon, autoCompleteSearchObserver;
 
+                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
                 refresh.title = 'Обновить';
 
                 exportIcon.setAttribute('target', '_blank');
