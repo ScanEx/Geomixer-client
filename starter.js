@@ -995,8 +995,21 @@ function loadMap(state) {
     window.onresize = resizeAll;
     resizeAll();
 
-
-    L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'leaflet/images';
+    L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
+	var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
+	L.Marker = L.Marker.extend({
+        options: {
+            icon: new L.Icon.Default({
+				iconUrl: iconUrl,
+				iconSize: [36, 41],
+				iconAnchor: [7, 37],
+				popupAnchor: [3, -25],
+				shadowUrl: iconUrl,
+				shadowSize: [0, 0],
+				shadowAnchor: [0, 0]
+			})
+        }
+    });
 
     var hostName = L.gmxUtil.normalizeHostname(window.serverBase),
         apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
