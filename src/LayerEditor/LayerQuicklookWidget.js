@@ -40,7 +40,7 @@
     nsGmx.LayerQuicklookWidget = function(container, layerProperties) {
         var DEFAULT_OPTION = {name: '', isDefault: false};
 
-        var layerColumns = nsGmx.Utils._.pluck(layerProperties.get('Columns'), 'Name'),
+        var layerColumns = window._.pluck(layerProperties.get('Columns'), 'Name'),
             quicklookParams = layerProperties.get('Quicklook');
 
         var ui = $(template({

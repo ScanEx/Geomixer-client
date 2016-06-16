@@ -26,7 +26,7 @@
             ColumnTagLinks: {}
         },
         isAnyLinks: function() {
-            return nsGmx.Utils._.size(this.attributes.ColumnTagLinks) > 0;
+            return window._.size(this.attributes.ColumnTagLinks) > 0;
         }
     });
 
@@ -57,7 +57,7 @@
             rcProperties.set('IsRasterCatalog', RCCheckbox[0].checked);
         });
 
-        var advancedParamsLink = $(nsGmx.Utils.makeLinkButton(_gtxt('LayerRCControl.advancedLink'))).addClass('RCCreate-advanced-link').click(function()
+        var advancedParamsLink = $(window.makeLinkButton(_gtxt('LayerRCControl.advancedLink'))).addClass('RCCreate-advanced-link').click(function()
         {
             advancedMode = !advancedMode;
             updateVisibility();

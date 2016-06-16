@@ -75,7 +75,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     this.initFromServerFormat = function(serverColumns) {
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
-            var type = nsGmx.Utils._.find(nsGmx.ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase();});
+            var type = window._.find(nsGmx.ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase();});
             _attributes.push({
                 type: type || {server: column.ColumnSimpleType.toLowerCase()},
                 name: column.Name,
