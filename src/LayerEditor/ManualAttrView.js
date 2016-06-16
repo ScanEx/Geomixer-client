@@ -43,7 +43,7 @@ nsGmx.ManualAttrView = function()
 
         $(typeSelector).change(function() {
             var serverType = $('option:selected', this).val(),
-                attrType = utils._.findWhere(nsGmx.ManualAttrModel.TYPES, {server: serverType});
+                attrType = window._.findWhere(nsGmx.ManualAttrModel.TYPES, {server: serverType});
 
             _model.changeType($(this).data('idx'), attrType);
         });
