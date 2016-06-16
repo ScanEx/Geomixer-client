@@ -16,15 +16,15 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend(
         maxPeriod: 256,
         columnName: null
     },
-    
+
     /** Возвращает строчку с перечислением временнЫх периодов (для передачи серверу) */
     getPeriodString: function() {
         var minPeriod = this.attributes.minPeriod,
             maxPeriod = this.attributes.maxPeriod,
             curPeriod = minPeriod,
             periods = [];
-            
-        while ( curPeriod <= maxPeriod )
+
+        while (curPeriod <= maxPeriod)
         {
             periods.push(curPeriod);
             curPeriod *= nsGmx.TemporalLayerParams.PERIOD_STEP;

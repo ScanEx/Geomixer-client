@@ -1,4 +1,4 @@
-!(function(){
+!(function() {
 
 /** Провайдер данных для {@link nsGmx.ScrollTable}. Получает данные от сервера в формате ГеоМиксера
 * @alias nsGmx.AttrTable.ServerDataProvider
@@ -15,9 +15,9 @@ var ServerDataProvider = function(params)
         _dataURL = null,
         _countParams = null,
         _dataParams = null;
-        
+
     var _lastCountResult;
-    
+
     //IDataProvider interface
     this.getCount = function(callback)
     {
@@ -26,19 +26,19 @@ var ServerDataProvider = function(params)
             callback();
             return;
         }
-        
+
         sendCrossDomainPostRequest(_countURL, _countParams, function(response)
         {
-            if (!parseResponse(response))
+            if (!window.parseResponse(response))
             {
                 callback();
                 return;
             }
             _lastCountResult = response.Result;
             callback(response.Result);
-        })
-    }
-    
+        });
+    };
+
     this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
         if (!_dataURL)
@@ -46,43 +46,45 @@ var ServerDataProvider = function(params)
             callback();
             return;
         }
-        
+
         var explicitSortParam = (sortParam || sortParam === '') ? (_params.titleToParams[sortParam] || sortParam) : _params.defaultSortParam;
 
         var params = $.extend({
             page: page,
             pagesize: pageSize,
             orderby: explicitSortParam,
-            orderdirection: sortDec ? "DESC" : "ASC"
+            orderdirection: sortDec ? 'DESC' : 'ASC'
         }, _dataParams);
-            
+
         sendCrossDomainPostRequest(_dataURL, params, function(response)
         {
-            if (!parseResponse(response))
+            if (!window.parseResponse(response))
             {
                 callback();
                 return;
             }
-            
+
             var fieldsSet = {};
-            
+
             if (response.Result.fields)
             {
-                for (var f = 0; f < response.Result.fields.length; f++)
-                    fieldsSet[response.Result.fields[f]] = { index: f, type: response.Result.types[f] };
+                for (var f = 0; f < response.Result.fields.length; f++) {
+                    fieldsSet[response.Result.fields[f]] = {index: f, type: response.Result.types[f]};
+				}
             }
-            
+
             var res = [];
-            for (var i = 0; i < response.Result.values.length; i++)
+            for (var i = 0; i < response.Result.values.length; i++) {
                 res.push({
                     fields: fieldsSet,
                     values: response.Result.values[i]
                 });
-            
+			}
+
             callback(res);
-        })
-    }
-    
+        });
+    };
+
     /** Задать endpoint для получения от сервера данных об объекта и их количестве
      * @param {String} countURL URL скрипта для запроса общего количества объектов
      * @param {Object} countParams Параметры запроса для количеством объектов
@@ -94,23 +96,23 @@ var ServerDataProvider = function(params)
         _countURL = countURL;
         _countParams = countParams || {};
         _countParams.WrapStyle = 'message';
-        
+
         _dataURL = dataURL;
         _dataParams = dataParams || {};
         _dataParams.WrapStyle = 'message';
-        
+
         $(this).change();
-    }
-    
+    };
+
     this.serverChanged = function()
     {
         $(this).change();
-    }
-    
+    };
+
     this.getLastCountResult = function() {
         return _lastCountResult;
-    }
-}
+    };
+};
 
 window.nsGmx.AttrTable.ServerDataProvider = ServerDataProvider;
 

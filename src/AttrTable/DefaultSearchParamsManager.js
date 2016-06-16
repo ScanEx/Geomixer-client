@@ -1,11 +1,11 @@
-!(function(_){
+!(function() {
 
 // events: queryChange, columnsChange
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
     this._queryTextarea = null;
     this._container = null;
-}
+};
 
 /*var template = Handlebars.compile('<div>' +
     '<div>' +
@@ -25,37 +25,38 @@ var DefaultSearchParamsManager = function() {
 DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
         paramsWidth = 300,
-        searchButton = makeButton(_gtxt("Найти")),
-        cleanButton = makeButton(_gtxt("Очистить поиск")),
+        searchButton = makeButton(_gtxt('Найти')),
+        cleanButton = makeButton(_gtxt('Очистить поиск')),
         _this = this;
-        
-    var columnsList = this._columnsList = _div(null, [['dir','className','attrsColumnsList'], ['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]);
-    
+
+    var columnsList = this._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
+
     this._container = container;
 
     searchButton.onclick = function()
     {
         $(_this).trigger('queryChange');
-    }
-    
+    };
+
     cleanButton.onclick = function()
     {
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
-        
+
         $(_this).trigger('queryChange');
-    }
-    
-    this._queryTextarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
-    
+    };
+
+    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
+
     var attrNames = [info.identityField].concat(info.attributes);
     var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) 
+    for (var a = 0; a < attrNames.length; a++) {
         attrHash[attrNames[a]] = [];
-        
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.name );
-    
+	}
+
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
+
     var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
 
     var suggestCanvas = attrSuggestWidget.el[0];
@@ -77,13 +78,13 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
                 _this._geometryInfoRow = new InfoRow(
                     nsGmx.leafletMap,
                     geomUI.find('.attr-table-geom-placeholder')[0],
-                    drawingObject, 
+                    drawingObject,
                     {
-                        editStyle: false, 
-                        allowDelete: true 
+                        editStyle: false,
+                        allowDelete: true
                     }
                 );
-                
+
                 $(_this._geometryInfoRow).on('onRemove', function() {
                     _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
                     _this._geometryInfoRow = null;
@@ -91,49 +92,49 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
             },
             {geomType: 'POLYGON'}
         );
-    })
-    
+    });
+
     $(container).append(geomUI);
-    
-    _(container, [_div([_div([_t(_gtxt("SQL-условие WHERE"))],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas],[['dir','className','attr-query-container'], ['attr','filterTable',true]])])
-    
-    _(container, [_div([_t(_gtxt("Показывать столбцы") + ":")],[['css','fontSize','12px'],['css','margin','7px 0px 3px 1px']])])
-    
+
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('Показывать столбцы') + ':')], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']])]);
+
     var attrTitles = attributesTable.tableFields.fieldsAsArray;
     if (!this._activeColumns)
     {
         this._activeColumns = {};
-        
-        for (var i = 0; i < attrTitles.length; ++i)
+
+        for (var i = 0; i < attrTitles.length; ++i) {
             this._activeColumns[attrTitles[i]] = true;
+		}
     }
 
-    var rowTemplate = 
-        '<label title="{{name}}" class="attrs-table-active-row">' + 
+    var rowTemplate =
+        '<label title="{{name}}" class="attrs-table-active-row">' +
             '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
-            '{{name}}' + 
+            '{{name}}' +
         '</label>';
-        
+
     attrTitles.forEach(function(columnName) {
         var rowUI = $(Handlebars.compile(rowTemplate)({
             active: _this._activeColumns[columnName],
             name: columnName
         })).appendTo(columnsList);
-        
+
         $('input', rowUI).click(function() {
             _this._activeColumns[columnName] = this.checked;
             $(_this).trigger('columnsChange');
-        })
+        });
     });
-    
-    
-    _(container, [columnsList]);
-    
+
+    nsGmx.Utils._(container, [columnsList]);
+
     searchButton.style.marginRight = '17px';
     cleanButton.style.marginRight = '3px';
-    _(container, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
-    
+
 DefaultSearchParamsManager.prototype.getQuery = function() {
     var query = this._queryTextarea && this._queryTextarea.value,
         drawingObject = this._geometryInfoRow && this._geometryInfoRow.getDrawingObject(),
@@ -142,20 +143,20 @@ DefaultSearchParamsManager.prototype.getQuery = function() {
         resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
 
     return resQuery;
-}
+};
 
 DefaultSearchParamsManager.prototype.getActiveColumns = function() {
     return this._activeColumns;
-}
-    
+};
+
 DefaultSearchParamsManager.prototype.resize = function(dims) {
     if (this._columnsList) {
         var container = this._container,
             height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
         $(this._container).find('.attrsColumnsList')[0].style.height = height;
     }
-}
+};
 
 nsGmx.AttrTable.DefaultSearchParamsManager = DefaultSearchParamsManager;
 
-})(nsGmx.Utils._);
+})();
