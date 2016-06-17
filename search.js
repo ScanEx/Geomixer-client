@@ -1481,7 +1481,9 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
 			        for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
 				        for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
 					        var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
-					        var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+						var nameProp = oFoundObject.ObjNameShort.search(/[a-zA-Zа-яА-Я]/)<0?"ObjName":"ObjNameShort";
+					        var sLabel = fnGetLabel(oFoundObject, nameProp, nameProp), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject[nameProp]);
+					        //var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 					        if(/[a-zA-Z]/.test(SearchString)){
                                 if(oFoundObject.ObjAltNameEng || oFoundObject.ObjNameEng){
 						            if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
@@ -1503,7 +1505,8 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
 							        //if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 						        }
 						        else{
-							        sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
+							        sLabel = fnGetLabel(oFoundObject, nameProp, nameProp);
+							        //sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
 							        sValue = sLabel;
 							        //if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						        }
