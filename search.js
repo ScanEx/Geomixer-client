@@ -265,8 +265,11 @@ var SearchInput = function (oInitContainer, params) {
 				@event
 				@param {object} AutoCompleteItem Выбранное значение*/
 				if (ui.item.GeoObject && ui.item.GeoObject.ObjNameShort){
-                    ui.item.label = ui.item.GeoObject.ObjNameShort;
-                    ui.item.value = ui.item.GeoObject.ObjNameShort;
+					var nameProp = ui.item.GeoObject.ObjNameShort.search(/[a-zA-Zа-яА-Я]/)<0?"ObjName":"ObjNameShort";
+                    			ui.item.label = ui.item.GeoObject[nameProp];
+                    			ui.item.value = ui.item.GeoObject[nameProp];
+                    //ui.item.label = ui.item.GeoObject.ObjNameShort;
+                    //ui.item.value = ui.item.GeoObject.ObjNameShort;
 				}
 				$(_this).triggerHandler('AutoCompleteSelect', [ui.item]);
 			}
