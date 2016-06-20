@@ -291,9 +291,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             }, []);
 			_mapHelper.modifyObjectLayer(_this.layerName, arr).done(function() {
 				nsGmx.Utils.removeDialog(jDialog);
-				this._selected = {};
-				chkSelectedCount();
-				selectAllItems.checked = false;
+				clearSelected();
 			});
 		};
 
@@ -304,6 +302,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var tdTable2 = nsGmx.Utils._td([groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
 
+	this.prevLimit = this.table2.limit;
     var chkSelectedCount = function() {
 		var cnt = Object.keys(_this._selected).length;
 		if (cnt) {
@@ -313,10 +312,20 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		}
 		selectedCount.innerHTML = cnt;
     };
+    var clearSelected = function() {
+		_this._selected = {};
+		chkSelectedCount();
+		selectAllItems.checked = false;
+    };
 
 	var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
         var tds = [];
+
+        if (this.limit !== _this.prevLimit) {
+            _this.prevLimit = this.limit;
+			clearSelected();
+		}
 
 		var id = elem.values[elem.fields[info.identityField].index],
 			showButton = nsGmx.Utils.makeImageButton('img/choose.png', 'img/choose_a.png'),
