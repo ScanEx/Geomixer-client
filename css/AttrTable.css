@@ -1,3 +1,17 @@
+.attrsSelectedCont {
+    padding-bottom: 6px;
+}
+.attrsSelectedCont span {
+    margin-left: 10px;
+}
+.attrsSelectedCont .selectedCount {
+    margin-left: 2px;
+	font-weight: bold;
+}
+.attrsSelectedCont .hiddenCommands {
+    display: none;
+}
+
 .attrsHelperBounding {
     width: 140px;
     height: 80px;

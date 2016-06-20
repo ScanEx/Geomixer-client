@@ -138,8 +138,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	var paramsWidth = 300,
 		tdParams = nsGmx.Utils._td(null, [['css', 'width', paramsWidth + 'px'], ['attr', 'vAlign', 'top']]),
 		tdTable = nsGmx.Utils._td(null, [['attr', 'vAlign', 'top']]),
-		paramsButton = makeLinkButton(_gtxt('Показать параметры поиска')),
-		addObjectButton = makeLinkButton(_gtxt('Добавить объект')),
+		paramsButton = nsGmx.Utils.makeLinkButton(_gtxt('Показать параметры поиска')),
+		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объект')),
 		oldCanvasWidth = false,
 		_this = this;
 
@@ -249,48 +249,103 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     _params.hideDownload && downloadSection.hide();
 
     this.divTable2 = nsGmx.Utils._div(null, [['css', 'overflow', 'auto'], ['dir', 'className', 'attrsTableBody']]);
-    var tdTable2 = nsGmx.Utils._td([this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
+    var selectAllItems = nsGmx.Utils._checkbox(false, 'checkbox'),
+		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
+		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
+		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
+		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
+		selectedCont = nsGmx.Utils._span([
+			nsGmx.Utils._t('Выбрано объектов:'),
+			selectedCount,
+			selectedDelete,
+			// selectedCopy,
+			// selectedDownload
+		], [['attr', 'class', 'hiddenCommands']]),
+		groupBox = nsGmx.Utils._div([
+			selectAllItems,
+			nsGmx.Utils._span([nsGmx.Utils._t('Выделить все на странице')], [['css', 'marginLeft', '5px'], ['css', 'verticalAlign', 'top']]),
+			selectedCont
+		], [
+			['attr', 'class', 'attrsSelectedCont']
+		]);
+
+	selectAllItems.onchange = function() {
+		var table2 = _this.table2;
+		table2.getVisibleItems().forEach(function(it) {
+			var id = it.values[1];
+			if (selectAllItems.checked) { _this._selected[id] = true; }
+			else  { delete _this._selected[id]; }
+		});
+		chkSelectedCount();
+		table2.repaint();
+	};
+	selectedCount.innerHTML = 0;
+    this._selected = {};
+
+	selectedDelete.onclick = function() {
+		var remove = nsGmx.Utils.makeButton(_gtxt('Удалить'));
+		remove.onclick = function() {
+            var arr = Object.keys(_this._selected).reduce(function(p, c) {
+                p.push({action: 'delete', id: c});
+                return p;
+            }, []);
+			_mapHelper.modifyObjectLayer(_this.layerName, arr).done(function() {
+				nsGmx.Utils.removeDialog(jDialog);
+				this._selected = {};
+				chkSelectedCount();
+				selectAllItems.checked = false;
+			});
+		};
+
+		var offset = $(selectedDelete).offset();
+		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
+	};
+
+    var tdTable2 = nsGmx.Utils._td([groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
-    var drawTableItem2 = function(elem, curIndex, activeHeaders)
+
+    var chkSelectedCount = function() {
+		var cnt = Object.keys(_this._selected).length;
+		if (cnt) {
+			L.DomUtil.removeClass(selectedCont, 'hiddenCommands');
+		} else {
+			L.DomUtil.addClass(selectedCont, 'hiddenCommands');
+		}
+		selectedCount.innerHTML = cnt;
+    };
+
+	var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
         var tds = [];
 
-        var showButton = makeImageButton('img/choose.png', 'img/choose_a.png'),
-            editButton = makeImageButton('img/edit.png'),
-            deleteButton = makeImageButton('img/recycle.png', 'img/recycle_a.png'),
+		var id = elem.values[elem.fields[info.identityField].index],
+			showButton = nsGmx.Utils.makeImageButton('img/choose.png', 'img/choose_a.png'),
+            editButton = nsGmx.Utils.makeImageButton('img/edit.png'),
+            deleteItem = nsGmx.Utils._checkbox(_this._selected[id], 'checkbox'),
             tdControl;
 
         if (info.Access !== 'edit' && info.Access !== 'editrows') {
             tdControl = nsGmx.Utils._td([nsGmx.Utils._div([showButton], [['css', 'width', '45px']])], [['css', 'width', '45px']]);
         } else {
-            tdControl = nsGmx.Utils._td([nsGmx.Utils._div([showButton, editButton, deleteButton], [['css', 'width', '45px']])], [['css', 'width', '45px']]);
+            tdControl = nsGmx.Utils._td([nsGmx.Utils._div([deleteItem, showButton, editButton], [['css', 'width', '47px']])], [['css', 'width', '47px']]);
         }
 
-        editButton.style.marginLeft = '5px';
+        editButton.style.marginLeft = showButton.style.marginLeft = '5px';
         editButton.style.width = '12px';
-        deleteButton.style.marginLeft = '5px';
+
+        deleteItem.onchange = function() {
+			if (deleteItem.checked) { _this._selected[id] = true; }
+			else  {
+				delete _this._selected[id];
+				selectAllItems.checked = false;
+			}
+			chkSelectedCount();
+        };
 
         editButton.onclick = function()
         {
             var id = elem.values[elem.fields[info.identityField].index];
             new nsGmx.EditObjectControl(_this.layerName, id);
-        };
-
-        deleteButton.onclick = function()
-        {
-            var remove = makeButton(_gtxt('Удалить'));
-            remove.onclick = function()
-            {
-                var id = elem.values[elem.fields[info.identityField].index];
-                _mapHelper.modifyObjectLayer(_this.layerName, [{action: 'delete', id: id}]).done(function()
-                {
-                    nsGmx.Utils.removeDialog(jDialog);
-                });
-            };
-
-            var offset = $(deleteButton).offset();
-
-            var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить объект?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 180, 75, offset.left + 20, offset.top - 30);
         };
 
         showButton.onclick = function()
@@ -322,9 +377,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             });
         };
 
-        window._title(deleteButton, _gtxt('Удалить'));
-        window._title(editButton, _gtxt('Редактировать'));
-        window._title(showButton, _gtxt('Показать'));
+        nsGmx.Utils._title(deleteItem, _gtxt('Удалить'));
+        nsGmx.Utils._title(editButton, _gtxt('Редактировать'));
+        nsGmx.Utils._title(showButton, _gtxt('Показать'));
 
         $(showButton).toggle(!elem.values[elem.fields['__GeomIsEmpty__'].index]);
 

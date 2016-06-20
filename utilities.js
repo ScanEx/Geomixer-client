@@ -1636,9 +1636,6 @@ $.extend(nsGmx.Utils, {
             return {type: 'MULTIPOLYGON', coordinates: finalPolygon};
         }
     },
-    showDialog: showDialog,
-	removeDialog: removeDialog,
-    makeImageButton: makeImageButton,
     
     /** Методы для работы с сохранёнными на сервере данными. 
     * Сервер позволяет сохранять произвольный текст на сервере и получить ID, по которому можно этот текст получить.
@@ -1705,7 +1702,14 @@ $.extend(nsGmx.Utils, {
     },
     isIpad: function() {
         return navigator.userAgent.match(/iPad/i) != null;
-    }
+    },
+    showDialog: showDialog,
+	removeDialog: removeDialog,
+    makeImageButton: makeImageButton,
+	makeLinkButton: makeLinkButton,
+	makeButton: makeButton,
+	_title: _title,
+	_checkbox: _checkbox
 });
 
 window.gmxCore && window.gmxCore.addModule('utilities', nsGmx.Utils);
