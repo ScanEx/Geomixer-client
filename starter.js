@@ -852,7 +852,7 @@ var initEditUI = function(){
                     id = event.gmx.properties[props.identityField];
 
                 layer.bringToTopItem(id);
-                new nsGmx.EditObjectControl(props.name, id);
+                new nsGmx.EditObjectControl(props.name, id, {event: event});
                 return true; // TODO: как oтключить дальнейшую обработку события
             }
 

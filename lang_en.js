@@ -40,6 +40,7 @@ _translationsHash.hash["eng"] = {
     "Пакетный геокодинг": "Batch geocode",
     "Маршруты": "Directions",
     "Кадастр Росреестра": "Cadastre data of Rosreestr",
+    "Выбрать кадастровый объект": "Select Cadastre item",
     "Викимапиа": "Wikimapia",
     "Каталог СКАНЭКС": "Search imagery",
     "Космоснимки-пожары": "Kosmosnimki-fires",
