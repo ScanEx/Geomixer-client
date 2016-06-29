@@ -392,6 +392,9 @@ var FireVirtualLayer = L.Class.extend({
             this._updateLayersVisibility();
             this._updateBbox();
             
+			this._hotspotLayer.setZIndex(this.options.zIndex);
+			this._clustersLayer.setZIndex(this.options.zIndex);
+			this._clustersGeomLayer.setZIndex(this.options.zIndex);
             map.addLayer(this._hotspotLayer);
             map.addLayer(this._clustersLayer);
             map.addLayer(this._clustersGeomLayer);
@@ -634,13 +637,19 @@ FireVirtualFactory.prototype.initFromDescription = function(layerDescription) {
     if ('minHotspotZoom' in meta) {
         options.minHotspotZoom = Number(meta.minHotspotZoom.Value);
     }
+    if ('z_index' in meta) {
+        options.zIndex = Number(meta.z_index.Value);
+    }
+    if ('zIndex' in meta) {
+        options.zIndex = Number(meta.zIndex.Value);
+    }
 
     var layer = new FireVirtualLayer(options);
     
     layer.getGmxProperties = function() {
         return props;
     }
-    
+
     return layer;
 }
 
