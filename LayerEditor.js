@@ -493,7 +493,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     //TODO: использовать события модели
     shapeFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv', 'sxf', 'gdbtable', 'geojson'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv', 'sxf', 'gdbtable', 'geojson', 'kmz'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
@@ -887,7 +887,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
             
     shapeLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp', 'geojson'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp', 'geojson', 'kmz'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
