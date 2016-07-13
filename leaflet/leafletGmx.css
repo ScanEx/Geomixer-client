@@ -3,3 +3,7 @@
 .cursorAuto {
   cursor: auto;
 }
+
+.leaflet-container {
+    cursor: default;
+}
