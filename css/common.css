@@ -11,7 +11,7 @@
     outline: none;
 }
 
-body 
+body
 {
 	color: inherit;
 	overflow:hidden;
@@ -309,27 +309,27 @@ textarea.error
 }
 
 .left_gps
-{	
+{
 	margin: 0px;
 	background-color: #edf4f6;
 }
 .left_layerManager
-{	
+{
 	margin: 0px;
 	background-color: #edf4f6;
 }
 .left_objects
-{	
+{
 	margin: 0px;
 	background-color: #edf4f6;
 }
 .left_shp
-{	
+{
 	margin: 0px;
 	background-color: #edf4f6;
 }
 .left_help
-{	
+{
 	margin: 0px;
 	background-color: #edf4f6;
 }
@@ -565,7 +565,7 @@ div.unit .unitInfo
 {
 	height: 22px;
 	border: 1px solid #DEDEDE;
-	
+
 }
 
 .propertiesTable-checkbox
@@ -651,7 +651,7 @@ div.unit .unitInfo
 }
 
 div.fileBrowser-progressBar
-{    
+{
     width: 400px;
     margin: 16px 18px 0px 0px;
     position: absolute;
@@ -805,7 +805,7 @@ skype_pnh_container
 }
 
 .VectorLayerEncoding .VectorLayerEncodingInput
-{	
+{
 	margin-left: 3px;
 	width: 150px
 }
@@ -1035,7 +1035,7 @@ div.layersScroll
 	cursor: pointer;
 }
 
-.fillStyleSelectorDiv img.selectedType 
+.fillStyleSelectorDiv img.selectedType
 {
 	border: solid 2px red;
 }
@@ -1195,7 +1195,7 @@ div.layersScroll
     border: none;
 }
 
-.RCCreate-params 
+.RCCreate-params
 {
     margin: 10px 0px 0px 3px;
     clear: both;
@@ -1806,7 +1806,7 @@ div.layersScroll
 }
 
 .leaflet-gmx-icon-gmxprint {
-    background-position: -48px 1px;    
+    background-position: -48px 1px;
 }
 
 .leaflet-gmx-icon-group-drawing {
@@ -1856,11 +1856,11 @@ div.layersScroll
     position: absolute;
     top: 45px;
     left: 48px;
-    
+
     border-radius: 4px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
     background-color: rgba(255, 255, 255, 0.3);
-    
+
     z-index: -1;
 }
 

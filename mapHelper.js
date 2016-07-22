@@ -4,7 +4,7 @@ var nsGmx = nsGmx || {};
 @namespace _mapHelper
 */
 nsGmx.mapHelper = {
-    
+
 }
 
 
@@ -22,35 +22,35 @@ var mapHelper = function()
 {
 	this.builded = false;
     //this._treeView = false;
-	
-	this.defaultStyles = 
+
+	this.defaultStyles =
 	{
 		'point':{outline:{color:0x0000FF, thickness:1},marker:{size:8}, fill:{color:0xFFFFFF, opacity:20}},
 		'linestring':{outline:{color:0x0000FF, thickness:1}},
 		'polygon':{outline:{color:0x0000FF, thickness:1}, fill:{color:0xFFFFFF, opacity:20}}
 	}
-	
+
 	this.stylesDialogsHash = {};
 	this.drawingDialogsHash = {};
-	
+
 	this.layerEditorsHash = {};
-	
+
 	this.attrValues = {};
-	
+
 	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
 	// все такие объекты не будут сериализоваться
 	this.drawingBorders = (function()
 	{
 		var _borders = {};
-	
+
 		//не будем сериализовать все пользовательские объекты, являющиеся контурами слоёв, так как это временные объекты
 		nsGmx.DrawingObjectCustomControllers.addDelegate({
 			isSerializable: function(obj)
 			{
 				for (var name in _borders)
-					if (_borders[name] === obj) 
+					if (_borders[name] === obj)
 						return false;
-				
+
 				return true;
 			}
 		});
@@ -64,9 +64,9 @@ var mapHelper = function()
                 var editListener = function() {
                     _borders[name].isChanged = true;
                 }
-                
+
                 obj.on('edit', editListener);
-                
+
 				_borders[name] = {
                     isChanged: !!_borders[name],
                     drawingFeature: obj,
@@ -81,7 +81,7 @@ var mapHelper = function()
 			{
 				return objLength(_borders);
 			},
-			
+
 			//callback(name, obj)
 			forEach: function(callback)
 			{
@@ -92,7 +92,7 @@ var mapHelper = function()
             isChanged: function(name) {
                 return !!_borders[name] && _borders[name].isChanged;
             },
-            
+
 			updateBorder: function(name, span)
 			{
 				if (!_borders[name])
@@ -109,39 +109,39 @@ var mapHelper = function()
 
 				if (!$('#drawingBorderDescr' + name).length)
 					return;
-				
+
 				$('#drawingBorderDescr' + name).empty();
 
 				_($('#drawingBorderDescr' + name)[0], [_t(areaStr)]);
-			}, 
-			
+			},
+
 			//Удаляет объект из списка контуров слоя
 			//?removeDrawring {bool, default: false} - удалять ли сам пользовательский объект
 			removeRoute: function(name, removeDrawing)
 			{
 				if (!(name in _borders))
 					return;
-                
+
                 _borders[name].drawingFeature.off('edit', _borders[name].editListener);
 
 				if (removeDrawing) {
 					nsGmx.leafletMap.gmxDrawing.remove(_borders[name].drawingFeature);
                 }
-				
+
 				delete _borders[name];
-				
+
 				$('#drawingBorderDescr' + name).empty();
 			}
 		}
 	})();
-	
+
 	this.unsavedChanges = false;
-	
+
 }
 
 mapHelper.prototype = new leftMenu();
 
-/** Менеджер кастомных параметров карты. 
+/** Менеджер кастомных параметров карты.
  * Содержит набор провайдеров доп. параметров, которые могут сохранять и загружать данные из хранилища параметров
  * Данные загружаются один раз. Возможна асинхронная загрузка данных/добавление провайдеров.
  * Порядок вызова провайдеров не определён.
@@ -151,9 +151,9 @@ mapHelper.prototype = new leftMenu();
  */
 mapHelper.prototype.customParamsManager = (function()
 {
-	var _providers = []; 
+	var _providers = [];
 	var _params = []; //хранит параметры, которые не были загружены провайдерами
-	
+
 	var loadProviderState = function( provider )
 	{
 		if ( provider.name in _params && typeof provider.loadState !== 'undefined')
@@ -162,7 +162,7 @@ mapHelper.prototype.customParamsManager = (function()
 			delete _params[ provider.name ];
 		}
 	}
-	
+
 	return {
 		saveParams: function()
 		{
@@ -173,7 +173,7 @@ mapHelper.prototype.customParamsManager = (function()
 				if (typeof _providers[p].saveState !== 'undefined')
                     params[_providers[p].name] = _providers[p].saveState();
 			}
-				
+
 			return params;
 		},
 		loadParams: function(params)
@@ -182,14 +182,14 @@ mapHelper.prototype.customParamsManager = (function()
 			for (var p = 0; p < _providers.length; p++ )
 				loadProviderState( _providers[p] );
 		},
-		
+
 		//интерфейс провайдера: name, saveState(), loadState(state)
 		addProvider: function(provider)
 		{
 			_providers.push( provider );
 			loadProviderState( provider );
 		},
-        
+
         isProvider: function(providerName) {
             return !!nsGmx._.findWhere(_providers, {name: providerName});
         },
@@ -205,7 +205,7 @@ mapHelper.prototype.makeStyle = function(style)
 {
     style = style || {};
 	var givenStyle = {};
-	
+
 	if (typeof style.RenderStyle != 'undefined')
 		givenStyle = style.RenderStyle;
 	else if (style.outline || style.marker)
@@ -231,7 +231,7 @@ mapHelper.prototype.makeStyle = function(style)
 				color: parseColor(style.FillColor),
 				opacity: 100 - parseInt(style.Transparency || "0")
 			};
-	
+
 		var label = style.label || style.Label;
 		if (label)
 			givenStyle.label = {
@@ -240,7 +240,7 @@ mapHelper.prototype.makeStyle = function(style)
 				size: parseInt(label.FontSize || "12")
 			};
 	}
-	
+
 	return givenStyle;
 }
 
@@ -248,11 +248,11 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
 {
     // сохраняем состояние карты
     var mapState = _mapHelper.getMapState();
-    
+
     // туда же сохраним созданные объекты
     nsGmx.userObjectsManager.collect();
     mapState.userObjects = JSON.stringify(nsGmx.userObjectsManager.getData());
-    
+
     nsGmx.Utils.TinyReference.create(mapState).then(callback);
 }
 
@@ -273,7 +273,7 @@ mapHelper.prototype.updateUnloadEvent = function(flag)
 {
 	if (typeof flag != 'undefined')
 		this.unsavedChanges = flag;
-	
+
 	if (this.unsavedChanges)
 	{
 		window.onbeforeunload = function(e)
@@ -313,16 +313,16 @@ mapHelper.prototype.updateTreeStyles = function(newStyles, div, treeView, isEdit
 {
     isEditableStyles = typeof isEditableStyles === 'undefined' || isEditableStyles;
 	div.gmxProperties.content.properties.styles = newStyles;
-	
+
 	var multiStyleParent = $(div).children('[multiStyle]')[0];
-	
+
 	var parentIcon = $(div).children("[styleType]")[0],
 		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.gmxProperties.content.properties.GeometryType.toLowerCase(), {addTitle: isEditableStyles});
-		
+
 	$(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
-	
+
 	$(multiStyleParent).empty();
-	
+
 	_mapHelper.createMultiStyle(div.gmxProperties.content.properties, treeView, multiStyleParent)
 }
 
@@ -364,34 +364,34 @@ mapHelper.prototype.getMapState = function() {
         if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature)) {
             return;
         }
-        
+
         var geoJSON = feature.toGeoJSON();
-        
+
         var elem = {
-            properties: geoJSON.properties, 
+            properties: geoJSON.properties,
             geometry: L.gmxUtil.geoJSONtoGeometry(geoJSON, true)
         };
-        
+
         if (elem.geometry.type !== "POINT") {
             var style = feature.getOptions().lineStyle;
-            
+
             if (style) {
                 elem.thickness = style.weight || 2;
                 elem.color = style.color;
                 elem.opacity = (style.opacity || 0.8) * 100;
             }
         }
-        
+
         if (lmap.hasLayer(feature.getPopup())) {
             elem.isBalloonVisible = true;
         }
-        
+
         drawnObjects.push(elem);
     });
-    
+
     for (var l in nsGmx.gmxMap.layersByID) {
         var layer = nsGmx.gmxMap.layersByID[l];
-        
+
         if (layer.getPopups) {
             var popups = layer.getPopups();
             if (popups.length) {
@@ -407,7 +407,7 @@ mapHelper.prototype.getMapState = function() {
 
             if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
                 return;
-            
+
             condition.visible[groupId] = props.visible;
             condition.expanded[groupId] = props.expanded;
         } else {
@@ -420,10 +420,10 @@ mapHelper.prototype.getMapState = function() {
     return {
         mode: lmap.gmxBaseLayersManager.getCurrentID(),
         mapName: globalMapName,
-        position: { 
+        position: {
             x: mercCenter.x,
-            y: mercCenter.y, 
-            z: 17 - lmap.getZoom() 
+            y: mercCenter.y,
+            z: 17 - lmap.getZoom()
         },
         mapStyles: this.getMapStyles(),
         drawnObjects: drawnObjects,
@@ -438,13 +438,13 @@ mapHelper.prototype.getMapState = function() {
 mapHelper.prototype.getMapStyles = function()
 {
 	var styles = {};
-	
+
 	this.findChilds(_layersTree.treeModel.getRawTree(), function(child)
 	{
 		if (child.content.properties.type == "Vector" && $("div[LayerID='" + child.content.properties.LayerID + "']").length)
 			styles[child.content.properties.name] = child.content.properties.styles;
 	}, true);
-	
+
 	return styles;
 }
 
@@ -455,7 +455,7 @@ mapHelper.prototype.showPermalink = function()
         var input = _input(null, [['dir','className','inputStyle inputFullWidth'],['attr','value', url]]);
 
         showDialog(_gtxt("Ссылка на текущее состояние карты"), _div([input]), 311, 80, false, false);
-        
+
         input.select();
     });
 }
@@ -464,7 +464,7 @@ mapHelper.prototype.createPermalink = function(callback)
 {
 	var mapState = this.getMapState(),
         def = nsGmx.Utils.TinyReference.create(mapState);
-    
+
     def.then(callback);
     return def;
 }
@@ -511,26 +511,26 @@ mapHelper.ImageInputControl = function(initURL) {
     var prevValue = initURL || '';
     var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','170px']]);
     _title(inputUrl, _gtxt('URL изображения'));
-    
+
     var _this = this;
-    
+
     var update = function() {
         if (inputUrl.value != prevValue) {
             prevValue = inputUrl.value;
             $(_this).change();
         }
     }
-    
+
     var mainDiv = $('<div/>').append(inputUrl);
     inputUrl.onkeyup = inputUrl.change = update;
-    
+
     if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES)) {
         var imageSelectionWidget = new mapHelper.ImageSelectionWidget();
         imageSelectionWidget.on('selected', function(url) {
             inputUrl.value = url;
             update();
         });
-        
+
         mainDiv.append(imageSelectionWidget.el);
     }
 
@@ -538,7 +538,7 @@ mapHelper.ImageInputControl = function(initURL) {
     {
         return mainDiv[0];
     }
-    
+
     this.value = function()
     {
         return inputUrl.value;
@@ -546,30 +546,30 @@ mapHelper.ImageInputControl = function(initURL) {
 }
 
 //params:
-//  * addTitle {bool, default: true} 
+//  * addTitle {bool, default: true}
 mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params)
 {
     var _params = $.extend({addTitle: true}, params);
 	var icon;
-	
+
 	if ($.isArray(parentStyles) && parentStyles.length > 1)
 		icon =  _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
-	else 
+	else
 	{
 		var parentStyle = _mapHelper.makeStyle(parentStyles[0]);
-		
+
 		if (parentStyle.marker && parentStyle.marker.image)
 		{
 			if (typeof parentStyle.marker.color == 'undefined')
 			{
 				icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
-				
+
 				var fixFunc = function()
 					{
 						var width = this.width,
 							height = this.height,
                             scale;
-                            
+
                         if (width && height) {
 							var scaleX = 14.0 / width;
 							var scaleY = 14.0 / height
@@ -578,26 +578,26 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
                             scale = 1;
                             width = height = 14;
                         }
-						
+
 						setTimeout(function()
 						{
 							icon.style.width = Math.round(width * scale) + 'px';
 							icon.style.height = Math.round(height * scale) + 'px';
 						}, 10);
 					}
-				
+
 				icon.onload = fixFunc;
                 icon.src = parentStyle.marker.image;
 			}
 			else
 			{
 				var dummyStyle = {};
-				
+
 				$.extend(dummyStyle, parentStyle);
-				
+
 				dummyStyle.outline = {color: parentStyle.marker.color, opacity: 100};
 				dummyStyle.fill = {color: parentStyle.marker.color, opacity: 100};
-				
+
 				icon = nsGmx.Controls.createGeometryIcon(dummyStyle, type);
 			}
 		}
@@ -606,12 +606,12 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 			icon = nsGmx.Controls.createGeometryIcon(parentStyle, type);
 		}
 	}
-	
+
     if (_params.addTitle)
         _title(icon, _gtxt("Редактировать стили"));
-	
+
 	icon.geometryType = type;
-	
+
 	return icon;
 }
 
@@ -625,7 +625,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
     if (type == "Vector")
     {
         nsGmx.createLayerEditor(div, type, parent, layerProperties, params);
-        
+
         return;
     }
     else
@@ -633,14 +633,14 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
         if (elemProperties.name)
         {
             _(parent, [loading]);
-        
+
             sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerName=" + elemProperties.name, function(response)
             {
                 if (!parseResponse(response))
                     return;
-                
+
                 loading.removeNode(true);
-                
+
                 nsGmx.createLayerEditor(div, type, parent, response.Result, params)
             })
         }
@@ -661,9 +661,9 @@ mapHelper.prototype.createNewLayer = function(type)
         var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 340, height, false, false);
         nsGmx.createLayerEditor(false, type, parent, properties,
             {
-                doneCallback: function() 
+                doneCallback: function()
                 {
-                    removeDialog(dialogDiv); 
+                    removeDialog(dialogDiv);
                 }
             }
         );
@@ -701,30 +701,30 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 			trs.push(shownProperties[i].tr);
 			continue;
 		}
-		
+
 		if (typeof shownProperties[i].elem !== 'undefined')
 			td = _td([shownProperties[i].elem]);
 		else
 			td = _td([_t(layerProperties[shownProperties[i].field] != null ? layerProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
-            
+
         var tdTitle = _td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px']]);
-        
+
 		var tr = _tr([tdTitle, td]);
-        
+
         _(tdTitle, [], [['dir', 'className', 'propertiesTable-title ' + (_styles.leftcolumnclass || '')]]);
-            
+
         if (_styles.rightcolumnclass)
             _(td, [], [['dir', 'className', _styles.rightcolumnclass]]);
-		
+
         if (shownProperties[i].trid)
             _(tr, [], [['attr', 'id', shownProperties[i].trid]]);
-            
+
         if (shownProperties[i].trclass)
             _(tr, [], [['dir', 'className', shownProperties[i].trclass]]);
-        
+
 		trs.push(tr);
 	}
-	
+
 	return trs;
 }
 
@@ -733,7 +733,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 	var elemProperties = div.gmxProperties.content.properties,
         layerName = elemProperties.name,
 		_this = this;
-	
+
 	if (elemProperties.type == "Vector")
 	{
 		if (typeof this.layerEditorsHash[layerName] != 'undefined')
@@ -744,9 +744,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 
 			return;
 		}
-		
+
 		this.layerEditorsHash[layerName] = false;
-		
+
 		var mapName = elemProperties.mapName,
 			createTabs = function(layerProperties)
 			{
@@ -754,7 +754,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 					tabMenu,
                     additionalTabs = [];
-				
+
 				var pos = nsGmx.Utils.getDialogPos(div, true, 390),
                     updateFunc = function()
                     {
@@ -764,7 +764,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                         updateFunc();
 						return false;
 					};
-				
+
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {
                     doneCallback: function()
                     {
@@ -778,18 +778,18 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                         _this.layerEditorsHash[layerName].updateFunc = updateFunc;
                     }
                 });
-				
+
 				var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 350, 470, pos.left, pos.top, null, function()
                 {
                     closeFunc();
                     delete _this.layerEditorsHash[layerName];
                 });
-                
+
 				// при сохранении карты сбросим все временные стили в json карты
 				divProperties.closeFunc = closeFunc;
 				divProperties.updateFunc = updateFunc;
 			};
-		
+
 		if (!this.attrValues[mapName])
 			this.attrValues[mapName] = {};
 
@@ -797,16 +797,16 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		{
 			if (!parseResponse(response))
 				return;
-			
+
             var columns = response.Result.Columns;
             var attributesHash = {};
-            
+
             for (var i = 0; i < columns.length; i++) {
                 attributesHash[columns[i].Name] = [];
             }
-            
+
 			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, layerName);
-			
+
 			createTabs(response.Result);
 		})
 	}
@@ -816,20 +816,20 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		{
 			if (this.layerEditorsHash[layerName])
 				return;
-			
+
 			this.layerEditorsHash[layerName] = true;
-			
+
 			var id = 'layertabs' + layerName,
 				divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
 				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
-            
+
 			var layer = nsGmx.gmxMap.layersByID[layerName],
 				parentStyle = elemProperties.styles && elemProperties.styles[0] || elemProperties;
-                
+
             var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
                 liMinZoom = zoomPropertiesControl.getMinLi(),
                 liMaxZoom = zoomPropertiesControl.getMaxLi();
-			
+
             $(zoomPropertiesControl).change(function()
             {
                 layer.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
@@ -843,30 +843,30 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     $(divDialog).dialog('close');
                 },
                 additionalTabs: [{title: _gtxt("Стили"), name: 'styles', container: divStyles}]
-                
+
             });
-			
+
 			var pos = nsGmx.Utils.getDialogPos(div, true, 330),
 				closeFunc = function()
 				{
                     elemProperties.styles = elemProperties.styles || [];
                     elemProperties.styles[0] = elemProperties.styles[0] || {};
-                    
+
 					elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
 					elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
-					
+
 					delete _this.layerEditorsHash[layerName];
-					
+
 					treeView.findTreeElem(div).elem.content.properties = elemProperties;
-					
+
 					_this.drawingBorders.removeRoute(layerName, true);
-					
+
 					if ($('#drawingBorderDialog' + layerName).length)
 						removeDialog($('#drawingBorderDialog' + layerName)[0].parentNode);
-					
+
 					return false;
 				};
-			
+
 			var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 330, 410, pos.left, pos.top, null, closeFunc);
 		}
 		else
@@ -875,19 +875,19 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
         }
 	} else if (elemProperties.type == "Virtual"){
         var divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]);
-        
+
         this.createLoadingLayerEditorProperties(div, divProperties, null, {
             doneCallback: function() {
                 $(divDialog).dialog('close');
             }
         });
-        
+
         var closeFunc = function() {
             delete _this.layerEditorsHash[layerName];
         };
-        
+
         var pos = nsGmx.Utils.getDialogPos(div, true, 330);
-        
+
         var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 330, 410, pos.left, pos.top, null);
     }
 }
@@ -896,12 +896,12 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 {
 	var _this = this,
 		templateStyle = {};
-	
+
 	$.extend(true, templateStyle, style);
-    
+
     var elemCanvas = _mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], geometryType);
     var spanIcon = _span([elemCanvas]);
-    
+
 	spanIcon.onclick = function()
 	{
         var listenerId = parentObject.addListener('onSetStyle', function(style)
@@ -909,7 +909,7 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
                 var newIcon = _this.createStylesEditorIcon([{MinZoom:1,MaxZoom:21,RenderStyle:style.regularStyle}], geometryType);
                 $(spanIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
             });
-            
+
 		var canvasStyles = _div(null,[['css','marginTop','10px']]),
 			canvasCharts = _div(null,[['css','marginTop','10px']]),
 			closeFunc = function()
@@ -918,49 +918,49 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 				{
 					$('#' + $(this).data("colorpickerId")).remove();
 				});
-				
+
 				var layerElemCanvas = $(divCanvas).find("[geometryType='" + geometryType.toUpperCase() + "']")[0];
 				layerElemCanvas.graphDataType = $(canvasCharts).find("select")[0].value;
 				layerElemCanvas.graphDataProperties = $(canvasCharts).find("input")[0].value;
-                
+
                 parentObject.removeMapStateListener('onSetStyle', listenerId);
 			};
-		
+
 		var id = 'wfstabs' + String(Math.random()).substring(2, 9),
 			tabMenu = _div([_ul([_li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])]),
 								 _li([_a([_t(_gtxt("Диаграммы"))],[['attr','href','#graph' + id]])])])]),
 			divStyles = _div(null,[['attr','id','styles' + id]]),
 			divGraph = _div(null,[['attr','id','graph' + id]]);
-		
+
 		_(tabMenu, [divStyles, divGraph]);
-		
+
         gmxCore.loadModule('LayerStylesEditor').done(function(module) {
             var resObject = module.createStyleEditor(canvasStyles, templateStyle, geometryType, false);
-            
+
             $(resObject).change(function()
             {
                 nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
             })
         });
-        
+
 		canvasStyles.firstChild.style.marginLeft = '0px';
 		_(divStyles, [canvasStyles]);
-		
+
 		_mapHelper.createChartsEditor(canvasCharts, $(divCanvas).find("[geometryType='" + geometryType.toUpperCase() + "']")[0]);
 		canvasCharts.firstChild.style.marginLeft = '0px';
 		_(divGraph, [canvasCharts]);
-		
+
 		var pos = nsGmx.Utils.getDialogPos(spanIcon, false, 160);
 		showDialog(_gtxt('Редактирование стилей объекта'), tabMenu, 330, 180, pos.left, pos.top, false, closeFunc);
-		
+
 		$(tabMenu).tabs({active: 0});
 	}
-	
+
 	spanIcon.getStyle = function()
 	{
 		return templateStyle;
 	}
-    
+
     return spanIcon;
 }
 
@@ -969,10 +969,10 @@ mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
 	var graphTypeSel = nsGmx.Utils._select([_option([_t(_gtxt("График по времени"))], [['attr','value','func']]),
 								_option([_t(_gtxt("Круговая"))], [['attr','value','pie']])], [['dir','className','selectStyle'],['css','width','180px']]),
 		propertiesMask = _input(null, [['dir','className','inputStyle'],['css','width','180px']]);
-	
+
 	switchSelect(graphTypeSel, elemCanvas.graphDataType);
 	propertiesMask.value = elemCanvas.graphDataProperties;
-	
+
 	_(parent, [_table([_tbody([_tr([_td([_t(_gtxt("Тип"))], [['css','width','100px']]), _td([graphTypeSel])]),
 								_tr([_td([_t(_gtxt("Маска атрибутов"))]), _td([propertiesMask])])])])]);
 }
@@ -980,29 +980,29 @@ mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
 mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent, treeviewFlag, layerManagerFlag)
 {
 	var filters = elem.styles;
-	
+
 	if (filters.length < 2)
 	{
 		multiStyleParent.style.display = 'none';
-		
+
 		return;
 	}
-	
+
 	multiStyleParent.style.display = '';
-	
+
 	var ulFilters = _ul();
-	
+
 	for (var i = 0; i < filters.length; i++)
 	{
 		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
 			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
             iconSpan = _span([icon]),
 			li = _li([_div([iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
-            
+
         $(iconSpan).attr('styleType', $(icon).attr('styleType'));
-		
+
 		if (!layerManagerFlag)
-		{ 
+		{
 			(function(i)
 			{
 				iconSpan.onclick = function()
@@ -1012,15 +1012,15 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 				}
 			})(i);
 		}
-		
+
 		_(ulFilters, [li])
 	}
-	
+
 	ulFilters.style.display = 'none';
 	ulFilters.className = 'hiddenTree';
-	
+
 	_(multiStyleParent, [_ul([_li([_div([_t(_gtxt("Стили слоя"))]), ulFilters])])]);
-	
+
 	if (typeof treeviewFlag == 'undefined')
         $(multiStyleParent.firstChild).treeview();
 }
@@ -1028,25 +1028,25 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 mapHelper.prototype.load = function()
 {
 	var _this = this;
-	
+
 	if (!this.builded)
 	{
 		var fileName;
-		
+
 		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.usageFilePrefix !== 'undefined')
 			fileName = window.gmxViewerUI.usageFilePrefix;
 		else
 			fileName = window.gmxJSHost ? window.gmxJSHost + "usageHelp" : "usageHelp";
-		
+
 		fileName += _gtxt("helpPostfix");
-		
+
 		_mapHelper._loadHelpTextFromFile(fileName, function( text )
 		{
 			var div = _div(null, [['dir','className','help']]);
 			div.innerHTML = text;
 			_(_this.workCanvas, [div]);
 		});
-		
+
 		this.builded = true;
 	}
 }
@@ -1056,29 +1056,29 @@ mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, d
 	var proceess = function( text ) {
 		callback(Handlebars.compile(text)({gmxVersion: num, gmxData: data}));
 	}
-	
+
 	if (fileName.indexOf("http://") !== 0)
 		$.ajax({url: fileName, success: proceess});
 	else
 		sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName), function(response)
 		{
 			proceess(response.Result);
-		});	
+		});
 }
 
 mapHelper.prototype.version = function()
 {
     var div = $("<div class='gmx-about'></div>");
-        
+
     var fileName;
-    
+
     if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.helpFilePrefix !== 'undefined')
         fileName = window.gmxViewerUI.helpFilePrefix;
     else
         fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
-    
+
     fileName += _gtxt("helpPostfix");
-    
+
     _mapHelper._loadHelpTextFromFile( fileName, function(text)
     {
         div.html(text);
@@ -1095,16 +1095,16 @@ mapHelper.prototype.print = function() {
     }
 
     toggleMode(true);
-    
+
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
         '<button class="print-ui-print">Печать</button>' +
     '</span></div>')());
-    
+
     ui.find('.print-ui-print').click(function() {
         window.print();
     })
-    
+
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
 
@@ -1116,9 +1116,9 @@ mapHelper.prototype.print = function() {
         window.resizeAll();
         ui.remove();
     });
-    
+
     $('body').append(ui);
-    
+
     $('#flash').css({
         top: '50%',
         left: '50%',
@@ -1139,7 +1139,7 @@ mapHelper.prototype.findChilds = function(treeElem, callback, flag)
 		for (var i = 0; i < childsArr.length; i++)
 		{
 			var child = childsArr[i];
-			
+
 			if (child.type == 'group')
 				this.findChilds(child, callback, flag && child.content.properties.visible)
 			else
@@ -1151,15 +1151,15 @@ mapHelper.prototype.findChilds = function(treeElem, callback, flag)
 mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
 {
 	var childsArr = treeElem.content ? treeElem.content.children : treeElem.children;
-	
+
 	for (var i = 0; i < childsArr.length; i++)
 	{
 		var child = childsArr[i];
-		
+
 		if (child.type == 'group')
 		{
 			callback(child, flag, treeElem.content ? treeElem.content.properties.list : treeElem.properties.list, i);
-			
+
 			this.findTreeElems(child, callback, flag && child.content.properties.visible, treeElem.content ? treeElem.content.properties.list : treeElem.properties.list)
 		}
 		else
@@ -1169,13 +1169,13 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
 
 /**
  *  Модифицирует объекты внутри векторного слоя, отправляя изменения на сервер и информируя об этом API
- * 
+ *
  * @memberOf _mapHelper
  * @name modifyObjectLayer
  * @function
  * @param {String} layerName Имя слоя
  * @param {Object[]} objs Массив описания объектов. Каждое описание представляет из себя объект:
- * 
+ *
  *  * id {String} ID объекта слоя, над которым производятся изменения (только для модификации и удаления)
  *  * geometry Описание геометрии (вставка и изменение). GeoJSON
  *  * source: {rc: <name КР-источника>, rcobj: <id объекта внутри КР>}
@@ -1190,20 +1190,20 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
 mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 {
     var def = $.Deferred();
-    
+
     $.each(objs, function(i, obj)
     {
         obj.action = obj.action || (obj.id ? 'update' : 'insert');
     });
     var params = {
-        WrapStyle: 'window', 
-        LayerName: layerName, 
+        WrapStyle: 'window',
+        LayerName: layerName,
         objects: JSON.stringify(objs)
     };
     if (crs) {
         params.geometry_cs = crs;
     }
-    sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+    sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx",
         params
         ,
         function(addResponse)
@@ -1213,7 +1213,7 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
                 def.reject();
                 return;
             }
-            
+
             var mapLayer = nsGmx.gmxMap.layersByID[layerName];
             if (mapLayer) {
                 L.gmx.layersVersion.chkVersion(mapLayer, function() {
@@ -1226,7 +1226,7 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
             }
         }
     )
-    
+
     return def.promise();
 }
 
@@ -1245,29 +1245,29 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 */
 mapHelper.prototype.searchObjectLayer = function(layerName, options) {
     options = options || {};
-    
+
     var def = $.Deferred();
-    
+
     var requestParams = {
-        WrapStyle: 'message', 
+        WrapStyle: 'message',
         layer: layerName
     }
-    
+
     if (options.query) {
         requestParams.query = options.query;
     }
-    
+
     if (options.includeGeometry) {
         requestParams.geometry = true;
     }
-    
+
     if (options.border) {
         requestParams.border = JSON.stringify(options.border);
     }
-    
+
     requestParams.page = options.page || 0;
     requestParams.pagesize = options.pagesize || 100000;
-    
+
     sendCrossDomainPostRequest(serverBase + "VectorLayer/Search.ashx", requestParams, function(response) {
         if (!parseResponse(response)) {
             def.reject(response);
@@ -1278,7 +1278,7 @@ mapHelper.prototype.searchObjectLayer = function(layerName, options) {
         var objects = [];
         for (var i = 0; i < values.length; i++) {
             var obj = {properties: {}};
-            
+
             for (var p = 0; p < values[i].length; p++) {
                 if (fields[p] === 'geomixergeojson') {
                     obj.geometry = values[i][p];
@@ -1288,17 +1288,17 @@ mapHelper.prototype.searchObjectLayer = function(layerName, options) {
             }
             objects.push(obj);
         }
-        
+
         def.resolve(objects);
     });
-    
+
     return def.promise();
 }
 
 /** Скачать векторный слой с сервера
  * @memberOf _mapHelper
  * @name downloadVectorLayer
- * @function 
+ * @function
  * @param {Object} params Параметры запроса
  * @param {String} params.name ID векторного слоя, который нужно скачать
  * @param {String} params.host хост, с которого будем скачивать слой
@@ -1310,15 +1310,15 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
     var requestParams = {
         t: params.name
     };
-    
+
     if (params.format) {
         requestParams.format = params.format;
     }
-    
+
     if (params.query) {
         requestParams.query = params.query;
     }
-    
+
     if (params.columns) {
         requestParams.columns = JSON.stringify(params.columns);
     }
@@ -1333,7 +1333,7 @@ window.mapHelper = mapHelper;
 mapHelp.mapHelp.load = function()
 {
 	var alreadyLoaded = _mapHelper.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_mapHelper.load()
 }
@@ -1345,7 +1345,7 @@ mapHelp.mapHelp.unload = function()
 mapHelp.serviceHelp.load = function()
 {
 	var alreadyLoaded = _serviceHelper.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_serviceHelper.load()
 }
@@ -1364,26 +1364,26 @@ serviceHelper.prototype.load = function()
 {
 	var _this = this;
 	if (!this.builded)
-	{		
+	{
 		var fileName;
-		
+
 		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.servicesFilePrefix !== 'undefined')
 			fileName = window.gmxViewerUI.servicesFilePrefix;
 		else
 			fileName = window.gmxJSHost ? window.gmxJSHost + "servicesHelp" : "servicesHelp";
-		
+
 		fileName += _gtxt("helpPostfix");
-		
+
 		_mapHelper._loadHelpTextFromFile(fileName, function( text )
 		{
 			var div = _div(null, [['dir','className','help']]);
 			div.innerHTML = text;
 			_(_this.workCanvas, [div]);
 		});
-		
+
 		this.builded = true;
 	}
-}	
+}
 
 var _serviceHelper = new serviceHelper();
 window._serviceHelper = _serviceHelper;
@@ -1391,7 +1391,7 @@ window._serviceHelper = _serviceHelper;
 mapHelp.tabs.load = function()
 {
 	var alreadyLoaded = _queryTabs.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryTabs.load()
 }
@@ -1402,7 +1402,7 @@ mapHelp.tabs.unload = function()
 mapHelp.externalMaps.load = function()
 {
 	var alreadyLoaded = _queryExternalMaps.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryExternalMaps.load()
 }

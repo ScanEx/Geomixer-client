@@ -13,13 +13,13 @@ _translationsHash.hash["eng"] = {
 	"Сохранить как" : "Save as",
 	"Сохранить карту как" : "Save map as",
 	"Сохранить карту" : "Save map",
-    
+
     "Карта пожаров": "Fires map",
     "Поиск снимков": "Search Imagery",
     "Платформа Геомиксер": "GeoMixer Web-GIS",
     "http://fires.kosmosnimki.ru": "http://fires-map.com",
     "http://search.kosmosnimki.ru": "http://search.kosmosnimki.ru/index_eng.html",
-    
+
     "Данные": "Datasets",
     "Сервисы": "Services",
     "Поделиться": "Share",
@@ -48,7 +48,7 @@ _translationsHash.hash["eng"] = {
     "Руководство пользователя": "Documentation",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
-    
+
 	"Открыть" : "Open",
 	"Слой" : "Layer",
 	"Создать векторный слой" : "Create vector layer",
@@ -396,7 +396,7 @@ _translationsHash.hash["eng"] = {
     "Доступные подложки": "Available base layers",
     "Подложки карты": "Base layers on map",
     "Выберите слои для поиска по атрибутам": "Select layers for attributes search",
-		
+
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
 	"Редактирование прав доступа слоя [value0]" : "Layer [value0] access editor",
 	"Состав группы [value0]" : "Users of group [value0]",
@@ -407,10 +407,10 @@ _translationsHash.hash["eng"] = {
 	"Пользователи с правами доступа:" : "Users with access:",
 	"Выберите нового владельца" : "Select new owner",
 	"Сменить владельца" : "Change owner",
-	
+
 	"Объекты RuMap" : "RuMap objects",
 	"Объекты пользователей" : "User objects",
-	
+
 	"Контакты" : "Contacts",
 	"Фотографии" : "Photo",
 	"Видео" : "Video",
@@ -428,7 +428,7 @@ _translationsHash.hash["eng"] = {
 	"Время" : "Время",
 	"Альбом OpenPhotoVR" : "Фотоальбом",
 	"Встраиваемый код" : "Embed video",
-	
+
 	"Объекты экологического риска" : "Объекты экологического риска",
 		"Санкционированные свалки" : "Санкционированные свалки",
 		"Несанкционированные свалки" : "Несанкционированные свалки",
@@ -440,7 +440,7 @@ _translationsHash.hash["eng"] = {
 		"Оползни" : "Оползни",
 		"Карстовые явления" : "Карстовые явления",
 		"Суффозионные явления" : "Суффозионные явления",
-		
+
 	"Государство и общество" : "Государство и общество",
 		"Радио" : "Радио",
 		"Правительственные учреждения" : "Правительственные учреждения",
@@ -552,10 +552,10 @@ _translationsHash.hash["eng"] = {
 		"Пожарные/спасатели" : "Пожарные/спасатели",
 		"Милиция" : "Милиция",
 		"Скорая помощь" : "Скорая помощь",
-	
+
 	"Другие темы" : "Другие темы",
 		"Разное" : "Разное",
-	
+
 	"Изменение пароля" : "Password change",
 	"Новый пароль" : "New password",
 	"Старый пароль" : "Old password",

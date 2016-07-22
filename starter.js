@@ -62,6 +62,7 @@ var oSearchLeftMenu = new leftMenu();
 var gridManager = {
     state: false,
     gridControl: null,
+    options: null,
     setState: function(newState) {
         if (this.state == newState) {
             return;
@@ -69,13 +70,36 @@ var gridManager = {
 
         //lazy instantantion
         this.gridControl = this.gridControl || new L.GmxGrid();
-        nsGmx.leafletMap[newState ? 'addLayer' : 'removeLayer'](this.gridControl);
+        if (this.options) {
+            this.restoreOptions();
+        }
 
+        nsGmx.leafletMap[newState ? 'addLayer' : 'removeLayer'](this.gridControl);
         this.state = newState;
         nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(newState);
         _menuUp.checkItem('mapGrid', newState);
         _mapHelper.gridView = newState; //можно удалить?
+
+        if (this.options) {
+            this.restoreOptions();
+        }
+        if (this.state) {
+            configureGrid();
+        }
+    },
+    saveOptions: function() {
+        this.options = this.gridControl.options;
+    },
+    restoreOptions: function() {
+        this.gridControl.setColor(this.options.color);
     }
+}
+
+function configureGrid() {
+    gmxCore.loadModule('GridPlugin', 'plugins/GridPlugin.js').then(function (def) {
+          var menu = new def.ConfigureGridMenu(gridManager, gridManager.gridControl);
+          menu.Load();
+  });
 }
 
 var createMenuNew = function() {
@@ -218,7 +242,7 @@ var createMenuNew = function() {
 
 var createToolbar = function() {
     var lmap = nsGmx.leafletMap;
-    
+
     var SliderControl = L.Control.extend({
         options: {
             position: 'topleft'
@@ -893,7 +917,7 @@ function initAuthWidget() {
             });
         })
     };
-    
+
     var nativeAuthWidget = new nsGmx.GeoMixerAuthWidget($('<div/>')[0], nsGmx.AuthManager, function() {
         _mapHelper.reloadMap();
     }, {registrationCallback: registrationCallback});
@@ -935,10 +959,10 @@ function initAuthWidget() {
         accountLink: null,
         showMapLink: !!window.mapsSite
     });
-    
+
     var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
     nsGmx.widgets.authWidget.appendTo(authPlaceholder);
-    
+
     authPlaceholder.on('click', '#AuthWidgetAccountLink', function() {
         gmxCore.loadModule('ProfilePlugin').then(function(AccountModule) {
             AccountModule.showProfile();
@@ -1077,11 +1101,11 @@ function loadMap(state) {
 function initDefaultBaseLayers() {
     var hostName = window.baseMap.hostName || 'maps.kosmosnimki.ru',
         mapID = window.baseMap.id;
-    
+
     var layersToLoad = {};
-    
+
     var iconPrefix = 'img/baseLayers/';
-    
+
     if (window.baseMap.mapLayerID) {
         layersToLoad.OSM = {
             layerID: window.baseMap.mapLayerID,
@@ -1090,7 +1114,7 @@ function initDefaultBaseLayers() {
             icon: iconPrefix + 'basemap_osm_ru.png'
         }
     }
-    
+
     if (window.baseMap.satelliteLayerID) {
         layersToLoad.satellite = {
             layerID: window.baseMap.satelliteLayerID,
@@ -1100,7 +1124,7 @@ function initDefaultBaseLayers() {
             icon: iconPrefix + 'basemap_satellite.png'
         }
     }
-    
+
     if (window.baseMap.overlayLayerID) {
         layersToLoad.OSMHybrid = {
             layerID: window.baseMap.overlayLayerID,
@@ -1110,27 +1134,27 @@ function initDefaultBaseLayers() {
             icon: iconPrefix + 'basemap_osm_hybrid.png'
         }
     }
-    
+
     var promises = _.map(layersToLoad, function(l, name) {
         return L.gmx.loadLayer(mapID, l.layerID, {hostName: hostName}).then(function(layer) {
             l.layers = [layer];
         });
     });
-    
+
     return L.gmx.Deferred.all.apply(null, promises).then(function() {
         var blm = nsGmx.leafletMap.gmxBaseLayersManager;
-        
+
         if (layersToLoad.OSMHybrid && layersToLoad.satellite) {
             layersToLoad.OSMHybrid.layers.push(layersToLoad.satellite.layers[0]);
         }
-        
+
         _.each(layersToLoad, function(l, name) {
             blm.add(name, l);
         });
     });
 }
 
-// Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации 
+// Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации
 // требуется знать текущий язык, а он становится известен только после загрузки карты
 function initHeader() {
     var rightLinks = [];
@@ -1147,7 +1171,7 @@ function initHeader() {
             }]
         })
     }
-    
+
     nsGmx.widgets.header = new nsGmx.HeaderWidget({
         leftLinks: nsGmx.addHeaderLinks(),
         rightLinks: rightLinks,
@@ -1207,7 +1231,7 @@ function processGmxMap(state, gmxMap) {
     if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
         window.language = data.properties.DefaultLanguage;
     }
-    
+
     initHeader();
 
     if (!window.gmxViewerUI || !window.gmxViewerUI.hideLanguage) {
@@ -1254,7 +1278,7 @@ function processGmxMap(state, gmxMap) {
     loc.on('coordinatesformatchange', function(ev) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
-    
+
     var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey});
 
     baseLayerDef.always(function() {
@@ -1474,7 +1498,7 @@ function processGmxMap(state, gmxMap) {
                 });
 
                 var drawingFeature = lmap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(objInfo.geometry), featureOptions)[0];
-                
+
                 if (objInfo.isBalloonVisible) {
                     drawingFeature.openPopup();
                 }
@@ -1486,7 +1510,7 @@ function processGmxMap(state, gmxMap) {
                 properties: { title: state.marker.mt }
             });
         }
-        
+
         if (state.openPopups) {
             for (var l in state.openPopups) {
                 var layer = nsGmx.gmxMap.layersByID[l];
