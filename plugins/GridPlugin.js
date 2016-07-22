@@ -77,7 +77,6 @@
             $(gridConfigEditor).append(gridColorSettingsTitle);
 
             var pos = nsGmx.Utils.getDialogPos(elem, false, 0);
-            console.log(pos);
 
             var closeFunc = function() {
                 $(gridConfigEditor).find(".colorSelector").each(function() {

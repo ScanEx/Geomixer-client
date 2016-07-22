@@ -73,7 +73,6 @@ var gridManager = {
         if (this.options) {
             this.restoreOptions();
         }
-
         nsGmx.leafletMap[newState ? 'addLayer' : 'removeLayer'](this.gridControl);
         this.state = newState;
         nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(newState);
