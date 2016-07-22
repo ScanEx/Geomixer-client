@@ -123,6 +123,6 @@
 
     gmxCore.addModule('GridPlugin',
         publicInterface,
-        {css: 'GridPlugin.css'}
+        {css: 'plugins/GridPlugin.css'}
     );
 })();
