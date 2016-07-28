@@ -1,0 +1,20 @@
+ /*Grid panel*/
+.gridConfigLeftMenu {
+    position: relative;
+    padding: 3px 0px 3px 7px;
+}
+
+.gridSettingsTitle,
+.gridStepUnits {
+    margin: 0px 4px;
+}
+
+.gridStepButton {
+    margin: 0px 2px;
+}
+
+.gridStepInput {
+    width: 28px;
+    border-width: 2px;
+    margin: 2px;
+}

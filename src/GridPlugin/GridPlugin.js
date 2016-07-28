@@ -1,14 +1,22 @@
 (function() {
-    _translationsHash.addtext("rus", {
+    window._translationsHash.addtext("rus", {
         gridPlugin: {
             gridSettings : "Настройка координатной сетки",
-            gridColorSettings : "Цвет сетки"
+            gridColorSettings : "Цвет сетки",
+            gridStepSettings : "Шаг сетки",
+            set : "установить",
+            reset : "сбросить",
+            unitsKm : "км"
         }
     });
-    _translationsHash.addtext("eng", {
+    window._translationsHash.addtext("eng", {
         gridPlugin: {
             gridSettings : "Coordinate grid settings",
-            gridColorSettings : "Grid color"
+            gridColorSettings : "Grid color",
+            gridStepSettings : "Grid step",
+            set : "set",
+            reset : "reset",
+            unitsKm : "km"
         }
     });
 
@@ -39,19 +47,22 @@
             $(gridConfigCanvas).append(gridConfigIcon, gridConfigTitle);
             $(menu).append(gridConfigCanvas);
 
-            gridConfigIcon.onclick = function() {
+            gridConfigIcon.onclick = function () {
                 createConfigDialog(this);
             };
         }
 
         // диалоговое окно для редактирования координатной сетки
         function createConfigDialog(elem) {
+            var gridConfigEditor = _div(null, [['dir','className','gridConfigEditor']]);
+
+            // редактирование цвета сетки - колорпикер
             var fcp = nsGmx.Controls.createColorPicker(tempStyle.outline.color,
-                function (colpkr){
+                function (colpkr) {
                     $(colpkr).fadeIn(500);
                     return false;
                 },
-                function (colpkr){
+                function (colpkr) {
                     $(colpkr).fadeOut(500);
                     $(this).change();
                     return false;
@@ -70,15 +81,43 @@
             $(fcp).ColorPickerSetColor(tempStyle.outline.color);
             $(fcp).css('background-color', tempStyle.outline.color);
 
-            var gridConfigEditor = _div(null, [['dir','className','gridConfigEditor']]);
-            var gridColorSettingsTitle = _span(null, [['dir','className','gridColorSettingsTitle']]);
+            // редактирования шага сетки
+            var gridStepConfig = _span(null, [['dir','className','gridStepConfig']]),
+                gridStepInput = _input(null, [['dir','className','gridStepInput']]),
+                gridStepMeasureUnit = _span([_t(_gtxt('gridPlugin.unitsKm'))], [['dir','className','gridStepUnits']]),
+                gridSetStepButton = _button([_t(_gtxt('gridPlugin.set'))], [['dir', 'className', 'gridStepButton']]),
+                gridResetStepButton = _button([_t(_gtxt('gridPlugin.reset'))], [['dir', 'className', 'gridStepButton']]);
 
-            $(gridColorSettingsTitle).append(_table([_tbody([_tr([_td([_t(_gtxt('gridPlugin.gridColorSettings'))], [['css','width','70px']]),_td([fcp])])])]));
-            $(gridConfigEditor).append(gridColorSettingsTitle);
+            gridStepInput.value = control.options.customGridStep;
+
+            gridSetStepButton.onclick = function () {
+                control.setStep(gridStepInput.value);
+            }
+
+            gridResetStepButton.onclick = function () {
+                control.clearStep();
+                gridStepInput.value = '';
+                gridStepInput.focus();
+            }
+
+            $(gridStepConfig).append(gridStepInput, gridStepMeasureUnit, gridSetStepButton, gridResetStepButton);
+
+            $(gridConfigEditor).append(_table([
+                _tbody([
+                    _tr([
+                        _td([_t(_gtxt('gridPlugin.gridColorSettings'))], [['css','width','70px']]),
+                        _td([fcp])
+                    ]),
+                    _tr([
+                      _td([_t(_gtxt('gridPlugin.gridStepSettings'))], [['css','width','70px']]),
+                      _td([gridStepConfig])
+                    ])
+                ])
+            ]));
 
             var pos = nsGmx.Utils.getDialogPos(elem, false, 0);
 
-            var closeFunc = function() {
+            var closeFunc = function () {
                 $(gridConfigEditor).find(".colorSelector").each(function() {
                     $('#' + $(this).data("colorpickerId")).remove();
                 });
@@ -86,7 +125,7 @@
 
             var params = {
                 width: 280,
-                height: 80,
+                height: 100,
                 posX: pos.left,
                 posY: pos.top,
                 resizeFunc: false,
@@ -103,7 +142,7 @@
              return icon;
         }
 
-      	this.Load = function(){
+      	this.Load = function () {
       		  if (lm != null){
       			    var alreadyLoaded = lm.createWorkCanvas("mapGrid", this.Unload);
       			    if (!alreadyLoaded)  {
@@ -123,6 +162,6 @@
 
     gmxCore.addModule('GridPlugin',
         publicInterface,
-        {css: 'plugins/GridPlugin.css'}
+        {css: 'src/GridPlugin/GridPlugin.css'}
     );
 })();

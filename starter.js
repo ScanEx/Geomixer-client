@@ -95,7 +95,7 @@ var gridManager = {
 }
 
 function configureGrid() {
-    gmxCore.loadModule('GridPlugin', 'plugins/GridPlugin.js').then(function (def) {
+    gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
           var menu = new def.ConfigureGridMenu(gridManager, gridManager.gridControl);
           menu.Load();
   });
