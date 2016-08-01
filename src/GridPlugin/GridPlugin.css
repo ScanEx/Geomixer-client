@@ -1,22 +1,39 @@
  /*Grid panel*/
+
+
+ #gridStepUnitsDegrees,
+ #gridStepUnitsKilometers {
+     margin: 0px 2px 0px 0px;
+ }
+
+.gridConfigTable .bigEmptyTableRow {
+    height: 8px;
+}
+
+.gridConfigTable .smallEmptyTableRow {
+    height: 4px;
+}
+
 .gridConfigLeftMenu {
     position: relative;
     padding: 3px 0px 3px 7px;
 }
 
-.gridSettingsTitle,
-.gridStepUnits {
+.gridSettingsTitle {
     margin: 0px 4px;
 }
 
-.gridStepButton {
-    width: 70px;
-    margin: 0px 2px;
-    padding: 0px 2px;
+.gridUnitsLabel {
+  margin: 0px 9px 0px 0px;
+  vertical-align: middle;
 }
 
 .gridStepInput {
-    width: 28px;
+    width: 55px;
     border-width: 2px;
+    margin: 2px  7px 2px 2px;
+}
+
+.gridStepButton {
     margin: 2px;
 }
