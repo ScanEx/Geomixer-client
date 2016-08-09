@@ -7,3 +7,8 @@
 .leaflet-container {
     cursor: default;
 }
+
+/* added css for cadastre Popup */
+.cadInfo .cadNum {
+    font-weight: bold;
+}
