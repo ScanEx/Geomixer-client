@@ -33,9 +33,20 @@
 .access-table-placeholder table {
     table-layout: fixed;
 }
-
 .security-access-label {
     padding-right: 5px;
+}
+
+.security-policy-control {
+    margin-top: 5px;
+}
+
+.policy-checkbox {
+    margin-right: 5px;
+}
+
+.security-policy-label {
+    padding-right: 15px;
 }
 
 .security-add-icon {
