@@ -12,3 +12,11 @@
 .cadInfo .cadNum {
     font-weight: bold;
 }
+.cadInfo .address {
+    padding-bottom: 12px;
+}
+.cadInfo .ShowObjectLabel {
+    position: relative;
+    top: -3px;
+    margin-left: 4px;
+}
