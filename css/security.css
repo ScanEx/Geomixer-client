@@ -145,3 +145,20 @@
 .security-autocomplete-item  > .security-group-icon, .security-autocomplete-item  > .security-user-icon{
     margin-right: 3px;
 }
+
+.security-count-table td {
+    padding-right: 5px;
+}
+.security-counter {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.security-custom-ui {
+    max-height: 130px;
+    overflow: auto;
+}
+
+.security-dialog {
+    overflow: hidden;
+}

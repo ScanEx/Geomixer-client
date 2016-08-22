@@ -517,8 +517,37 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	isVisible: function(context)
 	{
-		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS) && 
+		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS) &&
             (_queryMapLayers.currentMapRights() === "edit" || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN));
+	}
+}, 'Map');
+
+//групповое редактирование слоев
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: function() { return _gtxt("Права доступа к слоям"); },
+	isVisible: function(context)
+	{
+		var treeModel = context.tree.treeModel,
+			layersFlag = false,
+			layersRights = false;
+		treeModel.forEachNode(function (node) {
+			if (node.type !== 'group') {
+				layersFlag = true;
+				if (_queryMapLayers.layerRights(node.content.properties.LayerID) === 'edit') {
+					layersRights = true;
+				}
+			}
+		});
+
+		return nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) &&
+			layersFlag &&
+			layersRights;
+	},
+	clickCallback: function(context) {
+        var securityDialog = new nsGmx.layersGroupSecurity(),
+			props = _layersTree.treeModel.getMapProperties();
+		securityDialog.getRights(props.MapID, props.title);
+
 	}
 }, 'Map');
 
