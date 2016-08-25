@@ -672,14 +672,6 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                     securityDialog.getSecurityFromServer(props.LayerID).then(handleResponse);
                 }
 
-                function handleResponse(res) {
-                    var users = res.SecurityInfo.Users;
-                    res.type = props.type;
-
-                    groupLayers.push(res);
-                    drawAccess();
-                    resizeFunc();
-                }
             }
 
             if (!isVisible) {
@@ -698,6 +690,15 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 }
             }
 
+            function handleResponse(res) {
+                var users = res.SecurityInfo.Users;
+                res.type = props.type;
+
+                groupLayers.push(res);
+                drawAccess();
+                resizeFunc();
+            }
+            
             // рисует оба виджета - доступа по умолчанию и списка пользователей для каждого слоя
             function drawAccess() {
                 drawDefaultAccess(groupLayers, defAccessDiv, checkSameDefaultAccess);
