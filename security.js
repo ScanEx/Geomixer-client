@@ -725,43 +725,52 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
         visibilityFunc: function(props, isVisible) {
             if (isVisible) {
                 counter++;
-                if (props.MultiLayerID) {
-                    var securityDialog = new nsGmx.multiLayerSecurity();
-                    securityDialog.getSecurityFromServer(props.MultiLayerID).then(handleResponse);
-                } else {
-                    securityDialog = new nsGmx.layerSecurity(props.type);
-                    securityDialog.getSecurityFromServer(props.LayerID).then(handleResponse);
-                }
+                handleLayer(addLayer);
             }
 
             if (!isVisible) {
                 counter--;
-                for (var i = 0; i < groupLayers.length; i++) {
-                    if (groupLayers[i].ID === props.LayerID || groupLayers[i].ID === props.MultiLayerID) {
-                        groupLayers.splice(i, 1);
-                    }
-                }
-
-                if (counter > 0 && groupLayers.length) {
-                    drawAccess();
-                } else {
-                    $(defAccessDiv).empty();
-                    userList.empty();
-                }
+                handleLayer(removeLayer);
             }
 
             // показываем счетчик выделенных слоев под деревом
             actualCounter.counter = counter;
 
             $(countDiv).html(countTemplate(actualCounter));
-            resizeFunc();
 
-            // обработка запрошенной с сервера security
-            function handleResponse(res) {
+            // делает запрос прав на сервер
+            function handleLayer(callback) {
+                if (props.MultiLayerID) {
+                    var securityDialog = new nsGmx.multiLayerSecurity();
+                    securityDialog.getSecurityFromServer(props.MultiLayerID).then(callback);
+                } else {
+                    securityDialog = new nsGmx.layerSecurity(props.type);
+                    securityDialog.getSecurityFromServer(props.LayerID).then(callback);
+                }
+            }
+
+            // добавляет слой в дерево слоев
+            function addLayer(res) {
                 res.type = props.type;
                 res.multiLayer = !!props.MultiLayerID;
                 groupLayers.push(res);
                 drawAccess();
+                resizeFunc();
+            }
+
+            // убирает слой из дерева слоев
+            function removeLayer(res) {
+                for (var i = 0; i < groupLayers.length; i++) {
+                    if (groupLayers[i].ID === res.ID) {
+                        groupLayers.splice(i, 1);
+                    }
+                }
+                if (counter > 0 && groupLayers.length) {
+                    drawAccess();
+                } else {
+                    $(defAccessDiv).empty();
+                        userList.empty();
+                }
                 resizeFunc();
             }
 
