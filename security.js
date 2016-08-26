@@ -351,12 +351,15 @@ multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 
 var layersGroupSecurity = function()
 {
-    this.getSecurityName = "Map/GetSecurity.ashx";
-    this.updateSecurityName = "Layer/LayersGroupUpdateSecurity";
+    this.getSecurityName = 'Map/GetSecurity.ashx';
+    this.updateSecurityName = 'Layer/LayersGroupUpdateSecurity';
 
-    this.propertyName = "MapID";
-    this.groupPropertyName = "Layers";
-    this.dialogTitle = "Редактирование прав доступа слоев карты [value0]";
+    this.propertyName = 'MapID';
+    this.groupPropertyName = 'Layers';
+    this.groupLayers = [];
+    this.originalItems = [];
+
+    this.dialogTitle = 'Редактирование прав доступа слоев карты [value0]';
 
     this.accessTypes = ['no', 'view', 'edit'];
 }
@@ -430,13 +433,9 @@ security.prototype._save = function() {
     }
 
     postParams.SecurityInfo = JSON.stringify(si.SecurityInfo);
+
     postParams[this.propertyName] = this.propertyValue;
 
-    if (this.groupPropertyName) {
-        postParams[this.groupPropertyName] = this.propertyValue;
-    } else {
-        postParams[this.propertyName] = this.propertyValue;                         // имя слоя / группы
-    }
     sendCrossDomainPostRequest(serverBase + this.updateSecurityName, postParams, function(response) {
         if (!parseResponse(response)) {
             nsGmx.widgets.notifications.stopAction('securitySave');
@@ -522,11 +521,87 @@ security.findUsers = function(query, options) {
 }
 
 
-// кастомный интерфейс - отдельная функция - дерево слоев для виджета группового редактирования слоев
+layersGroupSecurity.prototype._save = function(originalItems) {
+    var _this = this,
+        si = this._securityInfo,
+        addedUsers = this.securityUserListWidget.securityUsersProvider.getOriginalItems();
+
+    si.SecurityInfo = {
+        // Users: [],
+        UsersAdd: addedUsers,
+        UsersRemove: findRemovedUsers(originalItems, addedUsers)
+    };
+
+    nsGmx.widgets.notifications.startAction('securitySave');
+    var postParams = {WrapStyle: 'window'};
+
+    if (this.saveCustomParams()) {                                              // DefAccess: ''
+        return;
+    }
+
+    postParams.SecurityInfo = JSON.stringify(si.SecurityInfo);
+
+    postParams[this.groupPropertyName] = this.propertyValue;                    // Layers: {}
+
+    sendCrossDomainPostRequest(serverBase + this.updateSecurityName, postParams, function(response) {
+        if (!parseResponse(response)) {
+            nsGmx.widgets.notifications.stopAction('securitySave');
+            return;
+        }
+        originalItems = [];
+        for (var i = 0; i < addedUsers.length; i++) {
+            originalItems[i] = addedUsers[i];
+        }
+        // обновляем перечень общих пользователей
+        _this.originalItems = originalItems;
+
+        // обновляем права всех выделенных слоев
+        updateGroupLayersSecurity(_this.groupLayers);
+
+        nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
+        $(this).trigger('savedone', si);
+    })
+
+
+    // обновляет массив с правами после нажатия кнопки "сохранить"
+    function updateGroupLayersSecurity(array) {
+        if (array.length) {
+            for (var i = 0; i < array.length; i++) {
+                if (array[i].multiLayer) {
+                    var securityDialog = new nsGmx.multiLayerSecurity();
+                    securityDialog.getSecurityFromServer(array[i].ID).then(updateSecurity);
+                } else {
+                    securityDialog = new nsGmx.layerSecurity(array[i].type);
+                    securityDialog.getSecurityFromServer(array[i].ID).then(updateSecurity);
+                }
+            }
+        }
+    }
+
+    // обновляет права каждого слоя в массиве
+    function updateSecurity(res) {
+        var groupLayers = _this.groupLayers;
+        for (var i = 0; i < groupLayers.length; i++) {
+            if (groupLayers[i].ID === res.ID) {
+                groupLayers.splice(i, 1, res);
+            }
+        }
+    }
+
+    // возвращает массив удаленных пользователей
+    function findRemovedUsers(original, changed) {
+        return _.difference(original, changed);
+    }
+
+}
+
+
+// кастомный интерфейс - виджет группового редактирования слоев карты
 layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, options)
 {
-    var groupLayers = [];
-    var _this = this;
+    var _this = this,
+        groupLayers = this.groupLayers;
+
     options = $.extend({showOwner: true}, options);
     this._securityInfo = securityInfo;
 
@@ -547,25 +622,15 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
         showOwner: options.showOwner
     }));
 
-    this.addCustomUI(canvas, securityInfo, groupLayers, canvas, resize);
+    this.addCustomUI(canvas, groupLayers, resize);
 
-    // кастомная функция для манипуляции securityInfo, если есть выделенные слои
-    if (this.groupPropertyName) {
-        this.propertyValue = groupLayers.map(function(item){
-            return item.ID;
-        });
-    }
-
-    $('.security-save', canvas).click(function(){                               // обработчик кнопки "Сохранить" в данном контексте
-        _this._save();
-    });
-
-    $('.security-save', canvas).mouseenter(function(){
+    $('.security-save', canvas).click(function(){
         if (_this.groupPropertyName) {
             _this.propertyValue = groupLayers.map(function(item){
                 return item.ID;
             });
         }
+        _this._save(_this.originalItems);
     });
 
     if (options.showOwner) {
@@ -575,9 +640,8 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
     this._dialogDiv = showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
     function resize()
     {
-        var mapTableHeight;
-        var dialogWidth = canvas[0].parentNode.parentNode.offsetWidth;
-        var nonTableHeight =
+        var mapTableHeight,
+            nonTableHeight =
             $('.security-header', canvas).height() +
             $('.security-custom-ui', canvas).height() +
             $('.security-counter', canvas).height() +
@@ -594,11 +658,11 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
 }
 
 // кастомный интерфейс - отдельная функция - дерево слоев для виджета группового редактирования слоев
-layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLayers, canvas, resizeFunc) {
+layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc) {
     var _this = this,
         counter = 0,
         actualCounter = {counter: counter},
-        countDiv = $('.security-counter', canvas),
+        countDiv = $('.security-counter', ui),
         countTemplate = Handlebars.compile(
             '<table class="security-count-table">' +
                 '<tbody>' +
@@ -615,7 +679,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
         tree,
         rawTree,
         drawnTree,
-        defAccessDiv = $('.security-default-access', canvas),
+        defAccessDiv = $('.security-default-access', ui),
         defAccessTemplate = Handlebars.compile(
             '<div class="security-def-access">{{i "security.defAccess"}}: ' +
                 '<select class="security-defaccess-select selectStyle">' +
@@ -625,7 +689,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 '</select>' +
             '</div>'
         ),
-        userList = $('.security-userlist-placeholder', canvas);
+        userList = $('.security-userlist-placeholder', ui);
 
     // модификация исходного дерева - остаются только слои с правами на редактирование
     rawTree = window._layersTree.treeModel.cloneRawTree(function(node) {
@@ -652,26 +716,22 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
         allowActive: true,
         allowDblClick: false,
         showStyle: false,
+
+        // обработка различных вариаций прав в группе слоев
+        // если выделен один слой, рисуются его права
+        // если у выделенных слоев есть юзеры с одинаковыми правами, то рисуются только эти юзеры
+        // если у выделенных слоев разные права, рисуется пустой диалог
+        // если у выделенных слоев разные дефолтные права, в выпадающий список выбора дефолтных прав проставляется пустое поле
         visibilityFunc: function(props, isVisible) {
             if (isVisible) {
                 counter++;
-
-                //    обработка различных вариаций прав в группе слоев
-                //   если выделен один слой, рисуются его права
-                //   если у выделенных слоев одинаковые права, рисуются одни права на всех
-                //   если у выделенных слоев разные права, рисуется пустой диалог
-                //   если у выделенных слоев разные права, в выпадающий список выбора дефолтных прав проставляется пустое поле
-
-                // обрабатывает ответ с сервера c правами слоев
-
                 if (props.MultiLayerID) {
                     var securityDialog = new nsGmx.multiLayerSecurity();
                     securityDialog.getSecurityFromServer(props.MultiLayerID).then(handleResponse);
                 } else {
-                    var securityDialog = new nsGmx.layerSecurity(props.type);
+                    securityDialog = new nsGmx.layerSecurity(props.type);
                     securityDialog.getSecurityFromServer(props.LayerID).then(handleResponse);
                 }
-
             }
 
             if (!isVisible) {
@@ -690,31 +750,39 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 }
             }
 
-            function handleResponse(res) {
-                var users = res.SecurityInfo.Users;
-                res.type = props.type;
+            // показываем счетчик выделенных слоев под деревом
+            actualCounter.counter = counter;
 
+            $(countDiv).html(countTemplate(actualCounter));
+            resizeFunc();
+
+            // обработка запрошенной с сервера security
+            function handleResponse(res) {
+                res.type = props.type;
+                res.multiLayer = !!props.MultiLayerID;
                 groupLayers.push(res);
                 drawAccess();
                 resizeFunc();
             }
-            
+
             // рисует оба виджета - доступа по умолчанию и списка пользователей для каждого слоя
             function drawAccess() {
-                drawDefaultAccess(groupLayers, defAccessDiv, checkSameDefaultAccess);
-                drawUsersList(groupLayers, userList, checkSameUsersAccess);
+                drawDefaultAccess(groupLayers, defAccessDiv);
+                drawUsersList(groupLayers, userList);
             }
 
             // рисует доступ по умолчанию
-            function drawDefaultAccess(array, container, filterFunction) {
-                var accessTypes;
+            function drawDefaultAccess(array, container) {
+                var accessTypes,
+                    defTemplateJSON;
+
                 if (checkSameLayersType(array)) {
                     accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
                 } else {
                     accessTypes = ['no', 'preview', 'view', 'edit'];
                 }
 
-                var defTemplateJSON = {
+                defTemplateJSON = {
                     defAccessTypes: accessTypes.map(function(type) {
                         return {
                             value: type,
@@ -727,7 +795,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 $(container).empty();
 
                 // протавляем значение в выпадающем списке прав по умолчанию
-                if (filterFunction(array)) {
+                if (checkSameDefaultAccess(array)) {
                     var types = defTemplateJSON.defAccessTypes;
                     for (var i = 0; i < types.length; i++) {
                         if (types[i].value === array[0].SecurityInfo.DefAccess) {
@@ -746,22 +814,34 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                             };
                         })
                     };
-
                     $(defAccessTemplate(defTemplateJSON)).appendTo(ui.find('.security-default-access'));
                 }
             }
 
             // рисует список пользователей для каждого слоя
-            function drawUsersList(array, container, filterFunction) {
-                container.empty();
-                if (filterFunction(array)) {
-                    _this.securityUserListWidget = new SecurityUserListWidget(array[0].SecurityInfo, container, {accessTypes: _this.accessTypes});
+            function drawUsersList(array, container) {
+                checkSameUsersAccess(array);
+                var accessTypes;
+
+                // запомним пересечения пользовательских прав для слоев,
+                // в случае удаления / добавления пользователей, последующее состояние будет сравниваться с этим
+                _this.originalItems = [];
+
+                if (templateSecurityInfo.Users.length) {
+                    accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+
+                    for (var i = 0; i < templateSecurityInfo.Users.length; i++) {
+                        _this.originalItems.push(templateSecurityInfo.Users[i]);
+                    }
                 } else {
-                    _this.securityUserListWidget = new SecurityUserListWidget(templateSecurityInfo, container, {accessTypes: _this.accessTypes});
+                    accessTypes = ['no', 'preview', 'view', 'edit'];
                 }
+
+                container.empty();
+                _this.securityUserListWidget = new SecurityUserListWidget(templateSecurityInfo, container, {accessTypes: accessTypes});
             }
 
-            // проверяет, совпадают ли права по умолчанию для всех выделенных слоев
+            // проверяет, совпадают ли дефолтные права для всех выделенных слоев
             function checkSameDefaultAccess(array) {
                 var first = array[0].SecurityInfo.DefAccess;
                 return array.every(function(element) {
@@ -769,12 +849,37 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 });
             }
 
-            // проверяет, совпадают ли отдельные права для всех выделенных слоев
+            // проверяет, совпадают ли отдельные права для всех выделенных слоев и создает массив пересечений
             function checkSameUsersAccess(array) {
-                var first = array[0].SecurityInfo.Users;
-                return array.every(function(element) {
-                    return _.isEqual(element.SecurityInfo.Users, first);
+                var userArray = array.map(function(obj){
+                    return obj.SecurityInfo.Users;
                 });
+
+                templateSecurityInfo.Users = findCommonUsers(userArray);
+
+                // нахождение одинаковых значений {пользователь: права} во всех слоях
+                function findCommonUsers(array) {
+                    var a = array.sort(sortArraysByLength),
+                        first = a[0];
+
+                    if (first.length) {
+                        for (var i = 1; i < a.length; i++) {
+                            first = first.filter(function (obj) {
+                                return a[i].find(function (obj2) {
+                                    return _.isEqual(obj, obj2)
+                                })
+                            })
+                        }
+                    } else {
+                        first = [];
+                    }
+                    return first;
+                }
+
+                // сортировка массивов пользователей по длине для оптимизации времени
+                function sortArraysByLength(a, b) {
+                    return a.length - b.length;
+                }
             }
 
             // проверяет, совпадают ли типы для всех выделенных слоев (вектор/растр)
@@ -785,15 +890,11 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, securityInfo, groupLaye
                 });
             }
 
-            // показываем счетчик выделенных слоев под деревом
-            actualCounter = {counter: counter},
-            $(countDiv).html(countTemplate(actualCounter));
-            resizeFunc();
         }
     });
     drawnTree = tree.drawTree(rawTree, 2);
 
-    $(drawnTree).treeview().    appendTo(ui.find('.security-custom-ui'));
+    $(drawnTree).treeview().appendTo(ui.find('.security-custom-ui'));
     $(countDiv).html(countTemplate(actualCounter));
 
 }
@@ -803,6 +904,5 @@ nsGmx.security = security;
 nsGmx.layerSecurity = layerSecurity;
 nsGmx.multiLayerSecurity = multiLayerSecurity;
 nsGmx.layersGroupSecurity = layersGroupSecurity;
-
 
 })();
