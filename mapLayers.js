@@ -1251,11 +1251,12 @@ layersTree.prototype.addLayersToMap = function(elem)
 
         if (!nsGmx.gmxMap.layersByID[name])
         {
+			var DEFAULT_VECTOR_LAYER_ZINDEXOFFSET = 2000000;
             var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
-
             var layerOnMap = L.gmx.createLayer(layer, {
                 layerID: name,
-                hostName: window.serverBase
+                hostName: window.serverBase,
+				zIndexOffset: nsGmx.gmxMap.rawTree.properties.LayerOrder === 'VectorOnTop' ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0
             });
             nsGmx.gmxMap.addLayer(layerOnMap);
 
