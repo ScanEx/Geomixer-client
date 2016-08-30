@@ -72,7 +72,7 @@ var wrapUserListInput = function(input, options) {
     });
     input.autocomplete({
         source: function(request, cbResponse) {
-            security.findUsers(request.term, {maxRecords: 10, type: options && options.type}).then(function(userInfos) {
+            security.findUsers(request.term, {maxRecords: 7, type: options && options.type}).then(function(userInfos) {
                 cbResponse(userInfos.map(function(userInfo) {
                     usersHash[userInfo.Nickname] = userInfo;
                     return {value: userInfo.Nickname, label: ''};
@@ -668,7 +668,7 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
         new SecurityOwnerWidget(securityInfo.SecurityInfo, $('.security-owner-placeholder', canvas));
     }
 
-    this._dialogDiv = showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 370, false, false, resize);
+    this._dialogDiv = showDialog(_gtxt(this.dialogTitle, this.title), canvas[0], 571, 455, false, false, resize);
     function resize()
     {
         var mapTableHeight,
