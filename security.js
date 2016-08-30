@@ -337,11 +337,11 @@ layerSecurity.prototype.constructor = layerSecurity;
 
 var multiLayerSecurity = function()
 {
-    this.getSecurityName = "MultiLayer/GetSecurity.ashx";
-    this.updateSecurityName = "MultiLayer/UpdateSecurity.ashx";
+    this.getSecurityName = 'MultiLayer/GetSecurity.ashx';
+    this.updateSecurityName = 'MultiLayer/UpdateSecurity.ashx';
 
-    this.propertyName = "MultiLayerID";
-    this.dialogTitle = "Редактирование прав доступа слоя [value0]";
+    this.propertyName = 'MultiLayerID';
+    this.dialogTitle = 'Редактирование прав доступа слоя [value0]';
 
     this.accessTypes = ['no', 'view', 'edit'];
 }
@@ -352,11 +352,15 @@ multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 var layersGroupSecurity = function()
 {
     this.getSecurityName = 'Map/GetSecurity.ashx';
+    this.getGroupSecurityName = 'Layer/GetSecurity.ashx';
     this.updateSecurityName = 'Layer/LayersGroupUpdateSecurity';
 
     this.propertyName = 'MapID';
     this.groupPropertyName = 'Layers';
-    this.groupLayers = [];
+
+    this.mapLayers = [];
+    this.mapLayersSecurityArray = [];
+    this.selectedLayersSecurityArray = [];
     this.originalItems = [];
 
     this.dialogTitle = 'Редактирование прав доступа слоев карты [value0]';
@@ -370,13 +374,27 @@ layersGroupSecurity.prototype.constructor = layersGroupSecurity;
 security.prototype.getSecurityFromServer = function(id) {
     var def = $.Deferred();
 
-    sendCrossDomainJSONRequest(serverBase + this.getSecurityName + "?WrapStyle=func&IncludeAdmin=true&" + this.propertyName + "=" + id, function(response)
+    sendCrossDomainJSONRequest(serverBase + this.getSecurityName + '?WrapStyle=func&IncludeAdmin=true&' + this.propertyName + '=' + id, function(response)
     {
         if (!parseResponse(response)) {
             def.reject(response);
             return;
         }
+        def.resolve(response.Result);
+    })
 
+    return def;
+}
+
+// запрос security группы слоев
+security.prototype.getGroupSecurityFromServer = function(postParams) {
+    var def = $.Deferred();
+
+    sendCrossDomainPostRequest(serverBase + this.getGroupSecurityName, postParams, function(response) {
+        if (!parseResponse(response)) {
+            def.reject(response);
+            return;
+        }
         def.resolve(response.Result);
     })
 
@@ -435,7 +453,6 @@ security.prototype._save = function() {
     postParams.SecurityInfo = JSON.stringify(si.SecurityInfo);
 
     postParams[this.propertyName] = this.propertyValue;
-
     sendCrossDomainPostRequest(serverBase + this.updateSecurityName, postParams, function(response) {
         if (!parseResponse(response)) {
             nsGmx.widgets.notifications.stopAction('securitySave');
@@ -522,9 +539,14 @@ security.findUsers = function(query, options) {
 
 
 layersGroupSecurity.prototype._save = function(originalItems) {
-    var _this = this,
-        si = this._securityInfo,
-        addedUsers = this.securityUserListWidget.securityUsersProvider.getOriginalItems();
+    var _this = this;
+
+    if (!_this.selectedLayersSecurityArray.length) {
+        return;
+    }
+
+    var si = _this._securityInfo,
+        addedUsers = _this.securityUserListWidget.securityUsersProvider.getOriginalItems();
 
     si.SecurityInfo = {
         // Users: [],
@@ -556,51 +578,60 @@ layersGroupSecurity.prototype._save = function(originalItems) {
         _this.originalItems = originalItems;
 
         // обновляем права всех выделенных слоев
-        updateGroupLayersSecurity(_this.groupLayers);
+        updateselectedLayersSecurity(_this.selectedLayersSecurityArray);
 
         nsGmx.widgets.notifications.stopAction('securitySave', 'success', _gtxt('Сохранено'));
         $(this).trigger('savedone', si);
     })
 
+    // обновляет массив выделенных слоев с правами после нажатия кнопки "сохранить",
+    // затем обновляет массив всех слоев
+    function updateselectedLayersSecurity(array) {
+        var postParams = {
+            WrapStyle: 'window',
+            Layers: array.map(function(obj) {
+                return obj.ID;
+            })
+        };
 
-    // обновляет массив с правами после нажатия кнопки "сохранить"
-    function updateGroupLayersSecurity(array) {
-        if (array.length) {
-            for (var i = 0; i < array.length; i++) {
-                if (array[i].multiLayer) {
-                    var securityDialog = new nsGmx.multiLayerSecurity();
-                    securityDialog.getSecurityFromServer(array[i].ID).then(updateSecurity);
-                } else {
-                    securityDialog = new nsGmx.layerSecurity(array[i].type);
-                    securityDialog.getSecurityFromServer(array[i].ID).then(updateSecurity);
+        _this.getGroupSecurityFromServer(postParams).then(updateSecurity);
+    }
+    // обновляет права на слои
+
+    function updateSecurity(res) {
+        var array = _this.selectedLayersSecurityArray;
+        for (var i = 0; i < array.length; i++) {
+            for (var j = 0; j < res.length; j++) {
+                if (array[i].ID === res[j].ID) {
+                    var options = {
+                        type: array[i].type,
+                        multiLayer: !!array[i].MultiLayerID
+                    }
+                    array.splice(i, 1, $.extend(res[j], options));
                 }
             }
         }
-    }
 
-    // обновляет права каждого слоя в массиве
-    function updateSecurity(res) {
-        var groupLayers = _this.groupLayers;
-        for (var i = 0; i < groupLayers.length; i++) {
-            if (groupLayers[i].ID === res.ID) {
-                groupLayers.splice(i, 1, res);
+        for (var k = 0; k < array.length; k++) {
+            for (var l = 0; l < _this.mapLayersSecurityArray.length; l++) {
+                if (array[k].ID === _this.mapLayersSecurityArray[l].ID) {
+                    _this.mapLayersSecurityArray.splice(l, 1, array[k])
+                }
             }
         }
-    }
+    };
 
     // возвращает массив удаленных пользователей
     function findRemovedUsers(original, changed) {
         return _.difference(original, changed);
     }
-
 }
-
 
 // кастомный интерфейс - виджет группового редактирования слоев карты
 layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, options)
 {
     var _this = this,
-        groupLayers = this.groupLayers;
+        selectedLayersSecurityArray = this.selectedLayersSecurityArray;
 
     options = $.extend({showOwner: true}, options);
     this._securityInfo = securityInfo;
@@ -622,11 +653,11 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
         showOwner: options.showOwner
     }));
 
-    this.addCustomUI(canvas, groupLayers, resize);
+    this.addCustomUI(canvas, resize);
 
     $('.security-save', canvas).click(function(){
         if (_this.groupPropertyName) {
-            _this.propertyValue = groupLayers.map(function(item){
+            _this.propertyValue = selectedLayersSecurityArray.map(function(item){
                 return item.ID;
             });
         }
@@ -658,8 +689,11 @@ layersGroupSecurity.prototype.createSecurityDialog = function(securityInfo, opti
 }
 
 // кастомный интерфейс - отдельная функция - дерево слоев для виджета группового редактирования слоев
-layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc) {
+layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
     var _this = this,
+        mapLayers = _this.mapLayers,
+        mapLayersSecurityArray = _this.mapLayersSecurityArray,
+        selectedLayersSecurityArray = _this.selectedLayersSecurityArray,
         counter = 0,
         actualCounter = {counter: counter},
         countDiv = $('.security-counter', ui),
@@ -689,7 +723,31 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
                 '</select>' +
             '</div>'
         ),
-        userList = $('.security-userlist-placeholder', ui);
+        userList = $('.security-userlist-placeholder', ui),
+        getMapLayersRights = function (callback) {
+            var postParams = {
+                WrapStyle: 'window',
+                Layers: mapLayers.map(function(layer){
+                    return layer.LayerID || layer.MultiLayerID;
+                })
+            };
+            _this.getGroupSecurityFromServer(postParams).then(callback);
+        },
+
+        // сохраняем права слоев карты
+        saveMapLayersRights = function (res) {
+            for (var i = 0; i < res.length; i++) {
+                for (var j = 0; j < mapLayers.length; j++) {
+                    if (res[i].ID === mapLayers[j].LayerID || res[i].ID === mapLayers[j].MultiLayerID) {
+                        var options = {
+                            type: mapLayers[j].type,
+                            multiLayer: !!mapLayers[j].MultiLayerID
+                        };
+                        mapLayersSecurityArray.push($.extend(res[i], options));
+                    }
+                }
+            }
+        };
 
     // модификация исходного дерева - остаются только слои с правами на редактирование
     rawTree = window._layersTree.treeModel.cloneRawTree(function(node) {
@@ -699,6 +757,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
             if (props.Access !== 'edit') {
                 return null;
             }
+            mapLayers.push(props);
             return node;
         }
         if (node.type === 'group') {
@@ -725,47 +784,37 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
         visibilityFunc: function(props, isVisible) {
             if (isVisible) {
                 counter++;
-                handleLayer(addLayer);
+                for (var i = 0; i < mapLayersSecurityArray.length; i++) {
+                    if (mapLayersSecurityArray[i].ID === props.LayerID || mapLayersSecurityArray[i].ID === props.MultiLayerID) {
+                        selectedLayersSecurityArray.push(mapLayersSecurityArray[i]);
+                    }
+                }
+                addLayer();
             }
 
             if (!isVisible) {
                 counter--;
-                handleLayer(removeLayer);
+                for (var i = 0; i < selectedLayersSecurityArray.length; i++) {
+                    if (selectedLayersSecurityArray[i].ID === props.LayerID || selectedLayersSecurityArray[i].ID === props.MultiLayerID) {
+                        selectedLayersSecurityArray.splice(i, 1);
+                    }
+                }
+                removeLayer();
             }
 
             // показываем счетчик выделенных слоев под деревом
             actualCounter.counter = counter;
-
             $(countDiv).html(countTemplate(actualCounter));
 
-            // делает запрос прав на сервер
-            function handleLayer(callback) {
-                if (props.MultiLayerID) {
-                    var securityDialog = new nsGmx.multiLayerSecurity();
-                    securityDialog.getSecurityFromServer(props.MultiLayerID).then(callback);
-                } else {
-                    securityDialog = new nsGmx.layerSecurity(props.type);
-                    securityDialog.getSecurityFromServer(props.LayerID).then(callback);
-                }
-            }
-
             // добавляет слой в дерево слоев
-            function addLayer(res) {
-                res.type = props.type;
-                res.multiLayer = !!props.MultiLayerID;
-                groupLayers.push(res);
+            function addLayer() {
                 drawAccess();
                 resizeFunc();
             }
 
             // убирает слой из дерева слоев
-            function removeLayer(res) {
-                for (var i = 0; i < groupLayers.length; i++) {
-                    if (groupLayers[i].ID === res.ID) {
-                        groupLayers.splice(i, 1);
-                    }
-                }
-                if (counter > 0 && groupLayers.length) {
+            function removeLayer() {
+                if (counter > 0 && selectedLayersSecurityArray.length) {
                     drawAccess();
                 } else {
                     $(defAccessDiv).empty();
@@ -776,8 +825,8 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
 
             // рисует оба виджета - доступа по умолчанию и списка пользователей для каждого слоя
             function drawAccess() {
-                drawDefaultAccess(groupLayers, defAccessDiv);
-                drawUsersList(groupLayers, userList);
+                drawDefaultAccess(selectedLayersSecurityArray, defAccessDiv);
+                drawUsersList(selectedLayersSecurityArray, userList);
             }
 
             // рисует доступ по умолчанию
@@ -901,7 +950,10 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, groupLayers, resizeFunc
 
         }
     });
+
     drawnTree = tree.drawTree(rawTree, 2);
+
+    getMapLayersRights(saveMapLayersRights);
 
     $(drawnTree).treeview().appendTo(ui.find('.security-custom-ui'));
     $(countDiv).html(countTemplate(actualCounter));
