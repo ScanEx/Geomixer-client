@@ -1351,7 +1351,7 @@ $.extend(nsGmx.Utils, {
                 var formData = new FormData();
                 formData.append('file', shpFileForm);
                 var xhr = new XMLHttpRequest();
-                xhr.open('POST', serverBase + 'ShapeLoader.ashx');
+                xhr.open('POST', serverBase + 'ShapeLoader');
                 xhr.onload = function () {
                     if (xhr.status === 200) {
                         response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
@@ -1367,7 +1367,7 @@ $.extend(nsGmx.Utils, {
 
                 xhr.send(formData);
             } else {
-                sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+                sendCrossDomainPostRequest(serverBase + "ShapeLoader", {WrapStyle: "window"}, function(response)
                 {
                     if (parseResponse(response, errorMessages))
                         def.resolve(response.Result);
