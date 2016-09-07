@@ -409,13 +409,51 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 var valIndex = elem.fields[fieldName].index,
                     td = nsGmx.Utils._td();
 
-                nsGmx.Utils._(td, [nsGmx.Utils._t(nsGmx.Utils.convertFromServer(elem.fields[fieldName].type, elem.values[valIndex]))]);
+                nsGmx.Utils._(td, [nsGmx.Utils._t(attrsConvert(elem.fields[fieldName].type, elem.values[valIndex]))]);
 
                 if (elem.fields[fieldName].type === 'integer') {
                     td.style.textAlign = 'right';
 				}
 
                 tds.push(td);
+
+				function attrsConvert(type, value)
+				{
+					if (value === null) return "null";
+
+					if (!type) {
+						return value;
+					}
+
+					var lowerCaseType = type.toLowerCase();
+
+					if (lowerCaseType == 'string')
+					{
+						return value !== null ? value : ''; //все null интерпретируем как пустые строки!
+					}
+					else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
+					{
+						return value !== null ? String(value) : '';
+					}
+					else if (lowerCaseType == 'date')
+					{
+						if (value === null) return '';
+
+						return stringDate(value*1000, true);
+					}
+					else if (lowerCaseType == 'time')
+					{
+						if (value === null) return '';
+						return stringTime(value*1000, true);
+					}
+					else if (lowerCaseType == 'datetime')
+					{
+						if (value === null) return '';
+						return stringDateTime(value*1000, true);
+					}
+
+					return value;
+				}
             }
             else
             {
