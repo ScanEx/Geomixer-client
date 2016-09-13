@@ -18,6 +18,11 @@
 	// satelliteLayerID: false
 // }
 
+// настройки карты
+// var mapOptions = {
+	// maxPopupCount: 10
+// }
+
 // var headerLinks = false; //устарело: используйте gmxViewerUI.headerLinks
 
 // var gmxViewerUI = {

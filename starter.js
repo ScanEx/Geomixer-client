@@ -1239,7 +1239,7 @@ function processGmxMap(state, gmxMap) {
         nsGmx.widgets.languageWidget.appendTo(langContainer);
     }
 
-    var lmap = new L.Map($('#flash')[0], {
+    var lmap = new L.Map($('#flash')[0], L.extend(window.mapOptions ? window.mapOptions : {}, {
         contextmenu: true,
         center: defCenter,
         zoom: defZoom,
@@ -1253,7 +1253,7 @@ function processGmxMap(state, gmxMap) {
         minZoom: mapProps.MinZoom || undefined,
         maxZoom: mapProps.MaxZoom || undefined,
         boxZoom: false
-    });
+    }));
 
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
