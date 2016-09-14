@@ -438,7 +438,15 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 
 	if (elem.type == "layer")
 	{
-        var elemProperties = !layerManagerFlag ? nsGmx.gmxMap.layersByID[elem.content.properties.name].getGmxProperties(): elem.content.properties;
+        // var elemProperties = !layerManagerFlag ? nsGmx.gmxMap.layersByID[elem.content.properties.name].getGmxProperties(): elem.content.properties;
+
+		var elemProperties;
+		if (nsGmx.gmxMap.layersByID[elem.content.properties.name]) {
+			elemProperties = !layerManagerFlag ? nsGmx.gmxMap.layersByID[elem.content.properties.name].getGmxProperties(): elem.content.properties;
+		} else {
+			elemProperties = elem.content.properties;
+		}
+
 		var childs = this.drawLayer(elemProperties, parentParams, layerManagerFlag, parentVisibility);
 
 		if (typeof elem.content.properties.LayerID != 'undefined')
