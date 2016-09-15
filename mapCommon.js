@@ -40,8 +40,8 @@
                     layersTree: layersState
                 }
             }
-            
-            return nsGmx.Utils.TinyReference.create(config);
+
+            return nsGmx.Utils.TinyReference.create(config, false);
         },
         /**
         * Выбирает данные из дерева слоёв по описанию слоёв и групп

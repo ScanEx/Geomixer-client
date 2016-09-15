@@ -1648,11 +1648,12 @@ $.extend(nsGmx.Utils, {
         * @param {String} data Данные, которые нужно сохранить
         * @return {jQuery.Deferred} Промис, который будет resolve при сохранении данных. Параметр при ресолве: ID, по которому можно получить данные обратно
         */
-        create: function(data) {
+        create: function(data, tempFlag) {
             var def = $.Deferred();
             sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx", {
                 WrapStyle: 'message',
-                content: JSON.stringify(data)
+                content: JSON.stringify(data),
+                temp: tempFlag
             },
             function(response) {
                 if (parseResponse(response)) {

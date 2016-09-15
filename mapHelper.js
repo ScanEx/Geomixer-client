@@ -253,7 +253,7 @@ mapHelper.prototype.getMapStateAsPermalink = function(callback)
     nsGmx.userObjectsManager.collect();
     mapState.userObjects = JSON.stringify(nsGmx.userObjectsManager.getData());
 
-    nsGmx.Utils.TinyReference.create(mapState).then(callback);
+    nsGmx.Utils.TinyReference.create(mapState, true).then(callback);
 }
 
 mapHelper.prototype.reloadMap = function()
@@ -463,7 +463,7 @@ mapHelper.prototype.showPermalink = function()
 mapHelper.prototype.createPermalink = function(callback)
 {
 	var mapState = this.getMapState(),
-        def = nsGmx.Utils.TinyReference.create(mapState);
+        def = nsGmx.Utils.TinyReference.create(mapState, false);
 
     def.then(callback);
     return def;
