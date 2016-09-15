@@ -151,7 +151,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
         );
     }
 
-    var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit';
+    var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit' && div.gmxProperties.content.properties.Access !== 'edit';
 
     var createUI = function() {
         var divProperties = div ? div.gmxProperties.content.properties : {},
