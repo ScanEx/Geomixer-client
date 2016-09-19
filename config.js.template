@@ -23,6 +23,16 @@
 	// maxPopupCount: 10
 // }
 
+// настройки контролов
+// var controlsOptions = {
+	// gmxDrawing: {items: ['Rectangle', 'Polyline', 'Point', 'Polygon']},
+	// gmxLocation: {scaleFormat: 'text'},
+	// gmxCopyright: {cursorPosition: true}
+	// ,
+	// gmxHide: {isActive: false}
+	//gmxLogo: null
+//};
+
 // var headerLinks = false; //устарело: используйте gmxViewerUI.headerLinks
 
 // var gmxViewerUI = {

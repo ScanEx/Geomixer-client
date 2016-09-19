@@ -1269,7 +1269,7 @@ function processGmxMap(state, gmxMap) {
         }
     })
 
-    lmap.gmxControlsManager.init();
+    lmap.gmxControlsManager.init(window.controlsOptions);
     lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
     nsGmx.leafletMap = lmap;
 
