@@ -1251,8 +1251,7 @@ function processGmxMap(state, gmxMap) {
         distanceUnit: mapProps.DistanceUnit,
         squareUnit: mapProps.SquareUnit,
         minZoom: mapProps.MinZoom || undefined,
-        maxZoom: mapProps.MaxZoom || undefined,
-        boxZoom: false
+        maxZoom: mapProps.MaxZoom || undefined
     }));
 
     lmap.contextmenu.insertItem({
