@@ -12,21 +12,37 @@
 .cadInfo .cadNum {
     font-weight: bold;
 }
-.cadInfo .address {
-    padding-bottom: 12px;
+.cadInfo .featureCont {
+    min-height: 140px;
+    max-height: 140px;
+    overflow-y: auto;
+	margin-bottom: 16px;
+	text-align: center;
 }
+.cadInfo .operCont {
+	height: 20px;
+}
+.cadInfo .featureCont .first{
+    width: 100px;
+	font-weight: bold;
+}
+.cadInfo .featureCont table {
+	text-align: initial;
+}
+.cadInfo .featureCont td {
+	border-bottom: 1px solid #ddd;
+    height: 20px;
+}
+.cadasterPopup .leaflet-popup-content {
+}
+
 .cadInfo .ShowObjectLabel {
     position: relative;
     top: -3px;
     margin-left: 4px;
 }
 .cadInfo .cadNav {
-	position: relative;
-    background-color: lightgray;
-    top: -9px;
-	height: 20px;
-    margin-right: 6px;
-	padding-top: 2px;
+	min-height: 60px;
 }
 .cadInfo .cadNav .cadCount {
     width: 75%;
@@ -38,10 +54,16 @@
     float: left;
     cursor: pointer;
 	padding-left: 3px;
+    color: #2372B9;
+    font-weight: bold;
+    font-size: large;
 }
 .cadInfo .cadNav .cadRight {
     position: absolute;
-    right: 0px;
+    right: 20px;
 	padding-right: 3px;
     cursor: pointer;
+    color: #2372B9;
+    font-weight: bold;
+    font-size: large;
 }
