@@ -1269,22 +1269,26 @@ function processGmxMap(state, gmxMap) {
     });
 
 	// Begin: запоминание текущей позиции карты
-	function saveMapPosition() {
-		window.localStorage.setItem('lastMapPosiotion', JSON.stringify({zoom: lmap.getZoom(), center: lmap.getCenter()}));
+	function saveMapPosition(key) {
+		window.localStorage.setItem('lastMapPosiotion_' + key, JSON.stringify({zoom: lmap.getZoom(), center: lmap.getCenter()}));
 	}
-	function getMapPosition() {
-		return JSON.parse(localStorage.getItem('lastMapPosiotion'));
+	function getMapPosition(key) {
+		return JSON.parse(localStorage.getItem('lastMapPosiotion_' + key));
 	}
-	lmap.on('boxzoomstart', saveMapPosition);
+	lmap.on('boxzoomstart', function(ev) { saveMapPosition('z'); });
 	L.DomEvent.on(document, 'keydown', function(ev) {
+		var key = ev.key;
 		if (ev.ctrlKey) {
-			if (ev.key === 'z') {
-				var pos = getMapPosition();
+			var pos = getMapPosition(key);
+			if (pos && (key === 'z' || Number(key) >= 0)) {
 				lmap.setView(pos.center, pos.zoom);
-			} else if (ev.key === 'x') {
-				saveMapPosition();
+			}
+		} else if (ev.altKey) {
+			if (Number(key) >= 0) {
+				saveMapPosition(key);
 			}
 		}
+		
 	}, lmap);
 	// End: запоминание текущей позиции карты
 
