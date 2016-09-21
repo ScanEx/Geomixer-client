@@ -1266,7 +1266,27 @@ function processGmxMap(state, gmxMap) {
         callback: function(event) {
             lmap.setView(event.latlng);
         }
-    })
+    });
+
+	// Begin: запоминание текущей позиции карты
+	function saveMapPosition() {
+		window.localStorage.setItem('lastMapPosiotion', JSON.stringify({zoom: lmap.getZoom(), center: lmap.getCenter()}));
+	}
+	function getMapPosition() {
+		return JSON.parse(localStorage.getItem('lastMapPosiotion'));
+	}
+	lmap.on('boxzoomstart', saveMapPosition);
+	L.DomEvent.on(document, 'keydown', function(ev) {
+		if (ev.ctrlKey) {
+			if (ev.key === 'z') {
+				var pos = getMapPosition();
+				lmap.setView(pos.center, pos.zoom);
+			} else if (ev.key === 'x') {
+				saveMapPosition();
+			}
+		}
+	}, lmap);
+	// End: запоминание текущей позиции карты
 
     lmap.gmxControlsManager.init(window.controlsOptions);
     lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
