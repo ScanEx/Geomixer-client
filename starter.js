@@ -1278,12 +1278,12 @@ function processGmxMap(state, gmxMap) {
 	lmap.on('boxzoomstart', function(ev) { saveMapPosition('z'); });
 	L.DomEvent.on(document, 'keydown', function(ev) {
 		var key = ev.key;
-		if (ev.ctrlKey) {
+		if (lmap.gmxMouseDown === 1) {
 			var pos = getMapPosition(key);
 			if (pos && (key === 'z' || Number(key) >= 0)) {
 				lmap.setView(pos.center, pos.zoom);
 			}
-		} else if (ev.altKey) {
+		} else if (lmap.gmxMouseDown === 3) {
 			if (Number(key) >= 0) {
 				saveMapPosition(key);
 			}
