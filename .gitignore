@@ -1,0 +1,14 @@
+config.js
+dist
+api.js
+apil.js
+/JSBuildTools/common_components/config/application_config.json
+/JSBuildTools/common_components/node_modules
+/JSBuildTools/common_components/temp
+common_components/temp
+common_components/dist
+/Testing/cairo-dll
+common_components/primary.js
+css/primary.css
+/JSBuildTools/node_modules
+/JSBuildTools/temp

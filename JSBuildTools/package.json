@@ -1,0 +1,10 @@
+{
+    "name": "GeoMixer",
+    "devDependencies": {
+        "gulp": "^3.8.10",
+        "node-uuid": "~1.4.3",
+        "handlebars": "~3.0.1",
+        "gulp-css-rebase-urls": "0.0.5",
+        "gulp-concat": "^2.4.2"
+    }
+}

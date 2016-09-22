@@ -1,0 +1,87 @@
+[submodule "leaflet\\plugins\\Leaflet-GeoMixer"]
+	path = leaflet\\plugins\\Leaflet-GeoMixer
+	url = git@github.com:ScanEx/Leaflet-GeoMixer.git
+[submodule "leaflet/plugins/Leaflet-GeoMixer"]
+	path = leaflet/plugins/Leaflet-GeoMixer
+	url = git@github.com:ScanEx/Leaflet-GeoMixer.git
+[submodule "common_components/GeoMixerAccount"]
+	path = common_components/GeoMixerAccount
+	url = git@github.com:ScanEx/GeoMixerAccount.git
+[submodule "common_components/Leaflet-IconLayers"]
+	path = common_components/Leaflet-IconLayers
+	url = git@github.com:ScanEx/Leaflet-IconLayers.git
+[submodule "leaflet/plugins/GMXVirtualTileLayer"]
+	path = leaflet/plugins/GMXVirtualTileLayer
+	url = git@github.com:ScanEx/GMXVirtualTileLayer.git
+[submodule "leaflet/plugins/L.ImageOverlay.Pane"]
+	path = leaflet/plugins/L.ImageOverlay.Pane
+	url = git@github.com:ScanEx/L.ImageOverlay.Pane.git
+[submodule "leaflet/plugins/Leaflet.contextmenu"]
+	path = leaflet/plugins/Leaflet.contextmenu
+	url = git@github.com:ScanEx/Leaflet.contextmenu.git
+[submodule "leaflet/plugins/Leaflet.TileLayer.Mercator"]
+	path = leaflet/plugins/Leaflet.TileLayer.Mercator
+	url = git@github.com:ScanEx/Leaflet.TileLayer.Mercator.git
+[submodule "leaflet/plugins/Leaflet.heat"]
+	path = leaflet/plugins/Leaflet.heat
+	url = git@github.com:Leaflet/Leaflet.heat.git
+[submodule "leaflet/plugins/Leaflet.imageTransform"]
+	path = leaflet/plugins/Leaflet.imageTransform
+	url = git@github.com:ScanEx/Leaflet.imageTransform.git
+[submodule "leaflet/plugins/Leaflet.markercluster"]
+	path = leaflet/plugins/Leaflet.markercluster
+	url = git@github.com:Leaflet/Leaflet.markercluster.git
+[submodule "leaflet/plugins/gmxBaseLayersManager"]
+	path = leaflet/plugins/gmxBaseLayersManager
+	url = git@github.com:ScanEx/Leaflet.gmxBaseLayersManager.git
+[submodule "leaflet/plugins/gmxControls"]
+	path = leaflet/plugins/gmxControls
+	url = git@github.com:ScanEx/gmxControls.git
+[submodule "leaflet/plugins/gmxDrawing"]
+	path = leaflet/plugins/gmxDrawing
+	url = git@github.com:ScanEx/gmxDrawing.git
+[submodule "leaflet/plugins/gmxGrid"]
+	path = leaflet/plugins/gmxGrid
+	url = git@github.com:ScanEx/Leaflet.gmxGrid.git
+[submodule "JSBuildTools/common_components/builder"]
+	path = JSBuildTools/common_components/builder
+	url = git@github.com:ScanEx/GMXBuilder.git
+[submodule "common_components/repo"]
+	path = common_components/repo
+	url = git@github.com:ScanEx/GMXCommonComponents.git
+[submodule "plugins/external/GMXPluginAgro"]
+	path = plugins/external/GMXPluginAgro
+	url = git@github.com:ScanEx/GMXPluginAgro.git
+[submodule "plugins/external/GMXPluginBuffer"]
+	path = plugins/external/GMXPluginBuffer
+	url = git@github.com:ScanEx/GMXPluginBuffer.git
+[submodule "plugins/external/GMXPluginCatalog"]
+	path = plugins/external/GMXPluginCatalog
+	url = git@github.com:ScanEx/GmxPluginCatalog.git
+[submodule "plugins/external/GMXPluginGFW"]
+	path = plugins/external/GMXPluginGFW
+	url = git@github.com:ScanEx/GMXPluginGFW.git
+[submodule "plugins/external/GMXPluginMedia"]
+	path = plugins/external/GMXPluginMedia
+	url = git@github.com:ScanEx/GMXPluginMedia.git
+[submodule "plugins/external/GMXPluginMedved"]
+	path = plugins/external/GMXPluginMedved
+	url = git@github.com:ScanEx/GMXPluginMedved.git
+[submodule "plugins/external/GMXPluginSearchQuery"]
+	path = plugins/external/GMXPluginSearchQuery
+	url = git@github.com:ScanEx/GMXPluginSearchQuery.git
+[submodule "plugins/external/GMXPluginSlicks"]
+	path = plugins/external/GMXPluginSlicks
+	url = git@github.com:ScanEx/GMXPluginSlicks.git
+[submodule "plugins/external/GMXPluginWikimapia"]
+	path = plugins/external/GMXPluginWikimapia
+	url = git@github.com:ScanEx/GMXPluginWikimapia.git
+[submodule "plugins/gibs/leaflet-GIBS"]
+	path = plugins/gibs/leaflet-GIBS
+	url = git@github.com:aparshin/leaflet-GIBS.git
+[submodule "plugins/external/GMXPluginCadastre"]
+	path = plugins/external/GMXPluginCadastre
+	url = git@github.com:ScanEx/GMXPluginCadatsre.git
+[submodule "plugins/external/WWFAlert"]
+	path = plugins/external/WWFAlert
+	url = git@github.com:aparshin/WWFAlert.git
