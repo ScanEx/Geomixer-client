@@ -1,3 +1,5 @@
+*.bak
+
 config.js
 dist
 api.js

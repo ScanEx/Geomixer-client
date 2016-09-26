@@ -145,9 +145,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     var downloadSection = $(Handlebars.compile('<div>' +
         '<span class="buttonLink attrsDownloadLink" data-format="Shape">{{i "Скачать shp"}}</span>' +
-        '{{#unless isPolygon}}' +
-		'<span class="buttonLink attrsDownloadLink" data-format="gpx">{{i "Скачать gpx"}}</span>' +
-		'{{/unless}}' +
+        '{{#if isPolygon}}<span class="buttonLink attrsDownloadLink" data-format="gpx">{{i "Скачать gpx"}}</span>{{/if}}' +
         '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
         '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
     '</div>')({
