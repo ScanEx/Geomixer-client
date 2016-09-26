@@ -1283,7 +1283,7 @@ function processGmxMap(state, gmxMap) {
 			if (pos && (key === 'z' || Number(key) >= 0)) {
 				lmap.setView(pos.center, pos.zoom);
 			}
-		} else if (lmap.gmxMouseDown === 3) {
+		} else if (lmap.gmxMouseDown > 1) {
 			if (Number(key) >= 0) {
 				saveMapPosition(key);
 			}

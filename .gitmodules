@@ -1,6 +1,3 @@
-[submodule "leaflet\\plugins\\Leaflet-GeoMixer"]
-	path = leaflet\\plugins\\Leaflet-GeoMixer
-	url = git@github.com:ScanEx/Leaflet-GeoMixer.git
 [submodule "leaflet/plugins/Leaflet-GeoMixer"]
 	path = leaflet/plugins/Leaflet-GeoMixer
 	url = git@github.com:ScanEx/Leaflet-GeoMixer.git
