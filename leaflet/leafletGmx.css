@@ -13,8 +13,8 @@
     font-weight: bold;
 }
 .cadInfo .featureCont {
-    min-height: 140px;
-    max-height: 140px;
+    min-height: 200px;
+    max-height: 200px;
     overflow-y: auto;
 	margin-bottom: 16px;
 	text-align: center;
@@ -32,6 +32,8 @@
 .cadInfo .featureCont td {
 	border-bottom: 1px solid #ddd;
     height: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 .cadasterPopup .leaflet-popup-content {
 }
