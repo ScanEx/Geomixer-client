@@ -27,7 +27,7 @@
 	font-weight: bold;
 }
 .cadInfo .featureCont table {
-	text-align: initial;
+	text-align: left;
 }
 .cadInfo .featureCont td {
 	border-bottom: 1px solid #ddd;
