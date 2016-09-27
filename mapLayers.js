@@ -577,8 +577,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
-
-            if (layer && layer.getBounds) {
+            if (treeNode.content.geometry && layer && layer.getBounds) {
                 var minLayerZoom = _this.getMinLayerZoom(layer);
                 _this.layerZoomToExtent(layer.getBounds(), minLayerZoom);
             }
@@ -765,11 +764,10 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 
                 _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
                 {
-                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
+                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) && child.content.geometry)
                     {
-                        var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
-
-                        bounds.extend(layer.getBounds());
+                        	var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
+							bounds.extend(layer.getBounds());
 
                         minLayerZoom = Math.min(minLayerZoom, _this.getMinLayerZoom(layer));
                     }

@@ -406,6 +406,8 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
 
     descr.value = layerProperties.get('Description');
 
+    var geometryType = _input(null,[['attr','fieldName','geom_type'],['attr','value',layerProperties.get('GeometryType')],['attr','disabled', 'disabled'],['dir','className','inputStyle'],['css','width','220px']]);
+
     var shownProperties = [];
 
     shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
@@ -416,6 +418,10 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
     }
 
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
+
+    if (layerProperties.get('Type') === "Vector") {
+        shownProperties.push({name: _gtxt("Геометрия"), field: 'geometryType', elem: geometryType});
+    }
 
     if (layerProperties.get('Type') != "Vector") {
         var selectImage = new mapHelper.ImageSelectionWidget();
