@@ -406,7 +406,22 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
 
     descr.value = layerProperties.get('Description');
 
-    var geometryType = _input(null,[['attr','fieldName','geom_type'],['attr','value',layerProperties.get('GeometryType')],['attr','disabled', 'disabled'],['dir','className','inputStyle'],['css','width','220px']]);
+    var currentGeometryType = layerProperties.get('GeometryType');
+    var geometryTitle = null;
+
+    var geometryTypes = [
+        {title: _gtxt('полигоны'), type: 'polygon'},
+        {title: _gtxt('линии'), type: 'linestring'},
+        {title: _gtxt('точки'), type: 'point'}
+    ];
+
+    for (var i = 0; i < geometryTypes.length; i++) {
+        if (currentGeometryType === geometryTypes[i].type) {
+            geometryTitle = geometryTypes[i].title
+        }
+    }
+
+    var geometryType = _input(null,[['attr','fieldName','geom_type'],['attr','value', geometryTitle],['attr','disabled', 'disabled'],['dir','className','inputStyle'],['css','width','220px']]);
 
     var shownProperties = [];
 
@@ -419,7 +434,7 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
 
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
 
-    if (layerProperties.get('Type') === "Vector") {
+    if (layerProperties.get('Type') === "Vector" && layerProperties.get('Geometry') !== undefined) {
         shownProperties.push({name: _gtxt("Геометрия"), field: 'geometryType', elem: geometryType});
     }
 
@@ -590,7 +605,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
 
     /*------------ Источник: вручную ------------*/
     var geometryTypes = [
-        {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
+        {title: _gtxt('полигоны'), type: 'polygon'   , className: 'manual-polygon'},
         {title: _gtxt('линии'),          type: 'linestring', className: 'manual-linestring'},
         {title: _gtxt('точки'),          type: 'point'     , className: 'manual-point'}
     ];

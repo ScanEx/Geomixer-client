@@ -823,8 +823,8 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		// else if (type == 'LineString')
 			// _(spanElem, [_t(_gtxt('линии'))]);
 		// else if (type == 'Polygon')
-			// _(spanElem, [_t(_gtxt('многоугольники'))]);
-		
+			// _(spanElem, [_t(_gtxt('полигоны'))]);
+
         // var icon;
 		// (function(type){
 			// icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)

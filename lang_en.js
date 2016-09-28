@@ -143,7 +143,7 @@ _translationsHash.hash["eng"] = {
 	"Введите имя gml-файла для скачивания:" : "Enter gml-file name to download:",
 	"точки" : "points",
 	"линии" : "lines",
-	"многоугольники" : "polygons",
+	"полигоны" : "polygons",
 	"(ссылка)" : "(link)",
 	"Сохранить состояние карты" : "Save map state",
 	"Ссылка на текущее состояние карты" : "Link to the map",
