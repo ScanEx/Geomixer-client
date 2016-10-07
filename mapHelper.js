@@ -361,7 +361,7 @@ mapHelper.prototype.getMapState = function() {
         mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 
     lmap.gmxDrawing.getFeatures().forEach(function(feature) {
-        if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature)) {
+        if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature) || feature.options.exportRect) {
             return;
         }
 
@@ -1161,7 +1161,8 @@ mapHelper.prototype.export = function(params) {
 
 	var newParams = $.extend(exportCssParams, params);
 
-	nsGmx.leafletMap.setZoom(newParams.position.z);
+	nsGmx.leafletMap.panTo(newParams.latLng);
+	nsGmx.leafletMap.setZoom(17 - newParams.position.z);
 	$('#flash').css(newParams);
 	nsGmx.leafletMap.invalidateSize();
 }
