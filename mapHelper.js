@@ -460,6 +460,14 @@ mapHelper.prototype.showPermalink = function()
     });
 }
 
+mapHelper.prototype.createExportPermalink = function(params, callback)
+{
+	var mapState = $.extend(this.getMapState(), params),
+		def = nsGmx.Utils.TinyReference.create(mapState, false);
+    def.then(callback);
+	return def;
+}
+
 mapHelper.prototype.createPermalink = function(callback)
 {
 	var mapState = this.getMapState(),
