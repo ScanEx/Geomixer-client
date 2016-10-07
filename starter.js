@@ -1288,7 +1288,7 @@ function processGmxMap(state, gmxMap) {
 				saveMapPosition(key);
 			}
 		}
-		
+
 	}, lmap);
 	// End: запоминание текущей позиции карты
 
@@ -1563,6 +1563,11 @@ function processGmxMap(state, gmxMap) {
         nsGmx.pluginsManager.afterViewer();
 
         $('#leftContent').mCustomScrollbar();
+
+        // экспорт карты
+        if (state.exportMode) {
+            _mapHelper.export(state);
+        }
     });
 }
 

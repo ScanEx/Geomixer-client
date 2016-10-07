@@ -1130,6 +1130,34 @@ mapHelper.prototype.print = function() {
     nsGmx.leafletMap.invalidateSize();
 }
 
+// экспортный режим редактора
+mapHelper.prototype.export = function(params) {
+    var toggleMode = function(isPreviewMode) {
+
+        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(!isPreviewMode);
+        window.exportMode = isPreviewMode;
+
+        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
+
+        $('#all').toggleClass('print-preview-all', isPreviewMode);
+
+		isPreviewMode ? $('.leaflet-control-container').hide() : $('.leaflet-control-container').show();
+    }
+
+    toggleMode(true);
+
+	var exportCssParams = {
+		top: '0px',
+		left: '0px'
+	};
+
+	var newParams = $.extend(exportCssParams, params);
+
+	nsGmx.leafletMap.setZoom(newParams.position.z);
+	$('#flash').css(newParams);
+	nsGmx.leafletMap.invalidateSize();
+}
+
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
 mapHelper.prototype.findChilds = function(treeElem, callback, flag)
 {
