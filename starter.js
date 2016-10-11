@@ -263,9 +263,8 @@ var createToolbar = function() {
     lmap.addControl(sliderControl);
 
     //пополняем тулбар
-    var uploadFileIcon = new L.Control.gmxIcon({
+    var uploadFileIcon = L.control.gmxIcon({
         id: 'uploadFile',
-        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Загрузить файл')
     }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
 
@@ -284,9 +283,8 @@ var createToolbar = function() {
 
     if (_queryMapLayers.currentMapRights() === 'edit') {
 
-        var saveMapIcon = new L.Control.gmxIcon({
+        var saveMapIcon = L.control.gmxIcon({
             id: 'saveMap',
-            className: 'leaflet-gmx-icon-sprite',
             title: _gtxt('Сохранить карту'),
             addBefore: 'drawing'
         })
@@ -294,21 +292,19 @@ var createToolbar = function() {
             .on('click', _queryMapLayers.saveMap.bind(_queryMapLayers));
 
         //группа создания слоёв
-        var createVectorLayerIcon = new L.Control.gmxIcon({
+        var createVectorLayerIcon = L.control.gmxIcon({
             id: 'createVectorLayer',
-            className: 'leaflet-gmx-icon-sprite',
             title: _gtxt('Создать векторный слой'),
             addBefore: 'drawing'
         }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
 
-        var createRasterLayerIcon = new L.Control.gmxIcon({
+        var createRasterLayerIcon = L.control.gmxIcon({
             id: 'createRasterLayer',
-            className: 'leaflet-gmx-icon-sprite',
             title: _gtxt('Создать растровый слой'),
             addBefore: 'drawing'
         }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
 
-        var createLayerIconGroup = new L.Control.gmxIconGroup({
+        var createLayerIconGroup = L.control.gmxIconGroup({
             id: 'createLayer',
             isSortable: true,
             //isCollapsible: false,
@@ -316,9 +312,8 @@ var createToolbar = function() {
             addBefore: 'drawing'
         }).addTo(lmap);
 
-        var bookmarkIcon = new L.Control.gmxIcon({
+        var bookmarkIcon = L.control.gmxIcon({
             id: 'bookmark',
-            className: 'leaflet-gmx-icon-sprite',
             title: _gtxt('Добавить закладку'),
             addBefore: 'drawing'
         }).on('click', function() {
@@ -331,18 +326,16 @@ var createToolbar = function() {
         resolveToolConflict(lmap.gmxControlIconManager.get('drawing'));
     }
 
-    var printIcon = new L.Control.gmxIcon({
+    var printIcon = L.control.gmxIcon({
         id: 'gmxprint',
-        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Печать'),
         addBefore: 'drawing'
     })
         .addTo(lmap)
         .on('click', _mapHelper.print.bind(_mapHelper));
 
-    var permalinkIcon = new L.Control.gmxIcon({
+    var permalinkIcon = L.control.gmxIcon({
         id: 'permalink',
-        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Ссылка на карту'),
         addBefore: 'drawing'
     })
@@ -365,9 +358,8 @@ var createToolbar = function() {
     });
     lmap.addControl(shareIconControl);
 
-    var gridIcon = new L.Control.gmxIcon({
+    var gridIcon = L.control.gmxIcon({
         id: 'gridTool',
-        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Координатная сетка'),
         togglable: true,
         addBefore: 'drawing'
@@ -858,9 +850,8 @@ var initEditUI = function(){
     var listeners = {};
     var pluginPath = gmxCore.getModulePath('EditObjectPlugin');
 
-    var editIcon = new L.Control.gmxIcon({
+    var editIcon = L.control.gmxIcon({
         id: 'editTool',
-        className: 'leaflet-gmx-icon-sprite',
         title: _gtxt('Редактировать'),
         togglable: true,
         addBefore: 'gmxprint'
@@ -1238,8 +1229,7 @@ function processGmxMap(state, gmxMap) {
         nsGmx.widgets.languageWidget = new nsGmx.LanguageWidget();
         nsGmx.widgets.languageWidget.appendTo(langContainer);
     }
-
-    var lmap = new L.Map($('#flash')[0], L.extend(window.mapOptions ? window.mapOptions : {}, {
+	var mapOptions = L.extend(window.mapOptions ? window.mapOptions : {}, {
         contextmenu: true,
         center: defCenter,
         zoom: defZoom,
@@ -1252,7 +1242,20 @@ function processGmxMap(state, gmxMap) {
         squareUnit: mapProps.SquareUnit,
         minZoom: mapProps.MinZoom || undefined,
         maxZoom: mapProps.MaxZoom || undefined
-    }));
+    });
+	if (mapOptions.svgSprite) {
+		var ajax = new XMLHttpRequest();
+		ajax.open('GET', mapOptions.svgSprite, true);
+		ajax.send();
+		ajax.onload = function(e) {
+		  var div = document.createElement("div");
+		  div.style.display = 'none';
+		  div.innerHTML = ajax.responseText;
+		  document.body.insertBefore(div, document.body.childNodes[0]);
+		}
+	}
+
+    var lmap = new L.Map($('#flash')[0], mapOptions);
 
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
@@ -1288,7 +1291,7 @@ function processGmxMap(state, gmxMap) {
 				saveMapPosition(key);
 			}
 		}
-
+		
 	}, lmap);
 	// End: запоминание текущей позиции карты
 
