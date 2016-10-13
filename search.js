@@ -693,7 +693,10 @@ var ResultList = function(oInitContainer, ImagesHost){
 			_(oResultCanvas, [_li([_div([_t(sTotalListName)], [['dir', 'className', 'SearchTotalHeader']]), ulSearch])]);
 		}
 
-		$(oResultCanvas).treeview();
+        if (typeof($.fn.treeview) === 'function') {
+            $(oResultCanvas).treeview();
+        }
+
 		$(oResultCanvas).find(".SearchResultListChildsCanvas").each(function() {
 			this.parentNode.style.padding = '0px';
 			this.parentNode.style.background = 'none';
