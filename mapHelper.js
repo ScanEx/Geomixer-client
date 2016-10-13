@@ -1161,8 +1161,8 @@ mapHelper.prototype.export = function(params) {
 
 	var newParams = $.extend(exportCssParams, params);
 
-	nsGmx.leafletMap.panTo(newParams.latLng);
-	nsGmx.leafletMap.setZoom(17 - newParams.position.z);
+	nsGmx.leafletMap.setView([newParams.position.y, newParams.position.x], (17 - newParams.position.z));
+
 	$('#flash').css(newParams);
 	nsGmx.leafletMap.invalidateSize();
 }
