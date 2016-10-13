@@ -63,9 +63,11 @@ require('./common_components/builder')(gulp, {
         cssDistFile: 'temp/dummy.css',
         jsDistFile: 'temp/dummy.js',
         components: [
-            root + 'leaflet/plugins/Leaflet-GeoMixer@dist',
-            root + 'leaflet/plugins/gmxControls@dist',
-            root + 'leaflet/plugins/gmxDrawing@dist'
+			{ id: 'es6-promise', srcDir: root + 'leaflet/plugins/es6-promise', distFiles: ['dist/es6-promise.auto.js'], build: false },
+			{ id: 'fetch', srcDir: root + 'leaflet/plugins/fetch', distFiles: ['fetch.js'], build: false },
+			{ id: 'Leaflet-GeoMixer2', srcDir: root + 'leaflet/plugins/Leaflet-GeoMixer/dist', build: false },
+			{ id: 'gmxControls2', srcDir: root + 'leaflet/plugins/gmxControls/dist', build: false },
+			{ id: 'gmxDrawing2', srcDir: root + 'leaflet/plugins/gmxDrawing/dist', build: false }
         ],
     }]);
 
@@ -80,6 +82,8 @@ gulp.task('gmx-pub', ['compile'], function(cb) {
     var thirdpartySources = addPrefix(root, gmxDeps.jsFilesThidparty);
     var mainSources = [].concat(
             [
+                distDir + 'es6-promise/dist/es6-promise.auto.js',
+                distDir + 'fetch/fetch.js',
                 distDir + 'Leaflet-GeoMixer/dist/leaflet-geomixer-src.js',
                 distDir + 'gmxControls/dist/gmxControls-src.js',
                 distDir + 'gmxDrawing/dist/gmxDrawing-src.js'

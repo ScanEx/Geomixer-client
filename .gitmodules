@@ -82,3 +82,9 @@
 [submodule "plugins/external/WWFAlert"]
 	path = plugins/external/WWFAlert
 	url = git@github.com:aparshin/WWFAlert.git
+[submodule "leaflet/plugins/fetch"]
+	path = leaflet/plugins/fetch
+	url = git@github.com:github/fetch.git
+[submodule "leaflet/plugins/es6-promise"]
+	path = leaflet/plugins/es6-promise
+	url = git@github.com:stefanpenner/es6-promise.git
