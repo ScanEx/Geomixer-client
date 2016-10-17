@@ -65,9 +65,10 @@ require('./common_components/builder')(gulp, {
         components: [
 			{ id: 'es6-promise', srcDir: root + 'leaflet/plugins/es6-promise', distFiles: ['dist/es6-promise.auto.js'], build: false },
 			{ id: 'fetch', srcDir: root + 'leaflet/plugins/fetch', distFiles: ['fetch.js'], build: false },
-			{ id: 'Leaflet-GeoMixer2', srcDir: root + 'leaflet/plugins/Leaflet-GeoMixer/dist', build: false },
-			{ id: 'gmxControls2', srcDir: root + 'leaflet/plugins/gmxControls/dist', build: false },
-			{ id: 'gmxDrawing2', srcDir: root + 'leaflet/plugins/gmxDrawing/dist', build: false }
+			{ id: 'Leaflet-GeoMixer', srcDir: root + 'leaflet/plugins/Leaflet-GeoMixer/dist', distFiles: ['leaflet-geomixer-src.js'], build: false }
+			,
+			{ id: 'gmxControls', srcDir: root + 'leaflet/plugins/gmxControls/dist', distFiles: ['gmxControls-src.js', 'css/gmxControls.css'], build: false },
+			{ id: 'gmxDrawing', srcDir: root + 'leaflet/plugins/gmxDrawing/dist', distFiles: ['gmxDrawing-src.js', 'css/gmxDrawing.css'], build: false }
         ],
     }]);
 
@@ -84,17 +85,17 @@ gulp.task('gmx-pub', ['compile'], function(cb) {
             [
                 distDir + 'es6-promise/dist/es6-promise.auto.js',
                 distDir + 'fetch/fetch.js',
-                distDir + 'Leaflet-GeoMixer/dist/leaflet-geomixer-src.js',
-                distDir + 'gmxControls/dist/gmxControls-src.js',
-                distDir + 'gmxDrawing/dist/gmxDrawing-src.js'
+                distDir + 'Leaflet-GeoMixer/leaflet-geomixer-src.js',
+                distDir + 'gmxControls/gmxControls-src.js',
+                distDir + 'gmxDrawing/gmxDrawing-src.js'
             ],
             addPrefix(root, gmxDeps.jsFiles)
         );
 
     var cssSources = [].concat(addPrefix(root, gmxDeps.cssFiles), [
-            distDir + 'Leaflet-GeoMixer/dist/leaflet-geomixer.css',
-            distDir + 'gmxControls/dist/css/gmxControls.css',
-            distDir + 'gmxDrawing/dist/css/gmxDrawing.css'
+            distDir + 'Leaflet-GeoMixer/leaflet-geomixer.css',
+            distDir + 'gmxControls/css/gmxControls.css',
+            distDir + 'gmxDrawing/css/gmxDrawing.css'
         ]
     );
 

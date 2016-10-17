@@ -130,10 +130,10 @@ var cssFiles = [
     "common_components/adapter.css",
     "leaflet/leaflet.css",
     "leaflet/plugins/gmxControls/src/css/external.css",
-    "leaflet/leafletGmx.css"
+    "leaflet/leafletGmx.css",
 
-    "src/GridPlugin/GridPlugin.js",
-    "src/MapExport/MapExport.js",
+    "src/GridPlugin/GridPlugin.css",
+    "src/MapExport/MapExport.css"
 ];
 
 var moduleFiles = {
