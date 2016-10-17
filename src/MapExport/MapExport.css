@@ -1,0 +1,92 @@
+select {
+    /*border:1px solid #ccc;*/
+    vertical-align:top;
+    height:20px;
+}
+input, select{
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.mapExportConfigLeftMenu {
+    position: relative;
+    padding: 3px 0px 3px 7px;
+}
+
+.settings {
+    width: 75%;
+}
+
+.mapExportSelectButton,
+.mapExportButton {
+    margin: 4px 0px 4px 0px;
+    cursor: pointer;
+}
+
+.mapExportUnselectButton {
+    margin: 4px 4px 4px 4px;
+    cursor: pointer;
+}
+
+.selectButtons {
+    margin: 4px 4px 4px 4px;
+}
+
+.mapExportTooltip,
+.zoomSelect,
+.dims,
+.formatSelect,
+.nameSelect {
+    margin: 4px 0px 4px 0px;
+}
+
+.zoomSelect,
+.dimensionsSelect,
+.formatSelect,
+.nameSelect {
+    margin: 4px;
+}
+
+.export {
+    /*margin: 4px;*/
+}
+
+.zoomSelect,
+.dimensionsSelect,
+.formatSelect,
+.nameSelect {
+    clear:both;
+    text-align:right;
+}
+
+.zoomLevel,
+.formatTypes {
+    /*border-width: 2px;*/
+    width: 80px;
+}
+
+.mapExportWidth,
+.mapExportHeight {
+    width: 80px;
+}
+
+.mapExportName {
+    width: 130px;
+}
+
+.label {
+    float:left;
+}
+
+.export {
+    clear: both;
+}
+
+.mapExportWarn {
+    margin: 4px 4px 4px 4px;
+}
+
+.error {
+	background-color: #FFABAB;
+}
