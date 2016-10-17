@@ -80,7 +80,7 @@ var nsGmx = nsGmx || {};
     var MapExportMenu = function () {
         var canvas = nsGmx.Utils._div(null, [['dir','className','mapExportConfigLeftMenu']]);
 
-        var ExportModel = Backbone.Model.extend({
+        var ExportModel = window.Backbone.Model.extend({
             defaults: {
                 lm: new window.leftMenu(),
                 lmap: nsGmx.leafletMap,
@@ -108,10 +108,10 @@ var nsGmx = nsGmx || {};
 
         var model = new ExportModel();
 
-        var ExportView = Backbone.View.extend({
+        var ExportView = window.Backbone.View.extend({
             el: $(canvas),
             model: model,
-            template: Handlebars.compile(
+            template: window.Handlebars.compile(
 
                 // 1. Верхний элемент - подсказка
                 '<div class="mapExportTooltip">' +
@@ -184,7 +184,7 @@ var nsGmx = nsGmx || {};
 
             // меняется модель
             initialize: function () {
-                var attrs = this.model.toJSON();
+                var attrs = this.model.toJSON(),
                     currentZoom = attrs.lmap.getZoom(),
                     zoomLevels = attrs.zoomLevels,
                     formatTypes = attrs.formatTypes;
@@ -208,9 +208,9 @@ var nsGmx = nsGmx || {};
                     }
                 }
 
-                for (var i = 0; i < formatTypes.length; i++) {
-                    if (formatTypes[i].current === true) {
-                        this.model.set('format', formatTypes[i].type);
+                for (var j = 0; j < formatTypes.length; j++) {
+                    if (formatTypes[j].current === true) {
+                        this.model.set('format', formatTypes[j].type);
                     }
                 }
                 this.model.set({
@@ -227,8 +227,8 @@ var nsGmx = nsGmx || {};
                 this.$el.html(this.template(this.model.toJSON()));
                 this.$('.mapExportWidth').prop('disabled', true);
                 this.$('.mapExportHeight').prop('disabled', true);
-                this.$(".mapExportButton").prop('disabled', true);
-                this.$(".mapExportName").val(this.model.get('name'));
+                this.$('.mapExportButton').prop('disabled', true);
+                this.$('.mapExportName').val(this.model.get('name'));
 
                 return this;
             },
@@ -381,18 +381,13 @@ var nsGmx = nsGmx || {};
                         $(exportNameInput).removeClass('error');
                         $(exportBtn).prop('disabled', false);
                     }
-                };
+                }
             },
 
             setZoom: function (e) {
                 var attrs = this.model.toJSON(),
                     selectedZoom = Number(e.target.value),
-                    zoomLevels,
-                    currentZoom;
-
-                // если зум меняется без объекта, то исходным зумом всегда является текущий
-                currentZoom = attrs.selArea ? attrs.z : attrs.lmap.getZoom();
-                zoomLevels = attrs.zoomLevels;
+                    zoomLevels = attrs.zoomLevels;
 
                 for (var i = 0; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -413,7 +408,6 @@ var nsGmx = nsGmx || {};
             setFormat: function (e) {
                 var attrs = this.model.toJSON(),
                     formatTypes = attrs.formatTypes,
-                    currentFormat = attrs.format,
                     selectedFormat = e.target.value;
 
                 for (var i = 0; i < formatTypes.length; i++) {
@@ -512,7 +506,7 @@ var nsGmx = nsGmx || {};
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
 
                 function processLink(id){
-                    var url = serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + serverBase + 'api/index.html?permalink=' + id;
+                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
 
                     downloadFile(url);
 
@@ -546,9 +540,7 @@ var nsGmx = nsGmx || {};
                     width, height,
                     bottomLeft, bottomRight,
                     topLeft, topRight,
-                    newCoords,
                     newBounds,
-                    widthInput, heightInput,
                     value, valueErr, sizeErr;
 
                 if (!attrs.lmap || !attrs.selArea) {
@@ -562,9 +554,6 @@ var nsGmx = nsGmx || {};
 
                 // screenCoords = !attrs.coords ? this._convertLatLngs(initialCoords, attrs.z) : this._convertLatLngs(attrs.coords, attrs.z);
                 screenCoords = !attrs.coords ? this._revertCoords(this._convertLatLngs(initialCoords, attrs.z)) : this._revertCoords(this._convertLatLngs(attrs.coords, attrs.z));
-
-                // рамка начинается в левом верхнем углу, даже если было переворачивания рамки (координаты поменялись местами)
-                newCoords = this._revertCoords(screenCoords);
 
                 value = Number(e.target.value);
                 valueErr = value <= 0 || isNaN(value);
@@ -798,13 +787,17 @@ var nsGmx = nsGmx || {};
 
             _getDimensions: function(points) {
                 var attrs = this.model.toJSON(),
-                    points = this._revertCoords(points),
-                    bottomLeft = points[0],
-                    topRight = points[2],
-                    width = Math.abs(topRight.x - bottomLeft.x),
-                    height = Math.abs(bottomLeft.y - topRight.y),
-                    x = bottomLeft.x + width / 2,
-                    y = topRight.y + height / 2;
+                    bottomLeft, topRight,
+                    width, height,
+                    x, y;
+
+                points = this._revertCoords(points);
+                bottomLeft = points[0];
+                topRight = points[2];
+                width = Math.abs(topRight.x - bottomLeft.x);
+                height = Math.abs(bottomLeft.y - topRight.y);
+                x = bottomLeft.x + width / 2;
+                y = topRight.y + height / 2;
 
                 return {
                     bottomLeft: bottomLeft,
@@ -890,7 +883,6 @@ var nsGmx = nsGmx || {};
   };
 
     window.gmxCore.addModule('MapExport',
-        publicInterface,
-        {css: 'MapExport.css'}
+        publicInterface
     );
 })();

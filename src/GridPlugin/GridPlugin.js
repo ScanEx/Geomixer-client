@@ -262,7 +262,6 @@ var nsGmx = nsGmx || {};
   };
 
     window.gmxCore.addModule('GridPlugin',
-        publicInterface,
-        {css: 'src/GridPlugin/GridPlugin.css'}
+        publicInterface
     );
 })();
