@@ -65,9 +65,18 @@ require('./common_components/builder')(gulp, {
         components: [
 			{ id: 'es6-promise', srcDir: root + 'leaflet/plugins/es6-promise', distFiles: ['dist/es6-promise.auto.js'], build: false },
 			{ id: 'fetch', srcDir: root + 'leaflet/plugins/fetch', distFiles: ['fetch.js'], build: false },
-			{ id: 'Leaflet-GeoMixer', srcDir: root + 'leaflet/plugins/Leaflet-GeoMixer/dist', distFiles: ['leaflet-geomixer-src.js'], build: false }
-			,
-			{ id: 'gmxControls', srcDir: root + 'leaflet/plugins/gmxControls/dist', distFiles: ['gmxControls-src.js', 'css/gmxControls.css'], build: false },
+			{ id: 'Leaflet-GeoMixer', srcDir: root + 'leaflet/plugins/Leaflet-GeoMixer/dist', distFiles: ['leaflet-geomixer-src.js'], build: false },
+			{ id: 'gmxControls', srcDir: root + 'leaflet/plugins/gmxControls/dist', distFiles: [
+				'gmxControls-src.js',
+				'css/gmxControls.css',
+				'css/img/gmxSprite.png',
+				'css/img/band.png',
+				'css/img/coords.png',
+				'css/img/logo_footer.png',
+				'css/img/progress.gif',
+				'css/img/logo_footer_color.png',
+				'css/img/svg-symbols.svg'
+			], build: false },
 			{ id: 'gmxDrawing', srcDir: root + 'leaflet/plugins/gmxDrawing/dist', distFiles: ['gmxDrawing-src.js', 'css/gmxDrawing.css'], build: false }
         ],
     }]);
