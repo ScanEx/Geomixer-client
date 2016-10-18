@@ -91,21 +91,10 @@ var gridManager = {
     },
     restoreOptions: function() {
         this.gridControl.setColor(this.options.color);
+    },
+    setOptions: function (options) {
+        this.options = options;
     }
-}
-
-function configureGrid() {
-    gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
-          var menu = new def.ConfigureGridMenu(gridManager, gridManager.gridControl);
-          menu.Load();
-  });
-}
-
-function mapExportMenu() {
-    gmxCore.loadModule('MapExport', 'src/MapExport/MapExport.js').then(function (def) {
-          var menu = new def.MapExportMenu();
-          menu.Load();
-  });
 }
 
 var createMenuNew = function() {
@@ -383,12 +372,17 @@ var createToolbar = function() {
     _mapHelper.customParamsManager.addProvider({
         name: 'GridManager',
         loadState: function(state) {
+            gridManager.setOptions({color: state.options.color});
             gridManager.setState(state.isActive);
+            gridManager.gridControl.setUnits(state.options.units);
+            gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
+            gridManager.gridControl.setColor(state.options.color);
         },
         saveState: function() {
             return {
                 version: '1.0.0',
-                isActive: gridIcon.options.isActive
+                isActive: gridIcon.options.isActive,
+                options: gridManager.options
             }
         }
     });
@@ -1582,6 +1576,20 @@ function processGmxMap(state, gmxMap) {
             _mapHelper.export(state);
         }
     });
+}
+
+function configureGrid() {
+    gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
+          var menu = new def.ConfigureGridMenu(gridManager);
+          menu.Load();
+  });
+}
+
+function mapExportMenu() {
+    gmxCore.loadModule('MapExport', 'src/MapExport/MapExport.js').then(function (def) {
+          var menu = new def.MapExportMenu();
+          menu.Load();
+  });
 }
 
 function promptFunction(title, value) {

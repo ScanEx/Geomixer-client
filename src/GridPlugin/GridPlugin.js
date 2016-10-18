@@ -29,8 +29,9 @@ var nsGmx = nsGmx || {};
     });
 
     // создает левое меню с параметрами координатной сетки
-    var ConfigureGridMenu = function (manager, control) {
-        var configDialog,
+    var ConfigureGridMenu = function (manager) {
+        var control = manager.gridControl,
+            configDialog,
             tempStyle = {
                 outline: {
                     color: control.options.color
