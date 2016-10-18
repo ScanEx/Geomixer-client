@@ -35,6 +35,8 @@ var mapHelper = function()
 
 	this.layerEditorsHash = {};
 
+	this.layerStylesHash = {};
+
 	this.attrValues = {};
 
 	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
