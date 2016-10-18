@@ -1072,9 +1072,16 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
  @param {string} ImagesHost - строка пути к картинкам
  @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту
  @returns {Search.ResultListMap}*/
-var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, bInitAutoCenter){
-	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter);
-	var lstResult = new ResultList(oInitContainer, sImagesHost);
+var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, CustomResultList, bInitAutoCenter){
+	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter),
+        lstResult;
+
+    if (CustomResultList && typeof CustomResultList === 'function') {
+        lstResult = new CustomResultList(oInitContainer, sImagesHost);
+    } else {
+        lstResult = new ResultList(oInitContainer, sImagesHost);
+    }
+
 	ResultListMap.call(this, lstResult, oRenderer);
 }
 
@@ -1702,7 +1709,7 @@ var SearchControlGet = function (params){
 		oLogic.AutoCompleteData(request.term, response);
 	}
 	/**Результаты поиска*/
-	var lstResult = new ResultListMapGet(params.ContainerList, map, params.ImagesHost);
+	var lstResult = new ResultListMapGet(params.ContainerList, map, params.ImagesHost, params.CustomResultList);
 	/**Строка ввода поискового запроса*/
 	var btnSearch = new SearchInput(params.ContainerInput, {
 		ImagesHost: params.ImagesHost,
@@ -2034,7 +2041,8 @@ var SearchGeomixer = function(){
 											layersSearchFlag: params.layersSearchFlag,
 											ContainerList: oSearchResultDiv,
 											Map: params.Map,
-                                            gmxMap: params.gmxMap});
+                                            gmxMap: params.gmxMap,
+                                            CustomResultList: params.CustomResultList});
 		$(oSearchControl).bind('onBeforeSearch', fnBeforeSearch);
 		$(oSearchControl).bind('onAfterSearch', fnAfterSearch);
 		$(oSearchControl).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);
