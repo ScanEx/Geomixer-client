@@ -372,11 +372,14 @@ var createToolbar = function() {
     _mapHelper.customParamsManager.addProvider({
         name: 'GridManager',
         loadState: function(state) {
-            gridManager.setOptions({color: state.options.color});
             gridManager.setState(state.isActive);
-            gridManager.gridControl.setUnits(state.options.units);
-            gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
-            gridManager.gridControl.setColor(state.options.color);
+
+            if (state.isActive) {
+                gridManager.setOptions({color: state.options.color});
+                gridManager.gridControl.setUnits(state.options.units);
+                gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
+                gridManager.gridControl.setColor(state.options.color);
+            }
         },
         saveState: function() {
             return {
