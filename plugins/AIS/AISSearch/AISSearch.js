@@ -425,13 +425,18 @@
 
                 /**********************************************************************************/
 
-                icon = L.control.gmxIcon({
+                var iconOpt = {
                     id: pluginName,
                     togglable: true,
-                    regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
-                    activeImageUrl: _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
                     title: _gtxt(pluginName + '.iconTitle')
-                }).on('statechange', function (ev) {
+                };
+				if (!lmap.options.svgSprite) {
+                    L.extend(iconOpt, {
+						regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
+						activeImageUrl: _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage
+                    });
+				}
+				icon = L.control.gmxIcon(iconOpt).on('statechange', function (ev) {
                     isActivePlugin = ev.target.options.isActive;
                     if (isActivePlugin) {
                         var d1 = dateInterval.get('dateBegin'),
