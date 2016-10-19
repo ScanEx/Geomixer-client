@@ -1076,7 +1076,7 @@ var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, CustomRes
 	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter),
         lstResult;
 
-    if (CustomResultList && typeof CustomResultList === 'function') {
+    if (typeof CustomResultList === 'function') {
         lstResult = new CustomResultList(oInitContainer, sImagesHost);
     } else {
         lstResult = new ResultList(oInitContainer, sImagesHost);
@@ -1709,7 +1709,7 @@ var SearchControlGet = function (params){
 		oLogic.AutoCompleteData(request.term, response);
 	}
 	/**Результаты поиска*/
-	var lstResult = new ResultListMapGet(params.ContainerList, map, params.ImagesHost, params.CustomResultList);
+	var lstResult = new ResultListMapGet(params.ContainerList, map, params.ImagesHost, params.ResultList);
 	/**Строка ввода поискового запроса*/
 	var btnSearch = new SearchInput(params.ContainerInput, {
 		ImagesHost: params.ImagesHost,
@@ -1722,13 +1722,14 @@ var SearchControlGet = function (params){
     this.addSearchByStringHook(function(searchString) {
         var pos = L.gmxUtil.parseCoordinates(searchString);
         if (pos) {
-            nsGmx.leafletMap.panTo(pos);
+            map.panTo(pos);
 
             // Добавим иконку по умолчанию
             // L.Icon.Default.imagePath = 'leaflet/images';
-            nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: searchString }));
+            map.gmxDrawing.add(L.marker(pos, { draggable: true, title: searchString }));
+
             // Либо задать свою иконку
-            // nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, {
+            // map.gmxDrawing.add(L.marker(pos, {
                 // draggable: true, title: searchString,
                 // icon: L.icon({ iconUrl: 'img/flag_blau1.png', iconAnchor: [6, 36] })
             // }));
@@ -2042,7 +2043,7 @@ var SearchGeomixer = function(){
 											ContainerList: oSearchResultDiv,
 											Map: params.Map,
                                             gmxMap: params.gmxMap,
-                                            CustomResultList: params.CustomResultList});
+                                            ResultList: params.ResultList});
 		$(oSearchControl).bind('onBeforeSearch', fnBeforeSearch);
 		$(oSearchControl).bind('onAfterSearch', fnAfterSearch);
 		$(oSearchControl).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);
