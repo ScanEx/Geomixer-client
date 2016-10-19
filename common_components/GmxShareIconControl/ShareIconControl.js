@@ -3,20 +3,16 @@ var nsGmx = nsGmx || {};
 nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     options: {
         className: 'shareIcon',
-        id: 'permalink-button',
+        id: 'share',
         text: 'Share',
         style: {
             width: 'auto'
         }
     },
-    initialize: function(options) {
-        L.setOptions(this, L.extend(L.Control.gmxIcon.prototype.options, options));
-        L.Control.gmxIcon.prototype.initialize.call(this, this.options);
-    },
     onAdd: function(map) {
         this._container = L.Control.gmxIcon.prototype.onAdd.apply(this, arguments);
         this._shareDialogContainer = L.DomUtil.create('div', 'shareDialogContainer');
-        
+
         L.DomEvent.addListener(this._shareDialogContainer, 'click', function (e) {
             L.DomEvent.stopPropagation(e);
         });
