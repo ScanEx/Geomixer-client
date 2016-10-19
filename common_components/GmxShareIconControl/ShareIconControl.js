@@ -4,7 +4,7 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     options: {
         className: 'shareIcon',
         id: 'share',
-        text: 'Share',
+        text: !window.mapOptions.svgSprite ? 'Share' : null,
         style: {
             width: 'auto'
         }
