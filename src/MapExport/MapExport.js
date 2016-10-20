@@ -6,7 +6,7 @@ var nsGmx = nsGmx || {};
     var formats = [
         // 'geotiff',
         'png',
-        'jpeg'
+        'jpeg',
         // 'kmz',
         // 'mbtiles'
     ];
@@ -28,11 +28,11 @@ var nsGmx = nsGmx || {};
             exportTooltip : 'Выделите рамкой область карты',
             settings : {
                 settings: 'Настройки экспорта карты',
-                zoom: 'масштаб',
+                zoom: 'масштаб (уровень)',
                 size: 'размер',
                 format: 'формат файла',
-                width: 'ширина',
-                height: 'высота',
+                width: 'ширина (в пикселях)',
+                height: 'высота (в пикселях)',
                 name: 'имя файла'
             },
             formats: {
@@ -44,8 +44,9 @@ var nsGmx = nsGmx || {};
             },
             select: 'Выделить',
             unselect: 'Снять выделение',
+            zoomTo: 'Приблизить',
             export: 'Экспорт',
-            sizeWarn: 'недопустимый размер',
+            sizeWarn: 'максимальный размер - 10000 пикселей',
             valueWarn: 'недопустимое значение'
         }
     });
@@ -57,8 +58,8 @@ var nsGmx = nsGmx || {};
                 zoom: 'zoom',
                 size: 'size',
                 format: 'file format',
-                width: 'width',
-                height: 'height',
+                width: 'width (px)',
+                height: 'height (px)',
                 name: 'file name'
             },
             formats: {
@@ -70,6 +71,7 @@ var nsGmx = nsGmx || {};
             },
             select: 'Select',
             unselect: 'Clear selection',
+            zoomTo: 'Zoom to frame',
             export: 'Export',
             sizeWarn: 'incorrect size',
             valueWarn: 'incorrect value'
@@ -92,8 +94,6 @@ var nsGmx = nsGmx || {};
                 heightValueErr: false,
                 widthSizeErr: false,
                 heightSizeErr: false,
-                widthDisabled: true,
-                heightDisabled: true,
                 format: null,
                 x: null,
                 y: null,
@@ -120,8 +120,8 @@ var nsGmx = nsGmx || {};
 
                 // 2. выбор / отмена выделения
                 '<div class="selectButtons">' +
-                        '<input type="button" class="mapExportSelectButton" value={{i "mapExport.select"}}>' +
-                        '<input type="button" class="mapExportUnselectButton" value={{i "mapExport.unselect"}}>' +
+                        '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
+                        '<span class="buttonLink adjustButton btn-hidden"> {{i "mapExport.zoomTo"}}</span>' +
                 '</div>' +
 
                 // 3. настройки
@@ -134,7 +134,7 @@ var nsGmx = nsGmx || {};
                         '<select class="zoomLevel">' +
                             '{{#each this.zoomLevels}}' +
                             '<option value="{{this.zoom}}"' +
-                                '{{#if this.current}} selected{{/if}}>' +
+                                '{{#if this.current}} selected="selected"{{/if}}>' +
                                 '{{this.zoom}}' +
                             '</option>' +
                             '{{/each}}' +
@@ -155,7 +155,7 @@ var nsGmx = nsGmx || {};
                         '<select class="formatTypes">' +
                             '{{#each this.formatTypes}}' +
                             '<option value="{{this.type}}"' +
-                                '{{#if this.current}} selected{{/if}}>' +
+                                '{{#if this.current}} selected="selected" {{/if}}>' +
                                 '{{this.type}}' +
                             '</option>' +
                             '{{/each}}' +
@@ -167,13 +167,15 @@ var nsGmx = nsGmx || {};
                     '</div>' +
                 '</div>' +
                 '<div class="export">' +
-                    '<input type="button" class="mapExportButton" value={{i "mapExport.export"}} disabled="true">' +
+                    '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
+                    // '<input type="button" class="mapExportButton" value={{i "mapExport.export"}}>' +
                     '<span class="mapExportWarn"></span>' +
                 '</div>'
             ),
             events: {
                 'click .mapExportSelectButton': 'selectArea',
                 'click .mapExportUnselectButton': 'unselectArea',
+                'click .adjustButton': 'zoomToFrame',
                 'input .mapExportWidth': 'resize',
                 'input .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
@@ -196,9 +198,8 @@ var nsGmx = nsGmx || {};
                 this.listenTo(this.model, 'change:heightValueErr', this.handleValueError);
                 this.listenTo(this.model, 'change:widthSizeErr', this.handleSizeError);
                 this.listenTo(this.model, 'change:heightSizeErr', this.handleSizeError);
-                this.listenTo(this.model, 'change:widthDisabled', this.lockInput);
-                this.listenTo(this.model, 'change:heightDisabled', this.lockInput);
                 this.listenTo(this.model, 'change:name', this.updateName);
+                this.listenTo(this.model, 'change:z', this.updateZoom);
 
                 for (var i = 0; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -213,6 +214,7 @@ var nsGmx = nsGmx || {};
                         this.model.set('format', formatTypes[j].type);
                     }
                 }
+
                 this.model.set({
                     z: currentZoom,
                     zoomLevels: zoomLevels,
@@ -220,54 +222,61 @@ var nsGmx = nsGmx || {};
                     name: window.nsGmx.gmxMap.properties.title
                 });
 
+                this.updateArea();
+
                 this.render();
             },
 
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
+                this.$('.zoomLevel').prop('disabled', true)
                 this.$('.mapExportWidth').prop('disabled', true);
                 this.$('.mapExportHeight').prop('disabled', true);
-                this.$('.mapExportButton').prop('disabled', true);
+                this.$('.formatTypes').prop('disabled', true)
                 this.$('.mapExportName').val(this.model.get('name'));
+                this.$('.mapExportName').prop('disabled', true);
+                this.$('.mapExportButton').addClass('not-active');
 
                 return this;
             },
 
-            lockInput: function () {
-                var attrs = this.model.toJSON(),
-                    widthInput = this.$('.mapExportWidth'),
-                    heightInput = this.$('.mapExportHeight');
-
-                if (attrs.widthDisabled) {
-                    $(widthInput).prop('disabled', true);
-                } else {
-                    $(widthInput).prop('disabled', false);
-                }
-
-                if (attrs.heightDisabled) {
-                    $(heightInput).prop('disabled', true);
-                } else {
-                    $(heightInput).prop('disabled', false);
-                }
-            },
-
             updateArea: function () {
                 var attrs = this.model.toJSON(),
-                    exportBtn = this.$('.mapExportButton');
+                    areaButton = this.$('.areaButton'),
+                    adjustBtn = this.$('.adjustButton'),
+                    zoomSelect = this.$('.zoomLevel'),
+                    widthInput = this.$('.mapExportWidth'),
+                    heightInput = this.$('.mapExportHeight'),
+                    formatSelect = this.$('.formatTypes'),
+                    exportNameInput = this.$('.mapExportName'),
+                    exportBtn = this.$('.mapExportButton'),
+                    inputs = [
+                        zoomSelect,
+                        widthInput,
+                        heightInput,
+                        formatSelect,
+                        exportNameInput,
+                        exportBtn
+                    ];
 
-                if (attrs.selArea) {
-                    if (
-                        attrs.name              &&
-                        !attrs.widthValueErr    &&
-                        !attrs.widthSizeErr     &&
-                        !attrs.heightValueErr   &&
-                        !attrs.heightSizeErr
-                        ) {
-                        $(exportBtn).prop('disabled', false);
+                for (var i = 0; i < inputs.length; i++) {
+                    if (!attrs.selArea) {
+                        $(inputs[i]).prop('disabled', true);
+                    } else {
+                        $(inputs[i]).prop('disabled', false);
                     }
-                } else {
-                    $(exportBtn).prop('disabled', true);
                 }
+                if (attrs.selArea) {
+                    $(areaButton).removeClass('mapExportSelectButton');
+                    $(areaButton).addClass('mapExportUnselectButton');
+                    $(areaButton).text(window._gtxt('mapExport.unselect'))
+                } else {
+                    $(areaButton).removeClass('mapExportUnselectButton');
+                    $(areaButton).addClass('mapExportSelectButton');
+                    $(areaButton).text(window._gtxt('mapExport.select'))
+                }
+                $(exportBtn).toggleClass('not-active', attrs.selArea);
+                $(adjustBtn).toggleClass('btn-hidden', !attrs.selArea);
             },
 
             updateSize: function () {
@@ -310,11 +319,11 @@ var nsGmx = nsGmx || {};
                 }
 
                 if (attrs.widthValueErr || attrs.heightValueErr) {
-                    $(exportBtn).prop('disabled', true);
+                    $(exportBtn).addClass('not-active');
                     $(warn).html(window._gtxt('mapExport.valueWarn'));
                 } else {
-                    if (attrs.name) {
-                        $(exportBtn).prop('disabled', false);
+                    if (attrs.selArea && attrs.name) {
+                        $(exportBtn).removeClass('not-active');
                     }
                     if (attrs.widthSizeErr || attrs.heightSizeErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
@@ -348,14 +357,14 @@ var nsGmx = nsGmx || {};
                 }
 
                 if (attrs.widthSizeErr || attrs.heightSizeErr) {
-                    $(exportBtn).prop('disabled', true);
+                    $(exportBtn).addClass('not-active');
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
                     }
                 } else {
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
-                        if (attrs.name) {
-                            $(exportBtn).prop('disabled', false);
+                        if (attrs.selArea && attrs.name) {
+                            $(exportBtn).removeClass('not-active');
                         }
                         $(warn).html('');
                     }
@@ -369,7 +378,7 @@ var nsGmx = nsGmx || {};
 
                 if (attrs.name === '') {
                     $(exportNameInput).addClass('error');
-                    $(exportBtn).prop('disabled', true);
+                    $(exportBtn).addClass('not-active');
                 } else {
                     if (
                         attrs.selArea           &&
@@ -379,7 +388,27 @@ var nsGmx = nsGmx || {};
                         !attrs.heightSizeErr
                         ) {
                         $(exportNameInput).removeClass('error');
-                        $(exportBtn).prop('disabled', false);
+                        $(exportBtn).removeClass('not-active');
+                    }
+                }
+            },
+
+            updateZoom: function () {
+                var attrs = this.model.toJSON(),
+                    levels = this.$('.zoomLevel'),
+                    list = $(levels).find('option');
+
+                for (var i = 0; i < list.length; i++) {
+                    var el = list[i];
+
+                    if (el.tagName === 'OPTION') {
+
+                        if (Number($(el).val()) === attrs.z) {
+                            $(el).prop('selected', true);
+                        } else {
+                            $(el).prop('selected', false);
+                        }
+
                     }
                 }
             },
@@ -429,7 +458,9 @@ var nsGmx = nsGmx || {};
             },
 
             selectArea: function () {
-                var attrs = this.model.toJSON();
+                var attrs = this.model.toJSON(),
+                    currentZoom = attrs.lmap.getZoom(),
+                    zoomLevels = attrs.zoomLevels;
 
                 if (!attrs.lmap || attrs.selArea) {
                     return;
@@ -452,12 +483,20 @@ var nsGmx = nsGmx || {};
                     [n - mapHeight / scale, e - mapWidth / scale]
                 );
 
+                for (var i = 0; i < zoomLevels.length; i++) {
+                    zoomLevels[i].current = false;
+
+                    if (i === currentZoom) {
+                        zoomLevels[i].current = true;
+                    }
+                }
+
                 // прямоугольная рамка
                 var rect = L.rectangle(initialBounds);
 
                 this.model.set({
-                    widthDisabled: false,
-                    heightDisabled: false
+                    z: currentZoom,
+                    zoomLevels: zoomLevels,
                 });
 
                 this._createFrame(rect);
@@ -474,10 +513,14 @@ var nsGmx = nsGmx || {};
                     widthValueErr: false,
                     widthSizeErr: false,
                     heightValueErr: false,
-                    heightSizeErr: false,
-                    widthDisabled: true,
-                    heightDisabled: true
+                    heightSizeErr: false
                 });
+            },
+
+            zoomToFrame: function () {
+                var attrs = this.model.toJSON();
+
+                attrs.lmap.fitBounds(attrs.selArea.getBounds());
             },
 
             exportMap: function () {
@@ -504,10 +547,8 @@ var nsGmx = nsGmx || {};
                     }
 
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
-
                 function processLink(id){
                     var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
-
                     downloadFile(url);
 
                     function downloadFile(url) {
@@ -641,12 +682,12 @@ var nsGmx = nsGmx || {};
                         map: true,
                         lineStyle: {
                             dashArray: '5 5',
-                            color: '#0033ff',
-                            weight: 2.5
+                            color: '#f57c00',
+                            weight: 3.5
                         },
                         pointStyle: {
-                            size: 3,
-                            color: '#0033ff'
+                            size: 3.5,
+                            color: '#f57c00'
                         }
                     };
 
@@ -863,8 +904,6 @@ var nsGmx = nsGmx || {};
                 heightValueErr: false,
                 widthSizeErr: false,
                 heightSizeErr: false,
-                widthDisabled: true,
-                heightDisabled: true,
                 format: null,
                 x: null,
                 z: attrs.lmap.getZoom(),

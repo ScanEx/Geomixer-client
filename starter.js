@@ -147,7 +147,7 @@ var createMenuNew = function() {
                 {id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){
                     _queryMapLayers.createMapDialog(_gtxt('Сохранить карту как'), _gtxt('Сохранить'), _queryMapLayers.saveMapAs)
                 }},
-                {id: 'export',    title: _gtxt('Экспорт карты'),     func: function(){
+                {id: 'export',    title: _gtxt('Экспорт'),     func: function(){
                     mapExportMenu();
                 }, delimiter: true, disabled: !isLogined},
                 {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},

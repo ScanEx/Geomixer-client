@@ -13,7 +13,7 @@ _translationsHash.hash["eng"] = {
 	"Сохранить как" : "Save as",
 	"Сохранить карту как" : "Save map as",
 	"Сохранить карту" : "Save map",
-	"Экспорт карты" : "Export map",
+	"Экспорт" : "Export",
 
     "Карта пожаров": "Fires map",
     "Поиск снимков": "Search Imagery",
