@@ -269,14 +269,23 @@ var nsGmx = nsGmx || {};
                 if (attrs.selArea) {
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
-                    $(areaButton).text(window._gtxt('mapExport.unselect'))
+                    $(areaButton).text(window._gtxt('mapExport.unselect'));
+                    $(adjustBtn).removeClass('btn-hidden');
+                    if (
+                        !attrs.widthValueErr    &&
+                        !attrs.widthSizeErr     &&
+                        !attrs.heightValueErr   &&
+                        !attrs.heightSizeErr
+                        ) {
+                        $(exportBtn).removeClass('not-active');
+                    }
                 } else {
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
-                    $(areaButton).text(window._gtxt('mapExport.select'))
+                    $(areaButton).text(window._gtxt('mapExport.select'));
+                    $(adjustBtn).addClass('btn-hidden');
+                    $(exportBtn).addClass('not-active');
                 }
-                $(exportBtn).toggleClass('not-active', attrs.selArea);
-                $(adjustBtn).toggleClass('btn-hidden', !attrs.selArea);
             },
 
             updateSize: function () {
