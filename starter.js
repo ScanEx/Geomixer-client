@@ -146,10 +146,10 @@ var createMenuNew = function() {
                 {id: 'mapSave',      title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
                 {id: 'mapSaveAs',    title: _gtxt('Сохранить как'),     func: function(){
                     _queryMapLayers.createMapDialog(_gtxt('Сохранить карту как'), _gtxt('Сохранить'), _queryMapLayers.saveMapAs)
-                }},
+                }, delimiter: true},
                 {id: 'export',    title: _gtxt('Экспорт'),     func: function(){
                     mapExportMenu();
-                }, delimiter: true, disabled: !isLogined},
+                }, disabled: !isLogined},
                 {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
                 // {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
                 {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},

@@ -25,14 +25,13 @@ var nsGmx = nsGmx || {};
 
     window._translationsHash.addtext('rus', {
         mapExport: {
-            exportTooltip : 'Выделите рамкой область карты',
             settings : {
-                settings: 'Настройки экспорта карты',
-                zoom: 'масштаб (уровень)',
+                settings: 'Настройки экспорта карты:',
+                zoom: 'масштаб (зум)',
                 size: 'размер',
                 format: 'формат файла',
-                width: 'ширина (в пикселях)',
-                height: 'высота (в пикселях)',
+                width: 'ширина (пк)',
+                height: 'высота (пк)',
                 name: 'имя файла'
             },
             formats: {
@@ -42,7 +41,7 @@ var nsGmx = nsGmx || {};
                 kmz: 'KMZ',
                 mbTiles: 'MBTiles'
             },
-            select: 'Выделить',
+            select: 'Выделить область карты',
             unselect: 'Снять выделение',
             zoomTo: 'Приблизить',
             export: 'Экспорт',
@@ -54,7 +53,7 @@ var nsGmx = nsGmx || {};
         mapExport: {
             exportTooltip : 'Select area',
             settings : {
-                settings: 'Map export settings',
+                settings: 'Map export settings:',
                 zoom: 'zoom',
                 size: 'size',
                 format: 'file format',
@@ -113,62 +112,64 @@ var nsGmx = nsGmx || {};
             model: model,
             template: window.Handlebars.compile(
 
-                // 1. Верхний элемент - подсказка
-                '<div class="mapExportTooltip">' +
-                    '{{i "mapExport.exportTooltip"}}' +
-                '</div class="exportSettingsTable">' +
-
-                // 2. выбор / отмена выделения
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
                         '<span class="buttonLink adjustButton btn-hidden"> {{i "mapExport.zoomTo"}}</span>' +
                 '</div>' +
 
-                // 3. настройки
                 '<div class="settings">' +
                     '<div class="exportSettings">' +
                         '{{i "mapExport.settings.settings"}}' +
                     '</div>' +
                     '<div class="zoomSelect">' +
-                        '<span class="label">{{i "mapExport.settings.zoom"}}</span>' +
-                        '<select class="zoomLevel">' +
-                            '{{#each this.zoomLevels}}' +
-                            '<option value="{{this.zoom}}"' +
-                                '{{#if this.current}} selected="selected"{{/if}}>' +
-                                '{{this.zoom}}' +
-                            '</option>' +
-                            '{{/each}}' +
-                        '</select>' +
+                        '<span class="elabel">{{i "mapExport.settings.zoom"}}</span>' +
+                        '<span class="eInput">' +
+                            '<select class="zoomLevel">' +
+                                '{{#each this.zoomLevels}}' +
+                                '<option value="{{this.zoom}}"' +
+                                    '{{#if this.current}} selected="selected"{{/if}}>' +
+                                    '{{this.zoom}}' +
+                                '</option>' +
+                                '{{/each}}' +
+                            '</select>' +
+                        '</span>' +
                     '</div>' +
                     '<div class="dimensionsSelect">' +
                         '<div class="dims">' +
-                            '<span class="label">{{i "mapExport.settings.width"}}</span>' +
-                            '<input type="text" class="mapExportWidth" value="{{width}}"/>' +
+                            '<span class="elabel">{{i "mapExport.settings.width"}}</span>' +
+                            '<span class="eInput">' +
+                                '<input type="text" class="mapExportWidth" value="{{width}}"/>' +
+                            '</span>' +
                         '</div>' +
                         '<div class="dims">' +
-                            '<span class="label">{{i "mapExport.settings.height"}}</span>' +
-                            '<input type="text" class="mapExportHeight" value="{{height}}"/>' +
+                            '<span class="elabel">{{i "mapExport.settings.height"}}</span>' +
+                            '<span class="eInput">' +
+                                '<input type="text" class="mapExportHeight" value="{{height}}"/>' +
+                            '</span>' +
                         '</div>' +
                     '</div>' +
                     '<div class="formatSelect">' +
-                        '<span class="label">{{i "mapExport.settings.format"}}</span>' +
-                        '<select class="formatTypes">' +
-                            '{{#each this.formatTypes}}' +
-                            '<option value="{{this.type}}"' +
-                                '{{#if this.current}} selected="selected" {{/if}}>' +
-                                '{{this.type}}' +
-                            '</option>' +
-                            '{{/each}}' +
-                        '</select>' +
+                        '<span class="elabel">{{i "mapExport.settings.format"}}</span>' +
+                        '<span class="eInput">' +
+                            '<select class="formatTypes">' +
+                                '{{#each this.formatTypes}}' +
+                                '<option value="{{this.type}}"' +
+                                    '{{#if this.current}} selected="selected" {{/if}}>' +
+                                    '{{this.type}}' +
+                                '</option>' +
+                                '{{/each}}' +
+                            '</select>' +
+                        '</span>' +
                     '</div>' +
                     '<div class="nameSelect">' +
-                        '<span class="label">{{i "mapExport.settings.name"}}</span>' +
-                        '<input type="text" class="mapExportName" value=""/>' +
+                        '<span class="elabel">{{i "mapExport.settings.name"}}</span>' +
+                        '<span class="eInput">' +
+                            '<input type="text" class="mapExportName" value=""/>' +
+                        '</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="export">' +
                     '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
-                    // '<input type="button" class="mapExportButton" value={{i "mapExport.export"}}>' +
                     '<span class="mapExportWarn"></span>' +
                 '</div>'
             ),
@@ -228,6 +229,8 @@ var nsGmx = nsGmx || {};
             },
 
             render: function () {
+                var zoomButton;
+
                 this.$el.html(this.template(this.model.toJSON()));
                 this.$('.zoomLevel').prop('disabled', true)
                 this.$('.mapExportWidth').prop('disabled', true);
@@ -236,6 +239,11 @@ var nsGmx = nsGmx || {};
                 this.$('.mapExportName').val(this.model.get('name'));
                 this.$('.mapExportName').prop('disabled', true);
                 this.$('.mapExportButton').addClass('not-active');
+
+                // zoomButton = window.nsGmx.Utils.makeImageButton('img/select_tool_small.png', 'img/select_tool_small.png');
+                // window.nsGmx.Utils._title(zoomButton, _gtxt('mapExport.zoomTo'));
+                //
+                // this.$('.adjustButton').append(zoomButton);
 
                 return this;
             },

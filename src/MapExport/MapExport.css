@@ -4,7 +4,7 @@
 }
 
 .settings {
-    width: 75%;
+    width: 90%;
 }
 
 .areaButton,
@@ -14,7 +14,7 @@
 }
 
 .adjustButton {
-    margin: 0px 0px 0px 4px;
+    margin: 0px 0px 0px 8px;
 }
 
 .btn-hidden {
@@ -28,7 +28,7 @@
 }
 
 .selectButtons {
-    margin: 4px 4px 4px 4px;
+    margin: 4px 4px 4px 0px;
 }
 
 .mapExportTooltip,
@@ -45,17 +45,13 @@
 .nameSelect {
     margin: 4px;
 }
-.zoomLevel option:disabled,
-.formatTypes option:disabled {
-    background-color: #999999;
-}
 
 .zoomSelect,
 .dimensionsSelect,
 .formatSelect,
 .nameSelect {
     clear:both;
-    text-align:right;
+    text-align:left;
 }
 
 .zoomLevel,
@@ -63,6 +59,8 @@
 .mapExportWidth,
 .mapExportHeight,
 .mapExportName {
+    clear:both;
+    text-align:left;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -82,10 +80,11 @@
 }
 
 .mapExportName {
-    width: 130px;
+    width: 150px;
 }
 
-.label {
+.elabel {
+    width: 35%;
     float:left;
 }
 
