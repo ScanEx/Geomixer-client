@@ -5,6 +5,7 @@
 
 .settings {
     width: 90%;
+    margin: 4px;
 }
 
 .areaButton,
@@ -13,7 +14,7 @@
     cursor: pointer;
 }
 
-.adjustButton {
+.zoomToBoxButton {
     margin: 0px 0px 0px 8px;
 }
 
@@ -31,27 +32,13 @@
     margin: 4px 4px 4px 0px;
 }
 
-.mapExportTooltip,
 .zoomSelect,
 .dims,
 .formatSelect,
 .nameSelect {
+    padding: 4px;
     margin: 4px 0px 4px 0px;
-}
-
-.zoomSelect,
-.dimensionsSelect,
-.formatSelect,
-.nameSelect {
-    margin: 4px;
-}
-
-.zoomSelect,
-.dimensionsSelect,
-.formatSelect,
-.nameSelect {
     clear:both;
-    text-align:left;
 }
 
 .zoomLevel,
@@ -60,7 +47,6 @@
 .mapExportHeight,
 .mapExportName {
     clear:both;
-    text-align:left;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -74,26 +60,40 @@
     height:20px;
 }
 
+.zoomToLevel {
+    text-align: left;
+}
+
 .mapExportWidth,
 .mapExportHeight {
     width: 80px;
 }
 
 .mapExportName {
-    width: 150px;
+    width: 80px;
 }
 
-.elabel {
-    width: 35%;
-    float:left;
+.eLabel, .eInput, .mapExportWarn {
+    height: 25px;
+    width: 33%;
+    /*float:left;*/
+}
+
+.eLabel {
+    text-align:left;
+}
+
+.eInput {
+    text-align:right;
 }
 
 .export {
     clear: both;
 }
 
-.mapExportWarn {
-    margin: 4px 4px 4px 4px;
+.zoomToLevel, .mapExportWarn {
+    padding-left: 8px;
+    /*margin: 4px 4px 4px 4px;*/
 }
 
 .error {

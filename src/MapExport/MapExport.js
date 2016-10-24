@@ -43,7 +43,8 @@ var nsGmx = nsGmx || {};
             },
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
-            zoomTo: 'Приблизить',
+            zoomToBox: 'Приблизить к выделенному',
+            zoomToLevel: 'Приблизить к уровню',
             export: 'Экспорт',
             sizeWarn: 'максимальный размер - 10000 пикселей',
             valueWarn: 'недопустимое значение'
@@ -70,7 +71,8 @@ var nsGmx = nsGmx || {};
             },
             select: 'Select',
             unselect: 'Clear selection',
-            zoomTo: 'Zoom to frame',
+            zoomToBox: 'Zoom to selected',
+            zoomToLevel: 'Zoom to target zoom level',
             export: 'Export',
             sizeWarn: 'incorrect size',
             valueWarn: 'incorrect value'
@@ -114,69 +116,78 @@ var nsGmx = nsGmx || {};
 
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
-                        '<span class="buttonLink adjustButton btn-hidden"> {{i "mapExport.zoomTo"}}</span>' +
+                        '<span class="zoomToBoxButton btn-hidden">' +
+                        // '{{i "mapExport.zoomTo"}}' +
+                        '</span>' +
                 '</div>' +
-
-                '<div class="settings">' +
-                    '<div class="exportSettings">' +
+                '<div class="exportSettings">' +
+                    '<span>' +
                         '{{i "mapExport.settings.settings"}}' +
-                    '</div>' +
-                    '<div class="zoomSelect">' +
-                        '<span class="elabel">{{i "mapExport.settings.zoom"}}</span>' +
-                        '<span class="eInput">' +
-                            '<select class="zoomLevel">' +
-                                '{{#each this.zoomLevels}}' +
-                                '<option value="{{this.zoom}}"' +
-                                    '{{#if this.current}} selected="selected"{{/if}}>' +
-                                    '{{this.zoom}}' +
-                                '</option>' +
-                                '{{/each}}' +
-                            '</select>' +
-                        '</span>' +
-                    '</div>' +
-                    '<div class="dimensionsSelect">' +
-                        '<div class="dims">' +
-                            '<span class="elabel">{{i "mapExport.settings.width"}}</span>' +
-                            '<span class="eInput">' +
-                                '<input type="text" class="mapExportWidth" value="{{width}}"/>' +
-                            '</span>' +
-                        '</div>' +
-                        '<div class="dims">' +
-                            '<span class="elabel">{{i "mapExport.settings.height"}}</span>' +
-                            '<span class="eInput">' +
-                                '<input type="text" class="mapExportHeight" value="{{height}}"/>' +
-                            '</span>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="formatSelect">' +
-                        '<span class="elabel">{{i "mapExport.settings.format"}}</span>' +
-                        '<span class="eInput">' +
-                            '<select class="formatTypes">' +
-                                '{{#each this.formatTypes}}' +
-                                '<option value="{{this.type}}"' +
-                                    '{{#if this.current}} selected="selected" {{/if}}>' +
-                                    '{{this.type}}' +
-                                '</option>' +
-                                '{{/each}}' +
-                            '</select>' +
-                        '</span>' +
-                    '</div>' +
-                    '<div class="nameSelect">' +
-                        '<span class="elabel">{{i "mapExport.settings.name"}}</span>' +
-                        '<span class="eInput">' +
-                            '<input type="text" class="mapExportName" value=""/>' +
-                        '</span>' +
-                    '</div>' +
+                    '</span>' +
                 '</div>' +
+                '<table class="settings">' +
+                    '<tbody>' +
+                        '<tr class="zoomSelect">' +
+                            '<td class="eLabel">{{i "mapExport.settings.zoom"}}</td>' +
+                            '<td class="eInput">' +
+                                '<select class="zoomLevel">' +
+                                    '{{#each this.zoomLevels}}' +
+                                    '<option value="{{this.zoom}}"' +
+                                        '{{#if this.current}} selected="selected"{{/if}}>' +
+                                        '{{this.zoom}}' +
+                                    '</option>' +
+                                    '{{/each}}' +
+                                '</select>' +
+                            '</td>' +
+                            '<td class="zoomToLevel">' +
+                                '<span class="zoomToLevelButton btn-hidden">' +
+                                '</span>' +
+                            '</td>' +
+                        '</tr>' +
+                        '<tr class="dims">' +
+                            '<td class="eLabel">{{i "mapExport.settings.width"}}</td>' +
+                            '<td class="eInput">' +
+                                '<input type="text" class="mapExportWidth" value="{{width}}"/>' +
+                            '</td>' +
+                            '<td class="mapExportWarn" rowspan=2></td>' +
+                        '</tr>' +
+                        '<tr class="dims">' +
+                            '<td class="eLabel">{{i "mapExport.settings.height"}}</td>' +
+                            '<td class="eInput">' +
+                                '<input type="text" class="mapExportHeight" value="{{height}}"/>' +
+                            '</td>' +
+                        '</tr>' +
+                        '<tr class="formatSelect">' +
+                            '<td class="eLabel">{{i "mapExport.settings.format"}}</td>' +
+                            '<td class="eInput">' +
+                                '<select class="formatTypes">' +
+                                    '{{#each this.formatTypes}}' +
+                                    '<option value="{{this.type}}"' +
+                                        '{{#if this.current}} selected="selected" {{/if}}>' +
+                                        '{{this.type}}' +
+                                    '</option>' +
+                                    '{{/each}}' +
+                                '</select>' +
+                            '</td>' +
+                        '</tr>' +
+                        '<tr class="nameSelect">' +
+                            '<td class="eLabel">{{i "mapExport.settings.name"}}</td>' +
+                            '<td class="eInput">' +
+                                '<input type="text" class="mapExportName" value=""/>' +
+                            '</td>' +
+                        '</tr>' +
+                    '</tbody>' +
+                '</table>' +
                 '<div class="export">' +
                     '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
-                    '<span class="mapExportWarn"></span>' +
+                    // '<span class="mapExportWarn"></span>' +
                 '</div>'
             ),
             events: {
                 'click .mapExportSelectButton': 'selectArea',
                 'click .mapExportUnselectButton': 'unselectArea',
-                'click .adjustButton': 'zoomToFrame',
+                'click .zoomToBoxButton': 'zoomToBox',
+                'click .zoomToLevelButton': 'zoomToLevel',
                 'input .mapExportWidth': 'resize',
                 'input .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
@@ -229,7 +240,8 @@ var nsGmx = nsGmx || {};
             },
 
             render: function () {
-                var zoomButton;
+                var zoomToBoxButton,
+                    zoomToLevelButton;
 
                 this.$el.html(this.template(this.model.toJSON()));
                 this.$('.zoomLevel').prop('disabled', true)
@@ -240,10 +252,15 @@ var nsGmx = nsGmx || {};
                 this.$('.mapExportName').prop('disabled', true);
                 this.$('.mapExportButton').addClass('not-active');
 
-                // zoomButton = window.nsGmx.Utils.makeImageButton('img/select_tool_small.png', 'img/select_tool_small.png');
-                // window.nsGmx.Utils._title(zoomButton, _gtxt('mapExport.zoomTo'));
-                //
-                // this.$('.adjustButton').append(zoomButton);
+                zoomToBoxButton = window.nsGmx.Utils.makeImageButton('img/zoom_to_box_tool_small.png', 'img/zoom_to_box_tool_small.png');
+                window.nsGmx.Utils._title(zoomToBoxButton, _gtxt('mapExport.zoomToBox'));
+
+                this.$('.zoomToBoxButton').append(zoomToBoxButton);
+
+                zoomToLevelButton = window.nsGmx.Utils.makeImageButton('img/zoom_to_level_tool_small.png', 'img/zoom_to_level_tool_small.png');
+                window.nsGmx.Utils._title(zoomToLevelButton, _gtxt('mapExport.zoomToLevel'));
+
+                this.$('.zoomToLevelButton').append(zoomToLevelButton);
 
                 return this;
             },
@@ -251,7 +268,8 @@ var nsGmx = nsGmx || {};
             updateArea: function () {
                 var attrs = this.model.toJSON(),
                     areaButton = this.$('.areaButton'),
-                    adjustBtn = this.$('.adjustButton'),
+                    zoomToBoxBtn = this.$('.zoomToBoxButton'),
+                    zoomToLevelBtn = this.$('.zoomToLevelButton'),
                     zoomSelect = this.$('.zoomLevel'),
                     widthInput = this.$('.mapExportWidth'),
                     heightInput = this.$('.mapExportHeight'),
@@ -278,7 +296,8 @@ var nsGmx = nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(adjustBtn).removeClass('btn-hidden');
+                    $(zoomToBoxBtn).removeClass('btn-hidden');
+                    $(zoomToLevelBtn).removeClass('btn-hidden');
                     if (
                         !attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
@@ -291,7 +310,8 @@ var nsGmx = nsGmx || {};
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(adjustBtn).addClass('btn-hidden');
+                    $(zoomToBoxBtn).addClass('btn-hidden');
+                    $(zoomToLevelBtn).addClass('btn-hidden');
                     $(exportBtn).addClass('not-active');
                 }
             },
@@ -404,9 +424,10 @@ var nsGmx = nsGmx || {};
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr
                         ) {
-                        $(exportNameInput).removeClass('error');
                         $(exportBtn).removeClass('not-active');
                     }
+
+                    $(exportNameInput).removeClass('error');
                 }
             },
 
@@ -534,12 +555,20 @@ var nsGmx = nsGmx || {};
                 });
             },
 
-            zoomToFrame: function () {
+            zoomToBox: function () {
                 var attrs = this.model.toJSON();
 
                 attrs.lmap.fitBounds(attrs.selArea.getBounds());
             },
 
+            zoomToLevel: function () {
+                var attrs = this.model.toJSON(),
+                    center;
+
+                center = attrs.selArea.getBounds().getCenter();
+                attrs.lmap.setView(center, attrs.z);
+
+            },
             exportMap: function () {
                 var attrs = this.model.toJSON(),
                     initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
