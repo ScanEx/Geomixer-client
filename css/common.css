@@ -1768,6 +1768,13 @@ div.layersScroll
     margin-top: 5px;
 }
 /* Toolbar Icons */
+.leaflet-gmx-icon-boxzoom, .leaflet-gmx-icon-boxzoom-dashed-rounded {
+    background-position: -623px 2px;
+}
+.leaflet-gmx-icon-boxzoom-active, .leaflet-gmx-icon-boxzoom-dashed-rounded-active {
+    background-position: -623px -24px;
+}
+
 .leaflet-gmx-icon-saveMap {
     background-position: -329px -59px;
 }

@@ -390,6 +390,40 @@ var createToolbar = function() {
         }
     });
 
+	lmap.addControl(L.control.gmxIcon({
+		id: 'boxzoom-dashed-rounded',
+		toggle: true,
+		addBefore: 'drawing',
+		title: 'Увеличение',
+		onAdd: function (control) {
+			var map = control._map,
+				_onMouseDown = map.boxZoom._onMouseDown;
+			map.boxZoom._onMouseDown = function (e) {
+				_onMouseDown.call(map.boxZoom, {
+					clientX: e.clientX,
+					clientY: e.clientY,
+					which: 1,
+					shiftKey: true
+				});
+			};
+			map.on('boxzoomend', function () {
+					map.dragging.enable();
+					map.boxZoom.removeHooks();
+					control.setActive(false);
+			});
+		},
+		stateChange: function (control) {
+			var map = control._map;
+			if (control.options.isActive) {
+				map.dragging.disable();
+				map.boxZoom.addHooks();
+			} else {
+				map.dragging.enable();
+				map.boxZoom.removeHooks();
+			}
+		}
+	}));
+
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
         // isSortable: true,
@@ -1240,6 +1274,7 @@ function processGmxMap(state, gmxMap) {
         contextmenu: true,
         center: defCenter,
         zoom: defZoom,
+        boxZoom: false,
         zoomControl: false,
         attributionControl: false,
         trackResize: true,
