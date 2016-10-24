@@ -212,14 +212,26 @@ var createMenuNew = function() {
             {id: 'directions',    title: _gtxt('Маршруты'), func:function(){}, disabled: true}
         ]});
 
+
+    function fillPluginsMenu() {
+        if (window.menuPlugins) {
+            var plugins = window.menuPlugins,
+            childs = [];
+            for (var p = 0; p < plugins.length; p++) {
+                childs.push(
+                    getPluginToMenuBinding(
+                        plugins[p].pluginName,
+                        plugins[p].menuItemName,
+                        window._gtxt(plugins[p].menuTitle)
+                    )
+                )
+            }
+
         _menuUp.addItem(
-        {id: 'pluginsMenu', title: _gtxt('Сервисы'), childs: [
-            getPluginToMenuBinding('Cadastre', 'cadastre', _gtxt('Кадастр Росреестра')),
-            getPluginToMenuBinding('Wikimapia', 'wikimapia', _gtxt('Викимапиа')),
-            getPluginToMenuBinding('ScanEx catalog', 'scanexSearch', _gtxt('Каталог СКАНЭКС')),
-            getPluginToMenuBinding('Fire Plugin', 'fires', _gtxt('Космоснимки-пожары')),
-            getPluginToMenuBinding('GIBS Plugin', 'gibs', _gtxt('GIBS NASA'))
-        ]});
+            {id: 'pluginsMenu', title: _gtxt('Сервисы'), childs: childs});
+        }
+    }
+     fillPluginsMenu();
 
     _menuUp.addItem(
     {id:'helpMenu', title:_gtxt('Справка'), childs: [
