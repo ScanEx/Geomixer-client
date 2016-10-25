@@ -13,11 +13,12 @@ nsGmx.Translations.addText('rus', {
         polygonTitle: 'многоугольник',
         rectangleTitle: 'прямоугольник',
         removeAll: 'Очистить',
-        downloadShp: 'shp-файл',
-        downloadGpx: 'gpx-файл',
-        downloadCsv: 'csv-файл',
+        downloadShp: 'shp',
+        downloadGeoJSON: 'geojson',
+        downloadGpx: 'gpx',
+        downloadCsv: 'csv',
         downloadNameTitle: 'Введите имя файла для скачивания',
-        download: 'Скачать',
+        download: 'Скачать файл',
         downloadRaster: 'Скачать фрагмент растра',
         noRectangleError: 'Выберите область рамкой на карте',
         noRasterError: 'К прямоугольнику не подходит ни одного растрового слоя',
@@ -42,11 +43,12 @@ nsGmx.Translations.addText('eng', {
         polygonTitle: 'polygon',
         rectangleTitle: 'rectangle',
         removeAll: 'Delete',
-        downloadShp: 'shp-file',
-        downloadGpx: 'gpx-file',
-        downloadCsv: 'csv-file',
+        downloadGeoJSON: 'shp',
+        downloadGeojson: 'geojson',
+        downloadGpx: 'gpx',
+        downloadCsv: 'csv',
         downloadNameTitle: 'Enter file name to download',
-        download: 'Download',
+        download: 'Download file',
         downloadRaster: 'Download fragment of raster',
         noRectangleError: 'Select region using frame',
         noRasterError: 'No one raster layer fit the rectangle',
@@ -120,7 +122,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 				setDrawingFeatureStyle(parentObject, templateStyle);
 			});
-      
+
 		outlineColor.hex = templateStyle.outline.color;
 
 		_title(outlineColor, _gtxt('drawingObjects.edit.color'));
@@ -635,6 +637,13 @@ var DrawingObjectGeomixer = function() {
 	}
     downloadShp.style.margin = '0px 3px';
 
+	var downloadGeoJSON = makeLinkButton(_gtxt('drawingObjects.downloadGeoJSON'));
+	downloadGeoJSON.onclick = function(){
+        downloadFormat = 'GeoJSON';
+        downloadNameContainer.toggle();
+	}
+    downloadGeoJSON.style.margin = '0px 3px';
+
     var downloadGpx = makeLinkButton(_gtxt('drawingObjects.downloadGpx'));
 	downloadGpx.onclick = function(){
         downloadFormat = 'gpx';
@@ -741,7 +750,7 @@ var DrawingObjectGeomixer = function() {
 
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
         _(downloadContainer, [
-            _div([_span([_t(_gtxt('drawingObjects.download'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx, downloadCsv]),
+            _div([_span([_t(_gtxt('drawingObjects.download'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGeoJSON, downloadGpx, downloadCsv]),
             downloadNameContainer[0],
             _div([downloadRaster]),
             downloadRasterOptions[0]
