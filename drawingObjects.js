@@ -44,7 +44,7 @@ nsGmx.Translations.addText('eng', {
         rectangleTitle: 'rectangle',
         removeAll: 'Delete',
         downloadShp: 'shp',
-        downloadGeojson: 'geojson',
+        downloadGeoJSON: 'geojson',
         downloadGpx: 'gpx',
         downloadCsv: 'csv',
         downloadNameTitle: 'Enter file name to download',
