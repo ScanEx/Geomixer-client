@@ -1297,17 +1297,6 @@ function processGmxMap(state, gmxMap) {
         minZoom: mapProps.MinZoom || undefined,
         maxZoom: mapProps.MaxZoom || undefined
     });
-	if (mapOptions.svgSprite) {
-		var ajax = new XMLHttpRequest();
-		ajax.open('GET', mapOptions.svgSprite, true);
-		ajax.send();
-		ajax.onload = function(e) {
-		  var div = document.createElement("div");
-		  div.style.display = 'none';
-		  div.innerHTML = ajax.responseText;
-		  document.body.insertBefore(div, document.body.childNodes[0]);
-		}
-	}
 
     var lmap = new L.Map($('#flash')[0], mapOptions);
 
