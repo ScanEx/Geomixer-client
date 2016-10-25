@@ -18,7 +18,7 @@ _translationsHash.hash["eng"] = {
     "Карта пожаров": "Fires map",
     "Поиск снимков": "Search Imagery",
     "Платформа Геомиксер": "GeoMixer Web-GIS",
-    "http://fires.kosmosnimki.ru": "http://fires-map.com",
+    "http://fires.ru": "http://fires-map.com",
     "http://search.kosmosnimki.ru": "http://search.kosmosnimki.ru/index_eng.html",
 
     "Данные": "Datasets",
