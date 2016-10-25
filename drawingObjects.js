@@ -43,7 +43,7 @@ nsGmx.Translations.addText('eng', {
         polygonTitle: 'polygon',
         rectangleTitle: 'rectangle',
         removeAll: 'Delete',
-        downloadGeoJSON: 'shp',
+        downloadShp: 'shp',
         downloadGeojson: 'geojson',
         downloadGpx: 'gpx',
         downloadCsv: 'csv',
