@@ -5,7 +5,7 @@
 
 .settings {
     width: 90%;
-    margin: 4px;
+    margin: 4px 4px 10px 4px;
 }
 
 .areaButton,
@@ -88,7 +88,16 @@
 }
 
 .export {
+    display:table-cell;
+    padding: 0px;
+    vertical-align: top;
     clear: both;
+    line-height: 30px;
+}
+
+.spinHolder {
+    /*width: 100%;*/
+    margin: 0px 0px 0px 8px;
 }
 
 .zoomToLevel, .mapExportWarn {

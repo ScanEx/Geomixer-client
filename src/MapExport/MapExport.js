@@ -1,4 +1,4 @@
-var nsGmx = nsGmx || {};
+var nsGmx = window.nsGmx || {};
 
 (function() {
 
@@ -14,7 +14,7 @@ var nsGmx = nsGmx || {};
     var view;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
-    window.nsGmx.DrawingObjectCustomControllers.addDelegate({
+    nsGmx.DrawingObjectCustomControllers.addDelegate({
         isHidden: function(obj) {
             if (obj.options.exportRect) {
                 return true;
@@ -43,11 +43,12 @@ var nsGmx = nsGmx || {};
             },
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
-            zoomToBox: 'Приблизить к выделенному',
-            zoomToLevel: 'Приблизить к уровню',
+            zoomToBox: 'Перейти к выделенному',
+            zoomToLevel: 'Перейти на зум',
             export: 'Экспорт',
             sizeWarn: 'максимальный размер - 10000 пикселей',
-            valueWarn: 'недопустимое значение'
+            valueWarn: 'недопустимое значение',
+            exportError: 'ошибка экспорта'
         }
     });
     window._translationsHash.addtext('eng', {
@@ -72,10 +73,11 @@ var nsGmx = nsGmx || {};
             select: 'Select',
             unselect: 'Clear selection',
             zoomToBox: 'Zoom to selected',
-            zoomToLevel: 'Zoom to target zoom level',
+            zoomToLevel: 'Zoom to level',
             export: 'Export',
             sizeWarn: 'incorrect size',
-            valueWarn: 'incorrect value'
+            valueWarn: 'incorrect value',
+            exportError: 'export error'
         }
     });
 
@@ -117,7 +119,6 @@ var nsGmx = nsGmx || {};
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
                         '<span class="zoomToBoxButton btn-hidden">' +
-                        // '{{i "mapExport.zoomTo"}}' +
                         '</span>' +
                 '</div>' +
                 '<div class="exportSettings">' +
@@ -140,7 +141,7 @@ var nsGmx = nsGmx || {};
                                 '</select>' +
                             '</td>' +
                             '<td class="zoomToLevel">' +
-                                '<span class="zoomToLevelButton btn-hidden">' +
+                                '<span class="zoomToLevelButtonWrap btn-hidden">' +
                                 '</span>' +
                             '</td>' +
                         '</tr>' +
@@ -180,14 +181,14 @@ var nsGmx = nsGmx || {};
                 '</table>' +
                 '<div class="export">' +
                     '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
-                    // '<span class="mapExportWarn"></span>' +
+                    '<span class="spinHolder"></span>' +
                 '</div>'
             ),
             events: {
                 'click .mapExportSelectButton': 'selectArea',
                 'click .mapExportUnselectButton': 'unselectArea',
                 'click .zoomToBoxButton': 'zoomToBox',
-                'click .zoomToLevelButton': 'zoomToLevel',
+                'click .zoomToLevelButtonWrap': 'zoomToLevel',
                 'input .mapExportWidth': 'resize',
                 'input .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
@@ -231,7 +232,7 @@ var nsGmx = nsGmx || {};
                     z: currentZoom,
                     zoomLevels: zoomLevels,
                     formatTypes: formatTypes,
-                    name: window.nsGmx.gmxMap.properties.title
+                    name: nsGmx.gmxMap.properties.title
                 });
 
                 this.updateArea();
@@ -252,15 +253,16 @@ var nsGmx = nsGmx || {};
                 this.$('.mapExportName').prop('disabled', true);
                 this.$('.mapExportButton').addClass('not-active');
 
-                zoomToBoxButton = window.nsGmx.Utils.makeImageButton('img/zoom_to_box_tool_small.png', 'img/zoom_to_box_tool_small.png');
-                window.nsGmx.Utils._title(zoomToBoxButton, _gtxt('mapExport.zoomToBox'));
+                zoomToBoxButton = nsGmx.Utils.makeImageButton('img/zoom_to_box_tool_small.png', 'img/zoom_to_box_tool_small.png');
+                nsGmx.Utils._title(zoomToBoxButton, _gtxt('mapExport.zoomToBox'));
 
                 this.$('.zoomToBoxButton').append(zoomToBoxButton);
 
-                zoomToLevelButton = window.nsGmx.Utils.makeImageButton('img/zoom_to_level_tool_small.png', 'img/zoom_to_level_tool_small.png');
-                window.nsGmx.Utils._title(zoomToLevelButton, _gtxt('mapExport.zoomToLevel'));
+                zoomToLevelButton = nsGmx.Utils.makeImageButton('img/zoom_to_level_tool_small.png', 'img/zoom_to_level_tool_small.png');
+                $(zoomToLevelButton).addClass('zoomToLevelButton');
+                nsGmx.Utils._title(zoomToLevelButton, (_gtxt('mapExport.zoomToLevel') + ' ' + this.model.get('z')));
 
-                this.$('.zoomToLevelButton').append(zoomToLevelButton);
+                this.$('.zoomToLevelButtonWrap').append(zoomToLevelButton);
 
                 return this;
             },
@@ -268,21 +270,21 @@ var nsGmx = nsGmx || {};
             updateArea: function () {
                 var attrs = this.model.toJSON(),
                     areaButton = this.$('.areaButton'),
-                    zoomToBoxBtn = this.$('.zoomToBoxButton'),
-                    zoomToLevelBtn = this.$('.zoomToLevelButton'),
+                    zoomToBoxButton = this.$('.zoomToBoxButton'),
+                    zoomToLevelButton = this.$('.zoomToLevelButtonWrap'),
                     zoomSelect = this.$('.zoomLevel'),
                     widthInput = this.$('.mapExportWidth'),
                     heightInput = this.$('.mapExportHeight'),
                     formatSelect = this.$('.formatTypes'),
                     exportNameInput = this.$('.mapExportName'),
-                    exportBtn = this.$('.mapExportButton'),
+                    exportButton = this.$('.mapExportButton'),
                     inputs = [
                         zoomSelect,
                         widthInput,
                         heightInput,
                         formatSelect,
                         exportNameInput,
-                        exportBtn
+                        exportButton
                     ];
 
                 for (var i = 0; i < inputs.length; i++) {
@@ -296,23 +298,23 @@ var nsGmx = nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(zoomToBoxBtn).removeClass('btn-hidden');
-                    $(zoomToLevelBtn).removeClass('btn-hidden');
+                    $(zoomToBoxButton).removeClass('btn-hidden');
+                    $(zoomToLevelButton).removeClass('btn-hidden');
                     if (
                         !attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr
                         ) {
-                        $(exportBtn).removeClass('not-active');
+                        $(exportButton).removeClass('not-active');
                     }
                 } else {
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(zoomToBoxBtn).addClass('btn-hidden');
-                    $(zoomToLevelBtn).addClass('btn-hidden');
-                    $(exportBtn).addClass('not-active');
+                    $(zoomToBoxButton).addClass('btn-hidden');
+                    $(zoomToLevelButton).addClass('btn-hidden');
+                    $(exportButton).addClass('not-active');
                 }
             },
 
@@ -434,7 +436,8 @@ var nsGmx = nsGmx || {};
             updateZoom: function () {
                 var attrs = this.model.toJSON(),
                     levels = this.$('.zoomLevel'),
-                    list = $(levels).find('option');
+                    list = $(levels).find('option'),
+                    zoomToLevelButton = this.$('.zoomToLevelButton')[0];
 
                 for (var i = 0; i < list.length; i++) {
                     var el = list[i];
@@ -448,6 +451,10 @@ var nsGmx = nsGmx || {};
                         }
 
                     }
+                }
+
+                if (zoomToLevelButton) {
+                    nsGmx.Utils._title(zoomToLevelButton, (_gtxt('mapExport.zoomToLevel') + ' ' + attrs.z));
                 }
             },
 
@@ -496,15 +503,21 @@ var nsGmx = nsGmx || {};
             },
 
             selectArea: function () {
-                var attrs = this.model.toJSON(),
-                    currentZoom = attrs.lmap.getZoom(),
-                    zoomLevels = attrs.zoomLevels;
+                var attrs = this.model.toJSON();
 
                 if (!attrs.lmap || attrs.selArea) {
                     return;
                 }
 
-                var mapBounds = attrs.lmap.getBounds(),
+                var currentZoom = attrs.lmap.getZoom(),
+                    zoomLevels = attrs.zoomLevels,
+                    mapBounds = attrs.lmap.getBounds(),
+                    latLngs = [
+                        mapBounds.getSouthWest(),
+                        mapBounds.getNorthWest(),
+                        mapBounds.getNorthEast(),
+                        mapBounds.getSouthEast()
+                    ],
                     n = mapBounds.getNorth(),
                     e = mapBounds.getEast(),
                     s = mapBounds.getSouth(),
@@ -514,12 +527,15 @@ var nsGmx = nsGmx || {};
 
                     // какую часть экрана отсекать с краев первоначальной рамки
                     scale = 4,
-                    initialBounds = [];
-
-                initialBounds.push(
-                    [s + mapHeight / scale, w + mapWidth / scale],
-                    [n - mapHeight / scale, e - mapWidth / scale]
-                );
+                    converted = this._convertFromLatLngs(latLngs, attrs.z),
+                    dims = this._getDimensions(converted),
+                    xx = [converted[0].x, converted[1].x, converted[2].x, converted[3].x],
+                    yy = [converted[0].y, converted[1].y, converted[2].y, converted[3].y],
+                    bottomLeft =    L.point(this._getMin(xx) + dims.width / scale,  this._getMax(yy) - dims.height / scale),
+                    topLeft =       L.point(this._getMin(xx) + dims.width / scale,  this._getMin(yy) + dims.height / scale),
+                    topRight =      L.point(this._getMax(xx) - dims.width / scale,  this._getMin(yy) + dims.height / scale),
+                    bottomRight =   L.point(this._getMax(xx) - dims.width / scale,  this._getMax(yy) - dims.height / scale),
+                    initialBounds = this._convertToLantLngs([bottomLeft, topLeft, topRight, bottomRight], attrs.z);
 
                 for (var i = 0; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -563,16 +579,17 @@ var nsGmx = nsGmx || {};
 
             zoomToLevel: function () {
                 var attrs = this.model.toJSON(),
-                    center;
+                    initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
+                    converted = this._convertFromLatLngs(initialCoords, attrs.z),
+                    dims = this._getDimensions(converted);
 
-                center = attrs.selArea.getBounds().getCenter();
-                attrs.lmap.setView(center, attrs.z);
-
+                attrs.lmap.setView(dims.latLng, attrs.z);
             },
+
             exportMap: function () {
                 var attrs = this.model.toJSON(),
                     initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
-                    screenCoords = !attrs.coords ? this._convertLatLngs(initialCoords, attrs.z) : this._convertLatLngs(attrs.coords, attrs.z),
+                    screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z),
                     dimensions = this._getDimensions(screenCoords),
                     mapStateParams = {
                         exportMode: true,
@@ -590,12 +607,29 @@ var nsGmx = nsGmx || {};
                         height: Math.floor(Number(attrs.height)),
                         filename: attrs.name,
                         format: attrs.format
-                    }
+                    },
+                    spinHolder = this.$('.spinHolder'),
+                    def;
 
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
                 function processLink(id){
                     var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
-                    downloadFile(url);
+                    var loading = window._div([window._img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css', 'display', 'inline-block'],['attr','loading',true]]);
+
+
+                    $(spinHolder).children("[loading]").remove();
+                    $(spinHolder).append(loading);
+
+                    def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
+
+                    def.fail(function(taskInfo){
+                        $(spinHolder).empty();
+                        $(spinHolder).html('mapExport.exportError');
+                    }).done(function(taskInfo){
+                        $(spinHolder).empty();
+                        var url2 = window.serverBase + taskInfo.Result.downloadFile;
+                        downloadFile(url2);
+                    })
 
                     function downloadFile(url) {
                         var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1,
@@ -639,8 +673,8 @@ var nsGmx = nsGmx || {};
                 // разница между целевым и текущим зумом
                 scale = Math.pow(2, (attrs.z - attrs.lmap.getZoom()));
 
-                // screenCoords = !attrs.coords ? this._convertLatLngs(initialCoords, attrs.z) : this._convertLatLngs(attrs.coords, attrs.z);
-                screenCoords = !attrs.coords ? this._revertCoords(this._convertLatLngs(initialCoords, attrs.z)) : this._revertCoords(this._convertLatLngs(attrs.coords, attrs.z));
+                // screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z);
+                screenCoords = !attrs.coords ? this._revertCoords(this._convertFromLatLngs(initialCoords, attrs.z)) : this._revertCoords(this._convertFromLatLngs(attrs.coords, attrs.z));
 
                 value = Number(e.target.value);
                 valueErr = value <= 0 || isNaN(value);
@@ -756,7 +790,7 @@ var nsGmx = nsGmx || {};
                         w, h;
 
                     initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
-                    screenCoords = _this._convertLatLngs(initialCoords, attrs.z);
+                    screenCoords = _this._convertFromLatLngs(initialCoords, attrs.z);
                     dimensions = _this._getDimensions(screenCoords);
 
                     w = Math.abs(dimensions.width);
@@ -809,7 +843,7 @@ var nsGmx = nsGmx || {};
                 }
 
                 initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
-                screenCoords = !attrs.coords ? this._convertLatLngs(initialCoords, attrs.z) : this._convertLatLngs(attrs.coords, attrs.z);
+                screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z);
                 dimensions = this._getDimensions(screenCoords);
 
                 w = Math.abs(dimensions.width);
@@ -845,29 +879,29 @@ var nsGmx = nsGmx || {};
 
                 xx = [coords[0].x, coords[1].x, coords[2].x, coords[3].x];
                 yy = [coords[0].y, coords[1].y, coords[2].y, coords[3].y];
-                bottomLeft = L.point(getMin(xx), getMax(yy));
-                topLeft = L.point(getMin(xx), getMin(yy));
-                topRight = L.point(getMax(xx), getMin(yy));
-                bottomRight = L.point(getMax(xx), getMax(yy));
+                bottomLeft = L.point(this._getMin(xx), this._getMax(yy));
+                topLeft = L.point(this._getMin(xx), this._getMin(yy));
+                topRight = L.point(this._getMax(xx), this._getMin(yy));
+                bottomRight = L.point(this._getMax(xx), this._getMax(yy));
 
                 return [bottomLeft, topLeft, topRight, bottomRight];
 
-
-                function getMax(arr) {
-                    return Math.max.apply(null, arr);
-                }
-
-                function getMin(arr) {
-                    return Math.min.apply(null, arr);
-                }
             },
 
-            _convertLatLngs: function (latlngs, zoom) {
-                var attrs = this.model.toJSON();
+            _convertFromLatLngs: function (latlngs, zoom) {
+                var attrs = this.model.toJSON(),
+                    converted = latlngs.map(function(ll) {
+                        return attrs.lmap.project([ll.lat, ll.lng], zoom);
+                    });
 
-                var converted = latlngs.map(function(ll) {
-                    return attrs.lmap.project([ll.lat, ll.lng], zoom);
-                });
+                return converted;
+            },
+
+            _convertToLantLngs: function (points, zoom) {
+                var attrs = this.model.toJSON(),
+                    converted = points.map(function(point) {
+                        return attrs.lmap.unproject([point.x, point.y], zoom);
+                    });
 
                 return converted;
             },
@@ -894,6 +928,14 @@ var nsGmx = nsGmx || {};
                     mercCenter: L.Projection.Mercator.project(attrs.lmap.unproject([x, y], attrs.z)),
                     latLng: attrs.lmap.unproject([x, y], attrs.z),
                 }
+            },
+
+            _getMax: function(arr) {
+                return Math.max.apply(null, arr);
+            },
+
+            _getMin: function(arr) {
+                return Math.min.apply(null, arr);
             }
         });
 
