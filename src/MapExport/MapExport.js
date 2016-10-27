@@ -617,7 +617,7 @@ var nsGmx = window.nsGmx || {};
                         position: {
                             x: dimensions.mercCenter.x,
                             y: dimensions.mercCenter.y,
-                            z: attrs.z ? attrs.z : attrs.lmap.getZoom()
+                            z: attrs.z ? 17 - attrs.z : 17 - attrs.lmap.getZoom()
                         },
                         latLng: dimensions.latLng
                     },
