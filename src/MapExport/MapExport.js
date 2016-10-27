@@ -105,7 +105,8 @@ var nsGmx = window.nsGmx || {};
                 coords: null,
                 zoomLevels: getZoomLevels(),
                 formatTypes: getFormatTypes(formats),
-                name: ''
+                name: '',
+                exportErr: false
             }
         })
 
@@ -213,6 +214,7 @@ var nsGmx = window.nsGmx || {};
                 this.listenTo(this.model, 'change:heightSizeErr', this.handleSizeError);
                 this.listenTo(this.model, 'change:name', this.updateName);
                 this.listenTo(this.model, 'change:z', this.updateZoom);
+                this.listenTo(this.model, 'change:exportErr', this.handleExportError);
 
                 for (var i = 0; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -410,6 +412,21 @@ var nsGmx = window.nsGmx || {};
                 }
             },
 
+            handleExportError: function () {
+                var attrs = this.model.toJSON(),
+                    exportBtn = this.$('.mapExportButton'),
+                    spinHolder = this.$('.spinHolder');
+
+                $(spinHolder).empty();
+
+                if (attrs.exportErr) {
+                    $(spinHolder).addClass('errorMsg');
+                    $(spinHolder).html(window._gtxt('mapExport.exportError'));
+                } else {
+                    $(spinHolder).removeClass('errorMsg');
+                }
+            },
+
             updateName: function () {
                 var attrs = this.model.toJSON(),
                     exportNameInput = this.$('.mapExportName'),
@@ -567,7 +584,8 @@ var nsGmx = window.nsGmx || {};
                     widthValueErr: false,
                     widthSizeErr: false,
                     heightValueErr: false,
-                    heightSizeErr: false
+                    heightSizeErr: false,
+                    exportErr: false
                 });
             },
 
@@ -587,7 +605,8 @@ var nsGmx = window.nsGmx || {};
             },
 
             exportMap: function () {
-                var attrs = this.model.toJSON(),
+                var _this = this,
+                    attrs = this.model.toJSON(),
                     initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
                     screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z),
                     dimensions = this._getDimensions(screenCoords),
@@ -608,6 +627,7 @@ var nsGmx = window.nsGmx || {};
                         filename: attrs.name,
                         format: attrs.format
                     },
+                    exportButton = this.$('.mapExportButton'),
                     spinHolder = this.$('.spinHolder'),
                     def;
 
@@ -616,19 +636,29 @@ var nsGmx = window.nsGmx || {};
                     var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
                     var loading = window._div([window._img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css', 'display', 'inline-block'],['attr','loading',true]]);
 
+                    _this.model.set({
+                        exportErr: false
+                    });
 
+                    $(exportButton).addClass('not-active');
                     $(spinHolder).children("[loading]").remove();
+                    $(spinHolder).empty();
                     $(spinHolder).append(loading);
 
                     def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
-                    def.fail(function(taskInfo){
-                        $(spinHolder).empty();
-                        $(spinHolder).html('mapExport.exportError');
-                    }).done(function(taskInfo){
-                        $(spinHolder).empty();
+                    def.done(function(taskInfo){
                         var url2 = window.serverBase + taskInfo.Result.downloadFile;
+
+                        $(exportButton).removeClass('not-active');
+                        $(spinHolder).empty();
                         downloadFile(url2);
+
+                    }).fail(function(taskInfo){
+                        $(exportButton).removeClass('not-active');
+                        _this.model.set({
+                            exportErr: true
+                        });
                     })
 
                     function downloadFile(url) {
@@ -766,7 +796,7 @@ var nsGmx = window.nsGmx || {};
                             weight: 3.5
                         },
                         pointStyle: {
-                            size: 3.5,
+                            size: L.Browser.mobile ? 40 : 8,
                             color: '#f57c00'
                         }
                     };
@@ -999,7 +1029,8 @@ var nsGmx = window.nsGmx || {};
                 latLng: null,
                 coords: null,
                 zoomLevels: getZoomLevels(),
-                formatTypes: getFormatTypes(formats)
+                formatTypes: getFormatTypes(formats),
+                exportErr: false
             });
         };
     }
