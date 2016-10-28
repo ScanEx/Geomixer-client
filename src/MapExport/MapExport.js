@@ -201,6 +201,7 @@ var nsGmx = window.nsGmx || {};
             // меняется модель
             initialize: function () {
                 var attrs = this.model.toJSON(),
+                    minZoom = attrs.lmap.getMinZoom(),
                     currentZoom = attrs.lmap.getZoom(),
                     zoomLevels = attrs.zoomLevels,
                     formatTypes = attrs.formatTypes;
@@ -216,7 +217,7 @@ var nsGmx = window.nsGmx || {};
                 this.listenTo(this.model, 'change:z', this.updateZoom);
                 this.listenTo(this.model, 'change:exportErr', this.handleExportError);
 
-                for (var i = 0; i < zoomLevels.length; i++) {
+                for (var i = minZoom; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
 
                     if (i === currentZoom) {
@@ -477,10 +478,11 @@ var nsGmx = window.nsGmx || {};
 
             setZoom: function (e) {
                 var attrs = this.model.toJSON(),
+                    minZoom = attrs.lmap.getMinZoom(),
                     selectedZoom = Number(e.target.value),
                     zoomLevels = attrs.zoomLevels;
 
-                for (var i = 0; i < zoomLevels.length; i++) {
+                for (var i = minZoom; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
 
                     if (i === selectedZoom) {
@@ -528,6 +530,7 @@ var nsGmx = window.nsGmx || {};
 
                 var currentZoom = attrs.lmap.getZoom(),
                     zoomLevels = attrs.zoomLevels,
+                    minZoom = attrs.lmap.getMinZoom(),
                     mapBounds = attrs.lmap.getBounds(),
                     latLngs = [
                         mapBounds.getSouthWest(),
@@ -554,7 +557,7 @@ var nsGmx = window.nsGmx || {};
                     bottomRight =   L.point(this._getMax(xx) - dims.width / scale,  this._getMax(yy) - dims.height / scale),
                     initialBounds = this._convertToLantLngs([bottomLeft, topLeft, topRight, bottomRight], attrs.z);
 
-                for (var i = 0; i < zoomLevels.length; i++) {
+                for (var i = minZoom; i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
 
                     if (i === currentZoom) {
