@@ -7,7 +7,6 @@ var nsGmx = window.nsGmx || {};
         // 'geotiff',
         'png',
         'jpeg',
-        // 'kmz',
         // 'mbtiles'
     ];
 
@@ -48,6 +47,8 @@ var nsGmx = window.nsGmx || {};
             export: 'Экспорт',
             sizeWarn: 'максимальный размер - 10000 пикселей',
             valueWarn: 'недопустимое значение',
+            inQueue: 'в очереди',
+            inProcess: 'файл формируется',
             exportError: 'ошибка экспорта'
         }
     });
@@ -77,6 +78,8 @@ var nsGmx = window.nsGmx || {};
             export: 'Export',
             sizeWarn: 'incorrect size',
             valueWarn: 'incorrect value',
+            inQueue: 'waiting',
+            inProcess: 'processing file',
             exportError: 'export error'
         }
     });
@@ -119,7 +122,7 @@ var nsGmx = window.nsGmx || {};
 
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
-                        '<span class="zoomToBoxButton btn-hidden">' +
+                        '<span class="zoomToBoxButton" hidden="true">' +
                         '</span>' +
                 '</div>' +
                 '<div class="exportSettings">' +
@@ -142,7 +145,7 @@ var nsGmx = window.nsGmx || {};
                                 '</select>' +
                             '</td>' +
                             '<td class="zoomToLevel">' +
-                                '<span class="zoomToLevelButtonWrap btn-hidden">' +
+                                '<span class="zoomToLevelButtonWrap" hidden="true">' +
                                 '</span>' +
                             '</td>' +
                         '</tr>' +
@@ -182,7 +185,11 @@ var nsGmx = window.nsGmx || {};
                 '</table>' +
                 '<div class="export">' +
                     '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
-                    '<span class="spinHolder"></span>' +
+                    '<span class="spinHolder" hidden="true">' +
+                        '<img src="img/progress.gif"/>' +
+                        '<span class="spinMessage"></span>' +
+                    '</span>' +
+                    '<span class="exportErrorMessage" hidden="true">{{i "mapExport.exportError"}}</span>' +
                 '</div>'
             ),
             events: {
@@ -281,6 +288,8 @@ var nsGmx = window.nsGmx || {};
                     formatSelect = this.$('.formatTypes'),
                     exportNameInput = this.$('.mapExportName'),
                     exportButton = this.$('.mapExportButton'),
+                    spinHolder = this.$('.spinHolder'),
+                    spinMessage = this.$('.spinMessage'),
                     inputs = [
                         zoomSelect,
                         widthInput,
@@ -301,8 +310,8 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(zoomToBoxButton).removeClass('btn-hidden');
-                    $(zoomToLevelButton).removeClass('btn-hidden');
+                    $(zoomToBoxButton).prop('hidden', false);
+                    $(zoomToLevelButton).prop('hidden', false);
                     if (
                         !attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
@@ -315,9 +324,11 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(zoomToBoxButton).addClass('btn-hidden');
-                    $(zoomToLevelButton).addClass('btn-hidden');
+                    $(zoomToBoxButton).prop('hidden', true);
+                    $(zoomToLevelButton).prop('hidden', true);
                     $(exportButton).addClass('not-active');
+                    $(spinMessage).empty();
+                    $(spinHolder).prop('hidden', true);
                 }
             },
 
@@ -416,15 +427,18 @@ var nsGmx = window.nsGmx || {};
             handleExportError: function () {
                 var attrs = this.model.toJSON(),
                     exportBtn = this.$('.mapExportButton'),
-                    spinHolder = this.$('.spinHolder');
+                    spinHolder = this.$('.spinHolder'),
+                    spinMessage = this.$('.spinMessage'),
+                    exportErrorMessage = this.$('.exportErrorMessage');
 
-                $(spinHolder).empty();
+                $(spinMessage).empty();
 
                 if (attrs.exportErr) {
-                    $(spinHolder).addClass('errorMsg');
-                    $(spinHolder).html(window._gtxt('mapExport.exportError'));
+                    $(spinHolder).prop('hidden', true);
+                    $(exportErrorMessage).prop('hidden', false);
                 } else {
-                    $(spinHolder).removeClass('errorMsg');
+                    $(exportErrorMessage).prop('hidden', true);
+                    $(spinHolder).prop('hidden', false);
                 }
             },
 
@@ -472,7 +486,7 @@ var nsGmx = window.nsGmx || {};
                 }
 
                 if (zoomToLevelButton) {
-                    nsGmx.Utils._title(zoomToLevelButton, (_gtxt('mapExport.zoomToLevel') + ' ' + attrs.z));
+                    nsGmx.Utils._title(zoomToLevelButton, (window._gtxt('mapExport.zoomToLevel') + ' ' + attrs.z));
                 }
             },
 
@@ -632,21 +646,22 @@ var nsGmx = window.nsGmx || {};
                     },
                     exportButton = this.$('.mapExportButton'),
                     spinHolder = this.$('.spinHolder'),
+                    spinMessage = this.$('.spinMessage'),
                     def;
 
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
+
                 function processLink(id){
                     var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
-                    var loading = window._div([window._img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css', 'display', 'inline-block'],['attr','loading',true]]);
 
                     _this.model.set({
                         exportErr: false
                     });
 
                     $(exportButton).addClass('not-active');
-                    $(spinHolder).children("[loading]").remove();
-                    $(spinHolder).empty();
-                    $(spinHolder).append(loading);
+
+                    $(spinMessage).empty();
+                    $(spinHolder).prop('hidden', false);
 
                     def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
@@ -654,15 +669,25 @@ var nsGmx = window.nsGmx || {};
                         var url2 = window.serverBase + taskInfo.Result.downloadFile;
 
                         $(exportButton).removeClass('not-active');
-                        $(spinHolder).empty();
+                        $(spinMessage).empty();
+                        $(spinHolder).prop('hidden', true);
+
                         downloadFile(url2);
 
                     }).fail(function(taskInfo){
                         $(exportButton).removeClass('not-active');
+
                         _this.model.set({
                             exportErr: true
                         });
-                    })
+
+                    }).progress(function(taskInfo){
+                        if (taskInfo.Status === 'В очереди') {
+                            $(spinMessage).html(window._gtxt('mapExport.inQueue'));
+                        } else if (taskInfo.Status === 'В процессе') {
+                            $(spinMessage).html(window._gtxt('mapExport.inProcess'));
+                        }
+                    });
 
                     function downloadFile(url) {
                         var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1,
@@ -706,7 +731,6 @@ var nsGmx = window.nsGmx || {};
                 // разница между целевым и текущим зумом
                 scale = Math.pow(2, (attrs.z - attrs.lmap.getZoom()));
 
-                // screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z);
                 screenCoords = !attrs.coords ? this._revertCoords(this._convertFromLatLngs(initialCoords, attrs.z)) : this._revertCoords(this._convertFromLatLngs(attrs.coords, attrs.z));
 
                 value = Number(e.target.value);

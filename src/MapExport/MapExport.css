@@ -18,10 +18,6 @@
     margin: 0px 0px 0px 8px;
 }
 
-.btn-hidden {
-    display: none;
-}
-
 .not-active {
     color: #999999;
     pointer-events: none;
@@ -95,12 +91,16 @@
     line-height: 30px;
 }
 
-.spinHolder {
-    /*width: 100%;*/
+.spinHolder,
+.exportErrorMessage {
     margin: 0px 0px 0px 8px;
 }
 
-.errorMsg {
+.spinMessage {
+    margin: 0px 0px 0px 4px;
+}
+
+.exportErrorMessage {
     color: red;
 }
 
