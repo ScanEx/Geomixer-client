@@ -432,13 +432,12 @@ var nsGmx = window.nsGmx || {};
                     exportErrorMessage = this.$('.exportErrorMessage');
 
                 $(spinMessage).empty();
+                $(spinHolder).prop('hidden', true);
 
                 if (attrs.exportErr) {
-                    $(spinHolder).prop('hidden', true);
                     $(exportErrorMessage).prop('hidden', false);
                 } else {
                     $(exportErrorMessage).prop('hidden', true);
-                    $(spinHolder).prop('hidden', false);
                 }
             },
 
