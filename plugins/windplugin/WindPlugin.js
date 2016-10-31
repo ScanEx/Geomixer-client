@@ -9,9 +9,9 @@ var uiTemplate = Handlebars.compile(
     '<span data-hours="18" class="wind-hour">18</span>'
 );
 
-var nativeDrawNode = _layersTree.drawNode;
-
-var DEFAULT_LAYERNAME = '7CB878E2BE274837B291E592B2530C39';
+var DEFAULT_LAYERNAME = '7CB878E2BE274837B291E592B2530C39',
+	layersTree = window._layersTree,
+	nativeDrawNode = layersTree.drawNode;
 
 var WindFilterView = Backbone.View.extend({
     tagName: 'span',
@@ -45,15 +45,18 @@ var publicInterface = {
     beforeViewer: function(params, map) {
         var layerNames = params.layerName || DEFAULT_LAYERNAME;
 
-        if (!_.isArray(layerNames)) {
+        if (layerNames.indexOf(',') > 0) {
+			layerNames = layerNames.split(',');
+		} else if (!L.Util.isArray(layerNames)) {
             layerNames = [layerNames];
         }
         
         var views = {};
         
         layerNames.forEach(function(layerName) {
+			layerName = layerName.trim();
             var layer = nsGmx.gmxMap.layersByID[layerName];
-            
+
             if (!layer) {
                 return;
             }
@@ -68,25 +71,25 @@ var publicInterface = {
                     return hours === activeHour;
                 }
             }
-            
+
             var model = new WindFilterModel();
             var view = new WindFilterView({model: model});
-            
+
             model.on('change:activeHour', function() {
                 layer.setFilter(getHourFilter(model.get('activeHour')));
             });
             layer.setFilter(getHourFilter(model.get('activeHour')));
-            
+
             views[layerName] = view.el;
         });
-        
-        _layersTree.drawNode = function(elem, parentParams, layerManagerFlag) {
-            var div = nativeDrawNode.apply(_layersTree, arguments);
 
-            if (!layerManagerFlag && elem.type === 'layer' && elem.content.properties.name in views) {
-                $(div).find('.layerDescription').after(views[elem.content.properties.name]);
+        layersTree.drawNode = function(elem, parentParams, layerManagerFlag) {
+            var div = nativeDrawNode.apply(layersTree, arguments),
+				beforeNode = div.getElementsByClassName('layerDescription');
+
+            if (beforeNode.length && !layerManagerFlag && elem.type === 'layer' && elem.content.properties.name in views) {
+                div.insertBefore(views[elem.content.properties.name], beforeNode[0].nextSibling);
             }
-            
             return div;
         }
     }
