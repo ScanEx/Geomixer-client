@@ -1146,7 +1146,7 @@ mapHelper.prototype.export = function(params) {
         nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(false);
         window.exportMode = true;
 
-        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
+        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
 
         $('#all').toggleClass('print-preview-all', true);
 
