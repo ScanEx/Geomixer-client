@@ -807,7 +807,7 @@ window.resizeAll = function() {
     var top = 0,
         bottom = 0,
         right = 0,
-        left = layersShown ? 360 : 12,
+        left = window.exportMode ? 0 : (layersShown ? 360 : 12),
         headerHeight = $('#header').outerHeight(),
         mainDiv = $('#flash')[0];
 
@@ -1021,6 +1021,7 @@ function loadMap(state) {
     //при переходе на новое API мы изменили место хранения мапплетов карты
     //раньше мапплеты хранились в свойстве onLoad карты
     //теперь - внутри клиентских данных (UserData)
+
     nsGmx.mappletLoader = {
         _script: '',
 

@@ -1152,14 +1152,16 @@ mapHelper.prototype.export = function(params) {
 
 		$('.leaflet-control-container').hide();
 
-	// var exportCssParams = {
-	// 	top: '0px',
-	// 	left: '0px'
-	// };
+	var exportCssParams = {
+		top: '0px',
+		left: '0px',
+		width: '100%',
+		height: '100%'
+	};
 	//
 	// var newParams = $.extend(exportCssParams, params);
 	//
-	// $('#flash').css(exportCssParams);
+	$('#flash').css(exportCssParams);
 	nsGmx.leafletMap.invalidateSize();
 }
 
