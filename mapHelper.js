@@ -1142,28 +1142,24 @@ mapHelper.prototype.print = function() {
 
 // экспортный режим редактора
 mapHelper.prototype.export = function(params) {
-    var toggleMode = function(isPreviewMode) {
 
-        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(!isPreviewMode);
-        window.exportMode = isPreviewMode;
+        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(false);
+        window.exportMode = true;
 
         $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
 
-        $('#all').toggleClass('print-preview-all', isPreviewMode);
+        $('#all').toggleClass('print-preview-all', true);
 
-		isPreviewMode ? $('.leaflet-control-container').hide() : $('.leaflet-control-container').show();
-    }
+		$('.leaflet-control-container').hide();
 
-    toggleMode(true);
-
-	var exportCssParams = {
-		top: '0px',
-		left: '0px'
-	};
-
-	var newParams = $.extend(exportCssParams, params);
-
-	$('#flash').css(newParams);
+	// var exportCssParams = {
+	// 	top: '0px',
+	// 	left: '0px'
+	// };
+	//
+	// var newParams = $.extend(exportCssParams, params);
+	//
+	// $('#flash').css(exportCssParams);
 	nsGmx.leafletMap.invalidateSize();
 }
 

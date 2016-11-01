@@ -1284,8 +1284,9 @@ function processGmxMap(state, gmxMap) {
     }
 	var mapOptions = L.extend(window.mapOptions ? window.mapOptions : {}, {
         contextmenu: true,
-        center: defCenter,
-        zoom: defZoom,
+        // если есть пермалинк, центрируем и зумируем карту сразу по его параметрам
+        center: state.position ? [state.position.y, state.position.x] : defCenter,
+        zoom: state.position ? state.position.z : defZoom,
         boxZoom: false,
         zoomControl: false,
         attributionControl: false,
@@ -1458,10 +1459,6 @@ function processGmxMap(state, gmxMap) {
             lmap.gmxControlsManager.get('copyright').setMapCopyright(window.copyright);
         }
 
-        if (state.position) {
-            lmap.setView([state.position.y, state.position.x], state.position.z);
-        }
-
         var condition = false,
             mapStyles = false;
 
@@ -1611,6 +1608,7 @@ function processGmxMap(state, gmxMap) {
         $('#leftContent').mCustomScrollbar();
 
         // экспорт карты
+
         if (state.exportMode) {
             _mapHelper.export(state);
         }
