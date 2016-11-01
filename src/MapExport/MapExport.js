@@ -669,6 +669,8 @@ var nsGmx = window.nsGmx || {};
                         $(spinMessage).empty();
                         $(spinHolder).prop('hidden', true);
 
+                        downloadFile(url2);
+
                     }).fail(function(taskInfo){
                         $(exportButton).removeClass('not-active');
 
