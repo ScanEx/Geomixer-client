@@ -88,3 +88,9 @@
 [submodule "leaflet/plugins/es6-promise"]
 	path = leaflet/plugins/es6-promise
 	url = git@github.com:stefanpenner/es6-promise.git
+[submodule "src/CalendarWidget"]
+	path = src/CalendarWidget
+	url = git@github.com:ScanEx/CalendarWidget.git
+[submodule "src/DateInteval"]
+	path = src/DateInterval
+	url = git@github.com:ScanEx/DateInterval.git

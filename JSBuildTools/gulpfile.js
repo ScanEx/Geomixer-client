@@ -9,6 +9,7 @@ var gulp = require('gulp'),
 
 var root = "../",
     commonRoot = root + 'common_components/repo/',
+    srcRoot = root + 'src/',
     distDir = root + 'common_components/dist/';
 
 require('./common_components/builder')(gulp, {
@@ -33,8 +34,8 @@ require('./common_components/builder')(gulp, {
             commonRoot + 'TransparencySliderWidget@build',
             commonRoot + 'BaseLayersControl@build',
             commonRoot + 'Popover@build',
-            commonRoot + 'DateInterval',
-            commonRoot + 'CalendarWidget@build',
+            srcRoot + 'DateInterval',
+            srcRoot + 'CalendarWidget@build',
             commonRoot + 'AlertWidget@build',
             commonRoot + '../GmxShareIconControl@build',
             commonRoot + '../Leaflet-IconLayers/src',
