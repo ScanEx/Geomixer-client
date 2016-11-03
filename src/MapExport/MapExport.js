@@ -649,7 +649,7 @@ var nsGmx = window.nsGmx || {};
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
 
                 function processLink(id){
-                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.serverBase + 'api/index.html?permalink=' + id;
+                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.location.host + window.location.pathname + '?permalink=' + id;
 
                     _this.model.set({
                         exportErr: false
