@@ -31,6 +31,7 @@
 .zoomSelect,
 .dims,
 .formatSelect,
+.typeSelect,
 .nameSelect {
     padding: 4px;
     margin: 4px 0px 4px 0px;
@@ -39,6 +40,7 @@
 
 .zoomLevel,
 .formatTypes,
+.fileTypes,
 .mapExportWidth,
 .mapExportHeight,
 .mapExportName {
@@ -49,7 +51,8 @@
 }
 
 .zoomLevel,
-.formatTypes {
+.formatTypes,
+.fileTypes {
     /*border-width: 2px;*/
     width: 80px;
     vertical-align:top;

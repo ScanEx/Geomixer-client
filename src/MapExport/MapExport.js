@@ -3,13 +3,14 @@ var nsGmx = window.nsGmx || {};
 (function() {
 
     var MAX_SIZE = 10000;
-    var formats = [
-        // 'geotiff',
+    var formatTypes = [
         'png',
         'jpeg',
-        // 'mbtiles'
     ];
-
+    var fileTypes = [
+        'image',
+        'mbtiles'
+    ]
     var view;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
@@ -28,7 +29,8 @@ var nsGmx = window.nsGmx || {};
                 settings: 'Настройки экспорта карты:',
                 zoom: 'масштаб (зум)',
                 size: 'размер',
-                format: 'формат файла',
+                format: 'формат растра',
+                fileType: 'тип файла',
                 width: 'ширина (пк)',
                 height: 'высота (пк)',
                 name: 'имя файла'
@@ -40,6 +42,7 @@ var nsGmx = window.nsGmx || {};
                 kmz: 'KMZ',
                 mbTiles: 'MBTiles'
             },
+
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
             zoomToBox: 'Перейти к выделенному',
@@ -59,7 +62,8 @@ var nsGmx = window.nsGmx || {};
                 settings: 'Map export settings:',
                 zoom: 'zoom',
                 size: 'size',
-                format: 'file format',
+                format: 'raster format',
+                fileType: 'file type',
                 width: 'width (px)',
                 height: 'height (px)',
                 name: 'file name'
@@ -101,13 +105,15 @@ var nsGmx = window.nsGmx || {};
                 widthSizeErr: false,
                 heightSizeErr: false,
                 format: null,
+                fileType: null,
                 x: null,
                 y: null,
                 z: null,
                 latLng: null,
                 coords: null,
                 zoomLevels: getZoomLevels(),
-                formatTypes: getFormatTypes(formats),
+                formatTypes: getTypes(formatTypes),
+                fileTypes: getTypes(fileTypes),
                 name: '',
                 exportErr: false
             }
@@ -175,6 +181,19 @@ var nsGmx = window.nsGmx || {};
                                 '</select>' +
                             '</td>' +
                         '</tr>' +
+                        '<tr class="typeSelect">' +
+                            '<td class="eLabel">{{i "mapExport.settings.fileType"}}</td>' +
+                            '<td class="eInput">' +
+                                '<select class="fileTypes">' +
+                                    '{{#each this.fileTypes}}' +
+                                    '<option value="{{this.type}}"' +
+                                        '{{#if this.current}} selected="selected" {{/if}}>' +
+                                        '{{this.type}}' +
+                                    '</option>' +
+                                    '{{/each}}' +
+                                '</select>' +
+                            '</td>' +
+                        '</tr>' +
                         '<tr class="nameSelect">' +
                             '<td class="eLabel">{{i "mapExport.settings.name"}}</td>' +
                             '<td class="eInput">' +
@@ -201,6 +220,7 @@ var nsGmx = window.nsGmx || {};
                 'input .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
                 'change .formatTypes': 'setFormat',
+                'change .fileTypes': 'setFileType',
                 'input .mapExportName': 'setName',
                 'click .mapExportButton': 'exportMap'
             },
@@ -210,7 +230,8 @@ var nsGmx = window.nsGmx || {};
                 var attrs = this.model.toJSON(),
                     currentZoom = attrs.lmap.getZoom(),
                     zoomLevels = attrs.zoomLevels,
-                    formatTypes = attrs.formatTypes;
+                    formatTypes = attrs.formatTypes,
+                    fileTypes = attrs.fileTypes;
 
                 this.listenTo(this.model, 'change:selArea', this.updateArea);
                 this.listenTo(this.model, 'change:width', this.updateSize);
@@ -237,10 +258,17 @@ var nsGmx = window.nsGmx || {};
                     }
                 }
 
+                for (var j = 0; j < fileTypes.length; j++) {
+                    if (fileTypes[j].current === true) {
+                        this.model.set('fileType', fileTypes[j].type);
+                    }
+                }
+
                 this.model.set({
                     z: currentZoom,
                     zoomLevels: zoomLevels,
                     formatTypes: formatTypes,
+                    fileTypes: fileTypes,
                     name: nsGmx.gmxMap.properties.title
                 });
 
@@ -257,7 +285,8 @@ var nsGmx = window.nsGmx || {};
                 this.$('.zoomLevel').prop('disabled', true)
                 this.$('.mapExportWidth').prop('disabled', true);
                 this.$('.mapExportHeight').prop('disabled', true);
-                this.$('.formatTypes').prop('disabled', true)
+                this.$('.formatTypes').prop('disabled', true);
+                this.$('.fileTypes').prop('disabled', true);
                 this.$('.mapExportName').val(this.model.get('name'));
                 this.$('.mapExportName').prop('disabled', true);
                 this.$('.mapExportButton').addClass('not-active');
@@ -285,6 +314,7 @@ var nsGmx = window.nsGmx || {};
                     widthInput = this.$('.mapExportWidth'),
                     heightInput = this.$('.mapExportHeight'),
                     formatSelect = this.$('.formatTypes'),
+                    fileSelect = this.$('.fileTypes'),
                     exportNameInput = this.$('.mapExportName'),
                     exportButton = this.$('.mapExportButton'),
                     spinHolder = this.$('.spinHolder'),
@@ -294,6 +324,7 @@ var nsGmx = window.nsGmx || {};
                         widthInput,
                         heightInput,
                         formatSelect,
+                        fileSelect,
                         exportNameInput,
                         exportButton
                     ];
@@ -315,7 +346,8 @@ var nsGmx = window.nsGmx || {};
                         !attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
                         !attrs.heightValueErr   &&
-                        !attrs.heightSizeErr
+                        !attrs.heightSizeErr    &&
+                        attrs.name !== ''
                         ) {
                         $(exportButton).removeClass('not-active');
                     }
@@ -528,6 +560,25 @@ var nsGmx = window.nsGmx || {};
                 });
             },
 
+            setFileType: function (e) {
+                var attrs = this.model.toJSON(),
+                    fileTypes = attrs.fileTypes,
+                    selectedFileType = e.target.value;
+
+                for (var i = 0; i < fileTypes.length; i++) {
+                    fileTypes[i].current = false;
+
+                    if (fileTypes[i].type === selectedFileType) {
+                        fileTypes[i].current = true;
+                    }
+                }
+
+                this.model.set({
+                    fileTypes: fileTypes,
+                    fileType: selectedFileType
+                });
+            },
+
             setName: function (e) {
                 this.model.set('name', e.target.value)
             },
@@ -639,6 +690,7 @@ var nsGmx = window.nsGmx || {};
                         width: Math.floor(Number(attrs.width)),
                         height: Math.floor(Number(attrs.height)),
                         filename: attrs.name,
+                        container: attrs.fileType === 'image' ? 'grimage' : attrs.fileType,
                         format: attrs.format
                     },
                     exportButton = this.$('.mapExportButton'),
@@ -1012,17 +1064,17 @@ var nsGmx = window.nsGmx || {};
             return zoomLevels;
         }
 
-        function getFormatTypes(types) {
-            var formatTypes = []
+        function getTypes(types) {
+            var arr = []
 
             for (var i = 0; i < types.length; i++) {
-                formatTypes[i] = {type: types[i], current: false};
+                arr[i] = {type: types[i], current: false};
 
                 if (i === 0) {
-                    formatTypes[i].current = true;
+                    arr[i].current = true;
                 }
             }
-            return formatTypes;
+            return arr;
         }
 
         this.Load = function () {
@@ -1053,7 +1105,8 @@ var nsGmx = window.nsGmx || {};
                 latLng: null,
                 coords: null,
                 zoomLevels: getZoomLevels(),
-                formatTypes: getFormatTypes(formats),
+                formatTypes: getTypes(formatTypes),
+                fileTypes: getTypes(fileTypes),
                 exportErr: false
             });
         };
