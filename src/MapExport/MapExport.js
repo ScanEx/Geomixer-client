@@ -3,15 +3,6 @@ var nsGmx = window.nsGmx || {};
 (function() {
 
     var MAX_SIZE = 10000;
-    var formatTypes = [
-        'png',
-        'jpeg',
-    ];
-    var fileTypes = [
-        'image',
-        'mbtiles'
-    ]
-    var view;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
     nsGmx.DrawingObjectCustomControllers.addDelegate({
@@ -42,7 +33,10 @@ var nsGmx = window.nsGmx || {};
                 kmz: 'KMZ',
                 mbTiles: 'MBTiles'
             },
-
+            filetypes: {
+                raster: 'растр',
+                mbTiles: 'mbTiles'
+            },
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
             zoomToBox: 'Перейти к выделенному',
@@ -75,6 +69,10 @@ var nsGmx = window.nsGmx || {};
                 kmz: 'KMZ',
                 mbTiles: 'MBTiles'
             },
+            filetypes: {
+                raster: 'raster',
+                mbTiles: 'mbTiles'
+            },
             select: 'Select',
             unselect: 'Clear selection',
             zoomToBox: 'Zoom to selected',
@@ -87,6 +85,18 @@ var nsGmx = window.nsGmx || {};
             exportError: 'export error'
         }
     });
+
+    var formatTypes = [
+        'png',
+        'jpeg',
+    ];
+
+    var fileTypes = [
+        window._gtxt('mapExport.filetypes.raster'),
+        window._gtxt('mapExport.filetypes.mbTiles')
+    ];
+
+    var view;
 
     // создает левое меню с параметрами экспорта
     var MapExportMenu = function () {
@@ -125,7 +135,6 @@ var nsGmx = window.nsGmx || {};
             el: $(canvas),
             model: model,
             template: window.Handlebars.compile(
-
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
                         '<span class="zoomToBoxButton" hidden="true">' +
@@ -292,13 +301,13 @@ var nsGmx = window.nsGmx || {};
                 this.$('.mapExportButton').addClass('not-active');
 
                 zoomToBoxButton = nsGmx.Utils.makeImageButton('img/zoom_to_box_tool_small.png', 'img/zoom_to_box_tool_small.png');
-                nsGmx.Utils._title(zoomToBoxButton, _gtxt('mapExport.zoomToBox'));
+                nsGmx.Utils._title(zoomToBoxButton, window._gtxt('mapExport.zoomToBox'));
 
                 this.$('.zoomToBoxButton').append(zoomToBoxButton);
 
                 zoomToLevelButton = nsGmx.Utils.makeImageButton('img/zoom_to_level_tool_small.png', 'img/zoom_to_level_tool_small.png');
                 $(zoomToLevelButton).addClass('zoomToLevelButton');
-                nsGmx.Utils._title(zoomToLevelButton, (_gtxt('mapExport.zoomToLevel') + ' ' + this.model.get('z')));
+                nsGmx.Utils._title(zoomToLevelButton, (window._gtxt('mapExport.zoomToLevel') + ' ' + this.model.get('z')));
 
                 this.$('.zoomToLevelButtonWrap').append(zoomToLevelButton);
 
@@ -690,7 +699,7 @@ var nsGmx = window.nsGmx || {};
                         width: Math.floor(Number(attrs.width)),
                         height: Math.floor(Number(attrs.height)),
                         filename: attrs.name,
-                        container: attrs.fileType === 'image' ? 'grimage' : attrs.fileType,
+                        container: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? 'grimage' : attrs.fileType,
                         format: attrs.format
                     },
                     exportButton = this.$('.mapExportButton'),
