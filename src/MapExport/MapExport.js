@@ -27,15 +27,12 @@ var nsGmx = window.nsGmx || {};
                 name: 'имя файла'
             },
             formats: {
-                geoTiff: 'GeoTiff',
-                png: 'PNG',
                 jpeg: 'JPEG',
-                kmz: 'KMZ',
-                mbTiles: 'MBTiles'
+                png: 'PNG'
             },
             filetypes: {
                 raster: 'растр',
-                mbTiles: 'mbTiles'
+                mbTiles: 'MBTiles'
             },
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
@@ -63,15 +60,12 @@ var nsGmx = window.nsGmx || {};
                 name: 'file name'
             },
             formats: {
-                geoTiff: 'GeoTiff',
-                png: 'PNG',
                 jpeg: 'JPEG',
-                kmz: 'KMZ',
-                mbTiles: 'MBTiles'
+                png: 'PNG'
             },
             filetypes: {
                 raster: 'raster',
-                mbTiles: 'mbTiles'
+                mbTiles: 'MBTiles'
             },
             select: 'Select',
             unselect: 'Clear selection',
@@ -87,18 +81,12 @@ var nsGmx = window.nsGmx || {};
     });
 
     var formatTypes = [
-        'png',
         'jpeg',
-    ];
-
-    var fileTypes = [
-        window._gtxt('mapExport.filetypes.raster'),
-        window._gtxt('mapExport.filetypes.mbTiles')
+        'png'
     ];
 
     var view;
 
-    // создает левое меню с параметрами экспорта
     var MapExportMenu = function () {
         var canvas = nsGmx.Utils._div(null, [['dir','className','mapExportConfigLeftMenu']]);
 
@@ -123,7 +111,7 @@ var nsGmx = window.nsGmx || {};
                 coords: null,
                 zoomLevels: getZoomLevels(),
                 formatTypes: getTypes(formatTypes),
-                fileTypes: getTypes(fileTypes),
+                fileTypes: null,
                 name: '',
                 exportErr: false
             }
@@ -234,13 +222,19 @@ var nsGmx = window.nsGmx || {};
                 'click .mapExportButton': 'exportMap'
             },
 
-            // меняется модель
             initialize: function () {
                 var attrs = this.model.toJSON(),
                     currentZoom = attrs.lmap.getZoom(),
                     zoomLevels = attrs.zoomLevels,
                     formatTypes = attrs.formatTypes,
-                    fileTypes = attrs.fileTypes;
+
+                    // объявление типов файлов происходит здесь, так как необходима обработка смены языка
+                    // типы файлов хранятся в текущем языке
+                    fileTypes = [
+                        window._gtxt('mapExport.filetypes.raster'),
+                        window._gtxt('mapExport.filetypes.mbTiles')
+                    ];
+                    updatedFileTypes = getTypes(fileTypes);
 
                 this.listenTo(this.model, 'change:selArea', this.updateArea);
                 this.listenTo(this.model, 'change:width', this.updateSize);
@@ -267,9 +261,9 @@ var nsGmx = window.nsGmx || {};
                     }
                 }
 
-                for (var j = 0; j < fileTypes.length; j++) {
-                    if (fileTypes[j].current === true) {
-                        this.model.set('fileType', fileTypes[j].type);
+                for (var j = 0; j < updatedFileTypes.length; j++) {
+                    if (updatedFileTypes[j].current === true) {
+                        this.model.set('fileType', updatedFileTypes[j].type);
                     }
                 }
 
@@ -277,7 +271,7 @@ var nsGmx = window.nsGmx || {};
                     z: currentZoom,
                     zoomLevels: zoomLevels,
                     formatTypes: formatTypes,
-                    fileTypes: fileTypes,
+                    fileTypes: updatedFileTypes,
                     name: nsGmx.gmxMap.properties.title
                 });
 
@@ -1074,7 +1068,7 @@ var nsGmx = window.nsGmx || {};
         }
 
         function getTypes(types) {
-            var arr = []
+            var arr = [];
 
             for (var i = 0; i < types.length; i++) {
                 arr[i] = {type: types[i], current: false};
