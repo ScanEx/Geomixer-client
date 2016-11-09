@@ -1262,7 +1262,7 @@ layersTree.prototype.addLayersToMap = function(elem)
             var layerOnMap = L.gmx.createLayer(layer, {
                 layerID: name,
                 hostName: window.serverBase,
-				zIndexOffset: nsGmx.gmxMap.rawTree.properties.LayerOrder === 'VectorOnTop' ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0
+				zIndexOffset: layer.properties.type === 'Vector' && nsGmx.gmxMap.rawTree.properties.LayerOrder === 'VectorOnTop' ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0
             });
             nsGmx.gmxMap.addLayer(layerOnMap);
 
