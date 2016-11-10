@@ -1239,6 +1239,7 @@ function initHeader() {
 }
 
 function processGmxMap(state, gmxMap) {
+	var DEFAULT_VECTOR_LAYER_ZINDEXOFFSET = 2000000;
     var defCenter = [55.7574, 37.5952],
         mapProps = gmxMap.properties,
         defZoom = mapProps.DefaultZoom || 5,
@@ -1303,6 +1304,18 @@ function processGmxMap(state, gmxMap) {
 
     var lmap = new L.Map($('#flash')[0], mapOptions);
 
+
+    // update layers zIndexes
+    var currentZoom = lmap.getZoom(),
+        layerOrder = gmxMap.rawTree.properties.LayerOrder;
+
+    updateZIndexes ();
+
+    lmap.on('zoomend', function(e) {
+        currentZoom = lmap.getZoom();
+        updateZIndexes();
+    })
+
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
         callback: function(event) {
@@ -1316,6 +1329,26 @@ function processGmxMap(state, gmxMap) {
             lmap.setView(event.latlng);
         }
     });
+
+    function updateZIndexes () {
+        for (var l = 0; l < gmxMap.layers.length; l++) {
+            var layer = gmxMap.layers[l],
+                props = layer.getGmxProperties();
+
+            switch (layerOrder) {
+                case 'VectorOnTop':
+                if (props.type === 'Vector') {
+                    if (props.IsRasterCatalog) {
+                        var rcMinZoom = props.RCMinZoomForRasters;
+                        layer.setZIndexOffset(currentZoom < rcMinZoom ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0);
+                    } else {
+                        layer.setZIndexOffset(DEFAULT_VECTOR_LAYER_ZINDEXOFFSET);
+                    }
+                }
+                break;
+            }
+        }
+    }
 
 	// Begin: запоминание текущей позиции карты
 	function saveMapPosition(key) {

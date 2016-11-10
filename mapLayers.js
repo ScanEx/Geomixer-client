@@ -1240,6 +1240,11 @@ layersTree.prototype.addLayerToTree = function(layerName) {
 //геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
+	var DEFAULT_VECTOR_LAYER_ZINDEXOFFSET = 2000000;
+
+	var layerOrder = nsGmx.gmxMap.rawTree.properties.LayerOrder,
+		currentZoom = nsGmx.leafletMap.getZoom();
+
     if (typeof elem.content.properties.GroupID != 'undefined')
     {
         for (var i = 0; i < elem.content.children.length; i++)
@@ -1257,23 +1262,52 @@ layersTree.prototype.addLayersToMap = function(elem)
 
         if (!nsGmx.gmxMap.layersByID[name])
         {
-			var DEFAULT_VECTOR_LAYER_ZINDEXOFFSET = 2000000;
-            var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
-            var layerOnMap = L.gmx.createLayer(layer, {
-                layerID: name,
-                hostName: window.serverBase,
-				zIndexOffset: layer.properties.type === 'Vector' && nsGmx.gmxMap.rawTree.properties.LayerOrder === 'VectorOnTop' ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0
+			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false,
+				rcMinZoom = layer.properties.RCMinZoomForRasters,
+            	layerOnMap = L.gmx.createLayer(layer, {
+            		layerID: name,
+            		hostName: window.serverBase,
+					zIndexOffset: null
             });
+
+			updateZIndex(layerOnMap);
             nsGmx.gmxMap.addLayer(layerOnMap);
 
             visibility && nsGmx.leafletMap.addLayer(layerOnMap);
 
             layerOnMap.getGmxProperties().changedByViewer = true;
+
+			nsGmx.leafletMap.on('zoomend', function(e) {
+				currentZoom = nsGmx.leafletMap.getZoom();
+
+				for (var l = 0; l < nsGmx.gmxMap.layers.length; l++) {
+					var layer = nsGmx.gmxMap.layers[l];
+
+					updateZIndex(layer);
+				}
+			});
         }
         else
         {
             showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", nsGmx.gmxMap.layersByID[name].getGmxProperties().title), true );
             return false;
+        }
+    }
+
+	function updateZIndex (layer) {
+		var props = layer.getGmxProperties();
+
+        switch (layerOrder) {
+            case 'VectorOnTop':
+            if (props.type === 'Vector') {
+                if (props.IsRasterCatalog) {
+                    var rcMinZoom = props.RCMinZoomForRasters;
+                    layer.setZIndexOffset(currentZoom < rcMinZoom ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0);
+                } else {
+                    layer.setZIndexOffset(DEFAULT_VECTOR_LAYER_ZINDEXOFFSET);
+                }
+            }
+            break;
         }
     }
 
