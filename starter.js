@@ -391,6 +391,7 @@ var createToolbar = function() {
                 gridManager.gridControl.setUnits(state.options.units);
                 gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
                 gridManager.gridControl.setColor(state.options.color);
+                gridManager.gridControl.setTitleFormat(state.options.titleFormat);
             }
         },
         saveState: function() {

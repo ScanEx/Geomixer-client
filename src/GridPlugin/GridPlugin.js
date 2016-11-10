@@ -3,13 +3,18 @@ var nsGmx = nsGmx || {};
 (function() {
     window._translationsHash.addtext('rus', {
         gridPlugin: {
-            gridSettings : 'Настройка координатной сетки',
-            gridColorSettings : 'Цвет сетки',
-            gridStepSettings : 'Шаг сетки',
+            gridSettings: 'Настройка координатной сетки',
+            gridColorSettings: 'цвет',
+            gridStepSettings: 'шаг',
+            gridUnitsSettings: 'единицы',
+            gridFormatSettings: 'формат вывода',
             set : 'установить',
             reset : 'сбросить',
             unitsKilometers : 'км',
             unitsDegrees : 'градусы',
+            formatDecimal : 'десятичные градусы',
+            formatDM : 'градусы, минуты',
+            formatDMS : 'градусы, минуты, секунды',
             latitude : 'по широте',
             longitude : 'по долготе'
         }
@@ -17,14 +22,19 @@ var nsGmx = nsGmx || {};
     window._translationsHash.addtext('eng', {
         gridPlugin: {
             gridSettings : 'Coordinate grid settings',
-            gridColorSettings : 'Grid color',
-            gridStepSettings : 'Grid step',
+            gridColorSettings : 'color',
+            gridStepSettings : 'step',
+            gridUnitsSettings: 'units',
+            gridFormatSettings: 'format',
             set : 'set',
             reset : 'reset',
             unitsKilometers : 'km',
             unitsDegrees : 'degrees',
+            formatDecimal: 'decimal degrees',
+            formatDM: 'degrees minutes',
+            formatDMS : 'degrees minutes seconds',
             latitude : 'latitude',
-            longitude : 'longitude'
+            longitude: 'longitude'
         }
     });
 
@@ -102,6 +112,7 @@ var nsGmx = nsGmx || {};
                 gridStepXInput = nsGmx.Utils._input(null, [['dir','className','gridStepInput']]),
                 gridUnitsConfig = nsGmx.Utils._span(null, [['dir','className','gridStepConfig']]),
                 gridStepConfig = nsGmx.Utils._span(null, [['dir','className','gridStepConfig']]),
+                gridFormatConfig = nsGmx.Utils._span(null, [['dir','className','gridFormatConfig']]),
                 gridStepUnitsDegrees = nsGmx.Utils._input(null, [
                     ['dir','id','gridStepUnitsDegrees'],
                     ['attr', 'type', 'radio'],
@@ -115,6 +126,24 @@ var nsGmx = nsGmx || {};
                     ['attr', 'name', 'gridStepUnits'],
                     ['attr', 'value', 'kilometers']
                 ]),
+                gridFormatDD = nsGmx.Utils._input(null, [
+                    ['dir','id','gridFormatDD'],
+                    ['attr', 'type', 'radio'],
+                    ['attr', 'name', 'gridFormat'],
+                    ['attr', 'value', 0]
+                ]),
+                gridFormatDM = nsGmx.Utils._input(null, [
+                    ['dir','id','gridFormatDM'],
+                    ['attr', 'type', 'radio'],
+                    ['attr', 'name', 'gridFormat'],
+                    ['attr', 'value', 1]
+                ]),
+                gridFormatDMS = nsGmx.Utils._input(null, [
+                    ['dir','id','gridFormatDMS'],
+                    ['attr', 'type', 'radio'],
+                    ['attr', 'name', 'gridFormat'],
+                    ['attr', 'value', 2]
+                ]),
                 gridSetStepButton = nsGmx.Utils._button([nsGmx.Utils._t(window._gtxt('gridPlugin.set'))], [['dir', 'className', 'gridStepButton']]),
                 gridResetStepButton = nsGmx.Utils._button([nsGmx.Utils._t(window._gtxt('gridPlugin.reset'))], [['dir', 'className', 'gridStepButton']]);
 
@@ -122,23 +151,15 @@ var nsGmx = nsGmx || {};
                 gridStepUnitsDegrees.checked = true;
             } else if (control.options.units === 'kilometers') {
                 gridStepUnitsKilometers.checked = true;
-            }
-
-            function updateInputsValues() {
-                gridStepXInput.value = control.options.customStep.x ? Math.round(control.options.customStep.x * 100) / 100 : control.options.defaultStep.x;
-                gridStepYInput.value = control.options.customStep.y ? Math.round(control.options.customStep.y * 100) / 100 : control.options.defaultStep.y;
-            }
-
-            function handleUnits() {
-                var value = this.value;
-                if (control.options.units !== value) {
-                    control.setUnits(value);
-                }
-                updateInputsValues();
+                disableFormats();
             }
 
             gridStepUnitsDegrees.onclick = handleUnits;
             gridStepUnitsKilometers.onclick = handleUnits;
+
+            gridFormatDD.onclick = handleFormats;
+            gridFormatDM.onclick = handleFormats;
+            gridFormatDMS.onclick = handleFormats;
 
             gridSetStepButton.onclick = function () {
                 control.setStep(gridStepXInput.value, gridStepYInput.value);
@@ -146,12 +167,16 @@ var nsGmx = nsGmx || {};
             };
 
             gridResetStepButton.onclick = function () {
+                control.setTitleFormat(0);
                 control.clearStep();
+                enableFormats();
                 gridStepUnitsDegrees.checked = true;
+                gridFormatDD.checked = true;
                 updateInputsValues();
             };
 
             gridStepUnitsDegrees.checked = true;
+            gridFormatDD.checked = true;
             updateInputsValues();
 
             map.on('zoomend', function () {
@@ -181,6 +206,23 @@ var nsGmx = nsGmx || {};
               )
             );
 
+            $(gridFormatConfig).append(
+                nsGmx.Utils._label(
+                    [gridFormatDD, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDecimal'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDD']]
+                ),
+                $('<br></br>'),
+                nsGmx.Utils._label(
+                    [gridFormatDM, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDM'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDM']]
+                ),
+                $('<br></br>'),
+                nsGmx.Utils._label(
+                    [gridFormatDMS, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDMS'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDMS']]
+                )
+            );
+
             $(gridStepConfig).append(
                 gridSetStepButton,
                 gridResetStepButton
@@ -196,22 +238,32 @@ var nsGmx = nsGmx || {};
                         null, [['dir', 'className', 'bigEmptyTableRow']]
                     ),
                     nsGmx.Utils._tr([
-                        nsGmx.Utils._td([nsGmx.Utils._t(window._gtxt('gridPlugin.gridStepSettings'))], [['attr', 'rowspan', '6'], ['css','width','70px']]),
+                        nsGmx.Utils._td([nsGmx.Utils._t(window._gtxt('gridPlugin.gridStepSettings'))], [['attr', 'rowspan', '2'], ['css','width','70px']]),
                         nsGmx.Utils._td([gridStepYInputPanel])
                     ]),
                     nsGmx.Utils._tr([
                         nsGmx.Utils._td([gridStepXInputPanel])
                     ]),
                     nsGmx.Utils._tr(
-                      null, [['dir', 'className', 'smallEmptyTableRow']]
+                      null, [['dir', 'className', 'bigEmptyTableRow']]
                     ),
                     nsGmx.Utils._tr([
+                        nsGmx.Utils._td([nsGmx.Utils._t(window._gtxt('gridPlugin.gridUnitsSettings'))], [['css','width','70px']]),
                         nsGmx.Utils._td([gridUnitsConfig])
                     ]),
                     nsGmx.Utils._tr(
-                      null, [['dir', 'className', 'smallEmptyTableRow']]
+                        null, [['dir', 'className', 'bigEmptyTableRow']]
                     ),
                     nsGmx.Utils._tr([
+                        nsGmx.Utils._td([nsGmx.Utils._t(window._gtxt('gridPlugin.gridFormatSettings'))], [
+                            ['css','width','70px'], ['css', 'vertical-align', 'middle']]),
+                        nsGmx.Utils._td([gridFormatConfig])
+                    ]),
+                    nsGmx.Utils._tr(
+                      null, [['dir', 'className', 'bigEmptyTableRow']]
+                    ),
+                    nsGmx.Utils._tr([
+                        nsGmx.Utils._td(null, [['css','width','70px']]),
                         nsGmx.Utils._td([gridStepConfig])
                     ])
                 ])
@@ -223,11 +275,12 @@ var nsGmx = nsGmx || {};
                     $('#' + $(this).data('colorpickerId')).remove();
                 });
                 configDialog = null;
+                control.clearStep();
             };
 
             var params = {
                 width: 280,
-                height: 200,
+                height: 280,
                 posX: pos.left,
                 posY: pos.top,
                 resizeFunc: false,
@@ -235,6 +288,43 @@ var nsGmx = nsGmx || {};
             };
 
             configDialog = nsGmx.Utils.showDialog(window._gtxt('gridPlugin.gridSettings'), gridConfigEditor, params);
+
+            function updateInputsValues() {
+                gridStepXInput.value = control.options.customStep.x ? Math.round(control.options.customStep.x * 100) / 100 : control.options.defaultStep.x;
+                gridStepYInput.value = control.options.customStep.y ? Math.round(control.options.customStep.y * 100) / 100 : control.options.defaultStep.y;
+            }
+
+            function handleUnits() {
+                var value = this.value;
+                if (control.options.units !== value) {
+                    control.setUnits(value);
+                }
+                value === 'degrees' ? enableFormats() : disableFormats();
+                        updateInputsValues();
+            }
+
+            function handleFormats() {
+                var value = this.value;
+                if (control.options.titleFormat !== value) {
+                    control.setTitleFormat(value);
+                }
+            }
+
+            function disableFormats() {
+                $('#gridFormatDD').prop('disabled', true);
+                $('#gridFormatDM').prop('disabled', true);
+                $('#gridFormatDMS').prop('disabled', true);
+
+                $('.gridFormatLabel').addClass('disabledLabel');
+            }
+
+            function enableFormats() {
+                $('#gridFormatDD').prop('disabled', false);
+                $('#gridFormatDM').prop('disabled', false);
+                $('#gridFormatDMS').prop('disabled', false);
+
+                $('.gridFormatLabel').removeClass('disabledLabel');
+            }
         }
 
         // создание иконки редактирования стиля

@@ -2,7 +2,10 @@
 
 
  #gridStepUnitsDegrees,
- #gridStepUnitsKilometers {
+ #gridStepUnitsKilometers,
+ #gridFormatDD,
+ #gridFormatDM,
+ #gridFormatDMS {
      margin: 0px 2px 0px 0px;
  }
 
@@ -23,7 +26,8 @@
     margin: 0px 4px;
 }
 
-.gridUnitsLabel {
+.gridUnitsLabel,
+.gridFormatLabel {
   margin: 0px 9px 0px 0px;
   vertical-align: middle;
 }
@@ -36,4 +40,8 @@
 
 .gridStepButton {
     margin: 2px;
+}
+
+.disabledLabel {
+    color: grey;
 }
