@@ -167,8 +167,8 @@ var nsGmx = nsGmx || {};
             };
 
             gridResetStepButton.onclick = function () {
-                control.clearStep();
                 control.setTitleFormat(1);
+                control.clearStep();
                 enableFormats();
                 gridStepUnitsDegrees.checked = true;
                 gridFormatDM.checked = true;
@@ -307,7 +307,6 @@ var nsGmx = nsGmx || {};
                 var value = this.value;
                 if (control.options.titleFormat !== value) {
                     control.setTitleFormat(value);
-                    console.log(control);
                 }
             }
 
