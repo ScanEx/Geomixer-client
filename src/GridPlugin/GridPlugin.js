@@ -167,16 +167,16 @@ var nsGmx = nsGmx || {};
             };
 
             gridResetStepButton.onclick = function () {
-                control.setTitleFormat(1);
+                control.setTitleFormat(0);
                 control.clearStep();
                 enableFormats();
                 gridStepUnitsDegrees.checked = true;
-                gridFormatDM.checked = true;
+                gridFormatDD.checked = true;
                 updateInputsValues();
             };
 
             gridStepUnitsDegrees.checked = true;
-            gridFormatDM.checked = true;
+            gridFormatDD.checked = true;
             updateInputsValues();
 
             map.on('zoomend', function () {
@@ -207,20 +207,20 @@ var nsGmx = nsGmx || {};
             );
 
             $(gridFormatConfig).append(
-              nsGmx.Utils._label(
-                  [gridFormatDM, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDM'))],
-                  [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDM']]
-              ),
-              $('<br></br>'),
-              nsGmx.Utils._label(
-                  [gridFormatDMS, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDMS'))],
-                  [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDMS']]
-              ),
-              $('<br></br>'),
-              nsGmx.Utils._label(
-                  [gridFormatDD, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDecimal'))],
-                  [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDD']]
-              )
+                nsGmx.Utils._label(
+                    [gridFormatDD, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDecimal'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDD']]
+                ),
+                $('<br></br>'),
+                nsGmx.Utils._label(
+                    [gridFormatDM, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDM'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDM']]
+                ),
+                $('<br></br>'),
+                nsGmx.Utils._label(
+                    [gridFormatDMS, nsGmx.Utils._t(window._gtxt('gridPlugin.formatDMS'))],
+                    [['dir', 'className', 'gridFormatLabel'], ['attr', 'for', 'gridFormatDMS']]
+                )
             );
 
             $(gridStepConfig).append(
@@ -280,7 +280,7 @@ var nsGmx = nsGmx || {};
 
             var params = {
                 width: 280,
-                height: 250,
+                height: 280,
                 posX: pos.left,
                 posY: pos.top,
                 resizeFunc: false,
