@@ -16,7 +16,7 @@ var nsGmx = window.nsGmx || {};
 
     window._translationsHash.addtext('rus', {
         mapExport: {
-            settings : {
+            settings: {
                 settings: 'Настройки экспорта карты:',
                 zoom: 'масштаб (зум)',
                 size: 'размер',
@@ -32,7 +32,8 @@ var nsGmx = window.nsGmx || {};
             },
             filetypes: {
                 raster: 'растр',
-                mbTiles: 'MBTiles'
+                mbTiles: 'MBTiles',
+                kmz: 'kmz'
             },
             select: 'Выделить область карты',
             unselect: 'Снять выделение',
@@ -48,8 +49,8 @@ var nsGmx = window.nsGmx || {};
     });
     window._translationsHash.addtext('eng', {
         mapExport: {
-            exportTooltip : 'Select area',
-            settings : {
+            exportTooltip: 'Select area',
+            settings: {
                 settings: 'Map export settings:',
                 zoom: 'zoom',
                 size: 'size',
@@ -65,7 +66,8 @@ var nsGmx = window.nsGmx || {};
             },
             filetypes: {
                 raster: 'raster',
-                mbTiles: 'MBTiles'
+                mbTiles: 'MBTiles',
+                kmz: 'kmz'
             },
             select: 'Select',
             unselect: 'Clear selection',
@@ -115,7 +117,7 @@ var nsGmx = window.nsGmx || {};
                 name: '',
                 exportErr: false
             }
-        })
+        });
 
         var model = new ExportModel();
 
@@ -232,7 +234,8 @@ var nsGmx = window.nsGmx || {};
                     // типы файлов хранятся в текущем языке
                     fileTypes = [
                         window._gtxt('mapExport.filetypes.raster'),
-                        window._gtxt('mapExport.filetypes.mbTiles')
+                        window._gtxt('mapExport.filetypes.mbTiles'),
+                        window._gtxt('mapExport.filetypes.kmz')
                     ];
                     updatedFileTypes = getTypes(fileTypes);
 
