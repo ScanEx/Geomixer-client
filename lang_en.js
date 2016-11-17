@@ -594,6 +594,7 @@ _translationsHash.hash["eng"] = {
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",
     "Скачать csv": "Download csv",
+    "Скачать geojson": "Download geojson",
     "Рассчитать площадь": "Total square",
 	"Создать столбец" : "Create column",
 	"Мультислой" : "Multilayer",
