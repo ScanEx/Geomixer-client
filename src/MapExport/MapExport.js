@@ -1112,7 +1112,7 @@ var nsGmx = window.nsGmx || {};
                 coords: null,
                 zoomLevels: getZoomLevels(),
                 formatTypes: getTypes(formatTypes),
-                fileTypes: getTypes(fileTypes),
+                fileTypes: null,
                 exportErr: false
             });
         };
