@@ -739,10 +739,11 @@ nsGmx.widgets.commonCalendar = {
     },
     updateTemporalLayers: function(layers) {
         if (!this._calendar) {return;}
-
         var layers = layers || nsGmx.gmxMap.layers,
             dateBegin = this._dateInterval.get('dateBegin'),
-            dateEnd = this._dateInterval.get('dateEnd');
+            dateEnd = this._dateInterval.get('dateEnd'),
+            layersMaxDates = [],
+            maxDate = null;
 
         for (var i = 0, len = layers.length; i < len; i++) {
             var layer = layers[i],
@@ -750,7 +751,26 @@ nsGmx.widgets.commonCalendar = {
                 isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
             if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
+                if (props.DateEnd) {
+                    var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
+                    layersMaxDates.push(localeDate);
+                }
+
                 this._updateOneLayer(layer, dateBegin, dateEnd);
+            }
+        }
+        
+        if (layersMaxDates.length > 0) {
+            layersMaxDates.sort(function(a, b) {
+                return b - a;
+            });
+
+            maxDate = new Date(layersMaxDates[0]);
+
+            if (maxDate > new Date()) {
+                this._calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
+            } else {
+                this._calendar.setDateMax(new Date());
             }
         }
     }
@@ -1251,8 +1271,11 @@ function processGmxMap(state, gmxMap) {
         //подсчитаем общий extend всех видимых слоёв
         var visBounds = L.latLngBounds([]);
 
+
+
         for (var l = 0; l < gmxMap.layers.length; l++) {
             var layer = gmxMap.layers[l];
+
             if (layer.getGmxProperties().visible && layer.getBounds) {
                 visBounds.extend(layer.getBounds());
             }
@@ -1632,6 +1655,22 @@ function processGmxMap(state, gmxMap) {
             if (layer.getGmxProperties) {
                 initEditUI();
                 initTimeline([layer]);
+            }
+        });
+
+        nsGmx.gmxMap.on('onRemoveLayer', function(event) {
+            var layer = event.layer;
+            console.log(layer);
+            if (!layer.getGmxProperties()) {
+                return;
+            }
+            var props = layer.getGmxProperties(),
+                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+            if (isTemporalLayer && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
+                nsGmx.widgets.commonCalendar.unbindLayer(props.name);
+                nsGmx.widgets.commonCalendar.updateTemporalLayers();
+                delete nsGmx.widgets.commonCalendar._unbindedTemporalLayers[props.name];
             }
         });
 
