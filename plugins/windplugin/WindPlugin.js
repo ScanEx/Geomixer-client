@@ -38,57 +38,77 @@ var WindFilterModel = Backbone.Model.extend({
     defaults: {
         activeHour: 0
     }
-})
+});
+
+		var getLayers = function (it, arr) {
+			var type = it.type,
+				content = it.content || {};
+
+			arr = arr || [];
+			if (type === 'group') {
+				var children = content.children ? content.children : [];
+				arr.concat(children.map(function(elem) {
+					getLayers(elem, arr);
+				}));
+			} else if (type === 'layer') {
+				var props = content.properties ? content.properties : {};
+				arr.push(nsGmx.gmxMap.layersByID[props.LayerID || props.MultiLayerID || props.GroupID || props.name]);
+			}
+			return arr;
+		};
+
+		var getView = function (elem) {
+			var model = new WindFilterModel(),
+				arr = getLayers(elem);
+
+			var setFilters = function () {
+				var active = model.get('activeHour');
+				arr.map(function(layer) {
+					var dateIndex = layer.getTileAttributeIndexes()['DateTime'];
+					var getHourFilter = function(activeHour) {
+						return function(item) {
+							var date = item.properties[dateIndex],
+								hours = Math.floor(date % (3600 * 24) / 3600);
+							return hours === activeHour;
+						}
+					}
+					layer.setFilter(getHourFilter(active));
+				});
+			};
+			model.on('change:activeHour', function() {
+				setFilters();
+			});
+			setFilters();
+            return new WindFilterView({model: model});
+        };
 
 var publicInterface = {
     pluginName: 'Wind plugin',
     beforeViewer: function(params, map) {
-        var layerNames = params.layerName || DEFAULT_LAYERNAME;
+        var views = {},
+			layerNames = params.layerName || DEFAULT_LAYERNAME;
 
-        if (layerNames.indexOf(',') > 0) {
+		if (layerNames.indexOf(',') > 0) {
 			layerNames = layerNames.split(',');
 		} else if (!L.Util.isArray(layerNames)) {
-            layerNames = [layerNames];
-        }
-        
-        var views = {};
-        
-        layerNames.forEach(function(layerName) {
-			layerName = layerName.trim();
-            var layer = nsGmx.gmxMap.layersByID[layerName];
+			layerNames = [layerNames];
+		}
+		layerNames.map(function(id) { views[id.trim()] = 'pending'; });
 
-            if (!layer) {
-                return;
-            }
-
-            var dateIndex = layer.getTileAttributeIndexes()['DateTime'];
-
-            var getHourFilter = function(activeHour) {
-                return function(item) {
-                    var date = item.properties[dateIndex],
-                        hours = Math.floor(date % (3600 * 24) / 3600);
-
-                    return hours === activeHour;
-                }
-            }
-
-            var model = new WindFilterModel();
-            var view = new WindFilterView({model: model});
-
-            model.on('change:activeHour', function() {
-                layer.setFilter(getHourFilter(model.get('activeHour')));
-            });
-            layer.setFilter(getHourFilter(model.get('activeHour')));
-
-            views[layerName] = view.el;
-        });
-
-        layersTree.drawNode = function(elem, parentParams, layerManagerFlag) {
+		layersTree.drawNode = function(elem, parentParams, layerManagerFlag) {
             var div = nativeDrawNode.apply(layersTree, arguments),
-				beforeNode = div.getElementsByClassName('layerDescription');
+				it = elem || {},
+				type = it.type,
+				props = it.content && it.content.properties ? it.content.properties : {},
+				id = props.LayerID || props.MultiLayerID || props.GroupID || props.name;
 
-            if (beforeNode.length && !layerManagerFlag && elem.type === 'layer' && elem.content.properties.name in views) {
-                div.insertBefore(views[elem.content.properties.name], beforeNode[0].nextSibling);
+            if (!layerManagerFlag && id in views) {
+				var className = type === 'group' ? 'groupLayer' : 'layerDescription',
+					beforeNode = div.getElementsByClassName(className),
+					view = getView(elem);
+
+				views[id] = view.el;
+                div.insertBefore(views[id], beforeNode[0].nextSibling);
             }
             return div;
         }
