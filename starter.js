@@ -672,7 +672,7 @@ nsGmx.widgets.commonCalendar = {
             this._calendar = new nsGmx.CalendarWidget({
                 minimized: true,
                 dateMin: new Date(2000, 1, 1),
-                dateMax: new Date(),
+                dateMax: this._dateInterval.get('dateEnd'),
                 dateInterval: this._dateInterval
             });
 
