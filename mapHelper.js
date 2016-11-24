@@ -1097,26 +1097,30 @@ mapHelper.prototype.version = function()
 }
 
 mapHelper.prototype.print = function() {
-    var toggleMode = function(isPreviewMode) {
-        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(!isPreviewMode);
-        window.printMode = isPreviewMode;
-        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
-        $('#all').toggleClass('print-preview-all', isPreviewMode);
-    }
+	var centerControl = nsGmx.leafletMap.gmxControlsManager.get('center'),
+		map = nsGmx.leafletMap,
+    	toggleMode = function(isPreviewMode) {
+        	map.gmxControlsManager.get('hide').setActive(!isPreviewMode);
+        	window.printMode = isPreviewMode;
+        	$('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
+        	$('#all').toggleClass('print-preview-all', isPreviewMode);
+    	};
 
     toggleMode(true);
+	centerControl.removeFrom(map);
 
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
         '<button class="print-ui-print">Печать</button>' +
-    '</span></div>')());
+    	'</span></div>')());
 
     ui.find('.print-ui-print').click(function() {
-        window.print();
+        window.print(map);
     })
 
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
+		centerControl.addTo(map);
 
         $('#flash').css({
             marginLeft: '0px',
@@ -1137,22 +1141,24 @@ mapHelper.prototype.print = function() {
         marginLeft: '-700px',
         marginTop: '-700px'
     });
-    nsGmx.leafletMap.invalidateSize();
+    map.invalidateSize();
 }
 
 // экспортный режим редактора
 mapHelper.prototype.export = function(params) {
+	var map = nsGmx.leafletMap;
 
-        nsGmx.leafletMap.gmxControlsManager.get('hide').setActive(false);
-        window.exportMode = true;
+    map.gmxControlsManager.get('hide').setActive(false);
+	map.gmxControlsManager.get('center').removeFrom(map);
+    window.exportMode = true;
 
-        $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
+    $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
 
-        $('#all').toggleClass('print-preview-all', true);
+    $('#all').toggleClass('print-preview-all', true);
 
-		$('.leaflet-control-container').hide();
+	$('.leaflet-control-container').hide();
 
-        $('#leftContent').mCustomScrollbar({live:"off"});
+    $('#leftContent').mCustomScrollbar({live:"off"});
 
 	var exportCssParams = {
 		top: '0px',
@@ -1162,7 +1168,7 @@ mapHelper.prototype.export = function(params) {
 	};
 
 	$('#flash').css(exportCssParams);
-	nsGmx.leafletMap.invalidateSize();
+	map.invalidateSize();
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
