@@ -707,7 +707,10 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 	}
 	else
 	{
-		var shownProperties = [{name: _gtxt("Имя"), field: 'title', elem: title}].concat(visibilityPropertiesView);
+		var shownProperties = [
+            {name: _gtxt("Имя"), field: 'title', elem: title},
+            {name: _gtxt("ID"), field: 'GroupID'}
+        ].concat(visibilityPropertiesView);
 
 		return _div([_table([_tbody(addProperties(shownProperties))],[['css','width','100%']])],[['css','width','320px'], ['dir','className','propertiesTable']]);
 	}
@@ -734,7 +737,7 @@ var createGroupEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, false, _layersTree);
-	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 170, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 230, pos.left, pos.top, null, closeFunc);
 	_groupEditorsHash[elemProperties.GroupID] = true;
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
