@@ -359,6 +359,7 @@ mapHelper.prototype.getMapState = function() {
     var drawnObjects = [],
         openPopups = {},
         condition = {expanded:{}, visible:{}},
+		LayersTreePermalinkParams = {},
 
         mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 
@@ -419,6 +420,16 @@ mapHelper.prototype.getMapState = function() {
         }
     });
 
+	// layers tree permalink params (without server)
+	this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem) {
+		var props = elem.content.properties,
+			id = elem.type == 'group' ? props.GroupID : props.LayerID;
+
+		if (props.permalinkParams) {
+			LayersTreePermalinkParams[id] = props.permalinkParams;
+		}
+	});
+
     return {
         mode: lmap.gmxBaseLayersManager.getCurrentID(),
         mapName: globalMapName,
@@ -431,6 +442,7 @@ mapHelper.prototype.getMapState = function() {
         drawnObjects: drawnObjects,
         isFullScreen: window.layersShown ? "false" : "true",
         condition: condition,
+		LayersTreePermalinkParams: LayersTreePermalinkParams,
         language: window.language,
         openPopups: openPopups,
         customParamsCollection: this.customParamsManager.saveParams()

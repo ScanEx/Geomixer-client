@@ -1,7 +1,7 @@
 ﻿//Фильтрация слоя ветра по часам
 //Параметры: layerName - ID слоя ветра (можно задавать несколько раз)
 (function (){
-    
+
 var uiTemplate = Handlebars.compile(
     '<span data-hours="0" class="wind-hour">00</span>' +
     '<span data-hours="6" class="wind-hour">06</span>' +
@@ -22,12 +22,12 @@ var WindFilterView = Backbone.View.extend({
             this.model.set({activeHour: Number($(event.target).data('hours'))});
         }
     },
-    
+
     initialize: function() {
         this.model.on('change:activeHour', this.render.bind(this));
         this.render();
     },
-    
+
     render: function() {
         this.$el.html(this.template());
         this.$el.find('[data-hours="' + this.model.get('activeHour') + '"]').addClass('wind-hour wind-active-hour');
@@ -61,6 +61,10 @@ var WindFilterModel = Backbone.Model.extend({
 			var model = new WindFilterModel(),
 				arr = getLayers(elem);
 
+            if (elem.content.properties.permalinkParams) {
+                model.set('activeHour', elem.content.properties.permalinkParams.activeHour);
+            }
+
 			var setFilters = function () {
 				var active = model.get('activeHour');
 				arr.map(function(layer) {
@@ -73,6 +77,13 @@ var WindFilterModel = Backbone.Model.extend({
 						}
 					}
 					layer.setFilter(getHourFilter(active));
+
+                    // save active hour in permalink
+                    if (elem.content.properties.permalinkParams) {
+                        elem.content.properties.permalinkParams.activeHour = active;
+                    } else {
+                        elem.content.properties.permalinkParams = {activeHour: active}
+                    }
 				});
 			};
 			model.on('change:activeHour', function() {

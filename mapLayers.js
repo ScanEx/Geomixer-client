@@ -226,7 +226,24 @@ layersTree.prototype._applyLayerViewHooks = function(div, layerProps) {
 
 layersTree.prototype.drawTree = function(tree, layerManagerFlag)
 {
-    this._treeCanvas = _ul([this.getChildsList(tree, false, layerManagerFlag, true)], [['dir','className','filetree']]);
+	var permalinkParams = this.LayersTreePermalinkParams;
+
+	if (permalinkParams) {
+		var tempTree = new nsGmx.LayersTree(tree);
+
+		tempTree.forEachNode(function(elem) {
+			var props = elem.content.properties,
+			id = elem.type == 'group' ? props.GroupID : props.LayerID;
+
+			if (id in permalinkParams) {
+				props.permalinkParams = permalinkParams[id];
+			}
+		});
+
+		tree = tempTree.getRawTree();
+	}
+
+	this._treeCanvas = _ul([this.getChildsList(tree, false, layerManagerFlag, true)], [['dir','className','filetree']]);
     this.treeModel = new nsGmx.LayersTree(tree);
     this._mapTree = tree; //Устарело: используйте this.treeModel для доступа к исходному дереву
 
@@ -1427,13 +1444,16 @@ var queryMapLayers = function()
 
 queryMapLayers.prototype = new leftMenu();
 
-queryMapLayers.prototype.addLayers = function(data, condition, mapStyles)
+queryMapLayers.prototype.addLayers = function(data, condition, mapStyles, LayersTreePermalinkParams)
 {
 	if (condition)
 		_layersTree.condition = condition;
 
 	if (mapStyles)
 		_layersTree.mapStyles = mapStyles;
+
+	if (LayersTreePermalinkParams)
+		_layersTree.LayersTreePermalinkParams = LayersTreePermalinkParams;
 
 	this.buildedTree = _layersTree.drawTree(data);
 }

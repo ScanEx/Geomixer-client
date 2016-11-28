@@ -1518,7 +1518,8 @@ function processGmxMap(state, gmxMap) {
         }
 
         var condition = false,
-            mapStyles = false;
+            mapStyles = false,
+            LayersTreePermalinkParams = false;
 
         if (state.condition) {
             condition = state.condition;
@@ -1527,8 +1528,11 @@ function processGmxMap(state, gmxMap) {
         if (state.mapStyles) {
             mapStyles = state.mapStyles;
         }
+        if (state.LayersTreePermalinkParams) {
+            LayersTreePermalinkParams = state.LayersTreePermalinkParams;
+        }
 
-        _queryMapLayers.addLayers(data, condition, mapStyles);
+        _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
         var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
         nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
