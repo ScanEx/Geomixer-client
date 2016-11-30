@@ -116,6 +116,10 @@ nsGmx.ShareIconControl.ShareDialog = nsGmx.GmxWidget.extend({
         this.errorsView.appendTo(this.$('.shareDialog-validationErrorView'));
         this._updateFields();
         this.delegateEvents();
+        this.$el.contextmenu(function (e) {
+            e.stopPropagation();
+            return true;
+        });
         return this;
     },
     _updateFields: function() {
