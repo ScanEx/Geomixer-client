@@ -3,7 +3,8 @@
     padding: 3px 0px 3px 7px;
 }
 
-.settings {
+.settings,
+.export-progress-container {
     width: 90%;
     margin: 4px 4px 10px 4px;
 }
@@ -85,7 +86,7 @@
 }
 
 .exportWrap {
-    height: 45px;
+    height: 52px;
 }
 
 .export {
@@ -95,9 +96,8 @@
     line-height: 30px;
 }
 
-.spinHolder,
 /*.exportErrorMessage,*/
-.export-progress-container {
+.spinHolder {
     margin: 0px 0px 0px 8px;
 }
 
@@ -115,10 +115,6 @@
 
 .error {
 	background-color: #FFABAB;
-}
-
-.export-progress-container {
-    width: 90%;
 }
 
 .export-progressbar.ui-progressbar{
