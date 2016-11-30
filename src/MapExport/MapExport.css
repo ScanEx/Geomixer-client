@@ -53,7 +53,6 @@
 .zoomLevel,
 .formatTypes,
 .fileTypes {
-    /*border-width: 2px;*/
     width: 80px;
     vertical-align:top;
     height:20px;
@@ -75,7 +74,6 @@
 .eLabel, .eInput, .mapExportWarn {
     height: 25px;
     width: 33%;
-    /*float:left;*/
 }
 
 .eLabel {
@@ -86,8 +84,11 @@
     text-align:right;
 }
 
+.exportWrap {
+    height: 45px;
+}
+
 .export {
-    display:table-cell;
     padding: 0px;
     vertical-align: top;
     clear: both;
@@ -95,7 +96,8 @@
 }
 
 .spinHolder,
-.exportErrorMessage {
+/*.exportErrorMessage,*/
+.export-progress-container {
     margin: 0px 0px 0px 8px;
 }
 
@@ -109,9 +111,20 @@
 
 .zoomToLevel, .mapExportWarn {
     padding-left: 8px;
-    /*margin: 4px 4px 4px 4px;*/
 }
 
 .error {
 	background-color: #FFABAB;
+}
+
+.export-progress-container {
+    width: 90%;
+}
+
+.export-progressbar.ui-progressbar{
+    height: 1em;
+}
+
+.export-progressbar .ui-progressbar-value {
+    background: grey;
 }

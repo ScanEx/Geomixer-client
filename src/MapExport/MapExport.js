@@ -40,6 +40,7 @@ var nsGmx = window.nsGmx || {};
             zoomToBox: 'Перейти к выделенному',
             zoomToLevel: 'Перейти на зум',
             export: 'Экспорт',
+            cancel: 'Отмена',
             sizeWarn: 'максимальный размер - 10000 пикселей',
             valueWarn: 'недопустимое значение',
             inQueue: 'в очереди',
@@ -74,6 +75,7 @@ var nsGmx = window.nsGmx || {};
             zoomToBox: 'Zoom to selected',
             zoomToLevel: 'Zoom to level',
             export: 'Export',
+            cancel: 'Cancel',
             sizeWarn: 'incorrect size',
             valueWarn: 'incorrect value',
             inQueue: 'waiting',
@@ -115,6 +117,7 @@ var nsGmx = window.nsGmx || {};
                 formatTypes: getTypes(formatTypes),
                 fileTypes: null,
                 name: '',
+                taskInfo: null,
                 exportErr: false
             }
         });
@@ -127,7 +130,7 @@ var nsGmx = window.nsGmx || {};
             template: window.Handlebars.compile(
                 '<div class="selectButtons">' +
                         '<span class="buttonLink areaButton mapExportSelectButton"> {{i "mapExport.select"}}</span>' +
-                        '<span class="zoomToBoxButton" hidden="true">' +
+                        '<span class="zoomToBoxButton" style="display:none">' +
                         '</span>' +
                 '</div>' +
                 '<div class="exportSettings">' +
@@ -150,7 +153,7 @@ var nsGmx = window.nsGmx || {};
                                 '</select>' +
                             '</td>' +
                             '<td class="zoomToLevel">' +
-                                '<span class="zoomToLevelButtonWrap" hidden="true">' +
+                                '<span class="zoomToLevelButtonWrap" style="display:none">' +
                                 '</span>' +
                             '</td>' +
                         '</tr>' +
@@ -201,13 +204,19 @@ var nsGmx = window.nsGmx || {};
                         '</tr>' +
                     '</tbody>' +
                 '</table>' +
-                '<div class="export">' +
-                    '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
-                    '<span class="spinHolder" hidden="true">' +
-                        '<img src="img/progress.gif"/>' +
-                        '<span class="spinMessage"></span>' +
-                    '</span>' +
-                    '<span class="exportErrorMessage" hidden="true">{{i "mapExport.exportError"}}</span>' +
+                '<div class="exportWrap">' +
+                    '<div class="export">' +
+                        '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
+                        '<span class="buttonLink cancelButton" style="display:none"> {{i "mapExport.cancel"}}</span>' +
+                        '<span class="spinHolder" style="display:none">' +
+                            // '<img src="img/progress.gif"/>' +
+                            '<span class="spinMessage"></span>' +
+                            '</span>' +
+                        '<span class="exportErrorMessage" style="display:none">{{i "mapExport.exportError"}}</span>' +
+                    '</div>' +
+                    '<div class="export-progress-container" style="display:none">' +
+                        '<div class="export-progressbar"></div>' +
+                    '</div>' +
                 '</div>'
             ),
             events: {
@@ -221,7 +230,8 @@ var nsGmx = window.nsGmx || {};
                 'change .formatTypes': 'setFormat',
                 'change .fileTypes': 'setFileType',
                 'input .mapExportName': 'setName',
-                'click .mapExportButton': 'exportMap'
+                'click .mapExportButton': 'exportMap',
+                'click .cancelButton': 'cancelExport'
             },
 
             initialize: function () {
@@ -323,8 +333,6 @@ var nsGmx = window.nsGmx || {};
                     fileSelect = this.$('.fileTypes'),
                     exportNameInput = this.$('.mapExportName'),
                     exportButton = this.$('.mapExportButton'),
-                    spinHolder = this.$('.spinHolder'),
-                    spinMessage = this.$('.spinMessage'),
                     inputs = [
                         zoomSelect,
                         widthInput,
@@ -346,26 +354,22 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(zoomToBoxButton).prop('hidden', false);
-                    $(zoomToLevelButton).prop('hidden', false);
-                    if (
-                        !attrs.widthValueErr    &&
+                    $(zoomToBoxButton).toggle();
+                    $(zoomToLevelButton).toggle();
+                    if (!attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr    &&
-                        attrs.name !== ''
-                        ) {
-                        $(exportButton).removeClass('not-active');
+                        attrs.name !== '') {
+                            $(exportButton).removeClass('not-active');
                     }
                 } else {
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(zoomToBoxButton).prop('hidden', true);
-                    $(zoomToLevelButton).prop('hidden', true);
+                    $(zoomToBoxButton).toggle();
+                    $(zoomToLevelButton).toggle();
                     $(exportButton).addClass('not-active');
-                    $(spinMessage).empty();
-                    $(spinHolder).prop('hidden', true);
                 }
             },
 
@@ -389,7 +393,7 @@ var nsGmx = window.nsGmx || {};
                 var attrs = this.model.toJSON(),
                     widthInput = this.$('.mapExportWidth'),
                     heightInput = this.$('.mapExportHeight'),
-                    exportBtn = this.$('.mapExportButton'),
+                    exportButton = this.$('.mapExportButton'),
                     warn = this.$('.mapExportWarn');
 
                 if (attrs.widthValueErr) {
@@ -409,11 +413,11 @@ var nsGmx = window.nsGmx || {};
                 }
 
                 if (attrs.widthValueErr || attrs.heightValueErr) {
-                    $(exportBtn).addClass('not-active');
+                    $(exportButton).addClass('not-active');
                     $(warn).html(window._gtxt('mapExport.valueWarn'));
                 } else {
                     if (attrs.selArea && attrs.name) {
-                        $(exportBtn).removeClass('not-active');
+                        $(exportButton).removeClass('not-active');
                     }
                     if (attrs.widthSizeErr || attrs.heightSizeErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
@@ -427,7 +431,7 @@ var nsGmx = window.nsGmx || {};
                 var attrs = this.model.toJSON(),
                     widthInput = this.$('.mapExportWidth'),
                     heightInput = this.$('.mapExportHeight'),
-                    exportBtn = this.$('.mapExportButton'),
+                    exportButton = this.$('.mapExportButton'),
                     warn = this.$('.mapExportWarn');
 
                 if (attrs.widthSizeErr) {
@@ -447,14 +451,14 @@ var nsGmx = window.nsGmx || {};
                 }
 
                 if (attrs.widthSizeErr || attrs.heightSizeErr) {
-                    $(exportBtn).addClass('not-active');
+                    $(exportButton).addClass('not-active');
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
                     }
                 } else {
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
                         if (attrs.selArea && attrs.name) {
-                            $(exportBtn).removeClass('not-active');
+                            $(exportButton).removeClass('not-active');
                         }
                         $(warn).html('');
                     }
@@ -463,29 +467,35 @@ var nsGmx = window.nsGmx || {};
 
             handleExportError: function () {
                 var attrs = this.model.toJSON(),
-                    exportBtn = this.$('.mapExportButton'),
+                    exportButton = this.$('.mapExportButton'),
+                    progressBarContainer = this.$('.export-progress-container'),
                     spinHolder = this.$('.spinHolder'),
-                    spinMessage = this.$('.spinMessage'),
                     exportErrorMessage = this.$('.exportErrorMessage');
 
-                $(spinMessage).empty();
-                $(spinHolder).prop('hidden', true);
+                $(spinHolder).toggle();
+                $(progressBarContainer).toggle();
+
+                if (attrs.selArea) {
+                    $(exportButton).removeClass('not-active');
+                } else {
+                    $(exportButton).addClass('not-active');
+                }
 
                 if (attrs.exportErr) {
-                    $(exportErrorMessage).prop('hidden', false);
+                    $(exportErrorMessage).toggle();
                 } else {
-                    $(exportErrorMessage).prop('hidden', true);
+                    $(exportErrorMessage).toggle();
                 }
             },
 
             updateName: function () {
                 var attrs = this.model.toJSON(),
                     exportNameInput = this.$('.mapExportName'),
-                    exportBtn = this.$('.mapExportButton');
+                    exportButton = this.$('.mapExportButton');
 
                 if (attrs.name === '') {
                     $(exportNameInput).addClass('error');
-                    $(exportBtn).addClass('not-active');
+                    $(exportButton).addClass('not-active');
                 } else {
                     if (
                         attrs.selArea           &&
@@ -494,7 +504,7 @@ var nsGmx = window.nsGmx || {};
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr
                         ) {
-                        $(exportBtn).removeClass('not-active');
+                        $(exportButton).removeClass('not-active');
                     }
 
                     $(exportNameInput).removeClass('error');
@@ -700,9 +710,15 @@ var nsGmx = window.nsGmx || {};
                         format: attrs.format
                     },
                     exportButton = this.$('.mapExportButton'),
+                    cancelButton = this.$('.cancelButton'),
+                    progressBarContainer = this.$('.export-progress-container'),
+                    progressBar = this.$('.export-progressbar'),
                     spinHolder = this.$('.spinHolder'),
                     spinMessage = this.$('.spinMessage'),
                     def;
+
+                $(exportButton).toggle();
+                $(cancelButton).toggle();
 
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
 
@@ -715,32 +731,52 @@ var nsGmx = window.nsGmx || {};
 
                     $(exportButton).addClass('not-active');
 
-                    $(spinMessage).empty();
-                    $(spinHolder).prop('hidden', false);
+                    $(progressBarContainer).toggle();
+                    $(spinHolder).toggle();
+
+                    $(progressBar).progressbar({
+                        max: 100,
+                        value: 0
+                    });
 
                     def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
                     def.done(function(taskInfo){
-                        var url2 = window.serverBase + taskInfo.Result.downloadFile;
+                        var url2 = window.serverBase + taskInfo.Result.downloadFile,
+                            selArea = _this.model.get('selArea');
 
-                        $(exportButton).removeClass('not-active');
-                        $(spinMessage).empty();
-                        $(spinHolder).prop('hidden', true);
+                        if (selArea) {
+                            $(exportButton).removeClass('not-active');
+                        } else {
+                            $(exportButton).addClass('not-active');
+                        }
+
+                        $(exportButton).toggle();
+                        $(cancelButton).toggle();
+                        $(spinHolder).toggle();
+                        $(progressBarContainer).toggle();
 
                         downloadFile(url2);
 
                     }).fail(function(taskInfo){
-                        $(exportButton).removeClass('not-active');
+                        if (taskInfo.ErrorInfo.ErrorMessage !== 'Task is canceled') {
+                            $(exportButton).removeClass('not-active');
 
+                            _this.model.set({
+                                exportErr: true
+                            });
+                        }
+                    }).progress(function(taskInfo){
                         _this.model.set({
-                            exportErr: true
+                            taskInfo: taskInfo
                         });
 
-                    }).progress(function(taskInfo){
-                        if (taskInfo.Status === 'В очереди') {
+                        if (taskInfo.Status === 'queue') {
                             $(spinMessage).html(window._gtxt('mapExport.inQueue'));
-                        } else if (taskInfo.Status === 'В процессе') {
+                        } else if (taskInfo.Status === 'progress') {
                             $(spinMessage).html(window._gtxt('mapExport.inProcess'));
+
+                            $(progressBar).progressbar('value', taskInfo.Progress);
                         }
                     });
 
@@ -764,6 +800,37 @@ var nsGmx = window.nsGmx || {};
                         }
                     }
                 }
+            },
+
+            cancelExport: function() {
+                var attrs = this.model.toJSON(),
+                    taskInfo = this.model.get('taskInfo'),
+                    exportButton = this.$('.mapExportButton'),
+                    cancelButton = this.$('.cancelButton'),
+                    progressBarContainer = this.$('.export-progress-container'),
+                    spinHolder = this.$('.spinHolder'),
+                    spinMessage = this.$('.spinMessage'),
+                    url;
+
+
+                url = window.serverBase + 'AsyncTaskCancel?' + $.param({TaskID: taskInfo.TaskID});
+
+                sendCrossDomainJSONRequest(url, function(response) {
+                    if (!parseResponse(response))
+                        return;
+
+                    if (response.Result) {
+                        if (attrs.selArea) {
+                            $(exportButton).removeClass('not-active');
+                        };
+
+                        $(exportButton).toggle();
+                        $(cancelButton).toggle();
+                        $(spinMessage).empty();
+                        $(spinHolder).toggle();
+                        $(progressBarContainer).toggle();
+                    }
+                })
             },
 
             resize: function(e) {
