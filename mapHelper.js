@@ -1116,6 +1116,7 @@ mapHelper.prototype.print = function() {
         	window.printMode = isPreviewMode;
         	$('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
         	$('#all').toggleClass('print-preview-all', isPreviewMode);
+			$('.ui-dialog').toggle();
     	};
 
     toggleMode(true);
