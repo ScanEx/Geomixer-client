@@ -361,7 +361,11 @@ var nsGmx = nsGmx || {};
                 }
             }
         }
-        this.Unload = function () {};
+        this.Unload = function () {
+            $(configDialog).remove();
+            configDialog = null;
+            manager.setState(false);
+        };
     }
 
     var publicInterface = {
