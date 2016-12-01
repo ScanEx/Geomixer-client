@@ -656,11 +656,13 @@ var nsGmx = window.nsGmx || {};
             },
 
             unselectArea: function () {
+                var attrs = this.model.toJSON();
                 this._removeFrame();
 
                 this.model.set({
                     width: 0,
                     height: 0,
+                    z: attrs.lmap.getZoom(),
                     widthValueErr: false,
                     widthSizeErr: false,
                     heightValueErr: false,
@@ -956,43 +958,46 @@ var nsGmx = window.nsGmx || {};
                     }))
                 });
 
-                // навешивает обработчик на рамку выделения
+                // навешивает обработчики на рамку выделения
                 var frame = this.model.get('selArea'),
                     _this = this;
-                frame.on('edit', resizeFrame);
 
-                function resizeFrame() {
-                    var attrs = _this.model.toJSON(),
-                        initialCoords,
-                        screenCoords,
-                        dimensions,
-                        w, h;
+                frame.on('edit', _this._resizeFrame.bind(_this));
+                frame.on('remove', _this.unselectArea.bind(_this));
 
-                    initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
-                    screenCoords = _this._convertFromLatLngs(initialCoords, attrs.z);
-                    dimensions = _this._getDimensions(screenCoords);
+            },
 
-                    w = Math.abs(dimensions.width);
-                    h = Math.abs(dimensions.height);
+            _resizeFrame: function () {
+                var attrs = this.model.toJSON(),
+                    initialCoords,
+                    screenCoords,
+                    dimensions,
+                    w, h;
 
-                    if (w > MAX_SIZE) {
-                        _this.model.set('widthSizeErr', true)
-                    } else {
-                        _this.model.set('widthSizeErr', false)
-                    }
+                initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
+                screenCoords = this._convertFromLatLngs(initialCoords, attrs.z);
+                dimensions = this._getDimensions(screenCoords);
 
-                    if (h > MAX_SIZE) {
-                        _this.model.set('heightSizeErr', true)
-                    } else {
-                        _this.model.set('heightSizeErr', false)
-                    }
+                w = Math.abs(dimensions.width);
+                h = Math.abs(dimensions.height);
 
-                    _this.model.set({
-                        coords: initialCoords,
-                        width: String(w),
-                        height: String(h)
-                    });
+                if (w > MAX_SIZE) {
+                    this.model.set('widthSizeErr', true)
+                } else {
+                    this.model.set('widthSizeErr', false)
                 }
+
+                if (h > MAX_SIZE) {
+                    this.model.set('heightSizeErr', true)
+                } else {
+                    this.model.set('heightSizeErr', false)
+                }
+
+                this.model.set({
+                    coords: initialCoords,
+                    width: String(w),
+                    height: String(h)
+                });
             },
 
             _removeFrame: function () {
