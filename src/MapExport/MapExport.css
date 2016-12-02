@@ -19,12 +19,6 @@
     margin: 0px 0px 0px 8px;
 }
 
-.not-active {
-    color: #999999;
-    pointer-events: none;
-    cursor: default;
-}
-
 .selectButtons {
     margin: 4px 4px 4px 0px;
 }
