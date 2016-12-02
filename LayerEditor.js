@@ -672,13 +672,15 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     /*------------ Переключалка источника слоя ------------*/
     var sourceContainers = [sourceFile, sourceTable, sourceManual];
 
-    var sourceCheckbox = $(
+    var template = Handlebars.compile(
         '<form>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-container-idx="0" checked>' + _gtxt('Файл')    + '</label><br/>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-container-idx="1">'        + _gtxt('Таблица') + '</label><br/>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-container-idx="2">'       + _gtxt('Вручную') + '</label>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-container-idx="0" checked>{{i "Файл"}}</label><br/>' +
+            '{{#if admin}}<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-container-idx="1">{{i "Таблица"}}</label><br/>{{/if}}' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-container-idx="2">{{i "Вручную"}}</label>' +
         '</form>'
-    );
+    )
+
+    var sourceCheckbox = $(template({admin: nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)}));
 
     sourceCheckbox.find('input, label').css({verticalAlign: 'middle'});
     sourceCheckbox.find('input').css({marginRight: 2});
