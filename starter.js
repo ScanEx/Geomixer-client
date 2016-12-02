@@ -150,7 +150,7 @@ var createMenuNew = function() {
                 {id: 'export',    title: _gtxt('Экспорт'),     func: function(){
                     mapExportMenu();
                 }, disabled: !isLogined},
-                {id: 'share',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
+                {id: 'shareMenu',        title: _gtxt('Поделиться'),        func: function(){_mapHelper.showPermalink()}},
                 // {id: 'codeMap',      title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}, disabled: true},
                 {id: 'mapTabsNew',   title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
                 {id: 'printMap',     title: _gtxt('Печать'),            func: function(){_mapHelper.print()}, delimiter: true},
