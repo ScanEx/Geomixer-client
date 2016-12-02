@@ -9,7 +9,7 @@ var uiTemplate = Handlebars.compile(
     '<span data-hours="18" class="wind-hour">18</span>'
 );
 
-var DEFAULT_LAYERNAME = '7CB878E2BE274837B291E592B2530C39',
+var DEFAULT_LAYERNAME = '10riUTvti2NTfC5I',
 	layersTree = window._layersTree,
 	nativeDrawNode = layersTree.drawNode;
 
@@ -94,7 +94,7 @@ var WindFilterModel = Backbone.Model.extend({
         };
 
 var publicInterface = {
-    pluginName: 'Wind plugin',
+    pluginName: 'Weather Grid Plugin',
     beforeViewer: function(params, map) {
         var views = {},
 			layerNames = params.layerName || DEFAULT_LAYERNAME;
@@ -126,8 +126,8 @@ var publicInterface = {
     }
 }
 
-gmxCore.addModule("WindPlugin", publicInterface, {
-    css: 'WindPlugin.css'
+gmxCore.addModule("WeatherGridPlugin", publicInterface, {
+    css: 'WeatherGridPlugin.css'
 });
 
 })()
