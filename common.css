@@ -1418,3 +1418,9 @@ div.layersScroll
     padding: 3px 0px;
     vertical-align: top;
 }
+
+.gmx-disabled {
+    color: #999999;
+    pointer-events: none;
+    cursor: default;
+}

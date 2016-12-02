@@ -1918,3 +1918,9 @@ div.layersScroll
 .removeGroup-layers {
     margin-right: 5px;
 }
+
+.gmx-disabled {
+    color: #999999;
+    pointer-events: none;
+    cursor: default;
+}

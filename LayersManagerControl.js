@@ -132,10 +132,12 @@ var drawLayers = function(layer, params)
 			var active = $(_queryMapLayers.buildedTree).find(".active");
 			
             var gmxProperties = $(res).find("span[dragg]")[0].parentNode.parentNode.gmxProperties;
-			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID')))
-				_layersTree.copyHandler(gmxProperties, active[0].parentNode, false, true)
-			else
-				_layersTree.copyHandler(gmxProperties, $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true)
+			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID'))){
+                _layersTree.copyHandler(gmxProperties, active[0].parentNode, false, true)
+            } else {
+                _layersTree.copyHandler(gmxProperties, $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true);
+            }
+            $(res).addClass('gmx-disabled');
 		},
 		_this = this;
 	
