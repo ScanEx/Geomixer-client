@@ -77,6 +77,8 @@ queryTabs.prototype.load = function()
 
 			_this.tabs = orderedTabs;
 		});
+
+        this.leftPanelItem.hide();
 	}
 }
 
