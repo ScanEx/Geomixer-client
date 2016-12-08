@@ -83,6 +83,12 @@ option
 	padding: 2px;
 	margin: 1px 3px;
 }
+
+.inputStyle.inputShortWidth
+{
+	width: 35px;
+}
+
 textarea.inputStyle
 {
 	padding: 0px;

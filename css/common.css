@@ -87,6 +87,11 @@ option
 	margin: 1px 3px;
 }
 
+.inputStyle.inputShortWidth
+{
+	width: 35px;
+}
+
 .inputStyle.inputFullWidth {
     width: 100%;
     box-sizing: border-box;
