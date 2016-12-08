@@ -204,6 +204,7 @@ _translationsHash.hash["eng"] = {
     "units.m2": "m<sup>2</sup>",
     "units.ha": "ha",
     "units.km2": "km<sup>2</sup>",
+	"Количество информационных окошек" : "Max popup count",
     "layerOrder.title": "Layers order",
     "layerOrder.native": "Native",
     "layerOrder.vectorOnTop": "Vector on top",

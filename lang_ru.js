@@ -206,6 +206,7 @@ _translationsHash.hash["rus"] = {
     "units.m2": "м<sup>2",
     "units.ha": "га",
     "units.km2": "км<sup>2",
+	"Количество информационных окошек" : "Количество информационных окошек",
     "layerOrder.title": "Порядок слоёв",
     "layerOrder.native": "Стандартный",
     "layerOrder.vectorOnTop": "Вектора сверху",

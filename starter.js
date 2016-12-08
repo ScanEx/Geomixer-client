@@ -1322,7 +1322,8 @@ function processGmxMap(state, gmxMap) {
         distanceUnit: mapProps.DistanceUnit,
         squareUnit: mapProps.SquareUnit,
         minZoom: mapProps.MinZoom || undefined,
-        maxZoom: mapProps.MaxZoom || undefined
+        maxZoom: mapProps.MaxZoom || undefined,
+        maxPopupCount: mapProps.maxPopupContent
     });
 
     var lmap = new L.Map($('#flash')[0], mapOptions);

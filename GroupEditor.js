@@ -335,9 +335,13 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                             '<label><input type="radio" name="squareUnit" value="ha">' + _gtxt('units.ha') + '</label>' + 
                             '<label><input type="radio" name="squareUnit" value="km2">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
-            layerOrder = $('<select class="selectStyle">' + 
-                            '<option value="Native">' + _gtxt('layerOrder.native') + '</label>' + 
-                            '<option value="VectorOnTop">' + _gtxt('layerOrder.vectorOnTop') + '</label>' + 
+            maxPopupCount = $('<span class="maxPopupCountContainer">' +
+                            '<input type="number" min="1" class="inputStyle inputShortWidth">' +
+                           '</input>' +
+                           '</span>')[0],
+            layerOrder = $('<select class="selectStyle">' +
+                            '<option value="Native">' + _gtxt('layerOrder.native') + '</label>' +
+                            '<option value="VectorOnTop">' + _gtxt('layerOrder.vectorOnTop') + '</label>' +
                            '</select>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
@@ -370,6 +374,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
         $('input[value=' + elemProperties.DistanceUnit + ']', distUnit).attr('checked', 'checked');
         $('input[value=' + elemProperties.SquareUnit + ']', squareUnit).attr('checked', 'checked');
+        $('input', maxPopupCount).val(elemProperties.maxPopupContent);
         $('option[value=' + (elemProperties.LayerOrder || 'Native') + ']', layerOrder).attr('selected', 'selected');
         
         $('input', defLang).change(function()
@@ -391,7 +396,16 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			rawTree.properties = div.gmxProperties.properties;
             nsGmx.leafletMap.options.squareUnit = this.value;
 		})
-        
+
+        $('input', maxPopupCount).change(function()
+		{
+            if (Number(this.value) > 0) {
+                div.gmxProperties.properties.maxPopupContent = this.value;
+                rawTree.properties = div.gmxProperties.properties;
+                nsGmx.leafletMap.options.maxPopupCount = this.value;
+            }
+		})
+
         $(layerOrder).change(function()
 		{
 			div.gmxProperties.properties.LayerOrder = this.value;
@@ -557,6 +571,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},
+										{name: _gtxt("Количество информационных окошек"), elem: maxPopupCount},
 										{name: _gtxt("layerOrder.title"), elem: layerOrder},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink}]
 									),
