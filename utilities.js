@@ -1138,6 +1138,12 @@ $.extend(nsGmx.Utils, {
         newStyle.RenderStyle = L.gmxUtil.fromServerStyle(templateStyle);
         newStyle.HoverStyle = L.gmxUtil.fromServerStyle(hoverStyle);
 
+        if (templateStyle.labelTemplate) {
+          newStyle.RenderStyle.labelTemplate = templateStyle.labelTemplate;
+        }
+        if (hoverStyle.labelTemplate) {
+          newStyle.HoverStyle.labelTemplate = hoverStyle.labelTemplate;
+        }
         layer.setStyle(newStyle, styleIndex);
 	},
 

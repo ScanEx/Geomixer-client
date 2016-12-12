@@ -369,6 +369,7 @@ _translationsHash.hash["eng"] = {
 	"Имя закладки" : "Bookmark name",
 	"Дерево" : "Tree view",
 	"Поиск слоев" : "Layers search",
+	"Пример выражения": "Expression exapmple:\n[Attribute 1]\n[Attribute 2]\nsome text",
 	"Шкала прозрачности" : "Transparency bar",
 	"Цвет заливки" : "Fill color",
 	"Цвет обводки" : "Outlining color",
