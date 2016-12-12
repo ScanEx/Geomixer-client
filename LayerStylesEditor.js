@@ -607,10 +607,9 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	// label
 
 
-	var labelAttrSel = nsGmx.Utils._select([_option([_t('')],[['attr','value','']])],[['dir','className','selectStyle'],['css','width','142px']]),
-		fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
+	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
-		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0x000000,
+		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
 		labelColor = nsGmx.Controls.createColorPicker(checkedLabelColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
@@ -648,112 +647,86 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 				templateStyle.label.haloColor = labelHaloColor.hex = parseInt('0x' + hex);
 
 				nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
-			});
+			}),
+            layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
+            textareaID = 'labeleditor' + layerName + (_labelEditorId++),
+            labelText = _textarea(null, [
+                ['dir','className','inputStyle labelEditor'],
+                ['attr','placeholder', _gtxt("Пример выражения")],
+                ['css','overflow','auto'],
+                ['css','width','251px'],
+                ['css','height','80px'],
+                ['dir','id', textareaID]
+            ]);
 
 	_title(labelColor, _gtxt("Цвет заливки"));
 	_title(labelHaloColor, _gtxt("Цвет обводки"));
 	_title(fontSizeInput, _gtxt("Размер шрифта"));
-	_title(labelAttrSel, _gtxt("Имя атрибута"));
-
-    var layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
-        textareaID = 'labeleditor' + layerName + (_labelEditorId++),
-        labelText = _textarea(null, [
-            ['dir','className','inputStyle labelEditor'],
-            ['attr','placeholder', _gtxt("Пример выражения")],
-            ['css','overflow','auto'],
-            ['css','width','251px'],
-            ['css','height','80px'],
-            ['dir','id', textareaID]
-        ]);
-
-	if (attrs)
-	{
-    var keys = {};
-    attrs.forEach(function(attr){
-      keys[attr] = true;
-    });
-		for (var i = 0; i < attrs.length; i++)
-			_(labelAttrSel, [_option([_t(attrs[i])],[['attr','value',attrs[i]]])]);
-
-		labelAttrSel = switchSelect(labelAttrSel, (templateStyle.label && templateStyle.label.field) ? templateStyle.label.field : '')
 
     // при загрузке выставим в инпуты значения либо template, либо label
     if (templateStyle.labelTemplate) {
-      $(labelText).val(templateStyle.labelTemplate);
-      $('option[value=""]', labelAttrSel).prop('selected', true);
+        $(labelText).val(templateStyle.labelTemplate);
     } else if (templateStyle.label && templateStyle.label.field) {
-      $(labelText).val('[' + templateStyle.label.field + ']');
+        $(labelText).val('[' + templateStyle.label.field + ']');
     }
-	}
 
-	labelAttrSel.onchange = function()
-	{
-    delete templateStyle.labelTemplate;
-		if (this.value != '') {
-		    if (typeof templateStyle.label == 'undefined') {
-			      templateStyle.label = {};
-				    templateStyle.label.field = this.value;
-			      templateStyle.label.color = $(liLabel).find(".colorSelector")[0].hex;
-			      templateStyle.label.size = Number(fontSizeInput.value);
-			}	else {
-            templateStyle.label.field = this.value;
-      }
-      // textArea
-      labelText.value = '[' + this.value + ']';
-		} else {
-        delete templateStyle.label;
-        // textArea
-        labelText.value = '';
-        }
-		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
-	}
+    if (templateStyle.label) {
+        $(fontSizeInput).val(templateStyle.label.size ? templateStyle.label.size : 12);
+    }
+
+
+	if (attrs) {
+        var keys = {};
+        attrs.forEach(function(attr){
+            keys[attr] = true;
+        });
+    }
 
   // при изменении значения текстового поля меняется labelTemplate
   // если оно равно какому-либо атрибуту, он утанавливается в значение field
   // если же как-то отличается, то перечень атрибутов устанавливается на '';
-  labelText.onkeyup = function() {
-    // соберем все значения в квадратных скобках
-    var matches = this.value.match(/\[([^\]]+)\]/ig);
-    var str = this.value;
-    if (matches) {
-        for (var i = 0, len = matches.length; i < len; i++) {
-            var key1 = matches[i],
-                key = key1.substr(1, key1.length - 2);
-            // отсеиваем случаи, когда в textArea содержится единственный [атрибут]
-            if (matches.length === 1 && matches[0] === str && key in keys) {
-              // в label передается templateStyle.label.field
-              delete templateStyle.labelTemplate;
+  var updateLabelText = function() {
+        // соберем все значения в квадратных скобках
+        var matches = this.value.match(/\[([^\]]+)\]/ig);
+        var str = this.value;
+        if (matches) {
+            for (var i = 0, len = matches.length; i < len; i++) {
+                var key1 = matches[i],
+                    key = key1.substr(1, key1.length - 2);
+                // отсеиваем случаи, когда в textArea содержится единственный [атрибут]
+                if (matches.length === 1 && matches[0] === str && key in keys) {
+                  // в label передается templateStyle.label.field
+                  delete templateStyle.labelTemplate;
 
-              if (typeof templateStyle.label == 'undefined') {
-                  templateStyle.label = {};
-                  templateStyle.label.field = key;
-                  templateStyle.label.color = $(liLabel).find(".colorSelector")[0].hex;
-                  templateStyle.label.size = Number(fontSizeInput.value);
-              }	else {
-                  templateStyle.label.field = key;
-              }
-              // проставим значение этого единственного атрибута в labelAttrSel
-              $('option[value="' + key + '"]', labelAttrSel).prop('selected', true);
-              nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
-              return;
-            }
-            // в других случаях в label передается templateStyle.labelTemplate
-            // если внтутри квадратных скобок оказывается какой-то произвольный текст
-            if (!(key in keys)) {
-                str = str.replace(key1, '');
+                  if (typeof templateStyle.label == 'undefined') {
+                      templateStyle.label = {};
+                      templateStyle.label.field = key;
+                      templateStyle.label.color = $(liLabel).find(".colorSelector")[0].hex;
+                      templateStyle.label.size = Number(fontSizeInput.value);
+                  }	else {
+                      templateStyle.label.field = key;
+                  }
+                  nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+                  return;
+                }
+                // в других случаях в label передается templateStyle.labelTemplate
+                // если внтутри квадратных скобок оказывается какой-то произвольный текст
+                if (!(key in keys)) {
+                    str = str.replace(key1, '');
+                }
             }
         }
-    }
 
-      if (!str) {
-        templateStyle.labelTemplate = ' ';
-      } else {
-        templateStyle.labelTemplate = str;
-      }
+          if (!str) {
+            templateStyle.labelTemplate = ' ';
+          } else {
+            templateStyle.labelTemplate = str;
+          }
 
-    $('option[value=""]', labelAttrSel).prop('selected', true);
-    nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
-  }
+        nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+    };
+
+    labelText.onkeyup = updateLabelText;
 
 	fontSizeInput.onkeyup = function()
 	{
@@ -765,12 +738,26 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
 	}
 
+    var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], labelText, '[suggest]', updateLabelText.bind(labelText));
+
+    var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
+
+    divAttr.onclick = function()
+    {
+    	if (suggestWidget.el.style.display == 'none')
+    		$(suggestWidget.el).fadeIn(300);
+
+    	return true;
+    }
+
+    var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
+
 	_(liLabel.lastChild, [_table([_tbody([
       _tr([_t(_gtxt("Цвет заливки")), _td([labelColor])]),
       _tr([_t(_gtxt("Цвет обводки")), _td([labelHaloColor])]),
       _tr([_t(_gtxt("Размер шрифта")), _td([fontSizeInput])]),
-      _tr([_t(_gtxt("Имя атрибута")), _td([labelAttrSel])]),
-      _tr([_td([labelText], [['attr', 'colspan', 4]])])
+      _tr([_td([labelText], [['attr', 'colspan', 4]])]),
+      _tr([_td([divAttr])])
   ])])]);
 
 	if (typeof templateStyle.label == 'undefined')
