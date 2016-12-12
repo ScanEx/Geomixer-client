@@ -1536,6 +1536,12 @@ function processGmxMap(state, gmxMap) {
         _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
         var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
+
+        // special for steppe Project
+        if (data.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+            $(headerDiv).toggle();
+        }
+
         nsGmx.ContextMenuController.bindMenuToElem(headerDiv[0], 'Map', function()
             {
                 return _queryMapLayers.currentMapRights() == 'edit';
