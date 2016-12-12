@@ -926,6 +926,16 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 
 		var lastStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[elemCanvas.parentNode.gmxProperties.content.properties.styles.length - 1],
 			newStyle = {},
+            defaultStyle = {
+                fill: {
+                    color: 0x0FFFFFF,
+                    opacity: 20
+                },
+                outline: {
+                    color: 255,
+                    thickness: 1
+                }
+            },
             layer = nsGmx.gmxMap.layersByID[elem.name];
 
         lastStyle = lastStyle || {};
@@ -941,7 +951,7 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		newStyle.MinZoom = lastStyle.MinZoom || 1;
 		newStyle.MaxZoom = lastStyle.MaxZoom || 21;
 
-		newStyle.RenderStyle = lastStyle.RenderStyle || {};
+		newStyle.RenderStyle = defaultStyle;
 
         layer.setStyles(layer.getStyles().concat(newStyle));
 
