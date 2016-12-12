@@ -607,7 +607,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	// label
 
 
-	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
+	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
 		labelColor = nsGmx.Controls.createColorPicker(checkedLabelColor,
@@ -669,11 +669,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     } else if (templateStyle.label && templateStyle.label.field) {
         $(labelText).val('[' + templateStyle.label.field + ']');
     }
-
-    if (templateStyle.label) {
-        $(fontSizeInput).val(templateStyle.label.size ? templateStyle.label.size : 12);
-    }
-
 
 	if (attrs) {
         var keys = {};
@@ -753,9 +748,9 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
 
 	_(liLabel.lastChild, [_table([_tbody([
-      _tr([_t(_gtxt("Цвет заливки")), _td([labelColor])]),
-      _tr([_t(_gtxt("Цвет обводки")), _td([labelHaloColor])]),
-      _tr([_t(_gtxt("Размер шрифта")), _td([fontSizeInput])]),
+      _tr([_td([_t(_gtxt("Цвет заливки"))], [['css','width','100px']]), _td([labelColor])]),
+      _tr([_td([_t(_gtxt("Цвет обводки"))], [['css','width','100px']]), _td([labelHaloColor])]),
+      _tr([_td([_t(_gtxt("Размер шрифта"))], [['css','width','100px']]), _td([fontSizeInput])]),
       _tr([_td([labelText], [['attr', 'colspan', 4]])]),
       _tr([_td([divAttr])])
   ])])]);
