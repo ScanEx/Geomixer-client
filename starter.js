@@ -759,7 +759,7 @@ nsGmx.widgets.commonCalendar = {
                 this._updateOneLayer(layer, dateBegin, dateEnd);
             }
         }
-        
+
         if (layersMaxDates.length > 0) {
             layersMaxDates.sort(function(a, b) {
                 return b - a;
@@ -1313,7 +1313,7 @@ function processGmxMap(state, gmxMap) {
         // если есть пермалинк, центрируем и зумируем карту сразу по его параметрам
         center: state.position ? [state.position.y, state.position.x] : defCenter,
         zoom: state.position ? state.position.z : defZoom,
-        boxZoom: false,
+        // boxZoom: false,
         zoomControl: false,
         attributionControl: false,
         trackResize: true,
