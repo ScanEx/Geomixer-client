@@ -689,7 +689,12 @@ nsGmx.widgets.commonCalendar = {
         if (this._isAppended) {
             var doChange = function() {
                 var calendarDiv = $('<div class="common-calendar-container"></div>').append(newCalendar.canvas);
-                _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
+                // special for steppe project
+                if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+                    _queryMapLayers.getContainerAfter().find('.common-calendar-container').replaceWith(calendarDiv);
+                } else {
+                    _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
+                }
             }
             //явная проверка, так как хочется быть максимально синхронными в этом методе
             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
@@ -702,7 +707,12 @@ nsGmx.widgets.commonCalendar = {
     show: function() {
         var doAdd = function() {
             var calendarDiv = $('<div class="common-calendar-container"></div>').append(this.get().canvas);
-            _queryMapLayers.getContainerBefore().append(calendarDiv);
+            // special for steppe Project
+            if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+                _queryMapLayers.getContainerAfter().append(calendarDiv);
+            } else {
+                _queryMapLayers.getContainerBefore().append(calendarDiv);
+            }
             this._isAppended = true;
         }.bind(this);
 
@@ -1687,6 +1697,10 @@ function processGmxMap(state, gmxMap) {
 
         initEditUI();
         initTimeline();
+        // special for steppe project
+        if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+            nsGmx.widgets.commonCalendar.show();
+        }
 
         nsGmx.pluginsManager.afterViewer();
 

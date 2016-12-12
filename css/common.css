@@ -1677,6 +1677,12 @@ div.layersScroll
     margin-bottom: 8px;
 }
 
+.layers-after {
+    border: 1px solid #DDD;
+    padding: 9px 0px 10px 6px;
+    margin-top: 8px;
+}
+
 .layers-tree {
     border: 1px solid #DDD;
     padding: 10px 0px 10px 0px;

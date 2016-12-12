@@ -1544,6 +1544,12 @@ queryMapLayers.prototype.getContainerBefore = function() {
     return $('.layers-before', this.workCanvas).show();
 }
 
+queryMapLayers.prototype.getContainerAfter = function() {
+    if (!this.builded) return;
+
+    return $('.layers-after', this.workCanvas).show();
+}
+
 queryMapLayers.prototype.load = function(data)
 {
 	if (this.buildedTree && !this.builded)
@@ -1565,6 +1571,12 @@ queryMapLayers.prototype.load = function(data)
 		_(this.workCanvas, [this.treeCanvas]);
 
 		_(this.treeCanvas, [this.buildedTree]);
+
+		_(this.workCanvas, [
+            _div([
+                //_table([_tbody([_tr([_td([_span([_t(_gtxt("Шкала прозрачности"))],[['css','marginLeft','7px'],['css','color','#153069'],['css','fontSize','12px']])]), _td([this.rasterLayersSlider(_queryMapLayers.treeCanvas)])])])])
+            ], [['dir', 'className', 'layers-after'], ['css', 'display', 'none']])
+        ]);
 
 		$(this.buildedTree).treeview();
 
