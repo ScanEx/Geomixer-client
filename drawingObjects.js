@@ -92,11 +92,15 @@ var CreateDrawingStylesEditorIcon = function(style, type)
 var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 {
 	var templateStyle = {};
+    var jQueryDialog = null;
 
 	$.extend(true, templateStyle, style);
 
 	elemCanvas.onclick = function()
 	{
+        if (jQueryDialog) {
+            return;
+        }
 		var canvas = _div(null,[['css','marginTop','10px']]),
 			outlineParent = _tr(),
 			outlineTitleTds = [],
@@ -188,7 +192,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt('drawingObjects.edit.description'))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
-		var jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc)
+		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc)
 	}
 
 	elemCanvas.getStyle = function()
