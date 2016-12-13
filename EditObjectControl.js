@@ -176,7 +176,12 @@ var EditObjectControl = function(layerName, objectId, params)
     /** Закрытие диалога редактирования
      * @event nsGmx.EditObjectControl#close
      */
-     
+
+    if (_queryMapLayers.layerRights(layerName) !== 'edit' && _queryMapLayers.layerRights(layerName) !== 'editrows') {
+        showErrorMessage(_gtxt('Недостаточно прав для редактирования объектов слоя'), true);
+        return;
+    }
+
     var isNew = objectId == null;
     var _params = $.extend({
             drawingObject: null, 

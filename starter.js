@@ -958,13 +958,10 @@ var initEditUI = function(){
                 var layer = nsGmx.gmxMap.layers[iL],
                     props = layer.getGmxProperties();
 
-                if (isEditableLayer(layer)) {
-                    layer.disableFlip();
-                    layer.disablePopup();
-
-                    listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
-                    layer.on('click', listeners[props.name]);
-                }
+                layer.disableFlip();
+                layer.disablePopup();
+                listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
+                layer.on('click', listeners[props.name]);
             }
         } else {
             for (var layerName in listeners) {

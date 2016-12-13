@@ -177,6 +177,7 @@ _translationsHash.hash["eng"] = {
 	"Редактировать стили" : "Edit styles",
 	"Авторизуйтесь для редактирования настроек слоя" : " Authorize to edit layer properties",
 	"Недостаточно прав для редактирования настроек слоя" : "You have not enough permission to edit layer properties ",
+	"Недостаточно прав для редактирования объектов слоя" : "You have not enough permission to edit layer objects ",
 	"ID" : "ID",
 	"Описание" : "Description",
 	"Файл" : "File",
