@@ -1092,7 +1092,25 @@ $.extend(nsGmx.Utils, {
 
         return '#' + r + g + b;
     },
+    /**
+        Преобразует цвет, заданный в виде строки rgb(255, 255, 255) в строку вида #aabbcc
+        @function
+        @memberOf nsGmx.Utils
+    */
+    rgb2hex: function(intColor)
+    {
+        var str,
+            arr = intColor.substring(4, intColor.length-1).split(', ');
 
+        arr = arr.map(function(c){
+            var hex = Number(c).toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        });
+
+        str = "#" + arr.join('');
+
+        return str;
+    },
 	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
         @memberOf nsGmx.Utils
     */
