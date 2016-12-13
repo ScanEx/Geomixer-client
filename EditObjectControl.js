@@ -204,6 +204,8 @@ var EditObjectControl = function(layerName, objectId, params)
     var identityField = layer._gmx.properties.identityField;
     
     var geometryInfoRow = null;
+
+    var drawingObjectLeafletID = null;
     var bindDrawingObject = function(obj)
     {
         geometryInfoRow && geometryInfoRow.RemoveRow();
@@ -217,6 +219,7 @@ var EditObjectControl = function(layerName, objectId, params)
             obj, 
             { editStyle: false, allowDelete: false }
         );
+        drawingObjectLeafletID = obj._leaflet_id;
     }
     
     var bindGeometry = function(geom) {
@@ -338,10 +341,19 @@ var EditObjectControl = function(layerName, objectId, params)
         
         var closeFunc = function()
         {
+            // search for opened styles editing dialog
+            if (drawingObjectLeafletID) {
+                var styleEditingDialog = $('.drawing-object-leaflet-id-' + drawingObjectLeafletID);
+            }
+
             geometryInfoRow && geometryInfoRow.getDrawingObject() && nsGmx.leafletMap.gmxDrawing.remove(geometryInfoRow.getDrawingObject());
                 
             originalGeometry = null;
-            
+
+            if (styleEditingDialog) {
+                removeDialog(styleEditingDialog);
+            }
+
             if (drawingBorderDialog)
                 removeDialog(drawingBorderDialog);
             

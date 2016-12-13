@@ -192,7 +192,9 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt('drawingObjects.edit.description'))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
-		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc)
+		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc);
+        
+        $(jQueryDialog).addClass('drawing-object-leaflet-id-' + parentObject._leaflet_id);
 	}
 
 	elemCanvas.getStyle = function()
