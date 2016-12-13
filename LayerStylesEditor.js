@@ -610,6 +610,12 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
+        checkedFontSize = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.size != 'undefined') ? templateStyle.label.size : 12,
+        backupLabel = {
+            color: checkedLabelColor,
+            haloColor: checkedLabelHaloColor,
+            size: checkedFontSize
+        },
 		labelColor = nsGmx.Controls.createColorPicker(checkedLabelColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
@@ -622,10 +628,12 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 			function (hsb, hex, rgb) {
 				labelColor.style.backgroundColor = '#' + hex;
 
-				if (typeof templateStyle.label == 'undefined')
-					return;
+                if (typeof templateStyle.label == 'undefined') {
+                    templateStyle.label = backupLabel;
+                }
 
 				templateStyle.label.color = labelColor.hex = parseInt('0x' + hex);
+                checkedLabelColor = labelColor.hex = parseInt('0x' + hex);
 
 				nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
 			}),
@@ -641,10 +649,12 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 			function (hsb, hex, rgb) {
 				labelHaloColor.style.backgroundColor = '#' + hex;
 
-				if (typeof templateStyle.label == 'undefined')
-					return;
+				if (typeof templateStyle.label == 'undefined') {
+                    templateStyle.label = backupLabel;
+                }
 
 				templateStyle.label.haloColor = labelHaloColor.hex = parseInt('0x' + hex);
+                checkedLabelHaloColor = labelHaloColor.hex = parseInt('0x' + hex);
 
 				nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
 			}),
@@ -694,10 +704,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                   delete templateStyle.labelTemplate;
 
                   if (typeof templateStyle.label == 'undefined') {
-                      templateStyle.label = {};
+                      templateStyle.label = backupLabel;
                       templateStyle.label.field = key;
-                      templateStyle.label.color = $(liLabel).find(".colorSelector")[0].hex;
-                      templateStyle.label.size = Number(fontSizeInput.value);
                   }	else {
                       templateStyle.label.field = key;
                   }
@@ -711,12 +719,19 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 }
             }
         }
-
-          if (!str) {
-            templateStyle.labelTemplate = ' ';
-          } else {
+        if (!str) {
+            if (!this.value) {
+                delete templateStyle.labelTemplate;
+                delete templateStyle.label;
+            } else {
+                templateStyle.labelTemplate = this.value;
+            }
+        } else {
+            if (typeof templateStyle.label == 'undefined') {
+                templateStyle.label = backupLabel;
+            }
             templateStyle.labelTemplate = str;
-          }
+        }
 
         nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
     };
@@ -725,10 +740,12 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	fontSizeInput.onkeyup = function()
 	{
-		if (typeof templateStyle.label == 'undefined')
-			return;
+        if (typeof templateStyle.label == 'undefined') {
+            templateStyle.label = backupLabel;
+        }
 
 		templateStyle.label.size = Number(this.value);
+        checkedFontSize = Number(this.value);
 
 		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
 	}
