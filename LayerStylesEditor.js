@@ -424,7 +424,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		},
 		defaultBalloonText = function()
 		{
-			var sortAttrs = attrs.slice(0).sort(),
+			var sortAttrs = attrs.slice(0),
 				text = "";
 
 			for (var i = 0; i < sortAttrs.length; ++i)
@@ -486,11 +486,18 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		return true;
 	}
 
+    var setDefaultBalloonText = nsGmx.Utils.makeLinkButton(_gtxt('Подсказка по умолчанию'));
+
+    setDefaultBalloonText.onclick = function() {
+        window.tinyMCE.get(textareaID).setContent(defaultBalloonText());
+        setBalloon();
+    };
+
 	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
 
 	var div = _div([_div([boxClick, _span([_t(_gtxt("Показывать при клике"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]),
 					_div([boxMove, _span([_t(_gtxt("Показывать при наведении"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]),
-	                balloonText, suggestCanvas],[['attr','balloonTable',true]]);
+	                balloonText, suggestCanvas, setDefaultBalloonText],[['attr','balloonTable',true]]);
 
 	div.getBalloon = function()
 	{
@@ -605,7 +612,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     })
 
 	// label
-
 
 	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
