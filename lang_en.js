@@ -323,7 +323,7 @@ _translationsHash.hash["eng"] = {
 	"Фильтр" : "Filter",
 	"Подпись" : "Label",
 	"Балун" : "Balloon",
-	"Подсказка по умолчанию" : "Set default balloon",
+	"По умолчанию" : "Default",
 	"Показывать при клике": "Show on click",
 	"Показывать при наведении": "Show on mouse over",
 	"Символика" : "Shown style",

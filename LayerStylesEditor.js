@@ -486,18 +486,21 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		return true;
 	}
 
-    var setDefaultBalloonText = nsGmx.Utils.makeLinkButton(_gtxt('Подсказка по умолчанию'));
+    var setDefaultBalloonText = nsGmx.Utils.makeLinkButton(_gtxt('По умолчанию'));
 
     setDefaultBalloonText.onclick = function() {
         window.tinyMCE.get(textareaID).setContent(defaultBalloonText());
         setBalloon();
     };
 
-	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
+	var suggestCanvas = _table([_tbody([
+        _tr([_td([_div([divAttr],[['css','position','relative']])]),
+             _td([_div([setDefaultBalloonText],[['css','float','right']])])
+         ])])],[['css','margin','0px 3px'], ['css','width','249px']]);
 
 	var div = _div([_div([boxClick, _span([_t(_gtxt("Показывать при клике"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]),
 					_div([boxMove, _span([_t(_gtxt("Показывать при наведении"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]),
-	                balloonText, suggestCanvas, setDefaultBalloonText],[['attr','balloonTable',true]]);
+	                balloonText, suggestCanvas],[['attr','balloonTable',true]]);
 
 	div.getBalloon = function()
 	{
