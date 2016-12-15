@@ -357,6 +357,7 @@ mapHelper.prototype.getMapState = function() {
     }
 
     var drawnObjects = [],
+		drawings = lmap.gmxDrawing.saveState(),
         openPopups = {},
         condition = {expanded:{}, visible:{}},
 		LayersTreePermalinkParams = {},
@@ -439,7 +440,8 @@ mapHelper.prototype.getMapState = function() {
             z: 17 - lmap.getZoom()
         },
         mapStyles: this.getMapStyles(),
-        drawnObjects: drawnObjects,
+		drawings: drawings,
+		drawnObjects: drawnObjects,
         isFullScreen: window.layersShown ? "false" : "true",
         condition: condition,
 		LayersTreePermalinkParams: LayersTreePermalinkParams,

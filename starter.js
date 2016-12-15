@@ -1622,7 +1622,9 @@ function processGmxMap(state, gmxMap) {
             lmap.gmxBaseLayersManager.setCurrentID(baseLayers[0]);
         }
 
-        if (state.drawnObjects) {
+        if (state.drawings) {
+            lmap.gmxDrawing.loadState(state.drawings);
+        } else if (state.drawnObjects) {
             state.drawnObjects.forEach(function(objInfo) {
                 //старый формат - число, новый - строка
                 var lineStyle = {};
