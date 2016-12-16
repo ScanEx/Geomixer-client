@@ -1347,6 +1347,18 @@ function processGmxMap(state, gmxMap) {
         updateZIndexes();
     })
 
+    //clip polygons
+    if (mapProps.MinViewX && mapProps.MinViewY && mapProps.MaxViewX && mapProps.MaxViewY) {
+        lmap.on('layeradd', function(e) {
+            if (e.layer.addClipPolygon) {
+                _mapHelper.clipLayer(e.layer, mapProps);
+            }
+        })
+    }
+
+
+
+
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
         callback: function(event) {

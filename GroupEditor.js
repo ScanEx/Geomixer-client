@@ -587,29 +587,29 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                                     _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
                                     _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
                                     _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])
-                                ])])])
+                                ])])],[['css', 'borderCollapse', 'collapse']])
                 }, {
-                    name: _gtxt("Граница"), 
+                    name: _gtxt("Зум"),
+                    elem: _table([_tbody([_tr([
+                                    _td([_span([_t(_gtxt('Мин. зум'))],[['css','marginLeft','3px']]), _br(), minZoom],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Макс. зум'))],[['css','marginLeft','3px']]), _br(), maxZoom],[['css','width','70px'], ['css','rowspan','2']])
+                                ])])],[['css', 'borderCollapse', 'collapse']])
+                }, {
+                    name: _gtxt("Граница"),
                     elem:_table([_tbody([
                                 _tr([
-                                    _td(null, [['css','width','70px']]), 
-                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]), 
-                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]), 
+                                    _td([_span([_t(_gtxt('Широта'))], [['css','marginLeft','3px']]), _br()],[['css','width','73px']]),
+                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]),
                                 _tr([
-                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]), 
-                                    _td([minViewY]), 
-                                    _td([minViewX])]), 
+                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]),
+                                    _td([minViewY]),
+                                    _td([minViewX])]),
                                 _tr([
-                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]), 
-                                    _td([maxViewY]), 
+                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]),
+                                    _td([maxViewY]),
                                     _td([maxViewX])])
-                            ])])
-                }, {
-                    name: _gtxt("Мин. зум"),
-                    elem: minZoom
-                }, {
-                    name: _gtxt("Макс. зум"),
-                    elem: maxZoom
+                            ])],[['css', 'borderCollapse', 'collapse']])
                 }];
                                 
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),

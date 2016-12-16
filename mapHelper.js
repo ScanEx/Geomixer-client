@@ -699,6 +699,18 @@ mapHelper.prototype.createNewLayer = function(type)
     }
 }
 
+// перенос clipLayer из маплетов карты
+mapHelper.prototype.clipLayer = function(layer, props)
+{
+	var sw = L.latLng([props.MinViewY, props.MinViewX]),
+		nw = L.latLng([props.MaxViewY, props.MinViewX]),
+		ne = L.latLng([props.MaxViewY, props.MaxViewX]),
+		se = L.latLng([props.MinViewY, props.MaxViewX]),
+		clip = L.polygon([sw, nw, ne, se, sw]);
+
+	    layer.addClipPolygon(clip);
+}
+
 // Формирует набор элементов tr используя контролы из shownProperties.
 // Параметры:
 // - shownProperties: массив со следующими свойствами:
