@@ -63,42 +63,52 @@ nsGmx.gridManager = {
     state: false,
     gridControl: null,
     options: null,
-    setState: function(newState) {
-        if (this.state == newState) {
+    menu: null,
+
+    setState: function(state) {
+        var isActive = state.isActive,
+            options = state.options;
+
+        if (this.state == isActive) {
             return;
         }
 
         //lazy instantantion
         this.gridControl = this.gridControl || new L.GmxGrid();
-        if (this.options) {
-            this.restoreOptions();
+        if (options) {
+            this.restoreOptions(options);
         }
-        nsGmx.leafletMap[newState ? 'addLayer' : 'removeLayer'](this.gridControl);
-        this.state = newState;
-        nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(newState);
-        _menuUp.checkItem('mapGrid', newState);
-        _mapHelper.gridView = newState; //можно удалить?
+        nsGmx.leafletMap[isActive ? 'addLayer' : 'removeLayer'](this.gridControl);
+        this.state = isActive;
+        nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(isActive);
+        _menuUp.checkItem('mapGrid', isActive);
+        _mapHelper.gridView = isActive; //можно удалить?
 
-        if (this.options) {
-            this.restoreOptions();
-        }
         if (this.state) {
             this.configureGrid();
+        } else {
+            if (this.menu) {
+                this.menu.Unload();
+            }
         }
     },
+
     saveOptions: function() {
         this.options = this.gridControl.options;
     },
-    restoreOptions: function() {
-        this.gridControl.setColor(this.options.color);
+
+    restoreOptions: function(options) {
+        this.gridControl.setUnits(options.units);
+        this.gridControl.setStep(options.customStep.x, options.customStep.y);
+        this.gridControl.setColor(options.color);
+        this.gridControl.setTitleFormat(options.titleFormat);
     },
-    setOptions: function (options) {
-        this.options = options;
-    },
+
     configureGrid: function () {
+        var _this = this;
         gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
-              var menu = new def.ConfigureGridMenu(nsGmx.gridManager);
-              menu.Load();
+              _this.menu = new def.ConfigureGridMenu(nsGmx.gridManager);
+              _this.menu.Load();
         });
     }
 }
@@ -208,8 +218,8 @@ var createMenuNew = function() {
         {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
             {
                 id: 'mapGrid', title:_gtxt('Координатная сетка'),
-                onsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, true),
-                onunsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, false),
+                onsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, {isActive: true}),
+                onunsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, {isActive: false}),
                 checked: _mapHelper.gridView
             },
             {id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
@@ -383,22 +393,14 @@ var createToolbar = function() {
     })
         .addTo(lmap)
         .on('click', function() {
-            var isActive = gridIcon.options.isActive;
-            nsGmx.gridManager.setState(isActive);
+            var state = {isActive: gridIcon.options.isActive};
+            nsGmx.gridManager.setState(state);
         });
 
     _mapHelper.customParamsManager.addProvider({
         name: 'GridManager',
         loadState: function(state) {
-            nsGmx.gridManager.setState(state.isActive);
-
-            if (state.isActive) {
-                nsGmx.gridManager.setOptions({color: state.options.color});
-                nsGmx.gridManager.gridControl.setUnits(state.options.units);
-                nsGmx.gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
-                nsGmx.gridManager.gridControl.setColor(state.options.color);
-                nsGmx.gridManager.gridControl.setTitleFormat(state.options.titleFormat);
-            }
+            nsGmx.gridManager.setState(state);
         },
         saveState: function() {
             return {
