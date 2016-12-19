@@ -59,7 +59,7 @@ nsGmx.initGeoMixer = function() {
 var oSearchLeftMenu = new leftMenu();
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
-var gridManager = {
+nsGmx.gridManager = {
     state: false,
     gridControl: null,
     options: null,
@@ -83,7 +83,7 @@ var gridManager = {
             this.restoreOptions();
         }
         if (this.state) {
-            configureGrid();
+            this.configureGrid();
         }
     },
     saveOptions: function() {
@@ -94,6 +94,12 @@ var gridManager = {
     },
     setOptions: function (options) {
         this.options = options;
+    },
+    configureGrid: function () {
+        gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
+              var menu = new def.ConfigureGridMenu(nsGmx.gridManager);
+              menu.Load();
+        });
     }
 }
 
@@ -202,8 +208,8 @@ var createMenuNew = function() {
         {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
             {
                 id: 'mapGrid', title:_gtxt('Координатная сетка'),
-                onsel: gridManager.setState.bind(gridManager, true),
-                onunsel: gridManager.setState.bind(gridManager, false),
+                onsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, true),
+                onunsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, false),
                 checked: _mapHelper.gridView
             },
             {id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
@@ -378,27 +384,27 @@ var createToolbar = function() {
         .addTo(lmap)
         .on('click', function() {
             var isActive = gridIcon.options.isActive;
-            gridManager.setState(isActive);
+            nsGmx.gridManager.setState(isActive);
         });
 
     _mapHelper.customParamsManager.addProvider({
         name: 'GridManager',
         loadState: function(state) {
-            gridManager.setState(state.isActive);
+            nsGmx.gridManager.setState(state.isActive);
 
             if (state.isActive) {
-                gridManager.setOptions({color: state.options.color});
-                gridManager.gridControl.setUnits(state.options.units);
-                gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
-                gridManager.gridControl.setColor(state.options.color);
-                gridManager.gridControl.setTitleFormat(state.options.titleFormat);
+                nsGmx.gridManager.setOptions({color: state.options.color});
+                nsGmx.gridManager.gridControl.setUnits(state.options.units);
+                nsGmx.gridManager.gridControl.setStep(state.options.customStep.x, state.options.customStep.y);
+                nsGmx.gridManager.gridControl.setColor(state.options.color);
+                nsGmx.gridManager.gridControl.setTitleFormat(state.options.titleFormat);
             }
         },
         saveState: function() {
             return {
                 version: '1.0.0',
                 isActive: gridIcon.options.isActive,
-                options: gridManager.options
+                options: nsGmx.gridManager.options
             }
         }
     });
@@ -1723,13 +1729,6 @@ function processGmxMap(state, gmxMap) {
             _mapHelper.export(state);
         }
     });
-}
-
-function configureGrid() {
-    gmxCore.loadModule('GridPlugin', 'src/GridPlugin.js').then(function (def) {
-          var menu = new def.ConfigureGridMenu(gridManager);
-          menu.Load();
-  });
 }
 
 function mapExportMenu() {
