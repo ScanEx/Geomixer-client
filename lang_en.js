@@ -676,5 +676,7 @@ _translationsHash.hash["eng"] = {
     "EditObject.drawingMenuTitle" : "Add object to active layer",
     "Поставить маркер": "Add marker",
     "Центрировать": "Set center",
-    "Пароль изменён": "Password has been changed"
+    "Пароль изменён": "Password has been changed",
+	"портретная": "portrait view",
+	"альбомная": "layout view"
 };

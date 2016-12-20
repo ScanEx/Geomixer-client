@@ -1131,6 +1131,8 @@ mapHelper.prototype.print = function() {
         	$('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
         	$('#all').toggleClass('print-preview-all', isPreviewMode);
 			$('.ui-dialog').toggle();
+			$('.leaflet-gmx-iconSvg-hide').toggle();
+			$('.leaflet-control-container').toggle();
     	};
 
     toggleMode(true);
@@ -1139,11 +1141,49 @@ mapHelper.prototype.print = function() {
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
         '<button class="print-ui-print">Печать</button>' +
-    	'</span></div>')());
+			'<span class="layoutContainer">' +
+				'<label><input type="radio" name="layout" value="portrait" checked="true">' + _gtxt('портретная') + '</label>' +
+				'<label><input type="radio" name="layout" value="layout">' + _gtxt('альбомная') + '</label>' +
+			'</span>' +
+		'</span>' +
+		'</div>')());
 
-    ui.find('.print-ui-print').click(function() {
-        window.print(map);
-    })
+	var BIG = 1150,
+		SMALL = BIG / 1.4142
+	var layout = {
+		width: SMALL + 'px',
+		height: BIG + 'px'
+	};
+
+	ui.find('input[value="portrait"]').click(function() {
+		this.checked = true;
+		layout.width = SMALL + 'px';
+		layout.height = BIG + 'px';
+
+		$('#flash').css({
+			width: layout.width,
+			height: layout.height
+		});
+
+	    map.invalidateSize();
+	});
+
+	ui.find('input[value="layout"]').click(function() {
+		this.checked = true;
+		layout.width = BIG + 'px';
+		layout.height = SMALL + 'px';
+
+		$('#flash').css({
+			width: layout.width,
+			height: layout.height
+		});
+
+	    map.invalidateSize();
+	});
+
+	ui.find('.print-ui-print').click(function() {
+		window.print();
+	})
 
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
@@ -1161,13 +1201,12 @@ mapHelper.prototype.print = function() {
     $('body').append(ui);
 
     $('#flash').css({
-        top: '50%',
-        left: '50%',
-        width: '1400px',
-        height: '1400px',
-        marginLeft: '-700px',
-        marginTop: '-700px'
-    });
+		top: '0px',
+		left: '0px',
+		width: layout.width,
+		height: layout.height
+	});
+
     map.invalidateSize();
 }
 
