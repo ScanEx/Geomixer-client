@@ -358,11 +358,17 @@ mapHelper.prototype.getMapState = function() {
 
     var drawnObjects = [],
 		drawings = lmap.gmxDrawing.saveState(),
+		features = drawings.featureCollection.features;
         openPopups = {},
         condition = {expanded:{}, visible:{}},
 		LayersTreePermalinkParams = {},
+		mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 
-        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].properties.exportRect) {
+				features.splice(i, 1);
+			}
+		}
 
     lmap.gmxDrawing.getFeatures().forEach(function(feature) {
         if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature) || feature.options.exportRect) {
