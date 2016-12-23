@@ -1166,7 +1166,7 @@ function loadMap(state) {
 
         _menuUp.checkView();
 
-        var str = resp && resp.ErrorInfo && resp.ErrorInfo.ErrorMessage ? resp.ErrorInfo.ErrorMessage ? 'У вас нет прав на просмотр данной карты';
+        var str = resp && resp.ErrorInfo && resp.ErrorInfo.ErrorMessage ? resp.ErrorInfo.ErrorMessage : 'У вас нет прав на просмотр данной карты';
 		nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt(str) || str, 0);
 
         window.onresize = resizeAll;
