@@ -1149,7 +1149,7 @@ function loadMap(state) {
                 isGeneralized: 'isGeneralized' in window ? window.isGeneralized : true
             }).then(processGmxMap.bind(null, state));
         })
-    }, function() {
+    }, function(resp) {
         initHeader();
         initAuthWidget();
 
@@ -1166,7 +1166,8 @@ function loadMap(state) {
 
         _menuUp.checkView();
 
-        nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt('У вас нет прав на просмотр данной карты'), 0);
+        var str = resp && resp.ErrorInfo && resp.ErrorInfo.ErrorMessage ? resp.ErrorInfo.ErrorMessage ? 'У вас нет прав на просмотр данной карты';
+		nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt(str) || str, 0);
 
         window.onresize = resizeAll;
         resizeAll();

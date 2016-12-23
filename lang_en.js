@@ -77,6 +77,8 @@ _translationsHash.hash["eng"] = {
 	"О проекте" : "About/Contacts",
 	"$$phrase$$_1" : "Choose parameter defaultMapID in config.js file",
 	"У вас нет прав на просмотр данной карты" : "Sorry, you don’t have permission to view this map",
+	"Access error" : "Sorry, you don’t have permission to view this map",
+	"Map not found" : "Sorry, this map not found",
 	"Развернуть карту" : "Unfold map",
 	"Свернуть карту" : "Fold map",
 	"Точки на изображении:" : "Points on image:",
