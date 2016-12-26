@@ -500,7 +500,7 @@ mapHelper.prototype.createPermalink = function(callback)
 }
 
 mapHelper.prototype.updateTinyMCE = function(container) {
-    gmxCore.loadModule('TinyMCELoader', function() {
+    gmxCore.loadModule('TinyMCELoader', 'TinyMCELoader.js', function() {
         $('.balloonEditor', container).each(function() {
             var id = $(this).attr('id');
             if (!tinyMCE.get(id)) {

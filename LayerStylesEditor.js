@@ -444,7 +444,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		br = "\n";
 
 
-    gmxCore.loadModule('TinyMCELoader', function() {
+    gmxCore.loadModule('TinyMCELoader', 'TinyMCELoader.js', function() {
         tinyMCE.onAddEditor.add(function(mgr,ed) {
             if (ed.id === textareaID) {
                 ed.onKeyUp.add(setBalloon);
@@ -1846,7 +1846,7 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
 
         _mapHelper.createMultiStyle(elemProperties, treeView, multiStyleParent);
 
-        gmxCore.loadModule('TinyMCELoader', function() {
+        gmxCore.loadModule('TinyMCELoader', 'TinyMCELoader.js', function() {
             $('.balloonEditor', divDialog).each(function() {
                 tinyMCE.execCommand("mceRemoveControl", true, $(this).attr('id'));
             })
