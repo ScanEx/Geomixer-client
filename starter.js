@@ -1390,8 +1390,8 @@ function processGmxMap(state, gmxMap) {
             switch (layerOrder) {
                 case 'VectorOnTop':
                 if (props.type === 'Vector') {
-                    if (props.IsRasterCatalog) {
-                        var rcMinZoom = props.RCMinZoomForRasters;
+                    if (props.IsRasterCatalog || props.Quicklook) {
+                        var rcMinZoom = props.RCMinZoomForRasters || 6;
                         layer.setZIndexOffset(currentZoom < rcMinZoom ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0);
                     } else {
                         layer.setZIndexOffset(DEFAULT_VECTOR_LAYER_ZINDEXOFFSET);
