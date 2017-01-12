@@ -1111,6 +1111,11 @@ $.extend(nsGmx.Utils, {
 
         return str;
     },
+
+    checkForNumber: function (number) {
+        return !(isNaN(number) || typeof(number) === 'undefined' || number === null || number === '');
+    },
+
 	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
         @memberOf nsGmx.Utils
     */

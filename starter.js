@@ -1390,8 +1390,25 @@ function processGmxMap(state, gmxMap) {
             switch (layerOrder) {
                 case 'VectorOnTop':
                 if (props.type === 'Vector') {
+                    var minZoom,
+                        rcMinZoom,
+                        quickLookMinZoom,
+                        defaultMinZoom = 6;
+
                     if (props.IsRasterCatalog || props.Quicklook) {
-                        var rcMinZoom = props.RCMinZoomForRasters || 6;
+                        rcMinZoom = props.IsRasterCatalog ? props.RCMinZoomForRasters : null;
+                        quickLookMinZoom = props.Quicklook ? JSON.parse(props.Quicklook).minZoom : null;
+
+                        if (props.IsRasterCatalog && !props.Quicklook) {
+                            minZoom = nsGmx.Utils.checkForNumber(rcMinZoom) ? rcMinZoom : defaultMinZoom;
+                        } else if (!props.IsRasterCatalog && props.Quicklook) {
+                            minZoom = nsGmx.Utils.checkForNumber(quickLookMinZoom) ? quickLookMinZoom : defaultMinZoom;
+                        } else if (props.IsRasterCatalog && props.Quicklook) {
+                            rcMinZoom = nsGmx.Utils.checkForNumber(rcMinZoom) ? rcMinZoom : defaultMinZoom;
+                            quickLookMinZoom = nsGmx.Utils.checkForNumber(quickLookMinZoom) ? quickLookMinZoom : defaultMinZoom;
+
+                            minZoom = Math.min(rcMinZoom, quickLookMinZoom);
+                        }
                         layer.setZIndexOffset(currentZoom < rcMinZoom ? DEFAULT_VECTOR_LAYER_ZINDEXOFFSET : 0);
                     } else {
                         layer.setZIndexOffset(DEFAULT_VECTOR_LAYER_ZINDEXOFFSET);
@@ -1431,6 +1448,7 @@ function processGmxMap(state, gmxMap) {
     nsGmx.leafletMap = lmap;
 
     var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
+
     loc.on('coordinatesformatchange', function(ev) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
