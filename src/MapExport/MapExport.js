@@ -704,14 +704,16 @@ var nsGmx = window.nsGmx || {};
                             y: dimensions.mercCenter.y,
                             z: attrs.z ? 17 - attrs.z : 17 - attrs.lmap.getZoom()
                         },
-                        latLng: dimensions.latLng
+                        latLng: dimensions.latLng,
+                        grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
                     },
                     exportParams = {
                         width: Math.floor(Number(attrs.width)),
                         height: Math.floor(Number(attrs.height)),
                         filename: attrs.name,
                         container: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? 'grimage' : attrs.fileType,
-                        format: attrs.format
+                        format: attrs.format,
+                        grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
                     },
                     exportButton = this.$('.mapExportButton'),
                     cancelButton = this.$('.cancelButton'),

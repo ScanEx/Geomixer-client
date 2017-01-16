@@ -1224,6 +1224,12 @@ mapHelper.prototype.export = function(params) {
 	map.gmxControlsManager.get('center').removeFrom(map);
     window.exportMode = true;
 
+	if (params.grid) {
+		nsGmx.gridManager.gridControl.setIndexGrid(true);
+	} else {
+		nsGmx.gridManager.setState(false);
+	}
+
     $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
 
     $('#all').toggleClass('print-preview-all', true);
