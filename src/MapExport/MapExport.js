@@ -712,8 +712,7 @@ var nsGmx = window.nsGmx || {};
                         height: Math.floor(Number(attrs.height)),
                         filename: attrs.name,
                         container: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? 'grimage' : attrs.fileType,
-                        format: attrs.format,
-                        grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
+                        format: attrs.format
                     },
                     exportButton = this.$('.mapExportButton'),
                     cancelButton = this.$('.cancelButton'),
