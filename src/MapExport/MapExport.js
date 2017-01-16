@@ -705,6 +705,7 @@ var nsGmx = window.nsGmx || {};
                             z: attrs.z ? 17 - attrs.z : 17 - attrs.lmap.getZoom()
                         },
                         latLng: dimensions.latLng,
+                        exportBounds: attrs.selArea.getBounds(),
                         grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
                     },
                     exportParams = {

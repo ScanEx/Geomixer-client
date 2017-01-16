@@ -1225,7 +1225,10 @@ mapHelper.prototype.export = function(params) {
     window.exportMode = true;
 
 	if (params.grid) {
-		nsGmx.gridManager.gridControl.setIndexGrid(true);
+		var grid = nsGmx.gridManager.gridControl;
+
+		grid.setFixBounds(L.latLngBounds(params.exportBounds._southWest, params.exportBounds._northEast));
+		grid.setIndexGrid(true);
 	} else {
 		nsGmx.gridManager.setState(false);
 	}
