@@ -1116,6 +1116,15 @@ $.extend(nsGmx.Utils, {
         return !(isNaN(number) || typeof(number) === 'undefined' || number === null || number === '');
     },
 
+    isJSON: function(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    },
+
 	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
         @memberOf nsGmx.Utils
     */
