@@ -1122,7 +1122,11 @@ $.extend(nsGmx.Utils, {
         } catch (e) {
             return false;
         }
-        return true;
+        if (str === '' || str === 'null' || str === 'undefined' || typeof(str) === 'Number') {
+            return false;
+        } else {
+            return true;
+        }
     },
 
 	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
