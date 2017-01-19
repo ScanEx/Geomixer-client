@@ -369,21 +369,23 @@ var createToolbar = function() {
         .addTo(lmap)
         .on('click', _mapHelper.showPermalink.bind(_mapHelper));
 
-    var shareIconControl = new nsGmx.ShareIconControl({
-        permalinkManager: {
-            save: function() {
-                return $.when(
-                    _mapHelper.createPermalink(),
-                    nsMapCommon.generateWinniePermalink()
-                )
-            }
-        },
-        permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
-        embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
-        winnieUrlTemplate: 'http://winnie.kosmosnimki.ru/?config={{winnieId}}',
-        previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
-    });
-    lmap.addControl(shareIconControl);
+    if (window.mapsSite) {
+        var shareIconControl = new nsGmx.ShareIconControl({
+            permalinkManager: {
+                save: function() {
+                    return $.when(
+                        _mapHelper.createPermalink(),
+                        nsMapCommon.generateWinniePermalink()
+                    )
+                }
+            },
+            permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
+            embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
+            winnieUrlTemplate: 'http://winnie.kosmosnimki.ru/?config={{winnieId}}',
+            previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
+        });
+        lmap.addControl(shareIconControl);
+    }
 
     var gridIcon = L.control.gmxIcon({
         id: 'gridTool',
