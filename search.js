@@ -1,6 +1,10 @@
 ﻿//Необходимо подключить JS-библиотеки: jquery, jquery-ui, api.js, utilites.js, treeview.js, translations.js, gmxCore.js, 	файл локализации
 //						стили: jquery, jquery-ui, search.css, treeview.css, buttons.css
 
+// ищем только по базе ОСМ
+// глобальный конфиг не учитываем,
+// поскольку поиск по базе Геоцентра на январь 2017 давно умер
+var GLOBAL_USE_OSM = 1;
 /**
 * @namespace Search
 * @description Содержит необходимое для поиска
@@ -1406,10 +1410,12 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry, params){
 	if(oSearchDataProvider == null) throw "Error in SearchLogic: oSearchDataProvider is not supplied";
 
     var useOSMDefault = 0;
-    if (params && 'UseOSM' in params) {
-        useOSMDefault = Number(params.UseOSM);
+    if (GLOBAL_USE_OSM) {
+        useOSMDefault = GLOBAL_USE_OSM;
     } else  if (typeof gmxGeoCodeUseOSM !== 'undefined') {
         useOSMDefault = Number(gmxGeoCodeUseOSM);
+    } else if (params && 'UseOSM' in params) {
+        useOSMDefault = Number(params.UseOSM);
     }
 
 	/** Возращает полный путь к объекту для отображения в подсказке
