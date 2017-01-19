@@ -230,9 +230,20 @@ var createMenuNew = function() {
 
 
     function fillPluginsMenu() {
-        if (window.menuPlugins) {
-            var plugins = window.menuPlugins,
-            childs = [];
+        var plugins = window.menuPlugins || [];
+
+        // для локальной версии Геомиксера покажем плагины кадастра и Викимапии
+        if (!window.menuPlugins) {
+            if (nsGmx.pluginsManager.getPluginByName('Cadastre')) {
+                plugins.push({pluginName: 'Cadastre', menuItemName: 'cadastre', menuTitle: 'Кадастр Росреестра'});
+            }
+            if (nsGmx.pluginsManager.getPluginByName('Wikimapia')) {
+                plugins.push({pluginName: 'Wikimapia', menuItemName: 'wikimapia', menuTitle: 'Викимапиа'});
+            }
+        }
+
+        if (plugins.length) {
+            var childs = [];
             for (var p = 0; p < plugins.length; p++) {
                 childs.push(
                     getPluginToMenuBinding(
