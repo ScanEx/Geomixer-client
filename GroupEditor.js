@@ -357,8 +357,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			minViewY =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			maxViewX =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MaxViewX != null && elemProperties.MaxViewX != 0 ? elemProperties.MaxViewX : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			maxViewY =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MaxViewY != null && elemProperties.MaxViewY != 0 ? elemProperties.MaxViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
-            minZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder zoom")], ['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
-            maxZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder zoom")], ['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
+            minZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder minZoom")], ['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
+            maxZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder maxZoom")], ['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
 
 		onLoad.value = nsGmx.mappletLoader.get();
 
