@@ -65,7 +65,8 @@ var TimelineData = Backbone.Model.extend({
             dateFunction: options.dateFunction || TimelineData._defaultDateFunction,
             filterFunction: options.filterFunction || TimelineData._defaultFilterFunction,
             selectFunction: options.selectFunction || TimelineData._defaultSelectFunction,
-            trackVisibility: 'trackVisibility' in options ? !!options.trackVisibility : true
+            trackVisibility: 'trackVisibility' in options ? !!options.trackVisibility : true,
+            observerFilters: options.observerFilters
         }
         this.trigger('preBindLayer', newLayerInfo);
         
@@ -511,6 +512,23 @@ var TimelineController = function(data, map, options) {
         
         fireSelectionEvent();
     }
+
+    this.update = function () {
+        var bounds = getObserversBbox();
+        for (var layerName in layerObservers) {
+            var o = layerObservers[layerName];
+            o.setBounds(bounds);
+        }
+    };
+
+    this.setDateInterval = function (startDate, endDate) {
+        var bounds = getObserversBbox();
+        for (var layerName in layerObservers) {
+            var o = layerObservers[layerName];
+            o.setDateInterval(startDate, endDate);
+            o.setBounds(bounds);
+        }
+    };
         
     var createTimelineLazy = function()
     {
@@ -712,6 +730,30 @@ var TimelineController = function(data, map, options) {
         var items = data.get('items');
         items[layerName] = items[layerName] || {};
 
+        var f = layerInfo.observerFilters;
+        var filters = [];
+
+        if (f) {
+            for (var kk = 0; kk < f.length; kk++) {
+                var fkk = f[kk];
+                if (typeof fkk === "string") {
+                    filters.push(fkk);
+                } else if (fkk instanceof Function) {
+                    (function (funk, ckk) {
+                        var n = 'timelineFilter_' + layerName + "_" + ckk;
+                        layer._gmx.dataManager.addFilter(n, function (item) {
+                            if (funk(item))
+                                return item.properties;
+                            return null;
+                        });
+                        filters.push(n);
+                    })(fkk, kk);
+                }
+            }
+        }
+
+        filters = filters.length ? filters : null;
+
         layerObservers[layerName] = layer.addObserver({
             callback: function(observerData) {
                 //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
@@ -753,6 +795,7 @@ var TimelineController = function(data, map, options) {
 
                 data.trigger('change change:items');
             },
+            filters: filters,
             bounds: getObserversBbox(),
             dateInterval: [dateBegin, dateEnd],
             active: !!layer._map || !layerInfo.trackVisibility
