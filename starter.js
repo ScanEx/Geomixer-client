@@ -1193,52 +1193,73 @@ function loadMap(state) {
 
 //создаём подложки в BaseLayerManager по описанию из config.js
 function initDefaultBaseLayers() {
-    var hostName = window.baseMap.hostName || 'maps.kosmosnimki.ru',
-        mapID = window.baseMap.id;
 
-    var layersToLoad = {};
+    var lang = L.gmxLocale.getLanguage(),
+        iconPrefix = 'img/baseLayers/',
+        blm = nsGmx.leafletMap.gmxBaseLayersManager,
+        zIndexOffset = 2000000,
+        hostName = window.baseMap.hostName || 'maps.kosmosnimki.ru',
+        mapID = window.baseMap.id,
+        promises = [];
 
-    var iconPrefix = 'img/baseLayers/';
+    if (window.baseMap.layers) {
+        var layers = window.baseMap.layers,
+            tl;
 
-    if (window.baseMap.mapLayerID) {
-        layersToLoad.OSM = {
-            layerID: window.baseMap.mapLayerID,
-            rus: 'Карта',
-            eng: 'Map',
-            icon: iconPrefix + 'basemap_osm_ru.png'
+        // проставляем дефолтным слоям свойства, зависящие от путей, языка, zIndex
+        for (var i = 0; i < layers.length; i++) {
+            tl = layers[i];
+            // у Спутника в конфиге нет иконки и копирайта
+            if (tl.id === 'sputnik') {
+                tl.icon = iconPrefix + 'basemap_sputnik_ru.png';
+                tl.layers[0].attribution = '<a href="http://maps.sputnik.ru">Спутник</a> © ' + (lang === 'rus' ? 'Ростелеком' : 'Rostelecom') + ' | © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+            }
+            // у ОСМ в конфиге нет иконки и урл
+            if (tl.id === 'OSM') {
+                tl.icon = iconPrefix + 'basemap_osm_' + (lang === 'rus' ? 'ru' : 'eng') + '.png',
+                tl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmo' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
+            }
+            // у гибрида в конфиге нет урл
+            if (tl.id === 'OSMHybrid') {
+                tl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmohyb' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
+                // tl.layers[0].setZIndex(zIndexOffset);
+            }
+            // у спутника нет иконки
+            if (tl.id === 'satellite') {
+                tl.icon = iconPrefix + 'basemap_satellite.png';
+            }
+        }
+
+        for (var i = 0; i < layers.length; i++) {
+            var tl = layers[i];
+            if (tl.layers && tl.layers.length) {
+                var l = tl.layers;
+                for (var j = 0; j < l.length; j++) {
+                    if (l[j].urlTemplate) {
+                        l[j] = L.tileLayer(l[j].urlTemplate, l[j]);
+                    } else {
+                        var currentL = l,
+                            num = j,
+                            promise = L.gmx.loadLayer(mapID, l[j].layerID, {hostName: hostName}).then(function(layer) {
+                                currentL[num] = layer;
+                            });
+
+                        promises.push(promise);
+                    }
+                }
+            }
         }
     }
-
-    if (window.baseMap.satelliteLayerID) {
-        layersToLoad.satellite = {
-            layerID: window.baseMap.satelliteLayerID,
-            rus: 'Снимки',
-            eng: 'Satellite',
-            overlayColor: '#ffffff',
-            icon: iconPrefix + 'basemap_satellite.png'
-        }
-    }
-
-    if (window.baseMap.overlayLayerID) {
-        layersToLoad.OSMHybrid = {
-            layerID: window.baseMap.overlayLayerID,
-            rus: 'Гибрид',
-            eng: 'Hybrid',
-            overlayColor: '#ffffff',
-            icon: iconPrefix + 'basemap_osm_hybrid.png'
-        }
-    }
-
-    var promises = _.map(layersToLoad, function(l, name) {
-        return L.gmx.loadLayer(mapID, l.layerID, {hostName: hostName}).then(function(layer) {
-            l.layers = [layer];
-        });
-    });
 
     return L.gmx.Deferred.all.apply(null, promises).then(function() {
-        var blm = nsGmx.leafletMap.gmxBaseLayersManager;
+        var layersToLoad = {};
+        layers.forEach(function(tl) {
+            layersToLoad[tl.id] = tl;
+        });
 
-        if (layersToLoad.OSMHybrid && layersToLoad.satellite) {
+        // добавим в гибрид снимок
+        if (layersToLoad.satellite && layersToLoad.OSMHybrid) {
+            layersToLoad.OSMHybrid.layers[0].setZIndex(zIndexOffset);
             layersToLoad.OSMHybrid.layers.push(layersToLoad.satellite.layers[0]);
         }
 
