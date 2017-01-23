@@ -11,6 +11,14 @@
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;
 
+// базовые подложки
+// в качестве примера указаны 5 основных базовых подложек Геомиксера
+// - Пустая карта
+// - Карта (OSM)
+// - Карта (Sputnik.ru)
+// - Снимки
+// - Гибрид
+//
 // var baseMap = {
 //     hostName: false,
 //     id: '1D30C72D02914C5FB90D1D448159CAB6',

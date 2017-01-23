@@ -1250,23 +1250,24 @@ function initDefaultBaseLayers() {
             }
         }
     }
+        return L.gmx.Deferred.all.apply(null, promises).then(function() {
+            if (window.baseMap.layers) {
+                var layersToLoad = {};
+                layers.forEach(function(tl) {
+                    layersToLoad[tl.id] = tl;
+                });
 
-    return L.gmx.Deferred.all.apply(null, promises).then(function() {
-        var layersToLoad = {};
-        layers.forEach(function(tl) {
-            layersToLoad[tl.id] = tl;
+                // добавим в гибрид снимок
+                if (layersToLoad.satellite && layersToLoad.OSMHybrid) {
+                    layersToLoad.OSMHybrid.layers[0].setZIndex(zIndexOffset);
+                    layersToLoad.OSMHybrid.layers.push(layersToLoad.satellite.layers[0]);
+                }
+
+                _.each(layersToLoad, function(l, name) {
+                    blm.add(name, l);
+                });
+            }
         });
-
-        // добавим в гибрид снимок
-        if (layersToLoad.satellite && layersToLoad.OSMHybrid) {
-            layersToLoad.OSMHybrid.layers[0].setZIndex(zIndexOffset);
-            layersToLoad.OSMHybrid.layers.push(layersToLoad.satellite.layers[0]);
-        }
-
-        _.each(layersToLoad, function(l, name) {
-            blm.add(name, l);
-        });
-    });
 }
 
 // Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации
