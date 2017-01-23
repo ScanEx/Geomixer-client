@@ -679,7 +679,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             ]);
 
 	_title(labelColor, _gtxt("Цвет заливки"));
-	_title(labelHaloColor, _gtxt("Цвет обводки"));
+	_title(labelHaloColor, _gtxt("Цвет шрифта"));
 	_title(fontSizeInput, _gtxt("Размер шрифта"));
 
     // при загрузке выставим в инпуты значения либо template, либо label
@@ -775,7 +775,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	_(liLabel.lastChild, [_table([_tbody([
       _tr([_td([_t(_gtxt("Цвет заливки"))], [['css','width','100px']]), _td([labelColor])]),
-      _tr([_td([_t(_gtxt("Цвет обводки"))], [['css','width','100px']]), _td([labelHaloColor])]),
+      _tr([_td([_t(_gtxt("Цвет шрифта"))], [['css','width','100px']]), _td([labelHaloColor])]),
       _tr([_td([_t(_gtxt("Размер шрифта"))], [['css','width','100px']]), _td([fontSizeInput])]),
       _tr([_td([labelText], [['attr', 'colspan', 4]])]),
       _tr([_td([divAttr])])
