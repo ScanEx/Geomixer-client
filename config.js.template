@@ -19,7 +19,7 @@
 // - Снимки
 // - Гибрид
 //
-// var baseMap = {
+var baseMap = {
 //     hostName: false,
 //     id: '1D30C72D02914C5FB90D1D448159CAB6',
 //     layers: [
@@ -80,7 +80,7 @@
 //             ]
 //         }
 //     ]
-// }
+}
 
 // настройки карты
 // var mapOptions = {
