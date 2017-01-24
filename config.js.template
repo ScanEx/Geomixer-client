@@ -1,4 +1,4 @@
-﻿// var defaultMapID = 'DefaultMap';
+// var defaultMapID = 'DefaultMap';
 // var mapHostName = false;
 // var apiKey = '33959EF7AFB4FB92EEC2E7B73AE8458B';
 // var serverBase = 'http://mapstest.kosmosnimki.ru/';
@@ -11,76 +11,44 @@
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;
 
-// базовые подложки
-// в качестве примера указаны 5 основных базовых подложек Геомиксера
-// - Пустая карта
-// - Карта (OSM)
-// - Карта (Sputnik.ru)
-// - Снимки
-// - Гибрид
-//
-var baseMap = {
-//     hostName: false,
-//     id: '1D30C72D02914C5FB90D1D448159CAB6',
-//     layers: [
-//         {
-//             id: 'satellite',
-//             rus: 'Снимки',
-//             eng: 'Satellite',
-//             overlayColor: '#ffffff',
-//             layers: [
-//                 {
-//                     layerID: 'C9458F2DCB754CEEACC54216C7D1EB0A',
-//                     maxNativeZoom: 17
-//                 }
-//             ]
-//         },
-//         {
-//             id: 'empty',
-//             rus: 'Пустая',
-//             eng: 'Empty',
-//             layers: []
-//         },
-//         {
-//             id: 'sputnik',
-//             rus: 'Спутник ру',
-//             eng: 'Sputnik RU',
-//             layers: [
-//                 {
-//                     urlTemplate: 'http://tiles.maps.sputnik.ru/{z}/{x}/{y}.png',
-//                     maxZoom: 22,
-//                     maxNativeZoom: 18
-//                 }
-//             ]
-//         },
-//         {
-//             id: 'OSM',
-//             rus: 'Карта',
-//             eng: 'Map',
-//             layers: [
-//                 {
-//                     urlTemplate: '',
-//                     maxZoom: 18,
-//                     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-//                 }
-//             ]
-//         },
-//         {
-//             id: 'OSMHybrid',
-//             rus: 'Гибрид',
-//             eng: 'Hybrid',
-//             overlayColor: '#ffffff',
-//             icon: 'http://maps.kosmosnimki.ru/api/img/baseLayers/basemap_osm_hybrid.png',
-//             layers: [
-//                 {
-//                     urlTemplate: '',
-//                     maxZoom: 18,
-//                     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-//                 }
-//             ]
-//         }
-//     ]
-}
+/**
+ * baseMap - объект для задания базовых подложек вручную
+ *
+ * примеры подлжек лежат по адресу http://maps.kosmosnimki.ru/api/baseLayersTemplate.js
+ *
+ * структура объекта
+ * var baseMap = {
+ *	    defaultHostName: '',					// хост по умолчанию
+ *		defaultMapID: '',						// id карты по умолчанию
+ *
+ *		baseLayers: [ 							// массив базовых подложек
+ *			{									// пример базовой подложки
+ *				id: '',							// id базовой подложки
+ *           	rus: '',						// русское наименование
+ *             	eng: '',						// английское наименование
+ *				icon: 'path/to/icon',			// путь к иконке подложки
+ *
+ *				layers: [						// массив слоев, входящих в базовую подложку
+ *
+ * 					// слои Leaflet-Geomixer - для загрузки которых нужен хост и карта
+ * 					{
+ * 						hostName: '',			// хост, если не указан - хост по умолчанию
+ *						mapID: '',				// карта, если не указана - карта по умолчанию
+ *                     	layerID: ''				// id слоя
+ * 					},
+ *
+ * 					// слои L.tileLayer - для загрузки которых нужен urlTemplate
+ * 					{
+ * 						urlTemplate: ''			// url, по которому грузится базовая подложка
+ * 					}
+ *				]
+ *		 }
+ *	  ]
+ * }
+ */
+
+// var baseMap = {
+// }
 
 // настройки карты
 // var mapOptions = {

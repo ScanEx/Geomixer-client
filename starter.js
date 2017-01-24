@@ -1198,50 +1198,68 @@ function initDefaultBaseLayers() {
         iconPrefix = 'img/baseLayers/',
         blm = nsGmx.leafletMap.gmxBaseLayersManager,
         zIndexOffset = 2000000,
-        hostName = window.baseMap.hostName || 'maps.kosmosnimki.ru',
-        mapID = window.baseMap.id,
+        defaultHostName = window.baseMap.defaultHostName || 'maps.kosmosnimki.ru',
+        defaultMapID = window.baseMap.defaultMapID,
         promises = [];
 
-    if (window.baseMap.layers) {
-        var layers = window.baseMap.layers,
-            tl;
+    if (window.baseMap.baseLayers) {
+        var baseLayers = window.baseMap.baseLayers,
+            bl;
 
         // проставляем дефолтным слоям свойства, зависящие от путей, языка, zIndex
-        for (var i = 0; i < layers.length; i++) {
-            tl = layers[i];
+        for (var i = 0; i < baseLayers.length; i++) {
+            bl = baseLayers[i];
             // у Спутника в конфиге нет иконки и копирайта
-            if (tl.id === 'sputnik') {
-                tl.icon = iconPrefix + 'basemap_sputnik_ru.png';
-                tl.layers[0].attribution = '<a href="http://maps.sputnik.ru">Спутник</a> © ' + (lang === 'rus' ? 'Ростелеком' : 'Rostelecom') + ' | © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+            if (bl.id === 'sputnik') {
+                bl.icon = iconPrefix + 'basemap_sputnik_ru.png';
+                bl.layers[0].attribution = '<a href="http://maps.sputnik.ru">Спутник</a> © ' + (lang === 'rus' ? 'Ростелеком' : 'Rostelecom') + ' | © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
             }
             // у ОСМ в конфиге нет иконки и урл
-            if (tl.id === 'OSM') {
-                tl.icon = iconPrefix + 'basemap_osm_' + (lang === 'rus' ? 'ru' : 'eng') + '.png',
-                tl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmo' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
+            if (bl.id === 'OSM') {
+                bl.icon = iconPrefix + 'basemap_osm_' + (lang === 'rus' ? 'ru' : 'eng') + '.png',
+                bl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmo' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
             }
             // у гибрида в конфиге нет урл
-            if (tl.id === 'OSMHybrid') {
-                tl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmohyb' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
-                // tl.layers[0].setZIndex(zIndexOffset);
+            if (bl.id === 'OSMHybrid') {
+                bl.layers[0].urlTemplate = 'http://{s}.tile.osm.kosmosnimki.ru/kosmohyb' + (lang === 'rus' ? '' : '-en') + '/{z}/{x}/{y}.png';
+                // bl.layers[0].setZIndex(zIndexOffset);
             }
             // у спутника нет иконки
-            if (tl.id === 'satellite') {
-                tl.icon = iconPrefix + 'basemap_satellite.png';
+            if (bl.id === 'satellite') {
+                bl.icon = iconPrefix + 'basemap_satellite.png';
             }
         }
 
-        for (var i = 0; i < layers.length; i++) {
-            var tl = layers[i];
-            if (tl.layers && tl.layers.length) {
-                var l = tl.layers;
+        for (var i = 0; i < baseLayers.length; i++) {
+            var bl = baseLayers[i];
+            if (bl.layers && bl.layers.length) {
+                var l = bl.layers;
                 for (var j = 0; j < l.length; j++) {
                     if (l[j].urlTemplate) {
+                        // заменяем в подложках с айди описания слоев на L.tileLayers
                         l[j] = L.tileLayer(l[j].urlTemplate, l[j]);
                     } else {
-                        var currentL = l,
-                            num = j,
-                            promise = L.gmx.loadLayer(mapID, l[j].layerID, {hostName: hostName}).then(function(layer) {
-                                currentL[num] = layer;
+                        var currentTl = bl,
+                            layerID = l[j].layerID,
+                            hostName = l[j].hostName || defaultHostName,
+                            mapID = l[j].mapID || defaultMapID;
+
+                            // resolve promise -> заменяем в подложках с айди описания слоев на gmxLayers
+                            var promise = L.gmx.loadLayer(mapID, layerID, {hostName: hostName}).then(function(layer) {
+                                var id = layer.getGmxProperties().name;
+                                for (var k = 0; k < baseLayers.length; k++) {
+                                    var bl = baseLayers[k];
+
+                                    if (bl.layers && bl.layers.length) {
+                                        var l = bl.layers;
+
+                                        for (var m = 0; m < l.length; m++) {
+                                            if (l[m].layerID && l[m].layerID === id) {
+                                                l[m] = layer;
+                                            }
+                                        }
+                                    }
+                                }
                             });
 
                         promises.push(promise);
@@ -1251,10 +1269,12 @@ function initDefaultBaseLayers() {
         }
     }
         return L.gmx.Deferred.all.apply(null, promises).then(function() {
-            if (window.baseMap.layers) {
-                var layersToLoad = {};
-                layers.forEach(function(tl) {
-                    layersToLoad[tl.id] = tl;
+            if (window.baseMap.baseLayers) {
+                var layers = window.baseMap.baseLayers,
+                    layersToLoad = {};
+
+                layers.forEach(function(bl) {
+                    layersToLoad[bl.id] = bl;
                 });
 
                 // добавим в гибрид снимок
