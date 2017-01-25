@@ -1809,6 +1809,10 @@ function processGmxMap(state, gmxMap) {
 
         if (state.exportMode) {
             _mapHelper.export(state);
+
+            if(state.grid) {
+                nsGmx.gridManager.gridControl.repaint();
+            }
         }
     });
 }
