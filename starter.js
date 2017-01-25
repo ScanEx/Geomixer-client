@@ -75,10 +75,10 @@ nsGmx.gridManager = {
 
         //lazy instantantion
         this.gridControl = this.gridControl || new L.GmxGrid();
+        nsGmx.leafletMap[isActive ? 'addLayer' : 'removeLayer'](this.gridControl);
         if (options) {
             this.restoreOptions(options);
         }
-        nsGmx.leafletMap[isActive ? 'addLayer' : 'removeLayer'](this.gridControl);
         this.state = isActive;
         nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(isActive);
         _menuUp.checkItem('mapGrid', isActive);
@@ -1809,10 +1809,6 @@ function processGmxMap(state, gmxMap) {
 
         if (state.exportMode) {
             _mapHelper.export(state);
-
-            if(state.grid) {
-                nsGmx.gridManager.gridControl.repaint();
-            }
         }
     });
 }
