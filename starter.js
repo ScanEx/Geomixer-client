@@ -1198,9 +1198,15 @@ function initDefaultBaseLayers() {
         iconPrefix = 'img/baseLayers/',
         blm = nsGmx.leafletMap.gmxBaseLayersManager,
         zIndexOffset = 2000000,
-        defaultHostName = window.baseMap.defaultHostName || 'maps.kosmosnimki.ru',
         defaultMapID = window.baseMap.defaultMapID,
-        promises = [];
+        promises = [],
+        defaultHostName;
+
+    if (window.baseMap.defaultHostName) {
+        defaultHostName = window.baseMap.defaultHostName === '/' ? _serverBase : window.baseMap.defaultHostName;
+    } else {
+        defaultHostName = 'maps.kosmosnimki.ru';
+    }
 
     if (window.baseMap.baseLayers) {
         var baseLayers = window.baseMap.baseLayers,
