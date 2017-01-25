@@ -1224,14 +1224,6 @@ mapHelper.prototype.export = function(params) {
 	map.gmxControlsManager.get('center').removeFrom(map);
     window.exportMode = true;
 
-	if (params.grid) {
-		var grid = nsGmx.gridManager.gridControl;
-
-		grid.setFixBounds(L.latLngBounds(params.exportBounds._southWest, params.exportBounds._northEast));
-		grid.setIndexGrid(true);
-	} else {
-		nsGmx.gridManager.setState(false);
-	}
 
     $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
 
@@ -1250,6 +1242,15 @@ mapHelper.prototype.export = function(params) {
 
 	$('#flash').css(exportCssParams);
 	map.invalidateSize();
+	
+	if (params.grid) {
+		var grid = nsGmx.gridManager.gridControl;
+
+		grid.setFixBounds(L.latLngBounds(params.exportBounds._southWest, params.exportBounds._northEast));
+		grid.setIndexGrid(true);
+	} else {
+		nsGmx.gridManager.setState(false);
+	}
 }
 
 //вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
