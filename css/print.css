@@ -1,5 +1,5 @@
-@media print {
 
+@media print {
     #header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div, .print-ui {
         display: none !important;
     }
@@ -7,12 +7,19 @@
     .leaflet-gmx-icon-hide {
         display: none !important;
     }
-    
+
     .print-preview-all {
         height: 100%;
         overflow: hidden;
     }
+
+    #flash {
+        /*margin: 0%;*/
+        width: 100%;
+        /*height: 10%;*/
+    }
 }
+
 
 @media screen {
     .print-preview-hide {
@@ -26,7 +33,7 @@
         right: 0px;
         text-align: center;
     }
-    
+
     .print-ui-inner {
         background: rgba(255, 255, 255, 0.9);
         padding: 15px;
@@ -36,7 +43,20 @@
         display: block;
         margin: 2px;
     }
-    
+
+    .layoutContainer {
+        margin: 4px;
+    }
+
+    .layoutContainer > label {
+        margin-right: 9px;
+    }
+    input[name="layout"] {
+        margin-right: 2px;
+    }
+
+
+
     .print-ui-close, .print-ui-print {
         padding: 3px;
         margin: 3px;

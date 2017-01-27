@@ -305,7 +305,7 @@ var nsGmx = window.nsGmx || {};
                 this.$('.fileTypes').prop('disabled', true);
                 this.$('.mapExportName').val(this.model.get('name'));
                 this.$('.mapExportName').prop('disabled', true);
-                this.$('.mapExportButton').addClass('not-active');
+                this.$('.mapExportButton').addClass('gmx-disabled');
 
                 zoomToBoxButton = nsGmx.Utils.makeImageButton('img/zoom_to_box_tool_small.png', 'img/zoom_to_box_tool_small.png');
                 nsGmx.Utils._title(zoomToBoxButton, window._gtxt('mapExport.zoomToBox'));
@@ -361,7 +361,7 @@ var nsGmx = window.nsGmx || {};
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr    &&
                         attrs.name !== '') {
-                            $(exportButton).removeClass('not-active');
+                            $(exportButton).removeClass('gmx-disabled');
                     }
                 } else {
                     $(areaButton).removeClass('mapExportUnselectButton');
@@ -369,7 +369,7 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).text(window._gtxt('mapExport.select'));
                     $(zoomToBoxButton).toggle();
                     $(zoomToLevelButton).toggle();
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
                 }
             },
 
@@ -413,11 +413,11 @@ var nsGmx = window.nsGmx || {};
                 }
 
                 if (attrs.widthValueErr || attrs.heightValueErr) {
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
                     $(warn).html(window._gtxt('mapExport.valueWarn'));
                 } else {
                     if (attrs.selArea && attrs.name) {
-                        $(exportButton).removeClass('not-active');
+                        $(exportButton).removeClass('gmx-disabled');
                     }
                     if (attrs.widthSizeErr || attrs.heightSizeErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
@@ -451,14 +451,14 @@ var nsGmx = window.nsGmx || {};
                 }
 
                 if (attrs.widthSizeErr || attrs.heightSizeErr) {
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
                         $(warn).html(window._gtxt('mapExport.sizeWarn'));
                     }
                 } else {
                     if (!attrs.widthValueErr && !attrs.heightValueErr) {
                         if (attrs.selArea && attrs.name) {
-                            $(exportButton).removeClass('not-active');
+                            $(exportButton).removeClass('gmx-disabled');
                         }
                         $(warn).html('');
                     }
@@ -470,18 +470,20 @@ var nsGmx = window.nsGmx || {};
                     exportButton = this.$('.mapExportButton'),
                     progressBarContainer = this.$('.export-progress-container'),
                     spinHolder = this.$('.spinHolder'),
+                    cancelButton = this.$('.cancelButton'),
                     exportErrorMessage = this.$('.exportErrorMessage');
 
-                $(spinHolder).toggle();
-                $(progressBarContainer).toggle();
-
                 if (attrs.selArea) {
-                    $(exportButton).removeClass('not-active');
+                    $(exportButton).removeClass('gmx-disabled');
                 } else {
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
                 }
 
                 if (attrs.exportErr) {
+                    $(spinHolder).toggle();
+                    $(progressBarContainer).toggle();
+                    $(exportButton).toggle();
+                    $(cancelButton).toggle();
                     $(exportErrorMessage).toggle();
                 } else {
                     $(exportErrorMessage).toggle();
@@ -495,7 +497,7 @@ var nsGmx = window.nsGmx || {};
 
                 if (attrs.name === '') {
                     $(exportNameInput).addClass('error');
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
                 } else {
                     if (
                         attrs.selArea           &&
@@ -504,7 +506,7 @@ var nsGmx = window.nsGmx || {};
                         !attrs.heightValueErr   &&
                         !attrs.heightSizeErr
                         ) {
-                        $(exportButton).removeClass('not-active');
+                        $(exportButton).removeClass('gmx-disabled');
                     }
 
                     $(exportNameInput).removeClass('error');
@@ -702,7 +704,9 @@ var nsGmx = window.nsGmx || {};
                             y: dimensions.mercCenter.y,
                             z: attrs.z ? 17 - attrs.z : 17 - attrs.lmap.getZoom()
                         },
-                        latLng: dimensions.latLng
+                        latLng: dimensions.latLng,
+                        exportBounds: attrs.selArea.getBounds(),
+                        grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
                     },
                     exportParams = {
                         width: Math.floor(Number(attrs.width)),
@@ -731,7 +735,7 @@ var nsGmx = window.nsGmx || {};
                         exportErr: false
                     });
 
-                    $(exportButton).addClass('not-active');
+                    $(exportButton).addClass('gmx-disabled');
 
                     $(progressBarContainer).toggle();
                     $(spinHolder).toggle();
@@ -748,9 +752,9 @@ var nsGmx = window.nsGmx || {};
                             selArea = _this.model.get('selArea');
 
                         if (selArea) {
-                            $(exportButton).removeClass('not-active');
+                            $(exportButton).removeClass('gmx-disabled');
                         } else {
-                            $(exportButton).addClass('not-active');
+                            $(exportButton).addClass('gmx-disabled');
                         }
 
                         $(exportButton).toggle();
@@ -762,7 +766,7 @@ var nsGmx = window.nsGmx || {};
 
                     }).fail(function(taskInfo){
                         if (taskInfo.ErrorInfo.ErrorMessage !== 'Task is canceled') {
-                            $(exportButton).removeClass('not-active');
+                            $(exportButton).removeClass('gmx-disabled');
 
                             _this.model.set({
                                 exportErr: true
@@ -823,7 +827,7 @@ var nsGmx = window.nsGmx || {};
 
                     if (response.Result) {
                         if (attrs.selArea) {
-                            $(exportButton).removeClass('not-active');
+                            $(exportButton).removeClass('gmx-disabled');
                         };
 
                         $(exportButton).toggle();
@@ -934,6 +938,7 @@ var nsGmx = window.nsGmx || {};
                 this._removeFrame();
 
                 this._createFrame(newRect);
+                this._updateCoords();
             },
 
             _createFrame: function(rectangle) {

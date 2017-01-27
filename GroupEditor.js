@@ -347,21 +347,21 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
             WMSLink = _a([_t(_gtxt('ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?map=' + elemProperties.name]]),
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
-			defLat = _input(null,[['attr','value',elemProperties.DefaultLat !== null ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
-			defLong = _input(null,[['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
+			defLat = _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.DefaultLat !== null ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
+			defLong = _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defPermalink = _input(null,[['attr','value',elemProperties.ViewUrl != null ? elemProperties.ViewUrl : ''],['dir','className','inputStyle'],['css','width','206px']]),
-			defZoom = _input(null,[['attr','value',elemProperties.DefaultZoom != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
+			defZoom = _input(null,[['attr','placeholder', _gtxt("placeholder zoom")], ['attr','value',elemProperties.DefaultZoom != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			onLoad = _textarea(null,[['dir','className','inputStyle group-editor-onload']]),
-			copyright = _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
-			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			minViewY = _input(null,[['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
-			maxViewX = _input(null,[['attr','value',elemProperties.MaxViewX != null && elemProperties.MaxViewX != 0 ? elemProperties.MaxViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			maxViewY = _input(null,[['attr','value',elemProperties.MaxViewY != null && elemProperties.MaxViewY != 0 ? elemProperties.MaxViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
-            minZoom = _input(null,[['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
-            maxZoom = _input(null,[['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
-		
+			copyright =  _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
+			minViewX =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','62px']]),
+			minViewY =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
+			maxViewX =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MaxViewX != null && elemProperties.MaxViewX != 0 ? elemProperties.MaxViewX : ''],['dir','className','inputStyle'],['css','width','62px']]),
+			maxViewY =   _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.MaxViewY != null && elemProperties.MaxViewY != 0 ? elemProperties.MaxViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
+            minZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder minZoom")], ['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
+            maxZoom =    _input(null,[['attr','placeholder', _gtxt("placeholder maxZoom")], ['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
+
 		onLoad.value = nsGmx.mappletLoader.get();
-		
+
 		useAPI.onclick = function()
 		{
 			div.gmxProperties.properties.UseKosmosnimkiAPI = this.checked;
@@ -587,29 +587,29 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                                     _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
                                     _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
                                     _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])
-                                ])])])
+                                ])])],[['css', 'borderCollapse', 'collapse']])
                 }, {
-                    name: _gtxt("Граница"), 
+                    name: _gtxt("Зум"),
+                    elem: _table([_tbody([_tr([
+                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']]), _br(), minZoom],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']]), _br(), maxZoom],[['css','width','70px'], ['css','rowspan','2']])
+                                ])])],[['css', 'borderCollapse', 'collapse']])
+                }, {
+                    name: _gtxt("Граница обрезки"),
                     elem:_table([_tbody([
                                 _tr([
-                                    _td(null, [['css','width','70px']]), 
-                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]), 
-                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]), 
+                                    _td([_span(null, [['css','marginLeft','3px']]), _br()],[['css','width','73px']]),
+                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]),
                                 _tr([
-                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]), 
-                                    _td([minViewY]), 
-                                    _td([minViewX])]), 
+                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]),
+                                    _td([minViewY]),
+                                    _td([minViewX])]),
                                 _tr([
-                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]), 
-                                    _td([maxViewY]), 
+                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]),
+                                    _td([maxViewY]),
                                     _td([maxViewX])])
-                            ])])
-                }, {
-                    name: _gtxt("Мин. зум"),
-                    elem: minZoom
-                }, {
-                    name: _gtxt("Макс. зум"),
-                    elem: maxZoom
+                            ])],[['css', 'borderCollapse', 'collapse']])
                 }];
                                 
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),

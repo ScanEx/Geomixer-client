@@ -1111,6 +1111,24 @@ $.extend(nsGmx.Utils, {
 
         return str;
     },
+
+    checkForNumber: function (number) {
+        return !(isNaN(number) || typeof(number) === 'undefined' || number === null || number === '');
+    },
+
+    isJSON: function(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        if (str === '' || str === 'null' || str === 'undefined' || typeof(str) === 'Number') {
+            return false;
+        } else {
+            return true;
+        }
+    },
+
 	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
         @memberOf nsGmx.Utils
     */

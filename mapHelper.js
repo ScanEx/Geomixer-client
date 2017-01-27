@@ -358,11 +358,17 @@ mapHelper.prototype.getMapState = function() {
 
     var drawnObjects = [],
 		drawings = lmap.gmxDrawing.saveState(),
+		features = drawings.featureCollection.features;
         openPopups = {},
         condition = {expanded:{}, visible:{}},
 		LayersTreePermalinkParams = {},
+		mercCenter = L.Projection.Mercator.project(lmap.getCenter());
 
-        mercCenter = L.Projection.Mercator.project(lmap.getCenter());
+		for (var i = 0; i < features.length; i++) {
+			if (features[i].properties.exportRect) {
+				features.splice(i, 1);
+			}
+		}
 
     lmap.gmxDrawing.getFeatures().forEach(function(feature) {
         if (!nsGmx.DrawingObjectCustomControllers.isSerializable(feature) || feature.options.exportRect) {
@@ -494,7 +500,7 @@ mapHelper.prototype.createPermalink = function(callback)
 }
 
 mapHelper.prototype.updateTinyMCE = function(container) {
-    gmxCore.loadModule('TinyMCELoader', function() {
+    gmxCore.loadModule('TinyMCELoader', 'http://' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
         $('.balloonEditor', container).each(function() {
             var id = $(this).attr('id');
             if (!tinyMCE.get(id)) {
@@ -697,6 +703,18 @@ mapHelper.prototype.createNewLayer = function(type)
         var _this = this;
         nsGmx.createMultiLayerEditorNew( _layersTree );
     }
+}
+
+// перенос clipLayer из маплетов карты
+mapHelper.prototype.clipLayer = function(layer, props)
+{
+	var sw = L.latLng([props.MinViewY, props.MinViewX]),
+		nw = L.latLng([props.MaxViewY, props.MinViewX]),
+		ne = L.latLng([props.MaxViewY, props.MaxViewX]),
+		se = L.latLng([props.MinViewY, props.MaxViewX]),
+		clip = L.polygon([sw, nw, ne, se, sw]);
+
+	    layer.addClipPolygon(clip);
 }
 
 // Формирует набор элементов tr используя контролы из shownProperties.
@@ -1119,6 +1137,8 @@ mapHelper.prototype.print = function() {
         	$('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', isPreviewMode);
         	$('#all').toggleClass('print-preview-all', isPreviewMode);
 			$('.ui-dialog').toggle();
+			$('.leaflet-gmx-iconSvg-hide').toggle();
+			$('.leaflet-control-container').toggle();
     	};
 
     toggleMode(true);
@@ -1127,11 +1147,49 @@ mapHelper.prototype.print = function() {
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
         '<button class="print-ui-print">Печать</button>' +
-    	'</span></div>')());
+			'<span class="layoutContainer">' +
+				'<label><input type="radio" name="layout" value="portrait" checked="true">' + _gtxt('портретная') + '</label>' +
+				'<label><input type="radio" name="layout" value="layout">' + _gtxt('альбомная') + '</label>' +
+			'</span>' +
+		'</span>' +
+		'</div>')());
 
-    ui.find('.print-ui-print').click(function() {
-        window.print(map);
-    })
+	var BIG = 1150,
+		SMALL = BIG / 1.4142
+	var layout = {
+		width: SMALL + 'px',
+		height: BIG + 'px'
+	};
+
+	ui.find('input[value="portrait"]').click(function() {
+		this.checked = true;
+		layout.width = SMALL + 'px';
+		layout.height = BIG + 'px';
+
+		$('#flash').css({
+			width: layout.width,
+			height: layout.height
+		});
+
+	    map.invalidateSize();
+	});
+
+	ui.find('input[value="layout"]').click(function() {
+		this.checked = true;
+		layout.width = BIG + 'px';
+		layout.height = SMALL + 'px';
+
+		$('#flash').css({
+			width: layout.width,
+			height: layout.height
+		});
+
+	    map.invalidateSize();
+	});
+
+	ui.find('.print-ui-print').click(function() {
+		window.print();
+	})
 
     ui.find('.print-ui-close').click(function() {
         toggleMode(false);
@@ -1149,13 +1207,12 @@ mapHelper.prototype.print = function() {
     $('body').append(ui);
 
     $('#flash').css({
-        top: '50%',
-        left: '50%',
-        width: '1400px',
-        height: '1400px',
-        marginLeft: '-700px',
-        marginTop: '-700px'
-    });
+		top: '0px',
+		left: '0px',
+		width: layout.width,
+		height: layout.height
+	});
+
     map.invalidateSize();
 }
 
@@ -1166,6 +1223,15 @@ mapHelper.prototype.export = function(params) {
     map.gmxControlsManager.get('hide').setActive(false);
 	map.gmxControlsManager.get('center').removeFrom(map);
     window.exportMode = true;
+
+	if (params.grid) {
+		var grid = nsGmx.gridManager.gridControl;
+
+		grid.setFixBounds(L.latLngBounds(params.exportBounds._southWest, params.exportBounds._northEast));
+		grid.setIndexGrid(true);
+	} else {
+		nsGmx.gridManager.setState(false);
+	}
 
     $('#header, #leftMenu, #leftCollapser, #bottomContent, #tooltip, .ui-datepicker-div').toggleClass('print-preview-hide', true);
 

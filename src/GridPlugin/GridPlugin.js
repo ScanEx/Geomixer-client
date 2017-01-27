@@ -41,7 +41,6 @@ var nsGmx = nsGmx || {};
     // создает левое меню с параметрами координатной сетки
     var ConfigureGridMenu = function (manager) {
         var control = manager.gridControl,
-            configDialog,
             tempStyle = {
                 outline: {
                     color: control.options.color
@@ -63,6 +62,7 @@ var nsGmx = nsGmx || {};
                 gridConfigTitle = nsGmx.Utils._span(null, [['dir','className','gridSettingsTitle']]),
                 gridConfigIcon = CreateGridConfigIcon(tempStyle, 'linestring');
 
+            $(gridConfigIcon).find('.borderIcon')[0].style.borderColor = tempStyle.outline.color;
             $(gridConfigTitle).append(window._gtxt('gridPlugin.gridSettings'));
             $(gridConfigCanvas).append(gridConfigIcon, gridConfigTitle);
             $(menu).append(gridConfigCanvas);
@@ -74,7 +74,7 @@ var nsGmx = nsGmx || {};
 
         // диалоговое окно для редактирования координатной сетки
         function createConfigDialog(elem) {
-            if (configDialog) {
+            if (manager.configDialog) {
                 return;
             }
             var map = nsGmx.leafletMap,
@@ -289,7 +289,7 @@ var nsGmx = nsGmx || {};
                 $(gridConfigEditor).find('.colorSelector').each(function() {
                     $('#' + $(this).data('colorpickerId')).remove();
                 });
-                configDialog = null;
+                manager.configDialog = null;
                 control.options.units  === 'degrees' ? enableFormats() : disableFormats();
 
                 // control.clearStep();
@@ -304,7 +304,7 @@ var nsGmx = nsGmx || {};
                 closeFunc: closeFunc
             };
 
-            configDialog = nsGmx.Utils.showDialog(window._gtxt('gridPlugin.gridSettings'), gridConfigEditor, params);
+            manager.configDialog = nsGmx.Utils.showDialog(window._gtxt('gridPlugin.gridSettings'), gridConfigEditor, params);
 
             function updateInputsValues() {
                 gridStepXInput.value = control.options.customStep.x ? Math.round(control.options.customStep.x * 100) / 100 : control.options.defaultStep.x;
@@ -353,7 +353,13 @@ var nsGmx = nsGmx || {};
 
         this.Load = function () {
             if (lm != null){
-                var alreadyLoaded = lm.createWorkCanvas('mapGrid', this.Unload);
+                var alreadyLoaded = lm.createWorkCanvas('mapGrid', function () {
+                    if (manager.state) {
+                        manager.setState({isActive: false});
+                    } else {
+                        this.Unload();
+                    }
+                });
                 if (!alreadyLoaded) {
                     $(lm.workCanvas).append(createGridLeftMenu());
                     control.setColor(tempStyle.outline.color);
@@ -362,9 +368,9 @@ var nsGmx = nsGmx || {};
             }
         }
         this.Unload = function () {
-            $(configDialog).remove();
-            configDialog = null;
-            manager.setState(false);
+            $(manager.configDialog).remove();
+            manager.configDialog = null;
+            $(lm.parentWorkCanvas).hide();
         };
     }
 

@@ -1,4 +1,4 @@
-﻿// var defaultMapID = 'DefaultMap';
+// var defaultMapID = 'DefaultMap';
 // var mapHostName = false;
 // var apiKey = '33959EF7AFB4FB92EEC2E7B73AE8458B';
 // var serverBase = 'http://mapstest.kosmosnimki.ru/';
@@ -11,11 +11,43 @@
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;
 
+/**
+ * baseMap - объект для задания базовых подложек вручную
+ *
+ * примеры подлжек лежат по адресу http://maps.kosmosnimki.ru/api/baseLayersTemplate.js
+ *
+ * структура объекта
+ * var baseMap = {
+ *	    defaultHostName: '/',					// хост по умолчанию
+ *		defaultMapID: '',						// id карты по умолчанию
+ *
+ *		baseLayers: [ 							// массив базовых подложек
+ *			{									// пример базовой подложки
+ *				id: '',							// id базовой подложки (обязательный параметр)
+ *           	rus: '',						// русское наименование
+ *             	eng: '',						// английское наименование
+ *				icon: 'path/to/icon',			// путь к иконке подложки
+ *
+ *				layers: [						// массив слоев, входящих в базовую подложку
+ *
+ * 					// слои Leaflet-Geomixer - для загрузки которых нужен хост и карта
+ * 					{
+ * 						hostName: '',			// хост, если не указан - хост по умолчанию
+ *						mapID: '',				// карта, если не указана - карта по умолчанию
+ *                     	layerID: ''				// id слоя
+ * 					},
+ *
+ * 					// слои L.tileLayer - для загрузки которых нужен urlTemplate
+ * 					{
+ * 						urlTemplate: ''			// url, по которому грузится базовая подложка
+ * 					}
+ *				]
+ *		 }
+ *	  ]
+ * }
+ */
+
 // var baseMap = {
-	// hostName: false,
-	// id: false,
-	// mapLayerID: false,
-	// satelliteLayerID: false
 // }
 
 // настройки карты

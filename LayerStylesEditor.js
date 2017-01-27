@@ -444,7 +444,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		br = "\n";
 
 
-    gmxCore.loadModule('TinyMCELoader', function() {
+    gmxCore.loadModule('TinyMCELoader', 'http://' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
         tinyMCE.onAddEditor.add(function(mgr,ed) {
             if (ed.id === textareaID) {
                 ed.onKeyUp.add(setBalloon);
@@ -678,7 +678,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 ['dir','id', textareaID]
             ]);
 
-	_title(labelColor, _gtxt("Цвет заливки"));
+	_title(labelColor, _gtxt("Цвет шрифта"));
 	_title(labelHaloColor, _gtxt("Цвет обводки"));
 	_title(fontSizeInput, _gtxt("Размер шрифта"));
 
@@ -774,7 +774,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
 
 	_(liLabel.lastChild, [_table([_tbody([
-      _tr([_td([_t(_gtxt("Цвет заливки"))], [['css','width','100px']]), _td([labelColor])]),
+      _tr([_td([_t(_gtxt("Цвет шрифта"))], [['css','width','100px']]), _td([labelColor])]),
       _tr([_td([_t(_gtxt("Цвет обводки"))], [['css','width','100px']]), _td([labelHaloColor])]),
       _tr([_td([_t(_gtxt("Размер шрифта"))], [['css','width','100px']]), _td([fontSizeInput])]),
       _tr([_td([labelText], [['attr', 'colspan', 4]])]),
@@ -1846,7 +1846,7 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
 
         _mapHelper.createMultiStyle(elemProperties, treeView, multiStyleParent);
 
-        gmxCore.loadModule('TinyMCELoader', function() {
+        gmxCore.loadModule('TinyMCELoader', 'http://' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
             $('.balloonEditor', divDialog).each(function() {
                 tinyMCE.execCommand("mceRemoveControl", true, $(this).attr('id'));
             })
