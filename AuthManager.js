@@ -166,7 +166,7 @@ var nsGmx = nsGmx || {};
                 }
                 else
                 {
-                    if (response.Status === 'auth' && ('Result' in response) && ('ExceptionType' in response.Result) && response.Result.ExceptionType.indexOf('System.ArgumentException') == 0)
+                    if (response.Status === 'auth' && ('Result' in response) && (typeof(response.Result) === 'object') && ('ExceptionType' in response.Result) && response.Result.ExceptionType.indexOf('System.ArgumentException') == 0)
                     {
                         errorCallback && errorCallback({emailWarning: true, message: response.Result.Message})
                     }
