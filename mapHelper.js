@@ -1217,7 +1217,7 @@ mapHelper.prototype.print = function() {
 }
 
 // экспортный режим редактора
-mapHelper.prototype.export = function(params) {
+mapHelper.prototype.exportMap = function(params) {
 	var map = nsGmx.leafletMap;
 
     map.gmxControlsManager.get('hide').setActive(false);

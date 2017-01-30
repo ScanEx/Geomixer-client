@@ -1808,7 +1808,7 @@ function processGmxMap(state, gmxMap) {
         // экспорт карты
 
         if (state.exportMode) {
-            _mapHelper.export(state);
+            _mapHelper.exportMap(state);
         }
     });
 }
