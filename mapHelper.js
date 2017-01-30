@@ -1228,7 +1228,7 @@ mapHelper.prototype.export = function(params) {
 		var grid = nsGmx.gridManager.gridControl;
 
 		grid.setFixBounds(L.latLngBounds(params.exportBounds._southWest, params.exportBounds._northEast));
-		grid.setIndexGrid(true);
+
 	} else {
 		nsGmx.gridManager.setState(false);
 	}
