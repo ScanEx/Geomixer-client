@@ -39,7 +39,7 @@ var nsGmx = window.nsGmx || {};
             unselect: 'Снять выделение',
             zoomToBox: 'Перейти к выделенному',
             zoomToLevel: 'Перейти на зум',
-            export: 'Экспорт',
+            exportMap: 'Экспорт',
             cancel: 'Отмена',
             sizeWarn: 'максимальный размер - 10000 пикселей',
             valueWarn: 'недопустимое значение',
@@ -74,7 +74,7 @@ var nsGmx = window.nsGmx || {};
             unselect: 'Clear selection',
             zoomToBox: 'Zoom to selected',
             zoomToLevel: 'Zoom to level',
-            export: 'Export',
+            exportMap: 'Export',
             cancel: 'Cancel',
             sizeWarn: 'incorrect size',
             valueWarn: 'incorrect value',
@@ -206,7 +206,7 @@ var nsGmx = window.nsGmx || {};
                 '</table>' +
                 '<div class="exportWrap">' +
                     '<div class="export">' +
-                        '<span class="buttonLink mapExportButton"> {{i "mapExport.export"}}</span>' +
+                        '<span class="buttonLink mapExportButton"> {{i "mapExport.exportMap"}}</span>' +
                         '<span class="buttonLink cancelButton" style="display:none"> {{i "mapExport.cancel"}}</span>' +
                         '<span class="spinHolder" style="display:none">' +
                             // '<img src="img/progress.gif"/>' +
