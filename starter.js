@@ -1510,6 +1510,8 @@ function processGmxMap(state, gmxMap) {
 
     var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
 
+    loc.setCoordinatesFormat(gmxMap.properties.coordinatesFormat);
+
     loc.on('coordinatesformatchange', function(ev) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });

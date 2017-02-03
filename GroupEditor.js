@@ -335,6 +335,10 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                             '<label><input type="radio" name="squareUnit" value="ha">' + _gtxt('units.ha') + '</label>' + 
                             '<label><input type="radio" name="squareUnit" value="km2">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
+           coordinatesFormat = $('<span class="defaultMapLangContainer">' +
+                            '<label><input type="radio" name="coordinatesFormat" value="0">' + _gtxt('coords.dd') + '</label>' +
+                            '<label><input type="radio" name="coordinatesFormat" value="1">' + _gtxt('coords.dms') + '</label>' +
+ 						'</span>')[0],
             maxPopupCount = $('<span class="maxPopupCountContainer">' +
                             '<input type="number" min="1" class="inputStyle inputShortWidth">' +
                            '</input>' +
@@ -374,6 +378,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
         $('input[value=' + elemProperties.DistanceUnit + ']', distUnit).attr('checked', 'checked');
         $('input[value=' + elemProperties.SquareUnit + ']', squareUnit).attr('checked', 'checked');
+   		$('input[value=' + elemProperties.coordinatesFormat + ']', coordinatesFormat).attr('checked', 'checked');
         $('input', maxPopupCount).val(elemProperties.maxPopupContent);
         $('option[value=' + (elemProperties.LayerOrder || 'Native') + ']', layerOrder).attr('selected', 'selected');
         
@@ -397,6 +402,17 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             nsGmx.leafletMap.options.squareUnit = this.value;
 		})
 
+        $('input', coordinatesFormat).change(function()
+		{
+            var num = Number(this.value),
+                locationControl = nsGmx.leafletMap.gmxControlsManager.get('location');
+
+            if (locationControl) {
+                locationControl.setCoordinatesFormat(num);
+            }
+            nsGmx.leafletMap.options.coordinatesFormat = num;
+            div.gmxProperties.properties.coordinatesFormat = num;
+		})
         $('input', maxPopupCount).change(function()
 		{
             if (Number(this.value) > 0) {
@@ -571,6 +587,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},
+										{name: _gtxt("Формат координат"), elem: coordinatesFormat},
 										{name: _gtxt("Количество информационных окошек"), elem: maxPopupCount},
 										{name: _gtxt("layerOrder.title"), elem: layerOrder},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink}]
