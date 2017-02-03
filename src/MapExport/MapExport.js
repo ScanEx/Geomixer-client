@@ -553,7 +553,7 @@ var nsGmx = window.nsGmx || {};
 
                 this.model.set({
                     zoomLevels: zoomLevels,
-                    z: selectedZoom,
+                    z: selectedZoom
                 });
 
                 this._updateCoords();
@@ -649,7 +649,7 @@ var nsGmx = window.nsGmx || {};
 
                 this.model.set({
                     z: currentZoom,
-                    zoomLevels: zoomLevels,
+                    zoomLevels: zoomLevels
                 });
 
                 this._createFrame(rect);
