@@ -56,6 +56,8 @@ var jsFiles = [
 
     "src/MapExport/MapExport.js",
 
+    "src/IndexGrid/IndexGrid.js",
+
     "CoverControl.js",
     "CoverControl2.js",
     "DateLayerVisibilityControl.js",
@@ -133,7 +135,8 @@ var cssFiles = [
     "leaflet/leafletGmx.css",
 
     "src/GridPlugin/GridPlugin.css",
-    "src/MapExport/MapExport.css"
+    "src/MapExport/MapExport.css",
+    "src/IndexGrid/IndexGrid.css"
 ];
 
 var moduleFiles = {

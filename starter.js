@@ -222,6 +222,11 @@ var createMenuNew = function() {
                 onunsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, {isActive: false}),
                 checked: _mapHelper.gridView
             },
+            {
+                id: 'mapIndexGrid', title:_gtxt('Индексная сетка'),     func: function(){
+                    indexGridMenu();
+                }
+            },
             {id: 'shift',         title: _gtxt('Ручная привязка растров'), func:function(){}, disabled: true},
             {id: 'crowdsourcing', title: _gtxt('Краудсорсинг данных'), func:function(){}, disabled: true},
             {id: 'geocoding',     title: _gtxt('Пакетный геокодинг'), func:function(){}, disabled: true},
@@ -1818,6 +1823,13 @@ function processGmxMap(state, gmxMap) {
 function mapExportMenu() {
     gmxCore.loadModule('MapExport', 'src/MapExport/MapExport.js').then(function (def) {
           var menu = new def.MapExportMenu();
+          menu.Load();
+  });
+}
+
+function indexGridMenu() {
+    gmxCore.loadModule('IndexGrid', 'src/IndexGrid/IndexGrid.js').then(function (def) {
+          var menu = new def.IndexGridMenu();
           menu.Load();
   });
 }

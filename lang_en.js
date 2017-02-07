@@ -60,6 +60,7 @@ _translationsHash.hash["eng"] = {
 	"Объекты на карте" : "Objects on map",
 	"Результаты поиска" : "Search results",
 	"Координатная сетка" : "Coordinate grid",
+	"Индексная сетка" : "Index grid",
 	"Сервисы" : "Services",
 	"Загрузить файл" : "Upload file",
 	"Загрузить данные" : "Load data",
