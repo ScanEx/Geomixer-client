@@ -1115,7 +1115,7 @@ var nsGmx = window.nsGmx || {};
                     width: width,
                     height: height,
                     mercCenter: L.Projection.Mercator.project(attrs.lmap.unproject([x, y], attrs.z)),
-                    latLng: attrs.lmap.unproject([x, y], attrs.z),
+                    latLng: attrs.lmap.unproject([x, y], attrs.z)
                 }
             },
 

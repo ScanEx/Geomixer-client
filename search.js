@@ -24,7 +24,7 @@ $('#flash').droppable({
             var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
             nsGmx.leafletMap.gmxDrawing.addGeoJSON({
                 type: 'Feature',
-                geometry: L.gmxUtil.geometryToGeoJSON(obj.Geometry),
+                geometry: L.gmxUtil.geometryToGeoJSON(obj.Geometry)
             }, {text: text});
         }
     }
