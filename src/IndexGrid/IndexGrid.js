@@ -539,10 +539,13 @@ var nsGmx = window.nsGmx || {};
                     }];
 
                     _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+
                     var def2 = _mapHelper.modifyObjectLayer(layerName, indexes, 'EPSG:4326');
-                    $(spinHolder).toggle();
+
+                    $(spinHolder).show();
+                    
                     def2.always(function(res) {
-                        $(spinHolder).toggle();
+                        $(spinHolder).hide();
                         _this.unselectArea();
                     })
                 });
