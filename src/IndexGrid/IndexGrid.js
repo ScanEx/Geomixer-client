@@ -25,8 +25,8 @@ var nsGmx = window.nsGmx || {};
             min: 'мин',
             max: 'макс',
             step: 'шаг (км)',
-            onX: 'по x',
-            onY: 'по y',
+            onLat: 'по широте',
+            onLng: 'по долготе',
             count: 'количество идексов',
             name: 'имя слоя',
             create: 'Создать слой индексной сетки',
@@ -46,8 +46,8 @@ var nsGmx = window.nsGmx || {};
             max: 'max',
             min: 'min',
             step: 'Step (km)',
-            onX: 'on x',
-            onY: 'on y',
+            onLat: 'on latitude',
+            onLng: 'on longitude',
             count: 'index count',
             name: 'layer name',
             create: 'Create index grid layer',
@@ -137,26 +137,27 @@ var nsGmx = window.nsGmx || {};
                         // Шаг
                         '<tr class="dims">' +
                             '<td class="eLabel" rowspan=2>{{i "indexGrid.step"}}</td>' +
+                            '<td class="eLabel">{{i "indexGrid.onLat"}}</td>' +
                             '<td class="eInput">' +
-                                '<input type="text" class="xStep" value="{{xStep}}"/>' +
+                            '<input type="text" class="yStep" value="{{yStep}}"/>' +
                             '</td>' +
-                            '<td class="eLabel">{{i "indexGrid.onX"}}</td>' +
                         '</tr>' +
                         '<tr class="dims">' +
+                            '<td class="eLabel">{{i "indexGrid.onLng"}}</td>' +
                             '<td class="eInput">' +
-                                '<input type="text" class="yStep" value="{{yStep}}"/>' +
+                            '<input type="text" class="xStep" value="{{xStep}}"/>' +
                             '</td>' +
-                            '<td class="eLabel">{{i "indexGrid.onY"}}</td>' +
                         '</tr>' +
                         // Количество индексов
                         '<tr class="dims">' +
-                            '<td class="eLabel" >{{i "indexGrid.count"}}</td>' +
-                            '<td class="eLabel indexCount" >{{indexCount}}</td>' +
+                            '<td class="eLabel">{{i "indexGrid.count"}}</td>' +
+                            '<td class="eLabel"></td>' +
+                            '<td class="eLabel indexCount">{{indexCount}}</td>' +
                         '</tr>' +
                         // Имя
                         '<tr class="nameSelect">' +
                             '<td class="eLabel">{{i "indexGrid.name"}}</td>' +
-                            '<td class="eInput">' +
+                            '<td class="eInput" colspan=2>' +
                                 '<input type="text" class="name" value=""/>' +
                             '</td>' +
                         '</tr>' +
@@ -526,7 +527,8 @@ var nsGmx = window.nsGmx || {};
                     var layerName = response.Result.properties.name;
                         mapProperties = _layersTree.treeModel.getMapProperties(),
                         targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
-                        gmxProperties = {type: 'layer', content: response.Result};
+                        gmxProperties = {type: 'layer', content: response.Result},
+                        def2 = _mapHelper.modifyObjectLayer(layerName, indexes, 'EPSG:4326');
 
                     gmxProperties.content.properties.mapName = mapProperties.name;
                     gmxProperties.content.properties.hostName = mapProperties.hostName;
@@ -538,13 +540,10 @@ var nsGmx = window.nsGmx || {};
                         RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
                     }];
 
-                    _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-
-                    var def2 = _mapHelper.modifyObjectLayer(layerName, indexes, 'EPSG:4326');
-
                     $(spinHolder).show();
-                    
+
                     def2.always(function(res) {
+                        _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
                         $(spinHolder).hide();
                         _this.unselectArea();
                     })
@@ -571,12 +570,12 @@ var nsGmx = window.nsGmx || {};
 
                 for (var i = 0; i < yCount; i++) {
                     n = north - yStep * i;
-                    s = (north - yStep * (i+1)) > south ? north - yStep * (i+1) : south;
+                    s = north - yStep * (i+1);
 
                     for (var j = 0; j < xCount; j++) {
                         letter = letterIndexes[j];
                         w = west + xStep * j;
-                        e = (west + xStep * (j+1)) < east ? west + xStep * (j+1) : east;
+                        e = west + xStep * (j+1);
 
                         index = {
                             geometry: L.polygon(
@@ -1062,7 +1061,7 @@ var nsGmx = window.nsGmx || {};
             _roundInputNumber: function (value) {
                 value = (typeof(value) === 'String') ? value : String(value);
                 if (value.indexOf(".") != '-1') {
-                    value = value.substring(0,value.indexOf(".") + 4);
+                    value = value.substring(0,value.indexOf(".") + 5);
                 }
                 return value;
             }

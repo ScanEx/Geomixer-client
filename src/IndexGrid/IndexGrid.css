@@ -1,43 +1,24 @@
-/*sdsdsd*/
 .indexGridConfigLeftMenu {
     position: relative;
     padding: 3px 0px 3px 7px;
 }
 
-.settings,
-.export-progress-container {
+.indexGridConfigLeftMenu > table {
+    border-collapse: separate;
+    border-spacing: 5px 5px;
+}
+
+.settings {
     width: 90%;
     margin: 4px 4px 10px 4px;
 }
 
-.areaButton,
-.mapExportButton {
-    margin: 4px 0px 4px 0px;
-    cursor: pointer;
-}
-
-.zoomToBoxButton {
-    margin: 0px 0px 0px 8px;
-}
-
-.selectButtons {
-    margin: 4px 4px 4px 0px;
-}
-
-.dims
- {
+.dims {
     padding: 4px;
     margin: 4px 0px 4px 0px;
     clear:both;
 }
 
-.maxLat,
-.maxLng,
-.minLat,
-.minLng,
-.xStep,
-.yStep,
-.indexCount,
 .name {
     clear:both;
     box-sizing: border-box;
@@ -51,37 +32,32 @@
 .minLng,
 .xStep,
 .yStep,
-.indexCount,
-.name {
-    width: 80px;
+.indexCount {
+    clear:both;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    width: 100%;
+    padding-right: 20px;
     vertical-align:top;
     height:20px;
 }
 
-.mapExportWidth,
-.mapExportHeight {
-    width: 80px;
+.name {
+    width: 100%;
+    padding-right: 20px;
+    vertical-align:top;
+    height:20px;
 }
 
-.mapExportName {
-    width: 80px;
-}
-
-.eLabel, .eInput, .mapExportWarn {
+.eLabel, .eInput, {
     height: 25px;
     width: 33%;
-}
-
-.eLabel {
     text-align:left;
 }
 
 .indexCount {
     vertical-align: middle;
-    text-align:left;
-}
-
-.eInput {
     text-align:left;
 }
 
