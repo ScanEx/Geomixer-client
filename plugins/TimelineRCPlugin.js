@@ -1068,7 +1068,7 @@ var publicInterface = {
                 return !context.layerManagerFlag && 
                         context.elem.type == "Vector" &&
                         context.elem.Temporal &&
-                        context.elem.IsRasterCatalog;
+                        context.elem.GeometryType !== 'point';
             },
             clickCallback: function(context)
             {
