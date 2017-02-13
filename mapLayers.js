@@ -271,7 +271,7 @@ layersTree.prototype.drawTree = function(tree, layerManagerFlag)
             //добавился именно слой из основной карты, а не просто с таким же ID
             if (event.layer === nsGmx.gmxMap.layersByID[name]) {
                 var searchRes = _this.treeModel.findElem('name', name);
-                if (searchRes && layerManagerFlag === 0) {
+                if (searchRes && (!layerManagerFlag || layerManagerFlag == 0)) {
                     _this.treeModel.setNodeVisibility(searchRes.elem, nsGmx.leafletMap.hasLayer(event.layer));
                 }
             }
@@ -2151,40 +2151,7 @@ queryMapLayers.prototype.createMap = function(name)
     queryMapLayers.prototype.saveMap = function()
     {
         nsGmx.widgets.notifications.startAction('saveMap');
-
-        sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _layersTree.treeModel.getMapProperties().name, function(response)
-        {
-            if (!parseResponse(response))
-            {
-                nsGmx.widgets.notifications.stopAction('saveMap');
-
-                return;
-            }
-
-            var doSave = function()
-            {
-                saveMapInternal("Map/SaveMap.ashx", null, function()
-                    {
-                        _layersTree.treeModel.getMapProperties().Version = response.Result + 1;
-                    });
-            }
-
-            if (response.Result > _layersTree.treeModel.getMapProperties().Version)
-            {
-                if (confirm(_gtxt("Карта имеет более новую версию. Сохранить?")))
-                {
-                    doSave();
-                }
-                else
-                {
-                    nsGmx.widgets.notifications.stopAction('saveMap');
-
-                    return;
-                }
-            }
-            else
-                doSave();
-        })
+		saveMapInternal("Map/SaveMap.ashx", null);
     }
 
     queryMapLayers.prototype.saveMapAs = function(name)
