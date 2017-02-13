@@ -498,7 +498,7 @@ var nsGmx = window.nsGmx || {};
                     name = attrs.name,
                     columns = [
                         {
-                            Name:"id_column",
+                            Name:"gmx_id",
                             ColumnSimpleType:"Integer",
                             IsIdentity:true,
                             IsComputed:false,
