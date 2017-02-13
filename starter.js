@@ -689,6 +689,10 @@ nsGmx.widgets.commonCalendar = {
     _dateInterval: new nsGmx.DateInterval(),
     _isAppended: false,
     _unbindedTemporalLayers: {},
+    active: true,
+    setActive: function (active) {
+        this.active = active;
+    },
     getDateInterval: function() {
         return this._dateInterval;
     },
@@ -774,7 +778,7 @@ nsGmx.widgets.commonCalendar = {
         }
     },
     updateTemporalLayers: function(layers) {
-        if (!this._calendar) {return;}
+        if (!this._calendar || !this.active) {return;}
         var layers = layers || nsGmx.gmxMap.layers,
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
