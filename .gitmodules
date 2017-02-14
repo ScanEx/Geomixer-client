@@ -94,3 +94,6 @@
 [submodule "src/DateInteval"]
 	path = src/DateInterval
 	url = git@github.com:ScanEx/DateInterval.git
+[submodule "leaflet/plugins/Leaflet.ExtSearch"]
+	path = leaflet/plugins/Leaflet.ExtSearch
+	url = git@github.com:ScanEx/Leaflet.ExtSearch.git

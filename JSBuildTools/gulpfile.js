@@ -47,6 +47,12 @@ require('./common_components/builder')(gulp, {
                 distFiles: ['dist/leaflet.contextmenu-src.js', 'dist/leaflet.contextmenu.css']
             },
             {
+                build: false,
+                id: 'extsearch',
+                srcDir: root + 'leaflet/plugins/Leaflet.ExtSearch',
+                distFiles: ['dist/bundle.js']
+            },
+            {
                 build: true,
                 id: 'markercluster',
                 srcDir: root + 'leaflet/plugins/Leaflet.markercluster',
