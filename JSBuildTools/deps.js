@@ -104,7 +104,6 @@ var jsFilesThidparty = [
     "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
     "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
     "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js"
-
 ];
 
 var cssFiles = [
@@ -133,6 +132,7 @@ var cssFiles = [
     "leaflet/leaflet.css",
     "leaflet/plugins/gmxControls/src/css/external.css",
     "leaflet/leafletGmx.css",
+    "leaflet/plugins/Leaflet.ExtSearch/src/SearchControl.css",
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
