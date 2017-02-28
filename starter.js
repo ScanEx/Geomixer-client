@@ -463,6 +463,45 @@ var createToolbar = function() {
 		}
 	}));
 
+    var searchControl = new nsGmx.SearchControl({
+            // addBefore: 'gmxprint',
+            placeHolder: 'Поиск по кадастру, адресам, координатам',
+            // position: 'topleft',
+            position: 'topright',
+            limit: 10,
+            providers: [
+                new nsGmx.OsmDataProvider({
+                    showOnMap: true,
+                    serverBase: 'http://maps.kosmosnimki.ru',
+                    limit: 10,
+                    onFetch: function (response) {
+                        console.log(response);
+                    }.bind(this),
+                })
+            ],
+            style: {
+                editable: false,
+                map: true,
+                pointStyle: {
+                    size: 8,
+                    weight: 1,
+                    opacity: 1,
+                    color: '#00008B'
+                },
+                lineStyle: {
+                    fill: false,
+                    weight: 3,
+                    opacity: 1,
+                    color: '#008B8B'
+                }
+            },
+        });
+
+    lmap.addControl(searchControl);
+    console.log(searchControl);
+    console.log(oSearchLeftMenu);
+
+
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
         // isSortable: true,
@@ -1683,7 +1722,9 @@ function processGmxMap(state, gmxMap) {
 
         //инициализация контролов поиска (модуль уже загружен)
         var oSearchModule = gmxCore.getModule('search');
+        console.log(oSearchModule);
         window.oSearchControl = new oSearchModule.SearchGeomixer();
+        console.log(window.oSearchControl);
 
         // if (document.getElementById('searchCanvas')) {
         window.oSearchControl.Init({
