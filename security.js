@@ -13,6 +13,7 @@ nsGmx.Translations.addText('rus', {security: {
         empty: ' ',
         no: 'нет доступа',
         view: 'просмотр',
+        linkView: 'просмотр по ссылке',
         edit: 'редактирование',
         editrows: 'редактирование объектов',
         preview: 'предпросмотр'
@@ -35,6 +36,7 @@ nsGmx.Translations.addText('eng', {security: {
         empty: ' ',
         no: 'no access',
         view: 'view only',
+        linkView: 'direct link view only',
         edit: 'edit',
         editrows: 'edit objects',
         preview: 'preview'
@@ -315,7 +317,7 @@ var mapSecurity = function()
     this.propertyName = "MapID";
     this.dialogTitle = "Редактирование прав доступа карты [value0]";
 
-    this.accessTypes = ['no', 'view', 'edit'];
+    this.accessTypes = ['no', 'linkView', 'edit'];
 }
 
 mapSecurity.prototype = new security();
