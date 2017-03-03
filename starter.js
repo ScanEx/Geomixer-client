@@ -463,7 +463,13 @@ var createToolbar = function() {
 		}
 	}));
 
-    var searchControl = new nsGmx.SearchControl({
+    /**
+     * seachParams
+     */
+
+     var oSearchResultDiv = _div();
+
+    window.searchControl = new nsGmx.SearchControl({
             // addBefore: 'gmxprint',
             placeHolder: 'Поиск по кадастру, адресам, координатам',
             // position: 'topleft',
@@ -475,6 +481,8 @@ var createToolbar = function() {
                     serverBase: 'http://maps.kosmosnimki.ru',
                     limit: 10,
                     onFetch: function (response) {
+                        console.log(oSearchLeftMenu);
+                        oSearchLeftMenu.createWorkCanvas('search');
                         console.log(response);
                     }.bind(this),
                 })
@@ -496,11 +504,11 @@ var createToolbar = function() {
                 }
             },
         });
+        lmap.addControl(window.searchControl);
+        console.log(window.searchControl);
 
-    lmap.addControl(searchControl);
-    console.log(searchControl);
-    console.log(oSearchLeftMenu);
-
+    // lmap.addControl(window.searchControl);
+    // console.log(window.searchControl);
 
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
@@ -1474,9 +1482,6 @@ function processGmxMap(state, gmxMap) {
         })
     }
 
-
-
-
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
         callback: function(event) {
@@ -1552,9 +1557,33 @@ function processGmxMap(state, gmxMap) {
 	}, lmap);
 	// End: запоминание текущей позиции карты
 
+    // Create additional Control placeholders
+
+    function addControlPlaceholders(map) {
+        var corners = map._controlCorners,
+            l = 'leaflet-',
+            container = map._container;
+
+            function createCorner(vSide, hSide) {
+                var className = l + vSide + ' ' + l + hSide;
+
+                corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+            }
+
+            createCorner('verticalcenter', 'left');
+            createCorner('verticalcenter', 'right');
+        }
+
+    addControlPlaceholders(lmap);
+
     lmap.gmxControlsManager.init(window.controlsOptions);
     lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
+
     nsGmx.leafletMap = lmap;
+
+    var zoomControl = lmap.gmxControlsManager.get('zoom');
+    console.log(zoomControl.getPosition());
+    // zoomControl.setPosition('verticalcenterright');
 
     var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
 
@@ -1722,9 +1751,8 @@ function processGmxMap(state, gmxMap) {
 
         //инициализация контролов поиска (модуль уже загружен)
         var oSearchModule = gmxCore.getModule('search');
-        console.log(oSearchModule);
+
         window.oSearchControl = new oSearchModule.SearchGeomixer();
-        console.log(window.oSearchControl);
 
         // if (document.getElementById('searchCanvas')) {
         window.oSearchControl.Init({

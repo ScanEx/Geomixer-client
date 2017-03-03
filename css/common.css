@@ -1882,6 +1882,18 @@ div.layersScroll
     z-index: -1;
 }
 
+.leaflet-verticalcenter {
+    position: absolute;
+	height: 100%;
+	width: 50px;
+}
+
+.leaflet-verticalcenter .leaflet-control {
+	top: 50%;
+	margin-top: 0px;
+    transform: translateY(-50%);
+}
+
 .gmx-slider-control.invisible {
     display: none;
 }
