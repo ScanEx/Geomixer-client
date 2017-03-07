@@ -1882,13 +1882,14 @@ div.layersScroll
     z-index: -1;
 }
 
-.leaflet-verticalcenter {
+.leaflet-centerright {
     position: absolute;
+	right: 0px;
 	height: 100%;
 	width: 50px;
 }
 
-.leaflet-verticalcenter .leaflet-control {
+.leaflet-centerright .leaflet-control {
 	top: 50%;
 	margin-top: 0px;
     transform: translateY(-50%);

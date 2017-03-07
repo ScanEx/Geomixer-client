@@ -470,10 +470,10 @@ var createToolbar = function() {
      var oSearchResultDiv = _div();
 
     window.searchControl = new nsGmx.SearchControl({
-            // addBefore: 'gmxprint',
+            addBefore: 'saveMap',
             placeHolder: 'Поиск по кадастру, адресам, координатам',
             // position: 'topleft',
-            position: 'topright',
+            position: 'topleft',
             limit: 10,
             providers: [
                 new nsGmx.OsmDataProvider({
@@ -1561,17 +1561,16 @@ function processGmxMap(state, gmxMap) {
 
     function addControlPlaceholders(map) {
         var corners = map._controlCorners,
-            l = 'leaflet-',
-            container = map._container;
+            container = map._controlContainer,
+            l = 'leaflet-';
 
-            function createCorner(vSide, hSide) {
-                var className = l + vSide + ' ' + l + hSide;
+            function createCorner(side) {
+                var className = l + 'center' + side;
 
-                corners[vSide + hSide] = L.DomUtil.create('div', className, container);
+                corners['center' + side] = L.DomUtil.create('div', className, container);
             }
-
-            createCorner('verticalcenter', 'left');
-            createCorner('verticalcenter', 'right');
+            createCorner('left');
+            createCorner('right');
         }
 
     addControlPlaceholders(lmap);
@@ -1582,8 +1581,6 @@ function processGmxMap(state, gmxMap) {
     nsGmx.leafletMap = lmap;
 
     var zoomControl = lmap.gmxControlsManager.get('zoom');
-    console.log(zoomControl.getPosition());
-    // zoomControl.setPosition('verticalcenterright');
 
     var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
 
