@@ -26,7 +26,7 @@ _translationsHash.addtext('eng', {
 */
 nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
 {
-    var PERIODS = [1, 4, 16, 64, 256];
+    var PERIODS = [1, 4, 16, 64];
     // var optionsHtml = '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}';
 
     var template = Handlebars.compile(
