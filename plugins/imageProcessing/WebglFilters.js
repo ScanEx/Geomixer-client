@@ -94,11 +94,20 @@
                         div.innerHTML = '<table class="properties">'
                             + '<tbody><tr>'
                             + '<th>Filter:</th>'
-                            + '<td><select class="filters">' + webglFilters.getFiltersOptions() + '</select></td>'
+                            + '<td><select class="filters">' + webglFilters.getFiltersOptions() + '</select>&nbsp;&nbsp;&nbsp;<input type="checkbox" checked /> - вкл/выкл</td>'
                             + '</tr><tr><th>Code:</th><td><code class="codeWebgl"></code>'
                             + '</td></tr></tbody></table>';
     
-                        webglFilters.initFiltersSelector();
+						L.DomEvent.on(div.querySelector('input'), 'change', function (ev) {
+							if(testLayer) {
+								if (ev.target.checked) {
+									addWebglFilters(testLayer);
+								} else {
+									testLayer.removeRasterHook();
+								}
+							}
+						}, this);
+						webglFilters.initFiltersSelector();
 
                         testLayer = getActiveLayer();
 						
