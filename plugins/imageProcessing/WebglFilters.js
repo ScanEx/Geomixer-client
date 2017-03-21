@@ -1,17 +1,24 @@
-﻿!(function(_) {
-
-    _translationsHash.addtext('rus', {
-        'WebglFilters.title' : 'Включить/Выключить фильтры растров активного слоя'
-    });
-    _translationsHash.addtext('eng', {
-        'WebglFilters.title' : 'Show/Hide raster filters'
-    });
+﻿!(function() {
+    var pluginName = 'WebglFilters',
+		lang = window.language,
+		localeHash = {
+			rus: {
+				title: 'Вкл/Выкл фильтры растров активного слоя'
+			},
+			eng: {
+				title: 'Show/Hide raster filters'
+			}
+		},
+		getTxt = function(key) {
+			var arr = key.split('.');
+			return localeHash[lang][arr[arr.length - 1]] || '';
+		};
 
     var publicInterface = {
-        pluginName: 'WebglFilters',
+        pluginName: pluginName,
         afterViewer: function(params, lmap) {
-            var path = gmxCore.getModulePath('WebglFilters');
-            var _params = $.extend({
+            var path = gmxCore.getModulePath(pluginName);
+            var _params = L.extend({
                 regularImage: 'standart.png',
                 activeImage: 'active.png'
             }, params);
@@ -19,73 +26,93 @@
             var layersByID = nsGmx.gmxMap.layersByID,
                 blm = lmap.gmxBaseLayersManager,
                 menu = null,
-                testLayer = null;
+                testLayer = null,
+				isActive = false,
+				webglFilters = L.gmx.WebglFilters,
+				canvas = fx.canvas(),
+				getActiveLayer = function() {
+					var out = null,
+						active = window._queryMapLayers.treeCanvas.querySelector('.active');
+					if (active && active.parentNode.getAttribute('LayerID')) {
+						var activeLayerId = active.parentNode.gmxProperties.content.properties.name;
+						out = layersByID[activeLayerId];
+					} else {
+						var layers = blm.get(blm.getCurrentID());
+						if (layers && layers.length) { out = layers[0]; }
+					}
+					return out;
+				},
+				clearWebglFilters = function() {
+					if(menu && menu.workCanvas) menu.workCanvas.parentNode.removeNode(menu.workCanvas);
+					if(testLayer) testLayer.removeRasterHook();
+				},
+				addWebglFilters = function(gmxLayer) {
+					gmxLayer._gmx.crossOrigin = 'use-credentials';
+					webglFilters.callback = function() {
+						gmxLayer.repaint();
+					};
+					gmxLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {
+						try {
+							var texture = canvas.texture(srcImage);
+						} catch(ev) {
+							// console.log(ev);
+							return;
+						}
+						canvas.draw(texture);
+						webglFilters.code(canvas).update();
+						var ptx = dstCanvas.getContext('2d');
+						ptx.drawImage(canvas, sx, sy, sw, sh, dx, dy, dw, dh);
+					});
+					gmxLayer.repaint();
+				};
+			$(window._layersTree).on('activeNodeChange', function() {
+				// console.log('triggered', arguments)
+				if (isActive) {
+					if(testLayer) {
+						testLayer.removeRasterHook();
+					}
+					testLayer = getActiveLayer();
+					if(testLayer) {
+						addWebglFilters(testLayer);
+					}
+				}
+			});
             
-            var filtersIcon = L.control.gmxIcon({
+            lmap.addControl(L.control.gmxIcon({
                     id: 'filtersIcon', 
                     togglable: true,
                     className: 'leaflet-gmx-icon-sprite',
                     regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
                     activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
-                    title: _gtxt('WebglFilters.title')
+                    title: getTxt('title')
                 }).on('statechange', function(ev) {
-                    var control = ev.target,
-                        testLayerID = null;
-                    if (control.options.isActive) {
-                        var canvas = fx.canvas(),
-                            WebglFilters = L.gmx.WebglFilters,
-                            div = $('<div class="webglFilters"/>');
-                        var str = '<table class="properties">'
+					isActive = ev.target.options.isActive;
+                    if (isActive) {
+                        menu = new window.leftMenu();
+                        menu.createWorkCanvas(pluginName + 'Menu', function(){});
+                        var div = L.DomUtil.create('div', pluginName, menu.workCanvas);
+                        div.innerHTML = '<table class="properties">'
                             + '<tbody><tr>'
                             + '<th>Filter:</th>'
-                            + '<td><select class="filters">'+WebglFilters.getFiltersOptions()+'</select></td>'
+                            + '<td><select class="filters">' + webglFilters.getFiltersOptions() + '</select></td>'
                             + '</tr><tr><th>Code:</th><td><code class="codeWebgl"></code>'
                             + '</td></tr></tbody></table>';
     
-                        div.append(
-                            $(str)
-                        );
-                        menu = new leftMenu();
-                        menu.createWorkCanvas('WebglFiltersMenu', function(){});
-                        _(menu.workCanvas, [div[0]], [['css', 'width', '100%']]);
-                        WebglFilters.initFiltersSelector();
-
-                        function getActiveLayer() {
-                            var out = null;
-                            var active = $(_queryMapLayers.treeCanvas).find('.active');
-                            if (active && active[0] && active[0].parentNode.getAttribute('LayerID')) {
-                                var activeLayerName = active[0].parentNode.gmxProperties.content.properties.name;
-                                out = layersByID[activeLayerName];
-                            } else {
-                                var layers = blm.get(blm.getCurrentID());
-                                if (layers && layers.length) {out = layers[0];}
-                            }
-                            return out;
-                        }
+                        webglFilters.initFiltersSelector();
 
                         testLayer = getActiveLayer();
+						
                         if(testLayer) {
-                            L.gmx.WebglFilters.callback = function() {
-                                testLayer.clearScreenCache();
-                                testLayer.repaint();
-                            };
-                            testLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {
-                                var texture = canvas.texture(srcImage);
-                                canvas.draw(texture);
-                                L.gmx.WebglFilters.code(canvas).update();
-                                var ptx = dstCanvas.getContext('2d');
-                                ptx.drawImage(canvas, sx, sy, sw, sh, dx, dy, dw, dh);
-                            }); 
+							addWebglFilters(testLayer);
                         }
                     } else {
-                        if(menu && menu.workCanvas) menu.workCanvas.parentNode.removeNode(menu.workCanvas);
-                        if(testLayer) testLayer.removeRasterHook();
+                        clearWebglFilters();
                     }
-                });
-            lmap.addControl(filtersIcon);
+                })
+			);
         }
     };
-    gmxCore.addModule('WebglFilters', publicInterface, {
+    gmxCore.addModule(pluginName, publicInterface, {
         init: function (module, path) {
             return $.when(
                 gmxCore.loadScript(path + 'glfx.js'),
@@ -94,4 +121,4 @@
         },
         css: 'demo.css'
     });
-})(nsGmx.Utils._);
+})();
