@@ -29,6 +29,7 @@
                 testLayer = null,
 				isActive = false,
 				webglFilters = L.gmx.WebglFilters,
+				nodeFiltersSelect = null,
 				canvas = fx.canvas(),
 				getActiveLayer = function() {
 					var out = null,
@@ -37,8 +38,8 @@
 						var activeLayerId = active.parentNode.gmxProperties.content.properties.name;
 						out = layersByID[activeLayerId];
 					} else {
-						var layers = blm.get(blm.getCurrentID());
-						if (layers && layers.length) { out = layers[0]; }
+						var layers = blm.get(blm.getCurrentID()).getLayers();
+						if (layers && layers.length && layers[0].setRasterHook) { out = layers[0]; }
 					}
 					return out;
 				},
@@ -47,23 +48,67 @@
 					if(testLayer) testLayer.removeRasterHook();
 				},
 				addWebglFilters = function(gmxLayer) {
-					gmxLayer._gmx.crossOrigin = 'use-credentials';
-					webglFilters.callback = function() {
+					if (gmxLayer._gmx) {
+						gmxLayer._gmx.crossOrigin = 'use-credentials';
+						webglFilters.callback = function() {
+							gmxLayer.repaint();
+						};
+						gmxLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {
+							if (webglFilters.code) {
+								try {
+									var texture = canvas.texture(srcImage);
+								} catch(ev) {
+									// console.log(ev);
+									return;
+								}
+								canvas.draw(texture);
+								webglFilters.code(canvas).update();
+								var ptx = dstCanvas.getContext('2d');
+								ptx.drawImage(canvas, sx, sy, sw, sh, dx, dy, dw, dh);
+							}
+						});
 						gmxLayer.repaint();
-					};
-					gmxLayer.setRasterHook(function(dstCanvas, srcImage, sx, sy, sw, sh, dx, dy, dw, dh, info) {
-						try {
-							var texture = canvas.texture(srcImage);
-						} catch(ev) {
-							// console.log(ev);
-							return;
+					}
+				},
+				setActive = function(filterName) {
+					menu = new window.leftMenu();
+					menu.createWorkCanvas(pluginName + 'Menu', function(){});
+					var div = L.DomUtil.create('div', pluginName, menu.workCanvas);
+					div.innerHTML = '<table class="properties">'
+						+ '<tbody><tr>'
+						+ '<th>Filter:</th>'
+						+ '<td><select class="filters">' + webglFilters.getFiltersOptions(filterName) + '</select>&nbsp;&nbsp;&nbsp;<input type="checkbox" checked /> - вкл/выкл</td>'
+						+ '</tr><tr><th>Code:</th><td><code class="codeWebgl"></code>'
+						+ '</td></tr></tbody></table>';
+
+					nodeFiltersSelect = webglFilters.nodeFiltersSelect = div.querySelector('select');
+					L.DomEvent.on(nodeFiltersSelect, 'change', function (ev) {
+						var opt = nodeFiltersSelect.selectedOptions[0];
+						webglFilters.setFiltersState({
+							filter: opt.value
+						});
+					}, this);
+					L.DomEvent.on(div.querySelector('input'), 'change', function (ev) {
+						if(testLayer) {
+							if (ev.target.checked) {
+								addWebglFilters(testLayer);
+							} else {
+								testLayer.removeRasterHook();
+							}
 						}
-						canvas.draw(texture);
-						webglFilters.code(canvas).update();
-						var ptx = dstCanvas.getContext('2d');
-						ptx.drawImage(canvas, sx, sy, sw, sh, dx, dy, dw, dh);
+					}, this);
+
+					if(!testLayer) {
+						testLayer = getActiveLayer();
+					}
+
+					webglFilters.setFiltersState({
+						filter: nodeFiltersSelect.options[1].value
 					});
-					gmxLayer.repaint();
+
+					if(testLayer) {
+						addWebglFilters(testLayer);
+					}
 				};
 			$(window._layersTree).on('activeNodeChange', function() {
 				// console.log('triggered', arguments)
@@ -77,7 +122,29 @@
 					}
 				}
 			});
-            
+			if (window._mapHelper) {
+				window._mapHelper.customParamsManager.addProvider({
+					name: pluginName,
+					loadState: function(state) {
+						if(state.isActive) {
+							if(state.layerID) {
+								testLayer = layersByID[state.layerID];
+							}
+							setActive(state.filter);
+							webglFilters.setFiltersState(state);
+						}
+					},
+					saveState: function() {
+						var filtersState = nodeFiltersSelect ? webglFilters.getFiltersState(nodeFiltersSelect.selectedOptions[0].value) : {};
+						return L.extend({
+							version: '1.0.0',
+							isActive: isActive,
+							layerID: testLayer ? testLayer.getGmxProperties().name : null
+						}, filtersState);
+					}
+				});
+			}
+
             lmap.addControl(L.control.gmxIcon({
                     id: 'filtersIcon', 
                     togglable: true,
@@ -88,32 +155,7 @@
                 }).on('statechange', function(ev) {
 					isActive = ev.target.options.isActive;
                     if (isActive) {
-                        menu = new window.leftMenu();
-                        menu.createWorkCanvas(pluginName + 'Menu', function(){});
-                        var div = L.DomUtil.create('div', pluginName, menu.workCanvas);
-                        div.innerHTML = '<table class="properties">'
-                            + '<tbody><tr>'
-                            + '<th>Filter:</th>'
-                            + '<td><select class="filters">' + webglFilters.getFiltersOptions() + '</select>&nbsp;&nbsp;&nbsp;<input type="checkbox" checked /> - вкл/выкл</td>'
-                            + '</tr><tr><th>Code:</th><td><code class="codeWebgl"></code>'
-                            + '</td></tr></tbody></table>';
-    
-						L.DomEvent.on(div.querySelector('input'), 'change', function (ev) {
-							if(testLayer) {
-								if (ev.target.checked) {
-									addWebglFilters(testLayer);
-								} else {
-									testLayer.removeRasterHook();
-								}
-							}
-						}, this);
-						webglFilters.initFiltersSelector();
-
-                        testLayer = getActiveLayer();
-						
-                        if(testLayer) {
-							addWebglFilters(testLayer);
-                        }
+						setActive();
                     } else {
                         clearWebglFilters();
                     }

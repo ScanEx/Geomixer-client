@@ -25,18 +25,9 @@ Filter.prototype.setCode = function(code, func) {
     $('.codeWebgl').html(code);
     L.gmx.WebglFilters.code = func;
     if (L.gmx.WebglFilters.callback) L.gmx.WebglFilters.callback(code);
-var tt = 1;
-//    eval(code);
 };
 
 Filter.prototype.use = function() {
-/*    // Load the texture from the image and draw it to the canvas
-    var image = images[this.imageFile || 'image.jpg'];
-    texture = image.texture;
-    $('#container').css({ width: texture._.width, height: texture._.height });
-    $('#label').html('Image credit: <a href="' + image.url + '">' + image.credit + '</a>');
-    canvas.draw(image.texture).update();
-*/
     // Clear all rows but the first two (which contain the filter selector and code sample)
     var tbody = $('.properties')[0].firstChild;
     for (var tr = tbody.firstChild.nextSibling.nextSibling; tr; tr = next) {
@@ -62,31 +53,6 @@ Filter.prototype.use = function() {
         });
         this[slider.name] = slider.value;
     }
-/*
-    // Add a div for each nub
-    $('#nubs').html('');
-    for (var i = 0; i < this.nubs.length; i++) {
-        var nub = this.nubs[i];
-        // var x = nub.x * canvas.width;
-        // var y = nub.y * canvas.height;
-        var x = nub.x * 256;
-        var y = nub.y * 256;
-        $('<div class="nub" id="nub' + i + '"></div>').appendTo('#nubs');
-        var ondrag = (function(this_, nub) { return function(event, ui) {
-            var offset = $(event.target.parentNode).offset();
-            this_[nub.name] = { x: ui.offset.left - offset.left, y: ui.offset.top - offset.top };
-            this_.update();
-        }; })(this, nub);
-        $('#nub' + i).draggable({
-            drag: ondrag,
-            containment: 'parent',
-            scroll: false
-        }).css({ left: x, top: y });
-        this[nub.name] = { x: x, y: y };
-    }
-*/
-    // Provide a link to the documentation
-    //$('<tr><th></th><td><br>See the documentation for <kbd><a href="/glfx.js/docs/#' + this.func + '">' + this.func + '()</a></kbd> for more information.</td></tr>').appendTo(tbody);
 
     this.update();
 };
@@ -352,40 +318,55 @@ var filters = {
     ]
 };
 
-// var canvas;
-// var texture;
-
 var WebglFilters = {
-    getFiltersOptions: function () {
-        // Create the filter selector
+    getFiltersOptions: function (name) {
         var html = '';
         for (var category in filters) {
             var list = filters[category];
             html += '<option disabled="true">---- ' + category + ' -----</option>';
-            for (var i = 0; i < list.length; i++) {
-                html += '<option>' + list[i].name + '</option>';
+			for (var i = 0, len = list.length; i < len; i++) {
+				var f = list[i];
+                html += '<option' + (f.name === name ? ' selected' : '') + '>' + f.name + '</option>';
             }
         }
         return html;
     },
 
-    initFiltersSelector: function () {
-        // Call use() on the currently selected filter when the selection is changed
-        var select = $('.filters')[0];
-        function switchToFilter(index) {
-            if (select.selectedIndex != index) select.selectedIndex = index;
-            for (var category in filters) {
-                index--;
-                var list = filters[category];
-                for (var i = 0; i < list.length; i++) {
-                    if (index-- == 0) list[i].use();
-                }
-            }
-        }
-        $('.filters').change(function() {
-            switchToFilter(select.selectedIndex);
-        });
-        switchToFilter(1);
+    _findFilterByName: function (name) {
+		for (var category in filters) {
+			var list = filters[category];
+			for (var i = 0, len = list.length; i < len; i++) {
+				var f = list[i];
+				if (f.name === name) { return f; }
+			}
+		}
+		return null;
+    },
+
+    setFiltersState: function (state) {
+		if (state.filter) {
+			var filter = WebglFilters._findFilterByName(state.filter);
+			if (filter) {
+				filter.sliders.forEach(function (it) {
+					var name = it.name;
+					if (name in state) { it.value = state[name]; }
+				});
+				filter.use();
+			}
+		}
+    },
+
+    getFiltersState: function (value) {
+        var out = {};
+		var filter = WebglFilters._findFilterByName(value);
+		if (filter) {
+			out.filter = filter.name;
+			filter.sliders.forEach(function (it) {
+				var name = it.name;
+				out[name] = filter[name];
+			});
+		}
+		return out;
     }
 };
 
