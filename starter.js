@@ -713,6 +713,8 @@ nsGmx.widgets.commonCalendar = {
         return this._dateInterval;
     },
     setDateInterval: function (dateBegin, dateEnd, layer) {
+        var layers = nsGmx.gmxMap.layers;
+
         if (layer) {
             var props = layer.getGmxProperties(),
             name = props.name;
@@ -726,7 +728,18 @@ nsGmx.widgets.commonCalendar = {
                 dateBegin: dateBegin,
                 dateEnd: dateEnd
             });
+
+            layer.setDateInterval(dateBegin, dateEnd);
         } else {
+
+            for (var i = 0; i < layers.length; i++) {
+                var l = layers[i],
+                    props = l.getGmxProperties();
+                if (props.Temporal && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
+                    l.setDateInterval(dateBegin, dateEnd);
+                }
+            }
+
             this.setCurrentLayer(null);
             var intervals = this._dateIntervals;
 
