@@ -1529,8 +1529,6 @@ function processGmxMap(state, gmxMap) {
 
     baseLayerDef.always(function() {
 
-        gmxMap.addLayersToMap(lmap);
-
         nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
 
@@ -1780,6 +1778,11 @@ function processGmxMap(state, gmxMap) {
             _queryMapLayers.addUserActions();
         }
 
+        initEditUI();
+        initTimeline();
+
+        gmxMap.addLayersToMap(lmap);
+
         nsGmx.leafletMap.on('layeradd', function(event) {
             var layer = event.layer;
 
@@ -1791,7 +1794,6 @@ function processGmxMap(state, gmxMap) {
 
         nsGmx.gmxMap.on('onRemoveLayer', function(event) {
             var layer = event.layer;
-            console.log(layer);
             if (!layer.getGmxProperties()) {
                 return;
             }
@@ -1805,8 +1807,6 @@ function processGmxMap(state, gmxMap) {
             }
         });
 
-        initEditUI();
-        initTimeline();
         // special for steppe project
         if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
             nsGmx.widgets.commonCalendar.show();
