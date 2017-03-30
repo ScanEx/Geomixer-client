@@ -97,3 +97,6 @@
 [submodule "leaflet/plugins/Leaflet.ExtSearch"]
 	path = leaflet/plugins/Leaflet.ExtSearch
 	url = git@github.com:ScanEx/Leaflet.ExtSearch.git
+[submodule "plugins/external/GMXPluginTimeLine"]
+	path = plugins/external/GMXPluginTimeLine
+	url = git@github.com:ScanEx/GMXPluginTimeLine.git
