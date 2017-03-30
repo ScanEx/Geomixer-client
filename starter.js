@@ -1779,8 +1779,9 @@ function processGmxMap(state, gmxMap) {
         mapLayers.mapLayers.load();
 
         // привяжем изменение активной ноды к календарю
-        $(_layersTree).on('activeNodeChange', function(e, p){
-            var layerID = $(p).attr('layerid');
+        $(_layersTree).on('activeNodeChange', function(e, p) {
+            var layerID = $(p).attr('layerid'),
+                synchronyzed = nsGmx.commonCalendar.get('synchronyzed');
 
             // клик на ноде слоя
             if (layerID) {
@@ -1790,9 +1791,16 @@ function processGmxMap(state, gmxMap) {
                     dateInterval, dateBegin, dateEnd;
 
                 if (isTemporalLayer) {
-                    dateInterval = layer.getDateInterval() || new nsGmx.DateInterval(),
-                    dateBegin = dateInterval.beginDate,
-                    dateEnd = dateInterval.endDate;
+                    dateInterval = layer.getDateInterval();
+
+                    if (dateInterval.beginDate && dateInterval.endDate) {
+                        dateBegin = dateInterval.beginDate,
+                        dateEnd = dateInterval.endDate;
+                    } else {
+                        dateInterval = new nsGmx.DateInterval();
+                        dateBegin = dateInterval.beginDate,
+                        dateEnd = dateInterval.endDate;
+                    }
 
                     nsGmx.commonCalendar.setActive(true);
                     nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
@@ -1800,7 +1808,7 @@ function processGmxMap(state, gmxMap) {
                     nsGmx.commonCalendar.setActive(false);
                 }
             } else {
-                nsGmx.commonCalendar.setActive(false);
+                nsGmx.commonCalendar.setActive(synchronyzed ? true : false);
             }
         });
 

@@ -51,8 +51,8 @@ var nsGmx = nsGmx || {};
 
             var syncButtonContainer = this.$('.calendar-sync-button');
 
-            var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? '../img/synch-on.png' : '../img/synch-off.png', null);
-            nsGmx.Utils._title(syncButton, window._gtxt('Синхронизировать слои'));
+            var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? 'img/synch-on.png' : 'img/synch-off.png', null);
+            nsGmx.Utils._title(syncButton, window._gtxt(this.model.get('synchronyzed') ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев'));
             this.$(syncButtonContainer).append(syncButton);
 
             //for backward compatibility
@@ -61,8 +61,6 @@ var nsGmx = nsGmx || {};
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:active', this.activate);
-
-            this.setActive(!!this.getCurrentLayer());
         },
 
         setActive: function (value) {
@@ -237,29 +235,6 @@ var nsGmx = nsGmx || {};
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
-            // обработка ситуации, когда выключается текущий слой
-            // он может быть указан явно
-            if (currentLayer) {
-                currentLayerName = currentLayer.getGmxProperties().name;
-                // если с карты удаляется текущий слой, то текущим делается первый другой слой,
-                // а если мы выключили последний временной слой на карте и больше никаких нет - то ничего не происходит.
-                if (layerName === currentLayerName) {
-
-                    for (var i = 0; i < layers.length; i++) {
-                        var layer = layers[i],
-                            props = layers[i].getGmxProperties();
-
-                        if (props.name !== layerName) {
-                            var newDateInterval = layer.getDateInterval(),
-                                dateBegin = newDateInterval.beginDate,
-                                dateEnd = newDateInterval.endDate;
-
-                            this.setDateInterval(dateBegin, dateEnd, layer);
-                            break;
-                        }
-                    }
-                }
-            }
             // clone object
             for (var variable in unbindedTemporalLayers) {
                 if (unbindedTemporalLayers.hasOwnProperty(variable)) {
@@ -367,7 +342,8 @@ var nsGmx = nsGmx || {};
                 syncButtonContainer = this.$('.calendar-sync-button'),
                 img = this.$('.calendar-sync-button img');
 
-            synchronyzed ? $(img).attr('src', '../img/synch-on.png') : $(img).attr('src', '../img/synch-off.png');
+            synchronyzed ? $(img).attr('src', 'img/synch-on.png') : $(img).attr('src', 'img/synch-off.png');
+            nsGmx.Utils._title($(img)[0], synchronyzed ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев');
         },
 
         activate: function () {

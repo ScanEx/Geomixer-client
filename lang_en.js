@@ -419,7 +419,8 @@ _translationsHash.hash["eng"] = {
     "Доступные подложки": "Available base layers",
     "Подложки карты": "Base layers on map",
     "Выберите слои для поиска по атрибутам": "Select layers for attributes search",
-	"Синхронизировать слои": "Sync layers",
+	"Включить синхронизацию слоев": "Enable sync layers",
+	"Выключить синхронизацию слоев": "Disable sync layers",
 
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
 	"Редактирование прав доступа слоя [value0]" : "Layer [value0] access editor",
