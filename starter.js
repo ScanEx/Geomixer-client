@@ -1802,7 +1802,19 @@ function processGmxMap(state, gmxMap) {
             } else {
                 nsGmx.commonCalendar.setActive(false);
             }
-        })
+        });
+
+        lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
+            var layerID = ev.currentTab,
+                _layersTree = window._layersTree,
+                treeElem = _layersTree.treeModel.findElem('name', layerID).elem,
+                uiElem = _layersTree.findUITreeElem(treeElem),
+                span = $('.layer', $(uiElem))[0],
+                active = _layersTree.getActive();
+            if (uiElem !== active) {
+                _layersTree.setActive(span);
+            }
+        });
 
         //создаём тулбар
         var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);

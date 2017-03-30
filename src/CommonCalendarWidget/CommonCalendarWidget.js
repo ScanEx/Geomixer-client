@@ -51,7 +51,7 @@ var nsGmx = nsGmx || {};
 
             var syncButtonContainer = this.$('.calendar-sync-button');
 
-            var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? '/img/synch-on.png' : '/img/synch-off.png', null);
+            var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? '../img/synch-on.png' : '../img/synch-off.png', null);
             nsGmx.Utils._title(syncButton, window._gtxt('Синхронизировать слои'));
             this.$(syncButtonContainer).append(syncButton);
 
@@ -367,7 +367,7 @@ var nsGmx = nsGmx || {};
                 syncButtonContainer = this.$('.calendar-sync-button'),
                 img = this.$('.calendar-sync-button img');
 
-            synchronyzed ? $(img).attr('src', '/img/synch-on.png') : $(img).attr('src', '/img/synch-off.png');
+            synchronyzed ? $(img).attr('src', '../img/synch-on.png') : $(img).attr('src', '../img/synch-off.png');
         },
 
         activate: function () {
