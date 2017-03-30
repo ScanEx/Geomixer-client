@@ -1,0 +1,235 @@
+/*CalendarWidget*/
+
+.CalendarWidget-dateBegin, .CalendarWidget-dateEnd {
+    border: 0;
+    background-color: #efefef;
+}
+
+.calendar-outside .ui-dialog-titlebar.ui-widget-header {
+    display: none;
+}
+
+.ui-datepicker {
+    border: none;
+    margin-bottom: 12px;
+}
+
+.ui-datepicker table {
+    width: 100%;
+}
+
+.ui-datepicker tbody td {
+    text-align: center;
+    padding: 0;
+}
+
+.ui-datepicker td span, .ui-datepicker td a {
+  display: inline-block;
+  font-weight: bold;
+  text-align: center;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+}
+
+.ui-state-default.ui-state-active {
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #2372b9;
+}
+
+.ui-state-default.ui-state-highlight {
+    padding: 0;
+    border-radius: 50%;
+    background-color: #cfcfcf;
+}
+
+.createdateinterval-button, .selectdateinterval-button {
+    position: absolute;
+    width: 150px;
+    text-align: center;
+    margin-left: 29.4px;
+    margin-right: 29.4px;
+    bottom: 4px;
+    padding: 6px;
+    background-color: #2372b9;
+    color: white;
+}
+
+/*CommonCalendar*/
+
+.calendar-layers-container {
+    width: 320px;
+}
+
+.calendar-container {
+    width: 320px;
+    height: 35px;
+    background-color: #efefef
+}
+
+.calendar-container {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.CalendarWidget.ui-widget {
+    width: 90%;
+    float: left;
+}
+
+.calendar-sync-button {
+    display: table-cell;
+    margin-right: 10px;
+    vertical-align: middle;
+    width: 22px;
+    height: 22px;
+}
+
+.CalendarWidget-dates {
+    text-align: center;
+}
+
+.CalendarWidget-outside {
+    width: 40px;
+    height: 40px;
+    top: 200px;
+    left: 530px;
+    background-color: red;
+}
+
+/*заголовок списка */
+.layersList .ui-selectmenu-button {
+    display: inline-block;
+    width: 316px;
+    min-width: 316px;
+    height: 45px;
+    line-height: 45px;
+    border: 2px solid #efefef;
+}
+
+/*название слоя в заголовке*/
+.ui-selectmenu-button span.ui-selectmenu-text {
+    padding: 0;
+    padding-left: 12px;
+    max-width: 210px;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: normal;
+    overflow: hidden;
+    color: #2372b9;
+}
+
+/*иконка-треугольник в заголовке-селекте*/
+.ui-selectmenu-button span.ui-icon {
+    left: 220px;
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
+/*открытое меню*/
+.ui-selectmenu-open {
+    width: 320px;
+}
+
+/*слои - обычные строки списка*/
+.ui-selectmenu-open .ui-menu-item {
+    height: 45px;
+    line-height: 45px;
+    width: 304px;
+    padding: 0;
+    padding-left: 12px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/*оформляем границы выпадающему списку*/
+.ui-selectmenu-open li {
+    border: 2px solid #efefef;
+    border-top: 0;
+}
+
+/*выделенный слой в селекте*/
+.ui-widget-content .ui-state-focus {
+    margin: 0;
+    border: 2px solid #efefef;
+    background: #efefef;
+    font-weight: normal;
+    color: #212121;
+}
+
+
+/* The switch - the box around the slider */
+
+.timeline-switch-container {
+    height: 45px;
+    line-height: 45px;
+    width: 320px;
+    padding-left: 2px;
+}
+
+.timeline-switch {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    width: 30px;
+    height: 16px;
+}
+
+/* Hide default HTML checkbox */
+.timeline-switch input {display:none;}
+
+/* The slider */
+.timeline-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #999;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.timeline-switch-slider:before {
+     position: absolute;
+     content: "";
+     height: 12px;
+     width: 12px;
+     left: 2px;
+     bottom: 2px;
+     background-color: white;
+     -webkit-transition: .4s;
+     transition: .4s;
+}
+
+input:checked + .timeline-switch-slider {
+     background-color: #2372b9;
+}
+
+input:focus + .timeline-switch-slider {
+     box-shadow: 0 0 1px #2372b9;
+}
+
+input:checked + .timeline-switch-slider:before {
+     -webkit-transform: translateX(14px);
+     -ms-transform: translateX(14px);
+     transform: translateX(14px);
+}
+
+/* Rounded slider */
+.timeline-switch-slider.round {
+     border-radius: 16px;
+}
+
+.timeline-switch-slider.round:before {
+     border-radius: 50%;
+}
+
+.timeline-label {
+    margin-left: 8px;
+    vertical-align: middle;
+}
