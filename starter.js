@@ -1790,6 +1790,8 @@ function processGmxMap(state, gmxMap) {
                     isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
                     dateInterval, dateBegin, dateEnd;
 
+                var calendar = nsGmx.commonCalendar.model.get('calendar');
+
                 if (isTemporalLayer) {
                     dateInterval = layer.getDateInterval();
 
@@ -1802,13 +1804,13 @@ function processGmxMap(state, gmxMap) {
                         dateEnd = dateInterval.endDate;
                     }
 
-                    nsGmx.commonCalendar.setActive(true);
+                    calendar.setActive(true);
                     nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
                 } else {
-                    nsGmx.commonCalendar.setActive(false);
+                    calendar.setActive(false);
                 }
             } else {
-                nsGmx.commonCalendar.setActive(synchronyzed ? true : false);
+                calendar.setActive(synchronyzed ? true : false);
             }
         });
 
@@ -1941,7 +1943,7 @@ function processGmxMap(state, gmxMap) {
             var layer = event.layer,
                 utl = nsGmx.commonCalendar.model.get('unbindedTemporalLayers');
 
-            if (!layer.getGmxProperties()) {
+            if (layer.getGmxProperties && !layer.getGmxProperties()) {
                 return;
             }
             var props = layer.getGmxProperties(),

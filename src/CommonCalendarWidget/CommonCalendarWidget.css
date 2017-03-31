@@ -44,7 +44,7 @@
     background-color: #cfcfcf;
 }
 
-.createdateinterval-button, .selectdateinterval-button {
+.calendar-button  {
     position: absolute;
     width: 150px;
     text-align: center;
@@ -54,6 +54,12 @@
     padding: 6px;
     background-color: #2372b9;
     color: white;
+}
+
+.calendar-button.disabled {
+    background-color: #cfcfcf;
+    pointer-events: none;
+    cursor: default;
 }
 
 /*CommonCalendar*/

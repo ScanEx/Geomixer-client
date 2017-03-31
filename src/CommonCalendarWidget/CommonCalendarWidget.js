@@ -63,15 +63,6 @@ var nsGmx = nsGmx || {};
             this.listenTo(this.model, 'change:active', this.activate);
         },
 
-        setActive: function (value) {
-            var attrs = this.model.toJSON(),
-                active = attrs.active;
-
-            if (value !== active) {
-                this.model.set('active', value);
-            }
-        },
-
         setDateInterval: function (dateBegin, dateEnd, layer) {
             if (layer) {
                 this.setCurrentLayer(layer);
@@ -269,27 +260,27 @@ var nsGmx = nsGmx || {};
 
             if (!attrs.calendar) {return;}
 
-            if (currentLayer) {
-                if (synchronyzed) {
-                    for (var i = 0, len = layers.length; i < len; i++) {
-                        var layer = layers[i],
-                        props = layer.getGmxProperties(),
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+            if (synchronyzed) {
+                for (var i = 0, len = layers.length; i < len; i++) {
+                    var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
-                        if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
-                            if (props.DateEnd) {
-                                var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
-                                layersMaxDates.push(localeDate);
-                            }
-
-                            this._updateOneLayer(layer, dateBegin, dateEnd);
+                    if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
+                        if (props.DateEnd) {
+                            var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
+                            layersMaxDates.push(localeDate);
                         }
+
+                        this._updateOneLayer(layer, dateBegin, dateEnd);
                     }
-                } else {
-                    this._updateOneLayer(currentLayer, dateBegin, dateEnd);
                 }
             } else {
-                return;
+                if (currentLayer) {
+                    this._updateOneLayer(currentLayer, dateBegin, dateEnd);
+                } else {
+                    return;
+                }
             }
 
             if (layersMaxDates.length > 0) {
@@ -344,19 +335,7 @@ var nsGmx = nsGmx || {};
 
             synchronyzed ? $(img).attr('src', 'img/synch-on.png') : $(img).attr('src', 'img/synch-off.png');
             nsGmx.Utils._title($(img)[0], synchronyzed ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев');
-        },
-
-        activate: function () {
-            var attrs = this.model.toJSON(),
-                active = attrs.active;
-
-            if (active) {
-                this.$el.removeClass('gmx-disabled')
-            } else {
-                this.$el.addClass('gmx-disabled')
-            }
         }
-
     });
 
     nsGmx.CommonCalendarWidget = CommonCalendar;
