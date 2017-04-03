@@ -959,9 +959,9 @@ function initTemporalLayers(layers) {
 
             if (props.name in attrs.unbindedTemporalLayers) {
                 nsGmx.commonCalendar.bindLayer(props.name);
-            } else {
-                layer.setDateInterval(dateBegin, dateEnd);
             }
+
+            layer.setDateInterval(dateBegin, dateEnd);
 
             //подписка на изменение dateInterval
             layer.on('dateIntervalChanged', nsGmx.commonCalendar.onDateIntervalChanged, nsGmx.commonCalendar);
@@ -1952,18 +1952,6 @@ function processGmxMap(state, gmxMap) {
         });
 
         nsGmx.leafletMap.on('layerremove', function(event) {
-            var layer = event.layer,
-                utl = nsGmx.commonCalendar.model.get('unbindedTemporalLayers');
-
-            if (layer.getGmxProperties && !layer.getGmxProperties()) {
-                return;
-            }
-            var props = layer.getGmxProperties(),
-                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
-                if (isTemporalLayer && !(props.name in utl)) {
-                nsGmx.commonCalendar.unbindLayer(props.name);
-                nsGmx.commonCalendar.updateTemporalLayers();
-            }
         });
 
         initEditUI();
