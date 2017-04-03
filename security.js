@@ -317,7 +317,7 @@ var mapSecurity = function()
     this.propertyName = "MapID";
     this.dialogTitle = "Редактирование прав доступа карты [value0]";
 
-    this.accessTypes = ['no', 'linkview', 'edit'];
+    this.accessTypes = ['no', 'view', 'linkview', 'edit'];
 }
 
 mapSecurity.prototype = new security();

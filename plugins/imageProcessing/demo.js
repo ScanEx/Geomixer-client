@@ -25,18 +25,9 @@ Filter.prototype.setCode = function(code, func) {
     $('.codeWebgl').html(code);
     L.gmx.WebglFilters.code = func;
     if (L.gmx.WebglFilters.callback) L.gmx.WebglFilters.callback(code);
-var tt = 1;
-//    eval(code);
 };
 
 Filter.prototype.use = function() {
-/*    // Load the texture from the image and draw it to the canvas
-    var image = images[this.imageFile || 'image.jpg'];
-    texture = image.texture;
-    $('#container').css({ width: texture._.width, height: texture._.height });
-    $('#label').html('Image credit: <a href="' + image.url + '">' + image.credit + '</a>');
-    canvas.draw(image.texture).update();
-*/
     // Clear all rows but the first two (which contain the filter selector and code sample)
     var tbody = $('.properties')[0].firstChild;
     for (var tr = tbody.firstChild.nextSibling.nextSibling; tr; tr = next) {
@@ -62,31 +53,6 @@ Filter.prototype.use = function() {
         });
         this[slider.name] = slider.value;
     }
-/*
-    // Add a div for each nub
-    $('#nubs').html('');
-    for (var i = 0; i < this.nubs.length; i++) {
-        var nub = this.nubs[i];
-        // var x = nub.x * canvas.width;
-        // var y = nub.y * canvas.height;
-        var x = nub.x * 256;
-        var y = nub.y * 256;
-        $('<div class="nub" id="nub' + i + '"></div>').appendTo('#nubs');
-        var ondrag = (function(this_, nub) { return function(event, ui) {
-            var offset = $(event.target.parentNode).offset();
-            this_[nub.name] = { x: ui.offset.left - offset.left, y: ui.offset.top - offset.top };
-            this_.update();
-        }; })(this, nub);
-        $('#nub' + i).draggable({
-            drag: ondrag,
-            containment: 'parent',
-            scroll: false
-        }).css({ left: x, top: y });
-        this[nub.name] = { x: x, y: y };
-    }
-*/
-    // Provide a link to the documentation
-    //$('<tr><th></th><td><br>See the documentation for <kbd><a href="/glfx.js/docs/#' + this.func + '">' + this.func + '()</a></kbd> for more information.</td></tr>').appendTo(tbody);
 
     this.update();
 };
@@ -193,14 +159,15 @@ var filters = {
     ],
     'Blur': [
         new Filter('Zoom Blur', 'zoomBlur', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('strength', 'Strength', 0, 1, 0.3, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('zoomBlur(' + this.center.x + ', ' + this.center.y + ', ' + this.strength + ').update();'
+            this.setCode('zoomBlur(128, 128, ' + this.strength + ').update();'
+            // this.setCode('zoomBlur(' + this.center + ', ' + this.strength + ').update();'
             ,
                 function(it) {
-                    return it.zoomBlur(_this.x, _this.y, _this.strength);
+                    return it.zoomBlur(128, 128, _this.strength);
                 }
             );
         }),
@@ -216,16 +183,17 @@ var filters = {
             );
         }),
         new Filter('Tilt Shift', 'tiltShift', function() {
-            this.addNub('start', 0.15, 0.75);
+			this.addNub('start', 0.15, 0.75);
             this.addNub('end', 0.75, 0.6);
             this.addSlider('blurRadius', 'Blur Radius', 0, 50, 15, 1);
-            this.addSlider('gradientRadius', 'Gradient Radius', 0, 400, 200, 1);
+            this.addSlider('gradientRadius', 'Gradient Radius', 0, 128, 128, 1);
         }, function() {
             var _this = this;
-            this.setCode('tiltShift(' + this.start.x + ', ' + this.start.y + ', ' + this.end.x + ', ' + this.end.y + ', ' + this.blurRadius + ', ' + this.gradientRadius + ').update();'
+				nubs = _this.nubs;
+            this.setCode('tiltShift(' + nubs[0].x + ', ' + nubs[0].y + ', ' + nubs[1].x + ', ' + nubs[1].y + ', ' + this.blurRadius + ', ' + this.gradientRadius + ').update();'
             ,
                 function(it) {
-                    return it.tiltShift(_this.start.x, _this.start.y, _this.end.x, _this.end.y, _this.blurRadius, _this.gradientRadius);
+                    return it.tiltShift(nubs[0].x, nubs[0].y, nubs[1].x, nubs[1].y, _this.blurRadius, _this.gradientRadius);
                 }
             );
         }),
@@ -245,28 +213,30 @@ var filters = {
     ],
     'Warp': [
         new Filter('Swirl', 'swirl', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('angle', 'Angle', -25, 25, 3, 0.1);
-            this.addSlider('radius', 'Radius', 0, 600, 200, 1);
+            this.addSlider('radius', 'Radius', 0, 128, 200, 1);
         }, function() {
             var _this = this;
-            this.setCode('swirl(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.angle + ').update();'
+				nubs = _this.nubs;
+            this.setCode('swirl(' + nubs[0].x + ', ' + nubs[0].y + ', ' + this.radius + ', ' + this.angle + ').update();'
             ,
                 function(it) {
-                    return it.swirl(_this.x, _this.y, _this.radius, _this.angle);
+                    return it.swirl(nubs[0].x, nubs[0].y, _this.radius, _this.angle);
                 }
             );
         }),
         new Filter('Bulge / Pinch', 'bulgePinch', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('strength', 'Strength', -1, 1, 0.5, 0.01);
-            this.addSlider('radius', 'Radius', 0, 600, 200, 1);
+            this.addSlider('radius', 'Radius', 0, 128, 128, 1);
         }, function() {
             var _this = this;
-            this.setCode('bulgePinch(' + this.center.x + ', ' + this.center.y + ', ' + this.radius + ', ' + this.strength + ').update();'
+				nubs = _this.nubs;
+            this.setCode('bulgePinch(' + nubs[0].x + ', ' + nubs[0].y + ', ' + this.radius + ', ' + this.strength + ').update();'
             ,
                 function(it) {
-                    return it.bulgePinch(_this.center.x, _this.center.y, _this.radius, _this.strength);
+                    return it.bulgePinch(nubs[0].x, nubs[0].y, _this.radius, _this.strength);
                 }
             );
         })
@@ -312,80 +282,98 @@ var filters = {
             );
         }),
         new Filter('Hexagonal Pixelate', 'hexagonalPixelate', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('scale', 'Scale', 10, 100, 20, 1);
         }, function() {
             var _this = this;
-            this.setCode('hexagonalPixelate(' + this.center.x + ', ' + this.center.y + ', ' + this.scale + ').update();'
+				nubs = _this.nubs;
+            this.setCode('hexagonalPixelate(' + nubs[0].x + ', ' + nubs[0].y + ', ' + this.scale + ').update();'
             ,
                 function(it) {
-                    return it.hexagonalPixelate(_this.center.x, _this.center.y, _this.scale);
+                    return it.hexagonalPixelate(nubs[0].x, nubs[0].y, _this.scale);
                 }
             );
         }),
         new Filter('Dot Screen', 'dotScreen', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('angle', 'Angle', 0, Math.PI / 2, 1.1, 0.01);
             this.addSlider('size', 'Size', 3, 20, 3, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('dotScreen(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
+				nubs = _this.nubs;
+            this.setCode('dotScreen(' + nubs[0].x + ', ' + nubs[0].y + ', ' + this.angle + ', ' + this.size + ').update();'
             ,
                 function(it) {
-                    return it.dotScreen(_this.center.x, _this.center.y, _this.angle, _this.size);
+                    return it.dotScreen(nubs[0].x, nubs[0].y, _this.angle, _this.size);
                 }
             );
         }),
         new Filter('Color Halftone', 'colorHalftone', function() {
-            this.addNub('center', 0.5, 0.5);
+            this.addNub('center', 128, 128);
             this.addSlider('angle', 'Angle', 0, Math.PI / 2, 0.25, 0.01);
             this.addSlider('size', 'Size', 3, 20, 4, 0.01);
         }, function() {
             var _this = this;
-            this.setCode('colorHalftone(' + this.center.x + ', ' + this.center.y + ', ' + this.angle + ', ' + this.size + ').update();'
+				nubs = _this.nubs;
+            this.setCode('colorHalftone(' + nubs[0].x + ', ' + nubs[0].y + ', ' + this.angle + ', ' + this.size + ').update();'
             ,
                 function(it) {
-                    return it.colorHalftone(_this.center.x, _this.center.y, _this.angle, _this.size);
+                    return it.colorHalftone(nubs[0].x, nubs[0].y, _this.angle, _this.size);
                 }
             );
         })
     ]
 };
 
-// var canvas;
-// var texture;
-
 var WebglFilters = {
-    getFiltersOptions: function () {
-        // Create the filter selector
+    getFiltersOptions: function (name) {
         var html = '';
         for (var category in filters) {
             var list = filters[category];
             html += '<option disabled="true">---- ' + category + ' -----</option>';
-            for (var i = 0; i < list.length; i++) {
-                html += '<option>' + list[i].name + '</option>';
+			for (var i = 0, len = list.length; i < len; i++) {
+				var f = list[i];
+                html += '<option' + (f.name === name ? ' selected' : '') + '>' + f.name + '</option>';
             }
         }
         return html;
     },
 
-    initFiltersSelector: function () {
-        // Call use() on the currently selected filter when the selection is changed
-        var select = $('.filters')[0];
-        function switchToFilter(index) {
-            if (select.selectedIndex != index) select.selectedIndex = index;
-            for (var category in filters) {
-                index--;
-                var list = filters[category];
-                for (var i = 0; i < list.length; i++) {
-                    if (index-- == 0) list[i].use();
-                }
-            }
-        }
-        $('.filters').change(function() {
-            switchToFilter(select.selectedIndex);
-        });
-        switchToFilter(1);
+    _findFilterByName: function (name) {
+		for (var category in filters) {
+			var list = filters[category];
+			for (var i = 0, len = list.length; i < len; i++) {
+				var f = list[i];
+				if (f.name === name) { return f; }
+			}
+		}
+		return null;
+    },
+
+    setFiltersState: function (state) {
+		if (state.filter) {
+			var filter = WebglFilters._findFilterByName(state.filter);
+			if (filter) {
+				filter.sliders.forEach(function (it) {
+					var name = it.name;
+					if (name in state) { it.value = state[name]; }
+				});
+				filter.use();
+			}
+		}
+    },
+
+    getFiltersState: function (value) {
+        var out = {};
+		var filter = WebglFilters._findFilterByName(value);
+		if (filter) {
+			out.filter = filter.name;
+			filter.sliders.forEach(function (it) {
+				var name = it.name;
+				out[name] = filter[name];
+			});
+		}
+		return out;
     }
 };
 

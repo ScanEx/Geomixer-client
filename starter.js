@@ -931,19 +931,32 @@ function initTemporalLayers(layers) {
     layers = layers || nsGmx.gmxMap.layers;
 
     var attrs = nsGmx.commonCalendar.model.toJSON(),
-        dateInterval = new nsGmx.DateInterval(),
-        dateBegin = dateInterval.get('dateBegin'),
-        dateEnd = dateInterval.get('dateEnd'),
-        visible = undefined;
+        showCalendar = undefined,
+        dateInterval,
+        dateBegin,
+        dateEnd;
 
     for (var i = 0; i < layers.length; i++) {
         var layer = layers[i],
             props = layer.getGmxProperties(),
+            isVisible = props.visible,
             isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
         if (isTemporalLayer) {
             // показываем виджет календаря, если в карте есть хоть один мультивременной слой
-            visible = true;
+            showCalendar = true;
+
+            dateInterval = layer.getDateInterval();
+
+            if (dateInterval.beginDate && dateInterval.endDate) {
+                dateBegin = dateInterval.beginDate;
+                dateEnd = dateInterval.endDate;
+            } else {
+                dateInterval = new nsGmx.DateInterval();
+                dateBegin = dateInterval.get('dateBegin');
+                dateEnd = dateInterval.get('dateEnd');
+            }
+
             if (props.name in attrs.unbindedTemporalLayers) {
                 nsGmx.commonCalendar.bindLayer(props.name);
             } else {
@@ -955,7 +968,7 @@ function initTemporalLayers(layers) {
         }
     }
 
-    if (visible) {
+    if (showCalendar) {
         nsGmx.commonCalendar.show();
     }
 }
@@ -1561,7 +1574,7 @@ function processGmxMap(state, gmxMap) {
 
             switch (layerOrder) {
                 case 'VectorOnTop':
-                if (props.type === 'Vector') {
+                if (props.type === 'Vector' && layer.setZIndexOffset) {
                     var minZoom,
                         rcMinZoom,
                         quickLookMinZoom,
@@ -1781,6 +1794,7 @@ function processGmxMap(state, gmxMap) {
         // привяжем изменение активной ноды к календарю
         $(_layersTree).on('activeNodeChange', function(e, p) {
             var layerID = $(p).attr('layerid'),
+                calendar = nsGmx.commonCalendar.model.get('calendar'),
                 synchronyzed = nsGmx.commonCalendar.get('synchronyzed');
 
             // клик на ноде слоя
@@ -1789,8 +1803,6 @@ function processGmxMap(state, gmxMap) {
                     props = layer.getGmxProperties(),
                     isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
                     dateInterval, dateBegin, dateEnd;
-
-                var calendar = nsGmx.commonCalendar.model.get('calendar');
 
                 if (isTemporalLayer) {
                     dateInterval = layer.getDateInterval();
