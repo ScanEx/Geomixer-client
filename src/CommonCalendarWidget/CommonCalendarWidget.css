@@ -3,7 +3,39 @@
 .CalendarWidget-dateBegin, .CalendarWidget-dateEnd {
     border: 0;
     background-color: #efefef;
+    cursor: default;
 }
+
+.CalendarWidget-show-calendar-icon {
+    cursor: pointer
+}
+
+.CalendarWidget-show-calendar-icon.disabled {
+    cursor: default;
+}
+
+.calendar-outside select {
+    border: 0;
+}
+
+.time-select {
+    height: 15px;
+}
+
+.time-container {
+    display: block;
+    width: 204px;
+    height: 15px;
+}
+
+.time-select {
+    display: block;
+    width: 70px;
+    margin: auto;
+}
+
+
+
 
 .calendar-outside .ui-dialog-titlebar.ui-widget-header {
     display: none;
