@@ -6,12 +6,16 @@ var nsGmx = nsGmx || {};
 
     nsGmx.Translations.addText("rus", { CommonCalendarWidget: {
         Timeline:    "Таймлайн",
-        switchedOff: "Мультивременные слои выключены"
+        currentLayer: "Текущий мультивременной слой:",
+        switchedOff: "не выбран",
+        all: "все слои"
     }});
 
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
-        switchedOff: "Temporal layers are switched off"
+        currentLayer: "Current temporal layer:",
+        switchedOff: "not selected",
+        all: "all"
     }});
 
     var calendarWidgetTemplate = '' +
@@ -21,6 +25,10 @@ var nsGmx = nsGmx || {};
                     '<div class="calendar-widget-container"></div>' +
                     '<div class="calendar-sync-button"></div>' +
                 '</div>' +
+            '</div>' +
+            '<div class="current-layer-name-container">' +
+                '<span class="current-layer-header">{{i "CommonCalendarWidget.currentLayer"}}</span>' +
+                '<span class="current-layer-name">{{layer}}</span>' +
             '</div>' +
         '</div>' ;
     'use strict';
@@ -47,7 +55,11 @@ var nsGmx = nsGmx || {};
             'click .calendar-sync-button': 'toggleSync'
         },
         initialize: function (options) {
-            this.$el.html(this.template({}));
+            var _this = this;
+
+            this.$el.html(this.template({
+                layer: _this.model.get('synchronyzed') ? window._gtxt("CommonCalendarWidget.all") : _this.model.get('currentLayer') ? _this.model.get('currentLayer').getGmxProperties().title : window._gtxt("CommonCalendarWidget.switchedOff")
+            }));
 
             var syncButtonContainer = this.$('.calendar-sync-button');
 
@@ -61,6 +73,7 @@ var nsGmx = nsGmx || {};
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:active', this.activate);
+            this.listenTo(this.model, 'change:currentLayer', this.showCurrentLayer);
         },
 
         setDateInterval: function (dateBegin, dateEnd, layer) {
@@ -93,6 +106,7 @@ var nsGmx = nsGmx || {};
             if (uiElem !== active) {
                 _layersTree.setActive(span);
             }
+            this.model.set('currentLayer', layer);
         },
 
         getCurrentLayer: function () {
@@ -123,8 +137,8 @@ var nsGmx = nsGmx || {};
                         int = layer.getDateInterval();
 
                     if (isTemporalLayer && int) {
-                        var b = int.beginDate.toString().substring(0, 15),
-                            e = int.endDate.toString().substring(0, 15);
+                        var b = int.beginDate.toString(),
+                            e = int.endDate.toString();
                         list.push({
                             title: t,
                             beginDate: b,
@@ -248,6 +262,27 @@ var nsGmx = nsGmx || {};
             }
         },
 
+        showCurrentLayer: function () {
+            var attrs = this.model.toJSON(),
+                synchronyzed = attrs.synchronyzed,
+                currentLayer = this.getCurrentLayer(),
+                nameSpan = this.$('.current-layer-name');
+
+            if (!currentLayer) {
+                if (synchronyzed) {
+                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
+                } else {
+                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.switchedOff"));
+                }
+            } else {
+                if (synchronyzed) {
+                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
+                } else {
+                    $(nameSpan).html(currentLayer.getGmxProperties().title);
+                }
+            }
+        },
+
         updateTemporalLayers: function() {
             var layers = layers || nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
@@ -335,6 +370,8 @@ var nsGmx = nsGmx || {};
 
             synchronyzed ? $(img).attr('src', 'img/synch-on.png') : $(img).attr('src', 'img/synch-off.png');
             nsGmx.Utils._title($(img)[0], synchronyzed ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев');
+
+            this.showCurrentLayer();
         }
     });
 

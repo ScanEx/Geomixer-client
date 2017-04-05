@@ -23,23 +23,25 @@
 }
 
 .time-container {
+    position: absolute;
     display: block;
-    width: 204px;
+    width: 208.8px;
+    bottom: 30px;
     height: 15px;
+    margin-bottom: 8px;
 }
 
 .time-select {
+    color: #808080;
     display: block;
-    width: 70px;
+    width: 55px;
     margin: auto;
 }
-
-
-
 
 .calendar-outside .ui-dialog-titlebar.ui-widget-header {
     display: none;
 }
+
 
 .ui-datepicker {
     border: none;
@@ -48,6 +50,10 @@
 
 .ui-datepicker table {
     width: 100%;
+}
+
+.ui-icon ui-icon-circle-triangle-e {
+    background-image:
 }
 
 .ui-datepicker tbody td {
@@ -64,27 +70,66 @@
   line-height: 22px;
 }
 
+/*названия дней недели*/
+.ui-datepicker-calendar th {
+    color: #C0C0C0;
+}
+
+.ui-datepicker-calendar tr {
+    color: #808080;
+}
+.ui-datepicker-month, .ui-datepicker-year,
+.ui-datepicker-calendar a.ui-state-default {
+    color: #808080;
+}
+
+/*выходные*/
+.ui-datepicker-week-end a.ui-state-default {
+    color: #d54848;
+}
+
 .ui-state-default.ui-state-active {
     padding: 0;
     border-radius: 50%;
-    border: 2px solid #2372b9;
+    border: 2px solid #1471bb;
 }
 
 .ui-state-default.ui-state-highlight {
     padding: 0;
     border-radius: 50%;
-    background-color: #cfcfcf;
+        background-color: #e2e2e2;
 }
 
-.calendar-button  {
+.calendar-button-container {
+    position: absolute;
+    display: block;
+    width: 208.8px;
+    bottom: 30px;
+    height: 26px;
+    bottom: 4px;
+}
+
+.calendar-button {
+    /*display: block;*/
+    cursor: pointer;
     position: absolute;
     width: 150px;
     text-align: center;
-    margin-left: 29.4px;
-    margin-right: 29.4px;
+    font-weight: bold;
+    padding: 4px;
+    margin-left: 25.4px;
     bottom: 4px;
-    padding: 6px;
-    background-color: #2372b9;
+}
+
+.createdateinterval-button,
+.resetdateinterval-button {
+    color: #1471bb;
+    text-decoration: underline;
+}
+
+.selectdateinterval-button {
+    border-radius: 10px;
+    background-color: #1471bb;
     color: white;
 }
 
@@ -95,7 +140,6 @@
 }
 
 /*CommonCalendar*/
-
 .calendar-layers-container {
     width: 320px;
 }
@@ -108,6 +152,21 @@
 
 .calendar-container {
     display: table-cell;
+    vertical-align: middle;
+}
+
+.current-layer-name-container {
+    width: 320px;
+    height: 20px;
+}
+.current-layer-header {
+    display: block;
+    margin-left: 8px;
+    font-weight: bold;
+}
+.current-layer-name {
+    display: block;
+    margin-left: 16px;
     vertical-align: middle;
 }
 
@@ -155,7 +214,7 @@
     vertical-align: middle;
     font-weight: normal;
     overflow: hidden;
-    color: #2372b9;
+    color: #1471bb;
 }
 
 /*иконка-треугольник в заголовке-селекте*/
@@ -245,11 +304,11 @@
 }
 
 input:checked + .timeline-switch-slider {
-     background-color: #2372b9;
+     background-color: #1471bb;
 }
 
 input:focus + .timeline-switch-slider {
-     box-shadow: 0 0 1px #2372b9;
+     box-shadow: 0 0 1px #1471bb;
 }
 
 input:checked + .timeline-switch-slider:before {
