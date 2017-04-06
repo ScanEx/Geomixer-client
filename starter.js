@@ -1052,13 +1052,17 @@ function initAuthWidget() {
                 _mapHelper.reloadMap();
             });
             return def;
+        },
+        getNative: function() {
+            return nativeAuthWidget;
         }
     };
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
         accountLink: null,
-        showMapLink: !!window.mapsSite
+        showMapLink: !!window.mapsSite,
+        changePassword: !window.mapsSite
     });
 
     var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
