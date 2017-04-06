@@ -1,16 +1,17 @@
 /*CalendarWidget*/
 
-.CalendarWidget-dateBegin, .CalendarWidget-dateEnd {
+.CommonCalendarWidget .CalendarWidget-dateBegin,
+.CommonCalendarWidget .CalendarWidget-dateEnd {
     border: 0;
     background-color: #efefef;
     cursor: default;
 }
 
-.CalendarWidget-show-calendar-icon {
+.CommonCalendarWidget .CalendarWidget-show-calendar-icon {
     cursor: pointer
 }
 
-.CalendarWidget-show-calendar-icon.disabled {
+.CommonCalendarWidget .CalendarWidget-show-calendar-icon.disabled {
     cursor: default;
 }
 
@@ -175,7 +176,7 @@
     vertical-align: middle;
 }
 
-.CalendarWidget.ui-widget {
+.CommonCalendarWidget .CalendarWidget.ui-widget {
     width: 90%;
     float: left;
 }
@@ -188,11 +189,11 @@
     height: 22px;
 }
 
-.CalendarWidget-dates {
+.CommonCalendarWidget .CalendarWidget-dates {
     text-align: center;
 }
 
-.CalendarWidget-outside {
+.CommonCalendarWidget .CalendarWidget-outside {
     width: 40px;
     height: 40px;
     top: 200px;

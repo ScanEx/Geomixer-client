@@ -160,7 +160,7 @@ var nsGmx = nsGmx || {};
                 calendar;
 
             if (!attrs.calendar) {
-                calendar = new nsGmx.CalendarWidget({
+                calendar = new nsGmx.CalendarWidget1({
                     minimized: false,
                     dateMin: new Date(2000, 1, 1),
                     dateMax: _this.dateInterval.get('dateEnd'),

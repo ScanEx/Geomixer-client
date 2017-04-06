@@ -628,6 +628,6 @@ var Calendar = nsGmx.GmxWidget.extend({
     ADVANCED_MODE: 2
 });
 
-nsGmx.CalendarWidget = Calendar;
+nsGmx.CalendarWidget1 = Calendar;
 
 })(jQuery);
