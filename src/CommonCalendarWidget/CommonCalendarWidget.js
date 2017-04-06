@@ -6,16 +6,14 @@ var nsGmx = nsGmx || {};
 
     nsGmx.Translations.addText("rus", { CommonCalendarWidget: {
         Timeline:    "Таймлайн",
-        currentLayer: "Текущий мультивременной слой:",
-        switchedOff: "не выбран",
-        all: "все слои"
+        select: "Выберите мультивременной слой",
+        all: "Интервал для всех слоев"
     }});
 
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
-        currentLayer: "Current temporal layer:",
-        switchedOff: "not selected",
-        all: "all"
+        select: "Select temporal layer",
+        all: "Интервал для всех слоев"
     }});
 
     var calendarWidgetTemplate = '' +
@@ -27,7 +25,6 @@ var nsGmx = nsGmx || {};
                 '</div>' +
             '</div>' +
             '<div class="current-layer-name-container">' +
-                '<span class="current-layer-header">{{i "CommonCalendarWidget.currentLayer"}}</span>' +
                 '<span class="current-layer-name">{{layer}}</span>' +
             '</div>' +
         '</div>' ;
@@ -58,7 +55,7 @@ var nsGmx = nsGmx || {};
             var _this = this;
 
             this.$el.html(this.template({
-                layer: _this.model.get('synchronyzed') ? window._gtxt("CommonCalendarWidget.all") : _this.model.get('currentLayer') ? _this.model.get('currentLayer').getGmxProperties().title : window._gtxt("CommonCalendarWidget.switchedOff")
+                layer: _this.model.get('synchronyzed') ? window._gtxt("CommonCalendarWidget.all") : _this.model.get('currentLayer') ? _this.model.get('currentLayer').getGmxProperties().title : window._gtxt("CommonCalendarWidget.select")
             }));
 
             var syncButtonContainer = this.$('.calendar-sync-button');
@@ -70,6 +67,8 @@ var nsGmx = nsGmx || {};
             //for backward compatibility
             this.canvas = this.$el;
             this.dateInterval = new nsGmx.DateInterval();
+
+            nsGmx.Utils._title(this.$('.current-layer-name')[0], window._gtxt('CommonCalendarWidget.select'));
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:active', this.activate);
@@ -273,7 +272,7 @@ var nsGmx = nsGmx || {};
                 if (synchronyzed) {
                     $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
                 } else {
-                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.switchedOff"));
+                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.select"));
                 }
             } else {
                 props = currentLayer.getGmxProperties();
@@ -285,7 +284,7 @@ var nsGmx = nsGmx || {};
                     if (isTemporalLayer) {
                         $(nameSpan).html(currentLayer.getGmxProperties().title);
                     } else {
-                        $(nameSpan).html(window._gtxt("CommonCalendarWidget.switchedOff"));
+                        $(nameSpan).html(window._gtxt("CommonCalendarWidget.select"));
                     }
                 }
             }

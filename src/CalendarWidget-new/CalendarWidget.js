@@ -91,14 +91,12 @@ var Calendar = nsGmx.GmxWidget.extend({
                     '</div>' +
                     '<div class="time-placeholder begin-time-placeholder" hidden>' +
                     '</div>' +
-                    // '<div class="calendar-button-container">' +
                         '<span class="calendar-button createdateinterval-button">' +
                         '{{i "CalendarWidget.createDateInterval"}}'+
                         '</span>' +
                         '<span class="calendar-button resetdateinterval-button" hidden>' +
                             '{{i "CalendarWidget.resetDateInterval"}}'+
                         '</span>' +
-                    // '</div>' +
                 '</div>'
             ),
             endTemplate: Handlebars.compile('' +
@@ -109,22 +107,23 @@ var Calendar = nsGmx.GmxWidget.extend({
                     '</div>' +
                     '<div class="time-placeholder end-time-placeholder" hidden>' +
                     '</div>' +
-                    // '<div class="calendar-button-container">' +
-                        '<span class="calendar-button selectdateinterval-button disabled">' +
-                            '{{i "CalendarWidget.selectDateInterval"}}'+
-                        '</span>' +
-                    // '</div>' +
+                    '<span class="calendar-button selectdateinterval-button disabled">' +
+                        '{{i "CalendarWidget.selectDateInterval"}}'+
+                    '</span>' +
                 '</div>'
             ),
             timeTemplate: Handlebars.compile('' +
-                '<select class="time-select">' +
-                    '{{#each this.timeIntervals}}' +
-                    '<option value="{{this.hour}}"' +
-                        '{{#if this.current}} selected="selected"{{/if}}>' +
-                        '{{this.hour}}' + ':00' +
-                    '</option>' +
-                    '{{/each}}' +
-                '</select>'
+                '<div class="time-picker-container">' +
+                    '<span class="time-picker-label">{{label}}</span>' +
+                    '<select class="time-select">' +
+                        '{{#each this.timeIntervals}}' +
+                        '<option value="{{this.hour}}"' +
+                            '{{#if this.current}} selected="selected"{{/if}}>' +
+                            '{{this.hour}}' + ':00' +
+                        '</option>' +
+                        '{{/each}}' +
+                    '</select>' +
+                '</div>'
             )
         },
 
@@ -153,7 +152,7 @@ var Calendar = nsGmx.GmxWidget.extend({
                 $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
                 $('.time-select').remove();
                 _this._showTime(false);
-                _this.setActive(true);
+                // _this.setActive(true);
             }
         })
 
@@ -206,7 +205,7 @@ var Calendar = nsGmx.GmxWidget.extend({
                 }
             };
 
-        this.setActive(false);
+        // this.setActive(false);
 
         oneDayPeriod ? this.setMode(Calendar.SIMPLE_MODE) : this.setMode(Calendar.ADVANCED_MODE);
 
@@ -262,9 +261,8 @@ var Calendar = nsGmx.GmxWidget.extend({
         // кнопка во втором календаре
         $(selectIntervalButton).on('click', function () {
             _this._updateModel();
-            $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
-            _this._showTime(false);
             _this.setActive(true);
+            _this._enableCreateIntervalButton();
         })
     },
 
@@ -369,6 +367,7 @@ var Calendar = nsGmx.GmxWidget.extend({
         }
 
         timeSelect = this.calendarTemplates.timeTemplate({
+            label: _gtxt(position === 'begin' ? "CalendarWidget.from": "CalendarWidget.to"),
             timeIntervals: timeIntervals
         });
 

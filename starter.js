@@ -1795,8 +1795,9 @@ function processGmxMap(state, gmxMap) {
         $(_layersTree).on('activeNodeChange', function(e, p) {
             var layerID = $(p).attr('layerid'),
                 calendar = nsGmx.commonCalendar.model.get('calendar'),
-                synchronyzed = nsGmx.commonCalendar.get('synchronyzed');
+                synchronyzed = nsGmx.commonCalendar.model.get('synchronyzed');
 
+            lmap.fireEvent('layersTree.activeNodeChange', {layerID: layerID});
             // клик на ноде слоя
             if (layerID) {
                 var layer = nsGmx.gmxMap.layersByID[layerID],
@@ -1817,12 +1818,10 @@ function processGmxMap(state, gmxMap) {
                     }
 
                     calendar.setActive(true);
-                    if (synchronyzed) {
-                        nsGmx.commonCalendar.setCurrentLayer(layer);
-                        nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
-                    }
+                    nsGmx.commonCalendar.model.set('currentLayer', layer);
+                    nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
                 } else {
-                    calendar.setActive(false);
+                    calendar.setActive(synchronyzed ? true : false);
                     nsGmx.commonCalendar.model.set('currentLayer', null);
                 }
             } else {

@@ -34,16 +34,17 @@
 .time-picker-container {
     display: block;
     margin: auto;
+    width: 80px;
     height: 15px;
 }
 
 .time-picker-label {
+    color: #808080;
     margin-right: 8px;
 }
 
 .time-select {
     color: #808080;
-    /*display: block;*/
     width: 55px;
 }
 
@@ -167,11 +168,6 @@
 .current-layer-name-container {
     width: 320px;
     height: 20px;
-}
-.current-layer-header {
-    display: block;
-    margin-left: 8px;
-    font-weight: bold;
 }
 .current-layer-name {
     display: block;
