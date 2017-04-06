@@ -1817,12 +1817,17 @@ function processGmxMap(state, gmxMap) {
                     }
 
                     calendar.setActive(true);
-                    nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
+                    if (synchronyzed) {
+                        nsGmx.commonCalendar.setCurrentLayer(layer);
+                        nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
+                    }
                 } else {
                     calendar.setActive(false);
+                    nsGmx.commonCalendar.model.set('currentLayer', null);
                 }
             } else {
                 calendar.setActive(synchronyzed ? true : false);
+                nsGmx.commonCalendar.model.set('currentLayer', null);
             }
         });
 

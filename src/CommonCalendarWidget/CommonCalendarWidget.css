@@ -31,11 +31,20 @@
     margin-bottom: 8px;
 }
 
+.time-picker-container {
+    display: block;
+    margin: auto;
+    height: 15px;
+}
+
+.time-picker-label {
+    margin-right: 8px;
+}
+
 .time-select {
     color: #808080;
-    display: block;
+    /*display: block;*/
     width: 55px;
-    margin: auto;
 }
 
 .calendar-outside .ui-dialog-titlebar.ui-widget-header {

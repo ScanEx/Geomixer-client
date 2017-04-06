@@ -266,7 +266,8 @@ var nsGmx = nsGmx || {};
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 currentLayer = this.getCurrentLayer(),
-                nameSpan = this.$('.current-layer-name');
+                nameSpan = this.$('.current-layer-name'),
+                props, isTemporalLayer;
 
             if (!currentLayer) {
                 if (synchronyzed) {
@@ -275,10 +276,17 @@ var nsGmx = nsGmx || {};
                     $(nameSpan).html(window._gtxt("CommonCalendarWidget.switchedOff"));
                 }
             } else {
+                props = currentLayer.getGmxProperties();
+                isTemporalLayer = (currentLayer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
                 if (synchronyzed) {
                     $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
                 } else {
-                    $(nameSpan).html(currentLayer.getGmxProperties().title);
+                    if (isTemporalLayer) {
+                        $(nameSpan).html(currentLayer.getGmxProperties().title);
+                    } else {
+                        $(nameSpan).html(window._gtxt("CommonCalendarWidget.switchedOff"));
+                    }
                 }
             }
         },
