@@ -21,15 +21,17 @@
             var arr = params.layers.split(', '),
                 layers = [],
                 dialogParams = $.extend({
-                    width: 250,
-                    height: 70,
-                    posX: 454,
-                    posY: 125
+                    dialogClass: "query-menu-dialog",
+                    width: 235,
+                    height: 36,
+                    position: [454, 124]
                 }, params.dialog),
                 template = window.Handlebars.compile('' +
-                    '<span class="query-menu-title">{{title}}</span>' +
-                    '<input class="query-menu-input" type="text"></input>' +
-                    '<input class="query-menu-button" type="button" value={{i "queryMenuPlugin.set"}}></input>'
+                    '<div class="query-menu-container">' +
+                        '<span class="query-menu-title">{{title}}</span>' +
+                        '<input class="query-menu-input" type="text"></input>' +
+                        '<input class="query-menu-button" type="button" value={{i "queryMenuPlugin.set"}}></input>' +
+                    '</div>'
                 ),
                 root = document.createElement('div'),
                 content = template({
@@ -54,8 +56,8 @@
                     layers[i].setStyle(newStyle);
                 }
             });
-
-            window.nsGmx.Utils.showDialog('', root, dialogParams);
+            $(root).dialog(dialogParams);
+            // window.nsGmx.Utils.showDialog('', root, dialogParams);
         }
     };
 
