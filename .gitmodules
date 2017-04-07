@@ -100,3 +100,6 @@
 [submodule "plugins/external/GMXPluginTimeLine"]
 	path = plugins/external/GMXPluginTimeLine
 	url = git@github.com:ScanEx/GMXPluginTimeLine.git
+[submodule "leaflet/plugins/Leaflet.Dialog"]
+	path = leaflet/plugins/Leaflet.Dialog
+	url = git@github.com:ScanEx/Leaflet.Dialog.git
