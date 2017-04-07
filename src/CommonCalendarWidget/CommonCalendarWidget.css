@@ -254,16 +254,6 @@
     border-top: 0;
 }
 
-/*выделенный слой в селекте*/
-.ui-widget-content .ui-state-focus {
-    margin: 0;
-    border: 2px solid #efefef;
-    background: #efefef;
-    font-weight: normal;
-    color: #212121;
-}
-
-
 /* The switch - the box around the slider */
 
 .timeline-switch-container {
