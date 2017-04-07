@@ -50,7 +50,7 @@
 								buttonDiv = L.DomUtil.create('div', 'myImage', container),
 								//props = ev.gmx.properties,	// Свойства объекта
 								id = ev.gmx.id;
-							
+
 							prop.innerHTML = '<h3>Объект: ' + id + '</h3><br>';
 							buttonDiv.innerHTML = '<button>Показать график</button>';
 							L.DomEvent.on(buttonDiv, 'click', L.DomEvent.stopPropagation);
@@ -81,17 +81,11 @@
 					{
 						check: function(){ return window.L.control.dialog; },
 						css: 'http://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css'
-					},
-					{
-						check: function(){ return window.L.control.dialog; },
-						script: path + '../../leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js',
-						css: path + '../../leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css'
-					}
-					
+					}					
 				]).done(function() {
 					def.resolve();
 				});
-				
+
 				return def;
 			}
 		});
