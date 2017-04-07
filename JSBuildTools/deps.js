@@ -103,7 +103,8 @@ var jsFilesThidparty = [
     "leaflet/plugins/Leaflet.TileLayer.Mercator/src/TileLayer.Mercator.js",
     "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
     "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
-    "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js"
+    "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js",
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js"
 ];
 
 var cssFiles = [
@@ -133,6 +134,7 @@ var cssFiles = [
     "leaflet/plugins/gmxControls/src/css/external.css",
     "leaflet/leafletGmx.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchControl.css",
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css"
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
