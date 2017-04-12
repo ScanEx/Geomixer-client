@@ -38,14 +38,14 @@ if (!window.mapHostName && window.gmxJSHost) {
 }
 
 var _mapHostName; //откуда грузить API
+var protocol = window.location.protocol;
 
 if (window.mapHostName) {
-    _mapHostName = 'http://' + window.mapHostName + '/api/';
+    _mapHostName = protocol + '//' + window.mapHostName + '/api/';
 } else {
     var curUri = L.gmxUtil.parseUri(window.location.href);
-    _mapHostName = 'http://' + curUri.host + curUri.directory;
+    _mapHostName = protocol + '//' + curUri.host + curUri.directory;
 }
-
 
 var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName)[1] + '/';
 
