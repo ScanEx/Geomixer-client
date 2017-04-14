@@ -1,0 +1,25 @@
+.photolayer-ui-container {
+    margin-bottom: 4px;
+}
+
+.photolayer-title,
+.photolayer-catalog-label {
+    margin-right: 8px;
+}
+
+.photolayer-loader-icon {
+    width: 20px;
+    cursor: pointer;
+}
+
+.photolayer-catalog-label input {
+    margin-right: 4px;
+}
+
+.progressbar.ui-progressbar{
+    height: 1em;
+}
+
+.progressbar .ui-progressbar-value {
+    background: grey;
+}
