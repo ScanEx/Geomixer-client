@@ -33,7 +33,7 @@ require('./common_components/builder')(gulp, {
             commonRoot + 'HeaderWidget@build',
             commonRoot + 'TransparencySliderWidget@build',
             commonRoot + 'BaseLayersControl@build',
-            commonRoot + 'Popover@build',
+            commonRoot + 'Popover@dist',
             srcRoot + 'DateInterval',
             srcRoot + 'CalendarWidget@build',
             commonRoot + 'AlertWidget@build',
