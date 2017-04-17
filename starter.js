@@ -201,7 +201,7 @@ var createMenuNew = function() {
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div, 1);
             }, delimiter: true, disabled: !isMapEditor},
-            {id:'loadFile',    title: _gtxt('Загрузить файл'),  func:drawingObjects.loadShp.load},
+            {id:'loadFile',    title: _gtxt('Загрузить объекты'),  func:drawingObjects.loadShp.load},
             {id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
             {id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
         ]});
@@ -308,7 +308,7 @@ var createToolbar = function() {
     //пополняем тулбар
     var uploadFileIcon = L.control.gmxIcon({
         id: 'uploadFile',
-        title: _gtxt('Загрузить файл')
+        title: _gtxt('Загрузить объекты')
     }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
 
     lmap.gmxControlIconManager.get('drawing').addIcon(uploadFileIcon);
@@ -1463,7 +1463,7 @@ function processGmxMap(state, gmxMap) {
 
             switch (layerOrder) {
                 case 'VectorOnTop':
-                if (props.type === 'Vector') {
+                if (props.type === 'Vector' && layer.setZIndexOffset) {
                     var minZoom,
                         rcMinZoom,
                         quickLookMinZoom,
