@@ -1146,7 +1146,14 @@ function loadMap(state) {
 
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
-    L.gmx.gmxMapManager.getMap(hostName, apiKey, globalMapName, window.gmxSkipTiles).then(function(mapInfo) {
+	var srs = window.mapOptions ? window.mapOptions.srs : '';
+    L.gmx.gmxMapManager.loadMapProperties({
+		srs: srs,
+		serverHost: hostName,
+		apiKey: apiKey,
+		mapName: globalMapName,
+		skipTiles: window.gmxSkipTiles
+	}).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
 
@@ -1169,6 +1176,7 @@ function loadMap(state) {
         nsGmx.pluginsManager.done(function() {
             nsGmx.pluginsManager.preloadMap();
             L.gmx.loadMap(globalMapName, {
+                srs: srs,
                 hostName: window.serverBase,
                 apiKey: apiKey,
                 setZIndex: true,
@@ -1529,7 +1537,7 @@ function processGmxMap(state, gmxMap) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
 
-    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey});
+    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey, srs: lmap.options.srs});
 
     baseLayerDef.always(function() {
 
