@@ -36,6 +36,7 @@ require('./common_components/builder')(gulp, {
             commonRoot + 'Popover@build',
             srcRoot + 'DateInterval',
             srcRoot + 'CalendarWidget@build',
+            srcRoot + 'CalendarWidget-new@build',
             commonRoot + 'AlertWidget@build',
             commonRoot + '../GmxShareIconControl@build',
             commonRoot + '../Leaflet-IconLayers/src',

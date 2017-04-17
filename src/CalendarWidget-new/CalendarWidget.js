@@ -28,7 +28,7 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
  @class
  @param {nsGmx.CalendarWidget~Parameters} options Параметры календаря
 */
-var Calendar = nsGmx.GmxWidget.extend({
+var Calendar1 = nsGmx.GmxWidget.extend({
     tagName: 'div',
     className: 'CalendarWidget ui-widget',
     template: Handlebars.compile(nsGmx.Templates.CalendarWidget.CalendarWidget),
@@ -72,12 +72,12 @@ var Calendar = nsGmx.GmxWidget.extend({
             onSelect: function(dateText, inst){
                 this._selectFunc(inst.input);
             }.bind(this),
-            minDate: this._dateMin ? Calendar.toUTC(this._dateMin) : null,
-            maxDate: this._dateMax ? Calendar.toUTC(this._dateMax) : null,
+            minDate: this._dateMin ? Calendar1.toUTC(this._dateMin) : null,
+            maxDate: this._dateMax ? Calendar1.toUTC(this._dateMax) : null,
             changeMonth: true,
             changeYear: true,
             dateFormat: 'dd.mm.yy',
-            defaultDate: Calendar.toUTC(this._dateMax || new Date()),
+            defaultDate: Calendar1.toUTC(this._dateMax || new Date()),
             buttonImageOnly: true,
             constrainInput: true
         });
@@ -216,8 +216,8 @@ var Calendar = nsGmx.GmxWidget.extend({
 
         this._dateInputs.datepicker();
 
-        this._dateBegin.datepicker('setDate', Calendar.toUTC(dateBegin));
-        this._dateEnd.datepicker('setDate', oneDayPeriod || endMidnight ? Calendar.toUTC(new Date(dateEnd.valueOf() - dayms)) : Calendar.toUTC(dateEnd));
+        this._dateBegin.datepicker('setDate', Calendar1.toUTC(dateBegin));
+        this._dateEnd.datepicker('setDate', oneDayPeriod || endMidnight ? Calendar1.toUTC(new Date(dateEnd.valueOf() - dayms)) : Calendar1.toUTC(dateEnd));
 
         $(this.beginCalendar).dialog(beginDialogOptions);
 
@@ -245,8 +245,8 @@ var Calendar = nsGmx.GmxWidget.extend({
         $(resetIntervalButton).on('click', function () {
             var dateBegin = toMidnight(_this._dateInterval.get('dateBegin'));
             _this.setMode(Calendar.SIMPLE_MODE);
-            _this._dateBegin.datepicker('setDate', Calendar.toUTC(dateBegin));
-            _this._dateEnd.datepicker('setDate', Calendar.toUTC(dateBegin));
+            _this._dateBegin.datepicker('setDate', Calendar1.toUTC(dateBegin));
+            _this._dateEnd.datepicker('setDate', Calendar1.toUTC(dateBegin));
             $(".calendar-outside.end-calendar .ui-dialog-titlebar-close").trigger('click');
 
             $(this).toggle(false);
@@ -457,11 +457,11 @@ var Calendar = nsGmx.GmxWidget.extend({
             return;
         };
 
-        var newDateBegin = Calendar.toUTC(dateBegin),
-            newDateEnd = Calendar.toUTC(new Date(dateEnd));
+        var newDateBegin = Calendar1.toUTC(dateBegin),
+            newDateEnd = Calendar1.toUTC(new Date(dateEnd));
 
         if (dateEnd.valueOf() === toMidnight(dateEnd).valueOf()) {
-            newDateEnd = Calendar.toUTC(new Date(dateEnd - dayms));
+            newDateEnd = Calendar1.toUTC(new Date(dateEnd - dayms));
         }
 
         $(beginInput).val(Calendar.formatDate(newDateBegin));
@@ -512,14 +512,14 @@ var Calendar = nsGmx.GmxWidget.extend({
      * @return {Date} начальная дата
      */
     getDateBegin: function() {
-        return Calendar.fromUTC(this._dateBegin.datepicker('getDate'));
+        return Calendar1.fromUTC(this._dateBegin.datepicker('getDate'));
     },
 
     /** Получить конечную дату
      * @return {Date} конечная дата
      */
     getDateEnd: function() {
-        return Calendar.fromUTC(this._dateEnd.datepicker('getDate'));
+        return Calendar1.fromUTC(this._dateEnd.datepicker('getDate'));
     },
 
     /** Получить верхнюю границу возможных дат периода
@@ -541,7 +541,7 @@ var Calendar = nsGmx.GmxWidget.extend({
      */
     setDateMin: function(dateMin) {
         this._dateMin = dateMin;
-        this._dateInputs.datepicker('option', 'minDate', dateMin ? Calendar.toUTC(dateMin) : null);
+        this._dateInputs.datepicker('option', 'minDate', dateMin ? Calendar1.toUTC(dateMin) : null);
     },
 
     /** Установить верхнюю границу возможных дат периода
@@ -552,7 +552,7 @@ var Calendar = nsGmx.GmxWidget.extend({
 
         this._dateMax = dateMax;
         if (dateMax) {
-            var utcDate = Calendar.toUTC(dateMax);
+            var utcDate = Calendar1.toUTC(dateMax);
             if (this._dateInputs) {
                 this._dateInputs.datepicker('option', 'maxDate', utcDate);
             }

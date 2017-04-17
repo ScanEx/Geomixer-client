@@ -1,0 +1,30 @@
+.CalendarWidget-inputCell {
+    padding: 0px 1px;
+    text-align: center;
+}
+
+.CalendarWidget table, .CalendarWidget tr, .CalendarWidget td
+{
+    border: 0px;
+    border-collapse: collapse;
+    padding: 0px;
+}
+
+.CalendarWidget-dateBeginInfo, .CalendarWidget-dateEndInfo {
+    text-align: center;
+}
+
+.CalendarWidget-iconScrollLeft, .CalendarWidget-iconScrollRight, .CalendarWidget-iconMore {
+    color: #404040;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.CalendarWidget-dateBegin, .CalendarWidget-dateEnd {
+    width: 6em;
+    text-align: center;
+}
+
+.CalendarWidget-forecast {
+    margin: 0px 0px 0px 4px;
+}
