@@ -1,5 +1,10 @@
 .photolayer-ui-container {
+    height: 22px;
     margin-bottom: 4px;
+}
+
+.photolayer-loader-container {
+    height: 44px;
 }
 
 .photolayer-title,

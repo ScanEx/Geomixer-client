@@ -440,6 +440,7 @@ _translationsHash.hash["eng"] = {
 
 	"Контакты" : "Contacts",
 	"Фотографии" : "Photo",
+	"Момент съемки" : "Image date",
 	"Видео" : "Video",
 	"Сообщения" : "Messages",
 	"Ссылка на место" : "Ссылка на место",

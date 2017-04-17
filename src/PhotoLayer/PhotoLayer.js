@@ -11,7 +11,8 @@ var nsGmx = window.nsGmx || {},
             existingCatalog: "существующий",
             name: "имя",
             available: "доступные каталоги",
-            load: "Загрузить фотографии"
+            load: "Загрузить фотографии",
+            ok: "ok"
         }
     });
 
@@ -22,14 +23,20 @@ var nsGmx = window.nsGmx || {},
             existingCatalog: "existing",
             name: "name",
             available: "available catalogs",
-            load: "Load photos"
+            load: "Load photos",
+            ok: "ok"
         }
     });
+
+    var PhotoLayer = function () {
+        var dialog;
 
     var PhotoLayerModel = window.Backbone.Model.extend({
         defaults: {
             newCatalog: true,
             fileName: '',
+            photoLayersFlag: false,
+            photoLayers: {},
             sandbox: ''
         }
     });
@@ -46,10 +53,12 @@ var nsGmx = window.nsGmx || {},
                         '<input class="select-catalog-input new-catalog-input" type="radio" checked name={{i "photoLayer.catalog"}}></input>' +
                         '{{i "photoLayer.newCatalog"}}' +
                     '</label>' +
+                    // '{{#if photoLayersFlag}}' +
                     '<label class="photolayer-catalog-label">' +
                         '<input class="select-catalog-input existing-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
                         '{{i "photoLayer.existingCatalog"}}' +
                     '</label>' +
+                    // '{{/if}}' +
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-newlayer-input-container">' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.name"}}</span>' +
@@ -57,7 +66,13 @@ var nsGmx = window.nsGmx || {},
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-existinglayer-input-container" style="display:none">' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.available"}}</span>' +
-                    '<input type="select" class="photolayer-name-input photolayer-existinglayer-input"></input>' +
+                    '<select class="photolayer-name-input photolayer-existinglayer-input">' +
+                        '{{#each this.photoLayers}}' +
+                        '<option value="{{this.layer}}">' +
+                            '{{this.layer}}' +
+                        '</option>' +
+                        '{{/each}}' +
+                    '</select>' +
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-loader-container">' +
                     '<span class="photolayer-title photolayer-loader-title">{{i "photoLayer.load"}}</span>' +
@@ -70,22 +85,63 @@ var nsGmx = window.nsGmx || {},
                 // '<div class="progress-container" style="display:none">' +
                     '<div class="progressbar"></div>' +
                 '</div>' +
+                '<div class="photolayer-ui-container photolayer-ok-button-container" style="display:none">' +
+                    '<span class="buttonLink ok-button"> {{i "photoLayer.ok"}}</span>' +
+                '</div>' +
             '</div>'
         ),
 
         events: {
             'change .select-catalog-input': 'setCatalogType',
             'change .photolayer-newlayer-input': 'setName',
-            'change #photo-uploader': 'selectFile'
+            'change #photo-uploader': 'selectFile',
+            'click .ok-button': 'close'
         },
 
         initialize: function () {
+            this.getPhotoLayers();
             this.createSandbox();
             this.render();
+
+            this.listenTo(this.model, 'change:fileName', this.updateName);
         },
 
         render: function () {
             this.$el.html(this.template(this.model.toJSON()));
+            this.$('.photolayer-loader-container').prop('disabled', true);
+        },
+
+        getPhotoLayers: function (layers) {
+            var layers = layers || nsGmx.gmxMap.layers,
+                photoLayersFlag = false,
+                photoLayers = [];
+
+            for (var i = 0, len = layers.length; i < len; i++) {
+                var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    isPhotoLayer;
+
+                if (props) {
+                    isPhotoLayer = props.IsPhotoLayer;
+
+                    if (isPhotoLayer && props.Access === 'edit') {
+                        photoLayersFlag = true;
+
+                        photoLayers.push({layer: props.title});
+
+                        // if (i === currentZoom) {
+                        //     zoomLevels[i].current = true;
+                        // }
+                        // photoLayers.push({
+                        //     layer: props.title
+                        // });
+                    }
+                }
+            }
+            this.model.set({
+                photoLayersFlag: photoLayersFlag,
+                photoLayers: photoLayers
+            });
         },
 
         setCatalogType: function (e) {
@@ -119,10 +175,23 @@ var nsGmx = window.nsGmx || {},
             this.model.set('fileName', e.target.value);
         },
 
+        close: function () {
+            $(dialog).remove();
+        },
+
+        updateName: function () {
+            var attrs = this.model.toJSON(),
+                uploadContainer = this.$('.photolayer-loader-container');
+
+            $(uploadContainer).toggleClass('gmx-disabled', !attrs.fileName);
+        },
+
         selectFile: function (e) {
             var files = e.target.files,
                 form = this.$('#photo-uploader-form'),
-                arr = [];
+                arr = [],
+                progressBarContainer = this.$('.photolayer-progress-container'),
+                progressBar = this.$('.progressbar');
 
             for (var key in files) {
                 if (files.hasOwnProperty(key)) {
@@ -146,7 +215,6 @@ var nsGmx = window.nsGmx || {},
                     IsPhotoLayer: true,
                     PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
                 },
-                progressBar = this.$('.progressbar'),
                 url, def;
 
                 $(form).prop('action', window.serverBase + 'Sandbox/Upload' + '?' + $.param(uploadParams));
@@ -156,84 +224,139 @@ var nsGmx = window.nsGmx || {},
                 formData.append("sandbox", attrs.sandbox);
 
                 for (var i = 0; i < files.length; i++) {
-                    console.log(files[i]);
                     formData.append(i, files[i]);
                 }
 
-                    var xhr = new XMLHttpRequest();
+                $(progressBar).progressbar({
+                    max: 100,
+                    value: 0
+                });
 
-                    xhr.open('POST', window.serverBase + 'Sandbox/Upload');
-                    xhr.withCredentials = true;
-                    xhr.onload = function () {
-                        // _this.progressBar.hide();
-                        if (xhr.status === 200) {
-                            var response = xhr.responseText;
+                $(progressBarContainer).show();
 
-                            if (!(response)) {
-                                return;
-                            }
+                var xhr = new XMLHttpRequest();
 
-                            console.log(response);
+                xhr.upload.addEventListener("progress", function(e) {
+                        $(progressBar).progressbar('option', 'value', e.loaded / e.total * 100);
+                }, false);
 
-                            url = window.serverBase + 'VectorLayer/Insert.ashx' + '?' + $.param(params);
-                            def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
+                xhr.open('POST', window.serverBase + 'Sandbox/Upload');
+                xhr.withCredentials = true;
+                xhr.onload = function () {
+                    // _this.progressBar.hide();
+                    if (xhr.status === 200) {
+                        var response = xhr.responseText;
 
-                            def.done(function(taskInfo){
-                                console.log(taskInfo);
-
-                            }).fail(function(taskInfo){
-                                console.log('fail');
-                                console.log(taskInfo);
-                            }).progress(function(taskInfo){
-                                console.log('in progress');
-                                console.log(taskInfo);
-
-                                if (taskInfo.Status === 'queue') {
-                                //     $(spinMessage).html(window._gtxt('mapExport.inQueue'));
-                                } else if (taskInfo.Status === 'progress') {
-                                //     $(spinMessage).html(window._gtxt('mapExport.inProcess'));
-                                //
-                                    // $(progressBar).progressbar('value', taskInfo.Progress);
-                                }
-                            });
+                        if (!(response)) {
+                            return;
                         }
-                    };
 
-                    xhr.send(formData);
-                    console.log(attrs.sandbox);
+                        url = window.serverBase + 'VectorLayer/Insert.ashx' + '?' + $.param(params);
+                        def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
-                // window.sendCrossDomainPostRequest(window.serverBase + 'Sandbox/Upload' + '?' + $.param(uploadParams) + formData, function(response) {
-                //     console.log(response);
-                //     if (parseResponse(response) && response.Result) {
-                //
-                //     }
-                // });
+                        def.done(function(taskInfo){
+                            var mapProperties = window._layersTree.treeModel.getMapProperties(),
+                                targetDiv = $(window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
+                                gmxProperties = {type: 'layer', content: taskInfo.Result},
+                                okButton = $(".photolayer-ok-button-container");
 
+                        gmxProperties.content.properties.mapName = mapProperties.name;
+                        gmxProperties.content.properties.hostName = mapProperties.hostName;
+                        gmxProperties.content.properties.visible = true;
 
-                // fetch(url, {mode: 'cors'})
-                //     .then(function(res) {
-                //         if (res.status === 200 && !res.bodyUsed) {
-                //             return res.text();
-                //         }
-                //     })
-                //     .then(function(res) {
-                //         // remove first && last parentheses
-                //         res = JSON.parse(res.substring(1, res.length - 1));
-                //         console.log(res);
-                //     })
-                //     .catch(console.log);
+                        gmxProperties.content.properties.styles = [{
+                            MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                            MaxZoom:21,
+                            RenderStyle:window._mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                        }];
 
-            console.log(files);
+                        window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+
+                        var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
+
+                        newLayer.bindPopup('')
+                        .on('popupopen', function(ev) {
+                            var popup = ev.popup,
+                                props = ev.gmx.properties,
+                                container = L.DomUtil.create('div', 'photoPopup'),
+                                prop = L.DomUtil.create('div', 'photo', container),
+                                image = L.DomUtil.create('img', 'photo-image-clickable', container),
+                                params = {
+                                    LayerID: popup.options.layerId,
+                                    rowId: props.gmx_id,
+                                    size: 'M',
+                                    WrapStyle: 'None'
+                                },
+                                url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
+
+                                L.extend(image, {
+                                    // width: 300,
+                                    galleryimg: 'no',
+                                    onselectstart: L.Util.falseFn,
+                                    onmousemove: L.Util.falseFn,
+                                    onload: function(ev) {
+                                        popup.update();
+                                    },
+                                    src: url
+                                });
+                                prop = L.DomUtil.create('div', 'myName', container);
+                                prop.innerHTML = '<b>' + window._gtxt("Имя") + '</b> ' + props['GMX_Filename'];
+                                prop = L.DomUtil.create('div', 'myName', container);
+                                prop.innerHTML = '<b>' + window._gtxt("Момент съемки") + '</b> ' + props['GMX_Date'];
+                                popup.setContent(container);
+
+                                image.onclick = function () {
+                                    var paramsBig = $.extend(params, {
+                                        size: 'Native'
+                                    }),
+                                    url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(paramsBig);
+
+                                    window.open(url, '_blank');
+                                }
+
+                            }, newLayer);
+
+                            $(progressBarContainer).hide();
+                            $(okButton).show();
+                        }).fail(function(taskInfo){
+                            $(progressBarContainer).hide();
+                        }).progress(function(taskInfo){
+                    });
+                }
+            };
+
+            xhr.send(formData);
         }
     });
 
-    var PhotoLayerWidget = function () {
-        this.loadPhotos = function () {
-            var view = new PhotoLayerView();
-            nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 200, false, false);
-        }
-    };
+    this.Load = function () {
+        var view = new PhotoLayerView(),
+            resizeFunc = function () {
+            },
+            closeFunc = function () {
+                view.model.set({
+                    photoLayersFlag: false,
+                    photoLayers: []
+                });
+            };
 
-    nsGmx.PhotoLayerWidget = PhotoLayerWidget;
+            dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 200, null, null, resizeFunc, closeFunc);
+    }
+
+    this.Unload = function () {
+        $(dialog).remove();
+    };
+};
+
+// }
+
+var publicInterface = {
+    pluginName: 'PhotoLayer',
+    PhotoLayer: PhotoLayer
+};
+
+window.gmxCore.addModule('PhotoLayer',
+    publicInterface
+);
 
 })(jQuery);

@@ -1935,3 +1935,7 @@ div.layersScroll
     pointer-events: none;
     cursor: default;
 }
+
+.photo-image-clickable {
+	cursor: pointer;
+}

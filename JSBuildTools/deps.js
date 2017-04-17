@@ -51,12 +51,10 @@ var jsFiles = [
     "src/AttrTable/ServerDataProvider.js",
     "src/AttrTable/SquareCalculation.js",
     "src/AttrTable/DefaultSearchParamsManager.js",
-
     "src/GridPlugin/GridPlugin.js",
-
     "src/MapExport/MapExport.js",
-
     "src/IndexGrid/IndexGrid.js",
+    "src/PhotoLayer/PhotoLayer.js",
 
     "CoverControl.js",
     "CoverControl2.js",
@@ -138,7 +136,8 @@ var cssFiles = [
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
-    "src/IndexGrid/IndexGrid.css"
+    "src/IndexGrid/IndexGrid.css",
+    "src/PhotoLayer/PhotoLayer.css"
 ];
 
 var moduleFiles = {
