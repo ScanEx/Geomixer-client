@@ -134,7 +134,7 @@ var cssFiles = [
     "leaflet/plugins/gmxControls/src/css/external.css",
     "leaflet/leafletGmx.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchControl.css",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css"
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
