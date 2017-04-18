@@ -202,6 +202,7 @@ var createMenuNew = function() {
                 nsGmx.createMapEditor(div, 1);
             }, delimiter: true, disabled: !isMapEditor},
             {id:'loadFile',    title: _gtxt('Загрузить объекты'),  func:drawingObjects.loadShp.load},
+            {id:'loadPhotos',    title: _gtxt('Загрузить фотографии'),  func:function () {PhotoLayerDialog()}},
             {id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
             {id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
         ]});
@@ -1502,6 +1503,56 @@ function processGmxMap(state, gmxMap) {
         }
     }
 
+    // bind popup for photo-layers
+    for (var i = 0; i < gmxMap.layers.length; i++) {
+        var layer = gmxMap.layers[i],
+            layerProps = layer.getGmxProperties();
+
+        if (layerProps && layerProps.IsPhotoLayer) {
+            layer.bindPopup('')
+            .on('popupopen', function(ev) {
+                var popup = ev.popup,
+                    props = ev.gmx.properties,
+                    container = L.DomUtil.create('div', 'photoPopup'),
+                    prop = L.DomUtil.create('div', 'photo', container),
+                    image = L.DomUtil.create('img', 'photo-image-clickable', container),
+                    params = {
+                        LayerID: popup.options.layerId,
+                        rowId: props.gmx_id,
+                        size: 'M',
+                        WrapStyle: 'None'
+                    },
+                    url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
+
+                    L.extend(image, {
+                        // width: 300,
+                        galleryimg: 'no',
+                        onselectstart: L.Util.falseFn,
+                        onmousemove: L.Util.falseFn,
+                        onload: function(ev) {
+                            popup.update();
+                        },
+                        src: url
+                    });
+                    prop = L.DomUtil.create('div', 'myName', container);
+                    prop.innerHTML = '<b>' + window._gtxt("Имя") + '</b> ' + props['GMX_Filename'];
+                    prop = L.DomUtil.create('div', 'myName', container);
+                    prop.innerHTML = '<b>' + window._gtxt("Момент съемки") + '</b> ' + props['GMX_Date'];
+                    popup.setContent(container);
+
+                    image.onclick = function () {
+                        var paramsBig = $.extend(params, {
+                            size: 'Native'
+                        }),
+                        url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(paramsBig);
+
+                        window.open(url, '_blank');
+                    }
+
+                }, layer);
+            }
+    }
+
 	// Begin: запоминание текущей позиции карты
 	function saveMapPosition(key) {
 		window.localStorage.setItem('lastMapPosiotion_' + key, JSON.stringify({zoom: lmap.getZoom(), center: lmap.getCenter()}));
@@ -1848,6 +1899,13 @@ function indexGridMenu() {
     gmxCore.loadModule('IndexGrid', 'src/IndexGrid/IndexGrid.js').then(function (def) {
           var menu = new def.IndexGridMenu();
           menu.Load();
+  });
+}
+
+function PhotoLayerDialog() {
+    gmxCore.loadModule('PhotoLayer', 'src/PhotoLayer/PhotoLayer.js').then(function (def) {
+          var dialog = new def.PhotoLayer();
+          dialog.Load();
   });
 }
 
