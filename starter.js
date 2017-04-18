@@ -201,8 +201,8 @@ var createMenuNew = function() {
                 var div = $(_layersTree._treeCanvas).find('div[MapID]')[0];
                 nsGmx.createMapEditor(div, 1);
             }, delimiter: true, disabled: !isMapEditor},
-            {id:'loadFile',    title: _gtxt('Загрузить объекты'),  func:drawingObjects.loadShp.load},
-            {id:'loadPhotos',    title: _gtxt('Загрузить фотографии'),  func:function () {PhotoLayerDialog()}},
+            {id:'loadFile',    title: _gtxt('Загрузить объекты'),  func:drawingObjects.loadShp.load, delimiter: true},
+            {id:'loadPhotos',    title: _gtxt('Загрузить фотографии'),  func:function () {PhotoLayerDialog()}, delimiter: true},
             {id:'wms',         title: _gtxt('Подключить WMS'),  func:loadServerData.WMS.load},
             {id:'wfs',         title: _gtxt('Подключить WFS'),  func:loadServerData.WFS.load}
         ]});
