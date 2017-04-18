@@ -121,6 +121,7 @@ var nsGmx = window.nsGmx || {},
             var layers = layers || nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
                 photoLayersFlag = attrs.photoLayersFlag,
+                currentPhotoLayer,
                 photoLayers = [];
 
             for (var i = 0, len = layers.length; i < len; i++) {
@@ -135,12 +136,17 @@ var nsGmx = window.nsGmx || {},
                         photoLayersFlag = true;
 
                         photoLayers.push({layer: props.title, current: i === 0});
+
+                        if (i === 0) {
+                            currentPhotoLayer = layer;
+                        }
                     }
                 }
             }
 
             this.model.set({
                 photoLayersFlag: photoLayersFlag,
+                currentPhotoLayer: currentPhotoLayer,
                 photoLayers: photoLayers
             });
         },
