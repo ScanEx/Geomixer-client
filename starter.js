@@ -1147,6 +1147,7 @@ function loadMap(state) {
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
 	var srs = window.mapOptions ? window.mapOptions.srs : '';
+	if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
 		serverHost: hostName,
