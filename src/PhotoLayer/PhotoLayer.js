@@ -37,7 +37,7 @@ var nsGmx = window.nsGmx || {},
             fileName: '',
             photoLayersFlag: false,
             currentPhotoLayer: null,
-            photoLayers: {},
+            photoLayers: [],
             sandbox: ''
         }
     });
@@ -50,22 +50,30 @@ var nsGmx = window.nsGmx || {},
             '<div class="photolayer-ui-container photolayer-properties-container">' +
                 '<div class="photolayer-ui-container photolayer-catalog-selector-container">' +
                     '<span class="photolayer-title photolayer-catalog-title">{{i "photoLayer.catalog"}}</span>' +
-                    '<label class="photolayer-catalog-label">' +
-                        '<input class="select-catalog-input new-catalog-input" type="radio" checked name={{i "photoLayer.catalog"}}></input>' +
-                        '{{i "photoLayer.newCatalog"}}' +
-                    '</label>' +
                     '{{#if photoLayersFlag}}' +
                     '<label class="photolayer-catalog-label">' +
                         '<input class="select-catalog-input existing-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
                         '{{i "photoLayer.existingCatalog"}}' +
                     '</label>' +
                     '{{/if}}' +
+                    '<label class="photolayer-catalog-label">' +
+                        '<input class="select-catalog-input new-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
+                        '{{i "photoLayer.newCatalog"}}' +
+                    '</label>' +
                 '</div>' +
-                '<div class="photolayer-ui-container photolayer-newlayer-input-container">' +
+                '<div class="photolayer-ui-container photolayer-newlayer-input-container"' +
+                '{{#if photoLayersFlag}}' +
+                'style="display:none"' +
+                '{{/if}}' +
+                '>' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.name"}}</span>' +
                     '<input type="text" class="photolayer-name-input photolayer-newlayer-input inputStyle" value={{fileName}}></input>' +
                 '</div>' +
-                '<div class="photolayer-ui-container photolayer-existinglayer-input-container" style="display:none">' +
+                '<div class="photolayer-ui-container photolayer-existinglayer-input-container" ' +
+                '{{#unless photoLayersFlag}}' +
+                'style="display:none"' +
+                '{{/unless}}' +
+                '>' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.available"}}</span>' +
                     '<select class="photolayer-name-input photolayer-existinglayer-input">' +
                         '{{#each this.photoLayers}}' +
@@ -76,7 +84,7 @@ var nsGmx = window.nsGmx || {},
                         '{{/each}}' +
                     '</select>' +
                 '</div>' +
-                '<div class="photolayer-ui-block photolayer-loader-block gmx-disabled">' +
+                '<div class="photolayer-ui-block photolayer-loader-block {{#unless photoLayersFlag}} gmx-disabled" {{/unless}}>' +
                     '<div class="photolayer-ui-container photolayer-loader-container">' +
                         '<span class="photolayer-title photolayer-loader-title">{{i "photoLayer.load"}}</span>' +
                         '<form id="photo-uploader-form" name="photouploader" enctype="multipart/form-data" method="post">' +
@@ -108,6 +116,9 @@ var nsGmx = window.nsGmx || {},
             this.createSandbox();
             this.render();
 
+            var firstButton = this.$('.select-catalog-input')[0];
+            $(firstButton).prop('checked', 'checked');
+
             this.listenTo(this.model, 'change:fileName', this.updateName);
             this.listenTo(this.model, 'change:photoLayers', this.updatePhotoLayersList);
         },
@@ -124,7 +135,7 @@ var nsGmx = window.nsGmx || {},
                 currentPhotoLayer,
                 photoLayers = [];
 
-            for (var i = 0, len = layers.length; i < len; i++) {
+            for (var i = 0; i < layers.length; i++) {
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     isPhotoLayer;
@@ -136,10 +147,7 @@ var nsGmx = window.nsGmx || {},
                         photoLayersFlag = true;
 
                         photoLayers.push({layer: props.title, current: i === 0});
-
-                        if (i === 0) {
                             currentPhotoLayer = layer;
-                        }
                     }
                 }
             }
@@ -165,6 +173,7 @@ var nsGmx = window.nsGmx || {},
                 $(existingContainer).toggle(false);
 
                 this.model.set({
+                    photoLayers: [],
                     currentPhotoLayer: null
                 });
 
@@ -227,14 +236,18 @@ var nsGmx = window.nsGmx || {},
         updatePhotoLayersList: function () {
             var attrs = this.model.toJSON(),
                 photoLayers = attrs.photoLayers,
+                currentPhotoLayerName = attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties().title,
                 str = '',
                 select = this.$('.photolayer-existinglayer-input');
 
-            for (var i = 0; i < photoLayers.length; i++) {
-                str += '<option>' + photoLayers[i].layer + '</option>';
+            if (photoLayers.length) {
+                for (var i = 0; i < photoLayers.length; i++) {
+                    str += '<option>' + photoLayers[i].layer + '</option>';
+                }
             }
-
             $(select).html(str);
+
+            $('.photolayer-existinglayer-input option[value=' + currentPhotoLayerName + ']').prop('selected', true);
         },
 
         selectFile: function (e) {
@@ -277,7 +290,7 @@ var nsGmx = window.nsGmx || {},
                         PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
                     }
                 };
-
+console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties().title);
                 $(form).prop('action', window.serverBase + 'Sandbox/Upload' + '?' + $.param(uploadParams));
 
                 var formData = new FormData($(form)[0]);
@@ -324,19 +337,32 @@ var nsGmx = window.nsGmx || {},
                                     targetDiv = $(window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
                                     gmxProperties = {type: 'layer', content: taskInfo.Result};
 
-                                    gmxProperties.content.properties.mapName = mapProperties.name;
-                                    gmxProperties.content.properties.hostName = mapProperties.hostName;
-                                    gmxProperties.content.properties.visible = true;
+                                gmxProperties.content.properties.mapName = mapProperties.name;
+                                gmxProperties.content.properties.hostName = mapProperties.hostName;
+                                gmxProperties.content.properties.visible = true;
 
-                                    gmxProperties.content.properties.styles = [{
-                                        MinZoom: gmxProperties.content.properties.VtMaxZoom,
-                                        MaxZoom:21,
-                                        RenderStyle:window._mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                                    }];
+                                gmxProperties.content.properties.styles = [{
+                                    MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                                    MaxZoom:21,
+                                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png',
+                                    RenderStyle: $.extend(window._mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType], {
+                                        iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png'
+                                    })
+                                }];
 
-                                    window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+                                window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
 
-                                    var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
+                                var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
+                                    // newLayer.setStyles({
+                                    //     iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png'
+                                    // })
+
+                                var newSt = newLayer.getStyles();
+
+                                _this.model.set({
+                                    currentPhotoLayer: newLayer
+                                });
+
 
                                 newLayer.bindPopup('')
                                 .on('popupopen', function(ev) {
@@ -380,7 +406,11 @@ var nsGmx = window.nsGmx || {},
 
                                 }, newLayer);
                             } else {
-                                L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
+                                var updatedLayer = nsGmx.gmxMap.layersByID[attrs.currentPhotoLayer.getGmxProperties().LayerID];
+                                L.gmx.layersVersion.chkVersion(updatedLayer, function(res) {
+                                    console.log(res);
+                                });
+                                // L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
                             }
 
                             $(progressBarContainer).hide();
@@ -404,6 +434,7 @@ var nsGmx = window.nsGmx || {},
             closeFunc = function () {
                 view.model.set({
                     photoLayersFlag: false,
+                    photoLayers: [],
                     currentPhotoLayer: null,
                     photoLayers: []
                 });
