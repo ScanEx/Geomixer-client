@@ -35,6 +35,7 @@ var nsGmx = window.nsGmx || {},
         defaults: {
             newCatalog: true,
             fileName: '',
+            photoLayersFlag: false,
             currentPhotoLayer: null,
             photoLayers: {},
             sandbox: ''
@@ -53,12 +54,12 @@ var nsGmx = window.nsGmx || {},
                         '<input class="select-catalog-input new-catalog-input" type="radio" checked name={{i "photoLayer.catalog"}}></input>' +
                         '{{i "photoLayer.newCatalog"}}' +
                     '</label>' +
-                    // '{{#if currentPhotoLayer}}' +
+                    '{{#if photoLayersFlag}}' +
                     '<label class="photolayer-catalog-label">' +
                         '<input class="select-catalog-input existing-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
                         '{{i "photoLayer.existingCatalog"}}' +
                     '</label>' +
-                    // '{{/if}}' +
+                    '{{/if}}' +
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-newlayer-input-container">' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.name"}}</span>' +
@@ -118,6 +119,8 @@ var nsGmx = window.nsGmx || {},
 
         getPhotoLayers: function (layers) {
             var layers = layers || nsGmx.gmxMap.layers,
+                attrs = this.model.toJSON(),
+                photoLayersFlag = attrs.photoLayersFlag,
                 photoLayers = [];
 
             for (var i = 0, len = layers.length; i < len; i++) {
@@ -129,12 +132,15 @@ var nsGmx = window.nsGmx || {},
                     isPhotoLayer = props.IsPhotoLayer;
 
                     if (isPhotoLayer && props.Access === 'edit') {
+                        photoLayersFlag = true;
+
                         photoLayers.push({layer: props.title, current: i === 0});
                     }
                 }
             }
 
             this.model.set({
+                photoLayersFlag: photoLayersFlag,
                 photoLayers: photoLayers
             });
         },
@@ -391,6 +397,7 @@ var nsGmx = window.nsGmx || {},
             },
             closeFunc = function () {
                 view.model.set({
+                    photoLayersFlag: false,
                     currentPhotoLayer: null,
                     photoLayers: []
                 });
