@@ -1203,7 +1203,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				layerProperties = {type:'layer', content: response.Result};
 
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.VtMaxZoom, MaxZoom:21, RenderStyle: layerProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[layerProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 
@@ -1873,7 +1873,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
             if (!newProps.styles)
             {
                 if (newProps.type == 'Vector')
-                    newProps.styles = [{MinZoom:1, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newProps.GeometryType]}]
+                    newProps.styles = [{MinZoom:1, MaxZoom:21, RenderStyle: newProps.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[newProps.GeometryType] : _mapHelper.defaultStyles[newProps.GeometryType]}]
                 else if (newProps.type != 'Vector' && !newProps.MultiLayerID)
                     newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
             }

@@ -30,6 +30,14 @@ var mapHelper = function()
 		'polygon':{outline:{color:0x0000FF, thickness:1}, fill:{color:0xFFFFFF, opacity:20}}
 	}
 
+	this.defaultPhotoIconStyles = {
+		'point': {
+			marker: {
+				image: 'http://maps.kosmosnimki.ru/api/img/camera18.png'
+			}
+		}
+	}
+
 	this.stylesDialogsHash = {};
 	this.drawingDialogsHash = {};
 
