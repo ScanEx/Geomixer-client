@@ -1,10 +1,39 @@
 .photolayer-ui-container {
-    height: 22px;
+    height: 25px;
     margin-bottom: 4px;
+    margin-left: 6px;
+}
+.photolayer-catalog-selector-container {
+    height: 35px;
+    line-height: 35px;
+    margin-bottom: 10px;
+}
+
+.photolayer-catalog-label input {
+    margin-right: 4px;
 }
 
 .photolayer-loader-container {
     height: 44px;
+}
+
+.photolayer-title {
+    display: block;
+}
+
+.photolayer-name-title {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.photolayer-newlayer-input-container,
+.photolayer-existinglayer-input-container {
+    margin-bottom: 20px;
+}
+
+.photolayer-existinglayer-input {
+    border: 1px solid #808080;
+    min-width: 139px;
 }
 
 .photolayer-title,
@@ -12,19 +41,78 @@
     margin-right: 8px;
 }
 
-.photolayer-loader-icon {
-    width: 20px;
+.select-catalog-button {
     cursor: pointer;
+    width: 150px;
+    height: 25px;
+    text-align: center;
+    padding: 6px;
+    margin-right: 8px;
+    border-radius: 2px;
+    background-color: #C0C0C0;
+    color: grey;
 }
 
-.photolayer-catalog-label input {
-    margin-right: 4px;
+.select-catalog-button.active {
+    background-color: #1471bb;
+    color: #FFF;
+}
+
+.photolayer-loader-block {
+    display: inline-block;
+    bottom: 4px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.photo-uploader-label {
+    display: inline-block;
+}
+
+label.photo-uploader-label input {
+    display: none;
+}
+
+.photo-uploader-button.gmx-disabled {
+    color: #999999;
+    pointer-events: none;
+    cursor: default;
+}
+
+.photo-uploader-button {
+    cursor: pointer;
+    width: 150px;
+    height: 25px;
+    text-align: center;
+    font-weight: bold;
+    padding: 6px;
+    margin-right: 8px;
+    border-radius: 2px;
+    background-color: #FFF;
+    color: #1471bb;
+}
+
+.photolayer-progress-container {
+    /*background-color: grey;*/
+    display: inline-block;
+    width: 150px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.progressbar {
+    display: inline-block;
+    width: 150px;
 }
 
 .progressbar.ui-progressbar{
-    height: 1em;
+    height: 0.5em;
 }
 
 .progressbar .ui-progressbar-value {
-    background: grey;
+    background: #1471bb;
+}
+
+.photolayer-ok-button-container {
+    width: 25px;
 }

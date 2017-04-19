@@ -1525,7 +1525,6 @@ function processGmxMap(state, gmxMap) {
                     url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
 
                     L.extend(image, {
-                        // width: 300,
                         galleryimg: 'no',
                         onselectstart: L.Util.falseFn,
                         onmousemove: L.Util.falseFn,

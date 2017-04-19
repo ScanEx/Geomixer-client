@@ -7,9 +7,10 @@ var nsGmx = window.nsGmx || {},
     window._translationsHash.addtext('rus', {
         photoLayer: {
             catalog: "Каталог",
-            newCatalog: "новый",
-            existingCatalog: "существующий",
-            name: "имя",
+            newCatalog: "в новый каталог",
+            existingCatalog: "в существующий каталог",
+            placeholder: "Введите имя каталога",
+            name: "Имя каталога",
             available: "доступные каталоги",
             load: "Загрузить фотографии",
             ok: "ok"
@@ -19,8 +20,9 @@ var nsGmx = window.nsGmx || {},
     window._translationsHash.addtext('eng', {
         photoLayer: {
             catalog: "Catalog",
-            newCatalog: "new",
-            existingCatalog: "existing",
+            newCatalog: "into new catalog",
+            existingCatalog: "into existing catalog",
+            placeholder: "Type catalog name",
             name: "name",
             available: "available catalogs",
             load: "Load photos",
@@ -33,7 +35,6 @@ var nsGmx = window.nsGmx || {},
 
     var PhotoLayerModel = window.Backbone.Model.extend({
         defaults: {
-            newCatalog: true,
             fileName: '',
             photoLayersFlag: false,
             currentPhotoLayer: null,
@@ -49,17 +50,10 @@ var nsGmx = window.nsGmx || {},
         template: Handlebars.compile('' +
             '<div class="photolayer-ui-container photolayer-properties-container">' +
                 '<div class="photolayer-ui-container photolayer-catalog-selector-container">' +
-                    '<span class="photolayer-title photolayer-catalog-title">{{i "photoLayer.catalog"}}</span>' +
                     '{{#if photoLayersFlag}}' +
-                    '<label class="photolayer-catalog-label">' +
-                        '<input class="select-catalog-input existing-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
-                        '{{i "photoLayer.existingCatalog"}}' +
-                    '</label>' +
+                    '<span class="select-catalog-button existing-catalog-button">{{i "photoLayer.existingCatalog"}}</span>' +
                     '{{/if}}' +
-                    '<label class="photolayer-catalog-label">' +
-                        '<input class="select-catalog-input new-catalog-input" type="radio" name={{i "photoLayer.catalog"}}></input>' +
-                        '{{i "photoLayer.newCatalog"}}' +
-                    '</label>' +
+                    '<span class="select-catalog-button new-catalog-button">{{i "photoLayer.newCatalog"}}</span>' +
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-newlayer-input-container"' +
                 '{{#if photoLayersFlag}}' +
@@ -67,14 +61,14 @@ var nsGmx = window.nsGmx || {},
                 '{{/if}}' +
                 '>' +
                     '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.name"}}</span>' +
-                    '<input type="text" class="photolayer-name-input photolayer-newlayer-input inputStyle" value={{fileName}}></input>' +
+                    '<input type="text" class="photolayer-name-input photolayer-newlayer-input minInputStyle"/>' +
                 '</div>' +
                 '<div class="photolayer-ui-container photolayer-existinglayer-input-container" ' +
                 '{{#unless photoLayersFlag}}' +
                 'style="display:none"' +
                 '{{/unless}}' +
                 '>' +
-                    '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.available"}}</span>' +
+                    '<span class="photolayer-title photolayer-name-title">{{i "photoLayer.name"}}</span>' +
                     '<select class="photolayer-name-input photolayer-existinglayer-input">' +
                         '{{#each this.photoLayers}}' +
                         '<option value="{{this.layer}}"' +
@@ -84,27 +78,25 @@ var nsGmx = window.nsGmx || {},
                         '{{/each}}' +
                     '</select>' +
                 '</div>' +
-                '<div class="photolayer-ui-block photolayer-loader-block {{#unless photoLayersFlag}} gmx-disabled" {{/unless}}>' +
-                    '<div class="photolayer-ui-container photolayer-loader-container">' +
-                        '<span class="photolayer-title photolayer-loader-title">{{i "photoLayer.load"}}</span>' +
-                        '<form id="photo-uploader-form" name="photouploader" enctype="multipart/form-data" method="post">' +
-                            '<input type="file" name="file" id="photo-uploader" accept="image/*" multiple></input>' +
-                        '</form>' +
-                        // '<span class="photolayer-loader-icon">111</span>' +
-                    '</div>' +
-                    '<div class="photolayer-ui-container photolayer-progress-container">' +
-                    // '<div class="progress-container" style="display:none">' +
-                        '<div class="progressbar"></div>' +
-                    '</div>' +
-                    '<div class="photolayer-ui-container photolayer-ok-button-container" style="display:none">' +
-                        '<span class="buttonLink ok-button"> {{i "photoLayer.ok"}}</span>' +
-                    '</div>' +
+                '<div class="photolayer-ui-block photolayer-loader-block">' +
+                        '<label class="photo-uploader-label">' +
+                        '<span class="photo-uploader-button">{{i "photoLayer.load"}}</span>' +
+                            '<form id="photo-uploader-form" name="photouploader" enctype="multipart/form-data" method="post">' +
+                                '<input type="file" name="file" id="photo-uploader" accept="image/*" multiple></input>' +
+                            '</form>' +
+                        '</label>' +
+                    '<span class="photolayer-progress-container">' +
+                        '<span class="progressbar"></span>' +
+                    '</span>' +
+                    '<span class="photolayer-ui-container photolayer-ok-button-container" style="display:none">' +
+                        '<span class="buttonLink ok-button">{{i "photoLayer.ok"}}</span>' +
+                    '</span>' +
                 '</div>' +
             '</div>'
         ),
 
         events: {
-            'change .select-catalog-input': 'setCatalogType',
+            'click .select-catalog-button': 'setCatalogType',
             'keyup .photolayer-newlayer-input': 'setName',
             'change .photolayer-existinglayer-input': 'setCurrentLayer',
             'change #photo-uploader': 'selectFile',
@@ -116,16 +108,22 @@ var nsGmx = window.nsGmx || {},
             this.createSandbox();
             this.render();
 
-            var firstButton = this.$('.select-catalog-input')[0];
-            $(firstButton).prop('checked', 'checked');
-
             this.listenTo(this.model, 'change:fileName', this.updateName);
             this.listenTo(this.model, 'change:photoLayers', this.updatePhotoLayersList);
         },
 
         render: function () {
+            var attrs = this.model.toJSON();
+
             this.$el.html(this.template(this.model.toJSON()));
-            this.$('.photolayer-loader-container').prop('disabled', true);
+
+            var firstButton = this.$('.select-catalog-button')[0],
+                uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button'));
+
+            $(firstButton).addClass('active');
+
+            $(uploadBlock).toggleClass('gmx-disabled', !attrs.photoLayersFlag);
+            this.$('.photolayer-newlayer-input').prop('placeholder', _gtxt('photoLayer.placeholder'))
         },
 
         getPhotoLayers: function (layers) {
@@ -161,16 +159,18 @@ var nsGmx = window.nsGmx || {},
 
         setCatalogType: function (e) {
             var attrs = this.model.toJSON(),
-                newCatalog = $(e.target).hasClass('new-catalog-input'),
+                newCatalog = $(e.target).hasClass('new-catalog-button'),
                 newContainer = $('.photolayer-newlayer-input-container'),
                 existingContainer = $('.photolayer-existinglayer-input-container'),
-                uploadBlock = this.$('.photolayer-loader-block'),
+                uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button')),
                 okButton = $(".photolayer-ok-button-container");
 
             if (newCatalog) {
                 $(uploadBlock).toggleClass('gmx-disabled', !attrs.fileName);
                 $(newContainer).toggle(true);
                 $(existingContainer).toggle(false);
+                $(e.target).toggleClass('active', true);
+                $('.existing-catalog-button').toggleClass('active', false);
 
                 this.model.set({
                     photoLayers: [],
@@ -183,6 +183,8 @@ var nsGmx = window.nsGmx || {},
                 $(uploadBlock).toggleClass('gmx-disabled', false);
                 $(existingContainer).toggle(true);
                 $(newContainer).toggle(false);
+                $(e.target).toggleClass('active', true);
+                $('.new-catalog-button').toggleClass('active', false);
             }
 
             $(okButton).hide();
@@ -228,7 +230,7 @@ var nsGmx = window.nsGmx || {},
 
         updateName: function () {
             var attrs = this.model.toJSON(),
-                uploadBlock = this.$('.photolayer-loader-block');
+                uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button'));
 
             $(uploadBlock).toggleClass('gmx-disabled', !attrs.fileName);
         },
@@ -290,7 +292,6 @@ var nsGmx = window.nsGmx || {},
                         PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
                     }
                 };
-console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties().title);
                 $(form).prop('action', window.serverBase + 'Sandbox/Upload' + '?' + $.param(uploadParams));
 
                 var formData = new FormData($(form)[0]);
@@ -317,7 +318,6 @@ console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties(
                 xhr.open('POST', window.serverBase + 'Sandbox/Upload');
                 xhr.withCredentials = true;
                 xhr.onload = function () {
-                    // _this.progressBar.hide();
                     if (xhr.status === 200) {
                         var response = xhr.responseText;
 
@@ -353,16 +353,10 @@ console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties(
                                 window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
 
                                 var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
-                                    // newLayer.setStyles({
-                                    //     iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png'
-                                    // })
-
-                                var newSt = newLayer.getStyles();
 
                                 _this.model.set({
                                     currentPhotoLayer: newLayer
                                 });
-
 
                                 newLayer.bindPopup('')
                                 .on('popupopen', function(ev) {
@@ -380,7 +374,6 @@ console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties(
                                     url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
 
                                     L.extend(image, {
-                                        // width: 300,
                                         galleryimg: 'no',
                                         onselectstart: L.Util.falseFn,
                                         onmousemove: L.Util.falseFn,
@@ -406,11 +399,7 @@ console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties(
 
                                 }, newLayer);
                             } else {
-                                var updatedLayer = nsGmx.gmxMap.layersByID[attrs.currentPhotoLayer.getGmxProperties().LayerID];
-                                L.gmx.layersVersion.chkVersion(updatedLayer, function(res) {
-                                    console.log(res);
-                                });
-                                // L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
+                                L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
                             }
 
                             $(progressBarContainer).hide();
@@ -440,7 +429,7 @@ console.log(attrs.currentPhotoLayer && attrs.currentPhotoLayer.getGmxProperties(
                 });
             };
 
-            dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 200, null, null, resizeFunc, closeFunc);
+            dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 440, 200, null, null, resizeFunc, closeFunc);
     }
 
     this.Unload = function () {
