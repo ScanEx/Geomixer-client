@@ -110,12 +110,14 @@ var nsGmx = window.nsGmx || {},
 
             this.listenTo(this.model, 'change:fileName', this.updateName);
             this.listenTo(this.model, 'change:photoLayers', this.updatePhotoLayersList);
+            this.listenTo(this.model, 'change:currentPhotoLayer', this.updatePhotoLayersList);
         },
 
         render: function () {
             var attrs = this.model.toJSON();
 
             this.$el.html(this.template(this.model.toJSON()));
+            this.updatePhotoLayersList();
 
             var firstButton = this.$('.select-catalog-button')[0],
                 uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button'));
@@ -145,15 +147,17 @@ var nsGmx = window.nsGmx || {},
                         photoLayersFlag = true;
 
                         photoLayers.push({layer: props.title, current: i === 0});
-                            currentPhotoLayer = layer;
+                            if (i === 0) {
+                                currentPhotoLayer = layer;
+                            }
                     }
                 }
             }
 
             this.model.set({
                 photoLayersFlag: photoLayersFlag,
-                currentPhotoLayer: currentPhotoLayer,
-                photoLayers: photoLayers
+                photoLayers: photoLayers,
+                currentPhotoLayer: currentPhotoLayer
             });
         },
 
@@ -249,7 +253,7 @@ var nsGmx = window.nsGmx || {},
             }
             $(select).html(str);
 
-            $('.photolayer-existinglayer-input option[value=' + currentPhotoLayerName + ']').prop('selected', true);
+            $('.photolayer-existinglayer-input option[value=' + currentPhotoLayerName + ']').attr('selected', 'selected');
         },
 
         selectFile: function (e) {
@@ -259,6 +263,8 @@ var nsGmx = window.nsGmx || {},
                 progressBarContainer = this.$('.photolayer-progress-container'),
                 progressBar = this.$('.progressbar'),
                 okButton = $(".photolayer-ok-button-container");
+
+            $(okButton).hide();
 
             for (var key in files) {
                 if (files.hasOwnProperty(key)) {
@@ -344,9 +350,10 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.styles = [{
                                     MinZoom: gmxProperties.content.properties.VtMaxZoom,
                                     MaxZoom:21,
-                                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png',
                                     RenderStyle: $.extend(window._mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType], {
-                                        iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera12.png'
+                                        marker: {
+                                            image: 'http://maps.kosmosnimki.ru/api/img/camera18.png'
+                                        }
                                     })
                                 }];
 
