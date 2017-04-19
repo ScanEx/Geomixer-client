@@ -13,7 +13,8 @@ var nsGmx = window.nsGmx || {},
             name: "Имя каталога",
             available: "доступные каталоги",
             load: "Загрузить фотографии",
-            ok: "ok"
+            loadShort: "ЗАГРУЗИТЬ",
+            ok: "готово"
         }
     });
 
@@ -26,7 +27,8 @@ var nsGmx = window.nsGmx || {},
             name: "name",
             available: "available catalogs",
             load: "Load photos",
-            ok: "ok"
+            loadShort: "LOAD",
+            ok: "done"
         }
     });
 
@@ -80,7 +82,7 @@ var nsGmx = window.nsGmx || {},
                 '</div>' +
                 '<div class="photolayer-ui-block photolayer-loader-block">' +
                         '<label class="photo-uploader-label">' +
-                        '<span class="photo-uploader-button">{{i "photoLayer.load"}}</span>' +
+                        '<span class="photo-uploader-button">{{i "photoLayer.loadShort"}}</span>' +
                             '<form id="photo-uploader-form" name="photouploader" enctype="multipart/form-data" method="post">' +
                                 '<input type="file" name="file" id="photo-uploader" accept="image/*" multiple></input>' +
                             '</form>' +
@@ -89,7 +91,7 @@ var nsGmx = window.nsGmx || {},
                         '<span class="progressbar"></span>' +
                     '</span>' +
                     '<span class="photolayer-ui-container photolayer-ok-button-container" style="display:none">' +
-                        '<span class="buttonLink ok-button">{{i "photoLayer.ok"}}</span>' +
+                        '<span class="ok-button">{{i "photoLayer.ok"}}</span>' +
                     '</span>' +
                 '</div>' +
             '</div>'
@@ -99,8 +101,7 @@ var nsGmx = window.nsGmx || {},
             'click .select-catalog-button': 'setCatalogType',
             'keyup .photolayer-newlayer-input': 'setName',
             'change .photolayer-existinglayer-input': 'setCurrentLayer',
-            'change #photo-uploader': 'selectFile',
-            'click .ok-button': 'close'
+            'change #photo-uploader': 'selectFile'
         },
 
         initialize: function () {
@@ -110,7 +111,6 @@ var nsGmx = window.nsGmx || {},
 
             this.listenTo(this.model, 'change:fileName', this.updateName);
             this.listenTo(this.model, 'change:photoLayers', this.updatePhotoLayersList);
-            this.listenTo(this.model, 'change:currentPhotoLayer', this.updatePhotoLayersList);
         },
 
         render: function () {
@@ -166,8 +166,7 @@ var nsGmx = window.nsGmx || {},
                 newCatalog = $(e.target).hasClass('new-catalog-button'),
                 newContainer = $('.photolayer-newlayer-input-container'),
                 existingContainer = $('.photolayer-existinglayer-input-container'),
-                uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button')),
-                okButton = $(".photolayer-ok-button-container");
+                uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button'));
 
             if (newCatalog) {
                 $(uploadBlock).toggleClass('gmx-disabled', !attrs.fileName);
@@ -190,8 +189,6 @@ var nsGmx = window.nsGmx || {},
                 $(e.target).toggleClass('active', true);
                 $('.new-catalog-button').toggleClass('active', false);
             }
-
-            $(okButton).hide();
         },
 
         createSandbox: function () {
@@ -228,10 +225,6 @@ var nsGmx = window.nsGmx || {},
             });
         },
 
-        close: function () {
-            $(dialog).remove();
-        },
-
         updateName: function () {
             var attrs = this.model.toJSON(),
                 uploadBlock = this.$('.photo-uploader-label').add(this.$('.photo-uploader-button'));
@@ -264,13 +257,14 @@ var nsGmx = window.nsGmx || {},
                 progressBar = this.$('.progressbar'),
                 okButton = $(".photolayer-ok-button-container");
 
-            $(okButton).hide();
-
             for (var key in files) {
                 if (files.hasOwnProperty(key)) {
                     arr.push(files[key]);
                 }
             }
+
+            $(progressBarContainer).hide();
+            $(okButton).hide();
 
             var attrs = this.model.toJSON(),
                 _this = this,
@@ -350,11 +344,7 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.styles = [{
                                     MinZoom: gmxProperties.content.properties.VtMaxZoom,
                                     MaxZoom:21,
-                                    RenderStyle: $.extend(window._mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType], {
-                                        marker: {
-                                            image: 'http://maps.kosmosnimki.ru/api/img/camera18.png'
-                                        }
-                                    })
+                                    RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
                                 }];
 
                                 window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
@@ -405,14 +395,32 @@ var nsGmx = window.nsGmx || {},
                                     }
 
                                 }, newLayer);
+
+                            // вставляем фотослой на карту
+
+                                var modifyMapObjects = [{
+                                        Action: 'insert',
+                                        index: 'top',
+                                        LayerName: gmxProperties.content.properties.LayerID,
+                                        Styles: gmxProperties.content.properties.styles
+                                    }],
+                                    modifyMapParams = {
+                                        MapName: mapProperties.MapID,
+                                        Objects: JSON.stringify(modifyMapObjects)
+                                    }
+                                    modifyMapUrl = window.serverBase + 'Map/ModifyMap.ashx' + '?' + $.param(modifyMapParams);
+
+                                window.sendCrossDomainJSONRequest(modifyMapUrl, function (res) {
+                                });
+
                             } else {
                                 L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
                             }
 
-                            $(progressBarContainer).hide();
+                            // $(progressBarContainer).hide();
                             $(okButton).show();
                         }).fail(function(taskInfo){
-                            $(progressBarContainer).hide();
+                            // $(progressBarContainer).hide();
                             $(okButton).show();
                         }).progress(function(taskInfo){
                     });
@@ -436,7 +444,7 @@ var nsGmx = window.nsGmx || {},
                 });
             };
 
-            dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 440, 200, null, null, resizeFunc, closeFunc);
+        dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 200, null, null, resizeFunc, closeFunc);
     }
 
     this.Unload = function () {

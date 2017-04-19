@@ -1503,53 +1503,57 @@ function processGmxMap(state, gmxMap) {
         }
     }
 
+
+    function bindPhotoPopup (layer) {
+        layer.bindPopup('')
+        .on('popupopen', function(ev) {
+            var popup = ev.popup,
+                props = ev.gmx.properties,
+                container = L.DomUtil.create('div', 'photoPopup'),
+                prop = L.DomUtil.create('div', 'photo', container),
+                image = L.DomUtil.create('img', 'photo-image-clickable', container),
+                params = {
+                    LayerID: popup.options.layerId,
+                    rowId: props.gmx_id,
+                    size: 'M',
+                    WrapStyle: 'None'
+                },
+                url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
+
+                L.extend(image, {
+                    galleryimg: 'no',
+                    onselectstart: L.Util.falseFn,
+                    onmousemove: L.Util.falseFn,
+                    onload: function(ev) {
+                        popup.update();
+                    },
+                    src: url
+                });
+                prop = L.DomUtil.create('div', 'myName', container);
+                prop.innerHTML = '<b>' + window._gtxt("Имя") + '</b> ' + props['GMX_Filename'];
+                prop = L.DomUtil.create('div', 'myName', container);
+                prop.innerHTML = '<b>' + window._gtxt("Момент съемки") + '</b> ' + props['GMX_Date'];
+                popup.setContent(container);
+
+                image.onclick = function () {
+                    var paramsBig = $.extend(params, {
+                        size: 'Native'
+                    }),
+                    url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(paramsBig);
+
+                    window.open(url, '_blank');
+                }
+
+        }, layer);
+    }
     // bind popup for photo-layers
     for (var i = 0; i < gmxMap.layers.length; i++) {
         var layer = gmxMap.layers[i],
             layerProps = layer.getGmxProperties();
 
         if (layerProps && layerProps.IsPhotoLayer) {
-            layer.bindPopup('')
-            .on('popupopen', function(ev) {
-                var popup = ev.popup,
-                    props = ev.gmx.properties,
-                    container = L.DomUtil.create('div', 'photoPopup'),
-                    prop = L.DomUtil.create('div', 'photo', container),
-                    image = L.DomUtil.create('img', 'photo-image-clickable', container),
-                    params = {
-                        LayerID: popup.options.layerId,
-                        rowId: props.gmx_id,
-                        size: 'M',
-                        WrapStyle: 'None'
-                    },
-                    url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
-
-                    L.extend(image, {
-                        galleryimg: 'no',
-                        onselectstart: L.Util.falseFn,
-                        onmousemove: L.Util.falseFn,
-                        onload: function(ev) {
-                            popup.update();
-                        },
-                        src: url
-                    });
-                    prop = L.DomUtil.create('div', 'myName', container);
-                    prop.innerHTML = '<b>' + window._gtxt("Имя") + '</b> ' + props['GMX_Filename'];
-                    prop = L.DomUtil.create('div', 'myName', container);
-                    prop.innerHTML = '<b>' + window._gtxt("Момент съемки") + '</b> ' + props['GMX_Date'];
-                    popup.setContent(container);
-
-                    image.onclick = function () {
-                        var paramsBig = $.extend(params, {
-                            size: 'Native'
-                        }),
-                        url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(paramsBig);
-
-                        window.open(url, '_blank');
-                    }
-
-                }, layer);
-            }
+            bindPhotoPopup(layer);
+        }
     }
 
 	// Begin: запоминание текущей позиции карты
@@ -1850,8 +1854,14 @@ function processGmxMap(state, gmxMap) {
             var layer = event.layer;
 
             if (layer.getGmxProperties) {
+                var  layerProps = layer.getGmxProperties();
+
                 initEditUI();
                 initTimeline([layer]);
+
+                if (layerProps.IsPhotoLayer) {
+                    bindPhotoPopup(layer);
+                }
             }
         });
 

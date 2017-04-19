@@ -111,8 +111,8 @@ option
 	border-bottom: 1px solid #808080;
 	background-color: #FFFFFF;
 	height: 14px;
-	padding: 2px;
-	margin: 1px 3px;
+	padding: 2px 0px;
+	margin: 1px 0px;
 }
 
 .selectStyle

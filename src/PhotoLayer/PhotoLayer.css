@@ -28,7 +28,7 @@
 
 .photolayer-newlayer-input-container,
 .photolayer-existinglayer-input-container {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 .photolayer-existinglayer-input {
@@ -49,13 +49,14 @@
     padding: 6px;
     margin-right: 8px;
     border-radius: 2px;
-    background-color: #C0C0C0;
-    color: grey;
+    background-color: #ddd;
+    color: #a2a2a2;
+    box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
 }
 
 .select-catalog-button.active {
-    background-color: #1471bb;
     color: #FFF;
+    background-color: #1471bb;
 }
 
 .photolayer-loader-block {
@@ -93,20 +94,20 @@ label.photo-uploader-label input {
 }
 
 .photolayer-progress-container {
-    /*background-color: grey;*/
     display: inline-block;
-    width: 150px;
+    width: 120px;
     height: 25px;
     line-height: 25px;
 }
 
 .progressbar {
     display: inline-block;
-    width: 150px;
+    width: 120px;
 }
 
 .progressbar.ui-progressbar{
     height: 0.5em;
+    background: #ddd;
 }
 
 .progressbar .ui-progressbar-value {
@@ -115,4 +116,8 @@ label.photo-uploader-label input {
 
 .photolayer-ok-button-container {
     width: 25px;
+}
+
+.ok-button {
+    color: #a2a2a2;
 }
