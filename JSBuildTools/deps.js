@@ -138,7 +138,7 @@ var cssFiles = [
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
     "src/IndexGrid/IndexGrid.css",
-    "src/CommonCalendarWidget/CommonCalendarWidget.css",
+    "src/CommonCalendarWidget/CommonCalendarWidget.css"
 ];
 
 var moduleFiles = {

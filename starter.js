@@ -683,6 +683,15 @@ function checkUserInfo(defaultState) {
     }
 }
 
+var newCalendar = window.mapOptions ? window.mapOptions.newCalendar : null;
+if (!newCalendar) {
+    var matchArr = location.href.match(/[?&]newcalendar/);
+    if (matchArr) {
+        console.log(matchArr);
+        newCalendar = true;
+    }
+}
+
 var now = new Date();
 
 nsGmx.commonCalendar = new nsGmx.CommonCalendarWidget();

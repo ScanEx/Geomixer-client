@@ -5,6 +5,41 @@
 var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
     toMidnight = nsGmx.DateInterval.toMidnight;
 
+var template = "<table>\n" +
+    "    <tr>\n" +
+    "        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n" +
+    "        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin disabled\"></td>\n" +
+    "        <td><span>-</span></td>\n" +
+    "        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd disabled\"></td>\n" +
+    "        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n" +
+    "        <td><div class = \"CalendarWidget-show-calendar-icon {{showCalendarIconClass}}\" title = \"{{showCalendarIconTitle}}\"></div></td>\n" +
+    "        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n" +
+    "    </tr><tr>\n" +
+    "        <td></td>\n" +
+    "        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n" +
+    "        <td class = \"CalendarWidget-dateEndInfo\"></td>\n" +
+    "        <td></td>\n" +
+    "        <td></td>\n" +
+    "    </tr>\n" +
+    "</table>\n" +
+    "<div class=\"CalendarWidget-footer\"></div>\n" +
+    ""
+
+    nsGmx.Translations.addText("rus", { CalendarWidget: {
+        ShowIconTitle:     "Выбрать дату",
+        createDateInterval: "Задать интервал",
+        resetDateInterval:  "Сбросить интервал",
+        selectDateInterval: "Применить"
+    }});
+
+    nsGmx.Translations.addText("eng", { CalendarWidget: {
+        ShowIconTitle:     "Select date",
+        createDateInterval: "Create date interval",
+        resetDateInterval:  "Reset date interval",
+        selectDateInterval: "Select date interval"
+    }});
+
+
 /** Параметры календаря
  * @typedef nsGmx.CalendarWidget~Parameters
  * @property {nsGmx.DateInterval} dateInterval Временной интервал, который нужно менять
@@ -31,7 +66,7 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
 var Calendar1 = nsGmx.GmxWidget.extend({
     tagName: 'div',
     className: 'CalendarWidget ui-widget',
-    template: Handlebars.compile(nsGmx.Templates.CalendarWidget.CalendarWidget),
+    template: Handlebars.compile(template),
 
     events: {
         'click .CalendarWidget-show-calendar-icon': 'showCalendar',
@@ -207,7 +242,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         // this.setActive(false);
 
-        oneDayPeriod ? this.setMode(Calendar.SIMPLE_MODE) : this.setMode(Calendar.ADVANCED_MODE);
+        oneDayPeriod ? this.setMode(Calendar1.SIMPLE_MODE) : this.setMode(Calendar1.ADVANCED_MODE);
 
         this._dateBegin = $('.begin-outside-calendar', this.beginCalendar);
         this._dateEnd = $('.end-outside-calendar', this.endCalendar);
@@ -221,7 +256,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $(this.beginCalendar).dialog(beginDialogOptions);
 
-        if (this.getMode() === Calendar.ADVANCED_MODE) {
+        if (this.getMode() === Calendar1.ADVANCED_MODE) {
             $(createIntervalButton).toggle(false);
             $(resetIntervalButton).toggle(true);
             this._showTime(dateBegin, dateEnd);
@@ -233,7 +268,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             var begin = _this._dateInterval.get('dateBegin'),
                 end = _this._dateInterval.get('dateEnd');
 
-            _this.setMode(Calendar.ADVANCED_MODE);
+            _this.setMode(Calendar1.ADVANCED_MODE);
             $(_this.endCalendar).dialog(endDialogOptions);
 
             _this._showTime(begin, end);
@@ -244,7 +279,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $(resetIntervalButton).on('click', function () {
             var dateBegin = toMidnight(_this._dateInterval.get('dateBegin'));
-            _this.setMode(Calendar.SIMPLE_MODE);
+            _this.setMode(Calendar1.SIMPLE_MODE);
             _this._dateBegin.datepicker('setDate', Calendar1.toUTC(dateBegin));
             _this._dateEnd.datepicker('setDate', Calendar1.toUTC(dateBegin));
             $(".calendar-outside.end-calendar .ui-dialog-titlebar-close").trigger('click');
@@ -411,7 +446,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
             dateToFix.datepicker('setDate', $(activeInput[0]).datepicker('getDate'));
         }
-        if (this._curMode === Calendar.SIMPLE_MODE) {
+        if (this._curMode === Calendar1.SIMPLE_MODE) {
             if (!begin != !end || begin && begin.valueOf() !== end.valueOf()) {
                 this._dateEnd.datepicker('setDate', this._dateBegin.datepicker('getDate'));
             }
@@ -419,7 +454,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
                 dateBegin: begin ? begin : null,
                 dateEnd: end ? new Date(begin.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
             });
-        } else if (this._curMode === Calendar.ADVANCED_MODE) {
+        } else if (this._curMode === Calendar1.ADVANCED_MODE) {
             this._enableCreateIntervalButton();
         }
     },
@@ -464,8 +499,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             newDateEnd = Calendar1.toUTC(new Date(dateEnd - dayms));
         }
 
-        $(beginInput).val(Calendar.formatDate(newDateBegin));
-        $(endInput).val(Calendar.formatDate(newDateEnd));
+        $(beginInput).val(Calendar1.formatDate(newDateBegin));
+        $(endInput).val(Calendar1.formatDate(newDateEnd));
     },
 
     setActive: function (value) {
@@ -628,6 +663,6 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     ADVANCED_MODE: 2
 });
 
-nsGmx.CalendarWidget1 = Calendar;
+nsGmx.CalendarWidget1 = Calendar1;
 
 })(jQuery);
