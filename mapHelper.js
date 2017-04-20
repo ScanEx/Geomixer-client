@@ -47,6 +47,10 @@ var mapHelper = function()
 
 	this.attrValues = {};
 
+	this.customErrorsHash = {
+		"Unable to locate EXIF content" : "Unable to locate EXIF content"
+	}
+
 	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
 	// все такие объекты не будут сериализоваться
 	this.drawingBorders = (function()

@@ -81,6 +81,7 @@ _translationsHash.hash["eng"] = {
 	"У вас нет прав на просмотр данной карты" : "Sorry, you don’t have permission to view this map",
 	"Access error" : "Sorry, you don’t have permission to view this map",
 	"Map not found" : "Sorry, this map not found",
+	"Unable to locate EXIF content" : "Unable to locate EXIF content",
 	"Развернуть карту" : "Unfold map",
 	"Свернуть карту" : "Fold map",
 	"Точки на изображении:" : "Points on image:",

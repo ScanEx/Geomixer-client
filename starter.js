@@ -553,19 +553,22 @@ $(function() {
     //при каждой ошибке от сервера будем показывать диалог с ошибкой и стектрейсом.
     addParseResponseHook('error', function(response, customErrorDescriptions) {
         var errInfo = response.ErrorInfo;
-        if (customErrorDescriptions && errInfo.ExceptionType in customErrorDescriptions) {
-            var canvas = $(customErrorTemplate({
-                description: customErrorDescriptions[errInfo.ExceptionType]
-            }));
-            showDialog(_gtxt('Ошибка!'), canvas[0], 220, 100);
-        } else {
-            var stackTrace = response.ErrorInfo.ExceptionType && response.ErrorInfo.StackTrace;
-            var canvas = $(commonErrorTemplate({
-                message: errInfo.ErrorMessage,
-                stacktrace: stackTrace
-            }));
-            showDialog(_gtxt('Ошибка сервера'), canvas[0], 220, 170, false, false);
-            return false;
+
+        if (errInfo.ErrorMessage && !errInfo.ErrorMessage in _mapHelper.customErrorsHash) {
+            if (customErrorDescriptions && errInfo.ExceptionType in customErrorDescriptions) {
+                var canvas = $(customErrorTemplate({
+                    description: customErrorDescriptions[errInfo.ExceptionType]
+                }));
+                showDialog(_gtxt('Ошибка!'), canvas[0], 220, 100);
+            } else {
+                var stackTrace = response.ErrorInfo.ExceptionType && response.ErrorInfo.StackTrace;
+                var canvas = $(commonErrorTemplate({
+                    message: errInfo.ErrorMessage,
+                    stacktrace: stackTrace
+                }));
+                showDialog(_gtxt('Ошибка сервера'), canvas[0], 220, 170, false, false);
+                return false;
+            }
         }
     })
 
@@ -1503,59 +1506,6 @@ function processGmxMap(state, gmxMap) {
         }
     }
 
-
-    function bindPhotoPopup (layer) {
-        layer.bindPopup('')
-        .on('popupopen', function(ev) {
-            var popup = ev.popup,
-                props = ev.gmx.properties,
-                container = L.DomUtil.create('div', 'photoPopup'),
-                prop = L.DomUtil.create('div', 'photo', container),
-                image = L.DomUtil.create('img', 'photo-image-clickable', container),
-                params = {
-                    LayerID: popup.options.layerId,
-                    rowId: props.gmx_id,
-                    size: 'M',
-                    WrapStyle: 'None'
-                },
-                url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(params);
-
-                L.extend(image, {
-                    galleryimg: 'no',
-                    onselectstart: L.Util.falseFn,
-                    onmousemove: L.Util.falseFn,
-                    onload: function(ev) {
-                        popup.update();
-                    },
-                    src: url
-                });
-                prop = L.DomUtil.create('div', 'myName', container);
-                prop.innerHTML = '<b>' + window._gtxt("Имя") + '</b> ' + props['GMX_Filename'];
-                prop = L.DomUtil.create('div', 'myName', container);
-                prop.innerHTML = '<b>' + window._gtxt("Момент съемки") + '</b> ' + props['GMX_Date'];
-                popup.setContent(container);
-
-                image.onclick = function () {
-                    var paramsBig = $.extend(params, {
-                        size: 'Native'
-                    }),
-                    url = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(paramsBig);
-
-                    window.open(url, '_blank');
-                }
-
-        }, layer);
-    }
-    // bind popup for photo-layers
-    for (var i = 0; i < gmxMap.layers.length; i++) {
-        var layer = gmxMap.layers[i],
-            layerProps = layer.getGmxProperties();
-
-        if (layerProps && layerProps.IsPhotoLayer) {
-            bindPhotoPopup(layer);
-        }
-    }
-
 	// Begin: запоминание текущей позиции карты
 	function saveMapPosition(key) {
 		window.localStorage.setItem('lastMapPosiotion_' + key, JSON.stringify({zoom: lmap.getZoom(), center: lmap.getCenter()}));
@@ -1859,9 +1809,6 @@ function processGmxMap(state, gmxMap) {
                 initEditUI();
                 initTimeline([layer]);
 
-                if (layerProps.IsPhotoLayer) {
-                    bindPhotoPopup(layer);
-                }
             }
         });
 

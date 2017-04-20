@@ -121,3 +121,11 @@ label.photo-uploader-label input {
 .ok-button {
     color: #a2a2a2;
 }
+
+.photolayer-error-message {
+    color: red;
+}
+
+.popupImage {
+    margin: 0 auto;
+}
