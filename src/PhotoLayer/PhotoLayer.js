@@ -149,10 +149,15 @@ var nsGmx = window.nsGmx || {},
                     if (isPhotoLayer && props.Access === 'edit') {
                         photoLayersFlag = true;
 
-                        photoLayers.push({layer: props.title, current: i === 0});
-                            if (i === 0) {
-                                currentPhotoLayer = layer;
-                            }
+                        photoLayers.push({layer: props.title, LayerID: props.LayerID, current: false});
+                    }
+                }
+
+                for (var j = 0; j < photoLayers.length; j++) {
+                    photoLayers[j].current = j === 0;
+
+                    if (j === 0) {
+                        currentPhotoLayer = nsGmx.gmxMap.layersByID[photoLayers[j].LayerID];
                     }
                 }
             }
@@ -414,10 +419,6 @@ var nsGmx = window.nsGmx || {},
 
                                 window.sendCrossDomainJSONRequest(modifyMapUrl, function (res) {
                                 });
-
-                            _this.model.set({
-                                fileName: null
-                            });
 
                             $(newLayerInput).focus();
 
