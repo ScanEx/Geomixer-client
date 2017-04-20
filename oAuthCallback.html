@@ -1,12 +1,46 @@
-﻿<html>
-<script src="//maps.kosmosnimki.ru/api/jquery/jquery-1.8.3.min.js"></script>
+<html>
+<head>
 <script>
 geomixerWindow = window.opener || window.parent;
-$.ajax({
+lastMapId = 0;
+
+function uniqueGlobalName(thing)
+{
+    lastMapId += 1;
+    var id = '_' + lastMapId;
+    window[id] = thing;
+    return id;
+}
+	
+function sendCrossDomainJSONRequest(url, callback, callbackParamName, errorCallback)
+{
+	callbackParamName = callbackParamName || 'CallbackName';
+
+    var script = document.createElement("script");
+	script.setAttribute("charset", "UTF-8");
+	var callbackName = uniqueGlobalName(function(obj)
+	{
+		callback && callback(obj);
+		window[callbackName] = false;
+		document.getElementsByTagName("head").item(0).removeChild(script);
+	});
+
+    var sepSym = url.indexOf('?') == -1 ? '?' : '&';
+
+    if (errorCallback) {
+        script.onerror = errorCallback;
+    }
+
+	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
+	document.getElementsByTagName("head").item(0).appendChild(script);
+}
+
+
+var req = {
 	url: geomixerWindow['gmxGetServerBase']() + 'oAuthCallback.ashx' + window.location.search, 
 	dataType: "jsonp",
-	jsonp: 'CallbackName',
-	success: function(response){
+	callbackParamName: 'CallbackName',
+	callback: function(response){
 			var result = false;
 			if(response.Status == 'error' && response.ErrorInfo.ErrorMessage != 'access_denied'){
 				document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
@@ -22,9 +56,12 @@ $.ajax({
 			geomixerWindow['gmxProcessAuthentication'](result);
 			if(result) window.close();
 		}
-	});
+}
+sendCrossDomainJSONRequest(req.url, req.callback, req.callbackParamName);
 </script>
+<head>
 <body>
 <div id="resultText"/>
 </body>
 </html>
+
