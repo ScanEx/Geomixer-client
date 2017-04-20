@@ -33,7 +33,8 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: 'http://maps.kosmosnimki.ru/api/img/camera18.png'
+				image: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+				center: true
 			}
 		}
 	}
