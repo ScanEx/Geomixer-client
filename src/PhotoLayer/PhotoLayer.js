@@ -254,7 +254,7 @@ var nsGmx = window.nsGmx || {},
             }
             $(select).html(str);
 
-            $('.photolayer-existinglayer-input option[value=' + currentPhotoLayerName + ']').attr('selected', 'selected');
+            $('.photolayer-existinglayer-input option[value="' + currentPhotoLayerName + '"]').prop('selected', true);
         },
 
         selectFile: function (e) {
