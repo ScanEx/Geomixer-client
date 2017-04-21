@@ -224,8 +224,8 @@ var nsGmx = window.nsGmx || {};
                 'click .mapExportUnselectButton': 'unselectArea',
                 'click .zoomToBoxButton': 'zoomToBox',
                 'click .zoomToLevelButtonWrap': 'zoomToLevel',
-                'input .mapExportWidth': 'resize',
-                'input .mapExportHeight': 'resize',
+                'keyup .mapExportWidth': 'resize',
+                'keyup .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
                 'change .formatTypes': 'setFormat',
                 'change .fileTypes': 'setFileType',
@@ -939,6 +939,8 @@ var nsGmx = window.nsGmx || {};
 
                 this._createFrame(newRect);
                 this._updateCoords();
+
+                $(e.target).focus();
             },
 
             _createFrame: function(rectangle) {
@@ -968,7 +970,19 @@ var nsGmx = window.nsGmx || {};
                     _this = this;
 
                 frame.on('edit', _this._resizeFrame.bind(_this));
-                frame.on('remove', _this.unselectArea.bind(_this));
+                frame.on('remove', function () {
+                    var attrs = _this.model.toJSON();
+
+                    _this.model.set({
+                        width: 0,
+                        height: 0,
+                        widthValueErr: false,
+                        widthSizeErr: false,
+                        heightValueErr: false,
+                        heightSizeErr: false,
+                        exportErr: false
+                    });
+                });
 
             },
 
