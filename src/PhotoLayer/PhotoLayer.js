@@ -15,6 +15,8 @@ var nsGmx = window.nsGmx || {},
             load: "Загрузить фотографии",
             loadShort: "ЗАГРУЗИТЬ",
             error: "ошибка",
+            successResult: "загружено фотографий",
+            exifError: "ошибка чтения координат",
             ok: "готово"
         }
     });
@@ -30,6 +32,8 @@ var nsGmx = window.nsGmx || {},
             load: "Load photos",
             loadShort: "LOAD",
             error: "error",
+            successResult: "images uploaded",
+            exifError: "coordinates error",
             ok: "done"
         }
     });
@@ -96,6 +100,10 @@ var nsGmx = window.nsGmx || {},
                         '<span class="ok-button">{{i "photoLayer.ok"}}</span>' +
                     '</span>' +
                     '<span class="photolayer-error-message" style="display:none"></span>' +
+                '</div>' +
+                '<div class="photo-upload-result photo-upload-result-uploaded" style="display:none">' +
+                '</div>' +
+                '<div class="photo-upload-result photo-upload-result-error" style="display:none">' +
                 '</div>' +
             '</div>'
         ),
@@ -213,7 +221,24 @@ var nsGmx = window.nsGmx || {},
         },
 
         setName: function (e) {
+            var layers = layers || nsGmx.gmxMap.layers,
+                attrs = this.model.toJSON(),
+                matchingLayer;
+
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i],
+                    props = layer.getGmxProperties();
+
+                if (props) {
+                    if (e.target.value === props.title) {
+                        matchingLayer = layer;
+                    }
+                }
+            }
+
             this.model.set('fileName', e.target.value);
+
+            this.model.set('currentPhotoLayer', matchingLayer ? matchingLayer : null);
         },
 
         setCurrentLayer: function (e) {
@@ -267,10 +292,13 @@ var nsGmx = window.nsGmx || {},
                 form = this.$('#photo-uploader-form'),
                 arr = [],
                 newLayerInput = this.$('.photolayer-newlayer-input'),
+                uploadLabel = this.$('.photo-uploader-label'),
                 uploadButton = this.$('.photo-uploader-button'),
                 progressBarContainer = this.$('.photolayer-progress-container'),
                 progressBar = this.$('.progressbar'),
-                okButton = this.$('.photolayer-ok-button-container')
+                okButton = this.$('.photolayer-ok-button-container'),
+                uploadResSuccess = this.$('.photo-upload-result-uploaded'),
+                uploadResError = this.$('.photo-upload-result-error'),
                 errorMessage = this.$('.photolayer-error-message');
 
             for (var key in files) {
@@ -282,6 +310,8 @@ var nsGmx = window.nsGmx || {},
             $(progressBarContainer).hide();
             $(okButton).hide();
             $(errorMessage).hide();
+            $(uploadResSuccess).hide();
+            $(uploadResError).hide();
 
             var attrs = this.model.toJSON(),
                 _this = this,
@@ -305,8 +335,8 @@ var nsGmx = window.nsGmx || {},
                         Description:"",
                         SourceType: "manual",
                         title: attrs.fileName,
-                        IsPhotoLayer: true,
-                        PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
+                        IsPhotoLayer: true
+                        // PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
                     }
                 };
 
@@ -335,6 +365,7 @@ var nsGmx = window.nsGmx || {},
 
                 xhr.open('POST', window.serverBase + 'Sandbox/Upload');
                 $(uploadButton).toggleClass('gmx-disabled', true);
+                $(uploadLabel).toggleClass('gmx-disabled', true);
                 xhr.withCredentials = true;
                 xhr.onload = function () {
                     if (xhr.status === 200) {
@@ -417,19 +448,39 @@ var nsGmx = window.nsGmx || {},
                                     }
                                     modifyMapUrl = window.serverBase + 'Map/ModifyMap.ashx' + '?' + $.param(modifyMapParams);
 
+                                // вставляем фотографии в пустой слой
+                                var photoAppendParams = {
+                                        LayerID: gmxProperties.content.properties.LayerID,
+                                        PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
+                                    },
+                                    photoAppendUrl = window.serverBase + 'Photo/AppendPhoto' + '?' + $.param(photoAppendParams);
+
                                 window.sendCrossDomainJSONRequest(modifyMapUrl, function (res) {
+                                    var def = nsGmx.asyncTaskManager.sendGmxPostRequest(photoAppendUrl);
+
+                                    def.done(function(taskInfo) {
+                                        L.gmx.layersVersion.chkVersion(newLayer, null);
+                                        // $(okButton).show();
+                                        afterLoad(taskInfo);
+                                    })
+                                    .fail(function(taskInfo) {
+                                        var message = taskInfo.ErrorInfo && taskInfo.ErrorInfo.ErrorMessage;
+
+                                        $(progressBarContainer).hide();
+
+                                        $(errorMessage).html(message in _mapHelper.customErrorsHash  ? _gtxt(_mapHelper.customErrorsHash[message]) : _gtxt('photoLayer.error'));
+                                        $(errorMessage).show();
+                                        afterLoad(taskInfo);
+                                    })
                                 });
 
                             $(newLayerInput).focus();
 
                             } else {
                                 L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
+                                // $(okButton).show();
+                                afterLoad(taskInfo);
                             }
-
-                            $(okButton).show();
-                            $(uploadButton).toggleClass('gmx-disabled', false);
-
-                            _this.createSandbox();
 
                         }).fail(function(taskInfo){
                             var message = taskInfo.ErrorInfo && taskInfo.ErrorInfo.ErrorMessage;
@@ -439,12 +490,29 @@ var nsGmx = window.nsGmx || {},
 
                             $(errorMessage).html(message in _mapHelper.customErrorsHash  ? _gtxt(_mapHelper.customErrorsHash[message]) : _gtxt('photoLayer.error'));
                             $(errorMessage).show();
-                            $(uploadButton).toggleClass('gmx-disabled', false);
-
-                            _this.createSandbox();
+                            afterLoad(taskInfo);
 
                         }).progress(function(taskInfo){
                     });
+                }
+
+                function afterLoad(taskInfo) {
+                    var resObj = taskInfo.Result;
+
+                    if (resObj) {
+                        if (resObj.Appended.length) {
+                            $(uploadResSuccess).html(_gtxt('photoLayer.successResult') + ": " + resObj.Appended.length);
+                            $(uploadResSuccess).show();
+                        }
+                        if (resObj.NoCoords.length) {
+                            $(uploadResError).html(_gtxt('photoLayer.exifError') + ": " + resObj.NoCoords.length);
+                            $(uploadResError).show();
+                        }
+                    }
+
+                    $(uploadButton).toggleClass('gmx-disabled', false);
+                    $(uploadLabel).toggleClass('gmx-disabled', false);
+                    _this.createSandbox();
                 }
             };
 
@@ -465,7 +533,7 @@ var nsGmx = window.nsGmx || {},
                 });
             };
 
-        dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 200, null, null, resizeFunc, closeFunc);
+        dialog = nsGmx.Utils.showDialog(_gtxt('photoLayer.load'), view.el, 340, 220, null, null, resizeFunc, closeFunc);
     }
 
     this.Unload = function () {

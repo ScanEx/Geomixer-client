@@ -74,6 +74,11 @@ label.photo-uploader-label input {
     display: none;
 }
 
+.photo-uploader-label.gmx-disabled {
+    pointer-events: none;
+    cursor: default;
+}
+
 .photo-uploader-button.gmx-disabled {
     color: #999999;
     pointer-events: none;
@@ -122,10 +127,19 @@ label.photo-uploader-label input {
     color: #a2a2a2;
 }
 
-.photolayer-error-message {
+.photolayer-error-message,
+ .photo-upload-result-error {
     color: red;
 }
 
 .popupImage {
     margin: 0 auto;
+}
+
+.photo-upload-result {
+    margin-left: 6px;
+}
+
+.photo-upload-result-uploaded {
+    color: green;
 }

@@ -618,7 +618,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
 	    xShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','XSfift'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && templateStyle.labelAnchor[0] || '0']]),
-	    yShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && templateStyle.labelAnchor[1] || '0']]),
+	    yShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && -(templateStyle.labelAnchor[1]) || '0']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
         checkedFontSize = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.size != 'undefined') ? templateStyle.label.size : 12,
