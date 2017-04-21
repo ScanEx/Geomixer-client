@@ -992,8 +992,11 @@ var initEditUI = function(){
                 var layer = nsGmx.gmxMap.layers[iL],
                     props = layer.getGmxProperties();
 
-                layer.disableFlip();
-                layer.disablePopup();
+                if (layer.disableFlip && layer.disablePopup) {
+                    layer.disableFlip();
+                    layer.disablePopup();
+                }
+                
                 listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
                 layer.on('click', listeners[props.name]);
             }
