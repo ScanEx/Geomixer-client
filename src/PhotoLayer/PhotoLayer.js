@@ -484,10 +484,7 @@ var nsGmx = window.nsGmx || {},
 
                         }).fail(function(taskInfo){
                             var message = taskInfo.ErrorInfo && taskInfo.ErrorInfo.ErrorMessage;
-
-                            debugger;
                             $(progressBarContainer).hide();
-
                             $(errorMessage).html(message in _mapHelper.customErrorsHash  ? _gtxt(_mapHelper.customErrorsHash[message]) : _gtxt('photoLayer.error'));
                             $(errorMessage).show();
                             afterLoad(taskInfo);
