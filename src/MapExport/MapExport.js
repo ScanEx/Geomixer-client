@@ -224,8 +224,8 @@ var nsGmx = window.nsGmx || {};
                 'click .mapExportUnselectButton': 'unselectArea',
                 'click .zoomToBoxButton': 'zoomToBox',
                 'click .zoomToLevelButtonWrap': 'zoomToLevel',
-                'keyup .mapExportWidth': 'resize',
-                'keyup .mapExportHeight': 'resize',
+                'input .mapExportWidth': 'resize',
+                'input .mapExportHeight': 'resize',
                 'change .zoomLevel': 'setZoom',
                 'change .formatTypes': 'setFormat',
                 'change .fileTypes': 'setFileType',
@@ -354,8 +354,8 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(zoomToBoxButton).toggle();
-                    $(zoomToLevelButton).toggle();
+                    $(zoomToBoxButton).show();
+                    $(zoomToLevelButton).show();
                     if (!attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
                         !attrs.heightValueErr   &&
@@ -367,8 +367,8 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(zoomToBoxButton).toggle();
-                    $(zoomToLevelButton).toggle();
+                    $(zoomToBoxButton).hide();
+                    $(zoomToLevelButton).hide();
                     $(exportButton).addClass('gmx-disabled');
                 }
             },
@@ -935,12 +935,10 @@ var nsGmx = window.nsGmx || {};
                 var newRect = L.rectangle(newBounds);
                 this.model.set('coords', newRect._latlngs);
 
-                this._removeFrame();
+                attrs.lmap.gmxDrawing.remove(attrs.selArea);
 
                 this._createFrame(newRect);
                 this._updateCoords();
-
-                $(e.target).focus();
             },
 
             _createFrame: function(rectangle) {
