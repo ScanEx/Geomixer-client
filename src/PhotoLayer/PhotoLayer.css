@@ -123,6 +123,10 @@ label.photo-uploader-label input {
     width: 25px;
 }
 
+.spin-message {
+    margin-left: 8px;
+}
+
 .ok-button {
     color: #a2a2a2;
 }

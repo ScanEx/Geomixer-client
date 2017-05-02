@@ -14,6 +14,7 @@ var nsGmx = window.nsGmx || {},
             available: "доступные каталоги",
             load: "Загрузить фотографии",
             loadShort: "ЗАГРУЗИТЬ",
+            processing: "обработка изображений",
             error: "ошибка",
             successResult: "загружено фотографий",
             exifError: "ошибка чтения координат",
@@ -31,6 +32,7 @@ var nsGmx = window.nsGmx || {},
             available: "available catalogs",
             load: "Load photos",
             loadShort: "LOAD",
+            processing: "image processing",
             error: "error",
             successResult: "images uploaded",
             exifError: "coordinates error",
@@ -95,6 +97,10 @@ var nsGmx = window.nsGmx || {},
                         '</label>' +
                     '<span class="photolayer-progress-container">' +
                         '<span class="progressbar"></span>' +
+                    '</span>' +
+                    '<span class="photolayer-spin-container" style="display:none">' +
+                        '<img src="img/progress.gif"/>' +
+                        '<span class="spin-message">{{i "photoLayer.processing"}}</span>' +
                     '</span>' +
                     '<span class="photolayer-ui-container photolayer-ok-button-container" style="display:none">' +
                         '<span class="ok-button">{{i "photoLayer.ok"}}</span>' +
@@ -296,6 +302,7 @@ var nsGmx = window.nsGmx || {},
                 uploadButton = this.$('.photo-uploader-button'),
                 progressBarContainer = this.$('.photolayer-progress-container'),
                 progressBar = this.$('.progressbar'),
+                spinContainer = this.$('.photolayer-spin-container'),
                 okButton = this.$('.photolayer-ok-button-container'),
                 uploadResSuccess = this.$('.photo-upload-result-uploaded'),
                 uploadResError = this.$('.photo-upload-result-error'),
@@ -308,6 +315,7 @@ var nsGmx = window.nsGmx || {},
             }
 
             $(progressBarContainer).hide();
+            $(spinContainer).hide();
             $(okButton).hide();
             $(errorMessage).hide();
             $(uploadResSuccess).hide();
@@ -332,11 +340,11 @@ var nsGmx = window.nsGmx || {},
                     params = {
                         Columns: "[]",
                         Copyright: "",
-                        Description:"",
+                        Description: "",
                         SourceType: "manual",
                         title: attrs.fileName,
-                        IsPhotoLayer: true
-                        // PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
+                        IsPhotoLayer: true,
+                        PhotoSource: JSON.stringify({sandbox: attrs.sandbox})
                     }
                 };
 
@@ -356,7 +364,6 @@ var nsGmx = window.nsGmx || {},
                 });
 
                 $(progressBarContainer).show();
-
                 var xhr = new XMLHttpRequest();
 
                 xhr.upload.addEventListener("progress", function(e) {
@@ -374,6 +381,9 @@ var nsGmx = window.nsGmx || {},
                         if (!(response)) {
                             return;
                         }
+
+                        $(progressBarContainer).hide();
+                        $(spinContainer).show();
 
                         if (attrs.currentPhotoLayer) {
                             url = window.serverBase + 'Photo/AppendPhoto' + '?' + $.param(params);
@@ -397,10 +407,6 @@ var nsGmx = window.nsGmx || {},
                                     },
                                     imageUrl = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(imageUrlParams) + '&rowId=[gmx_id]',
                                     bigImageUrl = window.serverBase + 'rest/ver1/photo/getimage.ashx' + '?' + $.param(bigImageUrlParams) + '&rowId=[gmx_id]',
-                                    onld = function () {
-                                        console.log(this);
-                                        console.log('uuu');
-                                    },
                                     balloonString = '' +
                                         '<div style="min-width: 300px;">' +
                                             '<div style="width: 100%; text-align: center;">' +
@@ -427,14 +433,6 @@ var nsGmx = window.nsGmx || {},
                                     RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
                                 }];
 
-                                window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-
-                                var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
-
-                                _this.model.set({
-                                    currentPhotoLayer: newLayer
-                                });
-
                                 // вставляем фотослой на карту
                                 var modifyMapObjects = [{
                                         Action: 'insert',
@@ -459,59 +457,88 @@ var nsGmx = window.nsGmx || {},
                                     var def = nsGmx.asyncTaskManager.sendGmxPostRequest(photoAppendUrl);
 
                                     def.done(function(taskInfo) {
-                                        L.gmx.layersVersion.chkVersion(newLayer, null);
-                                        // $(okButton).show();
+                                        var coords = [],
+                                            appended = taskInfo.Result.Appended,
+                                            updated = taskInfo.Result.Updated,
+                                            addCoords = function (objects, coordinates) {
+                                                for (var a = 0; a < objects.length; a++) {
+                                                    if (objects[a].longitude && objects[a].latitude) {
+                                                        var point = nsGmx.leafletMap.options.crs.project(L.latLng(objects[a].longitude, objects[a].latitude));
+                                                        coordinates.push([point.x, point.y]);
+                                                    }
+                                                }
+                                            };
+
+                                        addCoords(appended, coords);
+                                        addCoords(updated, coords);
+
+                                        if (!coords.length) {
+                                            gmxProperties.content.geometry = null;
+                                        } else {
+                                            gmxProperties.content.geometry.coordinates = coords.length === 1 ? coords[0] : coords;
+                                            gmxProperties.content.geometry.type = coords.length === 1 ? 'POINT' : 'POLYGON';
+                                        }
+
+                                        window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+
+                                        var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
+
+                                        _this.model.set({
+                                            currentPhotoLayer: newLayer
+                                        });
+
                                         afterLoad(taskInfo);
                                     })
                                     .fail(function(taskInfo) {
                                         var message = taskInfo.ErrorInfo && taskInfo.ErrorInfo.ErrorMessage;
 
-                                        $(progressBarContainer).hide();
-
                                         $(errorMessage).html(message in _mapHelper.customErrorsHash  ? _gtxt(_mapHelper.customErrorsHash[message]) : _gtxt('photoLayer.error'));
                                         $(errorMessage).show();
                                         afterLoad(taskInfo);
-                                    })
+                                    }).progress(function(taskInfo){
+                                    });
                                 });
 
                             $(newLayerInput).focus();
 
                             } else {
                                 L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
-                                // $(okButton).show();
+
                                 afterLoad(taskInfo);
                             }
 
                         }).fail(function(taskInfo){
                             var message = taskInfo.ErrorInfo && taskInfo.ErrorInfo.ErrorMessage;
-                            $(progressBarContainer).hide();
+
                             $(errorMessage).html(message in _mapHelper.customErrorsHash  ? _gtxt(_mapHelper.customErrorsHash[message]) : _gtxt('photoLayer.error'));
                             $(errorMessage).show();
                             afterLoad(taskInfo);
 
                         }).progress(function(taskInfo){
-                    });
-                }
+                        });
+                    };
 
-                function afterLoad(taskInfo) {
-                    var resObj = taskInfo.Result;
+                    function afterLoad(taskInfo) {
+                        var resObj = taskInfo.Result;
 
-                    if (resObj) {
-                        if (resObj.Appended.length) {
-                            $(uploadResSuccess).html(_gtxt('photoLayer.successResult') + ": " + resObj.Appended.length);
-                            $(uploadResSuccess).show();
+                        if (resObj) {
+                            if (resObj.Appended.length) {
+                                $(uploadResSuccess).html(_gtxt('photoLayer.successResult') + ": " + resObj.Appended.length);
+                                $(uploadResSuccess).show();
+                            }
+                            if (resObj.NoCoords.length) {
+                                $(uploadResError).html(_gtxt('photoLayer.exifError') + ": " + resObj.NoCoords.length);
+                                $(uploadResError).show();
+                            }
                         }
-                        if (resObj.NoCoords.length) {
-                            $(uploadResError).html(_gtxt('photoLayer.exifError') + ": " + resObj.NoCoords.length);
-                            $(uploadResError).show();
-                        }
+
+                        $(spinContainer).hide();
+
+                        $(uploadButton).toggleClass('gmx-disabled', false);
+                        $(uploadLabel).toggleClass('gmx-disabled', false);
+                        _this.createSandbox();
                     }
-
-                    $(uploadButton).toggleClass('gmx-disabled', false);
-                    $(uploadLabel).toggleClass('gmx-disabled', false);
-                    _this.createSandbox();
-                }
-            };
+                };
 
             xhr.send(formData);
         }
@@ -537,8 +564,6 @@ var nsGmx = window.nsGmx || {},
         $(dialog).remove();
     };
 };
-
-// }
 
 var publicInterface = {
     pluginName: 'PhotoLayer',
