@@ -841,6 +841,8 @@ var nsGmx = window.nsGmx || {};
 
             resize: function(e) {
                 var attrs = this.model.toJSON(),
+                    start = e.target.selectionStart,
+                    end = e.target.selectionEnd,
                     initialCoords,
                     scale,
                     screenCoords,
@@ -939,6 +941,9 @@ var nsGmx = window.nsGmx || {};
 
                 this._createFrame(newRect);
                 this._updateCoords();
+
+                // восстановим позицию курсора
+                e.target.setSelectionRange(start, end);
             },
 
             _createFrame: function(rectangle) {
