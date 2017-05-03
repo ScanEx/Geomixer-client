@@ -229,6 +229,8 @@ var nsGmx = window.nsGmx || {},
         setName: function (e) {
             var layers = layers || nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
+                start = e.target.selectionStart,
+                end = e.target.selectionEnd,
                 matchingLayer;
 
             for (var i = 0; i < layers.length; i++) {
@@ -245,6 +247,9 @@ var nsGmx = window.nsGmx || {},
             this.model.set('fileName', e.target.value);
 
             this.model.set('currentPhotoLayer', matchingLayer ? matchingLayer : null);
+
+            // восстановим позицию курсора
+            e.target.setSelectionRange(start, end);
         },
 
         setCurrentLayer: function (e) {
@@ -457,31 +462,14 @@ var nsGmx = window.nsGmx || {},
                                     var def = nsGmx.asyncTaskManager.sendGmxPostRequest(photoAppendUrl);
 
                                     def.done(function(taskInfo) {
-                                        var coords = [],
-                                            appended = taskInfo.Result.Appended,
-                                            updated = taskInfo.Result.Updated,
-                                            addCoords = function (objects, coordinates) {
-                                                for (var a = 0; a < objects.length; a++) {
-                                                    if (objects[a].longitude && objects[a].latitude) {
-                                                        var point = nsGmx.leafletMap.options.crs.project(L.latLng(objects[a].longitude, objects[a].latitude));
-                                                        coordinates.push([point.x, point.y]);
-                                                    }
-                                                }
-                                            };
 
-                                        addCoords(appended, coords);
-                                        addCoords(updated, coords);
-
-                                        if (!coords.length) {
-                                            gmxProperties.content.geometry = null;
-                                        } else {
-                                            gmxProperties.content.geometry.coordinates = coords.length === 1 ? coords[0] : coords;
-                                            gmxProperties.content.geometry.type = coords.length === 1 ? 'POINT' : 'POLYGON';
-                                        }
+                                        parseGeometry(taskInfo, gmxProperties);
 
                                         window._layersTree.copyHandler(gmxProperties, targetDiv, false, true);
 
                                         var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
+
+                                        // newLayer.updateVersion(gmxProperties.content);
 
                                         _this.model.set({
                                             currentPhotoLayer: newLayer
@@ -502,7 +490,19 @@ var nsGmx = window.nsGmx || {},
                             $(newLayerInput).focus();
 
                             } else {
-                                L.gmx.layersVersion.chkVersion(attrs.currentPhotoLayer, null);
+                                var curName = attrs.currentPhotoLayer.getGmxProperties().name;
+                                // parseGeometry(taskInfo, gmxProperties);
+                                // window.sendCrossDomainJSONRequest(window.serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + curName, function(response) {
+                                //     if (!parseResponse(response)) {
+                                //         return;
+                                //     }
+                                //     debugger;
+                                //     console.log(response);
+                                //     // L.gmx.layersVersion.chkVersion(response.Result, null);
+                                //     attrs.currentPhotoLayer.updateVersion(response.Result);
+                                // });
+                                // L.gmx.layersVersion.chkVersion(gmxProperties.content);
+                                // attrs.currentPhotoLayer.updateVersion(gmxProperties.content);
 
                                 afterLoad(taskInfo);
                             }
@@ -517,6 +517,30 @@ var nsGmx = window.nsGmx || {},
                         }).progress(function(taskInfo){
                         });
                     };
+
+                    function parseGeometry(info, properties) {
+                        var coords = [],
+                            appended = info.Result.Appended,
+                            updated = info.Result.Updated,
+                            addCoords = function (objects, coordinates) {
+                                for (var a = 0; a < objects.length; a++) {
+                                    if (objects[a].longitude && objects[a].latitude) {
+                                        var point = nsGmx.leafletMap.options.crs.project(L.latLng(objects[a].longitude, objects[a].latitude));
+                                        coordinates.push([point.x, point.y]);
+                                    }
+                                }
+                            };
+
+                        addCoords(appended, coords);
+                        addCoords(updated, coords);
+
+                        if (!coords.length) {
+                            properties.content.geometry = null;
+                        } else {
+                            properties.content.geometry.coordinates = coords.length === 1 ? coords[0] : coords;
+                            properties.content.geometry.type = coords.length === 1 ? 'POINT' : 'POLYGON';
+                        }
+                    }
 
                     function afterLoad(taskInfo) {
                         var resObj = taskInfo.Result;
