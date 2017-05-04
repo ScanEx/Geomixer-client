@@ -30,30 +30,15 @@
 }*/
 /*CalendarWidget*/
 
-.CommonCalendarWidget .CalendarWidget-dateBegin,
-.CommonCalendarWidget .CalendarWidget-dateEnd {
-    border: 0;
-    background-color: #efefef;
-    cursor: default;
-}
-
-.CommonCalendarWidget .CalendarWidget-show-calendar-icon {
-    cursor: pointer
-}
-
-.CommonCalendarWidget .CalendarWidget-show-calendar-icon.disabled {
-    cursor: default;
-}
-
 .calendar-outside select {
     border: 0;
 }
 
-.time-select {
+.calendar-outside .time-select {
     height: 15px;
 }
 
-.time-container {
+.calendar-outside .time-container {
     position: absolute;
     display: block;
     width: 208.8px;
@@ -62,19 +47,19 @@
     margin-bottom: 8px;
 }
 
-.time-picker-container {
+.calendar-outside .time-picker-container {
     display: block;
     margin: auto;
     width: 80px;
     height: 15px;
 }
 
-.time-picker-label {
+.calendar-outside .time-picker-label {
     color: #808080;
     margin-right: 8px;
 }
 
-.time-select {
+.calendar-outside .time-select {
     color: #808080;
     width: 55px;
 }
@@ -84,25 +69,25 @@
 }
 
 
-.ui-datepicker {
+.calendar-outside .ui-datepicker {
     border: none;
     margin-bottom: 12px;
 }
 
-.ui-datepicker table {
+.calendar-outside .ui-datepicker table {
     width: 100%;
 }
 
-.ui-icon ui-icon-circle-triangle-e {
+.calendar-outside .ui-icon ui-icon-circle-triangle-e {
     background-image:
 }
 
-.ui-datepicker tbody td {
+.calendar-outside .ui-datepicker tbody td {
     text-align: center;
     padding: 0;
 }
 
-.ui-datepicker td span, .ui-datepicker td a {
+.calendar-outside .ui-datepicker td span, .calendar-outside .ui-datepicker td a {
   display: inline-block;
   font-weight: bold;
   text-align: center;
@@ -112,36 +97,36 @@
 }
 
 /*названия дней недели*/
-.ui-datepicker-calendar th {
+.calendar-outside .ui-datepicker-calendar th {
     color: #C0C0C0;
 }
 
-.ui-datepicker-calendar tr {
+.calendar-outside .ui-datepicker-calendar tr {
     color: #808080;
 }
-.ui-datepicker-month, .ui-datepicker-year,
-.ui-datepicker-calendar a.ui-state-default {
+.calendar-outside .ui-datepicker-month, .calendar-outside .ui-datepicker-year,
+.calendar-outside .ui-datepicker-calendar a.ui-state-default {
     color: #808080;
 }
 
 /*выходные*/
-.ui-datepicker-week-end a.ui-state-default {
+.calendar-outside .ui-datepicker-week-end a.ui-state-default {
     color: #d54848;
 }
 
-.ui-state-default.ui-state-active {
+.calendar-outside .ui-state-default.ui-state-active {
     padding: 0;
     border-radius: 50%;
     border: 2px solid #1471bb;
 }
 
-.ui-state-default.ui-state-highlight {
+.calendar-outside .ui-state-default.ui-state-highlight {
     padding: 0;
     border-radius: 50%;
         background-color: #e2e2e2;
 }
 
-.calendar-button-container {
+.calendar-outside .calendar-button-container {
     position: absolute;
     display: block;
     width: 208.8px;
@@ -150,7 +135,7 @@
     bottom: 4px;
 }
 
-.calendar-button {
+.calendar-outside .calendar-button {
     /*display: block;*/
     cursor: pointer;
     position: absolute;
@@ -162,19 +147,19 @@
     bottom: 4px;
 }
 
-.createdateinterval-button,
-.resetdateinterval-button {
+.calendar-outside .createdateinterval-button,
+.calendar-outside .resetdateinterval-button {
     color: #1471bb;
     text-decoration: underline;
 }
 
-.selectdateinterval-button {
+.calendar-outside .selectdateinterval-button {
     border-radius: 10px;
     background-color: #1471bb;
     color: white;
 }
 
-.calendar-button.disabled {
+.calendar-outside .calendar-button.disabled {
     background-color: #cfcfcf;
     pointer-events: none;
     cursor: default;
