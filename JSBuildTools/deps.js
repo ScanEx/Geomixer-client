@@ -55,6 +55,7 @@ var jsFiles = [
     "src/MapExport/MapExport.js",
     "src/IndexGrid/IndexGrid.js",
     "src/PhotoLayer/PhotoLayer.js",
+    "src/CommonCalendarWidget/CommonCalendarWidget.js",
 
     "CoverControl.js",
     "CoverControl2.js",
@@ -137,7 +138,8 @@ var cssFiles = [
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
     "src/IndexGrid/IndexGrid.css",
-    "src/PhotoLayer/PhotoLayer.css"
+    "src/PhotoLayer/PhotoLayer.css",
+    "src/CommonCalendarWidget/CommonCalendarWidget.css"
 ];
 
 var moduleFiles = {
