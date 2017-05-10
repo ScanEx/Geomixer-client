@@ -54,10 +54,7 @@ var jsFiles = [
     "src/GridPlugin/GridPlugin.js",
     "src/MapExport/MapExport.js",
     "src/IndexGrid/IndexGrid.js",
-<<<<<<< HEAD
-=======
     "src/PhotoLayer/PhotoLayer.js",
->>>>>>> master
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
 
     "CoverControl.js",
@@ -81,10 +78,12 @@ var jsFiles = [
 ];
 
 var jsFilesThidparty = [
-    "jquery/jquery-1.10.2.min.js",
+    // "jquery/jquery-1.10.2.min.js",
+    "jquery/jquery-1.10.2.js",
     "jquery/jquery.getCSS.js",
     "jquery/jquery.mousewheel.min.js",
     "jquery/jquery-ui-1.10.4.min.js",
+    "jquery/jquery-ui-1.11.4-select.min.js",
     "jquery/ui.datepicker-ru.js",
     "jquery/jquery-ui-timepicker-addon.js",
     "jquery/ui.timepicker-ru.js",
@@ -118,6 +117,7 @@ var cssFiles = [
     "css/search.css",
     "css/primary.css",
     "css/jquery-ui-1.10.4.css",
+    "css/jquery-ui-1.11.4-select.css",
     "css/jquery-ui-1.10.4-gmx.css",
     "css/jquery-ui-timepicker-addon.css",
     "thirdparty/customscrollbar/jquery.mCustomScrollbar.css",
@@ -141,10 +141,8 @@ var cssFiles = [
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
     "src/IndexGrid/IndexGrid.css",
-<<<<<<< HEAD
-=======
+
     "src/PhotoLayer/PhotoLayer.css",
->>>>>>> master
     "src/CommonCalendarWidget/CommonCalendarWidget.css"
 ];
 

@@ -42,7 +42,6 @@ require('./common_components/builder')(gulp, {
                 srcDir: srcRoot + 'CalendarWidget-new',
                 distFiles: ['CalendarWidget.js', 'CalendarWidget.css']
             },
-            // srcRoot + 'CalendarWidget-new@build',
             commonRoot + 'AlertWidget@build',
             commonRoot + '../GmxShareIconControl@build',
             commonRoot + '../Leaflet-IconLayers/src',

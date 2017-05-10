@@ -687,6 +687,7 @@ function checkUserInfo(defaultState) {
     }
 }
 
+
 window.layersShown = true;
 
 window.resizeAll = function() {
@@ -1374,8 +1375,6 @@ function processGmxMap(state, gmxMap) {
 
     baseLayerDef.always(function() {
 
-        gmxMap.addLayersToMap(lmap);
-
         nsGmx.gmxMap = gmxMap;
         gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
 
@@ -1839,57 +1838,6 @@ function processGmxMap(state, gmxMap) {
         // _menuUp.defaultHash = 'layers';
         mapLayers.mapLayers.load();
 
-        // привяжем изменение активной ноды к календарю
-        $(_layersTree).on('activeNodeChange', function(e, p) {
-            var layerID = $(p).attr('layerid'),
-                calendar = nsGmx.commonCalendar.model.get('calendar'),
-                synchronyzed = nsGmx.commonCalendar.model.get('synchronyzed');
-
-            lmap.fireEvent('layersTree.activeNodeChange', {layerID: layerID});
-            // клик на ноде слоя
-            if (layerID) {
-                var layer = nsGmx.gmxMap.layersByID[layerID],
-                    props = layer.getGmxProperties(),
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
-                    dateInterval, dateBegin, dateEnd;
-
-                if (isTemporalLayer) {
-                    dateInterval = layer.getDateInterval();
-
-                    if (dateInterval.beginDate && dateInterval.endDate) {
-                        dateBegin = dateInterval.beginDate,
-                        dateEnd = dateInterval.endDate;
-                    } else {
-                        dateInterval = new nsGmx.DateInterval();
-                        dateBegin = dateInterval.beginDate,
-                        dateEnd = dateInterval.endDate;
-                    }
-
-                    calendar.setActive(true);
-                    nsGmx.commonCalendar.model.set('currentLayer', layer);
-                    nsGmx.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
-                } else {
-                    calendar.setActive(synchronyzed ? true : false);
-                    nsGmx.commonCalendar.model.set('currentLayer', null);
-                }
-            } else {
-                calendar.setActive(synchronyzed ? true : false);
-                nsGmx.commonCalendar.model.set('currentLayer', null);
-            }
-        });
-
-        lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
-            var layerID = ev.currentTab,
-                _layersTree = window._layersTree,
-                treeElem = _layersTree.treeModel.findElem('name', layerID).elem,
-                uiElem = _layersTree.findUITreeElem(treeElem),
-                span = $('.layer', $(uiElem))[0],
-                active = _layersTree.getActive();
-            if (uiElem !== active) {
-                _layersTree.setActive(span);
-            }
-        });
-
         //создаём тулбар
         var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
 
@@ -1998,6 +1946,7 @@ function processGmxMap(state, gmxMap) {
         initTemporalLayers();
 
         gmxMap.addLayersToMap(lmap);
+
         nsGmx.leafletMap.on('layeradd', function(event) {
             var layer = event.layer;
 
@@ -2026,11 +1975,9 @@ function processGmxMap(state, gmxMap) {
         });
         }
 
-        initEditUI();
-        initTemporalLayers();
         // special for steppe project
         if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
-            nsGmx.commonCalendar.show();
+            nsGmx.widgets.commonCalendar.show();
         }
 
         nsGmx.pluginsManager.afterViewer();

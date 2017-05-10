@@ -1,3 +1,12 @@
+.CommonCalendarWidget .CalendarWidget-dates-outside {
+    padding: 2px;
+    border: solid 1px;
+}
+
+.CommonCalendarWidget .gmx-input-text {
+    padding: 0;
+}
+
 .CalendarWidget-timeCell {
     text-align: center;
 }
@@ -61,11 +70,6 @@
 
 .calendar-outside .ui-datepicker td span, .calendar-outside .ui-datepicker td a {
   display: inline-block;
-<<<<<<< HEAD
-  font-weight: bold;
-=======
-  /*font-weight: bold;*/
->>>>>>> master
   text-align: center;
   width: 22px;
   height: 22px;
@@ -112,10 +116,6 @@
 }
 
 .calendar-outside .calendar-button {
-<<<<<<< HEAD
-    /*display: block;*/
-=======
->>>>>>> master
     cursor: pointer;
     position: absolute;
     width: 150px;

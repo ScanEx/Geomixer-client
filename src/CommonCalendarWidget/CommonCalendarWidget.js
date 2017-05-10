@@ -7,6 +7,7 @@ var nsGmx = nsGmx || {};
     nsGmx.Translations.addText("rus", { CommonCalendarWidget: {
         Timeline:    "Таймлайн",
         select: "Выберите мультивременной слой",
+        sync: "Синхронизация слоев",
         on: "Включить синхронизацию слоев",
         off: "Выключить синхронизацию слоев",
         all: "Интервал для всех слоев"
@@ -15,6 +16,7 @@ var nsGmx = nsGmx || {};
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
         select: "Select temporal layer",
+        sync: "Sync layers",
         on: "Layers sync on",
         off: "Layers sync off",
         all: "Интервал для всех слоев"
@@ -25,8 +27,15 @@ var nsGmx = nsGmx || {};
             '<div class="calendar-layers-container">' +
                 '<div class="calendar-container">' +
                     '<div class="calendar-widget-container"></div>' +
-                    '<div class="calendar-sync-button"></div>' +
+                    // '<div class="calendar-sync-button"></div>' +
                 '</div>' +
+            '</div>' +
+            '<div class="sync-switch-container">' +
+                '<label class="sync-switch">' +
+                    '<input type="checkbox">' +
+                    '<div class="sync-switch-slider round"></div>' +
+                '</label>' +
+                '<span class="sync-switch-slider-description">{{i "CommonCalendarWidget.sync"}}</span>' +
             '</div>' +
             '<div class="current-layer-name-container">' +
                 '<span class="current-layer-name">{{layer}}</span>' +
@@ -53,7 +62,7 @@ var nsGmx = nsGmx || {};
         className: 'CommonCalendarWidget ui-widget',
         template: Handlebars.compile(calendarWidgetTemplate),
         events: {
-            'click .calendar-sync-button': 'toggleSync'
+            'click .sync-switch': 'toggleSync'
         },
         initialize: function (options) {
             var _this = this;
@@ -62,11 +71,9 @@ var nsGmx = nsGmx || {};
                 layer: _this.model.get('synchronyzed') ? window._gtxt("CommonCalendarWidget.all") : _this.model.get('currentLayer') ? _this.model.get('currentLayer').getGmxProperties().title : window._gtxt("CommonCalendarWidget.select")
             }));
 
-            var syncButtonContainer = this.$('.calendar-sync-button');
 
             var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? 'img/synch-on.png' : 'img/synch-off.png', null);
             nsGmx.Utils._title(syncButton, window._gtxt(this.model.get('synchronyzed') ? "CommonCalendarWidget.off" : "CommonCalendarWidget.on"));
-            this.$(syncButtonContainer).append(syncButton);
 
             //for backward compatibility
             this.canvas = this.$el;
@@ -378,12 +385,9 @@ var nsGmx = nsGmx || {};
 
         updateSync: function () {
             var attrs = this.model.toJSON(),
-                synchronyzed = attrs.synchronyzed,
-                syncButtonContainer = this.$('.calendar-sync-button'),
-                img = this.$('.calendar-sync-button img');
-
-            synchronyzed ? $(img).attr('src', 'img/synch-on.png') : $(img).attr('src', 'img/synch-off.png');
-            nsGmx.Utils._title($(img)[0], synchronyzed ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев');
+                synchronyzed = attrs.synchronyzed;
+            debugger;
+        
 
             this.showCurrentLayer();
         }

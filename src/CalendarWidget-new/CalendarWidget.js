@@ -5,38 +5,13 @@
 var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
     toMidnight = nsGmx.DateInterval.toMidnight;
 
-    var template = "<table>\n" +
-        "    <tr>\n" +
-        "        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n" +
-        "        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\" readonly></td>\n" +
-        "        <td><span>-</span></td>\n" +
-        "        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\" readonly></td>\n" +
-        "        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n" +
-        "        <td><div class = \"CalendarWidget-show-calendar-icon {{showCalendarIconClass}}\" title = \"{{showCalendarIconTitle}}\"></div></td>\n" +
-        // "        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n" +
-        // "    </tr><tr>\n" +
-        // "        <td></td>\n" +
-        // "        <td class = \"CalendarWidget-timeCell\"><span class = \"gmx-text-date CalendarWidget-timeBegin\" readonly>18:00</span></td>\n" +
-        // "        <td><span>-</span></td>\n" +
-        // "        <td class = \"CalendarWidget-timeCell\"><span class = \"gmx-text-date CalendarWidget-timeEnd\" readonly></span>20:00</td>\n" +
-        // "        <td></td>\n" +
-        // "        <td></td>\n" +
-        // "    </tr><tr>\n" +
-        "        <td></td>\n" +
-        "        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n" +
-        "        <td class = \"CalendarWidget-dateEndInfo\"></td>\n" +
-        "        <td></td>\n" +
-        "        <td></td>\n" +
-        "    </tr>\n" +
-        "</table>\n" +
-        "<div class=\"CalendarWidget-footer\"></div>\n" +
-        ""
 
     nsGmx.Translations.addText("rus", { CalendarWidget: {
         ShowIconTitle:     "Выбрать дату",
         createDateInterval: "Задать интервал",
         resetDateInterval:  "Сбросить интервал",
         selectDateInterval: "Применить",
+        hour:               "ч.",
         from: "с",
         to: "до"
     }});
@@ -46,10 +21,47 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
         createDateInterval: "Create date interval",
         resetDateInterval:  "Reset date interval",
         selectDateInterval: "Select date interval",
+        hour:               "h.",
         from: "from",
         to: "to"
     }});
 
+    var template = '' +
+        '<div>' +
+            '<div class = "CalendarWidget-row CalendarWidget-dates">' +
+                '<span class = "CalendarWidget-iconScrollLeft icon-left-open"></span>' +
+                '<span class = "CalendarWidget-dates-outside">' +
+                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputBegin"><input class = "CalendarWidget-dateBegin" readonly></span>' +
+                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputMiddle">-</span>' +
+                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputEnd"><input class = "CalendarWidget-dateEnd" readonly></span>' +
+                '</span>' +
+                '<span class = "CalendarWidget-iconScrollLeft ui-helper-noselect icon-right-open"></span>' +
+                '<span class = "CalendarWidget-show-calendar-icon {{showCalendarIconClass}}" title = "{{showCalendarIconTitle}}"></span>' +
+            '</div>' +
+            '<div class = "CalendarWidget-row CalendarWidget-times">' +
+                '<span class = "CalendarWidget-timeCell">' +
+                '<select class="time-select begin-time-select">' +
+                    '{{#each this.hoursBegin}}' +
+                    '<option value="{{this.hour}}"' +
+                        '{{#if this.current}} selected="selected"{{/if}}>' +
+                        '{{this.hour}} {{i "CalendarWidget.hour"}}' +
+                    '</option>' +
+                    '{{/each}}' +
+                '</select>' +
+                '</span>' +
+                '<span>-</span>' +
+                '<span class = "CalendarWidget-timeCell">' +
+                '<select class="time-select end-time-select">' +
+                    '{{#each this.hoursEnd}}' +
+                    '<option value="{{this.hour}}"' +
+                        '{{#if this.current}} selected="selected"{{/if}}>' +
+                        '{{this.hour}} {{i "CalendarWidget.hour"}}' +
+                    '</option>' +
+                    '{{/each}}' +
+                '</select>' +
+                '</span>' +
+            '</div>' +
+        '</div>';
 
 /** Параметры календаря
  * @typedef nsGmx.CalendarWidget~Parameters
@@ -80,6 +92,9 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     template: Handlebars.compile(template),
 
     events: {
+        // 'click .CalendarWidget-dates-outside': function () {
+        //     this.showCalendar();
+        // },
         'click .CalendarWidget-show-calendar-icon': 'showCalendar',
         'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
@@ -156,18 +171,26 @@ var Calendar1 = nsGmx.GmxWidget.extend({
                         '{{#each this.timeIntervals}}' +
                         '<option value="{{this.hour}}"' +
                             '{{#if this.current}} selected="selected"{{/if}}>' +
-                            '{{this.hour}}' + ':00' +
+                            '{{this.hour}}' +
                         '</option>' +
                         '{{/each}}' +
                     '</select>' +
                 '</div>'
             )
-        },
+        };
+
+        var dateBegin = this._dateInterval.get('dateBegin'),
+            dateEnd = this._dateInterval.get('dateEnd'),
+            hourBegin = this._getTime(dateBegin, 'begin'),
+            hourEnd = this._getTime(dateEnd, 'end'),
+            hoursBegin = this._getHoursList(hourBegin, 'begin'),
+            hoursEnd = this._getHoursList(hourEnd, 'end');
 
         this.$el.html(this.template({
             showCalendarIconClass:'icon-calendar-empty',
-            showCalendarIconTitle: _gtxt('CalendarWidget.ShowIconTitle')
-            // forecast: _gtxt('CalendarWidget.forecast')
+            showCalendarIconTitle: _gtxt('CalendarWidget.ShowIconTitle'),
+            hoursBegin: hoursBegin,
+            hoursEnd: hoursEnd
         }));
 
         // если есть контейнер, куда прикреплять виджет календаря
@@ -184,14 +207,15 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $('#leftMenu').on('click', function (e) {
             if (e.target.className !== 'CalendarWidget-show-calendar-icon icon-calendar-empty' &&
-                e.target.className !== 'layers-before'
+                e.target.className !== 'layers-before' &&
+                e.target.className !== 'time-select' &&
+                e.target.className !== 'calendar-container'
             ) {
                 $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
-                $('.time-select').remove();
-                _this._showTime(false);
-                // _this.setActive(true);
             }
         })
+
+        this.$('.time-select').on('change', this._enableCreateIntervalButton.bind(this));
 
         //for backward compatibility
         this.canvas = this.$el;
@@ -261,7 +285,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         if (this.getMode() === Calendar1.ADVANCED_MODE) {
             $(createIntervalButton).toggle(false);
             $(resetIntervalButton).toggle(true);
-            this._showTime(dateBegin, dateEnd);
+            // this._showTime(dateBegin, dateEnd);
             $(this.endCalendar).dialog(endDialogOptions);
         }
 
@@ -273,7 +297,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             _this.setMode(Calendar1.ADVANCED_MODE);
             $(_this.endCalendar).dialog(endDialogOptions);
 
-            _this._showTime(begin, end);
+            // _this._showTime(begin, end);
 
             $(this).toggle(false);
             $(resetIntervalButton).toggle(true);
@@ -292,7 +316,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
                 dateBegin: dateBegin,
                 dateEnd: new Date(dateBegin.valueOf() + dayms)
             })
-            _this._showTime(false);
+            // _this._showTime(false);
         })
 
         // кнопка во втором календаре
@@ -323,14 +347,12 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     _enableCreateIntervalButton: function (e) {
         var dayms = nsGmx.DateInterval.MS_IN_DAY,
             selectIntervalButton = $('.selectdateinterval-button'),
-            calendarDateBegin = this.getDateBegin(),
-            calendarDateEnd = this.getDateEnd(),
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            beginOffset = dateBegin.valueOf() - calendarDateBegin.valueOf(),
-            endOffset = dateEnd.valueOf() - calendarDateEnd.valueOf(),
-            beginTimeValue = this._convertTimeValueToMs(e && e.target === $('.begin-time-select', this.beginCalendar)[0] ? $(e.target).val() : $('.begin-time-select option:selected').val()),
-            endTimeValue = this._convertTimeValueToMs(e && e.target === $('.end-time-select', this.endCalendar)[0] ? $(e.target).val() : $('.end-time-select option:selected').val()),
+            beginTimeValue = this._convertTimeValueToMs(e && e.target === $('.begin-time-select', this)[0] ? $(e.target).val() : $('.begin-time-select option:selected').val()),
+            endTimeValue = this._convertTimeValueToMs(e && e.target === $('.end-time-select', this)[0] ? $(e.target).val() : $('.end-time-select option:selected').val()),
+            calendarDateBegin = this.getDateBegin(),
+            calendarDateEnd = this.getDateEnd(),
             newDateBegin = new Date(calendarDateBegin.valueOf() + beginTimeValue),
             newDateEnd = new Date(calendarDateEnd.valueOf() + endTimeValue);
 
@@ -414,6 +436,39 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         $('.time-select', timeContainer).on('change', this._enableCreateIntervalButton.bind(this));
     },
 
+    _getTime: function (date, position) {
+        var dayms = nsGmx.DateInterval.MS_IN_DAY,
+            offset, hours;
+
+        if (position === 'begin') {
+            offset = date.valueOf() - toMidnight(date).valueOf();
+        } else {
+            if (date.valueOf() === toMidnight(date).valueOf()) {
+                offset = dayms;
+            } else {
+                offset = date.valueOf() - toMidnight(date).valueOf();
+            }
+        };
+
+        hours = offset/(3600*1000);
+
+        return hours;
+    },
+
+    _getHoursList: function (activeHour, position) {
+        var timeIntervals = [],
+            max = position === 'begin' ? 24 : 25;
+
+        for (var i = 0; i < max; i++) {
+            timeIntervals[i] = {hour: i, current: false}
+
+            if (i === activeHour) {
+                timeIntervals[i].current = true;
+            }
+        }
+        return timeIntervals;
+    },
+
     _shiftDates: function(delta) {
         var dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd');
@@ -485,6 +540,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     _updateWidget: function() {
         var dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
+            hourBegin = this._getTime(dateBegin, 'begin'),
+            hourEnd = this._getTime(dateEnd, 'end'),
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
             timeBegin = this.$('.CalendarWidget-timeBegin')[0],
@@ -505,8 +562,9 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $(beginInput).val(Calendar1.formatDate(newDateBegin));
         $(endInput).val(Calendar1.formatDate(newDateEnd));
-        $(timeBegin).html(Calendar1.formatDate(newDateBegin));
-        $(timeEnd).html(Calendar1.formatDate(newDateEnd));
+
+        $(timeBegin).val(hourBegin);
+        $(timeEnd).val(hourEnd);
     },
 
     setActive: function (value) {

@@ -119,14 +119,14 @@
 
 /* The switch - the box around the slider */
 
-.timeline-switch-container {
+.sync-switch-container {
     height: 45px;
     line-height: 45px;
     width: 320px;
     padding-left: 2px;
 }
 
-.timeline-switch {
+.sync-switch {
     position: relative;
     display: inline-block;
     vertical-align: middle;
@@ -135,10 +135,10 @@
 }
 
 /* Hide default HTML checkbox */
-.timeline-switch input {display:none;}
+.sync-switch input {display:none;}
 
 /* The slider */
-.timeline-switch-slider {
+.sync-switch-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -150,7 +150,7 @@
     transition: .4s;
 }
 
-.timeline-switch-slider:before {
+.sync-switch-slider:before {
      position: absolute;
      content: "";
      height: 12px;
@@ -162,26 +162,26 @@
      transition: .4s;
 }
 
-input:checked + .timeline-switch-slider {
+input:checked + .sync-switch-slider {
      background-color: #1471bb;
 }
 
-input:focus + .timeline-switch-slider {
+input:focus + .sync-switch-slider {
      box-shadow: 0 0 1px #1471bb;
 }
 
-input:checked + .timeline-switch-slider:before {
+input:checked + .sync-switch-slider:before {
      -webkit-transform: translateX(14px);
      -ms-transform: translateX(14px);
      transform: translateX(14px);
 }
 
 /* Rounded slider */
-.timeline-switch-slider.round {
+.sync-switch-slider.round {
      border-radius: 16px;
 }
 
-.timeline-switch-slider.round:before {
+.sync-switch-slider.round:before {
      border-radius: 50%;
 }
 
