@@ -26,7 +26,7 @@ require('./common_components/builder')(gulp, {
                 distFiles: ['url.js']
             },
             commonRoot + 'GmxWidget',
-            commonRoot + 'CommonStyles@build',
+            commonRoot + 'CommonStyles@dist',
             commonRoot + 'DropdownMenuWidget@build',
             commonRoot + 'AuthWidget@build',
             commonRoot + 'LanguageWidget@build',

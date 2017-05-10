@@ -616,14 +616,20 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	// label
 
-	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
+	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
+	    xShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','XSfift'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && templateStyle.labelAnchor[0] || '0']]),
+	    yShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && -(templateStyle.labelAnchor[1]) || '0']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
         checkedFontSize = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.size != 'undefined') ? templateStyle.label.size : 12,
+        checkedXShift = (typeof templateStyle.labelAnchor != 'undefined' && typeof templateStyle.labelAnchor[0]) ? templateStyle.labelAnchor[0] : 0,
+        checkedYShift = (typeof templateStyle.labelAnchor != 'undefined' && typeof templateStyle.labelAnchor[1]) ? templateStyle.labelAnchor[1] : 0,
         backupLabel = {
             color: checkedLabelColor,
             haloColor: checkedLabelHaloColor,
-            size: checkedFontSize
+            size: checkedFontSize,
+            dx: checkedXShift,
+            dy: checkedYShift
         },
 		labelColor = nsGmx.Controls.createColorPicker(checkedLabelColor,
 			function (colpkr){
@@ -681,6 +687,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	_title(labelColor, _gtxt("Цвет шрифта"));
 	_title(labelHaloColor, _gtxt("Цвет обводки"));
 	_title(fontSizeInput, _gtxt("Размер шрифта"));
+	_title(xShiftInput, _gtxt("Смещение по x"));
+	_title(yShiftInput, _gtxt("Смещение по y"));
 
     // при загрузке выставим в инпуты значения либо template, либо label
     if (templateStyle.labelTemplate) {
@@ -759,6 +767,27 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
 	}
 
+    xShiftInput.onkeyup = function()
+    {
+        if (typeof templateStyle.labelAnchor == 'undefined') {
+            templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
+        }
+        	templateStyle.labelAnchor[0] = Number(this.value);
+            checkedXShift = Number(this.value);
+        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+            layer.setStyle(templateStyle)
+    }
+
+    yShiftInput.onkeyup = function()
+    {
+        if (typeof templateStyle.labelAnchor == 'undefined') {
+            templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
+        }
+        	templateStyle.labelAnchor[1] = -(Number(this.value));
+            checkedYShift = -(Number(this.value));
+        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+    }
+
     var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], labelText, '[suggest]', updateLabelText.bind(labelText));
 
     var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
@@ -777,6 +806,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
       _tr([_td([_t(_gtxt("Цвет шрифта"))], [['css','width','100px']]), _td([labelColor])]),
       _tr([_td([_t(_gtxt("Цвет обводки"))], [['css','width','100px']]), _td([labelHaloColor])]),
       _tr([_td([_t(_gtxt("Размер шрифта"))], [['css','width','100px']]), _td([fontSizeInput])]),
+      _tr([_td([_t(_gtxt("Смещение по x"))], [['css','width','100px']]), _td([xShiftInput])]),
+      _tr([_td([_t(_gtxt("Смещение по y"))], [['css','width','100px']]), _td([yShiftInput])]),
       _tr([_td([labelText], [['attr', 'colspan', 4]])]),
       _tr([_td([divAttr])])
   ])])]);

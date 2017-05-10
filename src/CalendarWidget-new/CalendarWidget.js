@@ -5,38 +5,49 @@
 var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
     toMidnight = nsGmx.DateInterval.toMidnight;
 
-var template = "<table>\n" +
-    "    <tr>\n" +
-    "        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n" +
-    "        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin disabled\"></td>\n" +
-    "        <td><span>-</span></td>\n" +
-    "        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd disabled\"></td>\n" +
-    "        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n" +
-    "        <td><div class = \"CalendarWidget-show-calendar-icon {{showCalendarIconClass}}\" title = \"{{showCalendarIconTitle}}\"></div></td>\n" +
-    "        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n" +
-    "    </tr><tr>\n" +
-    "        <td></td>\n" +
-    "        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n" +
-    "        <td class = \"CalendarWidget-dateEndInfo\"></td>\n" +
-    "        <td></td>\n" +
-    "        <td></td>\n" +
-    "    </tr>\n" +
-    "</table>\n" +
-    "<div class=\"CalendarWidget-footer\"></div>\n" +
-    ""
+    var template = "<table>\n" +
+        "    <tr>\n" +
+        "        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n" +
+        "        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\" readonly></td>\n" +
+        "        <td><span>-</span></td>\n" +
+        "        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\" readonly></td>\n" +
+        "        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n" +
+        "        <td><div class = \"CalendarWidget-show-calendar-icon {{showCalendarIconClass}}\" title = \"{{showCalendarIconTitle}}\"></div></td>\n" +
+        // "        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n" +
+        // "    </tr><tr>\n" +
+        // "        <td></td>\n" +
+        // "        <td class = \"CalendarWidget-timeCell\"><span class = \"gmx-text-date CalendarWidget-timeBegin\" readonly>18:00</span></td>\n" +
+        // "        <td><span>-</span></td>\n" +
+        // "        <td class = \"CalendarWidget-timeCell\"><span class = \"gmx-text-date CalendarWidget-timeEnd\" readonly></span>20:00</td>\n" +
+        // "        <td></td>\n" +
+        // "        <td></td>\n" +
+        // "    </tr><tr>\n" +
+        "        <td></td>\n" +
+        "        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n" +
+        "        <td class = \"CalendarWidget-dateEndInfo\"></td>\n" +
+        "        <td></td>\n" +
+        "        <td></td>\n" +
+        "    </tr>\n" +
+        "</table>\n" +
+        "<div class=\"CalendarWidget-footer\"></div>\n" +
+        ""
 
     nsGmx.Translations.addText("rus", { CalendarWidget: {
         ShowIconTitle:     "Выбрать дату",
         createDateInterval: "Задать интервал",
         resetDateInterval:  "Сбросить интервал",
-        selectDateInterval: "Применить"
+        selectDateInterval: "Применить",
+        from: "с",
+        to: "до"
     }});
 
     nsGmx.Translations.addText("eng", { CalendarWidget: {
         ShowIconTitle:     "Select date",
         createDateInterval: "Create date interval",
         resetDateInterval:  "Reset date interval",
-        selectDateInterval: "Select date interval"
+        selectDateInterval: "Select date interval",
+        from: "from",
+        to: "to"
     }});
 
 
@@ -75,15 +86,6 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         },
         'click .CalendarWidget-iconScrollRight': function () {
             this._shiftDates(1);
-        },
-        'click .gmx-input-text': function (e) {
-            e.preventDefault();
-        },
-        'dbclick .gmx-input-text': function (e) {
-            e.preventDefault();
-        },
-        'keypress .gmx-input-text': function (e) {
-            e.preventDefault();
         }
     },
 
@@ -164,8 +166,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         this.$el.html(this.template({
             showCalendarIconClass:'icon-calendar-empty',
-            showCalendarIconTitle: _gtxt('CalendarWidget.ShowIconTitle'),
-            forecast: _gtxt('CalendarWidget.forecast')
+            showCalendarIconTitle: _gtxt('CalendarWidget.ShowIconTitle')
+            // forecast: _gtxt('CalendarWidget.forecast')
         }));
 
         // если есть контейнер, куда прикреплять виджет календаря
@@ -485,6 +487,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             dateEnd = this._dateInterval.get('dateEnd'),
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
+            timeBegin = this.$('.CalendarWidget-timeBegin')[0],
+            timeEnd = this.$('.CalendarWidget-timeEnd')[0],
             dayms = nsGmx.DateInterval.MS_IN_DAY,
             newDateEnd;
 
@@ -501,6 +505,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $(beginInput).val(Calendar1.formatDate(newDateBegin));
         $(endInput).val(Calendar1.formatDate(newDateEnd));
+        $(timeBegin).html(Calendar1.formatDate(newDateBegin));
+        $(timeEnd).html(Calendar1.formatDate(newDateEnd));
     },
 
     setActive: function (value) {
@@ -583,7 +589,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
      * @param {Date} dateMax верхняя граница возможных периодов
      */
     setDateMax: function(dateMax) {
-        var titleContainer = this.$('.CalendarWidget-forecast');
+        // var titleContainer = this.$('.CalendarWidget-forecast');
 
         this._dateMax = dateMax;
         if (dateMax) {
@@ -593,13 +599,13 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             }
 
             if (dateMax > new Date()) {
-                $(titleContainer).attr('title', _gtxt('CalendarWidget.tooltip') + ' ' +
-                ('0' + dateMax.getDate()).slice(-2) + '-' +
-                ('0' + (dateMax.getMonth() + 1)).slice(-2) + '-' +
-                dateMax.getFullYear());
-                $(titleContainer).show();
-            } else {
-                $(titleContainer).hide();
+            //     $(titleContainer).attr('title', _gtxt('CalendarWidget.tooltip') + ' ' +
+            //     ('0' + dateMax.getDate()).slice(-2) + '-' +
+            //     ('0' + (dateMax.getMonth() + 1)).slice(-2) + '-' +
+            //     dateMax.getFullYear());
+            //     $(titleContainer).show();
+            // } else {
+            //     $(titleContainer).hide();
             }
 
         } else {

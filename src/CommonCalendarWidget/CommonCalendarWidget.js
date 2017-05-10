@@ -7,12 +7,16 @@ var nsGmx = nsGmx || {};
     nsGmx.Translations.addText("rus", { CommonCalendarWidget: {
         Timeline:    "Таймлайн",
         select: "Выберите мультивременной слой",
+        on: "Включить синхронизацию слоев",
+        off: "Выключить синхронизацию слоев",
         all: "Интервал для всех слоев"
     }});
 
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
         select: "Select temporal layer",
+        on: "Layers sync on",
+        off: "Layers sync off",
         all: "Интервал для всех слоев"
     }});
 
@@ -61,7 +65,7 @@ var nsGmx = nsGmx || {};
             var syncButtonContainer = this.$('.calendar-sync-button');
 
             var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? 'img/synch-on.png' : 'img/synch-off.png', null);
-            nsGmx.Utils._title(syncButton, window._gtxt(this.model.get('synchronyzed') ? 'Выключить синхронизацию слоев' : 'Включить синхронизацию слоев'));
+            nsGmx.Utils._title(syncButton, window._gtxt(this.model.get('synchronyzed') ? "CommonCalendarWidget.off" : "CommonCalendarWidget.on"));
             this.$(syncButtonContainer).append(syncButton);
 
             //for backward compatibility
@@ -105,7 +109,7 @@ var nsGmx = nsGmx || {};
             if (uiElem !== active) {
                 _layersTree.setActive(span);
             }
-            this.model.set('currentLayer', layer);
+            this.model.set('currentLayer', props.LayerID);
         },
 
         getCurrentLayer: function () {
@@ -180,7 +184,7 @@ var nsGmx = nsGmx || {};
             var calendarDiv = this.$('.calendar-widget-container'),
                 calendarCanvas = this.get().canvas;
 
-            $(_queryMapLayers.getContainerBefore()).append(nsGmx.commonCalendar.canvas[0]);
+            $(_queryMapLayers.getContainerBefore()).append(calendarCanvas[0]);
 
             var doAdd = function() {
                 calendarDiv.append(calendarCanvas);
@@ -233,8 +237,6 @@ var nsGmx = nsGmx || {};
         unbindLayer: function(layerName) {
             var layers = nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
-                currentLayer = this.getCurrentLayer(),
-                currentLayerName,
                 layerTitle,
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
@@ -264,7 +266,8 @@ var nsGmx = nsGmx || {};
         showCurrentLayer: function () {
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
-                currentLayer = this.getCurrentLayer(),
+                // currentLayer = this.getCurrentLayer(),
+                currentLayer = attrs.currentLayer,
                 nameSpan = this.$('.current-layer-name'),
                 props, isTemporalLayer;
 
@@ -275,6 +278,7 @@ var nsGmx = nsGmx || {};
                     $(nameSpan).html(window._gtxt("CommonCalendarWidget.select"));
                 }
             } else {
+                currentLayer = nsGmx.gmxMap.layersByID[currentLayer];
                 props = currentLayer.getGmxProperties();
                 isTemporalLayer = (currentLayer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
@@ -296,7 +300,8 @@ var nsGmx = nsGmx || {};
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),
-                currentLayer = this.getCurrentLayer(),
+                // currentLayer = this.getCurrentLayer(),
+                currentLayer = attrs.currentLayer,
                 layersMaxDates = [],
                 maxDate = null;
 
@@ -319,6 +324,7 @@ var nsGmx = nsGmx || {};
                 }
             } else {
                 if (currentLayer) {
+                    currentLayer = nsGmx.gmxMap.layersByID[currentLayer];
                     this._updateOneLayer(currentLayer, dateBegin, dateEnd);
                 } else {
                     return;
@@ -343,7 +349,8 @@ var nsGmx = nsGmx || {};
 
         onDateIntervalChanged: function (e) {
             var attrs = this.model.toJSON(),
-                currentLayer = this.getCurrentLayer(),
+                // currentLayer = this.getCurrentLayer(),
+                currentLayer = attrs.currentLayer,
                 layer = e.target,
                 currentName,
                 layerName,

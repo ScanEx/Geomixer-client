@@ -106,6 +106,15 @@ option
     background-color: #EBEBE4;
 }
 
+.minInputStyle {
+	border: none;
+	border-bottom: 1px solid #808080;
+	background-color: #FFFFFF;
+	height: 14px;
+	padding: 2px 0px;
+	margin: 1px 0px;
+}
+
 .selectStyle
 {
 	border: 1px solid #AFC0D5;
@@ -1934,4 +1943,8 @@ div.layersScroll
     color: #999999;
     pointer-events: none;
     cursor: default;
+}
+
+.photo-image-clickable {
+	cursor: pointer;
 }

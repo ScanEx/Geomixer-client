@@ -293,7 +293,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
                         gmxProperties.content.properties.styles = [{
                             MinZoom: gmxProperties.content.properties.VtMaxZoom,
                             MaxZoom:21,
-                            RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                            RenderStyle:gmxProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
                         }];
 
                         _layersTree.copyHandler(gmxProperties, targetDiv, false, true);

@@ -1,0 +1,149 @@
+.photolayer-ui-container {
+    height: 25px;
+    margin-bottom: 4px;
+    margin-left: 6px;
+}
+.photolayer-catalog-selector-container {
+    height: 35px;
+    line-height: 35px;
+    margin-bottom: 10px;
+}
+
+.photolayer-catalog-label input {
+    margin-right: 4px;
+}
+
+.photolayer-loader-container {
+    height: 44px;
+}
+
+.photolayer-title {
+    display: block;
+}
+
+.photolayer-name-title {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.photolayer-newlayer-input-container,
+.photolayer-existinglayer-input-container {
+    margin-bottom: 40px;
+}
+
+.photolayer-existinglayer-input {
+    border: 1px solid #808080;
+    min-width: 139px;
+}
+
+.photolayer-title,
+.photolayer-catalog-label {
+    margin-right: 8px;
+}
+
+.select-catalog-button {
+    cursor: pointer;
+    width: 150px;
+    height: 25px;
+    text-align: center;
+    padding: 6px;
+    margin-right: 8px;
+    border-radius: 2px;
+    background-color: #ddd;
+    color: #a2a2a2;
+    box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+}
+
+.select-catalog-button.active {
+    color: #FFF;
+    background-color: #1471bb;
+}
+
+.photolayer-loader-block {
+    display: inline-block;
+    bottom: 4px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.photo-uploader-label {
+    display: inline-block;
+}
+
+label.photo-uploader-label input {
+    display: none;
+}
+
+.photo-uploader-label.gmx-disabled {
+    pointer-events: none;
+    cursor: default;
+}
+
+.photo-uploader-button.gmx-disabled {
+    color: #999999;
+    pointer-events: none;
+    cursor: default;
+}
+
+.photo-uploader-button {
+    cursor: pointer;
+    width: 150px;
+    height: 25px;
+    text-align: center;
+    font-weight: bold;
+    padding: 6px;
+    margin-right: 8px;
+    border-radius: 2px;
+    background-color: #FFF;
+    color: #1471bb;
+}
+
+.photolayer-progress-container {
+    display: inline-block;
+    width: 120px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.progressbar {
+    display: inline-block;
+    width: 120px;
+}
+
+.progressbar.ui-progressbar{
+    height: 0.5em;
+    background: #ddd;
+}
+
+.progressbar .ui-progressbar-value {
+    background: #1471bb;
+}
+
+.photolayer-ok-button-container {
+    width: 25px;
+}
+
+.spin-message {
+    margin-left: 8px;
+}
+
+.ok-button {
+    color: #a2a2a2;
+}
+
+.photolayer-error-message,
+ .photo-upload-result-error {
+    color: red;
+}
+
+.popupImage {
+    margin: 0 auto;
+}
+
+.photo-upload-result {
+    margin-left: 6px;
+}
+
+.photo-upload-result-uploaded {
+    color: green;
+}

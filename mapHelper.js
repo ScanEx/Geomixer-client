@@ -30,6 +30,15 @@ var mapHelper = function()
 		'polygon':{outline:{color:0x0000FF, thickness:1}, fill:{color:0xFFFFFF, opacity:20}}
 	}
 
+	this.defaultPhotoIconStyles = {
+		'point': {
+			marker: {
+				image: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+				center: true
+			}
+		}
+	}
+
 	this.stylesDialogsHash = {};
 	this.drawingDialogsHash = {};
 
@@ -38,6 +47,10 @@ var mapHelper = function()
 	this.layerStylesHash = {};
 
 	this.attrValues = {};
+
+	this.customErrorsHash = {
+		"Unable to locate EXIF content" : "Unable to locate EXIF content"
+	}
 
 	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
 	// все такие объекты не будут сериализоваться
@@ -452,8 +465,8 @@ mapHelper.prototype.getMapState = function() {
         condition: condition,
 		LayersTreePermalinkParams: LayersTreePermalinkParams,
         language: window.language,
-        openPopups: openPopups,
-        customParamsCollection: this.customParamsManager.saveParams()
+		customParamsCollection: this.customParamsManager.saveParams(),
+        openPopups: openPopups
     }
 }
 

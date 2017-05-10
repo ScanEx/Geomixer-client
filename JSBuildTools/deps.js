@@ -51,12 +51,13 @@ var jsFiles = [
     "src/AttrTable/ServerDataProvider.js",
     "src/AttrTable/SquareCalculation.js",
     "src/AttrTable/DefaultSearchParamsManager.js",
-
     "src/GridPlugin/GridPlugin.js",
-
     "src/MapExport/MapExport.js",
-
     "src/IndexGrid/IndexGrid.js",
+<<<<<<< HEAD
+=======
+    "src/PhotoLayer/PhotoLayer.js",
+>>>>>>> master
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
 
     "CoverControl.js",
@@ -135,11 +136,15 @@ var cssFiles = [
     "leaflet/plugins/gmxControls/src/css/external.css",
     "leaflet/leafletGmx.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchControl.css",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css"
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
     "src/IndexGrid/IndexGrid.css",
+<<<<<<< HEAD
+=======
+    "src/PhotoLayer/PhotoLayer.css",
+>>>>>>> master
     "src/CommonCalendarWidget/CommonCalendarWidget.css"
 ];
 

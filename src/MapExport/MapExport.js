@@ -354,8 +354,8 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportSelectButton');
                     $(areaButton).addClass('mapExportUnselectButton');
                     $(areaButton).text(window._gtxt('mapExport.unselect'));
-                    $(zoomToBoxButton).toggle();
-                    $(zoomToLevelButton).toggle();
+                    $(zoomToBoxButton).show();
+                    $(zoomToLevelButton).show();
                     if (!attrs.widthValueErr    &&
                         !attrs.widthSizeErr     &&
                         !attrs.heightValueErr   &&
@@ -367,8 +367,8 @@ var nsGmx = window.nsGmx || {};
                     $(areaButton).removeClass('mapExportUnselectButton');
                     $(areaButton).addClass('mapExportSelectButton');
                     $(areaButton).text(window._gtxt('mapExport.select'));
-                    $(zoomToBoxButton).toggle();
-                    $(zoomToLevelButton).toggle();
+                    $(zoomToBoxButton).hide();
+                    $(zoomToLevelButton).hide();
                     $(exportButton).addClass('gmx-disabled');
                 }
             },
@@ -841,6 +841,8 @@ var nsGmx = window.nsGmx || {};
 
             resize: function(e) {
                 var attrs = this.model.toJSON(),
+                    start = e.target.selectionStart,
+                    end = e.target.selectionEnd,
                     initialCoords,
                     scale,
                     screenCoords,
@@ -935,10 +937,13 @@ var nsGmx = window.nsGmx || {};
                 var newRect = L.rectangle(newBounds);
                 this.model.set('coords', newRect._latlngs);
 
-                this._removeFrame();
+                attrs.lmap.gmxDrawing.remove(attrs.selArea);
 
                 this._createFrame(newRect);
                 this._updateCoords();
+
+                // восстановим позицию курсора
+                e.target.setSelectionRange(start, end);
             },
 
             _createFrame: function(rectangle) {
@@ -968,7 +973,19 @@ var nsGmx = window.nsGmx || {};
                     _this = this;
 
                 frame.on('edit', _this._resizeFrame.bind(_this));
-                frame.on('remove', _this.unselectArea.bind(_this));
+                frame.on('remove', function () {
+                    var attrs = _this.model.toJSON();
+
+                    _this.model.set({
+                        width: 0,
+                        height: 0,
+                        widthValueErr: false,
+                        widthSizeErr: false,
+                        heightValueErr: false,
+                        heightSizeErr: false,
+                        exportErr: false
+                    });
+                });
 
             },
 

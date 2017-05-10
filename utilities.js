@@ -1204,6 +1204,13 @@ $.extend(nsGmx.Utils, {
         if (hoverStyle.labelTemplate) {
           newStyle.HoverStyle.labelTemplate = hoverStyle.labelTemplate;
         }
+
+        if (templateStyle.labelAnchor) {
+          newStyle.RenderStyle.labelAnchor = templateStyle.labelAnchor;
+        }
+        if (hoverStyle.labelAnchor) {
+          newStyle.HoverStyle.labelAnchor = hoverStyle.labelAnchor;
+        }
         layer.setStyle(newStyle, styleIndex);
 	},
 
