@@ -1,0 +1,22 @@
+.query-menu-dialog .ui-dialog-titlebar.ui-widget-header{
+	display: none;
+}
+
+.query-menu-container {
+	display: block;
+	margin: auto;
+	padding-top: 8px;
+}
+
+.query-menu-title {
+	margin-right: 8px;
+}
+
+.query-menu-input {
+	width: 30px;
+	margin-right: 8px;
+}
+
+.query-menu-button {
+	padding: 0 4px;
+}

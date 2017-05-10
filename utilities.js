@@ -362,6 +362,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 
             removeDialog(canvas);
         },
+        open: function (ev, ui) {
+        },
         closeText: null
     };
 
@@ -375,6 +377,28 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 
 	var dialog = canvas.parentNode;
 	dialog.style.overflow = '';
+
+    $(dialog).focusout(function (event) {
+
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+        event.preventDefault();
+        jQuery.support.focusinBubbles = false;
+        var ui = $('.ui-dialog-content', this);
+            ui.context.st = $(ui).scrollTop();
+
+    });
+
+    $(dialog).focusin(function() {
+        var uis = $('.ui-dialog-content');
+
+        $(uis).each(function(index) {
+            var st = $(this).context.st;
+            $(this).scrollTop(st);
+        });
+
+    });
+
 
 	jQuery(dialog).children("div.ui-resizable-se").removeClass("ui-icon")
 				.removeClass("ui-icon-gripsmall-diagonal-se")
@@ -1403,7 +1427,6 @@ $.extend(nsGmx.Utils, {
                         } else {
                             def.reject(response);
                         }
-                        //console.log(response.Result);
                     }
                 };
 

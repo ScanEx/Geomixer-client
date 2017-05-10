@@ -38,14 +38,14 @@ if (!window.mapHostName && window.gmxJSHost) {
 }
 
 var _mapHostName; //откуда грузить API
+var protocol = window.location.protocol;
 
 if (window.mapHostName) {
-    _mapHostName = 'http://' + window.mapHostName + '/api/';
+    _mapHostName = protocol + '//' + window.mapHostName + '/api/';
 } else {
     var curUri = L.gmxUtil.parseUri(window.location.href);
-    _mapHostName = 'http://' + curUri.host + curUri.directory;
+    _mapHostName = protocol + '//' + curUri.host + curUri.directory;
 }
-
 
 var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName)[1] + '/';
 
@@ -1176,13 +1176,17 @@ function initAuthWidget() {
                 _mapHelper.reloadMap();
             });
             return def;
+        },
+        getNative: function() {
+            return nativeAuthWidget;
         }
     };
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
         accountLink: null,
-        showMapLink: !!window.mapsSite
+        showMapLink: !!window.mapsSite,
+        changePassword: !window.mapsSite
     });
 
     var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
