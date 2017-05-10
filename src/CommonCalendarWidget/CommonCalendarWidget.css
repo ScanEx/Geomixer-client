@@ -4,7 +4,6 @@
 .CommonCalendarWidget .CalendarWidget-dateBegin,
 .CommonCalendarWidget .CalendarWidget-dateEnd {
     border: 0;
-    background-color: #efefef;
     cursor: default;
 }
 
@@ -23,7 +22,6 @@
 .calendar-container {
     width: 320px;
     height: 35px;
-    background-color: #efefef
 }
 
 .calendar-container {

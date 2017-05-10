@@ -465,8 +465,8 @@ mapHelper.prototype.getMapState = function() {
         condition: condition,
 		LayersTreePermalinkParams: LayersTreePermalinkParams,
         language: window.language,
-        openPopups: openPopups,
-        customParamsCollection: this.customParamsManager.saveParams()
+		customParamsCollection: this.customParamsManager.saveParams(),
+        openPopups: openPopups
     }
 }
 
