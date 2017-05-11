@@ -185,7 +185,7 @@ input:checked + .sync-switch-slider:before {
      border-radius: 50%;
 }
 
-.timeline-label {
+.sync-switch-slider-description {
     margin-left: 8px;
     vertical-align: middle;
 }
