@@ -61,6 +61,7 @@ var nsGmx = nsGmx || {};
             calendar: null,
             isAppended: false,
             unbindedTemporalLayers: {},
+            visibleTemporalLayers: [],
             synchronyzed: true
         }
     });
@@ -78,20 +79,8 @@ var nsGmx = nsGmx || {};
 
             this.$el.html(this.template({
                 synchronyzed: _this.model.get('synchronyzed'),
-                layers: [
-                    {
-                        layer: 'aaa'
-                    },
-                    {
-                        layer: 'bbb',
-                        current: true
-                    }
-                ]
+                layers: _this.model.get('visibleTemporalLayers')
             }));
-
-
-            var syncButton = nsGmx.Utils.makeImageButton(this.model.get('synchronyzed') ? 'img/synch-on.png' : 'img/synch-off.png', null);
-            nsGmx.Utils._title(syncButton, window._gtxt(this.model.get('synchronyzed') ? "CommonCalendarWidget.off" : "CommonCalendarWidget.on"));
 
             //for backward compatibility
             this.canvas = this.$el;
@@ -100,6 +89,7 @@ var nsGmx = nsGmx || {};
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:active', this.activate);
             this.listenTo(this.model, 'change:currentLayer', this.showCurrentLayer);
+            this.listenTo(this.model, 'change:visibleTemporalLayers', this.updateVisibleTemporalLayers);
         },
 
         setDateInterval: function (dateBegin, dateEnd, layer) {
@@ -130,9 +120,18 @@ var nsGmx = nsGmx || {};
                 span = $('.layer', $(uiElem))[0],
                 active = _layersTree.getActive();
             if (uiElem !== active) {
-                _layersTree.setActive(span);
+                // _layersTree.setActive(span);
             }
             this.model.set('currentLayer', props.LayerID);
+        },
+
+        changeCurrentLayer: function (e) {
+            var _this = this,
+                title = e.target.value,
+                layer = nsGmx.gmxMap.layersByTitle[title],
+                layerID = layer.getGmxProperties().LayerID;
+
+            _this.model.set('currentLayer', layerID);
         },
 
         getCurrentLayer: function () {
@@ -289,7 +288,6 @@ var nsGmx = nsGmx || {};
         showCurrentLayer: function () {
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
-                // currentLayer = this.getCurrentLayer(),
                 currentLayer = attrs.currentLayer,
                 nameSpan = this.$('.current-layer-name'),
                 props, isTemporalLayer;
@@ -315,6 +313,7 @@ var nsGmx = nsGmx || {};
                     }
                 }
             }
+            console.log('u');
         },
 
         updateTemporalLayers: function() {
@@ -323,7 +322,6 @@ var nsGmx = nsGmx || {};
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),
-                // currentLayer = this.getCurrentLayer(),
                 currentLayer = attrs.currentLayer,
                 layersMaxDates = [],
                 maxDate = null;
@@ -372,10 +370,8 @@ var nsGmx = nsGmx || {};
 
         onDateIntervalChanged: function (e) {
             var attrs = this.model.toJSON(),
-                // currentLayer = this.getCurrentLayer(),
                 currentLayer = attrs.currentLayer,
                 layer = e.target,
-                currentName,
                 layerName,
                 dateInterval, dateBegin, dateEnd;
 
@@ -383,10 +379,9 @@ var nsGmx = nsGmx || {};
                 return;
             }
 
-            currentName = currentLayer.getGmxProperties().name;
-            layerName = layer.getGmxProperties().name;
+            layerID = layer.getGmxProperties().LayerID;
 
-            if (layerName === currentName) {
+            if (layerID === currentLayer) {
                 dateInterval = layer.getDateInterval(),
                 dateBegin = dateInterval.beginDate,
                 dateEnd = dateInterval.endDate;
@@ -395,21 +390,77 @@ var nsGmx = nsGmx || {};
             }
         },
 
+        updateVisibleTemporalLayers: function () {
+            var attrs = this.model.toJSON(),
+                currentLayer = attrs.currentLayer,
+                layers = attrs.visibleTemporalLayers,
+                layersList = this.$('.layersList'),
+                layersArr = [],
+                str = '';
+
+            for (var i = 0; i < layers.length; i++) {
+               var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    title = props.title;
+                    str += '<option value=' + title + '>' + title + '</option>';
+            };
+
+            $(layersList).html(str);
+
+            if (currentLayer) {
+                var currentTitle = '';
+                for (var i = 0; i < layers.length; i++) {
+                   var layer = layers[i],
+                        props = layer.getGmxProperties(),
+                        title = props.title,
+                        layerID = props.layerID;
+                    if (currentLayer === layerID) {
+                        currentTitle = title;
+                    }
+                };
+
+                $(layersList).val(currentTitle);
+            // установим текщим первый слой из списка
+            } else if (!currentLayer && layers.length) {
+                this.model.set('currentLayer', layers[0].getGmxProperties().LayerID);
+            }
+        },
+
         toggleSync: function () {
             this.model.set('synchronyzed', !this.model.get('synchronyzed'));
         },
 
         updateSync: function () {
-            var attrs = this.model.toJSON(),
+            var _this = this,
+                attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 listContainer = this.$('.unsync-layers-container'),
-                layersList = this.$('.layersList');
+                layersList = this.$('.layersList'),
+                dateInterval, dateBegin, dateEnd;
 
             if (synchronyzed) {
                 $(listContainer).hide();
             } else {
                 $(listContainer).show();
-                $(layersList).selectmenu();
+                $(layersList).selectmenu({
+                    change: function (e) {
+                        var title = e.target.value,
+                            layer = nsGmx.gmxMap.layersByTitle[title];
+
+                        dateInterval = layer.getDateInterval();
+
+                        if (dateInterval.beginDate && dateInterval.endDate) {
+                            dateBegin = dateInterval.beginDate,
+                            dateEnd = dateInterval.endDate;
+                        } else {
+                            dateInterval = new nsGmx.DateInterval();
+                            dateBegin = dateInterval.beginDate,
+                            dateEnd = dateInterval.endDate;
+                        }
+
+                        _this.setDateInterval(dateBegin, dateEnd, layer);
+                    }
+                });
             }
         }
     });

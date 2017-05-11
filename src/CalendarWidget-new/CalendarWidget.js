@@ -216,7 +216,6 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             }
         })
 
-        // this.$('.time-select').on('change', this._enableCreateIntervalButton.bind(this));
         this.$('.time-select').on('input', this._selectTime.bind(this));
 
         //for backward compatibility
@@ -374,46 +373,6 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     _convertTimeValueToMs: function (value) {
         var ms = Number(value)*1000*3600;
         return ms;
-    },
-
-    _fillTimeMenu: function (date, position) {
-        var timeIntervals = [],
-            context = position === 'begin' ? this.beginCalendar : this.endCalendar,
-            dayms = nsGmx.DateInterval.MS_IN_DAY,
-            max = position === 'begin' ? 24 : 25,
-            timeContainer = $('.' + position + '-time-container', context),
-            timeSelect,
-            offset, hours;
-
-        if (position === 'begin') {
-            offset = date.valueOf() - toMidnight(date).valueOf();
-        } else {
-            if (date.valueOf() === toMidnight(date).valueOf()) {
-                offset = dayms;
-            } else {
-                offset = date.valueOf() - toMidnight(date).valueOf();
-            }
-        };
-
-        hours = offset/(3600*1000);
-
-        for (var i = 0; i < max; i++) {
-            timeIntervals[i] = {hour: i, current: false}
-
-            if (i === hours) {
-                timeIntervals[i].current = true;
-            }
-        }
-
-        timeSelect = this.calendarTemplates.timeTemplate({
-            label: _gtxt(position === 'begin' ? "CalendarWidget.from": "CalendarWidget.to"),
-            timeIntervals: timeIntervals
-        });
-
-        $(timeContainer).html(timeSelect);
-
-        $('.time-select', timeContainer).addClass(position + '-time-select');
-        $('.time-select', timeContainer).on('change', this._enableCreateIntervalButton.bind(this));
     },
 
     _getTime: function (date, position) {

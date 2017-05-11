@@ -40,7 +40,7 @@
 }
 
 .CommonCalendarWidget .CalendarWidget.ui-widget {
-    width: 90%;
+    width: 100%;
     float: left;
 }
 
@@ -52,8 +52,12 @@
     height: 22px;
 }
 
-.CommonCalendarWidget .CalendarWidget-dates {
+.CommonCalendarWidget .CalendarWidget-row {
     text-align: center;
+}
+
+.CommonCalendarWidget .CalendarWidget-dates {
+    /*width: 180px;*/
 }
 
 .CommonCalendarWidget .CalendarWidget-outside {
@@ -65,13 +69,13 @@
 }
 
 /*заголовок списка */
-.layersList .ui-selectmenu-button {
+.ui-selectmenu-button {
     display: inline-block;
     width: 316px;
     min-width: 316px;
-    height: 45px;
-    line-height: 45px;
-    border: 2px solid #efefef;
+    height: 35px;
+    line-height: 35px;
+    border: 1px solid #efefef;
 }
 
 /*название слоя в заголовке*/
@@ -102,8 +106,9 @@
 
 /*слои - обычные строки списка*/
 .ui-selectmenu-open .ui-menu-item {
-    height: 45px;
-    line-height: 45px;
+    margin: 0;
+    height: 35px;
+    line-height: 35px;
     width: 304px;
     padding: 0;
     padding-left: 12px;
@@ -113,7 +118,7 @@
 
 /*оформляем границы выпадающему списку*/
 .ui-selectmenu-open li {
-    border: 2px solid #efefef;
+    border: 1px solid #efefef;
     border-top: 0;
 }
 
@@ -130,6 +135,7 @@
     position: relative;
     display: inline-block;
     vertical-align: middle;
+    margin-left: 12px;
     width: 30px;
     height: 16px;
 }
