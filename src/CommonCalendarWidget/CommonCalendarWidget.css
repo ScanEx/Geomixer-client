@@ -8,7 +8,7 @@
 }
 
 .CommonCalendarWidget .CalendarWidget-show-calendar-icon {
-    cursor: pointer
+    cursor: pointer;
 }
 
 .CommonCalendarWidget .CalendarWidget-show-calendar-icon.disabled {
@@ -16,12 +16,12 @@
 }
 
 .calendar-layers-container {
-    width: 320px;
+    width: 321px;
 }
 
 .calendar-container {
-    width: 320px;
-    height: 35px;
+    width: 321px;
+    margin: auto;
 }
 
 .calendar-container {
@@ -29,10 +29,6 @@
     vertical-align: middle;
 }
 
-.current-layer-name-container {
-    width: 320px;
-    height: 20px;
-}
 .current-layer-name {
     display: block;
     margin-left: 16px;
@@ -44,20 +40,8 @@
     float: left;
 }
 
-.calendar-sync-button {
-    display: table-cell;
-    margin-right: 10px;
-    vertical-align: middle;
-    width: 22px;
-    height: 22px;
-}
-
 .CommonCalendarWidget .CalendarWidget-row {
     text-align: center;
-}
-
-.CommonCalendarWidget .CalendarWidget-dates {
-    /*width: 180px;*/
 }
 
 .CommonCalendarWidget .CalendarWidget-outside {
@@ -71,8 +55,8 @@
 /*заголовок списка */
 .ui-selectmenu-button {
     display: inline-block;
-    width: 316px;
-    min-width: 316px;
+    width: 327px;
+    min-width: 327px;
     height: 35px;
     line-height: 35px;
     border: 1px solid #efefef;
@@ -92,7 +76,7 @@
 
 /*иконка-треугольник в заголовке-селекте*/
 .ui-selectmenu-button span.ui-icon {
-    left: 220px;
+    left: 280px;
     display: block;
     text-indent: -99999px;
     overflow: hidden;
@@ -101,7 +85,7 @@
 
 /*открытое меню*/
 .ui-selectmenu-open {
-    width: 320px;
+    width: 327px;
 }
 
 /*слои - обычные строки списка*/
@@ -109,7 +93,7 @@
     margin: 0;
     height: 35px;
     line-height: 35px;
-    width: 304px;
+    width: 329px;
     padding: 0;
     padding-left: 12px;
     display: inline-block;
@@ -125,9 +109,9 @@
 /* The switch - the box around the slider */
 
 .sync-switch-container {
-    height: 45px;
+    height: 35px;
     line-height: 45px;
-    width: 320px;
+    width: 100%;
     padding-left: 2px;
 }
 

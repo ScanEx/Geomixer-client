@@ -1403,7 +1403,6 @@ function processGmxMap(state, gmxMap) {
             layers = layers || nsGmx.gmxMap.layers;
 
             var attrs = nsGmx.widgets.commonCalendar.model.toJSON(),
-                visibleTemporalLayers = [],
                 showCalendar = undefined,
                 dateInterval,
                 dateBegin,
@@ -1438,14 +1437,10 @@ function processGmxMap(state, gmxMap) {
 
                     //подписка на изменение dateInterval
                     layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);
-
-                    if (isVisible) {
-                        visibleTemporalLayers.push(layer);
-                    }
                 }
             }
 
-            nsGmx.widgets.commonCalendar.model.set('visibleTemporalLayers', visibleTemporalLayers);
+            nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
 
             if (showCalendar && !attrs.isAppended) {
                 nsGmx.widgets.commonCalendar.show();
@@ -1490,6 +1485,10 @@ function processGmxMap(state, gmxMap) {
             //     nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
             // }
         });
+
+        // lmap.on('layerremove', function(e) {
+        //     nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
+        // });
 
         lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
             var layerID = ev.currentTab,

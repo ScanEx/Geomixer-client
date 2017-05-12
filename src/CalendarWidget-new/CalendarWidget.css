@@ -4,10 +4,12 @@
 }
 
 .CommonCalendarWidget .CalendarWidget-dates-outside {
-    border: solid 1px;
+    border-top: solid 1px;
+    border-bottom: solid 1px;
     border-color: #efefef;
     color: #808080;
     border-collapse: collapse;
+    box-sizing: border-box;
 }
 
 .CommonCalendarWidget .CommonCalendarWidget .gmx-input-text {
@@ -17,7 +19,7 @@
 .CommonCalendarWidget .CalendarWidget-row {
     height: 30px;
     line-height: 30px;
-    margin-bottom: 8px;
+    margin-bottom: 2px;
 }
 
 .CommonCalendarWidget .CalendarWidget-row span {
@@ -31,26 +33,31 @@
     border: solid 1px;
     border-color: #efefef;
     border-collapse: collapse;
+    box-sizing: border-box;
 }
 
 .CommonCalendarWidget .CalendarWidget-timeCell {
     text-align: center;
 }
 
+.CommonCalendarWidget .CalendarWidget-inputCell {
+    cursor: pointer;
+}
+
 .CommonCalendarWidget .time-select {
-  height: 30px;
+  height: 20px;
   background-color: rgb(255, 255, 255);
-  width: 66px;
+  width: 57px;
   border-color: #efefef;
 }
 
 .CommonCalendarWidget .CalendarWidget-timeSpan {
-    width: 50px;
+    width: 40px;
     text-align: center;
 }
 
-.CalendarWidget-timeCell {
-    width: 66px;
+.CommonCalendarWidget .CalendarWidget-timeCell {
+    width: 57px;
 }
 
 .calendar-outside select {
@@ -103,7 +110,6 @@
 .calendar-outside .ui-datepicker td span,
 .calendar-outside .ui-datepicker td a {
   display: inline-block;
-  /*font-weight: bold;*/
   text-align: center;
   width: 22px;
   height: 22px;
@@ -111,7 +117,6 @@
 }
 
 /*названия дней недели*/
-
 .calendar-outside .ui-datepicker-calendar th {
   color: #C0C0C0;
 }

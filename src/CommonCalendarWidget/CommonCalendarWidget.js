@@ -61,7 +61,6 @@ var nsGmx = nsGmx || {};
             calendar: null,
             isAppended: false,
             unbindedTemporalLayers: {},
-            visibleTemporalLayers: [],
             synchronyzed: true
         }
     });
@@ -88,8 +87,6 @@ var nsGmx = nsGmx || {};
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:active', this.activate);
-            this.listenTo(this.model, 'change:currentLayer', this.showCurrentLayer);
-            this.listenTo(this.model, 'change:visibleTemporalLayers', this.updateVisibleTemporalLayers);
         },
 
         setDateInterval: function (dateBegin, dateEnd, layer) {
@@ -285,37 +282,6 @@ var nsGmx = nsGmx || {};
             }
         },
 
-        showCurrentLayer: function () {
-            var attrs = this.model.toJSON(),
-                synchronyzed = attrs.synchronyzed,
-                currentLayer = attrs.currentLayer,
-                nameSpan = this.$('.current-layer-name'),
-                props, isTemporalLayer;
-
-            if (!currentLayer) {
-                if (synchronyzed) {
-                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
-                } else {
-                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.select"));
-                }
-            } else {
-                currentLayer = nsGmx.gmxMap.layersByID[currentLayer];
-                props = currentLayer.getGmxProperties();
-                isTemporalLayer = (currentLayer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
-
-                if (synchronyzed) {
-                    $(nameSpan).html(window._gtxt("CommonCalendarWidget.all"))
-                } else {
-                    if (isTemporalLayer) {
-                        $(nameSpan).html(currentLayer.getGmxProperties().title);
-                    } else {
-                        $(nameSpan).html(window._gtxt("CommonCalendarWidget.select"));
-                    }
-                }
-            }
-            console.log('u');
-        },
-
         updateTemporalLayers: function() {
             var layers = layers || nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
@@ -390,16 +356,27 @@ var nsGmx = nsGmx || {};
             }
         },
 
-        updateVisibleTemporalLayers: function () {
+        updateVisibleTemporalLayers: function (layers) {
             var attrs = this.model.toJSON(),
                 currentLayer = attrs.currentLayer,
-                layers = attrs.visibleTemporalLayers,
                 layersList = this.$('.layersList'),
+                temporalLayers = [],
                 layersArr = [],
                 str = '';
 
             for (var i = 0; i < layers.length; i++) {
-               var layer = layers[i],
+                var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    isVisible = props.visible,
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+                if (isTemporalLayer && isVisible) {
+                    temporalLayers.push(layer);
+                }
+            }
+
+            for (var i = 0; i < temporalLayers.length; i++) {
+                var layer = temporalLayers[i],
                     props = layer.getGmxProperties(),
                     title = props.title;
                     str += '<option value=' + title + '>' + title + '</option>';
@@ -409,8 +386,8 @@ var nsGmx = nsGmx || {};
 
             if (currentLayer) {
                 var currentTitle = '';
-                for (var i = 0; i < layers.length; i++) {
-                   var layer = layers[i],
+                for (var i = 0; i < temporalLayers.length; i++) {
+                    var layer = temporalLayers[i],
                         props = layer.getGmxProperties(),
                         title = props.title,
                         layerID = props.layerID;
@@ -421,8 +398,13 @@ var nsGmx = nsGmx || {};
 
                 $(layersList).val(currentTitle);
             // установим текщим первый слой из списка
-            } else if (!currentLayer && layers.length) {
-                this.model.set('currentLayer', layers[0].getGmxProperties().LayerID);
+            } else if (!currentLayer && temporalLayers.length) {
+                var props = temporalLayers[0].getGmxProperties(),
+                    layerID = props.LayerID,
+                    title = props.title;
+
+                this.model.set('currentLayer', layerID);
+                $(layersList).val(title);
             }
         },
 

@@ -35,8 +35,7 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
                     '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputMiddle">-</span>' +
                     '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputEnd"><input class = "CalendarWidget-dateEnd" readonly></span>' +
                 '</span>' +
-                '<span class = "CalendarWidget-iconScrollLeft ui-helper-noselect icon-right-open"></span>' +
-                '<span class = "CalendarWidget-show-calendar-icon {{showCalendarIconClass}}" title = "{{showCalendarIconTitle}}"></span>' +
+                '<span class = "CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open"></span>' +
             '</div>' +
             '<div class = "CalendarWidget-row CalendarWidget-times">' +
                 '<span class = "CalendarWidget-timeCell">' +
@@ -49,7 +48,7 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
                     '{{/each}}' +
                 '</select>' +
                 '</span>' +
-                '<span>-</span>' +
+                '<span class = "CalendarWidget-timeSpan">-</span>' +
                 '<span class = "CalendarWidget-timeCell">' +
                 '<select class="time-select end-time-select">' +
                     '{{#each this.hoursEnd}}' +
@@ -91,10 +90,10 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     className: 'CalendarWidget ui-widget',
     template: Handlebars.compile(template),
     events: {
-        // 'click .CalendarWidget-dates-outside': function () {
-        //     this.showCalendar();
-        // },
-        'click .CalendarWidget-show-calendar-icon': 'showCalendar',
+        'click .CalendarWidget-inputCell': function (e) {
+            e.stopPropagation();
+            this.showCalendar();
+        },
         'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
         },
@@ -216,6 +215,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             }
         })
 
+        // this.$('.time-select').on('change', this._enableCreateIntervalButton.bind(this));
         this.$('.time-select').on('input', this._selectTime.bind(this));
 
         //for backward compatibility
@@ -536,12 +536,6 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         var newDateBegin = Calendar1.toUTC(dateBegin),
             newDateEnd = Calendar1.toUTC(new Date(dateEnd));
-
-        console.log(dateBegin);
-        console.log(dateEnd);
-
-        console.log(hourBegin);
-        console.log(hourEnd);
 
         // если календарь показывает ровно один день,
         // прибавляем 24 часа к первой дате, чтобы получить сутки
