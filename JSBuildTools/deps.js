@@ -78,8 +78,8 @@ var jsFiles = [
 ];
 
 var jsFilesThidparty = [
-    // "jquery/jquery-1.10.2.min.js",
-    "jquery/jquery-1.10.2.js",
+    "jquery/jquery-1.10.2.min.js",
+    // "jquery/jquery-1.10.2.js",
     "jquery/jquery.getCSS.js",
     "jquery/jquery.mousewheel.min.js",
     "jquery/jquery-ui-1.10.4.min.js",
