@@ -586,7 +586,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                // _this.treeModel.setNodeVisibility(treeNode, true);
+                _this.treeModel.setNodeVisibility(treeNode, true);
             }
         },
         dbclickFunc = function()
@@ -762,7 +762,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
                 var div = span.parentNode.parentNode;
 
                 if (div.gmxProperties.content.properties.ShowCheckbox) {
-                    // _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, true);
+                    _this.treeModel.setNodeVisibility(_this.findTreeElem(div).elem, true);
                 }
 
                 var clickDiv = $(div.parentNode).children("div.hitarea");
