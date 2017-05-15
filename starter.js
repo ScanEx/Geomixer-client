@@ -1281,9 +1281,6 @@ function processGmxMap(state, gmxMap) {
         })
     }
 
-
-
-
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
         callback: function(event) {
@@ -1486,9 +1483,9 @@ function processGmxMap(state, gmxMap) {
             // }
         });
 
-        // lmap.on('layerremove', function(e) {
-        //     nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
-        // });
+        lmap.on('layeradd layerremove', function(e) {
+            nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
+        });
 
         lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
             var layerID = ev.currentTab,

@@ -357,12 +357,17 @@ var nsGmx = nsGmx || {};
         },
 
         updateVisibleTemporalLayers: function (layers) {
-            var attrs = this.model.toJSON(),
+            var _this = this,
+                attrs = this.model.toJSON(),
                 currentLayer = attrs.currentLayer,
                 layersList = this.$('.layersList'),
                 temporalLayers = [],
                 layersArr = [],
                 str = '';
+
+            if ($(layersList).selectmenu("instance")) {
+                $(layersList).selectmenu("destroy");
+            }
 
             for (var i = 0; i < layers.length; i++) {
                 var layer = layers[i],
@@ -395,8 +400,8 @@ var nsGmx = nsGmx || {};
                         currentTitle = title;
                     }
                 };
+                this.$('.layersList option[value="' + currentTitle + '"]').prop("selected", true);
 
-                $(layersList).val(currentTitle);
             // установим текщим первый слой из списка
             } else if (!currentLayer && temporalLayers.length) {
                 var props = temporalLayers[0].getGmxProperties(),
@@ -404,8 +409,28 @@ var nsGmx = nsGmx || {};
                     title = props.title;
 
                 this.model.set('currentLayer', layerID);
-                $(layersList).val(title);
+                this.$('.layersList option[value="' + title + '"]').prop("selected", true);
             }
+
+            $(layersList).selectmenu({
+                change: function (e) {
+                    var title = $(e.currentTarget).text(),
+                        layer = nsGmx.gmxMap.layersByTitle[title];
+
+                    dateInterval = layer.getDateInterval();
+
+                    if (dateInterval.beginDate && dateInterval.endDate) {
+                        dateBegin = dateInterval.beginDate,
+                        dateEnd = dateInterval.endDate;
+                    } else {
+                        dateInterval = new nsGmx.DateInterval();
+                        dateBegin = dateInterval.beginDate,
+                        dateEnd = dateInterval.endDate;
+                    }
+
+                    _this.setDateInterval(dateBegin, dateEnd, layer);
+                }
+            });
         },
 
         toggleSync: function () {
@@ -426,7 +451,7 @@ var nsGmx = nsGmx || {};
                 $(listContainer).show();
                 $(layersList).selectmenu({
                     change: function (e) {
-                        var title = e.target.value,
+                        var title = $(e.currentTarget).text(),
                             layer = nsGmx.gmxMap.layersByTitle[title];
 
                         dateInterval = layer.getDateInterval();
