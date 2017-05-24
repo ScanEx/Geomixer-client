@@ -1505,7 +1505,10 @@ function processGmxMap(state, gmxMap) {
                             if (currentLayer) {
                                 return;
                             } else {
-                                nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID)
+                                var dateInterval = layer.getDateInterval();
+
+                            nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, layer);
+                                // nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID)
                             }
                         } else {
                             if (currentLayer) {
@@ -1520,14 +1523,18 @@ function processGmxMap(state, gmxMap) {
                                     } else {
                                             if (index === 0) {
                                                 var targetLayer = visibleTemporalLayers[index + 1],
-                                                    targetLayerID = targetLayer.getGmxProperties().LayerID;
+                                                    targetLayerID = targetLayer.getGmxProperties().LayerID,
+                                                    dateInterval = targetLayer.getDateInterval();
 
-                                                nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
+                                                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, targetLayer);
+                                                // nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
                                             } else {
                                                 var targetLayer = visibleTemporalLayers[index - 1],
-                                                    targetLayerID = targetLayer.getGmxProperties().LayerID;
+                                                    targetLayerID = targetLayer.getGmxProperties().LayerID,
+                                                    dateInterval = targetLayer.getDateInterval();
 
-                                                nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
+                                                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, targetLayer);
+                                                // nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
                                             }
                                         }
 
