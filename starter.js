@@ -1457,46 +1457,116 @@ function processGmxMap(state, gmxMap) {
             //         props = layer.getGmxProperties(),
             //         isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
             //         dateInterval, dateBegin, dateEnd;
-            //
-            //     if (isTemporalLayer) {
-            //         dateInterval = layer.getDateInterval();
-            //
-            //         if (dateInterval.beginDate && dateInterval.endDate) {
-            //             dateBegin = dateInterval.beginDate,
-            //             dateEnd = dateInterval.endDate;
-            //         } else {
-            //             dateInterval = new nsGmx.DateInterval();
-            //             dateBegin = dateInterval.beginDate,
-            //             dateEnd = dateInterval.endDate;
-            //         }
-            //
-            //         calendar.setActive(true);
-            //         nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
-            //         nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
-            //     } else {
-            //         calendar.setActive(synchronyzed ? true : false);
-            //         nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
+
+                // if (isTemporalLayer) {
+                    // dateInterval = layer.getDateInterval();
+                    //
+                    // if (dateInterval.beginDate && dateInterval.endDate) {
+                    //     dateBegin = dateInterval.beginDate,
+                    //     dateEnd = dateInterval.endDate;
+                    // } else {
+                    //     dateInterval = new nsGmx.DateInterval();
+                    //     dateBegin = dateInterval.beginDate,
+                    //     dateEnd = dateInterval.endDate;
+                    // }
+
+                    // calendar.setActive(true);
+                    // nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
+                    // nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
+                // } else {
+                    // calendar.setActive(synchronyzed ? true : false);
+                    // nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
             //     }
             // } else {
             //     calendar.setActive(synchronyzed ? true : false);
             //     nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
             // }
         });
+        $(_layersTree).on('layerVisibilityChange', function(event, elem) {
+            var props = elem.content.properties,
+                attrs = nsGmx.widgets.commonCalendar.model.toJSON(),
+                visible = props.visible,
+                layerID = props.LayerID,
+                calendar = attrs.calendar,
+                currentLayer = attrs.currentLayer,
+                synchronyzed = attrs.synchronyzed;
 
-        lmap.on('layeradd layerremove', function(e) {
+            if (synchronyzed) {
+                return;
+            } else {
+                if (layerID) {
+                    var layer = nsGmx.gmxMap.layersByID[layerID],
+                        props = layer.getGmxProperties(),
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
+                        visibleTemporalLayers, index;
+
+                    if (isTemporalLayer) {
+                        if (visible) {
+                            if (currentLayer) {
+                                return;
+                            } else {
+                                nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID)
+                            }
+                        } else {
+                            if (currentLayer) {
+                                if (layerID !== currentLayer) {
+                                    return;
+                                } else {
+                                    visibleTemporalLayers = getLayersListWithTarget(nsGmx.gmxMap.layers, layer),
+                                    index = visibleTemporalLayers.indexOf(layer);
+
+                                    if (visibleTemporalLayers.length === 1) {
+                                        nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
+                                    } else {
+                                            if (index === 0) {
+                                                var targetLayer = visibleTemporalLayers[index + 1],
+                                                    targetLayerID = targetLayer.getGmxProperties().LayerID;
+
+                                                nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
+                                            } else {
+                                                var targetLayer = visibleTemporalLayers[index - 1],
+                                                    targetLayerID = targetLayer.getGmxProperties().LayerID;
+
+                                                nsGmx.widgets.commonCalendar.model.set('currentLayer', targetLayerID)
+                                            }
+                                        }
+
+                                }
+                            } else {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
             nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
         });
 
-        lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
-            var layerID = ev.currentTab,
-                _layersTree = window._layersTree,
-                treeElem = _layersTree.treeModel.findElem('name', layerID).elem,
-                uiElem = _layersTree.findUITreeElem(treeElem),
-                span = $('.layer', $(uiElem))[0],
-                active = _layersTree.getActive();
-            if (uiElem !== active) {
-                _layersTree.setActive(span);
+
+        function getLayersListWithTarget(layers, targetLayer) {
+            var visibleTemporalLayers = [];
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i],
+                    props = layer.getGmxProperties && layer.getGmxProperties(),
+                    isTemporalLayer,
+                    isVisible;
+
+                if (props) {
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
+                    isVisible = props.visible;
+
+                    if (isTemporalLayer && isVisible || layer === targetLayer) {
+                        visibleTemporalLayers.push(layer);
+                    }
+                }
             }
+            return visibleTemporalLayers;
+        }
+
+        lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
+            var layerID = ev.currentTab;
+
+            nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
         });
 
         _mapHelper.customParamsManager.addProvider({

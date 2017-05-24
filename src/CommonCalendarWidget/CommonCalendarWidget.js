@@ -371,16 +371,8 @@ var nsGmx = nsGmx || {};
             $(layersList).html(str);
 
             if (currentLayer) {
-                var currentTitle = '';
-                for (var i = 0; i < temporalLayers.length; i++) {
-                    var layer = temporalLayers[i],
-                        props = layer.getGmxProperties(),
-                        title = props.title,
-                        layerID = props.layerID;
-                    if (currentLayer === layerID) {
-                        currentTitle = title;
-                    }
-                };
+                var l = nsGmx.gmxMap.layersByID[currentLayer],
+                    currentTitle = l.getGmxProperties().title;
                 this.$('.layersList option[value="' + currentTitle + '"]').prop("selected", true);
 
             // установим текщим первый слой из списка

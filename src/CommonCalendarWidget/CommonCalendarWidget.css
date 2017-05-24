@@ -55,8 +55,8 @@
 /*заголовок списка */
 .ui-selectmenu-button {
     display: inline-block;
-    width: 327px;
-    min-width: 327px;
+    width: 325px;
+    min-width: 325px;
     height: 35px;
     line-height: 35px;
     border: 1px solid #efefef;
@@ -85,7 +85,7 @@
 
 /*открытое меню*/
 .ui-selectmenu-open {
-    width: 327px;
+    width: 325px;
 }
 
 /*слои - обычные строки списка*/
@@ -93,7 +93,7 @@
     margin: 0;
     height: 35px;
     line-height: 35px;
-    width: 329px;
+    width: 325px;
     padding: 0;
     padding-left: 12px;
     display: inline-block;
