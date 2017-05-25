@@ -1571,9 +1571,17 @@ function processGmxMap(state, gmxMap) {
         }
 
         lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
-            var layerID = ev.currentTab;
+            var layerID = ev.currentTab,
+                layer = nsGmx.gmxMap.layersByID[layerID],
+                synchronyzed = nsGmx.widgets.commonCalendar.model.get('synchronyzed'),
+                props = layer.getGmxProperties(),
+                isVisible = props.visible,
+                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
-            nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
+            if (isTemporalLayer && isVisible && !synchronyzed) {
+                nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
+            }
+
         });
 
         _mapHelper.customParamsManager.addProvider({
