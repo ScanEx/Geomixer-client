@@ -103,3 +103,6 @@
 [submodule "leaflet/plugins/Leaflet.Dialog"]
 	path = leaflet/plugins/Leaflet.Dialog
 	url = git@github.com:ScanEx/Leaflet.Dialog.git
+[submodule "leaflet/plugins/Leaflet.MapboxVectorTile"]
+	path = leaflet/plugins/Leaflet.MapboxVectorTile
+	url = git@github.com:ScanEx/Leaflet.MapboxVectorTile.git

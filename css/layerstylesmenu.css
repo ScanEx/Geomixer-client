@@ -1,0 +1,34 @@
+/*style settings menu*/
+
+.style-settings-icon {
+    vertical-align: middle;
+    /*float: right;*/
+    margin-left: 5px;
+    margin-right: 22px;
+}
+
+.layer-styles-settings-dialog .ui-dialog-titlebar.ui-widget-header {
+	display: none;
+}
+
+.layer-styles-settings-dialog .ui-dialog-content {
+	margin: 0;
+}
+
+.style-settings-menu-element {
+    padding-left: 8px;
+	height: 25px;
+	line-height: 25px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.style-settings-menu-element.active {
+	background-color: #eaeaea;
+}
+
+.style-settings-menu-element.disabled {
+    color: #999999;
+    pointer-events: none;
+    cursor: default;
+}

@@ -105,7 +105,9 @@ var jsFilesThidparty = [
     "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
     "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
     "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js"
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
+    "leaflet/plugins/Leaflet.MapboxVectorTile/dist/Leaflet.MapboxVectorTile.min.js"
+
 ];
 
 var cssFiles = [
@@ -130,6 +132,7 @@ var cssFiles = [
     "css/drawing.css",
     "css/NotificationWidget.css",
     "css/LayerQuicklookWidget.css",
+    "css/layerstylesmenu.css",
 
     "common_components/adapter.css",
     "leaflet/leaflet.css",
