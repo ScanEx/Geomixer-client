@@ -81,7 +81,7 @@
 }
 
 .CommonCalendarWidget .CalendarWidget-timeicon > img {
-    vertical-align: middle;
+    vertical-align: sub;
 }
 
 .CommonCalendarWidget .time-select {
@@ -111,6 +111,7 @@
 .CommonCalendarWidget .CalendarWidget-inputCell-inputTimeEnd {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
+    padding-right: 4px;
 }
 
 .CommonCalendarWidget .CalendarWidget-show-calendar-icon {
@@ -284,4 +285,13 @@ input:checked + .sync-switch-slider:before {
 .sync-switch-slider-description {
     margin-left: 8px;
     vertical-align: middle;
+}
+
+.daily-switch {
+    float: right;
+    margin-right: 20px;
+}
+
+.daily-switch input {
+    margin-right: 4px;
 }

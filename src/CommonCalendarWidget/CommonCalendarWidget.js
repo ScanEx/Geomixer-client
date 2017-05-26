@@ -472,29 +472,49 @@ var nsGmx = nsGmx || {};
 
         applyDailyFilter: function () {
             var _this = this,
-                layers = nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
                 dailyFilter = attrs.dailyFilter,
                 synchronyzed = attrs.synchronyzed,
                 currentLayer = attrs.currentLayer,
-                listContainer = this.$('.unsync-layers-container'),
-                layersList = this.$('.layersList'),
-                dateInterval, dateBegin, dateEnd;
+                dateInterval = this.dateInterval,
+                dateBegin, dateEnd, temporalLayers;
 
-            for (var i = 0; i < layers.length; i++) {
-                var layer = layers[i];
+            if (synchronyzed) {
+                temporalLayers = nsGmx.gmxMap.layers;
+            } else {
+                if (currentLayer) {
+                    temporalLayers = [nsGmx.gmxMap.layersByID[currentLayer]];
+                } else {
+                    return;
+                }
+            }
+
+            for (var i = 0; i < temporalLayers.length; i++) {
+                (function (x) {
+                var layer = temporalLayers[x];
 
                 if (layer.getGmxProperties) {
-                    var props = layer.getGmxProperties(),
+                        var props = layer.getGmxProperties(),
                         isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
-                    if (isTemporalLayer) {
-                        layer.addLayerFilter(function(item) {
-                            console.log(item);
-                            return item;
-                        })
+                        if (isTemporalLayer && layer.getDataManager) {
+
+                            var dm = layer.getDataManager(),
+                                dmOpt = dm.options;
+
+                                if (dmOpt.Temporal) {
+                                    var tmpKeyNum = dm.tileAttributeIndexes[dmOpt.TemporalColumnName];
+                                }
+                            console.log(tmpKeyNum);
+                            layer.addLayerFilter(function (item) {
+                                // console.log(item.properties);
+                                // console.log(props.title);
+                                // console.log(item.properties[tmpKeyNum]);
+                                return item;
+                            });
+                        }
                     }
-                }
+                }(i))
             }
 
             console.log(dailyFilter);

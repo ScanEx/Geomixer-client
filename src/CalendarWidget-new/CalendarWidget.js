@@ -231,9 +231,10 @@ var Calendar1 = nsGmx.GmxWidget.extend({
     },
 
     _checkValue: function (value) {
-        var hours = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                 '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-                 '20', '21', '22', '23', '24'
+        var hours = [
+                '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+                '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+                '20', '21', '22', '23', '24'
              ],
              match = false;
 
@@ -244,6 +245,12 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         }
 
         return match;
+    },
+
+    _prefixTimeValue: function (value) {
+        value = Number(value);
+
+        return value < 10 ? '0' + value : String(value);
     },
 
     showCalendar: function () {
@@ -497,8 +504,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         $(beginInput).val(Calendar1.formatDate(newDateBegin));
         $(endInput).val(Calendar1.formatDate(newDateEnd));
 
-        $(timeBegin).val(hourBegin);
-        $(timeEnd).val(hourEnd);
+        $(timeBegin).val(this._prefixTimeValue(hourBegin));
+        $(timeEnd).val(this._prefixTimeValue(hourEnd));
     },
 
     setActive: function (value) {
@@ -662,3 +669,5 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 });
 
 nsGmx.CalendarWidget1 = Calendar1;
+
+})(jQuery);
