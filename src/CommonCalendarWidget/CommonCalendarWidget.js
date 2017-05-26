@@ -8,6 +8,7 @@ var nsGmx = nsGmx || {};
         Timeline:    "Таймлайн",
         select: "Выберите мультивременной слой",
         sync: "Единый интервал для слоев",
+        daily: "посуточно",
         on: "Включить синхронизацию слоев",
         off: "Выключить синхронизацию слоев",
         all: "Интервал для всех слоев"
@@ -17,6 +18,7 @@ var nsGmx = nsGmx || {};
         Timeline:     "Timeline",
         select: "Select temporal layer",
         sync: "Single dateinterval",
+        daily: "daily",
         on: "Layers sync on",
         off: "Layers sync off",
         all: "Интервал для всех слоев"
@@ -38,6 +40,12 @@ var nsGmx = nsGmx || {};
                     '<div class="sync-switch-slider round"></div>' +
                 '</label>' +
                 '<span class="sync-switch-slider-description">{{i "CommonCalendarWidget.sync"}}</span>' +
+                '<label class="daily-switch">' +
+                    '<input type="checkbox"' +
+                    '{{#if dailyFilter}}checked{{/if}}' +
+                    '>' +
+                    '{{i "CommonCalendarWidget.daily"}}' +
+                '</label>' +
             '</div>' +
             '<div class="unsync-layers-container" style="display: none">' +
                 '<select class="layersList">' +
@@ -61,6 +69,7 @@ var nsGmx = nsGmx || {};
             calendar: null,
             isAppended: false,
             unbindedTemporalLayers: {},
+            dailyFilter: true,
             synchronyzed: true
         }
     });
@@ -72,6 +81,7 @@ var nsGmx = nsGmx || {};
         template: Handlebars.compile(calendarWidgetTemplate),
         events: {
             'change .sync-switch': 'toggleSync',
+            'change .daily-switch': 'toggleDailyFilter',
             'change .layersList': 'changeCurrentLayer'
         },
         initialize: function (options) {
@@ -79,7 +89,8 @@ var nsGmx = nsGmx || {};
 
             this.$el.html(this.template({
                 synchronyzed: _this.model.get('synchronyzed'),
-                layers: _this.model.get('visibleTemporalLayers')
+                layers: _this.model.get('visibleTemporalLayers'),
+                dailyFilter: _this.model.get('dailyFilter')
             }));
 
             //for backward compatibility
@@ -87,6 +98,7 @@ var nsGmx = nsGmx || {};
             this.dateInterval = new nsGmx.DateInterval();
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
+            this.listenTo(this.model, 'change:dailyFilter', this.applyDailyFilter);
             this.listenTo(this.model, 'change:active', this.activate);
         },
 
@@ -453,6 +465,39 @@ var nsGmx = nsGmx || {};
                     }
                 }
             }
+        },
+        toggleDailyFilter: function () {
+            this.model.set('dailyFilter', !this.model.get('dailyFilter'));
+        },
+
+        applyDailyFilter: function () {
+            var _this = this,
+                layers = nsGmx.gmxMap.layers,
+                attrs = this.model.toJSON(),
+                dailyFilter = attrs.dailyFilter,
+                synchronyzed = attrs.synchronyzed,
+                currentLayer = attrs.currentLayer,
+                listContainer = this.$('.unsync-layers-container'),
+                layersList = this.$('.layersList'),
+                dateInterval, dateBegin, dateEnd;
+
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i];
+
+                if (layer.getGmxProperties) {
+                    var props = layer.getGmxProperties(),
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+                    if (isTemporalLayer) {
+                        layer.addLayerFilter(function(item) {
+                            console.log(item);
+                            return item;
+                        })
+                    }
+                }
+            }
+
+            console.log(dailyFilter);
         }
     });
 

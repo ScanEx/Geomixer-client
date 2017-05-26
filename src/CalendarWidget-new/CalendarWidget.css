@@ -1,63 +1,24 @@
 
-.CommonCalendarWidget .CalendarWidget ui-widget {
-    text-align: center;
+
+.CalendarWidget-inputCell {
+  background-color: #fff;
+  padding: 0px 1px;
+  text-align: center;
 }
 
-.CommonCalendarWidget .CalendarWidget-dates-outside {
-    border-top: solid 1px;
-    border-bottom: solid 1px;
-    border-color: #efefef;
-    color: #808080;
-    border-collapse: collapse;
-    box-sizing: border-box;
+.CalendarWidget-timeicon {
+    width: 16px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
-.CommonCalendarWidget .CommonCalendarWidget .gmx-input-text {
-    padding: 0;
+.CalendarWidget-space {
+    width: 10px;
 }
 
-.CommonCalendarWidget .CalendarWidget-row {
-    height: 30px;
-    line-height: 30px;
-    margin-bottom: 2px;
-}
-
-.CommonCalendarWidget .CalendarWidget-row span {
-    display: inline-block;
-    height: 100%;
-}
-
-.CommonCalendarWidget .CalendarWidget-iconScrollLeft,
-.CommonCalendarWidget .CalendarWidget-iconScrollRight {
-    width: 30px;
-    border: solid 1px;
-    border-color: #efefef;
-    border-collapse: collapse;
-    box-sizing: border-box;
-}
-
-.CommonCalendarWidget .CalendarWidget-timeCell {
-    text-align: center;
-}
-
-.CommonCalendarWidget .CalendarWidget-inputCell {
-    cursor: pointer;
-}
-
-.CommonCalendarWidget .time-select {
-  height: 20px;
-  background-color: rgb(255, 255, 255);
-  width: 57px;
-  border-color: #efefef;
-}
-
-.CommonCalendarWidget .CalendarWidget-timeSpan {
-    width: 40px;
-    text-align: center;
-}
-
-.CommonCalendarWidget .CalendarWidget-timeCell {
-    width: 57px;
+.CalendarWidget-timeInput.error {
+      background-color: red;
+    color: red;
 }
 
 .calendar-outside select {

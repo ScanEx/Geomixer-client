@@ -1,10 +1,116 @@
 /*CommonCalendar*/
 
+.CommonCalendarWidget .CalendarWidget ui-widget {
+  text-align: center;
+}
+
+.CommonCalendarWidget .CalendarWidget-dates-outside {
+  border-top: solid 1px;
+  border-bottom: solid 1px;
+  border-color: #efefef;
+  color: #808080;
+  border-collapse: collapse;
+  box-sizing: border-box;
+}
+
+.CommonCalendarWidget .CommonCalendarWidget .gmx-input-text {
+  padding: 0;
+}
+
+.CommonCalendarWidget .CalendarWidget-row {
+  height: 30px;
+  line-height: 30px;
+  /*margin-bottom: 2px;*/
+  vertical-align: middle;
+}
+
+.CommonCalendarWidget .CalendarWidget-row > span {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.CommonCalendarWidget .CalendarWidget-iconScrollLeft,
+.CommonCalendarWidget .CalendarWidget-iconScrollRight {
+  width: 30px;
+  border: solid 1px;
+  border-color: #efefef;
+  border-collapse: collapse;
+  box-sizing: border-box;
+}
+
+.CommonCalendarWidget .CalendarWidget-iconScrollLeft {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.CommonCalendarWidget .CalendarWidget-iconScrollRight {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.CommonCalendarWidget .CalendarWidget-timeCell {
+  text-align: center;
+}
+
+.CommonCalendarWidget .CalendarWidget-inputCell {
+  background-color: #f0f0f0;
+  border: 0;
+}
+
+.CommonCalendarWidget .CalendarWidget-dates-outside .CalendarWidget-inputCell {
+  cursor: pointer;
+  display: inline-block;
+  height: 100%;
+}
+
+.CommonCalendarWidget .CalendarWidget-dates-outside .CalendarWidget-inputCell input {
+  cursor: pointer;
+}
+
+.CommonCalendarWidget .CalendarWidget-timeicon {
+    display: inline-block;
+    width: 30px;
+    width: 30px;
+    border: solid 1px;
+    border-color: #efefef;
+    border-collapse: collapse;
+    box-sizing: border-box;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.CommonCalendarWidget .CalendarWidget-timeicon > img {
+    vertical-align: middle;
+}
+
+.CommonCalendarWidget .time-select {
+  height: 20px;
+  background-color: rgb(255, 255, 255);
+  width: 57px;
+  border-color: #efefef;
+}
+
+.CommonCalendarWidget .CalendarWidget-timeSpan {
+  width: 20px;
+  text-align: center;
+}
+
+.CommonCalendarWidget .CalendarWidget-timeCell {
+  width: 57px;
+}
 
 .CommonCalendarWidget .CalendarWidget-dateBegin,
-.CommonCalendarWidget .CalendarWidget-dateEnd {
+.CommonCalendarWidget .CalendarWidget-dateEnd,
+.CommonCalendarWidget .CalendarWidget-timeBegin,
+.CommonCalendarWidget .CalendarWidget-timeEnd  {
+    background-color: #f0f0f0;
     border: 0;
-    cursor: default;
+}
+
+.CommonCalendarWidget .CalendarWidget-inputCell-inputTimeEnd {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 .CommonCalendarWidget .CalendarWidget-show-calendar-icon {
