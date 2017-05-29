@@ -101,6 +101,7 @@ var nsGmx = nsGmx || {};
             this.listenTo(this.model, 'change:dailyFilter', this.applyDailyFilter);
 
             this.dateInterval.on('change', function () {
+                _this.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
                 console.log('changed');
                 if (_this.model.get('dailyFilter')) {
                     _this.applyDailyFilter();
@@ -366,8 +367,78 @@ var nsGmx = nsGmx || {};
                 layersArr = [],
                 str = '';
 
-            if ($(layersList).selectmenu("instance")) {
-                $(layersList).selectmenu("destroy");
+            $.widget( "ui.temporallayersmenu", $.ui.selectmenu, {
+                _renderButtonItem: function( item ) {
+                    var buttonItem = $( "<span>", {
+                            "class": "ui-selectmenu-text"
+                        }),
+                        layerID = $(item).prop('layerID'),
+                        layer = nsGmx.gmxMap.layersByID[layerID],
+                        props = layer.getGmxProperties();
+
+                        console.log(item);
+
+                    $(buttonItem).html('<span>' + props.title + '</span>');
+                    buttonItem.css( "width", '30px' );
+                    buttonItem.css( "background-color", 'blue' );
+
+                    return buttonItem;
+                },
+                _renderItem: function(ul, item) {
+                    var li = $( "<li>" );
+
+                    if ( item.value ) {
+                        var l = nsGmx.gmxMap.layersByID[item.value],
+                            props = l.getGmxProperties(),
+                            di = l.getDateInterval && l.getDateInterval(),
+                            getDateString = function (date) {
+                                // var day     = date.getDate() + 1,
+                                //     month   = date.getMonth() + 1,
+                                //     year    = date.getFullYear();
+                                // return (
+                                //     (day < 10 ? "0" + day : day) + "." +
+                                //     (month < 10 ? "0" + month : month) + "." +
+                                //     year);
+                                date = date.toLocaleDateString('en-GB', {
+                                    day : 'numeric',
+                                    month : 'numeric',
+                                    year : 'numeric'
+                                }).split(' ').join('.');
+                                return date;
+                            },
+                            dateBegin, dateEnd,
+                            timeBegin, timeEnd,
+                            str;
+
+                        if (di) {
+                            dateBegin = getDateString(di.beginDate);
+                            dateEnd = getDateString(di.endDate);
+                            timeBegin = _this._getTime(di.beginDate, 'begin');
+                            timeEnd = _this._getTime(di.endDate, 'end');
+                        }
+
+                        str = '<span class=\'layerslist-title\'>' +  props.title + '</span>' + ' ' +
+                              '<span class=\'layerslist-dates-times\'>' + dateBegin + ' - ' + dateEnd +
+                              ' | ' + timeBegin + '-' + timeEnd + '</span>';
+
+
+                        $(li).html(str);
+                        $(li).prop('layerID', item.value);
+
+                        return li.appendTo( ul );
+                    }
+                },
+                _renderMenu: function( ul, items ) {
+                                        console.log(items);
+                    var that = this;
+                    $.each( items, function( index, item ) {
+                        that._renderItemData( ul, item );
+                    });
+                }
+            });
+
+            if ($(layersList).temporallayersmenu("instance")) {
+                $(layersList).temporallayersmenu("destroy");
             }
 
             for (var i = 0; i < layers.length; i++) {
@@ -386,8 +457,9 @@ var nsGmx = nsGmx || {};
             for (var i = 0; i < temporalLayers.length; i++) {
                 var layer = temporalLayers[i],
                     props = layer.getGmxProperties(),
+                    layerID = props.LayerID,
                     title = props.title;
-                    str += '<option value=' + title + '>' + title + '</option>';
+                    str += '<option value=' + layerID + '></option>';
             };
 
             $(layersList).html(str);
@@ -408,14 +480,13 @@ var nsGmx = nsGmx || {};
                     layerID = props.LayerID,
                     title = props.title;
 
-                // this.model.set('currentLayer', layerID);
-                this.$('.layersList option[value="' + title + '"]').prop("selected", true);
+                this.$('.layersList option[value="' + layerID + '"]').prop("selected", true);
             }
 
-            $(layersList).selectmenu({
+            $(layersList).temporallayersmenu({
                 change: function (e) {
-                    var title = $(e.currentTarget).text(),
-                        layer = nsGmx.gmxMap.layersByTitle[title];
+                    var layerID = $(e.currentTarget).prop('layerID'),
+                        layer = nsGmx.gmxMap.layersByID[layerID];
 
                     dateInterval = layer.getDateInterval();
 

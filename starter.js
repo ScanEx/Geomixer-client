@@ -1517,28 +1517,29 @@ function processGmxMap(state, gmxMap) {
                 }
             }
             nsGmx.widgets.commonCalendar.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
-        });
 
-
-        function getLayersListWithTarget(layers, targetLayer) {
-            var visibleTemporalLayers = [];
-            for (var i = 0; i < layers.length; i++) {
-                var layer = layers[i],
+            function getLayersListWithTarget(layers, targetLayer) {
+                var visibleTemporalLayers = [];
+                for (var i = 0; i < layers.length; i++) {
+                    var layer = layers[i],
                     props = layer.getGmxProperties && layer.getGmxProperties(),
                     isTemporalLayer,
                     isVisible;
 
-                if (props) {
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
-                    isVisible = props.visible;
+                    if (props) {
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                        isVisible = props.visible;
 
-                    if (isTemporalLayer && isVisible || layer === targetLayer) {
-                        visibleTemporalLayers.push(layer);
+                        if (isTemporalLayer && isVisible || layer === targetLayer) {
+                            visibleTemporalLayers.push(layer);
+                        }
                     }
                 }
+                return visibleTemporalLayers;
             }
-            return visibleTemporalLayers;
-        }
+        });
+
+
 
         lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
             var layerID = ev.currentTab,

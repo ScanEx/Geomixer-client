@@ -213,6 +213,21 @@
     border-top: 0;
 }
 
+.layerslist-title {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 150px;
+    max-width: 150px;
+}
+
+.layerslist-dates-times {
+    float: right;
+    font-size: 9px;
+    margin-right: 15px;
+}
+
 /* The switch - the box around the slider */
 
 .sync-switch-container {
