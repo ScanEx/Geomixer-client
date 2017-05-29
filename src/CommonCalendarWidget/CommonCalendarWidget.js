@@ -493,6 +493,7 @@ var nsGmx = nsGmx || {};
 
         _getTime: function (date, position) {
             var dayms = nsGmx.DateInterval.MS_IN_DAY,
+                toMidnight = nsGmx.DateInterval.toMidnight,
                 offset, hours;
 
             if (position === 'begin') {
