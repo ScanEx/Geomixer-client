@@ -1451,36 +1451,6 @@ function processGmxMap(state, gmxMap) {
                 synchronyzed = nsGmx.widgets.commonCalendar.model.get('synchronyzed');
 
             lmap.fireEvent('layersTree.activeNodeChange', {layerID: layerID});
-            // клик на ноде слоя
-            // if (layerID) {
-            //     var layer = nsGmx.gmxMap.layersByID[layerID],
-            //         props = layer.getGmxProperties(),
-            //         isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
-            //         dateInterval, dateBegin, dateEnd;
-
-                // if (isTemporalLayer) {
-                    // dateInterval = layer.getDateInterval();
-                    //
-                    // if (dateInterval.beginDate && dateInterval.endDate) {
-                    //     dateBegin = dateInterval.beginDate,
-                    //     dateEnd = dateInterval.endDate;
-                    // } else {
-                    //     dateInterval = new nsGmx.DateInterval();
-                    //     dateBegin = dateInterval.beginDate,
-                    //     dateEnd = dateInterval.endDate;
-                    // }
-
-                    // calendar.setActive(true);
-                    // nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
-                    // nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
-                // } else {
-                    // calendar.setActive(synchronyzed ? true : false);
-                    // nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
-            //     }
-            // } else {
-            //     calendar.setActive(synchronyzed ? true : false);
-            //     nsGmx.widgets.commonCalendar.model.set('currentLayer', null);
-            // }
         });
         $(_layersTree).on('layerVisibilityChange', function(event, elem) {
             var props = elem.content.properties,
@@ -1507,7 +1477,7 @@ function processGmxMap(state, gmxMap) {
                             } else {
                                 var dateInterval = layer.getDateInterval();
 
-                            nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, layer);
+                                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, layer);
                                 // nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID)
                             }
                         } else {

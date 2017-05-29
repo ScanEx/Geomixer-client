@@ -1,5 +1,4 @@
 
-
 .CalendarWidget-inputCell {
   background-color: #fff;
   padding: 0px 1px;
@@ -9,17 +8,25 @@
 .CalendarWidget-timeicon {
     width: 16px;
     border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
+    border-bottom-lesft-radius: 5px;
 }
 
 .CalendarWidget-space {
     width: 10px;
 }
 
-.CalendarWidget-timeInput.error {
-      background-color: red;
-    color: red;
+.CalendarWidget-timeInput.error,
+.CalendarWidget-inputCell-inputTimeMiddle.error {
+      /*background-color: red;*/
+      color: red;
 }
+
+.CalendarWidget-timeBegin,
+.CalendarWidget-timeEnd {
+  width: 20px;
+  text-align: center;
+}
+
 
 .calendar-outside select {
   border: 0;

@@ -42,7 +42,7 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
                 // times block
                 '<span class = "CalendarWidget-timeicon"><img src="img/time-icon-01.svg"></img></span>' +
                 '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputTimeBegin"><input class = "CalendarWidget-timeInput CalendarWidget-timeBegin" value={{hourBegin}} ></span>' +
-                '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputMiddle">-</span>' +
+                '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputMiddle CalendarWidget-inputCell-inputTimeMiddle">-</span>' +
                 '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputTimeEnd"><input class = "CalendarWidget-timeInput CalendarWidget-timeEnd" value={{hourEnd}}></span>' +
             '</div>' +
         '</div>';
@@ -70,8 +70,16 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
  @class
  @param {nsGmx.CalendarWidget~Parameters} options Параметры календаря
 */
-var Calendar1 = nsGmx.GmxWidget.extend({
+
+var CalendarModel = window.Backbone.Model.extend({
+    defaults: {
+        dailyFilter: true
+    }
+});
+
+var Calendar1 = window.Backbone.View.extend({
     tagName: 'div',
+    model: new CalendarModel(),
     className: 'CalendarWidget ui-widget',
     template: Handlebars.compile(template),
     events: {
@@ -79,10 +87,10 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             e.stopPropagation();
             this.showCalendar();
         },
-        'click .CalendarWidget-dates-outside .CalendarWidget-iconScrollLeft': function () {
+        'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
         },
-        'click .CalendarWidget-dates-outside .CalendarWidget-iconScrollRight': function () {
+        'click .CalendarWidget-iconScrollRight': function () {
             this._shiftDates(1);
         }
     },
@@ -173,11 +181,12 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         this._updateWidget();
 
         this._dateInterval.on('change', this._updateWidget, this);
+        this.listenTo(this.model, 'change:dailyFilter', this.enableDailyFilter);
 
         $('#leftMenu').on('click', function (e) {
             if (e.target.className !== 'CalendarWidget-show-calendar-icon icon-calendar-empty' &&
                 e.target.className !== 'layers-before' &&
-                e.target.className.indexOf('time-select') === -1 &&
+                e.target.className.indexOf('CalendarWidget-timeInput') === -1 &&
                 e.target.className !== 'calendar-container'
             ) {
                 $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
@@ -191,11 +200,37 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         this.canvas = this.$el;
     },
 
+    enableDailyFilter: function () {
+        var dailyFilter = this.model.get('dailyFilter'),
+            timeBeginValue = this.$('.CalendarWidget-timeBegin').val(),
+            timeEndValue = this.$('.CalendarWidget-timeEnd').val();
+
+        if (dailyFilter) {
+            if (Number(timeBeginValue) >= Number(timeEndValue)) {
+                this.$('.CalendarWidget-timeBegin').addClass('error');
+                this.$('.CalendarWidget-inputCell-inputTimeMiddle').addClass('error');
+                this.$('.CalendarWidget-timeEnd').addClass('error');
+            } else {
+                this.$('.CalendarWidget-timeBegin').removeClass('error');
+                this.$('.CalendarWidget-inputCell-inputTimeMiddle').removeClass('error');
+                this.$('.CalendarWidget-timeEnd').removeClass('error');
+            }
+        } else {
+            this.$('.CalendarWidget-timeBegin').removeClass('error');
+            this.$('.CalendarWidget-inputCell-inputTimeMiddle').removeClass('error');
+            this.$('.CalendarWidget-timeEnd').removeClass('error');
+        }
+        this.$('.CalendarWidget-timeBegin').trigger('blur');
+        this.$('.CalendarWidget-timeEnd').trigger('blur');
+    },
+
     _selectTime: function (e) {
         var match = this._checkValue(e.target.value);
 
         if (!match) {
-            $(e.target).addClass('error');
+            this.$('.CalendarWidget-timeBegin').addClass('error');
+            this.$('.CalendarWidget-inputCell-inputTimeMiddle').addClass('error');
+            this.$('.CalendarWidget-timeEnd').addClass('error');
             return;
         }
 
@@ -203,6 +238,7 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         var isBegin = $(e.target).hasClass('CalendarWidget-timeBegin'),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
+            dailyFilter = this.model.get('dailyFilter'),
             timeBeginValue = this.$('.CalendarWidget-timeBegin').val(),
             timeEndValue = this.$('.CalendarWidget-timeEnd').val(),
             msBeginInputValue = this._convertTimeValueToMs(timeBeginValue),
@@ -216,11 +252,21 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             newDateBegin = new Date(dateBegin.valueOf() + (msBeginInputValue - msBegin)),
             newDateEnd = new Date(dateEnd.valueOf() + (msEndInputValue - msEnd));
 
+            if (dailyFilter && Number(timeBeginValue) >= Number(timeEndValue)) {
+                this.$('.CalendarWidget-timeBegin').addClass('error');
+                this.$('.CalendarWidget-inputCell-inputTimeMiddle').addClass('error');
+                this.$('.CalendarWidget-timeEnd').addClass('error');
+                return;
+            }
+
             if (newDateBegin.valueOf() >= newDateEnd.valueOf()) {
-                $(e.target).addClass('error');
+                this.$('.CalendarWidget-timeBegin').addClass('error');
+                this.$('.CalendarWidget-inputCell-inputTimeMiddle').addClass('error');
+                this.$('.CalendarWidget-timeEnd').addClass('error');
                 return;
             } else {
                 this.$('.CalendarWidget-timeBegin').removeClass('error');
+                this.$('.CalendarWidget-inputCell-inputTimeMiddle').removeClass('error');
                 this.$('.CalendarWidget-timeEnd').removeClass('error');
             }
 
@@ -368,8 +414,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
             selectIntervalButton = $('.selectdateinterval-button'),
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            beginTimeValue = this._convertTimeValueToMs(e && e.target === $('.begin-time-select', this)[0] ? $(e.target).val() : $('.begin-time-select option:selected').val()),
-            endTimeValue = this._convertTimeValueToMs(e && e.target === $('.end-time-select', this)[0] ? $(e.target).val() : $('.end-time-select option:selected').val()),
+            beginTimeValue = this._convertTimeValueToMs(e && e.target === $('CalendarWidget-timeBegin', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeBegin').val()),
+            endTimeValue = this._convertTimeValueToMs(e && e.target === $('CalendarWidget-timeEnd', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeEnd').val()),
             calendarDateBegin = this.getDateBegin(),
             calendarDateEnd = this.getDateEnd(),
             newDateBegin = new Date(calendarDateBegin.valueOf() + beginTimeValue),
@@ -410,20 +456,28 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
     _shiftDates: function(delta) {
         var dateBegin = this._dateInterval.get('dateBegin'),
-            dateEnd = this._dateInterval.get('dateEnd');
+            dateEnd = this._dateInterval.get('dateEnd'),
+            dayms = nsGmx.DateInterval.MS_IN_DAY,
+            dailyFilter = this.model.get('dailyFilter'),
+            shift;
 
         if (!dateBegin || !dateEnd) {
             return;
         }
 
-        var shift = (dateEnd - dateBegin) * delta,
-            newDateBegin = new Date(dateBegin.valueOf() + shift),
+        if (dailyFilter) {
+            var diff = (toMidnight(dateEnd) - toMidnight(dateBegin));
+            shift = diff ? diff * delta : dayms * delta;
+        } else {
+            shift = (dateEnd - dateBegin) * delta;
+        }
+
+        var newDateBegin = new Date(dateBegin.valueOf() + shift),
             newDateEnd = new Date(dateEnd.valueOf() + shift);
 
         if ((!this._dateMin || toMidnight(this._dateMin) <= toMidnight(newDateBegin)) &&
             (!this._dateMax || toMidnight(this._dateMax) >= toMidnight(newDateEnd)))
         {
-            // updateModel
             this._dateInterval.set({
                 dateBegin: newDateBegin ? newDateBegin : null,
                 dateEnd: newDateEnd ? newDateEnd : null
@@ -460,8 +514,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
         var dateBegin = this.getDateBegin(),
             dateEnd = this.getDateEnd(),
             // значение часов
-            beginTimeValue = this._convertTimeValueToMs($('.begin-time-select option:selected').val()),
-            endTimeValue = this._convertTimeValueToMs($('.end-time-select option:selected').val()),
+            beginTimeValue = this._convertTimeValueToMs($('.CalendarWidget-timeBegin').val()),
+            endTimeValue = this._convertTimeValueToMs($('.CalendarWidget-timeEnd').val()),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
             // если второй день захвачен полностью
             fullDay = endTimeValue === dayms;
@@ -506,6 +560,8 @@ var Calendar1 = nsGmx.GmxWidget.extend({
 
         $(timeBegin).val(this._prefixTimeValue(hourBegin));
         $(timeEnd).val(this._prefixTimeValue(hourEnd));
+
+        this.enableDailyFilter();
     },
 
     setActive: function (value) {

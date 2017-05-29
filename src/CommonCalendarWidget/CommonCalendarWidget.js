@@ -99,7 +99,13 @@ var nsGmx = nsGmx || {};
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
             this.listenTo(this.model, 'change:dailyFilter', this.applyDailyFilter);
-            this.listenTo(this.model, 'change:active', this.activate);
+
+            this.dateInterval.on('change', function () {
+                console.log('changed');
+                if (_this.model.get('dailyFilter')) {
+                    _this.applyDailyFilter();
+                }
+            })
         },
 
         setDateInterval: function (dateBegin, dateEnd, layer) {
@@ -117,6 +123,10 @@ var nsGmx = nsGmx || {};
                     dateBegin: dateBegin,
                     dateEnd: dateEnd
                 });
+            }
+
+            if (this.dateInterval.get('dailyFilter')) {
+                this.applyDailyFilter();
             }
         },
 
@@ -385,7 +395,12 @@ var nsGmx = nsGmx || {};
             if (currentLayer) {
                 var l = nsGmx.gmxMap.layersByID[currentLayer],
                     currentTitle = l.getGmxProperties().title;
-                this.$('.layersList option[value="' + currentTitle + '"]').prop("selected", true);
+
+                this.$('.layersList option').each(function () {
+                    if ($(this).html() === currentTitle) {
+                        $(this).prop("selected", true);
+                    }
+                })
 
             // установим текщим первый слой из списка
             } else if (!currentLayer && temporalLayers.length) {
@@ -466,8 +481,33 @@ var nsGmx = nsGmx || {};
                 }
             }
         },
+
         toggleDailyFilter: function () {
+            var calendar = this.model.get('calendar');
+
+            calendar.model.set('dailyFilter', !this.model.get('dailyFilter'));
+
             this.model.set('dailyFilter', !this.model.get('dailyFilter'));
+
+        },
+
+        _getTime: function (date, position) {
+            var dayms = nsGmx.DateInterval.MS_IN_DAY,
+                offset, hours;
+
+            if (position === 'begin') {
+                offset = date.valueOf() - toMidnight(date).valueOf();
+            } else {
+                if (date.valueOf() === toMidnight(date).valueOf()) {
+                    offset = dayms;
+                } else {
+                    offset = date.valueOf() - toMidnight(date).valueOf();
+                }
+            };
+
+            hours = offset/(3600*1000);
+
+            return hours;
         },
 
         applyDailyFilter: function () {
@@ -477,7 +517,14 @@ var nsGmx = nsGmx || {};
                 synchronyzed = attrs.synchronyzed,
                 currentLayer = attrs.currentLayer,
                 dateInterval = this.dateInterval,
-                dateBegin, dateEnd, temporalLayers;
+                calendar = attrs.calendar,
+                dateBegin = this.dateInterval.get('dateBegin'),
+                dateEnd = this.dateInterval.get('dateEnd'),
+                hourBegin = Number(this._getTime(dateBegin, 'begin'))*1000*3600,
+                hourEnd = Number(this._getTime(dateEnd, 'end'))*1000*3600,
+                dayms = nsGmx.DateInterval.MS_IN_DAY,
+                toMidnight = nsGmx.DateInterval.toMidnight,
+                temporalLayers;
 
             if (synchronyzed) {
                 temporalLayers = nsGmx.gmxMap.layers;
@@ -495,7 +542,7 @@ var nsGmx = nsGmx || {};
 
                 if (layer.getGmxProperties) {
                         var props = layer.getGmxProperties(),
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
 
@@ -505,16 +552,45 @@ var nsGmx = nsGmx || {};
                                 if (dmOpt.Temporal) {
                                     var tmpKeyNum = dm.tileAttributeIndexes[dmOpt.TemporalColumnName];
                                 }
-                            console.log(tmpKeyNum);
-                            layer.addLayerFilter(function (item) {
-                                // console.log(item.properties);
-                                // console.log(props.title);
-                                // console.log(item.properties[tmpKeyNum]);
-                                return item;
+                            var fullDays = (toMidnight(dateEnd).valueOf() - toMidnight(dateBegin).valueOf()),
+                                intervals = [];
+
+                            for (var i = 0; i < fullDays; i+= dayms) {
+                                intervals.push({
+                                    begin: toMidnight(dateBegin).valueOf() + hourBegin + i,
+                                    end: toMidnight(dateBegin).valueOf() + hourEnd + i
+                                });
+                            }
+
+                            intervals.forEach(function(int) {
+                                console.log(new Date(int.begin).toString().substring(0, 24));
+                                console.log(new Date(int.end).toString().substring(0, 24));
                             });
+
+                            if (dailyFilter) {
+                                layer.addLayerFilter(function (item) {
+                                    var itemDate = item.properties[tmpKeyNum] * 1000,
+                                        inside = false;
+                                    for (var j = 0; j < intervals.length; j++) {
+                                        if (intervals[j].begin <= itemDate && itemDate <= intervals[j].end) {
+                                            inside = true;
+                                            break;
+                                        }
+                                    }
+                                    if (inside) {
+                                        console.log(new Date(itemDate));
+                                    } else {
+                                        console.log('filtered!');
+                                    }
+                                    return inside;
+                                }, {id: 'dayliFilter'});
+
+                            } else {
+                                layer.removeLayerFilter({id: 'dayliFilter'});
+                            }
                         }
                     }
-                }(i))
+                }(i));
             }
 
             console.log(dailyFilter);
