@@ -1432,6 +1432,10 @@ function processGmxMap(state, gmxMap) {
 
                     layer.setDateInterval(dateBegin, dateEnd);
 
+                    if (props.LayerID in attrs.dailyFiltersHash) {
+                        nsGmx.widgets.commonCalendar.applyDailyFilter([layer]);
+                    }
+
                     //подписка на изменение dateInterval
                     layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);
                 }
@@ -1478,8 +1482,9 @@ function processGmxMap(state, gmxMap) {
                             } else {
                                 var dateInterval = layer.getDateInterval();
 
-                                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, layer);
-                                // nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID)
+                                if (dateInterval.beginDate && dateInterval.endDate) {
+                                    nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.beginDate, dateInterval.endDate, layer);
+                                }
                             }
                         } else {
                             if (currentLayer) {
@@ -1566,10 +1571,10 @@ function processGmxMap(state, gmxMap) {
                     });
                     nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
                 } else if (state.version === '1.0.0') {
-                    nsGmx.widgets.commonCalendar.model.set('synchronyzed', state.synchronyzed);
-                    nsGmx.widgets.commonCalendar.model.set('currentLayer', state.currentLayer);
+                    nsGmx.widgets.commonCalendar.model.set('synchronyzed', typeof(state.synchronyzed) !== 'undefined' ? state.synchronyzed : true);
+                    nsGmx.widgets.commonCalendar.model.set('currentLayer', typeof(state.currentLayer) !== 'undefined' ? state.currentLayer : null);
                     nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
-                    nsGmx.widgets.commonCalendar.model.set('dailyFilter', state.dailyFilter);
+                    nsGmx.widgets.commonCalendar.model.set('dailyFilter', typeof(state.dailyFilter) !== 'undefined' ? state.dailyFilter : true);
                 } else {
                     throw 'Unknown params version';
                 }
@@ -2003,8 +2008,6 @@ function processGmxMap(state, gmxMap) {
         if (nsGmx.AuthManager.isLogin()) {
             _queryMapLayers.addUserActions();
         }
-
-        console.log(state.dateIntervals);
 
         if (state.dateIntervals) {
             for (var lid in gmxMap.layersByID) {

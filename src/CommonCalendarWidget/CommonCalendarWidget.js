@@ -72,6 +72,7 @@ var nsGmx = nsGmx || {};
             calendar: null,
             isAppended: false,
             unbindedTemporalLayers: {},
+            dailyFiltersHash: {},
             dailyFilter: true,
             synchronyzed: true
         }
@@ -101,7 +102,10 @@ var nsGmx = nsGmx || {};
             this.dateInterval = new nsGmx.DateInterval();
 
             this.listenTo(this.model, 'change:synchronyzed', this.updateSync);
-            this.listenTo(this.model, 'change:dailyFilter', this.applyDailyFilter);
+            this.listenTo(this.model, 'change:dailyFilter', (function () {
+                this.handleFiltersHash();
+                this.applyDailyFilter();
+            }).bind(this));
 
             this.dateInterval.on('change', function () {
                 _this.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
@@ -110,7 +114,45 @@ var nsGmx = nsGmx || {};
                 }
             });
 
-            this.applyDailyFilter();
+            this._fillFiltersHash();
+        },
+
+        _fillFiltersHash: function(layers) {
+            layers = layers || nsGmx.gmxMap.layers;
+
+            var dailyFiltersHash = {};
+
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    layerID = props.LayerID,
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+                if (isTemporalLayer) {
+                    dailyFiltersHash[layerID] = true;
+                }
+
+                this.model.set('dailyFiltersHash', dailyFiltersHash);
+            }
+        },
+
+        _clearFiltersHash: function (layers) {
+            layers = layers || nsGmx.gmxMap.layers;
+
+            var dailyFiltersHash = {};
+
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i],
+                    props = layer.getGmxProperties(),
+                    layerID = props.LayerID,
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+                if (isTemporalLayer) {
+                    dailyFiltersHash[layerID] = false;
+                }
+
+                this.model.set('dailyFiltersHash', dailyFiltersHash);
+            }
         },
 
         setDateInterval: function (dateBegin, dateEnd, layer) {
@@ -122,6 +164,12 @@ var nsGmx = nsGmx || {};
                 oldEnd = this.dateInterval.get('dateEnd').valueOf();
 
             if (oldBegin === dateBegin.valueOf() && oldEnd === dateEnd.valueOf()) {
+                this.updateTemporalLayers();
+
+                this.updateVisibleTemporalLayers(nsGmx.gmxMap.layers);
+                if (this.model.get('dailyFilter')) {
+                    this.applyDailyFilter();
+                }
                 this.trigger('change:dateInterval');
             } else {
                 this.dateInterval.set({
@@ -187,7 +235,7 @@ var nsGmx = nsGmx || {};
                 calendar = new nsGmx.CalendarWidget1({
                     minimized: false,
                     dateMin: new Date(2000, 1, 1),
-                    dateMax: _this.dateInterval.get('dateEnd'),
+                    dateMax: new Date(Date.now() + dayms) > _this.dateInterval.get('dateEnd') ? new Date(Date.now() + dayms) : _this.dateInterval.get('dateEnd'),
                     dateInterval: _this.dateInterval
                 });
 
@@ -506,9 +554,13 @@ var nsGmx = nsGmx || {};
                 currentLayer = attrs.currentLayer,
                 listContainer = this.$('.unsync-layers-container'),
                 layersList = this.$('.layersList'),
-                dateInterval, dateBegin, dateEnd;
+                dateBegin, dateEnd;
 
             if (synchronyzed) {
+                dateBegin = _this.dateInterval.get('dateBegin'),
+                dateEnd = _this.dateInterval.get('dateEnd'),
+                _this.setDateInterval(dateBegin, dateEnd);
+                this.model.set('currentLayer', null);
                 this.model.set('currentLayer', null);
                 this.$('.sync-switch input').prop("checked", true);
                 $(listContainer).hide();
@@ -546,18 +598,43 @@ var nsGmx = nsGmx || {};
         },
 
         toggleDailyFilter: function () {
-            var calendar = this.model.get('calendar');
+            var attrs = this.model.toJSON(),
+                calendar = attrs.calendar;
 
             calendar.model.set('dailyFilter', !this.model.get('dailyFilter'));
-
             this.model.set('dailyFilter', !this.model.get('dailyFilter'));
-
         },
 
-        applyDailyFilter: function () {
-            var _this = this,
+        handleFiltersHash: function () {
+            var attrs = this.model.toJSON(),
+                synchronyzed = attrs.synchronyzed,
+                currentLayer = attrs.currentLayer,
+                dateInterval = this.dateInterval,
+                calendar = attrs.calendar,
+                dailyFilter = attrs.dailyFilter,
+                dailyFiltersHash = attrs.dailyFiltersHash;
+
+            if (dailyFilter) {
+                if (currentLayer) {
+                    dailyFiltersHash[currentLayer] = true;
+                } else {
+                    this._fillFiltersHash();
+                }
+            } else {
+                if (currentLayer) {
+                    dailyFiltersHash[currentLayer] = false;
+                } else {
+                    this._clearFiltersHash();
+                }
+            }
+        },
+
+        applyDailyFilter: function (layers) {
+            var temporalLayers = layers || nsGmx.gmxMap.layers,
+                _this = this,
                 attrs = this.model.toJSON(),
                 dailyFilter = attrs.dailyFilter,
+                dailyFiltersHash = attrs.dailyFiltersHash,
                 synchronyzed = attrs.synchronyzed,
                 currentLayer = attrs.currentLayer,
                 dateInterval = this.dateInterval,
@@ -565,17 +642,15 @@ var nsGmx = nsGmx || {};
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),
                 hourBegin = Number(nsGmx.CalendarWidget1.getTime(dateBegin, 'begin')) * 1000 * 3600,
-                hourEnd = Number(nsGmx.CalendarWidget1.getTime(dateEnd, 'end')) * 1000 * 3600,
+                hourEnd = Number(nsGmx.CalendarWidget1.getTime(dateEnd, 'end')) * 1000 * 3600;
                 temporalLayers;
 
             if (synchronyzed) {
                 temporalLayers = nsGmx.gmxMap.layers;
-            } else {
-                if (currentLayer) {
-                    temporalLayers = [nsGmx.gmxMap.layersByID[currentLayer]];
-                } else {
-                    return;
-                }
+            }
+
+            if (!synchronyzed && !currentLayer) {
+                return;
             }
 
             for (var i = 0; i < temporalLayers.length; i++) {
@@ -587,6 +662,16 @@ var nsGmx = nsGmx || {};
                             isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
+
+                            if (!synchronyzed && layer.getDateInterval()) {
+                                dateInterval = layer.getDateInterval();
+                                if (dateInterval.beginDate && dateInterval.endDate) {
+                                    dateBegin = dateInterval.beginDate;
+                                    dateEnd = dateInterval.endDate;
+                                    hourBegin = Number(nsGmx.CalendarWidget1.getTime(dateBegin, 'begin')) * 1000 * 3600,
+                                    hourEnd = Number(nsGmx.CalendarWidget1.getTime(dateEnd, 'end')) * 1000 * 3600;
+                                }
+                            }
 
                             var dm = layer.getDataManager(),
                                 dmOpt = dm.options,
@@ -603,8 +688,6 @@ var nsGmx = nsGmx || {};
                                 fullDays = toMidnight(dateEnd).valueOf() - toMidnight(dateBegin).valueOf();
                             }
 
-                                console.log(fullDays / 1000 / 3600 / 24);
-
                             for (var i = 0; i < fullDays; i+= dayms) {
                                 intervals.push({
                                     begin: toMidnight(dateBegin).valueOf() + hourBegin + i,
@@ -612,7 +695,7 @@ var nsGmx = nsGmx || {};
                                 });
                             }
 
-                            if (dailyFilter) {
+                            if (dailyFilter && dailyFiltersHash[props.LayerID]) {
                                 layer.addLayerFilter(function (item) {
                                     var itemDate = item.properties[tmpKeyNum] * 1000,
                                         inside = false;
@@ -622,6 +705,12 @@ var nsGmx = nsGmx || {};
                                             break;
                                         }
                                     }
+                                    //
+                                    // if (inside) {
+                                    //     console.log(layer.getGmxProperties().title + ' / ' + 'loaded');
+                                    // } else {
+                                    //     console.log(layer.getGmxProperties().title + ' / ' + 'filtered');
+                                    // }
                                     return inside;
                                 }, {id: 'dailyFilter'});
 
