@@ -202,7 +202,6 @@
     line-height: 35px;
     width: 325px;
     padding: 0;
-    padding-left: 12px;
     display: inline-block;
     vertical-align: middle;
 }
@@ -220,6 +219,7 @@
     text-overflow: ellipsis;
     width: 150px;
     max-width: 150px;
+    padding-left: 12px;
 }
 
 .layerslist-dates-times {

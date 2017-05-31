@@ -160,8 +160,8 @@ var Calendar1 = window.Backbone.View.extend({
 
         var dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            hourBegin = this._getTime(dateBegin, 'begin'),
-            hourEnd = this._getTime(dateEnd, 'end');
+            hourBegin = Calendar1.getTime(dateBegin, 'begin'),
+            hourEnd = Calendar1.getTime(dateEnd, 'end');
 
         this.$el.html(this.template({
             showCalendarIconClass:'icon-calendar-empty',
@@ -241,14 +241,14 @@ var Calendar1 = window.Backbone.View.extend({
             dailyFilter = this.model.get('dailyFilter'),
             timeBeginValue = this.$('.CalendarWidget-timeBegin').val(),
             timeEndValue = this.$('.CalendarWidget-timeEnd').val(),
-            msBeginInputValue = this._convertTimeValueToMs(timeBeginValue),
-            msEndInputValue = this._convertTimeValueToMs(timeEndValue),
+            msBeginInputValue = Calendar1.convertTimeValueToMs(timeBeginValue),
+            msEndInputValue = Calendar1.convertTimeValueToMs(timeEndValue),
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            hourBegin = this._getTime(dateBegin, 'begin'),
-            hourEnd = this._getTime(dateEnd, 'end'),
-            msBegin = this._convertTimeValueToMs(hourBegin),
-            msEnd = this._convertTimeValueToMs(hourEnd),
+            hourBegin = Calendar1.getTime(dateBegin, 'begin'),
+            hourEnd = Calendar1.getTime(dateEnd, 'end'),
+            msBegin = Calendar1.convertTimeValueToMs(hourBegin),
+            msEnd = Calendar1.convertTimeValueToMs(hourEnd),
             newDateBegin = new Date(dateBegin.valueOf() + (msBeginInputValue - msBegin)),
             newDateEnd = new Date(dateEnd.valueOf() + (msEndInputValue - msEnd));
 
@@ -291,12 +291,6 @@ var Calendar1 = window.Backbone.View.extend({
         }
 
         return match;
-    },
-
-    _prefixTimeValue: function (value) {
-        value = Number(value);
-
-        return value < 10 ? '0' + value : String(value);
     },
 
     showCalendar: function () {
@@ -344,8 +338,6 @@ var Calendar1 = window.Backbone.View.extend({
                 }
             };
 
-        // this.setActive(false);
-
         oneDayPeriod ? this.setMode(Calendar1.SIMPLE_MODE) : this.setMode(Calendar1.ADVANCED_MODE);
 
         this._dateBegin = $('.begin-outside-calendar', this.beginCalendar);
@@ -364,7 +356,6 @@ var Calendar1 = window.Backbone.View.extend({
         if (this.getMode() === Calendar1.ADVANCED_MODE) {
             $(createIntervalButton).toggle(false);
             $(resetIntervalButton).toggle(true);
-            // this._showTime(dateBegin, dateEnd);
             $(this.endCalendar).dialog(endDialogOptions);
             this._opened = true;
         }
@@ -377,8 +368,6 @@ var Calendar1 = window.Backbone.View.extend({
             _this.setMode(Calendar1.ADVANCED_MODE);
             $(_this.endCalendar).dialog(endDialogOptions);
             _this._opened = true;
-
-            // _this._showTime(begin, end);
 
             $(this).toggle(false);
             $(resetIntervalButton).toggle(true);
@@ -398,7 +387,6 @@ var Calendar1 = window.Backbone.View.extend({
                 dateBegin: dateBegin,
                 dateEnd: new Date(dateBegin.valueOf() + dayms)
             })
-            // _this._showTime(false);
         })
 
         // кнопка во втором календаре
@@ -414,8 +402,8 @@ var Calendar1 = window.Backbone.View.extend({
             selectIntervalButton = $('.selectdateinterval-button'),
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            beginTimeValue = this._convertTimeValueToMs(e && e.target === $('CalendarWidget-timeBegin', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeBegin').val()),
-            endTimeValue = this._convertTimeValueToMs(e && e.target === $('CalendarWidget-timeEnd', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeEnd').val()),
+            beginTimeValue = Calendar1.convertTimeValueToMs(e && e.target === $('CalendarWidget-timeBegin', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeBegin').val()),
+            endTimeValue = Calendar1.convertTimeValueToMs(e && e.target === $('CalendarWidget-timeEnd', this)[0] ? $(e.target).val() : $('.CalendarWidget-timeEnd').val()),
             calendarDateBegin = this.getDateBegin(),
             calendarDateEnd = this.getDateEnd(),
             newDateBegin = new Date(calendarDateBegin.valueOf() + beginTimeValue),
@@ -428,30 +416,6 @@ var Calendar1 = window.Backbone.View.extend({
         } else {
             $(selectIntervalButton).removeClass('disabled');
         }
-    },
-
-    _convertTimeValueToMs: function (value) {
-        var ms = Number(value)*1000*3600;
-        return ms;
-    },
-
-    _getTime: function (date, position) {
-        var dayms = nsGmx.DateInterval.MS_IN_DAY,
-            offset, hours;
-
-        if (position === 'begin') {
-            offset = date.valueOf() - toMidnight(date).valueOf();
-        } else {
-            if (date.valueOf() === toMidnight(date).valueOf()) {
-                offset = dayms;
-            } else {
-                offset = date.valueOf() - toMidnight(date).valueOf();
-            }
-        };
-
-        hours = offset/(3600*1000);
-
-        return hours;
     },
 
     _shiftDates: function(delta) {
@@ -514,8 +478,8 @@ var Calendar1 = window.Backbone.View.extend({
         var dateBegin = this.getDateBegin(),
             dateEnd = this.getDateEnd(),
             // значение часов
-            beginTimeValue = this._convertTimeValueToMs($('.CalendarWidget-timeBegin').val()),
-            endTimeValue = this._convertTimeValueToMs($('.CalendarWidget-timeEnd').val()),
+            beginTimeValue = Calendar1.convertTimeValueToMs($('.CalendarWidget-timeBegin').val()),
+            endTimeValue = Calendar1.convertTimeValueToMs($('.CalendarWidget-timeEnd').val()),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
             // если второй день захвачен полностью
             fullDay = endTimeValue === dayms;
@@ -533,8 +497,8 @@ var Calendar1 = window.Backbone.View.extend({
     _updateWidget: function() {
         var dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            hourBegin = this._getTime(dateBegin, 'begin'),
-            hourEnd = this._getTime(dateEnd, 'end'),
+            hourBegin = Calendar1.getTime(dateBegin, 'begin'),
+            hourEnd = Calendar1.getTime(dateEnd, 'end'),
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
             timeBegin = this.$('.CalendarWidget-timeBegin')[0],
@@ -558,8 +522,8 @@ var Calendar1 = window.Backbone.View.extend({
         $(beginInput).val(Calendar1.formatDate(newDateBegin));
         $(endInput).val(Calendar1.formatDate(newDateEnd));
 
-        $(timeBegin).val(this._prefixTimeValue(hourBegin));
-        $(timeEnd).val(this._prefixTimeValue(hourEnd));
+        $(timeBegin).val(Calendar1.prefixTimeValue(hourBegin));
+        $(timeEnd).val(Calendar1.prefixTimeValue(hourEnd));
 
         this.enableDailyFilter();
     },
@@ -719,6 +683,33 @@ var Calendar1 = window.Backbone.View.extend({
         if (day.length < 2) day = '0' + day;
 
         return [day, month, year].join('.');
+    },
+    convertTimeValueToMs: function (value) {
+        var ms = Number(value)*1000*3600;
+        return ms;
+    },
+    getTime: function (date, position) {
+        var dayms = nsGmx.DateInterval.MS_IN_DAY,
+            offset, hours;
+
+        if (position === 'begin') {
+            offset = date.valueOf() - toMidnight(date).valueOf();
+        } else {
+            if (date.valueOf() === toMidnight(date).valueOf()) {
+                offset = dayms;
+            } else {
+                offset = date.valueOf() - toMidnight(date).valueOf();
+            }
+        };
+
+        hours = offset/(3600*1000);
+
+        return hours;
+    },
+
+    prefixTimeValue: function (value) {
+        value = Number(value);
+        return value < 10 ? '0' + value : String(value);
     },
     SIMPLE_MODE: 1,
     ADVANCED_MODE: 2

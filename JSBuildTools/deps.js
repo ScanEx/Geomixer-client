@@ -55,7 +55,6 @@ var jsFiles = [
     "src/MapExport/MapExport.js",
     "src/IndexGrid/IndexGrid.js",
     "src/PhotoLayer/PhotoLayer.js",
-    "src/CommonCalendarWidget/CommonCalendarWidget.js",
 
     "CoverControl.js",
     "CoverControl2.js",
@@ -72,6 +71,9 @@ var jsFiles = [
     "NotificationWidget.js",
     "VirtualLayerManager.js",
     "common_components/primary.js",
+
+    "src/CommonCalendarWidget/CommonCalendarWidget.js",
+
     "starter.js",
     "version.js",
     "leaflet/plugins/GMXVirtualTileLayer/GmxVirtualTileLayer.js"

@@ -1452,6 +1452,7 @@ function processGmxMap(state, gmxMap) {
 
             lmap.fireEvent('layersTree.activeNodeChange', {layerID: layerID});
         });
+
         $(_layersTree).on('layerVisibilityChange', function(event, elem) {
             var props = elem.content.properties,
                 attrs = nsGmx.widgets.commonCalendar.model.toJSON(),
@@ -1568,6 +1569,7 @@ function processGmxMap(state, gmxMap) {
                     nsGmx.widgets.commonCalendar.model.set('synchronyzed', state.synchronyzed);
                     nsGmx.widgets.commonCalendar.model.set('currentLayer', state.currentLayer);
                     nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
+                    nsGmx.widgets.commonCalendar.model.set('dailyFilter', state.dailyFilter);
                 } else {
                     throw 'Unknown params version';
                 }
@@ -1577,7 +1579,8 @@ function processGmxMap(state, gmxMap) {
                     version: '1.0.0',
                     dateInterval: nsGmx.widgets.commonCalendar.getDateInterval().saveState(),
                     currentLayer: nsGmx.widgets.commonCalendar.model.get('currentLayer'),
-                    synchronyzed: nsGmx.widgets.commonCalendar.model.get('synchronyzed')
+                    synchronyzed: nsGmx.widgets.commonCalendar.model.get('synchronyzed'),
+                    dailyFilter: nsGmx.widgets.commonCalendar.model.get('dailyFilter')
                 };
             }
         });
@@ -1999,6 +2002,20 @@ function processGmxMap(state, gmxMap) {
 
         if (nsGmx.AuthManager.isLogin()) {
             _queryMapLayers.addUserActions();
+        }
+
+        console.log(state.dateIntervals);
+
+        if (state.dateIntervals) {
+            for (var lid in gmxMap.layersByID) {
+                if (lid in state.dateIntervals) {
+                    var l = gmxMap.layersByID[lid],
+                        beginDate = new Date(state.dateIntervals[lid].beginDate),
+                        endDate = new Date(state.dateIntervals[lid].endDate);
+
+                    l.setDateInterval(beginDate, endDate);
+                }
+            }
         }
 
         initEditUI();

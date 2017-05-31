@@ -450,6 +450,18 @@ mapHelper.prototype.getMapState = function() {
 		}
 	});
 
+	var dateIntervals = {};
+
+	for (var l in nsGmx.gmxMap.layersByID) {
+		var layer = nsGmx.gmxMap.layersByID[l];
+			props = layer.getGmxProperties(),
+			isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+
+		if (isTemporalLayer) {
+			dateIntervals[props.LayerID] = layer.getDateInterval();
+		}
+	}
+
     return {
         mode: lmap.gmxBaseLayersManager.getCurrentID(),
         mapName: globalMapName,
@@ -466,6 +478,7 @@ mapHelper.prototype.getMapState = function() {
 		LayersTreePermalinkParams: LayersTreePermalinkParams,
         language: window.language,
 		customParamsCollection: this.customParamsManager.saveParams(),
+		dateIntervals: dateIntervals,
         openPopups: openPopups
     }
 }
