@@ -545,7 +545,7 @@ var _labelEditorId = 0;
 
 var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs, elemCanvas, ulParent, treeviewFlag)
 {
-	var templateStyle = {};
+	var templateStyle = ulParent.parentNode.parentNode.parentNode.templateStyle = {};
 
 	$.extend(true, templateStyle, _mapHelper.makeStyle(parentStyle));
 
@@ -554,6 +554,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	var filterInput = _textarea([_t(parentStyle.Filter || '')], [['dir','className','inputStyle'],['css','overflow','auto'],['css','margin','1px 0px'],['css','width','260px'],['css','height','40px']]),
         liMinZoom = zoomPropertiesControl.getMinLi(),
 		liMaxZoom = zoomPropertiesControl.getMaxLi(),
+		ulZoom = _ul([liMinZoom, liMaxZoom]),
 		ulfilterExpr = _ul([_li([_div()],[['css','paddingLeft','0px'],['css','background','none']])]),
 		liLabel = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulLabel = _ul([liLabel]),
@@ -849,6 +850,238 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     }
 
 	// common
+
+    // настройки стилей
+    function createSettingsButton(styleParams) {
+        var manyStyles = layer.getStyles().length <= 1,
+            // settingsIcon = makeImageButton('img/more-vertical-15.png', 'img/more-vertical-15.png'),
+            settingsIcon = makeImageButton('img/moreicon.svg', 'img/moreicon.svg'),
+            styleSettingsMenu = _div(),
+            styleSettingsTemplate = window.Handlebars.compile('' +
+                '<ul class="style-settings-menu style-settings-menu-container">' +
+                    '<li class="style-settings-menu style-settings-menu-element style-apply {{#if manyStyles}} disabled{{/if}}">' +
+                        '{{i "применить везде"}}' +
+                    '</li>' +
+                    '<li class="style-settings-menu style-settings-menu-element style-copy disabled">' +
+                        '{{i "скопировать"}}' +
+                    '</li>' +
+                '</ul>'
+            );
+
+            $(settingsIcon).addClass('style-settings-icon');
+
+        settingsIcon.title = _gtxt('Настройка стилей');
+
+        // меню свойств
+
+        $(styleSettingsMenu).html(styleSettingsTemplate({manyStyles: manyStyles}));
+
+        $('.style-settings-menu-element', styleSettingsMenu).on('mouseover', function (e) {
+            $(this).addClass('active');
+        })
+
+        $('.style-settings-menu-element', styleSettingsMenu).on('mouseout', function () {
+            $(this).removeClass('active');
+        })
+
+        // пункт "применить ко всем"
+        $('.style-apply', styleSettingsMenu).on('click', function () {
+            var filters = ulParent.parentNode.parentNode.parentNode.parentNode;
+
+            var layerStyles = layer.getStyles(),
+                currentStyle = layerStyles[styleIndex],
+                newStyle = {},
+                newStyles = [],
+                params;
+
+            if (styleParams === 'zoom') {
+                newStyle = {
+                    MinZoom: currentStyle.MinZoom,
+                    MaxZoom:  currentStyle.MaxZoom
+                }
+
+                setFilters();
+
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i];
+
+                    $(filter).find("[MinZoom]").val(currentStyle.MinZoom || 1);
+                    $(filter).find("[MaxZoom]").val(currentStyle.MaxZoom || 21);
+                }
+
+            } else if (styleParams === 'filter') {
+                newStyle = {
+                    Filter: currentStyle.Filter
+                }
+
+                setFilters();
+
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i],
+                        filterValueElem = $(filter).find("[filterTable]").length > 0 ? $(filter).find("[filterTable]")[0] : filter,
+                        filterText = $(filterValueElem).find('textarea');
+
+                    $(filterText).val(currentStyle.Filter);
+                }
+
+            } else if (styleParams === 'balloon') {
+                newStyle = {
+                    Balloon: currentStyle.Balloon
+                }
+
+                setFilters();
+
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i],
+                        balloonValueElem = $(filter).find("[balloonTable]").length > 0 ? $(filter).find("[balloonTable]")[0] : filter,
+                        balloonText = $(balloonValueElem).find('textarea');
+
+                    $(balloonText).val(currentStyle.Balloon);
+
+                }
+            } else if (styleParams === 'label') {
+                params = [
+                    'labelTemplate',
+                    'labelAnchor',
+                    'labelField',
+                    'labelColor',
+                    'labelHaloColor',
+                    'labelFontSize',
+                    'labelSpacing',
+                    'labelAlign'
+                ];
+                newStyle = {
+                    RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
+                    HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
+                }
+                var style = L.gmxUtil.toServerStyle(newStyle.RenderStyle);
+                templateStyle = $.extend(true, {}, templateStyle, style);
+
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i];
+
+                    filter.templateStyle = templateStyle;
+                }
+
+                setRenderStyle(params);
+
+            } else if (styleParams === 'symbols') {
+                params = [
+                    'iconAngle', 'iconUrl', 'iconSize', 'iconScale', 'iconMinScale',
+                    'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',
+                    'stroke', 'color', 'weight', 'opacity',
+                    'dashArray', 'fillColor', 'fillOpacity', 'fillIconUrl',
+                    'fillPattern', 'fillRadialGradient', 'fillLinearGradient'
+                ];
+                newStyle = {
+                    RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
+                    HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
+                }
+
+                var style = L.gmxUtil.toServerStyle(newStyle.RenderStyle);
+                templateStyle = $.extend(true, {}, templateStyle, style);
+
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i];
+
+                    filter.templateStyle = templateStyle;
+                }
+
+                setRenderStyle(params);
+            }
+
+            var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
+            mStyleEditor && mStyleEditor.updateAllStyles();
+
+            $(this).removeClass('active');
+            $(styleSettingsMenu).dialog('close');
+
+            function getAvailableStyles(style, params) {
+                var resStyle = {};
+
+                for (var i = 0; i < params.length; i++) {
+                    var param = params[i];
+                    if (param in style) {
+                        if (typeof param === 'Object') {
+                            resStyle[param] = _.clone(style[param]);
+                        } else {
+                            resStyle[param] = style[param];
+                        }
+                    }
+                }
+                return resStyle;
+            }
+
+            function setFilters() {
+                for (var j = 0; j < layerStyles.length; j++) {
+                    var layerStyle = layerStyles[j],
+                        appliedStyle = $.extend(true, {}, layerStyle, newStyle);
+
+                    newStyles.push(appliedStyle);
+                };
+                layer.setStyles(newStyles);
+            }
+
+            function setRenderStyle(params) {
+                for (var j = 0; j < layerStyles.length; j++) {
+                    var layerStyle = layerStyles[j],
+                        labelRenderStyle = getAvailableStyles(layerStyle.RenderStyle, params),
+                        labelHoverStyle = getAvailableStyles(layerStyle.HoverStyle, params),
+                        appliedStyle;
+
+                    for (var key in labelRenderStyle) {
+                        if (labelRenderStyle.hasOwnProperty(key)) {
+                            delete layerStyle.RenderStyle[key];
+                        }
+                    }
+
+                    for (var key in labelHoverStyle) {
+                        if (labelHoverStyle.hasOwnProperty(key)) {
+                            delete layerStyle.HoverStyle[key];
+                        }
+                    }
+
+                    appliedStyle = $.extend(true, {}, layerStyle, newStyle);
+
+                    newStyles.push(appliedStyle);
+                };
+                // setMapObjectStyles();
+                layer.setStyles(newStyles);
+            }
+
+        })
+
+        // показываем меню
+        settingsIcon.onclick = function (e) {
+            var closedialog = 0,
+                dialogParams = {
+                    dialogClass: "layer-styles-settings-dialog",
+                    draggable: false,
+                    resizable: false,
+                    modal: false,
+                    width: 100,
+                    height: 50,
+                    position: [e.clientX - 50, e.clientY + 7]
+                };
+
+            $(styleSettingsMenu).dialog(dialogParams);
+
+            // закрываем меню по клику вне его
+
+            $(document).on('mousedown', function(e) {
+            // $(document).mousedown(function(e) {
+                var clicked = $(e.target); // get the element clicked
+                if (clicked.is(styleSettingsMenu) || clicked.parents().is(styleSettingsMenu)) {
+                    return; // click happened within the dialog, do nothing here
+                } else { // click was outside the dialog, so close it
+                    $(styleSettingsMenu).dialog('close');
+                }
+            });
+        }
+
+        return settingsIcon;
+    }
+
     var symbolsTitle = _div();
 
     if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
@@ -856,7 +1089,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
         styleLibIcon.style.verticalAlign = 'middle';
         styleLibIcon.style.marginLeft = '5px';
         styleLibIcon.title = _gtxt('Библиотека стилей');
-        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), styleLibIcon]);
+        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), createSettingsButton('symbols')]);
         styleLibIcon.onclick = function() {
             nsGmx.showStyleLibraryDialog('select', geometryType.toUpperCase()).done(function(activeStyleManager) {
                 $(activeStyleManager).change(function() {
@@ -874,14 +1107,14 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             })
         }
     } else {
-        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]);
+        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), createSettingsButton('symbols')]);
     }
 
 	_(ulParent, [
-        liMinZoom, liMaxZoom,
-        _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]),
-        _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]),
-        _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),
+        _li([_div([_span([_t(_gtxt("Зум"))],[['css','fontSize','12px']]), createSettingsButton('zoom')]), ulZoom]),
+        _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']]), createSettingsButton('filter')]), ulfilterExpr]),
+        _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']]), createSettingsButton('label')]), ulLabel]),
+        _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']]), createSettingsButton('balloon')]), ulBalloon]),
         _li([symbolsTitle, ulStyle])
     ]);
 
@@ -908,7 +1141,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	ulParent.parentNode.parentNode.parentNode.getStyle = function()
 	{
-		return templateStyle;
+		return ulParent.parentNode.parentNode.parentNode.templateStyle;
 	}
 
     ulParent.parentNode.parentNode.parentNode.getClusterStyle = function()
@@ -1054,12 +1287,12 @@ var swapFilters = function(div, firstNum, filterCanvas)
 
 var createLoadingFilter = function(layer, styleIndex, parentStyle, geometryType, attrs, elemCanvas, openedFlag)
 {
-	var templateStyle = {},
-		nameInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','Name'],['css','width','210px'],['attr','value', parentStyle.Name || '']]),
+	var nameInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','Name'],['css','width','210px'],['attr','value', parentStyle.Name || '']]),
 		ulFilterParams = _ul(),
 		liFilter = _li([_div([nameInput]), ulFilterParams]),
 		ulFilter = _ul([liFilter]),
-		filterCanvas = _div([ulFilter],[['dir','className','filterCanvas']]);
+		filterCanvas = _div([ulFilter],[['dir','className','filterCanvas']]),
+        templateStyle = filterCanvas.templateStyle = {}
 
 	$.extend(true, templateStyle, _mapHelper.makeStyle(parentStyle));
 
@@ -1067,7 +1300,7 @@ var createLoadingFilter = function(layer, styleIndex, parentStyle, geometryType,
 
 	filterCanvas.getStyle = function()
 	{
-		return templateStyle;
+		return filterCanvas.templateStyle;
 	}
 
     filterCanvas.getClusterStyle = function()
@@ -1900,7 +2133,6 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
         closeFunc();
         delete styleDialogs[elemProperties.name];
     });
-
 
     styleDialogs[elemProperties.name] = {updateFunc: updateFunc};
 
