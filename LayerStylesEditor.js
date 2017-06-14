@@ -1,6 +1,8 @@
 ﻿//Создание интерфейса редактирования стилей слоя
 !(function(_) {
 
+var needStylesUpdate = true;
+
 //явно прописывает все свойства балунов в стиле.
 var applyBalloonDefaultStyle = function(style)
 {
@@ -121,7 +123,7 @@ var FillStyleControl = function(initStyle, params)
         });
 
     colorContainer.append($("<table/>").append($("<tr/>")
-        .append($("<td/>").append(fillColorPicker))
+        .append($("<td/>", {'style': 'width: 40px;'}).append(fillColorPicker))
         .append($("<td/>", {'class': 'fillColorOpacity'}).append(fillOpacitySlider))
     ));
 
@@ -889,10 +891,16 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             var filters = ulParent.parentNode.parentNode.parentNode.parentNode;
 
             var layerStyles = layer.getStyles(),
+                elemStyles = elemCanvas.parentNode.gmxProperties.content.properties.styles,
                 currentStyle = layerStyles[styleIndex],
                 newStyle = {},
                 newStyles = [],
                 params;
+
+            elemCanvas.parentNode.gmxProperties.content.properties.styles = [];
+
+            // выключаем текущий апдейт слоя
+            needStylesUpdate = false;
 
             if (styleParams === 'zoom') {
                 newStyle = {
@@ -905,8 +913,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
-                    $(filter).find("[MinZoom]").val(currentStyle.MinZoom || 1);
-                    $(filter).find("[MaxZoom]").val(currentStyle.MaxZoom || 21);
+                    $(filter).find("[paramname=MinZoom]").val(currentStyle.MinZoom || 1);
+                    $(filter).find("[paramname=MaxZoom]").val(currentStyle.MaxZoom || 21);
                 }
 
             } else if (styleParams === 'filter') {
@@ -990,8 +998,20 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 setRenderStyle(params);
             }
 
-            var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
-            mStyleEditor && mStyleEditor.updateAllStyles();
+            // var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
+            // mStyleEditor && mStyleEditor.updateAllStyles();
+
+            var newLayerStyles = layer.getStyles();
+
+            console.log(newLayerStyles);
+
+            var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + layer.getGmxProperties().LayerID + "']")[0];
+
+            _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
+
+
+            console.log(elemCanvas.parentNode.gmxProperties.content.properties.styles);
+            console.log(_layersTree.findTreeElem(div).elem.content.properties.styles);
 
             $(this).removeClass('active');
             $(styleSettingsMenu).dialog('close');
@@ -1018,6 +1038,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                         appliedStyle = $.extend(true, {}, layerStyle, newStyle);
 
                     newStyles.push(appliedStyle);
+                    elemCanvas.parentNode.gmxProperties.content.properties.styles.push(appliedStyle);
                 };
                 layer.setStyles(newStyles);
             }
@@ -1044,8 +1065,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                     appliedStyle = $.extend(true, {}, layerStyle, newStyle);
 
                     newStyles.push(appliedStyle);
+                    elemCanvas.parentNode.gmxProperties.content.properties.styles.push(appliedStyle);
                 };
-                // setMapObjectStyles();
                 layer.setStyles(newStyles);
             }
 
@@ -1591,8 +1612,12 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 
 			if (geometryType == "point")
 			{
-				templateStyle.marker = {};
-				templateStyle.marker.size = Number($(markerSizeParent).find(".inputStyle").val());
+                if (templateStyle.iconSize) {
+                    templateStyle.iconSize = Number($(markerSizeParent).find(".inputStyle").val());
+                } else {
+                    templateStyle.marker = {};
+                    templateStyle.marker.size = Number($(markerSizeParent).find(".inputStyle").val());
+                }
 			}
 
             templateStyle.fill = fillStyleControl.getFillStyle();
@@ -1602,10 +1627,27 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 		if (geometryType != "point" && typeof templateStyle.marker != 'undefined')
 			delete templateStyle.marker;
 
-		templateStyle.outline = {};
-		templateStyle.outline.thickness = Number($(outlineParent).find(".inputStyle")[0].value);
-		templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
-		templateStyle.outline.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
+        if (templateStyle.color) {
+            templateStyle.color = $(outlineParent).find(".colorSelector")[0].hex;
+        } else {
+            templateStyle.outline = {};
+            templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
+        }
+
+        if (templateStyle.weight) {
+            templateStyle.weight = Number($(outlineParent).find(".inputStyle")[0].value);
+        } else {
+            templateStyle.outline = templateStyle.outline || {};
+            templateStyle.outline.thickness = Number($(outlineParent).find(".inputStyle")[0].value);
+        }
+
+        if (templateStyle.opacity) {
+            templateStyle.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
+        } else {
+            templateStyle.outline = templateStyle.outline || {};
+            templateStyle.outline.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
+        }
+
 
 		$(resObject).change();
 	}
@@ -1622,7 +1664,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 	outlineTitleTds.push(_td([outlineToggle],[['css','width','20px'],['css','height','24px']]));
 	outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 
-	var outlineColor = nsGmx.Controls.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
+	var outlineColor = nsGmx.Controls.createColorPicker(templateStyle.color || (templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -1634,9 +1676,12 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 		function (hsb, hex, rgb) {
 			outlineColor.style.backgroundColor = '#' + hex;
 
-            templateStyle.outline = templateStyle.outline || {};
-			templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
-
+            if (templateStyle.color) {
+                templateStyle.color = outlineColor.hex = parseInt('0x' + hex);
+            } else {
+                templateStyle.outline = {};
+                templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
+            }
 			$(resObject).change();
 		})
 
@@ -1892,12 +1937,15 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 
 	if (geometryType == "point")
 	{
-        var markerSizeInput = nsGmx.Controls.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+        var markerSizeInput = nsGmx.Controls.createInput(templateStyle.iconSize || (templateStyle.marker && templateStyle.marker.size) || 3,
 			function()
 			{
-                templateStyle.marker = templateStyle.marker || {};
-
-				templateStyle.marker.size = Number(this.value);
+                if (templateStyle.iconSize) {
+                    templateStyle.iconSize = Number(this.value);
+                } else {
+                    templateStyle.marker = templateStyle.marker || {};
+                    templateStyle.marker.size = Number(this.value);
+                }
 
 				$(resObject).change();
 
@@ -1905,6 +1953,8 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 			})
 
         _title(markerSizeInput, _gtxt("Размер точек"));
+
+        $(markerSizeInput).css('width', '25px');
 
         var markerSizeTds = [_td(), _td([_t(_gtxt("Размер"))]), _td([markerSizeInput], [['attr','fade',true]])];
         _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
@@ -2057,6 +2107,7 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
     var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0],
         elemProperties = div.gmxProperties.content.properties,
         mapName = elemProperties.mapName,
+        layer = nsGmx.gmxMap.layersByID[elem.LayerID],
         layerName = elemProperties.name;
 
     if (typeof window._mapHelper.layerStylesHash[layerName] !== 'undefined') {
@@ -2069,8 +2120,25 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
 
     var updateFunc = function()
     {
-        elemProperties.styles = styleEditor.getUpdatedStyles();
+        var updatedStyles = styleEditor.getUpdatedStyles(),
+            extendedStyles = [],
+            layerStyles;
+
+        if (needStylesUpdate) {
+            elemProperties.styles = updatedStyles;
+        } else {
+            layerStyles = layer.getStyles();
+            for (var j = 0; j < updatedStyles.length; j++) {
+                var updatedStyle = updatedStyles[j],
+                    extendedStyle = $.extend(true, {}, updatedStyle, layerStyles[j]);
+                extendedStyles.push(extendedStyle);
+            };
+
+            elemProperties.styles = extendedStyles;
+        }
         treeView.findTreeElem(div).elem.content.properties = elemProperties;
+
+        needStylesUpdate = true;
     };
 
     var attributesHash = {};

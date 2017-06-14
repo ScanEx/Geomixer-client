@@ -969,6 +969,7 @@ div.layersScroll
 .fillColorOpacity
 {
     margin-left: 9px;
+		padding: 4px 5px 3px 5px;
 }
 
 .fillStyleControls #patternStyleSelector
