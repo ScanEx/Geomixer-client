@@ -116,33 +116,39 @@
                         var layerID = getActiveLayerID(params);
                         testLayer = nsGmx.gmxMap.layersByID[layerID];
                         if (testLayer) {
-                            var geo = testLayer._gmx.geometry,
-                                dm = testLayer._gmx.dataManager,
+							var drawTile = function (tile) {
+								var latLngBounds = L.latLngBounds(
+										L.Projection.Mercator.unproject(tile.bounds.min),
+										L.Projection.Mercator.unproject(tile.bounds.max)
+									),
+									isGeneralized = tile.isGeneralized;
+								L.rectangle(latLngBounds,
+									{
+										layerID: layerID,
+										tileKey: key,
+										color: isGeneralized ? '#ff0000' : 'gray',
+										dashArray: isGeneralized ? [2, 10] : null,
+										fillColor: isGeneralized ? '#ff7800' : '#ff78ff',
+										weight: 2
+									}).addTo(featureGroup);
+							};
+                            var dm = testLayer._gmx.dataManager,
+								flag = testLayer.options.isGeneralized && !dm.options.needBbox,
                                 activeTileKeys = dm._getActiveTileKeys(),
-                                zoom = LMap.getZoom(),
-                                z = zoom + (zoom % 2 ? 1 : 0),
-                                isGeneralized = testLayer.options.isGeneralized;
+                                z;
+							if (flag) {
+                                var zoom = LMap.getZoom(),
+                                z = zoom + (zoom % 2 ? 1 : 0);
+							}
                             for (var key in activeTileKeys) {
                                 var tile = dm._tiles[key].tile;
-                                if (isGeneralized &&
-                                    (tile.z > z || (tile.isGeneralized && tile.z !== z))
-                                    ) { continue; }
 
-                                var latLngBounds = L.latLngBounds(
-                                    L.Projection.Mercator.unproject(tile.bounds.min),
-                                    L.Projection.Mercator.unproject(tile.bounds.max)
-                                    );
-                                L.rectangle(latLngBounds,
-                                    {
-                                        layerID: layerID,
-                                        tileKey: key,
-                                        color: tile.isGeneralized ? '#ff0000' : 'gray',
-                                        dashArray: tile.isGeneralized ? [2, 10] : null,
-                                        fillColor: tile.isGeneralized ? '#ff7800' : '#ff78ff',
-                                        weight: 2
-                                    }).addTo(featureGroup);
+                                if (flag && (tile.z > z || (tile.isGeneralized && tile.z !== z))) {
+									continue;
+								}
+								drawTile(tile);
                             }
-                            var geoJson = L.geoJson(L.gmxUtil.geometryToGeoJSON(geo, true), {
+                            var geoJson = L.geoJson(L.gmxUtil.geometryToGeoJSON(testLayer._gmx.geometry, true), {
                                 style: function (feature) {
                                     return { color: '#0000FF', weight: 4, opacity: 1, fill: false };
                                 }
