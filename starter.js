@@ -981,12 +981,13 @@ function loadMap(state) {
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
 	var srs = window.mapOptions ? window.mapOptions.srs : '';
 	if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
+	var skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '';
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
 		serverHost: hostName,
 		apiKey: apiKey,
 		mapName: globalMapName,
-		skipTiles: window.gmxSkipTiles
+		skipTiles: skipTiles
 	}).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
@@ -1011,6 +1012,7 @@ function loadMap(state) {
             nsGmx.pluginsManager.preloadMap();
             L.gmx.loadMap(globalMapName, {
                 srs: srs,
+				skipTiles: skipTiles,
                 hostName: window.serverBase,
                 apiKey: apiKey,
                 setZIndex: true,
