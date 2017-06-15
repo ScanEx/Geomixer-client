@@ -30,9 +30,9 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @property {Object} MetaProperties Метаданные слоя
  * @property {Object} ShapePath Имеет атрибут Path. Для векторных слоёв из файла - источник слоя. Для растровых - файл с границей растра
  * @property {Object} Geometry Граница растрового слоя
- 
+
  * @property {String} Legend Легенда слоя. Только для растровых слоёв
- 
+
  * @property {String} NameObject Шаблон названий объектов. Только для векторных слоёв
  * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв (point/linestring/polygon)
  * @property {nsGmx.QuicklookParams} Quicklook Параметры квиклуков. Только для векторных слоёв
@@ -55,11 +55,11 @@ var LayerProperties = Backbone.Model.extend(
     initialize: function(attrs) {
         this.attributes = _.clone(attrs || {});
     },
-    
+
     initFromViewer: function(type, divProperties, layerProperties) {
 
         this.set({
-            Type:           type || (divProperties && divProperties.type) || (layerProperties && layerProperties.type), 
+            Type:           type || (divProperties && divProperties.type) || (layerProperties && layerProperties.type),
             Title:          divProperties ? (divProperties.title || '') : (layerProperties.Title || ''),
             Copyright:      divProperties ? (divProperties.Copyright || '') : (layerProperties.Copyright || ''),
             Legend:         divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''),
@@ -82,7 +82,7 @@ var LayerProperties = Backbone.Model.extend(
             Attributes:     divProperties ? divProperties.attributes : [],
             AttrTypes:      divProperties ? divProperties.attrTypes : []
         })
-        
+
         var metaProperties = layerProperties.MetaProperties;
         var convertedTagValues = {};
         for (var mp in metaProperties)
@@ -99,9 +99,9 @@ var LayerProperties = Backbone.Model.extend(
             RCMaskForRasterPath:  layerProperties.RCMaskForRasterPath,
             ColumnTagLinks:       layerProperties.ColumnTagLinks
         }));
-        
+
         divProperties = divProperties || {};
-        
+
         var tempPeriods = divProperties.TemporalPeriods;
         this.set('Temporal', new nsGmx.TemporalLayerParams({
             isTemporal: !!divProperties.Temporal,
@@ -109,8 +109,8 @@ var LayerProperties = Backbone.Model.extend(
             maxPeriod: tempPeriods && tempPeriods[tempPeriods.length-1],
             maxShownPeriod: divProperties.maxShownPeriod || 0,
             columnName: divProperties.TemporalColumnName
-        }));        
-        
+        }));
+
         this.set('GeometryColumnsLatLng', new LatLngColumnsModel({
             XCol: layerProperties.GeometryXCol,
             YCol: layerProperties.GeometryYCol
@@ -119,10 +119,10 @@ var LayerProperties = Backbone.Model.extend(
         if (layerProperties.Name) {
             this.set("Name", layerProperties.Name);
         }
-        
+
         var quicklookString = divProperties.Quicklook || layerProperties.Quicklook,
             quicklookParams = new nsGmx.QuicklookParams();
-            
+
         quicklookParams.fromServerString(quicklookString);
         this.set('Quicklook', quicklookParams);
     },
@@ -134,21 +134,21 @@ var LayerProperties = Backbone.Model.extend(
     initFromServer: function(layerName) {
         var def = $.Deferred(),
             _this = this;
-        
+
         sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?NeedAttrValues=false&LayerName=" + encodeURIComponent(layerName), function(response) {
             if (!parseResponse(response)) {
                 def.reject(response);
                 return;
             }
-            
+
             _this.initFromViewer(null, null, response.Result);
-            
+
             def.resolve();
         });
-        
+
         return def.promise();
     },
-    
+
     /** Сохраняет изменения в слое или создаёт новый слой на сервере
      * @param {Boolean} geometryChanged Нужно ли передавать на сервер геометрию растрового слоя
      * @param {Function} [callback] Будет вызван после получения ответа от сервера
@@ -178,7 +178,7 @@ var LayerProperties = Backbone.Model.extend(
                     metaProperties[tag] = {Value: value, Type: type};
                 }
             }, true)
-            
+
             reqParams.MetaProperties = JSON.stringify(metaProperties);
         }
 
@@ -196,22 +196,22 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.RCMaskForRasterTitle = rcProps.get('RCMaskForRasterTitle');
                 reqParams.ColumnTagLinks = JSON.stringify(rcProps.get('ColumnTagLinks'));
             }
-            
+
             var tempProperties = attrs.Temporal;
-            
+
             reqParams.TemporalLayer = !!(tempProperties && tempProperties.get('isTemporal') && tempProperties.get('columnName'));
-            
+
             if ( reqParams.TemporalLayer ) {
                 reqParams.TemporalColumnName = tempProperties.get('columnName');
                 reqParams.TemporalPeriods = tempProperties.getPeriodString();
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
-            
+
             //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
             if (attrs.Columns && (name || stype === 'manual')) {
                 reqParams.Columns = JSON.stringify(attrs.Columns);
             }
-            
+
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
 
             if (attrs.Quicklook) {
@@ -223,16 +223,16 @@ var LayerProperties = Backbone.Model.extend(
             } else {
                 attrs.Quicklook = '';
             }
-            
-            
-            
+
+
+
             reqParams.ZIndexField = attrs.ZIndexField || '';
 
             if (!name && stype === 'manual')
             {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
-                
+
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
             }
             else
@@ -244,20 +244,20 @@ var LayerProperties = Backbone.Model.extend(
                     reqParams.ColX = geomColumns.get('XCol');
                     reqParams.ColY = geomColumns.get('YCol');
                 }
-            
+
                 if (stype !== 'manual') {
                     reqParams.GeometryDataSource = stype === 'file' ? attrs.ShapePath.Path : attrs.TableName;
                 }
-                
+
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
             }
         } else if (attrs.Type === 'Raster') {
             var curBorder = _mapHelper.drawingBorders.get(name);
-            
+
             reqParams.Legend = attrs.Legend;
             if (attrs.TilePath.Path) reqParams.TilePath = attrs.TilePath.Path;
             reqParams.GeometryChanged = geometryChanged;
-            
+
             if (geometryChanged) {
                 if (typeof curBorder === 'undefined') {
                     if (attrs.ShapePath.Path) {
@@ -270,9 +270,9 @@ var LayerProperties = Backbone.Model.extend(
                     reqParams.BorderGeometry = JSON.stringify(L.gmxUtil.geoJSONtoGeometry(curBorder.toGeoJSON(), true));
                 }
             }
-            
+
             if (attrs.LayerID) reqParams.RasterLayerID = attrs.LayerID;
-            
+
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
         } else if (attrs.Type === 'MultiLayer') {
             var multiLayerInfo = {
@@ -282,20 +282,20 @@ var LayerProperties = Backbone.Model.extend(
                     Description: attrs.Description
                 }
             };
-            
+
             if ('MetaProperties' in reqParams) {
                 multiLayerInfo.Properties.MetaProperties = JSON.parse(reqParams.MetaProperties);
             }
-            
+
             if (attrs.LayerID) {
                 multiLayerInfo.Properties.MultiLayerID = attrs.LayerID;
             }
-            
+
             var multiReqParams = {
                 WrapStyle: "window",
                 MultiLayerInfo: JSON.stringify(multiLayerInfo)
             }
-            
+
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "MultiLayer/" + (name ? "Update.ashx" : "Insert.ashx"), multiReqParams);
         } else if (attrs.Type === 'Virtual') {
             if (name) {
@@ -303,16 +303,16 @@ var LayerProperties = Backbone.Model.extend(
             } else {
                 reqParams.SourceType = 'Virtual';
             }
-            
+
             if (attrs.ContentID) {
                 reqParams.ContentID = attrs.ContentID;
             }
-            
+
             reqParams.Legend = attrs.Legend || '';
-            
+
             def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
         }
-        
+
         callback && def.done(callback);
         return def.promise();
     }
@@ -322,26 +322,27 @@ LayerProperties.parseColumns = function(columns) {
     var geomCount = 0;     //кол-во колонок с типом Геометрия
     var coordColumns = []; //колонки, которые могут быть использованы для выбора координат
     var dateColumns = [];  //колонки, которые могут быть использованы для выбора временнОго параметра
-        
+
     columns = columns || [];
-        
+
     for (var f = 0; f < columns.length; f++)
     {
         var type = columns[f].ColumnSimpleType.toLowerCase();
         if ( type === 'geometry')
             geomCount++;
-            
+
         if ((type === 'string' || type === 'integer' || type === 'float') && !columns[f].IsIdentity && !columns[f].IsPrimary)
             coordColumns.push(columns[f].Name);
-            
+
         if (type === 'date' || type === 'datetime')
             dateColumns.push(columns[f].Name);
     }
-    
+
     return { geomCount: geomCount, coordColumns: coordColumns, dateColumns: dateColumns };
 }
 
 nsGmx.LayerProperties = LayerProperties;
+nsGmx.LatLngColumnsModel = LatLngColumnsModel;
 gmxCore.addModule('LayerProperties', {
     LayerProperties: LayerProperties,
     LatLngColumnsModel: LatLngColumnsModel

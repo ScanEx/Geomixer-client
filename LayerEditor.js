@@ -115,6 +115,7 @@ var getFileExt = function(path)
    - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
 
   @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
+  @param {Boolean} [params.selection] Является ли создаваемы слой выборкой
 */
 var LayerEditor = function(div, type, parent, properties, params) {
 
@@ -154,7 +155,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
     var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit' && div.gmxProperties.content.properties.Access !== 'edit';
 
     var createUI = function() {
-        var divProperties = div ? div.gmxProperties.content.properties : {},
+        var divProperties = div ? div.gmxProperties.content.properties : !params.selection ? {} : false,
             layerProperties = new nsGmx.LayerProperties();
             // tabs = [];
 

@@ -150,6 +150,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		'{{/unless}}' +
         '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
         '<span class="buttonLink attrsDownloadLink" data-format="geojson">{{i "Скачать geojson"}}</span>' +
+        // '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
         '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
     '</div>')({
         isPolygon: info.GeometryType === 'polygon'
@@ -158,6 +159,47 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
     });
+
+	// создание слоя из выборки (из атрибутивной таблицы)
+    downloadSection.find('.createLayerLink').click(function() {
+
+		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + info.name, function(response) {
+			if (!parseResponse(response)) {
+				return;
+			}
+
+			createEditorFromSelection(response.Result);
+
+
+			function createEditorFromSelection(props) {
+				console.log(props);
+				var parent = nsGmx.Utils._div(null, [['attr','id','new' + 'Vector' + 'Layer'], ['css', 'height', '100%']]),
+					properties = {
+						Title:  props.Title + ' ' + _gtxt('копия'),
+						Description: props.Description,
+						Date: props.Date,
+						MetaProperties: props.MetaProperties,
+						TilePath: {
+							Path: ''
+						},
+						ShapePath: props.ShapePath,
+						Columns: props.Columns,
+						SourceType: "file"
+					},
+					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
+					params = {
+						selection: true,
+						doneCallback: function() {
+							nsGmx.Utils.removeDialog(dialogDiv);
+						}
+					};
+
+				nsGmx.createLayerEditor(false, 'Vector', parent, properties, params);
+			}
+		});
+
+    });
+
 
     this.tableFields.init(_params.attributes, info);
 

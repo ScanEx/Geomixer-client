@@ -49,6 +49,7 @@ _translationsHash.hash["eng"] = {
     "Руководство пользователя": "Documentation",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
+	"копия": "копия",
 
 	"Открыть" : "Open",
 	"Слой" : "Layer",

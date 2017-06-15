@@ -21,7 +21,8 @@
     top: -75px;
 }
 
-.attrsDownloadLink {
+.attrsDownloadLink,
+.createLayerLink {
     margin-right: 10px;
 }
 
