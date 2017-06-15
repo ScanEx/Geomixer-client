@@ -951,12 +951,13 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 params = [
                     'labelTemplate',
                     'labelAnchor',
-                    'labelField',
-                    'labelColor',
-                    'labelHaloColor',
-                    'labelFontSize',
-                    'labelSpacing',
-                    'labelAlign'
+                    'label'
+                    // 'labelField',
+                    // 'labelColor',
+                    // 'labelHaloColor',
+                    // 'labelFontSize',
+                    // 'labelSpacing',
+                    // 'labelAlign'
                 ];
                 newStyle = {
                     RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
@@ -975,11 +976,14 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
             } else if (styleParams === 'symbols') {
                 params = [
-                    'iconAngle', 'iconUrl', 'iconSize', 'iconScale', 'iconMinScale',
-                    'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',
-                    'stroke', 'color', 'weight', 'opacity',
-                    'dashArray', 'fillColor', 'fillOpacity', 'fillIconUrl',
-                    'fillPattern', 'fillRadialGradient', 'fillLinearGradient'
+                    'marker',
+                    'outline',
+                    'fill'
+                    // 'iconAngle', 'iconUrl', 'iconSize', 'iconScale', 'iconMinScale',
+                    // 'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',
+                    // 'stroke', 'color', 'weight', 'opacity',
+                    // 'dashArray', 'fillColor', 'fillOpacity', 'fillIconUrl',
+                    // 'fillPattern', 'fillRadialGradient', 'fillLinearGradient'
                 ];
                 newStyle = {
                     RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
@@ -1023,7 +1027,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                     var param = params[i];
                     if (param in style) {
                         if (typeof param === 'Object') {
-                            resStyle[param] = _.clone(style[param]);
+                            resStyle[param] = $.extend(true, {}, style[param]);
                         } else {
                             resStyle[param] = style[param];
                         }
