@@ -234,19 +234,25 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.geometrytype = attrs.GeometryType;
 
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
-            } else if (!name && params.copy) {
+            /*} else if (!name && params.copy) {
+                var copyParams = {},
+                    columnsList = [];
 
-                var copyParams = {};
+                for (var i = 0; i < attrs.Columns.length; i++) {
+                    var col = attrs.Columns[i];
 
+                    columnsList.push({
+                        Value: col.Name,
+                        Alias: col.Name
+                    });
+                }
+                reqParams.WrapStyle = "message",
+                reqParams.layer = params.sourceLayerName;
+                reqParams.query = params.query;
+                reqParams.Columns = JSON.stringify(columnsList);
+                reqParams.Title = attrs.Title;
 
-                copyParams.layer = params.sourceLayerName;
-                copyParams.query = params.query;
-                copyParams.Columns = JSON.stringify(attrs.Columns);
-                copyParams.Title = attrs.Title;
-                console.log(reqParams);
-                console.log(copyParams);
-
-                def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy.ashx", copyParams);
+                // def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy", reqParams);*/
             } else {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
                 var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);

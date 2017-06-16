@@ -172,10 +172,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 			function createEditorFromSelection(props) {
 
-				var query = _params.searchParamsManager.getQuery();
+				var query = _params.searchParamsManager.getQuery(),
+					activeColumns = _params.searchParamsManager.getActiveColumns(),
+					filteredColumns = [];
 
-				console.log(query);
-				console.log(props);
+				// get columns list from search filter
+				props.Columns.forEach(function(col) {
+					if (col.Name in activeColumns && activeColumns[col.Name]) {
+						filteredColumns.push(col);
+					}
+				})
+
 				var parent = nsGmx.Utils._div(null, [['attr','id','new' + 'Vector' + 'Layer'], ['css', 'height', '100%']]),
 					properties = {
 						Title:  props.Title + ' ' + _gtxt('копия'),
@@ -186,7 +193,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 							Path: ''
 						},
 						ShapePath: props.ShapePath,
-						Columns: props.Columns,
+						Columns: filteredColumns,
 						SourceType: "file"
 					},
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
@@ -194,7 +201,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 						copy: true,
 						sourceLayerName: info.name,
 						query: query,
-						doneCallback: function() {
+						doneCallback: function(res) {
+							console.log(res);
 							nsGmx.Utils.removeDialog(dialogDiv);
 						}
 					};

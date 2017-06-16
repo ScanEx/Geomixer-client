@@ -305,9 +305,56 @@ var LayerEditor = function(div, type, parent, properties, params) {
                     _queryMapLayers.asyncUpdateLayer(def, properties, true);
                 } else {
                     if (_params.copy) {
+
+                        var attrs = layerProperties.toJSON();
+                        var reqParams = {},
+                            columnsList = [];
+
+                        for (var i = 0; i < attrs.Columns.length; i++) {
+                            var col = attrs.Columns[i];
+
+                            columnsList.push({
+                                Value: col.Name,
+                                Alias: col.Name
+                            });
+                        }
+                        reqParams.WrapStyle = "message",
+                        reqParams.layer = params.sourceLayerName;
+                        reqParams.query = params.query;
+                        reqParams.Columns = JSON.stringify(columnsList);
+                        reqParams.Title = attrs.Title;
+
+
+                        def = (function() {
+                            var def2 = $.Deferred();
+
+                            nsGmx.asyncTaskManager.sendGmxPostRequest(
+                                serverBase + "rest/ver1/layers/copy",
+                                reqParams,
+                                function(response) {
+                                    if (parseResponse(response)) {
+                                        console.log(response.Result);
+                                        def2.resolve(response.Result);
+                                    } else {
+                                    def2.reject();
+                                    }
+                                    return def.promise();
+                                }
+                            );
+                    })()
+
+
+                        console.log(def);
+                        // def.done(function (res) {
+                        //     console.log(res);
+                        // })
+
+
+
                         _queryMapLayers.asyncCopyLayer(def, layerTitle);
                     } else {
                         if (_params.addToMap) {
+
                             _queryMapLayers.asyncCreateLayer(def, layerTitle);
                         }
                     }
