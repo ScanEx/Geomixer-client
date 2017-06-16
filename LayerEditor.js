@@ -115,7 +115,7 @@ var getFileExt = function(path)
    - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
 
   @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
-  @param {Boolean} [params.selection] Является ли создаваемы слой выборкой
+  @param {Boolean} [params.copy] Является ли создаваемы слой копией
 */
 var LayerEditor = function(div, type, parent, properties, params) {
 
@@ -155,7 +155,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
     var isReadonly = div && _queryMapLayers.layerRights(div.gmxProperties.content.properties.name) !== 'edit' && div.gmxProperties.content.properties.Access !== 'edit';
 
     var createUI = function() {
-        var divProperties = div ? div.gmxProperties.content.properties : !params.selection ? {} : false,
+        var divProperties = div ? div.gmxProperties.content.properties : !_params.copy ? {} : false,
             layerProperties = new nsGmx.LayerProperties();
             // tabs = [];
 
@@ -194,12 +194,12 @@ var LayerEditor = function(div, type, parent, properties, params) {
 
         var origLayerProperties = layerProperties.clone();
 
-        _this._createPageMain(mainContainer.firstChild, layerProperties, isReadonly);
-        _this._createPageMetadata(metadataContainer.firstChild, layerProperties, isReadonly);
+        _this._createPageMain(mainContainer.firstChild, layerProperties, isReadonly, _params);
+        _this._createPageMetadata(metadataContainer.firstChild, layerProperties, isReadonly, _params);
 
         if (type === 'Vector') {
-            _this._createPageAdvanced(advancedContainer.firstChild, layerProperties, isReadonly);
-            _this._createPageAttributes(attrContainer.firstChild, layerProperties, isReadonly);
+            _this._createPageAdvanced(advancedContainer.firstChild, layerProperties, isReadonly, _params);
+            _this._createPageAttributes(attrContainer.firstChild, layerProperties, isReadonly, _params);
         }
 
         for (var i in _params.additionalUI) {
@@ -270,7 +270,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 needRetiling = true;
             }
 
-            var def = layerProperties.save(needRetiling),
+            var def = layerProperties.save(needRetiling, null, _params),
                 layerTitle = layerProperties.get('Title');
 
             //doneCallback вызываем при первом progress notification - признаке того, что вызов непосредственно скрипта модификации слоя прошёл успешно
@@ -303,10 +303,14 @@ var LayerEditor = function(div, type, parent, properties, params) {
             } else {
                 if (name) {
                     _queryMapLayers.asyncUpdateLayer(def, properties, true);
-                }
-                else {
-                    if (_params.addToMap)
-                        _queryMapLayers.asyncCreateLayer(def, layerTitle);
+                } else {
+                    if (_params.copy) {
+                        _queryMapLayers.asyncCopyLayer(def, layerTitle);
+                    } else {
+                        if (_params.addToMap) {
+                            _queryMapLayers.asyncCreateLayer(def, layerTitle);
+                        }
+                    }
                 }
             }
         }
@@ -366,7 +370,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
 }
 
 
-LayerEditor.prototype._createPageMain = function(parent, layerProperties, isReadonly) {
+LayerEditor.prototype._createPageMain = function(parent, layerProperties, isReadonly, params) {
 
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
     title.onkeyup = function() {
@@ -458,7 +462,7 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
 
     if (!isReadonly) {
         if (layerProperties.get('Type') === "Vector") {
-            shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties));
+            shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties, params));
         } else if (layerProperties.get('Type') === "Raster") {
             shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
         }
@@ -472,7 +476,7 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
     }
 }
 
-LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
+LayerEditor.prototype._createPageVectorSource = function(layerProperties, params) {
     var _this = this;
     var LatLngColumnsModel = new gmxCore.getModule('LayerProperties').LatLngColumnsModel;
     var shownProperties = [];
@@ -676,12 +680,17 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties) {
     var template = Handlebars.compile(
         '<form>' +
             '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-container-idx="0" checked>{{i "Файл"}}</label><br/>' +
+            '{{#unless copy}}' +
             '{{#if admin}}<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-container-idx="1">{{i "Таблица"}}</label><br/>{{/if}}' +
             '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-container-idx="2">{{i "Вручную"}}</label>' +
+            '{{/unless}}' +
         '</form>'
     )
 
-    var sourceCheckbox = $(template({admin: nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)}));
+    var sourceCheckbox = $(template({
+        admin: nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN),
+        copy: params.copy
+    }));
 
     sourceCheckbox.find('input, label').css({verticalAlign: 'middle'});
     sourceCheckbox.find('input').css({marginRight: 2});
@@ -954,7 +963,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
     return shownProperties;
 }
 
-LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly) {
+LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly, params) {
 
     var isNewLayer = !props.get('Name');
     var fileColumnsContainer = _div();
@@ -973,7 +982,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
 
     var fileAttrView = new nsGmx.ManualAttrView();
     fileAttrView.init(fileColumnsContainer, fileAttrModel);
-    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file'));
+    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file')) || params.copy;
     fileAttrView.setActive(allowEdit);
 
     $(fileAttrModel).change(function() {

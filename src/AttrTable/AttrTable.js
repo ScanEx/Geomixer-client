@@ -170,8 +170,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 			createEditorFromSelection(response.Result);
 
-
 			function createEditorFromSelection(props) {
+
+				var query = _params.searchParamsManager.getQuery();
+
+				console.log(query);
 				console.log(props);
 				var parent = nsGmx.Utils._div(null, [['attr','id','new' + 'Vector' + 'Layer'], ['css', 'height', '100%']]),
 					properties = {
@@ -188,7 +191,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 					},
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {
-						selection: true,
+						copy: true,
+						sourceLayerName: info.name,
+						query: query,
 						doneCallback: function() {
 							nsGmx.Utils.removeDialog(dialogDiv);
 						}

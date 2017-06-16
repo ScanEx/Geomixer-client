@@ -154,7 +154,7 @@ var LayerProperties = Backbone.Model.extend(
      * @param {Function} [callback] Будет вызван после получения ответа от сервера
      * @return {jQuery.Deferred} Deferred, который будет заполнен после сохранения всей информации на сервере
      */
-    save: function(geometryChanged, callback) {
+    save: function(geometryChanged, callback, params) {
         var attrs = this.attributes,
             name = attrs.Name,
             stype = attrs.SourceType,
@@ -207,8 +207,11 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
 
-            //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
-            if (attrs.Columns && (name || stype === 'manual')) {
+            /* отсылать на сервер колонки нужно только если это:
+             * - уже созданный слой или тип слоя "Вручную",
+             * - копия слоя
+            */
+            if (attrs.Columns && (name || stype === 'manual') || params.copy) {
                 reqParams.Columns = JSON.stringify(attrs.Columns);
             }
 
@@ -224,19 +227,27 @@ var LayerProperties = Backbone.Model.extend(
                 attrs.Quicklook = '';
             }
 
-
-
             reqParams.ZIndexField = attrs.ZIndexField || '';
 
-            if (!name && stype === 'manual')
-            {
+            if (!name && stype === 'manual') {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
 
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
-            }
-            else
-            {
+            } else if (!name && params.copy) {
+
+                var copyParams = {};
+
+
+                copyParams.layer = params.sourceLayerName;
+                copyParams.query = params.query;
+                copyParams.Columns = JSON.stringify(attrs.Columns);
+                copyParams.Title = attrs.Title;
+                console.log(reqParams);
+                console.log(copyParams);
+
+                def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy.ashx", copyParams);
+            } else {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
                 var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
                 var geomColumns = attrs.GeometryColumnsLatLng;

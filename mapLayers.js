@@ -1991,6 +1991,99 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
         })
 }
 
+queryMapLayers.prototype.asyncCopyLayer = function(promise, title) {
+	console.log('layer copied');
+
+	var _this = this;
+
+    var taskDiv = _div(),
+        active = $(_this.buildedTree).find(".active")[0],
+        parentDiv;
+
+    if (active && (active.parentNode.getAttribute('MapID') || active.parentNode.getAttribute('GroupID')))
+        parentDiv = active.parentNode.parentNode;
+    else
+        parentDiv = _this.buildedTree.firstChild;
+
+    _abstractTree.addNode(parentDiv, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
+
+    promise.fail(function(taskInfo)
+    {
+		console.log('failed');
+        var parentTree = taskDiv.parentNode.parentNode;
+        taskDiv.parentNode.removeNode(true);
+        _abstractTree.delNode(null, parentTree, parentTree.parentNode);
+	}).done(function(taskInfo)
+    {
+		console.log('ok');
+        if (!$.isArray(taskInfo.Result)) {
+            taskInfo.Result = [taskInfo.Result];
+        }
+
+        var parentDiv = $(taskDiv.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0],
+            parentProperties = parentDiv.gmxProperties;
+
+        var parentTree = taskDiv.parentNode.parentNode;
+        taskDiv.parentNode.removeNode(true);
+        _abstractTree.delNode(null, parentTree, parentTree.parentNode);
+
+        for (var l = 0; l < taskInfo.Result.length; l++) {
+            var newLayer = taskInfo.Result[l];
+            var newProps = newLayer.properties;
+
+            var mapProperties = _layersTree.treeModel.getMapProperties();
+            newProps.mapName = mapProperties.name;
+            newProps.hostName = mapProperties.hostName;
+            newProps.visible = true;
+
+            if (!newProps.styles)
+            {
+                if (newProps.type == 'Vector')
+                    newProps.styles = [{MinZoom:1, MaxZoom:21, RenderStyle: newProps.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[newProps.GeometryType] : _mapHelper.defaultStyles[newProps.GeometryType]}]
+                else if (newProps.type != 'Vector' && !newProps.MultiLayerID)
+                    newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
+            }
+
+            var convertedCoords = newLayer.geometry ? L.gmxUtil.convertGeometry(newLayer.geometry, true) : null;
+
+            _layersTree.addLayersToMap({content:{properties: newProps, geometry: newLayer.geometry}});
+
+            var li = _layersTree.getChildsList(
+                    {
+                        type: 'layer',
+                        content: {properties:newProps, geometry:convertedCoords}
+                    },
+                    parentProperties,
+                    false,
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                );
+
+            _abstractTree.addNode(parentDiv.parentNode, li);
+
+            var divElem = $(li).children("div[LayerID]")[0],
+                divParent = $(li.parentNode.parentNode).children("div[MapID],div[GroupID]")[0];
+
+            _layersTree.addTreeElem(divParent, 0, {type:'layer', content: {properties: newProps, geometry: convertedCoords}});
+
+            _queryMapLayers.addSwappable(li);
+
+            _queryMapLayers.addDraggable(li);
+
+            _layersTree.updateListType(li);
+        }
+
+		_mapHelper.updateUnloadEvent(true);
+        _layersTree.updateZIndexes();
+    }).progress(function(taskInfo)
+	{
+		console.log('progress');
+        $(taskDiv).empty();
+		_(taskDiv, [_span([_t(title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])
+	}).always(function(taskInfo){
+		console.log(taskInfo);
+	})
+}
+
 queryMapLayers.prototype.removeLayer = function(name)
 {
     var layer = nsGmx.gmxMap.layersByID[name];
