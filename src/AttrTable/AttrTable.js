@@ -150,7 +150,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		'{{/unless}}' +
         '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
         '<span class="buttonLink attrsDownloadLink" data-format="geojson">{{i "Скачать geojson"}}</span>' +
-        // '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
+        '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
         '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
     '</div>')({
         isPolygon: info.GeometryType === 'polygon'

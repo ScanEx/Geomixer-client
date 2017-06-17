@@ -269,7 +269,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
             {
                 needRetiling = true;
             }
-
+            if (!_params.copy) {
             var def = layerProperties.save(needRetiling, null, _params),
                 layerTitle = layerProperties.get('Title');
 
@@ -277,10 +277,41 @@ var LayerEditor = function(div, type, parent, properties, params) {
             var onceCallback = nsGmx._.once(function(){
                 _params.doneCallback && _params.doneCallback(def, layerTitle);
             });
-            def.always(parseResponse);
-            def.then(onceCallback, null, onceCallback);
 
-            if (isVector && !name && layerProperties.get('SourceType') === 'manual') {
+                def.always(parseResponse);
+                // def.then(function(res) {
+                //     console.log(res);
+                // });
+                def.then(onceCallback, null, onceCallback);
+            }
+
+            if (_params.copy) {
+                    var attrs = layerProperties.toJSON();
+                    var reqParams = {},
+                        columnsList = [];
+
+                    for (var i = 0; i < attrs.Columns.length; i++) {
+                        var col = attrs.Columns[i];
+
+                        columnsList.push({
+                            Value: col.Name,
+                            Alias: col.Name
+                        });
+                    }
+                    reqParams.WrapStyle = "window",
+                    reqParams.layer = params.sourceLayerName;
+                    reqParams.query = params.query;
+                    reqParams.Columns = JSON.stringify(columnsList);
+                    reqParams.Title = attrs.Title;
+
+                    def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy", reqParams);
+
+                    def.done(function(r) {
+                        console.log(r);
+                    });
+            }
+
+            if (isVector && !name && (layerProperties.get('SourceType') === 'manual' || _params.copy)) {
                 if (_params.addToMap) {
                     def.done(function(response) {
                         var mapProperties = _layersTree.treeModel.getMapProperties(),
@@ -306,52 +337,8 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 } else {
                     if (_params.copy) {
 
-                        var attrs = layerProperties.toJSON();
-                        var reqParams = {},
-                            columnsList = [];
 
-                        for (var i = 0; i < attrs.Columns.length; i++) {
-                            var col = attrs.Columns[i];
-
-                            columnsList.push({
-                                Value: col.Name,
-                                Alias: col.Name
-                            });
-                        }
-                        reqParams.WrapStyle = "message",
-                        reqParams.layer = params.sourceLayerName;
-                        reqParams.query = params.query;
-                        reqParams.Columns = JSON.stringify(columnsList);
-                        reqParams.Title = attrs.Title;
-
-
-                        def = (function() {
-                            var def2 = $.Deferred();
-
-                            nsGmx.asyncTaskManager.sendGmxPostRequest(
-                                serverBase + "rest/ver1/layers/copy",
-                                reqParams,
-                                function(response) {
-                                    if (parseResponse(response)) {
-                                        console.log(response.Result);
-                                        def2.resolve(response.Result);
-                                    } else {
-                                    def2.reject();
-                                    }
-                                    return def.promise();
-                                }
-                            );
-                    })()
-
-
-                        console.log(def);
-                        // def.done(function (res) {
-                        //     console.log(res);
-                        // })
-
-
-
-                        _queryMapLayers.asyncCopyLayer(def, layerTitle);
+                        // _queryMapLayers.asyncCopyLayer(def, layerTitle);
                     } else {
                         if (_params.addToMap) {
 

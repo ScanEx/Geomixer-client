@@ -229,12 +229,12 @@ var LayerProperties = Backbone.Model.extend(
 
             reqParams.ZIndexField = attrs.ZIndexField || '';
 
-            if (!name && stype === 'manual') {
+            if (!name && stype === 'manual' && !params.copy) {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
 
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
-            /*} else if (!name && params.copy) {
+            } else if (!name && params.copy) {
                 var copyParams = {},
                     columnsList = [];
 
@@ -252,7 +252,7 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.Columns = JSON.stringify(columnsList);
                 reqParams.Title = attrs.Title;
 
-                // def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy", reqParams);*/
+                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy", reqParams);
             } else {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
                 var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
