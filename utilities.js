@@ -730,7 +730,7 @@ function createPostIframe(id, callback)
             request.callback && request.callback({Status:"error", ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType: "JSON.parse", StackTrace: dataStr}});
         }
 
-        console.log(dataObj);
+        // console.log(dataObj);
         var request = requests[e.origin][dataObj.CallbackName];
         if(!request) return;    // message от других запросов
 
