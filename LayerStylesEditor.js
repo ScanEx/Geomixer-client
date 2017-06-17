@@ -856,7 +856,6 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     // настройки стилей
     function createSettingsButton(styleParams) {
         var manyStyles = layer.getStyles().length <= 1,
-            // settingsIcon = makeImageButton('img/more-vertical-15.png', 'img/more-vertical-15.png'),
             settingsIcon = makeImageButton('img/moreicon.svg', 'img/moreicon.svg'),
             styleSettingsMenu = _div(),
             styleSettingsTemplate = window.Handlebars.compile('' +
@@ -897,7 +896,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 newStyles = [],
                 params;
 
-            elemCanvas.parentNode.gmxProperties.content.properties.styles = [];
+            console.log(layerStyles);
 
             // выключаем текущий апдейт слоя
             needStylesUpdate = false;
@@ -948,62 +947,47 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
                 }
             } else if (styleParams === 'label') {
-                params = [
-                    'labelTemplate',
-                    'labelAnchor',
-                    'label'
-                    // 'labelField',
-                    // 'labelColor',
-                    // 'labelHaloColor',
-                    // 'labelFontSize',
-                    // 'labelSpacing',
-                    // 'labelAlign'
-                ];
+
                 newStyle = {
-                    RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
-                    HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
-                }
-                var style = L.gmxUtil.toServerStyle(newStyle.RenderStyle);
-                templateStyle = $.extend(true, {}, templateStyle, style);
+                    RenderStyle: L.gmxUtil.fromServerStyle(currentStyle.RenderStyle),
+                    HoverStyle: L.gmxUtil.fromServerStyle(currentStyle.HoverStyle)
+                };
+
+                templateStyle = $.extend(true, {}, templateStyle, newStyle.RenderStyle);
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
                     filter.templateStyle = templateStyle;
                 }
+                setFilters();
 
-                setRenderStyle(params);
+                for (var i = 0; i < filters.childNodes.length; i++) {
+                    var filter = filters.childNodes[i],
+                        labelText = $(filter).find(".labelEditor");
+
+                    if (templateStyle.labelTemplate) {
+                        $(labelText).val(templateStyle.labelTemplate);
+                    } else if (templateStyle.label && templateStyle.label.field) {
+                        $(labelText).val('[' + templateStyle.label.field + ']');
+                    }
+                }
 
             } else if (styleParams === 'symbols') {
-                params = [
-                    'marker',
-                    'outline',
-                    'fill'
-                    // 'iconAngle', 'iconUrl', 'iconSize', 'iconScale', 'iconMinScale',
-                    // 'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',
-                    // 'stroke', 'color', 'weight', 'opacity',
-                    // 'dashArray', 'fillColor', 'fillOpacity', 'fillIconUrl',
-                    // 'fillPattern', 'fillRadialGradient', 'fillLinearGradient'
-                ];
                 newStyle = {
-                    RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
-                    HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
-                }
+                    RenderStyle: L.gmxUtil.fromServerStyle(currentStyle.RenderStyle),
+                    HoverStyle: L.gmxUtil.fromServerStyle(currentStyle.HoverStyle)
+                };
 
-                var style = L.gmxUtil.toServerStyle(newStyle.RenderStyle);
-                templateStyle = $.extend(true, {}, templateStyle, style);
+                templateStyle = $.extend(true, {}, templateStyle, newStyle.RenderStyle);
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
                     filter.templateStyle = templateStyle;
                 }
-
-                setRenderStyle(params);
+                setFilters();
             }
-
-            // var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
-            // mStyleEditor && mStyleEditor.updateAllStyles();
 
             var newLayerStyles = layer.getStyles();
 
@@ -1013,8 +997,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
             _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
 
-
-            console.log(elemCanvas.parentNode.gmxProperties.content.properties.styles);
+            // console.log(elemCanvas.parentNode.gmxProperties.content.properties.styles);
             console.log(_layersTree.findTreeElem(div).elem.content.properties.styles);
 
             $(this).removeClass('active');
@@ -1022,6 +1005,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
             function getAvailableStyles(style, params) {
                 var resStyle = {};
+
+                style = L.gmxUtil.toServerStyle(style);
 
                 for (var i = 0; i < params.length; i++) {
                     var param = params[i];
@@ -1042,38 +1027,9 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                         appliedStyle = $.extend(true, {}, layerStyle, newStyle);
 
                     newStyles.push(appliedStyle);
-                    elemCanvas.parentNode.gmxProperties.content.properties.styles.push(appliedStyle);
                 };
                 layer.setStyles(newStyles);
             }
-
-            function setRenderStyle(params) {
-                for (var j = 0; j < layerStyles.length; j++) {
-                    var layerStyle = layerStyles[j],
-                        labelRenderStyle = getAvailableStyles(layerStyle.RenderStyle, params),
-                        labelHoverStyle = getAvailableStyles(layerStyle.HoverStyle, params),
-                        appliedStyle;
-
-                    for (var key in labelRenderStyle) {
-                        if (labelRenderStyle.hasOwnProperty(key)) {
-                            delete layerStyle.RenderStyle[key];
-                        }
-                    }
-
-                    for (var key in labelHoverStyle) {
-                        if (labelHoverStyle.hasOwnProperty(key)) {
-                            delete layerStyle.HoverStyle[key];
-                        }
-                    }
-
-                    appliedStyle = $.extend(true, {}, layerStyle, newStyle);
-
-                    newStyles.push(appliedStyle);
-                    elemCanvas.parentNode.gmxProperties.content.properties.styles.push(appliedStyle);
-                };
-                layer.setStyles(newStyles);
-            }
-
         })
 
         // показываем меню
@@ -1217,6 +1173,11 @@ var attachLoadingFilterEvent = function(filterCanvas, layer, styleIndex, parentS
 		if (!ulFilterParams.loaded)
 		{
 			ulFilterParams.loaded = true;
+            console.log('before');
+            console.log(parentStyle);
+            parentStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[styleIndex];
+            console.log('after');
+            console.log(parentStyle);
 
 			createFilter(layer, styleIndex, parentStyle, geometryType, attrs, elemCanvas, ulFilterParams, true);
 
@@ -1668,7 +1629,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 	outlineTitleTds.push(_td([outlineToggle],[['css','width','20px'],['css','height','24px']]));
 	outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 
-	var outlineColor = nsGmx.Controls.createColorPicker(templateStyle.color || (templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
+	var outlineColor = nsGmx.Controls.createColorPicker(templateStyle.color || templateStyle.outline && templateStyle.outline.color || 0x0000FF,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
