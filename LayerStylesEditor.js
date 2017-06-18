@@ -947,18 +947,27 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
                 }
             } else if (styleParams === 'label') {
+                 params = [
+                     'labelTemplate',
+                     'labelAnchor',
+                     'labelField',
+                     'labelColor',
+                     'labelHaloColor',
+                     'labelFontSize',
+                     'labelSpacing',
+                     'labelAlign'
+                 ];
+                 newStyle = {
+                     RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
+                     HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
+                 };
 
-                newStyle = {
-                    RenderStyle: L.gmxUtil.fromServerStyle(currentStyle.RenderStyle),
-                    HoverStyle: L.gmxUtil.fromServerStyle(currentStyle.HoverStyle)
-                };
-
-                templateStyle = $.extend(true, {}, templateStyle, newStyle.RenderStyle);
+                templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
-                    filter.templateStyle = templateStyle;
+                    filter.templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
                 }
                 setFilters();
 
@@ -974,31 +983,44 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 }
 
             } else if (styleParams === 'symbols') {
+                params = [
+                    'iconAngle', 'iconUrl', 'iconSize', 'iconScale', 'iconMinScale',
+                    'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',
+                    'stroke', 'color', 'weight', 'opacity',
+                    'dashArray', 'fillColor', 'fillOpacity', 'fillIconUrl',
+                    'fillPattern', 'fillRadialGradient', 'fillLinearGradient'
+                ];
                 newStyle = {
-                    RenderStyle: L.gmxUtil.fromServerStyle(currentStyle.RenderStyle),
-                    HoverStyle: L.gmxUtil.fromServerStyle(currentStyle.HoverStyle)
+                    RenderStyle: getAvailableStyles(currentStyle.RenderStyle, params),
+                    HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
                 };
 
-                templateStyle = $.extend(true, {}, templateStyle, newStyle.RenderStyle);
+                templateStyle = $.extend(true, {}, L.gmxUtil.toServerStyle(templateStyle), L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
-
-                    filter.templateStyle = templateStyle;
+                    // установка цвета значку в дереве
+                    filter.templateStyle = $.extend(true, {}, L.gmxUtil.toServerStyle(templateStyle), L.gmxUtil.toServerStyle(newStyle.RenderStyle));
                 }
                 setFilters();
             }
-
+            console.log(templateStyle);
             var newLayerStyles = layer.getStyles();
 
-            console.log(newLayerStyles);
+            for (var i = 0; i < newLayerStyles.length; i++) {
+                var st = newLayerStyles[i];
+
+                st.RenderStyle = templateStyle;
+                st.HoverStyle = templateStyle;
+            }
 
             var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + layer.getGmxProperties().LayerID + "']")[0];
 
-            _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
+            // _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
+            _layersTree.findTreeElem(div).elem.content.properties.styles = newStyles;
 
-            // console.log(elemCanvas.parentNode.gmxProperties.content.properties.styles);
-            console.log(_layersTree.findTreeElem(div).elem.content.properties.styles);
+            var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
+            mStyleEditor && mStyleEditor.updateAllStyles();
 
             $(this).removeClass('active');
             $(styleSettingsMenu).dialog('close');
@@ -1006,13 +1028,11 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             function getAvailableStyles(style, params) {
                 var resStyle = {};
 
-                style = L.gmxUtil.toServerStyle(style);
-
                 for (var i = 0; i < params.length; i++) {
                     var param = params[i];
                     if (param in style) {
                         if (typeof param === 'Object') {
-                            resStyle[param] = $.extend(true, {}, style[param]);
+                            resStyle[param] = nsGmx._.clone(style[param]);
                         } else {
                             resStyle[param] = style[param];
                         }
@@ -1024,7 +1044,9 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             function setFilters() {
                 for (var j = 0; j < layerStyles.length; j++) {
                     var layerStyle = layerStyles[j],
-                        appliedStyle = $.extend(true, {}, layerStyle, newStyle);
+                        appliedStyle;
+
+                    appliedStyle = $.extend(true, {}, layerStyle, newStyle);
 
                     newStyles.push(appliedStyle);
                 };
@@ -1173,11 +1195,11 @@ var attachLoadingFilterEvent = function(filterCanvas, layer, styleIndex, parentS
 		if (!ulFilterParams.loaded)
 		{
 			ulFilterParams.loaded = true;
-            console.log('before');
-            console.log(parentStyle);
-            parentStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[styleIndex];
-            console.log('after');
-            console.log(parentStyle);
+            // console.log('before');
+            // console.log(parentStyle);
+            // parentStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[styleIndex - 1];
+            // console.log('after');
+            // console.log(parentStyle);
 
 			createFilter(layer, styleIndex, parentStyle, geometryType, attrs, elemCanvas, ulFilterParams, true);
 
@@ -1577,12 +1599,8 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 
 			if (geometryType == "point")
 			{
-                if (templateStyle.iconSize) {
-                    templateStyle.iconSize = Number($(markerSizeParent).find(".inputStyle").val());
-                } else {
                     templateStyle.marker = {};
                     templateStyle.marker.size = Number($(markerSizeParent).find(".inputStyle").val());
-                }
 			}
 
             templateStyle.fill = fillStyleControl.getFillStyle();
@@ -1592,26 +1610,10 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 		if (geometryType != "point" && typeof templateStyle.marker != 'undefined')
 			delete templateStyle.marker;
 
-        if (templateStyle.color) {
-            templateStyle.color = $(outlineParent).find(".colorSelector")[0].hex;
-        } else {
             templateStyle.outline = {};
-            templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
-        }
-
-        if (templateStyle.weight) {
-            templateStyle.weight = Number($(outlineParent).find(".inputStyle")[0].value);
-        } else {
-            templateStyle.outline = templateStyle.outline || {};
             templateStyle.outline.thickness = Number($(outlineParent).find(".inputStyle")[0].value);
-        }
-
-        if (templateStyle.opacity) {
-            templateStyle.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
-        } else {
-            templateStyle.outline = templateStyle.outline || {};
+            templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
             templateStyle.outline.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
-        }
 
 
 		$(resObject).change();
@@ -1629,7 +1631,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 	outlineTitleTds.push(_td([outlineToggle],[['css','width','20px'],['css','height','24px']]));
 	outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 
-	var outlineColor = nsGmx.Controls.createColorPicker(templateStyle.color || templateStyle.outline && templateStyle.outline.color || 0x0000FF,
+var outlineColor = nsGmx.Controls.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -1640,13 +1642,11 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 		},
 		function (hsb, hex, rgb) {
 			outlineColor.style.backgroundColor = '#' + hex;
-
-            if (templateStyle.color) {
-                templateStyle.color = outlineColor.hex = parseInt('0x' + hex);
-            } else {
-                templateStyle.outline = {};
+                templateStyle.outline = templateStyle.outline || {};
                 templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
-            }
+
+                console.log(parseInt('0x' + hex));
+
 			$(resObject).change();
 		})
 
