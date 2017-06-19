@@ -269,7 +269,6 @@ var LayerEditor = function(div, type, parent, properties, params) {
             {
                 needRetiling = true;
             }
-            if (!_params.copy) {
             var def = layerProperties.save(needRetiling, null, _params),
                 layerTitle = layerProperties.get('Title');
 
@@ -279,39 +278,9 @@ var LayerEditor = function(div, type, parent, properties, params) {
             });
 
                 def.always(parseResponse);
-                // def.then(function(res) {
-                //     console.log(res);
-                // });
                 def.then(onceCallback, null, onceCallback);
-            }
 
-            if (_params.copy) {
-                    var attrs = layerProperties.toJSON();
-                    var reqParams = {},
-                        columnsList = [];
-
-                    for (var i = 0; i < attrs.Columns.length; i++) {
-                        var col = attrs.Columns[i];
-
-                        columnsList.push({
-                            Value: col.Name,
-                            Alias: col.Name
-                        });
-                    }
-                    reqParams.WrapStyle = "window",
-                    reqParams.layer = params.sourceLayerName;
-                    reqParams.query = params.query;
-                    reqParams.Columns = JSON.stringify(columnsList);
-                    reqParams.Title = attrs.Title;
-
-                    def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "rest/ver1/layers/copy", reqParams);
-
-                    def.done(function(r) {
-                        console.log(r);
-                    });
-            }
-
-            if (isVector && !name && (layerProperties.get('SourceType') === 'manual' || _params.copy)) {
+            if (isVector && !name && (layerProperties.get('SourceType') === 'manual')) {
                 if (_params.addToMap) {
                     def.done(function(response) {
                         var mapProperties = _layersTree.treeModel.getMapProperties(),
@@ -335,16 +304,9 @@ var LayerEditor = function(div, type, parent, properties, params) {
                 if (name) {
                     _queryMapLayers.asyncUpdateLayer(def, properties, true);
                 } else {
-                    if (_params.copy) {
-
-
-                        // _queryMapLayers.asyncCopyLayer(def, layerTitle);
-                    } else {
                         if (_params.addToMap) {
-
                             _queryMapLayers.asyncCreateLayer(def, layerTitle);
                         }
-                    }
                 }
             }
         }
@@ -496,7 +458,7 @@ LayerEditor.prototype._createPageMain = function(parent, layerProperties, isRead
 
     if (!isReadonly) {
         if (layerProperties.get('Type') === "Vector") {
-            shownProperties = shownProperties.concat(this._createPageVectorSource(layerProperties, params));
+            shownProperties = shownProperties.concat(!params.copy ? this._createPageVectorSource(layerProperties, params) : []);
         } else if (layerProperties.get('Type') === "Raster") {
             shownProperties = shownProperties.concat(this._createPageRasterSource(layerProperties));
         }
@@ -531,7 +493,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties, params
 
     var fileSourceColumns = sourceType === 'file' ? layerProperties.get('Columns') : [];
     var fileSelectedColumns = sourceType === 'file' ? layerProperties.get('GeometryColumnsLatLng') : new LatLngColumnsModel();
-    var fileColumnsWidget = new SelectLatLngColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
+    var fileColumnsWidget = !params.copy ? new SelectLatLngColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns) : null;
 
     shapeFileLink.style.marginLeft = '3px';
 
@@ -704,7 +666,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties, params
         'change:Columns': function() {
             var columns = layerProperties.get('Columns');
             tableColumnsWidget.updateColumns(columns);
-            fileColumnsWidget.updateColumns(columns);
+            fileColumnsWidget && fileColumnsWidget.updateColumns(columns);
         }
     })
 
@@ -1016,7 +978,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
 
     var fileAttrView = new nsGmx.ManualAttrView();
     fileAttrView.init(fileColumnsContainer, fileAttrModel);
-    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file')) || params.copy;
+    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file'));
     fileAttrView.setActive(allowEdit);
 
     $(fileAttrModel).change(function() {

@@ -150,7 +150,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		'{{/unless}}' +
         '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
         '<span class="buttonLink attrsDownloadLink" data-format="geojson">{{i "Скачать geojson"}}</span>' +
-        // '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
+        '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
         '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
     '</div>')({
         isPolygon: info.GeometryType === 'polygon'
@@ -171,7 +171,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 			createEditorFromSelection(response.Result);
 
 			function createEditorFromSelection(props) {
-
 				var query = _params.searchParamsManager.getQuery(),
 					activeColumns = _params.searchParamsManager.getActiveColumns(),
 					filteredColumns = [];
@@ -186,6 +185,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 				var parent = nsGmx.Utils._div(null, [['attr','id','new' + 'Vector' + 'Layer'], ['css', 'height', '100%']]),
 					properties = {
 						Title:  props.Title + ' ' + _gtxt('копия'),
+						Copyright: props.Copyright,
 						Description: props.Description,
 						Date: props.Date,
 						MetaProperties: props.MetaProperties,
@@ -194,6 +194,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 						},
 						ShapePath: props.ShapePath,
 						Columns: filteredColumns,
+						IsRasterCatalog: props.IsRasterCatalog,
 						SourceType: "file"
 					},
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
@@ -202,7 +203,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 						sourceLayerName: info.name,
 						query: query,
 						doneCallback: function(res) {
-							console.log(res);
 							nsGmx.Utils.removeDialog(dialogDiv);
 						}
 					};
