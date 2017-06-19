@@ -967,7 +967,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
-                    filter.templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+
+                    filter.templateStyle = $.extend(true, {}, filter.templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
                 }
                 setFilters();
 
@@ -995,29 +996,27 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                     HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
                 };
 
-                templateStyle = $.extend(true, {}, L.gmxUtil.toServerStyle(templateStyle), L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+                templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
                     // установка цвета значку в дереве
-                    filter.templateStyle = $.extend(true, {}, L.gmxUtil.toServerStyle(templateStyle), L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+                    filter.templateStyle = $.extend(true, {}, filter.templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
                 }
                 setFilters();
             }
-            console.log(templateStyle);
             var newLayerStyles = layer.getStyles();
 
             for (var i = 0; i < newLayerStyles.length; i++) {
                 var st = newLayerStyles[i];
 
-                st.RenderStyle = templateStyle;
-                st.HoverStyle = templateStyle;
+                st.RenderStyle = filters.childNodes[i].templateStyle;
+                st.HoverStyle = filters.childNodes[i].templateStyle;
             }
 
             var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + layer.getGmxProperties().LayerID + "']")[0];
 
-            // _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
-            _layersTree.findTreeElem(div).elem.content.properties.styles = newStyles;
+            _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
 
             var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
             mStyleEditor && mStyleEditor.updateAllStyles();
