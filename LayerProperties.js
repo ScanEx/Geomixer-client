@@ -211,7 +211,7 @@ var LayerProperties = Backbone.Model.extend(
              * - уже созданный слой или тип слоя "Вручную",
              * - копия слоя
             */
-            if (attrs.Columns && (name || stype === 'manual') || params.copy) {
+            if (attrs.Columns && (name || stype === 'manual') || (params && params.copy)) {
                 reqParams.Columns = JSON.stringify(attrs.Columns);
             }
 
@@ -229,12 +229,12 @@ var LayerProperties = Backbone.Model.extend(
 
             reqParams.ZIndexField = attrs.ZIndexField || '';
 
-            if (!name && stype === 'manual' && !params.copy) {
+            if (!name && stype === 'manual' && !(params && params.copy)) {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
 
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
-            } else if (!name && params.copy) {
+            } else if (!name && (params && params.copy)) {
                 var copyParams = {},
                     columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}];
 
