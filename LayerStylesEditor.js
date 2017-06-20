@@ -644,7 +644,11 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 				return false;
 			},
 			function (hsb, hex, rgb) {
-				labelColor.style.backgroundColor = '#' + hex;
+                var filters = ulParent.parentNode.parentNode.parentNode.parentNode,
+                    filter = filters.childNodes[styleIndex],
+                    templateStyle = filter.getStyle();
+
+                labelColor.style.backgroundColor = '#' + hex;
 
                 if (typeof templateStyle.label == 'undefined') {
                     templateStyle.label = backupLabel;
@@ -665,6 +669,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 				return false;
 			},
 			function (hsb, hex, rgb) {
+                var filters = ulParent.parentNode.parentNode.parentNode.parentNode,
+                    filter = filters.childNodes[styleIndex],
+                    templateStyle = filter.getStyle();
+
 				labelHaloColor.style.backgroundColor = '#' + hex;
 
 				if (typeof templateStyle.label == 'undefined') {
@@ -847,7 +855,14 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     var bindChangeEvent = function() {
         $(resObject).change(function()
         {
-            nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+            var filters = ulParent.parentNode.parentNode.parentNode.parentNode,
+                filter = filters.childNodes[styleIndex];
+
+            console.log(filters);
+            console.log(filter);
+            console.log(filter.getStyle());
+
+            nsGmx.Utils.setMapObjectStyle(layer, styleIndex, filter.getStyle());
         })
     }
 
@@ -904,10 +919,16 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             if (styleParams === 'zoom') {
                 newStyle = {
                     MinZoom: currentStyle.MinZoom,
-                    MaxZoom:  currentStyle.MaxZoom
+                    MaxZoom: currentStyle.MaxZoom
                 }
 
-                setFilters();
+                for (var i = 0; i < layerStyles.length; i++) {
+                    var st = $.extend(true, {}, layerStyles[i], newStyle);
+
+                    layer.setStyle(st, i);
+                }
+
+                // setFilters();
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
@@ -964,11 +985,20 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
                 templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
+                if (templateStyle.label && templateStyle.labelTemplate) {
+                    templateStyle.label.template = templateStyle.labelTemplate;
+                }
+
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
 
 
                     filter.templateStyle = $.extend(true, {}, filter.templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+
+
+                    if (filter.templateStyle.label && filter.templateStyle.labelTemplate) {
+                        filter.templateStyle.labelTemplate = filter.templateStyle.label.template;
+                    }
                 }
                 setFilters();
 
@@ -1018,8 +1048,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
             _layersTree.findTreeElem(div).elem.content.properties.styles = newLayerStyles;
 
-            var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
-            mStyleEditor && mStyleEditor.updateAllStyles();
+            elemCanvas.parentNode.gmxProperties.content.properties.styles = newLayerStyles;
+
+            // var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
+            // mStyleEditor && mStyleEditor.updateAllStyles();
 
             $(this).removeClass('active');
             $(styleSettingsMenu).dialog('close');
@@ -1299,7 +1331,7 @@ var createLoadingFilter = function(layer, styleIndex, parentStyle, geometryType,
 		liFilter = _li([_div([nameInput]), ulFilterParams]),
 		ulFilter = _ul([liFilter]),
 		filterCanvas = _div([ulFilter],[['dir','className','filterCanvas']]),
-        templateStyle = filterCanvas.templateStyle = {}
+        templateStyle = filterCanvas.templateStyle = {};
 
 	$.extend(true, templateStyle, _mapHelper.makeStyle(parentStyle));
 
@@ -2030,6 +2062,12 @@ var LayerStylesEditor = function(div, divStyles, openedStyleIndex) {
         layer = nsGmx.gmxMap.layersByID[elemProperties.name],
         layerStyles = layer.getStyles();
 
+        console.log('elemProperties.styles: ');
+        console.log(elemProperties.styles);
+
+        console.log('layerStyles: ');
+        console.log(layerStyles);
+
     for (var i = 0; i < layerStyles.length; i++)
     {
         var filter = createLoadingFilter(layer, i, elemProperties.styles[i], elemProperties.GeometryType, elemProperties.attributes, parentIcon, (i == openedStyleIndex));
@@ -2094,7 +2132,13 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
             layerStyles = layer.getStyles();
             for (var j = 0; j < updatedStyles.length; j++) {
                 var updatedStyle = updatedStyles[j],
-                    extendedStyle = $.extend(true, {}, updatedStyle, layerStyles[j]);
+                    layerStyle = layerStyles[j],
+                    extendedStyle;
+
+                    layerStyle.RenderStyle = L.gmxUtil.toServerStyle(layerStyle.RenderStyle);
+                    layerStyle.HoverStyle = L.gmxUtil.toServerStyle(layerStyle.HoverStyle);
+
+                extendedStyle = $.extend(true, {}, updatedStyle, layerStyle);
                 extendedStyles.push(extendedStyle);
             };
 
