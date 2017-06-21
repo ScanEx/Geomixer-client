@@ -49,16 +49,16 @@ var TimelineData = Backbone.Model.extend({
         timelineMode: 'center', //center, screen, none
         mapMode: 'selected'     //selected, range, none
     },
-    
+
     bindLayer: function(layer, options) {
         options = options || {};
         var layerName = options.layerName || layer.getGmxProperties().name || L.stamp(layer);
-        
+
         //если уже есть такой слой, ничего не делаем
         if (_.pluck(this.attributes.layers, 'name').indexOf(layerName) !== -1) {
             return this;
         }
-        
+
         var newLayerInfo = {
             layer: layer,
             name: layerName,
@@ -69,13 +69,13 @@ var TimelineData = Backbone.Model.extend({
             observerFilters: options.observerFilters
         }
         this.trigger('preBindLayer', newLayerInfo);
-        
+
         this.set('layers', this.attributes.layers.concat(newLayerInfo));
         this.trigger('bindLayer', newLayerInfo);
-        
+
         return this;
     },
-    
+
     unbindLayer: function(layer) {
         var layerInfos = this.attributes.layers;
         for (var l = 0; l < layerInfos.length; l++) {
@@ -90,11 +90,11 @@ var TimelineData = Backbone.Model.extend({
         }
         return this;
     },
-    
+
     getLayerInfo: function(layer) {
         return _.findWhere(this.attributes.layers, {layer: layer});
     },
-    
+
     addFilter: function(filterFunc) {
         var filters = this.attributes.userFilters.slice(0);
         filters.push(filterFunc);
@@ -104,34 +104,38 @@ var TimelineData = Backbone.Model.extend({
     _defaultDateFunction: function(layer, obj) {
         var props = layer.getGmxProperties(),
             index = layer._gmx.tileAttributeIndexes[props.TemporalColumnName];
-        
+
         return new Date(obj.properties[index]*1000);
     },
-    
+
     _defaultSelectFunction: function(layer, layerSelection) {
         if (layerSelection) {
             var minValue = Number.POSITIVE_INFINITY,
                 maxValue = Number.NEGATIVE_INFINITY;
-                
+
             var ids = {};
-                
+
             layerSelection.forEach(function(s) {
                 minValue = Math.min(minValue, s.date);
                 maxValue = Math.max(maxValue, s.date);
                 ids[s.id] = true;
             });
-            
+
             //верхняя граница интервала не включается в интервал, поэтому добавляем к ней миллисекунду
             layer.setDateInterval(new Date(minValue), new Date(maxValue + 1));
-            
+
             layer.setFilter(function(elem) {
                 return elem.id in ids;
             });
         } else {
-            layer.setDateInterval();
+            var dateBegin = new Date(),
+                dayms = 86400000,
+                dateBeginToMidnight = new Date(dateBegin - dateBegin % dayms);
+
+            layer.setDateInterval(dateBeginToMidnight, new Date(dateBeginToMidnight.valueOf() + dayms));
         }
     },
-    
+
     _defaultFilterFunction: function(layer, startDate, endDate) {
         layer.setDateInterval(startDate, endDate);
         layer.removeFilter();
@@ -146,20 +150,20 @@ var MapController = function(data) {
                     props = layer.getGmxProperties(),
                     dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
                     dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
-                    
+
                 layer.setDateInterval(dateBegin, dateEnd);
                 layer.removeFilter();
             });
         },
-        
+
         selected: function(layers) {
             var selection = data.get('selection');
-            
+
             (layers || data.get('layers')).forEach(function(layerInfo) {
                 layerInfo.selectFunction(layerInfo.layer, selection[layerInfo.name]);
             })
         },
-        
+
         range: function(layers) {
             var range = data.get('range');
             (layers || data.get('layers')).forEach(function(layerInfo) {
@@ -179,11 +183,11 @@ var MapController = function(data) {
             updateFunctions['selected']();
         }
     })
-    
+
     data.on('change:mapMode', function() {
         updateFunctions[data.get('mapMode')]();
     })
-    
+
     //вклчючим фильтрацию для этого снимка до того, как он будет добавлен в список слоёв таймлайна
     data.on('preBindLayer', function(layerInfo) {
         updateFunctions[data.get('mapMode')]([layerInfo]);
@@ -198,7 +202,7 @@ var TimelineController = function(data, map, options) {
         position: 'topright',
         hideWithoutActiveLayers: false
     }, options);
-    
+
     function isPointInPoly(poly, pt){
         var l = poly.length;
         poly[0][0] == poly[l-1][0] && poly[0][1] == poly[l-1][1] && l--;
@@ -208,7 +212,7 @@ var TimelineController = function(data, map, options) {
             && (c = !c);
         return c;
     }
-    
+
     var timelineOptions = {
         style: "line",
         start: new Date(2010, 0, 1),
@@ -217,26 +221,26 @@ var TimelineController = function(data, map, options) {
         height: "85px",
         style: "line"
     };
-    
+
     var timeline = null,
         countSpan = null,
         container = $('<div/>', {'class': 'timeline-container'}),
         footerContainer = $('<div/>', {'class': 'timeline-footer'}),
         headerContainer = $('<div/>', {'class': 'timeline-header'}),
         _this = this;
-        
+
     container.on('mousedown', function(event) {
         event.stopPropagation();
     })
-    
+
     container.on('mousewheel', function(event) {
         event.stopPropagation();
     })
-    
+
     var updateControlsVisibility;
-    
+
     var layerObservers = {};
-    
+
     var getObserversBbox = function() {
         if (data.get('timelineMode') === 'center') {
             return L.latLngBounds([map.getCenter()]);
@@ -244,10 +248,10 @@ var TimelineController = function(data, map, options) {
         } else if (data.get('timelineMode') === 'screen') {
             return map.getBounds();
         }
-        
+
         return null;
     }
-    
+
     var updateTimelineVisibility = function() {
         if (options.hideWithoutActiveLayers) {
             for (var i in layerObservers) {
@@ -259,7 +263,7 @@ var TimelineController = function(data, map, options) {
             container.hide();
         }
     }
-    
+
     var modeFilters = {
         none: function() {return true;},
         center: function(item, mapCenter, mapExtent, layer)
@@ -267,7 +271,7 @@ var TimelineController = function(data, map, options) {
             var geom = item.geom = item.geom || nsGmx.Utils.joinPolygons(layer._gmx.dataManager.getItemGeometries(item.obj.id)),
                 c = geom.coordinates,
                 intersects = false;
-                
+
             if (geom.type == "POLYGON")
             {
                 intersects = isPointInPoly(c[0], mapCenter);
@@ -278,7 +282,7 @@ var TimelineController = function(data, map, options) {
                     intersects = intersects || isPointInPoly(c[r][0], mapCenter);
                 }
             }
-            
+
             return intersects;
         },
         screen: function(item, mapCenter, mapExtent)
@@ -286,7 +290,7 @@ var TimelineController = function(data, map, options) {
             return item.bounds.intersects(mapExtent);
         }
     }
-    
+
     var deleteLayerItemsFromTimeline = function(layerName) {
         var index = 0;
         while (index < timeline.items.length) {
@@ -299,18 +303,18 @@ var TimelineController = function(data, map, options) {
         }
         timeline.render();
     }
-    
+
     var sortSelectionFunction = function(a, b) {
         return a.row < b.row ? -1 : 1;
     }
-    
+
     var updateCalendarSelection = function() {
         var modelSelection = data.get('selection'),
             curSelection = timeline.getSelection().slice(0),
             timelineData = timeline.getData(),
             modelSelectionHash = {},
             newSelection = [];
-            
+
             for (var l in modelSelection) {
                 var byID = {};
                 for (var k = 0; k < modelSelection[l].length; k++) {
@@ -321,15 +325,15 @@ var TimelineController = function(data, map, options) {
 
         for (var k = 0; k < timelineData.length; k++) {
             var userdata = timelineData[k].userdata;
-            
+
             if (userdata.layerName in modelSelectionHash && userdata.objID in modelSelectionHash[userdata.layerName]) {
                 newSelection.push({row: k});
             }
         }
-        
+
         timeline.setSelection(newSelection, true);
     }
-    
+
     var updateLayerItems = function(layerInfo)
     {
         var layerName = layerInfo.name,
@@ -337,7 +341,7 @@ var TimelineController = function(data, map, options) {
             props = layer.getGmxProperties(),
             temporalIndex = layer._gmx.tileAttributeIndexes[props.TemporalColumnName],
             identityField = props.identityField;
-        
+
         var elemsToAdd = [];
         // var center = map.getCenter();
         var mapCenter = L.Projection.Mercator.project(map.getCenter());
@@ -347,32 +351,32 @@ var TimelineController = function(data, map, options) {
         var mapExtend = L.gmxUtil.bounds([[nw.x, nw.y], [se.x, se.y]]);
         var items = data.get('items');
         var filters = data.get('userFilters').slice(0);
-        
+
         filters.unshift(modeFilters[data.get('timelineMode')]);
-        
+
         if (!layer._map && layerInfo.trackVisibility) {
             layerObservers[layerName].deactivate();
             deleteLayerItemsFromTimeline(layerName);
-            
+
             for (var id in items[layerName]) {
                 delete items[layerName][id].timelineItem;
             }
-            
+
             updateTimelineVisibility();
             return;
         } else {
             layerObservers[layerName].activate();
             updateTimelineVisibility();
         }
-        
+
         var deletedCount = 0;
         for (var i in items[layerName])
         {
             var item = items[layerName][i],
                 obj = item.obj;
-            
+
             var showItem = !item.needToRemove;
-            
+
             if (!item.needToRemove) {
                 for (var f = 0; f < filters.length; f++) {
                     if (!filters[f](item, mapCenter, mapExtend, layer)) {
@@ -381,12 +385,12 @@ var TimelineController = function(data, map, options) {
                     }
                 }
             }
-            
+
             if (!item.timelineItem && showItem)
             {
                 var date = layerInfo.dateFunction(layer, obj),
                     content, propHash;
-                
+
                 if (props.NameObject)
                 {
                     propHash = L.gmxUtil.getPropertiesHash(obj.properties, layer._gmx.tileAttributeIndexes);
@@ -396,7 +400,7 @@ var TimelineController = function(data, map, options) {
                 {
                     content = nsGmx.Utils.convertFromServer('date', obj.properties[temporalIndex]);
                 }
-                
+
                 elemsToAdd.push({
                     start: date,
                     content: content,
@@ -417,12 +421,12 @@ var TimelineController = function(data, map, options) {
                     }
                 }
             }
-            
+
             if (item.needToRemove) {
                 delete items[layerName][i];
             }
         }
-        
+
         if (elemsToAdd.length) {
             timeline.addItems(elemsToAdd);
             $.each(elemsToAdd, function(i, elem) {
@@ -433,45 +437,45 @@ var TimelineController = function(data, map, options) {
             timeline.render();
         }
     }
-    
+
     var updateCount = function() {
         if (!timeline) return;
         var count = 0;
         var range = timeline.getVisibleChartRange();
-        
+
         $.each(timeline.getData(), function(i, item) {
             item.start >= range.start && item.start <= range.end && count++;
         })
-        
+
         countSpan && countSpan.text('(' + count + ')');
     }
-    
+
     var updateCalendarRange;
-    
+
     var updateItems = function() {
         data.get('layers').forEach(updateLayerItems);
         updateCount();
     };
-    
+
     var fireSelectionEvent = function() {
         var selectedItems = [];
         var items = data.get('items');
-        
+
         var selectedIds = {};
-                        
+
         $.each(timeline.getSelection(), function(i, selection)
         {
             var item = timeline.getData()[selection.row],
                 userdata = item.userdata,
                 layerName = userdata.layerName;
-                
+
             selectedIds[layerName] = selectedIds[layerName] || [];
             selectedIds[layerName].push({id: userdata.objID, date: item.start});
         })
-        
+
         data.set('selection', selectedIds);
     }
-    
+
     var findNextByTime = function(itemIndex, step)
     {
         var sortedItems = $.map(timeline.items, function(item, i)
@@ -481,35 +485,35 @@ var TimelineController = function(data, map, options) {
         {
             return a.date - b.date || a.index - b.index;
         });
-        
+
         var res = null;
-        $.each(sortedItems, function(i, item) 
-        { 
+        $.each(sortedItems, function(i, item)
+        {
             if (item.index === itemIndex)
                 res = sortedItems[i + step] ? sortedItems[i + step].index : null;
         })
-        
+
         return res;
     }
 
     this.getTimeline = function () {
         return timeline;
     }
-    
+
     this.shiftActiveItem = function(step)
     {
         var curSelection = timeline.getSelection();
         if (curSelection.length > 0)
         {
             var newIndex = findNextByTime(curSelection[0].row, step);
-            
+
             if (newIndex !== null)
             {
                 curSelection[0].row = newIndex;
                 timeline.setSelection(curSelection);
             }
         }
-        
+
         fireSelectionEvent();
     }
 
@@ -529,23 +533,23 @@ var TimelineController = function(data, map, options) {
             o.setBounds(bounds);
         }
     };
-        
+
     var createTimelineLazy = function()
     {
         if (timeline) return;
-        
+
         var LeafletTimelineControl = L.Control.extend({
             onAdd: function() {
                 return this.options.timelineContainer;
             },
             onRemove: function() {}
         });
-        
+
         nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: options.position, timelineContainer: container[0]}));
-        
+
         //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
         container.parent().prepend(container);
-        
+
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
 
@@ -554,15 +558,15 @@ var TimelineController = function(data, map, options) {
             timelineOptions.start = modelRange.start;
             timelineOptions.end = modelRange.end;
         }
-        
+
         timeline.draw([], timelineOptions);
 
-        //подписываемся на событие reflow, которое возникает 
+        //подписываемся на событие reflow, которое возникает
         //при обновлении элеменов на таймлайне
         links.events.addListener(timeline, 'reflow', function () {
             $(_this).trigger('reflow');
         });
-        
+
         links.events.addListener(timeline, 'select', fireSelectionEvent);
 
         links.Timeline.addEventListener(timeline.dom.content, 'dblclick', function(elem) {
@@ -575,7 +579,7 @@ var TimelineController = function(data, map, options) {
                 map.fitBounds(L.latLngBounds([min, max]));
             }
         });
-        
+
         var prevDiv = makeImageButton("img/prev.png", "img/prev_a.png");
         _title(prevDiv, _gtxt("Предыдущий слой"));
         prevDiv.onclick = function()
@@ -583,16 +587,16 @@ var TimelineController = function(data, map, options) {
             _this.shiftActiveItem(-1);
         }
         $(prevDiv).addClass('timeline-shift-icon');
-        
+
         var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
         _title(nextDiv, _gtxt("Следующий слой"));
-        
+
         nextDiv.onclick = function()
         {
             _this.shiftActiveItem(1);
         }
         $(nextDiv).addClass('timeline-shift-icon');
-        
+
         // container.keypress(function(event) {
             // console.log(event);
             // if (event.keyCode === 37) { //влево
@@ -601,59 +605,59 @@ var TimelineController = function(data, map, options) {
                 // shiftActiveItem(1);
             // }
         // })
-        
+
         var timelineModeSelect = $('<select/>').addClass('selectStyle')
                 .append($('<option/>').val('none').text(_gtxt('timeline.mapMode.none')))
                 .append($('<option/>').val('screen').text(_gtxt('timeline.mapMode.screen')))
                 .append($('<option/>').val('center').text(_gtxt('timeline.mapMode.center')));
-                
+
         timelineModeSelect.change(function() {
             data.set('timelineMode', $(':selected', this).val());
         })
-        
+
         var updateTimelineModeSelect = function() {
             var mode = data.get('timelineMode');
             $('option', timelineModeSelect).each(function(i, option) {
                 this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
             })
         }
-        
+
         data.on('change:timelineMode', updateTimelineModeSelect);
         updateTimelineModeSelect();
-                
+
         var mapModeSelect = $('<select/>').addClass('selectStyle')
                 .append($('<option/>').val('selected').text(_gtxt('timeline.timelineMode.selected')))
                 .append($('<option/>').val('range').text(_gtxt('timeline.timelineMode.range')))
                 .append($('<option/>').val('none').text(_gtxt('timeline.timelineMode.none')));
-                
+
         var updateMapModeSelect = function() {
             var mode = data.get('mapMode');
             $('option', mapModeSelect).each(function(i, option) {
                 this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
             })
         }
-        
+
         data.on('change:mapMode', updateMapModeSelect);
         updateMapModeSelect();
-        
+
         mapModeSelect.change(function() {
             data.set('mapMode', $(':selected', this).val());
         })
-        
+
         var calendarContainer = $('<div/>', {'class': 'timeline-calendar'});
         var dateInterval = new nsGmx.DateInterval();
         var calendarControl = new nsGmx.CalendarWidget({
             name: 'timelineCalendar',
-            minimized: false, 
-            showSwitcher: false, 
+            minimized: false,
+            showSwitcher: false,
             container: calendarContainer,
             dateInterval: dateInterval
         });
-        
+
         updateCalendarRange = function() {
             if (!timeline) return;
             var range = timeline.getVisibleChartRange();
-            
+
             //TODO: не использовать UTC даты в таймлайне (нужна поддержка отображения UTC).
             var trueStart = nsGmx.CalendarWidget.fromUTC(range.start);
             var trueEnd = nsGmx.CalendarWidget.fromUTC(range.end);
@@ -662,25 +666,25 @@ var TimelineController = function(data, map, options) {
                 dateBegin: trueStart,
                 dateEnd: trueEnd,
             });
-            
+
             data.set('range', range);
             updateCount();
-        };  
+        };
 
         links.events.addListener(timeline, 'rangechanged', updateCalendarRange);
         updateCalendarRange();
-        
+
         dateInterval.on('change', function () {
             data.set('range', {
-                start: dateInterval.get('dateBegin'), 
-                end: dateInterval.get('dateEnd') 
+                start: dateInterval.get('dateBegin'),
+                end: dateInterval.get('dateEnd')
             });
         });
-         
+
         $(headerContainer).prependTo(container);
 
         countSpan = $('<span/>', {'class': 'count-container'});
-        
+
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
             $('<div/>').addClass('timeline-mode-control').append(
                 $('<span/>').text(_gtxt('timeline.modesTextTitle') + ': ' +_gtxt('timeline.modesTextTimeline')), timelineModeSelect, countSpan,
@@ -689,33 +693,33 @@ var TimelineController = function(data, map, options) {
             prevDiv, nextDiv,
             calendarContainer
         ).appendTo(container);
-        
+
         updateControlsVisibility = function() {
             $('.timeline-mode-control', controlsContainer).toggle(options.showModeControl);
             $([prevDiv, nextDiv]).toggle(options.showSelectionControl);
             $(calendarContainer).toggle(options.showCalendar);
         }
         updateControlsVisibility();
-        
+
         $(footerContainer).appendTo(container);
     }
-    
+
     data.on('change:userFilters change:items', updateItems);
-    
+
     map.on('moveend', function() {
         var bounds = getObserversBbox();
         for (var layerName in layerObservers) {
             layerObservers[layerName].setBounds(bounds);
         }
     });
-    
+
     data.on('change:timelineMode', function() {
         var bounds = getObserversBbox();
         for (var layerName in layerObservers) {
             layerObservers[layerName].setBounds(bounds);
         }
     });
-    
+
     data.on('bindLayer', function(layerInfo) {
         var layerName = layerInfo.name,
             layer = layerInfo.layer,
@@ -768,14 +772,14 @@ var TimelineController = function(data, map, options) {
                 if (removedObjs) {
                     for (var i = 0; i < removedObjs.length; i++) {
                         var id = removedObjs[i].id;
-                        
+
                         if (items[layerName][id]) {
                             //пометим для удаления (тут удалять не хочется, чтобы все модификации происходили в одном месте)
                             items[layerName][id].needToRemove = true;
                         }
                     }
                 }
-                
+
                 if (addedObjs) {
                     for (var i = 0; i < addedObjs.length; i++) {
                         var obj = addedObjs[i];
@@ -784,10 +788,10 @@ var TimelineController = function(data, map, options) {
                         items[layerName][id] = items[layerName][id] || {};
                         items[layerName][id].obj = obj;
                         items[layerName][id].bounds = obj.item.bounds;
-                        
+
                         //геометрию объекта нужно пересчитывать, так как мы получили какой-то новый кусок этого объекта
                         delete items[layerName][id].geom;
-                        
+
                         //обработка ситуации, когда за одно изменение удалился и добавился кусок одного из объектов векторного слоя
                         delete items[layerName][id].needToRemove;
                     }
@@ -800,17 +804,17 @@ var TimelineController = function(data, map, options) {
             dateInterval: [dateBegin, dateEnd],
             active: !!layer._map || !layerInfo.trackVisibility
         });
-        
+
         updateTimelineVisibility();
     });
-    
+
     map.on('layeradd layerremove', function(event) {
         var layerInfo = data.getLayerInfo(event.layer);
         if (layerInfo && layerInfo.trackVisibility) {
             updateLayerItems(layerInfo);
         }
     }, this);
-    
+
     data.on('unbindLayer', function(layerInfo) {
         var layerName = layerInfo.name;
         layerInfo.layer.removeObserver(layerObservers[layerName]);
@@ -820,25 +824,25 @@ var TimelineController = function(data, map, options) {
         delete items[layerName];
         updateTimelineVisibility();
     });
-    
+
     data.on('change:range', function(){
         if (!timeline) return;
         var currRange = timeline.getVisibleChartRange();
         var newRange = data.get('range');
-        
+
         if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf() ) {
             timeline.setVisibleChartRange(
-                nsGmx.CalendarWidget.toUTC(newRange.start), 
+                nsGmx.CalendarWidget.toUTC(newRange.start),
                 nsGmx.CalendarWidget.toUTC(newRange.end)
             );
             updateCalendarRange && updateCalendarRange();
         }
     })
-    
+
     this.toggle = function(isVisible) {
         container.toggle(isVisible);
     }
-    
+
     this.getFooterContainer = function() {
         return footerContainer;
     }
@@ -850,7 +854,7 @@ var TimelineController = function(data, map, options) {
     this.getContainer = function () {
         return container;
     }
-    
+
     this.setOptions = function(newOptions) {
         options = $.extend(options, newOptions);
         updateControlsVisibility && updateControlsVisibility();
@@ -874,10 +878,10 @@ var TimelineController = function(data, map, options) {
 var TimelineControl = function(map, options) {
     var data = new TimelineData();
     this.data = data;
-    
+
     var mapController = new MapController(data);
     var timelineController = new TimelineController(data, map, options);
-    
+
     /** Добавить векторный мультивременной слой на таймлайн
      * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
      * @param {Object} options Дополнительные опции
@@ -889,7 +893,7 @@ var TimelineControl = function(map, options) {
     this.bindLayer = function(layer, options) {
         data.bindLayer(layer, options);
     }
-    
+
     /** Удалить ранее добавленный векторный мультивременной слой с таймлайна
      * @param {L.gmx.VectorLayer} layer Мультивременной векторный слой
      */
@@ -910,14 +914,14 @@ var TimelineControl = function(map, options) {
     this.setTimelineMode = function(newMode) {
         data.set('timelineMode', newMode);
     }
-    
+
     /** Установить режим отображения данных на карте
      * @param {String} newMode Новый режим: selected, range, none
     */
     this.setMapMode = function(newMode) {
         data.set('mapMode', newMode);
     }
-    
+
     /** Установить временной интервал таймлайна
      * @param {Date} start Начальная дата
      * @param {Date} end Конечная дата
@@ -925,14 +929,14 @@ var TimelineControl = function(map, options) {
     this.setVisibleRange = function(start, end) {
         data.set('range', {start: start, end: end});
     }
-    
+
     /** Установить видимость всего таймлайна
      * @param {Boolean} isVisible Показывать ли таймлайн или нет
     */
     this.toggleVisibility = function(isVisible) {
         timelineController.toggle(isVisible);
     }
-    
+
     /** Добавить пользовательскую ф-цию фильтрации объектов на таймлайне.
      *  На вход ф-ции передаётся информация об объекте и состоянии карты. Ф-ция возвращает признак того, показывать ли объект на таймлайне или нет.
      * @param {nsGmx.TimelineControl.FilterFunction} filterFunc Ф-ция фильтрации
@@ -946,7 +950,7 @@ var TimelineControl = function(map, options) {
     this.updateFilters = function() {
         data.trigger('change:userFilters');
     }
-    
+
     /** Получить контейнер для встраивания дополнительных контролов в подвал таймлайна
      * @return {HTMLElem}
      */
@@ -960,7 +964,7 @@ var TimelineControl = function(map, options) {
     this.getHeaderContainer = function () {
         return timelineController.getHeaderContainer();
     }
-    
+
     /** Получить контейнер для встраивания дополнительных контролов для всего таймлайна
      * @return {HTMLElem}
      */
@@ -977,9 +981,9 @@ var TimelineControl = function(map, options) {
     this.setControlsVisibility = function(visInfo) {
         timelineController.setOptions(visInfo);
     }
-    
+
     /** Активизировать следующий/предыдущий снимок на таймлайне
-     * @param {Number} step Смещение нового активного снимка на таймлайне относительно текущего активного. 
+     * @param {Number} step Смещение нового активного снимка на таймлайне относительно текущего активного.
      * 1 - следующий, -1 - предыдущий и т.п.
      */
     this.shiftActiveItem = function(step) {
@@ -993,15 +997,15 @@ var publicInterface = {
     pluginName: 'Timeline Rasters',
     beforeViewer: function(params, map) {
         if (!map) return;
-        
+
         nsGmx.timelineControl = new TimelineControl(map, {hideWithoutActiveLayers: true});
-        
+
         _mapHelper.customParamsManager.addProvider({
             name: 'Timeline',
-            loadState: function(state) 
+            loadState: function(state)
             {
                 var data = nsGmx.timelineControl.data;
-                
+
                 var attributes = {
                     range: {
                         start: state.dateStart ? new Date(state.dateStart) : null,
@@ -1010,7 +1014,7 @@ var publicInterface = {
                     timelineMode: state.timelineMode,
                     mapMode:      state.mapMode
                 };
-                
+
                 if ('selection' in state) {
                     for (var layerName in state.selection) {
                         state.selection[layerName].forEach(function(item) {
@@ -1019,9 +1023,9 @@ var publicInterface = {
                     }
                     attributes.selection = state.selection;
                 }
-                
+
                 data.set(attributes);
-                
+
                 if ('layers' in state) {
                     state.layers.forEach(function(layerName) {
                         if (layerName in nsGmx.gmxMap.layersByID) {
@@ -1030,12 +1034,12 @@ var publicInterface = {
                     });
                 }
             },
-            saveState: function() 
+            saveState: function()
             {
                 var data = nsGmx.timelineControl.data,
                     range = data.get('range'),
                     selection = data.get('selection');
-                
+
                 //сохраняем дату как число
                 for (var layerName in selection) {
                     selection[layerName] = selection[layerName].map(function(item) {
@@ -1060,12 +1064,12 @@ var publicInterface = {
     },
     afterViewer: function(params, map){
         if (!map) return;
-        
+
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() { return _gtxt("timeline.contextMemuTitle"); },
             isVisible: function(context)
             {
-                return !context.layerManagerFlag && 
+                return !context.layerManagerFlag &&
                         context.elem.type == "Vector" &&
                         context.elem.Temporal &&
                         context.elem.GeometryType !== 'point';
@@ -1101,7 +1105,7 @@ gmxCore.addModule("TimelineRCPlugin", publicInterface, {
                 def.resolve();
             })
         });
-        
+
         return def;
     }
 });
