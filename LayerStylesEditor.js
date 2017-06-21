@@ -547,9 +547,10 @@ var _labelEditorId = 0;
 
 var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs, elemCanvas, ulParent, treeviewFlag)
 {
-	var templateStyle = ulParent.parentNode.parentNode.parentNode.templateStyle = {};
+    console.log(ulParent.parentNode.parentNode.parentNode.templateStyle);
+	// var templateStyle = ulParent.parentNode.parentNode.parentNode.templateStyle = {};
 
-	$.extend(true, templateStyle, _mapHelper.makeStyle(parentStyle));
+	$.extend(true, ulParent.parentNode.parentNode.parentNode.templateStyle, _mapHelper.makeStyle(parentStyle));
 
     var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom);
 
@@ -619,14 +620,14 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 	// label
 
-	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.label && templateStyle.label.size || '12']]),
-	    xShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','XSfift'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && templateStyle.labelAnchor[0] || '0']]),
-	    yShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', templateStyle.labelAnchor && -(templateStyle.labelAnchor[1]) || '0']]),
-		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
-		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0xFFFFFF,
-        checkedFontSize = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.size != 'undefined') ? templateStyle.label.size : 12,
-        checkedXShift = (typeof templateStyle.labelAnchor != 'undefined' && typeof templateStyle.labelAnchor[0]) ? templateStyle.labelAnchor[0] : 0,
-        checkedYShift = (typeof templateStyle.labelAnchor != 'undefined' && typeof templateStyle.labelAnchor[1]) ? templateStyle.labelAnchor[1] : 0,
+	var fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', ulParent.parentNode.parentNode.parentNode.templateStyle.label && ulParent.parentNode.parentNode.parentNode.templateStyle.label.size || '12']]),
+	    xShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','XSfift'],['css','width','26px'],['attr','value', ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor && ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[0] || '0']]),
+	    yShiftInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','26px'],['attr','value', ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor && -(ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[1]) || '0']]),
+		checkedLabelColor = (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label != 'undefined' && typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label.color != 'undefined') ? ulParent.parentNode.parentNode.parentNode.templateStyle.label.color : 0x000000,
+		checkedLabelHaloColor = (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label != 'undefined' && typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label.haloColor != 'undefined') ? ulParent.parentNode.parentNode.parentNode.templateStyle.label.haloColor : 0xFFFFFF,
+        checkedFontSize = (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label != 'undefined' && typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label.size != 'undefined') ? ulParent.parentNode.parentNode.parentNode.templateStyle.label.size : 12,
+        checkedXShift = (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor != 'undefined' && typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[0]) ? ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[0] : 0,
+        checkedYShift = (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor != 'undefined' && typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[1]) ? ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[1] : 0,
         backupLabel = {
             color: checkedLabelColor,
             haloColor: checkedLabelHaloColor,
@@ -650,11 +651,11 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
                 labelColor.style.backgroundColor = '#' + hex;
 
-                if (typeof templateStyle.label == 'undefined') {
-                    templateStyle.label = backupLabel;
+                if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined') {
+                    ulParent.parentNode.parentNode.parentNode.templateStyle.label = backupLabel;
                 }
 
-				templateStyle.label.color = labelColor.hex = parseInt('0x' + hex);
+				ulParent.parentNode.parentNode.parentNode.templateStyle.label.color = labelColor.hex = parseInt('0x' + hex);
                 checkedLabelColor = labelColor.hex = parseInt('0x' + hex);
 
 				nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
@@ -675,11 +676,11 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 
 				labelHaloColor.style.backgroundColor = '#' + hex;
 
-				if (typeof templateStyle.label == 'undefined') {
-                    templateStyle.label = backupLabel;
+				if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined') {
+                    ulParent.parentNode.parentNode.parentNode.templateStyle.label = backupLabel;
                 }
 
-				templateStyle.label.haloColor = labelHaloColor.hex = parseInt('0x' + hex);
+				ulParent.parentNode.parentNode.parentNode.templateStyle.label.haloColor = labelHaloColor.hex = parseInt('0x' + hex);
                 checkedLabelHaloColor = labelHaloColor.hex = parseInt('0x' + hex);
 
 				nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
@@ -702,10 +703,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
 	_title(yShiftInput, _gtxt("Смещение по y"));
 
     // при загрузке выставим в инпуты значения либо template, либо label
-    if (templateStyle.labelTemplate) {
-        $(labelText).val(templateStyle.labelTemplate);
-    } else if (templateStyle.label && templateStyle.label.field) {
-        $(labelText).val('[' + templateStyle.label.field + ']');
+    if (ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate) {
+        $(labelText).val(ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate);
+    } else if (ulParent.parentNode.parentNode.parentNode.templateStyle.label && ulParent.parentNode.parentNode.parentNode.templateStyle.label.field) {
+        $(labelText).val('[' + ulParent.parentNode.parentNode.parentNode.templateStyle.label.field + ']');
     }
 
 	if (attrs) {
@@ -729,15 +730,15 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                 // отсеиваем случаи, когда в textArea содержится единственный [атрибут]
                 if (matches.length === 1 && matches[0] === str && key in keys) {
                   // в label передается templateStyle.label.field
-                  delete templateStyle.labelTemplate;
+                  delete ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate;
 
-                  if (typeof templateStyle.label == 'undefined') {
-                      templateStyle.label = backupLabel;
-                      templateStyle.label.field = key;
+                  if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined') {
+                      ulParent.parentNode.parentNode.parentNode.templateStyle.label = backupLabel;
+                      ulParent.parentNode.parentNode.parentNode.templateStyle.label.field = key;
                   }	else {
-                      templateStyle.label.field = key;
+                      ulParent.parentNode.parentNode.parentNode.templateStyle.label.field = key;
                   }
-                  nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+                  nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
                   return;
                 }
                 // в других случаях в label передается templateStyle.labelTemplate
@@ -749,54 +750,54 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
         }
         if (!str) {
             if (!this.value) {
-                delete templateStyle.labelTemplate;
-                delete templateStyle.label;
+                delete ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate;
+                delete ulParent.parentNode.parentNode.parentNode.templateStyle.label;
             } else {
-                templateStyle.labelTemplate = this.value;
+                ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate = this.value;
             }
         } else {
-            if (typeof templateStyle.label == 'undefined') {
-                templateStyle.label = backupLabel;
+            if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined') {
+                ulParent.parentNode.parentNode.parentNode.templateStyle.label = backupLabel;
             }
-            templateStyle.labelTemplate = str;
+            ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate = str;
         }
 
-        nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+        nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
     };
 
     labelText.onkeyup = updateLabelText;
 
 	fontSizeInput.onkeyup = function()
 	{
-        if (typeof templateStyle.label == 'undefined') {
-            templateStyle.label = backupLabel;
+        if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined') {
+            ulParent.parentNode.parentNode.parentNode.templateStyle.label = backupLabel;
         }
 
-		templateStyle.label.size = Number(this.value);
+		ulParent.parentNode.parentNode.parentNode.templateStyle.label.size = Number(this.value);
         checkedFontSize = Number(this.value);
 
-		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+		nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
 	}
 
     xShiftInput.onkeyup = function()
     {
-        if (typeof templateStyle.labelAnchor == 'undefined') {
-            templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
+        if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor == 'undefined') {
+            ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
         }
-        	templateStyle.labelAnchor[0] = Number(this.value);
+        	ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[0] = Number(this.value);
             checkedXShift = Number(this.value);
-        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
-            layer.setStyle(templateStyle)
+        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
+            layer.setStyle(ulParent.parentNode.parentNode.parentNode.templateStyle)
     }
 
     yShiftInput.onkeyup = function()
     {
-        if (typeof templateStyle.labelAnchor == 'undefined') {
-            templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
+        if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor == 'undefined') {
+            ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor = [backupLabel.dx, backupLabel.dy];
         }
-        	templateStyle.labelAnchor[1] = -(Number(this.value));
+        	ulParent.parentNode.parentNode.parentNode.templateStyle.labelAnchor[1] = -(Number(this.value));
             checkedYShift = -(Number(this.value));
-        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+        	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
     }
 
     var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], labelText, '[suggest]', updateLabelText.bind(labelText));
@@ -823,7 +824,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
       _tr([_td([divAttr])])
   ])])]);
 
-	if (typeof templateStyle.label == 'undefined')
+	if (typeof ulParent.parentNode.parentNode.parentNode.templateStyle.label == 'undefined')
 	{
 		ulLabel.style.display = 'none';
 		ulLabel.className = 'hiddenTree';
@@ -862,7 +863,8 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
             console.log(filter);
             console.log(filter.getStyle());
 
-            nsGmx.Utils.setMapObjectStyle(layer, styleIndex, filter.getStyle());
+            nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
+            // nsGmx.Utils.setMapObjectStyle(layer, styleIndex, filter.getStyle());
         })
     }
 
@@ -983,10 +985,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                      HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
                  };
 
-                templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+                ulParent.parentNode.parentNode.parentNode.templateStyle = $.extend(true, {}, ulParent.parentNode.parentNode.parentNode.templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
-                if (templateStyle.label && templateStyle.labelTemplate) {
-                    templateStyle.label.template = templateStyle.labelTemplate;
+                if (ulParent.parentNode.parentNode.parentNode.templateStyle.label && ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate) {
+                    ulParent.parentNode.parentNode.parentNode.templateStyle.label.template = ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate;
                 }
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
@@ -1006,10 +1008,10 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                     var filter = filters.childNodes[i],
                         labelText = $(filter).find(".labelEditor");
 
-                    if (templateStyle.labelTemplate) {
-                        $(labelText).val(templateStyle.labelTemplate);
-                    } else if (templateStyle.label && templateStyle.label.field) {
-                        $(labelText).val('[' + templateStyle.label.field + ']');
+                    if (ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate) {
+                        $(labelText).val(ulParent.parentNode.parentNode.parentNode.templateStyle.labelTemplate);
+                    } else if (ulParent.parentNode.parentNode.parentNode.templateStyle.label && ulParent.parentNode.parentNode.parentNode.templateStyle.label.field) {
+                        $(labelText).val('[' + ulParent.parentNode.parentNode.parentNode.templateStyle.label.field + ']');
                     }
                 }
 
@@ -1026,7 +1028,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                     HoverStyle: getAvailableStyles(currentStyle.HoverStyle, params)
                 };
 
-                templateStyle = $.extend(true, {}, templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
+                ulParent.parentNode.parentNode.parentNode.templateStyle = $.extend(true, {}, ulParent.parentNode.parentNode.parentNode.templateStyle, L.gmxUtil.toServerStyle(newStyle.RenderStyle));
 
                 for (var i = 0; i < filters.childNodes.length; i++) {
                     var filter = filters.childNodes[i];
@@ -1133,9 +1135,9 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
                         templateStyle = styleFromLib;
 
                         $(liStyle.lastChild).empty();
-                        resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+                        resObject = createStyleEditor(liStyle.lastChild, ulParent.parentNode.parentNode.parentNode.templateStyle, geometryType, isWindLayer);
                         bindChangeEvent();
-                        nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
+                        nsGmx.Utils.setMapObjectStyle(layer, styleIndex, ulParent.parentNode.parentNode.parentNode.templateStyle);
                     }
                 })
             })
@@ -1169,7 +1171,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
     var isWindLayer = typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
 				elemCanvas.parentNode.gmxProperties.content.properties.description &&
 				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0;
-	var resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+	var resObject = createStyleEditor(liStyle.lastChild, ulParent.parentNode.parentNode.parentNode.templateStyle, geometryType, isWindLayer);
 
     bindChangeEvent();
 
@@ -1540,7 +1542,9 @@ var updateStyles = function(filterCanvas)
 }
 
 createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
+
 {
+    console.log(templateStyle);
 	var markerSizeParent = _tr(),
         outlineParent = _tr(),
 		fillParent = _tr(),
@@ -1675,8 +1679,6 @@ var outlineColor = nsGmx.Controls.createColorPicker((templateStyle.outline && ty
 			outlineColor.style.backgroundColor = '#' + hex;
                 templateStyle.outline = templateStyle.outline || {};
                 templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
-
-                console.log(parseInt('0x' + hex));
 
 			$(resObject).change();
 		})
@@ -2050,7 +2052,7 @@ var outlineColor = nsGmx.Controls.createColorPicker((templateStyle.outline && ty
 
 	if (geometryType != "linestring" && typeof templateStyle.fill == 'undefined')
 		$(fillParent).find("[fade]")[0].style.display = 'none';
-
+console.log(resObject);
     return resObject;
 }
 
