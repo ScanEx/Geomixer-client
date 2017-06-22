@@ -19319,9 +19319,6 @@ var gmxCore = function()
 window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
-    {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: true, isPublic: true},
-    {pluginName: 'Timeline Rasters', file: 'plugins/TimelineRCPlugin.js', module: 'TimelineRCPlugin', mapPlugin: true, isPublic: true},
-    {pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true},
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/FireMapplet_v2.js',                               module: 'FireMapplet',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
@@ -57230,7 +57227,7 @@ var nsGmx = nsGmx || {};
         hide: function() {
             var attrs = this.model.toJSON();
             attrs._isAppended && $(this.get().canvas).hide();
-            this.model.set('isAppended', false);
+            this.model.set('isAppended', true);
         },
 
         bindLayer: function(layerName) {
@@ -57252,9 +57249,7 @@ var nsGmx = nsGmx || {};
         },
 
         unbindLayer: function(layerName) {
-            var layers = nsGmx.gmxMap.layers,
-                attrs = this.model.toJSON(),
-                layerTitle,
+            var attrs = this.model.toJSON(),
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
@@ -57323,11 +57318,10 @@ var nsGmx = nsGmx || {};
 
                 maxDate = new Date(layersMaxDates[0]);
 
-                if (maxDate > new Date()) {
+                if (maxDate > attrs.calendar.getDateMax()) {
                     attrs.calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
-                } else {
-                    attrs.calendar.setDateMax(new Date());
                 }
+
                 this.model.set('calendar', attrs.calendar);
             }
         },
@@ -57380,8 +57374,13 @@ var nsGmx = nsGmx || {};
                             str = '';
 
                         if (di) {
-                            dateBegin = di.beginDate;
-                            dateEnd = di.endDate;
+                            var now = new Date(),
+                                dateBeginToMidnight = new Date(now - now % dayms);
+
+                            // dateBegin = di.beginDate;
+                            // dateEnd = di.endDate);
+                            dateBegin = di.beginDate || dateBeginToMidnight;
+                            dateEnd = di.endDate || new Date(dateBeginToMidnight.valueOf() + dayms);
                             hourBegin = nsGmx.CalendarWidget1.prefixTimeValue(nsGmx.CalendarWidget1.getTime(dateBegin, 'begin'));
                             hourEnd = nsGmx.CalendarWidget1.prefixTimeValue(nsGmx.CalendarWidget1.getTime(dateEnd, 'end'));
                             newDateBegin = nsGmx.CalendarWidget1.toUTC(dateBegin);

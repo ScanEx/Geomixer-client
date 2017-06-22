@@ -128,11 +128,7 @@ var TimelineData = Backbone.Model.extend({
                 return elem.id in ids;
             });
         } else {
-            var dateBegin = new Date(),
-                dayms = 86400000,
-                dateBeginToMidnight = new Date(dateBegin - dateBegin % dayms);
-
-            layer.setDateInterval(dateBeginToMidnight, new Date(dateBeginToMidnight.valueOf() + dayms));
+            layer.setDateInterval();
         }
     },
 
