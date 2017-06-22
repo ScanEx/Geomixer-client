@@ -1,7 +1,6 @@
 *.bak
 
 config.js
-dist
 api.js
 apil.js
 /JSBuildTools/common_components/config/application_config.json
