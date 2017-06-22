@@ -19319,6 +19319,9 @@ var gmxCore = function()
 window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
+    {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: true, isPublic: true},
+    {pluginName: 'Timeline Rasters', file: 'plugins/TimelineRCPlugin.js', module: 'TimelineRCPlugin', mapPlugin: true, isPublic: true},
+    {pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true},
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/FireMapplet_v2.js',                               module: 'FireMapplet',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
@@ -49899,11 +49902,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -49938,6 +49936,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -50007,6 +50010,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50044,19 +50060,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -57469,8 +57472,8 @@ var nsGmx = nsGmx || {};
                         dateEnd = dateInterval.endDate;
                     } else {
                         dateInterval = new nsGmx.DateInterval();
-                        dateBegin = dateInterval.beginDate;
-                        dateEnd = dateInterval.endDate;
+                        dateBegin = dateInterval.get('dateBegin');
+                        dateEnd = dateInterval.get('dateEnd');
                     }
 
                     if (layerFilters) {
@@ -59072,7 +59075,7 @@ function processGmxMap(state, gmxMap) {
          * START
          *
         */
-        if (mapProp.MapID === 'ATTBP') {
+        // if (mapProp.MapID === 'ATTBP') {
         nsGmx.widgets.commonCalendar = new nsGmx.CommonCalendarWidget();
 
         // добавление временных слоев в commonCalendar
@@ -59277,183 +59280,183 @@ function processGmxMap(state, gmxMap) {
          * END
          *
         */
-    } else {
-        var now = new Date();
-        nsGmx.widgets.commonCalendar = {
-            _calendar: null,
-            _dateInterval: new nsGmx.DateInterval(),
-            _isAppended: false,
-            _unbindedTemporalLayers: {},
-            active: true,
-            setActive: function (active) {
-                this.active = active;
-            },
-            getDateInterval: function() {
-                return this._dateInterval;
-            },
-            get: function() {
-                var _this = this;
-                if (!this._calendar) {
-                    this._calendar = new nsGmx.CalendarWidget({
-                        minimized: true,
-                        dateMin: new Date(2000, 1, 1),
-                        dateMax: this._dateInterval.get('dateEnd'),
-                        dateInterval: this._dateInterval
-                    });
+    // } else {
+        // var now = new Date();
+        // nsGmx.widgets.commonCalendar = {
+        //     _calendar: null,
+        //     _dateInterval: new nsGmx.DateInterval(),
+        //     _isAppended: false,
+        //     _unbindedTemporalLayers: {},
+        //     active: true,
+        //     setActive: function (active) {
+        //         this.active = active;
+        //     },
+        //     getDateInterval: function() {
+        //         return this._dateInterval;
+        //     },
+        //     get: function() {
+        //         var _this = this;
+        //         if (!this._calendar) {
+        //             this._calendar = new nsGmx.CalendarWidget({
+        //                 minimized: true,
+        //                 dateMin: new Date(2000, 1, 1),
+        //                 dateMax: this._dateInterval.get('dateEnd'),
+        //                 dateInterval: this._dateInterval
+        //             });
+        //
+        //             this._dateInterval.on('change', this.updateTemporalLayers.bind(this, null));
+        //             this.updateTemporalLayers();
+        //         }
+        //
+        //         return this._calendar;
+        //     },
+        //     replaceCalendarWidget: function(newCalendar) {
+        //         this._calendar = newCalendar;
+        //
+        //         //заменим виджет перед деревом слоёв
+        //         if (this._isAppended) {
+        //             var doChange = function() {
+        //                 var calendarDiv = $('<div class="common-calendar-container"></div>').append(newCalendar.canvas);
+        //                 // special for steppe project
+        //                 if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+        //                     _queryMapLayers.getContainerAfter().find('.common-calendar-container').replaceWith(calendarDiv);
+        //                 } else {
+        //                     _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
+        //                 }
+        //             }
+        //             //явная проверка, так как хочется быть максимально синхронными в этом методе
+        //             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
+        //                 doChange();
+        //             } else {
+        //                 _queryMapLayers.loadDeferred.then(doChange);
+        //             }
+        //         }
+        //     },
+        //     show: function() {
+        //         var doAdd = function() {
+        //             var calendarDiv = $('<div class="common-calendar-container"></div>').append(this.get().canvas);
+        //             // special for steppe Project
+        //             if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+        //                 _queryMapLayers.getContainerAfter().append(calendarDiv);
+        //             } else {
+        //                 _queryMapLayers.getContainerBefore().append(calendarDiv);
+        //             }
+        //             this._isAppended = true;
+        //         }.bind(this);
+        //
+        //         if (!this._isAppended) {
+        //             //явная проверка, так как хочется быть максимально синхронными в этом методе
+        //             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
+        //                 doAdd();
+        //             } else {
+        //                 _queryMapLayers.loadDeferred.then(doAdd);
+        //             }
+        //         }
+        //     },
+        //     hide: function() {
+        //         this._isAppended && $(this.get().canvas).hide();
+        //         this._isAppended = false;
+        //     },
+        //
+        //     bindLayer: function(layerName) {
+        //         delete this._unbindedTemporalLayers[layerName];
+        //         this.updateTemporalLayers();
+        //     },
+        //     unbindLayer: function(layerName) {
+        //         this._unbindedTemporalLayers[layerName] = true;
+        //     },
+        //     _updateOneLayer: function(layer, dateBegin, dateEnd) {
+        //         var props = layer.getGmxProperties();
+        //         if (props.maxShownPeriod) {
+        //             var msecPeriod = props.maxShownPeriod*24*3600*1000;
+        //             var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
+        //             layer.setDateInterval(newDateBegin, dateEnd);
+        //         } else {
+        //             layer.setDateInterval(dateBegin, dateEnd);
+        //         }
+        //     },
+        //     updateTemporalLayers: function(layers) {
+        //         if (!this._calendar || !this.active) {return;}
+        //         var layers = layers || nsGmx.gmxMap.layers,
+        //             dateBegin = this._dateInterval.get('dateBegin'),
+        //             dateEnd = this._dateInterval.get('dateEnd'),
+        //             layersMaxDates = [],
+        //             maxDate = null;
+        //
+        //         for (var i = 0, len = layers.length; i < len; i++) {
+        //             var layer = layers[i],
+        //                 props = layer.getGmxProperties(),
+        //                 isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+        //
+        //             if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
+        //                 if (props.DateEnd) {
+        //                     var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
+        //                     layersMaxDates.push(localeDate);
+        //                 }
+        //
+        //                 this._updateOneLayer(layer, dateBegin, dateEnd);
+        //             }
+        //         }
+        //
+        //         if (layersMaxDates.length > 0) {
+        //             layersMaxDates.sort(function(a, b) {
+        //                 return b - a;
+        //             });
+        //
+        //             maxDate = new Date(layersMaxDates[0]);
+        //
+        //             if (maxDate > new Date()) {
+        //                 this._calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
+        //             } else {
+        //                 this._calendar.setDateMax(new Date());
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // //устарело, используйте commonCalendar
+        // nsGmx.widgets.getCommonCalendar = function() {
+        //     nsGmx.widgets.commonCalendar.show();
+        //     return nsGmx.widgets.commonCalendar.get();
+        // }
+        //
+        // var initTemporalLayers = function(layers) {
+        //     layers = layers || nsGmx.gmxMap.layers;
+        //     for (var i = 0; i < layers.length; i++) {
+        //         var props = layers[i].getGmxProperties();
+        //         if (props.Temporal && nsGmx.widgets.commonCalendar._unbindedTemporalLayers && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
+        //             nsGmx.widgets.commonCalendar.show();
+        //             break;
+        //         }
+        //     }
+        //
+        //     nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
+        // }
+        //
+        // _mapHelper.customParamsManager.addProvider({
+        //     name: 'commonCalendar',
+        //     loadState: function(state) {
+        //         if (!('version' in state)) {
+        //             var tmpDateInterval = new nsGmx.DateInterval({
+        //                 dateBegin: new Date(state.dateBegin),
+        //                 dateEnd: new Date(state.dateEnd)
+        //             });
+        //             nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
+        //         } else if (state.version === '1.0.0') {
+        //             nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
+        //         } else {
+        //             throw 'Unknown params version';
+        //         }
+        //     },
+        //     saveState: function() {
+        //         return {
+        //             version: '1.0.0',
+        //             dateInterval: nsGmx.widgets.commonCalendar.getDateInterval().saveState()
+        //         };
+        //     }
+        // });
 
-                    this._dateInterval.on('change', this.updateTemporalLayers.bind(this, null));
-                    this.updateTemporalLayers();
-                }
-
-                return this._calendar;
-            },
-            replaceCalendarWidget: function(newCalendar) {
-                this._calendar = newCalendar;
-
-                //заменим виджет перед деревом слоёв
-                if (this._isAppended) {
-                    var doChange = function() {
-                        var calendarDiv = $('<div class="common-calendar-container"></div>').append(newCalendar.canvas);
-                        // special for steppe project
-                        if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
-                            _queryMapLayers.getContainerAfter().find('.common-calendar-container').replaceWith(calendarDiv);
-                        } else {
-                            _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
-                        }
-                    }
-                    //явная проверка, так как хочется быть максимально синхронными в этом методе
-                    if (_queryMapLayers.loadDeferred.state() === 'resolved') {
-                        doChange();
-                    } else {
-                        _queryMapLayers.loadDeferred.then(doChange);
-                    }
-                }
-            },
-            show: function() {
-                var doAdd = function() {
-                    var calendarDiv = $('<div class="common-calendar-container"></div>').append(this.get().canvas);
-                    // special for steppe Project
-                    if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
-                        _queryMapLayers.getContainerAfter().append(calendarDiv);
-                    } else {
-                        _queryMapLayers.getContainerBefore().append(calendarDiv);
-                    }
-                    this._isAppended = true;
-                }.bind(this);
-
-                if (!this._isAppended) {
-                    //явная проверка, так как хочется быть максимально синхронными в этом методе
-                    if (_queryMapLayers.loadDeferred.state() === 'resolved') {
-                        doAdd();
-                    } else {
-                        _queryMapLayers.loadDeferred.then(doAdd);
-                    }
-                }
-            },
-            hide: function() {
-                this._isAppended && $(this.get().canvas).hide();
-                this._isAppended = false;
-            },
-
-            bindLayer: function(layerName) {
-                delete this._unbindedTemporalLayers[layerName];
-                this.updateTemporalLayers();
-            },
-            unbindLayer: function(layerName) {
-                this._unbindedTemporalLayers[layerName] = true;
-            },
-            _updateOneLayer: function(layer, dateBegin, dateEnd) {
-                var props = layer.getGmxProperties();
-                if (props.maxShownPeriod) {
-                    var msecPeriod = props.maxShownPeriod*24*3600*1000;
-                    var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
-                    layer.setDateInterval(newDateBegin, dateEnd);
-                } else {
-                    layer.setDateInterval(dateBegin, dateEnd);
-                }
-            },
-            updateTemporalLayers: function(layers) {
-                if (!this._calendar || !this.active) {return;}
-                var layers = layers || nsGmx.gmxMap.layers,
-                    dateBegin = this._dateInterval.get('dateBegin'),
-                    dateEnd = this._dateInterval.get('dateEnd'),
-                    layersMaxDates = [],
-                    maxDate = null;
-
-                for (var i = 0, len = layers.length; i < len; i++) {
-                    var layer = layers[i],
-                        props = layer.getGmxProperties(),
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
-
-                    if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
-                        if (props.DateEnd) {
-                            var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
-                            layersMaxDates.push(localeDate);
-                        }
-
-                        this._updateOneLayer(layer, dateBegin, dateEnd);
-                    }
-                }
-
-                if (layersMaxDates.length > 0) {
-                    layersMaxDates.sort(function(a, b) {
-                        return b - a;
-                    });
-
-                    maxDate = new Date(layersMaxDates[0]);
-
-                    if (maxDate > new Date()) {
-                        this._calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
-                    } else {
-                        this._calendar.setDateMax(new Date());
-                    }
-                }
-            }
-        }
-
-        //устарело, используйте commonCalendar
-        nsGmx.widgets.getCommonCalendar = function() {
-            nsGmx.widgets.commonCalendar.show();
-            return nsGmx.widgets.commonCalendar.get();
-        }
-
-        var initTemporalLayers = function(layers) {
-            layers = layers || nsGmx.gmxMap.layers;
-            for (var i = 0; i < layers.length; i++) {
-                var props = layers[i].getGmxProperties();
-                if (props.Temporal && nsGmx.widgets.commonCalendar._unbindedTemporalLayers && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
-                    nsGmx.widgets.commonCalendar.show();
-                    break;
-                }
-            }
-
-            nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
-        }
-
-        _mapHelper.customParamsManager.addProvider({
-            name: 'commonCalendar',
-            loadState: function(state) {
-                if (!('version' in state)) {
-                    var tmpDateInterval = new nsGmx.DateInterval({
-                        dateBegin: new Date(state.dateBegin),
-                        dateEnd: new Date(state.dateEnd)
-                    });
-                    nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
-                } else if (state.version === '1.0.0') {
-                    nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
-                } else {
-                    throw 'Unknown params version';
-                }
-            },
-            saveState: function() {
-                return {
-                    version: '1.0.0',
-                    dateInterval: nsGmx.widgets.commonCalendar.getDateInterval().saveState()
-                };
-            }
-        });
-
-        }
+    // }
 
         $('#flash').bind('dragover', function() {
             return false;
@@ -59718,7 +59721,7 @@ function processGmxMap(state, gmxMap) {
 
             }
         });
-        if (mapProp.MapID !== 'ATTBP') {
+        // if (mapProp.MapID !== 'ATTBP') {
         nsGmx.gmxMap.on('onRemoveLayer', function(event) {
             var layer = event.layer;
             if (!layer.getGmxProperties()) {
@@ -59733,7 +59736,7 @@ function processGmxMap(state, gmxMap) {
                 delete nsGmx.widgets.commonCalendar._unbindedTemporalLayers[props.name];
             }
         });
-        }
+        // }
 
         // special for steppe project
         if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
