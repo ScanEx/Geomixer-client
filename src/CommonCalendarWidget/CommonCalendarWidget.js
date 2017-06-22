@@ -523,8 +523,8 @@ var nsGmx = nsGmx || {};
                         dateEnd = dateInterval.endDate;
                     } else {
                         dateInterval = new nsGmx.DateInterval();
-                        dateBegin = dateInterval.beginDate;
-                        dateEnd = dateInterval.endDate;
+                        dateBegin = dateInterval.get('dateBegin');
+                        dateEnd = dateInterval.get('dateEnd');
                     }
 
                     if (layerFilters) {
