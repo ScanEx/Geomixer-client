@@ -57194,6 +57194,29 @@ var nsGmx = nsGmx || {};
             return this.model.get('calendar');
         },
 
+        replaceCalendarWidget: function(newCalendar) {
+            this._calendar = newCalendar;
+
+            //заменим виджет перед деревом слоёв
+            if (this._isAppended) {
+                var doChange = function() {
+                    var calendarDiv = $('<div class="commoncalendar-container"></div>').append(newCalendar.canvas);
+                    // special for steppe project
+                    if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
+                        _queryMapLayers.getContainerAfter().find('.commoncalendar-container').replaceWith(calendarDiv);
+                    } else {
+                        _queryMapLayers.getContainerBefore().findcommoncalendar-container('.commoncalendar-container').replaceWith(calendarDiv);
+                    }
+                }
+                //явная проверка, так как хочется быть максимально синхронными в этом методе
+                if (_queryMapLayers.loadDeferred.state() === 'resolved') {
+                    doChange();
+                } else {
+                    _queryMapLayers.loadDeferred.then(doChange);
+                }
+            }
+        },
+
         show: function() {
             var calendarDiv = this.$('.calendar-widget-container'),
                 calendarCanvas = this.get().canvas;
