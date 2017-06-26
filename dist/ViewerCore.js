@@ -5688,18 +5688,25 @@ L.gmxUtil.drawGeoItem = function(geoItem, item, options, currentStyle, style) {
     } else if (geoType === 'LINESTRING' || geoType === 'MULTILINESTRING') {
         coords = geom.coordinates;
         if (geoType === 'LINESTRING') { coords = [coords]; }
+        var st = item.currentStyle || item.parsedStyleKeys;
+        var isIconPath = st.iconPath || st.iconPath;
         var size = (item.currentStyle.maxSize || item.currentStyle.lineWidth) / gmx.mInPixel;
         for (i = 0, len = coords.length; i < len; i++) {
-            var arr = tbounds.clipPolyLine(coords[i], true, size);
-            for (j = 0, len1 = arr.length; j < len1; j++) {
-                dattr.coords = arr[j];
-                var pixels = utils.lineToCanvas(dattr);
-                if (pixels) {
-                    ctx.save();
-                    utils.lineToCanvasAsIcon(pixels, dattr);
-                    ctx.restore();
-                }
-            }
+			if (isIconPath) {
+				var arr = tbounds.clipPolyLine(coords[i], true, size);
+				for (j = 0, len1 = arr.length; j < len1; j++) {
+					dattr.coords = arr[j];
+					var pixels = utils.lineToCanvas(dattr);
+					if (pixels) {
+						ctx.save();
+						utils.lineToCanvasAsIcon(pixels, dattr);
+						ctx.restore();
+					}
+				}
+			} else {
+				dattr.coords = coords[i];
+				utils.lineToCanvas(dattr);
+			}
         }
     }
     return true;
@@ -6816,7 +6823,7 @@ var Observer = L.Class.extend({
         return this;
     },*/
 
-    setBounds: function(bounds) {
+    setBounds: function(bounds, buffer) {
         var w;
         if (!bounds) {
             if (!this.world) {
@@ -6862,12 +6869,14 @@ var Observer = L.Class.extend({
         var m1 = L.Projection.Mercator.project(L.latLng(minY, minX)),
             m2 = L.Projection.Mercator.project(L.latLng(maxY, maxX));
 
-        this.bbox = gmxAPIutils.bounds([[m1.x, m1.y], [m2.x, m2.y]]);
+		this.bbox = gmxAPIutils.bounds([[m1.x, m1.y], [m2.x, m2.y]]);
+		if (buffer) { this.bbox.addBuffer(buffer); }
         this.bbox1 = null;
         if (minX1) {
             m1 = L.Projection.Mercator.project(L.latLng(minY, minX1));
             m2 = L.Projection.Mercator.project(L.latLng(maxY, maxX1));
             this.bbox1 = gmxAPIutils.bounds([[m1.x, m1.y], [m2.x, m2.y]]);
+			if (buffer) { this.bbox1.addBuffer(buffer); }
         }
 
         this.fire('update');
@@ -13827,6 +13836,7 @@ L.gmx.ExternalLayer = L.Class.extend({
     options: {
         useDataManager: true,
         observerOptions: {
+			delta: 0,
             filters: ['clipFilter', 'userFilter', 'clipPointsFilter']
         }
     },
@@ -13970,11 +13980,14 @@ L.gmx.ExternalLayer = L.Class.extend({
     _updateBbox: function () {
         if (!this._map || !this._observer) { return; }
 
-        var screenBounds = this._map.getBounds(),
+        var map = this._map,
+			screenBounds = map.getBounds(),
             p1 = screenBounds.getNorthWest(),
             p2 = screenBounds.getSouthEast(),
-            bbox = L.gmxUtil.bounds([[p1.lng, p1.lat], [p2.lng, p2.lat]]);
-        this._observer.setBounds(bbox);
+            bbox = L.gmxUtil.bounds([[p1.lng, p1.lat], [p2.lng, p2.lat]]),
+			delta = this.options.observerOptions.delta,
+			buffer = delta ? delta * L.gmxUtil.tileSizes[map.getZoom()] / 256 : 0;
+        this._observer.setBounds(bbox, buffer);
     }
 });
 
@@ -14148,6 +14161,7 @@ L.gmx.ExternalLayer = L.Class.extend({
     var GmxMarkerCluster = L.gmx.ExternalLayer.extend({
         options: {
             observerOptions: {
+				delta: 256,
                 filters: ['clipFilter', 'styleFilter', 'userFilter', 'clipPointsFilter']
             },
             spiderfyOnMaxZoom: true,
@@ -49899,6 +49913,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -49933,11 +49952,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -50007,19 +50021,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50057,6 +50058,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
