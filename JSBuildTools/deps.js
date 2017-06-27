@@ -135,6 +135,7 @@ var cssFiles = [
     "css/NotificationWidget.css",
     "css/LayerQuicklookWidget.css",
     "css/layerstylesmenu.css",
+    "css/swich-slider.css",
 
     "common_components/adapter.css",
     "leaflet/leaflet.css",

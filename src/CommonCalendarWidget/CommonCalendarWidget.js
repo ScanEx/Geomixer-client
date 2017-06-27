@@ -32,15 +32,14 @@ var nsGmx = nsGmx || {};
             '<div class="calendar-layers-container">' +
                 '<div class="calendar-container">' +
                     '<div class="calendar-widget-container"></div>' +
-                    // '<div class="calendar-sync-button"></div>' +
                 '</div>' +
             '</div>' +
-            '<div class="sync-switch-container">' +
-                '<label class="sync-switch">' +
+            '<div class="sync-switch-container switch-container">' +
+                '<label class="sync-switch switch">' +
                     '<input type="checkbox"' +
                     '{{#if synchronyzed}}checked{{/if}}' +
                     '>' +
-                    '<div class="sync-switch-slider round"></div>' +
+                    '<div class="sync-switch-slider switch-slider round"></div>' +
                 '</label>' +
                 '<span class="sync-switch-slider-description">{{i "CommonCalendarWidget.sync"}}</span>' +
                 '<label class="daily-switch">' +
