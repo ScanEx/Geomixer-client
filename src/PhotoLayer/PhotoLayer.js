@@ -469,6 +469,18 @@ var nsGmx = window.nsGmx || {},
 
                                         var newLayer = nsGmx.gmxMap.layersByID[gmxProperties.content.properties.LayerID];
 
+                                        newLayer.bindClusters({
+                                            iconCreateFunction: function(cluster) {
+                                                var photoClusterIcon = L.icon({
+                                                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                                                    iconSize: [14, 12],
+                                                    iconAnchor: [0, 0]
+                                                });
+                                                return photoClusterIcon;
+                                            },
+                                            maxZoom: 22
+                                        });
+
                                         // newLayer.updateVersion(gmxProperties.content);
 
                                         _this.model.set({
