@@ -10550,8 +10550,12 @@ L.gmx.VectorLayer.include({
         var reorder = this._objectsReorder;
         reorder.all = {};
         reorder.count = 0;
-        bottom.forEach(function (id) { reorder.addToReorder(id, true); });
-        top.forEach(function (id) { reorder.addToReorder(id); });
+        if (bottom) {
+			bottom.forEach(function (id) { reorder.addToReorder(id, true); });
+		}
+        if (top) {
+			top.forEach(function (id) { reorder.addToReorder(id); });
+		}
         this.repaint();
         return this;
     },

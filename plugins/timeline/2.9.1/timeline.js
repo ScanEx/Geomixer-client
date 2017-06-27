@@ -3077,7 +3077,7 @@ links.Timeline.prototype.onMouseUp = function (event) {
                 if (params.itemIndex != undefined) {
                     if (!this.isSelected(params.itemIndex)) {
                         this.selectItem(params.itemIndex);
-                        this.trigger('select');
+                        this.trigger('select', {index: params.itemIndex, originalEvent: event});
                     }
                 }
                 else if(params.clusterIndex != undefined) {
@@ -4670,7 +4670,7 @@ links.Timeline.ItemDot.prototype.updatePosition = function (timeline) {
         dom.style.top = this.top + "px";
         dom.style.left = (left - this.dotWidth / 2) + "px";
 
-        dom.content.style.marginLeft = (1.5 * this.dotWidth) + "px";
+        // dom.content.style.marginLeft = (1.5 * this.dotWidth) + "px";
         //dom.content.style.marginRight = (0.5 * this.dotWidth) + "px"; // TODO
         dom.dot.style.top = ((this.height - this.dotHeight) / 2) + "px";
     }
@@ -5599,7 +5599,7 @@ links.Timeline.prototype.collision = function(item1, item2, margin) {
  * fire an event
  * @param {String} event   The name of an event, for example "rangechange" or "edit"
  */
-links.Timeline.prototype.trigger = function (event) {
+links.Timeline.prototype.trigger = function (event, params) {
     // built up properties
     var properties = null;
     switch (event) {
@@ -5616,6 +5616,9 @@ links.Timeline.prototype.trigger = function (event) {
             properties = {
                 'time': new Date(this.customTime.valueOf())
             };
+            break;
+        case 'select':	// added for GMXtimeline
+            properties = params;
             break;
     }
 
