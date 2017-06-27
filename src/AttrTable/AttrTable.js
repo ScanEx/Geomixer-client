@@ -195,7 +195,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 						ShapePath: props.ShapePath,
 						Columns: filteredColumns,
 						IsRasterCatalog: props.IsRasterCatalog,
-						SourceType: "file"
+						SourceType: "file",
+						Quicklook: props.Quicklook
 					},
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {

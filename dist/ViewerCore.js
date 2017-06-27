@@ -40324,7 +40324,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 						ShapePath: props.ShapePath,
 						Columns: filteredColumns,
 						IsRasterCatalog: props.IsRasterCatalog,
-						SourceType: "file"
+						SourceType: "file",
+						Quicklook: props.Quicklook
 					},
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {
@@ -44265,10 +44266,13 @@ var nsGmx = window.nsGmx || {},
                                                 '</a>' +
                                             '</div>' +
                                             '<div>' +
-                                                '<b>' + window._gtxt("Имя") + '</b> ' + '[GMX_Filename]' +
+                                                '<b>' + window._gtxt("Имя") + ':</b> ' + '[GMX_Filename]' +
                                             '</div>' +
                                             '<div>' +
-                                                '<b>' + window._gtxt("Момент съемки") + '</b> ' + '[GMX_Date]' +
+                                                '<b>' + window._gtxt("Момент съемки") + ':</b> ' + '[GMX_Date]' +
+                                            '</div>' +
+                                            '<div>' +
+                                                '[SUMMARY]' +
                                             '</div>' +
                                         '</div>';
 
@@ -44316,8 +44320,9 @@ var nsGmx = window.nsGmx || {},
 
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
-                                                var photoClusterIcon = L.icon({
-                                                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                                                var photoClusterIcon = L.divIcon({
+                                                    html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
                                                 });
@@ -59020,8 +59025,9 @@ function processGmxMap(state, gmxMap) {
         if (props.IsPhotoLayer) {
             layer.bindClusters({
                 iconCreateFunction: function(cluster) {
-                    var photoClusterIcon = L.icon({
-                        iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                    var photoClusterIcon = L.divIcon({
+                        html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                        className: 'photo-div-icon',
                         iconSize: [14, 12],
                         iconAnchor: [0, 0]
                     });

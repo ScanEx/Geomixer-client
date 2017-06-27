@@ -1291,8 +1291,9 @@ function processGmxMap(state, gmxMap) {
         if (props.IsPhotoLayer) {
             layer.bindClusters({
                 iconCreateFunction: function(cluster) {
-                    var photoClusterIcon = L.icon({
-                        iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                    var photoClusterIcon = L.divIcon({
+                        html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                        className: 'photo-div-icon',
                         iconSize: [14, 12],
                         iconAnchor: [0, 0]
                     });

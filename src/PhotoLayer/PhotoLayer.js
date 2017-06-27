@@ -420,10 +420,13 @@ var nsGmx = window.nsGmx || {},
                                                 '</a>' +
                                             '</div>' +
                                             '<div>' +
-                                                '<b>' + window._gtxt("Имя") + '</b> ' + '[GMX_Filename]' +
+                                                '<b>' + window._gtxt("Имя") + ':</b> ' + '[GMX_Filename]' +
                                             '</div>' +
                                             '<div>' +
-                                                '<b>' + window._gtxt("Момент съемки") + '</b> ' + '[GMX_Date]' +
+                                                '<b>' + window._gtxt("Момент съемки") + ':</b> ' + '[GMX_Date]' +
+                                            '</div>' +
+                                            '<div>' +
+                                                '[SUMMARY]' +
                                             '</div>' +
                                         '</div>';
 
@@ -471,8 +474,9 @@ var nsGmx = window.nsGmx || {},
 
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
-                                                var photoClusterIcon = L.icon({
-                                                    iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                                                var photoClusterIcon = L.divIcon({
+                                                    html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
                                                 });

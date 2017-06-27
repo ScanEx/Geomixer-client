@@ -147,3 +147,24 @@ label.photo-uploader-label input {
 .photo-upload-result-uploaded {
     color: green;
 }
+
+.photo-div-icon {
+    background: rgba(255, 255, 255, 0);
+    border: 0px;
+}
+
+.marker-cluster-photo {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 147, 147, 0.67);
+  width: 14px;
+  color: rgba(19, 19, 19, 0.9);
+  text-align: center;
+  border-radius: 10px;
+  padding: 1px;
+  height: 14px;
+  font-size: 10px;
+  position: relative;
+  top: -29px;
+  left: 12px;
+  font-weight: bold;
+}
