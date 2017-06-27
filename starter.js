@@ -1283,6 +1283,25 @@ function processGmxMap(state, gmxMap) {
         })
     }
 
+    // bind clusters to photoLayers
+    for (var l = 0; l < gmxMap.layers.length; l++) {
+        var layer = gmxMap.layers[l],
+            props = layer.getGmxProperties();
+
+        if (props.IsPhotoLayer) {
+            layer.bindClusters({
+                iconCreateFunction: function(cluster) {
+                    var photoClusterIcon = L.icon({
+                        iconUrl: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+                        iconSize: [14, 12],
+                        iconAnchor: [0, 0]
+                    });
+                    return photoClusterIcon;
+                },
+                maxZoom: 22
+            });
+        }
+    }
     lmap.contextmenu.insertItem({
         text: _gtxt('Поставить маркер'),
         callback: function(event) {
