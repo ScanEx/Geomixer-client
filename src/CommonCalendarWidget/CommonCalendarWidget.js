@@ -125,7 +125,7 @@ var nsGmx = nsGmx || {};
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     layerID = props.LayerID,
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 if (isTemporalLayer) {
                     dailyFiltersHash[layerID] = true;
@@ -144,7 +144,7 @@ var nsGmx = nsGmx || {};
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     layerID = props.LayerID,
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 if (isTemporalLayer) {
                     dailyFiltersHash[layerID] = false;
@@ -203,7 +203,7 @@ var nsGmx = nsGmx || {};
 	               var layer = layers[i],
                         props = layer.getGmxProperties(),
                         t = props.title,
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
                         int = layer.getDateInterval();
 
                     if (isTemporalLayer && int) {
@@ -367,7 +367,7 @@ var nsGmx = nsGmx || {};
                 for (var i = 0, len = layers.length; i < len; i++) {
                     var layer = layers[i],
                     props = layer.getGmxProperties(),
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                     if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
                         if (props.DateEnd) {
@@ -497,7 +497,7 @@ var nsGmx = nsGmx || {};
                     if (layer.getGmxProperties) {
                         var props = layer.getGmxProperties(),
                             isVisible = props.visible,
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && isVisible) {
                             temporalLayers.push(layer);
@@ -603,7 +603,7 @@ var nsGmx = nsGmx || {};
                         if (layer.getGmxProperties) {
                             var props = layer.getGmxProperties(),
                             isVisible = props.visible,
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                             if (isTemporalLayer && isVisible) {
                                 temporalLayers.push(layer);
@@ -683,7 +683,7 @@ var nsGmx = nsGmx || {};
 
                 if (layer.getGmxProperties) {
                         var props = layer.getGmxProperties(),
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
 

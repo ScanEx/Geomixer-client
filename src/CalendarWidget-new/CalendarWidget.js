@@ -572,14 +572,14 @@ var Calendar1 = window.Backbone.View.extend({
      * @return {Date} начальная дата
      */
     getDateBegin: function() {
-        return Calendar1.fromUTC(this._dateBegin.datepicker('getDate'));
+        return this._dateBegin ? Calendar1.fromUTC(this._dateBegin.datepicker('getDate')) : this.getDateInterval().get('dateBegin');
     },
 
     /** Получить конечную дату
      * @return {Date} конечная дата
      */
     getDateEnd: function() {
-        return Calendar1.fromUTC(this._dateEnd.datepicker('getDate'));
+        return this._dateEnd ? Calendar1.fromUTC(this._dateEnd.datepicker('getDate')) : this.getDateInterval().get('dateEnd');
     },
 
     /** Получить верхнюю границу возможных дат периода

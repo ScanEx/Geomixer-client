@@ -50038,6 +50038,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50075,19 +50088,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -51985,14 +51985,14 @@ var Calendar1 = window.Backbone.View.extend({
      * @return {Date} начальная дата
      */
     getDateBegin: function() {
-        return Calendar1.fromUTC(this._dateBegin.datepicker('getDate'));
+        return this._dateBegin ? Calendar1.fromUTC(this._dateBegin.datepicker('getDate')) : this.getDateInterval().get('dateBegin');
     },
 
     /** Получить конечную дату
      * @return {Date} конечная дата
      */
     getDateEnd: function() {
-        return Calendar1.fromUTC(this._dateEnd.datepicker('getDate'));
+        return this._dateEnd ? Calendar1.fromUTC(this._dateEnd.datepicker('getDate')) : this.getDateInterval().get('dateEnd');
     },
 
     /** Получить верхнюю границу возможных дат периода
@@ -57102,7 +57102,7 @@ var nsGmx = nsGmx || {};
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     layerID = props.LayerID,
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 if (isTemporalLayer) {
                     dailyFiltersHash[layerID] = true;
@@ -57121,7 +57121,7 @@ var nsGmx = nsGmx || {};
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     layerID = props.LayerID,
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 if (isTemporalLayer) {
                     dailyFiltersHash[layerID] = false;
@@ -57180,7 +57180,7 @@ var nsGmx = nsGmx || {};
 	               var layer = layers[i],
                         props = layer.getGmxProperties(),
                         t = props.title,
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
                         int = layer.getDateInterval();
 
                     if (isTemporalLayer && int) {
@@ -57344,7 +57344,7 @@ var nsGmx = nsGmx || {};
                 for (var i = 0, len = layers.length; i < len; i++) {
                     var layer = layers[i],
                     props = layer.getGmxProperties(),
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                     if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
                         if (props.DateEnd) {
@@ -57474,7 +57474,7 @@ var nsGmx = nsGmx || {};
                     if (layer.getGmxProperties) {
                         var props = layer.getGmxProperties(),
                             isVisible = props.visible,
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && isVisible) {
                             temporalLayers.push(layer);
@@ -57580,7 +57580,7 @@ var nsGmx = nsGmx || {};
                         if (layer.getGmxProperties) {
                             var props = layer.getGmxProperties(),
                             isVisible = props.visible,
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                             if (isTemporalLayer && isVisible) {
                                 temporalLayers.push(layer);
@@ -57660,7 +57660,7 @@ var nsGmx = nsGmx || {};
 
                 if (layer.getGmxProperties) {
                         var props = layer.getGmxProperties(),
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
 
@@ -59165,13 +59165,13 @@ function processGmxMap(state, gmxMap) {
                 var layer = layers[i],
                     props = layer.getGmxProperties(),
                     isVisible = props.visible,
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 if (isTemporalLayer) {
                     // показываем виджет календаря, если в карте есть хоть один мультивременной слой
                     showCalendar = true;
 
-                    dateInterval = layer.getDateInterval();
+                    dateInterval = layer.getDateInterval ? layer.getDateInterval() : new nsGmx.DateInterval();
 
                     if (dateInterval.beginDate && dateInterval.endDate) {
                         dateBegin = dateInterval.beginDate;
@@ -59193,7 +59193,9 @@ function processGmxMap(state, gmxMap) {
                     }
 
                     //подписка на изменение dateInterval
-                    layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);
+                    if (layer.getDateInterval) {
+                        layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);
+                    }
                 }
             }
 
@@ -59228,7 +59230,7 @@ function processGmxMap(state, gmxMap) {
                 if (layerID) {
                     var layer = nsGmx.gmxMap.layersByID[layerID],
                         props = layer.getGmxProperties(),
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval),
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval),
                         visibleTemporalLayers, index;
 
                     if (isTemporalLayer) {
@@ -59289,7 +59291,7 @@ function processGmxMap(state, gmxMap) {
                     isVisible;
 
                     if (props) {
-                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                        isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
                         isVisible = props.visible;
 
                         if (isTemporalLayer && isVisible || layer === targetLayer) {
@@ -59309,7 +59311,7 @@ function processGmxMap(state, gmxMap) {
                 synchronyzed = nsGmx.widgets.commonCalendar.model.get('synchronyzed'),
                 props = layer.getGmxProperties(),
                 isVisible = props.visible,
-                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
             if (isTemporalLayer && isVisible && !synchronyzed) {
                 nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
@@ -59458,7 +59460,7 @@ function processGmxMap(state, gmxMap) {
         //         for (var i = 0, len = layers.length; i < len; i++) {
         //             var layer = layers[i],
         //                 props = layer.getGmxProperties(),
-        //                 isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+        //                 isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
         //
         //             if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
         //                 if (props.DateEnd) {
@@ -59800,7 +59802,7 @@ function processGmxMap(state, gmxMap) {
                 return;
             }
             var props = layer.getGmxProperties(),
-                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
             if (isTemporalLayer && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
                 nsGmx.widgets.commonCalendar.unbindLayer(props.name);
