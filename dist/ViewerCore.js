@@ -6526,7 +6526,7 @@ VectorTile.prototype = {
             this.dataProvider.load(_this.x, _this.y, _this.z, _this.v, _this.s, _this.d, function(data, bbox, srs, isGeneralized) {
                 _this.bbox = bbox;
                 _this.srs = srs;
-                _this.isGeneralized = isGeneralized;
+                if (isGeneralized) { _this.isGeneralized = isGeneralized; }
                 _this.addData(data);
             });
         }
@@ -10550,8 +10550,12 @@ L.gmx.VectorLayer.include({
         var reorder = this._objectsReorder;
         reorder.all = {};
         reorder.count = 0;
-        bottom.forEach(function (id) { reorder.addToReorder(id, true); });
-        top.forEach(function (id) { reorder.addToReorder(id); });
+        if (bottom) {
+			bottom.forEach(function (id) { reorder.addToReorder(id, true); });
+		}
+        if (top) {
+			top.forEach(function (id) { reorder.addToReorder(id); });
+		}
         this.repaint();
         return this;
     },
@@ -49934,6 +49938,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -49968,11 +49977,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
