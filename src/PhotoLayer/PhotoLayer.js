@@ -482,7 +482,11 @@ var nsGmx = window.nsGmx || {},
                                                 });
                                                 return photoClusterIcon;
                                             },
-                                            maxZoom: 16
+                                            maxClusterRadius: 40,
+                                            spiderfyOnMaxZoom: true,
+                                            spiderfyDistanceMultiplier: 1.2,
+                                            disableClusteringAtZoom: 19,
+                                            maxZoom: 19
                                         });
 
                                         // newLayer.updateVersion(gmxProperties.content);
