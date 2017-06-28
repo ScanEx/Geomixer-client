@@ -1299,7 +1299,7 @@ function processGmxMap(state, gmxMap) {
                     });
                     return photoClusterIcon;
                 },
-                maxZoom: 22
+                maxZoom: 16
             });
         }
     }

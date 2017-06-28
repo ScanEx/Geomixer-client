@@ -44328,7 +44328,7 @@ var nsGmx = window.nsGmx || {},
                                                 });
                                                 return photoClusterIcon;
                                             },
-                                            maxZoom: 22
+                                            maxZoom: 16
                                         });
 
                                         // newLayer.updateVersion(gmxProperties.content);
@@ -59033,7 +59033,7 @@ function processGmxMap(state, gmxMap) {
                     });
                     return photoClusterIcon;
                 },
-                maxZoom: 22
+                maxZoom: 16
             });
         }
     }
