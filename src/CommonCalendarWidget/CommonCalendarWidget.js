@@ -395,7 +395,7 @@ var nsGmx = nsGmx || {};
                 maxDate = new Date(layersMaxDates[0]);
 
                 if (maxDate > attrs.calendar.getDateMax()) {
-                    attrs.calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
+                    attrs.calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(new Date(maxDate.valueOf() + dayms)));
                 }
 
                 this.model.set('calendar', attrs.calendar);

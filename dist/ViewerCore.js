@@ -49938,11 +49938,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -49977,6 +49972,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -51767,6 +51767,9 @@ var Calendar1 = window.Backbone.View.extend({
         this._dateInputs = this._dateBegin.add(this._dateEnd);
 
         this._dateInputs.datepicker();
+
+        this._dateInputs.datepicker('option', 'minDate', Calendar1.toUTC(this._dateMin));
+        this._dateInputs.datepicker('option', 'maxDate', Calendar1.toUTC(this._dateMax));
 
         this._dateBegin.datepicker('setDate', Calendar1.toUTC(dateBegin));
         this._dateEnd.datepicker('setDate', oneDayPeriod || endMidnight ? Calendar1.toUTC(new Date(dateEnd.valueOf() - dayms)) : Calendar1.toUTC(dateEnd));
@@ -57380,7 +57383,7 @@ var nsGmx = nsGmx || {};
                 maxDate = new Date(layersMaxDates[0]);
 
                 if (maxDate > attrs.calendar.getDateMax()) {
-                    attrs.calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
+                    attrs.calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(new Date(maxDate.valueOf() + dayms)));
                 }
 
                 this.model.set('calendar', attrs.calendar);

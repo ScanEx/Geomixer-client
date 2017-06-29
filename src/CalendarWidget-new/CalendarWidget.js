@@ -347,6 +347,9 @@ var Calendar1 = window.Backbone.View.extend({
 
         this._dateInputs.datepicker();
 
+        this._dateInputs.datepicker('option', 'minDate', Calendar1.toUTC(this._dateMin));
+        this._dateInputs.datepicker('option', 'maxDate', Calendar1.toUTC(this._dateMax));
+
         this._dateBegin.datepicker('setDate', Calendar1.toUTC(dateBegin));
         this._dateEnd.datepicker('setDate', oneDayPeriod || endMidnight ? Calendar1.toUTC(new Date(dateEnd.valueOf() - dayms)) : Calendar1.toUTC(dateEnd));
 
