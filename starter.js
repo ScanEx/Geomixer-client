@@ -1334,7 +1334,7 @@ function processGmxMap(state, gmxMap) {
                         quickLookMinZoom,
                         defaultMinZoom = 6;
 
-                    if (props.IsRasterCatalog || props.Quicklook) {
+                    if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')) {
                         rcMinZoom = props.IsRasterCatalog ? props.RCMinZoomForRasters : null;
                         quickLookMinZoom = (props.Quicklook && nsGmx.Utils.isJSON(props.Quicklook)) ? JSON.parse(props.Quicklook).minZoom : null;
 

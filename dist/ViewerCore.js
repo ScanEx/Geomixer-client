@@ -31261,24 +31261,24 @@ mapLayers.mapLayers.unload = function()
 
 nsGmx = nsGmx || {};
 
-/** 
+/**
 * Контроллёр контекстных меню.
 * @class
 * @name ContextMenuController
 * @memberOf nsGmx
-* 
-* @description Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам. 
-* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст, 
+*
+* @description Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам.
+* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст,
 * указанный при привязке меню к элементу (он так же может создаваться в момент клика на элементе)
-* Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер. 
+* Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер.
 * При создании меню определённого типа из этого набора выбираются нужные элементы.
 */
 nsGmx.ContextMenuController = (function()
 {
 	var _menuItems = {};
 	var SUGGEST_TIMEOUT = 700;
-	
-	// Показывает контектное меню для конкретного элемента. 
+
+	// Показывает контектное меню для конкретного элемента.
 	// В Opera меню показывается при наведении на элемент в течении некоторого времени, во всех остальных браузерах - по правому клику.
 	// Меню исчезает при потере фокуса
 	// Параметры:
@@ -31292,58 +31292,58 @@ nsGmx.ContextMenuController = (function()
         {
             if (typeof checkFunc != 'undefined' && !checkFunc())
                 return false;
-                
-            if (menu && menu.parentNode) 
+
+            if (menu && menu.parentNode)
                 menu.parentNode.removeChild(menu);
-                
+
             menu = menuFunc();
             if (!menu) return false;
-            
+
             var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
-            
+
             var evt = e || window.event;
-            
+
             hidden(contextMenu);
             document.body.appendChild(contextMenu)
-            
+
             // определение координат курсора для ie
             if (evt.pageX == null && evt.clientX != null )
             {
                 var html = document.documentElement
                 var body = document.body
-                
+
                 evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
                 evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
             }
-            
+
             if (evt.pageX + contextMenu.clientWidth < getWindowWidth())
                 contextMenu.style.left = evt.pageX - 5 + 'px';
             else
                 contextMenu.style.left = evt.pageX - contextMenu.clientWidth + 5 + 'px';
-            
+
             if (evt.pageY + contextMenu.clientHeight < getWindowHeight())
                 contextMenu.style.top = evt.pageY - 5 + 'px';
             else
                 contextMenu.style.top = evt.pageY - contextMenu.clientHeight + 5 + 'px';
-            
+
             visible(contextMenu)
-            
+
             var menuArea = contextMenu.getBoundingClientRect();
-            
+
             contextMenu.onmouseout = function(e)
             {
                 var evt = e || window.event;
-                
+
                 // определение координат курсора для ie
                 if (evt.pageX == null && evt.clientX != null )
                 {
                     var html = document.documentElement
                     var body = document.body
-                    
+
                     evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
                     evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
                 }
-                
+
                 if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
                     evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
                 {
@@ -31351,41 +31351,41 @@ nsGmx.ContextMenuController = (function()
                     contextMenu.removeNode(true);
                 }
             }
-            
+
             return false;
         }
-	}	
-	
+	}
+
 	var _contextClose = function()
 	{
         $('#contextMenuCanvas').remove();
-	}	
-	
+	}
+
 	var _generateMenuDiv = function(type, context)
 	{
         var uiTemplate = Handlebars.compile('<div>' +
             '{{#menuItems}}' +
-                '{{#if separator}}<div class = "contextMenuSeparator"></div>{{/if}}' + 
+                '{{#if separator}}<div class = "contextMenuSeparator"></div>{{/if}}' +
                 '<div class = "contextMenuItem" data-itemIndex="{{index}}">{{title}}</div>' +
             '{{/menuItems}}' +
         '</div>');
-        
+
 		var items = _menuItems[type],
             visibleItems = [];
-		
+
 		for (var e = 0; e < items.length; e++) {
 			var menuElem = items[e];
             if (menuElem.isVisible && !menuElem.isVisible(context)) {
                 continue;
             }
-            
+
             visibleItems.push({
                 index: e,
                 title: typeof menuElem.title === 'function' ? menuElem.title() : menuElem.title,
                 separator: menuElem.isSeparatorBefore && menuElem.isSeparatorBefore(context)
             });
         }
-        
+
         if (visibleItems.length) {
             var ui = $(uiTemplate({menuItems: visibleItems}));
             ui.find('.contextMenuItem').click(function() {
@@ -31395,16 +31395,16 @@ nsGmx.ContextMenuController = (function()
                 _contextClose();
                 _menuItems[type][itemIndex].clickCallback(context);
             });
-            
+
             return ui[0];
         }
-        
+
         return null;
 	}
-	
+
 	//public interface
 	return {
-	
+
 		/**
 		 * Добавляет новый пункт меню
          * @memberOf nsGmx.ContextMenuController
@@ -31416,14 +31416,14 @@ nsGmx.ContextMenuController = (function()
 		{
 			if (typeof menuType === 'string')
 				menuType = [menuType];
-				
+
 			for (var i = 0; i < menuType.length; i++)
 			{
 				_menuItems[menuType[i]] = _menuItems[menuType[i]] || [];
 				_menuItems[menuType[i]].push(menuItem);
 			}
 		},
-		
+
 		/**
 		 * Добавляет к DOM элементу контекстное меню
 		 * @function
@@ -31431,7 +31431,7 @@ nsGmx.ContextMenuController = (function()
 		 * @param {DOMElement} elem Целевой DOM-элемент
 		 * @param {String} type Тип меню
 		 * @param {function():Boolean} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
-		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
+		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе.
 		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contentMenuType.
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)
@@ -31440,7 +31440,7 @@ nsGmx.ContextMenuController = (function()
 			{
 				if (typeof context === 'function')
 					context = context(); //
-					
+
 				return _generateMenuDiv(type, context);
 			}, checkFunc, SUGGEST_TIMEOUT)
 		}
@@ -31472,7 +31472,7 @@ nsGmx.ContextMenuController = (function()
 * @name clickCallback
 * @memberOf nsGmx.ContextMenuController.IContextMenuElem.prototype
 * @param {object} context - контекст, который был передан при привязке меню к DOM-элементу. В контекст будут добавлены поля:
-* 
+*
 *  * contentMenuArea {Object} - координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
 *  * contentMenuType {String}- тип вызванного контекстного меню. Актуально, если элемент меню используется в нескольких типах меню.
 */
@@ -31529,7 +31529,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
+		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'view' || _queryMapLayers.layerRights(context.elem.name) == 'edit' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
 	},
 	clickCallback: function(context)
 	{
@@ -31541,8 +31541,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Права доступа"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && 
-				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
+		return !context.layerManagerFlag &&
+				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) &&
 				_queryMapLayers.layerRights(context.elem.name) === 'edit';
 	},
 	clickCallback: function(context) {
@@ -31560,8 +31560,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Скачать"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && 
-				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) && 
+		return !context.layerManagerFlag &&
+				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) &&
 				context.elem.type == "Vector" &&
 				context.tree.treeModel.getMapProperties().CanDownloadVectors;
 	},
@@ -31583,24 +31583,24 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		_queryMapLayers.removeLayer(context.elem.name)
-		
+
 		var div;
-			
+
 		if (context.elem.MultiLayerID)
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
-		
+
 		var treeElem = _layersTree.findTreeElem(div).elem,
 			node = div.parentNode,
 			parentTree = node.parentNode;
-		
+
 		_layersTree.removeTreeElem(div);
 
 		node.removeNode(true);
-		
+
 		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
+
 		_mapHelper.updateUnloadEvent(true);
 	}
 }, 'Layer');
@@ -31611,7 +31611,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
         var layerRights = _queryMapLayers.layerRights(context.elem.name);
 		return !context.layerManagerFlag &&
-               (layerRights === 'edit' || layerRights === 'editrows') && 
+               (layerRights === 'edit' || layerRights === 'editrows') &&
                context.elem.type == "Vector" &&
                context.elem.IsRasterCatalog;
 	},
@@ -31625,7 +31625,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Копировать стиль"); },
 	isVisible: function(context)
 	{
-		return context.elem.type == "Vector" && 
+		return context.elem.type == "Vector" &&
 		       (context.layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
 	},
 	isSeparatorBefore: function(context)
@@ -31633,7 +31633,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		return !context.layerManagerFlag;
 	},
 	clickCallback: function(context)
-	{            
+	{
 		var rawTree = context.tree.treeModel,
             elem;
         if (context.elem.MultiLayerID)
@@ -31649,15 +31649,15 @@ var applyStyleContentMenuItem = {
 	title: function() { return _gtxt("Применить стиль"); },
 	isVisible: function(context)
 	{
-        if (context.layerManagerFlag || 
-            _queryMapLayers.currentMapRights() !== "edit" || 
-            nsGmx.ClipboardController.getCount('LayerStyle') === 0 ) 
+        if (context.layerManagerFlag ||
+            _queryMapLayers.currentMapRights() !== "edit" ||
+            nsGmx.ClipboardController.getCount('LayerStyle') === 0 )
         {
             return false;
         }
-        
+
         if (context.contentMenuType === 'Layer') {
-            return context.elem.type == "Vector" && 
+            return context.elem.type == "Vector" &&
                 nsGmx.ClipboardController.get('LayerStyle', -1).type === context.elem.GeometryType;
         } else { //группы
             return true;
@@ -31665,34 +31665,34 @@ var applyStyleContentMenuItem = {
 	},
 	clickCallback: function(context)
 	{
-		var 
+		var
             newStyles = nsGmx.ClipboardController.get('LayerStyle', -1).style,
             stylesType = nsGmx.ClipboardController.get('LayerStyle', -1).type;
-            
+
 		if (context.contentMenuType === 'Layer') {
             var div;
             if (context.elem.MultiLayerID)
                 div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
             else
                 div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
-            
+
             div.gmxProperties.content.properties.styles = newStyles;
-            
+
             _mapHelper.updateMapStyles(newStyles, context.elem.name);
-            
+
             _mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
         } else { //группа
             var tree = context.tree.treeModel,
                 node = tree.findElemByGmxProperties(context.div.gmxProperties).elem;
-                
+
             tree.forEachLayer(function(layerContent) {
                 if (layerContent.properties.type !== "Vector" || layerContent.properties.GeometryType !== stylesType){
                     return;
                 };
-                
+
                 layerContent.properties.styles = newStyles;
                 _mapHelper.updateMapStyles(newStyles, layerContent.properties.name);
-                
+
                 var div = context.tree.findUITreeElem({content: layerContent});
                 if (div) {
                     // div.gmxProperties.content.properties.styles = newStyles;
@@ -49977,6 +49977,43 @@ nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widge
     "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
     "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
     "</div>";;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
+nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
+    "    <div class=\"headerWidget-left\">\n" +
+    "        <div class=\"headerWidget-logoContainer\">\n" +
+    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"headerWidget-right\">\n" +
+    "        <div class=\"headerWidget-bar headerWidget-navigationBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-navigationBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-leftLinksContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-rightLinksContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-socialsContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-searchContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</div>\n" +
+    "";
+nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
+    "    {{#if vk}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if facebook}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if twitter}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -50059,43 +50096,6 @@ nsGmx.Translations.addText('eng', {
         'langEn': 'En'
     }
 });;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
-nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
-    "    <div class=\"headerWidget-left\">\n" +
-    "        <div class=\"headerWidget-logoContainer\">\n" +
-    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"headerWidget-right\">\n" +
-    "        <div class=\"headerWidget-bar headerWidget-navigationBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-navigationBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-leftLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-rightLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-socialsContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-searchContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "</div>\n" +
-    "";
-nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
-    "    {{#if vk}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if facebook}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if twitter}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "</div>";;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -59079,7 +59079,7 @@ function processGmxMap(state, gmxMap) {
                         quickLookMinZoom,
                         defaultMinZoom = 6;
 
-                    if (props.IsRasterCatalog || props.Quicklook) {
+                    if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')) {
                         rcMinZoom = props.IsRasterCatalog ? props.RCMinZoomForRasters : null;
                         quickLookMinZoom = (props.Quicklook && nsGmx.Utils.isJSON(props.Quicklook)) ? JSON.parse(props.Quicklook).minZoom : null;
 
