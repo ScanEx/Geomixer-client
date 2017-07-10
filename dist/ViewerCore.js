@@ -3568,12 +3568,15 @@ var gmxAPIutils = {
             var c = vectorSize === 1 ? coords[i] : [coords[i], coords[i + 1]],
                 x = Math.round(c[0] - px),
                 y = Math.round(py - c[1]),
-                lineIsOnEdge = false;
+                lineIsOnEdge = false,
+				lineCap = 'round';
 
             if (hiddenLines && i === hiddenLines[cntHide]) {
                 lineIsOnEdge = true;
+				lineCap = 'butt';
                 cntHide++;
             }
+			if (ctx.lineCap !== lineCap) { ctx.lineCap = lineCap; }
 
             if (lastX !== x || lastY !== y) {
                 ctx[(lineIsOnEdge ? 'moveTo' : 'lineTo')](x, y);
