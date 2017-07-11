@@ -2511,6 +2511,9 @@ L.gmx.imageLoader = new GmxImageLoader();
 */
 var gmxAPIutils = {
     lastMapId: 0,
+	fromWebMercY: function(y) {
+		return 90 * (4 * Math.atan(Math.exp(y / gmxAPIutils.rMajor)) / Math.PI - 1);
+	},
 
     newId: function()
     {
@@ -3825,7 +3828,7 @@ var gmxAPIutils = {
 
         var pos;
         if (crs === '3857') {
-            pos = L.Projection.SphericalMercator.unproject(new L.Point(y, x)._divideBy(6378137));
+            pos = L.Projection.SphericalMercator.unproject(new L.Point(y, x)._divideBy(gmxAPIutils.rMajor));
             x = pos.lng;
             y = pos.lat;
         }
@@ -4148,6 +4151,7 @@ var gmxAPIutils = {
      * @memberof L.gmxUtil
      * @param {Array} latlngs array
      * @param {Boolean} isMerc - true if coordinates in Mercator
+     * @param {Boolean} isWebMerc - true if coordinates in WebMercator	- TODO
      * @return {Number} length
     */
     getLength: function(latlngs, isMerc) {
@@ -4356,9 +4360,10 @@ var gmxAPIutils = {
      * @memberof L.gmxUtil
      * @param {Object} geometry - Geomixer geometry
      * @param {Boolean} mercFlag - true if coordinates in Mercator
+     * @param {Boolean} webmercFlag - true if coordinates in WebMercator
      * @return {Object} geoJSON geometry
     */
-    geometryToGeoJSON: function (geom, mercFlag) {
+    geometryToGeoJSON: function (geom, mercFlag, webmercFlag) {
         if (!geom) {
             return null;
         }
@@ -4372,7 +4377,7 @@ var gmxAPIutils = {
                 : geom.type,
             coords = geom.coordinates;
         if (mercFlag) {
-            coords = gmxAPIutils.coordsFromMercator(type, coords);
+            coords = gmxAPIutils.coordsFromMercator(type, coords, webmercFlag);
         }
         return {
             type: type,
@@ -4380,7 +4385,7 @@ var gmxAPIutils = {
         };
     },
 
-    convertGeometry: function (geom, fromMerc) {
+    convertGeometry: function (geom, fromMerc, webmercFlag) {
         var type = geom.type === 'MULTIPOLYGON' ? 'MultiPolygon'
                 : geom.type === 'POLYGON' ? 'Polygon'
                 : geom.type === 'MULTILINESTRING' ? 'MultiLineString'
@@ -4390,7 +4395,7 @@ var gmxAPIutils = {
                 : geom.type,
             coords = geom.coordinates;
         if (fromMerc) {
-            coords = gmxAPIutils.coordsFromMercator(type, coords);
+            coords = gmxAPIutils.coordsFromMercator(type, coords, webmercFlag);
         } else {
             coords = gmxAPIutils.coordsToMercator(type, coords);
         }
@@ -4432,7 +4437,7 @@ var gmxAPIutils = {
         };
     },
 
-    _coordsConvert: function(type, coords, toMerc) {
+    _coordsConvert: function(type, coords, toMerc, webmercFlag) {
         var i, len, p,
             resCoords = [];
         if (type === 'Point') {
@@ -4442,25 +4447,28 @@ var gmxAPIutils = {
             } else {
                 p = L.Projection.Mercator.unproject({y: coords[1], x: coords[0]});
                 resCoords = [p.lng, p.lat];
+				if (webmercFlag) {
+					resCoords[1] = gmxAPIutils.fromWebMercY(coords[1]);
+				}
             }
         } else if (type === 'LineString' || type === 'MultiPoint') {
             for (i = 0, len = coords.length; i < len; i++) {
-                resCoords.push(gmxAPIutils._coordsConvert('Point', coords[i], toMerc));
+                resCoords.push(gmxAPIutils._coordsConvert('Point', coords[i], toMerc, webmercFlag));
             }
         } else if (type === 'Polygon' || type === 'MultiLineString') {
             for (i = 0, len = coords.length; i < len; i++) {
-                resCoords.push(gmxAPIutils._coordsConvert('MultiPoint', coords[i], toMerc));
+                resCoords.push(gmxAPIutils._coordsConvert('MultiPoint', coords[i], toMerc, webmercFlag));
             }
         } else if (type === 'MultiPolygon') {
             for (i = 0, len = coords.length; i < len; i++) {
-                resCoords.push(gmxAPIutils._coordsConvert('Polygon', coords[i], toMerc));
+                resCoords.push(gmxAPIutils._coordsConvert('Polygon', coords[i], toMerc, webmercFlag));
             }
         }
         return resCoords;
     },
 
-    coordsFromMercator: function(type, coords) {
-        return gmxAPIutils._coordsConvert(type, coords, false);
+    coordsFromMercator: function(type, coords, webmercFlag) {
+        return gmxAPIutils._coordsConvert(type, coords, false, webmercFlag);
     },
 
     coordsToMercator: function(type, coords) {
@@ -4480,6 +4488,7 @@ var gmxAPIutils = {
      * @memberof L.gmxUtil
      * @param {Object} geometry
      * @param {Boolean} [isMerc=true] - true if coordinates in Mercator
+     * @param {Boolean} isWebMerc - true if coordinates in WebMercator	- TODO
      * @return {Number} area in square meters
     */
     geoArea: function(geom, isMerc) {
@@ -4605,14 +4614,15 @@ var gmxAPIutils = {
             arr.forEach(function(geom) {
                 if (geom) {
                     type = geom.type.toUpperCase();
+					var latLngGeometry = L.gmxUtil.geometryToGeoJSON(geom, true, unitOptions.srs === '3857');
                     if (type.indexOf('POINT') !== -1) {
-                        var latlng = L.Projection.Mercator.unproject({y: geom.coordinates[1], x: geom.coordinates[0]});
+                        var latlng = L.latLng(latLngGeometry.coordinates.reverse());
                         out = '<b>' + L.gmxLocale.getText('Coordinates') + '</b>: '
                             + gmxAPIutils.getCoordinatesString(latlng, unitOptions.coordinatesFormat);
                     } else if (type.indexOf('LINESTRING') !== -1) {
-                        res += gmxAPIutils.geoLength(geom);
+                        res += gmxAPIutils.geoJSONGetLength(latLngGeometry);
                     } else if (type.indexOf('POLYGON') !== -1) {
-                        res += gmxAPIutils.geoArea(geom);
+                        res += gmxAPIutils.geoJSONGetArea(latLngGeometry);
                     }
                 }
             });
@@ -5226,6 +5236,18 @@ gmxAPIutils.Bounds.prototype = {
         if (part.length) result.push(part);
 
         return result;
+    },
+    toLatLngBounds: function(isWebMerc) {
+		var proj = L.Projection.Mercator,
+			min = proj.unproject(this.min),
+			max = proj.unproject(this.max),
+			arr = [[min.lat, min.lng], [max.lat, max.lng]];
+
+		if (isWebMerc) {
+			arr[0][0] = gmxAPIutils.fromWebMercY(this.min.y);
+			arr[1][0] = gmxAPIutils.fromWebMercY(this.max.y);
+		}
+		return L.latLngBounds(arr);
     }
 };
 
@@ -5325,12 +5347,14 @@ L.extend(L.gmxUtil, {
     distVincenty: gmxAPIutils.distVincenty,
     parseCoordinates: gmxAPIutils.parseCoordinates,
     geometryToGeoJSON: gmxAPIutils.geometryToGeoJSON,
+    coordsFromMercator: gmxAPIutils.coordsFromMercator,
     convertGeometry: gmxAPIutils.convertGeometry,
     transformGeometry: gmxAPIutils.transformGeometry,
     geoJSONtoGeometry: gmxAPIutils.geoJSONtoGeometry,
     geoJSONGetArea: gmxAPIutils.geoJSONGetArea,
     geoJSONGetLength: gmxAPIutils.geoJSONGetLength,
     geoJSONGetLatLng: gmxAPIutils.geoJSONGetLatLng,
+	fromWebMercY: gmxAPIutils.fromWebMercY,
     parseUri: gmxAPIutils.parseUri,
     isRectangle: gmxAPIutils.isRectangle,
     isClockwise: gmxAPIutils.isClockwise,
@@ -6686,6 +6710,7 @@ var Observer = L.Class.extend({
         this.filters = options.filters || [];
         this.targetZoom = options.targetZoom || null;
         this.active = 'active' in options ? options.active : true;
+        this.srs = options.srs || '3395';	// '3857'
 
         if (options.bounds) {   // set bbox by LatLngBounds
             this.setBounds(options.bounds);
@@ -6869,15 +6894,16 @@ var Observer = L.Class.extend({
                 minX1 = -180; maxX1 = maxX - 360; maxX = 180;
             }
         }
-        var m1 = L.Projection.Mercator.project(L.latLng(minY, minX)),
-            m2 = L.Projection.Mercator.project(L.latLng(maxY, maxX));
+		var crs = this.srs === '3857' ? L.CRS.EPSG3857 : L.Projection.Mercator,
+			m1 = crs.project(L.latLng(minY, minX)),
+			m2 = crs.project(L.latLng(maxY, maxX));
 
 		this.bbox = gmxAPIutils.bounds([[m1.x, m1.y], [m2.x, m2.y]]);
 		if (buffer) { this.bbox.addBuffer(buffer); }
         this.bbox1 = null;
         if (minX1) {
-            m1 = L.Projection.Mercator.project(L.latLng(minY, minX1));
-            m2 = L.Projection.Mercator.project(L.latLng(maxY, maxX1));
+            m1 = crs.project(L.latLng(minY, minX1));
+            m2 = crs.project(L.latLng(maxY, maxX1));
             this.bbox1 = gmxAPIutils.bounds([[m1.x, m1.y], [m2.x, m2.y]]);
 			if (buffer) { this.bbox1.addBuffer(buffer); }
         }
@@ -8567,6 +8593,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
                     type: 'resend',
                     layerID: gmx.layerID,
                     needBbox: gmx.needBbox,
+                    srs: gmx.srs,
                     target: 'screen',
                     active: false,
                     bbox: gmx.styleManager.getStyleBounds(gmxTilePoint),
@@ -9138,11 +9165,10 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
 
     //returns L.LatLngBounds
     getBounds: function() {
-        var proj = L.Projection.Mercator,
-            gmxBounds = this._gmx.layerID ? gmxAPIutils.geoItemBounds(this._gmx.geometry).bounds : this._gmx.dataManager.getItemsBounds();
+        var gmxBounds = this._gmx.layerID ? gmxAPIutils.geoItemBounds(this._gmx.geometry).bounds : this._gmx.dataManager.getItemsBounds();
 
         if (gmxBounds) {
-            return L.latLngBounds([proj.unproject(gmxBounds.min), proj.unproject(gmxBounds.max)]);
+			return gmxBounds.toLatLngBounds(this._gmx.srs === '3857');
         } else {
             return new L.LatLngBounds();
         }
@@ -9150,7 +9176,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
 
     getGeometry: function() {
         if (!this._gmx.latLngGeometry) {
-            this._gmx.latLngGeometry = L.gmxUtil.geometryToGeoJSON(this._gmx.geometry, true);
+            this._gmx.latLngGeometry = L.gmxUtil.geometryToGeoJSON(this._gmx.geometry, true, this._gmx.srs === '3857');
         }
 
         return this._gmx.latLngGeometry;
@@ -9247,8 +9273,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
                         gmxTilePoint = gmxAPIutils.getTileNumFromLeaflet(parsedKey, parsedKey.z),
                         bbox = gmx.styleManager.getStyleBounds(gmxTilePoint);
                     if (!observer.bbox.isEqual(bbox)) {
-                        var proj = L.Projection.Mercator;
-                        observer.setBounds(L.latLngBounds([proj.unproject(bbox.min), proj.unproject(bbox.max)]));
+                        observer.setBounds(bbox.toLatLngBounds(this._gmx.srs === '3857'));
                     }
                 }
             } else {
@@ -9492,8 +9517,9 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
             zoom = this._map._zoom,
             shiftX = gmx.shiftX || 0,   // Сдвиг слоя
             shiftY = gmx.shiftY || 0,   // Сдвиг слоя + OSM
-            minLatLng = L.Projection.Mercator.unproject(new L.Point(bounds.min.x, bounds.min.y)),
-            maxLatLng = L.Projection.Mercator.unproject(new L.Point(bounds.max.x, bounds.max.y)),
+			latLngBounds = bounds.toLatLngBounds(gmx.srs === '3857'),
+            minLatLng = latLngBounds.getSouthWest(),
+            maxLatLng = latLngBounds.getNorthEast(),
             screenBounds = this._map.getBounds(),
             sw = screenBounds.getSouthWest(),
             ne = screenBounds.getNorthEast(),
@@ -11607,8 +11633,8 @@ L.gmx.VectorLayer.include({
             };
 
         if (geometry.type === 'POINT') {
-            var coord = geometry.coordinates;
-            outItem.latlng = L.Projection.Mercator.unproject({x: coord[0], y: coord[1]});
+			var geoJson = L.gmxUtil.geometryToGeoJSON(geometry, true, gmx.srs === '3857');
+            outItem.latlng = L.latLng(geoJson.coordinates.reverse());
         }
         if (offset) {
             var protoOffset = L.Popup.prototype.options.offset;
@@ -11692,7 +11718,7 @@ L.gmx.VectorLayer.include({
                 }.bind(this));
             } else {
 				if (item.type.indexOf('POINT') !== -1) {
-					options.latlng = L.latLng(L.gmxUtil.geometryToGeoJSON(item.properties[item.properties.length - 1], true).coordinates.reverse());
+					options.latlng = L.latLng(L.gmxUtil.geometryToGeoJSON(item.properties[item.properties.length - 1], true, this._gmx.srs === '3857').coordinates.reverse());
                 }
 				this._openPopup(options);
             }
@@ -11820,7 +11846,7 @@ L.gmx.VectorLayer.include({
             gmx._needPopups[id] = false;
         } else {
             var center = item.bounds.getCenter(),
-                latlng = L.Projection.Mercator.unproject(new L.Point(center[0], center[1]));
+                latlng = L.latLng(L.gmxUtil.coordsFromMercator('Point', center, gmx.srs === '3857').reverse());
             this._openPopup({
                 type: 'click',
                 latlng: latlng,
@@ -12040,7 +12066,8 @@ L.gmx.VectorLayer.include({
 
             var lng = ev.latlng.lng % 360,
                 latlng = new L.LatLng(ev.latlng.lat, lng + (lng < -180 ? 360 : (lng > 180 ? -360 : 0))),
-                point = L.Projection.Mercator.project(latlng)._subtract(
+				crs = gmx.srs === '3857' ? L.CRS.EPSG3857 : L.Projection.Mercator,
+                point = crs.project(latlng)._subtract(
                     {x: gmx.shiftXlayer || 0, y: gmx.shiftYlayer || 0}
                 ),
                 delta = Math.max(5, gmx.styleManager._getMaxStyleSize(zoom)) / gmx.mInPixel,
@@ -12258,13 +12285,15 @@ var chkVersion = function (layer, callback) {
                     if ('FormData' in window) {
 						var params = 'WrapStyle=None';
 						if (layersVersion.needBbox) {
+							var crs = L.Projection.Mercator;
 							if (map.options.srs === '3857') {
 								params += '&srs=3857';
+								crs = L.CRS.EPSG3857;
 							}
 							var zoom = map.getZoom(),
 								bbox = map.getBounds(),
-								min = L.Projection.Mercator.project(bbox.getSouthWest()),
-								max = L.Projection.Mercator.project(bbox.getNorthEast()),
+								min = crs.project(bbox.getSouthWest()),
+								max = crs.project(bbox.getNorthEast()),
 								bboxStr = [min.x, min.y, max.x, max.y].join(',');
 							params += '&zoom=' + zoom;
 							params += '&bbox=[' + bboxStr + ']';
@@ -12818,8 +12847,9 @@ L.LabelsLayer = L.Class.extend({
             screenBounds = _map.getBounds(),
             southWest = screenBounds.getSouthWest(),
             northEast = screenBounds.getNorthEast(),
-            m1 = L.Projection.Mercator.project(southWest),
-            m2 = L.Projection.Mercator.project(northEast),
+			crs = _map.options.srs === '3857' ? L.CRS.EPSG3857 : L.Projection.Mercator,
+            m1 = crs.project(southWest),	// предполагаем что все слои в одной проекции
+            m2 = crs.project(northEast),
 			_zoom = _map.getZoom();
 
         this.mInPixel = gmxAPIutils.getPixelScale(_zoom);
