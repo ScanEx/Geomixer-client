@@ -359,7 +359,8 @@ var nsGmx = nsGmx || {};
                 dateEnd = this.dateInterval.get('dateEnd'),
                 currentLayer = attrs.currentLayer,
                 layersMaxDates = [],
-                maxDate = null;
+                maxDate = null,
+                localeDate;
 
             if (!attrs.calendar) {return;}
 
@@ -371,7 +372,12 @@ var nsGmx = nsGmx || {};
 
                     if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
                         if (props.DateEnd) {
-                            var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
+                            if (typeof props.DateEnd === "string") {
+                                localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
+                            } else if (typeof props.DateEnd === "number") {
+                                localeDate = new Date(props.DateEnd);
+                            }
+
                             layersMaxDates.push(localeDate);
                         }
 
