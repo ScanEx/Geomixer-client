@@ -13,7 +13,7 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend(
         isTemporal: false,
         maxShowPeriod: 0,
         minPeriod: 1,
-        maxPeriod: 256,
+        maxPeriod: 64,
         columnName: null
     },
 

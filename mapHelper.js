@@ -457,7 +457,7 @@ mapHelper.prototype.getMapState = function() {
 			props = layer.getGmxProperties(),
 			isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
-		if (isTemporalLayer) {
+		if (isTemporalLayer && layer.getDateInterval) {
 			dateIntervals[props.LayerID] = layer.getDateInterval();
 		}
 	}

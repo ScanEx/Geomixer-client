@@ -26632,7 +26632,7 @@ mapHelper.prototype.getMapState = function() {
 			props = layer.getGmxProperties(),
 			isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
-		if (isTemporalLayer) {
+		if (isTemporalLayer && layer.getDateInterval) {
 			dateIntervals[props.LayerID] = layer.getDateInterval();
 		}
 	}
@@ -39463,7 +39463,7 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend(
         isTemporal: false,
         maxShowPeriod: 0,
         minPeriod: 1,
-        maxPeriod: 256,
+        maxPeriod: 64,
         columnName: null
     },
 
