@@ -4652,7 +4652,7 @@ links.Timeline.ItemDot.prototype.updateDOM = function () {
         // add item specific class name when provided
         if (this.className) {
             links.Timeline.addClassName(divBox, this.className);
-            links.Timeline.addClassName(divDot, this.className);
+            // links.Timeline.addClassName(divDot, this.className);
         }
 
         // TODO: apply selected className?
