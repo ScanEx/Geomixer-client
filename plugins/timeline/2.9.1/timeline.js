@@ -483,7 +483,7 @@ links.Timeline.prototype.setData = function(data) {
     }
     else if (links.Timeline.isArray(data)) {
         // read JSON array
-        for (var row = 0, rows = data.length; row < rows; row++) {
+		for (var row = 0, rows = data.length; row < rows; row++) {
             var itemData = data[row];
             var item = this.createItem(itemData);
             items.push(item);
@@ -1740,7 +1740,7 @@ links.Timeline.prototype.repaintItems = function() {
         timeline = this,
         renderedItems = this.renderedItems;
 
-    if (!dom.items) {
+	if (!dom.items) {
         dom.items = {};
     }
 
@@ -1769,7 +1769,7 @@ links.Timeline.prototype.repaintItems = function() {
         (queue.hide.length > 0);   // TODO: reflow needed on hide of items?
 
     while (item = queue.show.shift()) {
-        item.showDOM(frame);
+        item.showDOM(frame, timeline);
         item.getImageUrls(newImageUrls);
         renderedItems.push(item);
     }
@@ -4569,7 +4569,7 @@ links.Timeline.ItemDot.prototype.createDOM = function () {
 
     // dot at start
     var divDot = document.createElement("DIV");
-    divDot.style.position = "absolute";
+    // divDot.style.position = "absolute";
     divDot.style.width = "0px";
     divDot.style.height = "0px";
     divBox.appendChild(divDot);
@@ -4589,10 +4589,11 @@ links.Timeline.ItemDot.prototype.createDOM = function () {
  * @param {Element} container
  * @override
  */
-links.Timeline.ItemDot.prototype.showDOM = function (container) {
+links.Timeline.ItemDot.prototype.showDOM = function (container, timeline) {
     var dom = this.dom;
     if (!dom) {
         dom = this.createDOM();
+		dom._gmxLeft = Math.round(timeline.timeToScreen(this.start));
     }
 
     if (dom.parentNode != container) {
@@ -4602,7 +4603,9 @@ links.Timeline.ItemDot.prototype.showDOM = function (container) {
         }
 
         // append to container
-        container.appendChild(dom);
+		if (container.lastChild && container.lastChild._gmxLeft !== dom._gmxLeft) {
+			container.appendChild(dom);
+		}
         this.rendered = true;
     }
 };
@@ -4665,14 +4668,14 @@ links.Timeline.ItemDot.prototype.updateDOM = function () {
 links.Timeline.ItemDot.prototype.updatePosition = function (timeline) {
     var dom = this.dom;
     if (dom) {
-        var left = timeline.timeToScreen(this.start);
+        var left = Math.round(timeline.timeToScreen(this.start));
 
-        dom.style.top = this.top + "px";
+        // dom.style.top = this.top + "px";
         dom.style.left = (left - this.dotWidth / 2) + "px";
 
         // dom.content.style.marginLeft = (1.5 * this.dotWidth) + "px";
         //dom.content.style.marginRight = (0.5 * this.dotWidth) + "px"; // TODO
-        dom.dot.style.top = ((this.height - this.dotHeight) / 2) + "px";
+        // dom.dot.style.top = ((this.height - this.dotHeight) / 2) + "px";
     }
 };
 
