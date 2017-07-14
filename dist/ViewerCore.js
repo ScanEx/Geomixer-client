@@ -19394,6 +19394,7 @@ window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
+        // { pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/FireMapplet_v2.js',                               module: 'FireMapplet',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
     {pluginName: 'Cadastre',             file: 'plugins/external/GMXPluginCadastre/cadastre.js',         module: 'cadastre',           mapPlugin: true,  isPublic: true, params: {notHideDrawing: true}},
@@ -49994,11 +49995,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -50033,6 +50029,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -57061,7 +57062,7 @@ var nsGmx = nsGmx || {};
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
         select: "Select temporal layer",
-        sync: "Single dateinterval",
+        sync: "Single date interval",
         daily: "daily",
         on: "Layers sync on",
         off: "Layers sync off",

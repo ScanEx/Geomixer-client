@@ -17,7 +17,7 @@ var nsGmx = nsGmx || {};
     nsGmx.Translations.addText("eng", { CommonCalendarWidget: {
         Timeline:     "Timeline",
         select: "Select temporal layer",
-        sync: "Single dateinterval",
+        sync: "Single date interval",
         daily: "daily",
         on: "Layers sync on",
         off: "Layers sync off",

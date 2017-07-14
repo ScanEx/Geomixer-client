@@ -22,7 +22,7 @@
                 }, params.dialog),
                 sliderContainer = document.createElement('div'),
                 sliderDiv = document.createElement('div'),
-                dateInterval = nsGmx.widgets.commonCalendar._dateInterval;
+                dateInterval = nsGmx.widgets.commonCalendar.dateInterval;
 
             $(sliderContainer).addClass('time-slider-container');
             $(sliderDiv).addClass('time-slider-div');

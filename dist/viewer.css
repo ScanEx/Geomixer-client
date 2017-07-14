@@ -2697,39 +2697,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?5485435");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5485435");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?5485435");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5485435");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5485435");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?5485435");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?5485435");
   /*{iconsError}*/
 }
 
@@ -4794,7 +4794,6 @@ button.ui-button::-moz-focus-inner {
  */
 
 .alert {
-  -webkit-transition: all .3s ease;
   transition: all .3s ease;
   padding: 10px;
   background-color: #eee;
@@ -4843,19 +4842,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?5485435");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?5485435");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?5485435");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?5485435");
 }
 
 /* ---------------------------------
@@ -4901,7 +4900,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?5485435");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -4911,7 +4910,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?3199830");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?5485435");
 }
 
 .search-form table {
@@ -5012,11 +5011,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?3199830");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?3199830#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?3199830") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?3199830") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?3199830#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?5485435");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?5485435#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?5485435") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?5485435") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?5485435#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5029,7 +5028,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?3199830#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?5485435#fontello') format('svg');
   }
 }
 */
@@ -5586,7 +5585,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?3199830");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?5485435");
 }
 
 .authWidget-loginButton {
@@ -5762,11 +5761,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?3199830");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?5485435");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?3199830");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?5485435");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -5823,7 +5822,6 @@ input.submit {
   margin-left: -4px;
   border: 1px solid #bcbcbc;
   border-radius: 3px;
-  background: -webkit-linear-gradient( left, #BCBCBC, #FFF );
   background: linear-gradient( 90deg, #BCBCBC, #FFF );
   cursor: pointer;
 }
@@ -5842,7 +5840,6 @@ input.submit {
 
 .fade {
   opacity: 0;
-  -webkit-transition: opacity 0.15s linear;
   transition: opacity 0.15s linear;
 }
 
@@ -5870,11 +5867,8 @@ tbody.collapse.in {
   position: relative;
   height: 0;
   overflow: hidden;
-  -webkit-transition-property: height, visibility;
   transition-property: height, visibility;
-  -webkit-transition-duration: 0.35s;
   transition-duration: 0.35s;
-  -webkit-transition-timing-function: ease;
   transition-timing-function: ease;
 }
 
@@ -6447,7 +6441,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?3199830");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?5485435");
   /* ie9 fix */
 }
 
@@ -6493,7 +6487,6 @@ tbody.collapse.in {
   border: 0;
   position: absolute;
   bottom: 0%;
-  -webkit-transition: bottom .35s ease;
   transition: bottom .35s ease;
 }
 
@@ -6504,7 +6497,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?3199830");
+  background: url("../common_components/dist/src/check.png?5485435");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6550,7 +6543,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?3199830");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?5485435");
   opacity: .4;
   display: none;
 }
@@ -6620,8 +6613,6 @@ body {
 
 .leaflet-cluster-anim .leaflet-marker-icon,
 .leaflet-cluster-anim .leaflet-marker-shadow {
-  -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
-  -webkit-transition: opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
   transition: opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
   transition: transform 0.3s ease-out, opacity 0.3s ease-in;
   transition: transform 0.3s ease-out, opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
@@ -6629,8 +6620,6 @@ body {
 
 .leaflet-cluster-spider-leg {
   /* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */
-  -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;
-  -webkit-transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
   transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
 }
 

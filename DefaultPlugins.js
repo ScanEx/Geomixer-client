@@ -2,6 +2,7 @@
 nsGmx._defaultPlugins =
 [
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
+        // { pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/FireMapplet_v2.js',                               module: 'FireMapplet',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
     {pluginName: 'Cadastre',             file: 'plugins/external/GMXPluginCadastre/cadastre.js',         module: 'cadastre',           mapPlugin: true,  isPublic: true, params: {notHideDrawing: true}},
