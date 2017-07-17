@@ -58824,7 +58824,7 @@ function loadMap(state) {
                 hostName: window.serverBase,
                 apiKey: apiKey,
                 setZIndex: true,
-                isGeneralized: 'isGeneralized' in window ? window.isGeneralized : true
+                isGeneralized: window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true
             }).then(processGmxMap.bind(null, state));
         })
     }, function(resp) {
