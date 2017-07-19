@@ -28358,7 +28358,7 @@ nsGmx.userObjectsManager.addDataCollector('tabs', {
 
 //Загрузка и отображение дополнительных карт в левой панели
 !(function(_) {
-    
+
 var queryExternalMaps = function()
 {
 	this.maps = [];
@@ -28380,13 +28380,13 @@ queryExternalMaps.prototype.load = function()
 											_tr([_td([_t(_gtxt("Имя"))],[['css','colSpan',2]])]),
 											_tr([_td([nameButton]), _td([loadButton])])])],[['css','margin','3px 0px 0px 10px']]),
 			_this = this;
-		
+
 		_(this.workCanvas, [_div([addMap],[['css','margin','5px 0px 5px 10px']]), paramsTable]);
-		
+
 		paramsTable.style.display = 'none';
-		
+
 		hostButton.value = window.serverBase;
-		
+
 		addMap.onclick = function()
 		{
 			if (paramsTable.style.display == 'none')
@@ -28394,29 +28394,29 @@ queryExternalMaps.prototype.load = function()
 			else
 				paramsTable.style.display = 'none';
 		}
-		
+
 		loadButton.onclick = function()
 		{
 			if (hostButton.value == '')
 				inputError(hostButton);
-			
+
 			if (nameButton.value == '')
 				inputError(nameButton);
-			
+
 			if (hostButton.value == '' || nameButton.value == '')
 				return;
-			
+
 			_this.addMapElem(hostButton.value, nameButton.value);
-			
+
 			nameButton.value = '';
 		}
 
 		this.mapsCanvas = _div(null,[['dir','className','drawingObjectsCanvas externalMapsCanvas'],['css','paddingLeft','0px'], ['attr', 'id', 'externalMapsCanvas']]);
-		
+
 		_(this.workCanvas, [this.mapsCanvas]);
-		
+
 		this.builded = true;
-        
+
 		for (var i = 0; i < this.maps.length; ++i)
 			this.addMapElem(this.maps[i].hostName, this.maps[i].mapName, true);
 	}
@@ -28426,13 +28426,13 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
 {
     this.createWorkCanvas('externalMaps');
     this.load();
-    
+
 	var mapElem = _div(),
 		div = _div(null, [['css','position','relative'],['css','margin','2px 0px 2px 14px']]),
 		remove = $('<div class="gmx-icon-close"></div>'),
         mapInfo,
         _this = this;
-	
+
     for (var i = 0; i < this.maps.length; i++) {
         var map = this.maps[i];
         if (map.hostName === hostName && map.mapName === mapName) {
@@ -28443,7 +28443,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
             break;
         }
     }
-    
+
     if (!mapInfo) {
         mapInfo = {
             hostName: hostName,
@@ -28451,32 +28451,32 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName, silent)
         }
         this.maps.push(mapInfo);
     }
-    
+
     mapInfo.container = div
-	
+
 	div.hostName = hostName;
 	div.mapName = mapName;
-	
+
 	_(div, [mapElem, remove[0]]);
 	_(this.mapsCanvas, [div]);
-	
+
 	this.addMap(hostName, mapName, mapElem, silent);
-	
+
 	remove.click(function()
 	{
 		div.removeNode(true);
-		
+
 		if (!mapElem.extLayersTree)
 			return;
-		
-		mapElem.extLayersTree.treeModel.forEachLayer(function(layer, isVisible) 
+
+		mapElem.extLayersTree.treeModel.forEachLayer(function(layer, isVisible)
 		{
 			var name = layer.properties.name;
-			
+
 			if (nsGmx.layersByID[name].external)
 				_queryMapLayers.removeLayer(name);
 		});
-        
+
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
@@ -28493,31 +28493,31 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 		_this = this;
 
 	_(parent, [loading]);
-	
+
 	this.loadMap(hostName, mapName, function(gmxMap)
 	{
 		if (gmxMap == null)
 		{
 			loading.parentNode.parentNode.removeNode(true);
-			
+
 			silent || showErrorMessage(_gtxt("Невозможно загрузить карту [value0] с домена [value1]", mapName, hostName), true);
-			
+
 			return;
 		}
-		
+
         var extLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: true});
-		
+
 		var	tree = extLayersTree.drawTree(gmxMap.rawTree, 2);
 		$(tree).treeview();
 		extLayersTree.runLoadingFuncs();
-        
+
 		loading.removeNode(true);
 		_(parent, [tree]);
-        
+
         //добавляем перетаскивание в основную карту только если доп. карта с того же домена
         if ( hostName === _layersTree.treeModel.getMapProperties().hostName )
             _queryMapLayers.addDraggable(parent);
-		
+
 		parent.extLayersTree = extLayersTree;
 	});
 }
@@ -28525,14 +28525,21 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent, silent)
 queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 {
     var _this = this;
-	L.gmx.loadMap(mapName, {hostName: hostName, leafletMap: nsGmx.leafletMap, apiKey: window.apiKey, isGeneralized: 'isGeneralized' in window ? window.isGeneralized : true}).then(function(gmxMap)
+	L.gmx.loadMap(mapName, {
+        hostName: hostName,
+        leafletMap: nsGmx.leafletMap,
+        apiKey: window.apiKey,
+        srs: nsGmx.leafletMap.options.srs || '',
+        isGeneralized: nsGmx.leafletMap.options.isGeneralized || true,
+        skipTiles: nsGmx.leafletMap.options.skipTiles || ''
+    }).then(function(gmxMap)
 	{
         for (var i = 0; i < gmxMap.layers.length; i++) {
             var layer = gmxMap.layers[i];
             var id = layer.getGmxProperties().name;
-            
+
             layer.external = true;
-            
+
             if (!(id in nsGmx.gmxMap.layersByID)) {
                 nsGmx.gmxMap.addLayer(layer);
             }
@@ -28547,15 +28554,15 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
                 onAdd: function() {},
                 onRemove: function() {}
             }
-            
+
             copyrightLayer.addTo(nsGmx.leafletMap);
         }
-        
+
         gmxMap.properties.hostName = hostName;
-        
+
         callback(gmxMap);
         $(_queryExternalMaps).triggerHandler('map_loaded', gmxMap);
-        
+
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
@@ -28563,7 +28570,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
                 break;
             }
         }
-	}, 
+	},
 	function()
 	{
 		callback(null);
@@ -28579,34 +28586,35 @@ nsGmx.userObjectsManager.addDataCollector('externalMaps', {
     {
         if (!_queryExternalMaps.workCanvas)
             return;
-        
+
         var value = [];
-        
+
         $(_queryExternalMaps.workCanvas.lastChild).children("div").each(function()
         {
             value.push({hostName:this.hostName, mapName:this.mapName})
         })
-        
-        if (!value.length)        
+
+        if (!value.length)
             return null;
-        
+
         return value;
     },
     load: function(data)
     {
         if (!data || !data.length)
             return;
-        
+
         $('#left_externalMaps').remove();
-        
+
         _queryExternalMaps.builded = false;
         _queryExternalMaps.maps = data;
-        
+
         mapHelp.externalMaps.load('externalMaps');
     }
 });
 
 })(nsGmx.Utils._);
+
 var pointsBinding = 
 {
 	pointsBinding: {}
@@ -30322,7 +30330,10 @@ layersTree.prototype.addLayersToMap = function(elem)
             	layerOnMap = L.gmx.createLayer(layer, {
             		layerID: name,
             		hostName: window.serverBase,
-					zIndexOffset: null
+					zIndexOffset: null,
+					srs: nsGmx.leafletMap.options.srs || '',
+					skipTiles: nsGmx.leafletMap.options.skipTiles || '',
+					isGeneralized: nsGmx.leafletMap.options.isGeneralized || true
             });
 
 			updateZIndex(layerOnMap);
@@ -50103,19 +50114,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50153,6 +50151,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -58787,15 +58798,20 @@ function loadMap(state) {
 
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
-	var srs = window.mapOptions ? window.mapOptions.srs : '';
-	if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
 	var skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '';
+    var srs = window.mapOptions ? window.mapOptions.srs : '';
+
+    if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
+
+    var isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
 		serverHost: hostName,
 		apiKey: apiKey,
 		mapName: globalMapName,
-		skipTiles: skipTiles
+		skipTiles: skipTiles,
+        isGeneralized: isGeneralized
 	}).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
@@ -58824,7 +58840,7 @@ function loadMap(state) {
                 hostName: window.serverBase,
                 apiKey: apiKey,
                 setZIndex: true,
-                isGeneralized: window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true
+                isGeneralized: isGeneralized
             }).then(processGmxMap.bind(null, state));
         })
     }, function(resp) {
@@ -58913,10 +58929,19 @@ function initDefaultBaseLayers() {
                         var currentTl = bl,
                             layerID = l[j].layerID,
                             hostName = l[j].hostName || defaultHostName,
-                            mapID = l[j].mapID || defaultMapID;
+                            mapID = l[j].mapID || defaultMapID,
+                            skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '',
+                            srs = window.mapOptions ? window.mapOptions.srs : '',
+                            isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
 
+                            if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
                             // resolve promise -> заменяем в подложках с айди описания слоев на gmxLayers
-                            var promise = L.gmx.loadLayer(mapID, layerID, {hostName: hostName}).then(function(layer) {
+                            var promise = L.gmx.loadLayer(mapID, layerID, {
+                                hostName: hostName,
+                                srs: srs,
+                                isGeneralized: isGeneralized,
+                                skipTiles: skipTiles
+                            }).then(function(layer) {
                                 var id = layer.getGmxProperties().name;
                                 for (var k = 0; k < baseLayers.length; k++) {
                                     var bl = baseLayers[k];
@@ -59202,7 +59227,7 @@ function processGmxMap(state, gmxMap) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
 
-    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey, srs: lmap.options.srs});
+    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized});
 
     baseLayerDef.always(function() {
 
