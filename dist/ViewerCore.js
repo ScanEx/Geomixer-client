@@ -19395,7 +19395,8 @@ nsGmx._defaultPlugins =
 [
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
         // { pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
-    // {pluginName: 'Fire Plugin',          file: 'plugins/FireMapplet_v2.js',                               module: 'FireMapplet',        mapPlugin: true,  isPublic: true},
+        { pluginName: 'AttributionMenu', file: 'plugins/AttributionMenu/AttributionMenu.js', module: 'AttributionMenu', mapPlugin: true, isPublic: true},
+    {pluginName: 'Fire Plugin',          file: 'plugins/fireplugin/FirePlugin.js',                               module: 'FirePlugin',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
     {pluginName: 'Cadastre',             file: 'plugins/external/GMXPluginCadastre/cadastre.js',         module: 'cadastre',           mapPlugin: true,  isPublic: true, params: {notHideDrawing: true}},
     // {pluginName: 'ScanEx catalog',       file: '../GeoMixerModules/catalog/CatalogPlugin.js',            module: 'Catalog',            mapPlugin: true,  isPublic: true},
@@ -28530,7 +28531,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         leafletMap: nsGmx.leafletMap,
         apiKey: window.apiKey,
         srs: nsGmx.leafletMap.options.srs || '',
-        isGeneralized: nsGmx.leafletMap.options.isGeneralized || true,
+        isGeneralized: window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true,
         skipTiles: nsGmx.leafletMap.options.skipTiles || ''
     }).then(function(gmxMap)
 	{
@@ -30333,7 +30334,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 					zIndexOffset: null,
 					srs: nsGmx.leafletMap.options.srs || '',
 					skipTiles: nsGmx.leafletMap.options.skipTiles || '',
-					isGeneralized: nsGmx.leafletMap.options.isGeneralized || true
+					isGeneralized: window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true
             });
 
 			updateZIndex(layerOnMap);
@@ -58803,7 +58804,7 @@ function loadMap(state) {
 
     if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
 
-    var isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+    var isGeneralized = window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true;
 
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
@@ -58932,7 +58933,7 @@ function initDefaultBaseLayers() {
                             mapID = l[j].mapID || defaultMapID,
                             skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '',
                             srs = window.mapOptions ? window.mapOptions.srs : '',
-                            isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+                            isGeneralized = window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true;
 
                             if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
                             // resolve promise -> заменяем в подложках с айди описания слоев на gmxLayers

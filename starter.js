@@ -984,7 +984,7 @@ function loadMap(state) {
 
     if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
 
-    var isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+    var isGeneralized = window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true;
 
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
@@ -1113,7 +1113,7 @@ function initDefaultBaseLayers() {
                             mapID = l[j].mapID || defaultMapID,
                             skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '',
                             srs = window.mapOptions ? window.mapOptions.srs : '',
-                            isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+                            isGeneralized = window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true;
 
                             if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
                             // resolve promise -> заменяем в подложках с айди описания слоев на gmxLayers

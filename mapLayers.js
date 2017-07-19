@@ -1287,7 +1287,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 					zIndexOffset: null,
 					srs: nsGmx.leafletMap.options.srs || '',
 					skipTiles: nsGmx.leafletMap.options.skipTiles || '',
-					isGeneralized: nsGmx.leafletMap.options.isGeneralized || true
+					isGeneralized: window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true
             });
 
 			updateZIndex(layerOnMap);

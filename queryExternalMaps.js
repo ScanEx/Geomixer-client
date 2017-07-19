@@ -172,7 +172,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         leafletMap: nsGmx.leafletMap,
         apiKey: window.apiKey,
         srs: nsGmx.leafletMap.options.srs || '',
-        isGeneralized: nsGmx.leafletMap.options.isGeneralized || true,
+        isGeneralized: window.mapOptions && 'isGeneralized' in window.mapOptions ? window.mapOptions.isGeneralized : true,
         skipTiles: nsGmx.leafletMap.options.skipTiles || ''
     }).then(function(gmxMap)
 	{
