@@ -1284,7 +1284,10 @@ layersTree.prototype.addLayersToMap = function(elem)
             	layerOnMap = L.gmx.createLayer(layer, {
             		layerID: name,
             		hostName: window.serverBase,
-					zIndexOffset: null
+					zIndexOffset: null,
+					srs: nsGmx.leafletMap.options.srs || '',
+					skipTiles: nsGmx.leafletMap.options.skipTiles || '',
+					isGeneralized: nsGmx.leafletMap.options.isGeneralized || true
             });
 
 			updateZIndex(layerOnMap);

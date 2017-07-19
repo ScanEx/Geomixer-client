@@ -979,15 +979,20 @@ function loadMap(state) {
 
     //мы явно получаем описание карты, но пока что не начинаем создание слоёв
     //это нужно, чтобы получить список плагинов и загрузить их до того, как начнутся создаваться слои
-	var srs = window.mapOptions ? window.mapOptions.srs : '';
-	if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
 	var skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '';
+    var srs = window.mapOptions ? window.mapOptions.srs : '';
+
+    if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
+
+    var isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
+
     L.gmx.gmxMapManager.loadMapProperties({
 		srs: srs,
 		serverHost: hostName,
 		apiKey: apiKey,
 		mapName: globalMapName,
-		skipTiles: skipTiles
+		skipTiles: skipTiles,
+        isGeneralized: isGeneralized
 	}).then(function(mapInfo) {
         var userObjects = state.userObjects || (mapInfo && mapInfo.properties.UserData);
         userObjects && nsGmx.userObjectsManager.setData(JSON.parse(userObjects));
@@ -1016,7 +1021,7 @@ function loadMap(state) {
                 hostName: window.serverBase,
                 apiKey: apiKey,
                 setZIndex: true,
-                isGeneralized: window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true
+                isGeneralized: isGeneralized
             }).then(processGmxMap.bind(null, state));
         })
     }, function(resp) {
@@ -1105,10 +1110,19 @@ function initDefaultBaseLayers() {
                         var currentTl = bl,
                             layerID = l[j].layerID,
                             hostName = l[j].hostName || defaultHostName,
-                            mapID = l[j].mapID || defaultMapID;
+                            mapID = l[j].mapID || defaultMapID,
+                            skipTiles = (window.mapOptions ? window.mapOptions.skipTiles : '') || window.gmxSkipTiles || '',
+                            srs = window.mapOptions ? window.mapOptions.srs : '',
+                            isGeneralized = window.mapOptions && window.mapOptions.isGeneralized ? window.mapOptions.isGeneralized : true;
 
+                            if (!srs) { var arr = location.href.match(/[?&][cs]rs=(\d+)/); if (arr) { srs = arr[1]; } }
                             // resolve promise -> заменяем в подложках с айди описания слоев на gmxLayers
-                            var promise = L.gmx.loadLayer(mapID, layerID, {hostName: hostName}).then(function(layer) {
+                            var promise = L.gmx.loadLayer(mapID, layerID, {
+                                hostName: hostName,
+                                srs: srs,
+                                isGeneralized: isGeneralized,
+                                skipTiles: skipTiles
+                            }).then(function(layer) {
                                 var id = layer.getGmxProperties().name;
                                 for (var k = 0; k < baseLayers.length; k++) {
                                     var bl = baseLayers[k];
@@ -1394,7 +1408,7 @@ function processGmxMap(state, gmxMap) {
         nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
     });
 
-    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey, srs: lmap.options.srs});
+    var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized});
 
     baseLayerDef.always(function() {
 
