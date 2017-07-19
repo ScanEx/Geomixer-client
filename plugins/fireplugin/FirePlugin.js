@@ -1317,7 +1317,7 @@ var initGeoMixerFireControl = _.once(function(params, map) {
         //если не указан календарик, то мы будем использовать общий.
         //Однако в этом случае мы хотим, чтобы календарик был под списком провайдеров
         //Поэтому покажем календарик заранее
-        nsGmx.widgets.commonCalendar.show();
+        if (!nsGmx.widgets.commonCalendar.model.get('isAppended')) { nsGmx.widgets.commonCalendar.show(); }
 
         var fireCalendar = new nsGmx.FireCalendarWidget({dateInterval: params.dateInterval});
         nsGmx.widgets.commonCalendar.replaceCalendarWidget(fireCalendar);
