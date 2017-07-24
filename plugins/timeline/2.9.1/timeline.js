@@ -3,7 +3,7 @@
 		getUTCTimeString = function(time) {
 			var arr = time.toISOString().split('T'),
 				tm = arr[1].split(':');
-			return arr[0].split('-').reverse().join('.') + ' ' + tm[0] + ':' + tm[1];
+			return arr[0].split('-').reverse().join('.') + ' ' + tm[0] + ':' + tm[1] + ':' + tm[2].substring(0, 2);
 		},
 		getTimeString = function(dt) {
 			var pad2 = L.gmxUtil.pad2;
@@ -3570,6 +3570,7 @@ links.Timeline.Item = function (data, options) {
          this.start = links.Timeline.parseJSONDate(data.start);
          this.end = links.Timeline.parseJSONDate(data.end);
          */
+        this.utm = data.utm;
         this.start = data.start;
         this.end = data.end;
         this.content = data.content;
@@ -4603,7 +4604,7 @@ links.Timeline.ItemDot.prototype.showDOM = function (container, timeline) {
         }
 
         // append to container
-		if (container.lastChild && container.lastChild._gmxLeft !== dom._gmxLeft) {
+		if (dom._gmxLeft === 0 || (container.lastChild && container.lastChild._gmxLeft !== dom._gmxLeft)) {
 			container.appendChild(dom);
 		}
         this.rendered = true;
