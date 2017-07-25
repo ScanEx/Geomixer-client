@@ -1347,12 +1347,13 @@ var initGeoMixerFireControl = _.once(function(params, map) {
     })
 });
 
-// var unload = function () {
-//     var beforeContainer = _queryMapLayers.getContainerBefore();
-//     var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer')[0].parentNode.parentNode;
-//
-//     $(beforeContainer).find($(fireMappletContainer)).remove();
-// };
+var unload = function () {
+    return false;
+    // var beforeContainer = _queryMapLayers.getContainerBefore();
+    // var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer')[0].parentNode.parentNode;
+
+    // $(beforeContainer).find($(fireMappletContainer)).remove();
+};
 
 var publicInterface = {
     pluginName: 'Fire plugin',
