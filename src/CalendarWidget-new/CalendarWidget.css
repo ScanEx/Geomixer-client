@@ -62,6 +62,11 @@
   margin-bottom: 12px;
 }
 
+.calendar-outside .ui-datepicker-prev,
+.calendar-outside .ui-datepicker-next {
+    cursor: pointer;
+}
+
 .calendar-outside .ui-datepicker table {
   width: 100%;
 }
