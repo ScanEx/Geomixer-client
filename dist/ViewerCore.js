@@ -12809,7 +12809,11 @@ L.LabelsLayer = L.Class.extend({
         });
         if (map.options.zoomAnimation && L.Browser.any3d) {
             map.on('zoomanim', this._animateZoom, this);
-        }
+        } else {
+			map.on('zoomstart', function() {
+				if (this._canvas.parentNode) { this._canvas.parentNode.removeChild(this._canvas); }
+			}, this);
+		}
 
         this._reset();
     },
@@ -12825,7 +12829,7 @@ L.LabelsLayer = L.Class.extend({
 
         if (map.options.zoomAnimation) {
             map.off('zoomanim', this._animateZoom, this);
-        }
+		}
     },
 
     addTo: function (map) {
@@ -50049,43 +50053,6 @@ nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widge
     "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
     "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
     "</div>";;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
-nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
-    "    <div class=\"headerWidget-left\">\n" +
-    "        <div class=\"headerWidget-logoContainer\">\n" +
-    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"headerWidget-right\">\n" +
-    "        <div class=\"headerWidget-bar headerWidget-navigationBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-navigationBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-leftLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-rightLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-socialsContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-searchContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "</div>\n" +
-    "";
-nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
-    "    {{#if vk}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if facebook}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if twitter}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -50168,6 +50135,43 @@ nsGmx.Translations.addText('eng', {
         'langEn': 'En'
     }
 });;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
+nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
+    "    <div class=\"headerWidget-left\">\n" +
+    "        <div class=\"headerWidget-logoContainer\">\n" +
+    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"headerWidget-right\">\n" +
+    "        <div class=\"headerWidget-bar headerWidget-navigationBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-navigationBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-leftLinksContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-rightLinksContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-socialsContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-searchContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</div>\n" +
+    "";
+nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
+    "    {{#if vk}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if facebook}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if twitter}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "</div>";;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
