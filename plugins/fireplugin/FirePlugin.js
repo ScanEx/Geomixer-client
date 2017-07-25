@@ -473,6 +473,7 @@ var FireBurntRenderer3 = function(params)
                     label: {
                         size: 12,
                         color: 0xffffff,
+                        haloColor: 0x000000,
                         field: 'label',
                         align: 'center'
                     }
@@ -1297,13 +1298,19 @@ var FireControl2 = function(map, params)
     }
 }
 
-var initGeoMixerFireControl = _.once(function(params, map) {
+var initGeoMixerFireControl = /*_.once(*/function(params, map) {
     var data = params && params.data;
     if (data && $.isArray(data)) {
         params.data = data[0];
     }
 
     _queryMapLayers.loadDeferred.done(function() {
+
+        var beforeContainer = _queryMapLayers.getContainerBefore();
+
+        var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer');
+        if ($(fireMappletContainer)[0]) return;
+
         var dateInterval = params.dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
 
         var defaultDateInterval = new nsGmx.DateInterval();
@@ -1338,7 +1345,14 @@ var initGeoMixerFireControl = _.once(function(params, map) {
             });
         }
     })
-});
+}/*)*/;
+
+var unload = function () {
+    var beforeContainer = _queryMapLayers.getContainerBefore();
+    var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer')[0].parentNode.parentNode;
+
+    $(beforeContainer).find($(fireMappletContainer)).remove();
+};
 
 var publicInterface = {
     pluginName: 'Fire plugin',
@@ -1353,7 +1367,8 @@ var publicInterface = {
 
     FireControl: FireControl,
     FireControl2: FireControl2,
-    FireControlCollection: FireControlCollection
+    FireControlCollection: FireControlCollection,
+    unload: unload
 }
 
 if (window.gmxCore) {
