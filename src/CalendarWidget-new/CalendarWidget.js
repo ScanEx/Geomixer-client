@@ -92,6 +92,12 @@ var Calendar1 = window.Backbone.View.extend({
         },
         'click .CalendarWidget-iconScrollRight': function () {
             this._shiftDates(1);
+        },
+        'keydown .CalendarWidget-inputCell-inputTimeBegin': function (e) {
+            this.jumpByArrow(e, 'left');
+        },
+        'keydown .CalendarWidget-inputCell-inputTimeEnd': function (e) {
+            this.jumpByArrow(e, 'right');
         }
     },
 
@@ -541,6 +547,41 @@ var Calendar1 = window.Backbone.View.extend({
             this.$el.removeClass('gmx-disabled')
         } else {
             this.$el.addClass('gmx-disabled')
+        }
+    },
+
+    jumpByArrow: function (e, type) {
+        var target = type === 'left' ? this.$('.CalendarWidget-inputCell-inputTimeBegin').find('input') : this.$('.CalendarWidget-inputCell-inputTimeEnd').find('input'),
+            source = type === 'left' ? this.$('.CalendarWidget-inputCell-inputTimeEnd').find('input') : this.$('.CalendarWidget-inputCell-inputTimeBegin').find('input'),
+            sourceElem = $(source).get(0),
+            strEnd;
+
+        switch (type) {
+            case 'left':
+                if (e.key === 'ArrowRight' && e.target.value.length === e.target.selectionEnd) {
+                    $(target).blur();
+                    $(source).focus();
+
+                    strEnd = sourceElem.value.length || 0;
+
+                    setTimeout(function () {
+                        sourceElem.setSelectionRange(strEnd, strEnd);
+                    }, 0);
+                }
+                break;
+            case 'right':
+                if (e.key === 'ArrowLeft' && e.target.selectionStart === 0) {
+                    $(target).blur();
+                    $(source).focus();
+
+                    strEnd = sourceElem.value.length || 0;
+
+                    setTimeout(function () {
+                        sourceElem.setSelectionRange(strEnd, strEnd);
+                    }, 0);
+                }
+                break;
+            default: return;
         }
     },
 
