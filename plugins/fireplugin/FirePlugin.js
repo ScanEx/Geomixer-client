@@ -1298,7 +1298,7 @@ var FireControl2 = function(map, params)
     }
 }
 
-var initGeoMixerFireControl = /*_.once(*/function(params, map) {
+var initGeoMixerFireControl = _.once(function(params, map) {
     var data = params && params.data;
     if (data && $.isArray(data)) {
         params.data = data[0];
@@ -1345,14 +1345,14 @@ var initGeoMixerFireControl = /*_.once(*/function(params, map) {
             });
         }
     })
-}/*)*/;
+});
 
-var unload = function () {
-    var beforeContainer = _queryMapLayers.getContainerBefore();
-    var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer')[0].parentNode.parentNode;
-
-    $(beforeContainer).find($(fireMappletContainer)).remove();
-};
+// var unload = function () {
+//     var beforeContainer = _queryMapLayers.getContainerBefore();
+//     var fireMappletContainer = $(beforeContainer).find('.fireMappletContainer')[0].parentNode.parentNode;
+//
+//     $(beforeContainer).find($(fireMappletContainer)).remove();
+// };
 
 var publicInterface = {
     pluginName: 'Fire plugin',
