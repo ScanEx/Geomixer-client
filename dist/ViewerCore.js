@@ -12807,13 +12807,13 @@ L.LabelsLayer = L.Class.extend({
             layeradd: this._layeradd,
             layerremove: this._layerremove
         });
-        if (map.options.zoomAnimation && L.Browser.any3d) {
-            map.on('zoomanim', this._animateZoom, this);
-        } else {
+        // if (map.options.zoomAnimation && L.Browser.any3d) {
+            // map.on('zoomanim', this._animateZoom, this);
+        // } else {
 			map.on('zoomstart', function() {
 				if (this._canvas.parentNode) { this._canvas.parentNode.removeChild(this._canvas); }
 			}, this);
-		}
+		// }
 
         this._reset();
     },
@@ -12827,9 +12827,9 @@ L.LabelsLayer = L.Class.extend({
         map.off('layeradd', this._layeradd);
         map.off('layerremove', this._layerremove);
 
-        if (map.options.zoomAnimation) {
-            map.off('zoomanim', this._animateZoom, this);
-		}
+        // if (map.options.zoomAnimation) {
+            // map.off('zoomanim', this._animateZoom, this);
+		// }
     },
 
     addTo: function (map) {
@@ -12989,19 +12989,20 @@ L.LabelsLayer = L.Class.extend({
         }
 
         this._frame = null;
-    },
-
-    _animateZoom: function (e) {
-        var scale = this._map.getZoomScale(e.zoom),
-            pixelBoundsMin = this._map.getPixelBounds().min;
-
-        var offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
-        if (pixelBoundsMin.y < 0) {
-            offset.y += pixelBoundsMin.multiplyBy(-scale).y;
-        }
-
-        this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
     }
+	// ,
+
+    // _animateZoom: function (e) {
+        // var scale = this._map.getZoomScale(e.zoom),
+            // pixelBoundsMin = this._map.getPixelBounds().min;
+
+        // var offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
+        // if (pixelBoundsMin.y < 0) {
+            // offset.y += pixelBoundsMin.multiplyBy(-scale).y;
+        // }
+
+        // this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+    // }
 });
 
 L.labelsLayer = function (map, options) {
