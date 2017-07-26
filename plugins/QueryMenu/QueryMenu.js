@@ -18,7 +18,7 @@
         pluginName: pluginName,
 
         afterViewer: function (params, map) {
-            var arr = params.layers.split(', '),
+            var arr = params.layers && params.layers.split(', '),
                 layers = [],
                 dialogParams = $.extend({
                     dialogClass: "query-menu-dialog",
@@ -38,9 +38,12 @@
                     title: params.title
                 });
 
-            for (var i = 0; i < arr.length; i++) {
-                layers.push(nsGmx.gmxMap.layersByID[arr[i]]);
-            };
+            if (arr) {
+                for (var i = 0; i < arr.length; i++) {
+                    layers.push(nsGmx.gmxMap.layersByID[arr[i]]);
+                };
+            }
+
 
             $(root).html(content);
 
