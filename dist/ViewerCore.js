@@ -2589,6 +2589,50 @@ var gmxAPIutils = {
 		return arr.join('&');
     },
 
+	requestLink: function(url, params, options) {
+        options = options || {};
+		return new Promise(function(resolve, reject) {
+			var script = null;
+			if (url.indexOf('.css') === -1) {
+				script = document.createElement('script');
+				script.setAttribute('charset', 'UTF-8');
+				var urlParams = L.extend({}, params, L.gmx.gmxMapManager.syncParams),
+					paramsStringItems = [];
+
+				for (var p in urlParams) {
+					paramsStringItems.push(p + '=' + encodeURIComponent(urlParams[p]));
+				}
+				var src = url + (url.indexOf('?') === -1 ? '?' : '&') + paramsStringItems.join('&'),
+					clearTag = function(err) {
+						L.gmxUtil.loaderStatus(src, true);
+						script.parentNode.removeChild(script);
+						if (err) {
+							reject(url);
+							console.warn('Not found script:', url);
+						} else {
+							resolve(url, params, options);
+						}
+					};
+
+				script.onerror = clearTag;
+				script.onload = function() {
+					clearTag();
+				};
+				L.gmxUtil.loaderStatus(src, null, 'vector');
+				script.setAttribute('src', src);
+			} else {
+				script = document.createElement('link');
+
+				script.rel   = 'stylesheet';
+				script.type  = 'text/css';
+				//link.media = options.media || 'screen';
+				script.href  = url;
+				resolve(url, params, options);
+			}
+			document.getElementsByTagName('head').item(0).appendChild(script);
+		});
+    },
+
     /** Sends JSONP requests
      * @memberof L.gmxUtil
      * @param {String} url - request URL
@@ -5304,6 +5348,7 @@ L.extend(L.gmxUtil, {
     gtIE11: gmxAPIutils.gtIE(11),
     getFormData: gmxAPIutils.getFormData,
     requestJSONP: gmxAPIutils.requestJSONP,
+    requestLink: gmxAPIutils.requestLink,
     getCadastreFeatures: gmxAPIutils.getCadastreFeatures,
     request: gmxAPIutils.request,
     getLayerItemFromServer: gmxAPIutils.getLayerItemFromServer,
