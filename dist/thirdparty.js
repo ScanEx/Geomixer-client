@@ -9231,7 +9231,7 @@ case"touchend":return this.addPointerListenerEnd(t,e,i,n);case"touchmove":return
                 rus: 'Уклоны',
                 eng: 'Slope',
                 icon: iconPrefix + 'basemap_relief_slope.png',
-                description: '<img src = "' + iconPrefix + 'basemap_relief_slope_legend.svg"></img>',
+                description: '<img src = "' + iconPrefix + 'basemap_relief_slope_legend' + (lang === 'rus' ? '' : '_en') + '.svg"></img>',
                 minZoom: 9,
                 maxZoom: 15,
                 layers: [
@@ -9247,7 +9247,7 @@ case"touchend":return this.addPointerListenerEnd(t,e,i,n);case"touchmove":return
                 rus: 'Экспозиция',
                 eng: 'Aspect',
                 icon: iconPrefix + 'basemap_aspect.png',
-                description: '<img src = "' + iconPrefix + 'basemap_aspect_legend.svg"></img>',
+                description: '<img src = "' + iconPrefix + 'basemap_aspect_legend' + (lang === 'rus' ? '' : '_en') + '.svg"></img>',
                 minZoom: 9,
                 maxZoom: 15,
                 layers: [
