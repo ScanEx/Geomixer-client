@@ -86,7 +86,14 @@ var Calendar1 = window.Backbone.View.extend({
         'click .CalendarWidget-dates-outside .CalendarWidget-inputCell': function (e) {
             e.stopPropagation();
             this.showCalendar();
+            // $(e.target).focus();
         },
+        // 'input .CalendarWidget-dateBegin': function (e) {
+        //     this.manuallyChangeDateInterval(e, 'begin');
+        // },
+        // 'input .CalendarWidget-dateEnd': function (e) {
+        //     this.manuallyChangeDateInterval(e, 'end');
+        // },
         'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
         },
@@ -204,6 +211,29 @@ var Calendar1 = window.Backbone.View.extend({
 
         //for backward compatibility
         this.canvas = this.$el;
+    },
+
+    manuallyChangeDateInterval: function (e, type) {
+        var value = $(e.target).val(),
+            parsed
+
+        try {
+            parsed = $.datepicker.parseDate('dd.mm.yy', value);
+        } catch (e) {
+            console.log(e);
+            // return false;
+        }
+
+        if (!parsed) return false;
+
+        console.log(value);
+        console.log(parsed);
+        if (type === 'begin') {
+            this._dateInterval.set('dateBegin', parsed)
+        } else {
+            this._dateInterval.set('dateEnd', parsed)
+        }
+        console.log(this._dateInterval.toJSON());
     },
 
     enableDailyFilter: function () {
@@ -403,6 +433,8 @@ var Calendar1 = window.Backbone.View.extend({
             _this._updateModel();
             _this.setActive(true);
             _this._enableCreateIntervalButton();
+            $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
+            _this._opened = false;
         })
     },
 

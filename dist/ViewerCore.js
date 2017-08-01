@@ -50016,11 +50016,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -50055,6 +50050,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -51585,7 +51585,14 @@ var Calendar1 = window.Backbone.View.extend({
         'click .CalendarWidget-dates-outside .CalendarWidget-inputCell': function (e) {
             e.stopPropagation();
             this.showCalendar();
+            // $(e.target).focus();
         },
+        // 'input .CalendarWidget-dateBegin': function (e) {
+        //     this.manuallyChangeDateInterval(e, 'begin');
+        // },
+        // 'input .CalendarWidget-dateEnd': function (e) {
+        //     this.manuallyChangeDateInterval(e, 'end');
+        // },
         'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
         },
@@ -51703,6 +51710,29 @@ var Calendar1 = window.Backbone.View.extend({
 
         //for backward compatibility
         this.canvas = this.$el;
+    },
+
+    manuallyChangeDateInterval: function (e, type) {
+        var value = $(e.target).val(),
+            parsed
+
+        try {
+            parsed = $.datepicker.parseDate('dd.mm.yy', value);
+        } catch (e) {
+            console.log(e);
+            // return false;
+        }
+
+        if (!parsed) return false;
+
+        console.log(value);
+        console.log(parsed);
+        if (type === 'begin') {
+            this._dateInterval.set('dateBegin', parsed)
+        } else {
+            this._dateInterval.set('dateEnd', parsed)
+        }
+        console.log(this._dateInterval.toJSON());
     },
 
     enableDailyFilter: function () {
@@ -51902,6 +51932,8 @@ var Calendar1 = window.Backbone.View.extend({
             _this._updateModel();
             _this.setActive(true);
             _this._enableCreateIntervalButton();
+            $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
+            _this._opened = false;
         })
     },
 
