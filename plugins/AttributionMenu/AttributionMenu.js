@@ -10,6 +10,7 @@
         pluginName: pluginName,
 
         afterViewer: function (params, map) {
+            if (!params.layers) return;
             var layers = params.layers.split(','),
                 dialogOptions = {
                     position: 'top',
