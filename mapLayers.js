@@ -1082,6 +1082,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
     var _this = this;
 	var isFromList = typeof gmxProperties.content.geometry === 'undefined';
 	var layerProperties = (gmxProperties.type !== 'layer' || !isFromList) ? gmxProperties : false,
+		parentLayer,
 		copyFunc = function()
 		{
 			if (addToMap)
@@ -1091,7 +1092,15 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
             }
             else
             {
-                if ( _this.treeModel.findElemByGmxProperties(gmxProperties) )
+				// врекменно содержим информацию о вьюхах в MetaProperties
+				if ('MetaProperties' in gmxProperties) {
+					var meta = gmxProperties.MetaProperties;
+					if ('parentLayer' in meta) {
+						parentLayer = meta.parentLayer.Value;
+					}
+				}
+				
+                if ( _this.treeModel.findElemByGmxProperties(gmxProperties) && !props.dataSource && !parentLayer)
                 {
                     if (layerProperties.type === 'layer')
                         showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", layerProperties.content.properties.title), true)
@@ -1275,9 +1284,19 @@ layersTree.prototype.addLayersToMap = function(elem)
     else
     {
         var layer = elem.content,
-            name = layer.properties.name;
+			props = layer.properties,
+            name = props.name,
+			meta, parentLayer;
 
-        if (!nsGmx.gmxMap.layersByID[name])
+		// врекменно содержим информацию о вьюхах в MetaProperties
+		if ('MetaProperties' in props) {
+			var meta = props.MetaProperties;
+			if ('parentLayer' in meta) {
+				parentLayer = meta.parentLayer.Value;
+			}
+		}
+
+        if (!nsGmx.gmxMap.layersByID[name] || props.dataSource || parentLayer)
         {
 			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false,
 				rcMinZoom = layer.properties.RCMinZoomForRasters,
