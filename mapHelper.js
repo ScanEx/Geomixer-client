@@ -1472,6 +1472,8 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
     }
 
     sendCrossDomainPostRequest("http://" + params.host + "/" + "DownloadLayer.ashx", requestParams);
+
+
 	// if (window.FormData) {
 	//
 	// 	var form = document.createElement("form");
@@ -1496,7 +1498,8 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 	//     form.appendChild(hiddenParamsDiv);
 	//
 	// 	var formData = new FormData(form);
-	// 	var xhr = new XMLHttpRequest();
+	//
+	//
 	// 	var xhr = new XMLHttpRequest();
 	// 	// :attachment; filename="suda_15062017_Sentinel_poly.zip";
 	// 	xhr.open('POST', /*"http://" + /*params.host*/ window.serverBase + /*"/" + */"DownloadLayer.ashx");
@@ -1504,23 +1507,27 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 	// 	// xhr.setRequestHeader('Content-Disposition', 'attachment');
 	// 	xhr.onload = function () {
 	// 		if (xhr.status === 200) {
-	// 			var blob = new Blob([xhr.response], {type: "octet/stream"});
+	// 			// var blob = new Blob([xhr.response], {type: "application/zip"});
+	// 			var blob = xhr.response;
+	// 			console.log(xhr);
+	// 			console.log(blob);
 	// 			saveData(blob, params.name);
 	// 		}
 	// 	}
 	//
 	// 	xhr.withCredentials = true;
+	// 	xhr.responseType = "blob";
 	// 	xhr.send(formData);
 	//
 	// 	function saveData(blob, name) {
 	// 		var url = window.URL.createObjectURL(blob),
 	// 		a = document.createElement("a");
-	//
+	// 		console.log(url);
 	// 		document.body.appendChild(a);
 	// 		a.style = "display: none";
 	// 		a.href = url;
 	// 		a.download = name;
-	// 		a.click();
+	// 		// a.click();
 	// 		window.URL.revokeObjectURL(url);
 	// 	};
 	// }
