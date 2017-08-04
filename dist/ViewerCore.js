@@ -50169,6 +50169,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50206,19 +50219,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -51576,9 +51576,13 @@ var _gtxt = nsGmx.Translations.getText.bind(nsGmx.Translations),
                 // dates block
                 '<span class = "CalendarWidget-iconScrollLeft icon-left-open"></span>' +
                 '<span class = "CalendarWidget-dates-outside">' +
-                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputBegin"><input class = "CalendarWidget-dateBegin" readonly></span>' +
+                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputBegin">' +
+                    '<input class = "CalendarWidget-dateBegin">' +
+                    '</span>' +
                     '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputMiddle">-</span>' +
-                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputEnd"><input class = "CalendarWidget-dateEnd" readonly></span>' +
+                    '<span class = "CalendarWidget-inputCell CalendarWidget-inputCell-inputEnd">' +
+                    '<input class = "CalendarWidget-dateEnd">' +
+                    '</span>' +
                 '</span>' +
                 '<span class = "CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open"></span>' +
                 // space between dates and time
@@ -51629,15 +51633,15 @@ var Calendar1 = window.Backbone.View.extend({
     events: {
         'click .CalendarWidget-dates-outside .CalendarWidget-inputCell': function (e) {
             e.stopPropagation();
-            this.showCalendar();
-            // $(e.target).focus();
+            this.showCalendar(e);
+            $(e.target).focus();
         },
-        // 'input .CalendarWidget-dateBegin': function (e) {
-        //     this.manuallyChangeDateInterval(e, 'begin');
-        // },
-        // 'input .CalendarWidget-dateEnd': function (e) {
-        //     this.manuallyChangeDateInterval(e, 'end');
-        // },
+        'input .CalendarWidget-dateBegin': function (e) {
+            this.manuallyChangeDateInterval(e, 'begin');
+        },
+        'input .CalendarWidget-dateEnd': function (e) {
+            this.manuallyChangeDateInterval(e, 'end');
+        },
         'click .CalendarWidget-iconScrollLeft': function () {
             this._shiftDates(-1);
         },
@@ -51759,25 +51763,41 @@ var Calendar1 = window.Backbone.View.extend({
 
     manuallyChangeDateInterval: function (e, type) {
         var value = $(e.target).val(),
-            parsed
+            beginInput = this.$('.CalendarWidget-dateBegin')[0],
+            endInput = this.$('.CalendarWidget-dateEnd')[0],
+            dayms = nsGmx.DateInterval.MS_IN_DAY,
+            dateBegin = this._dateInterval.get('dateBegin'),
+            dateEnd = this._dateInterval.get('dateEnd'),
+            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
+            endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf()),
+            parsed;
 
         try {
             parsed = $.datepicker.parseDate('dd.mm.yy', value);
         } catch (e) {
-            console.log(e);
-            // return false;
+            return;
         }
 
-        if (!parsed) return false;
+        // handle errors and too large values
+        if (!parsed || parsed < this._dateMin || parsed > this._dateMax) { return; }
 
-        console.log(value);
-        console.log(parsed);
         if (type === 'begin') {
-            this._dateInterval.set('dateBegin', parsed)
+            this._dateBegin.datepicker('setDate', parsed);
+            if (parsed > dateEnd) {
+                this._dateEnd.datepicker('setDate', parsed);
+                $(endInput).val(e.target.value);
+                this._selectFunc(endInput);
+            }
         } else {
-            this._dateInterval.set('dateEnd', parsed)
+            this._dateEnd.datepicker('setDate', parsed);
+            if (parsed < dateBegin) {
+                this._dateBegin.datepicker('setDate', parsed);
+                $(beginInput).val(e.target.value);
+                this._selectFunc(beginInput);
+            }
         }
-        console.log(this._dateInterval.toJSON());
+
+        this._selectFunc(e.target);
     },
 
     enableDailyFilter: function () {
@@ -51873,14 +51893,14 @@ var Calendar1 = window.Backbone.View.extend({
         return match;
     },
 
-    showCalendar: function () {
+    showCalendar: function (e) {
         var _this = this,
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
-            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
+            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms) && e.target === beginInput,
             endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf());
 
         this.beginCalendar = $(this.calendarTemplates.beginTemplate({oneDayPeriod: oneDayPeriod}));
@@ -51917,6 +51937,11 @@ var Calendar1 = window.Backbone.View.extend({
                     _this._dateEnd.datepicker("destroy");
                 }
             };
+
+        if (this._opened) {
+            $(".calendar-outside .ui-dialog-titlebar-close").trigger('click');
+            this._opened = false;
+        }
 
         oneDayPeriod ? this.setMode(Calendar1.SIMPLE_MODE) : this.setMode(Calendar1.ADVANCED_MODE);
 

@@ -59,13 +59,17 @@
 }
 
 .CommonCalendarWidget .CalendarWidget-dates-outside .CalendarWidget-inputCell {
-  cursor: pointer;
+  /*cursor: text;*/
   display: inline-block;
   height: 100%;
 }
 
+.CommonCalendarWidget .CalendarWidget-dates-outside input {
+  cursor: text;
+}
+
 .CommonCalendarWidget .CalendarWidget-dates-outside .CalendarWidget-inputCell input {
-  cursor: pointer;
+  cursor: text;
 }
 
 .CommonCalendarWidget .CalendarWidget-timeicon {
