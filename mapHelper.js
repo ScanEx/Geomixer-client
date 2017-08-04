@@ -1484,7 +1484,7 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 	//
 	// 	for (var paramName in requestParams) {
 	// 		var input = document.createElement("input");
-	// 		var value = typeof params[paramName] !== 'undefined' ? params[paramName] : '';
+	// 		var value = typeof requestParams[paramName] !== 'undefined' ? requestParams[paramName] : '';
 	//
 	// 		input.setAttribute('type', 'hidden');
 	// 		input.setAttribute('name', paramName);
@@ -1497,25 +1497,32 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
 	//
 	// 	var formData = new FormData(form);
 	// 	var xhr = new XMLHttpRequest();
-	// 	xhr.open('POST', "http://" + params.host + "/" + "DownloadLayer.ashx");
+	// 	var xhr = new XMLHttpRequest();
+	// 	// :attachment; filename="suda_15062017_Sentinel_poly.zip";
+	// 	xhr.open('POST', /*"http://" + /*params.host*/ window.serverBase + /*"/" + */"DownloadLayer.ashx");
+	//
+	// 	// xhr.setRequestHeader('Content-Disposition', 'attachment');
+	// 	xhr.onload = function () {
+	// 		if (xhr.status === 200) {
+	// 			var blob = new Blob([xhr.response], {type: "octet/stream"});
+	// 			saveData(blob, params.name);
+	// 		}
+	// 	}
+	//
 	// 	xhr.withCredentials = true;
 	// 	xhr.send(formData);
-	// }
 	//
-	// if (navigator.msSaveBlob) { // IE11+ : (has Blob, but not a[download])
-	//       navigator.msSaveBlob(blob, filename);
-	//     } else if (navigator.msSaveOrOpenBlob) { // IE10+ : (has Blob, but not a[download])
-	//       navigator.msSaveOrOpenBlob(blob, filename);
-	//     } else {
-	//       // A-download
-	//       var anchor = document.createElement('a');
-	//       anchor.setAttribute('href', (window.Blob) ? objectUrl : dataUrl);
-	//       anchor.setAttribute('download', filename);
+	// 	function saveData(blob, name) {
+	// 		var url = window.URL.createObjectURL(blob),
+	// 		a = document.createElement("a");
 	//
-	//       // Firefox requires the link to be added to the DOM before it can be clicked.
-	//       document.body.appendChild(anchor);
-	//       anchor.click();
-	//       document.body.removeChild(anchor);
+	// 		document.body.appendChild(a);
+	// 		a.style = "display: none";
+	// 		a.href = url;
+	// 		a.download = name;
+	// 		a.click();
+	// 		window.URL.revokeObjectURL(url);
+	// 	};
 	// }
 }
 
