@@ -1472,6 +1472,51 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
     }
 
     sendCrossDomainPostRequest("http://" + params.host + "/" + "DownloadLayer.ashx", requestParams);
+	// if (window.FormData) {
+	//
+	// 	var form = document.createElement("form");
+	// 	form.style.display = 'none';
+	// 	form.setAttribute('enctype', 'multipart/form-data');
+	// 	form.name = 'uploadFile';
+	//
+	// 	var hiddenParamsDiv = document.createElement("div");
+	// 	hiddenParamsDiv.style.display = 'none';
+	//
+	// 	for (var paramName in requestParams) {
+	// 		var input = document.createElement("input");
+	// 		var value = typeof params[paramName] !== 'undefined' ? params[paramName] : '';
+	//
+	// 		input.setAttribute('type', 'hidden');
+	// 		input.setAttribute('name', paramName);
+	// 		input.setAttribute('value', value);
+	//
+	// 		hiddenParamsDiv.appendChild(input)
+	// 	}
+	//
+	//     form.appendChild(hiddenParamsDiv);
+	//
+	// 	var formData = new FormData(form);
+	// 	var xhr = new XMLHttpRequest();
+	// 	xhr.open('POST', "http://" + params.host + "/" + "DownloadLayer.ashx");
+	// 	xhr.withCredentials = true;
+	// 	xhr.send(formData);
+	// }
+	//
+	// if (navigator.msSaveBlob) { // IE11+ : (has Blob, but not a[download])
+	//       navigator.msSaveBlob(blob, filename);
+	//     } else if (navigator.msSaveOrOpenBlob) { // IE10+ : (has Blob, but not a[download])
+	//       navigator.msSaveOrOpenBlob(blob, filename);
+	//     } else {
+	//       // A-download
+	//       var anchor = document.createElement('a');
+	//       anchor.setAttribute('href', (window.Blob) ? objectUrl : dataUrl);
+	//       anchor.setAttribute('download', filename);
+	//
+	//       // Firefox requires the link to be added to the DOM before it can be clicked.
+	//       document.body.appendChild(anchor);
+	//       anchor.click();
+	//       document.body.removeChild(anchor);
+	// }
 }
 
 var _mapHelper = new mapHelper();
