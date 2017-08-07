@@ -1,3 +1,28 @@
+// мы не хотим, чтобы кильватерный след фигурировал в списке пользовательских объектов
+nsGmx.DrawingObjectCustomControllers.addDelegate({
+    isHidden: function(obj) {
+        if (obj.options.detectionTrace) {
+            return true;
+        }
+        return false;
+    }
+});
+
+window._translationsHash.addtext('rus', {
+    detectionPlugin: {
+        zoomToItem: 'Перейти к объекту',
+        deleteItem: 'Удалить объект',
+        trace: 'Нарисовать кильватерный след'
+    }
+});
+window._translationsHash.addtext('eng', {
+    detectionPlugin: {
+        zoomToItem: 'zoom to item',
+        deleteItem: 'delete item',
+        trace: 'trace'
+    }
+});
+
 // TODO: Надо расширить кнопками таблицу
 // получать названия столбцов и передавать их в таблицу
 // сделать интерактивность
@@ -76,9 +101,6 @@
     this.fieldsCache = {};
 
     this._onClickListenerID;
-
-
-    this._tdId = null;
 };
 
 FieldsTableEx.SelectedFieldStyle = {
@@ -103,20 +125,11 @@ FieldsTableEx.prototype.setAliases = function (aliases) {
     }
 
     this.aliasesToParams(inner_aliases);
-
-    //???this._scrollTable.repaint();
 };
 
 FieldsTableEx.prototype.getAttrFields = function (fields) {
     for (var i = 0; i < fields.length; i++) {
         this._attrNames.push(fields[i]);
-    }
-};
-
-FieldsTableEx.prototype.outerSizeProvider = function () {
-    return {
-        width: this.fieldsMenu.workCanvas.parentNode.parentNode.offsetWidth,
-        height: this.fieldsMenu.workCanvas.parentNode.offsetHeight
     }
 };
 
@@ -167,15 +180,6 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
     document.getElementById("agroFieldsTableParent").hidden = true;
 
     var that = this;
-    ($("#agroFieldsTableHeader").find("span.buttonLink")).click(function (e) {
-        that._rowsArr.length = 0;
-        that.sumFieldResult = 0;
-    });
-
-
-    // this.fieldsMenu.bottomArea.appendChild(this.cropListContainer);
-
-    // this.fieldsMenu.bottomArea.appendChild(this.selectedFields);
 
     this._removeBlocked = false;
     this.fieldsMenu.bottomArea.onclick = function () {
@@ -185,20 +189,6 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
     };
 
     this.fieldsMenu.bottomArea.style.display = "none";
-    // this.fieldsMenu.bottomArea.appendChild(this.areaSum);
-
-    //Добавляем кнопки для скачивания
-    // var downloadCsv = this.createDownloadButton("csv", layer, "csv"),
-    //     downloadXls = this.createDownloadButton("еxcel", layer, "excel");
-
-    //var ck = _div(null, [['css', 'float', 'right'], ['css', 'padding-left', '10px'], ['css', 'font-size', '12px']]);
-    //ck.innerHTML = "Скачать:";
-    //ck.classList.add("floatRight_FFbug");
-    //var comma = _div(null, [['css', 'float', 'right'], ['css', 'padding-left', '0px'], ['css', 'font-size', '12px']]);
-    //comma.innerHTML = ",";
-    //comma.classList.add("floatRight_FFbug");
-    //_(this.fieldsMenu.bottomArea, [ck, downloadCsv, comma, downloadXls]);
-    // this.fieldsMenu.bottomArea.appendChild(downloadCsv, downloadXls);
 
     var that = this;
     this._stylesData = [];
@@ -223,7 +213,6 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
                 }
             }
             that._singleSelection(fRow);
-            that.refreshSelectedAreaSum();
             that.refreshSelection();
         }
     };
@@ -264,37 +253,6 @@ FieldsTableEx.prototype.removeListeners = function () {
     nsGmx.gmxMap.layersByID[this._layer.name].off("click", this._onClickListenerID);
 };
 
-FieldsTableEx.prototype.createDownloadButton = function (text, layer, format) {
-    var div = _div(null, [['dir', 'id', 'download_' + format], ['css', 'float', 'right'], ['css', 'padding-left', '5px']]);
-    var btn = _span(null);
-    btn.classList.add("buttonLink");
-    btn.innerHTML = text;
-    btn.style.fontSize = "12px";
-
-    var that = this;
-    btn.onclick = function () {
-        window.getSelection().removeAllRanges();
-
-        //Подготавливаем алиасы!
-        var columns = [];
-
-        sendCrossDomainPostRequest(serverBase + "DownloadLayer.ashx", {
-            t: layer.name,
-            format: format,
-            name: FieldsTableEx.normalizeName(layer.title),
-            columns: JSON.stringify(columns)
-        });
-
-        that._removeBlocked = true;
-        setTimeout(function () {
-            that._removeBlocked = false;
-        }, 100);
-    };
-    div.appendChild(btn);
-
-    return div;
-};
-
 FieldsTableEx.prototype._getExistentFields = function (fields) {
     if (!this._ready) {
         this._existentFields.length = 0;
@@ -303,19 +261,6 @@ FieldsTableEx.prototype._getExistentFields = function (fields) {
         };
         this._ready = true;
     }
-};
-
-FieldsTableEx.normalizeName = function (str) {
-    var reg = new RegExp('([a-zа-я0-9]+)', 'gi');
-    var arr = str.match(reg);
-    var res = "";
-    for (var i = 0; i < arr.length; i++) {
-        res += arr[i];
-        if (i != arr.length - 1) {
-            res += "_";
-        }
-    }
-    return res;
 };
 
 //содает td'шки для tr элемента таблицы(используется в _createTableRow)
@@ -328,8 +273,7 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
         var td = _td();
         td.style.width = this.size[j];
 
-        if (activeHeaders[j] == "" /*||
-            // activeHeaders[j] == FieldsTableEx.INNER_OGC_FID*/)
+        if (activeHeaders[j] == "")
             continue;
 
         var fieldName = this._titleToField[activeHeaders[j]];
@@ -375,14 +319,6 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
                             that.removeAllSelection();
                         }
                     }
-
-                    that._tdId = this.parentNode.index;
-                    //приблизиться к выбранному полю
-                    that.zoomToTheField(elem.values[elem.fields[that._layer.identityField].index]);
-
-                    setTimeout(function () {
-                        that._tdId = null;
-                    });
                 };
 
             } else {
@@ -398,31 +334,35 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
         }
         else {
             if (fieldName.toLowerCase() == "buttons") {
+                // orange selection
+                var SELECTION_COLOR = '#f57c00';
+
+                var mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
+                var itemID = elem.values[elem.fields[that._layer.identityField].index];
+
                 $(td).addClass('buttons');
 
                 var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small.png', '../img/zoom_to_level_tool_small.png');
-                var recycleButton = nsGmx.Utils.makeImageButton('../img/recycle.png', '../img/recycle.png');
-                var traceButton = nsGmx.Utils.makeImageButton('../img/edit.png', '../img/edit.png');
+                var deleteButton = nsGmx.Utils.makeImageButton('../img/close_black.gif', '../img/close_black.gif');
+                var traceButton = nsGmx.Utils.makeImageButton('../img/path.png', '../img/path.png');
 
                 $(zoomToBoxButton).addClass('detection-button');
-                $(recycleButton).addClass('detection-button');
+                $(deleteButton).addClass('detection-button');
                 $(traceButton).addClass('detection-button');
 
                 $(zoomToBoxButton).css('margin-right', '10px');
-                $(recycleButton).css('margin-right', '10px');
+                $(deleteButton).css('margin-right', '10px');
                 $(traceButton).css('margin-right', '10px');
 
-                nsGmx.Utils._title(zoomToBoxButton, 'zoomToBoxButton');
-                nsGmx.Utils._title(recycleButton, 'recycleButton');
-                nsGmx.Utils._title(traceButton, 'traceButton');
+                nsGmx.Utils._title(zoomToBoxButton, window._gtxt('detectionPlugin.zoomToItem'));
+                nsGmx.Utils._title(deleteButton, window._gtxt('detectionPlugin.deleteItem'));
+                nsGmx.Utils._title(traceButton, window._gtxt('detectionPlugin.trace'));
 
                 td.appendChild(zoomToBoxButton);
-                td.appendChild(recycleButton);
+                td.appendChild(deleteButton);
                 td.appendChild(traceButton);
 
                 td.onclick = function (e) {
-
-
                     if (that._selectedRows.length > 1) {
                         that.removeAllSelection();
                     }
@@ -430,20 +370,99 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
                     that._tdButtons = this.parentNode.index;
 
                     // функция-обработчик
-                    console.log(e);
-                    console.log(e.target);
+                    // 1. zoomToBox
+                    if (e.target === zoomToBoxButton) {
+                        var it = mapLayer._gmx.dataManager.getItem(itemID);
+
+                        that.zoomToTheField(itemID);
+
+                        setTimeout(function() {
+                            mapLayer.setStyleHook(function(it) {
+
+                                if (it.id === itemID) {
+                                    return {
+                                        strokeStyle: SELECTION_COLOR
+                                    }
+                                }
+                            }, 1);
+                        }, 1000);
+
+                        setTimeout(function() {
+                            mapLayer.removeStyleHook();
+                        }, 2000);
+
+                    // 2. delete
+                    } else if (e.target === deleteButton) {
+
+                        that.showDeleteDialog(that._scrollTable, mapLayer, itemID);
+
+                    // 3. trace
+                    } else if (e.target === traceButton) {
+                        console.log('ayaya');
+                        that.createTrace();
+                    };
 
                     setTimeout(function () {
                         that._tdButtons = null;
                     });
-                };
-            }
+                }
 
-            tds.push(td);
+                tds.push(td);
+            }
         }
     }
 
     return tds;
+};
+
+FieldsTableEx.prototype.createTrace = function (table, layer, itemID) {
+    var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
+        polyLineIcon = gmxDrawingControl.getIconById('Polyline');
+
+    // запускаем механизм редактирования
+    gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+
+    // после окончания редактирования
+    // 1. убрать дроуинг с карты
+    // 2. избежать добавления его в левое меню
+    // 3. добавить в слой (если его нет, слой создать)
+    // 4. 
+};
+
+// рисует диалог удаления объекта
+FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
+    var props = layer.getGmxProperties && layer.getGmxProperties();
+    var title = 'вы уверены что объект распознан ошибочно и его надо удалить?';
+    var ui = $(Handlebars.compile(
+        '<div class="delete-dialog-canvas">' +
+            // '<span style="display:inline-block; width:33%;">' +
+            // '</span>' +
+            '<div style="width:80px; margin:auto;">' +
+                '<input style="margin-right:4px;padding: 0 2px;" class="delete-ok-button" type="button" value="OK">' +
+                '<input style="padding: 0 2px;" class="delete-cancel-button" type="button" value="cancel">' +
+            '</div>' +
+            // '<span style="display:inline-block; width:33%;">' +
+            // '</span>' +
+        '</div>'
+    )());
+    var dialog = nsGmx.Utils.showDialog(title, ui[0], 490, 80, false, false);
+
+    // user clicked OK
+    ui.find('input.delete-ok-button').on('click', function () {
+        var arr = [{action: 'delete', id: itemID}];
+
+        _mapHelper.modifyObjectLayer(props.name, arr).done(function() {
+            nsGmx.Utils.removeDialog(dialog);
+            table._dataProvider.serverChanged();
+            layer.repaint();
+            layer.closePopup();
+        });
+    });
+
+    // user clicked Cancel
+    ui.find('input.delete-cancel-button').on('click', function () {
+        nsGmx.Utils.removeDialog(dialog);
+    });
 };
 
 // рисует строку scrollTable
@@ -481,16 +500,7 @@ FieldsTableEx.prototype._createTableRow = function (elem, curIndex, activeHeader
     var clickHandler = [];
     var that = this;
     tr.onclick = function (e) {
-
-        if (that._tdId != null) {
-            return;
-        }
-
         if (that._tdButtons != null) {
-            return;
-        }
-
-        if (this.index == that._tdId && this.selected) {
             return;
         }
 
@@ -519,14 +529,12 @@ FieldsTableEx.prototype._createTableRow = function (elem, curIndex, activeHeader
 FieldsTableEx.prototype.zoomToTheField = function (ogc_fid) {
     var that = this;
     this.fieldGeometryRequest(ogc_fid, this._layer, function (field) {
-        //var bounds = getBounds(field.geometry.coordinates);
         var bounds = L.gmxUtil.getGeometryBounds(field.geometry);
         var minll = L.Projection.Mercator.unproject(bounds.min);
         var maxll = L.Projection.Mercator.unproject(bounds.max);
         bounds = L.latLngBounds(minll, maxll);
         nsGmx.leafletMap.fitBounds(bounds);
 
-        //globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
         setTimeout(function () {
             that.refreshSelection();
         }, 200);
@@ -534,8 +542,6 @@ FieldsTableEx.prototype.zoomToTheField = function (ogc_fid) {
 };
 
 FieldsTableEx.prototype.refreshSelection = function () {
-    //var l = gmxAPI.map.layers[this._layer.name];
-    //l.addItems([]);
     var l = nsGmx.gmxMap.layersByID[this._layer.name];
     l.repaint();
 };
@@ -576,23 +582,8 @@ FieldsTableEx.prototype._onTableRowClick = function (elem, e, sender) {
         }
     }
 
-    //считаем сумму выделенных строк
-    this.refreshSelectedAreaSum();
-
     //перерисовываем слой
     this.refreshSelection();
-};
-
-FieldsTableEx.prototype.refreshSelectedAreaSum = function () {
-    if (this.sumField && this._selectedRows.length) {
-        var sum = 0;
-        var count = 0;
-        for (var r in this._selectedRowsObj) {
-            sum += this._selectedRowsObj[r].sumFieldValue;
-            count++;
-        }
-    } else {
-    }
 };
 
 FieldsTableEx.prototype._singleSelection = function (tr) {

@@ -93,17 +93,6 @@
 
     window.gmxCore && window.gmxCore.addModule('FieldsTablePlugin', publicInterface, {
         init: function (module, path) {
-
-            nsGmx.ContextMenuController.addContextMenuElem({
-                title: function () { return "Поля хозяйства";/*_gtxt("Поля хозяйства");*/ },
-                //isVisible: function (context) {
-                //    return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit') && context.elem.type === "Vector";
-                //},
-                clickCallback: function (context) {
-                    showFieldsTableMenu(context.elem);
-                }
-            }, 'Layer');
-
             return $.when(
                 gmxCore.loadScript(path + "LeftMenuEx.js"),
                 gmxCore.loadScript(path + "FieldsTableEx.js"),
