@@ -7,19 +7,31 @@ nsGmx.DrawingObjectCustomControllers.addDelegate({
         return false;
     }
 });
+// nsGmx.DrawingObjectCustomControllers.addDelegate({
+//     isHidden: function(obj) {
+//         if (obj.options.detectionTrace) {
+//             return true;
+//         }
+//         return false;
+//     }
+// });
 
 window._translationsHash.addtext('rus', {
     detectionPlugin: {
         zoomToItem: 'Перейти к объекту',
-        deleteItem: 'Удалить объект',
-        trace: 'Нарисовать кильватерный след'
+        editItem: 'Редактировать статус объекта',
+        trace: 'Нарисовать кильватерный след',
+        editTitle: 'Укажите статус объекта',
+        addItem: 'добавить объект'
     }
 });
 window._translationsHash.addtext('eng', {
     detectionPlugin: {
         zoomToItem: 'zoom to item',
-        deleteItem: 'delete item',
-        trace: 'trace'
+        editItem: 'edit item status',
+        trace: 'trace',
+        editTitle: 'Select object status',
+        addItem: 'add item'
     }
 });
 
@@ -40,7 +52,7 @@ window._translationsHash.addtext('eng', {
     $(this._scrollTable).on("redraw", function () {
         that._loadingSpinner.removeNode(true);
         document.getElementById("agroFieldsTableParent").hidden = false;
-        that.fieldsMenu.bottomArea.style.display = "none";
+        that.fieldsMenu.bottomArea.style.display = "block";
         var el = that.cropListContainer.childNodes[that.cropListContainer.childNodes.length - 1];
 
         //удаляем последнюю запятую из списка культур
@@ -188,7 +200,44 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
         }
     };
 
-    this.fieldsMenu.bottomArea.style.display = "none";
+    that.fieldsMenu.bottomArea.style.display = "block";
+
+    var addItemButton = nsGmx.Utils.makeLinkButton(window._gtxt('detectionPlugin.addItem'));
+
+    $(addItemButton).click(function () {
+        var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
+            polyLineIcon = gmxDrawingControl.getIconById('Point'),
+            mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
+
+        // запускаем механизм редактирования
+        gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+
+        nsGmx.leafletMap.addEventListener('click', addGeometryToLayer);
+
+        function addGeometryToLayer(e) {
+            var proj = L.Projection.Mercator;
+            var ll = e.latlng;
+            var point = L.point(proj.project(ll));
+            var geometry = L.marker(e.latlng).toGeoJSON();
+            geometry.geometry.coordinates = [point.x, point.y];
+            var arr = [
+                {
+                    action: 'insert',
+                    geometry: geometry
+                }
+            ];
+
+            _mapHelper.modifyObjectLayer(that._layer.name, arr).done(function(res) {
+                // console.log('done');
+                // console.log(res);
+                nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
+                nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
+                that._scrollTable._dataProvider.serverChanged();
+            });
+        }
+    });
+
+    this.fieldsMenu.bottomArea.appendChild(addItemButton);
 
     var that = this;
     this._stylesData = [];
@@ -335,7 +384,7 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
         else {
             if (fieldName.toLowerCase() == "buttons") {
                 // orange selection
-                var SELECTION_COLOR = '#f57c00';
+                // var SELECTION_COLOR = '#f57c00';
 
                 var mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
                 var itemID = elem.values[elem.fields[that._layer.identityField].index];
@@ -355,7 +404,7 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
                 $(traceButton).css('margin-right', '10px');
 
                 nsGmx.Utils._title(zoomToBoxButton, window._gtxt('detectionPlugin.zoomToItem'));
-                nsGmx.Utils._title(deleteButton, window._gtxt('detectionPlugin.deleteItem'));
+                nsGmx.Utils._title(deleteButton, window._gtxt('detectionPlugin.editItem'));
                 nsGmx.Utils._title(traceButton, window._gtxt('detectionPlugin.trace'));
 
                 td.appendChild(zoomToBoxButton);
@@ -376,20 +425,20 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
 
                         that.zoomToTheField(itemID);
 
-                        setTimeout(function() {
-                            mapLayer.setStyleHook(function(it) {
-
-                                if (it.id === itemID) {
-                                    return {
-                                        strokeStyle: SELECTION_COLOR
-                                    }
-                                }
-                            }, 1);
-                        }, 1000);
-
-                        setTimeout(function() {
-                            mapLayer.removeStyleHook();
-                        }, 2000);
+                        // setTimeout(function() {
+                        //     mapLayer.setStyleHook(function(it) {
+                        //
+                        //         if (it.id === itemID) {
+                        //             return {
+                        //                 strokeStyle: SELECTION_COLOR
+                        //             }
+                        //         }
+                        //     }, 1);
+                        // }, 1000);
+                        //
+                        // setTimeout(function() {
+                        //     mapLayer.removeStyleHook();
+                        // }, 2000);
 
                     // 2. delete
                     } else if (e.target === deleteButton) {
@@ -426,30 +475,47 @@ FieldsTableEx.prototype.createTrace = function (table, layer, itemID) {
     // 1. убрать дроуинг с карты
     // 2. избежать добавления его в левое меню
     // 3. добавить в слой (если его нет, слой создать)
-    // 4. 
+    // 4.
 };
 
 // рисует диалог удаления объекта
 FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
     var props = layer.getGmxProperties && layer.getGmxProperties();
-    var title = 'вы уверены что объект распознан ошибочно и его надо удалить?';
+    var title = window._gtxt('detectionPlugin.editTitle');
+    var changeField = "Status";
+
+    var template = {
+        statusArr: [
+            {status: "Подтверждение"},
+            {status: "Ложное срабатывание"}
+        ]
+    }
+
     var ui = $(Handlebars.compile(
         '<div class="delete-dialog-canvas">' +
-            // '<span style="display:inline-block; width:33%;">' +
-            // '</span>' +
+            '<div style="width:140px; margin:auto; margin-bottom:4px;">' +
+                '<select class="status-select">' +
+                    '{{#each this.statusArr}}' +
+                    '<option value="{{this.status}}">' +
+                        '{{this.status}}' +
+                    '</option>' +
+                    '{{/each}}' +
+                '</select>' +
+            '</div>' +
             '<div style="width:80px; margin:auto;">' +
-                '<input style="margin-right:4px;padding: 0 2px;" class="delete-ok-button" type="button" value="OK">' +
+                '<input style="margin-right:4px;padding: 0 2px;" class="ok-button" type="button" value="OK">' +
                 '<input style="padding: 0 2px;" class="delete-cancel-button" type="button" value="cancel">' +
             '</div>' +
-            // '<span style="display:inline-block; width:33%;">' +
-            // '</span>' +
         '</div>'
-    )());
-    var dialog = nsGmx.Utils.showDialog(title, ui[0], 490, 80, false, false);
+    )(template));
 
+    var dialog = nsGmx.Utils.showDialog(title, ui[0], 490, 120, false, false);
     // user clicked OK
-    ui.find('input.delete-ok-button').on('click', function () {
-        var arr = [{action: 'delete', id: itemID}];
+    ui.find('input.ok-button').on('click', function () {
+        var currentValue = ui.find('.status-select').val();
+        // var arr = [{action: 'delete', id: itemID}];
+        var arr = [{action: 'update', id: itemID, properties: {[changeField]: currentValue}}];
+        console.log(currentValue);
 
         _mapHelper.modifyObjectLayer(props.name, arr).done(function() {
             nsGmx.Utils.removeDialog(dialog);
