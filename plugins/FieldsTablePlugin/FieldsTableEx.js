@@ -449,9 +449,18 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
                     } else if (e.target === traceButton) {
                         console.log('ayaya');
                         that.createTrace();
+
+                        _mapHelper.searchObjectLayer(that._layer.name, {
+                            query: 'gmx_id=' + itemID,
+                            includeGeometry: true
+                        }).then(function (res) {
+                            that._parseSearchObject(res)
+                        });
+
+
                     };
 
-                    setTimeout(function () {
+                    setTimeout(function (table, layer, itemID) {
                         that._tdButtons = null;
                     });
                 }
@@ -464,12 +473,54 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
     return tds;
 };
 
+FieldsTableEx.prototype._parseSearchObject = function (res) {
+    var crs = nsGmx.leafletMap.options.crs,
+        proj = L.Projection.Mercator,
+        geometry = res[0].geometry.coordinates[0],
+        mapped;
+    // points 2 lls
+    mapped = geometry.map(function (p) {
+        var point = L.point(p),
+            ll = proj.unproject(point);
+        return [ll.lng, ll.lat]
+    });
+
+    res[0].geometry.coordinates[0] = mapped;
+
+    console.log(res[0]);
+
+    var poly = '"{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]}}"'
+    var line = '"{"type":"Feature","properties":{},"geometry":{"type":"LineString","coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]}}"'
+
+    var altData = {
+        properties: {
+            id: res[0].properties.gmx_id,
+            Speed: res[0].properties.Speed
+        },
+        geometry: poly,
+        line: line
+    }
+
+    console.log(JSON.stringify(altData));
+
+    fetch(window.serverBase, {
+        method: 'POST',
+        data: altData
+    }).then(function (res) {
+        console.log(res);
+    })
+},
+
 FieldsTableEx.prototype.createTrace = function (table, layer, itemID) {
     var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
         polyLineIcon = gmxDrawingControl.getIconById('Polyline');
 
     // запускаем механизм редактирования
     gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+    var params = {
+
+    }
+    // fetch()
 
     // после окончания редактирования
     // 1. убрать дроуинг с карты
