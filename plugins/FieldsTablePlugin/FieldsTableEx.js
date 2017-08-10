@@ -1,20 +1,15 @@
 // мы не хотим, чтобы кильватерный след фигурировал в списке пользовательских объектов
 nsGmx.DrawingObjectCustomControllers.addDelegate({
     isHidden: function(obj) {
-        if (obj.options.detectionTrace) {
-            return true;
-        }
-        return false;
+        return typeof obj.options.detectionTrace !== 'undefined';
     }
 });
-// nsGmx.DrawingObjectCustomControllers.addDelegate({
-//     isHidden: function(obj) {
-//         if (obj.options.detectionTrace) {
-//             return true;
-//         }
-//         return false;
-//     }
-// });
+
+nsGmx.DrawingObjectCustomControllers.addDelegate({
+    isHidden: function(obj) {
+        return typeof obj.options.quick !== 'undefined';
+    }
+});
 
 window._translationsHash.addtext('rus', {
     detectionPlugin: {
@@ -220,6 +215,7 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
             var point = L.point(proj.project(ll));
             var geometry = L.marker(e.latlng).toGeoJSON();
             geometry.geometry.coordinates = [point.x, point.y];
+
             var arr = [
                 {
                     action: 'insert',
@@ -228,8 +224,6 @@ FieldsTableEx.prototype.showFieldsTable = function (layer) {
             ];
 
             _mapHelper.modifyObjectLayer(that._layer.name, arr).done(function(res) {
-                // console.log('done');
-                // console.log(res);
                 nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
                 nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
                 that._scrollTable._dataProvider.serverChanged();
@@ -318,7 +312,6 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
     var tds = [];
 
     for (var j = 0; j < activeHeaders.length; ++j) {
-
         var td = _td();
         td.style.width = this.size[j];
 
@@ -442,22 +435,16 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
 
                     // 2. delete
                     } else if (e.target === deleteButton) {
-
-                        that.showDeleteDialog(that._scrollTable, mapLayer, itemID);
-
+                        that.showEditDialog(that._scrollTable, mapLayer, itemID);
                     // 3. trace
                     } else if (e.target === traceButton) {
-                        console.log('ayaya');
-                        that.createTrace();
+                        // 1 активируем рисовании линии
+                        // 2 когда линия закончена, запрашиваем геометрию и свойства объекта
+                        // 3 после получения геометрии, упаковываем необходимые свойства в json и отправляем запрос Алтынцеву
+                        // 4 по возвращении ответа от Алтынцева изменяем слой
 
-                        _mapHelper.searchObjectLayer(that._layer.name, {
-                            query: 'gmx_id=' + itemID,
-                            includeGeometry: true
-                        }).then(function (res) {
-                            that._parseSearchObject(res)
-                        });
-
-
+                        // 1 активируем рисовании линии
+                        that.trace(that._scrollTable, mapLayer, itemID);
                     };
 
                     setTimeout(function (table, layer, itemID) {
@@ -473,10 +460,40 @@ FieldsTableEx.prototype._createTableTd = function (elem, activeHeaders) {
     return tds;
 };
 
-FieldsTableEx.prototype._parseSearchObject = function (res) {
+FieldsTableEx.prototype.trace = function (table, layer, itemID) {
+    var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
+        polyLineIcon = gmxDrawingControl.getIconById('Polyline'),
+        props = layer.getGmxProperties(),
+        layerName = props.name,
+        that = this;
+
+    // запускаем механизм редактирования
+    gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+
+    nsGmx.leafletMap.gmxDrawing.addEventListener('drawstop', onDrawStop);
+
+    // 2 когда линия закончена, запрашиваем геометрию и свойства объекта
+    function onDrawStop (e) {
+        var drawing = e.object.toGeoJSON();
+        // console.log(drawing);
+
+        _mapHelper.searchObjectLayer(layerName, {
+            query: 'gmx_id=' + itemID,
+            includeGeometry: true
+        }).then(function (res) {
+            nsGmx.leafletMap.gmxDrawing.removeEventListener('drawstop', onDrawStop);
+
+            // 3 после получения геометрии, упаковываем необходимые свойства в json и отправляем запрос Алтынцеву
+            that._parseSearchObject(res, layerName, drawing, itemID);
+        });
+    };
+};
+
+FieldsTableEx.prototype._parseSearchObject = function (res, layer, drawing, itemID) {
     var crs = nsGmx.leafletMap.options.crs,
         proj = L.Projection.Mercator,
         geometry = res[0].geometry.coordinates[0],
+        that = this,
         mapped;
     // points 2 lls
     mapped = geometry.map(function (p) {
@@ -487,7 +504,9 @@ FieldsTableEx.prototype._parseSearchObject = function (res) {
 
     res[0].geometry.coordinates[0] = mapped;
 
-    console.log(res[0]);
+
+    var polyl = JSON.stringify(drawing);
+    console.log(polyl);
 
     var poly = '"{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]}}"'
     var line = '"{"type":"Feature","properties":{},"geometry":{"type":"LineString","coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]}}"'
@@ -495,42 +514,47 @@ FieldsTableEx.prototype._parseSearchObject = function (res) {
     var altData = {
         properties: {
             id: res[0].properties.gmx_id,
-            Speed: res[0].properties.Speed
+            Speed: res[0].properties.Speed,
+            SceneId: 'S1B_IW_GRDH_1SDV_20170615T154253'
         },
         geometry: poly,
-        line: line
+        line: polyl
     }
 
     console.log(JSON.stringify(altData));
 
-    fetch(window.serverBase, {
-        method: 'POST',
-        data: altData
-    }).then(function (res) {
-        console.log(res);
-    })
-},
-
-FieldsTableEx.prototype.createTrace = function (table, layer, itemID) {
-    var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
-        polyLineIcon = gmxDrawingControl.getIconById('Polyline');
-
-    // запускаем механизм редактирования
-    gmxDrawingControl.setActiveIcon(polyLineIcon, true);
-    var params = {
-
-    }
-    // fetch()
-
-    // после окончания редактирования
-    // 1. убрать дроуинг с карты
-    // 2. избежать добавления его в левое меню
-    // 3. добавить в слой (если его нет, слой создать)
-    // 4.
+    // отправляем запрос Алтынцеву
+    // fetch(window.serverBase, {
+    //     method: 'POST',
+    //     data: altData
+    // 4 по возвращении ответа от Алтынцева изменяем слой
+    // }).then(function (res, layer, itemID) {
+    //     that.saveSpeed(res, layer, itemID);
+    // })
 };
 
+FieldsTableEx.prototype.saveSpeed = function (res, layer, itemID) {
+    var props = layer.getGmxProperties && layer.getGmxProperties();
+
+    var resSpeedValue = ''; //res.{...}
+
+    // надо сохранить скорость, которую отдает Алтынцев
+    // сохранить
+    //
+    var arr = [{action: 'update', id: itemID, properties: {"Speed": resSpeedValue}}];
+
+    modifyObjectLayer(props.name, arr).done(function(res) {
+
+        // обновляем таблицу
+
+        // nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
+        // nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
+        // that._scrollTable._dataProvider.serverChanged();
+    });
+}
+
 // рисует диалог удаления объекта
-FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
+FieldsTableEx.prototype.showEditDialog = function (table, layer, itemID) {
     var props = layer.getGmxProperties && layer.getGmxProperties();
     var title = window._gtxt('detectionPlugin.editTitle');
     var changeField = "Status";
@@ -540,7 +564,7 @@ FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
             {status: "Подтверждение"},
             {status: "Ложное срабатывание"}
         ]
-    }
+    };
 
     var ui = $(Handlebars.compile(
         '<div class="delete-dialog-canvas">' +
@@ -555,18 +579,16 @@ FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
             '</div>' +
             '<div style="width:80px; margin:auto;">' +
                 '<input style="margin-right:4px;padding: 0 2px;" class="ok-button" type="button" value="OK">' +
-                '<input style="padding: 0 2px;" class="delete-cancel-button" type="button" value="cancel">' +
+                '<input style="padding: 0 2px;" class="cancel-button" type="button" value="cancel">' +
             '</div>' +
         '</div>'
     )(template));
 
-    var dialog = nsGmx.Utils.showDialog(title, ui[0], 490, 120, false, false);
+    var dialog = nsGmx.Utils.showDialog(title, ui[0], 380, 120, false, false);
     // user clicked OK
     ui.find('input.ok-button').on('click', function () {
         var currentValue = ui.find('.status-select').val();
-        // var arr = [{action: 'delete', id: itemID}];
         var arr = [{action: 'update', id: itemID, properties: {[changeField]: currentValue}}];
-        console.log(currentValue);
 
         _mapHelper.modifyObjectLayer(props.name, arr).done(function() {
             nsGmx.Utils.removeDialog(dialog);
@@ -577,7 +599,7 @@ FieldsTableEx.prototype.showDeleteDialog = function (table, layer, itemID) {
     });
 
     // user clicked Cancel
-    ui.find('input.delete-cancel-button').on('click', function () {
+    ui.find('input.cancel-button').on('click', function () {
         nsGmx.Utils.removeDialog(dialog);
     });
 };
