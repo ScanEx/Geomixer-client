@@ -308,7 +308,7 @@
 		                    var dt = Date.now();
 		                    if (when == 'dateBegin') return new Date(new Date(dt).setDate(new Date(dt).getDate() - 1));
 		                    if (when == 'dateEnd') return new Date(dt);
-		                } 
+		                }
 		            };
                     var dt1 = mapDateInterval.get('dateBegin'),
 			            dt2 = mapDateInterval.get('dateEnd'),
@@ -395,7 +395,7 @@
                             if (oAutoCompleteItem && oAutoCompleteItem.AISObject != null) {
                                 //console.log(oAutoCompleteItem.AISObject);
                                 var dt = new Date(oAutoCompleteItem.AISObject[2] * 1000);
-                                //console.log(dt);			    
+                                //console.log(dt);
                                 var query = '[mmsi]=' + oAutoCompleteItem.AISObject[0] + ' and [ts_pos_utc]=\'' + dt.toJSON() + '\'',
 				columns = '[{"Value":"mmsi"},{"Value":"vessel_name"},{"Value":"ts_pos_utc"}';
                                 //console.log(query);
@@ -486,7 +486,46 @@
                         }
                     }
                 });
+
                 lmap.addControl(icon);
+
+                var tracksLayerName = params.tracksLayerName, // || '13E2051DFEE04EEF997DC5733BD69A15',
+                    pastPositionsLayerName = params.pastPositionsLayerName, // || '8EE2C7996800458AAF70BABB43321FA4',
+                    filterField = 'MMSI';
+
+                window.addAisFilter = function (id, layerName) {
+                    var layer = nsGmx.gmxMap.layersByID[layerName],
+                        props = layer.getGmxProperties && layer.getGmxProperties(),
+                        attrs, index;
+
+                    if (!props) return;
+
+                    attrs = props.attributes;
+
+                    for (var i = 0; i < attrs.length; i++) {
+                        var attr = attrs[i];
+
+                        if (attr.toUpperCase() === filterField) {
+                            index = i + 1; // increment to avoid gmx_id
+                            break;
+                        }
+                    }
+
+                    layer.removeLayerFilter({id: 'aisFilter'});
+
+                    layer.addLayerFilter(function (item) {
+                        return item.properties[index] === exampleID;
+                    }, {id: 'aisFilter'});
+
+                    layer.repaint();
+                }
+
+                window.removeAisFilter = function (layerName) {
+                    var layer = nsGmx.gmxMap.layersByID[layerName];
+
+                    layer.removeLayerFilter({id: 'aisFilter'});
+                    layer.repaint();
+                }
             }
         };
 
