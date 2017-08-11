@@ -1,0 +1,104 @@
+.myOddGrey {
+    background-color: white !important;
+}
+
+#left_leftMenuExID {
+    margin-bottom: 4px !important;
+}
+
+.myOddWhite {
+    background-color: white !important;
+}
+
+.attrsTableBody #agroFieldsTableParent .selected td {
+    background-color: #FAE4CA !important;
+}
+
+.disable-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#areaSum {
+    float: left;
+}
+
+#selectedFields {
+    float: left;
+    padding-left: 5px;
+    width: 137px;
+    text-align: left;
+}
+
+#cropList {
+    width: 100%;
+    text-align: left;
+    padding-bottom: 10px;
+    padding-left: 5px;
+}
+
+#bottomArea {
+    float: right;
+    font-size: 12px;
+    padding-bottom: 7px;
+    padding-right: 7px;
+    text-align: right;
+    width: 100%;
+    padding-top: 5px;
+    display: block;
+}
+
+#download_csv {
+    float: right;
+    padding-left: 10px;
+}
+
+#download_excel {
+    float: right;
+    padding-left: 10px;
+}
+
+.floatRight_FFbug {
+    float: right;
+}
+
+.buttonLink_important:hover {
+    color: #fc830b !important;
+}
+
+#leftPanelHeader{
+	top:initial;
+	top:auto;
+}
+
+#agroFieldsTableHeader{
+    border-top: 1px solid #dedede;
+    border-bottom: 1px solid #dedede;
+}
+
+#agroFieldsTableHeader td{
+	background-color: white;
+	padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#agroFieldsTableHeader td{
+	border: none;
+}
+
+#agroFieldsTableHeader table td{
+    border-left: 1px solid #dedede;
+}
+
+#agroFieldsTableBody td {
+    padding: 0px 5px 0px 5px;
+    border: 0px;
+    border-left: 1px solid #dedede;
+    font-size: 12px;
+    font-weight: normal;
+	text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: nowrap;
+}
