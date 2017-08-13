@@ -435,24 +435,24 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 $(td).addClass('buttons');
                 $(td).addClass('buttons-disabled');
 
-                var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small.png', '../img/zoom_to_level_tool_small.png');
-                var deleteButton = nsGmx.Utils.makeImageButton('../img/pen.png', '../img/pen.png');
-                var traceButton = nsGmx.Utils.makeImageButton('../img/path.png', '../img/path.png');
+                var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small_disabled.png');
+                var editButton = nsGmx.Utils.makeImageButton('../img/pen_disabled.png');
+                var traceButton = nsGmx.Utils.makeImageButton('../img/path_disabled.png');
 
-                $(zoomToBoxButton).addClass('detection-button');
-                $(deleteButton).addClass('detection-button');
-                $(traceButton).addClass('detection-button');
+                $(zoomToBoxButton).addClass('detection-button zoomtobox-button gmx-disabled');
+                $(editButton).addClass('detection-button edit-button gmx-disabled');
+                $(traceButton).addClass('detection-button trace-button gmx-disabled');
 
                 $(zoomToBoxButton).css('margin-right', '10px');
-                $(deleteButton).css('margin-right', '10px');
+                $(editButton).css('margin-right', '10px');
                 $(traceButton).css('margin-right', '10px');
 
                 nsGmx.Utils._title(zoomToBoxButton, window._gtxt('detectionPlugin.zoomToItem'));
-                nsGmx.Utils._title(deleteButton, window._gtxt('detectionPlugin.editItem'));
+                nsGmx.Utils._title(editButton, window._gtxt('detectionPlugin.editItem'));
                 nsGmx.Utils._title(traceButton, window._gtxt('detectionPlugin.trace'));
 
                 td.appendChild(zoomToBoxButton);
-                td.appendChild(deleteButton);
+                td.appendChild(editButton);
                 td.appendChild(traceButton);
 
                 td.onclick = function (e) {
@@ -472,7 +472,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                         that.zoomToTheField(itemID);
 
                     // 2. delete
-                    } else if (e.target === deleteButton) {
+                    } else if (e.target === editButton) {
                         that.showEditDialog(that._scrollTable, mapLayer, itemID);
                     // 3. trace
                     } else if (e.target === traceButton) {
@@ -796,7 +796,7 @@ VesselSARDetection.prototype._onTableRowClick = function (elem, e, sender) {
         e.ctrlKey && e.shiftKey && !this._selectedRows.length) {
         this._singleSelection(sender);
     } else if (e.shiftKey) {
-        this._groupSelection(sender);
+        // this._groupSelection(sender);
     } else if (!e.ctrlKey && !e.shiftKey) {
         this._singleSelection(sender);
         if (this._selectedRows.length >= 1) {
@@ -854,13 +854,50 @@ VesselSARDetection.prototype.removeRowSelection = function (row) {
     this._selectedRows.splice(removeId, 1);
     delete this._selectedRowsObj[row[this.identityField]];
     row.selected = false;
+    this.activateButtons(row, false);
 };
 
 VesselSARDetection.prototype.setRowSelected = function (row) {
+    var spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+        spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage');
+
+    $(spinHolder).hide();
+    $(errorMessage).hide();
+    
     row.selected = true;
     this._selectedRows.push(row[this.identityField]);
     this._selectedRowsObj[row[this.identityField]] = row;
     row.classList.add("selected");
+    this.activateButtons(row, true);
+};
+
+VesselSARDetection.prototype.activateButtons = function (row, flag) {
+
+    // var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small_disabled.png');
+    // var editButton = nsGmx.Utils.makeImageButton('../img/pen_disabled.png');
+    // var traceButton = nsGmx.Utils.makeImageButton('../img/path_disabled.png');
+    var zoomToBoxButton = $(row).find('.zoomtobox-button');
+    var editButton = $(row).find('.edit-button');
+    var traceButton = $(row).find('.trace-button');
+
+    if (flag) {
+        $(zoomToBoxButton).removeClass('gmx-disabled');
+        $(editButton).removeClass('gmx-disabled');
+        $(traceButton).removeClass('gmx-disabled');
+
+        $(zoomToBoxButton).prop('src', '../img/zoom_to_level_tool_small.png');
+        $(editButton).prop('src', '../img/pen.png');
+        $(traceButton).prop('src', '../img/path.png');
+    } else {
+        $(zoomToBoxButton).addClass('gmx-disabled');
+        $(editButton).addClass('gmx-disabled');
+        $(traceButton).addClass('gmx-disabled');
+
+        $(zoomToBoxButton).prop('src', '../img/zoom_to_level_tool_small_disabled.png');
+        $(editButton).prop('src', '../img/pen_disabled.png');
+        $(traceButton).prop('src', '../img/path_disabled.png');
+    }
 };
 
 VesselSARDetection.prototype.aliasesToParams = function (aliases) {
