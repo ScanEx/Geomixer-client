@@ -17,7 +17,9 @@ window._translationsHash.addtext('rus', {
         editItem: 'Редактировать статус объекта',
         trace: 'Нарисовать кильватерный след',
         editTitle: 'Укажите статус объекта',
-        addItem: 'добавить объект'
+        addItem: 'добавить объект',
+        error: 'ошибка',
+        speedCalculationMessage: 'расчет скорости судна...'
     }
 });
 window._translationsHash.addtext('eng', {
@@ -26,7 +28,9 @@ window._translationsHash.addtext('eng', {
         editItem: 'edit item status',
         trace: 'trace',
         editTitle: 'Select object status',
-        addItem: 'add item'
+        addItem: 'add item',
+        error: 'error',
+        speedCalculationMessage: 'calculating speed...'
     }
 });
 
@@ -193,21 +197,64 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
         }
     };
 
+    var loadingBar = $(Handlebars.compile(
+        '<span class="detection-loading-bar">' +
+            '<span class="spinHolder" style="display:none">' +
+                '<img src="img/progress.gif"/>' +
+                '<span class="spinMessage"></span>' +
+            '</span>' +
+            '<span class="errorMessage" style="display:none">{{i "detectionPlugin.error"}}</span>' +
+        '</span>'
+    )({}))[0];
+
+    this.fieldsMenu.bottomArea.appendChild(loadingBar);
+
+
     that.fieldsMenu.bottomArea.style.display = "block";
 
     var addItemButton = nsGmx.Utils.makeLinkButton(window._gtxt('detectionPlugin.addItem'));
 
     $(addItemButton).click(function () {
         var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
-            polyLineIcon = gmxDrawingControl.getIconById('Point'),
+            polygonIcon = gmxDrawingControl.getIconById('Polygon'),
             mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
 
-        // запускаем механизм редактирования
-        gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+        gmxDrawingControl.setActiveIcon(polygonIcon, true);
 
-        nsGmx.leafletMap.addEventListener('click', addGeometryToLayer);
+        // nsGmx.leafletMap.addEventListener('click', addPointToLayer);
+        nsGmx.leafletMap.gmxDrawing.addEventListener('drawstop', addPolygonToLayer);
 
-        function addGeometryToLayer(e) {
+        function addPolygonToLayer(e) {
+            var geometry = e.object.toGeoJSON(),
+                proj = L.Projection.Mercator,
+                lls = geometry.geometry.coordinates[0],
+                mercCoords, arr;
+
+            mercCoords = lls.map(function (a) {
+                var ll = L.latLng(a.slice().reverse()),
+                    p = L.point(proj.project(ll));
+                return [p.x, p.y];
+            });
+
+            geometry.geometry.coordinates = [mercCoords];
+
+            arr = [
+                {
+                    action: 'insert',
+                    geometry: geometry
+                }
+            ];
+
+            _mapHelper.modifyObjectLayer(that._layer.name, arr).then(function(res) {
+                nsGmx.leafletMap.gmxDrawing.removeEventListener('drawstop', addPolygonToLayer);
+                nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
+                that._scrollTable._dataProvider.serverChanged();
+            }, function (res) {
+                console.log(res);
+            });
+        }
+
+        function addPointToLayer(e) {
             var proj = L.Projection.Mercator;
             var ll = e.latlng;
             var point = L.point(proj.project(ll));
@@ -222,7 +269,7 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
             ];
 
             _mapHelper.modifyObjectLayer(that._layer.name, arr).done(function(res) {
-                nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
+                nsGmx.leafletMap.removeEventListener('click', addPointToLayer);
                 nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
                 that._scrollTable._dataProvider.serverChanged();
             });
@@ -309,7 +356,10 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
 
     var tds = [];
 
-    var that = this;
+    var that = this,
+    spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+    spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+    errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage');
 
     for (var j = 0; j < activeHeaders.length; ++j) {
         var td = _td();
@@ -354,7 +404,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 };
                 td.appendChild(div);
 
-                td.onclick = function () {
+                td.onclick = function (e) {
 
                     if (!that._onZoomBtnOver) {
                         if (that._selectedRows.length > 1) {
@@ -383,6 +433,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 var itemID = elem.values[elem.fields[that._layer.identityField].index];
 
                 $(td).addClass('buttons');
+                $(td).addClass('buttons-disabled');
 
                 var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small.png', '../img/zoom_to_level_tool_small.png');
                 var deleteButton = nsGmx.Utils.makeImageButton('../img/pen.png', '../img/pen.png');
@@ -411,27 +462,14 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
 
                     that._tdButtons = this.parentNode.index;
 
+                    $(spinHolder).hide();
+                    $(errorMessage).hide();
                     // функция-обработчик
                     // 1. zoomToBox
                     if (e.target === zoomToBoxButton) {
                         var it = mapLayer._gmx.dataManager.getItem(itemID);
 
                         that.zoomToTheField(itemID);
-
-                        // setTimeout(function() {
-                        //     mapLayer.setStyleHook(function(it) {
-                        //
-                        //         if (it.id === itemID) {
-                        //             return {
-                        //                 strokeStyle: SELECTION_COLOR
-                        //             }
-                        //         }
-                        //     }, 1);
-                        // }, 1000);
-                        //
-                        // setTimeout(function() {
-                        //     mapLayer.removeStyleHook();
-                        // }, 2000);
 
                     // 2. delete
                     } else if (e.target === deleteButton) {
@@ -465,6 +503,8 @@ VesselSARDetection.prototype.trace = function (table, layer, itemID) {
         polyLineIcon = gmxDrawingControl.getIconById('Polyline'),
         props = layer.getGmxProperties(),
         layerName = props.name,
+        spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+        spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
         that = this;
 
     // запускаем механизм редактирования
@@ -475,7 +515,9 @@ VesselSARDetection.prototype.trace = function (table, layer, itemID) {
     // 2 когда линия закончена, запрашиваем геометрию и свойства объекта
     function onDrawStop(e) {
         var drawing = e.object.toGeoJSON();
-        // console.log(drawing);
+
+        $(spinHolder).show();
+        $(spinMessage).html(window._gtxt('detectionPlugin.speedCalculationMessage'));
 
         _mapHelper.searchObjectLayer(layerName, {
             query: 'gmx_id=' + itemID,
@@ -494,9 +536,12 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
         proj = L.Projection.Mercator,
         geometry = res[0].geometry.coordinates[0],
         altLink = 'http://192.168.17.15:1661/',
+        spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+        spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage'),
         that = this,
         mapped;
-    // points 2 lls
+    // points2lls
     mapped = geometry.map(function (p) {
         var point = L.point(p),
             ll = proj.unproject(point);
@@ -505,34 +550,23 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
 
     res[0].geometry.coordinates[0] = mapped;
 
+    var ship = JSON.stringify(res[0]);
+    var wakes = JSON.stringify(drawing);
+    var sceneid = res[0].properties.sceneid;
 
-    var polyl = JSON.stringify(drawing);
-    console.log(polyl);
+    // test от Алтынцева
+    // var sceneid = "S1B_IW_GRDH_1SDV_20170615T154253_1";
+    // var ship = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"Polygon",     "coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]     } });
+    var wakes = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"LineString",     "coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]     } });
 
-    var poly = '"{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]}}"'
-    var line = '"{"type":"Feature","properties":{},"geometry":{"type":"LineString","coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]}}"'
-
-    var sceneid = "S1B_IW_GRDH_1SDV_20170615T154253_1";
-
-    var ship = { "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"Polygon",     "coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]     } };
-    var wakes = { "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"LineString",     "coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]     } };
     var altData = {
         sceneid: sceneid,
         ship: ship,
         wakes: wakes
     }
 
-    var jsAlt = JSON.stringify(altData);
-
-    var params = $.param(altData);
-
-    var td = {
-		sceneid: sceneid,
-		ship: JSON.stringify(ship),
-		wakes: JSON.stringify(wakes)
-	};
-
-	var url = 'http://192.168.17.15:1661/ship_speed' + '?' + $.param(td);
+	var url = 'http://192.168.17.15:1661/ship_speed' + '?' + $.param(altData);
+    console.log(url);
 
     // отправляем запрос Алтынцеву
     fetch(url, {
@@ -540,7 +574,8 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
          mode: 'cors'
      // 4 по возвращении ответа от Алтынцева изменяем слой
       }).then(toJson)
-      .then(altCallback);
+      .then(altCallback)
+      .catch(catchErr);
 
      function toJson(res) {
          return res.json();
@@ -550,25 +585,37 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
         console.log(res);
         that.saveSpeed(res, layer, itemID);
     }
+
+    function catchErr(e) {
+        $(spinHolder).hide();
+        $(errorMessage).show();
+        nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
+    }
  };
 
 VesselSARDetection.prototype.saveSpeed = function (res, layer, itemID) {
-    var props = layer.getGmxProperties && layer.getGmxProperties();
+    var props = layer.getGmxProperties && layer.getGmxProperties(),
+        spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+        spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage'),
+        that = this;
 
-    var resSpeedValue = ''; //res.{...}
+    console.log(res);
 
-    // надо сохранить скорость, которую отдает Алтынцев
-    // сохранить
-    //
-    var arr = [{action: 'update', id: itemID, properties: {"Speed": resSpeedValue}}];
+    var resSpeedValue = res.features[0].properties.speed; //res.{...}
 
-    _mapHelper.modifyObjectLayer(props.name, arr).done(function(res) {
+    var arr = [{action: 'update', id: itemID, properties: {"speed": resSpeedValue}}];
+
+    _mapHelper.modifyObjectLayer(props.name, arr).then(function(res) {
+
+        $(spinHolder).hide();
+        $(errorMessage).hide();
 
         // обновляем таблицу
 
         // nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
-        // nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
-        // that._scrollTable._dataProvider.serverChanged();
+        nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
+        that._scrollTable._dataProvider.serverChanged();
     });
 }
 
@@ -709,7 +756,7 @@ VesselSARDetection.prototype.zoomToTheField = function (ogc_fid) {
         var minll = L.Projection.Mercator.unproject(bounds.min);
         var maxll = L.Projection.Mercator.unproject(bounds.max);
         bounds = L.latLngBounds(minll, maxll);
-        nsGmx.leafletMap.fitBounds(bounds);
+        nsGmx.leafletMap.setView(bounds.getCenter(), 14);
 
         setTimeout(function () {
             that.refreshSelection();

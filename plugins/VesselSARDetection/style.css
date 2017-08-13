@@ -102,3 +102,25 @@
     word-wrap: break-word;
     white-space: nowrap;
 }
+
+.detection-loading-bar {
+    float: left;
+    margin-left: 4px;
+}
+
+.detectionErrorMessage,
+.spinHolder {
+    margin: 0px 0px 0px 8px;
+}
+
+.spinMessage {
+    margin: 0px 0px 0px 4px;
+}
+
+.detectionErrorMessage {
+    color: red;
+}
+
+.buttons-disabled {
+    cursor: default;
+}
