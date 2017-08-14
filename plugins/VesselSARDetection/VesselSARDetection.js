@@ -204,6 +204,7 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
                 '<span class="spinMessage"></span>' +
             '</span>' +
             '<span class="errorMessage" style="display:none">{{i "detectionPlugin.error"}}</span>' +
+            '<span class="hintMessage" style="display:none">{{i "detectionPlugin.error"}}</span>' +
         '</span>'
     )({}))[0];
 
@@ -359,6 +360,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
     var that = this,
     spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
     spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+    hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
     errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage');
 
     for (var j = 0; j < activeHeaders.length; ++j) {
@@ -426,8 +428,8 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
         }
         else {
             if (fieldName.toLowerCase() == "buttons") {
-                // orange selection
-                // var SELECTION_COLOR = '#f57c00';
+
+                var rowSelected;
 
                 var mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
                 var itemID = elem.values[elem.fields[that._layer.identityField].index];
@@ -435,13 +437,13 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 $(td).addClass('buttons');
                 $(td).addClass('buttons-disabled');
 
-                var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small_disabled.png');
-                var editButton = nsGmx.Utils.makeImageButton('../img/pen_disabled.png');
-                var traceButton = nsGmx.Utils.makeImageButton('../img/path_disabled.png');
+                var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small' + (rowSelected ? '' : '_disabled') + '.png');
+                var editButton = nsGmx.Utils.makeImageButton('../img/pen' + (rowSelected ? '' : '_disabled') + '.png');
+                var traceButton = nsGmx.Utils.makeImageButton('../img/path' + (rowSelected ? '' : '_disabled') + '.png');
 
-                $(zoomToBoxButton).addClass('detection-button zoomtobox-button gmx-disabled');
-                $(editButton).addClass('detection-button edit-button gmx-disabled');
-                $(traceButton).addClass('detection-button trace-button gmx-disabled');
+                $(zoomToBoxButton).addClass('detection-button zoomtobox-button' + (rowSelected ? '' : ' gmx-disabled'));
+                $(editButton).addClass('detection-button edit-button' + (rowSelected ? '' : ' gmx-disabled'));
+                $(traceButton).addClass('detection-button trace-button' + (rowSelected ? '' : ' gmx-disabled'));
 
                 $(zoomToBoxButton).css('margin-right', '10px');
                 $(editButton).css('margin-right', '10px');
@@ -450,6 +452,36 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 nsGmx.Utils._title(zoomToBoxButton, window._gtxt('detectionPlugin.zoomToItem'));
                 nsGmx.Utils._title(editButton, window._gtxt('detectionPlugin.editItem'));
                 nsGmx.Utils._title(traceButton, window._gtxt('detectionPlugin.trace'));
+
+                //  $(zoomToBoxButton).on('mouseenter', function () {
+                //     $(hintMessage).show();
+                //     $(hintMessage).html(window._gtxt('detectionPlugin.zoomToItem'));
+                // });
+                //
+                //  $(editButton).on('mouseenter', function () {
+                //     $(hintMessage).show();
+                //     $(hintMessage).html(window._gtxt('detectionPlugin.editItem'));
+                // });
+                //
+                //  $(traceButton).on('mouseenter', function () {
+                //     $(hintMessage).show();
+                //     $(hintMessage).html(window._gtxt('detectionPlugin.trace'));
+                // });
+                //
+                //  $(zoomToBoxButton).on('mouseleave', function () {
+                //      $(hintMessage).html('');
+                //     $(hintMessage).hide();
+                // });
+                //
+                //  $(editButton).on('mouseleave', function () {
+                //      $(hintMessage).html('');
+                //     $(hintMessage).hide();
+                // });
+                //
+                //  $(traceButton).on('mouseleave', function () {
+                //      $(hintMessage).html('');
+                //     $(hintMessage).hide();
+                // });
 
                 td.appendChild(zoomToBoxButton);
                 td.appendChild(editButton);
@@ -464,6 +496,11 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
 
                     $(spinHolder).hide();
                     $(errorMessage).hide();
+                    $(hintMessage).hide();
+                    $(hintMessage).html('');
+                    $(hintMessage).removeClass('hint');
+                    $(hintMessage).removeClass('success');
+
                     // функция-обработчик
                     // 1. zoomToBox
                     if (e.target === zoomToBoxButton) {
@@ -473,15 +510,13 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
 
                     // 2. delete
                     } else if (e.target === editButton) {
+                        $(hintMessage).removeClass('success');
+                        $(hintMessage).addClass('hint');
+                        $(hintMessage).show();
+                        $(hintMessage).html('Выберите статус');
                         that.showEditDialog(that._scrollTable, mapLayer, itemID);
                     // 3. trace
                     } else if (e.target === traceButton) {
-                        // 1 активируем рисовании линии
-                        // 2 когда линия закончена, запрашиваем геометрию и свойства объекта
-                        // 3 после получения геометрии, упаковываем необходимые свойства в json и отправляем запрос Алтынцеву
-                        // 4 по возвращении ответа от Алтынцева изменяем слой
-
-                        // 1 активируем рисовании линии
                         that.trace(that._scrollTable, mapLayer, itemID);
                     };
 
@@ -505,16 +540,25 @@ VesselSARDetection.prototype.trace = function (table, layer, itemID) {
         layerName = props.name,
         spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
         spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
         that = this;
 
-    // запускаем механизм редактирования
     gmxDrawingControl.setActiveIcon(polyLineIcon, true);
+
+    $(hintMessage).removeClass('success');
+    $(hintMessage).addClass('hint');
+    $(hintMessage).show();
+    $(hintMessage).html('Нарисуйте линию');
 
     nsGmx.leafletMap.gmxDrawing.addEventListener('drawstop', onDrawStop);
 
     // 2 когда линия закончена, запрашиваем геометрию и свойства объекта
     function onDrawStop(e) {
         var drawing = e.object.toGeoJSON();
+        $(hintMessage).hide();
+        $(hintMessage).html('');
+        $(hintMessage).removeClass('hint');
+        $(hintMessage).removeClass('success');
 
         $(spinHolder).show();
         $(spinMessage).html(window._gtxt('detectionPlugin.speedCalculationMessage'));
@@ -538,6 +582,7 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
         altLink = 'http://192.168.17.15:1661/',
         spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
         spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
         errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage'),
         that = this,
         mapped;
@@ -550,14 +595,26 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
 
     res[0].geometry.coordinates[0] = mapped;
 
-    var ship = JSON.stringify(res[0]);
+    var shipFeature = {
+        type: "Feature",
+        properties: {
+            target_id: res[0].properties.gmx_id
+        },
+        geometry: res[0].geometry
+    }
+
+    drawing.properties = {
+        target_id: res[0].properties.gmx_id
+    }
+
+    var ship = JSON.stringify(shipFeature);
     var wakes = JSON.stringify(drawing);
     var sceneid = res[0].properties.sceneid;
 
     // test от Алтынцева
     // var sceneid = "S1B_IW_GRDH_1SDV_20170615T154253_1";
     // var ship = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"Polygon",     "coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]     } });
-    var wakes = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"LineString",     "coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]     } });
+    // var wakes = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"LineString",     "coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]     } });
 
     var altData = {
         sceneid: sceneid,
@@ -566,7 +623,6 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
     }
 
 	var url = 'http://192.168.17.15:1661/ship_speed' + '?' + $.param(altData);
-    console.log(url);
 
     // отправляем запрос Алтынцеву
     fetch(url, {
@@ -582,7 +638,7 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
      }
 
     function altCallback(res) {
-        console.log(res);
+        // console.log(res);
         that.saveSpeed(res, layer, itemID);
     }
 
@@ -597,10 +653,9 @@ VesselSARDetection.prototype.saveSpeed = function (res, layer, itemID) {
     var props = layer.getGmxProperties && layer.getGmxProperties(),
         spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
         spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
         errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage'),
         that = this;
-
-    console.log(res);
 
     var resSpeedValue = res.features[0].properties.speed; //res.{...}
 
@@ -610,6 +665,10 @@ VesselSARDetection.prototype.saveSpeed = function (res, layer, itemID) {
 
         $(spinHolder).hide();
         $(errorMessage).hide();
+        $(hintMessage).removeClass('hint');
+        $(hintMessage).show();
+        $(hintMessage).addClass('success');
+        $(hintMessage).html('скорость судна: ' + resSpeedValue.toFixed(0) + ' мор. узлов');
 
         // обновляем таблицу
 
@@ -621,9 +680,14 @@ VesselSARDetection.prototype.saveSpeed = function (res, layer, itemID) {
 
 // рисует диалог удаления объекта
 VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
-    var props = layer.getGmxProperties && layer.getGmxProperties();
     var title = window._gtxt('detectionPlugin.editTitle');
     var changeField = "status";
+    var props = layer.getGmxProperties && layer.getGmxProperties(),
+        spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
+        spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
+        errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage'),
+        that = this;
 
     var template = {
         statusArr: [
@@ -650,6 +714,10 @@ VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
         '</div>'
     )(template));
 
+    if (this.openedDialog) {
+        nsGmx.Utils.removeDialog(this.dialog);
+    }
+
     var dialogOptions = {
         title: title,
         draggable: false,
@@ -664,9 +732,9 @@ VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
         }
     }
 
-    var dialog = $(ui).dialog(dialogOptions);
+    this.dialog = $(ui).dialog(dialogOptions);
 
-    // var dialog = nsGmx.Utils.showDialog(title, ui[0], 380, 120, false, false);
+    this.openedDialog = true;
 
     // user clicked OK
     ui.find('input.detection-ok-button').on('click', function () {
@@ -675,16 +743,25 @@ VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
 
         _mapHelper.modifyObjectLayer(props.name, arr).done(function() {
             $(ui).parent().find(".ui-dialog-titlebar-close").trigger('click');
-            nsGmx.Utils.removeDialog(dialog);
+            nsGmx.Utils.removeDialog(this.dialog);
+            this.openedDialog = false;
             table._dataProvider.serverChanged();
             layer.repaint();
             layer.closePopup();
+            $(hintMessage).hide();
+            $(hintMessage).html('');
+            $(hintMessage).removeClass('hint');
+            $(hintMessage).removeClass('success');
         });
     });
 
     // user clicked Cancel
     ui.find('input.cancel-button').on('click', function () {
         $(ui).parent().find(".ui-dialog-titlebar-close").trigger('click');
+        $(hintMessage).hide();
+        $(hintMessage).html('');
+        $(hintMessage).removeClass('hint');
+        $(hintMessage).removeClass('success');
     });
 };
 
@@ -713,11 +790,31 @@ VesselSARDetection.prototype._createTableRow = function (elem, curIndex, activeH
     //убираем системное выделение
     tr.classList.add("disable-select");
 
+    var zoomToBoxButton = $(tr).find('.zoomtobox-button');
+    var editButton = $(tr).find('.edit-button');
+    var traceButton = $(tr).find('.trace-button');
+
     if (~this._selectedRows.indexOf(tr[this.identityField])) {
         tr.classList.add("selected");
         tr.selected = true;
+
+        $(zoomToBoxButton).removeClass('gmx-disabled');
+        $(editButton).removeClass('gmx-disabled');
+        $(traceButton).removeClass('gmx-disabled');
+
+        $(zoomToBoxButton).prop('src', '../img/zoom_to_level_tool_small.png');
+        $(editButton).prop('src', '../img/pen.png');
+        $(traceButton).prop('src', '../img/path.png');
+
     } else {
         tr.selected = false;
+        $(zoomToBoxButton).addClass('gmx-disabled');
+        $(editButton).addClass('gmx-disabled');
+        $(traceButton).addClass('gmx-disabled');
+
+        $(zoomToBoxButton).prop('src', '../img/zoom_to_level_tool_small_disabled.png');
+        $(editButton).prop('src', '../img/pen_disabled.png');
+        $(traceButton).prop('src', '../img/path_disabled.png');
     }
 
     var clickHandler = [];
@@ -810,6 +907,11 @@ VesselSARDetection.prototype._onTableRowClick = function (elem, e, sender) {
 };
 
 VesselSARDetection.prototype._singleSelection = function (tr) {
+    if (this.openedDialog) {
+        nsGmx.Utils.removeDialog(this.dialog);
+        this.openedDialog = false;
+    }
+
     if (tr.classList.contains("selected")) {
         this.removeRowSelection(tr);
     } else {
@@ -860,11 +962,16 @@ VesselSARDetection.prototype.removeRowSelection = function (row) {
 VesselSARDetection.prototype.setRowSelected = function (row) {
     var spinHolder = $(this.fieldsMenu.bottomArea).find('.spinHolder'),
         spinMessage = $(this.fieldsMenu.bottomArea).find('.spinMessage'),
+        hintMessage = $(this.fieldsMenu.bottomArea).find('.hintMessage'),
         errorMessage = $(this.fieldsMenu.bottomArea).find('.errorMessage');
 
     $(spinHolder).hide();
     $(errorMessage).hide();
-    
+    $(hintMessage).hide();
+    $(hintMessage).html('');
+    $(hintMessage).removeClass('hint');
+    $(hintMessage).removeClass('success');
+
     row.selected = true;
     this._selectedRows.push(row[this.identityField]);
     this._selectedRowsObj[row[this.identityField]] = row;
@@ -873,10 +980,6 @@ VesselSARDetection.prototype.setRowSelected = function (row) {
 };
 
 VesselSARDetection.prototype.activateButtons = function (row, flag) {
-
-    // var zoomToBoxButton = nsGmx.Utils.makeImageButton('../img/zoom_to_level_tool_small_disabled.png');
-    // var editButton = nsGmx.Utils.makeImageButton('../img/pen_disabled.png');
-    // var traceButton = nsGmx.Utils.makeImageButton('../img/path_disabled.png');
     var zoomToBoxButton = $(row).find('.zoomtobox-button');
     var editButton = $(row).find('.edit-button');
     var traceButton = $(row).find('.trace-button');
