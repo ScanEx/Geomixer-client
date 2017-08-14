@@ -1,0 +1,267 @@
+
+.left_aispanel{
+  margin-bottom: 8px;
+  border: 1px solid #DDD;
+ }
+
+.ais_tabs{
+  width: 100%
+}
+
+.ais_tab{
+  width: 50%;
+  text-align: center;
+  padding:10px;
+  padding-top:11px;
+  cursor:pointer;
+  background-color: #EEE;
+  border-bottom:1px solid #DDD
+}
+
+.ais_tab.active {
+  padding-top:10px;
+  background-color: #FFF;
+  border:1px solid #DDD;
+  border-bottom:none
+}
+
+.ais_tab:first-of-type {
+  border-left:none
+}
+
+.ais_tab:last-of-type {
+  border-right:none
+}
+
+.ais_view{
+  margin:10px;
+}
+
+.ais_view .count{
+  color: #CCC;
+}
+
+.ais_view .ais_vessels i{
+  color:#777;
+}
+
+.ais_view div.refresh{
+  background-color: #EEE;
+  margin-left:10px;
+  border:1px solid #DDD;
+  border-radius: 2px;
+  height: 22px;
+  width: 22px;
+  /*
+  padding-top: 2px;
+  padding-left: 2px;
+  */
+  line-height: 16px;
+  text-align: center;
+}
+
+
+.ais_view div.refresh div{
+  height: 22px;
+  width: 22px;
+}
+
+.ais_view div.refresh i{
+  position:relative;
+  top:2px
+}
+
+.ais_view .clicable{
+  cursor:pointer;
+}
+
+.myfleet_view div.refresh{
+  margin-left:0px;
+}
+
+
+.ais_view.search_view select{
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  background: transparent;
+  border: none;
+
+  padding-right: 22px;
+  padding-left: 6px;
+  font-size:11px;
+  position: relative;
+  top: -18px;
+  width: 120px;
+}
+
+.ais_view.search_view select::-ms-expand {
+        display: none;
+}
+
+.ais_view i.icon-down-dir{  
+  position: relative;
+  top: 4px;
+}
+
+.ais_view.search_view select option{
+  font-size:11px;
+  /*padding-left: 6px;*/
+}
+
+.ais_view .instruments{
+  width:100%;
+  margin-bottom: 10px
+}
+
+.ais_view.search_view .instruments tr:nth-of-type(1) td:nth-of-type(1) div{
+  border:1px solid #DDD;
+  background-color: #EEE;
+  height: 22px;
+  padding-right: 4px;
+  text-align:right;
+}
+.ais_view .instruments tr td:nth-of-type(3){
+  width:90%;
+  text-align:right
+}
+
+.ais_view .filter{
+  background-color: #EEE;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  width:99%;
+  margin-top: 10px;
+  border: 1px solid #DDD;
+}
+
+.ais_view .filter input{
+  width: 88%;
+  padding-left: 8px;
+  border: none;  
+  background: transparent;
+}
+
+.ais_view .filter i{
+  margin-left: 5px;
+}
+
+.ais_view .ais_vessel{
+  border: 1px solid #DDD;
+  padding:5px;
+  margin-top:5px;
+  margin-right:1px;
+}
+
+/*
+.ais_view .ais_vessel div.info{
+  width:20px;
+  height:20px;
+  border: 2px solid #DDD;
+  border-radius: 50%;
+  line-height: 16px;
+  text-align: center;
+}
+.ais_view .ais_vessel .icon-info{
+  position: relative;
+  top: 1px
+}
+*/
+.ais_view .ais_vessel .position{
+  cursor:pointer;
+}
+.ais_view .ais_vessel div.info{
+  cursor:pointer;
+  width:16px;
+  height:16px;
+  background: url(http://kosmosnimki.ru/demo/maritime/beta/dist/dc60303ff84f3f0b6bf35c7072aab53d.svg) 0 0 no-repeat
+}
+.ais_view .ais_vessels .msg{
+  text-align: center;
+  font-weight:bold;
+}
+.ais_view .ais_vessels .date{
+  font-size:10px;
+  color: #CCC
+}
+.ais_view .ais_vessel:first-of-type{
+  margin-top:0;
+}
+.ais_view .ais_vessel table{
+  width: 100%
+}
+.ais_view .ais_vessel table td:first-of-type{
+  width: 98%
+}
+.ais_view .ais_vessel table td:nth-of-type(2){
+  padding-right:10px
+}
+
+.ais_myfleet_dialog .content div {
+  margin-bottom: 5px;
+  line-height: 15px;
+}
+
+.ais_myfleet_dialog .content div {
+  margin-bottom: 5px;
+  line-height: 15px;
+}
+
+.ais_myfleet_dialog .content div.summary {
+  margin-top: 15px;
+  margin-bottom: 0;
+  line-height: 15px;
+  font-weight: bold;
+}
+
+.ais_myfleet_dialog .menu div {
+  text-decoration: underline;
+  color: #000;
+  margin-bottom: 10px;
+  cursor:pointer;
+}
+/*
+.ais_myfleet_dialog .addremove{
+  text-decoration: underline;
+  color: #000;
+  text-align: center;
+  margin-top: 20px;
+  cursor:pointer;
+}
+*/
+.ais_myfleet_dialog .addremove.disabled{
+  color: #999;
+  cursor: default;
+}
+
+.ais_myfleet_dialog .addremove.disabled i{
+  color: #000;
+}
+
+.ais_myfleet_dialog .photo{
+  /*float:left;*/
+  height:120px
+}
+
+
+.ais_myfleet_dialog .column1 {
+    float: left;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 170px
+}
+
+.ais_myfleet_dialog .column2 {
+    float: left;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 250px
+}
+
+.ais_myfleet_dialog::after {
+    content: "";
+    clear: both;
+    display: table;
+}
