@@ -514,7 +514,7 @@
                     layer.removeLayerFilter({id: 'aisFilter'});
 
                     layer.addLayerFilter(function (item) {
-                        return item.properties[index] === id;
+                        return item.properties[index] === Number(id);
                     }, {id: 'aisFilter'});
 
                     layer.repaint();
