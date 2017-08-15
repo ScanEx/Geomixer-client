@@ -7825,6 +7825,7 @@ var DataManager = L.Class.extend({
                     _this._needCheckDateInterval = true;
                 }
 
+				L.gmx.layersVersion.now();
                 _this._waitCheckObservers();
             })
             .on('activate', function() {
@@ -9497,7 +9498,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
                 }
             }
         }
-		L.gmx.layersVersion.now();
+		//if (!map.gmxMouseDown) { L.gmx.layersVersion.now(); }
     },
 
     _chkTileSubscriptions: function (zoom, tileRange) {
@@ -9793,7 +9794,6 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
     }
 });
 L.Map.addInitHook(function () {
-	// Check to see if Labels has already been initialized.
     if (L.Mixin.ContextMenu) {
 		L.gmx.VectorLayer.include(L.Mixin.ContextMenu);
 	}
@@ -24546,7 +24546,7 @@ var appendTranslations = function()
   @method nsGmx.ScrollTable.IDataProvider#getCount
   @param {function(Number)} callback Ф-ция, которую нужно вызвать с общим количеством объектов
 */
- 
+
 /** Это событие должно генерироваться при любом изменении набора данных. Приведёт к перерисовке таблицы
   @event nsGmx.ScrollTable.IDataProvider#change
 */
@@ -24560,14 +24560,14 @@ var appendTranslations = function()
   @param {function(Array)} callback Ф-ция, которую нужно вызвать с результирующим массивом объектов. Структура самих объектов определяется провайдером
 */
 
-/** Получить массив объектов для отрисовки на страницы и общее количество данных за один запрос. 
+/** Получить массив объектов для отрисовки на страницы и общее количество данных за один запрос.
     Альтернатива раздельным запросам getItems() и getCount(). Можно реализовать либо эту ф-цию, либо две другие
   @method nsGmx.ScrollTable.IDataProvider#getCountAndItems
   @param {Number} page Номер страницы (нумерация с нуля)
   @param {Number} pageSize Размер страницы
   @param {String} sortParam По какому атрибуту сортировать
   @param {Boolean} sortDec Направление сортировки (true - по убыванию)
-  @param {function(count:Number, objs:Object[])} callback Ф-ция, которую нужно вызвать с полученным результатом. 
+  @param {function(count:Number, objs:Object[])} callback Ф-ция, которую нужно вызвать с полученным результатом.
          Первый параметр - общее количество объектов, второй - массив объектов для данной страницы.
 */
 
@@ -24580,11 +24580,11 @@ var scrollTable = function( params )
     /** Перед перерисовкой данных
      * @event nsGmx.ScrollTable#beforeRedraw
      */
-     
+
     /** После перерисовки данных
      * @event nsGmx.ScrollTable#redraw
      */
-     
+
     /** Изменились параметры сортировки
      * @event nsGmx.ScrollTable#sortChange
      */
@@ -24597,53 +24597,53 @@ var scrollTable = function( params )
         height: '',
         showFooter: true
     }, params);
-    
+
 	this.limit = this._params.limit;
 	this.pagesCount = this._params.pagesCount;
-	
+
 	this.start = 0;
 	this.reportStart = 0;
-	
+
 	this.drawFunc = null;
-    
+
     this._requestID = 0;
     this._pageVals = [];
     this._currValsCount = 0;
-    
+
     this._dataProvider = null;
-	
+
 	 // Переход на предыдущую страницу
 	this.next = function()
 	{
 		var _this = this,
 			button = makeImageButton(modulePath + 'img/next.png', modulePath + 'img/next_a.png');
-		
+
 		button.style.marginBottom = '-7px';
-		
+
 		button.onclick = function()
 		{
 			_this.start += _this.pagesCount;
 			_this.reportStart = _this.start * _this.limit;
 
 			_this._drawPagesRow();
-			
+
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
 		}
-		
+
 		_title(button, _gtxt('Следующие [value0] страниц', _this.pagesCount));
 
 		return button;
 	}
-	
+
 	// Переход на следующую страницу
 	this.previous = function()
 	{
 		var _this = this,
 			button = makeImageButton(modulePath + 'img/prev.png', modulePath + 'img/prev_a.png');
-		
+
 		button.style.marginBottom = '-7px';
-		
+
 		button.onclick = function()
 		{
 			_this.start -= _this.pagesCount;
@@ -24653,21 +24653,21 @@ var scrollTable = function( params )
 
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
-		}							
-		
+		}
+
 		_title(button, _gtxt('Предыдущие [value0] страниц', _this.pagesCount));
 
 		return button;
 	}
-	
+
 	// Переход на первую страницу
 	this.first = function()
 	{
 		var _this = this,
 			button = makeImageButton(modulePath + 'img/first.png', modulePath + 'img/first_a.png');
-		
+
 		button.style.marginBottom = '-7px';
-		
+
 		button.onclick = function()
 		{
 			_this.start = 0;
@@ -24678,20 +24678,20 @@ var scrollTable = function( params )
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
 		}
-		
+
 		_title(button, _gtxt('Первая страница'));
 
 		return button;
 	}
-	
+
 	// Переход на последнюю страницу
 	this.last = function()
 	{
 		var _this = this,
 			button = makeImageButton(modulePath + 'img/last.png', modulePath + 'img/last_a.png');
-		
+
 		button.style.marginBottom = '-7px';
-		
+
 		button.onclick = function()
 		{
 			_this.start = Math.floor(_this._currValsCount / (_this.pagesCount * _this.limit)) * _this.pagesCount;
@@ -24702,12 +24702,12 @@ var scrollTable = function( params )
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
 		}
-		
+
 		_title(button, _gtxt('Последняя страница'));
-		
+
 		return button;
 	}
-    
+
     var _this = this;
     this._status = {
         _state: false,
@@ -24727,7 +24727,7 @@ var scrollTable = function( params )
             this._state = false;
         }
     }
-	
+
 	this.limitSel = nsGmx.Utils._select([_option([_t("10")], [['attr','value',10]]),
 							 _option([_t("20")], [['attr','value',20]]),
 							 _option([_t("50")], [['attr','value',50]]),
@@ -24764,9 +24764,9 @@ scrollTable.prototype.activateField = function(name, isActive)
         {
             if (this._fields[f].isActive == isActive)
                 return;
-                
+
             this._fields[f].isActive = isActive;
-            
+
             this._drawHeader();
             this._drawRows();
         }
@@ -24778,7 +24778,7 @@ scrollTable.prototype._getActiveFields = function()
     for (var f = 0; f < this._fields.length; f++)
         if (this._fields[f].isActive)
             res.push(this._fields[f].title);
-            
+
     return res;
 }
 
@@ -24786,28 +24786,28 @@ scrollTable.prototype._drawRows = function()
 {
 	var trs = [],
         tr;
-    
+
     $(this).triggerHandler('beforeRedraw');
 
 	$(this.tableBody).empty();
-    
+
     var activeFields = this._getActiveFields();
-	
+
 	for (var i = 0; i < this._pageVals.length; i++)
     {
         tr = this.drawFunc(this._pageVals[i], i, activeFields);
 		tr && trs.push(tr);
     }
-	
+
 	_(this.tableBody, trs);
-	
+
 	if (this._pageVals.length == 0)
 		_(this.tableBody, [_tr(null,[['css','height','1px'],['attr','empty', true]])])
-	
+
 	$(this.tableCount).empty();
-    
+
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
-	
+
 	if (this._currValsCount) {
 		_(this.tableCount, [_span([
             _t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))),
@@ -24818,7 +24818,7 @@ scrollTable.prototype._drawRows = function()
 	else {
 		_(this.tableCount, [_span([_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]), this.statusContainer]);
     }
-        
+
     $(this).triggerHandler('redraw');
 }
 
@@ -24837,18 +24837,18 @@ scrollTable.prototype._drawPages = function(end)
 		else
 		{
 			var link = makeLinkButton(i.toString());
-			
+
 			link.setAttribute('page', i - 1);
 			link.style.margin = '0px 2px';
-			
+
 			_(_this.tablePages, [link]);
-			
+
 			link.onclick = function()
 			{
 				_this.reportStart = this.getAttribute('page') * _this.limit;
-				
+
 				_this._drawPagesRow();
-				
+
 				// мозилла
 				_this.tableBody.scrollTop = 0;
 				// ие
@@ -24861,7 +24861,7 @@ scrollTable.prototype._drawPages = function(end)
 scrollTable.prototype._updatePageData = function(callback)
 {
     var _this = this;
-    
+
     if (this._dataProvider.getCountAndItems)
     {
         var requestID = this._requestID++;
@@ -24869,36 +24869,36 @@ scrollTable.prototype._updatePageData = function(callback)
         _this._dataProvider.getCountAndItems(
             _this.reportStart / _this.limit,
             _this.limit,
-            _this.currentSortType, 
-            _this.currentSortIndex[_this.currentSortType] == 1, 
+            _this.currentSortType,
+            _this.currentSortIndex[_this.currentSortType] == 1,
             function(count, values)
             {
                 if (requestID !== _this._requestID - 1) {
                     _this._status.stop();
                     return;
                 }
-                    
+
                 _this._currValsCount = count;
-                
-                
+
+
                 //если данных стало слишком мало, мы встанем на первую страницу и перезапросим данные ещё раз
                 if (_this.reportStart > _this._currValsCount)
                 {
                     requestID = _this._requestID++;
-                    
+
                     _this.start = _this.reportStart = 0; //на первую страницу
-                    
+
                     _this._dataProvider.getCountAndItems(
                         _this.reportStart / _this.limit,
                         _this.limit,
-                        _this.currentSortType, 
-                        _this.currentSortIndex[_this.currentSortType] == 1, 
+                        _this.currentSortType,
+                        _this.currentSortIndex[_this.currentSortType] == 1,
                         function(count, values)
                         {
                             _this._status.stop();
                             if (requestID !== _this._requestID - 1)
                                 return;
-                        
+
                             _this._pageVals = values;
                             callback();
                         }
@@ -24919,7 +24919,7 @@ scrollTable.prototype._updatePageData = function(callback)
         this._dataProvider.getCount(function(count)
         {
             _this._currValsCount = count;
-            
+
             //вообще-то при обновлении данных мы не изменяем текущей страницы
             //однако если данных стало слишком мало, то текущую страницу сохранить нельзя,
             //и мы переключимся на первую
@@ -24927,16 +24927,16 @@ scrollTable.prototype._updatePageData = function(callback)
             {
                 _this.start = _this.reportStart = 0;
             }
-            
+
             _this._dataProvider.getItems(
                 _this.reportStart / _this.limit,
                 _this.limit,
-                _this.currentSortType, 
-                _this.currentSortIndex[_this.currentSortType] == 1, 
+                _this.currentSortType,
+                _this.currentSortIndex[_this.currentSortType] == 1,
                 function(values)
                 {
                     _this._status.stop();
-                    _this._pageVals = values;
+                    _this._pageVals = values || [];
                     callback();
                 }
             )
@@ -24951,61 +24951,61 @@ scrollTable.prototype._drawPagesRow = function()
     {
         // перерисовывем номера страниц
         $(_this.tablePages).empty();
-        
+
         if (_this._currValsCount > _this.limit)
         {
             var allPages = Math.ceil(_this._currValsCount / _this.limit);
-            
+
             var end = (_this.start + _this.pagesCount <= allPages) ? _this.start + _this.pagesCount : allPages;
-            
+
             if (_this.start - _this.pagesCount >= 0)
                 _(_this.tablePages,[_this.first(), _this.previous()]);
-            
+
             _this._drawPages(end);
-            
+
             if (end + 1 <= allPages)
                 _(_this.tablePages,[_this.next(), _this.last()]);
         }
-        
+
         _this._drawRows();
     })
-    
+
 }
 
 scrollTable.prototype._drawHeader = function()
 {
     var tds = [],
         _this = this;
-    
+
     var headerElemFactory = this._isWidthScroll ? _th : _td;
-    
+
     this._fields.forEach(function(field) {
         if (!field.isActive)
             return;
-            
+
         var title = field.title,
             button;
-		
+
 		if (title != '' && field.isSortable)
 		{
 			button = makeLinkButton(title);
-			
+
 			button.sortType = title;
 		}
 		else
 			button = _t(title)
-		
+
         var td = headerElemFactory([button], [['css','width',field.width]]);
-        
+
         if (field.isSortable) {
             $(td).click(function() {
                 _this.setSortParams(title, 1 - _this.currentSortIndex[title]);
             })
         }
-        
+
 		tds.push(td);
     })
-    
+
     $(this._tableHeaderRow).empty();
     _(this._tableHeaderRow, tds);
 }
@@ -25046,12 +25046,12 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
             isWidthScroll: isWidthScroll
         }
     }
-    
+
     var name = params.name;
-    
+
 	var _this = this;
     this._isWidthScroll = params.isWidthScroll;
-    
+
     this._fields = [];
     for (var f = 0; f < params.fields.length; f++)
         this._fields.push({
@@ -25060,27 +25060,27 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
             isSortable: params.fields[f] in params.sortableFields,
             isActive: true
         });
-    
-	
+
+
 	this.limitSel = switchSelect(this.limitSel,  this.limit)
-	
+
 	this.limitSel.onchange = function()
 	{
 		_this.limit = Number(this.value);
-		
+
 		_this.start = 0;
 		_this.reportStart = _this.start * _this.limit;
-		
+
 		_this._drawTable()
 	}
-	
+
 	this.tableCount = _div();
 	this.tableLimit = _div([this.limitSel]);
 	this.tablePages = _div(null,[['dir','className','tablePages']]);
 
     this.tableBody = _tbody(null,[['attr','id',name + 'TableBody']]);
-    
-    
+
+
     this._tableHeaderRow = _tr();
     if (this._isWidthScroll)
     {
@@ -25095,9 +25095,9 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
         else
             this.tableHeader = _tbody([_tr([_td([_table([_tbody([this._tableHeaderRow])])]), _td(null, [['css', 'width', '20px']])])], [['attr','id',name + 'TableHeader']]);
     }
-    
+
     this._drawHeader();
-    
+
     if (this._isWidthScroll)
     {
         this.tableParent = _div([_table([this.tableHeader, this.tableBody], [['css', 'width', '100%']])],
@@ -25110,35 +25110,35 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
                                 _div([_table([this.tableBody])],[['dir','className','tableBody'],['css', 'height', this._params.height ? (this._params.height - 20) + 'px' : ''], ['css','width', params.baseWidth ? params.baseWidth + 20 + 'px' : "100%"]])
                             ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'], ['css', 'height', this._params.height ? this._params.height + 'px' : ''], ['css','width', params.baseWidth ? params.baseWidth + 'px' : "100%"]])
     }
-	
+
 	_(params.parent, [this.tableParent])
-    
+
     if (this._params.showFooter)
         _(params.parent, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);
-	
-	
+
+
 	this.drawFunc = params.drawFunc;
 	this.start = 0;         //Первый номер страницы, показываемый на экране (это не текущая страница!)
 	this.reportStart = 0;   //Первый номер элемента на текущей странице
-	
+
 	this.currentSortType = null;
-	// сортировка по умолчанию	
+	// сортировка по умолчанию
 	for (var name in params.sortableFields)
 	{
 		this.currentSortType = name;
-		
+
 		break;
 	}
-	
+
 	this.currentSortIndex = {};
 	for (var name in params.sortableFields)
 	{
 		this.currentSortIndex[name] = 0;
 	}
-    
+
     if (!this._dataProvider)
         this.setDataProvider(new scrollTable.StaticDataProvider());
-    
+
     $(this._dataProvider).change(function()
     {
         _this._drawTable();
@@ -25170,14 +25170,14 @@ scrollTable.prototype._drawTable = function()
 */
 scrollTable.prototype.setPage = function(iPage)
 {
-	if (this.limit*iPage >= this._currValsCount || iPage < 0 || this.reportStart == iPage * this.limit) 
+	if (this.limit*iPage >= this._currValsCount || iPage < 0 || this.reportStart == iPage * this.limit)
 		return;
-		
+
 	this.reportStart = iPage * this.limit;
 	this.start = Math.floor(iPage/this.pagesCount) * this.pagesCount;
-	
+
 	this._drawPagesRow();
-	
+
 	this.tableBody.scrollTop = 0;
 	this.tableParent.scrollTop = 0;
 }
@@ -25198,12 +25198,12 @@ scrollTable.prototype.setSortParams = function(sortType, sortDirection)
 {
     this.currentSortType = sortType;
     this.currentSortIndex[this.currentSortType] = sortDirection;
-    
+
     this.start = 0;
     this.reportStart = this.start * this.limit;
-    
+
     this._drawTable()
-    
+
     $(this).triggerHandler('sortChange');
 }
 
@@ -25242,41 +25242,41 @@ scrollTable.StaticDataProvider = function( originalData )
 {
     var _vals = originalData || []; //исходный список элементов
     var _filteredVals = []; //список элементов после фильтрации. Валиден только если _isFiltered == true
-    
+
     var _isFiltered = false;
     var _predicate = {}; //фильтры. Ф-ции predicate(name, value, items)->filteredItems
     var _filterVals = {}; //значения фильтров
-    
+
     var _sortFunctions = {};
     var _this = this;
-    
+
     var _filter = function()
     {
         if (_isFiltered) return;
-        
+
         _filteredVals = _vals;
-        
+
         for (var filterElem in _filterVals)
         {
             _filteredVals = _predicate[filterElem](filterElem, _filterVals[filterElem], _filteredVals);
         }
-        
+
         _isFiltered = true;
     }
-    
+
     var _update = function()
     {
         _isFiltered = false;
         $(_this).change();
     }
-    
+
     /** синхронный вариант getCount() */
     this.getCountDirect = function()
     {
         _filter();
         return _filteredVals.length;
     }
-    
+
     /** синхронный вариант getItems() */
     this.getItemsDirect = function(page, pageSize, sortParam, sortDec)
     {
@@ -25290,41 +25290,41 @@ scrollTable.StaticDataProvider = function( originalData )
         {
             if (typeof _sortFunctions[sortParam] === 'function') //если нет ф-ции для сортировки в обратном порядке, инвертируем прямую ф-цию
                 sortedVals = _filteredVals.sort(function(a, b) { return (1-2*sortDirIndex) * _sortFunctions[sortParam](a, b); });
-            else 
+            else
                 sortedVals = _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]);
         }
         else
             sortedVals = _filteredVals;
-            
+
         nMin = Math.min(Math.max(nMin, 0), sortedVals.length);
         nMax = Math.min(Math.max(nMax, 0), sortedVals.length);
         return sortedVals.slice(nMin, nMax);
     }
-    
+
     //IDataProvider interface
     this.getCount = function(callback)
     {
         callback(this.getCountDirect());
     }
-    
+
     this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
         callback(this.getItemsDirect(page, pageSize, sortParam, sortDec, callback));
     }
-    
+
     /** задание исходных данных */
     this.setOriginalItems = function(items)
     {
         _vals = items;
         _update();
     }
-    
+
     /** получение исходных данных */
     this.getOriginalItems = function()
     {
         return _vals;
     }
-    
+
     /** Фильтруем исходные данные
     * @param {function(val:Object):Boolean} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
     */
@@ -25334,30 +25334,30 @@ scrollTable.StaticDataProvider = function( originalData )
         for (var i = 0; i < _vals.length; i++)
             if (filterFunction(_vals[i]))
                 newOrigData.push(_vals[i]);
-                
+
         _vals = newOrigData;
         _update();
     }
-    
+
     /** Добавляем новый элемент в исходные данные */
     this.addOriginalItem = function(item)
     {
         _vals.push(item);
         _update();
     }
-    
+
     /** Добавляем массив элементов в исходные данные */
     this.addOriginalItems = function(itemArr)
     {
         _vals = _vals.concat(itemArr);
         _update();
     }
-    
+
     //фильтрация
     this.attachFilterEvents = function(inputField, fieldName, predicate)
     {
         var _this = this;
-        
+
         _predicate[fieldName] = predicate;
 
         $(inputField).bind('keyup', function()
@@ -25368,11 +25368,11 @@ scrollTable.StaticDataProvider = function( originalData )
                 _update();
             }
         })
-        
+
         _filterVals[fieldName] = inputField.value;
         _update();
     }
-    
+
     /** Добавить ф-цию фильтрации исходных данных
         @param {String} fieldName Имя фильтра
         @param {function} predicate Ф-ция фильтрации: predicate(name, value, items)->filteredItems
@@ -25381,7 +25381,7 @@ scrollTable.StaticDataProvider = function( originalData )
     {
         _predicate[fieldName] = predicate;
     }
-    
+
     /** Установить значение для фильтра
         @param {String} fieldName Имя фильтра
         @param {String} value Значение для фильтрации
@@ -25391,11 +25391,11 @@ scrollTable.StaticDataProvider = function( originalData )
         _filterVals[fieldName] = value;
         _update();
     }
-    
+
     this.attachSelectFilterEvents = function(selectField, fieldName, predicate)
     {
         var _this = this;
-        
+
         _predicate[fieldName] = predicate;
 
         selectField.onchange = function()
@@ -25403,15 +25403,15 @@ scrollTable.StaticDataProvider = function( originalData )
             _filterVals[fieldName] = this.value;
             _update();
         }
-        
+
         _filterVals[fieldName] = selectField.value;
         _update();
     }
-    
+
     /** Задать ф-ции сортировки
      @param {Object} sortFunctions Хеш из ф-ций {Имя столбца -> ф-ция или массив из двух ф-ций}.
-        Если массив из двух ф-ций, то первая используется для сортировки по возрастанию, вторая - по убыванию. 
-        Если просто ф-ция, то по убыванию используется инвертная к ней. 
+        Если массив из двух ф-ций, то первая используется для сортировки по возрастанию, вторая - по убыванию.
+        Если просто ф-ция, то по убыванию используется инвертная к ней.
         Формат ф-ции совпадает с ф-цией для sort().
     */
     this.setSortFunctions = function(sortFunctions)
@@ -25429,7 +25429,7 @@ scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
         return function(a, b) {
             var av = attrName1(a),
                 bv = attrName1(b);
-            if (av > bv)      return 1; 
+            if (av > bv)      return 1;
             else if (av < bv) return -1;
             else              return 0;
         }
@@ -25439,7 +25439,7 @@ scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
         return function(a, b) {
             var av = a[attrName1][attrName2];
             var bv = b[attrName1][attrName2];
-            if (av > bv)      return 1; 
+            if (av > bv)      return 1;
             else if (av < bv) return -1;
             else              return 0;
         }
@@ -25460,13 +25460,13 @@ if ('nsGmx' in window && 'GeomixerFramework' in window.nsGmx)
     window.scrollTable = scrollTable; //Depricated - use nsGmx
     window.nsGmx.ScrollTable = scrollTable;
 }
-    
+
 if (typeof window.gmxCore !== 'undefined')
 {
-    gmxCore.addModule("ScrollTableControl", 
+    gmxCore.addModule("ScrollTableControl",
         {
             ScrollTable: scrollTable
-        }, 
+        },
         {
             require: ['translations', 'utilities'],
             css: 'table.css',
@@ -25480,6 +25480,7 @@ if (typeof window.gmxCore !== 'undefined')
 }
 
 })(jQuery, nsGmx.Utils._);
+
 var nsMapCommon = function($){
     var publicInterface = {
         generateWinniePermalink: function() {
@@ -27705,6 +27706,65 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
     }
 
     sendCrossDomainPostRequest("http://" + params.host + "/" + "DownloadLayer.ashx", requestParams);
+
+
+	// if (window.FormData) {
+	//
+	// 	var form = document.createElement("form");
+	// 	form.style.display = 'none';
+	// 	form.setAttribute('enctype', 'multipart/form-data');
+	// 	form.name = 'uploadFile';
+	//
+	// 	var hiddenParamsDiv = document.createElement("div");
+	// 	hiddenParamsDiv.style.display = 'none';
+	//
+	// 	for (var paramName in requestParams) {
+	// 		var input = document.createElement("input");
+	// 		var value = typeof requestParams[paramName] !== 'undefined' ? requestParams[paramName] : '';
+	//
+	// 		input.setAttribute('type', 'hidden');
+	// 		input.setAttribute('name', paramName);
+	// 		input.setAttribute('value', value);
+	//
+	// 		hiddenParamsDiv.appendChild(input)
+	// 	}
+	//
+	//     form.appendChild(hiddenParamsDiv);
+	//
+	// 	var formData = new FormData(form);
+	//
+	//
+	// 	var xhr = new XMLHttpRequest();
+	// 	// :attachment; filename="suda_15062017_Sentinel_poly.zip";
+	// 	xhr.open('POST', /*"http://" + /*params.host*/ window.serverBase + /*"/" + */"DownloadLayer.ashx");
+	//
+	// 	// xhr.setRequestHeader('Content-Disposition', 'attachment');
+	// 	xhr.onload = function () {
+	// 		if (xhr.status === 200) {
+	// 			// var blob = new Blob([xhr.response], {type: "application/zip"});
+	// 			var blob = xhr.response;
+	// 			console.log(xhr);
+	// 			console.log(blob);
+	// 			saveData(blob, params.name);
+	// 		}
+	// 	}
+	//
+	// 	xhr.withCredentials = true;
+	// 	xhr.responseType = "blob";
+	// 	xhr.send(formData);
+	//
+	// 	function saveData(blob, name) {
+	// 		var url = window.URL.createObjectURL(blob),
+	// 		a = document.createElement("a");
+	// 		console.log(url);
+	// 		document.body.appendChild(a);
+	// 		a.style = "display: none";
+	// 		a.href = url;
+	// 		a.download = name;
+	// 		// a.click();
+	// 		window.URL.revokeObjectURL(url);
+	// 	};
+	// }
 }
 
 var _mapHelper = new mapHelper();
