@@ -18,8 +18,11 @@ window._translationsHash.addtext('rus', {
         trace: 'Нарисовать кильватерный след',
         editTitle: 'Укажите статус объекта',
         addItem: 'добавить объект',
+        ok: 'ок',
         error: 'ошибка',
-        speedCalculationMessage: 'расчет скорости судна...'
+        speedCalculationMessage: 'расчет скорости судна...',
+        speedResult: 'скорость судна: ',
+        drawLine: 'нарисуйте линию'
     }
 });
 window._translationsHash.addtext('eng', {
@@ -29,8 +32,11 @@ window._translationsHash.addtext('eng', {
         trace: 'trace',
         editTitle: 'Select object status',
         addItem: 'add item',
+        ok: 'ok',
         error: 'error',
-        speedCalculationMessage: 'calculating speed...'
+        speedCalculationMessage: 'calculating speed...',
+        speedResult: 'vessel speed: ',
+        drawLine: 'drawLine'
     }
 });
 
@@ -44,7 +50,7 @@ window._translationsHash.addtext('eng', {
     this._scrollTable = new scrollTable({ showFooter: false, pagesCount: 1, limit: 2000 });
     this._loadingSpinner = _div([_img(null, [['attr', 'src', 'img/progress.gif'], ['css', 'marginRight', '10px']]), _t(_gtxt('загрузка...'))], [['css', 'margin', '3px 0px 3px 20px']]);
     this.sumFieldResult = 0;
-    this.size = size || ["10%", "18%", "38%", "17%", "17%"];
+    this.size = size || ["16%", "16%", "16%", "16%", "16%", "20%"];
 
     //событие на конец загрузки странички
     var that = this;
@@ -210,7 +216,6 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
 
     this.fieldsMenu.bottomArea.appendChild(loadingBar);
 
-
     that.fieldsMenu.bottomArea.style.display = "block";
 
     var addItemButton = nsGmx.Utils.makeLinkButton(window._gtxt('detectionPlugin.addItem'));
@@ -219,6 +224,18 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
         var gmxDrawingControl = nsGmx.leafletMap.gmxControlIconManager.get('drawing'),
             polygonIcon = gmxDrawingControl.getIconById('Polygon'),
             mapLayer = nsGmx.gmxMap.layersByID[that._layer.name];
+
+        var spinHolder = $(that.fieldsMenu.bottomArea).find('.spinHolder'),
+            spinMessage = $(that.fieldsMenu.bottomArea).find('.spinMessage'),
+            hintMessage = $(that.fieldsMenu.bottomArea).find('.hintMessage'),
+            errorMessage = $(that.fieldsMenu.bottomArea).find('.errorMessage');
+
+        $(spinHolder).hide();
+        $(errorMessage).hide();
+        $(hintMessage).hide();
+        $(hintMessage).html('');
+        $(hintMessage).removeClass('hint');
+        $(hintMessage).removeClass('success');
 
         gmxDrawingControl.setActiveIcon(polygonIcon, true);
 
@@ -251,7 +268,6 @@ VesselSARDetection.prototype.showFieldsTable = function (layer) {
                 nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
                 that._scrollTable._dataProvider.serverChanged();
             }, function (res) {
-                console.log(res);
             });
         }
 
@@ -367,7 +383,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
         var td = _td();
         td.style.width = this.size[j];
 
-        if (activeHeaders[j] === "" || activeHeaders[j] === this._layer.identityField)
+        if (activeHeaders[j] === "")
             continue;
 
         var fieldName = this._titleToField[activeHeaders[j]];
@@ -453,36 +469,6 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                 nsGmx.Utils._title(editButton, window._gtxt('detectionPlugin.editItem'));
                 nsGmx.Utils._title(traceButton, window._gtxt('detectionPlugin.trace'));
 
-                //  $(zoomToBoxButton).on('mouseenter', function () {
-                //     $(hintMessage).show();
-                //     $(hintMessage).html(window._gtxt('detectionPlugin.zoomToItem'));
-                // });
-                //
-                //  $(editButton).on('mouseenter', function () {
-                //     $(hintMessage).show();
-                //     $(hintMessage).html(window._gtxt('detectionPlugin.editItem'));
-                // });
-                //
-                //  $(traceButton).on('mouseenter', function () {
-                //     $(hintMessage).show();
-                //     $(hintMessage).html(window._gtxt('detectionPlugin.trace'));
-                // });
-                //
-                //  $(zoomToBoxButton).on('mouseleave', function () {
-                //      $(hintMessage).html('');
-                //     $(hintMessage).hide();
-                // });
-                //
-                //  $(editButton).on('mouseleave', function () {
-                //      $(hintMessage).html('');
-                //     $(hintMessage).hide();
-                // });
-                //
-                //  $(traceButton).on('mouseleave', function () {
-                //      $(hintMessage).html('');
-                //     $(hintMessage).hide();
-                // });
-
                 td.appendChild(zoomToBoxButton);
                 td.appendChild(editButton);
                 td.appendChild(traceButton);
@@ -513,7 +499,7 @@ VesselSARDetection.prototype._createTableTd = function (elem, activeHeaders) {
                         $(hintMessage).removeClass('success');
                         $(hintMessage).addClass('hint');
                         $(hintMessage).show();
-                        $(hintMessage).html('Выберите статус');
+                        $(hintMessage).html(window._gtxt('detectionPlugin.editTitle'));
                         that.showEditDialog(that._scrollTable, mapLayer, itemID);
                     // 3. trace
                     } else if (e.target === traceButton) {
@@ -548,7 +534,7 @@ VesselSARDetection.prototype.trace = function (table, layer, itemID) {
     $(hintMessage).removeClass('success');
     $(hintMessage).addClass('hint');
     $(hintMessage).show();
-    $(hintMessage).html('Нарисуйте линию');
+    $(hintMessage).html(window._gtxt('detectionPlugin.drawLine'));
 
     nsGmx.leafletMap.gmxDrawing.addEventListener('drawstop', onDrawStop);
 
@@ -668,11 +654,8 @@ VesselSARDetection.prototype.saveSpeed = function (res, layer, itemID) {
         $(hintMessage).removeClass('hint');
         $(hintMessage).show();
         $(hintMessage).addClass('success');
-        $(hintMessage).html('скорость судна: ' + resSpeedValue.toFixed(0) + ' мор. узлов');
+        $(hintMessage).html(window._gtxt('detectionPlugin.speedResult') + resSpeedValue.toFixed(0));
 
-        // обновляем таблицу
-
-        // nsGmx.leafletMap.removeEventListener('click', addGeometryToLayer);
         nsGmx.leafletMap.gmxDrawing.remove(nsGmx.leafletMap.gmxDrawing.items[nsGmx.leafletMap.gmxDrawing.items.length - 1]);
         that._scrollTable._dataProvider.serverChanged();
     });
@@ -691,14 +674,14 @@ VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
 
     var template = {
         statusArr: [
-            {status: "Подтверждение"},
-            {status: "Ложное срабатывание"}
+            {status: window._gtxt('detectionPlugin.ok')},
+            {status: window._gtxt('detectionPlugin.error')}
         ]
     };
 
     var ui = $(Handlebars.compile(
         '<div class="delete-dialog-canvas">' +
-            '<div style="width:140px; margin:auto; margin-bottom:4px;">' +
+            '<div style="text-align: center; width:140px; margin:auto; margin-bottom:4px;">' +
                 '<select class="status-select">' +
                     '{{#each this.statusArr}}' +
                     '<option value="{{this.status}}">' +
@@ -707,7 +690,7 @@ VesselSARDetection.prototype.showEditDialog = function (table, layer, itemID) {
                     '{{/each}}' +
                 '</select>' +
             '</div>' +
-            '<div style="width:80px; margin:auto;">' +
+            '<div style="text-align: center;width:80px; margin:auto;">' +
                 '<input style="margin-right:4px;padding: 0 2px;" class="detection-ok-button" type="button" value="OK">' +
                 '<input style="padding: 0 2px;" class="cancel-button" type="button" value="cancel">' +
             '</div>' +
@@ -1009,10 +992,7 @@ VesselSARDetection.prototype.aliasesToParams = function (aliases) {
     this._sortedAliaces = {};
 
     for (var a in aliases) {
-        if (aliases[a] !== 'gmx_id') {
-            this._attrNames.push(aliases[a]);
-        }
-
+        this._attrNames.push(aliases[a]);
         this._titleToField[aliases[a]] = a;
         this._sortedAliaces[aliases[a]] = true;
     }

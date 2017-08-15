@@ -1,7 +1,7 @@
 ﻿var fieldsTable2;
 
 (function () {
-    var sizes = ["15%", "15%", "25%", "15%", "30%"];
+    var sizes = ["15%", "15%", "15%", "20%", "15%", "20%"];
     var defaultAliases = { "Num": "ID", "Width": "Width", "Length": "Length"};
 
     function showFieldsTableMenu(layer, aliases) {
