@@ -832,8 +832,10 @@ var initEditUI = function(){
                 var layer = nsGmx.gmxMap.layersByID[layerName];
                 if (layer) {
                     layer.off('click', listeners[layerName]);
-                    layer.enableFlip();
-                    layer.enablePopup();
+                    if (layer.getGmxProperties().type !== 'Virtual') {
+                        layer.enableFlip();
+                        layer.enablePopup();
+                    }
                 }
             }
             listeners = {};
