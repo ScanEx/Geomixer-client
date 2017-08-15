@@ -882,11 +882,11 @@ console.log(json)
             return geo;
         },   
         formatDate: function(d){
-            var dd = ("0"+d.getDate()).slice(-2),
-                m = ("0"+(d.getMonth()+1)).slice(-2),
-                y = d.getFullYear(),
-                h = ("0"+d.getHours()).slice(-2),
-                mm = ("0"+d.getMinutes()).slice(-2);
+            var dd = ("0"+d.getUTCDate()).slice(-2),
+                m = ("0"+(d.getUTCMonth()+1)).slice(-2),
+                y = d.getUTCFullYear(),
+                h = ("0"+d.getUTCHours()).slice(-2),
+                mm = ("0"+d.getUTCMinutes()).slice(-2);
             return dd+"."+m+"."+y+" "+h+":"+mm;
         }, 
         searchById: function(aid, callback){
