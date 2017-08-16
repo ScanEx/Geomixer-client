@@ -30364,7 +30364,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				layerProperties = {type:'layer', content: response.Result};
 
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.VtMaxZoom, MaxZoom:21, RenderStyle: layerProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[layerProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:1, MaxZoom:21, RenderStyle: layerProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[layerProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 
@@ -50229,19 +50229,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50279,6 +50266,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -58864,8 +58864,10 @@ var initEditUI = function(){
                 var layer = nsGmx.gmxMap.layersByID[layerName];
                 if (layer) {
                     layer.off('click', listeners[layerName]);
-                    layer.enableFlip();
-                    layer.enablePopup();
+                    if (layer.getGmxProperties().type !== 'Virtual') {
+                        layer.enableFlip();
+                        layer.enablePopup();
+                    }
                 }
             }
             listeners = {};
