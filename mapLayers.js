@@ -1203,7 +1203,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				layerProperties = {type:'layer', content: response.Result};
 
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.VtMaxZoom, MaxZoom:21, RenderStyle: layerProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[layerProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:1, MaxZoom:21, RenderStyle: layerProperties.content.properties.IsPhotoLayer ? _mapHelper.defaultPhotoIconStyles[layerProperties.content.properties.GeometryType] : _mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 
