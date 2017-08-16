@@ -3,9 +3,14 @@
     var pluginName = 'AISSearch2',
         serverPrefix = window.serverBase || 'http://maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx',  
-        infodialogs = [],  
-        allinfodialogs = [],
+        infoDialogCascade = [],  
+        allIinfoDialogs = [],
         myFleetLayers = [],
+        aisLayerID,
+        tracksLayerID,
+        aisLayer,
+        tracksLayer,
+        displaingTrack,
         publicInterface = {
             pluginName: pluginName,
             afterViewer: function (params, map) {                     
@@ -13,25 +18,28 @@
                         regularImage: 'ship.png',
                         activeImage: 'active.png'
                     }, params),
-                path = gmxCore.getModulePath(pluginName);              
+                path = gmxCore.getModulePath(pluginName),
+                layersByID = nsGmx.gmxMap.layersByID,
+                lmap = map;  
+
+                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';
+                tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15';
+                aisLayer = layersByID[aisLayerID];
+                tracksLayer = layersByID[tracksLayerID];  
+
                 for (var k in params) {
                     if (k=="myfleet"){
                         myFleetLayers = params[k].split(",").map(function(id){
                            return  id.replace(/\s/, "");
                         });
                     }
-                    if (nsGmx.gmxMap.layersByID[params[k]])
-                    nsGmx.gmxMap.layersByID[params[k]].addEventListener('click', function(e){
+                    if (layersByID[params[k]])
+                        layersByID[params[k]].addEventListener('click', function(e){
                         //console.log(e.gmx.properties)
                         publicInterface.showInfo(e.gmx.properties)
                     })
                 }
-                var lmap = map;
-//console.log(lmap.options.svgSprite)
 
-                //========================
-                // MY FLEET
-                //========================
 				var iconOpt_mf = {
                     id: pluginName,
                     togglable: true,
@@ -54,58 +62,94 @@
 				});
                 lmap.addControl(icon_mf);
             },
-
-            showInfo: function(vessel){
-
-                //var vessel = JSON.parse(info.attr('vessel'));
-                allinfodialogs.forEach(function(d){$(d.dialog).parent().css('z-index', 10000)});
-//console.log(infodialogs);
-                // if (info.attr('displaying'))
-                var ind = allinfodialogs.findIndex(function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
+            showTrack: function (mmsiArr, bbox) { 
+                var lmap = nsGmx.leafletMap;                 
+                var filterFunc = function (args) {
+                        var mmsi = args.properties[1],
+                            i, len;
+                        for (i = 0, len = mmsiArr.length; i < len; i++) {
+                            if (mmsi === mmsiArr[i]) { return true; }
+                        }
+                        return false;
+                };
+                    if (bbox) { lmap.fitBounds(bbox, { maxZoom: 11 }); }
+                    if (aisLayer) {
+                        if (mmsiArr.length) {
+                            displaingTrack = mmsiArr[0];
+                            aisLayer.setFilter(filterFunc);
+                            if (!aisLayer._map) {
+                                lmap.addLayer(aisLayer);
+                            }
+                        } else {
+                            displaingTrack = false;
+                            aisLayer.removeFilter();
+                            lmap.removeLayer(aisLayer);
+                        }
+                    }
+                    if (tracksLayer) {
+                        if (mmsiArr.length) {
+                            tracksLayer.setFilter(filterFunc);
+                            if (!tracksLayer._map) {
+                                lmap.addLayer(tracksLayer);
+                            }
+                        } else {
+                            tracksLayer.removeFilter();
+                            lmap.removeLayer(tracksLayer);
+                        }
+                    }
+            },
+            showInfo: function(vessel, getmore){
+//console.log(infoDialogCascade);
+                var ind = allIinfoDialogs.findIndex(function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
                 if (ind>=0){
-                    $(allinfodialogs[ind].dialog).parent().css('z-index', 11000);
+                    $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length-1));
                     return;
                 }
-                // info.attr('displaying', 'true');
 
                 var canvas = $('<div class="ais_myfleet_dialog"/>'),
                     menu = $('<div class="column1 menu"></div>').appendTo(canvas),
-                    photo = $('<div class="photo"/>').appendTo(menu),
+                    photo = $('<div class="photo"><div></div></div>').appendTo(menu),
                     content = Handlebars.compile(
                     '<div class="column2 content">'+
-                    //'<div class="vessel_prop">{{i "AISSearch2.mmsi"}}: {{mmsi}}</div>'+
-                    //'<div class="vessel_prop">{{i "AISSearch2.imo"}}: {{imo}}</div>'+
                     '</div>') (vessel);
                 canvas.append(content)
                 var _this = this;
 
                 var dialog = showDialog(vessel.vessel_name, canvas[0], {width: 500, height: 340, 
                         closeFunc: function(event){
-                            //info.removeAttr('displaying');
-                            var ind = infodialogs.findIndex(function(d){return d.id==dialog.id});
+                            var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
                             if (ind>=0)
-                                infodialogs.splice(ind, 1);
-                            ind = allinfodialogs.findIndex(function(d){return d.dialog.id==dialog.id});
+                                infoDialogCascade.splice(ind, 1);
+                            ind = allIinfoDialogs.findIndex(function(d){return d.dialog.id==dialog.id});
                             if (ind>=0)
-                                allinfodialogs.splice(ind, 1);
+                                allIinfoDialogs.splice(ind, 1);
                         }
                 });  
             
-                if (infodialogs.length>0){
-                    var pos  = $(infodialogs[infodialogs.length-1]).parent().position();
+                if (infoDialogCascade.length>0){
+                    var pos  = $(infoDialogCascade[infoDialogCascade.length-1]).parent().position();
                     $(dialog).dialog("option", "position", [pos.left+10, pos.top+10]);   
                 }
 
-                infodialogs.push(dialog);
-                allinfodialogs.push({vessel:vessel, dialog:dialog});
+                infoDialogCascade.push(dialog);
+                allIinfoDialogs.push({vessel:vessel, dialog:dialog});
                 $(dialog).on( "dialogdragstop", function( event, ui ) {
-                    var ind = infodialogs.findIndex(function(d){return d.id==dialog.id});
+                    var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
                     if (ind>=0)
-                        infodialogs.splice(ind, 1);
+                        infoDialogCascade.splice(ind, 1);
                 });
 
                 var addUnit = function(v, u){
                     return v!=null && v!="" ? v+u : ""; 
+                }
+                var formatVessel = function(vessel){
+                    vessel.ts_pos_utc = aisLayerSearcher.formatDate(new Date(vessel.ts_pos_utc*1000));
+                    vessel.cog = addUnit(vessel.cog, "°");
+                    vessel.sog = addUnit(vessel.sog, " уз");
+                    vessel.rot = addUnit(vessel.rot, "°/мин");
+                    vessel.heading = addUnit(vessel.heading, "°");
+                    vessel.draught = addUnit(vessel.draught, " м");
+                    return vessel;
                 }
                 var moreInfo = function(v){
                         $('.content', canvas).append(Handlebars.compile(
@@ -123,43 +167,79 @@
                         '<div class="vessel_prop">{{i "AISSearch2.last_sig"}}: {{ts_pos_utc}}</div>'+
                         '<div class="vessel_prop summary">{{latitude}}, {{longitude}}</div>'
                         )(v));
+                }                
+                if (!getmore){
+                    var vessel2 = $.extend({}, vessel);
+                    moreInfo(formatVessel(vessel2));
                 }
-                aisLayerSearcher.searchNames([{mmsi:vessel.mmsi,imo:vessel.imo}], function(response){
+                else
+                    aisLayerSearcher.searchNames([{mmsi:vessel.mmsi,imo:vessel.imo}], function(response){
 //console.log(response)
-                    if (parseResponse(response)){                    
-                        var vessel2 = {
-                        "flag_country":response.Result.values[0][6],
-                        "vessel_type":response.Result.values[0][7],
-                        "mmsi":response.Result.values[0][1],
-                        "imo":response.Result.values[0][2],
-                        "ts_pos_utc":aisLayerSearcher.formatDate(new Date(parseInt(response.Result.values[0][3])*1000)),
-                        "longitude":response.Result.values[0][4],
-                        "latitude":response.Result.values[0][5],
-                        "cog":addUnit(response.Result.values[0][8], "°"),
-                        "sog":addUnit(response.Result.values[0][9], " уз"),
-                        "rot":addUnit(response.Result.values[0][10], "°/мин"),
-                        "heading":addUnit(response.Result.values[0][11], "°"),
-                        "destination":response.Result.values[0][12],
-                        "nav_status":response.Result.values[0][13],
-                        "draught":addUnit(response.Result.values[0][14], " м")
-                        };
-                        moreInfo(vessel2);
-                    }
+                        if (parseResponse(response)){                    
+                            var vessel2 = {
+                            "flag_country":response.Result.values[0][6],
+                            "vessel_type":response.Result.values[0][7],
+                            "mmsi":response.Result.values[0][1],
+                            "imo":response.Result.values[0][2],
+                            "ts_pos_utc":response.Result.values[0][3],
+                            "longitude":response.Result.values[0][4],
+                            "latitude":response.Result.values[0][5],
+                            "cog":response.Result.values[0][8],
+                            "sog":response.Result.values[0][9],
+                            "rot":response.Result.values[0][10],
+                            "heading":response.Result.values[0][11],
+                            "destination":response.Result.values[0][12],
+                            "nav_status":response.Result.values[0][13],
+                            "draught":response.Result.values[0][14]
+                            };
+                            moreInfo(formatVessel(vessel2));
+                        }
     //else
     //console.log(response)
                 })
                 $('<img src="http://photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi='+vessel.mmsi+'">').load(function() {
-                    $(this).appendTo(photo);
+                    if (this)
+                    $('div', photo).replaceWith(this);
                 });  
+  
 
+                var menubuttons = $('<div class="menubuttons"></div>').appendTo(menu);
+                var openpage = $('<div class="button openpage" title="информация о судне"></div>')
+                .appendTo(menubuttons)                   
+                .on('click', function(){
+console.log(myFleetMembersModel.data)
+                }); 
+                var showpos = $('<div class="button showpos" title="показать положение"></div>')
+                .appendTo(menubuttons)                   
+                .on('click', function(){
+                });
+
+                var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
+                '<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
+                var showtrack = $(templ)
+                .appendTo(menubuttons)                   
+                .on('click', function(){
+                    if (showtrack.attr('title')!=_gtxt('AISSearch2.hide_track')){
+                        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+                        .removeClass('active');
+                        publicInterface.showTrack([vessel.mmsi]);
+                        showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+                        .addClass('active');       
+                    }
+                    else{
+                        $('.showtrack').attr('title',_gtxt('AISSearch2.show_track'))
+                        .removeClass('active');
+                        publicInterface.showTrack([]);
+                    }
+                });
                 if (myFleetMembersModel && myFleetMembersModel.data){
                     var add = myFleetMembersModel.data.vessels.findIndex(function(v){
                         return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
                     })<0;
-                    var addremove = $('<div class="addremove"></div>')
+                    var addremove = $('<div class="button addremove"></div>')
                     //.text(vessel.mf_member&&vessel.mf_member.search(/inline/)<0?'добавить в мой флот':'удалить из моего флота')
-                    .text(add?'добавить в мой флот':'удалить из моего флота')
-                    .appendTo(menu);
+                    .attr('title', add?'добавить в мой флот':'удалить из моего флота')
+                    .appendTo(menubuttons);
                     if (myFleetMembersModel.filterUpdating)
                         addremove.addClass('disabled');
                     addremove.on('click', function(){
@@ -167,36 +247,24 @@
                             return;
                         
                         $('.addremove').addClass('disabled');
-                        addremove.append('<i class="icon-refresh animate-spin"></i>')
+                        progress.append('<i class="icon-refresh animate-spin"></i>')
                         myFleetMembersModel.changeFilter(vessel).then(function(){  
                             add = myFleetMembersModel.data.vessels.findIndex(function(v){
                                 return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
                             })<0;
                             var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
-                            info.css('display', !add?'inline':'none');                            
-                            //info.attr('vessel', JSON.stringify(vessel));
-                            //info.parents('table').find('.icon-ship').css('display', vessel.mf_member.replace(/display:/,''))
+                            info.css('display', !add?'inline':'none'); 
                             
-                            addremove.text(add?'добавить в мой флот':'удалить из моего флота')                
+                            addremove.attr('title', add?'добавить в мой флот':'удалить из моего флота');
+                            progress.text('');               
                             $('.addremove').removeClass('disabled')
                             if (aisPluginPanel.getActiveView()==myFleetMembersView)
                                 myFleetMembersView.show();
                         });
                     }); 
-                }
-                var showtrack = $('<div class="showtrack">трек за сутки</div>')
-                .appendTo(menu)                   
-                .on('click', function(){
-                });
-                var showpos = $('<div class="showpos">показать положение</div>')
-                .appendTo(menu)                   
-                .on('click', function(){
-                });
-                var openpage = $('<div class="openpage">информация о судне</div>')
-                .appendTo(menu)                   
-                .on('click', function(){
-    console.log(myFleetMembersModel.data)
-                });
+                }  
+                var progress = $('<div class="progress"></div>')
+                .appendTo(menubuttons);              
             }
         };
 
@@ -432,7 +500,7 @@
             } 
             var _this = this;           
             $('.info', this._container).on('click', function(){
-                publicInterface.showInfo(JSON.parse($(this).attr('vessel')))
+                publicInterface.showInfo(JSON.parse($(this).attr('vessel')), true);
             });          
             $('.position', this._container).on('click', function(){
                 _this.showPosition($(this))
@@ -1129,8 +1197,9 @@ console.log(json)
         'AISSearch2.draught': 'Осадка',
         'AISSearch2.destination': 'Назначение',
         'AISSearch2.nav_status': 'Статус',
-        'AISSearch2.last_sig': 'Последний сигнал UTC'
-        
+        'AISSearch2.last_sig': 'Последний сигнал UTC',
+        'AISSearch2.show_track': 'трек за сутки',
+        'AISSearch2.hide_track': 'скрыть трек'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -1165,7 +1234,9 @@ console.log(json)
         'AISSearch2.draught': 'Draught',
         'AISSearch2.destination': 'Destination',
         'AISSearch2.nav_status': 'Navigation status',
-        'AISSearch2.last_sig': 'Last signal UTC'
+        'AISSearch2.last_sig': 'Last signal UTC',
+        'AISSearch2.show_track': 'show track',
+        'AISSearch2.hide_track': 'hide track'
     });
 
     gmxCore.addModule(pluginName, publicInterface, {
