@@ -464,6 +464,53 @@ var createToolbar = function() {
 		}
 	}));
 
+    /**
+    * seachParams
+    */
+
+    var oSearchResultDiv = _div();
+
+    window.searchControl = new nsGmx.SearchControl({
+        addBefore: 'saveMap',
+        placeHolder: 'Поиск по кадастру, адресам, координатам',
+        // position: 'topleft',
+        position: 'topleft',
+        limit: 10,
+        providers: [
+            new nsGmx.OsmDataProvider({
+                showOnMap: true,
+                serverBase: 'http://maps.kosmosnimki.ru',
+                limit: 10,
+                onFetch: function (response) {
+                    console.log(oSearchLeftMenu);
+                    oSearchLeftMenu.createWorkCanvas('search');
+                    console.log(response);
+                }.bind(this),
+            })
+        ],
+        style: {
+            editable: false,
+            map: true,
+            pointStyle: {
+                size: 8,
+                weight: 1,
+                opacity: 1,
+                color: '#00008B'
+            },
+            lineStyle: {
+                fill: false,
+                weight: 3,
+                opacity: 1,
+                color: '#008B8B'
+            }
+        },
+    });
+    lmap.addControl(window.searchControl);
+    console.log(window.searchControl);
+
+// lmap.addControl(window.searchControl);
+// console.log(window.searchControl);
+
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
         // isSortable: true,
