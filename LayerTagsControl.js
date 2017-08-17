@@ -379,7 +379,7 @@
 
             var updateModel = function()
             {
-                layerTags.updateTag(tagId, tagInput.val(), valueInput.val().trim());
+                layerTags.updateTag(tagId, tagInput.val().trim(), valueInput.val().trim());
             }
 
             tagInput.bind('keyup change', updateModel);
