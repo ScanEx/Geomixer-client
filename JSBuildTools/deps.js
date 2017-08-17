@@ -73,6 +73,7 @@ var jsFiles = [
     "common_components/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
+    "src/SearchLogic/SearchLogic.js",
 
     "starter.js",
     "version.js",

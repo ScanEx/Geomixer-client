@@ -483,8 +483,8 @@ var createToolbar = function() {
                 limit: 10,
                 onFetch: function (response) {
                     console.log(oSearchLeftMenu);
-                    oSearchLeftMenu.createWorkCanvas('search');
-                    console.log(response);
+                    // oSearchLeftMenu.createWorkCanvas('search');
+                    nsGmx.searchLogic.log(response);
                 }.bind(this),
             })
         ],
