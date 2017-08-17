@@ -1,0 +1,281 @@
+<head>
+    <title></title>
+    <link rel="stylesheet" href="">
+    <meta charset="utf-8">
+    <style>
+        div{border:none}
+        table{border-collapse:collapse}
+        td{border:1px solid black; padding: 0}
+        
+        .overlay{
+            width:100%;
+            height:100%;
+            background-color: #ddd;
+        }
+        .overlay td{
+            border:none;
+            padding:0;
+        }
+
+        .vessel-info.container{
+            display:table;
+            margin: auto;
+            font-size:16px
+        }
+
+        .vessel-info.container:after{
+            clear:both;
+            content:"";
+        }
+   
+        .vessel-info .column1{
+            width:270px;
+            float:left;
+            background-color: #738694;
+            color: white
+        }
+
+        .vessel-info .content .content-item{
+            line-height:20px
+        } 
+
+        .vessel-info .column1 .cell{
+            width:240px;
+            padding: 15px;
+        }
+
+        .vessel-info .column1 .cell .icon{
+            float:left;
+            height: 20px;
+            margin-right:10px
+        } 
+
+        .vessel-info .column1 .title{
+            height:65px
+        }
+
+        .vessel-info .column1 .title .timestamp{
+            font-size: 12px;
+        }
+
+        .vessel-info .menu{
+            width:270px;
+            height:450px
+        } 
+
+        .vessel-info .menu-item{
+            line-height:20px
+        } 
+
+        .vessel-info .menu-item .counter{
+           display:inline;
+           font-size: 11px;
+           border-radius: 4px;
+           padding:2px 6px 2px 5px;
+           background-color: #3ca1d0;
+           border:none;
+           color: white;
+           margin-left:10px;
+        }
+
+        .vessel-info .photo{
+            width:270px;
+            height: 167px;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+            background-color: #555;
+        }          
+
+        .vessel-info .photo img{
+            max-height: 100px;
+        }
+
+
+        .vessel-info .column2{
+            width:500px;
+            float:left;
+            padding-left: 80px;
+            background-color: white
+        }
+
+        .vessel-info .column2 .caption{
+            width: 470px;
+            height:65px;
+            display:table-cell;
+            vertical-align: middle;
+            background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><circle cx='15' cy='15' r='10' /></svg>") no-repeat;
+        background-position: 120px 30px;
+        background-size: 90% 1px;
+            border: none
+        }
+
+        .vessel-info .column2 .content{
+            height:685px;
+        }
+
+        .vessel-info .column2 .content td{
+            padding:15px
+        }
+
+        .vessel-info .column3{
+            width:0;
+            float:left;
+            border:none;
+        }
+
+        .vessel-info .close-button{
+            position:relative;
+            left:-80px;
+            height:65px;
+
+        }  
+  
+        .mCustomScrollBox div{
+            border: none
+        }
+
+ #mCSB_1_scrollbar_vertical .mCSB_draggerContainer{
+    left:-4px
+}
+
+
+        #mCSB_1_scrollbar_vertical .mCSB_dragger_bar{
+            width:10px;
+            background-color: #738694
+        }
+
+         #mCSB_1_scrollbar_vertical .mCSB_draggerRail{
+        width:10px;
+        }
+        
+</style>
+
+<link rel="stylesheet" href="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.js"></script>
+
+</head>  
+<body style="margin:0">
+    <table class="overlay">
+        <tr>
+            <td>
+
+    <div class="vessel-info container">
+        <div class="column1">
+                <div class="title">
+                    <div class="cell"><img src="svg/no-image.svg" class="icon">TITLE<div class="timestamp">123</div></div>
+                    
+                </div>
+                <div class="menu">
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Общие сведения <div class="counter">&nbsp;1&nbsp;</div></div>
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Данные реестра <div class="counter">12</div></div>
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Фотогалерея <div class="counter">82</div></div>
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Фотогалерея <div class="counter">182</div></div>
+                </div>
+                <div class="photo">
+                    <!--<img src="http://photos.marinetraffic.com/ais/showphoto.aspx?mmsi=273245600">-->
+                    <img src="svg/no-image.svg">
+                </div>
+        </div>
+        <div class="column2">
+            <div class="content mCustomScrollbar" data-mcs-theme="dark">
+                <div class="caption">ИНФОРМАЦИЯ О СУДНЕ</div>
+                <table>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                </table>
+                <div class="caption">ИНФОРМАЦИЯ О СУДНЕ</div>
+                <table>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                    </tr>
+                </table> 
+            </div>
+        </div>
+        
+        <div class="column3">
+                <div class="close-button"><img src="svg/no-image.svg"></div>
+        </div>
+    </div>
+
+            </td>
+        </tr>
+    </table>
+               
+</body>                       
