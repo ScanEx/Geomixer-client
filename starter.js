@@ -216,7 +216,7 @@ var createMenuNew = function() {
         ]});
 
     _menuUp.addItem(
-        {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
+    {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
             {
                 id: 'mapGrid', title:_gtxt('Координатная сетка'),
                 onsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, {isActive: true}),
@@ -503,7 +503,7 @@ var createToolbar = function() {
                 opacity: 1,
                 color: '#008B8B'
             }
-        },
+        }
     });
     lmap.addControl(window.searchControl);
     console.log(window.searchControl);
