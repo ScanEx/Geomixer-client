@@ -46516,6 +46516,9 @@ nsGmx.addHeaderLinks = function()
 
                 $(valueInput).datepicker(
                 {
+                    onSelect: function(dateText, inst) {
+                        $(this).change();
+                    },
                     changeMonth: true,
                     changeYear: true,
                     dateFormat: "dd.mm.yy"
