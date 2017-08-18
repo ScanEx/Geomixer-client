@@ -939,12 +939,17 @@ function initAuthWidget() {
             return nativeAuthWidget;
         }
     };
+
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
         accountLink: null,
         showMapLink: !!window.mapsSite,
-        changePassword: !window.mapsSite
+        changePassword: !window.mapsSite,
+        isAdmin: nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN),
+        callbacks: {
+            'authWidget-usergroupMenuItem': showUserList
+        }
     });
 
     var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
@@ -1216,23 +1221,22 @@ function initDefaultBaseLayers() {
         });
 }
 
+function showUserList () {
+    gmxCore.loadModule('UserGroupWidget').then(function(module) {
+        var canvas = $('<div/>');
+        new module.UserGroupListWidget(canvas);
+        canvas.dialog({
+            width: 400,
+            height: 400,
+            title: _gtxt('Управление группами пользователей')
+        });
+    });
+}
+
 // Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации
 // требуется знать текущий язык, а он становится известен только после загрузки карты
 function initHeader() {
     var rightLinks = [];
-    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-        rightLinks.push({
-            title: _gtxt('Администрирование'),
-            dropdown: [{
-                title: _gtxt('Системные настройки'),
-                link: serverBase + 'Administration/Actions.aspx'
-            }, {
-                title: _gtxt('Управление группами'),
-                link: 'javascript:void(0)',
-                id: 'usergroupMenuItem'
-            }]
-        })
-    }
 
     nsGmx.widgets.header = new nsGmx.HeaderWidget({
         leftLinks: nsGmx.addHeaderLinks(),
@@ -1241,18 +1245,6 @@ function initHeader() {
     });
 
     nsGmx.widgets.header.appendTo($('.header'));
-
-    $('.header').find('#usergroupMenuItem').click(function() {
-        gmxCore.loadModule('UserGroupWidget').then(function(module) {
-            var canvas = $('<div/>');
-            new module.UserGroupListWidget(canvas);
-            canvas.dialog({
-                width: 400,
-                height: 400,
-                title: _gtxt('Управление группами пользователей')
-            });
-        });
-    })
 }
 
 function processGmxMap(state, gmxMap) {
