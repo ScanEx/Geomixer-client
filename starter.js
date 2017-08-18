@@ -216,7 +216,7 @@ var createMenuNew = function() {
         ]});
 
     _menuUp.addItem(
-        {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
+    {id: 'instrumentsMenu', title:_gtxt('Инструменты'), childs: [
             {
                 id: 'mapGrid', title:_gtxt('Координатная сетка'),
                 onsel: nsGmx.gridManager.setState.bind(nsGmx.gridManager, {isActive: true}),
@@ -463,6 +463,53 @@ var createToolbar = function() {
 			}
 		}
 	}));
+
+    /**
+    * seachParams
+    */
+
+    var oSearchResultDiv = _div();
+
+    window.searchControl = new nsGmx.SearchControl({
+        addBefore: 'saveMap',
+        placeHolder: 'Поиск по кадастру, адресам, координатам',
+        // position: 'topleft',
+        position: 'topleft',
+        limit: 10,
+        providers: [
+            new nsGmx.OsmDataProvider({
+                showOnMap: true,
+                serverBase: 'http://maps.kosmosnimki.ru',
+                limit: 10,
+                onFetch: function (response) {
+                    console.log(oSearchLeftMenu);
+                    // oSearchLeftMenu.createWorkCanvas('search');
+                    nsGmx.searchLogic.log(response);
+                }.bind(this),
+            })
+        ],
+        style: {
+            editable: false,
+            map: true,
+            pointStyle: {
+                size: 8,
+                weight: 1,
+                opacity: 1,
+                color: '#00008B'
+            },
+            lineStyle: {
+                fill: false,
+                weight: 3,
+                opacity: 1,
+                color: '#008B8B'
+            }
+        }
+    });
+    lmap.addControl(window.searchControl);
+    console.log(window.searchControl);
+
+// lmap.addControl(window.searchControl);
+// console.log(window.searchControl);
 
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
@@ -892,12 +939,17 @@ function initAuthWidget() {
             return nativeAuthWidget;
         }
     };
+
     nsGmx.widgets.authWidget = new nsGmx.AuthWidget({
         authManager: authManagerProxy,
         showAccountLink: !!window.mapsSite,
         accountLink: null,
         showMapLink: !!window.mapsSite,
-        changePassword: !window.mapsSite
+        changePassword: !window.mapsSite,
+        isAdmin: nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN),
+        callbacks: {
+            'authWidget-usergroupMenuItem': showUserList
+        }
     });
 
     var authPlaceholder = nsGmx.widgets.header.getAuthPlaceholder();
@@ -1169,23 +1221,22 @@ function initDefaultBaseLayers() {
         });
 }
 
+function showUserList () {
+    gmxCore.loadModule('UserGroupWidget').then(function(module) {
+        var canvas = $('<div/>');
+        new module.UserGroupListWidget(canvas);
+        canvas.dialog({
+            width: 400,
+            height: 400,
+            title: _gtxt('Управление группами пользователей')
+        });
+    });
+}
+
 // Инициализации шапки. Будем оттягивать с инициализацией до последнего момента, так как при инициализации
 // требуется знать текущий язык, а он становится известен только после загрузки карты
 function initHeader() {
     var rightLinks = [];
-    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-        rightLinks.push({
-            title: _gtxt('Администрирование'),
-            dropdown: [{
-                title: _gtxt('Системные настройки'),
-                link: serverBase + 'Administration/Actions.aspx'
-            }, {
-                title: _gtxt('Управление группами'),
-                link: 'javascript:void(0)',
-                id: 'usergroupMenuItem'
-            }]
-        })
-    }
 
     nsGmx.widgets.header = new nsGmx.HeaderWidget({
         leftLinks: nsGmx.addHeaderLinks(),
@@ -1194,18 +1245,6 @@ function initHeader() {
     });
 
     nsGmx.widgets.header.appendTo($('.header'));
-
-    $('.header').find('#usergroupMenuItem').click(function() {
-        gmxCore.loadModule('UserGroupWidget').then(function(module) {
-            var canvas = $('<div/>');
-            new module.UserGroupListWidget(canvas);
-            canvas.dialog({
-                width: 400,
-                height: 400,
-                title: _gtxt('Управление группами пользователей')
-            });
-        });
-    })
 }
 
 function processGmxMap(state, gmxMap) {
