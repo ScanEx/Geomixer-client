@@ -386,6 +386,18 @@ var createToolbar = function() {
         .addTo(lmap)
         .on('click', _mapHelper.showPermalink.bind(_mapHelper));
 
+    var overlaysIcon = L.control.gmxIcon({
+        id: 'overlays',
+        title: 'overlays',
+        togglable: true,
+        addBefore: 'drawing'
+    })
+        .addTo(lmap)
+        .on('click', function () {
+            console.log(this.options.isActive);
+            // this.setActive(!this.options.isActive);
+        });
+
     if (window.mapsSite) {
         var shareIconControl = new nsGmx.ShareIconControl({
             permalinkManager: {
