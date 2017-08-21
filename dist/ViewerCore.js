@@ -7612,13 +7612,14 @@ var DataManager = L.Class.extend({
     addLayerFilter: function(filterFunc, options) {
         if (options && options.layerID) {
 			var	layerID = options.layerID,
-				name = options.target || 'screen';
+				target = options.target || 'screen',
+				name = target;
 
 			if (!this._filtersView[layerID]) { this._filtersView[layerID] = {}; }
 			if (options.id) { name += '_' + options.id; }
 
 			this._filtersView[layerID][name] = filterFunc;
-			this._triggerObservers(this._getObserversByFilterName(name, options.target));
+			this._triggerObservers(this._getObserversByFilterName(name, target));
 		}
 		return this;
     },
@@ -7626,11 +7627,12 @@ var DataManager = L.Class.extend({
     removeLayerFilter: function(options) {
         if (this._filtersView[options.layerID]) {
 			var	layerID = options.layerID,
-				name = options.target || 'screen';
+				target = options.target || 'screen',
+				name = target;
 			if (options.id) { name += '_' + options.id; }
 
             if (this._filtersView[layerID][name]) {
-				var oKeys = this._getObserversByFilterName(name);
+				var oKeys = this._getObserversByFilterName(name, target);
 				delete this._filtersView[layerID][name];
 				this._triggerObservers(oKeys);
 			}
@@ -50033,6 +50035,19 @@ nsGmx.AuthWidget = (function() {
                 });
             }
 
+            if (this._options.isAdmin) {
+                dropdownItems.push({
+                    title: nsGmx.Translations.getText('Системные настройки'),
+                    link: 'http://maps.kosmosnimki.ru/Administration/Actions.aspx'
+                });
+
+                dropdownItems.push({
+                    title: nsGmx.Translations.getText('Управление группами'),
+                    link: 'javascript:void(0)',
+                    className: 'authWidget-usergroupMenuItem'
+                });
+            }
+
             dropdownItems.push({
                 title: nsGmx.Translations.getText('auth.logout'),
                 className: 'authWidget-logoutButton'
@@ -50047,6 +50062,14 @@ nsGmx.AuthWidget = (function() {
 
             dropdownMenuWidget.appendTo(this._view.find('.authWidget-userPanel-userMenuCell'));
         }
+
+        this._view.find('.authWidget-usergroupMenuItem').click(function(e) {
+            if (this._options.callbacks && 'authWidget-usergroupMenuItem' in this._options.callbacks) {
+                this._options.callbacks['authWidget-usergroupMenuItem']();
+            } else {
+                return false;
+            }
+        }.bind(this));
 
         this._view.find('.authWidget-changePasswordButton').click(function(e) {
             var native = this._authManager.getNative();
