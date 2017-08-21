@@ -80,7 +80,6 @@ var CalendarModel = window.Backbone.Model.extend({
         dailyFilter: true
     }
 });
-
 var Calendar1 = window.Backbone.View.extend({
     tagName: 'div',
     model: new CalendarModel(),
@@ -92,10 +91,10 @@ var Calendar1 = window.Backbone.View.extend({
             this.showCalendar(e);
             $(e.target).focus();
         },
-        'input .CalendarWidget-dateBegin': function (e) {
+        'keydown .CalendarWidget-dateBegin': function (e) {
             this.manuallyChangeDateInterval(e, 'begin');
         },
-        'input .CalendarWidget-dateEnd': function (e) {
+        'keydown .CalendarWidget-dateEnd': function (e) {
             this.manuallyChangeDateInterval(e, 'end');
         },
         'click .CalendarWidget-iconScrollLeft': function () {
@@ -218,15 +217,17 @@ var Calendar1 = window.Backbone.View.extend({
     },
 
     manuallyChangeDateInterval: function (e, type) {
+        if (e.keyCode !== 13) return;
+        e.preventDefault();
+        e.stopPropagation();
         var value = $(e.target).val(),
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
             dayms = nsGmx.DateInterval.MS_IN_DAY,
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
             endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf()),
-            parsed;
+            oneDayPeriod, parsed;
 
         try {
             parsed = $.datepicker.parseDate('dd.mm.yy', value);
@@ -237,23 +238,41 @@ var Calendar1 = window.Backbone.View.extend({
         // handle errors and too large values
         if (!parsed || parsed < this._dateMin || parsed > this._dateMax) { return; }
 
+        parsed = nsGmx.CalendarWidget1.fromUTC(parsed);
+
+        oneDayPeriod = (parsed.valueOf() === dateBegin.valueOf());
+        oneDayPeriod ? this.setMode(Calendar1.SIMPLE_MODE) : this.setMode(Calendar1.ADVANCED_MODE);
+
         if (type === 'begin') {
             this._dateBegin.datepicker('setDate', parsed);
-            if (parsed > dateEnd) {
+            if (parsed > new Date(dateEnd.valueOf() - dayms)) {
                 this._dateEnd.datepicker('setDate', parsed);
                 $(endInput).val(e.target.value);
                 this._selectFunc(endInput);
             }
+            this._dateInterval.set({
+                dateBegin: new Date(parsed.valueOf()),
+                dateEnd: new Date(parsed.valueOf() + dayms)
+            });
         } else {
             this._dateEnd.datepicker('setDate', parsed);
             if (parsed < dateBegin) {
                 this._dateBegin.datepicker('setDate', parsed);
                 $(beginInput).val(e.target.value);
                 this._selectFunc(beginInput);
+                this._dateInterval.set({
+                    dateBegin: new Date(parsed.valueOf()),
+                    dateEnd: new Date(parsed.valueOf() + dayms)
+                });
+            } else if (parsed > dateBegin) {
+                this._dateInterval.set({
+                    dateEnd: new Date(parsed.valueOf() + dayms)
+                });
             }
         }
 
         this._selectFunc(e.target);
+        this.showCalendar(e);
     },
 
     enableDailyFilter: function () {
@@ -356,7 +375,7 @@ var Calendar1 = window.Backbone.View.extend({
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
-            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms) && e.target === beginInput,
+            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
             endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf());
 
         this.beginCalendar = $(this.calendarTemplates.beginTemplate({oneDayPeriod: oneDayPeriod}));
