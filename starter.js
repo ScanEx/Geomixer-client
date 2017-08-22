@@ -392,7 +392,7 @@ var createToolbar = function() {
         togglable: true,
         addBefore: 'drawing'
     })
-        .addTo(lmap)
+        .addTo(lmap)   
         .on('click', function () {
             console.log(this.options.isActive);
             // this.setActive(!this.options.isActive);
