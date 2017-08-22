@@ -50256,6 +50256,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50293,19 +50306,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -57613,12 +57613,16 @@ var nsGmx = nsGmx || {};
                     _queryMapLayers.loadDeferred.then(doAdd);
                 }
             }
+
+            return this;
         },
 
         hide: function() {
             var attrs = this.model.toJSON();
             attrs._isAppended && $(this.get().canvas).hide();
             this.model.set('isAppended', true);
+
+            return this;
         },
 
         bindLayer: function(layerName) {
@@ -57653,6 +57657,7 @@ var nsGmx = nsGmx || {};
 
             clone[layerName] = true;
             this.model.set('unbindedTemporalLayers', clone);
+            this.updateTemporalLayers();
         },
 
         _updateOneLayer: function(layer, dateBegin, dateEnd) {
@@ -57700,7 +57705,7 @@ var nsGmx = nsGmx || {};
                     }
                 }
             } else {
-                if (currentLayer) {
+                if (currentLayer && !(currentLayer in attrs.unbindedTemporalLayers)) {
                     currentLayer = nsGmx.gmxMap.layersByID[currentLayer];
                     this._updateOneLayer(currentLayer, dateBegin, dateEnd);
                 } else {
@@ -57737,6 +57742,10 @@ var nsGmx = nsGmx || {};
 
             props = layer.getGmxProperties(),
             layerID = props.LayerID;
+
+            if (layerID in attrs.unbindedTemporalLayers) {
+                return;
+            }
 
             if (layerID === currentLayer) {
                 if (props.maxShownPeriod) { return; }
@@ -57950,6 +57959,14 @@ var nsGmx = nsGmx || {};
             this.model.set('dailyFilter', !this.model.get('dailyFilter'));
         },
 
+        setDailyFilter: function (active) {
+            var attrs = this.model.toJSON(),
+                calendar = attrs.calendar;
+
+            calendar.model.set('dailyFilter', active);
+            this.model.set('dailyFilter', active);
+        },
+
         handleFiltersHash: function () {
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
@@ -57999,6 +58016,20 @@ var nsGmx = nsGmx || {};
             }
 
             for (var i = 0; i < temporalLayers.length; i++) {
+                var l = temporalLayers[i],
+                    p = l.getGmxProperties && l.getGmxProperties(),
+                    layerName;
+
+                if (!p) {
+                    continue;
+                }
+
+                layerName = p.name;
+
+                if (layerName in attrs.unbindedTemporalLayers) {
+                    continue;
+                }
+
                 (function (x) {
                 var layer = temporalLayers[x];
 
