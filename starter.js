@@ -386,18 +386,6 @@ var createToolbar = function() {
         .addTo(lmap)
         .on('click', _mapHelper.showPermalink.bind(_mapHelper));
 
-    var overlaysIcon = L.control.gmxIcon({
-        id: 'overlays',
-        title: 'overlays',
-        togglable: true,
-        addBefore: 'drawing'
-    })
-        .addTo(lmap)   
-        .on('click', function () {
-            console.log(this.options.isActive);
-            // this.setActive(!this.options.isActive);
-        });
-
     if (window.mapsSite) {
         var shareIconControl = new nsGmx.ShareIconControl({
             permalinkManager: {
@@ -483,10 +471,10 @@ var createToolbar = function() {
     var oSearchResultDiv = _div();
 
     window.searchControl = new nsGmx.SearchControl({
-        addBefore: 'saveMap',
+        // addBefore: 'saveMap',
+        id: 'searchcontrol',
         placeHolder: 'Поиск по кадастру, адресам, координатам',
-        // position: 'topleft',
-        position: 'topleft',
+        position: 'topright',
         limit: 10,
         providers: [
             new nsGmx.OsmDataProvider({
@@ -518,10 +506,19 @@ var createToolbar = function() {
         }
     });
     lmap.addControl(window.searchControl);
-    console.log(window.searchControl);
 
-// lmap.addControl(window.searchControl);
-// console.log(window.searchControl);
+    var overlaysIcon = L.control.gmxIcon({
+        position: 'topright',
+        id: 'overlays',
+        title: 'overlays',
+        togglable: true,
+        addBefore: 'searchcontrol'
+    })
+        .addTo(lmap)
+        .on('click', function () {
+            console.log(this.options.isActive);
+            console.log(nsGmx.leafletMap.gmxLayersControl);
+        });
 
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
