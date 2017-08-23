@@ -512,13 +512,20 @@ var createToolbar = function() {
         id: 'overlays',
         title: 'overlays',
         togglable: true,
-        addBefore: 'searchcontrol'
+        // addBefore: 'searchcontrol'
     })
         .addTo(lmap)
         .on('click', function () {
-            console.log(this.options.isActive);
-            console.log(nsGmx.leafletMap.gmxLayersControl);
+            // console.log(this.options.isActive);
+            // console.log(nsGmx.leafletMap.gmxLayersControl);
+            lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {
+                // position: 'topleft',
+                collapsed: false,
+                hideBaseLayers: true
+            }));
         });
+
+
 
     // var ToolsGroup = new L.Control.gmxIconGroup({
         // id: 'toolsGroup',
@@ -1447,7 +1454,12 @@ function processGmxMap(state, gmxMap) {
 	// End: запоминание текущей позиции карты
 
     lmap.gmxControlsManager.init(window.controlsOptions);
-    lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {hideBaseLayers: true}));
+    // lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {
+    //     // position: 'topleft',
+    //     collapsed: true,
+    //     hideBaseLayers: true
+    // }));
+
     nsGmx.leafletMap = lmap;
 
     var loc = nsGmx.leafletMap.gmxControlsManager.get('location');
