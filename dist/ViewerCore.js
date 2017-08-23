@@ -7387,30 +7387,32 @@ var ObserverTileLoader = L.Class.extend({
     },
 
     _updateObserver: function(observer) {
-        var obsData = this._observerData[observer.id],
-            newObserverTiles = {},
-            leftToLoad = 0,
-            key;
+        if (this._observerData[observer.id]) {
+			var obsData = this._observerData[observer.id],
+				newObserverTiles = {},
+				leftToLoad = 0,
+				key;
 
-        for (key in this._tileData) {
-            var tile = this._tileData[key].tile;
-            if (observer.intersectsWithTile(tile)) {
-                newObserverTiles[key] = true;
-                if (tile.state !== 'loaded') {
-                    leftToLoad++;
-                }
-                this._tileData[key].observers[observer.id] = true;
-            }
-        }
+			for (key in this._tileData) {
+				var tile = this._tileData[key].tile;
+				if (observer.intersectsWithTile(tile)) {
+					newObserverTiles[key] = true;
+					if (tile.state !== 'loaded') {
+						leftToLoad++;
+					}
+					this._tileData[key].observers[observer.id] = true;
+				}
+			}
 
-        for (key in obsData.tiles) {
-            if (!(key in newObserverTiles)) {
-                delete this._tileData[key].observers[observer.id];
-            }
-        }
+			for (key in obsData.tiles) {
+				if (!(key in newObserverTiles)) {
+					delete this._tileData[key].observers[observer.id];
+				}
+			}
 
-        obsData.tiles = newObserverTiles;
-        obsData.leftToLoad = leftToLoad;
+			obsData.tiles = newObserverTiles;
+			obsData.leftToLoad = leftToLoad;
+		}
     },
 
     _tileLoadedCallback: function(tile) {
@@ -12453,9 +12455,9 @@ var layersVersion = {
 				layersVersion.needBbox = _gmx.needBbox;
 			}
 			layersVersion.start();
-            if (!_gmx._stampVersionRequest || _gmx._stampVersionRequest < Date.now() - 19000 || !isExistsTiles(prop)) {
+            // if (!_gmx._stampVersionRequest || _gmx._stampVersionRequest < Date.now() - 19000 || !isExistsTiles(prop)) {
 				layersVersion.now();
-            }
+            // }
         }
     },
 
@@ -50275,6 +50277,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50312,19 +50327,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
