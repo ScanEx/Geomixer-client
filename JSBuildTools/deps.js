@@ -74,6 +74,7 @@ var jsFiles = [
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
     "src/SearchLogic/SearchLogic.js",
+    "leaflet/plugins/gmxLayers2/gmxLayers2.js",
 
     "starter.js",
     "version.js",

@@ -1895,11 +1895,23 @@ div.layersScroll
     display: none;
 }
 
-/*.leaflet-control-layers {
+.leaflet-control-layers2 {
+    position: absolute;
+    /*top: 45px;*/
+    right: 442px;
+}
+
+.leaflet-control-layers {
     position: absolute;
     top: 45px;
-    right: 442px;
-}*/
+	width: 130px;
+	/*min-height: 19px;*/
+    /*right: 442px;*/
+}
+
+leaflet-control-layers-toggle {
+	background-image:
+}
 
 .gmxPopup div p {
     margin: 2px 0px;

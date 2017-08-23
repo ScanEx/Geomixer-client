@@ -505,33 +505,21 @@ var createToolbar = function() {
             }
         }
     });
+
     lmap.addControl(window.searchControl);
+    lmap.gmxControlsManager.add(window.searchControl);
+    // shitty trick
+    // 'cause Aryunov doesn't use controls id
+    window.searchControl._container._id = 'searchcontrol';
 
-    var overlaysIcon = L.control.gmxIcon({
-        position: 'topright',
-        id: 'overlays',
-        title: 'overlays',
+    var gmxLayers = new L.control.gmxLayers2(null, null, {
+        collapsed: true,
         togglable: true,
-        // addBefore: 'searchcontrol'
-    })
-        .addTo(lmap)
-        .on('click', function () {
-            // console.log(this.options.isActive);
-            // console.log(nsGmx.leafletMap.gmxLayersControl);
-            lmap.addControl(new L.Control.gmxLayers(lmap.gmxBaseLayersManager, {
-                // position: 'topleft',
-                collapsed: false,
-                hideBaseLayers: true
-            }));
-        });
+        addBefore: 'searchcontrol'
+    });
 
-
-
-    // var ToolsGroup = new L.Control.gmxIconGroup({
-        // id: 'toolsGroup',
-        // isSortable: true,
-        // items: [gridIcon, bookmarkIcon]
-    // }).addTo(lmap);
+    lmap.addControl(gmxLayers);
+    lmap.gmxControlsManager.add(gmxLayers);
 }
 
 var createDefaultMenu = function() {
