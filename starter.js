@@ -515,7 +515,10 @@ var createToolbar = function() {
     var gmxLayers = new L.control.gmxLayers2(null, null, {
         collapsed: true,
         togglable: true,
-        addBefore: 'searchcontrol'
+        addBefore: 'searchcontrol',
+        direction: '',
+        placeHolder: 'no-overlays'
+
     });
 
     lmap.addControl(gmxLayers);

@@ -1,0 +1,19 @@
+
+.leaflet-control-layers2 {
+    float: left !important;
+}
+
+.leaflet-control-layers {
+    position: absolute;
+	/*width: 130px;*/
+}
+
+.leaflet-control-layers-bottom {
+    margin-left: 4px;
+    margin-top: 45px;
+}
+
+.leaflet-control-layers-left {
+    margin-right: 4px;
+    float: right;
+}

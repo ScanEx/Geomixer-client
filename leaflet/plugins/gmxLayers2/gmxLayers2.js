@@ -44,6 +44,10 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             iconContainer = this._iconContainer = L.DomUtil.create('div', iconClassName),
             listContainer = this._listContainer = L.DomUtil.create('div', listClassName);
 
+        var openingDirection = this.options.direction || 'bottom';
+
+        L.DomUtil.addClass(listContainer, listClassName + '-' + openingDirection);
+
 		this._prefix = prefix;
 
         //Makes this work on IE10 Touch devices by stopping it from firing a mouseout event when the touch is released
@@ -57,6 +61,9 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
         }
 
+        var placeHolder = L.DomUtil.create('div', 'layers-placeholder', listContainer);
+        placeHolder.innerHTML = this.options.placeHolder;
+
         var form = this._form = L.DomUtil.create('form', listClassName + '-list');
 
         if (this.options.collapsed) {
@@ -66,7 +73,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
               <use xlink:href="' + useHref + '"></use>\
             </svg>';
 
-            var link = this._layersLink = L.DomUtil.create('a', /*'leaflet-control-layers' + '-toggle'*/'', listContainer);
+            var link = this._layersLink = L.DomUtil.create('a', '', listContainer);
             link.href = '#';
             link.title = 'Layers';
 
@@ -92,6 +99,14 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         listContainer.appendChild(form);
         container.appendChild(iconContainer);
         container.appendChild(listContainer);
+    },
+
+    _update: function () {
+        if (!this._listContainer) {
+            return;
+        }
+
+        
     },
 
     setActive: function (active, skipEvent) {
@@ -126,7 +141,8 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
     },
 
     addTo: function (map) {
-        L.Control.prototype.addTo.call(this, map);
+        // L.Control.prototype.addTo.call(this, map);
+        L.Control.GmxIcon.prototype.addTo.call(this, map);
         if (this.options.addBefore) {
             this.addBefore(this.options.addBefore);
         }
