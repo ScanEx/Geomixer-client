@@ -20,6 +20,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             this._iconClick = function () {
                 if (this._iconContainer) {
                     this.setActive(!this.options.isActive);
+                    this._update();
                     if (this.options.stateChange) { this.options.stateChange(this); }
                 }
             };
@@ -61,7 +62,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
         }
 
-        var placeHolder = L.DomUtil.create('div', 'layers-placeholder', listContainer);
+        var placeHolder = this._placeHolder = L.DomUtil.create('div', 'layers-placeholder');
         placeHolder.innerHTML = this.options.placeHolder;
 
         var form = this._form = L.DomUtil.create('form', listClassName + '-list');
@@ -97,6 +98,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         this._overlaysList = L.DomUtil.create('div', listClassName + '-overlays', form);
 
         listContainer.appendChild(form);
+        // listContainer.appendChild(placeHolder);
         container.appendChild(iconContainer);
         container.appendChild(listContainer);
     },
@@ -105,8 +107,25 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         if (!this._listContainer) {
             return;
         }
+        var options = this.options,
+            empty = true;
 
-        
+        if (!options.isActive) {
+            this._form.style.display = 'none';
+            this._placeHolder.style.display = 'none';
+            return;
+        }
+
+        for (var key in this._layers) {
+            if (this._layers.hasOwnProperty(key)) {
+                if (this._layers[key]) {
+                    empty = false;
+                }
+            }
+        }
+
+        this._form.style.display = empty ? 'none' : 'block';
+        this._placeHolder.style.display = empty ? 'block' : 'none';
     },
 
     setActive: function (active, skipEvent) {
