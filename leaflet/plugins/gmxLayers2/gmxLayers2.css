@@ -4,8 +4,7 @@
 }
 
 .leaflet-control-layers {
-    position: absolute;
-	/*width: 130px;*/
+    position: fixed;
 }
 
 .leaflet-control-layers-bottom {

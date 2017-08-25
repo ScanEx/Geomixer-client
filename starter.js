@@ -513,11 +513,12 @@ var createToolbar = function() {
     window.searchControl._container._id = 'searchcontrol';
 
     var gmxLayers = new L.control.gmxLayers2(null, null, {
+        title: window._gtxt('Панель оверлеев'),
         collapsed: true,
         togglable: true,
         addBefore: 'searchcontrol',
         direction: '',
-        placeHolder: 'no-overlays'
+        placeHolder: window._gtxt("оверлеи отсутствуют")
 
     });
 

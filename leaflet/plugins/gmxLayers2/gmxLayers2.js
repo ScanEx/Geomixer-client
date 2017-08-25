@@ -48,6 +48,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         var openingDirection = this.options.direction || 'bottom';
 
         L.DomUtil.addClass(listContainer, listClassName + '-' + openingDirection);
+        if (this.options.title) { this._iconContainer.title = this.options.title; }
 
 		this._prefix = prefix;
 
@@ -98,17 +99,24 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         this._overlaysList = L.DomUtil.create('div', listClassName + '-overlays', form);
 
         listContainer.appendChild(form);
-        // listContainer.appendChild(placeHolder);
+        listContainer.appendChild(placeHolder);
         container.appendChild(iconContainer);
         container.appendChild(listContainer);
+    },
+
+
+    _addItemObject: function (obj) {
+        var label = this._addItem(obj);
+        if (obj.layer && obj.layer._gmx && obj.layer._gmx.layerID) {
+            label.className = '_' + obj.layer._gmx.layerID;
+        }
     },
 
     _update: function () {
         if (!this._listContainer) {
             return;
         }
-        var options = this.options,
-            empty = true;
+        var options = this.options;
 
         if (!options.isActive) {
             this._form.style.display = 'none';
@@ -116,16 +124,26 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             return;
         }
 
-        for (var key in this._layers) {
-            if (this._layers.hasOwnProperty(key)) {
-                if (this._layers[key]) {
-                    empty = false;
-                }
+        this._baseLayersList.innerHTML = '';
+        this._overlaysList.innerHTML = '';
+
+        var baseLayersPresent = false,
+            overlaysPresent = false,
+            i, len, obj;
+
+        for (i in this._layers) {
+            obj = this._layers[i];
+            if (obj.overlay) {
+                this._addItemObject(obj);
+                overlaysPresent = true;
+            } else {
+                baseLayersPresent = true;
             }
         }
 
-        this._form.style.display = empty ? 'none' : 'block';
-        this._placeHolder.style.display = empty ? 'block' : 'none';
+        this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
+        this._form.style.display = overlaysPresent || baseLayersPresent ? '' : 'none';
+        this._placeHolder.style.display = overlaysPresent || baseLayersPresent ? 'none' : '';
     },
 
     setActive: function (active, skipEvent) {
