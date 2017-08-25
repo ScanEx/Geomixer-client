@@ -2697,39 +2697,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0113748");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0113748");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0113748");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0113748");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0113748");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?0113748");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?0113748");
   /*{iconsError}*/
 }
 
@@ -4842,19 +4842,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?0113748");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?0113748");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?0113748");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?0113748");
 }
 
 /* ---------------------------------
@@ -4900,7 +4900,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?0113748");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -4910,7 +4910,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?4361381");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?0113748");
 }
 
 .search-form table {
@@ -5011,11 +5011,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?4361381");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?4361381#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?4361381") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?4361381") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?4361381#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0113748");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0113748#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?0113748") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?0113748") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?0113748#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5028,7 +5028,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?4361381#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?0113748#fontello') format('svg');
   }
 }
 */
@@ -5585,7 +5585,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?4361381");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?0113748");
 }
 
 .authWidget-loginButton {
@@ -5761,11 +5761,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?4361381");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?0113748");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?4361381");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?0113748");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6196,7 +6196,71 @@ tbody.collapse.in {
 }
 
 .calendar-outside select {
+  font-size: 1.1em !important;
   border: 0;
+  background-color: #FFF;
+}
+
+.calendar-outside .ui-datepicker-header {
+  border-bottom: 1px solid grey;
+}
+
+.calendar-outside .ui-datepicker-prev,
+.ui-datepicker-next {
+  height: 28px !important;
+}
+
+.calendar-outside .ui-datepicker-prev span,
+.ui-datepicker-next span {
+  background-image: none !important;
+}
+
+.calendar-outside .ui-datepicker-prev span.ui-icon {
+  display: block;
+  text-indent: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-prev span:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+  content: '\';
+}
+
+.calendar-outside .ui-datepicker-next span.ui-icon {
+  display: block;
+  text-indent: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-next span:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+  content: '\';
 }
 
 .calendar-outside .time-container {
@@ -6446,7 +6510,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?4361381");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?0113748");
   /* ie9 fix */
 }
 
@@ -6502,7 +6566,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?4361381");
+  background: url("../common_components/dist/src/check.png?0113748");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6548,7 +6612,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?4361381");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?0113748");
   opacity: .4;
   display: none;
 }
@@ -14896,11 +14960,11 @@ label.photo-uploader-label input {
 }
 
 .leaflet-drawing-lines {
-  pointer-events: none;
+  pointer-events: visiblestroke;
 }
 
 .leaflet-drawing-lines-fill {
-  pointer-events: visiblestroke;
+  pointer-events: visiblepainted;
 }
 
 .leaflet-drawing-points {

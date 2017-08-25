@@ -7387,30 +7387,32 @@ var ObserverTileLoader = L.Class.extend({
     },
 
     _updateObserver: function(observer) {
-        var obsData = this._observerData[observer.id],
-            newObserverTiles = {},
-            leftToLoad = 0,
-            key;
+        if (this._observerData[observer.id]) {
+			var obsData = this._observerData[observer.id],
+				newObserverTiles = {},
+				leftToLoad = 0,
+				key;
 
-        for (key in this._tileData) {
-            var tile = this._tileData[key].tile;
-            if (observer.intersectsWithTile(tile)) {
-                newObserverTiles[key] = true;
-                if (tile.state !== 'loaded') {
-                    leftToLoad++;
-                }
-                this._tileData[key].observers[observer.id] = true;
-            }
-        }
+			for (key in this._tileData) {
+				var tile = this._tileData[key].tile;
+				if (observer.intersectsWithTile(tile)) {
+					newObserverTiles[key] = true;
+					if (tile.state !== 'loaded') {
+						leftToLoad++;
+					}
+					this._tileData[key].observers[observer.id] = true;
+				}
+			}
 
-        for (key in obsData.tiles) {
-            if (!(key in newObserverTiles)) {
-                delete this._tileData[key].observers[observer.id];
-            }
-        }
+			for (key in obsData.tiles) {
+				if (!(key in newObserverTiles)) {
+					delete this._tileData[key].observers[observer.id];
+				}
+			}
 
-        obsData.tiles = newObserverTiles;
-        obsData.leftToLoad = leftToLoad;
+			obsData.tiles = newObserverTiles;
+			obsData.leftToLoad = leftToLoad;
+		}
     },
 
     _tileLoadedCallback: function(tile) {
@@ -7612,13 +7614,14 @@ var DataManager = L.Class.extend({
     addLayerFilter: function(filterFunc, options) {
         if (options && options.layerID) {
 			var	layerID = options.layerID,
-				name = options.target || 'screen';
+				target = options.target || 'screen',
+				name = target;
 
 			if (!this._filtersView[layerID]) { this._filtersView[layerID] = {}; }
 			if (options.id) { name += '_' + options.id; }
 
 			this._filtersView[layerID][name] = filterFunc;
-			this._triggerObservers(this._getObserversByFilterName(name, options.target));
+			this._triggerObservers(this._getObserversByFilterName(name, target));
 		}
 		return this;
     },
@@ -7626,11 +7629,12 @@ var DataManager = L.Class.extend({
     removeLayerFilter: function(options) {
         if (this._filtersView[options.layerID]) {
 			var	layerID = options.layerID,
-				name = options.target || 'screen';
+				target = options.target || 'screen',
+				name = target;
 			if (options.id) { name += '_' + options.id; }
 
             if (this._filtersView[layerID][name]) {
-				var oKeys = this._getObserversByFilterName(name);
+				var oKeys = this._getObserversByFilterName(name, target);
 				delete this._filtersView[layerID][name];
 				this._triggerObservers(oKeys);
 			}
@@ -12451,9 +12455,9 @@ var layersVersion = {
 				layersVersion.needBbox = _gmx.needBbox;
 			}
 			layersVersion.start();
-            if (!_gmx._stampVersionRequest || _gmx._stampVersionRequest < Date.now() - 19000 || !isExistsTiles(prop)) {
+            // if (!_gmx._stampVersionRequest || _gmx._stampVersionRequest < Date.now() - 19000 || !isExistsTiles(prop)) {
 				layersVersion.now();
-            }
+            // }
         }
     },
 
@@ -17012,15 +17016,16 @@ L.GmxDrawing = L.Class.extend({
 		});
 
         if (L.gmxUtil && L.gmxUtil.prettifyDistance) {
-            var tooltip = document.createElementNS(L.Path.SVG_NS, 'g');
+			var svgNS = 'http://www.w3.org/2000/svg';
+			var tooltip = document.createElementNS(svgNS, 'g');
             L.DomUtil.addClass(tooltip, 'gmxTooltip');
-            var bg = document.createElementNS(L.Path.SVG_NS, 'rect');
+            var bg = document.createElementNS(svgNS, 'rect');
             bg.setAttributeNS(null, 'rx', 4);
             bg.setAttributeNS(null, 'ry', 4);
             bg.setAttributeNS(null, 'height', 16);
             L.DomUtil.addClass(bg, 'gmxTooltipBG');
 
-            var text = document.createElementNS(L.Path.SVG_NS, 'text');
+            var text = document.createElementNS(svgNS, 'text');
             var userSelectProperty = L.DomUtil.testProp(
                 ['userSelect', 'WebkitUserSelect', 'OUserSelect', 'MozUserSelect', 'msUserSelect']);
             text.style[userSelectProperty] = 'none';
@@ -17101,6 +17106,8 @@ L.GmxDrawing = L.Class.extend({
                 item = obj;
             } else {
                 var calcOptions = {};
+                if (!L.MultiPolygon) { L.MultiPolygon = L.Polygon; }
+                if (!L.MultiPolyline) { L.MultiPolyline = L.Polyline; }
                 if (!options || !('editable' in options)) { calcOptions.editable = true; }
                 if (obj.geometry)     { calcOptions.type = obj.geometry.type; }
                 else if (obj instanceof L.Rectangle)     { calcOptions.type = 'Rectangle'; }
@@ -17130,7 +17137,7 @@ L.GmxDrawing = L.Class.extend({
                 item = new L.GmxDrawing.Feature(this, obj, options);
             }
             if (!('map' in options)) { options.map = true; }
-            if (options.map && !item._map) { this._map.addLayer(item); }
+            if (options.map && !item._map && this._map) { this._map.addLayer(item); }
             else { this._addItem(item); }
             //if (!item._map) this._map.addLayer(item);
             //if (item.points) item.points._path.setAttribute('fill-rule', 'inherit');
@@ -17140,21 +17147,25 @@ L.GmxDrawing = L.Class.extend({
     },
 
     _disableDrag: function () {
-        this._map.dragging.disable();
-        L.DomUtil.disableTextSelection();
-        L.DomUtil.disableImageDrag();
-		this._map.doubleClickZoom.removeHooks();
+		if (this._map) {
+			this._map.dragging.disable();
+			L.DomUtil.disableTextSelection();
+			L.DomUtil.disableImageDrag();
+			this._map.doubleClickZoom.removeHooks();
+		}
     },
 
     _enableDrag: function () {
-        this._map.dragging.enable();
-        L.DomUtil.enableTextSelection();
-        L.DomUtil.enableImageDrag();
-		this._map.doubleClickZoom.addHooks();
+		if (this._map) {
+			this._map.dragging.enable();
+			L.DomUtil.enableTextSelection();
+			L.DomUtil.enableImageDrag();
+			this._map.doubleClickZoom.addHooks();
+		}
     },
 
     _clearCreate: function () {
-        if (this._createKey) {
+        if (this._createKey && this._map) {
             if (this._createKey.type === 'Rectangle' && L.Browser.mobile) {
                 L.DomEvent.off(this._map._container, 'touchstart', this._createKey.fn, this);
             } else {
@@ -17210,13 +17221,13 @@ L.GmxDrawing = L.Class.extend({
 
     create: function (type, options) {
         this._clearCreate(null);
-        if (type) {
+        if (type && this._map) {
             var map = this._map,
                 drawOptions = this._chkDrawOptions(type, options),
                 my = this;
 
             if (type === 'Rectangle') {
-                map._initPathRoot();
+                //map._initPathRoot();
                 map.dragging.disable();
             }
 
@@ -17496,6 +17507,9 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
             }, 0);
         }
         this._fireEvent('addtomap');
+		if (map._pathRoot && map._pathRoot.getAttribute('pointer-events') !== 'none') {
+			map._pathRoot.setAttribute('pointer-events', 'none');
+		}
     },
 
     onRemove: function (map) {
@@ -17639,7 +17653,7 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
     },
 
     _latLngsToCoords: function (latlngs, closed) {
-        var coords = L.GeoJSON.latLngsToCoords(latlngs);
+        var coords = L.GeoJSON.latLngsToCoords(L.GmxDrawing.utils.isOldVersion ? latlngs : latlngs[0]);
         if (closed) {
             var lastCoord = coords[coords.length - 1];
             if (lastCoord[0] !== coords[0][0] || lastCoord[1] !== coords[0][1]) {
@@ -17914,7 +17928,7 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
 
     getSummary: function () {
         var str = '',
-            mapOpt = this._map.options || {},
+            mapOpt = this._map ? this._map.options : {},
             type = this.options.type;
 
         if (type === 'Polyline' || type === 'MultiPolyline') {
@@ -17961,7 +17975,7 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
                         down = originalEvent.buttons || originalEvent.button;
 
                     if (ring && (ring.downObject || !down)) {
-                        var mapOpt = my._map.options || {},
+                        var mapOpt = my._map ? my._map.options : {},
                             distanceUnit = mapOpt.distanceUnit,
                             squareUnit = mapOpt.squareUnit,
                             str = '';
@@ -18008,12 +18022,14 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
 
     _setMarker: function (marker) {
         var _this = this,
-            _parent = this._parent;
+            _parent = this._parent,
+			_map = _parent._map,
+			mapOpt = _map ? _map.options : {};
 
         marker
-            .bindPopup(null, {maxWidth: 1000, closeOnClick: _parent._map.options.maxPopupCount > 1 ? false : true})
+            .bindPopup(null, {maxWidth: 1000, closeOnClick: mapOpt.maxPopupCount > 1 ? false : true})
             .on('dblclick', function() {
-                this._map.removeLayer(this);
+                if (_map) { _map.removeLayer(this); }
                 _this.remove();
                 //_parent.remove(this);
             })
@@ -18050,7 +18066,7 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
                 }, popup._input);
                 popup.update();
             });
-        _parent._map.addLayer(marker);
+        _map.addLayer(marker);
 
         _this.openPopup = marker.openPopup = function () {
             if (marker._popup && marker._map && !marker._map.hasLayer(marker._popup)) {
@@ -18151,8 +18167,6 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
             _this = this,
             mode = this.options.mode || (latlngs.length ? 'edit' : 'add');
 
-        this.lines = new L.Polyline(latlngs, lineStyle);
-        this.addLayer(this.lines);
         this.fill = new L.Polyline(latlngs, {
             className: 'leaflet-drawing-lines-fill',
             opacity: 0,
@@ -18160,11 +18174,15 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
             size: 10,
             weight: 10
         });
-
         this.addLayer(this.fill);
+
+        this.lines = new L.Polyline(latlngs, lineStyle);
+        this.addLayer(this.lines);
+
         if (!this.lineType && mode === 'edit') {
-            this.lines.addLatLng(latlngs[0]);
-            this.fill.addLatLng(latlngs[0]);
+			var latlng = L.GmxDrawing.utils.isOldVersion ? latlngs[0] : latlngs[0][0];
+            this.lines.addLatLng(latlng);
+            this.fill.addLatLng(latlng);
         }
         this.mode = mode;
 
@@ -18185,7 +18203,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
             .on('mouseout', function () {
                 if ('hideTooltip' in this) { this.hideTooltip(); }
             }, parent);
-        this.fill
+        this.lines
             .on('mouseover mousemove', function (ev) {
                 ev.ring = _this;
                 if ('_showTooltip' in this) {
@@ -18260,7 +18278,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
 
     getLength: function (downAttr) {
         var length = 0,
-            latlngs = this.points._latlngs,
+            latlngs = this._getLatLngsArr(),
             len = latlngs.length;
 
         if (len) {
@@ -18295,9 +18313,10 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
 
     _setPoint: function (latlng, nm, type) {
         if (!this.points) { return; }
-        var latlngs = this.points._latlngs;
+        var latlngs = this._getLatLngsArr();
         if (this.options.type === 'Rectangle') {
-            if (type === 'edge') {
+			if (latlngs.length < 4) { latlngs[3] = latlng; }
+			if (type === 'edge') {
                 nm--;
                 if (nm === 0) { latlngs[0].lng = latlngs[1].lng = latlng.lng; }
                 else if (nm === 1) { latlngs[1].lat = latlngs[2].lat = latlng.lat; }
@@ -18322,7 +18341,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
     addLatLng: function (point, delta) {
         this._legLength = [];
         if (this.points) {
-            var points = this.points._latlngs,
+            var points = this._getLatLngsArr(),
                 len = points.length,
                 lastPoint = points[len - 2];
             if (!lastPoint || !lastPoint.equals(point)) {
@@ -18356,8 +18375,15 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
         this._fireEvent('edit');
     },
 
+    _getLatLngsArr: function () {
+		return L.GmxDrawing.utils.isOldVersion ? this.points._latlngs : this.points._latlngs[0];
+    },
+
     // edit mode
     _pointDown: function (ev) {
+        if (!this._map) {
+            return;
+        }
         if (L.Browser.ie || (L.gmxUtil && L.gmxUtil.gtIE11)) {
             this._map.dragging._draggable._onUp(); // error in IE
         }
@@ -18370,7 +18396,6 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
                 return;
             }
         }
-        this._parent._disableDrag();
         var downAttr = L.GmxDrawing.utils.getDownType.call(this, ev, this._map, this._parent),
             type = downAttr.type,
             opt = this.options;
@@ -18381,11 +18406,12 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
             if (opt.disableAddPoints) { return; }
             this._legLength = [];
             var num = downAttr.num,
-                points = this.points._latlngs;
+                points = this._getLatLngsArr();
             points.splice(num, 0, points[num]);
             this._setPoint(ev.latlng, num, type);
         }
         this.downObject = true;
+        this._parent._disableDrag();
         this._map
             .on('mousemove', this._pointMove, this)
             .on('mouseup', this._mouseupPoint, this);
@@ -18439,7 +18465,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
     _lastPointClickTime: 0,  // Hack for emulate dblclick on Point
 
     _removePoint: function (num) {
-        var points = this.points._latlngs;
+        var points = this._getLatLngsArr();
         if (points.length > num) {
             this._legLength = [];
             points.splice(num, 1);
@@ -18461,7 +18487,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
 
     _pointDblClick: function (ev) {
         this._clearLineAddPoint();
-        if (!this._lastAddTime || Date.now() > this._lastAddTime) {
+        if (!this.options.disableAddPoints && (!this._lastAddTime || Date.now() > this._lastAddTime)) {
             var downAttr = L.GmxDrawing.utils.getDownType.call(this, ev, this._map, this._parent);
             this._removePoint(downAttr.num);
         }
@@ -18486,7 +18512,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
                     if (this.lineType && num === 0) {
                         this._parent.options.type = this.options.type = 'Polygon';
                         this.lineType = false;
-                        this._removePoint(this.points._latlngs.length - 1);
+                        this._removePoint(this._getLatLngsArr().length - 1);
                     }
                     this._fireEvent('drawstop');
                     this._removePoint(num);
@@ -18494,7 +18520,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
                     var _this = this,
                         setLineAddPoint = function () {
                             _this._clearLineAddPoint();
-                            if (num === 0) { _this.points._latlngs.reverse(); }
+                            if (num === 0) { _this._getLatLngsArr().reverse(); }
                             _this.points.addLatLng(downAttr.latlng);
                             _this.setAddMode();
                             _this._fireEvent('drawstop');
@@ -18527,7 +18553,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
     _onDrag: function (ev) {
         var lat = this._dragstartPoint.lat - ev.latlng.lat,
             lng = this._dragstartPoint.lng - ev.latlng.lng,
-            points = this.points._latlngs;
+            points = this._getLatLngsArr();
 
         points.forEach(function (item) {
             item.lat -= lat;
@@ -18635,7 +18661,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
     },
 
     _createHandlers: function (flag) {
-        if (!this.points) { return; }
+        if (!this.points || !this._map) { return; }
         var stop = L.DomEvent.stopPropagation;
         if (flag) {
 			if (this._map.contextmenu) {
@@ -18701,7 +18727,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
     // add mode
     _moseMove: function (ev) {
         if (this.points) {
-            var points = this.points._latlngs;
+            var points = this._getLatLngsArr();
             if (points.length === 1) { this._setPoint(ev.latlng, 1); }
 
             this._setPoint(ev.latlng, points.length - 1);
@@ -18717,11 +18743,12 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
         if (ev.delta || timeStamp < this._lastMouseDownTime) {
             this._lastAddTime = timeStamp + 1000;
 
+			var _latlngs = this._getLatLngsArr();
 			if (ev.originalEvent && ev.originalEvent.which === 3
-				&& this.points && this.points._latlngs && this.points._latlngs.length) {	// for click right button
+				&& this.points && _latlngs && _latlngs.length) {	// for click right button
 
 				this.setEditMode();
-				this._removePoint(this.points._latlngs.length - 1);
+				this._removePoint(_latlngs.length - 1);
 				this._pointUp();
 				this._fireEvent('drawstop');
 				if (this._map && this._map.contextmenu) {
@@ -18804,32 +18831,27 @@ L.GmxDrawing.PointMarkers = L.Polygon.extend({
 
     _onMouseClick: function (e) {
         //if (this._map.dragging && this._map.dragging.moved()) { return; }
-
         this._fireMouseEvent(e);
     },
 
-    _isPathChange: function () {
-        this.projectLatlngs();
-        var pathStr = this.getPathString();
-        if (pathStr !== this._pathStr) {
-            this._pathStr = pathStr;
-            return true;
-        }
-        return false;
-    },
+	_updatePath: function () {
+		if (L.GmxDrawing.utils.isOldVersion) {
+			if (!this._map) { return; }
+			this._clipPoints();
+			this.projectLatlngs();
+			var pathStr = this.getPathString();
 
-    _updatePath: function () {
-        if (!this._map) { return; }
-        this._clipPoints();
-
-        if (this._isPathChange()) {
-            if (this._path.getAttribute('fill-rule') !== 'inherit') {
-                this._path.setAttribute('fill-rule', 'inherit');
-            }
-            this._path.setAttribute('d', this._pathStr || 'M0 0');
-            // L.Path.prototype._updatePath.call(this);
-        }
-    }
+			if (pathStr !== this._pathStr) {
+				this._pathStr = pathStr;
+				if (this._path.getAttribute('fill-rule') !== 'inherit') {
+					this._path.setAttribute('fill-rule', 'inherit');
+				}
+				this._path.setAttribute('d', this._pathStr || 'M0 0');
+			}
+		} else {
+			this._renderer._setPath(this, this._parts.length ? this._getPathPartStr(this._parts[0]) : '');
+		}
+	}
 });
 
 
@@ -18877,7 +18899,8 @@ L.GmxDrawing.PointMarkers = L.Polygon.extend({
 
 
 L.GmxDrawing.utils = {
-    defaultStyles: {
+	isOldVersion: L.version.substr(0, 3) === '0.7',
+	defaultStyles: {
         mode: '',
         map: true,
         editable: true,
@@ -18985,7 +19008,7 @@ L.GmxDrawing.utils = {
         }
         var out = {type: '', latlng: latlng, ctrlKey: ctrlKey},
             ring = this.points ? this : (ev.ring || ev.relatedEvent),
-            points = ring.points._originalPoints || [],
+            points = ring.points._originalPoints || ring.points._parts[0] || [],
             len = points.length;
 
         if (len === 0) { return out; }
@@ -46516,6 +46539,9 @@ nsGmx.addHeaderLinks = function()
 
                 $(valueInput).datepicker(
                 {
+                    onSelect: function(dateText, inst) {
+                        $(this).change();
+                    },
                     changeMonth: true,
                     changeYear: true,
                     dateFormat: "dd.mm.yy"
@@ -50030,6 +50056,19 @@ nsGmx.AuthWidget = (function() {
                 });
             }
 
+            if (this._options.isAdmin) {
+                dropdownItems.push({
+                    title: nsGmx.Translations.getText('Системные настройки'),
+                    link: 'http://maps.kosmosnimki.ru/Administration/Actions.aspx'
+                });
+
+                dropdownItems.push({
+                    title: nsGmx.Translations.getText('Управление группами'),
+                    link: 'javascript:void(0)',
+                    className: 'authWidget-usergroupMenuItem'
+                });
+            }
+
             dropdownItems.push({
                 title: nsGmx.Translations.getText('auth.logout'),
                 className: 'authWidget-logoutButton'
@@ -50044,6 +50083,14 @@ nsGmx.AuthWidget = (function() {
 
             dropdownMenuWidget.appendTo(this._view.find('.authWidget-userPanel-userMenuCell'));
         }
+
+        this._view.find('.authWidget-usergroupMenuItem').click(function(e) {
+            if (this._options.callbacks && 'authWidget-usergroupMenuItem' in this._options.callbacks) {
+                this._options.callbacks['authWidget-usergroupMenuItem']();
+            } else {
+                return false;
+            }
+        }.bind(this));
 
         this._view.find('.authWidget-changePasswordButton').click(function(e) {
             var native = this._authManager.getNative();
@@ -50230,19 +50277,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50280,6 +50314,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -51685,7 +51732,6 @@ var CalendarModel = window.Backbone.Model.extend({
         dailyFilter: true
     }
 });
-
 var Calendar1 = window.Backbone.View.extend({
     tagName: 'div',
     model: new CalendarModel(),
@@ -51697,10 +51743,10 @@ var Calendar1 = window.Backbone.View.extend({
             this.showCalendar(e);
             $(e.target).focus();
         },
-        'input .CalendarWidget-dateBegin': function (e) {
+        'keydown .CalendarWidget-dateBegin': function (e) {
             this.manuallyChangeDateInterval(e, 'begin');
         },
-        'input .CalendarWidget-dateEnd': function (e) {
+        'keydown .CalendarWidget-dateEnd': function (e) {
             this.manuallyChangeDateInterval(e, 'end');
         },
         'click .CalendarWidget-iconScrollLeft': function () {
@@ -51823,15 +51869,17 @@ var Calendar1 = window.Backbone.View.extend({
     },
 
     manuallyChangeDateInterval: function (e, type) {
+        if (e.keyCode !== 13) return;
+        e.preventDefault();
+        e.stopPropagation();
         var value = $(e.target).val(),
             beginInput = this.$('.CalendarWidget-dateBegin')[0],
             endInput = this.$('.CalendarWidget-dateEnd')[0],
             dayms = nsGmx.DateInterval.MS_IN_DAY,
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
-            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
             endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf()),
-            parsed;
+            oneDayPeriod, parsed;
 
         try {
             parsed = $.datepicker.parseDate('dd.mm.yy', value);
@@ -51842,23 +51890,41 @@ var Calendar1 = window.Backbone.View.extend({
         // handle errors and too large values
         if (!parsed || parsed < this._dateMin || parsed > this._dateMax) { return; }
 
+        parsed = nsGmx.CalendarWidget1.fromUTC(parsed);
+
+        oneDayPeriod = (parsed.valueOf() === dateBegin.valueOf());
+        oneDayPeriod ? this.setMode(Calendar1.SIMPLE_MODE) : this.setMode(Calendar1.ADVANCED_MODE);
+
         if (type === 'begin') {
             this._dateBegin.datepicker('setDate', parsed);
-            if (parsed > dateEnd) {
+            if (parsed > new Date(dateEnd.valueOf() - dayms)) {
                 this._dateEnd.datepicker('setDate', parsed);
                 $(endInput).val(e.target.value);
                 this._selectFunc(endInput);
             }
+            this._dateInterval.set({
+                dateBegin: new Date(parsed.valueOf()),
+                dateEnd: new Date(parsed.valueOf() + dayms)
+            });
         } else {
             this._dateEnd.datepicker('setDate', parsed);
             if (parsed < dateBegin) {
                 this._dateBegin.datepicker('setDate', parsed);
                 $(beginInput).val(e.target.value);
                 this._selectFunc(beginInput);
+                this._dateInterval.set({
+                    dateBegin: new Date(parsed.valueOf()),
+                    dateEnd: new Date(parsed.valueOf() + dayms)
+                });
+            } else if (parsed > dateBegin) {
+                this._dateInterval.set({
+                    dateEnd: new Date(parsed.valueOf() + dayms)
+                });
             }
         }
 
         this._selectFunc(e.target);
+        this.showCalendar(e);
     },
 
     enableDailyFilter: function () {
@@ -51961,7 +52027,7 @@ var Calendar1 = window.Backbone.View.extend({
             dateBegin = this._dateInterval.get('dateBegin'),
             dateEnd = this._dateInterval.get('dateEnd'),
             dayms = nsGmx.DateInterval.MS_IN_DAY,
-            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms) && e.target === beginInput,
+            oneDayPeriod = (dateEnd.valueOf() - dateBegin.valueOf() === dayms),
             endMidnight = (dateEnd.valueOf() === toMidnight(dateEnd).valueOf());
 
         this.beginCalendar = $(this.calendarTemplates.beginTemplate({oneDayPeriod: oneDayPeriod}));
@@ -57568,12 +57634,16 @@ var nsGmx = nsGmx || {};
                     _queryMapLayers.loadDeferred.then(doAdd);
                 }
             }
+
+            return this;
         },
 
         hide: function() {
             var attrs = this.model.toJSON();
             attrs._isAppended && $(this.get().canvas).hide();
             this.model.set('isAppended', true);
+
+            return this;
         },
 
         bindLayer: function(layerName) {
@@ -57608,6 +57678,7 @@ var nsGmx = nsGmx || {};
 
             clone[layerName] = true;
             this.model.set('unbindedTemporalLayers', clone);
+            this.updateTemporalLayers();
         },
 
         _updateOneLayer: function(layer, dateBegin, dateEnd) {
@@ -57655,7 +57726,7 @@ var nsGmx = nsGmx || {};
                     }
                 }
             } else {
-                if (currentLayer) {
+                if (currentLayer && !(currentLayer in attrs.unbindedTemporalLayers)) {
                     currentLayer = nsGmx.gmxMap.layersByID[currentLayer];
                     this._updateOneLayer(currentLayer, dateBegin, dateEnd);
                 } else {
@@ -57692,6 +57763,10 @@ var nsGmx = nsGmx || {};
 
             props = layer.getGmxProperties(),
             layerID = props.LayerID;
+
+            if (layerID in attrs.unbindedTemporalLayers) {
+                return;
+            }
 
             if (layerID === currentLayer) {
                 if (props.maxShownPeriod) { return; }
@@ -57905,6 +57980,14 @@ var nsGmx = nsGmx || {};
             this.model.set('dailyFilter', !this.model.get('dailyFilter'));
         },
 
+        setDailyFilter: function (active) {
+            var attrs = this.model.toJSON(),
+                calendar = attrs.calendar;
+
+            calendar.model.set('dailyFilter', active);
+            this.model.set('dailyFilter', active);
+        },
+
         handleFiltersHash: function () {
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
@@ -57954,6 +58037,20 @@ var nsGmx = nsGmx || {};
             }
 
             for (var i = 0; i < temporalLayers.length; i++) {
+                var l = temporalLayers[i],
+                    p = l.getGmxProperties && l.getGmxProperties(),
+                    layerName;
+
+                if (!p) {
+                    continue;
+                }
+
+                layerName = p.name;
+
+                if (layerName in attrs.unbindedTemporalLayers) {
+                    continue;
+                }
+
                 (function (x) {
                 var layer = temporalLayers[x];
 
