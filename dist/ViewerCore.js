@@ -7558,11 +7558,12 @@ var DataManager = L.Class.extend({
     _getActiveTileKeys: function() {
 
         this._chkMaxDateInterval();
-        if (!this._needCheckActiveTiles) {
+        if (this.options.needBbox || !this._needCheckActiveTiles) {
             return this._activeTileKeys;
         }
 
-        this._needCheckActiveTiles = false;
+        // только для режима с полными списками тайлов
+		this._needCheckActiveTiles = false;
 
 		if (this._isTemporalLayer) {
 			var newTileKeys = {};
@@ -7570,12 +7571,6 @@ var DataManager = L.Class.extend({
 				if (!this._tilesTree) {
 					this.initTilesTree();
 				}
-
-				/*var commonBounds = L.gmxUtil.bounds();
-				for (var obs in this._observers) {
-					commonBounds.extendBounds(this._observers[obs].bbox);
-				}*/
-
 				newTileKeys = this._tilesTree.selectTiles(this._beginDate, this._endDate).tiles;
 			}
 			this._updateActiveTilesList(newTileKeys);
@@ -50277,6 +50272,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50314,19 +50322,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
