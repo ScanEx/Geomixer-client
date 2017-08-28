@@ -1468,16 +1468,16 @@ function processGmxMap(state, gmxMap) {
                         dateEnd = dateInterval.get('dateEnd');
                     }
 
-                    if (props.name in attrs.unbindedTemporalLayers) {
+                    if (!props.name in attrs.unbindedTemporalLayers) {
                         nsGmx.widgets.commonCalendar.bindLayer(props.name);
+
+                        layer.setDateInterval(dateBegin, dateEnd);
+
+                        if (props.LayerID in attrs.dailyFiltersHash) {
+                            nsGmx.widgets.commonCalendar.applyDailyFilter([layer]);
+                        }
+
                     }
-
-                    layer.setDateInterval(dateBegin, dateEnd);
-
-                    if (props.LayerID in attrs.dailyFiltersHash) {
-                        nsGmx.widgets.commonCalendar.applyDailyFilter([layer]);
-                    }
-
                     //подписка на изменение dateInterval
                     if (layer.getDateInterval) {
                         layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);
