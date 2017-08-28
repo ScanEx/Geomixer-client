@@ -330,9 +330,12 @@ var nsGmx = nsGmx || {};
 
         unbindLayer: function(layerName) {
             var attrs = this.model.toJSON(),
+                layer = nsGmx.gmxMap.layersByID[layerName],
+                props = layer.getGmxProperties(),
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
+            layer.removeLayerFilter({id: 'dailyFilter'});
             // clone object
             for (var variable in unbindedTemporalLayers) {
                 if (unbindedTemporalLayers.hasOwnProperty(variable)) {
