@@ -230,7 +230,9 @@
 .ais_myfleet_dialog .menu div.button {
   width:30px;
   height:30px;
-  background-color: #738694;    
+  background-color: #738694; 
+  background-position: center;
+  background-repeat: no-repeat;   
   cursor:pointer;
   float: left;
   margin-right: 5px;
@@ -239,21 +241,29 @@
 
 .ais_myfleet_dialog .menu div.button.active{
   background-color: #3ca1d0; 
+  background-position: center;
+  background-repeat: no-repeat;
   padding:0;
 }
 
 .ais_myfleet_dialog .menu div.button.disabled{
   background-color: #ced9e0; 
+  background-position: center;
+  background-repeat: no-repeat;
   cursor: default;
 }
 
 .ais_myfleet_dialog .menu div.button.disabled:hover{
   background-color: #ced9e0; 
+  background-position: center;
+  background-repeat: no-repeat;
   cursor: default;
 }
 
 .ais_myfleet_dialog .menu div.button:hover {
   background-color: #3ca1d0; 
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .ais_myfleet_dialog .menu .progress{
@@ -270,9 +280,11 @@
 .ais_myfleet_dialog .showtrack{
   background: url(http://maps.kosmosnimki.ru/api/plugins/AIS/AISSearch/svg/path.svg) no-repeat center center;
 }
+/*
 .ais_myfleet_dialog .addremove{
   background: url(http://maps.kosmosnimki.ru/api/plugins/AIS/AISSearch/svg/add-my-fleet.svg) no-repeat center center;
 }
+*/
 .ais_myfleet_dialog .addremove.disabled i{
   color: #000;
 }
@@ -409,10 +421,10 @@
             background-color: #30404d;
         }
         .vessel-info-page .column1 .menu-item .counter{
-           display:inline;
+           display:none;
            font-size: 10px;
            border-radius: 4px;
-           padding:2px 6px 2px 5px;
+           padding:0 6px 2px 7px;
            background-color: #3ca1d0;
            border:none;
            color: white;
@@ -457,6 +469,7 @@
             vertical-align: middle;
             text-align: center;
             display: table-cell;
+            cursor:pointer;
         }  
 
         .vessel-info-page .column2 .register{
