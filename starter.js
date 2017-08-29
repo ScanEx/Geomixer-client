@@ -476,6 +476,7 @@ var createToolbar = function() {
         placeHolder: 'Поиск по кадастру, адресам, координатам',
         position: 'topright',
         limit: 10,
+        retrieveManyOnEnter: true,
         providers: [
             new nsGmx.OsmDataProvider({
                 showOnMap: true,
@@ -1247,9 +1248,7 @@ function initHeader() {
     var rightLinks = [];
 
     nsGmx.widgets.header = new nsGmx.HeaderWidget({
-        leftLinks: nsGmx.addHeaderLinks(),
-        rightLinks: rightLinks,
-        logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar.png'
+        logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar_small.png'
     });
 
     nsGmx.widgets.header.appendTo($('.header'));
@@ -2004,21 +2003,21 @@ function processGmxMap(state, gmxMap) {
         //создаём тулбар
         var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
 
-        var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
+        // var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
 
         //инициализация контролов поиска (модуль уже загружен)
         var oSearchModule = gmxCore.getModule('search');
         window.oSearchControl = new oSearchModule.SearchGeomixer();
 
         // if (document.getElementById('searchCanvas')) {
-        window.oSearchControl.Init({
-            Menu: oSearchLeftMenu,
-            ContainerInput: searchContainer,
-            ServerBase: window.serverBase,
-            layersSearchFlag: true,
-            Map: lmap,
-            gmxMap: gmxMap
-        });
+        // window.oSearchControl.Init({
+        //     Menu: oSearchLeftMenu,
+        //     ContainerInput: searchContainer,
+        //     ServerBase: window.serverBase,
+        //     layersSearchFlag: true,
+        //     Map: lmap,
+        //     gmxMap: gmxMap
+        // });
 
         _menuUp.createMenu = function() {
             createMenuNew();

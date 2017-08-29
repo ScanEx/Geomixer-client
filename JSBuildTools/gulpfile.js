@@ -30,10 +30,10 @@ require('./common_components/builder')(gulp, {
             commonRoot + 'DropdownMenuWidget@build',
             commonRoot + 'AuthWidget@build',
             commonRoot + 'LanguageWidget@build',
-            commonRoot + 'HeaderWidget@build',
             commonRoot + 'TransparencySliderWidget@build',
             commonRoot + 'BaseLayersControl@build',
             commonRoot + 'Popover@dist',
+            srcRoot + 'HeaderWidget@build',
             srcRoot + 'DateInterval',
             srcRoot + 'CalendarWidget@build',
             {
