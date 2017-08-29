@@ -142,7 +142,7 @@ var cssFiles = [
     "common_components/adapter.css",
     "leaflet/leaflet.css",
     "leaflet/plugins/gmxControls/src/css/external.css",
-    "leaflet/plugins/Leaflet.ExtSearch/src/SearchControl.css",
+    "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",
     "leaflet/leafletGmx.css",
