@@ -312,6 +312,7 @@ var nsGmx = nsGmx || {};
 
         bindLayer: function(layerName) {
             var attrs = this.model.toJSON(),
+                layer = nsGmx.gmxMap.layersByID[layerName],
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
@@ -325,7 +326,7 @@ var nsGmx = nsGmx || {};
             delete clone[layerName];
 
             this.model.set('unbindedTemporalLayers', clone);
-            this.updateTemporalLayers();
+            this.updateTemporalLayers([layer]);
         },
 
         unbindLayer: function(layerName) {
@@ -345,7 +346,7 @@ var nsGmx = nsGmx || {};
 
             clone[layerName] = true;
             this.model.set('unbindedTemporalLayers', clone);
-            this.updateTemporalLayers();
+            this.updateTemporalLayers([layer]);
         },
 
         _updateOneLayer: function(layer, dateBegin, dateEnd) {
@@ -359,7 +360,7 @@ var nsGmx = nsGmx || {};
             }
         },
 
-        updateTemporalLayers: function() {
+        updateTemporalLayers: function(layers) {
             var layers = layers || nsGmx.gmxMap.layers,
                 attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
