@@ -424,7 +424,7 @@
            display:none;
            font-size: 10px;
            border-radius: 4px;
-           padding:0 6px 2px 7px;
+           padding:0 7px 2px 6px;
            background-color: #3ca1d0;
            border:none;
            color: white;
@@ -602,6 +602,10 @@
             background-position: 0px 0px;
             z-index: 1000;
         } 
+        .vessel-info-page .picture{
+            z-index: 1000;
+            cursor:pointer;
+        }
   
         .vessel-info-page .mCustomScrollBox div{
             border: none

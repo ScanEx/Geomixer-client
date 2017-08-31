@@ -20,7 +20,7 @@ public class ScreenSearch : JsonHandlerPublic {
         {
             var com = conn.CreateCommand();
 
-                com.CommandText = @"select id from AIS_Gallery where mmsi=@mmsi and imo=@imo";
+                com.CommandText = @"select id from AIS_Gallery where mmsi=@mmsi and imo=@imo order by id desc";
                 var p = new SqlParameter("@mmsi", mmsi); com.Parameters.Add(p);
                     p = new SqlParameter("@imo", imo); com.Parameters.Add(p);
             conn.Open();

@@ -46,14 +46,14 @@ public class Upload : IHttpHandler {
             
             context.Response.Write(String.Format(
             @"<script language=""javascript"" type=""text/javascript"">
-            window.top.window.vessel_info_page.uploaded({0})
+            window.top.window.postMessage('{{""uploaded"":true, ""id"":{0}}}', '*')
             </script>", id));
         }
         catch (Exception ex)
         {
             context.Response.Write(String.Format(
                 @"<script language=""javascript"" type=""text/javascript"">
-            window.top.window.vessel_info_page.uploadError('{0}')
+            window.top.window.postMessage('{{""uploaded"":false, ""errmsg"":{0}}}', '*')
             </script>", ex.Message));
         }
         context.Response.StatusCode = 200;
