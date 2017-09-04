@@ -2327,7 +2327,7 @@ var ImageRequest = function(id, url, options) {
 };
 
 var GmxImageLoader = L.Class.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     statics: {
         MAX_COUNT: 20 // max number of parallel requests
     },
@@ -2418,7 +2418,11 @@ var GmxImageLoader = L.Class.extend({
         imageObj.onerror = function() {
             _this._imageLoaded(url);
         };
-        imageObj.src = url;
+		if (L.gmxUtil.isIEOrEdge) {
+			setTimeout(function() { imageObj.src = url; }, 0);
+		} else {
+            imageObj.src = url;
+		}
 
         this.fire('imageloadstart', {url: url});
 
@@ -5346,6 +5350,7 @@ L.extend(L.gmxUtil, {
     isIE10: gmxAPIutils.isIE(10),
     isIE11: gmxAPIutils.isIE(11),
     gtIE11: gmxAPIutils.gtIE(11),
+    isIEOrEdge: L.gmxUtil.gtIE11 || L.gmxUtil.isIE11 || L.gmxUtil.isIE10 || L.gmxUtil.isIE9,
     getFormData: gmxAPIutils.getFormData,
     requestJSONP: gmxAPIutils.requestJSONP,
     requestLink: gmxAPIutils.requestLink,
@@ -6003,7 +6008,7 @@ L.gmx.gmxMapManager = gmxMapManager;
 //Helper class, that represents layers of single Geomixer's map
 //Creates layers from given map description
 var gmxMap = L.Class.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
 
     initialize: function(mapInfo, commonLayerOptions) {
 		this.layers = [];
@@ -6728,7 +6733,7 @@ VectorTile.boundsFromTileKey = function(gmxTileKey) {
 
 //Single observer with vector data
 var Observer = L.Class.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     /* options : {
             type: 'resend | update',    // `resend` - send all data (like screen tile observer)
                                         // `update` - send only changed data
@@ -7278,7 +7283,7 @@ L.gmx.tilesTree = function(options) {
 
 
 var ObserverTileLoader = L.Class.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     initialize: function(dataManager) {
         this._dataManager = dataManager;
         this._observerData = {};
@@ -7439,7 +7444,7 @@ var ObserverTileLoader = L.Class.extend({
 });
 
 var DataManager = L.Class.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
 
     options: {
         name: null,                         // layer ID
@@ -14731,6 +14736,7 @@ L.Map.addInitHook(function () {
     }
 });
 
+
 L.Map.addInitHook(function() {
     var map = this,
         hideControl = null,
@@ -14809,8 +14815,9 @@ L.Map.addInitHook(function() {
     this.gmxControlIconManager = this.gmxControlsManager;
 });
 
+
 L.Control.GmxIcon = L.Control.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     options: {
         position: 'topleft',
         id: 'defaultIcon',
@@ -14982,13 +14989,13 @@ L.control.gmxIcon = function (options) {
   return new L.Control.GmxIcon(options);
 };
 
+
 (function() {
 function isIE(v) {
   return RegExp('msie' + (!isNaN(v) ? ('\\s' + v) : ''), 'i').test(navigator.userAgent);
 }
 var ICONSIZE = 32;
 L.Control.GmxIconGroup = L.Control.GmxIcon.extend({
-    includes: L.Mixin.Events,
     options: {
         position: 'topleft',
         id: 'defaultIconGroup',
@@ -15205,6 +15212,7 @@ L.control.gmxIconGroup = function (options) {
 
 })();
 
+
 (function () {
 var drawingIcons = ['Point', 'Polygon', 'Polyline', 'Rectangle'];
 L.Control.GmxDrawing = L.Control.GmxIconGroup.extend({
@@ -15283,6 +15291,7 @@ L.Control.GmxDrawing.addInitHook(function () {
 });
 })();
 
+
 L.extend(L.Control.GmxDrawing.locale, {
     rus: {
         'Point': 'Маркер',
@@ -15292,6 +15301,7 @@ L.extend(L.Control.GmxDrawing.locale, {
     }
 });
 
+
 L.extend(L.Control.GmxDrawing.locale, {
     eng: {
         'Point': 'Point',
@@ -15300,6 +15310,7 @@ L.extend(L.Control.GmxDrawing.locale, {
         'Rectangle': 'Rectangle'
     }
 });
+
 
 L.Control.GmxCenter = L.Control.extend({
     options: {
@@ -15318,11 +15329,12 @@ L.Control.GmxCenter = L.Control.extend({
 
     onAdd: function (map) {
         var className = 'leaflet-gmx-center',
+			svgNS = 'http://www.w3.org/2000/svg',
             container = L.DomUtil.create('div', className),
             div = L.DomUtil.create('div', className),
-            svg = L.Path.prototype._createElement('svg'),
-            g = document.createElementNS(L.Path.SVG_NS, 'g'),
-            path = document.createElementNS(L.Path.SVG_NS, 'path');
+            svg = document.createElementNS(svgNS, 'svg'),
+            g = document.createElementNS(svgNS, 'g'),
+            path = document.createElementNS(svgNS, 'path');
 
         this._container = container;
         container._id = this.options.id;
@@ -15358,6 +15370,7 @@ L.Control.gmxCenter = L.Control.GmxCenter;
 L.control.gmxCenter = function (options) {
   return new L.Control.GmxCenter(options);
 };
+
 
 L.Control.GmxHide = L.Control.GmxIcon.extend({
     options: {
@@ -15415,6 +15428,7 @@ L.control.gmxHide = function (options) {
   return new L.Control.GmxHide(options);
 };
 
+
 L.Control.GmxLayers = L.Control.Layers.extend({
     options: {
         collapsed: false,
@@ -15425,6 +15439,7 @@ L.Control.GmxLayers = L.Control.Layers.extend({
     initialize: function (gmxBaseLayersManager, options) {
         L.setOptions(this, options);
 
+		this._layerControlInputs = [];
         this._layers = {};
         this._lastZIndex = 0;
         this._handlingClick = false;
@@ -15459,6 +15474,33 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         return this;
     },
 
+	_addLayer: function (/*layer, name, overlay */) {
+		/*
+		if (this._map) {
+			layer.on('add remove', this._onLayerChange, this);
+		}
+
+		this._layers.push({
+			layer: layer,
+			name: name,
+			overlay: overlay
+		});
+
+		if (this.options.sortLayers) {
+			this._layers.sort(Util.bind(function (a, b) {
+				return this.options.sortFunction(a.layer, b.layer, a.name, b.name);
+			}, this));
+		}
+
+		if (this.options.autoZIndex && layer.setZIndex) {
+			this._lastZIndex++;
+			layer.setZIndex(this._lastZIndex);
+		}
+
+		this._expandIfNotCollapsed();
+		*/
+	},
+
     _addBaseLayer: function (baseLayer, notUpdate) {
         if (baseLayer) {
             this._addLayer(baseLayer, baseLayer.options[L.gmxLocale.getLanguage()] || baseLayer.id);
@@ -15479,6 +15521,7 @@ L.Control.GmxLayers = L.Control.Layers.extend({
             return;
         }
 
+		this._layerControlInputs = [];
         this._baseLayersList.innerHTML = '';
         this._overlaysList.innerHTML = '';
 
@@ -15652,6 +15695,7 @@ L.control.gmxLayers = function (gmxBaseLayersManager, options) {
   return new L.Control.GmxLayers(gmxBaseLayersManager, options);
 };
 
+
 (function () {
 var _localeJson = {
     eng: {
@@ -15711,7 +15755,7 @@ var coordFormats = [
     ' (EPSG:3857)'
 ];
 L.Control.GmxLocation = L.Control.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     options: {
         position: 'gmxbottomright',
         id: 'location',
@@ -15750,7 +15794,7 @@ L.Control.GmxLocation = L.Control.extend({
 			var closeButton = L.DomUtil.create('div', 'closeButton', this._window);
 			closeButton.innerHTML = '&#215;';
 			L.DomEvent.disableClickPropagation(this._window);
-			L.DomEvent.on(this._window, 'contextmenu', L.DomEvent._fakeStop);
+			L.DomEvent.on(this._window, 'contextmenu', L.DomEvent.fakeStop || L.DomEvent._fakeStop);
 
 			L.DomEvent.on(closeButton, 'click', function () {
 				var style = my._window.style;
@@ -16150,6 +16194,7 @@ L.control.gmxLocation = function (options) {
 };
 })();
 
+
 L.Control.GmxPopup = L.Control.extend({
     options: {
         position: 'center',
@@ -16176,7 +16221,11 @@ L.Control.GmxPopup = L.Control.extend({
     remove: function () {
 		if (this._map) {
             this._map.off('click', this.remove, this);
-            this._map.removeControl(this);
+			if (L.Control.prototype.remove) {
+				L.Control.prototype.remove.call(this);
+			} else {
+				this._map.removeControl(this);
+			}
         }
 		return this;
     },
@@ -16286,6 +16335,7 @@ L.control.gmxPopup = function (options) {
   return new L.Control.GmxPopup(options);
 };
 
+
 (function () {
 
 var _gtxt = function (key) {
@@ -16335,7 +16385,7 @@ L.Control.GmxCopyright = L.Control.extend({
 		}
 
 		this._windowContent = L.DomUtil.create('div', 'windowContent', this._window);
-		L.DomEvent.on(this._window, 'contextmenu', L.DomEvent._fakeStop);
+		L.DomEvent.on(this._window, 'contextmenu', L.DomEvent.fakeStop || L.DomEvent._fakeStop);
 
         this._copyrights = L.DomUtil.create('span', 'leaflet-gmx-copyrights', this._container);
 
@@ -16515,6 +16565,7 @@ L.control.gmxCopyright = function (options) {
   return new L.Control.GmxCopyright(options);
 };
 })();
+
 
 L.Control.GmxZoom = L.Control.Zoom.extend({
     options: {
@@ -16720,6 +16771,7 @@ L.control.gmxZoom = function (options) {
   return new L.Control.GmxZoom(options);
 };
 
+
 L.Control.GmxBottom = L.Control.extend({
     options: {
         position: 'bottom',
@@ -16770,6 +16822,7 @@ L.Control.gmxBottom = L.Control.GmxBottom;
 L.control.gmxBottom = function (options) {
   return new L.Control.GmxBottom(options);
 };
+
 
 L.Control.GmxLogo = L.Control.extend({
     options: {
@@ -16840,6 +16893,7 @@ L.Map.addInitHook(function () {
     }
 });
 
+
 L.Control.GmxSidebar = L.Control.extend({
     options: {
         id: 'defaultSidebar',
@@ -16895,6 +16949,7 @@ L.Control.gmxSidebar = L.Control.GmxSidebar;
 L.control.gmxSidebar = function(options) {
     return new L.Control.GmxSidebar(options);
 };
+
 
 L.Control.GmxLoaderStatus = L.Control.extend({
     options: {
@@ -16990,6 +17045,8 @@ L.control.gmxLoaderStatus = function (options) {
   return new L.Control.GmxLoaderStatus(options);
 };
 
+
+
 (function () {
 
 var rectDelta = 0.0000001;
@@ -16999,7 +17056,7 @@ L.GmxDrawing = L.Class.extend({
     options: {
         type: ''
     },
-    includes: [L.Mixin.Events],
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
 
     initialize: function (map) {
         this._map = map;
@@ -17037,7 +17094,7 @@ L.GmxDrawing = L.Class.extend({
                 text.setAttributeNS(null, 'y', y);
                 text.textContent = mouseovertext;
                 if (tooltip.getAttributeNS(null, 'visibility') !== 'visible') {
-                    this._map._pathRoot.appendChild(tooltip);
+                    if (this._map._pathRoot) { this._map._pathRoot.appendChild(tooltip); }
                     tooltip.setAttributeNS(null, 'visibility', 'visible');
                 }
                 var length = text.getComputedTextLength();
@@ -17467,7 +17524,7 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
     options: {
         mode: '' // add, edit
     },
-    includes: [L.Mixin.Events],
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
 
     simplify: function () {
         var i, j, len, len1, hole;
@@ -17502,8 +17559,8 @@ L.GmxDrawing.Feature = L.LayerGroup.extend({
             }, 0);
         }
         this._fireEvent('addtomap');
-		if (map._pathRoot && map._pathRoot.getAttribute('pointer-events') !== 'none') {
-			map._pathRoot.setAttribute('pointer-events', 'none');
+		if (map._pathRoot && map._pathRoot.getAttribute('pointer-events') !== 'visible') {
+			map._pathRoot.setAttribute('pointer-events', 'visible');
 		}
     },
 
@@ -18112,7 +18169,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
         size: L.Browser.mobile ? 40 : 8,
         weight: 2
     },
-    includes: [L.Mixin.Events],
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
 
     initialize: function (parent, coords, options) {
         options = options || {};
@@ -50272,19 +50329,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50322,6 +50366,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
