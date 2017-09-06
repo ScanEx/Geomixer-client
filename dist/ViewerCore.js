@@ -5350,7 +5350,6 @@ L.extend(L.gmxUtil, {
     isIE10: gmxAPIutils.isIE(10),
     isIE11: gmxAPIutils.isIE(11),
     gtIE11: gmxAPIutils.gtIE(11),
-    isIEOrEdge: L.gmxUtil.gtIE11 || L.gmxUtil.isIE11 || L.gmxUtil.isIE10 || L.gmxUtil.isIE9,
     getFormData: gmxAPIutils.getFormData,
     requestJSONP: gmxAPIutils.requestJSONP,
     requestLink: gmxAPIutils.requestLink,
@@ -5415,6 +5414,8 @@ L.extend(L.gmxUtil, {
     getTileBounds: gmxAPIutils.getTileBounds,
     parseTemplate: gmxAPIutils.parseTemplate
 });
+
+L.gmxUtil.isIEOrEdge = L.gmxUtil.gtIE11 || L.gmxUtil.isIE11 || L.gmxUtil.isIE10 || L.gmxUtil.isIE9;
 
 (function() {
     var requests = {};
@@ -14736,7 +14737,6 @@ L.Map.addInitHook(function () {
     }
 });
 
-
 L.Map.addInitHook(function() {
     var map = this,
         hideControl = null,
@@ -14815,7 +14815,6 @@ L.Map.addInitHook(function() {
     this.gmxControlIconManager = this.gmxControlsManager;
 });
 
-
 L.Control.GmxIcon = L.Control.extend({
     includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     options: {
@@ -14826,12 +14825,12 @@ L.Control.GmxIcon = L.Control.extend({
 
     setActive: function (active, skipEvent) {
         var options = this.options,
+			container = this._container,
             togglable = options.togglable || options.toggle;
         if (togglable) {
             var prev = options.isActive,
                 prefix = this._prefix,
-                className = prefix + '-' + options.id,
-                container = this._container;
+                className = prefix + '-' + options.id;
 
             options.isActive = active;
 
@@ -14856,6 +14855,15 @@ L.Control.GmxIcon = L.Control.extend({
             }
             if (!skipEvent && prev !== active) { this.fire('statechange'); }
         }
+		if (L.gmxUtil && L.gmxUtil.isIEOrEdge) {
+			var uses = container.getElementsByTagName('use');
+			if (uses.length) {
+				var use = uses[0],
+					href = use.getAttribute('href') || use.getAttribute('xlink:href');
+				use.setAttribute('href', href);
+				//use.setAttribute('xlink:href', href);
+			}
+		}
     },
 
     onAdd: function (map) {
@@ -14894,7 +14902,7 @@ L.Control.GmxIcon = L.Control.extend({
           L.DomUtil.addClass(container, 'svgIcon');
           var useHref = '#' + options.id.toLowerCase();
           container.innerHTML = '<svg role="img" class="svgIcon">\
-              <use xlink:href="' + useHref + '"></use>\
+              <use xlink:href="' + useHref + '" href="' + useHref + '"></use>\
             </svg>';
         } else {
             L.DomUtil.addClass(container, prefix + '-img ' +  prefix + '-sprite');
@@ -14988,7 +14996,6 @@ L.Control.gmxIcon = L.Control.GmxIcon;
 L.control.gmxIcon = function (options) {
   return new L.Control.GmxIcon(options);
 };
-
 
 (function() {
 function isIE(v) {
@@ -15212,7 +15219,6 @@ L.control.gmxIconGroup = function (options) {
 
 })();
 
-
 (function () {
 var drawingIcons = ['Point', 'Polygon', 'Polyline', 'Rectangle'];
 L.Control.GmxDrawing = L.Control.GmxIconGroup.extend({
@@ -15291,7 +15297,6 @@ L.Control.GmxDrawing.addInitHook(function () {
 });
 })();
 
-
 L.extend(L.Control.GmxDrawing.locale, {
     rus: {
         'Point': 'Маркер',
@@ -15301,7 +15306,6 @@ L.extend(L.Control.GmxDrawing.locale, {
     }
 });
 
-
 L.extend(L.Control.GmxDrawing.locale, {
     eng: {
         'Point': 'Point',
@@ -15310,7 +15314,6 @@ L.extend(L.Control.GmxDrawing.locale, {
         'Rectangle': 'Rectangle'
     }
 });
-
 
 L.Control.GmxCenter = L.Control.extend({
     options: {
@@ -15371,7 +15374,6 @@ L.control.gmxCenter = function (options) {
   return new L.Control.GmxCenter(options);
 };
 
-
 L.Control.GmxHide = L.Control.GmxIcon.extend({
     options: {
         id: 'hide',
@@ -15427,7 +15429,6 @@ L.Control.gmxHide = L.Control.GmxHide;
 L.control.gmxHide = function (options) {
   return new L.Control.GmxHide(options);
 };
-
 
 L.Control.GmxLayers = L.Control.Layers.extend({
     options: {
@@ -15694,7 +15695,6 @@ L.Control.gmxLayers = L.Control.GmxLayers;
 L.control.gmxLayers = function (gmxBaseLayersManager, options) {
   return new L.Control.GmxLayers(gmxBaseLayersManager, options);
 };
-
 
 (function () {
 var _localeJson = {
@@ -16194,7 +16194,6 @@ L.control.gmxLocation = function (options) {
 };
 })();
 
-
 L.Control.GmxPopup = L.Control.extend({
     options: {
         position: 'center',
@@ -16334,7 +16333,6 @@ L.Control.GmxPopup = L.Control.extend({
 L.control.gmxPopup = function (options) {
   return new L.Control.GmxPopup(options);
 };
-
 
 (function () {
 
@@ -16566,7 +16564,6 @@ L.control.gmxCopyright = function (options) {
 };
 })();
 
-
 L.Control.GmxZoom = L.Control.Zoom.extend({
     options: {
         position: 'topleft',
@@ -16771,7 +16768,6 @@ L.control.gmxZoom = function (options) {
   return new L.Control.GmxZoom(options);
 };
 
-
 L.Control.GmxBottom = L.Control.extend({
     options: {
         position: 'bottom',
@@ -16822,7 +16818,6 @@ L.Control.gmxBottom = L.Control.GmxBottom;
 L.control.gmxBottom = function (options) {
   return new L.Control.GmxBottom(options);
 };
-
 
 L.Control.GmxLogo = L.Control.extend({
     options: {
@@ -16893,7 +16888,6 @@ L.Map.addInitHook(function () {
     }
 });
 
-
 L.Control.GmxSidebar = L.Control.extend({
     options: {
         id: 'defaultSidebar',
@@ -16949,7 +16943,6 @@ L.Control.gmxSidebar = L.Control.GmxSidebar;
 L.control.gmxSidebar = function(options) {
     return new L.Control.GmxSidebar(options);
 };
-
 
 L.Control.GmxLoaderStatus = L.Control.extend({
     options: {
@@ -17044,8 +17037,6 @@ L.Control.gmxLoaderStatus = L.Control.GmxLoaderStatus;
 L.control.gmxLoaderStatus = function (options) {
   return new L.Control.GmxLoaderStatus(options);
 };
-
-
 
 (function () {
 
@@ -50329,6 +50320,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50366,19 +50370,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -57754,9 +57745,8 @@ var nsGmx = nsGmx || {};
             return this;
         },
 
-        bindLayer: function(layerName) {
+        bindLayer: function (layerName) {
             var attrs = this.model.toJSON(),
-                layer = nsGmx.gmxMap.layersByID[layerName],
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
@@ -57770,17 +57760,20 @@ var nsGmx = nsGmx || {};
             delete clone[layerName];
 
             this.model.set('unbindedTemporalLayers', clone);
-            this.updateTemporalLayers([layer]);
+            this.updateTemporalLayers();
         },
 
-        unbindLayer: function(layerName) {
+        unbindLayer: function (layerName) {
             var attrs = this.model.toJSON(),
-                layer = nsGmx.gmxMap.layersByID[layerName],
-                props = layer.getGmxProperties(),
+                layer = nsGmx.gmxMap.layersByID[layerName];
+            if (!layer) {
+                return;
+            }
+            var props = layer.getGmxProperties(),
                 unbindedTemporalLayers = attrs.unbindedTemporalLayers,
                 clone = {};
 
-            layer.removeLayerFilter({id: 'dailyFilter'});
+            layer.removeLayerFilter({ id: 'dailyFilter' });
             // clone object
             for (var variable in unbindedTemporalLayers) {
                 if (unbindedTemporalLayers.hasOwnProperty(variable)) {

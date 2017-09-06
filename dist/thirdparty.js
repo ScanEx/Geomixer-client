@@ -8619,6 +8619,7 @@ case"touchend":return this.addPointerListenerEnd(t,e,i,n);case"touchmove":return
     } else {
         addShiftMixin = factory(window.L, window.L.gmx);
         window.L.TileLayer.Mercator = addShiftMixin(window.L.TileLayer);
+        if (!window.L.TileLayer.Canvas) { window.L.TileLayer.Canvas = addShiftMixin(window.L.TileLayer); }
         window.L.TileLayer.Canvas.Mercator = addShiftMixin(window.L.TileLayer.Canvas);
         window.L.tileLayer.Mercator = function(url, options) {
             return new window.L.TileLayer.Mercator(url, options);
