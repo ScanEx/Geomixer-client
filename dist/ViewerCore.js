@@ -3,17 +3,18 @@
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   4.0.5
+ * @version   4.1.0+f046478d
  */
 
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.ES6Promise = factory());
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.ES6Promise = factory());
 }(this, (function () { 'use strict';
 
 function objectOrFunction(x) {
-  return typeof x === 'function' || typeof x === 'object' && x !== null;
+  var type = typeof x;
+  return x !== null && (type === 'object' || type === 'function');
 }
 
 function isFunction(x) {
@@ -21,12 +22,12 @@ function isFunction(x) {
 }
 
 var _isArray = undefined;
-if (!Array.isArray) {
+if (Array.isArray) {
+  _isArray = Array.isArray;
+} else {
   _isArray = function (x) {
     return Object.prototype.toString.call(x) === '[object Array]';
   };
-} else {
-  _isArray = Array.isArray;
 }
 
 var isArray = _isArray;
@@ -214,7 +215,7 @@ function then(onFulfillment, onRejection) {
   @return {Promise} a promise that will become fulfilled with the given
   `value`
 */
-function resolve(object) {
+function resolve$1(object) {
   /*jshint validthis:true */
   var Constructor = this;
 
@@ -223,7 +224,7 @@ function resolve(object) {
   }
 
   var promise = new Constructor(noop);
-  _resolve(promise, object);
+  resolve(promise, object);
   return promise;
 }
 
@@ -254,24 +255,24 @@ function getThen(promise) {
   }
 }
 
-function tryThen(then, value, fulfillmentHandler, rejectionHandler) {
+function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
   try {
-    then.call(value, fulfillmentHandler, rejectionHandler);
+    then$$1.call(value, fulfillmentHandler, rejectionHandler);
   } catch (e) {
     return e;
   }
 }
 
-function handleForeignThenable(promise, thenable, then) {
+function handleForeignThenable(promise, thenable, then$$1) {
   asap(function (promise) {
     var sealed = false;
-    var error = tryThen(then, thenable, function (value) {
+    var error = tryThen(then$$1, thenable, function (value) {
       if (sealed) {
         return;
       }
       sealed = true;
       if (thenable !== value) {
-        _resolve(promise, value);
+        resolve(promise, value);
       } else {
         fulfill(promise, value);
       }
@@ -281,12 +282,12 @@ function handleForeignThenable(promise, thenable, then) {
       }
       sealed = true;
 
-      _reject(promise, reason);
+      reject(promise, reason);
     }, 'Settle: ' + (promise._label || ' unknown promise'));
 
     if (!sealed && error) {
       sealed = true;
-      _reject(promise, error);
+      reject(promise, error);
     }
   }, promise);
 }
@@ -295,35 +296,36 @@ function handleOwnThenable(promise, thenable) {
   if (thenable._state === FULFILLED) {
     fulfill(promise, thenable._result);
   } else if (thenable._state === REJECTED) {
-    _reject(promise, thenable._result);
+    reject(promise, thenable._result);
   } else {
     subscribe(thenable, undefined, function (value) {
-      return _resolve(promise, value);
+      return resolve(promise, value);
     }, function (reason) {
-      return _reject(promise, reason);
+      return reject(promise, reason);
     });
   }
 }
 
-function handleMaybeThenable(promise, maybeThenable, then$$) {
-  if (maybeThenable.constructor === promise.constructor && then$$ === then && maybeThenable.constructor.resolve === resolve) {
+function handleMaybeThenable(promise, maybeThenable, then$$1) {
+  if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
     handleOwnThenable(promise, maybeThenable);
   } else {
-    if (then$$ === GET_THEN_ERROR) {
-      _reject(promise, GET_THEN_ERROR.error);
-    } else if (then$$ === undefined) {
+    if (then$$1 === GET_THEN_ERROR) {
+      reject(promise, GET_THEN_ERROR.error);
+      GET_THEN_ERROR.error = null;
+    } else if (then$$1 === undefined) {
       fulfill(promise, maybeThenable);
-    } else if (isFunction(then$$)) {
-      handleForeignThenable(promise, maybeThenable, then$$);
+    } else if (isFunction(then$$1)) {
+      handleForeignThenable(promise, maybeThenable, then$$1);
     } else {
       fulfill(promise, maybeThenable);
     }
   }
 }
 
-function _resolve(promise, value) {
+function resolve(promise, value) {
   if (promise === value) {
-    _reject(promise, selfFulfillment());
+    reject(promise, selfFulfillment());
   } else if (objectOrFunction(value)) {
     handleMaybeThenable(promise, value, getThen(value));
   } else {
@@ -352,7 +354,7 @@ function fulfill(promise, value) {
   }
 }
 
-function _reject(promise, reason) {
+function reject(promise, reason) {
   if (promise._state !== PENDING) {
     return;
   }
@@ -431,13 +433,13 @@ function invokeCallback(settled, promise, callback, detail) {
     if (value === TRY_CATCH_ERROR) {
       failed = true;
       error = value.error;
-      value = null;
+      value.error = null;
     } else {
       succeeded = true;
     }
 
     if (promise === value) {
-      _reject(promise, cannotReturnOwn());
+      reject(promise, cannotReturnOwn());
       return;
     }
   } else {
@@ -448,25 +450,25 @@ function invokeCallback(settled, promise, callback, detail) {
   if (promise._state !== PENDING) {
     // noop
   } else if (hasCallback && succeeded) {
-      _resolve(promise, value);
+      resolve(promise, value);
     } else if (failed) {
-      _reject(promise, error);
+      reject(promise, error);
     } else if (settled === FULFILLED) {
       fulfill(promise, value);
     } else if (settled === REJECTED) {
-      _reject(promise, value);
+      reject(promise, value);
     }
 }
 
 function initializePromise(promise, resolver) {
   try {
     resolver(function resolvePromise(value) {
-      _resolve(promise, value);
+      resolve(promise, value);
     }, function rejectPromise(reason) {
-      _reject(promise, reason);
+      reject(promise, reason);
     });
   } catch (e) {
-    _reject(promise, e);
+    reject(promise, e);
   }
 }
 
@@ -482,7 +484,7 @@ function makePromise(promise) {
   promise._subscribers = [];
 }
 
-function Enumerator(Constructor, input) {
+function Enumerator$1(Constructor, input) {
   this._instanceConstructor = Constructor;
   this.promise = new Constructor(noop);
 
@@ -491,7 +493,6 @@ function Enumerator(Constructor, input) {
   }
 
   if (isArray(input)) {
-    this._input = input;
     this.length = input.length;
     this._remaining = input.length;
 
@@ -501,34 +502,31 @@ function Enumerator(Constructor, input) {
       fulfill(this.promise, this._result);
     } else {
       this.length = this.length || 0;
-      this._enumerate();
+      this._enumerate(input);
       if (this._remaining === 0) {
         fulfill(this.promise, this._result);
       }
     }
   } else {
-    _reject(this.promise, validationError());
+    reject(this.promise, validationError());
   }
 }
 
 function validationError() {
   return new Error('Array Methods must be provided an Array');
-};
+}
 
-Enumerator.prototype._enumerate = function () {
-  var length = this.length;
-  var _input = this._input;
-
-  for (var i = 0; this._state === PENDING && i < length; i++) {
-    this._eachEntry(_input[i], i);
+Enumerator$1.prototype._enumerate = function (input) {
+  for (var i = 0; this._state === PENDING && i < input.length; i++) {
+    this._eachEntry(input[i], i);
   }
 };
 
-Enumerator.prototype._eachEntry = function (entry, i) {
+Enumerator$1.prototype._eachEntry = function (entry, i) {
   var c = this._instanceConstructor;
-  var resolve$$ = c.resolve;
+  var resolve$$1 = c.resolve;
 
-  if (resolve$$ === resolve) {
+  if (resolve$$1 === resolve$1) {
     var _then = getThen(entry);
 
     if (_then === then && entry._state !== PENDING) {
@@ -536,28 +534,28 @@ Enumerator.prototype._eachEntry = function (entry, i) {
     } else if (typeof _then !== 'function') {
       this._remaining--;
       this._result[i] = entry;
-    } else if (c === Promise) {
+    } else if (c === Promise$3) {
       var promise = new c(noop);
       handleMaybeThenable(promise, entry, _then);
       this._willSettleAt(promise, i);
     } else {
-      this._willSettleAt(new c(function (resolve$$) {
-        return resolve$$(entry);
+      this._willSettleAt(new c(function (resolve$$1) {
+        return resolve$$1(entry);
       }), i);
     }
   } else {
-    this._willSettleAt(resolve$$(entry), i);
+    this._willSettleAt(resolve$$1(entry), i);
   }
 };
 
-Enumerator.prototype._settledAt = function (state, i, value) {
+Enumerator$1.prototype._settledAt = function (state, i, value) {
   var promise = this.promise;
 
   if (promise._state === PENDING) {
     this._remaining--;
 
     if (state === REJECTED) {
-      _reject(promise, value);
+      reject(promise, value);
     } else {
       this._result[i] = value;
     }
@@ -568,7 +566,7 @@ Enumerator.prototype._settledAt = function (state, i, value) {
   }
 };
 
-Enumerator.prototype._willSettleAt = function (promise, i) {
+Enumerator$1.prototype._willSettleAt = function (promise, i) {
   var enumerator = this;
 
   subscribe(promise, undefined, function (value) {
@@ -625,8 +623,8 @@ Enumerator.prototype._willSettleAt = function (promise, i) {
   fulfilled, or rejected if any of them become rejected.
   @static
 */
-function all(entries) {
-  return new Enumerator(this, entries).promise;
+function all$1(entries) {
+  return new Enumerator$1(this, entries).promise;
 }
 
 /**
@@ -694,7 +692,7 @@ function all(entries) {
   @return {Promise} a promise which settles in the same way as the first passed
   promise to settle.
 */
-function race(entries) {
+function race$1(entries) {
   /*jshint validthis:true */
   var Constructor = this;
 
@@ -746,11 +744,11 @@ function race(entries) {
   Useful for tooling.
   @return {Promise} a promise rejected with the given `reason`.
 */
-function reject(reason) {
+function reject$1(reason) {
   /*jshint validthis:true */
   var Constructor = this;
   var promise = new Constructor(noop);
-  _reject(promise, reason);
+  reject(promise, reason);
   return promise;
 }
 
@@ -865,27 +863,27 @@ function needsNew() {
   Useful for tooling.
   @constructor
 */
-function Promise(resolver) {
+function Promise$3(resolver) {
   this[PROMISE_ID] = nextId();
   this._result = this._state = undefined;
   this._subscribers = [];
 
   if (noop !== resolver) {
     typeof resolver !== 'function' && needsResolver();
-    this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+    this instanceof Promise$3 ? initializePromise(this, resolver) : needsNew();
   }
 }
 
-Promise.all = all;
-Promise.race = race;
-Promise.resolve = resolve;
-Promise.reject = reject;
-Promise._setScheduler = setScheduler;
-Promise._setAsap = setAsap;
-Promise._asap = asap;
+Promise$3.all = all$1;
+Promise$3.race = race$1;
+Promise$3.resolve = resolve$1;
+Promise$3.reject = reject$1;
+Promise$3._setScheduler = setScheduler;
+Promise$3._setAsap = setAsap;
+Promise$3._asap = asap;
 
-Promise.prototype = {
-  constructor: Promise,
+Promise$3.prototype = {
+  constructor: Promise$3,
 
   /**
     The primary way of interacting with a promise is through its `then` method,
@@ -1114,7 +1112,8 @@ Promise.prototype = {
   }
 };
 
-function polyfill() {
+/*global self*/
+function polyfill$1() {
     var local = undefined;
 
     if (typeof global !== 'undefined') {
@@ -1144,19 +1143,20 @@ function polyfill() {
         }
     }
 
-    local.Promise = Promise;
+    local.Promise = Promise$3;
 }
 
 // Strange compat..
-Promise.polyfill = polyfill;
-Promise.Promise = Promise;
+Promise$3.polyfill = polyfill$1;
+Promise$3.Promise = Promise$3;
 
-return Promise;
+Promise$3.polyfill();
+
+return Promise$3;
 
 })));
 
-ES6Promise.polyfill();
-//# sourceMappingURL=es6-promise.auto.map
+
 (function(self) {
   'use strict';
 
@@ -1177,6 +1177,28 @@ ES6Promise.polyfill();
     })(),
     formData: 'FormData' in self,
     arrayBuffer: 'ArrayBuffer' in self
+  }
+
+  if (support.arrayBuffer) {
+    var viewClasses = [
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]'
+    ]
+
+    var isDataView = function(obj) {
+      return obj && DataView.prototype.isPrototypeOf(obj)
+    }
+
+    var isArrayBufferView = ArrayBuffer.isView || function(obj) {
+      return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
+    }
   }
 
   function normalizeName(name) {
@@ -1221,7 +1243,10 @@ ES6Promise.polyfill();
       headers.forEach(function(value, name) {
         this.append(name, value)
       }, this)
-
+    } else if (Array.isArray(headers)) {
+      headers.forEach(function(header) {
+        this.append(header[0], header[1])
+      }, this)
     } else if (headers) {
       Object.getOwnPropertyNames(headers).forEach(function(name) {
         this.append(name, headers[name])
@@ -1232,12 +1257,8 @@ ES6Promise.polyfill();
   Headers.prototype.append = function(name, value) {
     name = normalizeName(name)
     value = normalizeValue(value)
-    var list = this.map[name]
-    if (!list) {
-      list = []
-      this.map[name] = list
-    }
-    list.push(value)
+    var oldValue = this.map[name]
+    this.map[name] = oldValue ? oldValue+','+value : value
   }
 
   Headers.prototype['delete'] = function(name) {
@@ -1245,12 +1266,8 @@ ES6Promise.polyfill();
   }
 
   Headers.prototype.get = function(name) {
-    var values = this.map[normalizeName(name)]
-    return values ? values[0] : null
-  }
-
-  Headers.prototype.getAll = function(name) {
-    return this.map[normalizeName(name)] || []
+    name = normalizeName(name)
+    return this.has(name) ? this.map[name] : null
   }
 
   Headers.prototype.has = function(name) {
@@ -1258,15 +1275,15 @@ ES6Promise.polyfill();
   }
 
   Headers.prototype.set = function(name, value) {
-    this.map[normalizeName(name)] = [normalizeValue(value)]
+    this.map[normalizeName(name)] = normalizeValue(value)
   }
 
   Headers.prototype.forEach = function(callback, thisArg) {
-    Object.getOwnPropertyNames(this.map).forEach(function(name) {
-      this.map[name].forEach(function(value) {
-        callback.call(thisArg, value, name, this)
-      }, this)
-    }, this)
+    for (var name in this.map) {
+      if (this.map.hasOwnProperty(name)) {
+        callback.call(thisArg, this.map[name], name, this)
+      }
+    }
   }
 
   Headers.prototype.keys = function() {
@@ -1311,14 +1328,36 @@ ES6Promise.polyfill();
 
   function readBlobAsArrayBuffer(blob) {
     var reader = new FileReader()
+    var promise = fileReaderReady(reader)
     reader.readAsArrayBuffer(blob)
-    return fileReaderReady(reader)
+    return promise
   }
 
   function readBlobAsText(blob) {
     var reader = new FileReader()
+    var promise = fileReaderReady(reader)
     reader.readAsText(blob)
-    return fileReaderReady(reader)
+    return promise
+  }
+
+  function readArrayBufferAsText(buf) {
+    var view = new Uint8Array(buf)
+    var chars = new Array(view.length)
+
+    for (var i = 0; i < view.length; i++) {
+      chars[i] = String.fromCharCode(view[i])
+    }
+    return chars.join('')
+  }
+
+  function bufferClone(buf) {
+    if (buf.slice) {
+      return buf.slice(0)
+    } else {
+      var view = new Uint8Array(buf.byteLength)
+      view.set(new Uint8Array(buf))
+      return view.buffer
+    }
   }
 
   function Body() {
@@ -1326,7 +1365,9 @@ ES6Promise.polyfill();
 
     this._initBody = function(body) {
       this._bodyInit = body
-      if (typeof body === 'string') {
+      if (!body) {
+        this._bodyText = ''
+      } else if (typeof body === 'string') {
         this._bodyText = body
       } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
         this._bodyBlob = body
@@ -1334,11 +1375,12 @@ ES6Promise.polyfill();
         this._bodyFormData = body
       } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
         this._bodyText = body.toString()
-      } else if (!body) {
-        this._bodyText = ''
-      } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
-        // Only support ArrayBuffers for POST method.
-        // Receiving ArrayBuffers happens via Blobs, instead.
+      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+        this._bodyArrayBuffer = bufferClone(body.buffer)
+        // IE 10-11 can't handle a DataView body.
+        this._bodyInit = new Blob([this._bodyArrayBuffer])
+      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+        this._bodyArrayBuffer = bufferClone(body)
       } else {
         throw new Error('unsupported BodyInit type')
       }
@@ -1363,6 +1405,8 @@ ES6Promise.polyfill();
 
         if (this._bodyBlob) {
           return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyArrayBuffer) {
+          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
         } else if (this._bodyFormData) {
           throw new Error('could not read FormData body as blob')
         } else {
@@ -1371,27 +1415,28 @@ ES6Promise.polyfill();
       }
 
       this.arrayBuffer = function() {
-        return this.blob().then(readBlobAsArrayBuffer)
-      }
-
-      this.text = function() {
-        var rejected = consumed(this)
-        if (rejected) {
-          return rejected
-        }
-
-        if (this._bodyBlob) {
-          return readBlobAsText(this._bodyBlob)
-        } else if (this._bodyFormData) {
-          throw new Error('could not read FormData body as text')
+        if (this._bodyArrayBuffer) {
+          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
         } else {
-          return Promise.resolve(this._bodyText)
+          return this.blob().then(readBlobAsArrayBuffer)
         }
       }
-    } else {
-      this.text = function() {
-        var rejected = consumed(this)
-        return rejected ? rejected : Promise.resolve(this._bodyText)
+    }
+
+    this.text = function() {
+      var rejected = consumed(this)
+      if (rejected) {
+        return rejected
+      }
+
+      if (this._bodyBlob) {
+        return readBlobAsText(this._bodyBlob)
+      } else if (this._bodyArrayBuffer) {
+        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
+      } else if (this._bodyFormData) {
+        throw new Error('could not read FormData body as text')
+      } else {
+        return Promise.resolve(this._bodyText)
       }
     }
 
@@ -1419,7 +1464,8 @@ ES6Promise.polyfill();
   function Request(input, options) {
     options = options || {}
     var body = options.body
-    if (Request.prototype.isPrototypeOf(input)) {
+
+    if (input instanceof Request) {
       if (input.bodyUsed) {
         throw new TypeError('Already read')
       }
@@ -1430,12 +1476,12 @@ ES6Promise.polyfill();
       }
       this.method = input.method
       this.mode = input.mode
-      if (!body) {
+      if (!body && input._bodyInit != null) {
         body = input._bodyInit
         input.bodyUsed = true
       }
     } else {
-      this.url = input
+      this.url = String(input)
     }
 
     this.credentials = options.credentials || this.credentials || 'omit'
@@ -1453,7 +1499,7 @@ ES6Promise.polyfill();
   }
 
   Request.prototype.clone = function() {
-    return new Request(this)
+    return new Request(this, { body: this._bodyInit })
   }
 
   function decode(body) {
@@ -1469,16 +1515,20 @@ ES6Promise.polyfill();
     return form
   }
 
-  function headers(xhr) {
-    var head = new Headers()
-    var pairs = (xhr.getAllResponseHeaders() || '').trim().split('\n')
-    pairs.forEach(function(header) {
-      var split = header.trim().split(':')
-      var key = split.shift().trim()
-      var value = split.join(':').trim()
-      head.append(key, value)
+  function parseHeaders(rawHeaders) {
+    var headers = new Headers()
+    // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
+    // https://tools.ietf.org/html/rfc7230#section-3.2
+    var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ')
+    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
+      var parts = line.split(':')
+      var key = parts.shift().trim()
+      if (key) {
+        var value = parts.join(':').trim()
+        headers.append(key, value)
+      }
     })
-    return head
+    return headers
   }
 
   Body.call(Request.prototype)
@@ -1489,10 +1539,10 @@ ES6Promise.polyfill();
     }
 
     this.type = 'default'
-    this.status = options.status
+    this.status = options.status === undefined ? 200 : options.status
     this.ok = this.status >= 200 && this.status < 300
-    this.statusText = options.statusText
-    this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers)
+    this.statusText = 'statusText' in options ? options.statusText : 'OK'
+    this.headers = new Headers(options.headers)
     this.url = options.url || ''
     this._initBody(bodyInit)
   }
@@ -1530,35 +1580,16 @@ ES6Promise.polyfill();
 
   self.fetch = function(input, init) {
     return new Promise(function(resolve, reject) {
-      var request
-      if (Request.prototype.isPrototypeOf(input) && !init) {
-        request = input
-      } else {
-        request = new Request(input, init)
-      }
-
+      var request = new Request(input, init)
       var xhr = new XMLHttpRequest()
-
-      function responseURL() {
-        if ('responseURL' in xhr) {
-          return xhr.responseURL
-        }
-
-        // Avoid security warnings on getResponseHeader when not allowed by CORS
-        if (/^X-Request-URL:/mi.test(xhr.getAllResponseHeaders())) {
-          return xhr.getResponseHeader('X-Request-URL')
-        }
-
-        return
-      }
 
       xhr.onload = function() {
         var options = {
           status: xhr.status,
           statusText: xhr.statusText,
-          headers: headers(xhr),
-          url: responseURL()
+          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
         }
+        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
         var body = 'response' in xhr ? xhr.response : xhr.responseText
         resolve(new Response(body, options))
       }
@@ -1575,6 +1606,8 @@ ES6Promise.polyfill();
 
       if (request.credentials === 'include') {
         xhr.withCredentials = true
+      } else if (request.credentials === 'omit') {
+        xhr.withCredentials = false
       }
 
       if ('responseType' in xhr && support.blob) {
@@ -15435,15 +15468,16 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         collapsed: false,
         autoZIndex: false,
         id: 'layers'
+		// disabled options: sortLayers, sortFunction
     },
 
     initialize: function (gmxBaseLayersManager, options) {
         L.setOptions(this, options);
 
-		this._layerControlInputs = [];
         this._layers = {};
         this._lastZIndex = 0;
         this._handlingClick = false;
+		this._layerControlInputs = [];
 
         this._blm = gmxBaseLayersManager;
 
@@ -15475,36 +15509,25 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         return this;
     },
 
-	_addLayer: function (/*layer, name, overlay */) {
-		/*
-		if (this._map) {
-			layer.on('add remove', this._onLayerChange, this);
-		}
+	_addLayer: function (layer, name, overlay) {
+		var id = L.stamp(layer);
 
-		this._layers.push({
+		this._layers[id] = {
 			layer: layer,
 			name: name,
 			overlay: overlay
-		});
-
-		if (this.options.sortLayers) {
-			this._layers.sort(Util.bind(function (a, b) {
-				return this.options.sortFunction(a.layer, b.layer, a.name, b.name);
-			}, this));
-		}
+		};
 
 		if (this.options.autoZIndex && layer.setZIndex) {
 			this._lastZIndex++;
 			layer.setZIndex(this._lastZIndex);
 		}
-
-		this._expandIfNotCollapsed();
-		*/
 	},
 
     _addBaseLayer: function (baseLayer, notUpdate) {
         if (baseLayer) {
-            this._addLayer(baseLayer, baseLayer.options[L.gmxLocale.getLanguage()] || baseLayer.id);
+			var lang = L.gmxLocale ? L.gmxLocale.getLanguage() : 'rus';
+            this._addLayer(baseLayer, baseLayer.options[lang] || baseLayer.id);
             if (!notUpdate) { this._update(); }
         }
         return this;
@@ -15523,6 +15546,7 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         }
 
 		this._layerControlInputs = [];
+
         this._baseLayersList.innerHTML = '';
         this._overlaysList.innerHTML = '';
 
@@ -15667,6 +15691,10 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         return null;
     },
 
+	_getLayer: function (id) {
+		return this._layers[id];
+	},
+
     _getLayerByName: function (name) {
         for (var id in this._layers) {
             var blayer = this._layers[id];
@@ -15674,6 +15702,21 @@ L.Control.GmxLayers = L.Control.Layers.extend({
         }
         return null;
     },
+
+	_checkDisabledLayers: function () {
+		var inputs = this._form.getElementsByTagName('input'),
+		    input,
+		    layer,
+		    zoom = this._map.getZoom();
+
+		for (var i = inputs.length - 1; i >= 0; i--) {
+			input = inputs[i];
+			layer = this._getLayer(input.layerId).layer;
+			input.disabled = (layer.options.minZoom !== undefined && zoom < layer.options.minZoom) ||
+			                 (layer.options.maxZoom !== undefined && zoom > layer.options.maxZoom);
+
+		}
+	},
 
     _onInputClick: function (ev) {
         if (ev) {
@@ -18246,7 +18289,7 @@ L.GmxDrawing.Ring = L.LayerGroup.extend({
             .on('mouseout', function () {
                 if ('hideTooltip' in this) { this.hideTooltip(); }
             }, parent);
-        this.lines
+        this.fill
             .on('mouseover mousemove', function (ev) {
                 ev.ring = _this;
                 if ('_showTooltip' in this) {
@@ -58575,13 +58618,21 @@ var createToolbar = function() {
             id: 'createVectorLayer',
             title: _gtxt('Создать векторный слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Vector');
+            createVectorLayerIcon.setActive(true);
+            createRasterLayerIcon.setActive(false);
+        });
 
         var createRasterLayerIcon = L.control.gmxIcon({
             id: 'createRasterLayer',
             title: _gtxt('Создать растровый слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Raster');
+            createRasterLayerIcon.setActive(true);
+            createVectorLayerIcon.setActive(false);
+        });
 
         var createLayerIconGroup = L.control.gmxIconGroup({
             id: 'createLayer',

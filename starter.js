@@ -340,13 +340,21 @@ var createToolbar = function() {
             id: 'createVectorLayer',
             title: _gtxt('Создать векторный слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Vector');
+            createVectorLayerIcon.setActive(true);
+            createRasterLayerIcon.setActive(false);
+        });
 
         var createRasterLayerIcon = L.control.gmxIcon({
             id: 'createRasterLayer',
             title: _gtxt('Создать растровый слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Raster');
+            createRasterLayerIcon.setActive(true);
+            createVectorLayerIcon.setActive(false);
+        });
 
         var createLayerIconGroup = L.control.gmxIconGroup({
             id: 'createLayer',

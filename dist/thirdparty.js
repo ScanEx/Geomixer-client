@@ -8757,7 +8757,7 @@ case"touchend":return this.addPointerListenerEnd(t,e,i,n);case"touchmove":return
      * gmxBaseLayersManager - BaseLayers manager
      */
     return L.Class.extend({
-        includes: L.Mixin.Events,
+		includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
         options: {
             stateVersion: '1.0.0'
         },
@@ -9061,13 +9061,14 @@ case"touchend":return this.addPointerListenerEnd(t,e,i,n);case"touchmove":return
      */
     return function(attr) {
         var blm = this,
-			protocol = L.gmxUtil.protocol,
+			protocol = L.gmxUtil ? L.gmxUtil.protocol : 'http:',
             osmTilePrefix = protocol + '//{s}tilecart.kosmosnimki.ru/',
             zIndexOffset = 2000000,
             mapID = attr && attr.mapID ? attr.mapID : '1D30C72D02914C5FB90D1D448159CAB6',
-            lang = L.gmxLocale.getLanguage(),
+            gmxLocale = L.gmxLocale,
+            lang = gmxLocale ? gmxLocale.getLanguage() : 'rus',
             _gtxt = function(key) {
-                return L.gmxLocale.getText(key) || key;
+                return gmxLocale ? gmxLocale.getText(key) : key;
             };
 
         var copyrights = {
