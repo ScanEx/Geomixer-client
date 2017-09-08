@@ -1937,7 +1937,6 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 
     /**
     Добавление наблюдателя события начала оработки запроса для подсказки
-        @param {observer:{add:bool, remove:bool, observer:function(next, deferred, params)}}, selectItem:function(){}}}
     */
     this.onAutoCompleteDataSearchStarting = function(params){
         oLogic.AutoCompleteDataSearchStarting(params.observer);
