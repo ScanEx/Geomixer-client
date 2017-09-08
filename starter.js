@@ -1476,7 +1476,7 @@ function processGmxMap(state, gmxMap) {
                         dateEnd = dateInterval.get('dateEnd');
                     }
 
-                    if (!props.name in attrs.unbindedTemporalLayers) {
+                    if (!(props.name in attrs.unbindedTemporalLayers)) {
                         nsGmx.widgets.commonCalendar.bindLayer(props.name);
 
                         layer.setDateInterval(dateBegin, dateEnd);
