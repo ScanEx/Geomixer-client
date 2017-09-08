@@ -52,7 +52,12 @@ var WindFilterModel = Backbone.Model.extend({
 				}));
 			} else if (type === 'layer') {
 				var props = content.properties ? content.properties : {};
-				arr.push(nsGmx.gmxMap.layersByID[props.LayerID || props.MultiLayerID || props.GroupID || props.name]);
+                var layer = nsGmx.gmxMap.layersByID[props.LayerID || props.MultiLayerID || props.GroupID || props.name],
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
+
+                if (isTemporalLayer) {
+                    arr.push(layer);
+                }
 			}
 			return arr;
 		};
