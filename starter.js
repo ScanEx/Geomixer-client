@@ -57,6 +57,10 @@ var _getFileName = function( localName ) {
 nsGmx.initGeoMixer = function() {
 
 var oSearchLeftMenu = new leftMenu();
+var searchLogic = new nsGmx.SearchLogic();
+searchLogic.init({
+    oMenu: oSearchLeftMenu
+});
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 nsGmx.gridManager = {
@@ -468,7 +472,6 @@ var createToolbar = function() {
     * seachParams
     */
 
-    var oSearchResultDiv = _div();
 
     nsGmx.Osm2DataProvider = function(options){
         nsGmx.OsmDataProvider.call(this, options);
@@ -490,6 +493,8 @@ var createToolbar = function() {
             credentials: 'include',
             cache: 'default'
         };
+
+        searchLogic.fnLoad();
         return new Promise(function (resolve, reject) {
             fetch(req, init).then(function (response) {
                 return response.json();
@@ -528,15 +533,44 @@ var createToolbar = function() {
                 return response.json();
             }).then(function (json) {
                 if (json.Status === 'ok') {
+                    var rs = json.Result.reduce(function (a, x) {
+                        return a.concat(x.SearchResult);
+                    }, []).map(function (x) {
+                        if (retrieveGeometry && x.Geometry) {
+                            var g = _this2._convertGeometry(x.Geometry);
+                            var props = Object.keys(x).filter(function (k) {
+                                return k !== 'Geometry';
+                            }).reduce(function (a, k) {
+                                a[k] = x[k];
+                                return a;
+                            }, {});
+                            return {
+                                name: x.ObjNameShort,
+                                feature: {
+                                    type: 'Feature',
+                                    geometry: g,
+                                    properties: props
+                                },
+                                properties: props,
+                                provider: _this2,
+                                query: value
+                            };
+                        } else {
+                            return {
+                                name: x.ObjNameShort,
+                                properties: x,
+                                provider: _this2,
+                                query: value
+                            };
+                        }
+                    });
                     if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
                         _this2._onFetch(json.Result);
                     }
-                    resolve(json.Result);
+                    resolve(rs);
                 } else {
-                    reject(json.Result);
+                    reject(json);
                 }
-            }).catch(function (response) {
-                return reject(response);
             });
         });
     }
@@ -554,7 +588,7 @@ var createToolbar = function() {
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {
-                    nsGmx.searchLogic.showResult(response, oSearchLeftMenu);
+                    searchLogic.showResult(response);
                 }.bind(this)
             })
         ],
