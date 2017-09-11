@@ -10948,12 +10948,17 @@ StyleManager.prototype = {
     _needLoadIcons: 0,
     _getImageSize: function(pt) {     // check image size
         var url = pt.iconUrl || pt.fillIconUrl,
-            opt = pt.iconAngle || pt.iconScale ? {crossOrigin: 'anonymous'} : {},
+            // opt = pt.iconAngle || pt.iconScale ? {crossOrigin: 'anonymous'} : {},
+            opt = {crossOrigin: 'anonymous'},
             _this = this;
 
+        if (self.location.protocol !== 'file:') {
+            url = url.replace(self.location.protocol, '');	// remove protocol from icon URL
+        }
         if (L.gmxUtil.isIE11 && /\.svg$/.test(url)) {
             opt = {};   // skip bug in IE11
         }
+
         opt.layerID = this.gmx.layerID;
         ++this._needLoadIcons;
         L.gmx.imageLoader.unshift(url, opt).def.then(
@@ -50255,11 +50260,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -50294,6 +50294,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
