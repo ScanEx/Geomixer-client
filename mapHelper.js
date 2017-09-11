@@ -616,7 +616,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 
 		if (parentStyle.marker && parentStyle.marker.image)
 		{
-			if (typeof parentStyle.marker.color == 'undefined')
+			if (true /*typeof parentStyle.marker.color == 'undefined'*/)
 			{
 				icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
 
