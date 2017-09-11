@@ -160,7 +160,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 		var centerMapElem,
             boundaryMapElem;
 		//Рисуем центр объекта
-		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type == 'POINT') {
+		if (oFoundObject.Geometry != null && (oFoundObject.Geometry.type).toUpperCase() == 'POINT') {
             centerMapElem = L.marker([oFoundObject.Geometry.coordinates[1], oFoundObject.Geometry.coordinates[0]], {
                 icon: getSearchIcon(iPosition)
             });
@@ -178,20 +178,20 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 
 
 		//Рисуем контур объекта
-		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
+		if (oFoundObject.Geometry != null && (oFoundObject.Geometry.type).toUpperCase() != 'POINT') {
             boundaryMapElem = L.geoJson(L.gmxUtil.geometryToGeoJSON(oFoundObject.Geometry), {
                 style: function(feature) {
                     return
                 },
                 onEachFeature: function(feature, layer) {
-                    // layer.setStyle({
-                    //     color: '#' + (0x1000000 + (color << 16) + (color << 8) + color).toString(16).substr(-6),
-                    //     weight: 3,
-                    //     opacity: 0.6,
-                    //     fill: false
-                    // });
-                    //
-                    // bindHoverPopup(layer, sDescr)
+                    layer.setStyle({
+                        color: '#' + (0x1000000 + (color << 16) + (color << 8) + color).toString(16).substr(-6),
+                        weight: 3,
+                        opacity: 0.6,
+                        fill: false
+                    });
+
+                    bindHoverPopup(layer, sDescr)
                 }
             });
 
@@ -214,7 +214,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
         }
 		else
 		{
-           if (oFoundObject.Geometry.type == 'POINT') {
+           if ((oFoundObject.Geometry.type).toUpperCase() == 'POINT') {
 		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat) {
 			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
                 } else {
@@ -645,7 +645,7 @@ var ResultList = function(oInitContainer, ImagesHost){
     }
 
     var fnObjectClick = function(event, oFoundObject){
-        oRenderer.CenterObject(oFoundObject);
+        _this.oRenderer.CenterObject(oFoundObject);
 
         /** Вызывается при клике на найденный объект в списке результатов поиска
         @name Search.ResultListMap.onObjectClick
