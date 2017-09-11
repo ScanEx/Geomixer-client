@@ -322,12 +322,11 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 	if (oMap.coordinates) oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
 }
 
-var ResultList = function(oInitContainer, ImagesHost){
+var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 	/**Объект, в котором находится контрол (div)*/
     // создается в начале searchLogic.showResult
 	var Container = oInitContainer;
 	var _this = this;
-    this.oRenderer = new ResultRenderer(nsGmx.leafletMap, imagesHost, true);
 
 	var sImagesHost = ImagesHost || "http://maps.kosmosnimki.ru/api/img";
 
@@ -635,7 +634,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	}
 
     var fnDisplayedObjectsChanged = function(event, iDataSourceN, arrFoundObjects){
-        _this.oRenderer.DrawObjects.call(_this.oRenderer, iDataSourceN, arrFoundObjects);
+        oRenderer.DrawObjects(iDataSourceN, arrFoundObjects);
         /** Вызывается при изменении отображаемого списка найденных объектов(ведь они отображаются не все)
         @name Search.ResultListMap.onDisplayedObjectsChanged
         @event
@@ -645,7 +644,7 @@ var ResultList = function(oInitContainer, ImagesHost){
     }
 
     var fnObjectClick = function(event, oFoundObject){
-        _this.oRenderer.CenterObject(oFoundObject);
+        oRenderer.CenterObject(oFoundObject);
 
         /** Вызывается при клике на найденный объект в списке результатов поиска
         @name Search.ResultListMap.onObjectClick
@@ -841,7 +840,6 @@ var ResultList = function(oInitContainer, ImagesHost){
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
 		$(_this).triggerHandler('onDisplayedObjectsChanged',[iDataSourceN, arrDisplayedObjects[iDataSourceN]]);
-        console.log(_this);
 	};
 
 	/** Показывает режим загрузки
@@ -870,26 +868,12 @@ var ResultList = function(oInitContainer, ImagesHost){
 nsGmx.SearchLogic = function () {
     this.init = function (params) {
         this.oMenu = params.oMenu || new leftMenu();
+        this.oRenderer = new ResultRenderer(nsGmx.leafletMap, imagesHost, true);
         this.oSearchResultDiv = document.createElement('div');
         var workCanvas;
         this.oSearchResultDiv.className = 'ddfdfdf';
         this.oSearchResultDiv.title = window._gtxt('Изменить параметры поиска');
 
-        console.log(this.oSearchResultDiv);
-
-        var fnLoad = function(){
-            if (oMenu != null){
-                var alreadyLoaded = voMenu.createWorkCanvas("search", fnUnload);
-                if(alreadyLoaded) {
-                    // $(this.oMenu.workCanvas).empty();
-                    $(this.oSearchResultDiv).empty();
-                };
-                // this.oMenu.workCanvas.appendChild(this.oSearchResultDiv);
-            }
-        }
-        var fnUnload = function(){
-            // if (oSearchControl != null)oSearchControl.Unload();
-        }
         var fnBeforeSearch = function(event){
             /** Вызывается перед началом поиска
             @name Search.SearchGeomixer.onBeforeSearch
@@ -925,35 +909,25 @@ nsGmx.SearchLogic = function () {
     };
 
     this.fnLoad = function(){
-        console.log('aa');
         if (this.oMenu != null){
-            var alreadyLoaded = this.oMenu.createWorkCanvas("search", this.fnUnload);
+            var alreadyLoaded = this.oMenu.createWorkCanvas("search", this.fnUnload.bind(this));
             if(!alreadyLoaded) {
                 this.oMenu.workCanvas.appendChild(this.oSearchResultDiv);
-                // $(this.oMenu.workCanvas).empty();
             }
             $(this.oSearchResultDiv).empty();
         }
     };
 
     this.fnUnload = function () {
-
+        if (this.lstResult) {
+            this.lstResult.Unload();
+        }
     };
 
     this.showResult = function (response) {
         this.fnLoad();
-        console.log(response);
-
-        var lstResult = new ResultList(this.oSearchResultDiv, imagesHost);
-        console.log(lstResult);
-                    lstResult.ShowLoading();
-        lstResult.ShowResult('sdsds', response);
-
-
-
-
-
-        // $(lstResult).bind('onObjectClick', fnObjectClick);
-        // $(lstResult).bind('onDownloadSHP', fnDownloadSHP);
+        this.lstResult = new ResultList(this.oSearchResultDiv, this.oRenderer, imagesHost);
+        this.lstResult.ShowLoading();
+        this.lstResult.ShowResult('sdsds', response);
     }
 }

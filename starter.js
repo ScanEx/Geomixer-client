@@ -58,9 +58,6 @@ nsGmx.initGeoMixer = function() {
 
 var oSearchLeftMenu = new leftMenu();
 var searchLogic = new nsGmx.SearchLogic();
-searchLogic.init({
-    oMenu: oSearchLeftMenu
-});
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 nsGmx.gridManager = {
@@ -499,7 +496,6 @@ var createToolbar = function() {
             fetch(req, init).then(function (response) {
                 return response.json();
             }).then(function (json) {
-                console.log(json);
                 if (json.Status === 'ok') {
                     if (typeof _this._onFetch === 'function') {
                         _this._onFetch(json.Result);
@@ -2107,6 +2103,10 @@ function processGmxMap(state, gmxMap) {
         var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
 
         // var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
+
+        searchLogic.init({
+            oMenu: oSearchLeftMenu
+        });
 
         //инициализация контролов поиска (модуль уже загружен)
         var oSearchModule = gmxCore.getModule('search');

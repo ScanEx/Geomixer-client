@@ -46,6 +46,14 @@
 }
 
 /* Auth widget */
+.authWidget .ui-widget {
+    float: right;
+}
+
+.languageWidget .ui-widget {
+    float: right;
+}
+
 .auth-user-name, .auth-login {
     font-size: 12px;
 }
