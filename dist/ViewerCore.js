@@ -2382,9 +2382,9 @@ var GmxImageLoader = L.Class.extend({
 		}
 		var ieResolve = function() {
 			def.resolve(image);
-			if (image.parentNode) {
-				image.parentNode.removeChild(image);
-			}
+			// if (image.parentNode) {
+				// image.parentNode.removeChild(image);
+			// }
 		};
 		this.divIE11bugFix.appendChild(image);
 		setTimeout(ieResolve, 0);
