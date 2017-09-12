@@ -2373,6 +2373,23 @@ var GmxImageLoader = L.Class.extend({
         this.uniqueID = 0;
     },
 
+    _checkIE11bugFix: function(def, image) {
+		if (!this.divIE11bugFix) {
+			var div = document.createElement('div');
+			this.divIE11bugFix = div;
+			div.style.visibility = 'hidden';
+			document.body.insertBefore(div, document.body.childNodes[0]);
+		}
+		var ieResolve = function() {
+			def.resolve(image);
+			if (image.parentNode) {
+				image.parentNode.removeChild(image);
+			}
+		};
+		this.divIE11bugFix.appendChild(image);
+		setTimeout(ieResolve, 0);
+    },
+
     _resolveRequest: function(request, image, canceled) {
         var def = request.def;
         if (image) {
@@ -2383,7 +2400,11 @@ var GmxImageLoader = L.Class.extend({
                 if (!cacheItem) { cacheItem = this.requestsCache[url] = {image: image, requests:{}}; }
                 if (!cacheItem.requests[cacheKey]) { cacheItem.requests[cacheKey] = request; }
             }
-            def.resolve(image);
+			if (L.gmxUtil.isIE11 && /\.svg[\?$]/.test(request.url)) {   // skip bug in IE11
+				this._checkIE11bugFix(def, image);
+			} else {
+				def.resolve(image);
+			}
         } else if (!canceled) {
             def.reject();
         }
@@ -3449,7 +3470,7 @@ var gmxAPIutils = {
             attr.rotateRes = currentStyle.rotate || 0;
         }
         if (image) {
-            if ('iconColor' in currentStyle) {
+            if ('iconColor' in currentStyle && !L.gmxUtil.isIE11) {
                 image = this.replaceColor(image, currentStyle.iconColor, attr.imageData);
             }
             style.rotateRes = currentStyle.rotate || 0;
@@ -5708,7 +5729,7 @@ L.gmxUtil.drawGeoItem = function(geoItem, item, options, currentStyle, style) {
     }
     if (geoType === 'POINT' || geoType === 'MULTIPOINT') { // Отрисовка геометрии точек
         coords = geom.coordinates;
-        if ('iconColor' in style && style.image) {
+        if ('iconColor' in style && style.image && !L.gmxUtil.isIE11) {
             if (style.lastImage !== style.image) {
                 style.lastImage = style.image;
                 style.lastImageData = utils.getImageData(style.image);
@@ -10947,18 +10968,17 @@ StyleManager.prototype = {
 
     _needLoadIcons: 0,
     _getImageSize: function(pt) {     // check image size
-        var url = pt.iconUrl || pt.fillIconUrl,
-            // opt = pt.iconAngle || pt.iconScale ? {crossOrigin: 'anonymous'} : {},
+        var url = pt.iconUrl || pt.fillIconUrl || '',
             opt = {crossOrigin: 'anonymous'},
+			isIE11 = L.gmxUtil.isIE11 && /\.svg$/.test(url),
             _this = this;
 
         if (self.location.protocol !== 'file:') {
-            url = url.replace(self.location.protocol, '');	// remove protocol from icon URL
+            url = url.replace(/http(s*):/, '');	// remove protocol from icon URL
         }
-        if (L.gmxUtil.isIE11 && /\.svg$/.test(url)) {
-            opt = {};   // skip bug in IE11
+        if (isIE11) {
+			url += '?crossOrigin=' + opt.crossOrigin;
         }
-
         opt.layerID = this.gmx.layerID;
         ++this._needLoadIcons;
         L.gmx.imageLoader.unshift(url, opt).def.then(
@@ -10967,16 +10987,8 @@ StyleManager.prototype = {
                 if (pt.fillIconUrl) {
                     pt.imagePattern = it;
                 } else {
-                    var w = it.width,
-                        h = it.height;
-                    if (L.gmxUtil.isIE11 && /\.svg$/.test(url)) {   // skip bug in IE11
-                        document.body.appendChild(it);
-                        w = it.offsetWidth;
-                        h = it.offsetHeight;
-                        document.body.removeChild(it);
-                    }
-                    pt.sx = w;
-                    pt.sy = h;
+                    pt.sx = it.width || it.offsetWidth;
+                    pt.sy = it.height || it.offsetHeight;
                     pt.image = it;
                     var maxSize = pt.iconAngle ? Math.sqrt(pt.sx * pt.sx + pt.sy * pt.sy) : Math.max(pt.sx, pt.sy);
                     if (!pt.scaleFunction && !pt.rotateFunction) {
@@ -50368,6 +50380,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50405,19 +50430,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
