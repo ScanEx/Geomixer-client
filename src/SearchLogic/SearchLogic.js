@@ -1,4 +1,4 @@
-var nsGmx = nsGmx || {}
+var nsGmx = nsGmx || {};
 
 $('#flash').droppable({
     drop: function(event, ui) {
@@ -865,11 +865,14 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 	this.getContainer = function(){return Container;};
 };
 
-nsGmx.SearchLogic = function () {
-    this.init = function (params) {
+nsGmx.SearchLogic = function () {};
+
+nsGmx.SearchLogic.prototype = {
+    init: function (params) {
         this.oMenu = params.oMenu || new leftMenu();
         this.oRenderer = new ResultRenderer(nsGmx.leafletMap, imagesHost, true);
         this.oSearchResultDiv = document.createElement('div');
+        this.searchByStringHooks = [];
         var workCanvas;
         this.oSearchResultDiv.className = 'ddfdfdf';
         this.oSearchResultDiv.title = window._gtxt('Изменить параметры поиска');
@@ -906,9 +909,31 @@ nsGmx.SearchLogic = function () {
         $(this.oSearchResultDiv).bind('onAfterSearch', fnAfterSearch);
         $(this.oSearchResultDiv).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);
         $(this.oSearchResultDiv).bind('onObjectClick', onObjectClick);
-    };
 
-    this.fnLoad = function(){
+        // coordinates search hook
+        this.addSearchByStringHook(function(searchString) {
+            var pos = L.gmxUtil.parseCoordinates(searchString);
+            if (pos) {
+                nsGmx.leafletMap.panTo(pos);
+
+                // Добавим иконку по умолчанию
+                // L.Icon.Default.imagePath = 'leaflet/images';
+                nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: searchString }));
+
+                // Либо задать свою иконку
+                // map.gmxDrawing.add(L.marker(pos, {
+                    // draggable: true, title: searchString,
+                    // icon: L.icon({ iconUrl: 'img/flag_blau1.png', iconAnchor: [6, 36] })
+                // }));
+
+                //map.moveTo(pos[0], pos[1], map.getZ());
+                //map.drawing.addObject({ type: "POINT", coordinates: pos }, { text: searchString });
+                return true;
+            }
+        })
+    },
+
+    fnLoad: function(){
         if (this.oMenu != null){
             var alreadyLoaded = this.oMenu.createWorkCanvas("search", this.fnUnload.bind(this));
             if(!alreadyLoaded) {
@@ -916,18 +941,61 @@ nsGmx.SearchLogic = function () {
             }
             $(this.oSearchResultDiv).empty();
         }
-    };
+    },
 
-    this.fnUnload = function () {
+    fnUnload: function () {
         if (this.lstResult) {
             this.lstResult.Unload();
         }
-    };
+    },
 
-    this.showResult = function (response) {
+    showResult: function (response) {
+        var searchString = response.searchString;
+        for (var h = 0; h < this.searchByStringHooks.length; h++) {
+            if (this.searchByStringHooks[h].hook(searchString)) {
+                return;
+            }
+        }
         this.fnLoad();
         this.lstResult = new ResultList(this.oSearchResultDiv, this.oRenderer, imagesHost);
         this.lstResult.ShowLoading();
         this.lstResult.ShowResult('sdsds', response);
+    },
+
+    showCoordinates: function (response) {
+        console.log(response);
+        if (response.feature) {
+            try {
+                var pos = L.latLng(response.feature.geometry.coordinates.slice().reverse());
+
+                nsGmx.leafletMap.panTo(pos);
+                nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: 'searchString' }));
+
+            } catch (e) {
+                throw e;
+            }
+        }
+    },
+
+    addSearchByStringHook: function (hook, priority) {
+        var _this = this;
+        this.searchByStringHooks.push({
+            hook: hook,
+            priority: priority || 0,
+            index: _this.searchByStringHooks.length
+        });
+
+        this.searchByStringHooks.sort(function(a, b) {
+            return b.priority - a.priority || a.index - b.index;
+        })
+    },
+
+    removeSearchByStringHook: function(hook) {
+        for (var h = 0; h < this.searchByStringHooks.length; h++) {
+            if (this.searchByStringHooks[h].hook === hook) {
+                this.searchByStringHooks.splice(h, 1);
+                return;
+            }
+        }
     }
 }

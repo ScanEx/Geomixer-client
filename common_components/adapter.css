@@ -46,11 +46,11 @@
 }
 
 /* Auth widget */
-.authWidget .ui-widget {
+.authWidget {
     float: right;
 }
 
-.languageWidget .ui-widget {
+.languageWidget {
     float: right;
 }
 

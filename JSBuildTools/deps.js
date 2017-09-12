@@ -73,6 +73,7 @@ var jsFiles = [
     "common_components/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
+    "src/SearchLogic/SearchProviders.js",
     "src/SearchLogic/SearchLogic.js",
     "leaflet/plugins/gmxLayers2/gmxLayers2.js",
 

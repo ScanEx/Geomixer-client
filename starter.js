@@ -57,7 +57,7 @@ var _getFileName = function( localName ) {
 nsGmx.initGeoMixer = function() {
 
 var oSearchLeftMenu = new leftMenu();
-var searchLogic = new nsGmx.SearchLogic();
+window.searchLogic = new nsGmx.SearchLogic();
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 nsGmx.gridManager = {
@@ -212,8 +212,8 @@ var createMenuNew = function() {
     {id: 'viewMenu', title: _gtxt('Вид'),childs: [
             {id:'externalMaps',   title: _gtxt('Дополнительные карты'), func: mapHelp.externalMaps.load},
             {id:'mapTabs',        title: _gtxt('Закладки'),             func: mapHelp.tabs.load},
-            {id:'DrawingObjects', title: _gtxt('Объекты'),              func: oDrawingObjectGeomixer.Load},
-            {id:'searchView',     title: _gtxt('Результаты поиска'),    func: oSearchControl.Load}
+            {id:'DrawingObjects', title: _gtxt('Объекты'),              func: oDrawingObjectGeomixer.Load}
+            // {id:'searchView',     title: _gtxt('Результаты поиска'),    func: oSearchControl.Load}
         ]});
 
     _menuUp.addItem(
@@ -469,108 +469,6 @@ var createToolbar = function() {
     * seachParams
     */
 
-
-    nsGmx.Osm2DataProvider = function(options){
-        nsGmx.OsmDataProvider.call(this, options);
-    };
-
-    nsGmx.Osm2DataProvider.prototype = Object.create(nsGmx.OsmDataProvider.prototype);
-    nsGmx.Osm2DataProvider.prototype.constructor = nsGmx.Osm2DataProvider;
-
-    nsGmx.Osm2DataProvider.prototype.fetch = function (obj) {
-        var _this = this;
-
-        var query = 'WrapStyle=None&RequestType=ID&ID=' + obj.ObjCode + '&TypeCode=' + obj.TypeCode + '&UseOSM=1';
-        var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
-        var headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        var init = {
-            method: 'GET',
-            mode: 'cors',
-            credentials: 'include',
-            cache: 'default'
-        };
-
-        searchLogic.fnLoad();
-        return new Promise(function (resolve, reject) {
-            fetch(req, init).then(function (response) {
-                return response.json();
-            }).then(function (json) {
-                if (json.Status === 'ok') {
-                    if (typeof _this._onFetch === 'function') {
-                        _this._onFetch(json.Result);
-                    }
-                    resolve(json.Result);
-                } else {
-                    reject(json.Result);
-                }
-            }).catch(function (response) {
-                return reject(response);
-            });
-        });
-    };
-
-    nsGmx.Osm2DataProvider.prototype.find = function (value, limit, strong, retrieveGeometry) {
-        var _this2 = this;
-        var _strong = Boolean(strong) ? 1 : 0;
-        var _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1;
-        var query = 'WrapStyle=None&RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
-        var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
-        var headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        var init = {
-            method: 'GET',
-            mode: 'cors',
-            credentials: 'include',
-            cache: 'default'
-        };
-        return new Promise(function (resolve, reject) {
-            fetch(req, init).then(function (response) {
-                return response.json();
-            }).then(function (json) {
-                if (json.Status === 'ok') {
-                    var rs = json.Result.reduce(function (a, x) {
-                        return a.concat(x.SearchResult);
-                    }, []).map(function (x) {
-                        if (retrieveGeometry && x.Geometry) {
-                            var g = _this2._convertGeometry(x.Geometry);
-                            var props = Object.keys(x).filter(function (k) {
-                                return k !== 'Geometry';
-                            }).reduce(function (a, k) {
-                                a[k] = x[k];
-                                return a;
-                            }, {});
-                            return {
-                                name: x.ObjNameShort,
-                                feature: {
-                                    type: 'Feature',
-                                    geometry: g,
-                                    properties: props
-                                },
-                                properties: props,
-                                provider: _this2,
-                                query: value
-                            };
-                        } else {
-                            return {
-                                name: x.ObjNameShort,
-                                properties: x,
-                                provider: _this2,
-                                query: value
-                            };
-                        }
-                    });
-                    if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
-                        _this2._onFetch(json.Result);
-                    }
-                    resolve(rs);
-                } else {
-                    reject(json);
-                }
-            });
-        });
-    }
-
     window.searchControl = new nsGmx.SearchControl({
         // addBefore: 'saveMap',
         id: 'searchcontrol',
@@ -579,12 +477,12 @@ var createToolbar = function() {
         limit: 10,
         retrieveManyOnEnter: true,
         providers: [
-            new nsGmx.Osm2DataProvider({
+            new nsGmx.searchProviders.Osm2DataProvider({
                 showOnMap: true,
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {
-                    searchLogic.showResult(response);
+                    window.searchLogic.showResult(response);
                 }.bind(this)
             })
         ],
@@ -2104,13 +2002,13 @@ function processGmxMap(state, gmxMap) {
 
         // var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
 
-        searchLogic.init({
+        window.searchLogic.init({
             oMenu: oSearchLeftMenu
         });
 
         //инициализация контролов поиска (модуль уже загружен)
         var oSearchModule = gmxCore.getModule('search');
-        window.oSearchControl = new oSearchModule.SearchGeomixer();
+        // window.oSearchControl = new oSearchModule.SearchGeomixer();
 
         // if (document.getElementById('searchCanvas')) {
         // window.oSearchControl.Init({
