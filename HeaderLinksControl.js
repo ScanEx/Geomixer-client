@@ -15,15 +15,23 @@ nsGmx.addHeaderLinks = function()
         return [];
     }
 
-    var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
+    var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) ||
         [
             {title: _gtxt("Карта пожаров"), href: _gtxt("http://fires.ru"), newWindow: true},
             {title: _gtxt("Поиск снимков"), href: _gtxt("http://search.kosmosnimki.ru"), newWindow: true},
             {title: _gtxt("Платформа Геомиксер"), newWindow: true, id: 'HeaderLinkGeoMixer'}
         ];
-        
-    return $.extend(true, [], items).map(function(item) {
+
+    return $.extend(true, [], items).map(function(item, index, array) {
         item.link = item.href;
-        return item;
+        return {
+            id: 'headerLinksItem' + index,
+            title: item.title,
+            func: function(){
+                if (item.link) {
+                    window.open(item.link, '_blank');
+                }
+            }.bind(item)
+        }
     })
 }

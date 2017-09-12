@@ -951,30 +951,17 @@ nsGmx.SearchLogic.prototype = {
 
     showResult: function (response) {
         var searchString = response.searchString;
-        for (var h = 0; h < this.searchByStringHooks.length; h++) {
-            if (this.searchByStringHooks[h].hook(searchString)) {
-                return;
+        if (searchString) {
+            for (var h = 0; h < this.searchByStringHooks.length; h++) {
+                if (this.searchByStringHooks[h].hook(searchString)) {
+                    return;
+                }
             }
         }
         this.fnLoad();
         this.lstResult = new ResultList(this.oSearchResultDiv, this.oRenderer, imagesHost);
         this.lstResult.ShowLoading();
         this.lstResult.ShowResult('sdsds', response);
-    },
-
-    showCoordinates: function (response) {
-        console.log(response);
-        if (response.feature) {
-            try {
-                var pos = L.latLng(response.feature.geometry.coordinates.slice().reverse());
-
-                nsGmx.leafletMap.panTo(pos);
-                nsGmx.leafletMap.gmxDrawing.add(L.marker(pos, { draggable: true, title: 'searchString' }));
-
-            } catch (e) {
-                throw e;
-            }
-        }
     },
 
     addSearchByStringHook: function (hook, priority) {

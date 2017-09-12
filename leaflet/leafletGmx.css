@@ -13,4 +13,13 @@
 
 .leaflet-ext-search input {
     border-radius: 4px;
+    width: 310px;
+}
+
+.leaflet-ext-search, .leaflet-ext-search-list {
+    width: 350px;
+}
+
+.leaflet-ext-search {
+    border-radius: 4px;
 }

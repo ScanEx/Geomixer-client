@@ -470,7 +470,6 @@ var createToolbar = function() {
     */
 
     window.searchControl = new nsGmx.SearchControl({
-        // addBefore: 'saveMap',
         id: 'searchcontrol',
         placeHolder: 'Поиск по кадастру, адресам, координатам',
         position: 'topright',
@@ -510,6 +509,13 @@ var createToolbar = function() {
     // 'cause Aryunov doesn't use controls id
     window.searchControl._container._id = 'searchcontrol';
 
+    var searchContainer = window.searchControl._widget._container;
+
+    $(searchContainer).contextmenu(function (e) {
+        e.stopPropagation();
+        return true;
+    });
+    
     var gmxLayers = new L.control.gmxLayers2(null, null, {
         title: window._gtxt('Панель оверлеев'),
         collapsed: true,
@@ -2025,6 +2031,13 @@ function processGmxMap(state, gmxMap) {
         };
 
         _menuUp.go(nsGmx.widgets.header.getMenuPlaceholder()[0]);
+
+        var headerLinks = nsGmx.addHeaderLinks();
+
+        if (headerLinks.length) {
+            _menuUp.addItem(
+                {id: 'linksMenu', title: _gtxt('Ссылки'),childs: headerLinks});
+        }
 
         // Загружаем все пользовательские данные
         nsGmx.userObjectsManager.load();
