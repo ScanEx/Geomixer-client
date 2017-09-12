@@ -2378,6 +2378,7 @@ var GmxImageLoader = L.Class.extend({
 			var div = document.createElement('div');
 			this.divIE11bugFix = div;
 			div.style.visibility = 'hidden';
+			div.style.position = 'absolute';
 			document.body.insertBefore(div, document.body.childNodes[0]);
 		}
 		var ieResolve = function() {
