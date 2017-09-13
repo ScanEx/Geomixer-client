@@ -43,6 +43,7 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.fetch = function (obj) {
 };
 
 nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, strong, retrieveGeometry) {
+    var result;
     var _this2 = this;
     _this2.searchString = value;
     var _strong = Boolean(strong) ? 1 : 0;
@@ -63,7 +64,40 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
         }).then(function (json) {
             if (json.Status === 'ok') {
                 json.Result.searchString = _this2.searchString;
-                var rs = json.Result.reduce(function (a, x) {
+                result = json;
+                return json;
+            } else {
+                reject(json.Result);
+            }
+        }).then(function (json1) {
+            return nsGmx.searchLogic && nsGmx.searchLogic.layersSearch(json1);
+        }).then(function (json2) {
+            console.log(result);
+            console.log(json2);
+
+            var arr = [];
+
+            for (var i = 0; i < result.Result.length; i++) {
+                arr.push(result.Result[i]);
+            }
+
+            for (var i = 0; i < json2.length; i++) {
+                if (json2[i] && json2[i].length) {
+                    for (var j = 0; j < json2[i].length; j++) {
+                        arr.push(json2[i][j]);
+                    }
+                }
+            }
+
+            arr.searchString = result.Result.searchString;
+
+            return {
+                Status: result.Status,
+                Result: arr
+            }
+        }).then(function (json3) {
+            if (json3.Status === 'ok') {
+                var rs = json3.Result.reduce(function (a, x) {
                     return a.concat(x.SearchResult);
                 }, []).map(function (x) {
                     if (retrieveGeometry && x.Geometry) {
@@ -95,11 +129,11 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
                     }
                 });
                 if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
-                    _this2._onFetch(json.Result);
+                    _this2._onFetch(json3.Result);
                 }
                 resolve(rs);
             } else {
-                reject(json);
+                reject(json3);
             }
         });
     });

@@ -57,7 +57,7 @@ var _getFileName = function( localName ) {
 nsGmx.initGeoMixer = function() {
 
 var oSearchLeftMenu = new leftMenu();
-window.searchLogic = new nsGmx.SearchLogic();
+nsGmx.searchLogic = new nsGmx.SearchLogic();
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 nsGmx.gridManager = {
@@ -471,7 +471,7 @@ var createToolbar = function() {
 
     window.searchControl = new nsGmx.SearchControl({
         id: 'searchcontrol',
-        placeHolder: 'Поиск по кадастру, адресам, координатам',
+        placeHolder: 'Поиск по векторным слоям и адресной базе',
         position: 'topright',
         limit: 10,
         retrieveManyOnEnter: true,
@@ -481,7 +481,7 @@ var createToolbar = function() {
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {
-                    window.searchLogic.showResult(response);
+                    nsGmx.searchLogic.showResult(response);
                 }.bind(this)
             })
         ],
@@ -503,6 +503,8 @@ var createToolbar = function() {
         }
     });
 
+    nsGmx.searchLogic.searchControl = window.searchControl;
+
     lmap.addControl(window.searchControl);
     lmap.gmxControlsManager.add(window.searchControl);
     // shitty trick
@@ -515,7 +517,7 @@ var createToolbar = function() {
         e.stopPropagation();
         return true;
     });
-    
+
     var gmxLayers = new L.control.gmxLayers2(null, null, {
         title: window._gtxt('Панель оверлеев'),
         collapsed: true,
@@ -2008,7 +2010,7 @@ function processGmxMap(state, gmxMap) {
 
         // var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
 
-        window.searchLogic.init({
+        nsGmx.searchLogic.init({
             oMenu: oSearchLeftMenu
         });
 

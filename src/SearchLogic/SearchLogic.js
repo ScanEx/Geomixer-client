@@ -984,5 +984,137 @@ nsGmx.SearchLogic.prototype = {
                 return;
             }
         }
+    },
+
+    layersSearch: function (res) {
+        var globalRes = res;
+        if (!nsGmx.gmxMap){
+            reject(res);
+        }
+
+        var promisesArr = [];
+
+        var arrResult = [];
+
+        var layersToSearch = [];
+        for (var i=0; i< nsGmx.gmxMap.layers.length; i++) {
+            //свойства мы берём из дерева слоёв, а не из API. Cвойство AllowSearch относится к карте и не поддерживаются API
+            var searchRes = window._layersTree.treeModel.findElem('name', nsGmx.gmxMap.layers[i].getGmxProperties().name);
+
+            if (searchRes) {
+                var props = searchRes.elem.content.properties;
+
+                if (props.type == "Vector" && props.AllowSearch && nsGmx.gmxMap.layers[i]._map) {
+                    layersToSearch.push(props);
+                }
+            }
+        }
+        var iRespCount = 0;
+
+        if (
+            layersToSearch.length > 0
+            // 0
+        ) {
+            layersToSearch.forEach(function(props) {
+                var mapName = nsGmx.gmxMap.layersByID[props.name].options.mapID;
+                var url = window.serverBase + "/SearchObject/SearchVector.ashx" +
+                    "?LayerNames=" + props.name +
+                    "&MapName=" + mapName +
+                    "&SearchString=" + encodeURIComponent(res.Result.searchString);
+
+                var promise = new Promise(function(resolve, reject) {
+                  var req = new XMLHttpRequest();
+                  req.open('GET', url);
+
+                  req.onload = function() {
+                    // Этот кусок вызовется даже при 404’ой ошибке
+                    // поэтому проверяем статусы ответа
+                    // console.log(req);
+                    // console.log(req.response);
+                    if (req.status == 200) {
+                      // Завершаем Обещание с текстом ответа
+                    //   console.log(req);
+                      var res = handleResponse(req.response);
+                      console.log(res);
+                      resolve(res);
+                    }
+                    else {
+                      // Обламываемся, и передаём статус ошибки
+                      // что бы облегчить отладку и поддержку
+                      reject(Error(req.statusText));
+                    }
+                  };
+
+                  // отлавливаем ошибки сети
+                  req.onerror = function() {
+                    reject(Error("Network Error"));
+                  };
+
+                  // Делаем запрос
+                  req.send();
+                });
+
+                promisesArr.push(promise);
+
+            });
+
+            return Promise.all(promisesArr);
+                // sendCrossDomainJSONRequest(url, handleResponse);
+            } else {
+                return new Promise(function(resolve, reject) {
+                    res.Result.push(['this was added by test']);
+                    setTimeout(function () {
+                        resolve(res);
+
+                    }, 3000);
+                })
+            }
+
+        function handleResponse(searchReq) {
+            searchReq = typeof searchReq === 'string' ? JSON.parse(searchReq.substring(1, searchReq.length - 1)) : searchReq;
+            iRespCount++;
+            var arrLayerResult = [];
+            var arrDisplayFields = null;
+            if (searchReq.Status == 'ok')
+            {
+                for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
+                {
+                    var limitSearchResults = typeof(LayerSearchLimit)=="number" ? LayerSearchLimit : 100;
+                    var req = searchReq.Result[iServer];
+                    for (var j = 0; j<limitSearchResults && j < req.SearchResult.length; j++)
+                    {
+                        var arrDisplayProperties = {};
+                        if (!arrDisplayFields) {
+                            arrDisplayProperties = req.SearchResult[j].properties;
+                        }
+                        else {
+                            for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
+                                var sPropName = arrDisplayFields[iProperty];
+                                if(sPropName in req.SearchResult[j].properties) {
+                                    arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+                                }
+                            }
+                        }
+
+                        for (var p in arrDisplayProperties) {
+                            var type = props.attrTypes[props.attributes.indexOf(p)];
+                            arrDisplayProperties[p] = nsGmx.Utils.convertFromServer(type, arrDisplayProperties[p]);
+                        }
+
+                        arrLayerResult.push({
+                            ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
+                            properties: arrDisplayProperties,
+                            Geometry: L.gmxUtil.convertGeometry(req.SearchResult[j].geometry, true)
+                        });
+                    }
+                }
+            }
+            if(arrLayerResult.length > 0) arrResult.push({name: props.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
+
+            if (iRespCount == layersToSearch.length){
+                console.log(arrResult);
+                return arrResult;
+            }
+        }
     }
 }
