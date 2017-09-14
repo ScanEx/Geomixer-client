@@ -1,0 +1,16 @@
+{{#if userName}}
+    <div class="authWidget_authorized">
+        <div class="authWidget-userPanel">
+            <div class="authWidget-userPanel-iconCell">
+                <div class="authWidget-userPanel-userIcon"></div>
+            </div>
+            <div class="authWidget-userPanel-userMenuCell"></div>
+        </div>
+    </div>
+{{else}}
+    <div class="authWidget_unauthorized">
+        <div class="authWidget-loginButton">
+            {{i 'auth.login'}}
+        </div>
+    </div>
+{{/if}}

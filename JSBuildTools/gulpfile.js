@@ -28,7 +28,7 @@ require('./common_components/builder')(gulp, {
             commonRoot + 'GmxWidget',
             commonRoot + 'CommonStyles@dist',
             commonRoot + 'DropdownMenuWidget@build',
-            commonRoot + 'AuthWidget@build',
+            srcRoot + 'AuthWidget@build',
             commonRoot + 'LanguageWidget@build',
             commonRoot + 'TransparencySliderWidget@build',
             commonRoot + 'BaseLayersControl@build',
