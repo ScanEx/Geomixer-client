@@ -8,7 +8,12 @@
 
 .authWidget-userPanel-userIcon { width: 18px; height: 17px; background-image: url('user.png'); }
 
-.authWidget-loginButton { cursor: pointer; }
+.authWidget-loginButton {
+  display: table-cell;
+  vertical-align: bottom;
+  padding-left: 10px;
+  cursor: pointer;
+}
 
 .authWidget .dropdownMenuWidget { position:relative; }
 .authWidget .dropdownMenuWidget-item { padding-right: 0; }
