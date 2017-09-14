@@ -293,6 +293,9 @@
 
                 $(valueInput).datepicker(
                 {
+                    onSelect: function(dateText, inst) {
+                        $(this).change();
+                    },
                     changeMonth: true,
                     changeYear: true,
                     dateFormat: "dd.mm.yy"
@@ -379,7 +382,7 @@
 
             var updateModel = function()
             {
-                layerTags.updateTag(tagId, tagInput.val(), valueInput.val().trim());
+                layerTags.updateTag(tagId, tagInput.val().trim(), valueInput.val().trim());
             }
 
             tagInput.bind('keyup change', updateModel);

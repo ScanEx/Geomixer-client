@@ -27,9 +27,70 @@
   text-align: center;
 }
 
-
 .calendar-outside select {
+  font-size: 1.1em !important;
   border: 0;
+  background-color: #FFF;
+}
+
+.calendar-outside .ui-datepicker-header {
+    border-bottom: 1px solid grey;
+}
+
+.calendar-outside .ui-datepicker-prev, .ui-datepicker-next {
+    height: 28px !important;
+}
+
+.calendar-outside .ui-datepicker-prev span, .ui-datepicker-next span {
+    background-image: none !important;
+}
+
+.calendar-outside .ui-datepicker-prev span.ui-icon {
+    display: block;
+    text-indent: 0;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-prev span:before {
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1em;
+    margin-left: .2em;
+    content: '\';
+}
+
+.calendar-outside .ui-datepicker-next span.ui-icon {
+    display: block;
+    text-indent: 0;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-next span:before {
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1em;
+    margin-left: .2em;
+    content: '\';
 }
 
 .calendar-outside .time-container {

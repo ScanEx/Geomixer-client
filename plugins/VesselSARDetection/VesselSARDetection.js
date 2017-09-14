@@ -597,24 +597,16 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
     var wakes = JSON.stringify(drawing);
     var sceneid = res[0].properties.sceneid;
 
-    // test от Алтынцева
-    // var sceneid = "S1B_IW_GRDH_1SDV_20170615T154253_1";
-    // var ship = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"Polygon",     "coordinates":[[[33.91815703695393,43.14804428465951],[33.9184294959796,43.14781643886092],[33.91696084032159,43.147045348133865],[33.91668209308893,43.14728589160517],[33.91815703695393,43.14804428465951]]]     } });
-    // var wakes = JSON.stringify({ "type":"Feature", "properties":{"target_id":1}, "geometry":{     "type":"LineString",     "coordinates":[[33.91862865247809,43.14288024958497],[33.991693665101124,43.16688017382753]]     } });
-
     var altData = {
         sceneid: sceneid,
         ship: ship,
         wakes: wakes
     }
+	var url = window.serverBase + 'plugins/proxy/ship_speed' + '?' + $.param(altData);
 
-	var url = 'http://192.168.17.15:1661/ship_speed' + '?' + $.param(altData);
-
-    // отправляем запрос Алтынцеву
     fetch(url, {
          method: 'POST',
          mode: 'cors'
-     // 4 по возвращении ответа от Алтынцева изменяем слой
       }).then(toJson)
       .then(altCallback)
       .catch(catchErr);
@@ -624,7 +616,6 @@ VesselSARDetection.prototype._parseSearchObject = function (res, layer, drawing,
      }
 
     function altCallback(res) {
-        // console.log(res);
         that.saveSpeed(res, layer, itemID);
     }
 

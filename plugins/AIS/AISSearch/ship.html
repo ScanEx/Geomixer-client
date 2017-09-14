@@ -1,0 +1,327 @@
+<head>
+    <title></title>
+    <link rel="stylesheet" href="">
+    <meta charset="utf-8">
+    <style>
+        div{border:none}
+        table{border-collapse:collapse}
+        td{border:1px solid black; padding: 0}
+        
+        .vessel-info-page.overlay{
+            position:absolute;
+            top: 0;
+            left: 0;
+            width:100%;
+            height:100%;
+            background-color: #ddd;
+        }
+        .vessel-info-page.overlay td{
+            border:none;
+            padding:0;
+        }
+
+        .vessel-info-page.container{
+            display:table;
+            margin: auto;
+            font-size:16px;
+            border: none;
+        }
+
+        .vessel-info-page.container:after{
+            clear:both;
+            content:"";
+        }
+   
+        .vessel-info-page .column1{
+            width:270px;
+            float:left;
+            background-color: #738694;
+            color: white
+        }
+
+        .vessel-info-page .column1 .cell{
+            width:240px;
+            padding: 15px 15px;
+            border-left:solid 5px #738694;
+        }
+
+
+        .vessel-info-page .column1 .cell .icon{
+            float:left;
+            height: 20px;
+            margin-right:10px
+        } 
+
+        .vessel-info-page .column1 .title{
+            height:64px;
+            border-bottom: solid 1px white;
+        }
+
+        .vessel-info-page .column1 .title .timestamp{
+            font-size: 12px;
+        }
+
+        .vessel-info-page .menu{
+            width:270px;
+            height:300px
+        } 
+
+        .vessel-info-page .menu-item{
+            line-height:20px;
+            cursor: pointer;
+        } 
+
+        .vessel-info-page .menu-item:hover{
+            border-left:solid 5px #3ca1d0;
+            background-color: #555;
+        }
+
+        .vessel-info-page .menu-item .counter{
+           display:inline;
+           font-size: 11px;
+           border-radius: 4px;
+           padding:2px 6px 2px 5px;
+           background-color: #3ca1d0;
+           border:none;
+           color: white;
+           margin-left:10px;
+        }
+
+        .vessel-info-page .photo{
+            width:270px;
+            height: 190px;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+            background-color: #555;
+        }          
+
+        .vessel-info-page .photo img{
+            max-height: 100px;
+        }
+
+
+        .vessel-info-page .column2{
+            min-width:700px;
+            float:left;
+            padding-left: 80px;
+            background-color: white
+        }
+
+        .vessel-info-page .column2 .content{
+            height:555px;
+            overflow:hidden;
+        }
+  
+        .vessel-info-page .column2 .content .caption:nth-of-type(1){
+            padding-top: 56px;
+            background-position: 200px 65px;
+        }
+
+        .vessel-info-page .column2 .content .caption{
+            min-width: 470px;
+            display:table-cell;
+            vertical-align: middle;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='250' y2='0' style='stroke:rgb(255,0,0);stroke-width:1px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 200px 30px;
+            background-size: 250px 1px;
+            border: solid 1px black
+        }
+
+        .vessel-info-page .column2 .content table{
+            margin-top:15px;
+            margin-bottom:15px;
+            border: solid 1px black
+        }
+
+        .vessel-info-page .column2 .content td{
+            padding-top:15px
+        }
+
+        .vessel-info-page .column3{
+            width:0;
+            float:left;
+            border:none;
+        }
+
+        .vessel-info-page .close-button{
+            position:relative;
+            top:20px;
+            left:-42px;
+            width:18px;
+            height:18px;            
+            cursor: pointer;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='18' y2='18' style='stroke:rgb(255,0,0);stroke-width:2px'/%3E%3Cline x1='0' y1='18' x2='18' y2='0' style='stroke:rgb(255,0,0);stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0px 0px;
+        }  
+
+  
+        .vessel-info-page .mCustomScrollBox div{
+            border: none
+        }
+
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_draggerContainer{
+            left:-4px
+        }
+
+
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_dragger_bar{
+            width:10px;
+            background-color: #738694
+        }
+
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_draggerRail{
+        width:10px;
+        }
+        
+</style>
+
+<link rel="stylesheet" href="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.js"></script>
+
+</head>  
+<body style="margin:0">
+
+<div style="font-size:80px; z-index:10000">
+    Good idea! I like the concept of this article and also the show/hide structure. I applaud you, sir.
+
+However, I think you’re missing the spirit behind the classic “centering is hard” complaint in a couple of places, which, at least for me, always comes back to not knowing the height of the elements.
+
+1) Your display: table-cell fix relies on knowing the height of the child element.
+
+2) In your “is it block level” -> “is the element of unknown height” you proceed to give the parent an explicit height. To me, that defeats the purpose of trying to handle the unknown-height scenario. If I don’t know the height of the child, it’s quite common for me to also not know the height of the parent.
+
+3) In your “both hor & vert example” where the height is unknown, it’s a little weird to have the child be pos: absolute and imply that this is no big deal. I think pos: absolute is a major caveat when laying things out, since it can have the unintended consequence of having elements layer over one another.
+
+4) Also, in that same pen, the element fails to stay vertically centered if it has a sibling that stretches the vertical height of the parent.
+
+Regardless, I still really like the idea of this –it’s sorely needed. I just think it would be improved if you acknowledged some of the caveats that I think are at the root of the complaint you’re trying to dismiss.
+</div> 
+
+    <table class="vessel-info-page overlay">
+        <tr>
+            <td>
+
+    <div class="vessel-info-page container">
+        <div class="column1">
+                <div class="title">
+                    <div class="cell"><img src="svg/no-image.svg" class="icon">TITLE<div class="timestamp">123</div></div>
+                    
+                </div>
+                <div class="menu">
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Общие сведения <div class="counter">&nbsp;1&nbsp;</div></div>
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Данные реестра <div class="counter">12</div></div>
+                    <div class="cell menu-item"><img src="svg/no-image.svg" class="icon">Фотогалерея <div class="counter">82</div></div>
+                </div>
+                <div class="photo">
+                    <!--<img src="http://photos.marinetraffic.com/ais/showphoto.aspx?mmsi=273245600">-->
+                    <img src="svg/no-image.svg">
+                </div>
+        </div>
+        <div class="column2">
+            <div class="content mCustomScrollbar" data-mcs-theme="dark">
+                <div class="caption">ИНФОРМАЦИЯ О СУДНЕ</div>
+                <table>
+                    <tr>
+                        <td>Название судна</td>
+                        <td>ACADEMIC</td>
+                    <tr>
+                        <td>IMO</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>MMSI</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Тип</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Флаг</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Позывной</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Габариты</td>
+                        <td>B</td>
+                    </tr>
+                    </tr>
+
+                </table>
+                <div class="caption">СВЕДЕНИЯ О ДВИЖЕНИИ</div>
+                <table>
+                    <tr>
+                        <td>COG</td>
+                        <td>A</td>
+                    <tr>
+                        <td>SOG</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>HDG</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>ROT</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Осадка</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Назначение</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Расчетное время прибытия</td>
+                        <td>B</td>
+                    </tr>
+                    </tr>
+                    <tr>
+                        <td>Название судна</td>
+                        <td>ACADEMIC</td>
+                    <tr>
+                        <td>IMO</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>MMSI</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Тип</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Флаг</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Позывной</td>
+                        <td>B</td>
+                    </tr>
+                    <tr>
+                        <td>Габариты</td>
+                        <td>B</td>
+                    </tr>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+        
+        <div class="column3">
+                <div class="close-button" title="закрыть"></div>
+        </div>
+    </div>
+            </td>
+        </tr>
+    </table>
+               
+</body>                       

@@ -1,0 +1,833 @@
+<head>
+    <title></title>
+    <link rel="stylesheet" href="">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <meta charset="utf-8">
+    <style>
+        div{border:none}
+        table{border-collapse:collapse}
+        td{border:1px solid black; padding: 0}
+        
+        .vessel-info-page.overlay{
+            position: absolute;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            background-color: rgba(20,20,20,0.9);
+        }
+        .vessel-info-page.overlay td{
+            border:none;
+            padding:0;
+        }
+ 
+
+        .vessel-info-page.container{
+            margin: auto;
+      
+            font-family: 'Open Sans', sans-serif;     
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            width:80%;
+            border: solid 1px white;
+            display: none;
+        }   
+ 
+        .vessel-info-page .column1{
+            width:1%;
+            color: white;
+        }      
+        .vessel-info-page.container .column1 table{
+            width:275px;
+            background-color: #738694;
+            height:100%;
+        }
+        .vessel-info-page .column1 td{
+            border:none;
+            vertical-align: top;
+        } 
+        .vessel-info-page .column1 td.frame{
+            vertical-align: bottom
+        } 
+        .vessel-info-page .column1 .cell{
+            width:240px;
+            padding: 15px 15px;
+            border-left:solid 5px #738694;
+            color: white;
+        }
+        .vessel-info-page .column1 .cell .icon{
+            float:left;
+            height: 22px;
+            margin-right:10px
+        } 
+        .vessel-info-page .column1 .title{
+            height:64px;
+            border-bottom: solid 1px white;
+            font-size:14px;
+            font-weight:bold;
+        }
+        .vessel-info-page .column1 .title .timestamp{
+            font-size: 10px;
+            font-weight:normal;
+        }
+        .vessel-info-page .column1 .menu-item{
+            line-height:20px;
+            cursor: pointer;
+            font-size:14px;
+        } 
+        .vessel-info-page .column1 .menu-item.active{
+            border-left:solid 5px #3ca1d0;
+            background-color: #555;
+        }
+        .vessel-info-page .column1 .menu-item:hover{
+            border-left:solid 5px #3ca1d0;
+            background-color: #555;
+        }
+        .vessel-info-page .column1 .menu-item .counter{
+           display:inline;
+           font-size: 10px;
+           border-radius: 4px;
+           padding:2px 6px 2px 5px;
+           background-color: #3ca1d0;
+           border:none;
+           color: white;
+           margin-left:10px;
+        }
+        .vessel-info-page .column1 .photo{
+            width:275px;
+            height: 190px;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+            background-color: #555;
+        }  
+        .vessel-info-page .column1 .photo img{
+            max-height: 100px;
+        }
+
+        .vessel-info-page.container .column2{
+            vertical-align: top;
+            min-width: 670px;
+        }
+
+        .vessel-info-page .column2 .galery{
+            background-color: white;
+            display: none;
+            padding-left:80px;
+        }
+        .vessel-info-page .column2 .galery::after{
+            content: "";
+            clear:both;
+        }
+        .vessel-info-page .column2 .galery .photo{
+            float:left;
+            width: 180px;
+            height:180px;
+            border: solid 1px #738694;
+            border-radius: 10px;
+            margin:40px 40px 20px 0;
+            background-size: 300px;
+            background-repeat: no-repeat;
+            background-position: center;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+        }  
+
+        .vessel-info-page .column2 .register{
+            background-color: white;
+            display: none;
+        }
+        .vessel-info-page .column2 .register .caption{
+            height:64px;
+            color:black;
+            border-bottom:solid 1px red;
+        }
+        .vessel-info-page .column2 .register .menu{
+            height:0;
+        }
+        .vessel-info-page .column2 .register .menu div{
+            position:relative;
+            top:0px;
+            z-index: 1000;
+            border:none 1px blue;
+        }
+        .vessel-info-page .column2 .register .menu table{
+            margin:0 20px 0 5px;
+            border: none 1px black;
+        }
+        .vessel-info-page .column2 .register .menu table td {
+            white-space:nowrap;
+            background-color: #eee;
+        }
+        .vessel-info-page .column2 .register .menu table td div {
+            padding: 10px 0 10px 0;
+            margin: 0 5px 0 30px;
+            border-top: solid 3px #eee;
+            cursor:pointer;
+            font-size:14px;
+            color:#738694;
+        }
+        .vessel-info-page .column2 .register .menu table td div.active {
+            border-top: solid 3px #3ca1d0;
+            color:#3ca1d0;
+        }
+        .vessel-info-page .column2 .register .menu table td div:hover {
+            border-top: solid 3px #3ca1d0;
+        }
+        .vessel-info-page .column2 .register .content{
+            padding-left: 80px;
+            height:360px;
+            overflow:hidden;
+            background-color: #eee
+        }
+        .vessel-info-page .column2 .register .content  div.article{
+            margin-top: 60px;
+        }
+        .vessel-info-page .column2 .register .content  div.group{
+            margin-top: 20px;
+            font-weight:bolder;
+        }
+        .vessel-info-page .column2 .register .content  table{
+            margin: 0 20px 0 0
+        }
+        .vessel-info-page .column2 .register .content  table td{
+            border: none 1px #3ca1d0;
+            vertical-align: top;
+            padding-top:15px;
+        }
+        .vessel-info-page .column2 .register .content  table td:nth-of-type(1){
+            width:300px
+        }
+
+        .vessel-info-page .column2 .ais{
+            height:420px;
+            overflow:hidden;
+            padding-left: 80px;
+            color:black;
+            background-color: white;
+        }  
+        .vessel-info-page .column2 .ais .caption:nth-of-type(1){
+            padding-top: 56px;
+            background-position: 0 64px;
+        }
+        .vessel-info-page .column2 .ais .caption{
+            width: 10%;
+            display:table-cell;
+            vertical-align: middle;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='1250' y2='0' style='stroke:rgb(255,0,0);stroke-width:1px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0 24px;
+            background-size: 90% 1px;
+            border: none 1px black;
+            padding-top:15px;
+        }
+        .vessel-info-page .column2 .ais .caption div{
+            padding-right:10px;
+            background-color: white;
+            display:table-cell
+        }
+        .vessel-info-page .column2 .ais table{
+            margin-top:15px;
+            margin-bottom:15px;
+            border: none 1px black
+        }
+        .vessel-info-page .column2 .ais td{
+            padding-top:15px;
+            width:300px
+        }
+
+        .vessel-info-page .close-button-holder{
+            border:none 1px red;
+            width:100%;
+            height:0;
+            color:white;
+            text-align: right;
+        }
+        .vessel-info-page .close-button{
+            border:none 1px red;
+            display: inline-block;
+            position:relative;
+            top: 22px;
+            left:-20px;
+            width:18px;
+            height:18px;            
+            cursor: pointer;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='18' y2='18' style='stroke:rgb(255,0,0);stroke-width:2px'/%3E%3Cline x1='0' y1='18' x2='18' y2='0' style='stroke:rgb(255,0,0);stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0px 0px;
+            z-index: 1000;
+        } 
+  
+        .vessel-info-page .mCustomScrollBox div{
+            border: none
+        }
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_draggerContainer{
+            left:-4px
+        }
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_dragger_bar{
+            width:10px;
+            background-color: #738694
+        }
+        .vessel-info-page #mCSB_1_scrollbar_vertical .mCSB_draggerRail{
+            width:10px;
+        }
+        .vessel-info-page #mCSB_2_scrollbar_vertical .mCSB_draggerContainer{
+            left:-4px
+        }
+        .vessel-info-page #mCSB_2_scrollbar_vertical .mCSB_dragger_bar{
+            width:10px;
+            background-color: #738694
+        }
+        .vessel-info-page #mCSB_2_scrollbar_vertical .mCSB_draggerRail{
+            width:10px;
+        }   
+        .vessel-info-page #mCSB_3_scrollbar_vertical .mCSB_draggerContainer{
+            left:-4px
+        }
+        .vessel-info-page #mCSB_3_scrollbar_vertical .mCSB_dragger_bar{
+            width:10px;
+            background-color: #738694
+        }
+        .vessel-info-page #mCSB_3_scrollbar_vertical .mCSB_draggerRail{
+            width:10px;
+        }           
+</style>
+
+<link rel="stylesheet" href="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/GM/api/thirdparty/customscrollbar/jquery.mCustomScrollbar.js"></script>
+
+</head>  
+<body style="margin:0">
+
+<div style="font-size:80px; z-index:10000; height:100%; overflow:hidden">
+    Good idea! I like the concept of this article and also the show/hide structure. I applaud you, sir.
+
+However, I think you’re missing the spirit behind the classic “centering is hard” complaint in a couple of places, which, at least for me, always comes back to not knowing the height of the elements.
+
+1) Your display: table-cell fix relies on knowing the height of the child element.
+
+2) In your “is it block level” -> “is the element of unknown height” you proceed to give the parent an explicit height. To me, that defeats the purpose of trying to handle the unknown-height scenario. If I don’t know the height of the child, it’s quite common for me to also not know the height of the parent.
+
+3) In your “both hor & vert example” where the height is unknown, it’s a little weird to have the child be pos: absolute and imply that this is no big deal. I think pos: absolute is a major caveat when laying things out, since it can have the unintended consequence of having elements layer over one another.
+
+4) Also, in that same pen, the element fails to stay vertically centered if it has a sibling that stretches the vertical height of the parent.
+
+Regardless, I still really like the idea of this –it’s sorely needed. I just think it would be improved if you acknowledged some of the caveats that I think are at the root of the complaint you’re trying to dismiss.
+</div> 
+<table class="vessel-info-page overlay">
+        <tr>
+            <td>
+
+<table class="vessel-info-page container">
+    <tr>
+        <td class="column1">
+                <table>
+                    <tr>
+                        <td>
+                            <div>
+                                <div class="title">
+                                    <div class="cell"><img src="svg/no-image.svg" class="icon">TITLE<div class="timestamp">123</div></div>                    
+                                </div>
+                                <div class="menu">
+                                <div class="ais cell menu-item active"><img src="svg/no-image.svg" class="icon">Данные AIS <div class="counter">&nbsp;1&nbsp;</div></div>
+                                <div class="register cell menu-item"><img src="svg/no-image.svg" class="icon">Данные реестра <div class="counter">12</div></div>
+                                <div class="galery cell menu-item"><img src="svg/no-image.svg" class="icon">Фотогалерея <div class="counter">82</div></div>
+                               </div>
+                            </div>  
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="frame">
+                                <div class="photo">
+                                    <!--<img src="http://photos.marinetraffic.com/ais/showphoto.aspx?mmsi=273245600">-->
+                                    <img src="svg/no-image.svg">
+                                </div>    
+                        </td>
+                    </tr>
+                </table>
+    </td>
+    <td class="column2">
+        <div class="close-button-holder">
+            <div class="close-button" title="закрыть"></div>
+        </div>
+        <div class="register panel">
+            <div class="caption"></div>
+            <div class="menu">
+                <div>
+                    <table>
+                        <tr>
+                            <td><div class="general menu-item active">Общие сведения</div></td>
+                            <td><div class="build menu-item">Сведения о постройке</div></td>
+                            <td><div class="dimensions menu-item">Размеры и скорость</div></td>
+                            <td><div class="gears menu-item">Оборудование</div></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="content mCustomScrollbar" data-mcs-theme="dark">
+                <div class="placeholder"></div>
+            </div>
+        </div>
+
+        <div class="galery mCustomScrollbar panel">
+            
+                                    <form style="display:none" id="uploadFile" method="POST" action="/GM/Plugins/AIS/SearchScreen.ashx">
+                                        <input type="file" id="chooseFile" onchange="document.querySelector('#uploadFile').submit()">
+                                    </form>
+            <div class="placeholder">
+            <div class="photo" onclick="document.querySelector('#chooseFile').click();" style="background-image: url(svg/no-image.svg);background-size: 50px;"></div>
+            </div>
+        </div>
+
+        <div class="ais mCustomScrollbar panel" data-mcs-theme="dark">
+            <div class="placeholder"></div>
+        </div>
+    </td>
+    </tr>
+</table>
+
+            </td>
+        </tr>
+    </table>
+      <script>
+          'use strict'
+window.onload = function(){ 
+
+
+
+    var ais = document.querySelector('.vessel-info-page .column2 .ais'),  
+    galery = document.querySelector('.vessel-info-page .column2 .galery'), 
+    register = document.querySelector('.vessel-info-page .column2 .register .content'), 
+    regcap = document.querySelector('.vessel-info-page .column2 .register .caption'),    
+    table = document.querySelector('.vessel-info-page .column1 table'),       
+    minh = 420,
+    resize = function(){
+        var h = Math.floor(window.innerHeight*0.8);
+        if (h>minh){
+            table.style.height = ais.style.height = galery.style.height = h + "px";
+            register.style.height = h - regcap.offsetHeight + "px";
+        }
+        else{
+            table.style.height = ais.style.height = galery.style.height = minh + "px";
+            register.style.height = minh - regcap.offsetHeight + "px";
+        }      
+    },
+    menuAction = function(e){
+        var p = e.target.parentElement, mia;
+        while(!(mia = p.querySelectorAll('.menu-item')) || mia.length<2){
+            p = p.parentElement;
+        }
+        for (var j=0; j<mia.length; ++j){
+                //console.log( mia[j])
+            mia[j].className = mia[j].className.replace(/ active/, "");
+            var panel = document.querySelector('.panel.' + mia[j].classList[0]);
+            if (panel){
+                if (mia[j]!=e.target)
+                panel.style.display = "none";
+                else{
+                panel.style.display = "block";
+                }
+            }
+        }
+        e.target.className += " active"
+        resize(); 
+    }
+
+    window.addEventListener("resize", resize, false); 
+  
+    var mia = document.querySelectorAll('.column1 .menu-item');
+    for (var i=0; i<mia.length; ++i){
+        mia[i].addEventListener('click', menuAction)
+    }
+  
+    /////////////////////////////////////
+    var aiscontent = document.querySelector(".ais .placeholder")
+    aiscontent.innerHTML = "" +                
+    "<div class='caption'><div>ИНФОРМАЦИЯ О СУДНЕ</div></div>" +
+    "<table>" +
+        "<tr><td>Название судна</td><td>ACADEMIC</td></tr>" +
+        "<tr><td>IMO</td><td>B</td></tr>" +
+        "<tr><td>MMSI</td><td>B</td></tr>" +
+        "<tr><td>Тип</td><td>B</td></tr>" +
+        "<tr><td>Флаг</td><td>B</td></tr>" +
+        "<tr><td>Позывной</td><td>B</td></tr>" +
+        "<tr><td>Длина</td><td>B</td></tr>" +
+        "<tr><td>Ширина</td><td>B</td></tr>" +
+    "</table>" +
+    "<div class='caption'><div>СВЕДЕНИЯ О ДВИЖЕНИИ</div></div>" +
+    "<table>" +
+        "<tr><td>COG</td><td>A</td></tr>" +
+        "<tr><td>SOG</td><td>B</td></tr>" +
+        "<tr><td>HDG</td><td>B</td></tr>" +
+        "<tr><td>ROT</td><td>B</td></tr>" +
+        "<tr><td>Осадка</td><td>B</td></tr>" +
+        "<tr><td>Назначение</td><td>B</td></tr>" +
+        "<tr><td>Расчетное время прибытия</td><td>B</td></tr>" +
+    "</table>";
+  
+    /////////////////////////////////////
+    var galcontent = document.querySelector(".galery .placeholder")
+    for (var i=0; i<10; ++i)
+    galcontent.innerHTML += "<div class='photo' style='background-image: url(https://photos.marinetraffic.com/ais/showphoto.aspx?photoid=753184)'/>"              
+
+    /////////////////////////////////////
+
+    var ledokol = {
+  "RS": "895826",
+  "data": [
+    {
+      "name": "Общие сведения",
+      "properties": [
+        {
+          "name": "Название судна",
+          "value": "50 ЛЕТ ПОБЕДЫ"
+        },
+        {
+          "name": "Латинское название",
+          "value": "50 LET POBEDY"
+        },
+        {
+          "name": "Название головного судна",
+          "value": "РОССИЯ"
+        },
+        {
+          "name": "Бывшее название",
+          "value": ""
+        },
+        {
+          "name": "Рег. номер",
+          "value": "895826"
+        },
+        {
+          "name": "Номер ИМО",
+          "value": "9152959"
+        },
+        {
+          "name": "Позывной",
+          "value": "UGYU"
+        },
+        {
+          "name": "Порт приписки",
+          "value": "Мурманск"
+        },
+        {
+          "name": "Флаг",
+          "value": "Россия"
+        },
+        {
+          "name": "Символ класса РС",
+          "value": "KM(*) LL1[2] А passenger ship"
+        },
+        {
+          "name": "Символ класса ИКО",
+          "value": ""
+        },
+        {
+          "name": "Реновация корпуса",
+          "value": ""
+        },
+        {
+          "name": "Дата реновации",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "Тип судна",
+      "properties": [
+        {
+          "name": "Основной тип",
+          "value": "Ледокол"
+        },
+        {
+          "name": "Подтипы",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "Сведения о постройке",
+      "properties": [
+        {
+          "name": "Дата постройки",
+          "value": "12.03.2007"
+        },
+        {
+          "name": "Страна постройки",
+          "value": "Россия"
+        },
+        {
+          "name": "Строительный номер",
+          "value": "705"
+        },
+        {
+          "name": "Дата значительной части",
+          "value": ""
+        },
+        {
+          "name": "Значительная часть",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "Размеры и скорость",
+      "properties": [
+        {
+          "name": "Валовая вместимость",
+          "value": "23439\r\n            МК-1969"
+        },
+        {
+          "name": "Чистая вместимость",
+          "value": "7032 МК-1969"
+        },
+        {
+          "name": "Валовая ТМ",
+          "value": "0"
+        },
+        {
+          "name": "Чистая ТМ",
+          "value": "0"
+        },
+        {
+          "name": "Дедвейт",
+          "value": "3505\r\n             т"
+        },
+        {
+          "name": "Водоизмещение",
+          "value": "25840\r\n             т"
+        },
+        {
+          "name": "Длина наибольшая",
+          "value": "159.6 м"
+        },
+        {
+          "name": "Длина расчетная",
+          "value": "139.8\r\n             м"
+        },
+        {
+          "name": "Ширина габаритная",
+          "value": "30.0 м"
+        },
+        {
+          "name": "Ширина расчетная",
+          "value": "28.0 м"
+        },
+        {
+          "name": "Высота борта",
+          "value": "17.2\r\n             м"
+        },
+        {
+          "name": "Осадка",
+          "value": "11.0\r\n             м"
+        },
+        {
+          "name": "Скорость",
+          "value": "21.0"
+        }
+      ]
+    },
+    {
+      "name": "Механизмы",
+      "properties": [
+        {
+          "name": "Тип силовой установки",
+          "value": "Атомная"
+        },
+        {
+          "name": "1 Главный двигатель",
+          "value": "Год постройки ГД: 1991<br>\r\n                        Страна постройки: Россия                                            \r\n                        <br>\r\n\r\n                        \r\n\r\n                        Количество и мощность ГД: 2*27600\r\n                        <br>\r\n                        Марка ГД: ТГГ-27,5 ОМ5                                      \r\n                        <br>"
+        },
+        {
+          "name": "Количество и мощность ГЭД",
+          "value": "3*17600"
+        },
+        {
+          "name": "Количество и тип движителя",
+          "value": "3 - Винт фиксированного шага со съемными лопастями"
+        },
+        {
+          "name": "Количество лопастей",
+          "value": "4"
+        },
+        {
+          "name": "Количество и мощность генераторов",
+          "value": "5*2000\r\n            1*1000\r\n            2*200"
+        },
+        {
+          "name": "Количество главных котлов",
+          "value": "2"
+        },
+        {
+          "name": "Тип главных котлов",
+          "value": "Атомный паровой"
+        },
+        {
+          "name": "Давление",
+          "value": "32.0"
+        },
+        {
+          "name": "Поверхность нагрева",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "name": "Холодильная установка и радио-навигационное оборудование",
+      "properties": [
+        {
+          "name": "Холодильная установка",
+          "value": "&nbsp;"
+        },
+        {
+          "name": "Рабочая температура",
+          "value": ""
+        },
+        {
+          "name": "Хладагенты",
+          "value": "&nbsp;"
+        },
+        {
+          "name": "Радио-навигационное оборудование",
+          "value": "Магнитный компас;<br>Гирокомпас;<br>Радиолокационная станция (тоже - РЛ);<br>Радиотелеграфная станция (Не используется с 1999 года);<br>Радиотелефонная станция (Не используется с 01.02.2009 года);<br>УКВ радиотелефонная станция;<br>Радиостанция спасательных средств;<br>Эхолот;<br>Лаг (тоже - ЛГЭ);<br>Система управления курсом или траекторией судна (Авторулевой) (тоже - АРЛ);<br>Средство автоматической радиолокационной прокладки;<br>Приемоиндикатор радионавигационных систем;<br>УКВ радиоустановка (УКВ радиотелефонная станция с цифровым избирательным вызовом);<br>ПВ/КВ радиоустановка (ПВ/КВ радиотелефонная станция с цифровым избирательным вызовом и УБПЧ);<br>Судовая земная станция системы ГМССБ;<br>Спутниковый аварийный радиобуй системы КОСПАС-САРСАТ;<br>Приемник службы НАВТЕКС;<br>Приемник расширенного группового вызова;<br>Приемник цифрового избирательного вызова;<br>Приемник КВ буквопечатающей аппаратуры;<br>Радиолокационный ответчик, Передатчик  АИС для  целей  поиска и спасания;<br>УКВ аппаратура двусторонней радиотелефонной связи;<br>Аппаратура автоматической идентификационной системы;<br>Упрощенный регистратор данных рейса;<br>Судовая система охранного оповещения;<br>Командно-трансляционное устройство;<br>Система контроля дееспособности вахтенного помощника капитана;<br>"
+        },
+        {
+          "name": "Морские районы ГМССБ",
+          "value": "A1\r\n                        \r\n                            +A2\r\n                        \r\n                            +A3\r\n                        \r\n                            +A4"
+        }
+      ]
+    },
+    {
+      "name": "Трюма, палубы, пассажиры",
+      "properties": [
+        {
+          "name": "Количество и кубатура грузовых трюмов",
+          "value": ""
+        },
+        {
+          "name": "Охлаждаемые грузовые помещения",
+          "value": ""
+        },
+        {
+          "name": "Танки грузовые",
+          "value": ""
+        },
+        {
+          "name": "Количество и тип контейнеров",
+          "value": ""
+        },
+        {
+          "name": "Количество палуб",
+          "value": "5"
+        },
+        {
+          "name": "Количество переборок",
+          "value": "9"
+        },
+        {
+          "name": "Число пассажиров коечные",
+          "value": "210"
+        },
+        {
+          "name": "Число пассажиров бескоечных",
+          "value": "0"
+        },
+        {
+          "name": "Спецперсонал",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "name": "Люки, стрелы, краны",
+      "properties": [
+        {
+          "name": "Грузовые люки (число и размер в свету)",
+          "value": ""
+        },
+        {
+          "name": "Стрелы",
+          "value": ""
+        },
+        {
+          "name": "Краны",
+          "value": "2*3.2 3*16.0"
+        }
+      ]
+    },
+    {
+      "name": "Запасы и снабжение",
+      "properties": [
+        {
+          "name": "Запасы топлива",
+          "value": "0"
+        },
+        {
+          "name": "Типы топлива",
+          "value": "Ядерное"
+        },
+        {
+          "name": "Водяной балласт",
+          "value": "0&nbsp;м"
+        },
+        {
+          "name": "Подогреватели",
+          "value": ""
+        },
+        {
+          "name": "Характеристика снабжения",
+          "value": "2700"
+        },
+        {
+          "name": "Категория якорных цепей",
+          "value": "Повышенной прочности"
+        },
+        {
+          "name": "Калибр якорных цепей",
+          "value": "81.0"
+        }
+      ]
+    },
+    {
+      "name": "Компании судна",
+      "properties": [
+        {
+          "name": "Собственник",
+          "value": "<b>РОССИЙСКАЯ ФЕДЕРАЦИЯ</b>\r\n                            <br>\r\n                            Aдрес:Россия, Москва<br>\r\n                        \r\n                        \r\n                        \r\n\r\n                            ИМО:1253128<br>\r\n                            Email:<br>\r\n                            Сайт компании:"
+        }
+      ]
+    }
+  ]
+},
+
+    regcontent = document.querySelector(".register .content .placeholder"),
+    drawTable = function(groups, article, display){
+        var s = "<div class='panel "+article+" article' style='display:"+display+"'>";
+        for(var i=0; i<groups.length; ++i){
+            s += "<div class='group'>"+groups[i].name+"</div><table>"
+            for(var j=0; j<groups[i].properties.length; ++j){
+                s+= "<tr><td>"+groups[i].properties[j].name+"</td><td>"+groups[i].properties[j].value+"</td></tr>"
+            }
+            s += "</table>"
+        }
+        s += "</div>"
+        return s;
+    }
+    regcontent.innerHTML = 
+    drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + 
+    drawTable([ledokol.data[2]], "build", "none") + 
+    drawTable([ledokol.data[3]], "dimensions", "none") + 
+    drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
+
+    mia = document.querySelectorAll('.column2 .menu-item');
+    for (var i=0; i<mia.length; ++i){
+        mia[i].addEventListener('click', menuAction)
+    }
+ 
+    ///////////////////////////////////////
+ 
+    document.querySelector('.vessel-info-page .container').style.display = "table";      
+    resize();
+}
+
+</script>         
+</body>                       

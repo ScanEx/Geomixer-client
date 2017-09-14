@@ -341,13 +341,21 @@ var createToolbar = function() {
             id: 'createVectorLayer',
             title: _gtxt('Создать векторный слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Vector');
+            createVectorLayerIcon.setActive(true);
+            createRasterLayerIcon.setActive(false);
+        });
 
         var createRasterLayerIcon = L.control.gmxIcon({
             id: 'createRasterLayer',
             title: _gtxt('Создать растровый слой'),
             addBefore: 'drawing'
-        }).on('click', _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'));
+        }).on('click', function () {
+            _mapHelper.createNewLayer('Raster');
+            createRasterLayerIcon.setActive(true);
+            createVectorLayerIcon.setActive(false);
+        });
 
         var createLayerIconGroup = L.control.gmxIconGroup({
             id: 'createLayer',
@@ -1524,16 +1532,16 @@ function processGmxMap(state, gmxMap) {
                         dateEnd = dateInterval.get('dateEnd');
                     }
 
-                    if (props.name in attrs.unbindedTemporalLayers) {
+                    if (!(props.name in attrs.unbindedTemporalLayers)) {
                         nsGmx.widgets.commonCalendar.bindLayer(props.name);
+
+                        layer.setDateInterval(dateBegin, dateEnd);
+
+                        if (props.LayerID in attrs.dailyFiltersHash) {
+                            nsGmx.widgets.commonCalendar.applyDailyFilter([layer]);
+                        }
+
                     }
-
-                    layer.setDateInterval(dateBegin, dateEnd);
-
-                    if (props.LayerID in attrs.dailyFiltersHash) {
-                        nsGmx.widgets.commonCalendar.applyDailyFilter([layer]);
-                    }
-
                     //подписка на изменение dateInterval
                     if (layer.getDateInterval) {
                         layer.on('dateIntervalChanged', nsGmx.widgets.commonCalendar.onDateIntervalChanged, nsGmx.widgets.commonCalendar);

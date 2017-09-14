@@ -2697,39 +2697,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0282485");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0282485");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0282485");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0282485");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0282485");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?0282485");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?0282485");
   /*{iconsError}*/
 }
 
@@ -4794,7 +4794,6 @@ button.ui-button::-moz-focus-inner {
  */
 
 .alert {
-  -webkit-transition: all .3s ease;
   transition: all .3s ease;
   padding: 10px;
   background-color: #eee;
@@ -4843,19 +4842,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?0282485");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?0282485");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?0282485");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?0282485");
 }
 
 /* ---------------------------------
@@ -4901,7 +4900,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?0282485");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -4911,7 +4910,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?9675780");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?0282485");
 }
 
 .search-form table {
@@ -5012,11 +5011,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?9675780");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?9675780#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?9675780") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?9675780") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?9675780#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0282485");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0282485#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?0282485") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?0282485") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?0282485#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5029,7 +5028,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?9675780#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?0282485#fontello') format('svg');
   }
 }
 */
@@ -5586,7 +5585,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?9675780");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?0282485");
 }
 
 .authWidget-loginButton {
@@ -5762,11 +5761,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?9675780");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?0282485");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?9675780");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?0282485");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -5823,7 +5822,6 @@ input.submit {
   margin-left: -4px;
   border: 1px solid #bcbcbc;
   border-radius: 3px;
-  background: -webkit-linear-gradient( left, #BCBCBC, #FFF );
   background: linear-gradient( 90deg, #BCBCBC, #FFF );
   cursor: pointer;
 }
@@ -5842,7 +5840,6 @@ input.submit {
 
 .fade {
   opacity: 0;
-  -webkit-transition: opacity 0.15s linear;
   transition: opacity 0.15s linear;
 }
 
@@ -5870,11 +5867,8 @@ tbody.collapse.in {
   position: relative;
   height: 0;
   overflow: hidden;
-  -webkit-transition-property: height, visibility;
   transition-property: height, visibility;
-  -webkit-transition-duration: 0.35s;
   transition-duration: 0.35s;
-  -webkit-transition-timing-function: ease;
   transition-timing-function: ease;
 }
 
@@ -6202,7 +6196,71 @@ tbody.collapse.in {
 }
 
 .calendar-outside select {
+  font-size: 1.1em !important;
   border: 0;
+  background-color: #FFF;
+}
+
+.calendar-outside .ui-datepicker-header {
+  border-bottom: 1px solid grey;
+}
+
+.calendar-outside .ui-datepicker-prev,
+.ui-datepicker-next {
+  height: 28px !important;
+}
+
+.calendar-outside .ui-datepicker-prev span,
+.ui-datepicker-next span {
+  background-image: none !important;
+}
+
+.calendar-outside .ui-datepicker-prev span.ui-icon {
+  display: block;
+  text-indent: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-prev span:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+  content: '\';
+}
+
+.calendar-outside .ui-datepicker-next span.ui-icon {
+  display: block;
+  text-indent: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+}
+
+.calendar-outside .ui-datepicker-next span:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+  content: '\';
 }
 
 .calendar-outside .time-container {
@@ -6452,7 +6510,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?9675780");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?0282485");
   /* ie9 fix */
 }
 
@@ -6498,7 +6556,6 @@ tbody.collapse.in {
   border: 0;
   position: absolute;
   bottom: 0%;
-  -webkit-transition: bottom .35s ease;
   transition: bottom .35s ease;
 }
 
@@ -6509,7 +6566,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?9675780");
+  background: url("../common_components/dist/src/check.png?0282485");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6555,7 +6612,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?9675780");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?0282485");
   opacity: .4;
   display: none;
 }
@@ -6625,8 +6682,6 @@ body {
 
 .leaflet-cluster-anim .leaflet-marker-icon,
 .leaflet-cluster-anim .leaflet-marker-shadow {
-  -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
-  -webkit-transition: opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
   transition: opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
   transition: transform 0.3s ease-out, opacity 0.3s ease-in;
   transition: transform 0.3s ease-out, opacity 0.3s ease-in, -webkit-transform 0.3s ease-out;
@@ -6634,8 +6689,6 @@ body {
 
 .leaflet-cluster-spider-leg {
   /* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */
-  -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;
-  -webkit-transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
   transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
 }
 
@@ -13363,74 +13416,6 @@ input:checked + .switch-slider:before {
 .leaflet-image-layer {
   z-index: -1;
 }
-.noselect {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.leaflet-ext-search {
-  clear: none !important;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-  border-radius: 3px;
-  background-color: white;
-}
-
-.leaflet-ext-search input {
-  height: 30px;
-  width: 362px;
-  border-style: none;
-  text-indent: 10px;
-  text-overflow: ellipsis;
-}
-
-.leaflet-ext-search,
-.leaflet-ext-search-list {
-  width: 400px;
-}
-
-.leaflet-ext-search-list {
-  background-color: white;
-  cursor: pointer;
-  max-height: 300px;
-  overflow-y: auto;
-  overflow-x: initial;
-}
-
-.leaflet-ext-search-list-selected {
-  background-color: gainsboro;
-}
-
-.leaflet-ext-search-list ul {
-  list-style-type: none;
-  margin: 0px;
-  padding: 0px;
-}
-
-.leaflet-ext-search-list ul li {
-  padding: 10px;
-  border-top: 1px solid gainsboro;
-}
-
-.leaflet-ext-search-list-item-highlight {
-  font-weight: bold;
-}
-
-.leaflet-ext-search .leaflet-ext-search-button {
-  margin-top: 1px;
-  height: 30px;
-  width: 30px;
-  font-weight: bold;
-  float: right;
-  cursor: pointer;
-  border-style: none;
-  background-image: url("../leaflet/plugins/Leaflet.ExtSearch/src/svg/search.svg");
-  background-repeat: space;
-  background-position: center;
-}
 .leaflet-control-dialog {
   position: absolute;
   background-color: #fff;
@@ -14907,11 +14892,11 @@ label.photo-uploader-label input {
 }
 
 .leaflet-drawing-lines {
-  pointer-events: none;
+  pointer-events: visiblestroke;
 }
 
 .leaflet-drawing-lines-fill {
-  pointer-events: visiblestroke;
+  pointer-events: visiblepainted;
 }
 
 .leaflet-drawing-points {

@@ -10,14 +10,14 @@ var NASA_LAYERS = {
     MODIS_Terra_CorrectedReflectance_Bands367:  {zoom: 9, title: 'Terra Corrected Bands 367'},
     MODIS_Aqua_CorrectedReflectance_TrueColor:  {zoom: 9, title: 'Aqua Corrected TrueColor'},
     MODIS_Aqua_CorrectedReflectance_Bands721:   {zoom: 9, title: 'Aqua Corrected Bands 721'},
-    
+
     MODIS_Terra_SurfaceReflectance_Bands143:    {zoom: 8, title: 'Terra Surface Bands 143'},
     MODIS_Terra_SurfaceReflectance_Bands721:    {zoom: 8, title: 'Terra Surface Bands 721'},
     MODIS_Terra_SurfaceReflectance_Bands121:    {zoom: 9, title: 'Terra Surface Bands 121'},
     MODIS_Aqua_SurfaceReflectance_Bands143:     {zoom: 8, title: 'Aqua Surface Bands 143'},
     MODIS_Aqua_SurfaceReflectance_Bands721:     {zoom: 8, title: 'Aqua Surface Bands 721'},
     MODIS_Aqua_SurfaceReflectance_Bands121:     {zoom: 9, title: 'Aqua Surface Bands 121'},
-    
+
     VIIRS_CityLights_2012: {zoom: 8, title: 'VIIRS City Lights 2012'}
 };
 
@@ -36,17 +36,17 @@ var GIBSLayer = function(layerName, map, params) {
         calendar: null,
         initDate: null
     }, params);
-    
+
     if (params.calendar) {
         params.initDate = params.calendar.getDateEnd();
     }
-    
+
     var urlPrefix = NASA_URL_PREFIX + layerName + '/default/',
         calendar = params.calendar,
         gmxLayer,
         _this = this,
         layerZoom = (NASA_LAYERS[layerName] && NASA_LAYERS[layerName].zoom) || 7;
-    
+
     var initLayer = function() {
         var isVisible;
         if (gmxLayer) {
@@ -55,36 +55,36 @@ var GIBSLayer = function(layerName, map, params) {
         } else {
             isVisible = params.visible;
         }
-        
+
         gmxLayer = L.tileLayer(_this._url, {
             minZoom: 1,
             maxZoom: layerZoom,
             attribution: '<a href="https://earthdata.nasa.gov/gibs">NASA EOSDIS GIBS</a>'
         })
-        
+
         isVisible && map.addLayer(gmxLayer);
     }
-    
+
     initLayer();
-    
+
     var updateDate = function() {
         _this.setDate(calendar.getDateEnd());
     }
-    
+
     /** Установить дату показа снимков
       @param {Date} newDate Дата (используется с точностью до дня)
     */
     this.setDate = function(newDate) {
         var dateStr = $.datepicker.formatDate('yy-mm-dd', nsGmx.CalendarWidget.toUTC(newDate));
         this._url = urlPrefix + dateStr + '/GoogleMapsCompatible_Level' + layerZoom + '/{z}/{y}/{x}.jpg';
-        
+
         initLayer();
     }
-    
+
     this.remove = function() {
         map.removeLayer(gmxLayer);
     }
-    
+
     /** Связать с календарём для задания даты снимков. Будет использована конечная дата интервала календаря.
      * @param {nsGmx.CalendarWidget} newCalendar Календарь
     */
@@ -94,14 +94,14 @@ var GIBSLayer = function(layerName, map, params) {
         calendar = newCalendar;
         updateDate();
     }
-    
+
     /** Задать видимость слоя
      @param {Boolean} isVisible Видимость слоя
      */
     this.setVisibility = function(isVisible) {
         map[isVisible ? 'addLayer' : 'removeLayer'](gmxLayer);
     }
-    
+
     calendar && this.bindToCalendar(calendar);
     params.initDate && this.setDate(params.initDate);
 }
@@ -112,11 +112,11 @@ var GIBSProxyLayer = function() {}
 
 GIBSProxyLayer.prototype.initFromDescription = function(layerDescription) {
     var props = layerDescription.properties;
-    
+
     if (!props.MetaProperties['gibs-layername']) {
          return new L.gmx.DummyLayer(props);
     }
-    
+
     var layerName = props.MetaProperties['gibs-layername'].Value,
         isTransparent = !!props.MetaProperties['gibs-transparent'];
 
@@ -134,35 +134,35 @@ GIBSProxyLayer.prototype.initFromDescription = function(layerDescription) {
         this.setDate(dateEnd);
         return this;
     }
-    
+
     return layer;
 }
- 
+
 var publicInterface = {
     pluginName: 'GIBS Plugin',
     GIBSLayer: GIBSLayer,
-    
+
     //параметры: layer (может быть несколько) - имя слоя в GIBS
 	afterViewer: function(params)
     {
         params = $.extend({
             layer: ['MODIS_Terra_CorrectedReflectance_TrueColor']
         }, params);
-        
+
         if (!$.isArray(params.layer)) {
             params.layer = [params.layer];
         }
-        
+
         var calendar = nsGmx.widgets.commonCalendar.get();
-        
+
         var layersControl = nsGmx.leafletMap.gmxControlsManager.get('layers');
-            
+
         params.layer.forEach(function(layerName) {
             var gibsLayer = new GIBSLayer(layerName, nsGmx.leafletMap, {
                 calendar: calendar,
                 visible: false
             });
-            
+
             var proxyLayer = {
                 onAdd: function() {
                     gibsLayer.setVisibility(true);
@@ -171,14 +171,13 @@ var publicInterface = {
                     gibsLayer.setVisibility(false);
                 }
             }
-            
+
             layersControl.addOverlay(proxyLayer, NASA_LAYERS[layerName].title);
             overlayLayerProxies.push(proxyLayer);
         })
-        
-        params.layer.length && nsGmx.widgets.commonCalendar.show();
+            if (params.layer.length && !nsGmx.widgets.commonCalendar.model.get('isAppended')) { nsGmx.widgets.commonCalendar.show(); }
     },
-    
+
     unload: function() {
         var layersControl = nsGmx.leafletMap.gmxControlsManager.get('layers');
         overlayLayerProxies.forEach(function(layer){
