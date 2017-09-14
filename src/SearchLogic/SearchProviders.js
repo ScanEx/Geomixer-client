@@ -23,7 +23,6 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.fetch = function (obj) {
         cache: 'default'
     };
 
-    searchLogic.fnLoad();
     return new Promise(function (resolve, reject) {
         fetch(req, init).then(function (response) {
             return response.json();
@@ -72,9 +71,6 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
         }).then(function (json1) {
             return nsGmx.searchLogic && nsGmx.searchLogic.layersSearch(json1);
         }).then(function (json2) {
-            console.log(result);
-            console.log(json2);
-
             var arr = [];
 
             for (var i = 0; i < result.Result.length; i++) {

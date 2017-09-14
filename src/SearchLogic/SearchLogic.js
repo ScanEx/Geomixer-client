@@ -536,12 +536,13 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 		if (oDataSource.start - iPagesCount >= 0)
 			nsGmx.Utils._(divPages, [first(iDataSourceN, divChilds, divPages), previous(iDataSourceN, divChilds, divPages)]);
 
-		drawPages(end, iDataSourceN, divChilds, divPages);
+		// drawPages(end, iDataSourceN, divChilds, divPages);
 
-		if (end + 1 <= oDataSource.allPages)
-			nsGmx.Utils._(divPages, [next(iDataSourceN, divChilds, divPages), last(iDataSourceN, divChilds, divPages)]);
+		// if (end + 1 <= oDataSource.allPages)
+		// 	nsGmx.Utils._(divPages, [next(iDataSourceN, divChilds, divPages), last(iDataSourceN, divChilds, divPages)]);
+        var startFrom = oDataSource.reportStart * iLimit;
 
-		SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult.slice(oDataSource.reportStart, oDataSource.reportStart + iLimit));
+		SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult.slice(startFrom, (startFrom + iLimit)));
 		drawRows(iDataSourceN, divChilds);
 	}
 
@@ -552,14 +553,14 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 	var drawTable = function(iDataSourceN, divChilds, divPages) {
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 
-		if (oDataSource.SearchResult.length <= iLimit) {
+
+		if (oDataSource.SearchResult.length <= iLimit/* && iDataSourceN < oDataSource.SearchResult.length - 1*/) {
 			$(divPages).empty();
 			SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult);
 			drawRows(iDataSourceN, divChilds);
 		}
 		else {
 			oDataSource.allPages = Math.ceil(oDataSource.SearchResult.length / iLimit);
-
 			drawPagesRow(iDataSourceN, divChilds, divPages);
 		}
 	}
@@ -597,7 +598,7 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 
 	/**Отображает результаты поиска с источника данных
 	@param iDataSourceN - номер источника данных*/
-	var drawSearchResult = function(iDataSourceN) {
+	var drawSearchResult = function(iDataSourceN, options) {
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 
 		var arrDataSourceList = oDataSource.SearchResult;
@@ -615,7 +616,7 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 		}
 
 		oDataSource.start = 0;
-		oDataSource.reportStart = 0;
+		oDataSource.reportStart = options.page || 0;
 		oDataSource.allPages = 0;
 
 		drawTable(iDataSourceN, divChilds, divPages);
@@ -672,7 +673,7 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 	@param {Array.<Object>} arrTotalList. Массив объектов со следующими свойствами{name:DataSourceName, CanDownloadVectors:CanDownloadVectors, SearchResult:arrDataSourceList[oObjFound,...]}
 	@returns {void}
 	*/
-	this.ShowResult = function(sTotalListName, arrTotalList){
+	this.ShowResult = function(sTotalListName, arrTotalList, options){
 		arrTotalResultSet = arrTotalList;
 	    $(oResultCanvas).empty();
 		arrDisplayedObjects = [];
@@ -698,7 +699,7 @@ var ResultList = function(oInitContainer, oRenderer, ImagesHost){
 		var ulSearch = nsGmx.Utils._ul();
 
 		for (var iDataSourceN  = 0; iDataSourceN < arrTotalResultSet.length; iDataSourceN++)
-			nsGmx.Utils._(ulSearch, [drawSearchResult(iDataSourceN)]);
+			nsGmx.Utils._(ulSearch, [drawSearchResult(iDataSourceN, options)]);
 
 		if (arrTotalResultSet.length == 1){
 			nsGmx.Utils._(oResultCanvas, [ulSearch]);
@@ -950,7 +951,8 @@ nsGmx.SearchLogic.prototype = {
     },
 
     showResult: function (response) {
-        var searchString = response.searchString;
+        var _this = this;
+        var searchString = response.searchString || '';
         if (searchString) {
             for (var h = 0; h < this.searchByStringHooks.length; h++) {
                 if (this.searchByStringHooks[h].hook(searchString)) {
@@ -961,7 +963,19 @@ nsGmx.SearchLogic.prototype = {
         this.fnLoad();
         this.lstResult = new ResultList(this.oSearchResultDiv, this.oRenderer, imagesHost);
         this.lstResult.ShowLoading();
-        this.lstResult.ShowResult('sdsds', response);
+        this.lstResult.ShowResult(searchString, response, {page: 0});
+        this.lstResult.CreatePager(response, function (e) {
+            var evt = e || window.event,
+                active = evt.srcElement || evt.target,
+                activePage = parseInt($(this).text()) - 1;
+
+            $('#prevpages~span:visible').attr('class', 'buttonLink');
+            for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
+            $(active).attr('class', 'page');
+            attachEffects(active, '');
+
+            _this.lstResult.ShowResult(searchString, response, {page: activePage});
+        });
     },
 
     addSearchByStringHook: function (hook, priority) {
@@ -1011,10 +1025,7 @@ nsGmx.SearchLogic.prototype = {
         }
         var iRespCount = 0;
 
-        if (
-            layersToSearch.length > 0
-            // 0
-        ) {
+        if (layersToSearch.length > 0) {
             layersToSearch.forEach(function(props) {
                 var mapName = nsGmx.gmxMap.layersByID[props.name].options.mapID;
                 var url = window.serverBase + "/SearchObject/SearchVector.ashx" +
@@ -1027,48 +1038,30 @@ nsGmx.SearchLogic.prototype = {
                   req.open('GET', url);
 
                   req.onload = function() {
-                    // Этот кусок вызовется даже при 404’ой ошибке
-                    // поэтому проверяем статусы ответа
-                    // console.log(req);
-                    // console.log(req.response);
                     if (req.status == 200) {
-                      // Завершаем Обещание с текстом ответа
-                    //   console.log(req);
                       var res = handleResponse(req.response);
-                      console.log(res);
                       resolve(res);
                     }
                     else {
-                      // Обламываемся, и передаём статус ошибки
-                      // что бы облегчить отладку и поддержку
                       reject(Error(req.statusText));
                     }
                   };
-
-                  // отлавливаем ошибки сети
                   req.onerror = function() {
                     reject(Error("Network Error"));
                   };
 
-                  // Делаем запрос
                   req.send();
                 });
 
                 promisesArr.push(promise);
-
             });
 
             return Promise.all(promisesArr);
-                // sendCrossDomainJSONRequest(url, handleResponse);
-            } else {
-                return new Promise(function(resolve, reject) {
-                    res.Result.push(['this was added by test']);
-                    setTimeout(function () {
-                        resolve(res);
-
-                    }, 3000);
-                })
-            }
+        } else {
+            return new Promise(function(resolve, reject) {
+                    resolve(res);
+            })
+        }
 
         function handleResponse(searchReq) {
             searchReq = typeof searchReq === 'string' ? JSON.parse(searchReq.substring(1, searchReq.length - 1)) : searchReq;
@@ -1112,7 +1105,6 @@ nsGmx.SearchLogic.prototype = {
             if(arrLayerResult.length > 0) arrResult.push({name: props.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
 
             if (iRespCount == layersToSearch.length){
-                console.log(arrResult);
                 return arrResult;
             }
         }
