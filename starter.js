@@ -57,7 +57,7 @@ var _getFileName = function( localName ) {
 nsGmx.initGeoMixer = function() {
 
 var oSearchLeftMenu = new leftMenu();
-nsGmx.searchLogic = new nsGmx.SearchLogic();
+window.searchLogic = new nsGmx.SearchLogic();
 
 //для синхронизации меню и тулбара при включении/выключении сетки координат
 nsGmx.gridManager = {
@@ -489,7 +489,7 @@ var createToolbar = function() {
                 serverBase: 'http://maps.kosmosnimki.ru',
                 limit: 10,
                 onFetch: function (response) {
-                    nsGmx.searchLogic.showResult(response);
+                    window.searchLogic.showResult(response);
                 }.bind(this)
             })
         ],
@@ -511,7 +511,7 @@ var createToolbar = function() {
         }
     });
 
-    nsGmx.searchLogic.searchControl = window.searchControl;
+    window.searchLogic.searchControl = window.searchControl;
 
     lmap.addControl(window.searchControl);
     lmap.gmxControlsManager.add(window.searchControl);
@@ -2018,7 +2018,7 @@ function processGmxMap(state, gmxMap) {
 
         // var searchContainer = nsGmx.widgets.header.getSearchPlaceholder()[0];
 
-        nsGmx.searchLogic.init({
+        window.searchLogic.init({
             oMenu: oSearchLeftMenu
         });
 

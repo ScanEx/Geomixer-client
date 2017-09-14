@@ -69,7 +69,7 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
                 reject(json.Result);
             }
         }).then(function (json1) {
-            return nsGmx.searchLogic && nsGmx.searchLogic.layersSearch(json1);
+            return window.searchLogic && window.searchLogic.layersSearch(json1);
         }).then(function (json2) {
             var arr = [];
 
