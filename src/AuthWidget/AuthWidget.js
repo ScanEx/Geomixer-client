@@ -66,7 +66,9 @@ nsGmx.AuthWidget = (function() {
             if (this._options.isAdmin) {
                 dropdownItems.push({
                     title: nsGmx.Translations.getText('Системные настройки'),
-                    link: 'http://maps.kosmosnimki.ru/Administration/Actions.aspx'
+                    link: window.serverBase + 'Administration/Actions.aspx',
+                    id: 'AuthWidgetAdminLink',
+                    newWindow: true
                 });
 
                 dropdownItems.push({
