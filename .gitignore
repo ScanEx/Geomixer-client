@@ -13,4 +13,4 @@ common_components/primary.js
 css/primary.css
 /JSBuildTools/node_modules
 /JSBuildTools/temp
-.idea
+.idea/
