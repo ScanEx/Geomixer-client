@@ -198,15 +198,11 @@
   padding-right:10px
 }
 
-.ais_myfleet_dialog .content div {
+.ais_myfleet_dialog .vessel_prop {
   margin-bottom: 5px;
   line-height: 15px;
 }
 
-.ais_myfleet_dialog .content div {
-  margin-bottom: 5px;
-  line-height: 15px;
-}
 
 .ais_myfleet_dialog .content div.summary {
   margin-top: 15px;
