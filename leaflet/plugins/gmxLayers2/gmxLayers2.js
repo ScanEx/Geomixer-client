@@ -174,6 +174,11 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
                 if (options.style) { this.setStyle(options.style); }
                 L.DomUtil.removeClass(this._listContainer, 'leaflet-control-layers-expanded');
             }
+            // ugly bug in IE
+            // IE appends 'extended' class to the parent!
+            if (L.DomUtil.hasClass(this._container, 'leaflet-control-layers-expanded')) {
+                L.DomUtil.removeClass(this._container, 'leaflet-control-layers-expanded')
+            };
         }
     },
 
