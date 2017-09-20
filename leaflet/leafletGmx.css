@@ -13,13 +13,25 @@
 
 .leaflet-ext-search input {
     border-radius: 4px;
+}
+
+@media screen and (min-width: 1300px) {
+.leaflet-ext-search input {
     width: 310px;
 }
 
 .leaflet-ext-search, .leaflet-ext-search-list {
     width: 350px;
 }
+}
 
-.leaflet-ext-search {
+@media screen and (max-width: 1300px) {
+.leaflet-ext-search input {
     border-radius: 4px;
+    width: 150px;
+}
+
+.leaflet-ext-search, .leaflet-ext-search-list {
+    width: 190px;
+}
 }
