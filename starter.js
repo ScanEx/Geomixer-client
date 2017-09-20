@@ -521,6 +521,11 @@ var createToolbar = function() {
 
     var searchContainer = window.searchControl._widget._container;
 
+    $(searchContainer).contextmenu(function (e) {
+        e.stopPropagation();
+        return true;
+    });
+
     var gmxLayers = new L.control.gmxLayers2(null, null, {
         title: window._gtxt('Панель оверлеев'),
         collapsed: true,

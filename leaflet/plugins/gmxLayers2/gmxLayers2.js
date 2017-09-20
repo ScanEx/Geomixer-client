@@ -129,7 +129,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
 
         if (this.init) {
             this._container.style.display = '';
-            this.setActive(true);
+            this.setActive(false);
             this.init = false;
         }
 
