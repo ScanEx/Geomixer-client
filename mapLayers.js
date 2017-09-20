@@ -669,6 +669,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	{
 		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
+			timelineIcon,
             iconSpan = _span([icon]);
 
         if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID )
@@ -703,9 +704,16 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
                     nsGmx.createStylesDialog(elem, _this);
                 }
 			}
+
+			timelineIcon = document.createElement('img');
+			timelineIcon.src = 'img/timeline-icon.png';
 		}
 
         var resElems = [spanParent, spanDescr, borderDescr];
+
+		if (!layerManagerFlag) {
+			resElems.unshift(timelineIcon);
+		}
 
         if (this._renderParams.showStyle) {
             resElems.push(multiStyleParent);
