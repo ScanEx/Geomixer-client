@@ -10,6 +10,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
     },
     onAdd: function (map) {
         L.Control.Layers.prototype.onAdd.call(this, map);
+        this.init = false;
         this._initLayout();
         this._update();
 
@@ -102,8 +103,16 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         listContainer.appendChild(placeHolder);
         container.appendChild(iconContainer);
         container.appendChild(listContainer);
+        if (!this.init) { container.style.display = 'none'; }
     },
 
+    _addLayer: function (layer, name, overlay) {
+        if (Object.keys(this._layers).length === 0) {
+            this.init = true;
+        }
+
+        L.Control.Layers.prototype._addLayer.call(this, layer, name, overlay);
+    },
 
     _addItemObject: function (obj) {
         var label = this._addItem(obj);
@@ -118,10 +127,10 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         }
         var options = this.options;
 
-        if (!options.isActive) {
-            this._form.style.display = 'none';
-            this._placeHolder.style.display = 'none';
-            return;
+        if (this.init) {
+            this._container.style.display = '';
+            this.setActive(true);
+            this.init = false;
         }
 
         this._baseLayersList.innerHTML = '';
@@ -141,9 +150,17 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             }
         }
 
+        this._container.style.display = overlaysPresent ? '' : 'none';
+
         this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
         this._form.style.display = overlaysPresent || baseLayersPresent ? '' : 'none';
         this._placeHolder.style.display = overlaysPresent || baseLayersPresent ? 'none' : '';
+
+
+        if (!options.isActive) {
+            this._form.style.display = 'none';
+            this._placeHolder.style.display = 'none';
+        }
     },
 
     setActive: function (active, skipEvent) {
