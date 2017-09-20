@@ -554,21 +554,18 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
     }
 }
 
-layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var box,
 		_this = this;
 
-	if (this._renderParams.showVisibilityCheckbox)
-	{
+	if (this._renderParams.showVisibilityCheckbox) {
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 
 		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','layer');
 
-		box.onclick = function()
-		{
+		box.onclick = function() {
             _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 	}
@@ -576,8 +573,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
 
     var timer = null,
-        clickFunc = function()
-        {
+        clickFunc = function() {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             $(treeNode).triggerHandler('click', [treeNode]);
 
@@ -589,8 +585,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
                 _this.treeModel.setNodeVisibility(treeNode, true);
             }
         },
-        dbclickFunc = function()
-        {
+        dbclickFunc = function() {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
@@ -600,18 +595,15 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             }
         };
 
-    span.onclick = function()
-    {
+    span.onclick = function() {
         if (timer)
             clearTimeout(timer);
 
         timer = setTimeout(clickFunc, 200)
     }
 
-    if (this._renderParams.allowDblClick)
-    {
-        span.ondblclick = function()
-        {
+    if (this._renderParams.allowDblClick) {
+        span.ondblclick = function() {
             if (timer)
                 clearTimeout(timer);
 
@@ -629,8 +621,9 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 	spanDescr.innerHTML = elem.description ? elem.description : '';
 
-	if (layerManagerFlag == 1)
+	if (layerManagerFlag == 1) {
 		return [_img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],['css','marginLeft','3px']]), spanParent, spanDescr];
+	}
 
 	if (this._renderParams.showVisibilityCheckbox && !elem.visible) {
 		$(spanParent).addClass("invisible");
@@ -646,34 +639,28 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
     var count = 0;
     var props = {};
-    if (elem.MetaProperties)
-    {
-        for (key in elem.MetaProperties)
-        {
+    if (elem.MetaProperties) {
+        for (key in elem.MetaProperties) {
             var tagtype = elem.MetaProperties[key].Type;
             props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
             count++;
         }
     }
 
-    if (count || elem.Legend)
-    {
+    if (count || elem.Legend) {
         _(borderDescr, [_t('i')], [['dir','className','layerInfoButton']]);
-        borderDescr.onclick = function()
-        {
+        borderDescr.onclick = function() {
             nsGmx.Controls.showLayerInfo({properties:elem}, {properties: props});
         }
     }
 
-	if (elem.type == "Vector")
-	{
+	if (elem.type == "Vector") {
 		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
 			timelineIcon,
             iconSpan = _span([icon]);
 
-        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID )
-        {
+        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID ) {
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             layer.on('stylechange', function() {
                 if (layer.getStyles().length === 1)
@@ -693,27 +680,96 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 		_mapHelper.createMultiStyle(elem, this, multiStyleParent, true, layerManagerFlag);
 
-		if (!layerManagerFlag)
-		{
+		if (!layerManagerFlag) {
 			if (!parentVisibility || !elem.visible)
 				$(multiStyleParent).addClass("invisible")
 
-			iconSpan.onclick = function()
-			{
+			iconSpan.onclick = function() {
 				if (_queryMapLayers.currentMapRights() == "edit") {
                     nsGmx.createStylesDialog(elem, _this);
                 }
 			}
 
-			timelineIcon = document.createElement('img');
-			timelineIcon.src = 'img/timeline-icon.png';
+			if (elem.name in nsGmx.gmxMap.layersByID) {
+	            var layer = nsGmx.gmxMap.layersByID[elem.name];
+
+				if (layer.getGmxProperties) {
+					var props = layer.getGmxProperties();
+					if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')) {
+						timelineIcon = document.createElement('img');
+						timelineIcon.src = 'img/timeline-icon.png';
+						timelineIcon.className = 'gmx-timeline-icon';
+
+						timelineIcon.onclick = function () {
+							var disabled;
+							$(this).toggleClass('disabled');
+							disabled = $(this).hasClass('disabled');
+							this.src = disabled ? 'img/timeline-icon-disabled.png' : 'img/timeline-icon.png';
+
+							var timelinePluginName = 'Timeline Vectors',
+								timeLineModuleName = 'gmxTimeLine',
+								timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
+
+
+							// lazy load timeline plugin
+							if (!timelinePlugin.body && !timelinePlugin.isUsed()) {
+								nsGmx.pluginsManager.setUsePlugin(timelinePluginName, true);
+
+								window.gmxCore.loadModule(timeLineModuleName, timelinePlugin.file).then(function(res) {
+									console.log(res);
+									var paramsClone = $.extend(true, {}, timelinePlugin.params);
+										res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+										_mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
+										res.addLayer(layer);
+								}).then(function(err) {
+									console.log(err);
+								})
+							}
+
+							if (timelinePlugin.body) {
+								disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
+
+
+							}
+
+
+
+
+
+						}
+
+						// var getPluginToMenuBinding = function(pluginName, menuItemName, menuTitle) {
+						//
+						// 	if (!plugin) {
+						// 		return null;
+						// 	}
+						//
+						// 	var sel = function() {
+						// 		nsGmx.pluginsManager.setUsePlugin(pluginName, true);
+						// 		nsGmx.pluginsManager.done(function() {
+						// 			var paramsClone = $.extend(true, {}, plugin.params);
+						// 			plugin.body.afterViewer && plugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
+						// 			_mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
+						// 		})
+						// 	}
+						//
+						// 	var unsel = function() {
+						// 		nsGmx.pluginsManager.setUsePlugin(pluginName, false);
+						// 		nsGmx.pluginsManager.done(function() {
+						// 			_mapHelper.mapPlugins.remove(pluginName);
+						// 			plugin.body.unload && plugin.body.unload();
+						// 		})
+						// 	}
+
+
+
+					}
+				}
+			}
 		}
 
         var resElems = [spanParent, spanDescr, borderDescr];
 
-		if (!layerManagerFlag) {
-			resElems.unshift(timelineIcon);
-		}
 
         if (this._renderParams.showStyle) {
             resElems.push(multiStyleParent);
@@ -721,10 +777,11 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         }
         this._renderParams.showVisibilityCheckbox && resElems.unshift(box);
 
+		if (timelineIcon) {
+			resElems.unshift(timelineIcon);
+		}
         return resElems;
-	}
-	else
-	{
+	} else {
 		if (this._renderParams.showVisibilityCheckbox)
 			return [box, spanParent, spanDescr, borderDescr];
 		else
@@ -732,26 +789,22 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var box,
 		_this = this;
 
-	if (this._renderParams.showVisibilityCheckbox)
-	{
+	if (this._renderParams.showVisibilityCheckbox) {
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 
 		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','group');
 
-		box.onclick = function()
-		{
+		box.onclick = function() {
             _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 
-		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
-		{
+		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox) {
 			box.isDummyCheckbox = true;
 			box.style.display = 'none';
         }
@@ -760,13 +813,11 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
 
     var timer = null,
-        clickFunc = function()
-        {
+        clickFunc = function() {
             if (_this._renderParams.allowActive)
                 _this.setActive(span);
 
-            if (_this._renderParams.showVisibilityCheckbox)
-            {
+            if (_this._renderParams.showVisibilityCheckbox) {
                 var div = span.parentNode.parentNode;
 
                 if (div.gmxProperties.content.properties.ShowCheckbox) {
@@ -778,19 +829,15 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
                     $(clickDiv[0]).trigger("click");
             }
         },
-        dbclickFunc = function()
-        {
+        dbclickFunc = function() {
             var childsUl = _abstractTree.getChildsUl(span.parentNode.parentNode.parentNode);
 
-            if (childsUl)
-            {
+            if (childsUl) {
                 var bounds = new L.LatLngBounds(),
                     minLayerZoom = 20;
 
-                _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
-                {
-                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) && child.content.geometry)
-                    {
+                _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child) {
+                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) && child.content.geometry) {
                         	var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
 							bounds.extend(layer.getBounds());
 
@@ -802,18 +849,15 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             }
         };
 
-    span.onclick = function()
-    {
+    span.onclick = function() {
         if (timer)
             clearTimeout(timer);
 
         timer = setTimeout(clickFunc, 200)
     }
 
-    if (this._renderParams.allowDblClick)
-    {
-        span.ondblclick = function()
-        {
+    if (this._renderParams.allowDblClick) {
+        span.ondblclick = function() {
             if (timer)
                 clearTimeout(timer);
 
