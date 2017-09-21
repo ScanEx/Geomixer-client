@@ -637,6 +637,8 @@ _translationsHash.hash["eng"] = {
 	"Хост" : "Host",
 	"Дополнительные карты" : "Additional maps",
 	"Добавить карту" : "Add map",
+	"Добавить в таймлайн" : "Add to timeLine",
+	"Удалить из таймлайна" : "Remove from timeline",
 	"Невозможно загрузить карту [value0] с домена [value1]" : "Unable to load map [value0] from domain [value1]",
 	"Показывать" : "Show",
 	"Поиск снимков" : "Search imagery",

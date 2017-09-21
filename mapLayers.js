@@ -694,33 +694,51 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	            var layer = nsGmx.gmxMap.layersByID[elem.name];
 
 				if (layer.getGmxProperties) {
-					var props = layer.getGmxProperties();
-					if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')) {
+					var props = layer.getGmxProperties(),
+						layerName = props.name;
+
+					if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
 						timelineIcon = document.createElement('img');
 						timelineIcon.src = 'img/timeline-icon.png';
 						timelineIcon.className = 'gmx-timeline-icon';
+						timelineIcon.title = window._gtxt("Добавить в таймлайн");
 
 						timelineIcon.onclick = function () {
 							var disabled;
 							$(this).toggleClass('disabled');
 							disabled = $(this).hasClass('disabled');
 							this.src = disabled ? 'img/timeline-icon-disabled.png' : 'img/timeline-icon.png';
+							timelineIcon.title = disabled ? window._gtxt("Удалить из таймлайна") : window._gtxt("Добавить в таймлайн");
 
 							var timelinePluginName = 'Timeline Vectors',
 								timeLineModuleName = 'gmxTimeLine',
 								timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
-
 
 							// lazy load timeline plugin
 							if (!timelinePlugin.body && !timelinePlugin.isUsed()) {
 								nsGmx.pluginsManager.setUsePlugin(timelinePluginName, true);
 
 								window.gmxCore.loadModule(timeLineModuleName, timelinePlugin.file).then(function(res) {
-									console.log(res);
 									var paramsClone = $.extend(true, {}, timelinePlugin.params);
-										res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+										var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
 										_mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
 										res.addLayer(layer);
+										if (timeLineControl) {
+											timeLineControl.on('layerAdd', function (e) {
+												if (e.layerID === layerName) {
+													timelineIcon.src = 'img/timeline-icon-disabled.png';
+													timelineIcon.title = window._gtxt("Удалить из таймлайна");
+													$(timelineIcon).addClass('disabled');
+												}
+											})
+											timeLineControl.on('layerRemove', function (e) {
+												if (e.layerID === layerName) {
+													timelineIcon.src = 'img/timeline-icon.png';
+													timelineIcon.title = window._gtxt("Добавить в таймлайн");
+													$(timelineIcon).removeClass('disabled');
+												}
+											})
+										}
 								}).then(function(err) {
 									console.log(err);
 								})
@@ -729,40 +747,24 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 							if (timelinePlugin.body) {
 								disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
 
-
+								if (nsGmx.timeLineControl) {
+									nsGmx.timeLineControl.on('layerAdd', function (e) {
+										if (e.layerID === layerName) {
+											timelineIcon.src = 'img/timeline-icon-disabled.png';
+											timelineIcon.title = window._gtxt("Удалить из таймлайна");
+											$(timelineIcon).addClass('disabled');
+										}
+									})
+									nsGmx.timeLineControl.on('layerRemove', function (e) {
+										if (e.layerID === layerName) {
+											timelineIcon.src = 'img/timeline-icon.png';
+											timelineIcon.title = window._gtxt("Добавить в таймлайн");
+											$(timelineIcon).removeClass('disabled');
+										}
+									})
+								}
 							}
-
-
-
-
-
 						}
-
-						// var getPluginToMenuBinding = function(pluginName, menuItemName, menuTitle) {
-						//
-						// 	if (!plugin) {
-						// 		return null;
-						// 	}
-						//
-						// 	var sel = function() {
-						// 		nsGmx.pluginsManager.setUsePlugin(pluginName, true);
-						// 		nsGmx.pluginsManager.done(function() {
-						// 			var paramsClone = $.extend(true, {}, plugin.params);
-						// 			plugin.body.afterViewer && plugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
-						// 			_mapHelper.mapPlugins.addPlugin(pluginName, plugin.params);
-						// 		})
-						// 	}
-						//
-						// 	var unsel = function() {
-						// 		nsGmx.pluginsManager.setUsePlugin(pluginName, false);
-						// 		nsGmx.pluginsManager.done(function() {
-						// 			_mapHelper.mapPlugins.remove(pluginName);
-						// 			plugin.body.unload && plugin.body.unload();
-						// 		})
-						// 	}
-
-
-
 					}
 				}
 			}
@@ -1411,7 +1413,8 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	else
 		listFlag = parentParams.properties.list;
 
-	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
+	var div = box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
+		box = $(div).find('input[type="checkbox"]')[0],
 		newBox = _checkbox(
             box.checked,
             listFlag ? 'radio' : 'checkbox',
