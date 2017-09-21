@@ -1008,8 +1008,6 @@ nsGmx.SearchLogic.prototype = {
 
         var promisesArr = [];
 
-        var arrResult = [];
-
         var layersToSearch = [];
         for (var i=0; i< nsGmx.gmxMap.layers.length; i++) {
             //свойства мы берём из дерева слоёв, а не из API. Cвойство AllowSearch относится к карте и не поддерживаются API
@@ -1017,6 +1015,10 @@ nsGmx.SearchLogic.prototype = {
 
             if (searchRes) {
                 var props = searchRes.elem.content.properties;
+
+                if (props.name === '7233600AFBD042928211500639753B69') {
+                    debugger;
+                }
 
                 if (props.type == "Vector" && props.AllowSearch && nsGmx.gmxMap.layers[i]._map) {
                     layersToSearch.push(props);
@@ -1028,21 +1030,24 @@ nsGmx.SearchLogic.prototype = {
         if (layersToSearch.length > 0) {
             layersToSearch.forEach(function(props) {
                 var mapName = nsGmx.gmxMap.layersByID[props.name].options.mapID;
-                var url = window.serverBase + "/SearchObject/SearchVector.ashx" +
+                var url = window.serverBase + "SearchObject/SearchVector.ashx" +
                     "?LayerNames=" + props.name +
                     "&MapName=" + mapName +
                     "&SearchString=" + encodeURIComponent(res.Result.searchString);
 
                 var promise = new Promise(function(resolve, reject) {
-                  var req = new XMLHttpRequest();
-                  req.open('GET', url);
+                    var req = new XMLHttpRequest();
+                    req.withCredentials = true;
+                    req.open('GET', url);
 
-                  req.onload = function() {
-                    if (req.status == 200) {
-                      var res = handleResponse(req.response);
-                      resolve(res);
-                    }
-                    else {
+                    req.onload = function() {
+                if (req.status == 200) {
+                    var res = handleResponse(req.response, props);
+
+                    res.then(function (res2) {
+                        resolve(res2);
+                    });
+                } else {
                       reject(Error(req.statusText));
                     }
                   };
@@ -1063,13 +1068,13 @@ nsGmx.SearchLogic.prototype = {
             })
         }
 
-        function handleResponse(searchReq) {
+        function handleResponse(searchReq, layerProps) {
             searchReq = typeof searchReq === 'string' ? JSON.parse(searchReq.substring(1, searchReq.length - 1)) : searchReq;
             iRespCount++;
             var arrLayerResult = [];
+            var arrResult = [];
             var arrDisplayFields = null;
-            if (searchReq.Status == 'ok')
-            {
+            if (searchReq.Status == 'ok') {
                 for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
                 {
                     var limitSearchResults = typeof(LayerSearchLimit)=="number" ? LayerSearchLimit : 100;
@@ -1090,7 +1095,7 @@ nsGmx.SearchLogic.prototype = {
                         }
 
                         for (var p in arrDisplayProperties) {
-                            var type = props.attrTypes[props.attributes.indexOf(p)];
+                            var type = layerProps.attrTypes[layerProps.attributes.indexOf(p)];
                             arrDisplayProperties[p] = nsGmx.Utils.convertFromServer(type, arrDisplayProperties[p]);
                         }
 
@@ -1101,11 +1106,14 @@ nsGmx.SearchLogic.prototype = {
                         });
                     }
                 }
-            }
-            if(arrLayerResult.length > 0) arrResult.push({name: props.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
+                if(arrLayerResult.length > 0) arrResult.push({name: layerProps.title, SearchResult: arrLayerResult, CanDownloadVectors: true});
 
-            if (iRespCount == layersToSearch.length){
-                return arrResult;
+                if (iRespCount == layersToSearch.length){
+                    // return arrResult;
+                }
+                return Promise.resolve(arrResult);
+            } else {
+                return Promise.reject(searchReq);
             }
         }
     }
