@@ -1016,7 +1016,7 @@ nsGmx.SearchLogic.prototype = {
             if (searchRes) {
                 var props = searchRes.elem.content.properties;
 
-                if (props.type == "Vector" && props.AllowSearch && nsGmx.gmxMap.layers[i]._map) {
+                if (props.type == "Vector" && props.AllowSearch) {
                     layersToSearch.push(props);
                 }
             }
