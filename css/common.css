@@ -1948,3 +1948,7 @@ div.layersScroll
 .photo-image-clickable {
 	cursor: pointer;
 }
+
+.gmx-timeline-icon {
+	cursor: pointer;
+}
