@@ -3,7 +3,7 @@
 //внутреннее представление плагина
 var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isPublic, lazyLoad)
 {
-    var usageState = mapPlugin ? 'unknown' : 'used'; //used, notused, unknown
+    var usageState = mapPlugin && !lazyLoad ? 'unknown' : 'used'; //used, notused, unknown
     var _this = this;
 
     var doLoad = function()
@@ -32,7 +32,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     this.mapPlugin = mapPlugin || (body && body.pluginName);
     this.pluginName = pluginName || (this.body && this.body.pluginName);
     this.isPublic = isPublic;
-    // this.lazyLoad = lazyLoad;
+    this.lazyLoad = lazyLoad;
     this.file = file;
 
     if (this.body)

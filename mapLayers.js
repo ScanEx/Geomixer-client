@@ -380,7 +380,7 @@ layersTree.prototype.addLoadingFunc = function(parentCanvas, elem, parentParams,
 				var childs = [];
 
 				for (var i = 0; i < elem.content.children.length; i++)
-					childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]")[0].firstChild)));
+					childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
 
 				_(parentCanvas, childs);
 
@@ -445,11 +445,10 @@ layersTree.prototype.addExpandedEvents = function(parent)
 				treeElem.elem.content.properties.expanded = !flag;
 			})
 		}
-	})
+	});
 }
 
-layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var div;
     var _this = this;
 
@@ -699,23 +698,18 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 					if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
 						timelineIcon = document.createElement('img');
-						timelineIcon.src = 'img/timeline-icon.png';
-						timelineIcon.className = 'gmx-timeline-icon';
+						timelineIcon.src = 'img/timeline-icon-disabled.png';
+						timelineIcon.className = 'gmx-timeline-icon disabled';
 						timelineIcon.title = window._gtxt("Добавить в таймлайн");
 
 						timelineIcon.onclick = function () {
-							var disabled;
-							$(this).toggleClass('disabled');
-							disabled = $(this).hasClass('disabled');
-							this.src = disabled ? 'img/timeline-icon-disabled.png' : 'img/timeline-icon.png';
-							timelineIcon.title = disabled ? window._gtxt("Удалить из таймлайна") : window._gtxt("Добавить в таймлайн");
-
-							var timelinePluginName = 'Timeline Vectors',
+							var disabled = $(this).hasClass('disabled'),
+								timelinePluginName = 'Timeline Vectors',
 								timeLineModuleName = 'gmxTimeLine',
 								timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
 
 							// lazy load timeline plugin
-							if (!timelinePlugin.body && !timelinePlugin.isUsed()) {
+							if (!timelinePlugin.body) {
 								nsGmx.pluginsManager.setUsePlugin(timelinePluginName, true);
 
 								window.gmxCore.loadModule(timeLineModuleName, timelinePlugin.file).then(function(res) {
@@ -723,48 +717,38 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 										var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
 										_mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
 										res.addLayer(layer);
+
 										if (timeLineControl) {
-											timeLineControl.on('layerAdd', function (e) {
-												if (e.layerID === layerName) {
-													timelineIcon.src = 'img/timeline-icon-disabled.png';
-													timelineIcon.title = window._gtxt("Удалить из таймлайна");
-													$(timelineIcon).addClass('disabled');
-												}
-											})
 											timeLineControl.on('layerRemove', function (e) {
-												if (e.layerID === layerName) {
-													timelineIcon.src = 'img/timeline-icon.png';
-													timelineIcon.title = window._gtxt("Добавить в таймлайн");
-													$(timelineIcon).removeClass('disabled');
-												}
-											})
+												$(window._layersTree).triggerHandler('layerTimelineRemove', e);
+											});
+											timeLineControl.on('layerAdd', function (e) {
+												$(window._layersTree).triggerHandler('layerTimelineAdd', e);
+											});
 										}
 								}).then(function(err) {
 									console.log(err);
-								})
-							}
-
-							if (timelinePlugin.body) {
+								});
+							} else {
 								disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
-
-								if (nsGmx.timeLineControl) {
-									nsGmx.timeLineControl.on('layerAdd', function (e) {
-										if (e.layerID === layerName) {
-											timelineIcon.src = 'img/timeline-icon-disabled.png';
-											timelineIcon.title = window._gtxt("Удалить из таймлайна");
-											$(timelineIcon).addClass('disabled');
-										}
-									})
-									nsGmx.timeLineControl.on('layerRemove', function (e) {
-										if (e.layerID === layerName) {
-											timelineIcon.src = 'img/timeline-icon.png';
-											timelineIcon.title = window._gtxt("Добавить в таймлайн");
-											$(timelineIcon).removeClass('disabled');
-										}
-									})
-								}
 							}
 						}
+
+						$(this).on('layerTimelineRemove', function (e, data) {
+								if (data.layerID === layerName) {
+									timelineIcon.src = 'img/timeline-icon-disabled.png';
+									timelineIcon.title = window._gtxt("Удалить из таймлайна");
+									$(timelineIcon).addClass('disabled');
+								}
+							});
+
+						$(this).on('layerTimelineAdd', function (e, data) {
+							if (data.layerID === layerName) {
+								timelineIcon.src = 'img/timeline-icon.png';
+								timelineIcon.title = window._gtxt("Добавить в таймлайн");
+								$(timelineIcon).removeClass('disabled');
+							}
+						});
 					}
 				}
 			}
@@ -1016,7 +1000,8 @@ layersTree.prototype.getLayerVisibility = function(box)
 
 		if (group.length > 0)
 		{
-			if (!group[0].firstChild.checked)
+			if (!$(group).find('input[type="checkbox"]')[0].checked)
+
 				return false;
 		}
 
@@ -1033,7 +1018,7 @@ layersTree.prototype.updateVisibilityUI = function(elem) {
     if (div) {
         var isVisible = elem.content.properties.visible;
         $(div).children("[titleDiv], [multiStyle]").toggleClass("invisible", !isVisible);
-        div.firstChild.checked = isVisible;
+        $(div).find('input[type="checkbox"]')[0].checked = isVisible;
     }
 }
 
@@ -1164,10 +1149,10 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 			{
 				var parentDiv = $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
 
-				li = _this.getChildsList(layerProperties, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _this.getLayerVisibility(parentDiv.firstChild));
+				li = _this.getChildsList(layerProperties, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _this.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0]));
 			}
 			else
-				li = _this.getChildsList(layerProperties, parentProperties, false, _this.getLayerVisibility(divDestination.firstChild));
+				li = _this.getChildsList(layerProperties, parentProperties, false, _this.getLayerVisibility($(divDestination).find('input[type="checkbox"]')[0]));
 
 			if (layerProperties.type == 'group')
 			{
@@ -1413,7 +1398,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	else
 		listFlag = parentParams.properties.list;
 
-	var div = box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
+	var div = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 		box = $(div).find('input[type="checkbox"]')[0],
 		newBox = _checkbox(
             box.checked,
@@ -1522,7 +1507,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		return;
 
 	var parentElem = typeof div == 'undefined' ? _layersTree.treeModel.getRawTree() : _layersTree.findTreeElem(div).elem,
-		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility(div.firstChild),
+		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility($(div).find('input[type="checkbox"]')[0]),
 		_this = this;
 
 	_mapHelper.findTreeElems(parentElem, function(elem, visibleFlag)
@@ -1539,7 +1524,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				var group = $(_this.buildedTree).find("div[GroupID='" + groupId + "']");
 
 				if (group.length)
-					group[0].firstChild.checked = condition.visible[groupId];
+					$(group).find('input[type="checkbox"]')[0].checked = condition.visible[groupId];
 			}
 
 			if (typeof condition.expanded[groupId] != 'undefined' && props.expanded != condition.expanded[groupId])
@@ -1947,7 +1932,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
                     },
                     parentProperties,
                     false,
-                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0])
                 );
 
             _abstractTree.addNode(parentDiv.parentNode, li);
@@ -2001,7 +1986,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 _layersTree.addLayersToMap({content: {properties: newLayerProperties, geometry: origGeometry}});
 
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
+                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
 
                 $(li).find('[multiStyle]').treeview();
 
@@ -2113,7 +2098,7 @@ queryMapLayers.prototype.asyncCopyLayer = function(promise, title) {
                     },
                     parentProperties,
                     false,
-                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0])
                 );
 
             _abstractTree.addNode(parentDiv.parentNode, li);
