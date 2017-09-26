@@ -48457,7 +48457,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
             if (searchRes) {
                 var props = searchRes.elem.content.properties;
 
-                if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                if (props.type == "Vector" && props.AllowSearch) {
                     layersToSearch.push(props);
                 }
             }
@@ -50089,12 +50089,19 @@ nsGmx.Templates.AuthWidget["authWidget"] = "{{#if userName}}\n" +
     "        </div>\n" +
     "    </div>\n" +
     "{{else}}\n" +
+    "\n" +
     "    <div class=\"authWidget_unauthorized\">\n" +
-    "        <div class=\"authWidget-loginButton\">\n" +
-    "            {{i 'auth.login'}}\n" +
+    "        <div class=\"authWidget-userPanel\">\n" +
+    "            <div class=\"authWidget-userPanel-iconCell\">\n" +
+    "                <div class=\"authWidget-userPanel-userIcon\"></div>\n" +
+    "            </div>\n" +
+    "            <div class=\"authWidget-loginButton\">\n" +
+    "                {{i 'auth.login'}}\n" +
+    "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
-    "{{/if}}";;
+    "{{/if}}\n" +
+    "";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.AuthWidget = (function() {
@@ -50273,6 +50280,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -50307,11 +50319,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -50381,19 +50388,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -50431,6 +50425,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -54193,6 +54200,8 @@ var SearchWidget = function () {
                     item.provider.fetch(item.properties).then(function (response) {});
                 }
             });
+
+            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -54209,6 +54218,11 @@ var SearchWidget = function () {
         key: 'setText',
         value: function setText(text) {
             this._input.value = text;
+        }
+    }, {
+        key: 'setPlaceHolder',
+        value: function setPlaceHolder(value) {
+            this._input.placeholder = value;
         }
     }]);
 
@@ -54246,21 +54260,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
-        // ,
-        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-        // /[^\d\:]/g,
-        // /\d\d:\d+$/,
-        // /\d\d:\d+:\d+$/,
-        // /\d\d:\d+:\d+:\d+$/
-        ];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
+            // ,
+            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+            // /[^\d\:]/g,
+            // /\d\d:\d+$/,
+            // /\d\d:\d+:\d+$/,
+            // /\d\d:\d+:\d+:\d+$/
+        }];
     }
 
     _createClass(CadastreDataProvider, [{
@@ -54725,6 +54739,9 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
+    },
+    setPlaceHolder: function setPlaceHolder(value) {
+        this._widget.setPlaceHolder(value);
     }
 });
 

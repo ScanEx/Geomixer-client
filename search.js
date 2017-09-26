@@ -1305,7 +1305,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
             if (searchRes) {
                 var props = searchRes.elem.content.properties;
 
-                if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                if (props.type == "Vector" && props.AllowSearch) {
                     layersToSearch.push(props);
                 }
             }
