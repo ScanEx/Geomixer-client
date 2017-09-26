@@ -1,4 +1,4 @@
-+function() {var buildGUID = "ab2d0286794d4be68706c282c6ebe49b";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"common_components/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
++function() {var buildGUID = "c32a7f68a7f54c308795de65bb131b96";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"common_components/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
 
@@ -9,13 +9,13 @@ window.nsGmx.GeomixerFramework = true;
 var _getFileName = function( localName )
 {
     var filename = gmxJSHost + localName;
-    
+
     if (window.gmxDropBrowserCache) {
         filename += '?' + Math.random();
     } else if (nsGmx.buildGUID){
         filename += '?' + nsGmx.buildGUID;
     }
-    
+
 	return filename;
 }
 
@@ -23,12 +23,12 @@ var _getFileName = function( localName )
 var loadJS = function(fileList, callback)
 {
     var LABInstance = $LAB;
-		
+
     if (fileList.length)
     {
         for (var f = 0; f < fileList.length-1; f++)
             LABInstance = LABInstance.script(_getFileName(fileList[f])).wait();
-            
+
         LABInstance.script(_getFileName(fileList[fileList.length-1])).wait(callback);
     }
     else
@@ -38,21 +38,21 @@ var loadJS = function(fileList, callback)
 nsGmx.buildGUID = buildGUID;
 
 loadJS(thirdpartyList, function() {
-    
+
     for (var f = 0; f < cssToLoad.length; f++) {
         $.getCSS(_getFileName(cssToLoad[f]));
     }
-    
+
     nsGmx._ = window._;
 
     loadJS(gmxFilesList, function()
     {
         gmxCore.setDefaultModulesHost(gmxJSHost);
-        
+
         for (var m in moduleFiles) {
             gmxCore.setModuleFile(m, gmxJSHost + moduleFiles[m]);
         }
-        
+
         nsGmx.initGeoMixer();
     });
 })
