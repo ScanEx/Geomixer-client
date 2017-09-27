@@ -1,16 +1,16 @@
 ﻿(function(){
 
 //внутреннее представление плагина
-var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isPublic)
+var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isPublic, lazyLoad)
 {
-    var usageState = mapPlugin ? 'unknown' : 'used'; //used, notused, unknown
-    var _this = this; 
-    
+    var usageState = mapPlugin && !lazyLoad ? 'unknown' : 'used'; //used, notused, unknown
+    var _this = this;
+
     var doLoad = function()
     {
         if (_this.body || _this.isLoading)
             return;
-            
+
         _this.isLoading = true;
         gmxCore.loadModule(moduleName, file).then(function()
         {
@@ -23,7 +23,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
             _this.def.reject();
         });
     }
-    
+
     this.body = body;
     this.moduleName = moduleName;
     this.params = params || {};
@@ -32,16 +32,18 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     this.mapPlugin = mapPlugin || (body && body.pluginName);
     this.pluginName = pluginName || (this.body && this.body.pluginName);
     this.isPublic = isPublic;
+    this.lazyLoad = lazyLoad;
     this.file = file;
-    
+
     if (this.body)
         this.def.resolve();
-        
+
     //мы не будем пока загружать плагин только если он не глобальный и имеет имя
-    if (!mapPlugin || !pluginName) {
+    // и только если специально не указана загрузка по требованию
+    if (!mapPlugin || !pluginName || !lazyLoad) {
         doLoad();
     }
-    
+
     this.setUsage = function(usage)
     {
         usageState = usage;
@@ -49,12 +51,12 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
             doLoad();
         }
     }
-    
+
     this.isUsed = function()
     {
         return usageState === 'used';
     }
-    
+
     this.updateParams = function (newParams) {
         $.extend(true, _this.params, newParams);
     }
@@ -106,7 +108,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 
 /** Менеджер плагинов. Загружает плагины из конфигурационного файла
 *
-* Загрузка плагинов происходит из массива window.gmxPlugins. 
+* Загрузка плагинов происходит из массива window.gmxPlugins.
 *
 * Каждый элемент этого массива - объект со следующими свойствами:
 *
@@ -127,9 +129,9 @@ var PluginsManager = function()
 {
     var _plugins = [];
     var _pluginsWithName = {};
-    
+
     var joinedPluginInfo = {};
-    
+
     //сначала загружаем инфу о плагинах из переменной nsGmx._defaultPlugins - плагины по умолчанию
     window.nsGmx && nsGmx._defaultPlugins && $.each(nsGmx._defaultPlugins, function(i, info) {
         if (typeof info === 'string') {
@@ -137,7 +139,7 @@ var PluginsManager = function()
         }
         joinedPluginInfo[info.module] = info;
     })
-    
+
     //дополняем её инфой из window.gmxPlugins с возможностью перезаписать
     window.gmxPlugins && $.each(window.gmxPlugins, function(i, info) {
         if (typeof info === 'string') {
@@ -145,23 +147,24 @@ var PluginsManager = function()
         }
         joinedPluginInfo[info.module] = $.extend(true, joinedPluginInfo[info.module], info);
     })
-    
+
     $.each(joinedPluginInfo, function(key, info) {
         if (typeof info === 'string')
             info = { module: info, file: 'plugins/' + info + '.js' };
-        
+
         var plugin = new Plugin(
-            info.module, 
+            info.module,
             info.file,
             info.plugin,
             info.params,
             info.pluginName,
             info.mapPlugin,
-            info.isPublic || false
+            info.isPublic || false,
+            info.lazyLoad || false
         );
-        
+
         _plugins.push(plugin);
-        
+
         if (plugin.pluginName) {
             _pluginsWithName[ plugin.pluginName ] = plugin;
         }
@@ -175,7 +178,7 @@ var PluginsManager = function()
             })
         }
     })
-    
+
     var _genIterativeFunction = function(funcName)
     {
         return function(map)
@@ -193,9 +196,9 @@ var PluginsManager = function()
                 }
         }
     }
-    
+
     //public interface
-    
+
     /**
     Вызывет callback когда будут загружены все плагины, загружаемые в данный момент
     @memberOf PluginsManager
@@ -203,21 +206,21 @@ var PluginsManager = function()
      @method
      @param {Function} callback Ф-ция, которую нужно будет вызвать
     */
-    
+
     this.done = function(f) {
         //не можем использовать $.when, так как при первой ошибке результирующий promise сразу же reject'ится, а нам нужно дождаться загрузки всех плагинов
         var loadingPlugins = _.where(_plugins, {isLoading: true}),
             count = loadingPlugins.length;
-        
+
         count || f();
-        
+
         loadingPlugins.forEach(function(plugin) {
             plugin.def.always(function() {
                 --count || f();
             })
         })
     }
-    
+
     /**
      Вызывает beforeMap() у всех плагинов
      @memberOf PluginsManager
@@ -225,7 +228,7 @@ var PluginsManager = function()
      @method
     */
     this.beforeMap = _genIterativeFunction('beforeMap');
-    
+
     /**
      Вызывает preloadMap() у всех плагинов
      @memberOf PluginsManager
@@ -233,7 +236,7 @@ var PluginsManager = function()
      @method
     */
     this.preloadMap = _genIterativeFunction('preloadMap');
-    
+
     /**
      Вызывает beforeViewer() у всех плагинов
      @memberOf PluginsManager
@@ -241,7 +244,7 @@ var PluginsManager = function()
      @method
     */
     this.beforeViewer = _genIterativeFunction('beforeViewer');
-    
+
     /**
      Вызывает afterViewer() у всех плагинов
      @memberOf PluginsManager
@@ -249,7 +252,7 @@ var PluginsManager = function()
      @method
     */
     this.afterViewer = _genIterativeFunction('afterViewer');
-    
+
     /**
      Добавляет пункты меню всех плагинов к меню upMenu
      Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
@@ -266,7 +269,7 @@ var PluginsManager = function()
             }
         }
     };
-    
+
     /**
      Вызывает callback(plugin) для каждого плагина
      @memberOf PluginsManager
@@ -280,7 +283,7 @@ var PluginsManager = function()
         for (var p = 0; p < _plugins.length; p++)
             callback(_plugins[p]);
     }
-    
+
     /**
      Задаёт, нужно ли в дальнейшем использовать данный плагин
      @memberOf PluginsManager
@@ -294,7 +297,7 @@ var PluginsManager = function()
         if (pluginName in _pluginsWithName)
             _pluginsWithName[pluginName].setUsage(isInUse ? 'used' : 'notused');
     }
-    
+
     /**
      Получить плагин по имени
      @memberOf PluginsManager
@@ -307,7 +310,7 @@ var PluginsManager = function()
     {
         return _pluginsWithName[pluginName];
     }
-    
+
     /**
      Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
      @memberOf PluginsManager
@@ -320,7 +323,7 @@ var PluginsManager = function()
     {
         return _pluginsWithName[pluginName] && _pluginsWithName[pluginName].isPublic;
     }
-    
+
     /**
      Обновление параметров плагина
      @memberOf PluginsManager

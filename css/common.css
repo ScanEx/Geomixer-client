@@ -1951,3 +1951,10 @@ leaflet-control-layers-toggle {
 .photo-image-clickable {
 	cursor: pointer;
 }
+
+.gmx-timeline-icon {
+	cursor: pointer;
+	float: left;
+	margin-right: 5px;
+	margin-left: -17px;
+}

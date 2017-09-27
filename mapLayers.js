@@ -380,7 +380,7 @@ layersTree.prototype.addLoadingFunc = function(parentCanvas, elem, parentParams,
 				var childs = [];
 
 				for (var i = 0; i < elem.content.children.length; i++)
-					childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]")[0].firstChild)));
+					childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
 
 				_(parentCanvas, childs);
 
@@ -445,11 +445,10 @@ layersTree.prototype.addExpandedEvents = function(parent)
 				treeElem.elem.content.properties.expanded = !flag;
 			})
 		}
-	})
+	});
 }
 
-layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var div;
     var _this = this;
 
@@ -554,21 +553,18 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
     }
 }
 
-layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var box,
 		_this = this;
 
-	if (this._renderParams.showVisibilityCheckbox)
-	{
+	if (this._renderParams.showVisibilityCheckbox) {
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 
 		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','layer');
 
-		box.onclick = function()
-		{
+		box.onclick = function() {
             _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 	}
@@ -576,8 +572,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
 
     var timer = null,
-        clickFunc = function()
-        {
+        clickFunc = function() {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             $(treeNode).triggerHandler('click', [treeNode]);
 
@@ -589,8 +584,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
                 _this.treeModel.setNodeVisibility(treeNode, true);
             }
         },
-        dbclickFunc = function()
-        {
+        dbclickFunc = function() {
             var treeNode = _this.findTreeElem(span.parentNode.parentNode).elem;
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             $(treeNode).triggerHandler('dblclick', [treeNode]);
@@ -600,18 +594,15 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             }
         };
 
-    span.onclick = function()
-    {
+    span.onclick = function() {
         if (timer)
             clearTimeout(timer);
 
         timer = setTimeout(clickFunc, 200)
     }
 
-    if (this._renderParams.allowDblClick)
-    {
-        span.ondblclick = function()
-        {
+    if (this._renderParams.allowDblClick) {
+        span.ondblclick = function() {
             if (timer)
                 clearTimeout(timer);
 
@@ -629,8 +620,9 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 	spanDescr.innerHTML = elem.description ? elem.description : '';
 
-	if (layerManagerFlag == 1)
+	if (layerManagerFlag == 1) {
 		return [_img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],['css','marginLeft','3px']]), spanParent, spanDescr];
+	}
 
 	if (this._renderParams.showVisibilityCheckbox && !elem.visible) {
 		$(spanParent).addClass("invisible");
@@ -646,33 +638,28 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
     var count = 0;
     var props = {};
-    if (elem.MetaProperties)
-    {
-        for (key in elem.MetaProperties)
-        {
+    if (elem.MetaProperties) {
+        for (key in elem.MetaProperties) {
             var tagtype = elem.MetaProperties[key].Type;
             props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
             count++;
         }
     }
 
-    if (count || elem.Legend)
-    {
+    if (count || elem.Legend) {
         _(borderDescr, [_t('i')], [['dir','className','layerInfoButton']]);
-        borderDescr.onclick = function()
-        {
+        borderDescr.onclick = function() {
             nsGmx.Controls.showLayerInfo({properties:elem}, {properties: props});
         }
     }
 
-	if (elem.type == "Vector")
-	{
+	if (elem.type == "Vector") {
 		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
+			timelineIcon,
             iconSpan = _span([icon]);
 
-        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID )
-        {
+        if ( elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID ) {
             var layer = nsGmx.gmxMap.layersByID[elem.name];
             layer.on('stylechange', function() {
                 if (layer.getStyles().length === 1)
@@ -692,20 +679,83 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 		_mapHelper.createMultiStyle(elem, this, multiStyleParent, true, layerManagerFlag);
 
-		if (!layerManagerFlag)
-		{
+		if (!layerManagerFlag) {
 			if (!parentVisibility || !elem.visible)
 				$(multiStyleParent).addClass("invisible")
 
-			iconSpan.onclick = function()
-			{
+			iconSpan.onclick = function() {
 				if (_queryMapLayers.currentMapRights() == "edit") {
                     nsGmx.createStylesDialog(elem, _this);
                 }
 			}
+
+			if (elem.name in nsGmx.gmxMap.layersByID) {
+	            var layer = nsGmx.gmxMap.layersByID[elem.name];
+
+				if (layer.getGmxProperties) {
+					var props = layer.getGmxProperties(),
+						layerName = props.name;
+
+					if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
+						timelineIcon = document.createElement('img');
+						timelineIcon.src = 'img/timeline-icon-disabled.png';
+						timelineIcon.className = 'gmx-timeline-icon disabled';
+						timelineIcon.title = window._gtxt("Добавить в таймлайн");
+
+						timelineIcon.onclick = function () {
+							var disabled = $(this).hasClass('disabled'),
+								timelinePluginName = 'Timeline Vectors',
+								timeLineModuleName = 'gmxTimeLine',
+								timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
+
+							// lazy load timeline plugin
+							if (!timelinePlugin.body) {
+								nsGmx.pluginsManager.setUsePlugin(timelinePluginName, true);
+
+								window.gmxCore.loadModule(timeLineModuleName, timelinePlugin.file).then(function(res) {
+									var paramsClone = $.extend(true, {}, timelinePlugin.params);
+										var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+										_mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
+										res.addLayer(layer);
+
+										if (timeLineControl) {
+											timeLineControl.on('layerRemove', function (e) {
+												$(window._layersTree).triggerHandler('layerTimelineRemove', e);
+											});
+											timeLineControl.on('layerAdd', function (e) {
+												$(window._layersTree).triggerHandler('layerTimelineAdd', e);
+											});
+										}
+								}).then(function(err) {
+									console.log(err);
+								});
+							} else {
+								disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
+							}
+						}
+
+						$(this).on('layerTimelineRemove', function (e, data) {
+								if (data.layerID === layerName) {
+									timelineIcon.src = 'img/timeline-icon-disabled.png';
+									timelineIcon.title = window._gtxt("Удалить из таймлайна");
+									$(timelineIcon).addClass('disabled');
+								}
+							});
+
+						$(this).on('layerTimelineAdd', function (e, data) {
+							if (data.layerID === layerName) {
+								timelineIcon.src = 'img/timeline-icon.png';
+								timelineIcon.title = window._gtxt("Добавить в таймлайн");
+								$(timelineIcon).removeClass('disabled');
+							}
+						});
+					}
+				}
+			}
 		}
 
         var resElems = [spanParent, spanDescr, borderDescr];
+
 
         if (this._renderParams.showStyle) {
             resElems.push(multiStyleParent);
@@ -713,10 +763,11 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         }
         this._renderParams.showVisibilityCheckbox && resElems.unshift(box);
 
+		if (timelineIcon) {
+			resElems.unshift(timelineIcon);
+		}
         return resElems;
-	}
-	else
-	{
+	} else {
 		if (this._renderParams.showVisibilityCheckbox)
 			return [box, spanParent, spanDescr, borderDescr];
 		else
@@ -724,26 +775,22 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
-{
+layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
 	var box,
 		_this = this;
 
-	if (this._renderParams.showVisibilityCheckbox)
-	{
+	if (this._renderParams.showVisibilityCheckbox) {
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 
 		box.className = 'box layers-visibility-checkbox';
 
 		box.setAttribute('box','group');
 
-		box.onclick = function()
-		{
+		box.onclick = function() {
             _this.treeModel.setNodeVisibility(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 
-		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
-		{
+		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox) {
 			box.isDummyCheckbox = true;
 			box.style.display = 'none';
         }
@@ -752,13 +799,11 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
 
     var timer = null,
-        clickFunc = function()
-        {
+        clickFunc = function() {
             if (_this._renderParams.allowActive)
                 _this.setActive(span);
 
-            if (_this._renderParams.showVisibilityCheckbox)
-            {
+            if (_this._renderParams.showVisibilityCheckbox) {
                 var div = span.parentNode.parentNode;
 
                 if (div.gmxProperties.content.properties.ShowCheckbox) {
@@ -770,19 +815,15 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
                     $(clickDiv[0]).trigger("click");
             }
         },
-        dbclickFunc = function()
-        {
+        dbclickFunc = function() {
             var childsUl = _abstractTree.getChildsUl(span.parentNode.parentNode.parentNode);
 
-            if (childsUl)
-            {
+            if (childsUl) {
                 var bounds = new L.LatLngBounds(),
                     minLayerZoom = 20;
 
-                _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
-                {
-                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) && child.content.geometry)
-                    {
+                _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child) {
+                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) && child.content.geometry) {
                         	var layer = nsGmx.gmxMap.layersByID[child.content.properties.name];
 							bounds.extend(layer.getBounds());
 
@@ -794,18 +835,15 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             }
         };
 
-    span.onclick = function()
-    {
+    span.onclick = function() {
         if (timer)
             clearTimeout(timer);
 
         timer = setTimeout(clickFunc, 200)
     }
 
-    if (this._renderParams.allowDblClick)
-    {
-        span.ondblclick = function()
-        {
+    if (this._renderParams.allowDblClick) {
+        span.ondblclick = function() {
             if (timer)
                 clearTimeout(timer);
 
@@ -962,7 +1000,8 @@ layersTree.prototype.getLayerVisibility = function(box)
 
 		if (group.length > 0)
 		{
-			if (!group[0].firstChild.checked)
+			if (!$(group).find('input[type="checkbox"]')[0].checked)
+
 				return false;
 		}
 
@@ -979,7 +1018,7 @@ layersTree.prototype.updateVisibilityUI = function(elem) {
     if (div) {
         var isVisible = elem.content.properties.visible;
         $(div).children("[titleDiv], [multiStyle]").toggleClass("invisible", !isVisible);
-        div.firstChild.checked = isVisible;
+        $(div).find('input[type="checkbox"]')[0].checked = isVisible;
     }
 }
 
@@ -1110,10 +1149,10 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 			{
 				var parentDiv = $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
 
-				li = _this.getChildsList(layerProperties, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _this.getLayerVisibility(parentDiv.firstChild));
+				li = _this.getChildsList(layerProperties, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _this.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0]));
 			}
 			else
-				li = _this.getChildsList(layerProperties, parentProperties, false, _this.getLayerVisibility(divDestination.firstChild));
+				li = _this.getChildsList(layerProperties, parentProperties, false, _this.getLayerVisibility($(divDestination).find('input[type="checkbox"]')[0]));
 
 			if (layerProperties.type == 'group')
 			{
@@ -1359,7 +1398,8 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	else
 		listFlag = parentParams.properties.list;
 
-	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
+	var div = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
+		box = $(div).find('input[type="checkbox"]')[0],
 		newBox = _checkbox(
             box.checked,
             listFlag ? 'radio' : 'checkbox',
@@ -1467,7 +1507,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		return;
 
 	var parentElem = typeof div == 'undefined' ? _layersTree.treeModel.getRawTree() : _layersTree.findTreeElem(div).elem,
-		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility(div.firstChild),
+		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility($(div).find('input[type="checkbox"]')[0]),
 		_this = this;
 
 	_mapHelper.findTreeElems(parentElem, function(elem, visibleFlag)
@@ -1484,7 +1524,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				var group = $(_this.buildedTree).find("div[GroupID='" + groupId + "']");
 
 				if (group.length)
-					group[0].firstChild.checked = condition.visible[groupId];
+					$(group).find('input[type="checkbox"]')[0].checked = condition.visible[groupId];
 			}
 
 			if (typeof condition.expanded[groupId] != 'undefined' && props.expanded != condition.expanded[groupId])
@@ -1892,7 +1932,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
                     },
                     parentProperties,
                     false,
-                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0])
                 );
 
             _abstractTree.addNode(parentDiv.parentNode, li);
@@ -1946,7 +1986,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, recrea
                 _layersTree.addLayersToMap({content: {properties: newLayerProperties, geometry: origGeometry}});
 
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
+                    li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedGeometry}}, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
 
                 $(li).find('[multiStyle]').treeview();
 
@@ -2058,7 +2098,7 @@ queryMapLayers.prototype.asyncCopyLayer = function(promise, title) {
                     },
                     parentProperties,
                     false,
-                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility($(parentDiv).find('input[type="checkbox"]')[0])
                 );
 
             _abstractTree.addNode(parentDiv.parentNode, li);

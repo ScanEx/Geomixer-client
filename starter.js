@@ -1650,22 +1650,6 @@ function processGmxMap(state, gmxMap) {
             }
         });
 
-
-
-        lmap.on('gmxTimeLine.currentTabChanged', function(ev) {
-            var layerID = ev.currentTab,
-                layer = nsGmx.gmxMap.layersByID[layerID],
-                synchronyzed = nsGmx.widgets.commonCalendar.model.get('synchronyzed'),
-                props = layer.getGmxProperties(),
-                isVisible = props.visible,
-                isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
-
-            if (isTemporalLayer && isVisible && !synchronyzed) {
-                nsGmx.widgets.commonCalendar.model.set('currentLayer', layerID);
-            }
-
-        });
-
         _mapHelper.customParamsManager.addProvider({
             name: 'commonCalendar',
             loadState: function(state) {
@@ -2174,8 +2158,17 @@ function processGmxMap(state, gmxMap) {
         if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
             nsGmx.widgets.commonCalendar.show();
         }
-
         nsGmx.pluginsManager.afterViewer();
+
+        // навесить обработчик на все слои дерева
+        if (nsGmx.timeLineControl) {
+            nsGmx.timeLineControl.on('layerRemove', function (e) {
+                $(_layersTree).triggerHandler('layerTimelineRemove', e);
+            });
+            nsGmx.timeLineControl.on('layerAdd', function (e) {
+                $(_layersTree).triggerHandler('layerTimelineAdd', e);
+            });
+        }
 
         $('#leftContent').mCustomScrollbar();
 
