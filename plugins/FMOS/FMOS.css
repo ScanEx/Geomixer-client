@@ -198,11 +198,19 @@
   padding-right:10px
 }
 
-.ais_myfleet_dialog .vessel_prop {
+.ais_myfleet_dialog {
+    background-color: #ceeaff;
+}
+
+.ais_myfleet_dialog .content div {
   margin-bottom: 5px;
   line-height: 15px;
 }
 
+.ais_myfleet_dialog .content div {
+  margin-bottom: 5px;
+  line-height: 15px;
+}
 
 .ais_myfleet_dialog .content div.summary {
   margin-top: 15px;
@@ -223,7 +231,7 @@
     display: table;
 }
 
-.ais_myfleet_dialog .menu div.button {
+.ais_myfleet_dialog .menubuttons div.button {
   width:30px;
   height:30px;
   background-color: #738694; 
@@ -235,34 +243,34 @@
   border-radius: 3px;
 }
 
-.ais_myfleet_dialog .menu div.button.active{
+.ais_myfleet_dialog .menubuttons div.button.active{
   background-color: #3ca1d0; 
   background-position: center;
   background-repeat: no-repeat;
   padding:0;
 }
 
-.ais_myfleet_dialog .menu div.button.disabled{
+.ais_myfleet_dialog .menubuttons div.button.disabled{
   background-color: #ced9e0; 
   background-position: center;
   background-repeat: no-repeat;
   cursor: default;
 }
 
-.ais_myfleet_dialog .menu div.button.disabled:hover{
+.ais_myfleet_dialog .menubuttons div.button.disabled:hover{
   background-color: #ced9e0; 
   background-position: center;
   background-repeat: no-repeat;
   cursor: default;
 }
 
-.ais_myfleet_dialog .menu div.button:hover {
+.ais_myfleet_dialog .menubuttons div.button:hover {
   background-color: #3ca1d0; 
   background-position: center;
   background-repeat: no-repeat;
 }
 
-.ais_myfleet_dialog .menu .progress{
+.ais_myfleet_dialog .menubuttons .progress{
   padding-top:6px;
   float:left;
 }
@@ -285,8 +293,13 @@
   color: #000;
 }
 .ais_myfleet_dialog .photo{
-  height:140px;
+  height:120px;
 }
+
+.ais_myfleet_dialog .photo img{
+  max-width: 170px;
+}
+
 .ais_myfleet_dialog .photo div{
   width:178px;
   height:110px;
@@ -306,14 +319,76 @@
     padding-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    width: 250px
+    width: 220px
 }
+
 .ais_myfleet_dialog::after {
     content: "";
     clear: both;
     display: table;
 }
 
+.ais_myfleet_dialog_footer {
+    padding-top:10px
+}
+
+.ais_myfleet_dialog_footer .column1 {
+    float: left;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 170px
+}
+.ais_myfleet_dialog_footer .column2 {
+    float: left;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 220px
+}
+
+.ais_myfleet_dialog_footer .column2 .vessel_prop{
+    cursor: pointer
+}
+.ais_myfleet_dialog_footer .column2 .vessel_prop span:nth-of-type(1):hover{
+    text-decoration: underline
+}
+
+/*
+.ais_myfleet_dialog_footer::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+*/
+.ais_myfleet_dialog_footer .caption {
+    height:50px;
+}
+
+.ais_myfleet_dialog_footer input {
+    margin-top:6px;
+    width:70px;
+}
+
+.ais_myfleet_dialog_footer .display {    
+    clear: both;
+    padding:15px 15px 0 15px;
+    overflow: hidden;
+    height:100px;
+}
+
+.ais_myfleet_dialog_footer .display table{
+    border-collapse: collapse;
+    width:100%
+}
+
+.ais_myfleet_dialog_footer .display table tr:nth-of-type(odd){
+    background-color: lightgray
+}
+
+.ais_myfleet_dialog_footer .display table td{
+    padding: 3px 20px
+}
 /**********************/
 
         .vessel-info-page.overlay{
@@ -470,7 +545,7 @@
 
         .vessel-info-page .column2 .register{
             background-color: white;
-            display: none;
+            display: block;
         }
         .vessel-info-page .column2 .register .caption{
             height:64px;

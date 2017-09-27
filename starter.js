@@ -244,9 +244,6 @@ var createMenuNew = function() {
             if (nsGmx.pluginsManager.getPluginByName('Cadastre')) {
                 plugins.push({pluginName: 'Cadastre', menuItemName: 'cadastre', menuTitle: 'Кадастр Росреестра'});
             }
-            if (nsGmx.pluginsManager.getPluginByName('Wikimapia')) {
-                plugins.push({pluginName: 'Wikimapia', menuItemName: 'wikimapia', menuTitle: 'Викимапиа'});
-            }
         }
 
         if (plugins.length) {

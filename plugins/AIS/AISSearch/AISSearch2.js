@@ -156,6 +156,7 @@
                     content = Handlebars.compile(
                     '<div class="column2 content">'+
                     '</div>') (vessel);
+                    console.log(content);
                 canvas.append(content)
                 var _this = this;
 
@@ -200,19 +201,22 @@
                 }
                 var moreInfo = function(v){
                         $('.content', canvas).append(Handlebars.compile(
-                        '<div class="vessel_prop">{{vessel_type}}</div>'+
-                        '<div class="vessel_prop">{{flag_country}}</div>'+
-                        '<div class="vessel_prop">IMO: {{imo}}</div>'+
-                        '<div class="vessel_prop">MMSI: {{mmsi}}</div>'+
-                        '<div class="vessel_prop">COG: {{cog}}</div>'+
-                        '<div class="vessel_prop">SOG: {{sog}}</div>'+
-                        '<div class="vessel_prop">HDG: {{heading}}</div>'+
-                        '<div class="vessel_prop">ROT: {{rot}}</div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.draught"}}: {{draught}}</div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.destination"}}: {{destination}}</div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.nav_status"}}: {{nav_status}}</div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.last_sig"}}: {{ts_pos_utc}}</div>'+
-                        '<div class="vessel_prop summary">{{latitude}}, {{longitude}}</div>'
+                        '<div class="vessel_prop"><h2>{{vessel_type}}</h2></div>'+
+                        '<div class="vessel_prop"><h4>{{flag_country}}</h4></div>'+
+                        '<div class="vessel_prop"><b>IMO</b>: {{imo}}</div>'+
+                        '<div class="vessel_prop"><b>MMSI</b>: {{mmsi}}</div>'+
+                        '<div class="vessel_prop"><b>COG</b>: {{cog}}</div>'+
+                        '<div class="vessel_prop"><b>SOG</b>: {{sog}}</div>'+
+                        '<div class="vessel_prop"><b>HDG</b>: {{heading}}</div>'+
+                        '<div class="vessel_prop"><b>ROT</b>: {{rot}}</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.draught"}}</b>: {{draught}}</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.destination"}}</b>: {{destination}}</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'
+                        )(v));
+                        $('.menu', canvas).append(Handlebars.compile(
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}} UTC</div>'+
+                        '<div class="vessel_prop"><b>Latitude</b>: {{latitude}}</div>'+
+                        '<div class="vessel_prop"><b>Longitude</b>: {{longitude}}</div>'
                         )(v));
                 } 
                 var vessel2;               

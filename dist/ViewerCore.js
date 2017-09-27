@@ -19585,10 +19585,7 @@ nsGmx._defaultPlugins =
     {pluginName: 'BufferPlugin',         file: 'plugins/external/GMXPluginBuffer/BufferPlugin.js',       module: 'BufferPlugin',       mapPlugin: true,  isPublic: true},
     // {pluginName: 'Wind Plugin',       file: 'plugins/windplugin/WindPlugin.js',                 module: 'WindPlugin',      mapPlugin: true,  isPublic: true},
     {pluginName: 'Weather Grid Plugin',  file: 'plugins/weathergridplugin/WeatherGridPlugin.js',         module: 'WeatherGridPlugin',  mapPlugin: false,  isPublic: true},
-    {pluginName: 'HelloWorld',            file: 'plugins/HelloWorld/HelloWorld.js', module: 'HelloWorld',    mapPlugin: true,  isPublic: true},
-    {pluginName: 'Wikimapia',            file: 'plugins/external/GMXPluginWikimapia/WikimapiaPlugin.js', module: 'WikimapiaPlugin',    mapPlugin: true,  isPublic: true,
-        params: {key: "A132989D-3AE8D94D-5EEA7FC1-E4D5F8D9-4A59C8A4-7CF68948-338BD8A8-611ED12", proxyUrl:""}
-    }
+    {pluginName: 'HelloWorld',            file: 'plugins/HelloWorld/HelloWorld.js', module: 'HelloWorld',    mapPlugin: true,  isPublic: true}
 ];
 
 (function(){
@@ -48457,7 +48454,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
             if (searchRes) {
                 var props = searchRes.elem.content.properties;
 
-                if (props.type == "Vector" && props.AllowSearch && gmxMap.layers[i]._map) {
+                if (props.type == "Vector" && props.AllowSearch) {
                     layersToSearch.push(props);
                 }
             }
@@ -50089,12 +50086,19 @@ nsGmx.Templates.AuthWidget["authWidget"] = "{{#if userName}}\n" +
     "        </div>\n" +
     "    </div>\n" +
     "{{else}}\n" +
+    "\n" +
     "    <div class=\"authWidget_unauthorized\">\n" +
-    "        <div class=\"authWidget-loginButton\">\n" +
-    "            {{i 'auth.login'}}\n" +
+    "        <div class=\"authWidget-userPanel\">\n" +
+    "            <div class=\"authWidget-userPanel-iconCell\">\n" +
+    "                <div class=\"authWidget-userPanel-userIcon\"></div>\n" +
+    "            </div>\n" +
+    "            <div class=\"authWidget-loginButton\">\n" +
+    "                {{i 'auth.login'}}\n" +
+    "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
-    "{{/if}}";;
+    "{{/if}}\n" +
+    "";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.AuthWidget = (function() {
@@ -54193,6 +54197,8 @@ var SearchWidget = function () {
                     item.provider.fetch(item.properties).then(function (response) {});
                 }
             });
+
+            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -54209,6 +54215,11 @@ var SearchWidget = function () {
         key: 'setText',
         value: function setText(text) {
             this._input.value = text;
+        }
+    }, {
+        key: 'setPlaceHolder',
+        value: function setPlaceHolder(value) {
+            this._input.placeholder = value;
         }
     }]);
 
@@ -54246,21 +54257,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
-        // ,
-        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-        // /[^\d\:]/g,
-        // /\d\d:\d+$/,
-        // /\d\d:\d+:\d+$/,
-        // /\d\d:\d+:\d+:\d+$/
-        ];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
+            // ,
+            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+            // /[^\d\:]/g,
+            // /\d\d:\d+$/,
+            // /\d\d:\d+:\d+$/,
+            // /\d\d:\d+:\d+:\d+$/
+        }];
     }
 
     _createClass(CadastreDataProvider, [{
@@ -54725,6 +54736,9 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
+    },
+    setPlaceHolder: function setPlaceHolder(value) {
+        this._widget.setPlaceHolder(value);
     }
 });
 
@@ -58539,9 +58553,6 @@ var createMenuNew = function() {
             if (nsGmx.pluginsManager.getPluginByName('Cadastre')) {
                 plugins.push({pluginName: 'Cadastre', menuItemName: 'cadastre', menuTitle: 'Кадастр Росреестра'});
             }
-            if (nsGmx.pluginsManager.getPluginByName('Wikimapia')) {
-                plugins.push({pluginName: 'Wikimapia', menuItemName: 'wikimapia', menuTitle: 'Викимапиа'});
-            }
         }
 
         if (plugins.length) {
@@ -60467,7 +60478,7 @@ window.prompt = promptFunction;
 })();
 
 window.nsGmx = window.nsGmx || {};
-window.nsGmx.GeomixerFrameworkVersion = '3.2.1';
+window.nsGmx.GeomixerFrameworkVersion = '3.3.0';
 
 /** GeoMixer virtual layer for standard tile raster layers (L.TileLayer)
 */
