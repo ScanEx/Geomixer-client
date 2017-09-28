@@ -83,14 +83,14 @@ var jsFiles = [
 ];
 
 var jsFilesThidparty = [
-    // "jquery/jquery-1.10.2.min.js",
-    "jquery/jquery-1.10.2.js",
+    "jquery/jquery-1.10.2.min.js",
+    // "jquery/jquery-1.10.2.js",
     "jquery/jquery.getCSS.js",
     "jquery/jquery.mousewheel.min.js",
-    // "jquery/jquery-ui-1.10.4.min.js",
-    "jquery/jquery-ui-1.10.4.js",
-    // "jquery/jquery-ui-1.11.4-select.min.js",
-    "jquery/jquery-ui-1.11.4-select.js",
+    "jquery/jquery-ui-1.10.4.min.js",
+    // "jquery/jquery-ui-1.10.4.js",
+    "jquery/jquery-ui-1.11.4-select.min.js",
+    // "jquery/jquery-ui-1.11.4-select.js",
     "jquery/ui.datepicker-ru.js",
     "jquery/jquery-ui-timepicker-addon.js",
     "jquery/ui.timepicker-ru.js",
