@@ -106,3 +106,6 @@
 [submodule "leaflet/plugins/Leaflet.MapboxVectorTile"]
 	path = leaflet/plugins/Leaflet.MapboxVectorTile
 	url = git@github.com:ScanEx/Leaflet.MapboxVectorTile.git
+[submodule "leaflet/plugins/IconSidebarControl"]
+	path = leaflet/plugins/IconSidebarControl
+	url = git@github.com:ScanEx/IconSidebarControl.git

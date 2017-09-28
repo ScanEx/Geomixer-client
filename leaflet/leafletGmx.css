@@ -1,37 +1,66 @@
 /* added css for Geomixer */
 
 .cursorAuto {
-  cursor: auto;
+    cursor: auto;
 }
 
 .leaflet-container {
     cursor: default;
 }
+
 .leaflet-image-layer {
-	z-index: -1;
+    z-index: -1;
 }
 
-.leaflet-ext-search input {
+.leaflet-ext-search {
     border-radius: 4px;
 }
 
 @media screen and (min-width: 1300px) {
-.leaflet-ext-search input {
-    width: 310px;
-}
-
-.leaflet-ext-search, .leaflet-ext-search-list {
-    width: 350px;
-}
+    .leaflet-ext-search input {
+        width: 310px;
+    }
+    .leaflet-ext-search,
+    .leaflet-ext-search-list {
+        width: 350px;
+    }
 }
 
 @media screen and (max-width: 1300px) {
-.leaflet-ext-search input {
-    border-radius: 4px;
-    width: 150px;
+    .leaflet-ext-search input {
+        border-radius: 4px;
+        width: 150px;
+    }
+    .leaflet-ext-search,
+    .leaflet-ext-search-list {
+        width: 190px;
+    }
 }
 
-.leaflet-ext-search, .leaflet-ext-search-list {
-    width: 190px;
+.iconSidebarControl {
+    background-color: #4c5567 !important;
+    /* background-color: #FFF !important; */
+    height: 100%;
 }
+
+.iconSidebarControl-pane {
+    padding: 0px !important;
+}
+
+.iconSidebarControl_opened {
+    width: 400px !important;
+}
+
+.iconSidebarControl {
+    margin: 0;
+}
+
+.leaflet-left .iconSidebarControl {
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.iconSidebarControl-content {
+    background-color: #FFF;
 }
