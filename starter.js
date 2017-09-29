@@ -838,12 +838,10 @@ nsGmx.widgets = nsGmx.widgets || {};
             var top = 0,
                 bottom = 0,
                 right = 0,
-                // left = window.exportMode ? 0 : (layersShown ? 360 : 12),
                 left = 0,
                 headerHeight = $('#header').outerHeight(),
                 mainDiv = $('#flash')[0];
 
-            // mainDiv.style.left = left + 'px';
             mainDiv.style.left = 0 + 'px';
             mainDiv.style.top = top + 'px';
             mainDiv.style.width = getWindowWidth() - left - right + 'px';
@@ -852,6 +850,9 @@ nsGmx.widgets = nsGmx.widgets || {};
             nsGmx.leafletMap && nsGmx.leafletMap.invalidateSize();
 
             if (layersShown) {
+                if (!nsGmx.leafletMap) {
+                    return;
+                }
                 $('#leftMenu').show();
 
                 var mapNameHeight = $('.mainmap-title').outerHeight();
@@ -1104,8 +1105,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 translationsHash.updateLanguageCookies(window.language);
             }
 
-            // window.onresize = resizeAll;
-            // resizeAll();
+            window.onresize = resizeAll;
+            resizeAll();
 
             L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
             var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
@@ -1193,7 +1194,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 var str = resp && resp.ErrorInfo && resp.ErrorInfo.ErrorMessage ? resp.ErrorInfo.ErrorMessage : 'У вас нет прав на просмотр данной карты';
                 nsGmx.widgets.notifications.stopAction(null, 'failure', _gtxt(str) || str, 0);
 
-                // window.onresize = resizeAll;
+                window.onresize = resizeAll;
                 resizeAll();
 
                 state.originalReference && createCookie('TinyReference', state.originalReference);
@@ -1869,6 +1870,20 @@ nsGmx.widgets = nsGmx.widgets || {};
                     LayersTreePermalinkParams = state.LayersTreePermalinkParams;
                 }
 
+                // добавим вместо gmxBottom
+                // var corners = lmap._controlCorners;
+                // ['bottomleft', 'bottomright', 'right', 'left'].map(function (it) {
+                //     if (corners[it]) {
+                //         L.DomUtil.addClass(corners[it], 'gmx-bottom-shift');
+                //     }
+                // });
+
+
+                /**
+                 *
+                 * SIDEBAR
+                 *
+                 */
                 window.sidebarControl = new nsGmx.IconSidebarControl({
                     position: "left"
                 });
@@ -1880,7 +1895,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     .querySelector(".iconSidebarControl")
                     .classList.add("noselect");
 
-                window.createTabFunction = function(options) {
+                var createTabFunction = function(options) {
                     return function(state) {
                         var el = document.createElement("div");
                         el.classList.add("tab-icon");
@@ -1900,12 +1915,12 @@ nsGmx.widgets = nsGmx.widgets || {};
                 };
 
                 var leftMainContainer = window.sidebarControl.setPane(
-                    "search", {
-                        createTab: window.createTabFunction({
-                            icon: "search",
-                            active: "search-search-sidebar",
-                            inactive: "search-search-sidebar",
-                            hint: "search.title"
+                    "layers-tree", {
+                        createTab: createTabFunction({
+                            icon: "gmx-icon-choose",
+                            active: "uploadfile-uploadfile-sidebar",
+                            inactive: "uploadfile-uploadfile-sidebar",
+                            hint: "layers-tree"
                         })
                     }
                 );
@@ -1913,7 +1928,85 @@ nsGmx.widgets = nsGmx.widgets || {};
                 leftMainContainer.innerHTML = '<div id="leftMenu" class="leftMenu">' + '<div id="leftPanelHeader" class="leftPanelHeader"></div>' + '<div id="leftContent" class="leftContent">' + '<div id="leftContentInner" class="leftContentInner"></div>' + "</div>" + '<div id="leftPanelFooter" class="leftPanelFooter"></div>' + "</div>";
 
 
+                window.sidebarControl.on('opened', function (e) {
+                    switch (e.id) {
+                        case 'layers-tree':
+                            console.log('sdsdsdsd');
+                            break;
+                        default:
+                            break;
+                    }
+                    handleControlsPosition();
+                });
 
+                window.sidebarControl.on('closed', function (e) {
+                    handleControlsPosition();
+                });
+
+                function handleControlsPosition() {
+                    var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width,
+                        mapWidth = parseInt(lmap.getContainer().style.width);
+
+                    var controls = lmap.gmxControlsManager.getAll();
+
+                    for (var key in controls) {
+                        var control = controls[key],
+                            options = control.options,
+                            id = options.id,
+                            position = options.position,
+                            shiftPositions = {
+                                'topleft': true,
+                                'bottomleft': true,
+                                'gmxbottomleft': true,
+                                'gmxbottomcenter': true,
+                                'bottom': true
+                            };
+
+                        if (position in shiftPositions && !control._parent) {
+                            if (id === 'logo') {
+                                shiftControl(id, sidebarWidth, true);
+                            } else {
+                                shiftControl(id, sidebarWidth, false);
+                            }
+                        }
+                    }
+
+                    // shiftControl('iconLayers', sidebarWidth);
+
+                    // $('.leaflet-bottom').each(function () {
+                    //     console.log(this);
+                    // })
+
+                    // // resize timelineControl
+                    // var timelineControl = lmap.gmxControlsManager.get("gmxTimeline");
+                    //
+                    // if (timelineControl) {
+                    //     var timelineContainer = timelineControl.getContainer();
+                    //     timelineContainer.style.left = (sidebarWidth + 10) + 'px';
+                    // }
+
+                }
+                /**
+                 * @param controlId Control id
+                 * @param shift shift width
+                 * @param divide divide by 2
+                 */
+                function shiftControl(controlId, shift, divide) {
+                    var control = lmap.gmxControlsManager.get(controlId);
+
+                    shift = divide ? shift / 2 : shift;
+
+                    if (control) {
+                        var controlContainer = control.getContainer();
+                        controlContainer.style.left = (shift + 10) + 'px';
+                    }
+                }
+
+                /**
+                 *
+                 * SIDEBAR END
+                 *
+                 */
 
 
 
@@ -2002,6 +2095,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 updateLeftPanelVis();
 
                 createToolbar();
+
+                handleControlsPosition();
 
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);

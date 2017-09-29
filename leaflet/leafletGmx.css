@@ -64,3 +64,25 @@
 .iconSidebarControl-content {
     background-color: #FFF;
 }
+
+.leaflet-bottom .leaflet-control {
+    /*left: 40px;*/
+    /*right: 0px;*/
+}
+
+.leaflet-top .leaflet-control {
+    /*left: 40px;*/
+    /*right: 0px;*/
+}
+
+.leaflet-top.leaflet-left {
+    /*left: 40px;*/
+}
+
+.leaflet-gmx-copyright-location {
+    left: 40px;
+}
+
+.leaflet-gmx-copyright-location-bg {
+    left: 40px;
+}

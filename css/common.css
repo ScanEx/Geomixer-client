@@ -1860,3 +1860,8 @@ leaflet-control-layers-toggle {
     margin-right: 5px;
     margin-left: -17px;
 }
+
+.layers-tree {
+    background-image: url(../img/favicon16x16_sample6.png) center no-repeat;
+    cursor: pointer;
+}
