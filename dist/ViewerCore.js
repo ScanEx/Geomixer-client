@@ -26391,7 +26391,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: 'http://maps.kosmosnimki.ru/api/img/camera18.png',
+				image: '../img/camera18.png',
 				center: true
 			}
 		}
@@ -44632,7 +44632,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="../img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
@@ -50086,19 +50086,12 @@ nsGmx.Templates.AuthWidget["authWidget"] = "{{#if userName}}\n" +
     "        </div>\n" +
     "    </div>\n" +
     "{{else}}\n" +
-    "\n" +
     "    <div class=\"authWidget_unauthorized\">\n" +
-    "        <div class=\"authWidget-userPanel\">\n" +
-    "            <div class=\"authWidget-userPanel-iconCell\">\n" +
-    "                <div class=\"authWidget-userPanel-userIcon\"></div>\n" +
-    "            </div>\n" +
-    "            <div class=\"authWidget-loginButton\">\n" +
-    "                {{i 'auth.login'}}\n" +
-    "            </div>\n" +
+    "        <div class=\"authWidget-loginButton\">\n" +
+    "            {{i 'auth.login'}}\n" +
     "        </div>\n" +
     "    </div>\n" +
-    "{{/if}}\n" +
-    "";;
+    "{{/if}}";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.AuthWidget = (function() {
@@ -54197,8 +54190,6 @@ var SearchWidget = function () {
                     item.provider.fetch(item.properties).then(function (response) {});
                 }
             });
-
-            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -54215,11 +54206,6 @@ var SearchWidget = function () {
         key: 'setText',
         value: function setText(text) {
             this._input.value = text;
-        }
-    }, {
-        key: 'setPlaceHolder',
-        value: function setPlaceHolder(value) {
-            this._input.placeholder = value;
         }
     }]);
 
@@ -54257,21 +54243,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
-            // ,
-            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-            // /[^\d\:]/g,
-            // /\d\d:\d+$/,
-            // /\d\d:\d+:\d+$/,
-            // /\d\d:\d+:\d+:\d+$/
-        }];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
+        // ,
+        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+        // /[^\d\:]/g,
+        // /\d\d:\d+$/,
+        // /\d\d:\d+:\d+$/,
+        // /\d\d:\d+:\d+:\d+$/
+        ];
     }
 
     _createClass(CadastreDataProvider, [{
@@ -54736,9 +54722,6 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
-    },
-    setPlaceHolder: function setPlaceHolder(value) {
-        this._widget.setPlaceHolder(value);
     }
 });
 
@@ -59623,7 +59606,7 @@ function processGmxMap(state, gmxMap) {
             layer.bindClusters({
                 iconCreateFunction: function(cluster) {
                     var photoClusterIcon = L.divIcon({
-                        html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                        html: '<img src="../img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                         className: 'photo-div-icon',
                         iconSize: [14, 12],
                         iconAnchor: [0, 0]
