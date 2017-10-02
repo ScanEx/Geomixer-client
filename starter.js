@@ -1895,7 +1895,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     .querySelector(".iconSidebarControl")
                     .classList.add("noselect");
 
-                var createTabFunction = function(options) {
+                window.createTabFunction = function(options) {
                     return function(state) {
                         var el = document.createElement("div");
                         el.classList.add("tab-icon");
@@ -1916,7 +1916,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 var leftMainContainer = window.sidebarControl.setPane(
                     "layers-tree", {
-                        createTab: createTabFunction({
+                        createTab: window.createTabFunction({
                             icon: "gmx-icon-choose",
                             active: "uploadfile-uploadfile-sidebar",
                             inactive: "uploadfile-uploadfile-sidebar",
@@ -1924,6 +1924,16 @@ nsGmx.widgets = nsGmx.widgets || {};
                         })
                     }
                 );
+                // var leftCustomContainer = window.sidebarControl.setPane(
+                //     "custom-pane", {
+                //         createTab: window.createTabFunction({
+                //             icon: "gmx-icon-edit",
+                //             active: "uploadfile-uploadfile-sidebar",
+                //             inactive: "uploadfile-uploadfile-sidebar",
+                //             hint: "layers-tree"
+                //         })
+                //     }
+                // );
 
                 leftMainContainer.innerHTML = '<div id="leftMenu" class="leftMenu">' + '<div id="leftPanelHeader" class="leftPanelHeader"></div>' + '<div id="leftContent" class="leftContent">' + '<div id="leftContentInner" class="leftContentInner"></div>' + "</div>" + '<div id="leftPanelFooter" class="leftPanelFooter"></div>' + "</div>";
 
