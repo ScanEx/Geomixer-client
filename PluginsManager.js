@@ -40,8 +40,10 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 
     //мы не будем пока загружать плагин только если он не глобальный и имеет имя
     // и только если специально не указана загрузка по требованию
-    if (!mapPlugin || !pluginName || !lazyLoad) {
-        doLoad();
+    if (!mapPlugin || !pluginName) {
+        if (!lazyLoad) {
+            doLoad();
+        }
     }
 
     this.setUsage = function(usage)
