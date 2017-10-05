@@ -8517,6 +8517,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
         isFlatten: false,
         useWebGL: false,
 		skipTiles: 'None', // All, NotVisible, None
+        iconsUrlReplace: [],
         clickable: true
     },
 
@@ -8538,6 +8539,7 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
         this._gmx = {
             hostName: gmxAPIutils.normalizeHostname(options.hostName || 'maps.kosmosnimki.ru'),
             mapName: options.mapID,
+			iconsUrlReplace: this.options.iconsUrlReplace,
             skipTiles: options.skipTiles,
             needBbox: options.skipTiles === 'All',
             useWebGL: options.useWebGL,
@@ -8586,7 +8588,6 @@ L.gmx.VectorLayer = L.TileLayer.Canvas.extend(
         gmx.shiftY = 0;
         gmx.applyShift = map.options.crs === L.CRS.EPSG3857 && gmx.srs !== '3857';
         gmx.currentZoom = map.getZoom();
-        gmx.iconsUrlReplace = map.options.iconsUrlReplace || [];
 
         gmx.styleManager.initStyles();
 
@@ -11110,6 +11111,16 @@ StyleManager.prototype = {
         this._serverStylesParsed = true;
     },
 
+    _iconsUrlReplace: function(iconUrl) {
+		var str = iconUrl || '';
+		if (iconUrl && this.gmx.iconsUrlReplace) {
+			this.gmx.iconsUrlReplace.forEach(function(it) {
+				str = str.replace(it.from, it.to);
+			});
+		}
+		return str;
+    },
+
     _checkStyles: function() {
         var minZoom = Infinity,
             maxZoom = -Infinity,
@@ -11128,7 +11139,14 @@ StyleManager.prototype = {
             st.hoverDiff = null;
             st.common = {};
             if (st.RenderStyle) {
-                if (!labelsLayer) {
+				if (st.RenderStyle.iconUrl) {
+					st.RenderStyle.iconUrl = this._iconsUrlReplace(st.RenderStyle.iconUrl);
+				}
+				if (st.HoverStyle.iconUrl) {
+					st.HoverStyle.iconUrl = this._iconsUrlReplace(st.HoverStyle.iconUrl);
+				}
+
+				if (!labelsLayer) {
                     if (this._isLabel(st.RenderStyle)) {
                         labelsLayer = true;
                     }
@@ -11229,16 +11247,6 @@ StyleManager.prototype = {
         return st;
     },
 
-    _iconsUrlReplace: function(iconUrl) {
-		var str = iconUrl || '';
-		if (iconUrl && this.gmx.iconsUrlReplace) {
-			this.gmx.iconsUrlReplace.forEach(function(it) {
-				str = str.replace(it.from, it.to);
-			});
-		}
-		return str;
-    },
-
     _prepareItem: function(style) { // Style Scanex->leaflet
         var pt = {
             MinZoom: style.MinZoom || 0,
@@ -11250,15 +11258,9 @@ StyleManager.prototype = {
         };
         pt.DisableBalloonOnMouseMove = style.DisableBalloonOnMouseMove === false ? false : true;
         pt.DisableBalloonOnClick = style.DisableBalloonOnClick || false;
-		if (pt.RenderStyle.iconUrl) {
-			pt.RenderStyle.iconUrl = this._iconsUrlReplace(pt.RenderStyle.iconUrl);
-		}
 
         if (style.HoverStyle) {
             pt.HoverStyle = this._parseStyle(L.gmxUtil.fromServerStyle(style.HoverStyle), pt.RenderStyle);
-			if (pt.HoverStyle.iconUrl) {
-				pt.HoverStyle.iconUrl = this._iconsUrlReplace(pt.HoverStyle.iconUrl);
-			}
         }
 
         if ('Filter' in style) {
