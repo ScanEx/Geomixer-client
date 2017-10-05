@@ -11142,7 +11142,7 @@ StyleManager.prototype = {
 				if (st.RenderStyle.iconUrl) {
 					st.RenderStyle.iconUrl = this._iconsUrlReplace(st.RenderStyle.iconUrl);
 				}
-				if (st.HoverStyle.iconUrl) {
+				if (st.HoverStyle && st.HoverStyle.iconUrl) {
 					st.HoverStyle.iconUrl = this._iconsUrlReplace(st.HoverStyle.iconUrl);
 				}
 
