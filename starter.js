@@ -81,7 +81,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     this.restoreOptions(options);
                 }
                 this.state = isActive;
-                nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(isActive);
+                nsGmx.leafletMap.gmxControlIconManager.get('s-grid').setActive(isActive);
                 _menuUp.checkItem('mapGrid', isActive);
                 _mapHelper.gridView = isActive; //можно удалить?
 
@@ -395,7 +395,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             if (_queryMapLayers.currentMapRights() === 'edit') {
 
                 var saveMapIcon = L.control.gmxIcon({
-                        id: 'saveMap',
+                        position: 'right',
+                        id: 's-savemap',
                         title: _gtxt('Сохранить карту'),
                         addBefore: 'drawing'
                     })
@@ -404,7 +405,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 //группа создания слоёв
                 var createVectorLayerIcon = L.control.gmxIcon({
-                    id: 'createVectorLayer',
+                    id: 's-vector',
                     title: _gtxt('Создать векторный слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -414,7 +415,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 });
 
                 var createRasterLayerIcon = L.control.gmxIcon({
-                    id: 'createRasterLayer',
+                    id: 's-raster',
                     title: _gtxt('Создать растровый слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -424,6 +425,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 });
 
                 var createLayerIconGroup = L.control.gmxIconGroup({
+                    position: 'right',
                     id: 'createLayer',
                     isSortable: true,
                     //isCollapsible: false,
@@ -432,7 +434,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 }).addTo(lmap);
 
                 var bookmarkIcon = L.control.gmxIcon({
-                    id: 'bookmark',
+                    position: 'right',
+                    id: 's-bookmark',
                     title: _gtxt('Добавить закладку'),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -446,6 +449,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             }
 
             var printIcon = L.control.gmxIcon({
+                    position: 'right',
                     id: 's-print',
                     title: _gtxt('Печать'),
                     addBefore: 'drawing'
@@ -454,7 +458,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 .on('click', _mapHelper.print.bind(_mapHelper));
 
             var permalinkIcon = L.control.gmxIcon({
-                    id: 'permalink',
+                    position: 'right',
+                    id: 's-link',
                     title: _gtxt('Ссылка на карту'),
                     addBefore: 'drawing'
                 })
@@ -463,6 +468,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
+                                        position: 'right',
                     permalinkManager: {
                         save: function() {
                             return $.when(
@@ -480,7 +486,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             }
 
             var gridIcon = L.control.gmxIcon({
-                    id: 'gridTool',
+                    position: 'right',
+                    id: 's-grid',
                     title: _gtxt('Координатная сетка'),
                     togglable: true,
                     addBefore: 'drawing'
@@ -506,9 +513,10 @@ nsGmx.widgets = nsGmx.widgets || {};
             });
 
             lmap.addControl(L.control.gmxIcon({
-                id: 'boxzoom-dashed-rounded',
+                position: 'right',
+                id: 's-zoom-select-01',
                 toggle: true,
-                addBefore: 'drawing',
+                addBefore: 's-grid',
                 title: 'Увеличение',
                 onAdd: function(control) {
                     var map = control._map,
@@ -546,7 +554,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
-                position: 'topright',
+                position: 'right',
+                addBefore: 's-bookmark',
                 limit: 10,
                 retrieveManyOnEnter: true,
                 providers: [
@@ -938,7 +947,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             var pluginPath = gmxCore.getModulePath('EditObjectPlugin');
 
             var editIcon = L.control.gmxIcon({
-                id: 'editTool',
+                position: 'right',
+                id: 's-edit',
                 title: _gtxt('Редактировать'),
                 togglable: true,
                 addBefore: 'gmxprint'
