@@ -435,7 +435,7 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.visible = true;
 
                                 gmxProperties.content.properties.styles = [{
-                                    MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                                    MinZoom: 1,
                                     MaxZoom:21,
                                     Balloon: balloonString,
                                     RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
