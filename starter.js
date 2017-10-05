@@ -446,7 +446,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             }
 
             var printIcon = L.control.gmxIcon({
-                    id: 'gmxprint',
+                    id: 's-print',
                     title: _gtxt('Печать'),
                     addBefore: 'drawing'
                 })
