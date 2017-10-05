@@ -11229,6 +11229,16 @@ StyleManager.prototype = {
         return st;
     },
 
+    _iconsUrlReplace: function(iconUrl) {
+		var str = iconUrl || '';
+		if (iconUrl && this.gmx.iconsUrlReplace) {
+			this.gmx.iconsUrlReplace.forEach(function(it) {
+				str = str.replace(it.from, it.to);
+			});
+		}
+		return str;
+    },
+
     _prepareItem: function(style) { // Style Scanex->leaflet
         var pt = {
             MinZoom: style.MinZoom || 0,
@@ -11240,14 +11250,15 @@ StyleManager.prototype = {
         };
         pt.DisableBalloonOnMouseMove = style.DisableBalloonOnMouseMove === false ? false : true;
         pt.DisableBalloonOnClick = style.DisableBalloonOnClick || false;
-		if (this.gmx.iconsUrlReplace && pt.RenderStyle.iconUrl) {
-			this.gmx.iconsUrlReplace.forEach(function(it) {
-				pt.RenderStyle.iconUrl = pt.RenderStyle.iconUrl.replace(it.from, it.to);
-			});
+		if (pt.RenderStyle.iconUrl) {
+			pt.RenderStyle.iconUrl = this._iconsUrlReplace(pt.RenderStyle.iconUrl);
 		}
 
         if (style.HoverStyle) {
             pt.HoverStyle = this._parseStyle(L.gmxUtil.fromServerStyle(style.HoverStyle), pt.RenderStyle);
+			if (pt.HoverStyle.iconUrl) {
+				pt.HoverStyle.iconUrl = this._iconsUrlReplace(pt.HoverStyle.iconUrl);
+			}
         }
 
         if ('Filter' in style) {
