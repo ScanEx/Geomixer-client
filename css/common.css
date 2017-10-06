@@ -1865,3 +1865,16 @@ leaflet-control-layers-toggle {
     background-image: url(../img/favicon16x16_sample6.png) center no-repeat;
     cursor: pointer;
 }
+
+.tab-icon svg {
+    height: 18px;
+    width: 18px;
+    margin-left: 11px;
+    margin-right: 11px;
+    margin-top: 11px;
+	pointer-events: none;
+}
+
+#s-tree {
+    fill: #bfccd6
+}

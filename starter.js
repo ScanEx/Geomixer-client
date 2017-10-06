@@ -81,7 +81,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     this.restoreOptions(options);
                 }
                 this.state = isActive;
-                nsGmx.leafletMap.gmxControlIconManager.get('s-grid').setActive(isActive);
+                nsGmx.leafletMap.gmxControlIconManager.get('m-gridtool').setActive(isActive);
                 _menuUp.checkItem('mapGrid', isActive);
                 _mapHelper.gridView = isActive; //можно удалить?
 
@@ -375,7 +375,8 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             //пополняем тулбар
             var uploadFileIcon = L.control.gmxIcon({
-                id: 'uploadFile',
+                position: 'right',
+                id: 'm-uploadfile',
                 title: _gtxt('Загрузить объекты')
             }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
 
@@ -396,7 +397,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 var saveMapIcon = L.control.gmxIcon({
                         position: 'right',
-                        id: 's-savemap',
+                        id: 'm-savemap',
                         title: _gtxt('Сохранить карту'),
                         addBefore: 'drawing'
                     })
@@ -405,24 +406,26 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 //группа создания слоёв
                 var createVectorLayerIcon = L.control.gmxIcon({
-                    id: 's-vector',
+                    position: 'right',
+                    id: 'm-createvectorlayer',
                     title: _gtxt('Создать векторный слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
                     _mapHelper.createNewLayer('Vector');
                     createVectorLayerIcon.setActive(true);
                     createRasterLayerIcon.setActive(false);
-                });
+                }).addTo(lmap);
 
                 var createRasterLayerIcon = L.control.gmxIcon({
-                    id: 's-raster',
+                    position: 'right',
+                    id: 'm-createrasterlayer',
                     title: _gtxt('Создать растровый слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
                     _mapHelper.createNewLayer('Raster');
                     createRasterLayerIcon.setActive(true);
                     createVectorLayerIcon.setActive(false);
-                });
+                }).addTo(lmap);
 
                 var createLayerIconGroup = L.control.gmxIconGroup({
                     position: 'right',
@@ -431,11 +434,11 @@ nsGmx.widgets = nsGmx.widgets || {};
                     //isCollapsible: false,
                     items: [createVectorLayerIcon, createRasterLayerIcon],
                     addBefore: 'drawing'
-                }).addTo(lmap);
+                })/*.addTo(lmap)*/;
 
                 var bookmarkIcon = L.control.gmxIcon({
                     position: 'right',
-                    id: 's-bookmark',
+                    id: 'm-bookmark',
                     title: _gtxt('Добавить закладку'),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -450,7 +453,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var printIcon = L.control.gmxIcon({
                     position: 'right',
-                    id: 's-print',
+                    id: 'm-gmxprint',
                     title: _gtxt('Печать'),
                     addBefore: 'drawing'
                 })
@@ -459,7 +462,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var permalinkIcon = L.control.gmxIcon({
                     position: 'right',
-                    id: 's-link',
+                    id: 'm-permalink',
                     title: _gtxt('Ссылка на карту'),
                     addBefore: 'drawing'
                 })
@@ -487,7 +490,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var gridIcon = L.control.gmxIcon({
                     position: 'right',
-                    id: 's-grid',
+                    id: 'm-gridtool',
                     title: _gtxt('Координатная сетка'),
                     togglable: true,
                     addBefore: 'drawing'
@@ -514,9 +517,9 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             lmap.addControl(L.control.gmxIcon({
                 position: 'right',
-                id: 's-zoom-select-01',
+                id: 'm-boxzoom',
                 toggle: true,
-                addBefore: 's-grid',
+                addBefore: 'm-gridtool',
                 title: 'Увеличение',
                 onAdd: function(control) {
                     var map = control._map,
@@ -554,8 +557,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
-                position: 'right',
-                addBefore: 's-bookmark',
+                position: 'topright',
+                addBefore: 's-fullscreen',
                 limit: 10,
                 retrieveManyOnEnter: true,
                 providers: [
@@ -948,7 +951,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var editIcon = L.control.gmxIcon({
                 position: 'right',
-                id: 's-edit',
+                id: 'm-edittool',
                 title: _gtxt('Редактировать'),
                 togglable: true,
                 addBefore: 'gmxprint'
@@ -1907,9 +1910,18 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 window.createTabFunction = function(options) {
                     return function(state) {
-                        var el = document.createElement("div");
+                        var el = document.createElement("div"),
+                            tabEl = document.createElement("div"),
+                            href = '#' + options.icon.toLowerCase();
+
                         el.classList.add("tab-icon");
-                        var tabEl = document.createElement("div");
+
+                        // el.className = 'leaflet-gmx-iconSvg';
+
+                        tabEl.innerHTML = '<svg role="img" class="svgIcon">\
+                            <use xlink:href="' + href + '" href="' + href + '"></use>\
+                          </svg>';
+
                         el.appendChild(tabEl);
 
                         options.hint && el.setAttribute("title", options.hint);
@@ -1927,7 +1939,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 var leftMainContainer = window.sidebarControl.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
-                            icon: "gmx-icon-choose",
+                            icon: "s-tree",
                             active: "uploadfile-uploadfile-sidebar",
                             inactive: "uploadfile-uploadfile-sidebar",
                             hint: "layers-tree"
