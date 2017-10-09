@@ -75,7 +75,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 }
 
                 //lazy instantantion
-                this.gridControl = this.gridControl || new L.GmxGrid();
+                this.gridControl = this.gridControl || new L.GmxGrid({
+                    leftMarkersShift: window.sidebarControl ? window.sidebarControl.isOpened() ? 400 : 40 : 0
+                });
                 nsGmx.leafletMap[isActive ? 'addLayer' : 'removeLayer'](this.gridControl);
                 if (options) {
                     this.restoreOptions(options);
@@ -1963,19 +1965,18 @@ nsGmx.widgets = nsGmx.widgets || {};
                 window.sidebarControl.on('opened', function (e) {
                     switch (e.id) {
                         case 'layers-tree':
-                            console.log('sdsdsdsd');
                             break;
                         default:
                             break;
                     }
-                    handleControlsPosition();
+                    handleControlsPosition(e);
                 });
 
                 window.sidebarControl.on('closed', function (e) {
-                    handleControlsPosition();
+                    handleControlsPosition(e);
                 });
 
-                function handleControlsPosition() {
+                function handleControlsPosition(e) {
                     var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width,
                         mapWidth = parseInt(lmap.getContainer().style.width);
 
@@ -2002,6 +2003,12 @@ nsGmx.widgets = nsGmx.widgets || {};
                             }
                         }
                     }
+
+                    var grid = nsGmx.gridManager.gridControl;
+
+                    if (grid) {
+                        grid.shiftTextMarkers('left', e.type === 'opened' ? 400 : 40)
+                    };
 
                     // shiftControl('iconLayers', sidebarWidth);
 
