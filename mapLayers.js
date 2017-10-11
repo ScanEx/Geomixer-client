@@ -991,7 +991,8 @@
         if (div) {
             var isVisible = elem.content.properties.visible;
             $(div).children("[titleDiv], [multiStyle]").toggleClass("invisible", !isVisible);
-            $(div).find('input[type="checkbox"]')[0].checked = isVisible;
+            var checkbox = $(div).find('input[type="checkbox"]')[0] || $(div).find('input[type="radio"]')[0];
+            checkbox.checked = isVisible;
         }
     }
 

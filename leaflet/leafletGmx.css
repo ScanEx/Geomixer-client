@@ -11,8 +11,8 @@
 	z-index: -1;
 }
 
-.leaflet-ext-search input {
-    border-radius: 4px;
+.leaflet-ext-search {
+    border-radius: 5px;
 }
 
 @media screen and (min-width: 1300px) {
@@ -27,7 +27,6 @@
 
 @media screen and (max-width: 1300px) {
 .leaflet-ext-search input {
-    border-radius: 4px;
     width: 150px;
 }
 

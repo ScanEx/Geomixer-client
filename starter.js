@@ -586,11 +586,15 @@ nsGmx.widgets = nsGmx.widgets || {};
             window.searchControl._container._id = 'searchcontrol';
 
             var searchContainer = window.searchControl._widget._container;
+            var stop = L.DomEvent.stopPropagation;
 
-            $(searchContainer).contextmenu(function(e) {
-                e.stopPropagation();
-                return true;
-            });
+            L.DomEvent
+                .on(searchContainer, 'mousemove', stop)
+                .on(searchContainer, 'touchstart', stop)
+                .on(searchContainer, 'mousedown', stop)
+                .on(searchContainer, 'dblclick', stop)
+                .on(searchContainer, 'contextmenu', stop)
+                .on(searchContainer, 'click', stop);
 
             var gmxLayers = new L.control.gmxLayers2(null, null, {
                 title: window._gtxt('Панель оверлеев'),
