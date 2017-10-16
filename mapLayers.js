@@ -714,6 +714,12 @@
 
                             $(this).on('layerTimelineAdd', function(e, data) {
                                 if (data.layerID === layerName) {
+
+                                    if (!parentVisibility || !elem.visible) {
+                                        $(multiStyleParent).removeClass("invisible");
+                                        this.treeModel.setNodeVisibility(this.findTreeElem(span.parentNode.parentNode).elem, true);
+                                    }
+
                                     timelineIcon.src = 'img/timeline-icon-enabled.svg';
                                     timelineIcon.title = window._gtxt("Добавить в таймлайн");
                                     $(timelineIcon).removeClass('disabled');
