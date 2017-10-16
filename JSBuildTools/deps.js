@@ -70,7 +70,7 @@ var jsFiles = [
     "search.js",
     "NotificationWidget.js",
     "VirtualLayerManager.js",
-    "common_components/primary.js",
+    "src/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
 
@@ -79,7 +79,7 @@ var jsFiles = [
     "leaflet/plugins/GMXVirtualTileLayer/GmxVirtualTileLayer.js"
 ];
 
-var jsFilesThidparty = [
+var jsFilesThirdparty = [
     "jquery/jquery-1.10.2.min.js",
     // "jquery/jquery-1.10.2.js",
     "jquery/jquery.getCSS.js",
@@ -103,12 +103,12 @@ var jsFilesThidparty = [
     "thirdparty/customscrollbar/jquery.mCustomScrollbar.js",
 
     "leaflet/leaflet.js",
-    "leaflet/plugins/Leaflet.TileLayer.Mercator/src/TileLayer.Mercator.js",
-    "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
-    "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
+    // "leaflet/plugins/Leaflet.TileLayer.Mercator/src/TileLayer.Mercator.js",
+    // "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
+    // "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
     "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
-    "leaflet/plugins/Leaflet.MapboxVectorTile/dist/Leaflet.MapboxVectorTile.min.js"
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js"
+    // "leaflet/plugins/Leaflet.MapboxVectorTile/dist/Leaflet.MapboxVectorTile.min.js"
 
 ];
 
@@ -137,9 +137,8 @@ var cssFiles = [
     "css/layerstylesmenu.css",
     "css/swich-slider.css",
 
-    "common_components/adapter.css",
+    "src/adapter.css",
     "leaflet/leaflet.css",
-    "leaflet/plugins/gmxControls/src/css/external.css",
     "leaflet/leafletGmx.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
 
@@ -153,12 +152,12 @@ var cssFiles = [
 
 var moduleFiles = {
     'L.ImageOverlay.Pane': 'leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js',
-    'ProfilePlugin': 'common_components/GeoMixerAccount/ProfilePlugin.js'
+    'ProfilePlugin': 'src/GeoMixerAccount/ProfilePlugin.js'
 }
 
 module.exports = {
     jsFiles: jsFiles,
-    jsFilesThidparty: jsFilesThidparty,
+    jsFilesThirdparty: jsFilesThirdparty,
     cssFiles: cssFiles,
     moduleFiles: moduleFiles
 }
