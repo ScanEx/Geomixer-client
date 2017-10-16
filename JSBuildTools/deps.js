@@ -73,10 +73,10 @@ var jsFiles = [
     "src/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
 
     "starter.js",
-    "version.js",
-    "leaflet/plugins/GMXVirtualTileLayer/GmxVirtualTileLayer.js"
+    "version.js"
 ];
 
 var jsFilesThirdparty = [
@@ -100,16 +100,7 @@ var jsFilesThirdparty = [
     "colorpicker/js/eye.js",
     "colorpicker/js/utils.js",
 
-    "thirdparty/customscrollbar/jquery.mCustomScrollbar.js",
-
-    "leaflet/leaflet.js",
-    // "leaflet/plugins/Leaflet.TileLayer.Mercator/src/TileLayer.Mercator.js",
-    // "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
-    // "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
-    "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js"
-    // "leaflet/plugins/Leaflet.MapboxVectorTile/dist/Leaflet.MapboxVectorTile.min.js"
-
+    "thirdparty/customscrollbar/jquery.mCustomScrollbar.js"
 ];
 
 var cssFiles = [
@@ -138,7 +129,6 @@ var cssFiles = [
     "css/swich-slider.css",
 
     "src/adapter.css",
-    "leaflet/leaflet.css",
     "leaflet/leafletGmx.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
 
