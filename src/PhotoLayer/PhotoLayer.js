@@ -435,7 +435,7 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.visible = true;
 
                                 gmxProperties.content.properties.styles = [{
-                                    MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                                    MinZoom: 1,
                                     MaxZoom:21,
                                     Balloon: balloonString,
                                     RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
@@ -475,7 +475,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
