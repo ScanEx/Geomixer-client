@@ -35,7 +35,7 @@ window._translationsHash.addtext("eng", {
     "Последняя страница" : "Last page"
 });
 
-var imagesHost = window.serverBase + "/api/img";
+var imagesHost = "img";
 
 /** Вспомогательные функции
  @namespace Functions
