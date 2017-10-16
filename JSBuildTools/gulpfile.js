@@ -63,12 +63,17 @@ gulp.task('gmx-pub', ['compile'], function(cb) {
 
     var thirdpartySources = addPrefix(root, gmxDeps.jsFilesThirdparty);
 
+    var mainSources = [].concat(
+        [],
+        addPrefix(root, gmxDeps.jsFiles)
+    );
+
     var distRoot = root + 'dist/';
     gulp.src(thirdpartySources)
         .pipe(concat('thirdparty.js'))
         .pipe(gulp.dest(distRoot));
 
-    gulp.src([])
+    gulp.src(mainSources)
         .pipe(concat('ViewerCore.js'))
         .pipe(gulp.dest(distRoot));
 
