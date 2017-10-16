@@ -1431,19 +1431,27 @@ nsGmx.widgets = nsGmx.widgets || {};
                 })
             }
 
-    // bind clusters to photoLayers
-    for (var l = 0; l < gmxMap.layers.length; l++) {
-        var layer = gmxMap.layers[l],
-            props = layer.getGmxProperties();
+            // bind clusters to photoLayers
+            for (var l = 0; l < gmxMap.layers.length; l++) {
+                var layer = gmxMap.layers[l],
+                props = layer.getGmxProperties();
 
-        if (props.IsPhotoLayer) {
-            layer.bindClusters({
-                iconCreateFunction: function(cluster) {
-                    var photoClusterIcon = L.divIcon({
-                        html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
-                        className: 'photo-div-icon',
-                        iconSize: [14, 12],
-                        iconAnchor: [0, 0]
+                if (props.IsPhotoLayer) {
+                    layer.bindClusters({
+                        iconCreateFunction: function(cluster) {
+                            var photoClusterIcon = L.divIcon({
+                                html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                className: 'photo-div-icon',
+                                iconSize: [14, 12],
+                                iconAnchor: [0, 0]
+                            });
+                            return photoClusterIcon;
+                        },
+                        maxClusterRadius: 40,
+                        spiderfyOnMaxZoom: true,
+                        spiderfyDistanceMultiplier: 1.2,
+                        disableClusteringAtZoom: 19,
+                        maxZoom: 19
                     });
                 }
             }
