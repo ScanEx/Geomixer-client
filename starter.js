@@ -1334,7 +1334,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             var rightLinks = [];
 
             nsGmx.widgets.header = new nsGmx.HeaderWidget({
-                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar_small.png'
+                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'logotypes/geomixer_transpar_small.png'
             });
 
             nsGmx.widgets.header.appendTo($('.header'));
