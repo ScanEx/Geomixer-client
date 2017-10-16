@@ -972,7 +972,7 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 	var addButton =  makeLinkButton(_gtxt('Добавить стиль'));
 	addButton.onclick = function()
 	{
-		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild)) {
+		if (!_layersTree.getLayerVisibility($(elemCanvas.parentNode).find('input[type="checkbox"]')[0])) {
             _layersTree.treeModel.setNodeVisibility(elemCanvas.parentNode.gmxProperties, true);
         }
 

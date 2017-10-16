@@ -73,6 +73,9 @@ var jsFiles = [
     "common_components/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
+    "src/SearchLogic/SearchProviders.js",
+    "src/SearchLogic/SearchLogic.js",
+    "leaflet/plugins/gmxLayers2/gmxLayers2.js",
 
     "starter.js",
     "version.js",
@@ -85,7 +88,9 @@ var jsFilesThidparty = [
     "jquery/jquery.getCSS.js",
     "jquery/jquery.mousewheel.min.js",
     "jquery/jquery-ui-1.10.4.min.js",
+    // "jquery/jquery-ui-1.10.4.js",
     "jquery/jquery-ui-1.11.4-select.min.js",
+    // "jquery/jquery-ui-1.11.4-select.js",
     "jquery/ui.datepicker-ru.js",
     "jquery/jquery-ui-timepicker-addon.js",
     "jquery/ui.timepicker-ru.js",
@@ -140,8 +145,10 @@ var cssFiles = [
     "common_components/adapter.css",
     "leaflet/leaflet.css",
     "leaflet/plugins/gmxControls/src/css/external.css",
-    "leaflet/leafletGmx.css",
+    "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
+    "leaflet/plugins/gmxLayers2/gmxLayers2.css",
+    "leaflet/leafletGmx.css",
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",

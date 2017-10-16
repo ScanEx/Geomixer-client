@@ -46,6 +46,14 @@
 }
 
 /* Auth widget */
+.authWidget {
+    float: right;
+}
+
+.languageWidget {
+    float: right;
+}
+
 .auth-user-name, .auth-login {
     font-size: 12px;
 }
@@ -80,13 +88,13 @@
 }
 
 .headerWidget-logoContainer {
-    width: 360px;
-    height: 60px;
-    padding: 0px;
+    width: 150px;
+    height: 40px;
+    padding: 0;
 }
 
 .dropdownMenuWidget-item a {
-    color: #6F6F6F;
+    /*color: #6F6F6F;*/
 }
 
 .dropdownMenuWidget-item a:hover {

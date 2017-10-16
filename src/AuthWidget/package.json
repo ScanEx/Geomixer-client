@@ -1,0 +1,12 @@
+{
+  "name": "gmx-AuthWidget",
+  "devDependencies": {
+    "event-stream": "3.1.7",
+    "gulp": "3.8.10",
+    "gulp-concat": "2.4.2",
+    "gulp-footer": "1.0.5",
+    "gulp-header": "1.2.2",
+    "gulp-html2jsobject": "0.0.1",
+    "streamqueue": "0.1.1"
+  }
+}

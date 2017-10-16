@@ -215,7 +215,7 @@ div.user span
     position: absolute;
     width: 12px;
     bottom: 0px;
-    top: 70px;
+    top: 40px;
     cursor: pointer;
 }
 
@@ -262,7 +262,7 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	top: 70px;
+	top: 60px;
 	width: 360px;
 	overflow: hidden;
 }
@@ -1895,6 +1895,9 @@ div.layersScroll
     display: none;
 }
 
+leaflet-control-layers-toggle {
+	background-image:
+}
 
 .gmxPopup div p {
     margin: 2px 0px;
@@ -1947,4 +1950,11 @@ div.layersScroll
 
 .photo-image-clickable {
 	cursor: pointer;
+}
+
+.gmx-timeline-icon {
+	cursor: pointer;
+	float: left;
+	margin-right: 5px;
+	margin-left: -17px;
 }

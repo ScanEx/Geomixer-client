@@ -10,3 +10,27 @@
 .leaflet-image-layer {
 	z-index: -1;
 }
+
+.leaflet-ext-search {
+    border-radius: 5px;
+}
+
+@media screen and (min-width: 1300px) {
+.leaflet-ext-search input {
+    width: 310px;
+}
+
+.leaflet-ext-search, .leaflet-ext-search-list {
+    width: 350px;
+}
+}
+
+@media screen and (max-width: 1300px) {
+.leaflet-ext-search input {
+    width: 150px;
+}
+
+.leaflet-ext-search, .leaflet-ext-search-list {
+    width: 190px;
+}
+}
