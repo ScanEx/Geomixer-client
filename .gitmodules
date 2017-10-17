@@ -1,12 +1,3 @@
-[submodule "src/GeoMixerAccount"]
-	path = src/GeoMixerAccount
-	url = git@github.com:ScanEx/GeoMixerAccount.git
-[submodule "leaflet/plugins/Leaflet-IconLayers"]
-	path = leaflet/plugins/Leaflet-IconLayers
-	url = git@github.com:ScanEx/Leaflet-IconLayers.git
-[submodule "leaflet/plugins/GMXVirtualTileLayer"]
-	path = leaflet/plugins/GMXVirtualTileLayer
-	url = git@github.com:ScanEx/GMXVirtualTileLayer.git
 [submodule "leaflet/plugins/L.ImageOverlay.Pane"]
 	path = leaflet/plugins/L.ImageOverlay.Pane
 	url = git@github.com:ScanEx/L.ImageOverlay.Pane.git
@@ -64,6 +55,9 @@
 [submodule "leaflet/plugins/Leaflet.Dialog"]
 	path = leaflet/plugins/Leaflet.Dialog
 	url = git@github.com:ScanEx/Leaflet.Dialog.git
-[submodule "leaflet/plugins/Leaflet.MapboxVectorTile"]
-	path = leaflet/plugins/Leaflet.MapboxVectorTile
-	url = git@github.com:ScanEx/Leaflet.MapboxVectorTile.git
+[submodule "leaflet/plugins/Leaflet-IconLayers"]
+	path = leaflet/plugins/Leaflet-IconLayers
+	url = git@github.com:ScanEx/Leaflet-IconLayers.git
+[submodule "src/GeoMixerAccount"]
+	path = src/GeoMixerAccount
+	url = git@github.com:ScanEx/GeoMixerAccount.git
