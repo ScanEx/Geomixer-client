@@ -1,0 +1,13 @@
+.dropdownWidget { cursor: pointer; position: relative; }
+.dropdownWidget.dropdownWidget-item { border: none; }
+.dropdownWidget.dropdownWidget-item:last-child { border: none; }
+
+.dropdownWidget-dropdown { position: absolute; z-index: 100; background: #fff; box-shadow: 0 0 10px hsla(0,0%,0%,0.3); }
+.dropdownWidget_direction-up .dropdownWidget-dropdown { bottom: 0; }
+.dropdownWidget_direction-down .dropdownWidget-dropdown { top: 0; }
+
+.dropdownWidget-item { padding: 4px 8px; border-top: 1px solid hsl(0, 0%, 90%); white-space: nowrap; }
+.dropdownWidget-item:last-child { border-bottom: 1px solid hsl(0, 0%, 90%); }
+
+.dropdownWidget-dropdownItem:hover { background: hsl(0, 0%, 95%); }
+.dropdownWidget-dropdownTitle { cursor: pointer; }

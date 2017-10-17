@@ -1,0 +1,47 @@
+<div class="dropdownMenuWidget ui-widget">
+    {{#each items}}
+    <div class="dropdownMenuWidget-item{{#if className}} {{className}}{{/if}}">
+        <a
+            {{#if id}}id="{{id}}"{{/if}}
+            {{#if link}}href="{{link}}"{{else}}href="javascript:void(0)"{{/if}}
+            {{#if newWindow}}{{#if link}}target="_blank"{{/if}}{{/if}}
+            class="dropdownMenuWidget-itemAnchor{{#if newWindow}} dropdownMenuWidget-itemAnchor_newWindow{{/if}}"
+        >
+            {{#if icon}}
+                <img src="{{icon}}" />
+            {{/if}}
+            {{#if fonticon}}
+                <i class="{{fonticon}}"></i>
+            {{/if}}
+            {{#if title}}
+                <span>{{title}}</span>
+                {{#if dropdown}}<i class="icon-angle-down"></i>{{/if}}
+            {{/if}}
+        </a>
+        {{#if dropdown}}
+            <div class="dropdownMenuWidget-itemDropdown">
+                <ul class="dropdownMenuWidget-dropdownMenu">
+                    {{#each dropdown}}
+                        <li class="dropdownMenuWidget-dropdownMenuItem{{#if className}} {{className}}{{/if}}">
+                            {{#if newWindow}}<div class="ui-icon ui-icon-newwin dropdownMenuWidget-dropdownMenuIcon"></div>{{/if}}
+                            <a
+                                {{#if id}}id="{{id}}"{{/if}}
+                                {{#if link}}href="{{link}}"{{else}}href="javascript:void(0)"{{/if}}
+                                {{#if newWindow}}{{#if link}}target="_blank"{{/if}}{{/if}}
+                                class="dropdownMenuWidget-dropdownItemAnchor{{#if newWindow}} dropdownMenuWidget-dropdownItemAnchor_newWindow{{/if}}"
+                            >
+                                {{#if icon}}
+                                    <img src="{{icon}}" />
+                                {{/if}}
+                                {{#if title}}
+                                    <span>{{title}}</span>
+                                {{/if}}
+                            </a>
+                        </li>
+                    {{/each}}
+                </ul>
+            </div>
+        {{/if}}
+    </div>
+    {{/each}}
+</div>

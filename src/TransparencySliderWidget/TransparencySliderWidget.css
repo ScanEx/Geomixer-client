@@ -1,0 +1,55 @@
+﻿.gmx-transslider-toggle-icon {
+	margin-top: 0px!important;
+	margin-left: 0px!important;
+}
+
+.gmx-transslider-toggle-icon:hover {
+    background-color: #9A9A9A;
+}
+
+.gmx-transslider-container {
+    width: 88px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px 10px;
+}
+.gmx-transslider-hide {
+	display: none!important;
+}
+.leaflet-gmx-iconSvg-transparency-eye {
+	float: right!important;
+	margin-top: 0px!important;
+}
+
+.gmx-transslider-container.ui-slider {
+    height: 2px;
+    background-color: #9ba1a5;
+	margin-top: 12px;
+}
+
+.gmx-transslider-container .ui-slider-range {
+    background-color: #e67000;
+}
+
+.gmx-transslider-container.ui-slider-horizontal .ui-slider-handle {
+    width: 6px;
+    height: 15px;
+    top: -7px;
+    margin-left: -4px;
+    border: 1px solid #bcbcbc;
+    border-radius: 3px;
+    background: linear-gradient( 90deg, #BCBCBC, #FFF );
+    cursor: pointer;
+}
+
+.gmx-transslider-onoff {
+    display: inline-block;
+    color: #e67000;
+    font-size: 15px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.gmx-transparency-slider-control {
+    clear: none;
+}

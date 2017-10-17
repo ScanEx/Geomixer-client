@@ -1,4 +1,21 @@
 /* added css for Geomixer */
+.leaflet-gmx-icon-boxzoom {
+    background-position: -623px 2px;
+}
+.leaflet-gmx-icon-boxzoom-active {
+    background-position: -623px -24px;
+}
+
+.leaflet-control-permalink, .leaflet-control-gmxprint  {
+    clear: none;
+}
+.leaflet-gmx-icon-permalink{
+    background-position: -531px 2px;
+}
+
+.leaflet-gmx-icon-gmxprint {
+    background-position: -49px 1px;
+}
 
 .cursorAuto {
   cursor: auto;

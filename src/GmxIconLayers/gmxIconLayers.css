@@ -1,0 +1,11 @@
+.leaflet-iconLayers-layerShutter {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('stroke.png');
+    opacity: .4;
+    display: none;
+}
+
+.leaflet-iconLayers-layerCell_disabled .leaflet-iconLayers-layerShutter { display: block; }
+.leaflet-iconLayers-layerCell_disabled .leaflet-iconLayers-layer { cursor: default; }

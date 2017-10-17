@@ -1,0 +1,2 @@
+.alertWidget-message { padding: 2px 4px; margin-bottom: 4px; }
+.alertWidget-message:last-child { margin-bottom: 0; }

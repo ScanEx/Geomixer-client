@@ -1,0 +1,52 @@
+/* ---------------------------------
+    Scrollpane
+   --------------------------------- */
+
+.jspContainer {
+    width: 213px;
+    overflow: visible;
+    position: relative;
+}
+
+.jspPane {
+    position: relative;
+}
+
+.jspVerticalBar {
+    background: #CCC;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+}
+
+.jspVerticalBar * {
+    margin: 0;
+    padding: 0;
+}
+
+.jspCap {
+    display: none;
+}
+
+.jspTrack {
+    position: relative;
+}
+
+.jspDrag {
+    position: relative;
+    top: 0;
+    left: 0;
+    background: #999;
+    cursor: pointer;
+}
+
+.jspDrag:hover {
+    background: #555;
+}
+
+.jspVerticalBar {
+    right: 0;
+    left: auto;
+}

@@ -1,0 +1,41 @@
+/** ---------------------------------
+     Picker
+    --------------------------------- */
+
+.picker{
+    padding: 7px;
+    background: #ffffff;
+}
+
+.picker:hover{
+    background-color: #efefef;
+}
+
+.picker-element {
+    display: none;
+}
+
+.picker-flag {
+    float: left;
+    width: 14px;
+    height: 14px;
+    margin-right: 5px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.picker-checkbox:hover .picker-flag {
+    background-image: url('images/check.png');
+}
+
+.picker-checkbox.checked .picker-flag {
+    background-image: url('images/check-a.png');
+}
+
+.picker-radio:hover .picker-flag {
+    background-image: url('images/dot.png');
+}
+
+.picker-radio.checked .picker-flag {
+    background-image: url('images/dot-a.png');
+}
