@@ -10,9 +10,6 @@
 [submodule "leaflet/plugins/L.ImageOverlay.Pane"]
 	path = leaflet/plugins/L.ImageOverlay.Pane
 	url = git@github.com:ScanEx/L.ImageOverlay.Pane.git
-[submodule "leaflet/plugins/gmxGrid"]
-	path = leaflet/plugins/gmxGrid
-	url = git@github.com:ScanEx/Leaflet.gmxGrid.git
 [submodule "JSBuildTools/common_components/builder"]
 	path = JSBuildTools/common_components/builder
 	url = git@github.com:ScanEx/GMXBuilder.git
