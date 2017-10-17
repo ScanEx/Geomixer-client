@@ -61,3 +61,6 @@
 [submodule "src/GeoMixerAccount"]
 	path = src/GeoMixerAccount
 	url = git@github.com:ScanEx/GeoMixerAccount.git
+[submodule "leaflet/plugins/IconSidebarControl"]
+	path = leaflet/plugins/IconSidebarControl
+	url = git@github.com:ScanEx/IconSidebarControl.git
