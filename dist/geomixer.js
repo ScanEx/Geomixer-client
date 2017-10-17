@@ -1,4 +1,4 @@
-+function() {var buildGUID = "91c1dc8a2ac94080b6e9def6b1f77eb4";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
++function() {var buildGUID = "f261707039e441f390c91f6897cd983f";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
 var gmxAPIJSlist = [];
