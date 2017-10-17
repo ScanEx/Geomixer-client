@@ -698,12 +698,19 @@ nsGmx.Templates.AuthWidget["authWidget"] = "{{#if userName}}\n" +
     "        </div>\n" +
     "    </div>\n" +
     "{{else}}\n" +
+    "\n" +
     "    <div class=\"authWidget_unauthorized\">\n" +
-    "        <div class=\"authWidget-loginButton\">\n" +
-    "            {{i 'auth.login'}}\n" +
+    "        <div class=\"authWidget-userPanel\">\n" +
+    "            <div class=\"authWidget-userPanel-iconCell\">\n" +
+    "                <div class=\"authWidget-userPanel-userIcon\"></div>\n" +
+    "            </div>\n" +
+    "            <div class=\"authWidget-loginButton\">\n" +
+    "                {{i 'auth.login'}}\n" +
+    "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
-    "{{/if}}";;
+    "{{/if}}\n" +
+    "";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.AuthWidget = (function() {
@@ -772,7 +779,9 @@ nsGmx.AuthWidget = (function() {
             if (this._options.isAdmin) {
                 dropdownItems.push({
                     title: nsGmx.Translations.getText('Системные настройки'),
-                    link: 'http://maps.kosmosnimki.ru/Administration/Actions.aspx'
+                    link: window.serverBase + 'Administration/Actions.aspx',
+                    id: 'AuthWidgetAdminLink',
+                    newWindow: true
                 });
 
                 dropdownItems.push({
@@ -998,19 +1007,11 @@ nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "        </div>\n" +
     "    </div>\n" +
     "    <div class=\"headerWidget-right\">\n" +
-    "        <div class=\"headerWidget-bar headerWidget-navigationBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-navigationBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-leftLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-rightLinksContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-socialsContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
     "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
     "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
     "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-searchContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
     "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
@@ -3595,7 +3596,15 @@ nsGmx.Translations.addText('eng', {
     }
 });
 ;
-+ function() {
+/*eslint-env commonjs, browser */
+(function(factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = factory(require('leaflet'));
+    } else {
+        window.L.control.iconLayers = factory(window.L);
+        window.L.Control.IconLayers = window.L.control.iconLayers.Constructor;
+    }
+})(function(L) {
     function each(o, cb) {
         for (var p in o) {
             if (o.hasOwnProperty(p)) {
@@ -3646,8 +3655,8 @@ nsGmx.Translations.addText('eng', {
         }
     }
 
-    L.Control.IconLayers = L.Control.extend({
-        includes: L.Mixin.Events,
+    var IconLayers = L.Control.extend({
+		includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
         _getActiveLayer: function() {
             if (this._activeLayerId) {
                 return this._layers[this._activeLayerId];
@@ -3682,14 +3691,16 @@ nsGmx.Translations.addText('eng', {
         },
         _arrangeLayers: function() {
             var behaviors = {};
-
-            behaviors['previous'] = function() {
+            behaviors.previous = function() {
                 var layers = this._getInactiveLayers();
-                this._getActiveLayer() && layers.unshift(this._getActiveLayer());
-                this._getPreviousLayer() && layers.unshift(this._getPreviousLayer());
+                if (this._getActiveLayer()) {
+                    layers.unshift(this._getActiveLayer());
+                }
+                if (this._getPreviousLayer()) {
+                    layers.unshift(this._getPreviousLayer());
+                }
                 return layers;
             };
-
             return behaviors[this.options.behavior].apply(this, arguments);
         },
         _getLayerCellByLayerId: function(id) {
@@ -3712,7 +3723,7 @@ nsGmx.Translations.addText('eng', {
                 el.appendChild(checkIconEl);
             }
             if (layerObj.icon) {
-                el.setAttribute('style', "background-image: url('" + layerObj.icon + "')");
+                el.setAttribute('style', 'background-image: url(\'' + layerObj.icon + '\')');
             }
             return el;
         },
@@ -3767,19 +3778,27 @@ nsGmx.Translations.addText('eng', {
                 }
             }.bind(this));
             var layersRowCollection = this._container.getElementsByClassName('leaflet-iconLayers-layersRow');
+
+            var onMouseEnter = function(e) {
+                e.stopPropagation();
+                this.expand();
+            }.bind(this);
+
+            var onMouseLeave = function(e) {
+                e.stopPropagation();
+                this.collapse();
+            }.bind(this);
+
+            var stopPropagation = function(e) {
+                e.stopPropagation();
+            };
+
+            //TODO Don't make functions within a loop.
             for (var i = 0; i < layersRowCollection.length; i++) {
                 var el = layersRowCollection[i];
-                el.addEventListener('mouseenter', function(e) {
-                    e.stopPropagation();
-                    this.expand();
-                }.bind(this));
-                el.addEventListener('mouseleave', function(e) {
-                    e.stopPropagation();
-                    this.collapse();
-                }.bind(this));
-                el.addEventListener('mousemove', function(e) {
-                    e.stopPropagation();
-                });
+                el.addEventListener('mouseenter', onMouseEnter);
+                el.addEventListener('mouseleave', onMouseLeave);
+                el.addEventListener('mousemove', stopPropagation);
             }
         },
         _render: function() {
@@ -3842,12 +3861,14 @@ nsGmx.Translations.addText('eng', {
         setLayers: function(layers) {
             this._layers = {};
             layers.map(function(layer) {
-                var id = L.stamp(layer.layer)
+                var id = L.stamp(layer.layer);
                 this._layers[id] = L.extend(layer, {
                     id: id
                 });
             }.bind(this));
-            this._container && this._render();
+            if (this._container) {
+                this._render();
+            }
         },
         setActiveLayer: function(layer) {
             var l = layer && this._layers[L.stamp(layer)];
@@ -3856,7 +3877,9 @@ nsGmx.Translations.addText('eng', {
             }
             this._previousLayerId = this._activeLayerId;
             this._activeLayerId = l.id;
-            this._container && this._render();
+            if (this._container) {
+                this._render();
+            }
             this.fire('activelayerchange', {
                 layer: layer
             });
@@ -3874,11 +3897,15 @@ nsGmx.Translations.addText('eng', {
             }.bind(this));
         }
     });
-}();
 
-L.control.iconLayers = function(layers, options) {
-    return new L.Control.IconLayers(layers, options);
-};
+    var iconLayers = function(layers, options) {
+        return new IconLayers(layers, options);
+    };
+
+    iconLayers.Constructor = IconLayers;
+
+    return iconLayers;
+});
 window.nsGmx.Translations.addText('rus', {
     gmxIconLayers: {
         zoominpls: 'Приблизьте карту, чтобы активировать слой',

@@ -42,7 +42,7 @@ require('./common_components/builder')(gulp, {
             },
             srcRoot + 'AlertWidget@build',
             srcRoot + 'GmxShareIconControl@build',
-            srcRoot + 'Leaflet-IconLayers/src',
+            root + 'leaflet/plugins/' + 'Leaflet-IconLayers/src',
             srcRoot + 'GmxIconLayers',
             {
                 build: false,
