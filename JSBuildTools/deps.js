@@ -73,8 +73,10 @@ var jsFiles = [
     "src/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
+    "src/SearchLogic/SearchProviders.js",
+    "src/SearchLogic/SearchLogic.js",
+    "leaflet/plugins/gmxLayers2/gmxLayers2.js",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
-
     "starter.js",
     "version.js"
 ];
@@ -131,7 +133,8 @@ var cssFiles = [
     "css/swich-slider.css",
 
     "src/adapter.css",
-    "leaflet/leafletGmx.css",
+    "leaflet/plugins/gmxControls/src/css/external.css",
+    "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",
     "leaflet/leafletGmx.css",
