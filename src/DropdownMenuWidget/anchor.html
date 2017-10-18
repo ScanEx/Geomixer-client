@@ -1,0 +1,12 @@
+<a 
+    {{#if id}}id="{{id}}"{{/if}}
+    {{#if link}}href="{{link}}"{{else}}href="javascript:void(0)"{{/if}}
+    {{#if newWindow}}target="_blank" class="dropdownMenuWidget-anchor_newWindow"{{/if}}
+>
+    {{#if icon}}
+        <img src="{{icon}}" />
+    {{/if}}
+    {{#if title}}
+        <span>{{title}}</span>
+    {{/if}}
+</a>

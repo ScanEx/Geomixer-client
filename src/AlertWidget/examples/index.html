@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AlertWidget demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.3/backbone-min.js"></script>
+    <script src="../../GmxWidget/GmxWidget.js"></script>
+    <script src="../build/alertWidget.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../CommonStyles/build/styles.css">
+    <link rel="stylesheet" type="text/css" href="../build/alertWidget.css">
+</head>
+<body>
+    <script>
+        var widget = new nsGmx.AlertWidget('командира мух атакуют сачки', 'warning');
+        widget.appendTo(document.body);
+        setTimeout(function() {
+            widget.push('звёздный крейсер сошёл с рельс на пути в Брянск', 'error');
+        }, 750);
+    </script>
+</body>
+</html>

@@ -1,4 +1,21 @@
 /* added css for Geomixer */
+.leaflet-gmx-icon-boxzoom {
+    background-position: -623px 2px;
+}
+.leaflet-gmx-icon-boxzoom-active {
+    background-position: -623px -24px;
+}
+
+.leaflet-control-permalink, .leaflet-control-gmxprint  {
+    clear: none;
+}
+.leaflet-gmx-icon-permalink{
+    background-position: -531px 2px;
+}
+
+.leaflet-gmx-icon-gmxprint {
+    background-position: -49px 1px;
+}
 
 .cursorAuto {
     cursor: auto;
@@ -13,7 +30,7 @@
 }
 
 .leaflet-ext-search {
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 @media screen and (min-width: 1300px) {
@@ -43,43 +60,9 @@
     height: 100%;
 }
 
-.iconSidebarControl-pane {
-    padding: 0px !important;
-}
-
-.iconSidebarControl_opened {
-    width: 400px !important;
-}
-
-.iconSidebarControl {
-    margin: 0;
-}
-
-.leaflet-left .iconSidebarControl {
-    margin-left: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-.iconSidebarControl-content {
-    background-color: #FFF;
-}
-
-.leaflet-gmx-copyright-location {
-    left: 40px;
-}
-
-.leaflet-gmx-copyright-location-bg {
-    left: 40px;
-}
-
-.leaflet-top.leaflet-right.leaflet-bottom {
-    max-width: 35px;
-}
-
-.leaflet-top.leaflet-right.leaflet-bottom  .leaflet-control{
-    margin-top: 5px;
-    margin-bottom: 5px;
+@media screen and (max-width: 1300px) {
+.leaflet-ext-search input {
+    width: 150px;
 }
 
 .leaflet-gmx-iconSvg {
@@ -100,5 +83,5 @@
 }
 
 .leaflet-gmx-icon-groupSvg {
-	 box-shadow: none; 
+	 box-shadow: none;
 }

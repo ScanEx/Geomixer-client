@@ -11,9 +11,9 @@
                         regularImage: 'ship.png',
                         activeImage: 'active.png'
                     }, params),
-                    searchControl = 'getSearchControl' in window.oSearchControl ? window.oSearchControl.getSearchControl() : null,
+                    searchControl = (window.oSearchControl && 'getSearchControl' in window.oSearchControl) ? window.oSearchControl.getSearchControl() : window.searchControl || null,
                 /* eslint-disable new-cap*/
-                    placeholderDefault = searchControl ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0'),
+                    placeholderDefault = (searchControl && 'GetSearchString' in searchControl) ? searchControl.GetSearchString() : _gtxt(pluginName + '.placeholder_0'),
                 /* eslint-enable */
                     searchBorder = {},
                     lmap = nsGmx.leafletMap,
@@ -388,7 +388,7 @@
                 };
 
                 // Добавим обработку поискового запроса перед отправкой геокодеру
-                if (searchControl)
+            /*    if (searchControl)
                     searchControl.onAutoCompleteDataSearchStarting({
                         observer: { add: true, observer: autoCompleteSearchObserver },
                         selectItem: function (event, oAutoCompleteItem) {
@@ -421,7 +421,7 @@
 				                });
                             }
                         }
-                    });
+                    });*/
 
                 /**********************************************************************************/
 
@@ -452,19 +452,33 @@
                             tracksLayer.setDateInterval(d1, d2);
                         }
                         if (searchControl) {
-                            searchControl.addSearchByStringHook(searchHook, 1002);
+                            // new searchcontrol
+                            if (window.searchLogic) {
+                                window.searchLogic.addSearchByStringHook(searchHook, 1002);
+                            } else {
+                                searchControl.addSearchByStringHook(searchHook, 1002);
+                            }
 
                             /* eslint-disable new-cap*/
                             if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(_gtxt(pluginName + '.placeholder_1')); }
+                            // new searchcontrol
+                            if (searchControl.setPlaceHolder) { searchControl.setPlaceHolder(_gtxt(pluginName + '.placeholder_1')); }
                             /* eslint-enable */
                         }
                         lmap.addControl(sideBar);
                         getMMSIoptions();
                     } else {
                         if (searchControl) {
-                            searchControl.removeSearchByStringHook(searchHook);
+                            if (window.searchLogic) {
+                                window.searchLogic.removeSearchByStringHook(searchHook);
+                            } else {
+                                searchControl.removeSearchByStringHook(searchHook);
+                            }
+
                             /* eslint-disable new-cap*/
                             if (searchControl.SetPlaceholder) { searchControl.SetPlaceholder(placeholderDefault); }
+                            // new searchcontrol
+                            if (searchControl.setPlaceHolder) { searchControl.setPlaceHolder(placeholderDefault); }
                             /* eslint-enable */
                         }
                         if (sideBar && sideBar._map) {

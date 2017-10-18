@@ -1,0 +1,35 @@
+.shareIcon { cursor: pointer; }
+.shareDialogContainer { width: 230px; }
+
+/* more specific selector to ensure that Leaflet style isn't applied */
+.leaflet-container .shareDialog a { color: #121212; }
+
+.shareDialog { padding: 2px 0; cursor: default; }
+.shareDialog a { color: #121212; }
+.shareDialog-title { font-weight: bold; font-size: 12px; }
+.shareDialog-row { padding-bottom: 8px; }
+.shareDialog-row:last-child { padding-bottom: 0px; }
+/*.shareDialog button.mfp-close { width: 28px; height: 28px; line-height: 20px; font-size: 14px; }*/
+
+.shareDialog i { font-size: 12px; }
+.shareDialog .icon-link-ext { padding: 0px 2px; }
+
+.shareDialog .shareDialog-title .shareDialog-socialShareLink { float: right; }
+
+.shareDialog-inputPermalinkUrl {}
+
+.shareDialog-permalinkUrlCell { width: 100%; }
+.shareDialog-permalinkUrlPreviewButton { padding: 0 4px; }
+.shareDialog-permalinkUrlPreviewButtonCell {}
+
+.shareDialog-resolutionTable { width: 100%; }
+.shareDialog-previewResolutionCell { width: 50%; }
+.shareDialog-previewResolutionCell input { width: 40px; }
+.shareDialog-resolutionCross { margin: 0 2px; }
+
+.shareDialog-resolutionTable-cell { width: 50%; }
+.shareDialog-winnieLinkCell { padding-left: 15px; }
+
+.shareDialog .shareDialog-inputEmbedCode { height: 55px; resize: none; display: block; font-family: monospace; }
+.shareDialog-includePermalinkLabel { padding: 0 5px; }
+.shareDialog-includePermalinkCheckbox { margin: 0; vertical-align: middle; }

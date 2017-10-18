@@ -70,19 +70,18 @@ var jsFiles = [
     "search.js",
     "NotificationWidget.js",
     "VirtualLayerManager.js",
-    "common_components/primary.js",
+    "src/primary.js",
 
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
     "src/SearchLogic/SearchProviders.js",
     "src/SearchLogic/SearchLogic.js",
     "leaflet/plugins/gmxLayers2/gmxLayers2.js",
-
+    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
     "starter.js",
-    "version.js",
-    "leaflet/plugins/GMXVirtualTileLayer/GmxVirtualTileLayer.js"
+    "version.js"
 ];
 
-var jsFilesThidparty = [
+var jsFilesThirdparty = [
     "jquery/jquery-1.10.2.min.js",
     // "jquery/jquery-1.10.2.js",
     "jquery/jquery.getCSS.js",
@@ -105,16 +104,7 @@ var jsFilesThidparty = [
     "colorpicker/js/eye.js",
     "colorpicker/js/utils.js",
 
-    "thirdparty/customscrollbar/jquery.mCustomScrollbar.js",
-
-    "leaflet/leaflet.js",
-    "leaflet/plugins/Leaflet.TileLayer.Mercator/src/TileLayer.Mercator.js",
-    "leaflet/plugins/gmxBaseLayersManager/src/gmxBaseLayersManager.js",
-    "leaflet/plugins/gmxBaseLayersManager/src/initBaseLayerManager.js",
-    "leaflet/plugins/gmxGrid/src/Leaflet.gmxGrid.js",
-    "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
-    "leaflet/plugins/Leaflet.MapboxVectorTile/dist/Leaflet.MapboxVectorTile.min.js"
-
+    "thirdparty/customscrollbar/jquery.mCustomScrollbar.js"
 ];
 
 var cssFiles = [
@@ -142,9 +132,7 @@ var cssFiles = [
     "css/layerstylesmenu.css",
     "css/swich-slider.css",
 
-    "common_components/adapter.css",
-    "leaflet/leaflet.css",
-    "leaflet/plugins/gmxControls/src/css/external.css",
+    "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     "leaflet/plugins/IconSidebarControl/dist/iconSidebarControl.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
@@ -161,12 +149,12 @@ var cssFiles = [
 
 var moduleFiles = {
     'L.ImageOverlay.Pane': 'leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js',
-    'ProfilePlugin': 'common_components/GeoMixerAccount/ProfilePlugin.js'
+    'ProfilePlugin': 'src/GeoMixerAccount/ProfilePlugin.js'
 }
 
 module.exports = {
     jsFiles: jsFiles,
-    jsFilesThidparty: jsFilesThidparty,
+    jsFilesThirdparty: jsFilesThirdparty,
     cssFiles: cssFiles,
     moduleFiles: moduleFiles
 }

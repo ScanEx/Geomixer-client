@@ -1,0 +1,6 @@
+{
+    "watch": [
+        "assets/*",
+        "LanguageWidget.js"
+    ]
+}

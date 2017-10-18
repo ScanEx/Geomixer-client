@@ -668,7 +668,7 @@
 
                         if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
                             timelineIcon = document.createElement('img');
-                            timelineIcon.src = 'img/timeline-icon-disabled.png';
+                            timelineIcon.src = 'img/timeline-icon-disabled.svg';
                             timelineIcon.className = 'gmx-timeline-icon disabled';
                             timelineIcon.title = window._gtxt("Добавить в таймлайн");
 
@@ -706,7 +706,7 @@
 
                             $(this).on('layerTimelineRemove', function(e, data) {
                                 if (data.layerID === layerName) {
-                                    timelineIcon.src = 'img/timeline-icon-disabled.png';
+                                    timelineIcon.src = 'img/timeline-icon-disabled.svg';
                                     timelineIcon.title = window._gtxt("Удалить из таймлайна");
                                     $(timelineIcon).addClass('disabled');
                                 }
@@ -714,7 +714,13 @@
 
                             $(this).on('layerTimelineAdd', function(e, data) {
                                 if (data.layerID === layerName) {
-                                    timelineIcon.src = 'img/timeline-icon.png';
+
+                                    if (!parentVisibility || !elem.visible) {
+                                        $(multiStyleParent).removeClass("invisible");
+                                        this.treeModel.setNodeVisibility(this.findTreeElem(span.parentNode.parentNode).elem, true);
+                                    }
+
+                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
                                     timelineIcon.title = window._gtxt("Добавить в таймлайн");
                                     $(timelineIcon).removeClass('disabled');
                                 }
@@ -991,7 +997,8 @@
         if (div) {
             var isVisible = elem.content.properties.visible;
             $(div).children("[titleDiv], [multiStyle]").toggleClass("invisible", !isVisible);
-            $(div).find('input[type="checkbox"]')[0].checked = isVisible;
+            var checkbox = $(div).find('input[type="checkbox"]')[0] || $(div).find('input[type="radio"]')[0];
+            checkbox.checked = isVisible;
         }
     }
 

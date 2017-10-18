@@ -1,51 +1,9 @@
-[submodule "leaflet/plugins/Leaflet-GeoMixer"]
-	path = leaflet/plugins/Leaflet-GeoMixer
-	url = git@github.com:ScanEx/Leaflet-GeoMixer.git
-[submodule "common_components/GeoMixerAccount"]
-	path = common_components/GeoMixerAccount
-	url = git@github.com:ScanEx/GeoMixerAccount.git
-[submodule "common_components/Leaflet-IconLayers"]
-	path = common_components/Leaflet-IconLayers
-	url = git@github.com:ScanEx/Leaflet-IconLayers.git
-[submodule "leaflet/plugins/GMXVirtualTileLayer"]
-	path = leaflet/plugins/GMXVirtualTileLayer
-	url = git@github.com:ScanEx/GMXVirtualTileLayer.git
 [submodule "leaflet/plugins/L.ImageOverlay.Pane"]
 	path = leaflet/plugins/L.ImageOverlay.Pane
 	url = git@github.com:ScanEx/L.ImageOverlay.Pane.git
-[submodule "leaflet/plugins/Leaflet.contextmenu"]
-	path = leaflet/plugins/Leaflet.contextmenu
-	url = git@github.com:ScanEx/Leaflet.contextmenu.git
-[submodule "leaflet/plugins/Leaflet.TileLayer.Mercator"]
-	path = leaflet/plugins/Leaflet.TileLayer.Mercator
-	url = git@github.com:ScanEx/Leaflet.TileLayer.Mercator.git
-[submodule "leaflet/plugins/Leaflet.heat"]
-	path = leaflet/plugins/Leaflet.heat
-	url = git@github.com:Leaflet/Leaflet.heat.git
-[submodule "leaflet/plugins/Leaflet.imageTransform"]
-	path = leaflet/plugins/Leaflet.imageTransform
-	url = git@github.com:ScanEx/Leaflet.imageTransform.git
-[submodule "leaflet/plugins/Leaflet.markercluster"]
-	path = leaflet/plugins/Leaflet.markercluster
-	url = git@github.com:Leaflet/Leaflet.markercluster.git
-[submodule "leaflet/plugins/gmxBaseLayersManager"]
-	path = leaflet/plugins/gmxBaseLayersManager
-	url = git@github.com:ScanEx/Leaflet.gmxBaseLayersManager.git
-[submodule "leaflet/plugins/gmxControls"]
-	path = leaflet/plugins/gmxControls
-	url = git@github.com:ScanEx/gmxControls.git
-[submodule "leaflet/plugins/gmxDrawing"]
-	path = leaflet/plugins/gmxDrawing
-	url = git@github.com:ScanEx/gmxDrawing.git
-[submodule "leaflet/plugins/gmxGrid"]
-	path = leaflet/plugins/gmxGrid
-	url = git@github.com:ScanEx/Leaflet.gmxGrid.git
 [submodule "JSBuildTools/common_components/builder"]
 	path = JSBuildTools/common_components/builder
 	url = git@github.com:ScanEx/GMXBuilder.git
-[submodule "common_components/repo"]
-	path = common_components/repo
-	url = git@github.com:ScanEx/GMXCommonComponents.git
 [submodule "plugins/external/GMXPluginAgro"]
 	path = plugins/external/GMXPluginAgro
 	url = git@github.com:ScanEx/GMXPluginAgro.git
@@ -82,12 +40,6 @@
 [submodule "plugins/external/WWFAlert"]
 	path = plugins/external/WWFAlert
 	url = git@github.com:aparshin/WWFAlert.git
-[submodule "leaflet/plugins/fetch"]
-	path = leaflet/plugins/fetch
-	url = git@github.com:ScanEx/fetch.git
-[submodule "leaflet/plugins/es6-promise"]
-	path = leaflet/plugins/es6-promise
-	url = git@github.com:ScanEx/es6-promise.git
 [submodule "src/CalendarWidget"]
 	path = src/CalendarWidget
 	url = git@github.com:ScanEx/CalendarWidget.git
@@ -103,9 +55,12 @@
 [submodule "leaflet/plugins/Leaflet.Dialog"]
 	path = leaflet/plugins/Leaflet.Dialog
 	url = git@github.com:ScanEx/Leaflet.Dialog.git
-[submodule "leaflet/plugins/Leaflet.MapboxVectorTile"]
-	path = leaflet/plugins/Leaflet.MapboxVectorTile
-	url = git@github.com:ScanEx/Leaflet.MapboxVectorTile.git
+[submodule "leaflet/plugins/Leaflet-IconLayers"]
+	path = leaflet/plugins/Leaflet-IconLayers
+	url = git@github.com:ScanEx/Leaflet-IconLayers.git
+[submodule "src/GeoMixerAccount"]
+	path = src/GeoMixerAccount
+	url = git@github.com:ScanEx/GeoMixerAccount.git
 [submodule "leaflet/plugins/IconSidebarControl"]
 	path = leaflet/plugins/IconSidebarControl
 	url = git@github.com:ScanEx/IconSidebarControl.git

@@ -600,11 +600,15 @@ nsGmx.widgets = nsGmx.widgets || {};
             window.searchControl._container._id = 'searchcontrol';
 
             var searchContainer = window.searchControl._widget._container;
+            var stop = L.DomEvent.stopPropagation;
 
-            $(searchContainer).contextmenu(function(e) {
-                e.stopPropagation();
-                return true;
-            });
+            L.DomEvent
+                .on(searchContainer, 'mousemove', stop)
+                .on(searchContainer, 'touchstart', stop)
+                .on(searchContainer, 'mousedown', stop)
+                .on(searchContainer, 'dblclick', stop)
+                .on(searchContainer, 'contextmenu', stop)
+                .on(searchContainer, 'click', stop);
 
             var gmxLayers = new L.control.gmxLayers2(null, null, {
                 title: window._gtxt('Панель оверлеев'),
@@ -1350,7 +1354,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             var rightLinks = [];
 
             nsGmx.widgets.header = new nsGmx.HeaderWidget({
-                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'img/geomixer_transpar_small.png'
+                logo: (window.gmxViewerUI && window.gmxViewerUI.logoImage) || 'logotypes/geomixer_transpar_small.png'
             });
 
             nsGmx.widgets.header.appendTo($('.header'));
@@ -1450,13 +1454,13 @@ nsGmx.widgets = nsGmx.widgets || {};
             // bind clusters to photoLayers
             for (var l = 0; l < gmxMap.layers.length; l++) {
                 var layer = gmxMap.layers[l],
-                    props = layer.getGmxProperties();
+                props = layer.getGmxProperties();
 
                 if (props.IsPhotoLayer) {
                     layer.bindClusters({
                         iconCreateFunction: function(cluster) {
                             var photoClusterIcon = L.divIcon({
-                                html: '<img src="http://maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                 className: 'photo-div-icon',
                                 iconSize: [14, 12],
                                 iconAnchor: [0, 0]
