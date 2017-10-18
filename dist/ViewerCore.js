@@ -10729,11 +10729,11 @@ pointsBinding.pointsBinding.unload = function()
         var borderDescr = _span();
 
         var count = 0;
-        var props = {};
+        var metaProps = {};
         if (elem.MetaProperties) {
             for (key in elem.MetaProperties) {
                 var tagtype = elem.MetaProperties[key].Type;
-                props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+                metaProps[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
                 count++;
             }
         }
@@ -10743,7 +10743,7 @@ pointsBinding.pointsBinding.unload = function()
                 ['dir', 'className', 'layerInfoButton']
             ]);
             borderDescr.onclick = function() {
-                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: props });
+                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: metaProps });
             }
         }
 
