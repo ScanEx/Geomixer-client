@@ -214,7 +214,7 @@
                         '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'
                         )(v));
                         $('.menu', canvas).append(Handlebars.compile(
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}} UTC</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
                         '<div class="vessel_prop"><b>Latitude</b>: {{latitude}}</div>'+
                         '<div class="vessel_prop"><b>Longitude</b>: {{longitude}}</div>'
                         )(v));
