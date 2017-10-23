@@ -34,7 +34,7 @@ nsGmx.widgets = nsGmx.widgets || {};
     var gmxJSHost = window.gmxJSHost || '';
 
     if (!window.mapHostName && window.gmxJSHost) {
-        window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
+        window.mapHostName = /https?:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
     }
 
     var _mapHostName; //откуда грузить API
