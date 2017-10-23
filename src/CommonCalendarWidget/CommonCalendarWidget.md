@@ -10,3 +10,4 @@ setCurrentLayer | `setCurrentLayer`(`<ILayer> layer`) | | устанавлива
 bindLayer | `bindLayer`(`<String> layerName`) | | привязывает слой к календарю.
 unbindLayer | `unbindLayer`(`<String> layerName`) | | отвязывает слой от календаря. `dateInterval` слоя и календаря обновляют себя независимо.
 setDailyFilter| `setDailyFilter`(`<Boolean> active`) | | устанавливает режим "посуточно"
+setSyncMode| `setSyncMode`(`<Boolean> value`) | | устанавливает режим применения календаря к одному/всем слоям
