@@ -1550,7 +1550,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
 
-            baseLayerDef.always(function() {
+            baseLayerDef.then(function() {
 
                 nsGmx.gmxMap = gmxMap;
                 gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
