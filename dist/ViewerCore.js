@@ -10487,10 +10487,12 @@ pointsBinding.pointsBinding.unload = function()
                     if (!parentCanvas.loaded) {
                         parentCanvas.loaded = true;
 
-                        var childs = [];
+                        var childs = [],
+                            grId = $(parentCanvas.parentNode).children("div[GroupID]");
 
-                        for (var i = 0; i < elem.content.children.length; i++)
-                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
+                        for (var i = 0; i < elem.content.children.length; i++) {
+                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(grId).find('input[type="checkbox"]')[0] || $(grId).find('input[type="radio"]')[0])));
+                        }
 
                         _(parentCanvas, childs);
 
@@ -11126,10 +11128,11 @@ pointsBinding.pointsBinding.unload = function()
         var el = box.parentNode.parentNode.parentNode;
 
         while (!el.root) {
-            var group = $(el).children("[GroupID]");
+            var group = $(el).children("[GroupID]"),
+				chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
 
             if (group.length > 0) {
-                if (!$(group).find('input[type="checkbox"]')[0].checked)
+                if (!chB.checked)
 
                     return false;
             }
@@ -31192,6 +31195,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31221,19 +31237,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(

@@ -337,10 +337,12 @@
                     if (!parentCanvas.loaded) {
                         parentCanvas.loaded = true;
 
-                        var childs = [];
+                        var childs = [],
+                            grId = $(parentCanvas.parentNode).children("div[GroupID]");
 
-                        for (var i = 0; i < elem.content.children.length; i++)
-                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
+                        for (var i = 0; i < elem.content.children.length; i++) {
+                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(grId).find('input[type="checkbox"]')[0] || $(grId).find('input[type="radio"]')[0])));
+                        }
 
                         _(parentCanvas, childs);
 
@@ -976,10 +978,11 @@
         var el = box.parentNode.parentNode.parentNode;
 
         while (!el.root) {
-            var group = $(el).children("[GroupID]");
+            var group = $(el).children("[GroupID]"),
+				chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
 
             if (group.length > 0) {
-                if (!$(group).find('input[type="checkbox"]')[0].checked)
+                if (!chB.checked)
 
                     return false;
             }
