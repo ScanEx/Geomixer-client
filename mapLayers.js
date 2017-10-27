@@ -668,7 +668,7 @@
                         var props = layer.getGmxProperties(),
                             layerName = props.name;
 
-                        if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
+                        if (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null'))) {
                             timelineIcon = document.createElement('img');
                             timelineIcon.src = 'img/timeline-icon-disabled.svg';
                             timelineIcon.className = 'gmx-timeline-icon disabled';
