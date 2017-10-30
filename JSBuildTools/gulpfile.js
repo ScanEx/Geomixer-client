@@ -60,33 +60,12 @@ var addPrefix = function(prefix, array) {
 gulp.task('gmx-pub', ['compile'], function(cb) {
     var gmxDeps = require('./deps.js'),
         buildUUID = uuid.v4().replace(/-/g, '');
-
-<<<<<<< HEAD
-    var thirdpartySources = addPrefix(root, gmxDeps.jsFilesThidparty);
-    var mainSources = [].concat(
-        [
-            distDir + 'es6-promise/dist/es6-promise.auto.js',
-            distDir + 'fetch/fetch.js',
-            distDir + 'Leaflet-GeoMixer/leaflet-geomixer-src.js',
-            distDir + 'gmxControls/gmxControls-src.js',
-            distDir + 'gmxDrawing/gmxDrawing-src.js'
-        ],
-        addPrefix(root, gmxDeps.jsFiles)
-    );
-
-    var cssSources = [].concat(addPrefix(root, gmxDeps.cssFiles), [
-        distDir + 'Leaflet-GeoMixer/leaflet-geomixer.css',
-        distDir + 'gmxControls/css/gmxControls.css',
-        distDir + 'gmxDrawing/css/gmxDrawing.css'
-    ]);
-=======
     var thirdpartySources = addPrefix(root, gmxDeps.jsFilesThirdparty);
 
     var mainSources = [].concat(
         [],
         addPrefix(root, gmxDeps.jsFiles)
     );
->>>>>>> master
 
     var distRoot = root + 'dist/';
     gulp.src(thirdpartySources)

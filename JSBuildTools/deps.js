@@ -77,6 +77,7 @@ var jsFiles = [
     "src/SearchLogic/SearchLogic.js",
     "leaflet/plugins/gmxLayers2/gmxLayers2.js",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
+    "leaflet/plugins/IconSidebarControl/dist/iconSidebarControl.js",
     "starter.js",
     "version.js"
 ];
