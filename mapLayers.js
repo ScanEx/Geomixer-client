@@ -500,7 +500,10 @@
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
         //TODO: enable animation!
-        lmap.fitBounds(bounds, { animation: false });
+        lmap.fitBounds(bounds, {
+            animation: false,
+            paddingTopLeft: lmap.options.paddingTopLeft || [0, 0]
+         });
 
         //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
         if (z !== lmap.getZoom()) {

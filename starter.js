@@ -34,7 +34,7 @@ nsGmx.widgets = nsGmx.widgets || {};
     var gmxJSHost = window.gmxJSHost || '';
 
     if (!window.mapHostName && window.gmxJSHost) {
-        window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
+        window.mapHostName = /https?:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
     }
 
     var _mapHostName; //откуда грузить API
@@ -83,7 +83,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     this.restoreOptions(options);
                 }
                 this.state = isActive;
-                nsGmx.leafletMap.gmxControlIconManager.get('m-gridtool').setActive(isActive);
+                nsGmx.leafletMap.gmxControlIconManager.get('gridTool').setActive(isActive);
                 _menuUp.checkItem('mapGrid', isActive);
                 _mapHelper.gridView = isActive; //можно удалить?
 
@@ -377,8 +377,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             //пополняем тулбар
             var uploadFileIcon = L.control.gmxIcon({
-                position: 'right',
-                id: 'm-uploadfile',
+                id: 'uploadFile',
                 title: _gtxt('Загрузить объекты')
             }).on('click', drawingObjects.loadShp.load.bind(drawingObjects.loadShp));
 
@@ -398,8 +397,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             if (_queryMapLayers.currentMapRights() === 'edit') {
 
                 var saveMapIcon = L.control.gmxIcon({
-                        position: 'right',
-                        id: 'm-savemap',
+                        id: 'saveMap',
                         title: _gtxt('Сохранить карту'),
                         addBefore: 'drawing'
                     })
@@ -408,39 +406,35 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 //группа создания слоёв
                 var createVectorLayerIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-createvectorlayer',
+                    id: 'createVectorLayer',
                     title: _gtxt('Создать векторный слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
                     _mapHelper.createNewLayer('Vector');
                     createVectorLayerIcon.setActive(true);
                     createRasterLayerIcon.setActive(false);
-                }).addTo(lmap);
+                });
 
                 var createRasterLayerIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-createrasterlayer',
+                    id: 'createRasterLayer',
                     title: _gtxt('Создать растровый слой'),
                     addBefore: 'drawing'
                 }).on('click', function() {
                     _mapHelper.createNewLayer('Raster');
                     createRasterLayerIcon.setActive(true);
                     createVectorLayerIcon.setActive(false);
-                }).addTo(lmap);
+                });
 
                 var createLayerIconGroup = L.control.gmxIconGroup({
-                    position: 'right',
                     id: 'createLayer',
                     isSortable: true,
                     //isCollapsible: false,
                     items: [createVectorLayerIcon, createRasterLayerIcon],
                     addBefore: 'drawing'
-                })/*.addTo(lmap)*/;
+                }).addTo(lmap);
 
                 var bookmarkIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-bookmark',
+                    id: 'bookmark',
                     title: _gtxt('Добавить закладку'),
                     addBefore: 'drawing'
                 }).on('click', function() {
@@ -454,8 +448,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             }
 
             var printIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-gmxprint',
+                    id: 'gmxprint',
                     title: _gtxt('Печать'),
                     addBefore: 'drawing'
                 })
@@ -463,8 +456,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 .on('click', _mapHelper.print.bind(_mapHelper));
 
             var permalinkIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-permalink',
+                    id: 'permalink',
                     title: _gtxt('Ссылка на карту'),
                     addBefore: 'drawing'
                 })
@@ -473,7 +465,6 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
-                                        position: 'right',
                     permalinkManager: {
                         save: function() {
                             return $.when(
@@ -491,8 +482,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             }
 
             var gridIcon = L.control.gmxIcon({
-                    position: 'right',
-                    id: 'm-gridtool',
+                    id: 'gridTool',
                     title: _gtxt('Координатная сетка'),
                     togglable: true,
                     addBefore: 'drawing'
@@ -518,10 +508,9 @@ nsGmx.widgets = nsGmx.widgets || {};
             });
 
             lmap.addControl(L.control.gmxIcon({
-                position: 'right',
-                id: 'm-boxzoom',
+                id: 'boxzoom-dashed-rounded',
                 toggle: true,
-                addBefore: 'm-gridtool',
+                addBefore: 'drawing',
                 title: 'Увеличение',
                 onAdd: function(control) {
                     var map = control._map,
@@ -560,7 +549,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
                 position: 'topright',
-                addBefore: 's-fullscreen',
                 limit: 10,
                 retrieveManyOnEnter: true,
                 providers: [
@@ -623,7 +611,6 @@ nsGmx.widgets = nsGmx.widgets || {};
             lmap.addControl(gmxLayers);
             lmap.gmxControlsManager.add(gmxLayers);
         }
-
 
         var createDefaultMenu = function() {
             _menuUp.submenus = [];
@@ -1570,7 +1557,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
 
-            baseLayerDef.always(function() {
+            baseLayerDef.then(function() {
 
                 nsGmx.gmxMap = gmxMap;
                 gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID
@@ -1910,6 +1897,19 @@ nsGmx.widgets = nsGmx.widgets || {};
                 lmap.addControl(window.sidebarControl);
                 lmap.gmxControlsManager.add(window.sidebarControl);
 
+                // disable leaflet map events on sidebar
+
+                var sidebarContainer = window.sidebarControl.getContainer();
+                var stop = L.DomEvent.stopPropagation;
+
+                L.DomEvent
+                    .on(sidebarContainer, 'mousemove', stop)
+                    .on(sidebarContainer, 'touchstart', stop)
+                    .on(sidebarContainer, 'mousedown', stop)
+                    .on(sidebarContainer, 'dblclick', stop)
+                    .on(sidebarContainer, 'contextmenu', stop)
+                    .on(sidebarContainer, 'click', stop);
+
                 document
                     .querySelector(".iconSidebarControl")
                     .classList.add("noselect");
@@ -1967,18 +1967,27 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 
                 window.sidebarControl.on('opened', function (e) {
+                    console.log(e);
                     switch (e.id) {
                         case 'layers-tree':
                             break;
                         default:
                             break;
                     }
+                    handleMapCenter(e);
                     handleControlsPosition(e);
                 });
 
                 window.sidebarControl.on('closed', function (e) {
+                    handleMapCenter(e);
                     handleControlsPosition(e);
                 });
+
+                function handleMapCenter(e) {
+                    var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width;
+
+                    nsGmx.leafletMap.options.paddingTopLeft = [sidebarWidth, 0];
+                }
 
                 function handleControlsPosition(e) {
                     var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width,
@@ -2044,6 +2053,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         controlContainer.style.left = (shift + 10) + 'px';
                     }
                 }
+
 
                 /**
                  *

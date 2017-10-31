@@ -4,14 +4,14 @@ _translationsHash.addtext("rus", {
                             "loadShape.loadDone": "Геометрия успешно загружена",
                             "loadShape.loadFail": "Ошибка загрузки геометрии"
 						 });
-						 
+
 _translationsHash.addtext("eng", {
 							"loadShape.inputTitle": "Add shp-file (zipped)",
                             "loadShape.loadDone": "Successfully loaded",
                             "loadShape.loadFail": "Error loading file"
 						 });
 
-var drawingObjects = 
+var drawingObjects =
 {
 	loadShp: {}
 }
@@ -19,7 +19,7 @@ var drawingObjects =
 var queryLoadShp = function()
 {
 	this.builded = false;
-	
+
 	this.uploader = null;
 }
 
@@ -75,25 +75,25 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
         latLngBounds.extend(b);
     }
     if (latLngBounds.isValid()) {
-        lmap.fitBounds(latLngBounds);
+        lmap.fitBounds(latLngBounds, lmap.options);
     }
 }
 
 //files - массив File или WebForms
 queryLoadShp.prototype.loadAndShowFiles = function(files) {
     nsGmx.widgets.notifications.startAction('uploadShp');
-    
+
     var def = $.when.apply($, [].slice.call(files).map(function(file) {
         return nsGmx.Utils.parseShpFile(file);
     }));
-    
+
     def.then(function() {
         this._showObjectsOnMap(_.flatten([].slice.call(arguments)));
         nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
     }.bind(this), function() {
         nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));
     });
-    
+
     return def;
 }
 

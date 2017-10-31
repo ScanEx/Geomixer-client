@@ -193,7 +193,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
 		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc);
-        
+
         $(jQueryDialog).addClass('drawing-object-leaflet-id-' + parentObject._leaflet_id);
 	}
 
@@ -312,7 +312,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		if (geom.type == "Point") {
             _map.setView([coords[1], coords[0]], Math.max(14, _map.getZoom()));
         } else {
-            _map.fitBounds(drawingObject.getBounds());
+            _map.fitBounds(drawingObject.getBounds(), _map.options);
         }
     }
 

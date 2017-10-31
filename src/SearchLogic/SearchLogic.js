@@ -210,13 +210,13 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
                 && oFoundObject.MaxLon - oFoundObject.MinLon < 1e-9 && oFoundObject.MaxLat - oFoundObject.MinLat < 1e-9)
 			    map.setView([oFoundObject.CntrLat, oFoundObject.CntrLon], iZoom);
 		    else
-			    map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
+			    map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]], map.options);
         }
 		else
 		{
            if ((oFoundObject.Geometry.type).toUpperCase() == 'POINT') {
 		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat) {
-			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
+			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]], map.options);
                 } else {
                     var c = oFoundObject.Geometry.coordinates;
 			        map.setView([c[1], c[0]], iZoom);
@@ -225,7 +225,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 		    else {
                 var bounds = L.gmxUtil.getGeometryBounds(oFoundObject.Geometry);
 			    //var oExtent = getBounds(oFoundObject.Geometry.coordinates);
-			    map.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
+			    map.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], map.options);
             }
 		}
 	};
