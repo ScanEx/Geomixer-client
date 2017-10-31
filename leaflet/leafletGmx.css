@@ -1,4 +1,13 @@
 /* added css for Geomixer */
+.leaflet-left.leaflet-top.leaflet-bottom.gmx-bottom-shift {
+    bottom: 0px;
+    height: 100%;
+}
+
+.leaflet-gmx-copyright-location {
+    left: 0px;
+}
+
 .leaflet-gmx-icon-boxzoom {
     background-position: -623px 2px;
 }

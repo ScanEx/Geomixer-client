@@ -943,12 +943,13 @@ nsGmx.widgets = nsGmx.widgets || {};
             var pluginPath = gmxCore.getModulePath('EditObjectPlugin');
 
             var editIcon = L.control.gmxIcon({
-                position: 'right',
-                id: 'm-edittool',
+                id: 'editTool',
                 title: _gtxt('Редактировать'),
                 togglable: true,
                 addBefore: 'gmxprint'
             }).addTo(nsGmx.leafletMap);
+
+            window.sidebarControl.handleControlsPosition();
 
             editIcon.on('statechange', function() {
                 if (editIcon.options.isActive) {
@@ -1417,6 +1418,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var lmap = new L.Map($('#flash')[0], mapOptions);
 
+            lmap.gmxControlsManager.setSvgSprites(window.mapOptions.svgSprite);
 
             // update layers zIndexes
             var currentZoom = lmap.getZoom(),
@@ -1967,29 +1969,28 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 
                 window.sidebarControl.on('opened', function (e) {
-                    console.log(e);
                     switch (e.id) {
                         case 'layers-tree':
                             break;
                         default:
                             break;
                     }
-                    handleMapCenter(e);
-                    handleControlsPosition(e);
+                    this.handleMapCenter(e);
+                    this.handleControlsPosition(e);
                 });
 
                 window.sidebarControl.on('closed', function (e) {
-                    handleMapCenter(e);
-                    handleControlsPosition(e);
+                    this.handleMapCenter(e);
+                    this.handleControlsPosition(e);
                 });
 
-                function handleMapCenter(e) {
+                window.sidebarControl.handleMapCenter = function (e) {
                     var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width;
 
                     nsGmx.leafletMap.options.paddingTopLeft = [sidebarWidth, 0];
                 }
 
-                function handleControlsPosition(e) {
+                window.sidebarControl.handleControlsPosition = function (e) {
                     var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width,
                         mapWidth = parseInt(lmap.getContainer().style.width);
 
@@ -2044,13 +2045,17 @@ nsGmx.widgets = nsGmx.widgets || {};
                  * @param divide divide by 2
                  */
                 function shiftControl(controlId, shift, divide) {
-                    var control = lmap.gmxControlsManager.get(controlId);
+                    var control = lmap.gmxControlsManager.get(controlId),
+                        noAdditionalShiftControls = {
+                            'bottom': true
+                        },
+                        additionalShift = controlId in noAdditionalShiftControls ? 0 : 10;
 
                     shift = divide ? shift / 2 : shift;
 
                     if (control) {
                         var controlContainer = control.getContainer();
-                        controlContainer.style.left = (shift + 10) + 'px';
+                        controlContainer.style.left = (shift + additionalShift) + 'px';
                     }
                 }
 
@@ -2149,7 +2154,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 createToolbar();
 
-                handleControlsPosition();
+                window.sidebarControl.handleControlsPosition();
 
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);
