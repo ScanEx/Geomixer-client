@@ -2017,27 +2017,23 @@ nsGmx.widgets = nsGmx.widgets || {};
                             }
                         }
                     }
+                    /*
+                     * HANDLE CONTROLS
+                     */
 
+                    // GRID
+                    // shift grid markers
                     var grid = nsGmx.gridManager.gridControl;
-
                     if (grid) {
                         grid.shiftTextMarkers('left', e.type === 'opened' ? 400 : 40)
                     };
 
-                    // shiftControl('iconLayers', sidebarWidth);
-
-                    // $('.leaflet-bottom').each(function () {
-                    //     console.log(this);
-                    // })
-
-                    // // resize timelineControl
-                    // var timelineControl = lmap.gmxControlsManager.get("gmxTimeline");
-                    //
-                    // if (timelineControl) {
-                    //     var timelineContainer = timelineControl.getContainer();
-                    //     timelineContainer.style.left = (sidebarWidth + 10) + 'px';
-                    // }
-
+                    // TIMELINE
+                    // redraw timeline
+                    var timeline = nsGmx.leafletMap.gmxControlsManager.get('gmxTimeline');
+                    if (timeline) {
+                        timeline._redrawTimeline();
+                    }
                 }
                 /**
                  * @param controlId Control id
@@ -2047,7 +2043,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 function shiftControl(controlId, shift, divide) {
                     var control = lmap.gmxControlsManager.get(controlId),
                         noAdditionalShiftControls = {
-                            'bottom': true
+                            'bottom': true,
+                            'gmxTimeline': true
                         },
                         additionalShift = controlId in noAdditionalShiftControls ? 0 : 10;
 
@@ -2262,11 +2259,14 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // навесить обработчик на все слои дерева
                 if (nsGmx.timeLineControl) {
+                    lmap.gmxControlsManager.add(nsGmx.timeLineControl);
                     nsGmx.timeLineControl.on('layerRemove', function(e) {
                         $(_layersTree).triggerHandler('layerTimelineRemove', e);
+                        window.sidebarControl.handleControlsPosition();
                     });
                     nsGmx.timeLineControl.on('layerAdd', function(e) {
                         $(_layersTree).triggerHandler('layerTimelineAdd', e);
+                        window.sidebarControl.handleControlsPosition();
                     });
                 }
 

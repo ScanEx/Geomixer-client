@@ -692,11 +692,14 @@
                                         res.addLayer(layer);
 
                                         if (timeLineControl) {
+                                            nsGmx.leafletMap.gmxControlsManager.add(timeLineControl);
                                             timeLineControl.on('layerRemove', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                                window.sidebarControl.handleControlsPosition();
                                             });
                                             timeLineControl.on('layerAdd', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                                window.sidebarControl.handleControlsPosition();
                                             });
                                         }
                                     }).then(function(err) {
