@@ -337,25 +337,26 @@
                     //console.log(showVessel)
                     aisView.positionMap(showVessel);
                 });
-
-                var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
-                '<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
-                var showtrack = $(templ)
-                .appendTo(menubuttons)                   
-                .on('click', function(){
-                    if (showtrack.attr('title')!=_gtxt('AISSearch2.hide_track')){
-                        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-                        .removeClass('active');
-                        publicInterface.showTrack([vessel.mmsi]);
-                        showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
-                        .addClass('active');       
-                    }
-                    else{
-                        $('.showtrack').attr('title',_gtxt('AISSearch2.show_track'))
-                        .removeClass('active');
-                        publicInterface.showTrack([]);
-                    }
-                });
+				if (tracksLayer){
+					var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
+					'<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
+					var showtrack = $(templ)
+					.appendTo(menubuttons)                   
+					.on('click', function(){
+						if (showtrack.attr('title')!=_gtxt('AISSearch2.hide_track')){
+							$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+							.removeClass('active');
+							publicInterface.showTrack([vessel.mmsi]);
+							showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+							.addClass('active');       
+						}
+						else{
+							$('.showtrack').attr('title',_gtxt('AISSearch2.show_track'))
+							.removeClass('active');
+							publicInterface.showTrack([]);
+						}
+					});
+				}
                 if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels){
                     var add = polyFindIndex(myFleetMembersModel.data.vessels, function(v){
                         return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
