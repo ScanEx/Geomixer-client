@@ -616,3 +616,21 @@
         .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
             width:10px;
         }
+			
+.VesselSearchTool:hover{
+	background-color: #eee;
+}	
+.leaflet-gmx-icon-active.VesselSearchTool > span{
+	color:#f57c00;
+}	
+.VesselSearchTool{
+	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+	background-color: white;
+}
+.VesselSearchTool > span{
+	color:black;
+	font-weight:bold;
+	margin-top: 6px;
+	margin-right: 10px;
+	margin-left: 8px;
+}

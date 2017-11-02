@@ -1,4 +1,4 @@
-<%@ WebHandler Language="C#" Class="ScreenSearch" %>
+<%@ WebHandler Language="C#" Class="Gallery" %>
 
 using System;
 using System.Web;
@@ -8,7 +8,7 @@ using CommonWebUtil;
 using System.Collections.Generic;
 using System.Globalization;
 
-public class ScreenSearch : JsonHandlerPublic {
+public class Gallery : JsonHandlerPublic {
     
     protected override object GetResult(HttpContext context)
     {
