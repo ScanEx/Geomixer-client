@@ -208,6 +208,7 @@
                     vessel.draught = addUnit(vessel.draught, " м");
                     vessel.length = addUnit(vessel.length, " м");
                     vessel.width = addUnit(vessel.width, " м");
+					vessel.source = vessel.source=='S-AIS'?_gtxt('AISSearch2.sais'):_gtxt('AISSearch2.tais');
                     return vessel;
                 }
                 var moreInfo = function(v){
@@ -222,7 +223,9 @@
                         '<div class="vessel_prop"><b>ROT</b>: {{rot}}</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.draught"}}</b>: {{draught}}</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.destination"}}</b>: {{destination}}</div>'+
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'+
+						'<br>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.source"}}</b>: {{source}}</div>'
                         )(v));
                         $(moreinfo).append(Handlebars.compile(
                         '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
@@ -255,7 +258,8 @@
                             "nav_status":response.Result.values[0][13],
                             "draught":response.Result.values[0][14],
                             "ts_eta":response.Result.values[0][15],
-                            "callsign":response.Result.values[0][16]
+                            "callsign":response.Result.values[0][16],
+                            "source":response.Result.values[0][17]
                             };
                             moreInfo(formatVessel(vessel2));
                         }
@@ -337,7 +341,7 @@
                     //console.log(showVessel)
                     aisView.positionMap(showVessel);
                 });
-				if (tracksLayer){
+				//if (tracksLayer){
 					var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
 					'<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
 					var showtrack = $(templ)
@@ -356,7 +360,7 @@
 							publicInterface.showTrack([]);
 						}
 					});
-				}
+				//}
                 if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels){
                     var add = polyFindIndex(myFleetMembersModel.data.vessels, function(v){
                         return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
@@ -1193,6 +1197,7 @@ console.log("searchById");
                             ',{"Value":"destination"},{"Value":"nav_status"}'+
                             ',{"Value":"draught"},{"Value":"ts_eta"}'+
                             ',{"Value":"callsign"}'+
+                            ',{"Value":"source"}'+
                             ']',
                             orderdirection: 'asc',
                             orderby: 'vessel_name',
@@ -1630,7 +1635,10 @@ console.log("searchById");
         'AISSearch2.nav_status': 'Статус',
         'AISSearch2.last_sig': 'Последний сигнал',
         'AISSearch2.show_track': 'трек за сутки',
-        'AISSearch2.hide_track': 'скрыть трек'
+        'AISSearch2.hide_track': 'скрыть трек',
+		'AISSearch2.source': 'Источник данных',
+		'AISSearch2.sais': 'спутниковый AIS',
+		'AISSearch2.tais': 'береговой AIS'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -1668,7 +1676,10 @@ console.log("searchById");
         'AISSearch2.nav_status': 'Navigation status',
         'AISSearch2.last_sig': 'Last signal',
         'AISSearch2.show_track': 'show track',
-        'AISSearch2.hide_track': 'hide track'
+        'AISSearch2.hide_track': 'hide track',
+		'AISSearch2.source': 'Source',
+		'AISSearch2.sais': 'S-AIS',
+		'AISSearch2.tais': 'T-AIS'
     });
 
     gmxCore.addModule(pluginName, publicInterface, {
