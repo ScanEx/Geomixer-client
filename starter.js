@@ -860,8 +860,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 }
                 $('#leftMenu').show();
 
-                var mapNameHeight = $('.mainmap-title').outerHeight();
-                var mapNameHeight = "35px";
+                var mapNameHeight = Math.max($('.mainmap-title').outerHeight(), 35);
 
                 var baseHeight = getWindowHeight() - top - bottom - headerHeight;
 
