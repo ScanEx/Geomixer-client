@@ -323,7 +323,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version },
                 ].concat(window.mapsSite ? [{
                         id: 'usage',
@@ -346,7 +346,13 @@ nsGmx.widgets = nsGmx.widgets || {};
                             window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
                         }
                     }
-                ] : [])
+                ] : []) : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -625,11 +631,17 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'usage', title: _gtxt('Использование'), onsel: mapHelp.mapHelp.load, onunsel: mapHelp.mapHelp.unload },
                     { id: 'serviceHelp', title: _gtxt('Сервисы'), onsel: mapHelp.serviceHelp.load, onunsel: mapHelp.serviceHelp.unload },
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version }
-                ]
+                ] : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -2298,5 +2310,4 @@ nsGmx.widgets = nsGmx.widgets || {};
         window.prompt = promptFunction;
 
     };
-
 })();

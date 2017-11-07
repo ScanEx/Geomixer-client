@@ -48,6 +48,7 @@ _translationsHash.hash["eng"] = {
     "Космоснимки-пожары": "Kosmosnimki-fires",
     "GIBS NASA": "MODIS Images (NASA)",
     "Руководство пользователя": "Documentation",
+    "Руководство": "User guide",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
 	"копия": "копия",

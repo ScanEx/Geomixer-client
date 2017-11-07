@@ -395,6 +395,7 @@ nsGmx._defaultPlugins =
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
         { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
+        { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
     // {pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
     // {pluginName: 'AttributionMenu', file: 'plugins/AttributionMenu/AttributionMenu.js', module: 'AttributionMenu', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/fireplugin/FirePlugin.js',                               module: 'FirePlugin',        mapPlugin: true,  isPublic: true},
@@ -1081,6 +1082,7 @@ _translationsHash.hash["rus"] = {
     "Космоснимки-пожары": "Космоснимки-пожары",
     "GIBS NASA": "Съёмка MODIS (NASA)",
     "Руководство пользователя": "Документация",
+    "Руководство": "Руководство пользователя",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Использование плагинов",
 	"копия": "копия",
@@ -1804,6 +1806,7 @@ _translationsHash.hash["eng"] = {
     "Космоснимки-пожары": "Kosmosnimki-fires",
     "GIBS NASA": "MODIS Images (NASA)",
     "Руководство пользователя": "Documentation",
+    "Руководство": "User guide",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
 	"копия": "копия",
@@ -38269,7 +38272,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version },
                 ].concat(window.mapsSite ? [{
                         id: 'usage',
@@ -38292,7 +38295,13 @@ nsGmx.widgets = nsGmx.widgets || {};
                             window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
                         }
                     }
-                ] : [])
+                ] : []) : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -38571,11 +38580,17 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'usage', title: _gtxt('Использование'), onsel: mapHelp.mapHelp.load, onunsel: mapHelp.mapHelp.unload },
                     { id: 'serviceHelp', title: _gtxt('Сервисы'), onsel: mapHelp.serviceHelp.load, onunsel: mapHelp.serviceHelp.unload },
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version }
-                ]
+                ] : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -40244,7 +40259,6 @@ nsGmx.widgets = nsGmx.widgets || {};
         window.prompt = promptFunction;
 
     };
-
 })();
 
 window.nsGmx = window.nsGmx || {};
