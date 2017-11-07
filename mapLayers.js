@@ -337,10 +337,12 @@
                     if (!parentCanvas.loaded) {
                         parentCanvas.loaded = true;
 
-                        var childs = [];
+                        var childs = [],
+                            grId = $(parentCanvas.parentNode).children("div[GroupID]");
 
-                        for (var i = 0; i < elem.content.children.length; i++)
-                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
+                        for (var i = 0; i < elem.content.children.length; i++) {
+                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(grId).find('input[type="checkbox"]')[0] || $(grId).find('input[type="radio"]')[0])));
+                        }
 
                         _(parentCanvas, childs);
 
@@ -608,11 +610,11 @@
         var borderDescr = _span();
 
         var count = 0;
-        var props = {};
+        var metaProps = {};
         if (elem.MetaProperties) {
             for (key in elem.MetaProperties) {
                 var tagtype = elem.MetaProperties[key].Type;
-                props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+                metaProps[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
                 count++;
             }
         }
@@ -622,7 +624,7 @@
                 ['dir', 'className', 'layerInfoButton']
             ]);
             borderDescr.onclick = function() {
-                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: props });
+                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: metaProps });
             }
         }
 
@@ -669,7 +671,7 @@
                         var props = layer.getGmxProperties(),
                             layerName = props.name;
 
-                        if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
+                        if (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null'))) {
                             timelineIcon = document.createElement('img');
                             timelineIcon.src = 'img/timeline-icon-disabled.svg';
                             timelineIcon.className = 'gmx-timeline-icon disabled';
@@ -982,10 +984,11 @@
         var el = box.parentNode.parentNode.parentNode;
 
         while (!el.root) {
-            var group = $(el).children("[GroupID]");
+            var group = $(el).children("[GroupID]"),
+				chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
 
             if (group.length > 0) {
-                if (!$(group).find('input[type="checkbox"]')[0].checked)
+                if (!chB.checked)
 
                     return false;
             }

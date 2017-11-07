@@ -591,6 +591,10 @@ var nsGmx = nsGmx || {};
             this.model.set('synchronyzed', !this.model.get('synchronyzed'));
         },
 
+        setSyncMode: function (value) {
+            this.model.set('synchronyzed', Boolean(value));
+        },
+
         updateSync: function () {
             var _this = this,
                 layers = nsGmx.gmxMap.layers,

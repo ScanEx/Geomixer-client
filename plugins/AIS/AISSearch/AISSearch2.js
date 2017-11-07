@@ -37,7 +37,7 @@
                 tracksLayer = layersByID[tracksLayerID];  
                 var setLocaleDate = function(layer){
                     if (layer)
-                    layer.bindPopup('').on('popupopen',(e)=>{
+                    layer.bindPopup('').on('popupopen',function(e){
                         //console.log(e.gmx.properties);
                         var result, re = /\[([^\[\]]+)\]/g, lastIndex = 0, template = "", 
                         str = e.gmx.templateBalloon, props = e.gmx.properties;
@@ -144,7 +144,7 @@
             },
             showInfo: function(vessel, getmore){
 //console.log(infoDialogCascade);
-                var ind = allIinfoDialogs.findIndex(function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
+                var ind = polyFindIndex(allIinfoDialogs, function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
                 if (ind>=0){
                     $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length-1));
                     return;
@@ -162,10 +162,10 @@
 
                 var dialog = showDialog(vessel.vessel_name, canvas[0], {width: 500, height: 340, 
                         closeFunc: function(event){
-                            var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
+                            var ind = polyFindIndex(infoDialogCascade, function(d){return d.id==dialog.id});
                             if (ind>=0)
                                 infoDialogCascade.splice(ind, 1);
-                            ind = allIinfoDialogs.findIndex(function(d){return d.dialog.id==dialog.id});
+                            ind = polyFindIndex(allIinfoDialogs, function(d){return d.dialog.id==dialog.id});
                             if (ind>=0)
                                 allIinfoDialogs.splice(ind, 1);
                         }
@@ -179,7 +179,7 @@
                 infoDialogCascade.push(dialog);
                 allIinfoDialogs.push({vessel:vessel, dialog:dialog});
                 $(dialog).on( "dialogdragstop", function( event, ui ) {
-                    var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
+                    var ind = polyFindIndex(infoDialogCascade, function(d){return d.id==dialog.id});
                     if (ind>=0)
                         infoDialogCascade.splice(ind, 1);
                 });
@@ -214,7 +214,7 @@
                         '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'
                         )(v));
                         $('.menu', canvas).append(Handlebars.compile(
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}} UTC</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
                         '<div class="vessel_prop"><b>Latitude</b>: {{latitude}}</div>'+
                         '<div class="vessel_prop"><b>Longitude</b>: {{longitude}}</div>'
                         )(v));
@@ -346,7 +346,7 @@
                     }
                 });
                 if (myFleetMembersModel && myFleetMembersModel.data){
-                    var add = myFleetMembersModel.data.vessels.findIndex(function(v){
+                    var add = polyFindIndex(myFleetMembersModel.data.vessels, function(v){
                         return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
                     })<0;
                     var addremove = $('<div class="button addremove"></div>')
@@ -362,7 +362,7 @@
                         $('.addremove').addClass('disabled');
                         progress.append(gifLoader)
                         myFleetMembersModel.changeFilter(vessel).then(function(){  
-                            add = myFleetMembersModel.data.vessels.findIndex(function(v){
+                            add = polyFindIndex(myFleetMembersModel.data.vessels, function(v){
                                 return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
                             })<0;
                             var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
@@ -382,6 +382,38 @@
                 .appendTo(menubuttons);              
             }
         };
+		
+	// POLYFILLS ///////////////////////
+	var polyFind = function(a, predicate) {
+		var list = Object(a);
+		var length = list.length >>> 0;
+		var thisArg = arguments[2];
+		var value;
+
+		for (var i = 0; i < length; i++) {
+		  value = list[i];
+		  if (predicate.call(thisArg, value, i, list)) {
+			return value;
+		  }
+		}
+		return undefined;
+	};	
+	
+	var  polyFindIndex = function(a, predicate) {
+		var list = Object(a);
+		var length = list.length >>> 0;
+		var thisArg = arguments[2];
+		var value;
+
+		for (var i = 0; i < length; i++) {
+		  value = list[i];
+		  if (predicate.call(thisArg, value, i, list)) {
+			return i;
+		  }
+		}
+		return -1;
+	};
+	////////////////////////////////////	
 
     var svgLoader = '<div class="loader">'+
   '<svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="22px" height="22px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">'+
@@ -704,7 +736,7 @@
             .then(function() { 
 //console.log(_this.layers)                                    
                             if (_this.layers.length>0){
-                                var layer = _this.layers.find(function(l){return l.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15' && l.filter!="(1=0)";})// NOT TRACKS
+                                var layer = polyFind(_this.layers, function(l){return l.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15' && l.filter!="(1=0)";})// NOT TRACKS
 //console.log(layer)      
                                 if (!layer)
                                     return Promise.resolve({Status:"ok", Result:{values:[]}});
@@ -767,7 +799,7 @@
         markMembers:function(vessels){
             if (this.data)
             this.data.vessels.forEach(function(v){
-                var member = vessels.find(function(vv){return v.mmsi==vv.mmsi && v.imo==v.imo});
+                var member = polyFind(vessels, function(vv){return v.mmsi==vv.mmsi && v.imo==v.imo});
                 if (member)
                     member.mf_member = "display:inline";
             });
@@ -1207,8 +1239,9 @@ console.log(json)
         _bindControlEvents: function(){
                 var _this = this;
                 $('select', this._canvas).change(function(e){
-                    var models = [aisScreenSearchModel, aisDbSearchModel]; 
-                    _this._model = models[(e.target.selectedOptions[0].value)];
+                    var models = [aisScreenSearchModel, aisDbSearchModel];
+                    _this._model = models[(e.target.selectedIndex)]; 
+                    //_this._model = models[(e.target.selectedOptions[0].value)];
                     $('input', _this._search).val(_this._model.filterString);
                     _this.show();
                 });

@@ -4247,6 +4247,32 @@ $.extend(nsGmx.Utils, {
     isIpad: function() {
         return navigator.userAgent.match(/iPad/i) != null;
     },
+
+    getLatLngBounds: function (layer) {
+        var gmxBounds = layer._gmx.layerID ? L.gmxUtil.getGeometryBounds(layer._gmx.geometry) : layer._gmx.dataManager.getItemsBounds(),
+            srs = layer._gmx.srs,
+            array = [],
+            projection, bounds;
+
+            console.log(gmxBounds);
+
+
+        if (srs) {
+            for (var proj in L.CRS) {
+                if (proj.indexOf(srs) !== -1) {
+                    projection = L.CRS[proj];
+                    break;
+                }
+            }
+        } else {
+            projection = L.CRS['EPSG:3395'];
+        }
+
+        array.push(L.Projection.Mercator.unproject(gmxBounds.min));
+        array.push(L.Projection.Mercator.unproject(gmxBounds.max));
+        return L.latLngBounds(array);
+    },
+
     showDialog: showDialog,
 	removeDialog: removeDialog,
     makeImageButton: makeImageButton,
@@ -10461,10 +10487,12 @@ pointsBinding.pointsBinding.unload = function()
                     if (!parentCanvas.loaded) {
                         parentCanvas.loaded = true;
 
-                        var childs = [];
+                        var childs = [],
+                            grId = $(parentCanvas.parentNode).children("div[GroupID]");
 
-                        for (var i = 0; i < elem.content.children.length; i++)
-                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(parentCanvas.parentNode).children("div[GroupID]").find('input[type="checkbox"]')[0])));
+                        for (var i = 0; i < elem.content.children.length; i++) {
+                            childs.push(_this.getChildsList(elem.content.children[i], elem.content.properties, layerManagerFlag, _this.getLayerVisibility($(grId).find('input[type="checkbox"]')[0] || $(grId).find('input[type="radio"]')[0])));
+                        }
 
                         _(parentCanvas, childs);
 
@@ -10729,11 +10757,11 @@ pointsBinding.pointsBinding.unload = function()
         var borderDescr = _span();
 
         var count = 0;
-        var props = {};
+        var metaProps = {};
         if (elem.MetaProperties) {
             for (key in elem.MetaProperties) {
                 var tagtype = elem.MetaProperties[key].Type;
-                props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+                metaProps[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
                 count++;
             }
         }
@@ -10743,7 +10771,7 @@ pointsBinding.pointsBinding.unload = function()
                 ['dir', 'className', 'layerInfoButton']
             ]);
             borderDescr.onclick = function() {
-                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: props });
+                nsGmx.Controls.showLayerInfo({ properties: elem }, { properties: metaProps });
             }
         }
 
@@ -10790,7 +10818,7 @@ pointsBinding.pointsBinding.unload = function()
                         var props = layer.getGmxProperties(),
                             layerName = props.name;
 
-                        if (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null') && props.Temporal) {
+                        if (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null'))) {
                             timelineIcon = document.createElement('img');
                             timelineIcon.src = 'img/timeline-icon-disabled.svg';
                             timelineIcon.className = 'gmx-timeline-icon disabled';
@@ -11100,10 +11128,11 @@ pointsBinding.pointsBinding.unload = function()
         var el = box.parentNode.parentNode.parentNode;
 
         while (!el.root) {
-            var group = $(el).children("[GroupID]");
+            var group = $(el).children("[GroupID]"),
+				chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
 
             if (group.length > 0) {
-                if (!$(group).find('input[type="checkbox"]')[0].checked)
+                if (!chB.checked)
 
                     return false;
             }
@@ -35887,6 +35916,10 @@ var nsGmx = nsGmx || {};
             this.model.set('synchronyzed', !this.model.get('synchronyzed'));
         },
 
+        setSyncMode: function (value) {
+            this.model.set('synchronyzed', Boolean(value));
+        },
+
         updateSync: function () {
             var _this = this,
                 layers = nsGmx.gmxMap.layers,
@@ -37947,7 +37980,7 @@ nsGmx.widgets = nsGmx.widgets || {};
     var gmxJSHost = window.gmxJSHost || '';
 
     if (!window.mapHostName && window.gmxJSHost) {
-        window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
+        window.mapHostName = /https?:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
     }
 
     var _mapHostName; //откуда грузить API
@@ -39463,7 +39496,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
 
-            baseLayerDef.always(function() {
+            baseLayerDef.then(function() {
 
                 nsGmx.gmxMap = gmxMap;
                 gmxAPI.layersByID = gmxMap.layersByID; // слои по layerID

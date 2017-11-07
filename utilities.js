@@ -1778,6 +1778,32 @@ $.extend(nsGmx.Utils, {
     isIpad: function() {
         return navigator.userAgent.match(/iPad/i) != null;
     },
+
+    getLatLngBounds: function (layer) {
+        var gmxBounds = layer._gmx.layerID ? L.gmxUtil.getGeometryBounds(layer._gmx.geometry) : layer._gmx.dataManager.getItemsBounds(),
+            srs = layer._gmx.srs,
+            array = [],
+            projection, bounds;
+
+            console.log(gmxBounds);
+
+
+        if (srs) {
+            for (var proj in L.CRS) {
+                if (proj.indexOf(srs) !== -1) {
+                    projection = L.CRS[proj];
+                    break;
+                }
+            }
+        } else {
+            projection = L.CRS['EPSG:3395'];
+        }
+
+        array.push(L.Projection.Mercator.unproject(gmxBounds.min));
+        array.push(L.Projection.Mercator.unproject(gmxBounds.max));
+        return L.latLngBounds(array);
+    },
+
     showDialog: showDialog,
 	removeDialog: removeDialog,
     makeImageButton: makeImageButton,
