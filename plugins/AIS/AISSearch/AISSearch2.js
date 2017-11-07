@@ -20,6 +20,7 @@
         tracksLayer,
         displaingTrack,
 		defaultSearch,
+		highlight = L.marker([0, 0], {icon:L.icon({iconAnchor:[12, 12], iconSize:[25,25], iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000}),
         publicInterface = {
             pluginName: pluginName,
             afterViewer: function (params, map) {                     
@@ -87,7 +88,7 @@
                         forLayers(layersByID[params[key]] )
                     }
                 }
-
+				highlight.addEventListener('click', function(e){publicInterface.showInfo(e.target.vessel, true)});
 				var iconOpt_mf = {
                     //id: toolbarIconId,
 					className: "VesselSearchTool",
@@ -229,8 +230,8 @@
                         )(v));
                         $(moreinfo).append(Handlebars.compile(
                         '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
-                        '<div class="vessel_prop"><b>Latitude</b>: {{latitude}}°</div>'+
-                        '<div class="vessel_prop"><b>Longitude</b>: {{longitude}}°</div>'
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.lon"}}</b>: {{longitude}}°</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.lat"}}</b>: {{latitude}}°</div>'
                         )(v));
                 } 
                 var vessel2;               
@@ -336,9 +337,9 @@
                         ymin:vessel.ymin?vessel.ymin:vessel.latitude, 
                         ymax:vessel.ymax?vessel.ymax:vessel.latitude, 
                         ts_pos_utc:vessel.ts_pos_utc && !isNaN(vessel.ts_pos_utc)?aisLayerSearcher.formatDate(new Date(vessel.ts_pos_utc*1000)):vessel.ts_pos_utc
-                    }
-                    //console.log(vessel)
-                    //console.log(showVessel)
+                    }			
+					//nsGmx.leafletMap.removeLayer(highlight);
+					//highlight.setLatLng([showVessel.ymax, showVessel.xmax]).addTo(nsGmx.leafletMap);
                     aisView.positionMap(showVessel);
                 });
 				//if (tracksLayer){
@@ -561,6 +562,7 @@
         },
         hide: function(){
             $(this._leftMenuBlock.parentWorkCanvas).hide()
+			nsGmx.leafletMap.removeLayer(highlight)
         }
     };
 
@@ -656,7 +658,11 @@
                 });
             }
             else
-				this.positionMap(vessel);
+				this.positionMap(vessel);	
+			
+			nsGmx.leafletMap.removeLayer(highlight);
+			highlight.vessel = vessel;
+			highlight.setLatLng([vessel.ymax, vessel.xmax]).addTo(nsGmx.leafletMap);
         },  
         repaint: function(){
 
@@ -1265,14 +1271,17 @@ console.log("searchById");
                     //_this._model = models[(e.target.selectedOptions[0].value)];
                     $('input', _this._search).val(_this._model.filterString);
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 });
                 this._refresh.parent().click(function(){
                     //console.log(_this._refresh)
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
                 $('i', this._search).click(function(e){
                     _this._model.filterString = $(this).siblings('input').val()+'\r';
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
                 this._search.keyup(function(e){
                     var input = $('input', this).val() || "";
@@ -1283,6 +1292,7 @@ console.log("searchById");
                     if (e.keyCode==13)
                         _this._model.filterString += '\r' 
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
         },
 		setModel: function(searchType){this._model = searchType=='screen' ? aisScreenSearchModel : aisDbSearchModel}
@@ -1638,7 +1648,9 @@ console.log("searchById");
         'AISSearch2.hide_track': 'скрыть трек',
 		'AISSearch2.source': 'Источник данных',
 		'AISSearch2.sais': 'спутниковый AIS',
-		'AISSearch2.tais': 'береговой AIS'
+		'AISSearch2.tais': 'береговой AIS',
+		'AISSearch2.lon': 'Долгота',
+		'AISSearch2.lat': 'Широта'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -1679,7 +1691,9 @@ console.log("searchById");
         'AISSearch2.hide_track': 'hide track',
 		'AISSearch2.source': 'Source',
 		'AISSearch2.sais': 'S-AIS',
-		'AISSearch2.tais': 'T-AIS'
+		'AISSearch2.tais': 'T-AIS',
+		'AISSearch2.lon': 'Longitude',
+		'AISSearch2.lat': 'Latitude'
     });
 
     gmxCore.addModule(pluginName, publicInterface, {
