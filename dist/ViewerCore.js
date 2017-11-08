@@ -22621,6 +22621,7 @@ var nsGmx = window.nsGmx || {};
 (function() {
 
     var MAX_SIZE = 10000;
+    var EPS = 1E-9;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
     nsGmx.DrawingObjectCustomControllers.addDelegate({
@@ -23483,7 +23484,7 @@ var nsGmx = window.nsGmx || {};
 
                 value = Number(e.target.value);
                 valueErr = value <= 0 || isNaN(value);
-                sizeErr = value > MAX_SIZE;
+                sizeErr = value - MAX_SIZE > EPS;
 
                 // обработка инпута ширины
                 if (e.target.className === 'mapExportWidth' || e.target.className === 'mapExportWidth error') {
@@ -38580,17 +38581,11 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
+                childs: [
                     { id: 'usage', title: _gtxt('Использование'), onsel: mapHelp.mapHelp.load, onunsel: mapHelp.mapHelp.unload },
                     { id: 'serviceHelp', title: _gtxt('Сервисы'), onsel: mapHelp.serviceHelp.load, onunsel: mapHelp.serviceHelp.unload },
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version }
-                ] : [{
-                        id: 'usage',
-                        title: _gtxt('Руководство'),
-                        func: function() {
-                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
-                        }
-                    }]
+                ]
             });
         }
 
