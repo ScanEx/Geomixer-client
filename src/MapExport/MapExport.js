@@ -3,6 +3,7 @@ var nsGmx = window.nsGmx || {};
 (function() {
 
     var MAX_SIZE = 10000;
+    var EPS = 1E-9;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
     nsGmx.DrawingObjectCustomControllers.addDelegate({
@@ -865,7 +866,7 @@ var nsGmx = window.nsGmx || {};
 
                 value = Number(e.target.value);
                 valueErr = value <= 0 || isNaN(value);
-                sizeErr = value > MAX_SIZE;
+                sizeErr = value - MAX_SIZE > EPS;
 
                 // обработка инпута ширины
                 if (e.target.className === 'mapExportWidth' || e.target.className === 'mapExportWidth error') {
