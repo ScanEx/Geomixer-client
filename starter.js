@@ -631,17 +631,11 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
+                childs: [
                     { id: 'usage', title: _gtxt('Использование'), onsel: mapHelp.mapHelp.load, onunsel: mapHelp.mapHelp.unload },
                     { id: 'serviceHelp', title: _gtxt('Сервисы'), onsel: mapHelp.serviceHelp.load, onunsel: mapHelp.serviceHelp.unload },
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version }
-                ] : [{
-                        id: 'usage',
-                        title: _gtxt('Руководство'),
-                        func: function() {
-                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
-                        }
-                    }]
+                ]
             });
         }
 
