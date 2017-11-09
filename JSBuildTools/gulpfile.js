@@ -68,6 +68,8 @@ gulp.task('gmx-pub', ['compile'], function(cb) {
         addPrefix(root, gmxDeps.jsFiles)
     );
 
+    var cssSources = [].concat(addPrefix(root, gmxDeps.cssFiles));
+
     var distRoot = root + 'dist/';
     gulp.src(thirdpartySources)
         .pipe(concat('thirdparty.js'))
@@ -77,7 +79,7 @@ gulp.task('gmx-pub', ['compile'], function(cb) {
         .pipe(concat('ViewerCore.js'))
         .pipe(gulp.dest(distRoot));
 
-    gulp.src([])
+    gulp.src(cssSources)
         .pipe(rebaseCssUrls({
             root: distRoot
         }))

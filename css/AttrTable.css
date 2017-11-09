@@ -35,7 +35,17 @@
     font-size: 12px;
 }
 
+.attrs-table-show-columns-header {
+    margin-top: 4px;
+}
+
+.attrs-table-show-columns-checkbox {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
 .attrs-table-active-checkbox {
+    margin-left: 10px;
     margin-right: 3px;
 }
 
