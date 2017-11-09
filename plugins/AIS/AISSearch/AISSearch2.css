@@ -203,6 +203,9 @@
   line-height: 15px;
 }
 
+.ais_myfleet_dialog .vessel_prop .small{
+  font-size: 11px
+}
 
 .ais_myfleet_dialog .content div.summary {
   margin-top: 15px;
@@ -299,14 +302,14 @@
     padding-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    width: 170px
+    width: 180px
 }
 .ais_myfleet_dialog .column2 {
     float: left;
     padding-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    width: 250px
+    width: 240px
 }
 .ais_myfleet_dialog::after {
     content: "";

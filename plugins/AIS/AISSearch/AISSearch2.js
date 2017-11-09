@@ -209,7 +209,7 @@
                     vessel.draught = addUnit(vessel.draught, " м");
                     vessel.length = addUnit(vessel.length, " м");
                     vessel.width = addUnit(vessel.width, " м");
-					vessel.source = vessel.source=='S-AIS'?_gtxt('AISSearch2.sais'):_gtxt('AISSearch2.tais');
+					vessel.source = vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
                     return vessel;
                 }
                 var moreInfo = function(v){
@@ -229,7 +229,7 @@
                         '<div class="vessel_prop"><b>{{i "AISSearch2.source"}}</b>: {{source}}</div>'
                         )(v));
                         $(moreinfo).append(Handlebars.compile(
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{{ts_pos_utc}}}</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.lon"}}</b>: {{longitude}}°</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.lat"}}</b>: {{latitude}}°</div>'
                         )(v));
@@ -242,30 +242,13 @@
                 else
                     aisLayerSearcher.searchNames([{mmsi:vessel.mmsi,imo:vessel.imo}], function(response){
                         if (parseResponse(response)){                    
-                            vessel2 = {
-                            "flag_country":response.Result.values[0][6],
-                            "vessel_type":response.Result.values[0][7],
-                            "vessel_name":response.Result.values[0][0],
-                            "mmsi":response.Result.values[0][1],
-                            "imo":response.Result.values[0][2],
-                            "ts_pos_utc":response.Result.values[0][3],
-                            "longitude":response.Result.values[0][4],
-                            "latitude":response.Result.values[0][5],
-                            "cog":response.Result.values[0][8],
-                            "sog":response.Result.values[0][9],
-                            "rot":response.Result.values[0][10],
-                            "heading":response.Result.values[0][11],
-                            "destination":response.Result.values[0][12],
-                            "nav_status":response.Result.values[0][13],
-                            "draught":response.Result.values[0][14],
-                            "ts_eta":response.Result.values[0][15],
-                            "callsign":response.Result.values[0][16],
-                            "source":response.Result.values[0][17]
-                            };
+                            vessel2 = {};
+							for (var i=0; i<response.Result.fields.length; ++i)
+								vessel2[response.Result.fields[i]] = response.Result.values[0][i];
                             moreInfo(formatVessel(vessel2));
                         }
-    //else
-    //console.log(response)
+						else
+							console.log(response)
                 })
                 $('<img src="'+scheme+'//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi='+vessel.mmsi+'">').load(function() {
                     if (this)
@@ -1137,14 +1120,16 @@ console.log(json)
             }
             return geo;
         },   
-        formatDate: function(d, utc){
+        formatDate: function(d, local){
             var dd,m,y,h,mm;
-            if (!utc){
+            if (local){
                 dd = ("0"+d.getDate()).slice(-2);
                 m = ("0"+(d.getMonth()+1)).slice(-2);
                 y = d.getFullYear();
                 h = ("0"+d.getHours()).slice(-2);
                 mm = ("0"+d.getMinutes()).slice(-2);
+				return dd+"."+m+"."+y+" "+h+":"+mm+
+				" ("+("0"+d.getUTCHours()).slice(-2)+":"+("0"+d.getUTCMinutes()).slice(-2)+" UTC)";
             }
             else{
                 dd = ("0"+d.getUTCDate()).slice(-2);
@@ -1152,8 +1137,16 @@ console.log(json)
                 y = d.getUTCFullYear();
                 h = ("0"+d.getUTCHours()).slice(-2);
                 mm = ("0"+d.getUTCMinutes()).slice(-2);
+				var
+                ldd = ("0"+d.getDate()).slice(-2),
+                lm = ("0"+(d.getMonth()+1)).slice(-2),
+                ly = d.getFullYear(),
+                lh = ("0"+d.getHours()).slice(-2),
+                lmm = ("0"+d.getMinutes()).slice(-2),
+				offset = -d.getTimezoneOffset()/60;
+				return dd+"."+m+"."+y+" "+h+":"+mm+" UTC<br>"+
+				"<span class='small'>("+ldd+"."+lm+"."+ly+" "+lh+":"+lmm+" UTC"+(offset>0?"+":"")+offset+")</span>";
             }
-            return dd+"."+m+"."+y+" "+h+":"+mm;
         }, 
         searchById: function(aid, callback){
 console.log("searchById");
@@ -1196,15 +1189,6 @@ console.log("searchById");
             var request =  {
                             WrapStyle: 'window',
                             layer: aisLastPoint, 
-                            columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}'+
-                            ',{"Value":"flag_country"},{"Value":"vessel_type"}'+
-                            ',{"Value":"cog"},{"Value":"sog"}'+
-                            ',{"Value":"rot"},{"Value":"heading"}'+
-                            ',{"Value":"destination"},{"Value":"nav_status"}'+
-                            ',{"Value":"draught"},{"Value":"ts_eta"}'+
-                            ',{"Value":"callsign"}'+
-                            ',{"Value":"source"}'+
-                            ']',
                             orderdirection: 'asc',
                             orderby: 'vessel_name',
                             query: avessels.map(function(v){return "([mmsi]="+v.mmsi+(v.imo && v.imo!=""?(" and [imo]="+v.imo):"")+")"}).join(" or ")
