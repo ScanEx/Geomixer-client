@@ -395,7 +395,7 @@ nsGmx._defaultPlugins =
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
         { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
-        { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
+        // { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
     // {pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
     // {pluginName: 'AttributionMenu', file: 'plugins/AttributionMenu/AttributionMenu.js', module: 'AttributionMenu', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/fireplugin/FirePlugin.js',                               module: 'FirePlugin',        mapPlugin: true,  isPublic: true},
@@ -33561,6 +33561,10 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     onAdd: function(map) {
         if (map.options.svgSprite) {
             delete this.options.text;
+            var proto = Object.getPrototypeOf(this.options);
+            if (proto.text) {
+                delete proto.text;
+            }
         }
         this._container = L.Control.gmxIcon.prototype.onAdd.apply(this, arguments);
         this._shareDialogContainer = L.DomUtil.create('div', 'shareDialogContainer');
@@ -36426,7 +36430,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 
-    this.arrContainer = ['aa'];
+    this.arrContainer = [];
 	var counts = [];
 
 	/** возвращает стили найденных объектов, используется только для точки*/
@@ -38456,6 +38460,12 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
+                    className: 'shareIcon',
+                    id: 'share',
+                    text: 'Share',
+                    style: {
+                        width: 'auto'
+                    },
                     permalinkManager: {
                         save: function() {
                             return $.when(
