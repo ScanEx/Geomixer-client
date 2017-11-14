@@ -469,6 +469,12 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
+                    className: 'shareIcon',
+                    id: 'share',
+                    text: 'Share',
+                    style: {
+                        width: 'auto'
+                    },
                     permalinkManager: {
                         save: function() {
                             return $.when(

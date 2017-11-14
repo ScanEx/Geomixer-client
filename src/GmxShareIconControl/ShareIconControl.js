@@ -12,6 +12,10 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     onAdd: function(map) {
         if (map.options.svgSprite) {
             delete this.options.text;
+            var proto = Object.getPrototypeOf(this.options);
+            if (proto.text) {
+                delete proto.text;
+            }
         }
         this._container = L.Control.gmxIcon.prototype.onAdd.apply(this, arguments);
         this._shareDialogContainer = L.DomUtil.create('div', 'shareDialogContainer');
