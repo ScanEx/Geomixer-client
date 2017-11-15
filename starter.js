@@ -1121,6 +1121,15 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
             var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
+
+            if (L.version !== '0.7.7') {
+                L.Icon.Default = L.Icon.Default.extend({
+                    _getIconUrl: function (name) {
+                        return L.Icon.prototype._getIconUrl.call(this, name);
+                    }
+                });
+            }
+
             L.Marker = L.Marker.extend({
                 options: {
                     icon: new L.Icon.Default({
