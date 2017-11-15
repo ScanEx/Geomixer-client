@@ -53,7 +53,7 @@ var WindFilterModel = Backbone.Model.extend({
 			} else if (type === 'layer') {
 				var props = content.properties ? content.properties : {};
                 var layer = nsGmx.gmxMap.layersByID[props.LayerID || props.MultiLayerID || props.GroupID || props.name],
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual'/* && layer.getDateInterval*/);
 
                 if (isTemporalLayer) {
                     arr.push(layer);
@@ -73,15 +73,35 @@ var WindFilterModel = Backbone.Model.extend({
 			var setFilters = function () {
 				var active = model.get('activeHour');
 				arr.map(function(layer) {
-					var dateIndex = layer.getTileAttributeIndexes()['DateTime'];
-					var getHourFilter = function(activeHour) {
-						return function(item) {
-							var date = item.properties[dateIndex],
-								hours = Math.floor(date % (3600 * 24) / 3600);
-							return hours === activeHour;
-						}
-					}
-					layer.setFilter(getHourFilter(active));
+                    if (layer instanceof L.gmx.VectorLayer) {
+                        var dateIndex = layer.getTileAttributeIndexes()['DateTime'];
+                        var getHourFilter = function(activeHour) {
+                            return function(item) {
+                                var date = item.properties[dateIndex],
+                                hours = Math.floor(date % (3600 * 24) / 3600);
+                                return hours === activeHour;
+                            }
+                        }
+                        layer.setFilter(getHourFilter(active));
+                    } else {
+                        var prs = layer.getGmxProperties && layer.getGmxProperties();
+
+                        if (prs && prs.type === 'Virtual') {
+                            var url = prs.MetaProperties['base-url'].Value,
+                                urlParts = url.split(/\//),
+                                newUrl, part, lastPart, i;
+
+                            for (i = urlParts.length; i > 0; i--) {
+                                part = urlParts[i];
+                                if (part) {
+                                    lastPart = part;
+                                    break;
+                                }
+                            }
+                            newUrl = url.replace('/' + lastPart + '/', '/' + active + '/');
+                            layer.setUrl(newUrl);
+                        }
+                    }
 
                     // save active hour in permalink
                     if (elem.content.properties.permalinkParams) {
