@@ -1232,7 +1232,7 @@ console.log("searchById");
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
         '<table border=0><tr><td><span class="position">{{vessel_name}}</span>'+
-        '{{#if ts_pos_utc}} <span class="date">({{ts_pos_utc}})</span>{{/if}}'+
+        '{{#if ts_pos_utc}} <span class="date">({{{ts_pos_utc}}})</span>{{/if}}'+
         '</td><td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
@@ -1288,7 +1288,7 @@ console.log("searchById");
     var myFleetMembersView = $.extend({
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
-        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{ts_pos_utc}})</span></td>'+
+        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{{ts_pos_utc}}})</span></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
         '</div></td></tr></table>' +
