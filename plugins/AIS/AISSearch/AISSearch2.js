@@ -154,7 +154,6 @@
                     }
             },
             showInfo: function(vessel, getmore){
-//console.log(infoDialogCascade);
                 var ind = polyFindIndex(allIinfoDialogs, function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
                 if (ind>=0){
                     $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length-1));
@@ -233,6 +232,11 @@
                         '<div class="vessel_prop"><b>{{i "AISSearch2.lon"}}</b>: {{longitude}}°</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.lat"}}</b>: {{latitude}}°</div>'
                         )(v));
+						
+						if (vessel2.registry_name){
+							var latinTitle = $(dialog).dialog('option', 'title');
+							$(dialog).dialog('option', 'title', latinTitle + " ("+vessel2.registry_name+")");
+						}
                 } 
                 var vessel2;               
                 if (!getmore){
@@ -245,6 +249,7 @@
                             vessel2 = {};
 							for (var i=0; i<response.Result.fields.length; ++i)
 								vessel2[response.Result.fields[i]] = response.Result.values[0][i];
+//console.log(vessel2.registry_name)
                             moreInfo(formatVessel(vessel2));
                         }
 						else
@@ -621,7 +626,11 @@
     				], {
     					maxZoom: 9,//config.user.searchZoom,
     					animate: false
-    			})           
+    			})
+			
+			nsGmx.leafletMap.removeLayer(highlight);
+			highlight.vessel = vessel;
+			highlight.setLatLng([vessel.ymax, vessel.xmax]).addTo(nsGmx.leafletMap);				
         },        
         showPosition: function(item){
             var vessel = JSON.parse(item.parent().parent().find('.info').attr('vessel'));
@@ -642,10 +651,7 @@
             }
             else
 				this.positionMap(vessel);	
-			
-			nsGmx.leafletMap.removeLayer(highlight);
-			highlight.vessel = vessel;
-			highlight.setLatLng([vessel.ymax, vessel.xmax]).addTo(nsGmx.leafletMap);
+
         },  
         repaint: function(){
 
@@ -1144,7 +1150,7 @@ console.log(json)
                 lh = ("0"+d.getHours()).slice(-2),
                 lmm = ("0"+d.getMinutes()).slice(-2),
 				offset = -d.getTimezoneOffset()/60;
-				return dd+"."+m+"."+y+" "+h+":"+mm+" UTC<br>"+
+				return dd+"."+m+"."+y+" "+h+":"+mm+" UTC <br>"+
 				"<span class='small'>("+ldd+"."+lm+"."+ly+" "+lh+":"+lmm+" UTC"+(offset>0?"+":"")+offset+")</span>";
             }
         }, 
@@ -1232,7 +1238,7 @@ console.log("searchById");
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
         '<table border=0><tr><td><span class="position">{{vessel_name}}</span>'+
-        '{{#if ts_pos_utc}} <span class="date">({{ts_pos_utc}})</span>{{/if}}'+
+        '{{#if ts_pos_utc}} <span class="date">({{{ts_pos_utc}}})</span>{{/if}}'+
         '</td><td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
@@ -1288,7 +1294,7 @@ console.log("searchById");
     var myFleetMembersView = $.extend({
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
-        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{ts_pos_utc}})</span></td>'+
+        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{{ts_pos_utc}}})</span></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
         '</div></td></tr></table>' +
@@ -1533,7 +1539,7 @@ console.log("searchById");
     aiscontent.innerHTML = "" +                
     "<div class='caption'><div>ИНФОРМАЦИЯ О СУДНЕ</div></div>" +
     "<table>" +
-        "<tr><td>Название судна</td><td><b>"+ledokol.vessel_name+"</b></td></tr>" +
+        "<tr><td>Название судна</td><td><b>"+ledokol.vessel_name+(ledokol.registry_name?" ("+ledokol.registry_name+")":"")+"</b></td></tr>" +
         "<tr><td>IMO</td><td>"+ledokol.imo+"</td></tr>" +
         "<tr><td>MMSI</td><td>"+ledokol.mmsi+"</td></tr>" +
         "<tr><td>Тип</td><td>"+ledokol.vessel_type+"</td></tr>" +

@@ -185,6 +185,12 @@
   font-size:10px;
   color: #CCC
 }
+.ais_view .ais_vessels .date .small{
+  display: none;
+}
+.ais_view .ais_vessels .date br{
+  display: none;
+}
 .ais_view .ais_vessel:first-of-type{
   margin-top:0;
 }
@@ -382,6 +388,13 @@
             font-size: 10px;
             font-weight:normal;
         }
+        .vessel-info-page .column1 .title .timestamp .small{
+            font-size: 10px;
+            font-weight:normal;
+        }
+        .vessel-info-page .column1 .title .timestamp br{
+            display:none;
+        }	
         .vessel-info-page .column1 .menu-item{
             line-height:14px;
             cursor: pointer;
