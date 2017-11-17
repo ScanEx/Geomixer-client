@@ -363,8 +363,9 @@ var nsGmx = nsGmx || {};
         },
 
         updateTemporalLayers: function(layers) {
-            var layers = layers || nsGmx.gmxMap.layers,
-                attrs = this.model.toJSON(),
+            layers = layers || nsGmx.gmxMap.layers;
+            
+            var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),

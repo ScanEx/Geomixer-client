@@ -11349,7 +11349,7 @@ pointsBinding.pointsBinding.unload = function()
 
         if (!layerProperties) {
             if (gmxProperties.content.properties.LayerID) {
-                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name, function(response) {
+                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name + "&srs=" + (nsGmx.leafletMap.options.srs || "3395"), function(response) {
                     if (!parseResponse(response))
                         return;
 
@@ -31236,19 +31236,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31278,6 +31265,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -35733,8 +35733,9 @@ var nsGmx = nsGmx || {};
         },
 
         updateTemporalLayers: function(layers) {
-            var layers = layers || nsGmx.gmxMap.layers,
-                attrs = this.model.toJSON(),
+            layers = layers || nsGmx.gmxMap.layers;
+            
+            var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),
@@ -39112,6 +39113,15 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
             var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
+
+            if (L.version !== '0.7.7') {
+                L.Icon.Default = L.Icon.Default.extend({
+                    _getIconUrl: function (name) {
+                        return L.Icon.prototype._getIconUrl.call(this, name);
+                    }
+                });
+            }
+
             L.Marker = L.Marker.extend({
                 options: {
                     icon: new L.Icon.Default({

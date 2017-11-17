@@ -1194,7 +1194,7 @@
 
         if (!layerProperties) {
             if (gmxProperties.content.properties.LayerID) {
-                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name, function(response) {
+                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name + "&srs=" + (nsGmx.leafletMap.options.srs || "3395"), function(response) {
                     if (!parseResponse(response))
                         return;
 
