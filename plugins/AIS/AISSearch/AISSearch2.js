@@ -778,13 +778,20 @@
 //console.log("LOAD MY FLEET FINISH")               
                         if (response.Status.toLowerCase()=="ok"){                          
                             _this.data = {vessels:response.Result.values.reduce(function(p,c){
-                                if (!p.some(function(v){return v.mmsi==c[1]})) {
-                                    var d = new Date(c[3]*1000);
-                                    p.push({vessel_name:c[0], mmsi:c[1], imo:c[2], ts_pos_utc: aisLayerSearcher.formatDate(d),
-                                    xmin:c[4], xmax:c[4], ymin:c[5], ymax:c[5]}); 
+								var mmsi = response.Result.fields.indexOf("mmsi"), 
+								vessel_name = response.Result.fields.indexOf("vessel_name"), 
+								ts_pos_utc = response.Result.fields.indexOf("ts_pos_utc"),
+								imo = response.Result.fields.indexOf("imo"),
+								lat = response.Result.fields.indexOf("longitude"),
+								lon = response.Result.fields.indexOf("latitude");
+                                if (!p.some(function(v){return v.mmsi==c[mmsi]})) {
+                                    var d = new Date(c[ts_pos_utc]*1000);
+                                    p.push({vessel_name:c[vessel_name], mmsi:c[mmsi], imo:c[imo], ts_pos_utc: aisLayerSearcher.formatDate(d),
+                                    xmin:c[lat], xmax:c[lat], ymin:c[lon], ymax:c[lon]}); 
                                 }
                                 return p;
-                            }, [])};  
+                            }, [])}; 
+							_this.data.vessels.sort(function(a,b){return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1;})
                             _this._isDirty = false;                         
                             return Promise.resolve(); 
                         }
@@ -1195,8 +1202,8 @@ console.log("searchById");
             var request =  {
                             WrapStyle: 'window',
                             layer: aisLastPoint, 
-                            orderdirection: 'asc',
-                            orderby: 'vessel_name',
+                            orderdirection: 'desc',
+                            orderby: 'ts_pos_utc',
                             query: avessels.map(function(v){return "([mmsi]="+v.mmsi+(v.imo && v.imo!=""?(" and [imo]="+v.imo):"")+")"}).join(" or ")
                             //([mmsi] IN (" + ammsi.join(',') + "))"+
                             //"and ([imo] IN (" + aimo.join(',') + "))"
