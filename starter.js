@@ -2130,6 +2130,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // Загружаем все пользовательские данные
                 nsGmx.userObjectsManager.load();
 
+                // выставляет правильные z-indexes слоям-вьюхам
+                _layersTree.updateZIndexes();
+                
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
