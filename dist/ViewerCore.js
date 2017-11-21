@@ -395,6 +395,7 @@ nsGmx._defaultPlugins =
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
     {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
         { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
+        // { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
     // {pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
     // {pluginName: 'AttributionMenu', file: 'plugins/AttributionMenu/AttributionMenu.js', module: 'AttributionMenu', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/fireplugin/FirePlugin.js',                               module: 'FirePlugin',        mapPlugin: true,  isPublic: true},
@@ -1081,6 +1082,7 @@ _translationsHash.hash["rus"] = {
     "Космоснимки-пожары": "Космоснимки-пожары",
     "GIBS NASA": "Съёмка MODIS (NASA)",
     "Руководство пользователя": "Документация",
+    "Руководство": "Руководство пользователя",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Использование плагинов",
 	"копия": "копия",
@@ -1650,6 +1652,7 @@ _translationsHash.hash["rus"] = {
 	"Скрыть параметры поиска" : "Скрыть параметры поиска",
 	"SQL-условие WHERE" : "SQL-условие WHERE",
     "Искать внутри полигона" : "Искать внутри полигона",
+	"Столбцы" : "Столбцы",
 	"Показывать столбцы" : "Показывать столбцы",
 	"Найти" : "Найти",
 	"Нет полей" : "Нет полей",
@@ -1804,6 +1807,7 @@ _translationsHash.hash["eng"] = {
     "Космоснимки-пожары": "Kosmosnimki-fires",
     "GIBS NASA": "MODIS Images (NASA)",
     "Руководство пользователя": "Documentation",
+    "Руководство": "User guide",
     "GeoMixer API": "GeoMixer API",
     "Использование плагинов": "Plugins usage",
 	"копия": "копия",
@@ -2363,6 +2367,7 @@ _translationsHash.hash["eng"] = {
 	"Скрыть параметры поиска" : "Hide search params",
 	"Искать внутри полигона" : "Search inside polygon",
 	"SQL-условие WHERE" : "WHERE SQL expression",
+	"Столбцы" : "Columns",
 	"Показывать столбцы" : "Show columns",
 	"Найти" : "Search",
 	"Нет полей" : "Empty fields",
@@ -11344,7 +11349,7 @@ pointsBinding.pointsBinding.unload = function()
 
         if (!layerProperties) {
             if (gmxProperties.content.properties.LayerID) {
-                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name, function(response) {
+                sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name + "&srs=" + (nsGmx.leafletMap.options.srs || "3395"), function(response) {
                     if (!parseResponse(response))
                         return;
 
@@ -19696,14 +19701,14 @@ nsGmx.layersGroupSecurity = layersGroupSecurity;
 var EditObjectControlsManager = {
     _editControls: [],
     _paramsHooks: [],
-    
+
     find: function(layerName, oid)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
             if ( layerName == this._editControls[iD].layer && oid == this._editControls[iD].oid )
                 return this._editControls[iD].control;
     },
-    
+
     add: function(layerName, oid, control)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
@@ -19714,7 +19719,7 @@ var EditObjectControlsManager = {
             }
         this._editControls.push({ layer: layerName, oid: oid, control: control });
     },
-    
+
     remove: function(layerName, oid)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
@@ -19724,16 +19729,16 @@ var EditObjectControlsManager = {
                 return;
             }
     },
-    
+
     addParamsHook: function(paramsHook) {
         this._paramsHooks.push(paramsHook);
     },
-    
+
     applyParamsHook: function(layerName, objectId, params) {
         for (var h = 0; h < this._paramsHooks.length; h++) {
             params = this._paramsHooks[h](layerName, objectId, params);
         }
-        
+
         return params;
     }
 }
@@ -19741,7 +19746,7 @@ var EditObjectControlsManager = {
 var getInputElement = function(type)
 {
     var input = _input(null, [['dir','className','inputStyle edit-obj-input']]);
-    
+
     if (type == 'date')
     {
         $(input).datepicker({
@@ -19770,7 +19775,7 @@ var getInputElement = function(type)
             showSecond: true
         });
     }
-    
+
     return input;
 }
 
@@ -19778,7 +19783,7 @@ var getInputElement = function(type)
 var FieldsCollection = function() {
     var _asArray = [];
     var _asHash = {};
-    
+
     this.append = function(field) {
         if (field.name && _asHash[field.name]) {
             var origIndex = _asHash[field.name].origIndex;
@@ -19792,15 +19797,15 @@ var FieldsCollection = function() {
             }
         }
     }
-    
+
     this.get = function(name) {
         return _asHash[name];
     }
-    
+
     this.each = function(callback) {
         _asArray.forEach(callback);
     }
-    
+
     this.updateValue = function(name) {
         var field = _asHash[name];
         if (field && field.view) {
@@ -19808,18 +19813,18 @@ var FieldsCollection = function() {
         }
         return field && field.value;
     }
-    
+
     //Сначала isRequired, потом identityField, потом в порядке добавления
     this.sort = function() {
         _asArray = _asArray.sort(function(a, b) {
             if (!!a.isRequired !== !!b.isRequired) {
                 return Number(!!b.isRequired) - Number(!!a.isRequired);
             }
-            
+
             if (!!a.identityField !== !!b.identityField) {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
-            
+
             var userZIndexDelta = (b.index || 0) - (a.index || 0);
             return userZIndexDelta || (b.origIndex - a.origIndex);
         })
@@ -19833,25 +19838,25 @@ var FieldsCollection = function() {
  * @property {bool} [constant=false] можно ли редактировать атрибут
  * @property {bool} [hide=false] совсем не показыавать этот атрибут
  * @property {String} [title=<совпадает с name>] что показывать вместо имени атрибута
- * @property {function(val):bool} [validate] ф-ция для валидации результата. На вход получает введённое пользователем значение 
+ * @property {function(val):bool} [validate] ф-ция для валидации результата. На вход получает введённое пользователем значение
 *      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
  * @property {String} [isRequired=false] является ли значение атрибута обязательным. Обязательные атрибуты показываются выше всех остальных и выделяются жирным шрифтом.
  * @property {Number} [index=0] индекс для сортировки. Влияет на порядок показа полей в диалоге. Больше - выше.
 */
 
 /** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
-* 
+*
 * @memberOf nsGmx
 * @class
 * @param {String}   layerName ID слоя
 * @param {Number}   objectId ID объекта (null для нового объекта)
 * @param {Object}   [params] Дополнительные параметры контрола
 * @param {gmxAPI.drawingObject} [params.drawingObject] Пользовательский объект для задании геометрии или null, если геометрия не задана
-* @param {function} [params.onGeometrySelection] Внешняя ф-ция для выбора геометрии объекта. 
+* @param {function} [params.onGeometrySelection] Внешняя ф-ция для выбора геометрии объекта.
          Сигнатура: function(callback), параметр callback(gmxAPI.drawingObject|geometry) должен быть вызван когда будет выбрана геометрия.
 * @param {HTMLNode} [params.geometryUI] HTML элемент, который нужно использовать вместо стандартных контролов для выбора геометрии (надпись + иконка)
 * @param {nsGmx.EditObjectControl.FieldInfo[]} [params.fields] массив с описанием характеристик атрибутов для редактирования . Должен содержать только атрибуты, которые есть в слое.
-* @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
+* @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта.
          По умолчанию для редактирования запрещено, а для создания нового разрешено.
 * @param {HTMLNode | function(nsGmx.EditObjectControl): HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов или ф-ция, которая возвращает этот элемент
 */
@@ -19860,11 +19865,11 @@ var EditObjectControl = function(layerName, objectId, params)
     /** Объект был изменён/добавлен
      * @event nsGmx.EditObjectControl#modify
      */
-     
+
     /** Генерируется перед изменением/добавлением объекта. Может быть использован для сохранения в свойствах объекта каких-то внешних данных.
      * @event nsGmx.EditObjectControl#premodify
      */
-     
+
     /** Закрытие диалога редактирования
      * @event nsGmx.EditObjectControl#close
      */
@@ -19876,30 +19881,30 @@ var EditObjectControl = function(layerName, objectId, params)
 
     var isNew = objectId == null;
     var _params = $.extend({
-            drawingObject: null, 
-            fields: [], 
+            drawingObject: null,
+            fields: [],
             validate: {},
             allowDuplicates: isNew,
             afterPropertiesControl: _span()
         }, params);
-        
+
     _params = EditObjectControlsManager.applyParamsHook(layerName, objectId, _params);
-        
+
     var _this = this;
     if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
         return EditObjectControlsManager.find(layerName, objectId);
-    
+
     EditObjectControlsManager.add(layerName, objectId, this);
-    
+
     var lmap = nsGmx.leafletMap,
         layersByID = nsGmx.gmxMap.layersByID;
     var layer = layersByID[layerName];
     var geometryInfoContainer = _div(null, [['css','color','#215570'], ['css','fontSize','12px']]);
-    
+
     var originalGeometry = null;
     var drawingBorderDialog = null;
     var identityField = layer._gmx.properties.identityField;
-    
+
     var geometryInfoRow = null;
 
     var drawingObjectLeafletID = null;
@@ -19908,21 +19913,29 @@ var EditObjectControl = function(layerName, objectId, params)
         geometryInfoRow && geometryInfoRow.RemoveRow();
 
         if (!obj) return;
-        
+
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
-            lmap, 
-            geometryInfoContainer, 
-            obj, 
+            lmap,
+            geometryInfoContainer,
+            obj,
             { editStyle: false, allowDelete: false }
         );
         drawingObjectLeafletID = obj._leaflet_id;
     }
-    
+
+    var objStyle = params.event.gmx.target.currentStyle;
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
-                arr = lmap.gmxDrawing.addGeoJSON(geojson);
+                arr = lmap.gmxDrawing.addGeoJSON(geojson, {
+                    pointStyle: {
+                        shape: 'box', color: objStyle.strokeStyle
+                    },
+                    lineStyle: {
+                        color: objStyle.strokeStyle
+                    }
+                });
             for (var i = 0, len = arr.length; i < len; i++) {
                 bindDrawingObject(arr[i]);
             }
@@ -19931,20 +19944,20 @@ var EditObjectControl = function(layerName, objectId, params)
 
     var canvas = null;
     var fieldsCollection = new FieldsCollection();
-    
+
     var createDialog = function()
     {
         var createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
             removeButton = makeLinkButton(_gtxt("Удалить")),
             trs = [],
             isSaving = false;
-            
+
         var canvas = _div(null, [['dir', 'className', 'edit-obj']]);
-        
+
         $(canvas).bind('dragover', function() {
             return false;
         });
-        
+
         $(canvas).bind('drop', function(e) {
             var files = e.originalEvent.dataTransfer.files;
             nsGmx.Utils.parseShpFile(files[0]).done(function(objs) {
@@ -19952,7 +19965,7 @@ var EditObjectControl = function(layerName, objectId, params)
             });
             return false;
         });
-        
+
         removeButton.onclick = function()
         {
             _mapHelper.modifyObjectLayer(layerName, [{action: 'delete', id: objectId}]).done(function()
@@ -19961,54 +19974,54 @@ var EditObjectControl = function(layerName, objectId, params)
                 closeFunc();
             })
         }
-        
+
         removeButton.style.marginLeft = '10px';
-        
+
         isNew && $(removeButton).hide();
-	
+
         createButton.onclick = function()
         {
             if (isSaving) {
                 return;
             }
-                        
+
             $(_this).trigger('premodify');
-            
+
             var properties = {};
             var anyErrors = false;
-            
+
             fieldsCollection.each(function(field) {
                 var name = field.name;
                 if (!name) {
                     return;
                 }
-                
+
                 var isValid = field.view.checkValue();
                 if (isValid) {
                     properties[name] = fieldsCollection.updateValue(name);
                 }
                 anyErrors = anyErrors || !isValid;
             })
-            
+
             if (anyErrors) return;
-            
+
             var obj = { properties: properties };
-            
+
             var selectedGeom = _this.getGeometry();
-            
+
             if (!selectedGeom)
             {
                 showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
                 return;
             }
-            
+
             if (!isNew)
             {
                 obj.id = objectId;
 
                 var curGeomString = JSON.stringify(selectedGeom);
                 var origGeomString = JSON.stringify(originalGeometry);
-                
+
                 if (origGeomString !== curGeomString) {
                     obj.geometry = selectedGeom;
                 }
@@ -20017,9 +20030,9 @@ var EditObjectControl = function(layerName, objectId, params)
             {
                 obj.geometry = selectedGeom;
             }
-            
+
             isSaving = true;
-            
+
             _mapHelper.modifyObjectLayer(layerName, [obj], 'EPSG:4326').done(function()
             {
                 $(_this).trigger('modify');
@@ -20027,15 +20040,15 @@ var EditObjectControl = function(layerName, objectId, params)
                 closeFunc();
             })
         }
-    
+
         var resizeFunc = function(event, ui)
         {
             if (!isNew && $(canvas).children("[loading]").length)
                 return;
-            
+
             canvas.firstChild.style.height = canvas.parentNode.offsetHeight - 25 - 10 - 10 + 'px';
         }
-        
+
         var closeFunc = function()
         {
             // search for opened styles editing dialog
@@ -20044,7 +20057,7 @@ var EditObjectControl = function(layerName, objectId, params)
             }
 
             geometryInfoRow && geometryInfoRow.getDrawingObject() && nsGmx.leafletMap.gmxDrawing.remove(geometryInfoRow.getDrawingObject());
-                
+
             originalGeometry = null;
 
             if (styleEditingDialog) {
@@ -20053,9 +20066,9 @@ var EditObjectControl = function(layerName, objectId, params)
 
             if (drawingBorderDialog)
                 removeDialog(drawingBorderDialog);
-            
+
             EditObjectControlsManager.remove(layerName, objectId);
-            
+
             $(_this).trigger('close');
         }
 
@@ -20063,13 +20076,13 @@ var EditObjectControl = function(layerName, objectId, params)
         {
             var trs = [],
                 firstInput;
-            
+
             //сначала идёт геометрия
             var geomTitleTmpl = Handlebars.compile('<span>' +
                 '<span class="edit-obj-geomtitle">{{i "Геометрия"}}</span>' +
                 '<span id = "choose-geom" class="gmx-icon-choose"></span>' +
             '</span>');
-            
+
             var geometryUI = _params.geometryUI || $(geomTitleTmpl())[0];
             $('#choose-geom', geometryUI).click(function() {
                 if (_params.onGeometrySelection) {
@@ -20082,11 +20095,11 @@ var EditObjectControl = function(layerName, objectId, params)
                     );
                 }
             })
-            
+
             trs.push(_tr([_td([geometryUI],[['css','height','20px']]), _td([geometryInfoContainer])]));
-            
+
             fields.sort();
-            
+
             //потом все остальные поля
             fields.each(function(field) {
                 var td = _td();
@@ -20111,13 +20124,13 @@ var EditObjectControl = function(layerName, objectId, params)
                 {
                     field.view = field.view || {
                         getUI: function() {
-                            if (!this._input) {                            
+                            if (!this._input) {
                                 var input = this._input = getInputElement(field.type);
                                 input.rowName = field.name;
                                 input.rowType = field.type;
-                                
+
                                 firstInput = firstInput || input;
-                                
+
                                 if ('value' in field)
                                     input.value = nsGmx.Utils.convertFromServer(field.type, field.value);
                             }
@@ -20140,53 +20153,53 @@ var EditObjectControl = function(layerName, objectId, params)
                         _input: null
                     }
                 }
-                
+
                 _(td, [field.view.getUI(_this)]);
-                
+
                 var fieldHeader = _span([_t(field.title || field.name)],[['css','fontSize','12px']]);
                 if (field.isRequired) {
                     fieldHeader.style.fontWeight = 'bold';
                 }
                 var tr = _tr([_td([fieldHeader]), td], [['css', 'height', '22px']]);
-                
+
                 field.hide && $(tr).hide();
-                
+
                 trs.push(tr);
             })
-            
+
             var afterPropUI = typeof _params.afterPropertiesControl === 'function' ? _params.afterPropertiesControl(_this) : _params.afterPropertiesControl;
-            
+
             _(canvas, [_div([_table([_tbody(trs)], [['dir', 'className', 'obj-edit-proptable']]), afterPropUI],[['dir', 'className', 'obj-edit-canvas'], ['css','overflow','auto']])]);
-            
+
             _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
 
             firstInput && firstInput.focus();
-            
+
             resizeFunc();
         }
 var prop = layer._gmx.properties;
-        
+
         var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", prop.title) : _gtxt("Редактировать объект слоя [value0]", prop.title), canvas, 520, 300, false, false, resizeFunc, closeFunc);
-        
+
         if (!isNew)
         {
             var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
-        
+
             _(canvas, [loading])
-            
+
             //получаем геометрию объекта
             sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + layerName + "&page=0&pagesize=1&orderby=" + identityField + "&geometry=true&query=[" + identityField + "]=" + objectId, function(response)
             {
                 if (!parseResponse(response))
                     return;
-                    
+
                 $(canvas).children("[loading]").remove();
-                
+
                 var columnNames = response.Result.fields;
                 var drawingObject = null;
                 var geometryRow = response.Result.values[0];
                 var types = response.Result.types;
-                
+
                 for (var i = 0; i < geometryRow.length; ++i)
                 {
                     if (columnNames[i] === 'geomixergeojson')
@@ -20201,21 +20214,21 @@ var prop = layer._gmx.properties;
                     {
                         var field = {
                             value: geometryRow[i],
-                            type: types[i], 
+                            type: types[i],
                             name: columnNames[i],
                             constant: columnNames[i] === identityField,
                             identityField: columnNames[i] === identityField,
                             isRequired: false
                         };
-                        
+
                         fieldsCollection.append(field);
                     }
                 }
-                
+
                 _params.fields.forEach(fieldsCollection.append);
-                
+
                 drawAttrList(fieldsCollection);
-                
+
                 _this.initPromise.resolve();
             })
         }
@@ -20225,25 +20238,25 @@ var prop = layer._gmx.properties;
             {
                 fieldsCollection.append({type: prop.attrTypes[i], name: prop.attributes[i]})
             }
-            
+
             _params.fields.forEach(fieldsCollection.append);
-            
+
             if (_params.drawingObject) {
                 bindDrawingObject(_params.drawingObject);
             }
-            
+
             drawAttrList(fieldsCollection);
-            
+
             _this.initPromise.resolve();
         }
     }
-    
+
     /** Promise для отслеживания момента полной инициализации диалога. Только после полной инициализации можно полноценно пользоваться методами get/set
       * @memberOf nsGmx.EditObjectControl.prototype
       * @member {jQuery.Deferred} initPromise
     */
     this.initPromise = $.Deferred();
-    
+
     /** Получить текущее значение атрибута из контрола
       @memberOf nsGmx.EditObjectControl.prototype
       @param {String} fieldName Имя атрибута
@@ -20252,16 +20265,16 @@ var prop = layer._gmx.properties;
     this.get = function(fieldName) {
         return fieldsCollection.updateValue(fieldName);
     }
-    
+
     this.getAll = function() {
         var res = {};
         fieldsCollection.each(function(field) {
             res[field.name] = fieldsCollection.updateValue(field.name);
         })
-        
+
         return res;
     }
-    
+
     /** Задать значение атрибута объекта из контрола
       @memberOf nsGmx.EditObjectControl.prototype
       @method set
@@ -20274,7 +20287,7 @@ var prop = layer._gmx.properties;
             field.view.setValue(value);
         }
     }
-    
+
     /** Задать геометрию для редактируемого объекта
       @memberOf nsGmx.EditObjectControl.prototype
       @method setGeometry
@@ -20283,11 +20296,11 @@ var prop = layer._gmx.properties;
     this.setGeometry = function(geometry) {
         bindGeometry(geometry);
     }
-    
+
     this.getGeometryObj = function() {
         return geometryInfoRow ? geometryInfoRow.getDrawingObject() : null;
     }
-    
+
     this.getGeometry = function() {
         if (geometryInfoRow) {
             var geom = geometryInfoRow.getDrawingObject();
@@ -20297,13 +20310,13 @@ var prop = layer._gmx.properties;
             return null;
         }
     }
-    
+
     this.getLayer = function() { return layer; };
-    
+
     this.add = function(field) {
         fieldsCollection.append(field);
     }
-    
+
     createDialog();
 }
 
@@ -20311,12 +20324,13 @@ nsGmx.EditObjectControl = EditObjectControl;
 
 /** Добавить "хук" для модификации параметров при всех вызовах ф-ции {@link nsGmx.EditObjectControl}
     @function
-    @param {function(Object): Object} {paramsHook} Ф-ция, которая принимает на вход параметры ф-ции {@link nsGmx.EditObjectControl} 
+    @param {function(Object): Object} {paramsHook} Ф-ция, которая принимает на вход параметры ф-ции {@link nsGmx.EditObjectControl}
         и возвращает модифицируемые параметры (возможна замена in place)
 */
 nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.bind(EditObjectControlsManager);
 
 })(nsGmx.Utils._);
+
 !(function () {
 
 nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag) {
@@ -22164,8 +22178,6 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
 
     nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
 
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('Показывать столбцы') + ':')], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']])]);
-
     var attrTitles = attributesTable.tableFields.fieldsAsArray;
     if (!this._activeColumns)
     {
@@ -22175,6 +22187,30 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
             this._activeColumns[attrTitles[i]] = true;
 		}
     }
+
+    var presentColumns = false;
+
+    for (var key in _this._activeColumns) {
+        if (_this._activeColumns.hasOwnProperty(key)) {
+            if (_this._activeColumns[key] === true) {
+                presentColumns = true;
+                break;
+            }
+        }
+    }
+
+    var showColumnsTemplate =
+        '<div class="attrs-table-show-columns-header">' +
+            '<label title="{{name}}" class="attrs-table-show-columns">' +
+                '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
+                '{{name}}' +
+            '</label>' +
+        '</div>';
+
+    var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
+        active: presentColumns,
+        name: (window._gtxt('Столбцы') + ':')
+    })).appendTo(container);
 
     var rowTemplate =
         '<label title="{{name}}" class="attrs-table-active-row">' +
@@ -22192,6 +22228,19 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
             _this._activeColumns[columnName] = this.checked;
             $(_this).trigger('columnsChange');
         });
+    });
+
+    $('input', selectColumnsUI).click(function() {
+        var checked = this.checked;
+        for (var key in _this._activeColumns) {
+            if (_this._activeColumns.hasOwnProperty(key)) {
+                _this._activeColumns[key] = checked;
+                $(_this).trigger('columnsChange');
+                $('input', columnsList).each(function (elem) {
+                    $(this).prop('checked', checked);
+                });
+            }
+        }
     });
 
     nsGmx.Utils._(container, [columnsList]);
@@ -22618,6 +22667,7 @@ var nsGmx = window.nsGmx || {};
 (function() {
 
     var MAX_SIZE = 10000;
+    var EPS = 1E-9;
 
     // мы не хотим, чтобы рамка фигурировала в списке пользовательских объектов
     nsGmx.DrawingObjectCustomControllers.addDelegate({
@@ -23480,7 +23530,7 @@ var nsGmx = window.nsGmx || {};
 
                 value = Number(e.target.value);
                 valueErr = value <= 0 || isNaN(value);
-                sizeErr = value > MAX_SIZE;
+                sizeErr = value - MAX_SIZE > EPS;
 
                 // обработка инпута ширины
                 if (e.target.className === 'mapExportWidth' || e.target.className === 'mapExportWidth error') {
@@ -33520,6 +33570,10 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
     onAdd: function(map) {
         if (map.options.svgSprite) {
             delete this.options.text;
+            var proto = Object.getPrototypeOf(this.options);
+            if (proto.text) {
+                delete proto.text;
+            }
         }
         this._container = L.Control.gmxIcon.prototype.onAdd.apply(this, arguments);
         this._shareDialogContainer = L.DomUtil.create('div', 'shareDialogContainer');
@@ -35688,8 +35742,9 @@ var nsGmx = nsGmx || {};
         },
 
         updateTemporalLayers: function(layers) {
-            var layers = layers || nsGmx.gmxMap.layers,
-                attrs = this.model.toJSON(),
+            layers = layers || nsGmx.gmxMap.layers;
+            
+            var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
                 dateEnd = this.dateInterval.get('dateEnd'),
@@ -36385,7 +36440,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 
-    this.arrContainer = ['aa'];
+    this.arrContainer = [];
 	var counts = [];
 
 	/** возвращает стили найденных объектов, используется только для точки*/
@@ -38269,7 +38324,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version },
                 ].concat(window.mapsSite ? [{
                         id: 'usage',
@@ -38292,7 +38347,13 @@ nsGmx.widgets = nsGmx.widgets || {};
                             window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
                         }
                     }
-                ] : [])
+                ] : []) : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -38409,6 +38470,12 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
+                    className: 'shareIcon',
+                    id: 'share',
+                    text: 'Share',
+                    style: {
+                        width: 'auto'
+                    },
                     permalinkManager: {
                         save: function() {
                             return $.when(
@@ -39055,6 +39122,15 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
             var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
+
+            if (L.version !== '0.7.7') {
+                L.Icon.Default = L.Icon.Default.extend({
+                    _getIconUrl: function (name) {
+                        return L.Icon.prototype._getIconUrl.call(this, name);
+                    }
+                });
+            }
+
             L.Marker = L.Marker.extend({
                 options: {
                     icon: new L.Icon.Default({
@@ -40244,7 +40320,6 @@ nsGmx.widgets = nsGmx.widgets || {};
         window.prompt = promptFunction;
 
     };
-
 })();
 
 window.nsGmx = window.nsGmx || {};

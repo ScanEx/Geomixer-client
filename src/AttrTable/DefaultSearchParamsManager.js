@@ -98,8 +98,6 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
 
     nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
 
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('Показывать столбцы') + ':')], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']])]);
-
     var attrTitles = attributesTable.tableFields.fieldsAsArray;
     if (!this._activeColumns)
     {
@@ -109,6 +107,30 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
             this._activeColumns[attrTitles[i]] = true;
 		}
     }
+
+    var presentColumns = false;
+
+    for (var key in _this._activeColumns) {
+        if (_this._activeColumns.hasOwnProperty(key)) {
+            if (_this._activeColumns[key] === true) {
+                presentColumns = true;
+                break;
+            }
+        }
+    }
+
+    var showColumnsTemplate =
+        '<div class="attrs-table-show-columns-header">' +
+            '<label title="{{name}}" class="attrs-table-show-columns">' +
+                '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
+                '{{name}}' +
+            '</label>' +
+        '</div>';
+
+    var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
+        active: presentColumns,
+        name: (window._gtxt('Столбцы') + ':')
+    })).appendTo(container);
 
     var rowTemplate =
         '<label title="{{name}}" class="attrs-table-active-row">' +
@@ -126,6 +148,19 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
             _this._activeColumns[columnName] = this.checked;
             $(_this).trigger('columnsChange');
         });
+    });
+
+    $('input', selectColumnsUI).click(function() {
+        var checked = this.checked;
+        for (var key in _this._activeColumns) {
+            if (_this._activeColumns.hasOwnProperty(key)) {
+                _this._activeColumns[key] = checked;
+                $(_this).trigger('columnsChange');
+                $('input', columnsList).each(function (elem) {
+                    $(this).prop('checked', checked);
+                });
+            }
+        }
     });
 
     nsGmx.Utils._(container, [columnsList]);

@@ -119,7 +119,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 
-    this.arrContainer = ['aa'];
+    this.arrContainer = [];
 	var counts = [];
 
 	/** возвращает стили найденных объектов, используется только для точки*/

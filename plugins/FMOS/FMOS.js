@@ -1,5 +1,38 @@
 ﻿(function () {
     'use strict';
+	
+			
+	// POLYFILLS ///////////////////////
+	var polyFind = function(a, predicate) {
+		var list = Object(a);
+		var length = list.length >>> 0;
+		var thisArg = arguments[2];
+		var value;
+
+		for (var i = 0; i < length; i++) {
+		  value = list[i];
+		  if (predicate.call(thisArg, value, i, list)) {
+			return value;
+		  }
+		}
+		return undefined;
+	};	
+	
+	var  polyFindIndex = function(a, predicate) {
+		var list = Object(a);
+		var length = list.length >>> 0;
+		var thisArg = arguments[2];
+		var value;
+
+		for (var i = 0; i < length; i++) {
+		  value = list[i];
+		  if (predicate.call(thisArg, value, i, list)) {
+			return i;
+		  }
+		}
+		return -1;
+	};
+	////////////////////////////////////	
 
     var pluginName = 'FMOS',
         toolbarIconId = 'AISSearch2',
@@ -72,7 +105,7 @@
                 tracksLayer = layersByID[tracksLayerID];  
                 var setLocaleDate = function(layer){
                     if (layer)
-                    layer.bindPopup('').on('popupopen',(e)=>{
+                    layer.bindPopup('').on('popupopen',function(e){
                         //console.log(e.gmx.properties);
                         var result, re = /\[([^\[\]]+)\]/g, lastIndex = 0, template = "", 
                         str = e.gmx.templateBalloon, props = e.gmx.properties;
@@ -188,7 +221,7 @@
             },
             showInfo: function(vessel, getmore){
 
-                var ind = allIinfoDialogs.findIndex(function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
+                var ind = polyFindIndex(allIinfoDialogs, function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
                 if (ind>=0){
                     $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length-1));
                     return;
@@ -213,10 +246,10 @@
 
                 var dialog = showDialog(vessel.ShipName, canvasWithFooter[0], {width: 450, height: 475, 
                         closeFunc: function(event){
-                            var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
+                            var ind = polyFindIndex(infoDialogCascade, function(d){return d.id==dialog.id});
                             if (ind>=0)
                                 infoDialogCascade.splice(ind, 1);
-                            ind = allIinfoDialogs.findIndex(function(d){return d.dialog.id==dialog.id});
+                            ind = polyFindIndex(allIinfoDialogs, function(d){return d.dialog.id==dialog.id});
                             if (ind>=0)
                                 allIinfoDialogs.splice(ind, 1);
                         }
@@ -233,7 +266,7 @@
                 infoDialogCascade.push(dialog);
                 allIinfoDialogs.push({vessel:vessel, dialog:dialog});
                 $(dialog).on( "dialogdragstop", function( event, ui ) {
-                    var ind = infoDialogCascade.findIndex(function(d){return d.id==dialog.id});
+                    var ind = polyFindIndex(infoDialogCascade, function(d){return d.id==dialog.id});
                     if (ind>=0)
                         infoDialogCascade.splice(ind, 1);
                 });

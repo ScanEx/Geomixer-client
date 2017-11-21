@@ -185,6 +185,12 @@
   font-size:10px;
   color: #CCC
 }
+.ais_view .ais_vessels .date .small{
+  display: none;
+}
+.ais_view .ais_vessels .date br{
+  display: none;
+}
 .ais_view .ais_vessel:first-of-type{
   margin-top:0;
 }
@@ -203,6 +209,9 @@
   line-height: 15px;
 }
 
+.ais_myfleet_dialog .vessel_prop .small{
+  font-size: 11px
+}
 
 .ais_myfleet_dialog .content div.summary {
   margin-top: 15px;
@@ -299,14 +308,14 @@
     padding-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    width: 170px
+    width: 180px
 }
 .ais_myfleet_dialog .column2 {
     float: left;
     padding-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    width: 250px
+    width: 240px
 }
 .ais_myfleet_dialog::after {
     content: "";
@@ -379,6 +388,13 @@
             font-size: 10px;
             font-weight:normal;
         }
+        .vessel-info-page .column1 .title .timestamp .small{
+            font-size: 10px;
+            font-weight:normal;
+        }
+        .vessel-info-page .column1 .title .timestamp br{
+            display:none;
+        }	
         .vessel-info-page .column1 .menu-item{
             line-height:14px;
             cursor: pointer;
@@ -616,3 +632,21 @@
         .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
             width:10px;
         }
+			
+.VesselSearchTool:hover{
+	background-color: #eee;
+}	
+.leaflet-gmx-icon-active.VesselSearchTool > span{
+	color:#f57c00;
+}	
+.VesselSearchTool{
+	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+	background-color: white;
+}
+.VesselSearchTool > span{
+	color:black;
+	font-weight:bold;
+	margin-top: 6px;
+	margin-right: 10px;
+	margin-left: 8px;
+}

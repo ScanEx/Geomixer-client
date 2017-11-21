@@ -8,18 +8,19 @@
         baseUrl = window.serverBase || scheme + '//maps.kosmosnimki.ru/',
         //aisServiceUrl = scheme + "//localhost/GM/Plugins/AIS/",
         aisServiceUrl = baseUrl + "Plugins/AIS/",
-//console.log(scheme)
-//console.log(aisServiceUrl)
-//console.log(baseUrl)
         infoDialogCascade = [],  
         allIinfoDialogs = [],
         myFleetLayers = [],
         layersWithBaloons = [],
         aisLayerID,
+        aisLastPoint,
         tracksLayerID,
         aisLayer,
+		screenSearchLayer,
         tracksLayer,
         displaingTrack,
+		defaultSearch,
+		highlight = L.marker([0, 0], {icon:L.icon({iconAnchor:[12, 12], iconSize:[25,25], iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000}),
         publicInterface = {
             pluginName: pluginName,
             afterViewer: function (params, map) {                     
@@ -30,11 +31,15 @@
                 path = gmxCore.getModulePath(pluginName),
                 layersByID = nsGmx.gmxMap.layersByID,
                 lmap = map;  
-                layersWithBaloons = params.layersWithBaloons;
-                aisLayerID = params.aisLayerID || '8EE2C7996800458AAF70BABB43321FA4';
+                layersWithBaloons = params.layersWithBaloons;				
+                aisLayerID = params.aisLayer || '8EE2C7996800458AAF70BABB43321FA4';				
+                aisLastPoint = params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE';
                 tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15';
                 aisLayer = layersByID[aisLayerID];
-                tracksLayer = layersByID[tracksLayerID];  
+				screenSearchLayer = params.searchLayer || '8EE2C7996800458AAF70BABB43321FA4';
+                tracksLayer = layersByID[tracksLayerID];
+				defaultSearch = params.defaultSearch || 'screen';
+				toolbarIconId = params.toolbarIconId;
                 var setLocaleDate = function(layer){
                     if (layer)
                     layer.bindPopup('').on('popupopen',function(e){
@@ -83,12 +88,18 @@
                         forLayers(layersByID[params[key]] )
                     }
                 }
-
+				highlight.addEventListener('click', function(e){publicInterface.showInfo(e.target.vessel, true)});
 				var iconOpt_mf = {
-                    id: toolbarIconId,
+                    //id: toolbarIconId,
+					className: "VesselSearchTool",
                     togglable: true,
                     title: _gtxt('AISSearch2.caption')
-                };		
+                };	
+				if (toolbarIconId)
+					iconOpt_mf.id = toolbarIconId;
+				else
+					iconOpt_mf.text = _gtxt('AISSearch2.capShort');
+			
                 if (!lmap.options.svgSprite) {
                     L.extend(iconOpt, {
 						regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
@@ -143,7 +154,6 @@
                     }
             },
             showInfo: function(vessel, getmore){
-//console.log(infoDialogCascade);
                 var ind = polyFindIndex(allIinfoDialogs, function(d){return d.vessel.imo==vessel.imo && d.vessel.mmsi==vessel.mmsi});
                 if (ind>=0){
                     $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length-1));
@@ -153,10 +163,11 @@
                 var canvas = $('<div class="ais_myfleet_dialog"/>'),
                     menu = $('<div class="column1 menu"></div>').appendTo(canvas),
                     photo = $('<div class="photo"><div></div></div>').appendTo(menu),
+                    moreinfo = $('<div class="moreinfo"><div></div></div>').appendTo(menu),
                     content = Handlebars.compile(
                     '<div class="column2 content">'+
                     '</div>') (vessel);
-                    console.log(content);
+                    //console.log(content);
                 canvas.append(content)
                 var _this = this;
 
@@ -197,6 +208,7 @@
                     vessel.draught = addUnit(vessel.draught, " м");
                     vessel.length = addUnit(vessel.length, " м");
                     vessel.width = addUnit(vessel.width, " м");
+					vessel.source = vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
                     return vessel;
                 }
                 var moreInfo = function(v){
@@ -211,13 +223,20 @@
                         '<div class="vessel_prop"><b>ROT</b>: {{rot}}</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.draught"}}</b>: {{draught}}</div>'+
                         '<div class="vessel_prop"><b>{{i "AISSearch2.destination"}}</b>: {{destination}}</div>'+
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.nav_status"}}</b>: {{nav_status}}</div>'+
+						'<br>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.source"}}</b>: {{source}}</div>'
                         )(v));
-                        $('.menu', canvas).append(Handlebars.compile(
-                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{ts_pos_utc}}</div>'+
-                        '<div class="vessel_prop"><b>Latitude</b>: {{latitude}}</div>'+
-                        '<div class="vessel_prop"><b>Longitude</b>: {{longitude}}</div>'
+                        $(moreinfo).append(Handlebars.compile(
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.last_sig"}}</b>: {{{ts_pos_utc}}}</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.lon"}}</b>: {{longitude}}°</div>'+
+                        '<div class="vessel_prop"><b>{{i "AISSearch2.lat"}}</b>: {{latitude}}°</div>'
                         )(v));
+						
+						if (vessel2.registry_name){
+							var latinTitle = $(dialog).dialog('option', 'title');
+							$(dialog).dialog('option', 'title', latinTitle + " ("+vessel2.registry_name+")");
+						}
                 } 
                 var vessel2;               
                 if (!getmore){
@@ -227,29 +246,14 @@
                 else
                     aisLayerSearcher.searchNames([{mmsi:vessel.mmsi,imo:vessel.imo}], function(response){
                         if (parseResponse(response)){                    
-                            vessel2 = {
-                            "flag_country":response.Result.values[0][6],
-                            "vessel_type":response.Result.values[0][7],
-                            "vessel_name":response.Result.values[0][0],
-                            "mmsi":response.Result.values[0][1],
-                            "imo":response.Result.values[0][2],
-                            "ts_pos_utc":response.Result.values[0][3],
-                            "longitude":response.Result.values[0][4],
-                            "latitude":response.Result.values[0][5],
-                            "cog":response.Result.values[0][8],
-                            "sog":response.Result.values[0][9],
-                            "rot":response.Result.values[0][10],
-                            "heading":response.Result.values[0][11],
-                            "destination":response.Result.values[0][12],
-                            "nav_status":response.Result.values[0][13],
-                            "draught":response.Result.values[0][14],
-                            "ts_eta":response.Result.values[0][15],
-                            "callsign":response.Result.values[0][16]
-                            };
+                            vessel2 = {};
+							for (var i=0; i<response.Result.fields.length; ++i)
+								vessel2[response.Result.fields[i]] = response.Result.values[0][i];
+//console.log(vessel2.registry_name)
                             moreInfo(formatVessel(vessel2));
                         }
-    //else
-    //console.log(response)
+						else
+							console.log(response)
                 })
                 $('<img src="'+scheme+'//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi='+vessel.mmsi+'">').load(function() {
                     if (this)
@@ -321,31 +325,32 @@
                         ymin:vessel.ymin?vessel.ymin:vessel.latitude, 
                         ymax:vessel.ymax?vessel.ymax:vessel.latitude, 
                         ts_pos_utc:vessel.ts_pos_utc && !isNaN(vessel.ts_pos_utc)?aisLayerSearcher.formatDate(new Date(vessel.ts_pos_utc*1000)):vessel.ts_pos_utc
-                    }
-                    //console.log(vessel)
-                    //console.log(showVessel)
+                    }			
+					//nsGmx.leafletMap.removeLayer(highlight);
+					//highlight.setLatLng([showVessel.ymax, showVessel.xmax]).addTo(nsGmx.leafletMap);
                     aisView.positionMap(showVessel);
                 });
-
-                var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
-                '<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
-                var showtrack = $(templ)
-                .appendTo(menubuttons)                   
-                .on('click', function(){
-                    if (showtrack.attr('title')!=_gtxt('AISSearch2.hide_track')){
-                        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-                        .removeClass('active');
-                        publicInterface.showTrack([vessel.mmsi]);
-                        showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
-                        .addClass('active');       
-                    }
-                    else{
-                        $('.showtrack').attr('title',_gtxt('AISSearch2.show_track'))
-                        .removeClass('active');
-                        publicInterface.showTrack([]);
-                    }
-                });
-                if (myFleetMembersModel && myFleetMembersModel.data){
+				//if (tracksLayer){
+					var templ = !displaingTrack || displaingTrack!=vessel.mmsi?'<div class="button showtrack" title="'+_gtxt('AISSearch2.show_track')+'"></div>':
+					'<div class="button showtrack active" title="'+_gtxt('AISSearch2.hide_track')+'"></div>';
+					var showtrack = $(templ)
+					.appendTo(menubuttons)                   
+					.on('click', function(){
+						if (showtrack.attr('title')!=_gtxt('AISSearch2.hide_track')){
+							$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+							.removeClass('active');
+							publicInterface.showTrack([vessel.mmsi]);
+							showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+							.addClass('active');       
+						}
+						else{
+							$('.showtrack').attr('title',_gtxt('AISSearch2.show_track'))
+							.removeClass('active');
+							publicInterface.showTrack([]);
+						}
+					});
+				//}
+                if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels){
                     var add = polyFindIndex(myFleetMembersModel.data.vessels, function(v){
                         return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
                     })<0;
@@ -453,7 +458,11 @@
                 '</tr></table>'+
                 '<div class="ais_view search_view">'+
                     '<table border=0 class="instruments"><tr>'+
-                    '<td><div><i class="icon-down-dir"><select><option value="0">{{i "AISSearch2.screen"}}</option><option value="1">{{i "AISSearch2.database"}}</option></select></i></div></td>'+
+                    '<td><div><i class="icon-down-dir"><select>'+
+					(defaultSearch=='screen'?
+					'<option value="0">{{i "AISSearch2.screen"}}</option>'+'<option value="1">{{i "AISSearch2.database"}}</option>' :
+					'<option value="1">{{i "AISSearch2.database"}}</option>'+'<option value="0">{{i "AISSearch2.screen"}}</option>')+
+					'</select></i></div></td>'+
                     '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>'+gifLoader+'</div></div></td>'+
                     '<td><span class="count"></span></td></tr>'+
                     '<tr><td colspan="3"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-search clicable"></div></td></tr></table>'+
@@ -501,7 +510,8 @@
                     _refresh: $('.search_view .refresh div', this._canvas),
                     _search: $('.filter', this._canvas),
                     _count: $('.count', this._canvas)
-                }); 
+                });
+				aisSearchView.setModel(defaultSearch);
 
                 myFleetMembersView.create({
                     _frame: $('.myfleet_view', this._canvas),
@@ -540,6 +550,7 @@
         },
         hide: function(){
             $(this._leftMenuBlock.parentWorkCanvas).hide()
+			nsGmx.leafletMap.removeLayer(highlight)
         }
     };
 
@@ -615,7 +626,11 @@
     				], {
     					maxZoom: 9,//config.user.searchZoom,
     					animate: false
-    			})           
+    			})
+			
+			nsGmx.leafletMap.removeLayer(highlight);
+			highlight.vessel = vessel;
+			highlight.setLatLng([vessel.ymax, vessel.xmax]).addTo(nsGmx.leafletMap);				
         },        
         showPosition: function(item){
             var vessel = JSON.parse(item.parent().parent().find('.info').attr('vessel'));
@@ -635,7 +650,8 @@
                 });
             }
             else
-				this.positionMap(vessel);
+				this.positionMap(vessel);	
+
         },  
         repaint: function(){
 
@@ -762,13 +778,20 @@
 //console.log("LOAD MY FLEET FINISH")               
                         if (response.Status.toLowerCase()=="ok"){                          
                             _this.data = {vessels:response.Result.values.reduce(function(p,c){
-                                if (!p.some(function(v){return v.mmsi==c[1]})) {
-                                    var d = new Date(c[3]*1000);
-                                    p.push({vessel_name:c[0], mmsi:c[1], imo:c[2], ts_pos_utc: aisLayerSearcher.formatDate(d),
-                                    xmin:c[4], xmax:c[4], ymin:c[5], ymax:c[5]}); 
+								var mmsi = response.Result.fields.indexOf("mmsi"), 
+								vessel_name = response.Result.fields.indexOf("vessel_name"), 
+								ts_pos_utc = response.Result.fields.indexOf("ts_pos_utc"),
+								imo = response.Result.fields.indexOf("imo"),
+								lat = response.Result.fields.indexOf("longitude"),
+								lon = response.Result.fields.indexOf("latitude");
+                                if (!p.some(function(v){return v.mmsi==c[mmsi]})) {
+                                    var d = new Date(c[ts_pos_utc]*1000);
+                                    p.push({vessel_name:c[vessel_name], mmsi:c[mmsi], imo:c[imo], ts_pos_utc: aisLayerSearcher.formatDate(d),
+                                    xmin:c[lat], xmax:c[lat], ymin:c[lon], ymax:c[lon]}); 
                                 }
                                 return p;
-                            }, [])};  
+                            }, [])}; 
+							_this.data.vessels.sort(function(a,b){return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1;})
                             _this._isDirty = false;                         
                             return Promise.resolve(); 
                         }
@@ -797,7 +820,7 @@
             });
         },
         markMembers:function(vessels){
-            if (this.data)
+            if (this.data && this.data.vessels)
             this.data.vessels.forEach(function(v){
                 var member = polyFind(vessels, function(vv){return v.mmsi==vv.mmsi && v.imo==v.imo});
                 if (member)
@@ -1071,8 +1094,6 @@ console.log(json)
     // AIS LAYERS SEARCHER
     //************************************
     var aisLayerSearcher = {
-        _lastPointLayerID: '303F8834DEE2449DAF1DA9CD64B748FE',
-        _layerID: '802BD01EDE4D45A6BD6FAAD25A1F2CBD',//LastPosition ForAnyDate//'8EE2C7996800458AAF70BABB43321FA4' //All,//'4F8B3FC69D3B455A96C8505E8287AD52',//LastPoint ForAnyVessel 
         _serverScript: baseUrl + 'VectorLayer/Search.ashx',
         getBorder :function () {
             var lmap = nsGmx.leafletMap;
@@ -1112,14 +1133,16 @@ console.log(json)
             }
             return geo;
         },   
-        formatDate: function(d, utc){
+        formatDate: function(d, local){
             var dd,m,y,h,mm;
-            if (!utc){
+            if (local){
                 dd = ("0"+d.getDate()).slice(-2);
                 m = ("0"+(d.getMonth()+1)).slice(-2);
                 y = d.getFullYear();
                 h = ("0"+d.getHours()).slice(-2);
                 mm = ("0"+d.getMinutes()).slice(-2);
+				return dd+"."+m+"."+y+" "+h+":"+mm+
+				" ("+("0"+d.getUTCHours()).slice(-2)+":"+("0"+d.getUTCMinutes()).slice(-2)+" UTC)";
             }
             else{
                 dd = ("0"+d.getUTCDate()).slice(-2);
@@ -1127,13 +1150,22 @@ console.log(json)
                 y = d.getUTCFullYear();
                 h = ("0"+d.getUTCHours()).slice(-2);
                 mm = ("0"+d.getUTCMinutes()).slice(-2);
+				var
+                ldd = ("0"+d.getDate()).slice(-2),
+                lm = ("0"+(d.getMonth()+1)).slice(-2),
+                ly = d.getFullYear(),
+                lh = ("0"+d.getHours()).slice(-2),
+                lmm = ("0"+d.getMinutes()).slice(-2),
+				offset = -d.getTimezoneOffset()/60;
+				return dd+"."+m+"."+y+" "+h+":"+mm+" UTC <br>"+
+				"<span class='small'>("+ldd+"."+lm+"."+ly+" "+lh+":"+lmm+" UTC"+(offset>0?"+":"")+offset+")</span>";
             }
-            return dd+"."+m+"."+y+" "+h+":"+mm;
         }, 
         searchById: function(aid, callback){
+console.log("searchById");
             var request =  {
                             WrapStyle: 'window',
-                            layer: this._layerID,
+                            layer: aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
                             columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
                             query: "([id] IN (" + aid.join(',') + "))"
             };
@@ -1156,7 +1188,7 @@ console.log(json)
             }
             var request =  {
                             WrapStyle: 'window',
-                            layer: this._lastPointLayerID,
+                            layer: aisLastPoint, 
                             columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
                             orderdirection: 'desc',
                             orderby: 'ts_pos_utc',
@@ -1169,17 +1201,9 @@ console.log(json)
         searchNames: function(avessels, callback){
             var request =  {
                             WrapStyle: 'window',
-                            layer: this._lastPointLayerID,
-                            columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}'+
-                            ',{"Value":"flag_country"},{"Value":"vessel_type"}'+
-                            ',{"Value":"cog"},{"Value":"sog"}'+
-                            ',{"Value":"rot"},{"Value":"heading"}'+
-                            ',{"Value":"destination"},{"Value":"nav_status"}'+
-                            ',{"Value":"draught"},{"Value":"ts_eta"}'+
-                            ',{"Value":"callsign"}'+
-                            ']',
-                            orderdirection: 'asc',
-                            orderby: 'vessel_name',
+                            layer: aisLastPoint, 
+                            orderdirection: 'desc',
+                            orderby: 'ts_pos_utc',
                             query: avessels.map(function(v){return "([mmsi]="+v.mmsi+(v.imo && v.imo!=""?(" and [imo]="+v.imo):"")+")"}).join(" or ")
                             //([mmsi] IN (" + ammsi.join(',') + "))"+
                             //"and ([imo] IN (" + aimo.join(',') + "))"
@@ -1201,7 +1225,7 @@ console.log(json)
 //console.log(min);
 //console.log(max);
             L.gmxUtil.sendCrossDomainPostRequest(aisServiceUrl + "SearchScreen.ashx", 
-            {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y}, 
+            {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y, layer:screenSearchLayer}, 
             callback);
         }
     };  
@@ -1221,7 +1245,7 @@ console.log(json)
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
         '<table border=0><tr><td><span class="position">{{vessel_name}}</span>'+
-        '{{#if ts_pos_utc}} <span class="date">({{ts_pos_utc}})</span>{{/if}}'+
+        '{{#if ts_pos_utc}} <span class="date">({{{ts_pos_utc}}})</span>{{/if}}'+
         '</td><td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
@@ -1240,18 +1264,21 @@ console.log(json)
                 var _this = this;
                 $('select', this._canvas).change(function(e){
                     var models = [aisScreenSearchModel, aisDbSearchModel];
-                    _this._model = models[(e.target.selectedIndex)]; 
+                    _this._model = models[e.target.options[e.target.selectedIndex].value]; 
                     //_this._model = models[(e.target.selectedOptions[0].value)];
                     $('input', _this._search).val(_this._model.filterString);
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 });
                 this._refresh.parent().click(function(){
                     //console.log(_this._refresh)
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
                 $('i', this._search).click(function(e){
                     _this._model.filterString = $(this).siblings('input').val()+'\r';
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
                 this._search.keyup(function(e){
                     var input = $('input', this).val() || "";
@@ -1262,8 +1289,10 @@ console.log(json)
                     if (e.keyCode==13)
                         _this._model.filterString += '\r' 
                     _this.show();
+					nsGmx.leafletMap.removeLayer(highlight);
                 })
-        }
+        },
+		setModel: function(searchType){this._model = searchType=='screen' ? aisScreenSearchModel : aisDbSearchModel}
     }, aisView);
 
     //************************************
@@ -1272,7 +1301,7 @@ console.log(json)
     var myFleetMembersView = $.extend({
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
-        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{ts_pos_utc}})</span></td>'+
+        '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{{ts_pos_utc}}})</span></td>'+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
         '</div></td></tr></table>' +
@@ -1517,7 +1546,7 @@ console.log(json)
     aiscontent.innerHTML = "" +                
     "<div class='caption'><div>ИНФОРМАЦИЯ О СУДНЕ</div></div>" +
     "<table>" +
-        "<tr><td>Название судна</td><td><b>"+ledokol.vessel_name+"</b></td></tr>" +
+        "<tr><td>Название судна</td><td><b>"+ledokol.vessel_name+(ledokol.registry_name?" ("+ledokol.registry_name+")":"")+"</b></td></tr>" +
         "<tr><td>IMO</td><td>"+ledokol.imo+"</td></tr>" +
         "<tr><td>MMSI</td><td>"+ledokol.mmsi+"</td></tr>" +
         "<tr><td>Тип</td><td>"+ledokol.vessel_type+"</td></tr>" +
@@ -1597,6 +1626,7 @@ console.log(json)
         'AISSearch2.filter':'Введите название или mmsi или imo судна',
         'AISSearch2.screen':'По экрану',
         'AISSearch2.database':'По базе данных',
+        'AISSearch2.capShort': 'Поиск судов',
         'AISSearch2.caption': 'Поиск судов и "Мой флот"',
         'AISSearch2.refresh': 'обновить',
         'AISSearch2.refreshing': 'обновляется',
@@ -1612,7 +1642,12 @@ console.log(json)
         'AISSearch2.nav_status': 'Статус',
         'AISSearch2.last_sig': 'Последний сигнал',
         'AISSearch2.show_track': 'трек за сутки',
-        'AISSearch2.hide_track': 'скрыть трек'
+        'AISSearch2.hide_track': 'скрыть трек',
+		'AISSearch2.source': 'Источник данных',
+		'AISSearch2.sais': 'спутниковый AIS',
+		'AISSearch2.tais': 'береговой AIS',
+		'AISSearch2.lon': 'Долгота',
+		'AISSearch2.lat': 'Широта'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -1634,6 +1669,7 @@ console.log(json)
         'AISSearch2.filter':'Insert vessel name or mmsi or imo',
         'AISSearch2.screen':'On screen',
         'AISSearch2.database':'In database',
+        'AISSearch2.capShort': 'Vessel Search',
         'AISSearch2.caption': 'Vessel Search & My Fleet',
         'AISSearch2.refresh': 'refresh',
         'AISSearch2.refreshing': 'refreshing',
@@ -1649,7 +1685,12 @@ console.log(json)
         'AISSearch2.nav_status': 'Navigation status',
         'AISSearch2.last_sig': 'Last signal',
         'AISSearch2.show_track': 'show track',
-        'AISSearch2.hide_track': 'hide track'
+        'AISSearch2.hide_track': 'hide track',
+		'AISSearch2.source': 'Source',
+		'AISSearch2.sais': 'S-AIS',
+		'AISSearch2.tais': 'T-AIS',
+		'AISSearch2.lon': 'Longitude',
+		'AISSearch2.lat': 'Latitude'
     });
 
     gmxCore.addModule(pluginName, publicInterface, {

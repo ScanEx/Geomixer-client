@@ -1,11 +1,11 @@
-<%@ WebHandler Language="C#" Class="Upload" %>
+<%@ WebHandler Language="C#" Class="GetPhoto" %>
 using System;
 using System.Web;
 using System.IO;
 using System.Data;
 using System.Data.SqlClient;
  
-public class Upload : IHttpHandler {
+public class GetPhoto : IHttpHandler {
    
     public void ProcessRequest (HttpContext context) {
 

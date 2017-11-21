@@ -325,7 +325,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             _menuUp.addItem({
                 id: 'helpMenu',
                 title: _gtxt('Справка'),
-                childs: [
+                childs: nsGmx.gmxMap.properties.MapID !== '31RJS' ? [
                     { id: 'about', title: _gtxt('О проекте'), func: _mapHelper.version },
                 ].concat(window.mapsSite ? [{
                         id: 'usage',
@@ -348,7 +348,13 @@ nsGmx.widgets = nsGmx.widgets || {};
                             window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
                         }
                     }
-                ] : [])
+                ] : []) : [{
+                        id: 'usage',
+                        title: _gtxt('Руководство'),
+                        func: function() {
+                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                        }
+                    }]
             });
         }
 
@@ -465,6 +471,12 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             if (window.mapsSite) {
                 var shareIconControl = new nsGmx.ShareIconControl({
+                    className: 'shareIcon',
+                    id: 'share',
+                    text: 'Share',
+                    style: {
+                        width: 'auto'
+                    },
                     permalinkManager: {
                         save: function() {
                             return $.when(
@@ -1116,6 +1128,15 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             L.Icon.Default.imagePath = (window.gmxJSHost || '') + 'img';
             var iconUrl = L.Icon.Default.imagePath + '/flag_blau1.png';
+
+            if (L.version !== '0.7.7') {
+                L.Icon.Default = L.Icon.Default.extend({
+                    _getIconUrl: function (name) {
+                        return L.Icon.prototype._getIconUrl.call(this, name);
+                    }
+                });
+            }
+
             L.Marker = L.Marker.extend({
                 options: {
                     icon: new L.Icon.Default({
@@ -2127,6 +2148,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // Загружаем все пользовательские данные
                 nsGmx.userObjectsManager.load();
 
+                // выставляет правильные z-indexes слоям-вьюхам
+                _layersTree.updateZIndexes();
+                
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
@@ -2321,5 +2345,4 @@ nsGmx.widgets = nsGmx.widgets || {};
         window.prompt = promptFunction;
 
     };
-
 })();
