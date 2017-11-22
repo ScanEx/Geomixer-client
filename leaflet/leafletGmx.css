@@ -90,27 +90,27 @@
 }
 
 @media screen and (max-width: 1300px) {
-.leaflet-ext-search input {
-    width: 150px;
-}
+    .leaflet-ext-search input {
+        width: 150px;
+    }
 
-.leaflet-gmx-iconSvg {
-	text-align: center;
-    height: 24px;
+    .leaflet-gmx-iconSvg {
+	    text-align: center;
+        height: 24px;
 
-	border-radius: 4px;
-	background-color: rgb(255, 255, 255);
-	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
-	fill: #757575;
+	    border-radius: 4px;
+	    background-color: rgb(255, 255, 255);
+	    box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+        fill: #757575;
+        clear: none;
+        cursor: pointer;
+        display: block;
+        float: left;
+        margin-left: 4px;
+        position: relative;
+    }
 
-    clear: none;
-    cursor: pointer;
-    display: block;
-    float: left;
-    margin-left: 4px;
-    position: relative;
-}
-
-.leaflet-gmx-icon-groupSvg {
-	 box-shadow: none;
+    .leaflet-gmx-icon-groupSvg {
+	    box-shadow: none;
+    }
 }

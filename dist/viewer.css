@@ -29,6 +29,15 @@ option {
   padding: 1px 0px 1px 3px;
 }
 
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .userCanvas {
   z-index: -1;
   left: 0px;
@@ -255,7 +264,7 @@ div.user span {
 .leftMenu {
   position: absolute;
   left: 0px;
-  top: 60px;
+  /* top: 60px; */
   width: 360px;
   overflow: hidden;
 }
@@ -421,7 +430,7 @@ div[multistyle] {
   padding-left: 11px;
 }
 
-.treeview [multistyle]  li li {
+.treeview [multistyle] li li {
   padding-left: 0px;
 }
 
@@ -642,7 +651,7 @@ div.fileBrowser-progressBar {
   height: 30px;
 }
 
-div.fileBrowser-progressBar > .ui-progressbar-value {
+div.fileBrowser-progressBar>.ui-progressbar-value {
   background: #DDD;
 }
 
@@ -850,7 +859,7 @@ skype_pnh_container {
   margin-right: 3px;
 }
 
-.temporal-type > * {
+.temporal-type>* {
   vertical-align: middle;
 }
 
@@ -866,7 +875,7 @@ skype_pnh_container {
   margin: 0px;
 }
 
-.layersSearchCanvas .intersection > td {
+.layersSearchCanvas .intersection>td {
   padding-top: 10px;
 }
 
@@ -880,7 +889,7 @@ div.layersScroll {
   padding: 5px 0px;
 }
 
-.layersScroll > label > input {
+.layersScroll>label>input {
   vertical-align: middle;
   margin-right: 4px;
 }
@@ -943,7 +952,7 @@ div.layersScroll {
   text-align: center;
 }
 
-.fillStyleControls .patternColorPicker > div {
+.fillStyleControls .patternColorPicker>div {
   height: 10px;
 }
 
@@ -1128,7 +1137,7 @@ div.layersScroll {
   margin-top: 9px;
 }
 
-#RCCreate-container > td {
+#RCCreate-container>td {
   vertical-align: top;
 }
 
@@ -1146,7 +1155,7 @@ div.layersScroll {
   text-align: center;
 }
 
-.RCAdd-vis-remove > img {
+.RCAdd-vis-remove>img {
   margin: 3px;
 }
 
@@ -1198,24 +1207,24 @@ div.layersScroll {
   margin-bottom: 10px;
 }
 
-.layer-fieldset > [disabled] * {
+.layer-fieldset>[disabled] * {
   color: gray;
 }
 
-.layer-fieldset > fieldset {
+.layer-fieldset>fieldset {
   border: none;
 }
 
-.layer-fieldset > legend {
+.layer-fieldset>legend {
   padding: 0px 2px;
   margin-left: 4px;
 }
 
-.layer-fieldset > legend input {
+.layer-fieldset>legend input {
   margin-right: 3px;
 }
 
-.layer-fieldset > legend * {
+.layer-fieldset>legend * {
   vertical-align: middle;
 }
 
@@ -1244,7 +1253,7 @@ div.layersScroll {
   margin-right: 2px;
 }
 
-.defaultMapLangContainer > label {
+.defaultMapLangContainer>label {
   margin-right: 9px;
 }
 
@@ -1514,7 +1523,7 @@ div.layersScroll {
   overflow: hidden;
 }
 
-#mapsTableParent .tableBody > table {
+#mapsTableParent .tableBody>table {
   table-layout: fixed;
 }
 
@@ -1568,11 +1577,11 @@ div.layersScroll {
   padding: 10px 0px 10px 0px;
 }
 
-.layers-tree > .filetree > li > div {
+.layers-tree>.filetree>li>div {
   display: none;
 }
 
-.layers-tree > .filetree > li > ul {
+.layers-tree>.filetree>li>ul {
   margin-top: 0px;
 }
 
@@ -1657,7 +1666,7 @@ div.layersScroll {
   margin-left: 14px;
 }
 
-.filterCanvas > ul > li > .hitarea {
+.filterCanvas>ul>li>.hitarea {
   margin-top: 5px;
 }
 
@@ -1722,7 +1731,7 @@ div.layersScroll {
   margin: 0px 16px;
 }
 
-.gmx-about > p {
+.gmx-about>p {
   margin-bottom: 1em;
   line-height: 1.4em;
 }
@@ -1834,6 +1843,24 @@ leaflet-control-layers-toggle {
   float: left;
   margin-right: 5px;
   margin-left: -17px;
+}
+
+.layers-tree {
+  background-image: url("../img/favicon16x16_sample6.png") center no-repeat;
+  cursor: pointer;
+}
+
+.tab-icon svg {
+  height: 18px;
+  width: 18px;
+  margin-left: 11px;
+  margin-right: 11px;
+  margin-top: 11px;
+  pointer-events: none;
+}
+
+#s-tree {
+  fill: #bfccd6;
 }
 .pluginEditor-pluginList {
   height: 190px;
@@ -2718,39 +2745,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?8997100");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8997100");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?8997100");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8997100");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8997100");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?8997100");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?8997100");
   /*{iconsError}*/
 }
 
@@ -4863,19 +4890,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?8997100");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?8997100");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?8997100");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?8997100");
 }
 
 /* ---------------------------------
@@ -4921,7 +4948,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?8997100");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -4931,7 +4958,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?9686291");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?8997100");
 }
 
 .search-form table {
@@ -5032,11 +5059,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?9686291");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?9686291#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?9686291") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?9686291") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?9686291#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?8997100");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?8997100#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?8997100") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?8997100") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?8997100#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5049,7 +5076,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?9686291#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?8997100#fontello') format('svg');
   }
 }
 */
@@ -5606,7 +5633,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?9686291");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?8997100");
 }
 
 .authWidget-loginButton {
@@ -5788,11 +5815,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?9686291");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?8997100");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?9686291");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?8997100");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6565,7 +6592,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?9686291");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?8997100");
   /* ie9 fix */
 }
 
@@ -6621,7 +6648,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?9686291");
+  background: url("../common_components/dist/src/check.png?8997100");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6667,7 +6694,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?9686291");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?8997100");
   opacity: .4;
   display: none;
 }
@@ -12832,6 +12859,156 @@ input:checked + .switch-slider:before {
   background-repeat: no-repeat;
   background-position: center;
 }
+.iconSidebarControl-controlCorner_noie {
+  padding: 10px;
+  background-color: hsla(0, 0%, 100%, 0);
+  transition: background-color .5s ease;
+}
+
+.iconSidebarControl-controlCorner_locked {
+  pointer-events: auto;
+}
+
+.iconSidebarControl-controlCorner_ie9 {
+  padding: 10px;
+}
+
+/* в IE9 background не даёт кликнуть по слоям */
+
+.iconSidebarControl-controlCorner-fadeIn {
+  background-color: hsla(0, 0%, 100%, 1);
+}
+
+.iconSidebarControl {
+  overflow: hidden;
+  z-index: 2000;
+  /*background: #fff;*/
+  /*border-radius: 4px;*/
+  /*box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);*/
+}
+
+.iconSidebarControl-controlCorner .iconSidebarControl {
+  margin: 0;
+}
+
+.iconSidebarControl {
+  transition: width .25s ease;
+}
+
+.iconSidebarControl {
+  width: 40px;
+}
+
+.iconSidebarControl_opened {
+  width: 305px;
+}
+
+.iconSidebarControl_expanded {
+  height: 100%;
+}
+
+.iconSidebarControl.leaflet-touch {
+  box-shadow: none;
+  border-right: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.iconSidebarControl-left.leaflet-control {
+  float: left;
+}
+
+.iconSidebarControl-right.leaflet-control {
+  float: right;
+}
+
+.iconSidebarControl-tabs {
+  position: static;
+  top: 0;
+  width: 40px;
+  margin: 0;
+  padding: 0;
+  /*background-color: #fff;*/
+  list-style-type: none;
+}
+
+.iconSidebarControl_expanded .iconSidebarControl-tabs {
+  position: absolute;
+}
+
+.iconSidebarControl-left .iconSidebarControl-tabs {
+  left: 0;
+}
+
+.iconSidebarControl-right .iconSidebarControl-tabs {
+  right: 0;
+}
+
+.iconSidebarControl-tab {
+  /* width: 100%; */
+  height: 40px;
+  color: #333;
+  font-size: 12pt;
+  overflow: hidden;
+  transition: all 80ms;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.iconSidebarControl-tab:hover {
+  color: #000000;
+  background-color: #697283;
+}
+
+.iconSidebarControl-tab.iconSidebarControl-tab-active {
+  color: #fff;
+  background-color: #0074d9;
+}
+
+.iconSidebarControl-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.iconSidebarControl_expanded .iconSidebarControl-content {
+  display: block;
+}
+
+.iconSidebarControl-left .iconSidebarControl-content {
+  left: 40px;
+}
+
+.iconSidebarControl-right .iconSidebarControl-content {
+  right: 40px;
+}
+
+.iconSidebarControl-pane {
+  display: none;
+  right: 0;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 5px;
+}
+
+.iconSidebarControl-pane.iconSidebarControl-pane-active {
+  display: block;
+}
+
+.iconSidebarControl .labelIconWidget {
+  line-height: 12px;
+}
+
+.iconSidebarControl .labelIconWidget .labelIconWidget-label {
+  top: -5px;
+  right: -5px;
+}
 .leaflet-control-dialog {
   position: absolute;
   background-color: #fff;
@@ -12939,6 +13116,15 @@ input:checked + .switch-slider:before {
 }
 /* added css for Geomixer */
 
+.leaflet-left.leaflet-top.leaflet-bottom.gmx-bottom-shift {
+  bottom: 0px;
+  height: 100%;
+}
+
+.leaflet-gmx-copyright-location {
+  left: 0px;
+}
+
 .leaflet-gmx-icon-boxzoom {
   background-position: -623px 2px;
 }
@@ -12989,12 +13175,64 @@ input:checked + .switch-slider:before {
 
 @media screen and (max-width: 1300px) {
   .leaflet-ext-search input {
+    border-radius: 4px;
     width: 150px;
   }
 
   .leaflet-ext-search,
   .leaflet-ext-search-list {
     width: 190px;
+  }
+}
+
+.iconSidebarControl {
+  background-color: #4c5567 !important;
+  /* background-color: #FFF !important; */
+  height: 100%;
+}
+
+.iconSidebarControl_opened {
+  width: 400px !important;
+}
+
+/*.iconSidebarControl {
+    margin: 0;
+}*/
+
+.leaflet-top .leaflet-control.iconSidebarControl,
+.leaflet-left .leaflet-control.iconSidebarControl,
+.leaflet-bottom .leaflet-control.iconSidebarControl {
+  margin-left: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.iconSidebarControl-content {
+  background-color: #FFF;
+}
+
+@media screen and (max-width: 1300px) {
+  .leaflet-ext-search input {
+    width: 150px;
+  }
+
+  .leaflet-gmx-iconSvg {
+    text-align: center;
+    height: 24px;
+    border-radius: 4px;
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+    fill: #757575;
+    clear: none;
+    cursor: pointer;
+    display: block;
+    float: left;
+    margin-left: 4px;
+    position: relative;
+  }
+
+  .leaflet-gmx-icon-groupSvg {
+    box-shadow: none;
   }
 }
 /*Grid panel*/

@@ -9670,7 +9670,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
-                map.tree = layers;
+                map.tree = gmxMap.layers;
                 break;
             }
         }
@@ -10652,7 +10652,10 @@ pointsBinding.pointsBinding.unload = function()
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
         //TODO: enable animation!
-        lmap.fitBounds(bounds, { animation: false });
+        lmap.fitBounds(bounds, {
+            animation: false,
+            paddingTopLeft: lmap.options.paddingTopLeft || [0, 0]
+         });
 
         //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
         if (z !== lmap.getZoom()) {
@@ -10841,11 +10844,14 @@ pointsBinding.pointsBinding.unload = function()
                                         res.addLayer(layer);
 
                                         if (timeLineControl) {
+                                            nsGmx.leafletMap.gmxControlsManager.add(timeLineControl);
                                             timeLineControl.on('layerRemove', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                                window.sidebarControl.handleControlsPosition();
                                             });
                                             timeLineControl.on('layerAdd', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                                window.sidebarControl.handleControlsPosition();
                                             });
                                         }
                                     }).then(function(err) {
@@ -13662,14 +13668,14 @@ _translationsHash.addtext("rus", {
                             "loadShape.loadDone": "Геометрия успешно загружена",
                             "loadShape.loadFail": "Ошибка загрузки геометрии"
 						 });
-						 
+
 _translationsHash.addtext("eng", {
 							"loadShape.inputTitle": "Add shp-file (zipped)",
                             "loadShape.loadDone": "Successfully loaded",
                             "loadShape.loadFail": "Error loading file"
 						 });
 
-var drawingObjects = 
+var drawingObjects =
 {
 	loadShp: {}
 }
@@ -13677,7 +13683,7 @@ var drawingObjects =
 var queryLoadShp = function()
 {
 	this.builded = false;
-	
+
 	this.uploader = null;
 }
 
@@ -13733,25 +13739,25 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
         latLngBounds.extend(b);
     }
     if (latLngBounds.isValid()) {
-        lmap.fitBounds(latLngBounds);
+        lmap.fitBounds(latLngBounds, lmap.options);
     }
 }
 
 //files - массив File или WebForms
 queryLoadShp.prototype.loadAndShowFiles = function(files) {
     nsGmx.widgets.notifications.startAction('uploadShp');
-    
+
     var def = $.when.apply($, [].slice.call(files).map(function(file) {
         return nsGmx.Utils.parseShpFile(file);
     }));
-    
+
     def.then(function() {
         this._showObjectsOnMap(_.flatten([].slice.call(arguments)));
         nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
     }.bind(this), function() {
         nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));
     });
-    
+
     return def;
 }
 
@@ -13787,6 +13793,7 @@ drawingObjects.loadShp.load = function() {
 drawingObjects.loadShp.unload = function()
 {
 }
+
 /**
 * @namespace DrawingObjects
 * @description SDK для редактирования объектов на карте
@@ -13982,7 +13989,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
 		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc);
-        
+
         $(jQueryDialog).addClass('drawing-object-leaflet-id-' + parentObject._leaflet_id);
 	}
 
@@ -14101,7 +14108,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		if (geom.type == "Point") {
             _map.setView([coords[1], coords[0]], Math.max(14, _map.getZoom()));
         } else {
-            _map.fitBounds(drawingObject.getBounds());
+            _map.fitBounds(drawingObject.getBounds(), _map.options);
         }
     }
 
@@ -15819,17 +15826,17 @@ tableBrowser.prototype.loadInfoHandler = function(tables)
 
 var _tableBrowser = new tableBrowser();
 !(function(_) {
-    
+
 var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
-    
+
 var getTextContent = function(node) {
     if (typeof node.textContent != 'undefined')
         return node.textContent;
-    
+
     var data = '';
     for (var i = 0; i < node.childNodes.length; i++)
         data += node.childNodes[i].data;
-    
+
     return data;
 }
 
@@ -15853,17 +15860,17 @@ var getScale = function(z)
 var getWMSMapURL = function(url, props, requestProperties)
 {
     var CRSParam = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
-    
+
     requestProperties = requestProperties || {};
 
     var lmap = nsGmx.leafletMap,
         extend = lmap.getBounds();
-    
+
     var miny = Math.max(extend.getSouth(), -90);
     var maxy = Math.min(extend.getNorth(), 90);
     var minx = Math.max(extend.getWest(), -180);
     var maxx = Math.min(extend.getEast(), 180);
-    
+
     if (props.bbox)
     {
         minx = Math.max(props.bbox.minx, minx);
@@ -15874,10 +15881,10 @@ var getWMSMapURL = function(url, props, requestProperties)
         if (minx >= maxx || miny >= maxy)
             return;
     }
-    
+
     var mercMin = L.Projection.Mercator.project({lat: miny, lng: minx}),
         mercMax = L.Projection.Mercator.project({lat: maxy, lng: maxx});
-    
+
     var scale = getScale(lmap.getZoom());
     var w = Math.round((mercMax.x - mercMin.x)/scale);
     var h = Math.round((mercMax.y - mercMin.y)/scale);
@@ -15889,10 +15896,10 @@ var getWMSMapURL = function(url, props, requestProperties)
     var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
     var version = props.version || '1.1.1';
     var isV130 = version === '1.3.0';
-    
+
     //st = st.replace(/Service=WMS[\&]*/i, '');
     //st = st.replace(/\&$/, '');
-    
+
     st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap&Service=WMS';
     st += "&layers=" + encodeURIComponent(props.name) +
         "&VERSION=" + encodeURIComponent(version) +
@@ -15907,7 +15914,7 @@ var getWMSMapURL = function(url, props, requestProperties)
 
     if (url.indexOf('format=') == -1) st += "&format=" + encodeURIComponent(format);
     if (url.indexOf('transparent=') == -1) st += "&transparent=" + encodeURIComponent(transparentParam);
-   
+
     return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
 }
 
@@ -15927,11 +15934,11 @@ var parseWMSCapabilities = function(response)
         mainTag = xml.getElementsByTagName('WMS_Capabilities')[0] || xml.getElementsByTagName('WMT_MS_Capabilities')[0],
         version = mainTag.getAttribute('version'),
         layersXML = xml.getElementsByTagName('Layer');
-    
+
     if (!(version in supportedVersions)) {
         return [];
     }
-    
+
     for (var i = 0; i < layersXML.length; i++)
     {
         var layer = {version: version},
@@ -15939,7 +15946,7 @@ var parseWMSCapabilities = function(response)
             title = layersXML[i].getElementsByTagName('Title'),
             bbox = layersXML[i].getElementsByTagName(BBOXTagName[version]),
             srs = layersXML[i].getElementsByTagName(SRSTagName[version]);
-        
+
         if (srs.length)
         {
             layer.srs = null;
@@ -15949,7 +15956,7 @@ var parseWMSCapabilities = function(response)
                 var srsName = strip(getTextContent(srs[si]));
                 supportedSrs[srsName] = true;
             }
-            
+
             //порядок имеет значение!
             for (var p = 0; p < wmsProjections.length; p++) {
                 if (wmsProjections[p] in supportedSrs) {
@@ -15965,11 +15972,11 @@ var parseWMSCapabilities = function(response)
 
         if (name.length)
             layer.name = getTextContent(name[0]);
-        
+
         if (bbox.length)
         {
             if (version == '1.1.1') {
-                layer.bbox = 
+                layer.bbox =
                 {
                     minx: Number(bbox[0].getAttribute('minx')),
                     miny: Number(bbox[0].getAttribute('miny')),
@@ -15977,7 +15984,7 @@ var parseWMSCapabilities = function(response)
                     maxy: Number(bbox[0].getAttribute('maxy'))
                 };
             } else {
-                layer.bbox = 
+                layer.bbox =
                 {
                     minx: Number(getTextContent(bbox[0].getElementsByTagName('westBoundLongitude')[0])),
                     miny: Number(getTextContent(bbox[0].getElementsByTagName('southBoundLatitude')[0])),
@@ -15986,14 +15993,14 @@ var parseWMSCapabilities = function(response)
                 };
             }
         }
-        
+
         if (title.length)
             layer.title = getTextContent(title[0]);
-        
+
         if (layer.name)
             serviceLayers.push(layer);
     }
-    
+
     return serviceLayers;
 }
 
@@ -16013,14 +16020,14 @@ var wfsParser = function()
 {
 	this.gmlns = 'http://www.opengis.net/gml';
 	this.kmlns = 'http://earth.google.com/kml/2.0';
-	
+
 	this.axisOrder = null;
 }
 
 wfsParser.prototype.elementsNS = function(node,uri,name)
 {
 	var elements=[];
-	
+
 	if (node.getElementsByTagNameNS)
 		elements = node.getElementsByTagNameNS(uri,name);
 	else
@@ -16028,7 +16035,7 @@ wfsParser.prototype.elementsNS = function(node,uri,name)
 		var allNodes = node.getElementsByTagName("*"),
 			potentialNode,
 			fullName;
-		
+
 		for (var i = 0, len = allNodes.length; i < len ; ++i)
 		{
 			potentialNode = allNodes[i];
@@ -16040,7 +16047,7 @@ wfsParser.prototype.elementsNS = function(node,uri,name)
 			}
 		}
 	}
-	
+
 	return elements;
 }
 
@@ -16058,7 +16065,7 @@ wfsParser.prototype.getChildValue = function(node, def)
 			}
 		}
 	}
-	
+
 	return value;
 }
 
@@ -16069,25 +16076,25 @@ wfsParser.prototype.parse = function(response, srs)
 		strResp = strResp.replace(/\s+/g, ' '),
 		xml = parseXML(strResp),
 		parsedNS = strResp.indexOf('<kml') > -1 ? this.kmlns : this.gmlns;
-	
+
 	this.axisOrder = srs && srs.indexOf("urn:") == 0 ? 'latlong' : 'longlat';
-	
+
 	var order = ["Polygon","LineString","Point"];
-	
+
 	for (var i = 0, len = order.length; i < len; ++i)
 	{
 		var type = order[i],
 			nodeList = this.elementsNS(xml.documentElement,parsedNS,type);
-		
+
 		for (var j = 0; j < nodeList.length; ++j)
 		{
 			geometry = this['parse' + type].apply(this,[nodeList[j]]);
-			
+
 			if (geometry)
 				geometries.push(geometry);
 		}
 	}
-	
+
 	return geometries;
 }
 
@@ -16096,7 +16103,7 @@ wfsParser.prototype.parsePoint = function(node)
 	var coordString,
 		coords=[],
 		nodeList = this.elementsNS(node,this.gmlns,"pos");
-	
+
 	if (nodeList.length > 0)
 	{
 		coordString = strip(nodeList[0].firstChild.nodeValue);
@@ -16105,7 +16112,7 @@ wfsParser.prototype.parsePoint = function(node)
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coordinates");
-		
+
 		if (nodeList.length > 0)
 		{
 			coordString = strip(nodeList[0].firstChild.nodeValue);
@@ -16115,17 +16122,17 @@ wfsParser.prototype.parsePoint = function(node)
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coord");
-		
+
 		if (nodeList.length > 0)
 		{
 			var xList = this.elementsNS(nodeList[0],this.gmlns,"X"),
 				yList = this.elementsNS(nodeList[0],this.gmlns,"Y");
-			
+
 			if (xList.length > 0 && yList.length > 0)
 				coords = [xList[0].firstChild.nodeValue, yList[0].firstChild.nodeValue];
 		}
 	}
-	
+
 	return {feature:{}, geometry:{type: 'Point', coordinates: this.swapCoordinates([Number(coords[0]), Number(coords[1])])}}
 }
 
@@ -16136,68 +16143,68 @@ wfsParser.prototype.parseLineString = function(node)
 		coords = [],
 		points = [],
 		nodeList = this.elementsNS(node,this.gmlns,"posList");
-	
+
 	if (nodeList.length > 0)
 	{
 		coordString = strip(this.getChildValue(nodeList[0]));
 		coords = coordString.split(" ");
-		
+
 		for (var i = 0; i < coords.length / 2; ++i)
 		{
 			j = i * 2;
 			x = coords[j];
 			y = coords[j + 1];
-			
+
 			points.push(this.swapCoordinates([Number(coords[j]), Number(coords[j + 1])]));
 		}
 	}
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coordinates");
-		
+
 		if (nodeList.length > 0)
 		{
 			coordString = strip(this.getChildValue(nodeList[0]));
 			coordString = coordString.replace(/\s*,\s*/g,",");
-			
+
 			var pointList = coordString.split(" ");
-			
+
 			for (var i = 0; i < pointList.length; ++i)
 			{
 				coords = pointList[i].split(",");
-				
+
 				points.push(this.swapCoordinates([Number(coords[0]), Number(coords[1])]));
 			}
 		}
 	}
-	
+
 	if (points.length != 0)
 	{
 		return {feature:{}, geometry:{type: 'LineString', coordinates: points}}
 	}
 	else
 		return false
-		
+
 }
 
 wfsParser.prototype.parsePolygon = function(node)
 {
 	var nodeList = this.elementsNS(node,this.gmlns,"LinearRing"),
 		components = [];
-	
+
 	if (nodeList.length > 0)
 	{
 		var ring;
-		
+
 		for (var i = 0; i < nodeList.length; ++i)
 		{
 			ring = this.parseLineString.apply(this,[nodeList[i],true]);
-			
+
 			if (ring)
 				components.push(ring.geometry.coordinates);
 		}
 	}
-	
+
 	return {feature:{}, geometry:{type: 'Polygon', coordinates: components}}
 }
 
@@ -16220,9 +16227,9 @@ jsonParser.prototype.parse = function(response, srs)
 {
 	var resp = JSON.parse(response),
 		geometries = [];
-	
+
 	this.axisOrder = srs && srs.indexOf("urn:") == 0 ? 'latlong' : 'longlat';
-	
+
 	for (var i = 0; i < resp.features.length; i++)
 	{
 		if (resp.features[i].geometry.type.toLowerCase().indexOf('point') > -1)
@@ -16232,7 +16239,7 @@ jsonParser.prototype.parse = function(response, srs)
 		else if (resp.features[i].geometry.type.toLowerCase().indexOf('polygon') > -1)
 			this.parsePolygon(resp.features[i], geometries);
 	}
-	
+
 	return geometries;
 }
 
@@ -16251,10 +16258,10 @@ jsonParser.prototype.parseLineString = function(feature, geometryArr)
 	if (feature.geometry.type.toLowerCase().indexOf('multi') < 0)
 	{
 		var newCoords = [];
-		
+
 		for (var j = 0; j < feature.geometry.coordinates.length; j++)
 			newCoords.push(this.swapCoordinates(feature.geometry.coordinates[j]))
-		
+
 		geometryArr.push({feature: feature, geometry:{type: 'LINESTRING', coordinates: newCoords}});
 	}
 	else
@@ -16262,10 +16269,10 @@ jsonParser.prototype.parseLineString = function(feature, geometryArr)
 		for (var i = 0; i < feature.geometry.coordinates.length; i++)
 		{
 			var newCoords = [];
-		
+
 			for (var j = 0; j < feature.geometry.coordinates[i].length; j++)
 				newCoords.push(this.swapCoordinates(feature.geometry.coordinates[i][j]))
-			
+
 			geometryArr.push({feature: feature, geometry:{type: 'LINESTRING', coordinates: newCoords}});
 		}
 	}
@@ -16275,17 +16282,17 @@ jsonParser.prototype.parsePolygon = function(feature, geometryArr)
 	if (feature.geometry.type.toLowerCase().indexOf('multi') < 0)
 	{
 		var newCoords = [];
-		
+
 		for (var k = 0; k < feature.geometry.coordinates.length; j++)
 		{
 			var newCoords2 = [];
-			
+
 			for (var j = 0; j < feature.geometry.coordinates[k].length; k++)
 				newCoords2.push(this.swapCoordinates(feature.geometry.coordinates[k][j]))
-			
+
 			newCoords.push(newCoords2)
 		}
-		
+
 		geometryArr.push({feature: feature, geometry:{type: 'POLYGON', coordinates: newCoords}});
 	}
 	else
@@ -16293,17 +16300,17 @@ jsonParser.prototype.parsePolygon = function(feature, geometryArr)
 		for (var i = 0; i < feature.geometry.coordinates.length; i++)
 		{
 			var newCoords = [];
-			
+
 			for (var k = 0; k < feature.geometry.coordinates[i].length; k++)
 			{
 				var newCoords2 = [];
-				
+
 				for (var j = 0; j < feature.geometry.coordinates[i][k].length; j++)
 					newCoords2.push(this.swapCoordinates(feature.geometry.coordinates[i][k][j]))
-				
+
 				newCoords.push(newCoords2)
 			}
-			
+
 			geometryArr.push({feature: feature, geometry:{type: 'POLYGON', coordinates: newCoords}});
 		}
 	}
@@ -16322,14 +16329,14 @@ var queryServerData = function()
 {
 	this.inputField = null;
 	this.parentCanvas = null;
-	
+
 	this.wfsFormats = {};
-	
+
 	this.oldBalloon = false;
 	this.oldBalloonIndex = -1;
-	
+
 	this.proj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
-	
+
 	this.customParams = undefined;
 }
 
@@ -16338,9 +16345,9 @@ queryServerData.prototype = new leftMenu();
 /**
     Загружает виджет для добавления/просмотра WMS/WFS слоёв
  @param protocol
- @param parseFunc 
+ @param parseFunc
  @param drawFunc
- @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/> 
+ @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/>
         - init(targetDiv)->void Добавляет контрол к элементу targetDiv<br/>
         - collect()->Object Возвращает выбранные пользователем объекты<br/>
  @param version {string} Версия протокола, которая будет использоваться
@@ -16351,7 +16358,7 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 	{
 		var res = [],
 			coordsPairs = strip(coordsStr).replace(/\s+/,' ').split(' ');
-		
+
 		if (coordsStr.indexOf(',') == -1)
 		{
 			for (var j = 0; j < Math.floor(coordsPairs.length / 2); j++)
@@ -16362,14 +16369,14 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 			for (var j = 0; j < coordsPairs.length; j++)
 			{
 				var parsedCoords = coordsPairs[j].split(',');
-				
+
 				res.push([Number(parsedCoords[1]), Number(parsedCoords[0])])
 			}
 		}
-		
+
 		return res;
 	}
-	
+
 	window.parseGML = function(response, format, srs)
 	{
 		if (format == 'gml')
@@ -16379,31 +16386,31 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 		else
 			return [];
 	}
-	
+
 	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]);
-	
+
 	this.parentCanvas = _div(null, [['dir','className','serverDataCanvas']]);
-	
+
 	var goButton = makeButton(_gtxt("Загрузить")),
 		_this = this;
-		
+
 	var doGetCapabilities = function()
 	{
 		if (inputField.value != '')
 		{
 			if ( customParamsManager )
 				_this.customParams = customParamsManager.collect();
-				
+
 			_this.getCapabilities(protocol, strip(inputField.value), parseFunc, drawFunc);
-				
+
 			inputField.value = '';
 		}
 		else
 			inputError(inputField);
 	}
-	
+
 	goButton.onclick = doGetCapabilities;
-	
+
 	$(inputField).on('keydown', function(e)
 	{
 		if (e.keyCode === 13)
@@ -16412,15 +16419,15 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 	  		return false;
 	  	}
 	});
-	
+
 	var canvas = _div([_div([_span([_t(_gtxt("URL сервера"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
-	
+
 	if (customParamsManager)
 	{
 		var customParamsDiv = _div();
 		$(canvas).append(customParamsDiv);
 		_this.customParams = customParamsManager.init(customParamsDiv);
-	}	
+	}
 
 	_(this.workCanvas, [canvas, this.parentCanvas])
 }
@@ -16429,24 +16436,24 @@ queryServerData.prototype.getCapabilities = function(protocol, url, parseFunc, d
 {
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
-	
+
 	if (this.parentCanvas.childNodes.length == 0)
 		_(this.parentCanvas, [loading]);
 	else
 		this.parentCanvas.insertBefore(loading, this.parentCanvas.firstChild);
-	
-    var capabilitiesUrl = 
+
+    var capabilitiesUrl =
             url.replace(/REQUEST=GetCapabilities[\&]*/i, '')
                .replace(new RegExp('SERVICE=' + protocol + '[\&]', 'i'), '')
                .replace(/\&$/, '');
-    
+
     capabilitiesUrl += capabilitiesUrl.indexOf('?') !== -1 ? '&' : '?';
     capabilitiesUrl += 'REQUEST=GetCapabilities&SERVICE=' + protocol;
-    
+
     if (version) {
         capabilitiesUrl += '&VERSION=' + version;
     }
-    
+
 	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(capabilitiesUrl), function(response) {
 		if (!parseResponse(response)) return;
 
@@ -16462,34 +16469,34 @@ queryServerData.prototype.parseWFSCapabilities = function(response)
 		strResp = response.replace(/[\t\n\r]/g, ' '),
 		strResp = strResp.replace(/\s+/g, ' '),
 		featuresXML = parseXML(response).getElementsByTagName('FeatureType');
-	
+
 	for (var i = 0; i < featuresXML.length; i++)
 	{
 		var layer = {},
 			name = featuresXML[i].getElementsByTagName('Name'),
 			title = featuresXML[i].getElementsByTagName('Title'),
 			srs = featuresXML[i].getElementsByTagName('DefaultSRS');
-		
+
 		if (name.length)
 			layer.name = getTextContent(name[0]);
-		
+
 		if (title.length)
 			layer.title = getTextContent(title[0]);
-		
+
 		if (srs.length)
 			layer.srs = getTextContent(srs[0]);
-		
+
 		if (layer.name)
 			serviceLayers.push(layer);
 	}
-	
+
 	return serviceLayers;
 }
 
 queryServerData.prototype.loadGML = function(url, parentTreeCanvas, box, header, format, loadLayerParams, srs)
 {
 	var _this = this;
-	
+
 	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
 	{
 		if (!parseResponse(response)) return;
@@ -16503,18 +16510,18 @@ queryServerData.prototype.saveGML = function(geometries)
 	if (typeof geometries == 'undefined' || geometries == null)
 	{
 		geometries = [];
-		
+
 		globalFlashMap.drawing.forEachObject(function(ret)
 		{
 			geometries.push(ret.geometry);
 		})
 	}
-	
+
 	window.promptFunction(_gtxt('Введите имя gml-файла для скачивания:'), 'objects.gml', function(fileName)
 	{
 		globalFlashMap.saveObjects(geometries, nsGmx.Utils.translit(fileName));
 	});
-	
+
 	return false;
 }
 
@@ -16533,17 +16540,17 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	// parent['POINT'].setStyle(styles['POINT']);
 	// parent['LINESTRING'].setStyle(styles['LINESTRING']);
 	// parent['POLYGON'].setStyle(styles['POLYGON']);
-	
+
 	var geomsPresent = {},
 		bounds = L.gmxUtil.bounds(),
         items = {'Point': [], 'LineString': [], 'Polygon': []};
-	
+
 	for (var i = 0; i < geometries.length; i++)
 	{
 		//var elem = parent[geometries[i].geometry.type].addObject(geometries[i].geometry);
         items[geometries[i].geometry.type].push([L.gmxUtil.geoJSONtoGeometry(geometries[i].geometry, true)]);
         //parent[geometries[i].geometry.type].addItems();
-		
+
 		/*if (objLength(geometries[i].feature) > 0)
 		{
 			(function(i)
@@ -16551,16 +16558,16 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 				elem.setHandler("onClick", function(obj)
 				{
 					var elemCanvas = $(divCanvas).find("[geometryType='" + geometries[i].geometry.type + "']")[0];
-					
+
 					if (!elemCanvas.graphDataProperties ||
 						!geometries[i].feature.properties)
 						return;
-					
+
 					var balloonCanvas = _div();
-						
+
 					if (!_diagram.createBalloon(obj, balloonCanvas))
 						return;
-					
+
 					if (_diagram.createDateTimeDiagramByAttrs(balloonCanvas, 500, 300, geometries[i].feature.properties, elemCanvas.graphDataProperties))
 						_diagram.oldBalloon.resize();
 				})
@@ -16580,7 +16587,7 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		divChilds = _div(),
 		spanHeader = _span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')]),
 		_this = this;
-	
+
 	var clickFunc = function(flag)
 	{
         var lmap = nsGmx.leafletMap,
@@ -16594,50 +16601,50 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		else
 			hide(divChilds);
 	}
-	
+
 	parentTreeCanvas.loaded = function() // переопределим функцию загрузки слоя на центрирование
 	{
 		if (!box.checked)
 		{
 			clickFunc.call(_this, true);
-			
+
 			box.checked = true;
 		}
-		
+
 		//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-        nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
+        nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], nsGmx.leafletMap.options);
 	}
-	
+
 	parentTreeCanvas.clear = function()
 	{
         var lmap = nsGmx.leafletMap;
 		lmap.removeLayer(parent['Point']);
 		lmap.removeLayer(parent['LineString']);
 		lmap.removeLayer(parent['Polygon']);
-		
+
 		divCanvas.removeNode(true);
 	}
-	
+
 	box.onclick = function()
 	{
 		clickFunc.call(_this, this.checked);
 	}
-	
+
 	$(parentTreeCanvas).empty();
-	
+
 	if (parentTreeCanvas.childNodes.length == 0)
 		_(parentTreeCanvas, [divCanvas]);
 	else
 		parentTreeCanvas.insertBefore(divCanvas, parentTreeCanvas.firstChild);
-	
+
 	_(divCanvas, [divChilds]);
-	
+
 	// for (var type in geomsPresent)
 	// {
 		// var elemCanvas = _div(null, [['css','padding','2px'],['attr','geometryType', type]]),
 			// //icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
 			// spanElem = _span(null, [['dir','className','layerfeature']]);
-		
+
 		// if (type == 'Point')
 			// _(spanElem, [_t(_gtxt('точки'))]);
 		// else if (type == 'LineString')
@@ -16649,11 +16656,11 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		// (function(type){
 			// icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)
 		// })(type);
-		
+
 		// if (typeof loadLayerParams != 'undefined' && loadLayerParams[type.toLowerCase()])
 		// {
 			// var info = loadLayerParams[type.toLowerCase()];
-			
+
 			// elemCanvas.graphDataType = info.graphDataType;
 			// elemCanvas.graphDataProperties = info.graphDataProperties;
 		// }
@@ -16662,15 +16669,15 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 			// elemCanvas.graphDataType = "func";
 			// elemCanvas.graphDataProperties = "";
 		// }
-		
+
 		// _(elemCanvas, [icon, spanElem])
 		// _(divChilds, [elemCanvas]);
-		
+
 	// }
-	
+
 	//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-    nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
-	
+    nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], nsGmx.leafletMap.options);
+
 	box.checked = true;
 }
 
@@ -16683,11 +16690,11 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this,
         lmap = nsGmx.leafletMap;
-	
+
 	$(replaceElem).replaceWith(ulCanvas)
-    
+
     $(ulCanvas).data('serverParams', serverParams);
-	
+
 	remove.onclick = function()
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
@@ -16695,15 +16702,15 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 			ulChilds.childNodes[i].firstChild.lastChild.clear && ulChilds.childNodes[i].firstChild.lastChild.clear();
             lmap.removeLayer(ulChilds.childNodes[i].firstChild.lastChild.gmxObject);
 		}
-        
+
 		this.parentNode.parentNode.parentNode.removeNode(true);
 	}
-	
+
 	remove.className = 'remove';
 	remove.style.right = '0px';
-	
+
 	_(ulCanvas, [_li([_div([_span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')],[['dir','className','urlHeader']]), remove],[['css','position','relative']]), ulChilds])])
-	
+
 	var clickFunc = function(layer, parent, flag)
 	{
 		if (!flag) {
@@ -16722,9 +16729,9 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
             requestParams.format = "image/" + serverParams.format;
             requestParams.transparent = serverParams.format === 'png';
         }
-        
+
         var res = getWMSMapURL(url, layer, requestParams);
-        
+
         if (res)
         {
             var b = res.bounds;
@@ -16732,7 +16739,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
             parent.addLayer(L.imageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), L.latLngBounds([[b.minY, b.minX], [b.maxY, b.maxX]])));
         }
 	}
-	
+
 	serviceLayers.forEach(function(layer)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px']]),
@@ -16748,7 +16755,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         {
             if (!box.checked)
                 box.checked = true;
-            
+
             clickFunc(layer, parent, true);
         }
         box.onclick = function()
@@ -16759,12 +16766,12 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         {
             updateFunc(layer, parent);
         }
-		
+
 		box.setAttribute('layerName', layer.name);
-		
+
 		_(elemCanvas, [box, spanElem]);
 		_(ulChilds, [_li([elemCanvas])]);
-		
+
 		if (typeof loadParams != 'undefined' && loadParams[layer.name])
 			$(spanElem).trigger("click");
 	});
@@ -16788,7 +16795,7 @@ queryServerData.prototype.customWMSParamsManager = (function()
 {
 	var _targetDiv = null;
 	return {
-		init: function(targetDiv) 
+		init: function(targetDiv)
 		{
 			var select = nsGmx.Utils._select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
 			_targetDiv = targetDiv;
@@ -16808,9 +16815,9 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		divFormat = _div(),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this;
-	
+
 	$(replaceElem).replaceWith(ulCanvas)
-	
+
 	remove.onclick = function()
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
@@ -16833,26 +16840,26 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 	{
 		if (flag) {
 			var newFormat = formatSelect.value;
-			
+
 			// загружаем данные только один раз
 			if (!elemCanvas.loaded || elemCanvas.format != newFormat)
 			{
 				elemCanvas.clear && elemCanvas.clear();
-				
+
                 var separator = url.indexOf('?') !== -1 ? '&' : '?';
-                
+
 				var objUrl = url + separator + "request=GetFeature&version=1.0.0&typeName=" + layer.name;
-				
+
 				if (formatSelect.value == 'json')
 					objUrl += '&outputFormat=json'
-				
+
 				_this.loadGML(objUrl, elemCanvas, box, header, newFormat, loadLayerParams, layer.srs);
-				
+
 				elemCanvas.loaded = true;
 				elemCanvas.format = newFormat;
-				
+
 				var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px']]);
-		
+
 				_(elemCanvas, [loading]);
 			}
 			else
@@ -16862,7 +16869,7 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 			}
 		}
 	}
-	
+
 	for (var i = 0; i < serviceLayers.length; i++)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px']]),
@@ -16873,13 +16880,13 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		box.className = 'floatLeft';
 
 		box.setAttribute('layerName', serviceLayers[i].name);
-		
+
 		(function(layer, parentTreeCanvas, box, header){
 			spanElem.onclick = function()
 			{
 				if (!box.checked)
 					box.checked = true;
-				
+
 				clickFunc.call(_this, layer, true, parentTreeCanvas, box, header);
 			}
 			box.onclick = function()
@@ -16887,20 +16894,20 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 				clickFunc.call(_this, layer, this.checked, parentTreeCanvas, box, header);
 			}
 		})(serviceLayers[i], elemChilds, box, spanElem);
-		
+
 		_(elemCanvas, [box, _div([spanElem],[['css','display','inline']]), elemChilds])
 		_(ulChilds, [_li([elemCanvas])])
-			
+
 		if (typeof loadParams != 'undefined' && loadParams[serviceLayers[i].name])
 		{
 			if (!box.checked)
 				box.checked = true;
-			
+
 			formatSelect.value = loadParams[serviceLayers[i].name].format;
 			clickFunc.call(_this, serviceLayers[i], true, elemChilds, box, spanElem, loadParams[serviceLayers[i].name].info);
 		}
 	}
-	
+
 	$(ulCanvas).treeview();
 }
 
@@ -16911,7 +16918,7 @@ var _queryServerDataWFS = new queryServerData(),
 loadServerData.WFS.load = function()
 {
 	var alreadyLoaded = _queryServerDataWFS.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryServerDataWFS.load('WFS', _queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS, null, '1.0.0');
 }
@@ -16923,7 +16930,7 @@ loadServerData.WFS.unload = function()
 loadServerData.WMS.load = function()
 {
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryServerDataWMS.load('WMS', parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
 }
@@ -16937,16 +16944,16 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
     {
         if (!_queryServerDataWMS.workCanvas)
             return null;
-        
+
         var value = {};
-        
+
         $(_queryServerDataWMS.workCanvas.lastChild).children("ul[url]").each(function()
         {
             var url = this.getAttribute('url');
             var serverParams = $(this).data('serverParams');
-            
+
             value[url] = {params: serverParams, layersVisibility: {}};
-            
+
             $(this).find("input[type='checkbox']").each(function()
             {
                 if (this.checked)
@@ -16955,24 +16962,24 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                 }
             })
         })
-        
+
         if (!objLength(value))
             return null;
-        
+
         return value;
     },
-    
+
     load: function(data)
     {
         if (!data)
             return;
 
         $('#left_wms').remove();
-        
+
         _queryServerDataWMS.builded = false;
-        
+
         loadServerData.WMS.load('wms');
-        
+
         for (var url in data)
         {
             (function(loadParams)
@@ -16982,7 +16989,7 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                 {
                     loadParams = {layersVisibility: loadParams};
                 }
-                
+
                 _queryServerDataWMS.getCapabilities('WMS', url, parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
@@ -16997,48 +17004,48 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
     {
         if (!_queryServerDataWFS.workCanvas)
             return null;
-        
+
         var value = {};
-        
+
         $(_queryServerDataWFS.workCanvas.lastChild).children("ul[url]").each(function()
         {
             var url = this.getAttribute('url');
-            
+
             value[url] = {};
-            
+
             $(this).find("input[type='checkbox']").each(function()
             {
                 if (this.checked)
                 {
                     var wfsLayerInfo = {};
-                    
+
                     $(this.parentNode.lastChild).find(".colorIcon").each(function()
                     {
                         wfsLayerInfo[this.geometryType] = {RenderStyle: this.getStyle(), graphDataType: this.parentNode.graphDataType, graphDataProperties: this.parentNode.graphDataProperties}
                     })
-                    
+
                     value[url][this.getAttribute('layerName')] = {format: this.parentNode.lastChild.format, info: wfsLayerInfo};
                 }
             })
         })
-        
-        if (!objLength(value))   
+
+        if (!objLength(value))
             return null;
-        
+
         return value;
     },
-    
+
     load: function(data)
     {
         if (!data)
             return;
 
         $('#left_wfs').remove();
-        
+
         _queryServerDataWFS.builded = false;
-        
+
         loadServerData.WFS.load('wfs');
-        
+
         for (var url in data)
         {
             (function(loadParams)
@@ -17053,6 +17060,7 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
 });
 
 })(nsGmx.Utils._);
+
 /*
  * Raphael 1.2.8 - JavaScript Vector Library
  *
@@ -31132,11 +31140,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -31171,6 +31174,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -31240,19 +31248,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31282,6 +31277,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -36526,13 +36534,13 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
                 && oFoundObject.MaxLon - oFoundObject.MinLon < 1e-9 && oFoundObject.MaxLat - oFoundObject.MinLat < 1e-9)
 			    map.setView([oFoundObject.CntrLat, oFoundObject.CntrLon], iZoom);
 		    else
-			    map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
+			    map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]], map.options);
         }
 		else
 		{
            if ((oFoundObject.Geometry.type).toUpperCase() == 'POINT') {
 		        if (oFoundObject.MinLon != oFoundObject.MaxLon && oFoundObject.MinLat != oFoundObject.MaxLat) {
-			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]]);
+			        map.fitBounds([[oFoundObject.MinLat, oFoundObject.MinLon], [oFoundObject.MaxLat, oFoundObject.MaxLon]], map.options);
                 } else {
                     var c = oFoundObject.Geometry.coordinates;
 			        map.setView([c[1], c[0]], iZoom);
@@ -36541,7 +36549,7 @@ var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 		    else {
                 var bounds = L.gmxUtil.getGeometryBounds(oFoundObject.Geometry);
 			    //var oExtent = getBounds(oFoundObject.Geometry.coordinates);
-			    map.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
+			    map.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], map.options);
             }
 		}
 	};
@@ -37994,6 +38002,239 @@ L.control.dialog = function (options) {
   return new L.Control.Dialog(options);
 };
 
+(function(factory) {
+    if (typeof module === 'object' && module && module.exports) {
+        module.exports = factory(require('leaflet'));
+    } else {
+        window.nsGmx = window.nsGmx || {};
+        window.nsGmx.IconSidebarControl = factory(window.L);
+    }
+})(function(L) {
+    // ev.opening
+    // ev.opened { <String>id }
+    // ev.closing
+    // ev.closed
+    return L.Control.extend({
+        includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
+
+        // options.position (left|right)
+        initialize: function(options) {
+            this._panes = {};
+            L.setOptions(this, options);
+        },
+
+        onAdd: function(map) {
+            this._container = L.DomUtil.create('div', 'iconSidebarControl');
+            this._tabsContainer = L.DomUtil.create('ul', 'iconSidebarControl-tabs', this._container);
+            this._panesContainer = L.DomUtil.create('div', 'iconSidebarControl-content', this._container);
+
+            L.DomUtil.addClass(this._container, this.options.position.indexOf('left') !== -1 ? 'iconSidebarControl-left' : 'iconSidebarControl-right');
+
+            L.DomEvent.disableClickPropagation(this._container);
+            L.DomEvent.disableScrollPropagation(this._container);
+            // L.DomEvent.on(this._container, 'mousemove', L.DomEvent.stopPropagation);
+
+            return this._container;
+        },
+
+        onRemove: function(map) { },
+
+        setPane: function(id, paneOptions) {
+            var paneOptions = paneOptions || {};
+            var createTab = paneOptions.createTab;
+            var position = paneOptions.position;
+            var enabled = paneOptions.enabled;
+            var defaultPaneOptions = { position: 0, enabled: true };
+
+            this._panes[id] = L.extend({}, defaultPaneOptions, this._panes[id] || {}, paneOptions);
+
+            if (!this._panes[id].enabled && this._activeTabId === id) {
+                this.close();
+            }
+
+            this._renderTabs({});
+            return this._ensurePane(id);
+        },
+
+        enable: function (id, enabled) {
+            var pane = this._panes[id];
+            if (pane) {
+                pane.enabled = enabled;
+            }
+        },
+
+        enabled: function (id) {
+            var pane = this._panes[id];
+            if (pane) {
+                return pane.enabled;
+            }
+            else {
+                return false;
+            }
+        },
+
+        open: function(paneId) {
+            if (this._isAnimating) {
+                return;
+            }
+
+            var pane = this._panes[paneId];
+            if (!pane || !pane.enabled) {
+                return;
+            }
+
+            this._activeTabId = paneId;
+
+            this._setTabActive(paneId, true);
+
+            this._setActiveClass(paneId);
+
+            if (this._isOpened) {
+                this.fire('opened', { id: this._activeTabId});
+                return;
+            }
+
+            this._isAnimating = true;
+            L.DomUtil.addClass(this._container, 'iconSidebarControl_opened');
+            L.DomUtil.addClass(this._container, 'iconSidebarControl_expanded');
+            this._isOpened = true;
+            this.fire('opening');
+            setTimeout(function() {
+                this.fire('opened', { id: this._activeTabId });
+                this._isAnimating = false;
+            }.bind(this), 250);
+        },
+
+        _setTabActive: function (paneId, flag) {
+            var tabs = this._tabsContainer.querySelectorAll('.iconSidebarControl-tab');
+            for (var i = 0; i < tabs.length; ++i) {
+                var id = tabs[i].getAttribute('data-tab-id');
+                var tab = tabs[i].querySelector('.tab-icon');
+                if (id === paneId) {
+                    if (flag) {
+                        L.DomUtil.addClass(tab, 'tab-icon-active');
+                    }
+                    else {
+                        L.DomUtil.removeClass(tab, 'tab-icon-active');
+                    }
+
+                } else {
+                    L.DomUtil.removeClass(tab, 'tab-icon-active');
+                }
+            }
+        },
+
+        close: function() {
+            if (this._isAnimating) {
+                return;
+            }
+            this._setTabActive(this._activeTabId, false);
+
+            L.DomUtil.removeClass(this._container, 'iconSidebarControl_opened');
+
+            this._isAnimating = true;
+            L.DomUtil.removeClass(this._container, 'iconSidebarControl_opened');
+            this._isOpened = false;
+            this.fire('closing');
+            setTimeout(function() {
+                L.DomUtil.removeClass(this._container, 'iconSidebarControl_expanded');
+                this.fire('closed', { id: this._activeTabId });
+                this._isAnimating = false;
+                this._setActiveClass('');
+                this._activeTabId = null;
+            }.bind(this), 250);
+        },
+
+        getActiveTabId: function() {
+            return this._activeTabId;
+        },
+
+        isOpened: function () {
+            return this._isOpened;
+        },
+
+        _ensurePane: function(id) {
+
+            for (let i = 0; i < this._panesContainer.childNodes.length; ++i) {
+                let node = this._panesContainer.childNodes[i];
+                if (node.getAttribute('data-pane-id') === id) {
+                    return node;
+                }
+            }
+
+            let paneEl = L.DomUtil.create('div', 'iconSidebarControl-pane');
+            paneEl.setAttribute('data-pane-id', id);
+            this._panesContainer.appendChild(paneEl);
+
+            return paneEl;
+        },
+
+        _setActiveClass: function(activeId) {
+            var i, id;
+            for (i = 0; i < this._panesContainer.children.length; i++) {
+                id = this._panesContainer.children[i].getAttribute('data-pane-id');
+                var pane = this._panesContainer.querySelector('[data-pane-id=' + id + ']');
+                if (id === activeId) {
+                    L.DomUtil.addClass(pane, 'iconSidebarControl-pane-active');
+                } else {
+                    L.DomUtil.removeClass(pane, 'iconSidebarControl-pane-active');
+                }
+            }
+        },
+
+        _onTabClick: function(e) {
+            var tabId = e.currentTarget.getAttribute('data-tab-id');
+            var pane = this._panes[tabId];
+            if (!pane || !pane.enabled) {
+                return;
+            }
+            if (!this._isOpened || this._activeTabId !== tabId) {
+                this._renderTabs({ activeTabId: tabId });
+                this.open(tabId);
+            } else {
+                this._renderTabs({});
+                this.close();
+            }
+        },
+
+        _renderTabs: function (options) {
+            var activeTabId = options.activeTabId;
+            var hoveredTabId = options.hoveredTabId;
+            this._tabsContainer.innerHTML = '';
+            Object.keys(this._panes).map(function(id) {
+                return L.extend({ id: id }, this._panes[id]);
+            }.bind(this)).sort(function (a, b) {
+                return a.position - b.position;
+            }).map(function (options) {
+                var id = options.id;
+                var createTab = options.createTab;
+                var enabled = options.enabled;
+                if (!createTab) {
+                    return;
+                }
+                var tabContainerEl = L.DomUtil.create('li', 'iconSidebarControl-tab');
+                tabContainerEl.setAttribute('data-tab-id', id);
+                var tabEl = createTab(getFlag(id, activeTabId, hoveredTabId, enabled));
+                L.DomEvent.on(tabContainerEl, 'click', this._onTabClick, this);
+                tabContainerEl.appendChild(tabEl);
+                this._tabsContainer.appendChild(tabContainerEl);
+            }.bind(this));
+
+            function getFlag(tabId, activeTabId, hoveredTabId, enabled) {
+                if (!enabled) {
+                    return 'disabled';
+                } else if (hoveredTabId && tabId === hoveredTabId) {
+                    return 'hover';
+                } else if (activeTabId && tabId === activeTabId) {
+                    return 'active';
+                } else {
+                    return 'default';
+                }
+            }
+        }
+    })
+});
+
 //Тут кратко описываются разные внешние классы для системы генерации документации
 
 /** ГеоМиксер активно использует {@link http://jquery.com/|jQuery}
@@ -38071,7 +38312,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 }
 
                 //lazy instantantion
-                this.gridControl = this.gridControl || new L.GmxGrid();
+                this.gridControl = this.gridControl || new L.GmxGrid({
+                    leftMarkersShift: window.sidebarControl ? window.sidebarControl.isOpened() ? 400 : 40 : 0
+                });
                 nsGmx.leafletMap[isActive ? 'addLayer' : 'removeLayer'](this.gridControl);
                 if (options) {
                     this.restoreOptions(options);
@@ -38357,6 +38600,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var SliderControl = L.Control.extend({
                 options: {
+                    id: 'transparencySlider',
                     position: 'topleft'
                 },
                 onAdd: function(map) {
@@ -38372,8 +38616,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 onRemove: function() {},
                 isCollapsed: function() { return this._widget.isCollapsed(); }
             });
-            var sliderControl = new SliderControl();
-            lmap.addControl(sliderControl);
+            nsGmx.sliderControl = new SliderControl();
+            lmap.addControl(nsGmx.sliderControl);
+            lmap.gmxControlsManager.add(nsGmx.sliderControl);
 
             //пополняем тулбар
             var uploadFileIcon = L.control.gmxIcon({
@@ -38390,7 +38635,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     .on('collapse', function() {
                         $('.gmx-slider-control').removeClass('invisible');
                     }).on('expand', function() {
-                        sliderControl.isCollapsed() || $('.gmx-slider-control').addClass('invisible');
+                        nsGmx.sliderControl.isCollapsed() || $('.gmx-slider-control').addClass('invisible');
                     });
             }
 
@@ -38849,11 +39094,11 @@ nsGmx.widgets = nsGmx.widgets || {};
             var top = 0,
                 bottom = 0,
                 right = 0,
-                left = window.exportMode ? 0 : (layersShown ? 360 : 12),
+                left = 0,
                 headerHeight = $('#header').outerHeight(),
                 mainDiv = $('#flash')[0];
 
-            mainDiv.style.left = left + 'px';
+            mainDiv.style.left = 0 + 'px';
             mainDiv.style.top = top + 'px';
             mainDiv.style.width = getWindowWidth() - left - right + 'px';
             mainDiv.style.height = getWindowHeight() - top - headerHeight - bottom + 'px';
@@ -38861,9 +39106,12 @@ nsGmx.widgets = nsGmx.widgets || {};
             nsGmx.leafletMap && nsGmx.leafletMap.invalidateSize();
 
             if (layersShown) {
+                if (!nsGmx.leafletMap) {
+                    return;
+                }
                 $('#leftMenu').show();
 
-                var mapNameHeight = $('.mainmap-title').outerHeight();
+                var mapNameHeight = Math.max($('.mainmap-title').outerHeight(), 35);
 
                 var baseHeight = getWindowHeight() - top - bottom - headerHeight;
 
@@ -38950,6 +39198,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 togglable: true,
                 addBefore: 'gmxprint'
             }).addTo(nsGmx.leafletMap);
+
+            window.sidebarControl.handleControlsPosition();
 
             editIcon.on('statechange', function() {
                 if (editIcon.options.isActive) {
@@ -39427,6 +39677,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var lmap = new L.Map($('#flash')[0], mapOptions);
 
+            lmap.gmxControlsManager.setSvgSprites(window.mapOptions.svgSprite);
 
             // update layers zIndexes
             var currentZoom = lmap.getZoom(),
@@ -39779,183 +40030,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                  * END
                  *
                  */
-                // } else {
-                // var now = new Date();
-                // nsGmx.widgets.commonCalendar = {
-                //     _calendar: null,
-                //     _dateInterval: new nsGmx.DateInterval(),
-                //     _isAppended: false,
-                //     _unbindedTemporalLayers: {},
-                //     active: true,
-                //     setActive: function (active) {
-                //         this.active = active;
-                //     },
-                //     getDateInterval: function() {
-                //         return this._dateInterval;
-                //     },
-                //     get: function() {
-                //         var _this = this;
-                //         if (!this._calendar) {
-                //             this._calendar = new nsGmx.CalendarWidget({
-                //                 minimized: true,
-                //                 dateMin: new Date(2000, 1, 1),
-                //                 dateMax: this._dateInterval.get('dateEnd'),
-                //                 dateInterval: this._dateInterval
-                //             });
-                //
-                //             this._dateInterval.on('change', this.updateTemporalLayers.bind(this, null));
-                //             this.updateTemporalLayers();
-                //         }
-                //
-                //         return this._calendar;
-                //     },
-                //     replaceCalendarWidget: function(newCalendar) {
-                //         this._calendar = newCalendar;
-                //
-                //         //заменим виджет перед деревом слоёв
-                //         if (this._isAppended) {
-                //             var doChange = function() {
-                //                 var calendarDiv = $('<div class="common-calendar-container"></div>').append(newCalendar.canvas);
-                //                 // special for steppe project
-                //                 if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
-                //                     _queryMapLayers.getContainerAfter().find('.common-calendar-container').replaceWith(calendarDiv);
-                //                 } else {
-                //                     _queryMapLayers.getContainerBefore().find('.common-calendar-container').replaceWith(calendarDiv);
-                //                 }
-                //             }
-                //             //явная проверка, так как хочется быть максимально синхронными в этом методе
-                //             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
-                //                 doChange();
-                //             } else {
-                //                 _queryMapLayers.loadDeferred.then(doChange);
-                //             }
-                //         }
-                //     },
-                //     show: function() {
-                //         var doAdd = function() {
-                //             var calendarDiv = $('<div class="common-calendar-container"></div>').append(this.get().canvas);
-                //             // special for steppe Project
-                //             if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
-                //                 _queryMapLayers.getContainerAfter().append(calendarDiv);
-                //             } else {
-                //                 _queryMapLayers.getContainerBefore().append(calendarDiv);
-                //             }
-                //             this._isAppended = true;
-                //         }.bind(this);
-                //
-                //         if (!this._isAppended) {
-                //             //явная проверка, так как хочется быть максимально синхронными в этом методе
-                //             if (_queryMapLayers.loadDeferred.state() === 'resolved') {
-                //                 doAdd();
-                //             } else {
-                //                 _queryMapLayers.loadDeferred.then(doAdd);
-                //             }
-                //         }
-                //     },
-                //     hide: function() {
-                //         this._isAppended && $(this.get().canvas).hide();
-                //         this._isAppended = false;
-                //     },
-                //
-                //     bindLayer: function(layerName) {
-                //         delete this._unbindedTemporalLayers[layerName];
-                //         this.updateTemporalLayers();
-                //     },
-                //     unbindLayer: function(layerName) {
-                //         this._unbindedTemporalLayers[layerName] = true;
-                //     },
-                //     _updateOneLayer: function(layer, dateBegin, dateEnd) {
-                //         var props = layer.getGmxProperties();
-                //         if (props.maxShownPeriod) {
-                //             var msecPeriod = props.maxShownPeriod*24*3600*1000;
-                //             var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
-                //             layer.setDateInterval(newDateBegin, dateEnd);
-                //         } else {
-                //             layer.setDateInterval(dateBegin, dateEnd);
-                //         }
-                //     },
-                //     updateTemporalLayers: function(layers) {
-                //         if (!this._calendar || !this.active) {return;}
-                //         var layers = layers || nsGmx.gmxMap.layers,
-                //             dateBegin = this._dateInterval.get('dateBegin'),
-                //             dateEnd = this._dateInterval.get('dateEnd'),
-                //             layersMaxDates = [],
-                //             maxDate = null;
-                //
-                //         for (var i = 0, len = layers.length; i < len; i++) {
-                //             var layer = layers[i],
-                //                 props = layer.getGmxProperties(),
-                //                 isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
-                //
-                //             if (isTemporalLayer && !(props.name in this._unbindedTemporalLayers)) {
-                //                 if (props.DateEnd) {
-                //                     var localeDate = $.datepicker.parseDate('dd.mm.yy', props.DateEnd);
-                //                     layersMaxDates.push(localeDate);
-                //                 }
-                //
-                //                 this._updateOneLayer(layer, dateBegin, dateEnd);
-                //             }
-                //         }
-                //
-                //         if (layersMaxDates.length > 0) {
-                //             layersMaxDates.sort(function(a, b) {
-                //                 return b - a;
-                //             });
-                //
-                //             maxDate = new Date(layersMaxDates[0]);
-                //
-                //             if (maxDate > new Date()) {
-                //                 this._calendar.setDateMax(nsGmx.CalendarWidget.fromUTC(maxDate));
-                //             } else {
-                //                 this._calendar.setDateMax(new Date());
-                //             }
-                //         }
-                //     }
-                // }
-                //
-                // //устарело, используйте commonCalendar
-                // nsGmx.widgets.getCommonCalendar = function() {
-                //     nsGmx.widgets.commonCalendar.show();
-                //     return nsGmx.widgets.commonCalendar.get();
-                // }
-                //
-                // var initTemporalLayers = function(layers) {
-                //     layers = layers || nsGmx.gmxMap.layers;
-                //     for (var i = 0; i < layers.length; i++) {
-                //         var props = layers[i].getGmxProperties();
-                //         if (props.Temporal && nsGmx.widgets.commonCalendar._unbindedTemporalLayers && !(props.name in nsGmx.widgets.commonCalendar._unbindedTemporalLayers)) {
-                //             nsGmx.widgets.commonCalendar.show();
-                //             break;
-                //         }
-                //     }
-                //
-                //     nsGmx.widgets.commonCalendar.updateTemporalLayers(layers);
-                // }
-                //
-                // _mapHelper.customParamsManager.addProvider({
-                //     name: 'commonCalendar',
-                //     loadState: function(state) {
-                //         if (!('version' in state)) {
-                //             var tmpDateInterval = new nsGmx.DateInterval({
-                //                 dateBegin: new Date(state.dateBegin),
-                //                 dateEnd: new Date(state.dateEnd)
-                //             });
-                //             nsGmx.widgets.commonCalendar.getDateInterval().loadState(tmpDateInterval.saveState());
-                //         } else if (state.version === '1.0.0') {
-                //             nsGmx.widgets.commonCalendar.getDateInterval().loadState(state.dateInterval);
-                //         } else {
-                //             throw 'Unknown params version';
-                //         }
-                //     },
-                //     saveState: function() {
-                //         return {
-                //             version: '1.0.0',
-                //             dateInterval: nsGmx.widgets.commonCalendar.getDateInterval().saveState()
-                //         };
-                //     }
-                // });
-
-                // }
 
                 $('#flash').bind('dragover', function() {
                     return false;
@@ -40063,6 +40137,197 @@ nsGmx.widgets = nsGmx.widgets || {};
                     LayersTreePermalinkParams = state.LayersTreePermalinkParams;
                 }
 
+                // добавим вместо gmxBottom
+                // var corners = lmap._controlCorners;
+                // ['bottomleft', 'bottomright', 'right', 'left'].map(function (it) {
+                //     if (corners[it]) {
+                //         L.DomUtil.addClass(corners[it], 'gmx-bottom-shift');
+                //     }
+                // });
+
+
+                /**
+                 *
+                 * SIDEBAR
+                 *
+                 */
+                window.sidebarControl = new nsGmx.IconSidebarControl({
+                    id: 'sidebar',
+                    position: "left"
+                });
+
+                lmap.addControl(window.sidebarControl);
+                lmap.gmxControlsManager.add(window.sidebarControl);
+
+                // disable leaflet map events on sidebar
+
+                var sidebarContainer = window.sidebarControl.getContainer();
+                var stop = L.DomEvent.stopPropagation;
+
+                L.DomEvent
+                    .on(sidebarContainer, 'mousemove', stop)
+                    .on(sidebarContainer, 'touchstart', stop)
+                    .on(sidebarContainer, 'mousedown', stop)
+                    .on(sidebarContainer, 'dblclick', stop)
+                    .on(sidebarContainer, 'contextmenu', stop)
+                    .on(sidebarContainer, 'click', stop);
+
+                document
+                    .querySelector(".iconSidebarControl")
+                    .classList.add("noselect");
+
+                window.createTabFunction = function(options) {
+                    return function(state) {
+                        var el = document.createElement("div"),
+                            tabEl = document.createElement("div"),
+                            href = '#' + options.icon.toLowerCase();
+
+                        el.classList.add("tab-icon");
+
+                        // el.className = 'leaflet-gmx-iconSvg';
+
+                        tabEl.innerHTML = '<svg role="img" class="svgIcon">\
+                            <use xlink:href="' + href + '" href="' + href + '"></use>\
+                          </svg>';
+
+                        el.appendChild(tabEl);
+
+                        options.hint && el.setAttribute("title", options.hint);
+                        tabEl.classList.add(options.icon);
+                        if (state === "active") {
+                            tabEl.classList.add(options.active);
+                            el.classList.add("tab-icon-active");
+                        } else {
+                            tabEl.classList.add(options.inactive);
+                        }
+                        return el;
+                    };
+                };
+
+                var leftMainContainer = window.sidebarControl.setPane(
+                    "layers-tree", {
+                        createTab: window.createTabFunction({
+                            icon: "s-tree",
+                            active: "uploadfile-uploadfile-sidebar",
+                            inactive: "uploadfile-uploadfile-sidebar",
+                            hint: "layers-tree"
+                        })
+                    }
+                );
+                // var leftCustomContainer = window.sidebarControl.setPane(
+                //     "custom-pane", {
+                //         createTab: window.createTabFunction({
+                //             icon: "gmx-icon-edit",
+                //             active: "uploadfile-uploadfile-sidebar",
+                //             inactive: "uploadfile-uploadfile-sidebar",
+                //             hint: "layers-tree"
+                //         })
+                //     }
+                // );
+
+                leftMainContainer.innerHTML = '<div id="leftMenu" class="leftMenu">' + '<div id="leftPanelHeader" class="leftPanelHeader"></div>' + '<div id="leftContent" class="leftContent">' + '<div id="leftContentInner" class="leftContentInner"></div>' + "</div>" + '<div id="leftPanelFooter" class="leftPanelFooter"></div>' + "</div>";
+
+
+                window.sidebarControl.on('opened', function (e) {
+                    switch (e.id) {
+                        case 'layers-tree':
+                            break;
+                        default:
+                            break;
+                    }
+                    this.handleMapCenter(e);
+                    this.handleControlsPosition(e);
+                });
+
+                window.sidebarControl.on('closed', function (e) {
+                    this.handleMapCenter(e);
+                    this.handleControlsPosition(e);
+                });
+
+                window.sidebarControl.handleMapCenter = function (e) {
+                    var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width;
+
+                    nsGmx.leafletMap.options.paddingTopLeft = [sidebarWidth, 0];
+                }
+
+                window.sidebarControl.handleControlsPosition = function (e) {
+                    var sidebarWidth = window.sidebarControl.getContainer().getBoundingClientRect().width,
+                        mapWidth = parseInt(lmap.getContainer().style.width);
+
+                    var controls = lmap.gmxControlsManager.getAll();
+
+                    for (var key in controls) {
+                        var control = controls[key],
+                            options = control.options,
+                            id = options.id,
+                            position = options.position,
+                            shiftPositions = {
+                                'topleft': true,
+                                'bottomleft': true,
+                                'gmxbottomleft': true,
+                                'gmxbottomcenter': true,
+                                'bottom': true
+                            };
+
+                        if (position in shiftPositions && !control._parent) {
+                            if (id === 'logo') {
+                                shiftControl(id, sidebarWidth, true);
+                            } else {
+                                shiftControl(id, sidebarWidth, false);
+                            }
+                        }
+                    }
+                    /*
+                     * HANDLE CONTROLS
+                     */
+
+                    // GRID
+                    // shift grid markers
+                    var grid = nsGmx.gridManager.gridControl;
+                    if (grid) {
+                        grid.shiftTextMarkers('left', e.type === 'opened' ? 400 : 40)
+                    };
+
+                    // TIMELINE
+                    // redraw timeline
+                    var timeline = nsGmx.leafletMap.gmxControlsManager.get('gmxTimeline');
+                    if (timeline) {
+                        timeline._redrawTimeline();
+                    }
+                }
+                /**
+                 * @param controlId Control id
+                 * @param shift shift width
+                 * @param divide divide by 2
+                 */
+                function shiftControl(controlId, shift, divide) {
+                    var control = lmap.gmxControlsManager.get(controlId),
+                        noAdditionalShiftControls = {
+                            'bottom': true,
+                            'transparencySlider': true,
+                            'hide': true,
+                            'zoom': true,
+                            'gmxTimeline': true
+                        },
+                        additionalShift = controlId in noAdditionalShiftControls ? 0 : 0;
+
+                    shift = divide ? shift / 2 : shift;
+
+                    if (control) {
+                        var controlContainer = control.getContainer();
+                        controlContainer.style.left = (shift + additionalShift) + 'px';
+                    }
+                }
+
+
+                /**
+                 *
+                 * SIDEBAR END
+                 *
+                 */
+
+
+
                 _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
                 var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
@@ -40128,7 +40393,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // выставляет правильные z-indexes слоям-вьюхам
                 _layersTree.updateZIndexes();
-                
+
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
@@ -40151,6 +40416,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 updateLeftPanelVis();
 
                 createToolbar();
+
+                window.sidebarControl.handleControlsPosition();
 
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);
@@ -40258,11 +40525,14 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // навесить обработчик на все слои дерева
                 if (nsGmx.timeLineControl) {
+                    lmap.gmxControlsManager.add(nsGmx.timeLineControl);
                     nsGmx.timeLineControl.on('layerRemove', function(e) {
                         $(_layersTree).triggerHandler('layerTimelineRemove', e);
+                        window.sidebarControl.handleControlsPosition();
                     });
                     nsGmx.timeLineControl.on('layerAdd', function(e) {
                         $(_layersTree).triggerHandler('layerTimelineAdd', e);
+                        window.sidebarControl.handleControlsPosition();
                     });
                 }
 

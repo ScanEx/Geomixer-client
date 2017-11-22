@@ -363,6 +363,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             var SliderControl = L.Control.extend({
                 options: {
+                    id: 'transparencySlider',
                     position: 'topleft'
                 },
                 onAdd: function(map) {
@@ -378,8 +379,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 onRemove: function() {},
                 isCollapsed: function() { return this._widget.isCollapsed(); }
             });
-            var sliderControl = new SliderControl();
-            lmap.addControl(sliderControl);
+            nsGmx.sliderControl = new SliderControl();
+            lmap.addControl(nsGmx.sliderControl);
+            lmap.gmxControlsManager.add(nsGmx.sliderControl);
 
             //пополняем тулбар
             var uploadFileIcon = L.control.gmxIcon({
@@ -396,7 +398,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     .on('collapse', function() {
                         $('.gmx-slider-control').removeClass('invisible');
                     }).on('expand', function() {
-                        sliderControl.isCollapsed() || $('.gmx-slider-control').addClass('invisible');
+                        nsGmx.sliderControl.isCollapsed() || $('.gmx-slider-control').addClass('invisible');
                     });
             }
 
@@ -1913,6 +1915,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                  *
                  */
                 window.sidebarControl = new nsGmx.IconSidebarControl({
+                    id: 'sidebar',
                     position: "left"
                 });
 
@@ -2064,9 +2067,12 @@ nsGmx.widgets = nsGmx.widgets || {};
                     var control = lmap.gmxControlsManager.get(controlId),
                         noAdditionalShiftControls = {
                             'bottom': true,
+                            'transparencySlider': true,
+                            'hide': true,
+                            'zoom': true,
                             'gmxTimeline': true
                         },
-                        additionalShift = controlId in noAdditionalShiftControls ? 0 : 10;
+                        additionalShift = controlId in noAdditionalShiftControls ? 0 : 0;
 
                     shift = divide ? shift / 2 : shift;
 
@@ -2150,7 +2156,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // выставляет правильные z-indexes слоям-вьюхам
                 _layersTree.updateZIndexes();
-                
+
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
