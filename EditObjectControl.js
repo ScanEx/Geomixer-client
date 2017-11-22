@@ -227,23 +227,24 @@ var EditObjectControl = function(layerName, objectId, params)
         drawingObjectLeafletID = obj._leaflet_id;
     }
 
-    var objStyle = params.event.gmx.target.currentStyle;
+    var objStyle = params ? params.event.gmx.target.currentStyle : null;
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
-                arr = lmap.gmxDrawing.addGeoJSON(geojson, {
+				styleParams = objStyle ? {
                     pointStyle: {
                         shape: 'box', color: objStyle.strokeStyle
                     },
                     lineStyle: {
                         color: objStyle.strokeStyle
                     }
-                });
+                } : {},
+                arr = lmap.gmxDrawing.addGeoJSON(geojson, styleParams);
             for (var i = 0, len = arr.length; i < len; i++) {
                 bindDrawingObject(arr[i]);
             }
         }
-    }
+    };
 
     var canvas = null;
     var fieldsCollection = new FieldsCollection();
