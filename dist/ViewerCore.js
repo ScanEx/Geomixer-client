@@ -8584,7 +8584,7 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
         ,
         function(addResponse)
         {
-            if (!parseResponse(addResponse))
+			if (!parseResponse(addResponse))
             {
                 def.reject();
                 return;
@@ -8592,14 +8592,9 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 
             var mapLayer = nsGmx.gmxMap.layersByID[layerName];
             if (mapLayer) {
-                L.gmx.layersVersion.chkVersion(mapLayer, function() {
-                    def.resolve();
-                });
+                L.gmx.layersVersion.chkVersion(mapLayer);
             }
-            else
-            {
-                def.resolve();
-            }
+			def.resolve();
         }
     )
 
@@ -31137,6 +31132,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -31171,11 +31171,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -40131,6 +40126,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // Загружаем все пользовательские данные
                 nsGmx.userObjectsManager.load();
 
+                // выставляет правильные z-indexes слоям-вьюхам
+                _layersTree.updateZIndexes();
+                
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 

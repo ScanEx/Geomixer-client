@@ -1356,7 +1356,7 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
         ,
         function(addResponse)
         {
-            if (!parseResponse(addResponse))
+			if (!parseResponse(addResponse))
             {
                 def.reject();
                 return;
@@ -1364,14 +1364,9 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs, crs)
 
             var mapLayer = nsGmx.gmxMap.layersByID[layerName];
             if (mapLayer) {
-                L.gmx.layersVersion.chkVersion(mapLayer, function() {
-                    def.resolve();
-                });
+                L.gmx.layersVersion.chkVersion(mapLayer);
             }
-            else
-            {
-                def.resolve();
-            }
+			def.resolve();
         }
     )
 
