@@ -1244,10 +1244,14 @@ mapHelper.prototype.print = function() {
 
 // экспортный режим редактора
 mapHelper.prototype.exportMap = function(params) {
-	var map = nsGmx.leafletMap;
+	var map = nsGmx.leafletMap,
+		hide = map.gmxControlsManager.get('hide'),
+		center = map.gmxControlsManager.get('center');
 
-    map.gmxControlsManager.get('hide').setActive(false);
-	map.gmxControlsManager.get('center').removeFrom(map);
+	hide.setActive(false);
+
+	center.removeFrom ? center.removeFrom(map) : center.remove();
+
     window.exportMode = true;
 
 	if (params.grid) {
