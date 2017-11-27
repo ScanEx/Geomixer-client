@@ -682,7 +682,7 @@ var nsGmx = window.nsGmx || {};
 
             zoomToLevel: function () {
                 var attrs = this.model.toJSON(),
-                    initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
+                    initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr(),
                     converted = this._convertFromLatLngs(initialCoords, attrs.z),
                     dims = this._getDimensions(converted);
 
@@ -692,7 +692,7 @@ var nsGmx = window.nsGmx || {};
             exportMap: function () {
                 var _this = this,
                     attrs = this.model.toJSON(),
-                    initialCoords = attrs.selArea.rings[0].ring.points._latlngs,
+                    initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr(),
                     screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z),
                     dimensions = this._getDimensions(screenCoords),
                     mapStateParams = {
@@ -857,7 +857,7 @@ var nsGmx = window.nsGmx || {};
                     return;
                 }
 
-                initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
+                initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr();
 
                 // разница между целевым и текущим зумом
                 scale = Math.pow(2, (attrs.z - attrs.lmap.getZoom()));
@@ -997,7 +997,7 @@ var nsGmx = window.nsGmx || {};
                     dimensions,
                     w, h;
 
-                initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
+                initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr();
                 screenCoords = this._convertFromLatLngs(initialCoords, attrs.z);
                 dimensions = this._getDimensions(screenCoords);
 
@@ -1049,7 +1049,7 @@ var nsGmx = window.nsGmx || {};
                     return;
                 }
 
-                initialCoords = attrs.selArea.rings[0].ring.points._latlngs;
+                initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr();
                 screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z);
                 dimensions = this._getDimensions(screenCoords);
 
