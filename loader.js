@@ -4,6 +4,17 @@ var gmxJSHost = window.gmxJSHost || "";
 var gmxAPIJSlist = [];
 var gmxAPICSSlist = [];
 
+if (!window.mapsSite) {
+    window.gmxVersion = {
+    	"jsPath": {
+    		"dist/geomixer-src.js": 1
+    	},
+    	"cssPath": {
+    		"dist/geomixer.css": 1
+    	}
+    };
+}
+
 var getListFromConfig = function (pathObject, list) {
     for (var key in pathObject) {
         if (pathObject.hasOwnProperty(key)) {
@@ -44,7 +55,6 @@ var loadJS = function(fileList, callback, external) {
 }
 
 nsGmx.buildGUID = buildGUID;
-
 
 if (window.gmxVersion) {
     var jsPath = window.gmxVersion.jsPath,

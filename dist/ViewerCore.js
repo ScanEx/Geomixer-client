@@ -22105,8 +22105,7 @@ var DefaultSearchParamsManager = function() {
 DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
         paramsWidth = 300,
-        searchButton = makeButton(_gtxt('Найти')),
-        cleanButton = makeButton(_gtxt('Очистить поиск')),
+        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
         _this = this;
 
     var columnsList = this._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
@@ -22118,14 +22117,6 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         $(_this).trigger('queryChange');
     };
 
-    cleanButton.onclick = function()
-    {
-        _this._queryTextarea.value = '';
-        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
-        _this._geometryInfoRow = null;
-
-        $(_this).trigger('queryChange');
-    };
 
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
 
@@ -22246,8 +22237,7 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
     nsGmx.Utils._(container, [columnsList]);
 
     searchButton.style.marginRight = '17px';
-    cleanButton.style.marginRight = '3px';
-    nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
 
 DefaultSearchParamsManager.prototype.getQuery = function() {
@@ -31245,19 +31235,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31287,6 +31264,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(

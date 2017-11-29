@@ -1,8 +1,19 @@
-+function() {var buildGUID = "c8d069a0dd9d40058b0a13689596a599";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
++function() {var buildGUID = "72553f4d6cf44650b47ec15991b12d78";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
 var gmxAPIJSlist = [];
 var gmxAPICSSlist = [];
+
+if (!window.mapsSite) {
+    window.gmxVersion = {
+    	"jsPath": {
+    		"dist/geomixer-src.js": 1
+    	},
+    	"cssPath": {
+    		"dist/geomixer.css": 1
+    	}
+    };
+}
 
 var getListFromConfig = function (pathObject, list) {
     for (var key in pathObject) {
@@ -44,7 +55,6 @@ var loadJS = function(fileList, callback, external) {
 }
 
 nsGmx.buildGUID = buildGUID;
-
 
 if (window.gmxVersion) {
     var jsPath = window.gmxVersion.jsPath,
