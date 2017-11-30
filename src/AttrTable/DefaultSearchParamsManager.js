@@ -25,8 +25,8 @@ var DefaultSearchParamsManager = function() {
 DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
         paramsWidth = 300,
-        searchButton = makeButton(_gtxt('Найти')),
-        cleanButton = makeButton(_gtxt('Очистить поиск')),
+        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
+        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск')),
         _this = this;
 
     var columnsList = this._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
