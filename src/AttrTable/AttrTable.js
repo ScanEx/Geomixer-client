@@ -138,8 +138,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	var paramsWidth = 300,
 		tdParams = nsGmx.Utils._td(null, [['css', 'width', paramsWidth + 'px'], ['attr', 'vAlign', 'top']]),
 		tdTable = nsGmx.Utils._td(null, [['attr', 'vAlign', 'top']]),
-		paramsButton = nsGmx.Utils.makeLinkButton(_gtxt('Показать параметры поиска')),
-		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объект')),
+		findObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти объекты')),
+		updateObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Обновить объекты')),
+		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объекты')),
+		changeFieldsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Изменить список полей')),
 		oldCanvasWidth = false,
 		_this = this;
 
@@ -240,6 +242,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 }
             }
         });
+		console.log(this._columnsList);
+		this._columnsList.style.display = 'none';
     }
 
     this._updateSearchString('');
@@ -266,28 +270,50 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         });
     };
 
-	paramsButton.onclick = function()
-	{
+	findObjectsButton.onclick = function() {
 		oldCanvasWidth = outerSizeProvider().width;
 
 		if (tdParams.style.display === 'none')
 		{
-			this.innerHTML = _gtxt('Скрыть параметры поиска');
+			// this.innerHTML = _gtxt('Скрыть параметры поиска');
 			tdParams.style.display = '';
 		}
 		else
 		{
-			this.innerHTML = _gtxt('Показать параметры поиска');
+			// this.innerHTML = _gtxt('Показать параметры поиска');
 			tdParams.style.display = 'none';
 		}
 
 		resizeFunc();
 	};
 
-   _params.hideSearchParams && $(paramsButton).hide();
+   _params.hideSearchParams && $(findObjectsButton).hide();
 
-	addObjectButton.onclick = function()
-	{
+   findObjectsButton.style.marginLeft = '20px';
+
+   updateObjectsButton.onclick = function() {
+	   console.log('updateObjectsButton clicked');
+
+	   oldCanvasWidth = outerSizeProvider().width;
+
+	   if (tdParams.style.display === 'none')
+	   {
+		   tdParams.style.display = '';
+	   }
+	   else
+	   {
+		   tdParams.style.display = 'none';
+	   }
+
+	   resizeFunc();
+
+
+
+   };
+
+   updateObjectsButton.style.marginLeft = '20px';
+
+	addObjectButton.onclick = function() {
         new nsGmx.EditObjectControl(_this.layerName);
 	};
 
@@ -296,6 +322,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     if (_params.hideActions) {
         $(addObjectButton).hide();
 	}
+
+	changeFieldsListButton.onclick = function() {
+		var div;
+		if (info.MultiLayerID) {
+			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
+		} else {
+			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
+		}
+		_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+	};
+
+	changeFieldsListButton.style.marginLeft = '20px';
 
 	tdParams.style.display = 'none';
 
@@ -311,6 +349,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var selectAllItems = nsGmx.Utils._checkbox(false, 'checkbox'),
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
+		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Управление видимостью столбцов')),
 		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
 		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
 		selectedCont = nsGmx.Utils._span([
@@ -323,7 +362,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		groupBox = nsGmx.Utils._div([
 			selectAllItems,
 			nsGmx.Utils._span([nsGmx.Utils._t('Выделить все на странице')], [['css', 'marginLeft', '5px'], ['css', 'verticalAlign', 'top']]),
-			selectedCont
+			selectedCont,
+			showColumnsListButton,
+			_this._columnsList
 		], [
 			['attr', 'class', 'attrsSelectedCont']
 		]);
@@ -357,6 +398,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		var offset = $(selectedDelete).offset();
 		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
 	};
+
+	showColumnsListButton.onclick = function() {
+		$(_this._columnsList).toggle();
+	}
 
     var tdTable2 = nsGmx.Utils._td([groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
@@ -504,7 +549,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
-	nsGmx.Utils._(canvas, [nsGmx.Utils._div([paramsButton, addObjectButton], [['css', 'margin', '10px 0px 10px 1px']])]);
+	nsGmx.Utils._(canvas, [nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']])]);
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
 	var resizeFunc = function()

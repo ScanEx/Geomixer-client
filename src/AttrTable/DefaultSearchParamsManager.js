@@ -29,7 +29,7 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск')),
         _this = this;
 
-    var columnsList = this._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
+    var columnsList = attributesTable._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
 
     this._container = container;
 
@@ -130,7 +130,7 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
     var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
         active: presentColumns,
         name: (window._gtxt('Столбцы') + ':')
-    })).appendTo(container);
+    })).appendTo(columnsList);
 
     var rowTemplate =
         '<label title="{{name}}" class="attrs-table-active-row">' +
@@ -163,7 +163,10 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         }
     });
 
-    nsGmx.Utils._(container, [columnsList]);
+
+
+    // nsGmx.Utils._(container, [columnsList]);
+    console.log(container);
 
     searchButton.style.marginRight = '17px';
     cleanButton.style.marginRight = '3px';
@@ -185,11 +188,11 @@ DefaultSearchParamsManager.prototype.getActiveColumns = function() {
 };
 
 DefaultSearchParamsManager.prototype.resize = function(dims) {
-    if (this._columnsList) {
-        var container = this._container,
-            height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
-        $(this._container).find('.attrsColumnsList')[0].style.height = height;
-    }
+    // if (this._columnsList) {
+    //     var container = this._container,
+    //         height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
+    //     $(this._container).find('.attrsColumnsList')[0].style.height = height;
+    // }
 };
 
 nsGmx.AttrTable.DefaultSearchParamsManager = DefaultSearchParamsManager;
