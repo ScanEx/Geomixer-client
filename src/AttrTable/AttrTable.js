@@ -304,23 +304,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     var hostName = window.serverBase.match(/^https?:\/\/(.*)\/$/)[1];
 
-    if (!_params.hideSearchParams) {
-        var searchParamsManager = _params.searchParamsManager;
-        searchParamsManager.render(tdParams, this);
-        $(searchParamsManager).on({
-            queryChange: function() {
-                _this.offset = 0;
-                _this._updateSearchString(searchParamsManager.getQuery());
-            },
-            columnsChange: function() {
-                var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
-                for (var k in columns) {
-                    _this.table2.activateField(k, columns[k]);
-                }
-            }
-        });
-    }
-
     this._updateSearchString('');
 
     var downloadLayer = function(format) {
@@ -346,42 +329,63 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     };
 
 	findObjectsButton.onclick = function() {
+		tdParams.innerHTML = '';
+
 		oldCanvasWidth = outerSizeProvider().width;
 
-		if (tdParams.style.display === 'none')
-		{
+		var searchParamsManager = _params.searchParamsManager;
+		searchParamsManager.drawSearchUI(tdParams, this);
+		$(searchParamsManager).on({
+			queryChange: function() {
+				_this.offset = 0;
+				_this._updateSearchString(searchParamsManager.getQuery());
+			},
+			columnsChange: function() {
+				var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
+				for (var k in columns) {
+					_this.table2.activateField(k, columns[k]);
+				}
+			}
+		});
+
+		if (tdParams.style.display === 'none') {
 			tdParams.style.display = '';
-		}
-		else
-		{
+		} else {
 			return;
 		}
 
 		resizeFunc();
 	};
 
-   _params.hideSearchParams && $(findObjectsButton).hide();
-
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
+	   tdParams.innerHTML = '';
 	   console.log('updateObjectsButton clicked');
-
 	   oldCanvasWidth = outerSizeProvider().width;
 
-	   if (tdParams.style.display === 'none')
-	   {
+	   var searchParamsManager = _params.searchParamsManager;
+	   searchParamsManager.drawUpdateUI(tdParams, this);
+	   $(searchParamsManager).on({
+		   queryChange: function() {
+			   _this.offset = 0;
+			   _this._updateSearchString(searchParamsManager.getQuery());
+		   },
+		   columnsChange: function() {
+			   var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
+			   for (var k in columns) {
+				   _this.table2.activateField(k, columns[k]);
+			   }
+		   }
+	   });
+
+	   if (tdParams.style.display === 'none') {
 		   tdParams.style.display = '';
-	   }
-	   else
-	   {
-		   tdParams.style.display = 'none';
+	   } else {
+		   return;
 	   }
 
 	   resizeFunc();
-
-
-
    };
 
    updateObjectsButton.style.marginRight = '10px';

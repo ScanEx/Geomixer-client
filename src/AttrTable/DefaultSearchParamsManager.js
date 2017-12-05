@@ -22,7 +22,7 @@ var DefaultSearchParamsManager = function() {
     '</div>' +
 '</div>');*/
 
-DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
+DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
     var paramsWidth = 300,
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
@@ -100,6 +100,14 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
     cleanButton.style.marginRight = '3px';
     nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
+
+DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
+    var ui = document.createElement('div');
+
+    ui.innerHTML = 'Hello Update';
+
+    container.innerHTML = 'Hello Update';
+}
 
 DefaultSearchParamsManager.prototype.getQuery = function() {
     var query = this._queryTextarea && this._queryTextarea.value,
