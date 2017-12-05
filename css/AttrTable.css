@@ -1,6 +1,5 @@
 .attrsSelectedCont {
     padding-bottom: 6px;
-	padding-left: 6px;
 }
 .attrsSelectedCont span {
     margin-left: 10px;
@@ -118,6 +117,18 @@
 
 .attrsColumnsList {
     position: absolute;
+    max-height: 310px;
+    overflow: auto;
+    right: 8px;
+    margin: 4px 7px 0 0;
     background-color: white;
     box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
+}
+
+.show-columns-list-button {
+    float: right;
+}
+
+.search-button {
+    margin-left: 5px;
 }

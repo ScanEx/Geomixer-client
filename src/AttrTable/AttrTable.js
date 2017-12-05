@@ -123,6 +123,82 @@ attrsTable.prototype._updateSearchString = function(query) {
     );
 };
 
+/*
+* columnsList (extracted from searchParamsManager)
+*/
+attrsTable.prototype.createColumnsList = function(paramsManager) {
+	var _this = this,
+	 	info = this._layerInfo,
+	 	paramsWidth = 300,
+		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);//
+
+	var attrTitles = this.tableFields.fieldsAsArray;
+	   if (!paramsManager._activeColumns) {
+	       paramsManager._activeColumns = {};
+
+	       for (var i = 0; i < attrTitles.length; ++i) {
+	           paramsManager._activeColumns[attrTitles[i]] = true;
+			}
+	   }
+
+	   var presentColumns = false;
+
+	   for (var key in paramsManager._activeColumns) {
+		   if (paramsManager._activeColumns.hasOwnProperty(key)) {
+			   if (paramsManager._activeColumns[key] === true) {
+				   presentColumns = true;
+				   break;
+			   }
+		   }
+	   }
+
+	   var showColumnsTemplate =
+		   '<div class="attrs-table-show-columns-header">' +
+			   '<label title="{{name}}" class="attrs-table-show-columns">' +
+				   '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
+				   '{{name}}' +
+			   '</label>' +
+		   '</div>';
+
+	   var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
+		   active: presentColumns,
+		   name: (window._gtxt('Столбцы') + ':')
+	   })).appendTo(columnsList);
+
+	   var rowTemplate =
+		   '<label title="{{name}}" class="attrs-table-active-row">' +
+			   '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
+			   '{{name}}' +
+		   '</label>';
+
+	   attrTitles.forEach(function(columnName) {
+		   var rowUI = $(Handlebars.compile(rowTemplate)({
+			   active: paramsManager._activeColumns[columnName],
+			   name: columnName
+		   })).appendTo(columnsList);
+
+		   $('input', rowUI).click(function() {
+			   paramsManager._activeColumns[columnName] = this.checked;
+			   $(paramsManager).trigger('columnsChange');
+		   });
+	   });
+
+	   $('input', selectColumnsUI).click(function() {
+		   var checked = this.checked;
+		   for (var key in paramsManager._activeColumns) {
+			   if (paramsManager._activeColumns.hasOwnProperty(key)) {
+				   paramsManager._activeColumns[key] = checked;
+				   $(paramsManager).trigger('columnsChange');
+				   $('input', columnsList).each(function (elem) {
+					   $(this).prop('checked', checked);
+				   });
+			   }
+		   }
+	   });
+
+	   return columnsList;
+};
+
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
     var _params = $.extend({
@@ -157,6 +233,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     '</div>')({
         isPolygon: info.GeometryType === 'polygon'
     }));
+
 
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
@@ -242,8 +319,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 }
             }
         });
-		console.log(this._columnsList);
-		this._columnsList.style.display = 'none';
     }
 
     this._updateSearchString('');
@@ -275,13 +350,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		if (tdParams.style.display === 'none')
 		{
-			// this.innerHTML = _gtxt('Скрыть параметры поиска');
 			tdParams.style.display = '';
 		}
 		else
 		{
-			// this.innerHTML = _gtxt('Показать параметры поиска');
-			tdParams.style.display = 'none';
+			return;
 		}
 
 		resizeFunc();
@@ -289,7 +362,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    _params.hideSearchParams && $(findObjectsButton).hide();
 
-   findObjectsButton.style.marginLeft = '20px';
+   findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
 	   console.log('updateObjectsButton clicked');
@@ -311,13 +384,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    };
 
-   updateObjectsButton.style.marginLeft = '20px';
+   updateObjectsButton.style.marginRight = '10px';
 
 	addObjectButton.onclick = function() {
         new nsGmx.EditObjectControl(_this.layerName);
 	};
 
-	addObjectButton.style.marginLeft = '20px';
+	addObjectButton.style.marginRight = '10px';
 
     if (_params.hideActions) {
         $(addObjectButton).hide();
@@ -333,7 +406,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 	};
 
-	changeFieldsListButton.style.marginLeft = '20px';
+	changeFieldsListButton.style.marginRight = '10px';
 
 	tdParams.style.display = 'none';
 
@@ -346,6 +419,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     _params.hideDownload && downloadSection.hide();
 
     this.divTable2 = nsGmx.Utils._div(null, [['css', 'overflow', 'auto'], ['dir', 'className', 'attrsTableBody']]);
+
+	var columnsList = this.createColumnsList(_params.searchParamsManager);
+	columnsList.style.display = 'none';
+
     var selectAllItems = nsGmx.Utils._checkbox(false, 'checkbox'),
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
@@ -364,7 +441,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 			nsGmx.Utils._span([nsGmx.Utils._t('Выделить все на странице')], [['css', 'marginLeft', '5px'], ['css', 'verticalAlign', 'top']]),
 			selectedCont,
 			showColumnsListButton,
-			_this._columnsList
+			columnsList
 		], [
 			['attr', 'class', 'attrsSelectedCont']
 		]);
@@ -399,11 +476,14 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
 	};
 
+	$(showColumnsListButton).addClass('show-columns-list-button');
+
 	showColumnsListButton.onclick = function() {
-		$(_this._columnsList).toggle();
+		$(columnsList).toggle();
 	}
 
-    var tdTable2 = nsGmx.Utils._td([groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
+	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']]);
+    var tdTable2 = nsGmx.Utils._td([manageSection, groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
 
 	this.prevLimit = this.table2.limit;
@@ -549,7 +629,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
-	nsGmx.Utils._(canvas, [nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']])]);
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
 	var resizeFunc = function()
@@ -558,7 +637,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		oldCanvasWidth = false;
 
-		canvas.childNodes[1].style.width = dialogWidth - 21 - 10 + 'px';
+		canvas.childNodes[0].style.width = dialogWidth - 21 - 10 + 'px';
 		tdTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 

@@ -23,23 +23,21 @@ var DefaultSearchParamsManager = function() {
 '</div>');*/
 
 DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
-    var info = attributesTable.getLayerInfo(),
-        paramsWidth = 300,
+    var paramsWidth = 300,
+        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
         cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск')),
         _this = this;
 
-    var columnsList = attributesTable._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
-
     this._container = container;
 
-    searchButton.onclick = function()
-    {
+    searchButton.onclick = function() {
         $(_this).trigger('queryChange');
     };
 
-    cleanButton.onclick = function()
-    {
+    $(searchButton).addClass('search-button');
+
+    cleanButton.onclick = function() {
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
@@ -98,76 +96,6 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
 
     nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
 
-    var attrTitles = attributesTable.tableFields.fieldsAsArray;
-    if (!this._activeColumns)
-    {
-        this._activeColumns = {};
-
-        for (var i = 0; i < attrTitles.length; ++i) {
-            this._activeColumns[attrTitles[i]] = true;
-		}
-    }
-
-    var presentColumns = false;
-
-    for (var key in _this._activeColumns) {
-        if (_this._activeColumns.hasOwnProperty(key)) {
-            if (_this._activeColumns[key] === true) {
-                presentColumns = true;
-                break;
-            }
-        }
-    }
-
-    var showColumnsTemplate =
-        '<div class="attrs-table-show-columns-header">' +
-            '<label title="{{name}}" class="attrs-table-show-columns">' +
-                '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
-                '{{name}}' +
-            '</label>' +
-        '</div>';
-
-    var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
-        active: presentColumns,
-        name: (window._gtxt('Столбцы') + ':')
-    })).appendTo(columnsList);
-
-    var rowTemplate =
-        '<label title="{{name}}" class="attrs-table-active-row">' +
-            '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
-            '{{name}}' +
-        '</label>';
-
-    attrTitles.forEach(function(columnName) {
-        var rowUI = $(Handlebars.compile(rowTemplate)({
-            active: _this._activeColumns[columnName],
-            name: columnName
-        })).appendTo(columnsList);
-
-        $('input', rowUI).click(function() {
-            _this._activeColumns[columnName] = this.checked;
-            $(_this).trigger('columnsChange');
-        });
-    });
-
-    $('input', selectColumnsUI).click(function() {
-        var checked = this.checked;
-        for (var key in _this._activeColumns) {
-            if (_this._activeColumns.hasOwnProperty(key)) {
-                _this._activeColumns[key] = checked;
-                $(_this).trigger('columnsChange');
-                $('input', columnsList).each(function (elem) {
-                    $(this).prop('checked', checked);
-                });
-            }
-        }
-    });
-
-
-
-    // nsGmx.Utils._(container, [columnsList]);
-    console.log(container);
-
     searchButton.style.marginRight = '17px';
     cleanButton.style.marginRight = '3px';
     nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
@@ -188,11 +116,6 @@ DefaultSearchParamsManager.prototype.getActiveColumns = function() {
 };
 
 DefaultSearchParamsManager.prototype.resize = function(dims) {
-    // if (this._columnsList) {
-    //     var container = this._container,
-    //         height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
-    //     $(this._container).find('.attrsColumnsList')[0].style.height = height;
-    // }
 };
 
 nsGmx.AttrTable.DefaultSearchParamsManager = DefaultSearchParamsManager;
