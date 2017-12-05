@@ -20,10 +20,10 @@
         tracksLayer,
         displaingTrack,
 		defaultSearch,
-		highlight = L.marker([0, 0], {icon:L.icon({iconAnchor:[12, 12], iconSize:[25,25], iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000}),
+		highlight = L.marker([0, 0], {icon:L.icon({className:"highlight-icon", iconAnchor:[12, 12], iconSize:[25,25], iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000}),
         publicInterface = {
             pluginName: pluginName,
-            afterViewer: function (params, map) {                     
+            afterViewer: function (params, map) {
                 var _params = L.extend({
                         // regularImage: 'ship.png',
                         // activeImage: 'active.png'
@@ -88,7 +88,7 @@
                         forLayers(layersByID[params[key]] )
                     }
                 }
-				highlight.addEventListener('click', function(e){publicInterface.showInfo(e.target.vessel, true)});
+				highlight.addEventListener('click', function(e){e.target.vessel && publicInterface.showInfo(e.target.vessel, true)});
 				var iconOpt_mf = {
                     //id: toolbarIconId,
 					className: "VesselSearchTool",
@@ -116,6 +116,13 @@
                     }
 				});
                 lmap.addControl(icon_mf);
+				if (location.search.search(/x=[^y=]+y=/i)!=-1){
+					var a = location.search.toLowerCase().substr(1).split('&'),
+					x = a.filter(function(c){return !c.indexOf("x=")})[0].substr(2),
+					y = a.filter(function(c){return !c.indexOf("y=")})[0].substr(2)
+					highlight.vessel = null;
+					highlight.setLatLng([y, x]).addTo(nsGmx.leafletMap);
+				}
             },
             showTrack: function (mmsiArr, bbox) { 
                 var lmap = nsGmx.leafletMap;                 
@@ -1162,7 +1169,7 @@ console.log(json)
             }
         }, 
         searchById: function(aid, callback){
-console.log("searchById");
+//console.log("searchById");
             var request =  {
                             WrapStyle: 'window',
                             layer: aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
@@ -1227,7 +1234,20 @@ console.log("searchById");
             L.gmxUtil.sendCrossDomainPostRequest(aisServiceUrl + "SearchScreen.ashx", 
             {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y, layer:screenSearchLayer}, 
             callback);
-        }
+        },
+		searchByCoords(x, y){
+			//VectorLayer/Search.ashx?layer=2AA3504D346343A1A5505BDC75D96EC2&pagesize=1&query=longitude>=129.052004 and  longitude<=129.052006 and latitude>=35.01017333332 and latitude<=35.01017333334
+            var x = x.toString(),
+			y = y.toString()
+			var request =  {
+                            WrapStyle: 'window',
+                            layer: aisLayer,
+                            query: "longitude>="+x.replace(/(\d)$/, parseInt(x.slice(-1))-1)+" and  longitude<="+x.replace(/(\d)$/, parseInt(x.slice(-1))+1)+
+							" and latitude>="+y.replace(/(\d)$/, parseInt(y.slice(-1))-1)+" and latitude<="+y.replace(/(\d)$/, parseInt(y.slice(-1))+1)
+            };
+console.log(request)
+            //L.gmxUtil.sendCrossDomainPostRequest(this._serverScript, request, callback);			
+		}
     };  
 
     Handlebars.registerHelper('aisinfoid', function(context) {
