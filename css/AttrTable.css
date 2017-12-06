@@ -27,10 +27,9 @@
 
 .attrs-table-active-row {
     display: block;
-    width: 258px;
     overflow-x: hidden;
     white-space: nowrap;
-    margin: 4px 0px 2px 3px;
+    margin: 4px 5px 2px 3px;
     font-size: 12px;
 }
 
@@ -44,7 +43,7 @@
 }
 
 .attrs-table-active-checkbox {
-    margin-left: 10px;
+    margin-left: 12px;
     margin-right: 3px;
 }
 
@@ -79,7 +78,6 @@
 
 .attr-table-columns-container {
     overflow-y: auto;
-    width: 279px;
     height: 220px;
 }
 
@@ -116,6 +114,7 @@
 }
 
 .attrsColumnsList {
+    padding: 5px;
     position: absolute;
     max-height: 310px;
     overflow: auto;

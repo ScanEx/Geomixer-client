@@ -762,50 +762,50 @@ gmxCore.addModule('PluginsManager', publicInterface);
 var translationsHash = function()
 {
 	this.hash = {};
-	
+
 	this.flags = {};
-	
+
 	this.titles = {};
-    
+
     this._errorHandlers = [];
 }
 
 var DEFAULT_LANGUAGE = 'rus';
 
-//Для запоминания выбора языка пользователем используются куки. 
+//Для запоминания выбора языка пользователем используются куки.
 //Запоминается выбор для каждого pathname, а не только для домена целиком
 //Формат куки: pathname1=lang1&pathname2=lang2&...
 var _parseLanguageCookie = function()
 {
     var text = readCookie("language");
-    
-    if (!text) 
+
+    if (!text)
         return {};
-    
+
     var items = text.split('&');
 
     //поддержка старого формата кук (просто названия взыка для всех pathname)
     if (items % 2) items = [];
-    
+
     var langs = {};
     for (var i = 0; i < items.length; i++)
     {
         var elems = items[i].split('=');
         langs[decodeURIComponent(elems[0])] = decodeURIComponent(elems[1]);
     }
-    
+
     return langs;
 }
 
 var _saveLanguageCookie = function(langs)
 {
     var cookies = [];
-    
+
     for (var h in langs)
     {
         cookies.push(encodeURIComponent(h) + '=' + encodeURIComponent(langs[h]));
     }
-    
+
     eraseCookie("language");
     createCookie("language", cookies.join('&'));
 }
@@ -849,7 +849,7 @@ TranslationsManager.prototype._addTextWithPrefix = function(prefix, lang, newHas
  @param {String} lang Язык, к которому добавляются строки
  @param {Object} strings Список добавляемых строк. Должен быть объектом, в котором атрибуты являются ключами перевода.
                  Если значение атрибута - строка, то она записывается как результат локализации данного ключа.
-                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
+                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой
                  к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
 */
 TranslationsManager.prototype.addText = function(lang, newHash) {
@@ -894,12 +894,12 @@ TranslationsManager.prototype.setLanguage = function(lang) {
  @return {String} Текущий язык (eng/rus/...)
 */
 TranslationsManager.prototype.getLanguage = function() {
-    return TranslationsManager.prototype._language || 
-           (typeof window !== 'undefined' && window.language) || 
+    return TranslationsManager.prototype._language ||
+           (typeof window !== 'undefined' && window.language) ||
            DEFAULT_LANGUAGE;
 }
 
-/** Добавить обработчик ошибок локализации. 
+/** Добавить обработчик ошибок локализации.
     При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
  @func addErrorHandler
  @memberOf nsGmx.Translations
@@ -963,7 +963,7 @@ window.nsGmx.Translations = commonTranslationsManager;
 var prev_gtxt = window._gtxt,
     prev_translationsHash = window._translationsHash,
     prevTranslationsHash = window.translationsHash;
-    
+
 /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
  @name noConflicts
  @memberOf nsGmx.Translations
@@ -983,13 +983,13 @@ _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTransla
 _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
 _translationsHash.showLanguages = function() {
     var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']]);
-    
+
     for (var lang in this.hash)
     {
         if (lang != window.language)
         {
             var button = makeLinkButton(_translationsHash.titles[lang]);
-            
+
             button.style.marginLeft = '5px';
             button.style.fontSize = '11px';
 
@@ -1003,12 +1003,12 @@ _translationsHash.showLanguages = function() {
                     window.location.reload();
                 }
             }.bind(null, lang);
-            
+
             _title(button, this.titles[lang]);
-            
+
             langCanvas.appendChild(button);
         }
-        else 
+        else
         {
             langCanvas.appendChild(_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']]));
         }
@@ -1032,6 +1032,7 @@ window.gmxCore && gmxCore.addModule('translations',
 })
 
 }();
+
 
 _translationsHash.flags["rus"] = "img/flag_ru.png";
 
@@ -1653,8 +1654,8 @@ _translationsHash.hash["rus"] = {
 	"Скрыть" : "Скрыть",
 	"SQL-условие WHERE" : "SQL-условие WHERE",
     "Искать внутри полигона" : "Искать внутри полигона",
-	"Столбцы" : "Столбцы",
-	"Показывать столбцы" : "Показывать столбцы",
+	"Колонки" : "Колонки",
+	"Показывать колонки" : "Показывать колонки",
 	"Найти" : "Найти",
 	"Нет полей" : "Нет полей",
 	"Нет данных" : "Нет данных",
@@ -1676,7 +1677,6 @@ _translationsHash.hash["rus"] = {
 	"Добавить объекты" : "Добавить объекты",
 	"Обновить объекты" : "Обновить объекты",
 	"Изменить список полей" : "Изменить список полей",
-	"Управление видимостью столбцов" : "Управление видимостью столбцов",
 	"Очистить поиск" : "Очистить поиск",
     "Скачать shp": "Скачать shp",
     "Скачать gpx": "Скачать gpx",
@@ -2373,8 +2373,8 @@ _translationsHash.hash["eng"] = {
 	"Скрыть" : "Hide",
 	"Искать внутри полигона" : "Search inside polygon",
 	"SQL-условие WHERE" : "WHERE SQL expression",
-	"Столбцы" : "Columns",
-	"Показывать столбцы" : "Show columns",
+	"Колонки" : "Columns",
+	"Показывать колонки" : "Show columns",
 	"Найти" : "Search",
 	"Нет полей" : "Empty fields",
 	"Нет данных" : "Empty data",
@@ -2396,7 +2396,6 @@ _translationsHash.hash["eng"] = {
 	"Добавить объекты" : "Add objects",
 	"Обновить объекты" : "Update объекты",
 	"Изменить список полей" : "Change fields list",
-	"Управление видимостью столбцов" : "Edit columns visibility",
 	"Очистить поиск" : "Clean search",
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",
@@ -21399,7 +21398,7 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 	var _this = this,
 	 	info = this._layerInfo,
 	 	paramsWidth = 300,
-		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);//
+		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto']]);//
 
 	var attrTitles = this.tableFields.fieldsAsArray;
 	   if (!paramsManager._activeColumns) {
@@ -21431,7 +21430,7 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 
 	   var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
 		   active: presentColumns,
-		   name: (window._gtxt('Столбцы') + ':')
+		   name: (window._gtxt('Колонки') + ':')
 	   })).appendTo(columnsList);
 
 	   var rowTemplate =
@@ -21616,12 +21615,16 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     };
 
 	findObjectsButton.onclick = function() {
-		$(this).addClass('gmx-disabled');
 		/*temp*/
 		// if ($(updateObjectsButton).hasClass('gmx-disabled')) {
 			// $(updateObjectsButton).removeClass('gmx-disabled');
 		// }
 		/*temp end*/
+		if (tdParams.style.display === 'none') {
+			tdParams.style.display = '';
+		} else {
+			return;
+		}
 
 		tdParams.innerHTML = '';
 
@@ -21629,11 +21632,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		searchParamsManager.drawSearchUI(tdParams, _this);
 
-		if (tdParams.style.display === 'none') {
-			tdParams.style.display = '';
-		} else {
-			return;
-		}
 
 		resizeFunc();
 	};
@@ -21703,7 +21701,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var selectAllItems = nsGmx.Utils._checkbox(false, 'checkbox'),
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
-		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Управление видимостью столбцов')),
+		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Показывать колонки')),
 		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
 		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
 		selectedCont = nsGmx.Utils._span([
@@ -21756,6 +21754,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
 	showColumnsListButton.onclick = function() {
+		if (columnsList.style.display === 'none') {
+			this.innerText = window._gtxt('Скрыть');
+		} else {
+			this.innerText = window._gtxt('Показывать колонки');
+		}
 		$(columnsList).toggle();
 	}
 
@@ -22330,7 +22333,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск'));
 
     $(buttonsContainer).addClass('clean-search-buttons-container');
-    $(buttonsContainer).append(cleanButton);
+    // $(buttonsContainer).append(cleanButton);
     $(buttonsContainer).append(searchButton);
 
     searchButton.onclick = function() {
@@ -23734,7 +23737,7 @@ var nsGmx = window.nsGmx || {};
 
                 // измененная прямоугольная рамка
                 var newRect = L.rectangle(newBounds);
-                this.model.set('coords', newRect._latlngs);
+                this.model.set('coords', L.version === "0.7.7" ? newRect.getLatLngs() : newRect.getLatLngs()[0]);
 
                 attrs.lmap.gmxDrawing.remove(attrs.selArea);
 
@@ -34671,15 +34674,11 @@ var SearchWidget = function () {
             });
 
             chain(tasks, { completed: false, response: [] }).then(function (state) {
-                // if(state.response.length > 0 && !this._retrieveManyOnEnter){
-                //     let item = state.response[0];
-                //     item.provider
-                //     .fetch(item.properties)
-                //     .then(response => {});                    
-                // }
+                if (state.response.length > 0 && !_this3._retrieveManyOnEnter) {
+                    var item = state.response[0];
+                    item.provider.fetch(item.properties).then(function (response) {});
+                }
             });
-
-            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -34696,11 +34695,6 @@ var SearchWidget = function () {
         key: 'setText',
         value: function setText(text) {
             this._input.value = text;
-        }
-    }, {
-        key: 'setPlaceHolder',
-        value: function setPlaceHolder(value) {
-            this._input.placeholder = value;
         }
     }]);
 
@@ -34738,21 +34732,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
-            // ,
-            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-            // /[^\d\:]/g,
-            // /\d\d:\d+$/,
-            // /\d\d:\d+:\d+$/,
-            // /\d\d:\d+:\d+:\d+$/
-        }];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
+        // ,
+        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+        // /[^\d\:]/g,
+        // /\d\d:\d+$/,
+        // /\d\d:\d+:\d+$/,
+        // /\d\d:\d+:\d+:\d+$/
+        ];
     }
 
     _createClass(CadastreDataProvider, [{
@@ -35174,7 +35168,7 @@ exports.SearchControl = undefined;
 var _SearchWidget = __webpack_require__(0);
 
 var SearchControl = L.Control.extend({
-    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
+    includes: [L.Mixin.Events],
     initialize: function initialize(options) {
         L.setOptions(this, options);
         this._allowSuggestion = true;
@@ -35217,9 +35211,6 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
-    },
-    setPlaceHolder: function setPlaceHolder(value) {
-        this._widget.setPlaceHolder(value);
     }
 });
 

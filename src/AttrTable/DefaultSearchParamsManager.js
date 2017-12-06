@@ -103,7 +103,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск'));
 
     $(buttonsContainer).addClass('clean-search-buttons-container');
-    $(buttonsContainer).append(cleanButton);
+    // $(buttonsContainer).append(cleanButton);
     $(buttonsContainer).append(searchButton);
 
     searchButton.onclick = function() {
