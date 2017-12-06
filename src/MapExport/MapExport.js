@@ -936,7 +936,7 @@ var nsGmx = window.nsGmx || {};
 
                 // измененная прямоугольная рамка
                 var newRect = L.rectangle(newBounds);
-                this.model.set('coords', newRect._latlngs);
+                this.model.set('coords', L.version === "0.7.7" ? newRect.getLatLngs() : newRect.getLatLngs()[0]);
 
                 attrs.lmap.gmxDrawing.remove(attrs.selArea);
 
