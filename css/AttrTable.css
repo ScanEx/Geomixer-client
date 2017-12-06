@@ -132,3 +132,13 @@
 .search-button {
     margin-left: 5px;
 }
+
+.attr-table-hide-button-container {
+    margin-top: 10px;
+    margin-bottom: 7px;
+}
+
+.clean-search-buttons-container {
+    position: absolute;
+    bottom: 8px;
+}

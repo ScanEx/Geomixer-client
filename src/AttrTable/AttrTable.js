@@ -234,6 +234,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         isPolygon: info.GeometryType === 'polygon'
     }));
 
+	$(findObjectsButton).addClass('attr-table-find-button');
+	$(updateObjectsButton).addClass('attr-table-update-button');
+	/*temp*/
+	$(updateObjectsButton).addClass('gmx-disabled');
+	/*temp end*/
+	$(addObjectButton).addClass('attr-table-add-button');
+	$(changeFieldsListButton).addClass('attr-table-list-button');
 
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
@@ -241,7 +248,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	// создание слоя из выборки (из атрибутивной таблицы)
     downloadSection.find('.createLayerLink').click(function() {
-
 		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + info.name, function(response) {
 			if (!parseResponse(response)) {
 				return;
@@ -290,9 +296,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 				nsGmx.createLayerEditor(false, 'Vector', parent, properties, params);
 			}
 		});
-
     });
-
 
     this.tableFields.init(_params.attributes, info);
 
@@ -305,6 +309,20 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var hostName = window.serverBase.match(/^https?:\/\/(.*)\/$/)[1];
 
     this._updateSearchString('');
+
+	var searchParamsManager = _params.searchParamsManager;
+	$(searchParamsManager).on({
+		queryChange: function() {
+			_this.offset = 0;
+			_this._updateSearchString(searchParamsManager.getQuery());
+		},
+		columnsChange: function() {
+			var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
+			for (var k in columns) {
+				_this.table2.activateField(k, columns[k]);
+			}
+		}
+	});
 
     var downloadLayer = function(format) {
         var activeColumns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash,
@@ -329,24 +347,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     };
 
 	findObjectsButton.onclick = function() {
+		$(this).addClass('gmx-disabled');
+		/*temp*/
+		// if ($(updateObjectsButton).hasClass('gmx-disabled')) {
+			// $(updateObjectsButton).removeClass('gmx-disabled');
+		// }
+		/*temp end*/
+
 		tdParams.innerHTML = '';
 
 		oldCanvasWidth = outerSizeProvider().width;
 
-		var searchParamsManager = _params.searchParamsManager;
-		searchParamsManager.drawSearchUI(tdParams, this);
-		$(searchParamsManager).on({
-			queryChange: function() {
-				_this.offset = 0;
-				_this._updateSearchString(searchParamsManager.getQuery());
-			},
-			columnsChange: function() {
-				var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
-				for (var k in columns) {
-					_this.table2.activateField(k, columns[k]);
-				}
-			}
-		});
+		searchParamsManager.drawSearchUI(tdParams, _this);
 
 		if (tdParams.style.display === 'none') {
 			tdParams.style.display = '';
@@ -360,24 +372,16 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
+	   $(this).addClass('gmx-disabled');
+	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
+		   $(findObjectsButton).removeClass('gmx-disabled');
+	   }
+
 	   tdParams.innerHTML = '';
-	   console.log('updateObjectsButton clicked');
+
 	   oldCanvasWidth = outerSizeProvider().width;
 
-	   var searchParamsManager = _params.searchParamsManager;
-	   searchParamsManager.drawUpdateUI(tdParams, this);
-	   $(searchParamsManager).on({
-		   queryChange: function() {
-			   _this.offset = 0;
-			   _this._updateSearchString(searchParamsManager.getQuery());
-		   },
-		   columnsChange: function() {
-			   var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
-			   for (var k in columns) {
-				   _this.table2.activateField(k, columns[k]);
-			   }
-		   }
-	   });
+	   searchParamsManager.drawUpdateUI(tdParams, _this);
 
 	   if (tdParams.style.display === 'none') {
 		   tdParams.style.display = '';
@@ -646,7 +650,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 
         var dialogHeight = outerSizeProvider().height;
-		_this.divTable2.style.height = dialogHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
+		_this.divTable2.style.height = dialogHeight - 14 - 25 - 10 - 30 + 'px';
 
         _this.table2.updateHeight(parseInt(_this.divTable2.style.height));
         _params.searchParamsManager.resize && _params.searchParamsManager.resize({

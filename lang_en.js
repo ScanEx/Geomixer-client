@@ -606,6 +606,7 @@ _translationsHash.hash["eng"] = {
 	"Таблица атрибутов слоя [value0]" : "[value0] attributes table",
 	"Показать параметры поиска" : "Show search params",
 	"Скрыть параметры поиска" : "Hide search params",
+	"Скрыть" : "Hide",
 	"Искать внутри полигона" : "Search inside polygon",
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Столбцы" : "Columns",

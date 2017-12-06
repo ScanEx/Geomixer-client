@@ -137,8 +137,8 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
         '<td><div class="suggest-link-container suggest-attr">{{i "Атрибут >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
         '<td><div class="suggest-link-container suggest-op">{{i "Операция >"}}</div></td>' +
+        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 
@@ -147,7 +147,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
         valuesSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, ' suggest ', changeCallback);
+        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
     ui.find('.suggest-value').append(valuesSuggest.el);

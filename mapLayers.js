@@ -1911,6 +1911,11 @@
 
                     _layersTree.updateListType(li);
                     _layersTree.updateZIndexes();
+
+                    var checkedLayer = nsGmx.gmxMap.layersByID[newLayerProperties.name];
+                    if (checkedLayer) {
+                        L.gmx.layersVersion.chkVersion(checkedLayer);
+                    };
                 } else {
                     $('#' + taskInfo.TaskID).remove();
 

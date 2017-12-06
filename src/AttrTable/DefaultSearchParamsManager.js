@@ -17,48 +17,38 @@ var DefaultSearchParamsManager = function() {
     '<div class="attr-table-columns-container">' +
     '</div>' +
     '<div class="attr-table-params-buttons">' +
-        '<input class="btn attr-table-params-clear" type="submit" value="{{i "Очистить поиск"}}">' +
-        '<input class="btn attr-table-params-find" type="submit" value="{{i "Найти"}}">' +
+        '<span class="bbuttonLink">{{i "Очистить поиск"}}"</span>' +
+        '<span class="bbuttonLink">{{i "Найти"}}"</span>' +
     '</div>' +
 '</div>');*/
 
 DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
-    var paramsWidth = 300,
-        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
-        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
-        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск')),
+    var info = attributesTable.getLayerInfo(),
+        paramsWidth = 300,
         _this = this;
 
     this._container = container;
 
-    searchButton.onclick = function() {
-        $(_this).trigger('queryChange');
+    /* HIDE BUTTON */
+    var hideButtonContainer = document.createElement('div'),
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
+
+    $(hideButton).addClass('attr-table-hide-button');
+    $(hideButtonContainer).addClass('attr-table-hide-button-container');
+    $(hideButtonContainer).append(hideButton);
+
+    hideButton.onclick = function() {
+        var tableTd = container.nextSibling,
+            originalButton = $(tableTd).find('.attr-table-find-button');
+
+        if ($(originalButton).hasClass('gmx-disabled')) {
+            $(originalButton).removeClass('gmx-disabled');
+        }
+        container.style.display = 'none';
+        attributesTable.resizeFunc();
     };
 
-    $(searchButton).addClass('search-button');
-
-    cleanButton.onclick = function() {
-        _this._queryTextarea.value = '';
-        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
-        _this._geometryInfoRow = null;
-
-        $(_this).trigger('queryChange');
-    };
-
-    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
-
-    var attrNames = [info.identityField].concat(info.attributes);
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) {
-        attrHash[attrNames[a]] = [];
-	}
-
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
-
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
-
-    var suggestCanvas = attrSuggestWidget.el[0];
-
+    /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
     var geomUI = $(Handlebars.compile('<span>' +
@@ -92,21 +82,84 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         );
     });
 
-    $(container).append(geomUI);
+    /*SQL TEXTAREA*/
+    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
 
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    var attrNames = [info.identityField].concat(info.attributes);
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) {
+        attrHash[attrNames[a]] = [];
+    }
+
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
+
+    var suggestCanvas = attrSuggestWidget.el[0];
+
+    /*CLEAN/SEARCH BUTTONS*/
+    var buttonsContainer = document.createElement('div'),
+        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
+        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск'));
+
+    $(buttonsContainer).addClass('clean-search-buttons-container');
+    $(buttonsContainer).append(cleanButton);
+    $(buttonsContainer).append(searchButton);
+
+    searchButton.onclick = function() {
+        $(_this).trigger('queryChange');
+    };
+
+    $(searchButton).addClass('search-button');
+
+    cleanButton.onclick = function() {
+        _this._queryTextarea.value = '';
+        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+        _this._geometryInfoRow = null;
+
+        $(_this).trigger('queryChange');
+    };
 
     searchButton.style.marginRight = '17px';
     cleanButton.style.marginRight = '3px';
-    nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
+
+    /*COMPILE*/
+
+    $(container).append(hideButtonContainer);
+    $(container).append(geomUI);
+
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(buttonsContainer);
+
+    // nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
 
 DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
+
+    var paramsWidth = 300,
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть')),
+        _this = this;
+
+    hideButton.onclick = function() {
+        var tableTd = container.nextSibling,
+            originalButton = $(tableTd).find('.attr-table-udpate-button');
+
+        if ($(originalButton).hasClass('gmx-disabled')) {
+            $(originalButton).removeClass('gmx-disabled');
+        }
+
+        container.style.display = 'none';
+        attributesTable.resizeFunc();
+    };
+
     var ui = document.createElement('div');
 
     ui.innerHTML = 'Hello Update';
 
     container.innerHTML = 'Hello Update';
+    $(container).append(hideButton);
+
+
 }
 
 DefaultSearchParamsManager.prototype.getQuery = function() {
