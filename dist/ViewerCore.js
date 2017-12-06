@@ -1650,6 +1650,7 @@ _translationsHash.hash["rus"] = {
 	"Таблица атрибутов слоя [value0]" : "Таблица атрибутов слоя [value0]",
 	"Показать параметры поиска" : "Показать параметры поиска",
 	"Скрыть параметры поиска" : "Скрыть параметры поиска",
+	"Скрыть" : "Скрыть",
 	"SQL-условие WHERE" : "SQL-условие WHERE",
     "Искать внутри полигона" : "Искать внутри полигона",
 	"Столбцы" : "Столбцы",
@@ -1671,7 +1672,11 @@ _translationsHash.hash["rus"] = {
 	"Редактировать объект слоя [value0]" : "Редактировать объект слоя [value0]",
 	"Создать объект слоя [value0]" : "Создать объект слоя [value0]",
 	"Геометрия" : "Геометрия",
-	"Добавить объект" : "Добавить объект",
+	"Найти объекты" : "Найти объекты",
+	"Добавить объекты" : "Добавить объекты",
+	"Обновить объекты" : "Обновить объекты",
+	"Изменить список полей" : "Изменить список полей",
+	"Управление видимостью столбцов" : "Управление видимостью столбцов",
 	"Очистить поиск" : "Очистить поиск",
     "Скачать shp": "Скачать shp",
     "Скачать gpx": "Скачать gpx",
@@ -2365,6 +2370,7 @@ _translationsHash.hash["eng"] = {
 	"Таблица атрибутов слоя [value0]" : "[value0] attributes table",
 	"Показать параметры поиска" : "Show search params",
 	"Скрыть параметры поиска" : "Hide search params",
+	"Скрыть" : "Hide",
 	"Искать внутри полигона" : "Search inside polygon",
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Столбцы" : "Columns",
@@ -2386,7 +2392,11 @@ _translationsHash.hash["eng"] = {
 	"Редактировать объект слоя [value0]" : "Edit layer [value0] object",
 	"Создать объект слоя [value0]" : "Add layer [value0] object",
 	"Геометрия" : "Geometry",
-	"Добавить объект" : "Add object",
+	"Найти объекты" : "Find objects",
+	"Добавить объекты" : "Add objects",
+	"Обновить объекты" : "Update объекты",
+	"Изменить список полей" : "Change fields list",
+	"Управление видимостью столбцов" : "Edit columns visibility",
 	"Очистить поиск" : "Clean search",
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",
@@ -12065,6 +12075,11 @@ pointsBinding.pointsBinding.unload = function()
 
                     _layersTree.updateListType(li);
                     _layersTree.updateZIndexes();
+
+                    var checkedLayer = nsGmx.gmxMap.layersByID[newLayerProperties.name];
+                    if (checkedLayer) {
+                        L.gmx.layersVersion.chkVersion(checkedLayer);
+                    };
                 } else {
                     $('#' + taskInfo.TaskID).remove();
 
@@ -20470,8 +20485,8 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
         '<td><div class="suggest-link-container suggest-attr">{{i "Атрибут >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
         '<td><div class="suggest-link-container suggest-op">{{i "Операция >"}}</div></td>' +
+        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 
@@ -20480,7 +20495,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
         valuesSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, ' suggest ', changeCallback);
+        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
     ui.find('.suggest-value').append(valuesSuggest.el);
@@ -21377,6 +21392,82 @@ attrsTable.prototype._updateSearchString = function(query) {
     );
 };
 
+/*
+* columnsList (extracted from searchParamsManager)
+*/
+attrsTable.prototype.createColumnsList = function(paramsManager) {
+	var _this = this,
+	 	info = this._layerInfo,
+	 	paramsWidth = 300,
+		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);//
+
+	var attrTitles = this.tableFields.fieldsAsArray;
+	   if (!paramsManager._activeColumns) {
+	       paramsManager._activeColumns = {};
+
+	       for (var i = 0; i < attrTitles.length; ++i) {
+	           paramsManager._activeColumns[attrTitles[i]] = true;
+			}
+	   }
+
+	   var presentColumns = false;
+
+	   for (var key in paramsManager._activeColumns) {
+		   if (paramsManager._activeColumns.hasOwnProperty(key)) {
+			   if (paramsManager._activeColumns[key] === true) {
+				   presentColumns = true;
+				   break;
+			   }
+		   }
+	   }
+
+	   var showColumnsTemplate =
+		   '<div class="attrs-table-show-columns-header">' +
+			   '<label title="{{name}}" class="attrs-table-show-columns">' +
+				   '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
+				   '{{name}}' +
+			   '</label>' +
+		   '</div>';
+
+	   var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
+		   active: presentColumns,
+		   name: (window._gtxt('Столбцы') + ':')
+	   })).appendTo(columnsList);
+
+	   var rowTemplate =
+		   '<label title="{{name}}" class="attrs-table-active-row">' +
+			   '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
+			   '{{name}}' +
+		   '</label>';
+
+	   attrTitles.forEach(function(columnName) {
+		   var rowUI = $(Handlebars.compile(rowTemplate)({
+			   active: paramsManager._activeColumns[columnName],
+			   name: columnName
+		   })).appendTo(columnsList);
+
+		   $('input', rowUI).click(function() {
+			   paramsManager._activeColumns[columnName] = this.checked;
+			   $(paramsManager).trigger('columnsChange');
+		   });
+	   });
+
+	   $('input', selectColumnsUI).click(function() {
+		   var checked = this.checked;
+		   for (var key in paramsManager._activeColumns) {
+			   if (paramsManager._activeColumns.hasOwnProperty(key)) {
+				   paramsManager._activeColumns[key] = checked;
+				   $(paramsManager).trigger('columnsChange');
+				   $('input', columnsList).each(function (elem) {
+					   $(this).prop('checked', checked);
+				   });
+			   }
+		   }
+	   });
+
+	   return columnsList;
+};
+
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
     var _params = $.extend({
@@ -21392,8 +21483,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	var paramsWidth = 300,
 		tdParams = nsGmx.Utils._td(null, [['css', 'width', paramsWidth + 'px'], ['attr', 'vAlign', 'top']]),
 		tdTable = nsGmx.Utils._td(null, [['attr', 'vAlign', 'top']]),
-		paramsButton = nsGmx.Utils.makeLinkButton(_gtxt('Показать параметры поиска')),
-		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объект')),
+		findObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти объекты')),
+		updateObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Обновить объекты')),
+		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объекты')),
+		changeFieldsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Изменить список полей')),
 		oldCanvasWidth = false,
 		_this = this;
 
@@ -21410,13 +21503,20 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         isPolygon: info.GeometryType === 'polygon'
     }));
 
+	$(findObjectsButton).addClass('attr-table-find-button');
+	$(updateObjectsButton).addClass('attr-table-update-button');
+	/*temp*/
+	$(updateObjectsButton).addClass('gmx-disabled');
+	/*temp end*/
+	$(addObjectButton).addClass('attr-table-add-button');
+	$(changeFieldsListButton).addClass('attr-table-list-button');
+
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
     });
 
 	// создание слоя из выборки (из атрибутивной таблицы)
     downloadSection.find('.createLayerLink').click(function() {
-
 		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + info.name, function(response) {
 			if (!parseResponse(response)) {
 				return;
@@ -21465,9 +21565,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 				nsGmx.createLayerEditor(false, 'Vector', parent, properties, params);
 			}
 		});
-
     });
-
 
     this.tableFields.init(_params.attributes, info);
 
@@ -21479,24 +21577,21 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     var hostName = window.serverBase.match(/^https?:\/\/(.*)\/$/)[1];
 
-    if (!_params.hideSearchParams) {
-        var searchParamsManager = _params.searchParamsManager;
-        searchParamsManager.render(tdParams, this);
-        $(searchParamsManager).on({
-            queryChange: function() {
-                _this.offset = 0;
-                _this._updateSearchString(searchParamsManager.getQuery());
-            },
-            columnsChange: function() {
-                var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
-                for (var k in columns) {
-                    _this.table2.activateField(k, columns[k]);
-                }
-            }
-        });
-    }
-
     this._updateSearchString('');
+
+	var searchParamsManager = _params.searchParamsManager;
+	$(searchParamsManager).on({
+		queryChange: function() {
+			_this.offset = 0;
+			_this._updateSearchString(searchParamsManager.getQuery());
+		},
+		columnsChange: function() {
+			var columns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash;
+			for (var k in columns) {
+				_this.table2.activateField(k, columns[k]);
+			}
+		}
+	});
 
     var downloadLayer = function(format) {
         var activeColumns = searchParamsManager.getActiveColumns ? searchParamsManager.getActiveColumns() : _this.tableFields.fieldsAsHash,
@@ -21520,36 +21615,75 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         });
     };
 
-	paramsButton.onclick = function()
-	{
+	findObjectsButton.onclick = function() {
+		$(this).addClass('gmx-disabled');
+		/*temp*/
+		// if ($(updateObjectsButton).hasClass('gmx-disabled')) {
+			// $(updateObjectsButton).removeClass('gmx-disabled');
+		// }
+		/*temp end*/
+
+		tdParams.innerHTML = '';
+
 		oldCanvasWidth = outerSizeProvider().width;
 
-		if (tdParams.style.display === 'none')
-		{
-			this.innerHTML = _gtxt('Скрыть параметры поиска');
+		searchParamsManager.drawSearchUI(tdParams, _this);
+
+		if (tdParams.style.display === 'none') {
 			tdParams.style.display = '';
-		}
-		else
-		{
-			this.innerHTML = _gtxt('Показать параметры поиска');
-			tdParams.style.display = 'none';
+		} else {
+			return;
 		}
 
 		resizeFunc();
 	};
 
-   _params.hideSearchParams && $(paramsButton).hide();
+   findObjectsButton.style.marginRight = '10px';
 
-	addObjectButton.onclick = function()
-	{
+   updateObjectsButton.onclick = function() {
+	   $(this).addClass('gmx-disabled');
+	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
+		   $(findObjectsButton).removeClass('gmx-disabled');
+	   }
+
+	   tdParams.innerHTML = '';
+
+	   oldCanvasWidth = outerSizeProvider().width;
+
+	   searchParamsManager.drawUpdateUI(tdParams, _this);
+
+	   if (tdParams.style.display === 'none') {
+		   tdParams.style.display = '';
+	   } else {
+		   return;
+	   }
+
+	   resizeFunc();
+   };
+
+   updateObjectsButton.style.marginRight = '10px';
+
+	addObjectButton.onclick = function() {
         new nsGmx.EditObjectControl(_this.layerName);
 	};
 
-	addObjectButton.style.marginLeft = '20px';
+	addObjectButton.style.marginRight = '10px';
 
     if (_params.hideActions) {
         $(addObjectButton).hide();
 	}
+
+	changeFieldsListButton.onclick = function() {
+		var div;
+		if (info.MultiLayerID) {
+			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
+		} else {
+			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
+		}
+		_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+	};
+
+	changeFieldsListButton.style.marginRight = '10px';
 
 	tdParams.style.display = 'none';
 
@@ -21562,9 +21696,14 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     _params.hideDownload && downloadSection.hide();
 
     this.divTable2 = nsGmx.Utils._div(null, [['css', 'overflow', 'auto'], ['dir', 'className', 'attrsTableBody']]);
+
+	var columnsList = this.createColumnsList(_params.searchParamsManager);
+	columnsList.style.display = 'none';
+
     var selectAllItems = nsGmx.Utils._checkbox(false, 'checkbox'),
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
+		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Управление видимостью столбцов')),
 		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
 		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
 		selectedCont = nsGmx.Utils._span([
@@ -21577,7 +21716,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		groupBox = nsGmx.Utils._div([
 			selectAllItems,
 			nsGmx.Utils._span([nsGmx.Utils._t('Выделить все на странице')], [['css', 'marginLeft', '5px'], ['css', 'verticalAlign', 'top']]),
-			selectedCont
+			selectedCont,
+			showColumnsListButton,
+			columnsList
 		], [
 			['attr', 'class', 'attrsSelectedCont']
 		]);
@@ -21612,7 +21753,14 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
 	};
 
-    var tdTable2 = nsGmx.Utils._td([groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
+	$(showColumnsListButton).addClass('show-columns-list-button');
+
+	showColumnsListButton.onclick = function() {
+		$(columnsList).toggle();
+	}
+
+	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']]);
+    var tdTable2 = nsGmx.Utils._td([manageSection, groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
 
 	this.prevLimit = this.table2.limit;
@@ -21758,7 +21906,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
-	nsGmx.Utils._(canvas, [nsGmx.Utils._div([paramsButton, addObjectButton], [['css', 'margin', '10px 0px 10px 1px']])]);
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
 	var resizeFunc = function()
@@ -21767,12 +21914,12 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		oldCanvasWidth = false;
 
-		canvas.childNodes[1].style.width = dialogWidth - 21 - 10 + 'px';
+		canvas.childNodes[0].style.width = dialogWidth - 21 - 10 + 'px';
 		tdTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 
         var dialogHeight = outerSizeProvider().height;
-		_this.divTable2.style.height = dialogHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
+		_this.divTable2.style.height = dialogHeight - 14 - 25 - 10 - 30 + 'px';
 
         _this.table2.updateHeight(parseInt(_this.divTable2.style.height));
         _params.searchParamsManager.resize && _params.searchParamsManager.resize({
@@ -22097,50 +22244,38 @@ var DefaultSearchParamsManager = function() {
     '<div class="attr-table-columns-container">' +
     '</div>' +
     '<div class="attr-table-params-buttons">' +
-        '<input class="btn attr-table-params-clear" type="submit" value="{{i "Очистить поиск"}}">' +
-        '<input class="btn attr-table-params-find" type="submit" value="{{i "Найти"}}">' +
+        '<span class="bbuttonLink">{{i "Очистить поиск"}}"</span>' +
+        '<span class="bbuttonLink">{{i "Найти"}}"</span>' +
     '</div>' +
 '</div>');*/
 
-DefaultSearchParamsManager.prototype.render = function(container, attributesTable) {
+DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
         paramsWidth = 300,
-        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
-        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск')),
         _this = this;
-
-    var columnsList = this._columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto'], ['css', 'width', paramsWidth - 21 + 'px']]);
 
     this._container = container;
 
-    searchButton.onclick = function()
-    {
-        $(_this).trigger('queryChange');
+    /* HIDE BUTTON */
+    var hideButtonContainer = document.createElement('div'),
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
+
+    $(hideButton).addClass('attr-table-hide-button');
+    $(hideButtonContainer).addClass('attr-table-hide-button-container');
+    $(hideButtonContainer).append(hideButton);
+
+    hideButton.onclick = function() {
+        var tableTd = container.nextSibling,
+            originalButton = $(tableTd).find('.attr-table-find-button');
+
+        if ($(originalButton).hasClass('gmx-disabled')) {
+            $(originalButton).removeClass('gmx-disabled');
+        }
+        container.style.display = 'none';
+        attributesTable.resizeFunc();
     };
 
-    cleanButton.onclick = function()
-    {
-        _this._queryTextarea.value = '';
-        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
-        _this._geometryInfoRow = null;
-
-        $(_this).trigger('queryChange');
-    };
-
-    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
-
-    var attrNames = [info.identityField].concat(info.attributes);
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) {
-        attrHash[attrNames[a]] = [];
-	}
-
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
-
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
-
-    var suggestCanvas = attrSuggestWidget.el[0];
-
+    /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
     var geomUI = $(Handlebars.compile('<span>' +
@@ -22174,81 +22309,85 @@ DefaultSearchParamsManager.prototype.render = function(container, attributesTabl
         );
     });
 
-    $(container).append(geomUI);
+    /*SQL TEXTAREA*/
+    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
 
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-
-    var attrTitles = attributesTable.tableFields.fieldsAsArray;
-    if (!this._activeColumns)
-    {
-        this._activeColumns = {};
-
-        for (var i = 0; i < attrTitles.length; ++i) {
-            this._activeColumns[attrTitles[i]] = true;
-		}
+    var attrNames = [info.identityField].concat(info.attributes);
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) {
+        attrHash[attrNames[a]] = [];
     }
 
-    var presentColumns = false;
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
-    for (var key in _this._activeColumns) {
-        if (_this._activeColumns.hasOwnProperty(key)) {
-            if (_this._activeColumns[key] === true) {
-                presentColumns = true;
-                break;
-            }
-        }
-    }
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
 
-    var showColumnsTemplate =
-        '<div class="attrs-table-show-columns-header">' +
-            '<label title="{{name}}" class="attrs-table-show-columns">' +
-                '<input type="checkbox" class="box attrs-table-show-columns-checkbox" {{#active}}checked{{/active}}></input>' +
-                '{{name}}' +
-            '</label>' +
-        '</div>';
+    var suggestCanvas = attrSuggestWidget.el[0];
 
-    var selectColumnsUI = $(Handlebars.compile(showColumnsTemplate)({
-        active: presentColumns,
-        name: (window._gtxt('Столбцы') + ':')
-    })).appendTo(container);
+    /*CLEAN/SEARCH BUTTONS*/
+    var buttonsContainer = document.createElement('div'),
+        searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
+        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск'));
 
-    var rowTemplate =
-        '<label title="{{name}}" class="attrs-table-active-row">' +
-            '<input type="checkbox" class="box attrs-table-active-checkbox" {{#active}}checked{{/active}}></input>' +
-            '{{name}}' +
-        '</label>';
+    $(buttonsContainer).addClass('clean-search-buttons-container');
+    $(buttonsContainer).append(cleanButton);
+    $(buttonsContainer).append(searchButton);
 
-    attrTitles.forEach(function(columnName) {
-        var rowUI = $(Handlebars.compile(rowTemplate)({
-            active: _this._activeColumns[columnName],
-            name: columnName
-        })).appendTo(columnsList);
+    searchButton.onclick = function() {
+        $(_this).trigger('queryChange');
+    };
 
-        $('input', rowUI).click(function() {
-            _this._activeColumns[columnName] = this.checked;
-            $(_this).trigger('columnsChange');
-        });
-    });
+    $(searchButton).addClass('search-button');
 
-    $('input', selectColumnsUI).click(function() {
-        var checked = this.checked;
-        for (var key in _this._activeColumns) {
-            if (_this._activeColumns.hasOwnProperty(key)) {
-                _this._activeColumns[key] = checked;
-                $(_this).trigger('columnsChange');
-                $('input', columnsList).each(function (elem) {
-                    $(this).prop('checked', checked);
-                });
-            }
-        }
-    });
+    cleanButton.onclick = function() {
+        _this._queryTextarea.value = '';
+        _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+        _this._geometryInfoRow = null;
 
-    nsGmx.Utils._(container, [columnsList]);
+        $(_this).trigger('queryChange');
+    };
 
     searchButton.style.marginRight = '17px';
     cleanButton.style.marginRight = '3px';
-    nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
+
+    /*COMPILE*/
+
+    $(container).append(hideButtonContainer);
+    $(container).append(geomUI);
+
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(buttonsContainer);
+
+    // nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
+
+DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
+
+    var paramsWidth = 300,
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть')),
+        _this = this;
+
+    hideButton.onclick = function() {
+        var tableTd = container.nextSibling,
+            originalButton = $(tableTd).find('.attr-table-udpate-button');
+
+        if ($(originalButton).hasClass('gmx-disabled')) {
+            $(originalButton).removeClass('gmx-disabled');
+        }
+
+        container.style.display = 'none';
+        attributesTable.resizeFunc();
+    };
+
+    var ui = document.createElement('div');
+
+    ui.innerHTML = 'Hello Update';
+
+    container.innerHTML = 'Hello Update';
+    $(container).append(hideButton);
+
+
+}
 
 DefaultSearchParamsManager.prototype.getQuery = function() {
     var query = this._queryTextarea && this._queryTextarea.value,
@@ -22265,11 +22404,6 @@ DefaultSearchParamsManager.prototype.getActiveColumns = function() {
 };
 
 DefaultSearchParamsManager.prototype.resize = function(dims) {
-    if (this._columnsList) {
-        var container = this._container,
-            height = dims.height - container.childNodes[0].offsetHeight - container.childNodes[1].offsetHeight - 25 + 'px';
-        $(this._container).find('.attrsColumnsList')[0].style.height = height;
-    }
 };
 
 nsGmx.AttrTable.DefaultSearchParamsManager = DefaultSearchParamsManager;
@@ -31245,6 +31379,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31274,19 +31421,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
