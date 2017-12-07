@@ -762,50 +762,50 @@ gmxCore.addModule('PluginsManager', publicInterface);
 var translationsHash = function()
 {
 	this.hash = {};
-
+	
 	this.flags = {};
-
+	
 	this.titles = {};
-
+    
     this._errorHandlers = [];
 }
 
 var DEFAULT_LANGUAGE = 'rus';
 
-//Для запоминания выбора языка пользователем используются куки.
+//Для запоминания выбора языка пользователем используются куки. 
 //Запоминается выбор для каждого pathname, а не только для домена целиком
 //Формат куки: pathname1=lang1&pathname2=lang2&...
 var _parseLanguageCookie = function()
 {
     var text = readCookie("language");
-
-    if (!text)
+    
+    if (!text) 
         return {};
-
+    
     var items = text.split('&');
 
     //поддержка старого формата кук (просто названия взыка для всех pathname)
     if (items % 2) items = [];
-
+    
     var langs = {};
     for (var i = 0; i < items.length; i++)
     {
         var elems = items[i].split('=');
         langs[decodeURIComponent(elems[0])] = decodeURIComponent(elems[1]);
     }
-
+    
     return langs;
 }
 
 var _saveLanguageCookie = function(langs)
 {
     var cookies = [];
-
+    
     for (var h in langs)
     {
         cookies.push(encodeURIComponent(h) + '=' + encodeURIComponent(langs[h]));
     }
-
+    
     eraseCookie("language");
     createCookie("language", cookies.join('&'));
 }
@@ -849,7 +849,7 @@ TranslationsManager.prototype._addTextWithPrefix = function(prefix, lang, newHas
  @param {String} lang Язык, к которому добавляются строки
  @param {Object} strings Список добавляемых строк. Должен быть объектом, в котором атрибуты являются ключами перевода.
                  Если значение атрибута - строка, то она записывается как результат локализации данного ключа.
-                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой
+                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
                  к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
 */
 TranslationsManager.prototype.addText = function(lang, newHash) {
@@ -894,12 +894,12 @@ TranslationsManager.prototype.setLanguage = function(lang) {
  @return {String} Текущий язык (eng/rus/...)
 */
 TranslationsManager.prototype.getLanguage = function() {
-    return TranslationsManager.prototype._language ||
-           (typeof window !== 'undefined' && window.language) ||
+    return TranslationsManager.prototype._language || 
+           (typeof window !== 'undefined' && window.language) || 
            DEFAULT_LANGUAGE;
 }
 
-/** Добавить обработчик ошибок локализации.
+/** Добавить обработчик ошибок локализации. 
     При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
  @func addErrorHandler
  @memberOf nsGmx.Translations
@@ -963,7 +963,7 @@ window.nsGmx.Translations = commonTranslationsManager;
 var prev_gtxt = window._gtxt,
     prev_translationsHash = window._translationsHash,
     prevTranslationsHash = window.translationsHash;
-
+    
 /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
  @name noConflicts
  @memberOf nsGmx.Translations
@@ -983,13 +983,13 @@ _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTransla
 _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
 _translationsHash.showLanguages = function() {
     var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']]);
-
+    
     for (var lang in this.hash)
     {
         if (lang != window.language)
         {
             var button = makeLinkButton(_translationsHash.titles[lang]);
-
+            
             button.style.marginLeft = '5px';
             button.style.fontSize = '11px';
 
@@ -1003,12 +1003,12 @@ _translationsHash.showLanguages = function() {
                     window.location.reload();
                 }
             }.bind(null, lang);
-
+            
             _title(button, this.titles[lang]);
-
+            
             langCanvas.appendChild(button);
         }
-        else
+        else 
         {
             langCanvas.appendChild(_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']]));
         }
@@ -1032,7 +1032,6 @@ window.gmxCore && gmxCore.addModule('translations',
 })
 
 }();
-
 
 _translationsHash.flags["rus"] = "img/flag_ru.png";
 
@@ -21464,6 +21463,10 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   }
 	   });
 
+	   columnsList.onmouseleave = function () {
+		   this.style.display = 'none';
+	   }
+
 	   return columnsList;
 };
 
@@ -21754,11 +21757,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
 	showColumnsListButton.onclick = function() {
-		if (columnsList.style.display === 'none') {
-			this.innerText = window._gtxt('Скрыть');
-		} else {
-			this.innerText = window._gtxt('Показывать колонки');
-		}
+		// if (columnsList.style.display === 'none') {
+		// 	this.innerText = window._gtxt('Скрыть');
+		// } else {
+		// 	this.innerText = window._gtxt('Показывать колонки');
+		// }
 		$(columnsList).toggle();
 	}
 
@@ -21828,6 +21831,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 if (!window.parseResponse(response)) {
                     return;
 				}
+				var layer = nsGmx.gmxMap.layersByID[_this.layerName],
+					props = layer.getGmxProperties(),
+					isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 var columnNames = response.Result.fields;
                 var row = response.Result.values[0];
@@ -21835,7 +21841,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 {
                     if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
-                        var layer = nsGmx.gmxMap.layersByID[_this.layerName];
 
                         var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
 
@@ -21845,6 +21850,20 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                             [bounds.min.y, bounds.min.x],
                             [bounds.max.y, bounds.max.x]
                         ], fitBoundsOptions);
+
+						if (isTemporalLayer) {
+							var index = columnNames.indexOf("acqdate"),
+								dayms = nsGmx.DateInterval.MS_IN_DAY,
+								dateBegin, dateEnd,
+								datems;
+
+							if (index !== -1) {
+								datems = row[index] * 1000;
+								dateBegin = new Date(datems);
+								dateEnd = new Date(datems + dayms);
+								nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
+							}
+						}
                     }
                 }
             });
@@ -22234,27 +22253,13 @@ nsGmx.AttrTable.SquareCalc = function(container, layerName, dataProvider, search
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
     this._queryTextarea = null;
+    this._searchValue = null;
     this._container = null;
 };
 
-/*var template = Handlebars.compile('<div>' +
-    '<div>' +
-        '<div class="attr-table-query-title">{{i "SQL-условие WHERE"}}</div>' +
-        '<textarea class="inputStyle attr-table-query"></textarea>' +
-        '<table class="attr-table-query-suggest"></table>' +
-    '</div>' +
-    '<div class="attr-table-fields-header">{{i "Показывать столбцы"}}:</div>' +
-    '<div class="attr-table-columns-container">' +
-    '</div>' +
-    '<div class="attr-table-params-buttons">' +
-        '<span class="bbuttonLink">{{i "Очистить поиск"}}"</span>' +
-        '<span class="bbuttonLink">{{i "Найти"}}"</span>' +
-    '</div>' +
-'</div>');*/
-
 DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
-        paramsWidth = 300,
+        paramsWidth = 320,
         _this = this;
 
     this._container = container;
@@ -22281,11 +22286,16 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
+    var geomUIContainer = document.createElement('div');
+    $(geomUIContainer).addClass('attr-table-geometry-container');
+
     var geomUI = $(Handlebars.compile('<span>' +
         '<span class="attr-table-geomtitle">{{i "Искать внутри полигона"}}</span>' +
         '<span class="gmx-icon-choose"></span>' +
         '<span class="attr-table-geom-placeholder"></span>' +
     '</span>')());
+
+    $(geomUIContainer).append(geomUI);
 
     geomUI.find('.gmx-icon-choose').click(function() {
         nsGmx.Controls.chooseDrawingBorderDialog(
@@ -22313,7 +22323,10 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     });
 
     /*SQL TEXTAREA*/
-    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
+    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._queryTextarea.placeholder = '"field"=value';
+    this._queryTextarea.value = _this._searchValue;
+    this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
     var attrHash = {};
@@ -22323,7 +22336,11 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
+    var suggestionCallback = function () {
+        $(_this._queryTextarea).trigger('input');
+    }
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider, suggestionCallback);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
@@ -22337,6 +22354,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     $(buttonsContainer).append(searchButton);
 
     searchButton.onclick = function() {
+
         $(_this).trigger('queryChange');
     };
 
@@ -22346,7 +22364,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
-
+        _this._searchValue = this._queryTextarea.value;
         $(_this).trigger('queryChange');
     };
 
@@ -22354,14 +22372,10 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     cleanButton.style.marginRight = '3px';
 
     /*COMPILE*/
-
     $(container).append(hideButtonContainer);
-    $(container).append(geomUI);
-
     nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
-
-    // nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
 
 DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
@@ -22398,7 +22412,6 @@ DefaultSearchParamsManager.prototype.getQuery = function() {
         geom = drawingObject && drawingObject.toGeoJSON().geometry,
         geomStr = geom ? 'intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(geom) + '\', 4326))' : '',
         resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
-
     return resQuery;
 };
 
@@ -34674,11 +34687,15 @@ var SearchWidget = function () {
             });
 
             chain(tasks, { completed: false, response: [] }).then(function (state) {
-                if (state.response.length > 0 && !_this3._retrieveManyOnEnter) {
-                    var item = state.response[0];
-                    item.provider.fetch(item.properties).then(function (response) {});
-                }
+                // if(state.response.length > 0 && !this._retrieveManyOnEnter){
+                //     let item = state.response[0];
+                //     item.provider
+                //     .fetch(item.properties)
+                //     .then(response => {});                    
+                // }
             });
+
+            this.results && this.results.hide();
         }
     }, {
         key: '_selectItem',
@@ -34695,6 +34712,11 @@ var SearchWidget = function () {
         key: 'setText',
         value: function setText(text) {
             this._input.value = text;
+        }
+    }, {
+        key: 'setPlaceHolder',
+        value: function setPlaceHolder(value) {
+            this._input.placeholder = value;
         }
     }]);
 
@@ -34732,21 +34754,21 @@ var CadastreDataProvider = function () {
         this.showSuggestion = true;
         this.showOnSelect = false;
         this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
-        // ,
-        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-        // /[^\d\:]/g,
-        // /\d\d:\d+$/,
-        // /\d\d:\d+:\d+$/,
-        // /\d\d:\d+:\d+:\d+$/
-        ];
+        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
+            // ,
+            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+            // /[^\d\:]/g,
+            // /\d\d:\d+$/,
+            // /\d\d:\d+:\d+$/,
+            // /\d\d:\d+:\d+:\d+$/
+        }];
     }
 
     _createClass(CadastreDataProvider, [{
@@ -35168,7 +35190,7 @@ exports.SearchControl = undefined;
 var _SearchWidget = __webpack_require__(0);
 
 var SearchControl = L.Control.extend({
-    includes: [L.Mixin.Events],
+    includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
     initialize: function initialize(options) {
         L.setOptions(this, options);
         this._allowSuggestion = true;
@@ -35211,6 +35233,9 @@ var SearchControl = L.Control.extend({
 
     setText: function setText(text) {
         this._widget.setText(text);
+    },
+    setPlaceHolder: function setPlaceHolder(value) {
+        this._widget.setPlaceHolder(value);
     }
 });
 
@@ -35868,7 +35893,7 @@ var nsGmx = nsGmx || {};
 
         updateTemporalLayers: function(layers) {
             layers = layers || nsGmx.gmxMap.layers;
-            
+
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),

@@ -564,6 +564,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 if (!window.parseResponse(response)) {
                     return;
 				}
+				var layer = nsGmx.gmxMap.layersByID[_this.layerName],
+					props = layer.getGmxProperties(),
+					isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                 var columnNames = response.Result.fields;
                 var row = response.Result.values[0];
@@ -571,7 +574,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 {
                     if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
-                        var layer = nsGmx.gmxMap.layersByID[_this.layerName];
 
                         var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
 
@@ -581,6 +583,20 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                             [bounds.min.y, bounds.min.x],
                             [bounds.max.y, bounds.max.x]
                         ], fitBoundsOptions);
+
+						if (isTemporalLayer) {
+							var index = columnNames.indexOf("acqdate"),
+								dayms = nsGmx.DateInterval.MS_IN_DAY,
+								dateBegin, dateEnd,
+								datems;
+
+							if (index !== -1) {
+								datems = row[index] * 1000;
+								dateBegin = new Date(datems);
+								dateEnd = new Date(datems + dayms);
+								nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
+							}
+						}
                     }
                 }
             });
