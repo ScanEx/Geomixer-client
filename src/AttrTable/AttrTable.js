@@ -585,7 +585,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                         ], fitBoundsOptions);
 
 						if (isTemporalLayer) {
-							var index = columnNames.indexOf("acqdate"),
+							var tempColumn = props.TemporalColumnName,
+								index = columnNames.indexOf(tempColumn),
 								dayms = nsGmx.DateInterval.MS_IN_DAY,
 								dateBegin, dateEnd,
 								datems;
@@ -662,6 +663,15 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
+	// var tbl = $(this.divTable2).find('table')[0];
+	var tbl = $(this.divTable2).find('#attrsTableParent')[0];
+	tbl.onscroll = function(){
+		var translate = "translate(0,"+(this.scrollTop)+"px)";
+		var ths = $(this).find('th');
+		ths.each(function (elem) {
+			$(this).css('transform', translate);
+		})
+	};
 
 	var resizeFunc = function()
 	{

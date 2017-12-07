@@ -1179,6 +1179,9 @@ _translationsHash.hash["rus"] = {
 	"Загрузить" : "Загрузить",
     "Параметр" : "Параметр",
     "Значение" : "Значение",
+    "Колонки" : "Колонки",
+    "Операторы" : "Операторы",
+    "Функции" : "Функции",
     "Метаданные": "Метаданные",
     "Поля": "Поля",
     "Редактировать поля": "Редактировать поля",
@@ -1908,6 +1911,9 @@ _translationsHash.hash["eng"] = {
 	"Загрузить" : "Download",
     "Параметр" : "Parameter",
     "Значение" : "Value",
+	"Колонки" : "Columns",
+	"Операторы" : "Operators",
+	"Функции" : "Functions",
     "Метаданные": "Metadata",
     "Поля": "Attributes",
     "Редактировать поля": "Edit attributes",
@@ -21852,7 +21858,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                         ], fitBoundsOptions);
 
 						if (isTemporalLayer) {
-							var index = columnNames.indexOf("acqdate"),
+							var tempColumn = props.TemporalColumnName,
+								index = columnNames.indexOf(tempColumn),
 								dayms = nsGmx.DateInterval.MS_IN_DAY,
 								dateBegin, dateEnd,
 								datems;
@@ -21929,6 +21936,15 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
+	// var tbl = $(this.divTable2).find('table')[0];
+	var tbl = $(this.divTable2).find('#attrsTableParent')[0];
+	tbl.onscroll = function(){
+		var translate = "translate(0,"+(this.scrollTop)+"px)";
+		var ths = $(this).find('th');
+		ths.each(function (elem) {
+			$(this).css('transform', translate);
+		})
+	};
 
 	var resizeFunc = function()
 	{
@@ -22253,7 +22269,7 @@ nsGmx.AttrTable.SquareCalc = function(container, layerName, dataProvider, search
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
     this._queryTextarea = null;
-    this._searchValue = null;
+    this._searchValue = '';
     this._container = null;
 };
 
@@ -22324,7 +22340,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*SQL TEXTAREA*/
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
-    this._queryTextarea.placeholder = '"field"=value';
+    this._queryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._queryTextarea.value = _this._searchValue;
     this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
@@ -22359,21 +22375,19 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     };
 
     $(searchButton).addClass('search-button');
+    $(cleanButton).addClass('clean-button');
 
     cleanButton.onclick = function() {
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
-        _this._searchValue = this._queryTextarea.value;
+        _this._searchValue = _this._queryTextarea.value;
         $(_this).trigger('queryChange');
     };
 
-    searchButton.style.marginRight = '17px';
-    cleanButton.style.marginRight = '3px';
-
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE')), cleanButton], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
@@ -31287,6 +31301,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -31321,10 +31340,34 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
+nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
+    "    <div class=\"headerWidget-left\">\n" +
+    "        <div class=\"headerWidget-logoContainer\">\n" +
+    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"headerWidget-right\">\n" +
+    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</div>\n" +
+    "";
+nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
+    "    {{#if vk}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if facebook}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if twitter}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
+    "    {{/if}}\n" +
     "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
@@ -31408,35 +31451,6 @@ nsGmx.Translations.addText('eng', {
         'langEn': 'En'
     }
 });;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
-nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
-    "    <div class=\"headerWidget-left\">\n" +
-    "        <div class=\"headerWidget-logoContainer\">\n" +
-    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"headerWidget-right\">\n" +
-    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "</div>\n" +
-    "";
-nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
-    "    {{#if vk}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if facebook}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if twitter}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "</div>";;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -35893,7 +35907,7 @@ var nsGmx = nsGmx || {};
 
         updateTemporalLayers: function(layers) {
             layers = layers || nsGmx.gmxMap.layers;
-
+            
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),

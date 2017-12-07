@@ -4,7 +4,7 @@
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
     this._queryTextarea = null;
-    this._searchValue = null;
+    this._searchValue = '';
     this._container = null;
 };
 
@@ -75,7 +75,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*SQL TEXTAREA*/
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
-    this._queryTextarea.placeholder = '"field"=value';
+    this._queryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._queryTextarea.value = _this._searchValue;
     this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
@@ -110,21 +110,19 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     };
 
     $(searchButton).addClass('search-button');
+    $(cleanButton).addClass('clean-button');
 
     cleanButton.onclick = function() {
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
-        _this._searchValue = this._queryTextarea.value;
+        _this._searchValue = _this._queryTextarea.value;
         $(_this).trigger('queryChange');
     };
 
-    searchButton.style.marginRight = '17px';
-    cleanButton.style.marginRight = '3px';
-
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE')), cleanButton], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
