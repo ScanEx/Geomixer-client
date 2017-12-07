@@ -196,6 +196,10 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   }
 	   });
 
+	   columnsList.onmouseleave = function () {
+		   this.style.display = 'none';
+	   }
+
 	   return columnsList;
 };
 
@@ -486,11 +490,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
 	showColumnsListButton.onclick = function() {
-		if (columnsList.style.display === 'none') {
-			this.innerText = window._gtxt('Скрыть');
-		} else {
-			this.innerText = window._gtxt('Показывать колонки');
-		}
+		// if (columnsList.style.display === 'none') {
+		// 	this.innerText = window._gtxt('Скрыть');
+		// } else {
+		// 	this.innerText = window._gtxt('Показывать колонки');
+		// }
 		$(columnsList).toggle();
 	}
 

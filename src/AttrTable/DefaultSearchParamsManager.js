@@ -4,27 +4,13 @@
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
     this._queryTextarea = null;
+    this._searchValue = null;
     this._container = null;
 };
 
-/*var template = Handlebars.compile('<div>' +
-    '<div>' +
-        '<div class="attr-table-query-title">{{i "SQL-условие WHERE"}}</div>' +
-        '<textarea class="inputStyle attr-table-query"></textarea>' +
-        '<table class="attr-table-query-suggest"></table>' +
-    '</div>' +
-    '<div class="attr-table-fields-header">{{i "Показывать столбцы"}}:</div>' +
-    '<div class="attr-table-columns-container">' +
-    '</div>' +
-    '<div class="attr-table-params-buttons">' +
-        '<span class="bbuttonLink">{{i "Очистить поиск"}}"</span>' +
-        '<span class="bbuttonLink">{{i "Найти"}}"</span>' +
-    '</div>' +
-'</div>');*/
-
 DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
     var info = attributesTable.getLayerInfo(),
-        paramsWidth = 300,
+        paramsWidth = 320,
         _this = this;
 
     this._container = container;
@@ -51,11 +37,16 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
+    var geomUIContainer = document.createElement('div');
+    $(geomUIContainer).addClass('attr-table-geometry-container');
+
     var geomUI = $(Handlebars.compile('<span>' +
         '<span class="attr-table-geomtitle">{{i "Искать внутри полигона"}}</span>' +
         '<span class="gmx-icon-choose"></span>' +
         '<span class="attr-table-geom-placeholder"></span>' +
     '</span>')());
+
+    $(geomUIContainer).append(geomUI);
 
     geomUI.find('.gmx-icon-choose').click(function() {
         nsGmx.Controls.chooseDrawingBorderDialog(
@@ -83,7 +74,10 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     });
 
     /*SQL TEXTAREA*/
-    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['css', 'overflow', 'auto'], ['css', 'width', '280px'], ['css', 'height', '70px']]);
+    this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._queryTextarea.placeholder = '"field"=value';
+    this._queryTextarea.value = _this._searchValue;
+    this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
     var attrHash = {};
@@ -93,7 +87,11 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider);
+    var suggestionCallback = function () {
+        $(_this._queryTextarea).trigger('input');
+    }
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider, suggestionCallback);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
@@ -107,6 +105,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     $(buttonsContainer).append(searchButton);
 
     searchButton.onclick = function() {
+
         $(_this).trigger('queryChange');
     };
 
@@ -116,7 +115,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         _this._queryTextarea.value = '';
         _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
         _this._geometryInfoRow = null;
-
+        _this._searchValue = this._queryTextarea.value;
         $(_this).trigger('queryChange');
     };
 
@@ -124,14 +123,10 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     cleanButton.style.marginRight = '3px';
 
     /*COMPILE*/
-
     $(container).append(hideButtonContainer);
-    $(container).append(geomUI);
-
     nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
-
-    // nsGmx.Utils._(container, [nsGmx.Utils._div([cleanButton, searchButton], [['css', 'textAlign', 'right'], ['css', 'margin', '5px 0px 0px 0px'], ['css', 'width', paramsWidth + 'px']])]);
 };
 
 DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
@@ -168,7 +163,6 @@ DefaultSearchParamsManager.prototype.getQuery = function() {
         geom = drawingObject && drawingObject.toGeoJSON().geometry,
         geomStr = geom ? 'intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(geom) + '\', 4326))' : '',
         resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
-
     return resQuery;
 };
 

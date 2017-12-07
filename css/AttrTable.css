@@ -63,8 +63,13 @@
 
 .attr-table-query {
     overflow: auto;
-    width: 280px;
-    height: 70px;
+    height: 80px;
+}
+
+.attr-table-query-area {
+    width: 300px;
+    height: 100px;
+    margin-right: 6px;
 }
 
 .attr-table-query-suggest {
@@ -99,6 +104,11 @@
 
 .attr-query-container .suggest-container {
     margin-left: 3px;
+}
+
+.attr-table-geometry-container {
+    position: absolute;
+    bottom: 228px;
 }
 
 .attr-table-geomtitle {
