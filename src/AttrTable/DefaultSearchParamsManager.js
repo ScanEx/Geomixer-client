@@ -98,10 +98,9 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     /*CLEAN/SEARCH BUTTONS*/
     var buttonsContainer = document.createElement('div'),
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
-        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить поиск'));
+        cleanButton = nsGmx.Utils.makeLinkButton(_gtxt('Очистить'));
 
     $(buttonsContainer).addClass('clean-search-buttons-container');
-    // $(buttonsContainer).append(cleanButton);
     $(buttonsContainer).append(searchButton);
 
     searchButton.onclick = function() {
@@ -122,7 +121,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._div([nsGmx.Utils._t(_gtxt('SQL-условие WHERE')), cleanButton], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };

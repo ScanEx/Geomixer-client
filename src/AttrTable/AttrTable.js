@@ -489,13 +489,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
-	showColumnsListButton.onclick = function() {
-		// if (columnsList.style.display === 'none') {
-		// 	this.innerText = window._gtxt('Скрыть');
-		// } else {
-		// 	this.innerText = window._gtxt('Показывать колонки');
-		// }
-		$(columnsList).toggle();
+	showColumnsListButton.onmouseenter = function() {
+		if (columnsList.style.display === 'none') {
+			$(columnsList).show();
+		}
 	}
 
 	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']]);
@@ -663,15 +660,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
-	// var tbl = $(this.divTable2).find('table')[0];
+
 	var tbl = $(this.divTable2).find('#attrsTableParent')[0];
-	tbl.onscroll = function(){
-		var translate = "translate(0,"+(this.scrollTop)+"px)";
-		var ths = $(this).find('th');
-		ths.each(function (elem) {
-			$(this).css('transform', translate);
-		})
-	};
+	if (!L.Browser.ie) {
+		tbl.onscroll = function(){
+			var translate = "translate(0,"+(this.scrollTop)+"px)";
+			var ths = $(this).find('th');
+			ths.each(function (elem) {
+				$(this).css('transform', translate);
+			})
+		};
+	}
 
 	var resizeFunc = function()
 	{
