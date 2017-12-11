@@ -75,7 +75,7 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 
         nsGmx.Utils.showDialog(_gtxt('Таблица атрибутов слоя [value0]', this.layerTitle), canvas,
             {
-                width: 800,
+                width: 820,
                 height: 500,
                 resizeFunc: function()
                 {
@@ -221,7 +221,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		findObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти объекты')),
 		updateObjectsButton = nsGmx.Utils.makeLinkButton(_gtxt('Обновить объекты')),
 		addObjectButton = nsGmx.Utils.makeLinkButton(_gtxt('Добавить объекты')),
-		changeFieldsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Изменить список полей')),
+		changeFieldsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Изменить колонки')),
 		oldCanvasWidth = false,
 		_this = this;
 
@@ -590,8 +590,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 							if (index !== -1) {
 								datems = row[index] * 1000;
-								dateBegin = new Date(datems);
-								dateEnd = new Date(datems + dayms);
+								dateBegin = nsGmx.DateInterval.toMidnight(new Date(datems));
+								dateEnd = nsGmx.DateInterval.toMidnight(new Date(datems + dayms));
 								nsGmx.widgets.commonCalendar.setDateInterval(dateBegin, dateEnd, layer);
 							}
 						}
@@ -661,12 +661,33 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
-	var tbl = $(this.divTable2).find('#attrsTableParent')[0];
-	if (!L.Browser.ie) {
-		tbl.onscroll = function(){
+	var tbl = $(this.divTable2).find('#attrsTableParent')[0],
+		ths = $(this).find('th');
+
+	if (L.Browser.ie || L.Browser.gecko) {
+		var lastSTop = tbl.scrollTop;
+		tbl.onscroll = function() {
+			var stop = this.scrollTop;
+			var ths = $(this).find('th');
+			if (stop < lastSTop) {
+				$(ths).each(function (elem) {
+					$(this).css('transitionDelay', '0s');
+					$(this).css('transform', "");
+				})
+			}
+			lastSTop = stop;
+			var translate = "translate(0,"+stop+"px)";
+
+			$(ths).each(function (elem) {
+				$(this).css('transitionDelay', '0.25s');
+				$(this).css('transform', translate);
+			})
+		};
+	} else {
+		tbl.onscroll = function() {
 			var translate = "translate(0,"+(this.scrollTop)+"px)";
 			var ths = $(this).find('th');
-			ths.each(function (elem) {
+			$(ths).each(function (elem) {
 				$(this).css('transform', translate);
 			})
 		};

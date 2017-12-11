@@ -21345,7 +21345,7 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 
         nsGmx.Utils.showDialog(_gtxt('Таблица атрибутов слоя [value0]', this.layerTitle), canvas,
             {
-                width: 800,
+                width: 820,
                 height: 500,
                 resizeFunc: function()
                 {
@@ -21931,12 +21931,33 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
-	var tbl = $(this.divTable2).find('#attrsTableParent')[0];
-	if (!L.Browser.ie) {
-		tbl.onscroll = function(){
+	var tbl = $(this.divTable2).find('#attrsTableParent')[0],
+		ths = $(this).find('th');
+
+	if (L.Browser.ie || L.Browser.gecko) {
+		var lastSTop = tbl.scrollTop;
+		tbl.onscroll = function() {
+			var stop = this.scrollTop;
+			var ths = $(this).find('th');
+			if (stop < lastSTop) {
+				$(ths).each(function (elem) {
+					$(this).css('transitionDelay', '0s');
+					$(this).css('transform', "");
+				})
+			}
+			lastSTop = stop;
+			var translate = "translate(0,"+stop+"px)";
+
+			$(ths).each(function (elem) {
+				$(this).css('transitionDelay', '0.25s');
+				$(this).css('transform', translate);
+			})
+		};
+	} else {
+		tbl.onscroll = function() {
 			var translate = "translate(0,"+(this.scrollTop)+"px)";
 			var ths = $(this).find('th');
-			ths.each(function (elem) {
+			$(ths).each(function (elem) {
 				$(this).css('transform', translate);
 			})
 		};
@@ -31404,19 +31425,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31446,6 +31454,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(

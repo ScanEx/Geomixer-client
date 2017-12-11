@@ -2177,10 +2177,12 @@ leaflet-control-layers-toggle {
   right: 8px;
   margin: -16px 7px 0 0;
   background-color: white;
+  min-width: 115px;
   box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
 }
 
 .show-columns-list-button {
+  padding-top: 1px;
   float: right;
 }
 
@@ -2767,39 +2769,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?8850494");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8850494");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?8850494");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8850494");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?8850494");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?8850494");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?8850494");
   /*{iconsError}*/
 }
 
@@ -4912,19 +4914,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?8850494");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?8850494");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?8850494");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?8850494");
 }
 
 /* ---------------------------------
@@ -4970,7 +4972,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?8850494");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -4980,7 +4982,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?4607649");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?8850494");
 }
 
 .search-form table {
@@ -5081,11 +5083,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?4607649");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?4607649#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?4607649") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?4607649") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?4607649#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?8850494");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?8850494#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?8850494") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?8850494") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?8850494#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5098,7 +5100,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?4607649#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?8850494#fontello') format('svg');
   }
 }
 */
@@ -5655,7 +5657,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?4607649");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?8850494");
 }
 
 .authWidget-loginButton {
@@ -5837,11 +5839,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?4607649");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?8850494");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?4607649");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?8850494");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6614,7 +6616,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?4607649");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?8850494");
   /* ie9 fix */
 }
 
@@ -6670,7 +6672,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?4607649");
+  background: url("../common_components/dist/src/check.png?8850494");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6716,7 +6718,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?4607649");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?8850494");
   opacity: .4;
   display: none;
 }
@@ -10071,24 +10073,24 @@ body .ui-tooltip {
 }
 /*
 == malihu jquery custom scrollbar plugin ==
-Version: 3.0.2
+Version: 3.0.2 
 Plugin URI: http://manos.malihu.gr/jquery-custom-content-scroller
 */
 
 /*
-CONTENTS:
-	1. BASIC STYLE - Plugin's basic/essential CSS properties (normally, should not be edited).
-	2. VERTICAL SCROLLBAR - Positioning and dimensions of vertical scrollbar.
+CONTENTS: 
+	1. BASIC STYLE - Plugin's basic/essential CSS properties (normally, should not be edited). 
+	2. VERTICAL SCROLLBAR - Positioning and dimensions of vertical scrollbar. 
 	3. HORIZONTAL SCROLLBAR - Positioning and dimensions of horizontal scrollbar.
-	4. VERTICAL AND HORIZONTAL SCROLLBARS - Positioning and dimensions of 2-axis scrollbars.
-	5. TRANSITIONS - CSS3 transitions for hover events, auto-expanded and auto-hidden scrollbars.
-	6. SCROLLBAR COLORS, OPACITY AND BACKGROUNDS
+	4. VERTICAL AND HORIZONTAL SCROLLBARS - Positioning and dimensions of 2-axis scrollbars. 
+	5. TRANSITIONS - CSS3 transitions for hover events, auto-expanded and auto-hidden scrollbars. 
+	6. SCROLLBAR COLORS, OPACITY AND BACKGROUNDS 
 		6.1 THEMES - Scrollbar colors, opacity, dimensions, backgrounds etc. via ready-to-use themes.
 */
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-1. BASIC STYLE
+1. BASIC STYLE  
 ------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -10120,9 +10122,9 @@ CONTENTS:
   height: auto;
 }
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-2. VERTICAL SCROLLBAR
+2. VERTICAL SCROLLBAR 
 y-axis
 ------------------------------------------------------------------------------------------------------------------------
 */
@@ -10242,9 +10244,9 @@ y-axis
   bottom: 0;
 }
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-3. HORIZONTAL SCROLLBAR
+3. HORIZONTAL SCROLLBAR 
 x-axis
 ------------------------------------------------------------------------------------------------------------------------
 */
@@ -10336,10 +10338,10 @@ x-axis
   right: 0;
 }
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-4. VERTICAL AND HORIZONTAL SCROLLBARS
-yx-axis
+4. VERTICAL AND HORIZONTAL SCROLLBARS 
+yx-axis 
 ------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -10426,9 +10428,9 @@ yx-axis
   margin-bottom: 0;
 }
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-5. TRANSITIONS
+5. TRANSITIONS  
 ------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -10448,33 +10450,33 @@ yx-axis
 .mCSB_scrollTools_vertical.mCSB_scrollTools_onDrag_expand .mCSB_draggerRail,
 .mCSB_scrollTools_horizontal.mCSB_scrollTools_onDrag_expand .mCSB_dragger_bar,
 .mCSB_scrollTools_horizontal.mCSB_scrollTools_onDrag_expand .mCSB_draggerRail {
-  -webkit-transition: width .2s ease-out .2s, height .2s ease-out .2s,
-					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s,
+  -webkit-transition: width .2s ease-out .2s, height .2s ease-out .2s, 
+					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s, 
 					margin-top .2s ease-out .2s, margin-bottom .2s ease-out .2s,
 					opacity .2s ease-in-out, background-color .2s ease-in-out;
-  -moz-transition: width .2s ease-out .2s, height .2s ease-out .2s,
-					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s,
+  -moz-transition: width .2s ease-out .2s, height .2s ease-out .2s, 
+					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s, 
 					margin-top .2s ease-out .2s, margin-bottom .2s ease-out .2s,
 					opacity .2s ease-in-out, background-color .2s ease-in-out;
-  -o-transition: width .2s ease-out .2s, height .2s ease-out .2s,
-					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s,
+  -o-transition: width .2s ease-out .2s, height .2s ease-out .2s, 
+					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s, 
 					margin-top .2s ease-out .2s, margin-bottom .2s ease-out .2s,
 					opacity .2s ease-in-out, background-color .2s ease-in-out;
-  transition: width .2s ease-out .2s, height .2s ease-out .2s,
-					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s,
+  transition: width .2s ease-out .2s, height .2s ease-out .2s, 
+					margin-left .2s ease-out .2s, margin-right .2s ease-out .2s, 
 					margin-top .2s ease-out .2s, margin-bottom .2s ease-out .2s,
 					opacity .2s ease-in-out, background-color .2s ease-in-out;
 }
 
-/*
+/* 
 ------------------------------------------------------------------------------------------------------------------------
-6. SCROLLBAR COLORS, OPACITY AND BACKGROUNDS
+6. SCROLLBAR COLORS, OPACITY AND BACKGROUNDS  
 ------------------------------------------------------------------------------------------------------------------------
 */
 
-/*
+/* 
 	----------------------------------------
-	6.1 THEMES
+	6.1 THEMES 
 	----------------------------------------
 	*/
 
@@ -10520,8 +10522,8 @@ yx-axis
 
 .mCSB_scrollTools .mCSB_buttonUp {
   background-position: 0 0;
-  /*
-		sprites locations
+  /* 
+		sprites locations 
 		light: 0 0, -16px 0, -32px 0, -48px 0, 0 -72px, -16px -72px, -32px -72px
 		dark: -80px 0, -96px 0, -112px 0, -128px 0, -80px -72px, -96px -72px, -112px -72px
 		*/
@@ -10529,7 +10531,7 @@ yx-axis
 
 .mCSB_scrollTools .mCSB_buttonDown {
   background-position: 0 -20px;
-  /*
+  /* 
 		sprites locations
 		light: 0 -20px, -16px -20px, -32px -20px, -48px -20px, 0 -92px, -16px -92px, -32px -92px
 		dark: -80px -20px, -96px -20px, -112px -20px, -128px -20px, -80px -92px, -96px -92px, -112 -92px
@@ -10538,8 +10540,8 @@ yx-axis
 
 .mCSB_scrollTools .mCSB_buttonLeft {
   background-position: 0 -40px;
-  /*
-		sprites locations
+  /* 
+		sprites locations 
 		light: 0 -40px, -20px -40px, -40px -40px, -60px -40px, 0 -112px, -20px -112px, -40px -112px
 		dark: -80px -40px, -100px -40px, -120px -40px, -140px -40px, -80px -112px, -100px -112px, -120px -112px
 		*/
@@ -10547,8 +10549,8 @@ yx-axis
 
 .mCSB_scrollTools .mCSB_buttonRight {
   background-position: 0 -56px;
-  /*
-		sprites locations
+  /* 
+		sprites locations 
 		light: 0 -56px, -20px -56px, -40px -56px, -60px -56px, 0 -128px, -20px -128px, -40px -128px
 		dark: -80px -56px, -100px -56px, -120px -56px, -140px -56px, -80px -128px, -100px -128px, -120px -128px
 		*/
