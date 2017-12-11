@@ -174,7 +174,7 @@ var LayerEditor = function(div, type, parent, properties, params) {
         }
 
         if (type === 'Vector' && _params.standardTabs.indexOf('attrs') >= 0) {
-            _this._originalTabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
+            _this._originalTabs.push({title: _gtxt('Колонки'), name: 'attrs', container: attrContainer});
         }
 
         if (!isReadonly) {
@@ -645,7 +645,7 @@ LayerEditor.prototype._createPageVectorSource = function(layerProperties, params
 
     layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
 
-    var editAttributeLink = $('<span/>').addClass('buttonLink').text(_gtxt('Редактировать поля')).click(function() {
+    var editAttributeLink = $('<span/>').addClass('buttonLink').text(_gtxt('Редактировать колонки')).click(function() {
         _this.selectTab('attrs');
     })
 
