@@ -1235,7 +1235,7 @@ console.log(json)
             {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y, layer:screenSearchLayer}, 
             callback);
         },
-		searchByCoords(x, y){
+		searchByCoords: function(x, y){
 			//VectorLayer/Search.ashx?layer=2AA3504D346343A1A5505BDC75D96EC2&pagesize=1&query=longitude>=129.052004 and  longitude<=129.052006 and latitude>=35.01017333332 and latitude<=35.01017333334
             var x = x.toString(),
 			y = y.toString()
