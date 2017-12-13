@@ -20415,7 +20415,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                         var canvasArr = arrSuggestCanvas.el;
 
-                        canvasArr.style.left = '105px';
+                        canvasArr.style.left = '86px';
                         canvasArr.style.height = '70px';
                         canvasArr.style.width = '100px';
 
@@ -20485,9 +20485,9 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
-        '<td><div class="suggest-link-container suggest-attr">{{i "Атрибут >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-op">{{i "Операция >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-value gmx-disabled">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 
@@ -21759,7 +21759,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
-	showColumnsListButton.onmouseenter = function() {
+	showColumnsListButton.onclick = function() {
 		if (columnsList.style.display === 'none') {
 			$(columnsList).show();
 		}
@@ -22376,6 +22376,8 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider, suggestionCallback);
 
     var suggestCanvas = attrSuggestWidget.el[0];
+
+    $(suggestCanvas).css('margin-right', '9px');
 
     /*CLEAN/SEARCH BUTTONS*/
     var buttonsContainer = document.createElement('div'),
@@ -31425,6 +31427,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31454,19 +31469,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
