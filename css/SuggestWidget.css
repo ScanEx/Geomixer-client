@@ -1,22 +1,37 @@
 /* nsGmx.SuggestWidget */
+.suggest-container table {
+    margin: auto;
+}
+
+.suggest-container .ui-icon {
+    display: inline-block;
+    float: right;
+    line-height: 20px;
+    text-align: center;
+    vertical-align: baseline;
+    margin: 2px 0 0 0;
+}
+
 .suggest-helper {
     overflow-y: auto;
-    width: 130px;
+    width: 86px;
     height: 70px;
     position: absolute;
-    left: -3px;
-    top: -70px;
+    left: -1px;
     border: 1px solid #AFC0D5;
     background-color: #FFFFFF;
+    z-index: 1000;
 }
 
 .suggest-helper-elem {
-    width: 110px;
+    width: 80px;
     height: 14px;
+    line-height: 14px;
     padding: 2px 0px 1px 3px;
     overflow-x: hidden;
     white-space: nowrap;
     cursor: pointer;
+    text-align: left;
 }
 
 .suggest-helper-hover {
@@ -24,9 +39,13 @@
 }
 
 .suggest-link-container {
-    cursor: pointer;
-    color: #999999;
+    line-height: 20px;
+    width: 80px;
+    cursor: default;
+    color: #000000;
     position: relative;
+    padding: 0 2px 0 4px;
+    text-align: left;
 }
 
 /* nsGmx.AttrSuggestWidget */
@@ -35,9 +54,17 @@
 }
 
 .suggest-op > .suggest-helper {
-    width: 80px;
+    width: 86px;
 }
 
 .suggest-op .suggest-helper-elem {
-    width: 60px;
+    /*width: 60px;*/
+}
+
+.suggest-value {
+    color: #999999;
+}
+
+.suggest-value .ui-icon {
+    color: #999999;
 }

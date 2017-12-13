@@ -66,7 +66,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                         var canvasArr = arrSuggestCanvas.el;
 
-                        canvasArr.style.left = '105px';
+                        canvasArr.style.left = '86px';
                         canvasArr.style.height = '70px';
                         canvasArr.style.width = '100px';
 
@@ -136,9 +136,9 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
-        '<td><div class="suggest-link-container suggest-attr">{{i "Атрибут >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-op">{{i "Операция >"}}</div></td>' +
-        '<td><div class="suggest-link-container suggest-value">{{i "Значение >"}}</div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-value gmx-disabled">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 

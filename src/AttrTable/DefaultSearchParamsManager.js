@@ -95,6 +95,8 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
+    $(suggestCanvas).css('margin-right', '9px');
+
     /*CLEAN/SEARCH BUTTONS*/
     var buttonsContainer = document.createElement('div'),
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
