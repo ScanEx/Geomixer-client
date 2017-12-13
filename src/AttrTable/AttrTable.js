@@ -525,8 +525,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		}
 
 		var id = elem.values[elem.fields[info.identityField].index],
-			showButton = nsGmx.Utils.makeImageButton('img/choose.png', 'img/choose_a.png'),
-            editButton = nsGmx.Utils.makeImageButton('img/edit.png'),
+			showButton = nsGmx.Utils.makeImageButton('img/enlarge-circle.svg', 'img/enlarge-circle.svg'),
+            editButton = nsGmx.Utils.makeImageButton('img/pen.svg'),
             deleteItem = nsGmx.Utils._checkbox(_this._selected[id], 'checkbox'),
             tdControl;
 
