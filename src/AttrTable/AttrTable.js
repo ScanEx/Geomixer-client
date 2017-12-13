@@ -489,7 +489,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
-	showColumnsListButton.onmouseenter = function() {
+	showColumnsListButton.onclick = function() {
 		if (columnsList.style.display === 'none') {
 			$(columnsList).show();
 		}
