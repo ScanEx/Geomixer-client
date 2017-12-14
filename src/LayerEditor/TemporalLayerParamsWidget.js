@@ -7,14 +7,14 @@ Handlebars.registerPartial('TemporalLayerWidgetOptions',
 _translationsHash.addtext('rus', {
     'Макс. период на экране': 'На экране не более',
     'Тайлы с': 'Тайлы с',
-    'Тайлы до': 'Тайлы до',
+    'Тайлы по дням до': 'Тайлы по дням до',
     'дней': 'дней'
 });
 
 _translationsHash.addtext('eng', {
     'Макс. период на экране': 'Max period to show',
     'Тайлы с': 'Tiles from',
-    'Тайлы до': 'Tiles till',
+    'Тайлы по дням до': 'Max tiling period',
     'дней': 'days'
 });
 
@@ -44,7 +44,7 @@ nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
             //     '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
             // '</tr>' +
             '<tr class="temporal-advanced">' +
-                '<td>{{i "Тайлы до"}}</td>' +
+                '<td>{{i "Тайлы по дням до"}}</td>' +
                 '<td><select id="maxPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
             '</tr>' +
         '</tbody></table>' +
