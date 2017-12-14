@@ -26,7 +26,7 @@ _translationsHash.addtext('eng', {
 */
 nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
 {
-    var PERIODS = [1, 4, 16, 64];
+    var PERIODS = [1, 16, 256];
     // var optionsHtml = '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}';
 
     var template = Handlebars.compile(
@@ -39,10 +39,10 @@ nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
                 '<td>{{i "Колонка даты"}}</td>' +
                 '<td><select id="columnSelect" class="selectStyle"></select></td>' +
             '</tr>' +
-            '<tr class="temporal-advanced">' +
-                '<td>{{i "Тайлы с"}}</td>' +
-                '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
-            '</tr>' +
+            // '<tr class="temporal-advanced">' +
+            //     '<td>{{i "Тайлы с"}}</td>' +
+            //     '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
+            // '</tr>' +
             '<tr class="temporal-advanced">' +
                 '<td>{{i "Тайлы до"}}</td>' +
                 '<td><select id="maxPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +

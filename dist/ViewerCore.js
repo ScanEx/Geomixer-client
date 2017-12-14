@@ -20546,23 +20546,22 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend(
         isTemporal: false,
         maxShowPeriod: 0,
         minPeriod: 1,
-        maxPeriod: 64,
+        maxPeriod: 256,
         columnName: null
     },
 
     /** Возвращает строчку с перечислением временнЫх периодов (для передачи серверу) */
     getPeriodString: function() {
-        var minPeriod = this.attributes.minPeriod,
-            maxPeriod = this.attributes.maxPeriod,
-            curPeriod = minPeriod,
-            periods = [];
+        var periods = [1, 16, 256],
+            minPeriod = Number(this.attributes.minPeriod),
+            maxPeriod = Number(this.attributes.maxPeriod);
 
-        while (curPeriod <= maxPeriod)
-        {
-            periods.push(curPeriod);
-            curPeriod *= nsGmx.TemporalLayerParams.PERIOD_STEP;
-        }
-        return periods.join(',');
+            minPeriod = (minPeriod > 1 && minPeriod < 16) ? 16 : minPeriod;
+            minPeriod = (minPeriod > 16 && minPeriod < 256) ? 256 : minPeriod;
+            maxPeriod = (maxPeriod > 1 && maxPeriod < 16) ? 16 : maxPeriod;
+            maxPeriod = (maxPeriod > 16 && maxPeriod < 256) ? 256 : maxPeriod;
+
+        return periods.splice(periods.indexOf(minPeriod), periods.indexOf(maxPeriod) + 1).join(',');
     }
 }, {PERIOD_STEP: 4});
 
@@ -20891,7 +20890,7 @@ _translationsHash.addtext('eng', {
 */
 nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
 {
-    var PERIODS = [1, 4, 16, 64];
+    var PERIODS = [1, 16, 256];
     // var optionsHtml = '{{#periods}}<option name="{{.}}">{{.}}</option>{{/periods}}';
 
     var template = Handlebars.compile(
@@ -20904,10 +20903,10 @@ nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
                 '<td>{{i "Колонка даты"}}</td>' +
                 '<td><select id="columnSelect" class="selectStyle"></select></td>' +
             '</tr>' +
-            '<tr class="temporal-advanced">' +
-                '<td>{{i "Тайлы с"}}</td>' +
-                '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
-            '</tr>' +
+            // '<tr class="temporal-advanced">' +
+            //     '<td>{{i "Тайлы с"}}</td>' +
+            //     '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
+            // '</tr>' +
             '<tr class="temporal-advanced">' +
                 '<td>{{i "Тайлы до"}}</td>' +
                 '<td><select id="maxPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
