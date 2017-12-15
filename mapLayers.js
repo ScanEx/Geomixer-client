@@ -704,6 +704,13 @@
                                 } else {
                                     disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
                                 }
+
+                                if (disabled) {
+                                    if (!parentVisibility || !elem.visible) {
+                                        $(multiStyleParent).removeClass("invisible");
+                                        _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                                    }
+                                }
                             }
 
                             $(this).on('layerTimelineRemove', function(e, data) {
@@ -716,12 +723,6 @@
 
                             $(this).on('layerTimelineAdd', function(e, data) {
                                 if (data.layerID === layerName) {
-
-                                    if (!parentVisibility || !elem.visible) {
-                                        $(multiStyleParent).removeClass("invisible");
-                                        this.treeModel.setNodeVisibility(this.findTreeElem(span.parentNode.parentNode).elem, true);
-                                    }
-
                                     timelineIcon.src = 'img/timeline-icon-enabled.svg';
                                     timelineIcon.title = window._gtxt("Добавить в таймлайн");
                                     $(timelineIcon).removeClass('disabled');

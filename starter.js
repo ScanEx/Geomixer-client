@@ -2132,7 +2132,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // выставляет правильные z-indexes слоям-вьюхам
                 _layersTree.updateZIndexes();
-                
+
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
@@ -2259,16 +2259,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                     nsGmx.widgets.commonCalendar.show();
                 }
                 nsGmx.pluginsManager.afterViewer();
-
-                // навесить обработчик на все слои дерева
-                if (nsGmx.timeLineControl) {
-                    nsGmx.timeLineControl.on('layerRemove', function(e) {
-                        $(_layersTree).triggerHandler('layerTimelineRemove', e);
-                    });
-                    nsGmx.timeLineControl.on('layerAdd', function(e) {
-                        $(_layersTree).triggerHandler('layerTimelineAdd', e);
-                    });
-                }
 
                 $('#leftContent').mCustomScrollbar();
 
