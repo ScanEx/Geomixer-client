@@ -147,7 +147,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
         valuesSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, 'suggest', changeCallback);
+        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
     ui.find('.suggest-value').append(valuesSuggest.el);
