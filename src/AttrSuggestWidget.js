@@ -20,10 +20,10 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                     if (relTarget === canvas) { return; }
                     relTarget = relTarget.parentNode;
                 }
-                $(canvas).fadeOut(300, function() {$(this).remove();});
+                $(canvas).fadeOut(100, function() {$(this).remove();});
             } catch (ev) {
                 if (target === canvas) {
-                    $(canvas).fadeOut(300, function() {$(this).remove();});
+                    $(canvas).fadeOut(100, function() {$(this).remove();});
 				}
             }
         }
@@ -41,7 +41,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
             $(canvas.parentNode).children('[arr]').each(function() {
                 if (this.getAttribute('arr') !== name) {
-                    $(this).fadeOut(300, function() {
+                    $(this).fadeOut(100, function() {
                         $(this).remove();
                     });
                 }
@@ -59,7 +59,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                             {
                                 func && func();
 
-                                $(canvasArr.parentNode.childNodes[1]).fadeOut(300);
+                                $(canvasArr.parentNode.childNodes[2]).fadeOut(100);
 
                                 canvasArr.removeNode(true);
                             }, false, addValueFlag);
@@ -67,7 +67,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                         var canvasArr = arrSuggestCanvas.el;
 
                         canvasArr.style.left = '86px';
-                        canvasArr.style.height = '70px';
+                        canvasArr.style.height = '220px';
                         canvasArr.style.width = '100px';
 
                         $(canvasArr).children().css('width', '80px');
@@ -76,7 +76,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                         $(canvas.parentNode).append(canvasArr);
 
-                        $(canvasArr).fadeIn(300);
+                        $(canvasArr).fadeIn(100);
                     });
 
                 }, 300);
@@ -112,13 +112,13 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
             insertAtCursor(textarea, val, this.parentNode.sel);
 
-            $(canvas).fadeOut(300);
+            $(canvas).fadeOut(100);
 
             if (this.timer) {
                 clearTimeout(this.timer);
 			}
 
-            $(canvas.parentNode).children('[arr]').fadeOut(300, function()
+            $(canvas.parentNode).children('[arr]').fadeOut(100, function()
             {
                 $(this).remove();
             });
@@ -138,7 +138,7 @@ var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
         '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
         '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-value gmx-disabled">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 
@@ -146,11 +146,11 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
     var ui = this.el = $(template());
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
-        valuesSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider),
+        functionsSuggest = new nsGmx.SuggestWidget(Object.keys(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
         opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
-    ui.find('.suggest-value').append(valuesSuggest.el);
+    ui.find('.suggest-func').append(functionsSuggest.el);
     ui.find('.suggest-op').append(opsSuggest.el);
 
     var clickFunc = function(div) {
@@ -161,7 +161,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
             targetTextarea.blur();
         }
 
-        ui.find('.attrsHelperCanvas').children('[arr]').fadeOut(300, function() {
+        ui.find('.attrsHelperCanvas').children('[arr]').fadeOut(100, function() {
             $(this).remove();
         });
     };
@@ -170,12 +170,12 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
         var placeholder = $(this).children('.suggest-helper');
         clickFunc(placeholder[0]);
 
-        ui.find('.suggest-helper').fadeOut(300);
-        placeholder.fadeIn(300);
+        ui.find('.suggest-helper').fadeOut(100);
+        placeholder.fadeIn(100);
     });
 
     $(targetTextarea).click(function() {
-        ui.find('.suggest-helper').fadeOut(300);
+        ui.find('.suggest-helper').fadeOut(100);
         return true;
     });
 };

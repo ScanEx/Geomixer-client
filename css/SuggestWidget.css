@@ -1,6 +1,7 @@
 /* nsGmx.SuggestWidget */
-.suggest-container table {
-    margin: auto;
+
+.suggest-container {
+    margin-top: 2px;
 }
 
 .suggest-container .ui-icon {
@@ -14,8 +15,8 @@
 
 .suggest-helper {
     overflow-y: auto;
-    width: 86px;
-    height: 70px;
+    width: 92px;
+    height: 220px;
     position: absolute;
     left: -1px;
     border: 1px solid #AFC0D5;
@@ -24,7 +25,7 @@
 }
 
 .suggest-helper-elem {
-    width: 80px;
+    width: 94px;
     height: 14px;
     line-height: 14px;
     padding: 2px 0px 1px 3px;
@@ -40,12 +41,13 @@
 
 .suggest-link-container {
     line-height: 20px;
-    width: 80px;
+    width: 86px;
     cursor: default;
     color: #000000;
     position: relative;
     padding: 0 2px 0 4px;
     text-align: left;
+    margin: 0;
 }
 
 /* nsGmx.AttrSuggestWidget */
@@ -53,18 +55,14 @@
     margin: 0px 10px;
 }
 
-.suggest-op > .suggest-helper {
-    width: 86px;
-}
-
 .suggest-op .suggest-helper-elem {
     /*width: 60px;*/
 }
 
 .suggest-value {
-    color: #999999;
+    /* color: #999999; */
 }
 
 .suggest-value .ui-icon {
-    color: #999999;
+    /* color: #999999; */
 }

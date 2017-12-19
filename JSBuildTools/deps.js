@@ -36,6 +36,7 @@ var jsFiles = [
     "security.js",
     "EditObjectControl.js",
 
+    "src/sqlFunctions.js",
     "src/AttrSuggestWidget.js",
 
     "src/TemporalLayerParams.js",

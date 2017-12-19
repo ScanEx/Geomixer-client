@@ -241,7 +241,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(findObjectsButton).addClass('attr-table-find-button');
 	$(updateObjectsButton).addClass('attr-table-update-button');
 	/*temp*/
-	$(updateObjectsButton).addClass('gmx-disabled');
+	// $(updateObjectsButton).addClass('gmx-disabled');
 	/*temp end*/
 	$(addObjectButton).addClass('attr-table-add-button');
 	$(changeFieldsListButton).addClass('attr-table-list-button');
@@ -375,7 +375,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
-	   $(this).addClass('gmx-disabled');
+	   // $(this).addClass('gmx-disabled');
 	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
 		   $(findObjectsButton).removeClass('gmx-disabled');
 	   }
