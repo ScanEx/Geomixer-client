@@ -351,23 +351,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     };
 
 	findObjectsButton.onclick = function() {
-		/*temp*/
-		// if ($(updateObjectsButton).hasClass('gmx-disabled')) {
-			// $(updateObjectsButton).removeClass('gmx-disabled');
-		// }
-		/*temp end*/
-		if (tdParams.style.display === 'none') {
-			tdParams.style.display = '';
-		} else {
-			return;
-		}
-
 		tdParams.innerHTML = '';
 
 		oldCanvasWidth = outerSizeProvider().width;
 
 		searchParamsManager.drawSearchUI(tdParams, _this);
 
+		if (tdParams.style.display === 'none') {
+			tdParams.style.display = '';
+		} else {
+			return;
+		}
 
 		resizeFunc();
 	};

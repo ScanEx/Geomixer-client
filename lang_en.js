@@ -357,6 +357,7 @@ _translationsHash.hash["eng"] = {
     "Настройка стилей": "Style settings",
 	"скопировать": "copy style",
 	"применить везде": "apply to all",
+	"Применить": "Apply",
     "Кластеризация" : "Clustering",
 	"Минимальный" : "Mininmal",
 	"Максимальный" : "Maximal",

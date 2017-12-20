@@ -1569,7 +1569,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
             });
 
-            var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
+            var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ hostName: window.mapHostName, apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
 
             baseLayerDef.then(function() {
 

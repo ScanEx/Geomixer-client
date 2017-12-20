@@ -16,7 +16,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
         if (canvas.getAttribute('arr')) {
             try {
-                while (relTarget) {
+                while (relTarget && !$(relTarget).hasClass('suggest-helper-elem-group')) {
                     if (relTarget === canvas) { return; }
                     relTarget = relTarget.parentNode;
                 }
@@ -30,32 +30,40 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
     };
 
     attrNames.forEach(function(name) {
-        var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
+        if (typeof name === 'object') {
+            name = name.groupTag;
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
+            $(div).css('margin-top', '3px')
+            window._title(div, name);
 
-        div.onmouseover = function() {
-            var _curDiv = this;
-            $(this.parentNode).children('.suggest-helper-hover').removeClass('suggest-helper-hover');
-            $(this).addClass('suggest-helper-hover');
+            $(canvas).append(div);
+        } else {
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
 
-            if (!valuesArr) { return; }
+            div.onmouseover = function() {
+                var _curDiv = this;
+                $(this.parentNode).children('.suggest-helper-hover').removeClass('suggest-helper-hover');
+                $(this).addClass('suggest-helper-hover');
 
-            $(canvas.parentNode).children('[arr]').each(function() {
-                if (this.getAttribute('arr') !== name) {
-                    $(this).fadeOut(100, function() {
-                        $(this).remove();
-                    });
-                }
-            });
+                if (!valuesArr) { return; }
 
-            if (!valuesArr.isAttributeExists(name)) { return; }
+                $(canvas.parentNode).children('[arr]').each(function() {
+                    if (this.getAttribute('arr') !== name) {
+                        $(this).fadeOut(100, function() {
+                            $(this).remove();
+                        });
+                    }
+                });
 
-            if (!$(canvas.parentNode).children('[arr=\'' + name + '\']').length) {
-                this.timer = setTimeout(function() {
-                    valuesArr.getValuesForAttribute(name, function(attrValues) {
+                if (!valuesArr.isAttributeExists(name)) { return; }
 
-                        if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
+                if (!$(canvas.parentNode).children('[arr=\'' + name + '\']').length) {
+                    this.timer = setTimeout(function() {
+                        valuesArr.getValuesForAttribute(name, function(attrValues) {
 
-                        var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
+                            if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
+
+                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
                             {
                                 func && func();
 
@@ -64,73 +72,75 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                                 canvasArr.removeNode(true);
                             }, false, addValueFlag);
 
-                        var canvasArr = arrSuggestCanvas.el;
+                            var canvasArr = arrSuggestCanvas.el;
 
-                        canvasArr.style.left = '86px';
-                        canvasArr.style.height = '220px';
-                        canvasArr.style.width = '100px';
+                            canvasArr.style.left = '86px';
+                            canvasArr.style.height = '220px';
+                            canvasArr.style.width = '100px';
 
-                        $(canvasArr).children().css('width', '80px');
+                            $(canvasArr).children().css('width', '80px');
 
-                        canvasArr.setAttribute('arr', name);
+                            canvasArr.setAttribute('arr', name);
 
-                        $(canvas.parentNode).append(canvasArr);
+                            $(canvas.parentNode).append(canvasArr);
 
-                        $(canvasArr).fadeIn(100);
-                    });
+                            $(canvasArr).fadeIn(100);
+                        });
 
-                }, 300);
-            }
-        };
+                    }, 300);
+                }
+            };
 
-        div.onmouseout = function(e) {
-            var evt = e || window.event,
+            div.onmouseout = function(e) {
+                var evt = e || window.event,
                 target = evt.srcElement || evt.target,
                 relTarget = evt.relatedTarget || evt.toElement;
 
-            if ($(target).hasClass('suggest-helper-hover') && relTarget === this.parentNode) {
-                $(this).removeClass('suggest-helper-hover');
-			}
+                if ($(target).hasClass('suggest-helper-hover') && relTarget === this.parentNode) {
+                    $(this).removeClass('suggest-helper-hover');
+                }
 
-            if (this.timer) {
-                clearTimeout(this.timer);
-			}
-        };
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
+            };
 
-        div.onclick = function(e) {
-            var val = textTemplate.replace(/suggest/g, name);
-            if (this.parentNode.getAttribute('arr') != null)
-            {
-                if (isNaN(Number(val))) {
-                    val = '\'' + val + '\'';
-				}
+            div.onclick = function(e) {
+                var val = textTemplate.replace(/suggest/g, name);
+                if (this.parentNode.getAttribute('arr') != null)
+                {
+                    if (isNaN(Number(val))) {
+                        val = '\'' + val + '\'';
+                    }
 
-                if (addValueFlag) {
-                    val = '"' + this.parentNode.getAttribute('arr') + '" = ' + val;
-				}
-            }
+                    if (addValueFlag) {
+                        val = '"' + this.parentNode.getAttribute('arr') + '" = ' + val;
+                    }
+                }
 
-            insertAtCursor(textarea, val, this.parentNode.sel);
+                insertAtCursor(textarea, val, this.parentNode.sel);
 
-            $(canvas).fadeOut(100);
+                $(canvas).fadeOut(100);
 
-            if (this.timer) {
-                clearTimeout(this.timer);
-			}
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
 
-            $(canvas.parentNode).children('[arr]').fadeOut(100, function()
-            {
-                $(this).remove();
-            });
+                $(canvas.parentNode).children('[arr]').fadeOut(100, function()
+                {
+                    $(this).remove();
+                });
 
-            func && func();
+                func && func();
 
-            stopEvent(e);
-        };
+                stopEvent(e);
+            };
 
-        window._title(div, name);
+            window._title(div, name);
 
-        $(canvas).append(div);
+            $(canvas).append(div);
+        }
+
     });
 };
 
@@ -146,7 +156,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
     var ui = this.el = $(template());
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
-        functionsSuggest = new nsGmx.SuggestWidget(Object.keys(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
+        functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
         opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
@@ -166,18 +176,45 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
         });
     };
 
-    ui.find('.suggest-link-container').click(function() {
-        var placeholder = $(this).children('.suggest-helper');
-        clickFunc(placeholder[0]);
+    ui.find('.suggest-link-container').click(function(e) {
+        var evt = e || window.event,
+            target = evt.srcElement || evt.target,
+            relTarget = evt.relatedTarget || evt.toElement;
 
-        ui.find('.suggest-helper').fadeOut(100);
-        placeholder.fadeIn(100);
+        if (!$(target).hasClass('suggest-helper-elem-group')) {
+            var placeholder = $(this).children('.suggest-helper');
+            clickFunc(placeholder[0]);
+
+            ui.find('.suggest-helper').fadeOut(100);
+            placeholder.fadeIn(100);
+        }
     });
 
     $(targetTextarea).click(function() {
         ui.find('.suggest-helper').fadeOut(100);
         return true;
     });
+
+    /**
+     * SQLHASH TRANSFORM HELPER
+     */
+     function transformHash(hash) {
+        var arr = [],
+            res = [];
+
+        for (var key in hash) {
+            if (hash.hasOwnProperty(key)) {
+                res.push({groupTag: key});
+
+                arr = hash[key];
+                for (var i = 0; i < arr.length; i++) {
+                    res.push(arr[i]);
+                }
+            }
+        }
+
+        return res;
+     }
 };
 
 })();

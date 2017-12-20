@@ -153,7 +153,8 @@
     margin: 0 6px 0px 0;
 }
 
-.clean-search-buttons-container {
+.clean-search-buttons-container,
+.apply-button-container {
     position: absolute;
     bottom: 8px;
 }
@@ -161,4 +162,8 @@
 #attrsTableParent table {
   border-spacing: 0;
   border-collapse: separate;
+}
+
+.attrs-select {
+    margin-left: 8px;
 }

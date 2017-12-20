@@ -55,14 +55,7 @@
     margin: 0px 10px;
 }
 
-.suggest-op .suggest-helper-elem {
-    /*width: 60px;*/
-}
-
-.suggest-value {
-    /* color: #999999; */
-}
-
-.suggest-value .ui-icon {
-    /* color: #999999; */
+.suggest-helper-elem-group {
+    font-weight: bold;
+    font-style: italic;
 }
