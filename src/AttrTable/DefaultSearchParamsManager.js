@@ -81,7 +81,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
     this._queryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._queryTextarea.value = _this._searchValue;
-    this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
+    this._queryTextarea.oninput = function(e) {console.log(_this._queryTextarea); _this._searchValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
     var attrHash = {};
@@ -95,11 +95,17 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         $(_this._queryTextarea).trigger('input');
     }
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider, suggestionCallback);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
     $(suggestCanvas).css('margin-right', '9px');
+
+    var suggestionCallback = function () {
+        $(this.currentTextArea).trigger('input');
+    }
+
+    attrSuggestWidget.setCallback(suggestionCallback);
 
     container.onclick = function(evt) {
         if (evt.target === container) {
@@ -167,59 +173,30 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /* SELECT COLUMN */
     var selectColumnContainer = document.createElement('div'),
-        attrsTemplate = Handlebars.compile('<select class="attrs-select">' +
+        attrsTemplate = Handlebars.compile('<select class="attrs-select selectStyle">' +
                             '{{#each this.attrs}}' +
                                 '<option value="{{this}}">' +
                                     '{{this}}' +
                                 '</option>' +
                             '{{/each}}' +
                         '</select>'),
-        attrsUI,
+        attrsUI = attrsTemplate({attrs: info.attributes}),
         hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
-
-        attrsUI = attrsTemplate({attrs: info.attributes});
-
-
-        console.log(info.attributes);
 
     $(selectColumnContainer).append(window._gtxt("Обновить колонки"));
     $(selectColumnContainer).append(attrsUI);
 
     /* VALUE TEXTAREA */
-    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._valueTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._valueTextarea.value = _this._setValue;
     this._valueTextarea.oninput = function(e) {_this._setValue = e.target.value};
 
-    var attrNames = [info.identityField].concat(info.attributes);
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) {
-        attrHash[attrNames[a]] = [];
-    }
-
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
-
-    var suggestionCallback = function () {
-        $(_this._valueTextarea).trigger('input');
-    }
-
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._valueTextarea, attrNames, attrProvider, suggestionCallback);
-
-    var suggestCanvas = attrSuggestWidget.el[0];
-
-    $(suggestCanvas).css('margin-right', '9px');
-
-    container.onclick = function(evt) {
-        if (evt.target === container) {
-            $(suggestCanvas).find('.suggest-helper').fadeOut(100);
-            return true;
-        }
-    };
-
     /* UPDATE QUERY TEXTAREA */
-    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._updateQueryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._updateQueryTextarea.value = _this._setUpdateQueryValue;
+
     this._updateQueryTextarea.oninput = function(e) {_this._setUpdateQueryValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
@@ -230,15 +207,21 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider);
+    var suggestCanvas = attrSuggestWidget.el[0];
+    $(suggestCanvas).css('margin-right', '9px');
+
+
     var suggestionCallback = function () {
-        $(_this._updateQueryTextarea).trigger('input');
+        $(this.currentTextArea).trigger('input');
     }
 
-    var attrSuggestWidget2 = new nsGmx.AttrSuggestWidget(this._updateQueryTextarea, attrNames, attrProvider, suggestionCallback);
+    attrSuggestWidget.setCallback(suggestionCallback);
 
-    var suggestCanvas2 = attrSuggestWidget2.el[0];
+    this._updateQueryTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
+    this._valueTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
 
-    $(suggestCanvas).css('margin-right', '9px');
 
     container.onclick = function(evt) {
         if (evt.target === container) {
@@ -249,6 +232,15 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /*STATUS BAR*/
 
+    var statusBar = $(Handlebars.compile(
+        '<div class="column-update-spinholder">' +
+            '<span class="spinHolder" style="display:none">' +
+                '<img src="img/progress.gif"/>' +
+                '<span class="spinMessage"></span>' +
+                '</span>' +
+            '<span class="exportErrorMessage" style="display:none"></span>' +
+        '</div>')({}))[0];
+
     /*APPLY BUTTON*/
     var applyButtonContainer = document.createElement('div'),
         applyButton = nsGmx.Utils.makeLinkButton(_gtxt('Применить'));
@@ -257,6 +249,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     $(applyButtonContainer).append(applyButton);
 
     applyButton.onclick = function() {
+        var spinHolder = $(statusBar).find('.spinHolder');
+
+        $(spinHolder).show();
 
         // $(_this).trigger('queryChange');
     };
@@ -266,8 +261,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     /*COMPILE*/
     $(container).append(hideButtonContainer);
     $(container).append(selectColumnContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('Значение'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas2], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(statusBar);
     $(container).append(applyButtonContainer);
 }
 

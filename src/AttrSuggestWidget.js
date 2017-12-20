@@ -1,6 +1,10 @@
 !(function () {
 
 nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag) {
+    var _this = this;
+    this.textArea = textarea;
+    this.func = func;
+    this.currentTextArea = textarea[0];
 
     if (valuesArr && !(valuesArr instanceof nsGmx.ILazyAttributeValuesProvider)) {
         valuesArr = new nsGmx.LazyAttributeValuesProviderFromArray(valuesArr);
@@ -34,7 +38,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
             name = name.groupTag;
             var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
             $(div).css('margin-top', '3px')
-            window._title(div, name);
+            window._title(div, nsGmx.sqlTemplates[name]);
 
             $(canvas).append(div);
         } else {
@@ -63,9 +67,9 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                             if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
 
-                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
+                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, [_this.currentTextArea], 'suggest', function()
                             {
-                                func && func();
+                                _this.func && _this.func();
 
                                 $(canvasArr.parentNode.childNodes[2]).fadeOut(100);
 
@@ -85,9 +89,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                             $(canvas.parentNode).append(canvasArr);
 
                             $(canvasArr).fadeIn(100);
-                        });
-
-                    }, 300);
+                        }); 300);
                 }
             };
 
@@ -118,7 +120,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                     }
                 }
 
-                insertAtCursor(textarea, val, this.parentNode.sel);
+                insertAtCursor(_this.currentTextArea, val, this.parentNode.sel);
 
                 $(canvas).fadeOut(100);
 
@@ -131,18 +133,33 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                     $(this).remove();
                 });
 
-                func && func();
+                _this.func && _this.func();
 
                 stopEvent(e);
             };
 
-            window._title(div, name);
+            window._title(div, nsGmx.sqlTemplates[name]);
 
             $(canvas).append(div);
         }
 
     });
 };
+
+nsGmx.SuggestWidget.prototype.setActiveTextArea = function (textArea) {
+
+    for (var i = 0; i < this.textArea.length; i++) {
+        if (this.textArea[i] === textArea) {
+            this.currentTextArea = this.textArea[i];
+            break;
+        }
+    }
+    console.log(this.currentTextArea);
+};
+
+nsGmx.SuggestWidget.prototype.setCallback = function (func) {
+    this.func = func;
+}
 
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
@@ -153,15 +170,19 @@ var template = Handlebars.compile('<div class="suggest-container">' +
 '</div>');
 
 nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback) {
+
+    this.changeCallback = changeCallback;
+    this.targetTextarea = targetTextarea;
+
     var ui = this.el = $(template());
 
-    var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
-        functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
+    this.attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true);
+    this.functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback);
+    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', this.changeCallback);
 
-    ui.find('.suggest-attr').append(attrsSuggest.el);
-    ui.find('.suggest-func').append(functionsSuggest.el);
-    ui.find('.suggest-op').append(opsSuggest.el);
+    ui.find('.suggest-attr').append(this.attrsSuggest.el);
+    ui.find('.suggest-func').append(this.functionsSuggest.el);
+    ui.find('.suggest-op').append(this.opsSuggest.el);
 
     var clickFunc = function(div) {
         if (document.selection) {
@@ -216,5 +237,17 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
         return res;
      }
 };
+
+nsGmx.AttrSuggestWidget.prototype.setActiveTextArea = function (textArea) {
+    this.attrsSuggest.setActiveTextArea(textArea);
+    this.functionsSuggest.setActiveTextArea(textArea);
+    this.opsSuggest.setActiveTextArea(textArea);
+}
+
+nsGmx.AttrSuggestWidget.prototype.setCallback = function (callback) {
+    this.attrsSuggest.setCallback(callback);
+    this.functionsSuggest.setCallback(callback);
+    this.opsSuggest.setCallback(callback);
+}
 
 })();

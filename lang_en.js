@@ -145,6 +145,8 @@ _translationsHash.hash["eng"] = {
 	"Загрузить" : "Download",
     "Параметр" : "Parameter",
     "Значение" : "Value",
+	"VALUE" : "VALUE",
+	"WHERE" : "WHERE",
 	"Колонки" : "Columns",
 	"Операторы" : "Operators",
 	"Функции" : "Functions",

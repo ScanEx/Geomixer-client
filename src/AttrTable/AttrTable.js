@@ -369,7 +369,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
-	   // $(this).addClass('gmx-disabled');
 	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
 		   $(findObjectsButton).removeClass('gmx-disabled');
 	   }
