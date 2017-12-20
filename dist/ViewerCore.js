@@ -1397,6 +1397,7 @@ _translationsHash.hash["rus"] = {
     "Настройка стилей": "Настройка стилей",
 	"скопировать": "скопировать",
 	"применить везде": "применить везде",
+	"Применить": "Применить",
 	"Кластеризация" : "Кластеризация",
 	"Минимальный" : "Минимальный",
 	"Максимальный" : "Максимальный",
@@ -1677,6 +1678,7 @@ _translationsHash.hash["rus"] = {
 	"Добавить объекты" : "Добавить объекты",
 	"Обновить объекты" : "Обновить объекты",
 	"Изменить колонки" : "Изменить колонки",
+	"Обновить колонки" : "Обновить колонки",
 	"Очистить поиск" : "Очистить поиск",
     "Скачать shp": "Скачать shp",
     "Скачать gpx": "Скачать gpx",
@@ -2121,6 +2123,7 @@ _translationsHash.hash["eng"] = {
     "Настройка стилей": "Style settings",
 	"скопировать": "copy style",
 	"применить везде": "apply to all",
+	"Применить": "Apply",
     "Кластеризация" : "Clustering",
 	"Минимальный" : "Mininmal",
 	"Максимальный" : "Maximal",
@@ -2398,6 +2401,7 @@ _translationsHash.hash["eng"] = {
 	"Добавить объекты" : "Add objects",
 	"Обновить объекты" : "Update objects",
 	"Изменить колонки" : "Update columns",
+	"Обновить колонки" : "Update columns",
 	"Очистить поиск" : "Clean search",
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",
@@ -10869,6 +10873,13 @@ pointsBinding.pointsBinding.unload = function()
                                 } else {
                                     disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
                                 }
+
+                                if (disabled) {
+                                    if (!parentVisibility || !elem.visible) {
+                                        $(multiStyleParent).removeClass("invisible");
+                                        _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+                                    }
+                                }
                             }
 
                             $(this).on('layerTimelineRemove', function(e, data) {
@@ -10881,12 +10892,6 @@ pointsBinding.pointsBinding.unload = function()
 
                             $(this).on('layerTimelineAdd', function(e, data) {
                                 if (data.layerID === layerName) {
-
-                                    if (!parentVisibility || !elem.visible) {
-                                        $(multiStyleParent).removeClass("invisible");
-                                        this.treeModel.setNodeVisibility(this.findTreeElem(span.parentNode.parentNode).elem, true);
-                                    }
-
                                     timelineIcon.src = 'img/timeline-icon-enabled.svg';
                                     timelineIcon.title = window._gtxt("Добавить в таймлайн");
                                     $(timelineIcon).removeClass('disabled');
@@ -20347,6 +20352,40 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 
 })(nsGmx.Utils._);
 
+nsGmx.sqlFunctions = {
+
+    //строки
+    string: [
+        "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
+        "substring", "right", "contains", "contiansIgnoreCase", "startsWith", "endsWith", "between"
+    ],
+
+    date: [
+        "addDays", "addHours", "addMinutes", "addSeconds", "day", "month", "year",
+        "now", "strToDateTime", "strToTime", "toString"
+    ],
+
+    agregate: [
+        "avg", "count", "max", "min", "sum", "unionAggregate"
+    ],
+
+    transform: [
+        "cast"
+    ],
+
+    geometry: [
+        "STArea", "geometryFromVectorLayer", "geometryToWkbHex", "geometryFromWkbHex",
+        "geometryFromWKT", "geometryFromGeoJson", "buffer", "makeValid", "STEnvelopeMinX",
+        "STEnvelopeMaxX", "STEnvelopeMaxY", "STEnvelopeMinY", "STContains", "STIntersects",
+        "STIntersection", "STDifference", "STUnion", "geomIsEmpty", "STCentroid", "STAsText"
+    ],
+
+    special: [
+        "geometryFromVectorLayer", "geometryFromVectorLayerUnion", "geometryFromRasterLayer"
+    ]
+
+}
+
 !(function () {
 
 nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag) {
@@ -20365,121 +20404,131 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
         if (canvas.getAttribute('arr')) {
             try {
-                while (relTarget) {
+                while (relTarget && !$(relTarget).hasClass('suggest-helper-elem-group')) {
                     if (relTarget === canvas) { return; }
                     relTarget = relTarget.parentNode;
                 }
-                $(canvas).fadeOut(300, function() {$(this).remove();});
+                $(canvas).fadeOut(100, function() {$(this).remove();});
             } catch (ev) {
                 if (target === canvas) {
-                    $(canvas).fadeOut(300, function() {$(this).remove();});
+                    $(canvas).fadeOut(100, function() {$(this).remove();});
 				}
             }
         }
     };
 
     attrNames.forEach(function(name) {
-        var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
+        if (typeof name === 'object') {
+            name = name.groupTag;
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
+            $(div).css('margin-top', '3px')
+            window._title(div, name);
 
-        div.onmouseover = function() {
-            var _curDiv = this;
-            $(this.parentNode).children('.suggest-helper-hover').removeClass('suggest-helper-hover');
-            $(this).addClass('suggest-helper-hover');
+            $(canvas).append(div);
+        } else {
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
 
-            if (!valuesArr) { return; }
+            div.onmouseover = function() {
+                var _curDiv = this;
+                $(this.parentNode).children('.suggest-helper-hover').removeClass('suggest-helper-hover');
+                $(this).addClass('suggest-helper-hover');
 
-            $(canvas.parentNode).children('[arr]').each(function() {
-                if (this.getAttribute('arr') !== name) {
-                    $(this).fadeOut(300, function() {
-                        $(this).remove();
-                    });
-                }
-            });
+                if (!valuesArr) { return; }
 
-            if (!valuesArr.isAttributeExists(name)) { return; }
+                $(canvas.parentNode).children('[arr]').each(function() {
+                    if (this.getAttribute('arr') !== name) {
+                        $(this).fadeOut(100, function() {
+                            $(this).remove();
+                        });
+                    }
+                });
 
-            if (!$(canvas.parentNode).children('[arr=\'' + name + '\']').length) {
-                this.timer = setTimeout(function() {
-                    valuesArr.getValuesForAttribute(name, function(attrValues) {
+                if (!valuesArr.isAttributeExists(name)) { return; }
 
-                        if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
+                if (!$(canvas.parentNode).children('[arr=\'' + name + '\']').length) {
+                    this.timer = setTimeout(function() {
+                        valuesArr.getValuesForAttribute(name, function(attrValues) {
 
-                        var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
+                            if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
+
+                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
                             {
                                 func && func();
 
-                                $(canvasArr.parentNode.childNodes[1]).fadeOut(300);
+                                $(canvasArr.parentNode.childNodes[2]).fadeOut(100);
 
                                 canvasArr.removeNode(true);
                             }, false, addValueFlag);
 
-                        var canvasArr = arrSuggestCanvas.el;
+                            var canvasArr = arrSuggestCanvas.el;
 
-                        canvasArr.style.left = '86px';
-                        canvasArr.style.height = '70px';
-                        canvasArr.style.width = '100px';
+                            canvasArr.style.left = '86px';
+                            canvasArr.style.height = '220px';
+                            canvasArr.style.width = '100px';
 
-                        $(canvasArr).children().css('width', '80px');
+                            $(canvasArr).children().css('width', '80px');
 
-                        canvasArr.setAttribute('arr', name);
+                            canvasArr.setAttribute('arr', name);
 
-                        $(canvas.parentNode).append(canvasArr);
+                            $(canvas.parentNode).append(canvasArr);
 
-                        $(canvasArr).fadeIn(300);
-                    });
+                            $(canvasArr).fadeIn(100);
+                        });
 
-                }, 300);
-            }
-        };
+                    }, 300);
+                }
+            };
 
-        div.onmouseout = function(e) {
-            var evt = e || window.event,
+            div.onmouseout = function(e) {
+                var evt = e || window.event,
                 target = evt.srcElement || evt.target,
                 relTarget = evt.relatedTarget || evt.toElement;
 
-            if ($(target).hasClass('suggest-helper-hover') && relTarget === this.parentNode) {
-                $(this).removeClass('suggest-helper-hover');
-			}
+                if ($(target).hasClass('suggest-helper-hover') && relTarget === this.parentNode) {
+                    $(this).removeClass('suggest-helper-hover');
+                }
 
-            if (this.timer) {
-                clearTimeout(this.timer);
-			}
-        };
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
+            };
 
-        div.onclick = function(e) {
-            var val = textTemplate.replace(/suggest/g, name);
-            if (this.parentNode.getAttribute('arr') != null)
-            {
-                if (isNaN(Number(val))) {
-                    val = '\'' + val + '\'';
-				}
+            div.onclick = function(e) {
+                var val = textTemplate.replace(/suggest/g, name);
+                if (this.parentNode.getAttribute('arr') != null)
+                {
+                    if (isNaN(Number(val))) {
+                        val = '\'' + val + '\'';
+                    }
 
-                if (addValueFlag) {
-                    val = '"' + this.parentNode.getAttribute('arr') + '" = ' + val;
-				}
-            }
+                    if (addValueFlag) {
+                        val = '"' + this.parentNode.getAttribute('arr') + '" = ' + val;
+                    }
+                }
 
-            insertAtCursor(textarea, val, this.parentNode.sel);
+                insertAtCursor(textarea, val, this.parentNode.sel);
 
-            $(canvas).fadeOut(300);
+                $(canvas).fadeOut(100);
 
-            if (this.timer) {
-                clearTimeout(this.timer);
-			}
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
 
-            $(canvas.parentNode).children('[arr]').fadeOut(300, function()
-            {
-                $(this).remove();
-            });
+                $(canvas.parentNode).children('[arr]').fadeOut(100, function()
+                {
+                    $(this).remove();
+                });
 
-            func && func();
+                func && func();
 
-            stopEvent(e);
-        };
+                stopEvent(e);
+            };
 
-        window._title(div, name);
+            window._title(div, name);
 
-        $(canvas).append(div);
+            $(canvas).append(div);
+        }
+
     });
 };
 
@@ -20487,7 +20536,7 @@ var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
         '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
         '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-value gmx-disabled">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
+        '<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
     '</tr></tbody></table>' +
 '</div>');
 
@@ -20495,11 +20544,11 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
     var ui = this.el = $(template());
 
     var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
-        valuesSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'LIKE', '()'], targetTextarea, 'suggest', changeCallback);
+        functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
+        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
 
     ui.find('.suggest-attr').append(attrsSuggest.el);
-    ui.find('.suggest-value').append(valuesSuggest.el);
+    ui.find('.suggest-func').append(functionsSuggest.el);
     ui.find('.suggest-op').append(opsSuggest.el);
 
     var clickFunc = function(div) {
@@ -20510,23 +20559,50 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
             targetTextarea.blur();
         }
 
-        ui.find('.attrsHelperCanvas').children('[arr]').fadeOut(300, function() {
+        ui.find('.attrsHelperCanvas').children('[arr]').fadeOut(100, function() {
             $(this).remove();
         });
     };
 
-    ui.find('.suggest-link-container').click(function() {
-        var placeholder = $(this).children('.suggest-helper');
-        clickFunc(placeholder[0]);
+    ui.find('.suggest-link-container').click(function(e) {
+        var evt = e || window.event,
+            target = evt.srcElement || evt.target,
+            relTarget = evt.relatedTarget || evt.toElement;
 
-        ui.find('.suggest-helper').fadeOut(300);
-        placeholder.fadeIn(300);
+        if (!$(target).hasClass('suggest-helper-elem-group')) {
+            var placeholder = $(this).children('.suggest-helper');
+            clickFunc(placeholder[0]);
+
+            ui.find('.suggest-helper').fadeOut(100);
+            placeholder.fadeIn(100);
+        }
     });
 
     $(targetTextarea).click(function() {
-        ui.find('.suggest-helper').fadeOut(300);
+        ui.find('.suggest-helper').fadeOut(100);
         return true;
     });
+
+    /**
+     * SQLHASH TRANSFORM HELPER
+     */
+     function transformHash(hash) {
+        var arr = [],
+            res = [];
+
+        for (var key in hash) {
+            if (hash.hasOwnProperty(key)) {
+                res.push({groupTag: key});
+
+                arr = hash[key];
+                for (var i = 0; i < arr.length; i++) {
+                    res.push(arr[i]);
+                }
+            }
+        }
+
+        return res;
+     }
 };
 
 })();
@@ -20871,14 +20947,14 @@ Handlebars.registerPartial('TemporalLayerWidgetOptions',
 _translationsHash.addtext('rus', {
     'Макс. период на экране': 'На экране не более',
     'Тайлы с': 'Тайлы с',
-    'Тайлы до': 'Тайлы до',
+    'Тайлы по дням до': 'Тайлы по дням до',
     'дней': 'дней'
 });
 
 _translationsHash.addtext('eng', {
     'Макс. период на экране': 'Max period to show',
     'Тайлы с': 'Tiles from',
-    'Тайлы до': 'Tiles till',
+    'Тайлы по дням до': 'Max tiling period',
     'дней': 'days'
 });
 
@@ -20908,7 +20984,7 @@ nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
             //     '<td><select id="minPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
             // '</tr>' +
             '<tr class="temporal-advanced">' +
-                '<td>{{i "Тайлы до"}}</td>' +
+                '<td>{{i "Тайлы по дням до"}}</td>' +
                 '<td><select id="maxPeriod" class="selectStyle">{{>TemporalLayerWidgetOptions}}</select></td>' +
             '</tr>' +
         '</tbody></table>' +
@@ -21510,7 +21586,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(findObjectsButton).addClass('attr-table-find-button');
 	$(updateObjectsButton).addClass('attr-table-update-button');
 	/*temp*/
-	$(updateObjectsButton).addClass('gmx-disabled');
+	// $(updateObjectsButton).addClass('gmx-disabled');
 	/*temp end*/
 	$(addObjectButton).addClass('attr-table-add-button');
 	$(changeFieldsListButton).addClass('attr-table-list-button');
@@ -21620,23 +21696,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     };
 
 	findObjectsButton.onclick = function() {
-		/*temp*/
-		// if ($(updateObjectsButton).hasClass('gmx-disabled')) {
-			// $(updateObjectsButton).removeClass('gmx-disabled');
-		// }
-		/*temp end*/
-		if (tdParams.style.display === 'none') {
-			tdParams.style.display = '';
-		} else {
-			return;
-		}
-
 		tdParams.innerHTML = '';
 
 		oldCanvasWidth = outerSizeProvider().width;
 
 		searchParamsManager.drawSearchUI(tdParams, _this);
 
+		if (tdParams.style.display === 'none') {
+			tdParams.style.display = '';
+		} else {
+			return;
+		}
 
 		resizeFunc();
 	};
@@ -21644,7 +21714,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
-	   $(this).addClass('gmx-disabled');
+	   // $(this).addClass('gmx-disabled');
 	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
 		   $(findObjectsButton).removeClass('gmx-disabled');
 	   }
@@ -22284,8 +22354,12 @@ nsGmx.AttrTable.SquareCalc = function(container, layerName, dataProvider, search
 // events: queryChange, columnsChange
 var DefaultSearchParamsManager = function() {
     this._activeColumns = null;
-    this._queryTextarea = null;
-    this._searchValue = '';
+    this._queryTextarea = null; // textArea in search panel
+    this._searchValue = '';     // value of this._queryTextarea
+    this._valueTextarea = null; // upper textArea in update panel
+    this._setValue = '';        // value of this._queryTextarea
+    this._updateQueryTextarea = null; // lower textArea in update panel
+    this._setUpdateQueryValue = '';   // value of this._updateQueryTextarea
     this._container = null;
 };
 
@@ -22378,6 +22452,13 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     $(suggestCanvas).css('margin-right', '9px');
 
+    container.onclick = function(evt) {
+        if (evt.target === container) {
+            $(suggestCanvas).find('.suggest-helper').fadeOut(100);
+            return true;
+        }
+    };
+
     /*CLEAN/SEARCH BUTTONS*/
     var buttonsContainer = document.createElement('div'),
         searchButton = nsGmx.Utils.makeLinkButton(_gtxt('Найти')),
@@ -22410,31 +22491,135 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 };
 
 DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attributesTable) {
-
-    var paramsWidth = 300,
-        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть')),
+    var info = attributesTable.getLayerInfo(),
+        paramsWidth = 320,
         _this = this;
+
+    this._container = container;
+
+    /* HIDE BUTTON */
+    var hideButtonContainer = document.createElement('div'),
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
+
+    $(hideButton).addClass('attr-table-hide-button');
+    $(hideButtonContainer).addClass('attr-table-hide-button-container');
+    $(hideButtonContainer).append(hideButton);
 
     hideButton.onclick = function() {
         var tableTd = container.nextSibling,
-            originalButton = $(tableTd).find('.attr-table-udpate-button');
+            originalButton = $(tableTd).find('.attr-table-find-button');
 
         if ($(originalButton).hasClass('gmx-disabled')) {
             $(originalButton).removeClass('gmx-disabled');
         }
-
         container.style.display = 'none';
         attributesTable.resizeFunc();
     };
 
-    var ui = document.createElement('div');
+    /* SELECT COLUMN */
+    var selectColumnContainer = document.createElement('div'),
+        attrsTemplate = Handlebars.compile('<select class="attrs-select">' +
+                            '{{#each this.attrs}}' +
+                                '<option value="{{this}}">' +
+                                    '{{this}}' +
+                                '</option>' +
+                            '{{/each}}' +
+                        '</select>'),
+        attrsUI,
+        hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
 
-    ui.innerHTML = 'Hello Update';
-
-    container.innerHTML = 'Hello Update';
-    $(container).append(hideButton);
+        attrsUI = attrsTemplate({attrs: info.attributes});
 
 
+        console.log(info.attributes);
+
+    $(selectColumnContainer).append(window._gtxt("Обновить колонки"));
+    $(selectColumnContainer).append(attrsUI);
+
+    /* VALUE TEXTAREA */
+    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._valueTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
+    this._valueTextarea.value = _this._setValue;
+    this._valueTextarea.oninput = function(e) {_this._setValue = e.target.value};
+
+    var attrNames = [info.identityField].concat(info.attributes);
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) {
+        attrHash[attrNames[a]] = [];
+    }
+
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
+
+    var suggestionCallback = function () {
+        $(_this._valueTextarea).trigger('input');
+    }
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._valueTextarea, attrNames, attrProvider, suggestionCallback);
+
+    var suggestCanvas = attrSuggestWidget.el[0];
+
+    $(suggestCanvas).css('margin-right', '9px');
+
+    container.onclick = function(evt) {
+        if (evt.target === container) {
+            $(suggestCanvas).find('.suggest-helper').fadeOut(100);
+            return true;
+        }
+    };
+
+    /* UPDATE QUERY TEXTAREA */
+    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._updateQueryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
+    this._updateQueryTextarea.value = _this._setUpdateQueryValue;
+    this._updateQueryTextarea.oninput = function(e) {_this._setUpdateQueryValue = e.target.value};
+
+    var attrNames = [info.identityField].concat(info.attributes);
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) {
+        attrHash[attrNames[a]] = [];
+    }
+
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
+
+    var suggestionCallback = function () {
+        $(_this._updateQueryTextarea).trigger('input');
+    }
+
+    var attrSuggestWidget2 = new nsGmx.AttrSuggestWidget(this._updateQueryTextarea, attrNames, attrProvider, suggestionCallback);
+
+    var suggestCanvas2 = attrSuggestWidget2.el[0];
+
+    $(suggestCanvas).css('margin-right', '9px');
+
+    container.onclick = function(evt) {
+        if (evt.target === container) {
+            $(suggestCanvas).find('.suggest-helper').fadeOut(100);
+            return true;
+        }
+    };
+
+    /*STATUS BAR*/
+
+    /*APPLY BUTTON*/
+    var applyButtonContainer = document.createElement('div'),
+        applyButton = nsGmx.Utils.makeLinkButton(_gtxt('Применить'));
+
+    $(applyButtonContainer).addClass('apply-button-container');
+    $(applyButtonContainer).append(applyButton);
+
+    applyButton.onclick = function() {
+
+        // $(_this).trigger('queryChange');
+    };
+
+    $(applyButton).addClass('apply-button');
+
+    /*COMPILE*/
+    $(container).append(hideButtonContainer);
+    $(container).append(selectColumnContainer);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('Значение'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas2], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(applyButtonContainer);
 }
 
 DefaultSearchParamsManager.prototype.getQuery = function() {
@@ -31318,6 +31503,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -31352,11 +31542,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -39751,7 +39936,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 nsGmx.leafletMap.options.coordinatesFormat = ev.coordinatesFormat;
             });
 
-            var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
+            var baseLayerDef = 'baseMap' in window ? initDefaultBaseLayers() : lmap.gmxBaseLayersManager.initDefaults({ hostName: window.mapHostName, apiKey: window.apiKey, srs: lmap.options.srs, skipTiles: lmap.options.skipTiles, isGeneralized: lmap.options.isGeneralized });
 
             baseLayerDef.then(function() {
 
@@ -40314,7 +40499,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // выставляет правильные z-indexes слоям-вьюхам
                 _layersTree.updateZIndexes();
-                
+
                 //выполняем мапплет карты нового формата
                 nsGmx.mappletLoader.execute();
 
@@ -40441,16 +40626,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                     nsGmx.widgets.commonCalendar.show();
                 }
                 nsGmx.pluginsManager.afterViewer();
-
-                // навесить обработчик на все слои дерева
-                if (nsGmx.timeLineControl) {
-                    nsGmx.timeLineControl.on('layerRemove', function(e) {
-                        $(_layersTree).triggerHandler('layerTimelineRemove', e);
-                    });
-                    nsGmx.timeLineControl.on('layerAdd', function(e) {
-                        $(_layersTree).triggerHandler('layerTimelineAdd', e);
-                    });
-                }
 
                 $('#leftContent').mCustomScrollbar();
 
