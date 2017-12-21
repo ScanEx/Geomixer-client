@@ -76,7 +76,7 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
         nsGmx.Utils.showDialog(_gtxt('Таблица атрибутов слоя [value0]', this.layerTitle), canvas,
             {
                 width: 820,
-                height: 500,
+                height: 520,
                 resizeFunc: function()
                 {
                     this.resizeFunc.apply(this, arguments);
@@ -488,7 +488,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		}
 	}
 
-	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '10px 0px 10px 1px']]);
+	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '0px 0px 10px 1px']]);
     var tdTable2 = nsGmx.Utils._td([manageSection, groupBox, this.divTable2, downloadSection[0]], [['attr', 'vAlign', 'top']]);
     this.table2 = new nsGmx.ScrollTable({pagesCount: 10, limit: 20});
 
@@ -697,7 +697,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 
         var dialogHeight = outerSizeProvider().height;
-		_this.divTable2.style.height = dialogHeight - 14 - 25 - 10 - 30 + 'px';
+		_this.divTable2.style.height = dialogHeight -14 - 25 - 10 - 30 + 'px';
 
         _this.table2.updateHeight(parseInt(_this.divTable2.style.height));
         _params.searchParamsManager.resize && _params.searchParamsManager.resize({

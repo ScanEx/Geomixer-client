@@ -3,7 +3,7 @@ nsGmx.sqlFunctions = {
     //строки
     string: [
         "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
-        "substring", "right", "contains", "contiansIgnoreCase", "startsWith", "endsWith", "between"
+        "substring", "right"
     ],
 
     date: [

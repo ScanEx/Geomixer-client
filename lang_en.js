@@ -639,7 +639,7 @@ _translationsHash.hash["eng"] = {
 	"Добавить объекты" : "Add objects",
 	"Обновить объекты" : "Update objects",
 	"Изменить колонки" : "Update columns",
-	"Обновить колонки" : "Update columns",
+	"Обновить колонку" : "Update column",
 	"Очистить поиск" : "Clean search",
     "Скачать shp": "Download shp",
     "Скачать gpx": "Download gpx",

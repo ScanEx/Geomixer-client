@@ -176,3 +176,7 @@
 .spinErrorMessage {
     color: red;
 }
+
+.attr-table-hide-button-container {
+    margin-top: 0;
+}

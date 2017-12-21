@@ -16,7 +16,7 @@
 .suggest-helper {
     overflow-y: auto;
     width: 92px;
-    height: 220px;
+    height: 160px;
     position: absolute;
     left: -1px;
     border: 1px solid #AFC0D5;

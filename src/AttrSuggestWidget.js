@@ -177,7 +177,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 
     this.attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true);
     this.functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback);
-    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', this.changeCallback);
+    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback);
 
     ui.find('.suggest-attr').append(this.attrsSuggest.el);
     ui.find('.suggest-func').append(this.functionsSuggest.el);

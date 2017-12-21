@@ -184,7 +184,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         attrsUI = $(attrsTemplate({attrs: ['---' + window._gtxt("Выберите колонку").toLowerCase() + '---'].concat(info.attributes)}))[0],
         hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
 
-    $(selectColumnContainer).append(window._gtxt("Обновить колонки"));
+    $(selectColumnContainer).append(window._gtxt("Обновить колонку"));
     $(selectColumnContainer).append(attrsUI);
 
     attrsUI.onchange = function (e) {
@@ -192,13 +192,13 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     }
 
     /* VALUE TEXTAREA */
-    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
+    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'margin-top', '3px'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._valueTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._valueTextarea.value = _this._setValue;
     this._valueTextarea.oninput = function(e) {_this._setValue = e.target.value};
 
     /* UPDATE QUERY TEXTAREA */
-    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
+    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'margin-top', '3px'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._updateQueryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._updateQueryTextarea.value = _this._setUpdateQueryValue;
 
@@ -274,14 +274,14 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
         var url = window.serverBase + 'VectorLayer/QueryScalar?sql=' +
             'UPDATE ' + '"' + attributesTable.layerName + '"' +
-            'SET ' +  '"' + _this.currentColumnName + '"' + '=' + updateQuery +
-            'WHERE ' + whereQuery;
+            'SET ' +  '"' + _this.currentColumnName + '"' + '=' + updateQuery + (whereQuery ? ('WHERE ' + whereQuery) : "");
 
         console.log(url);
         console.log(attributesTable);
 
         fetch(url, {
              method: 'POST',
+             credentials: 'include',
              mode: 'cors'
           }).then(toJson)
           .then(resCallback)
@@ -321,8 +321,8 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     /*COMPILE*/
     $(container).append(hideButtonContainer);
     $(container).append(selectColumnContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(statusBar);
     $(container).append(applyButtonContainer);
 }
