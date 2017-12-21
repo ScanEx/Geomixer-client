@@ -38,7 +38,6 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
             name = name.groupTag;
             var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
             $(div).css('margin-top', '3px')
-            window._title(div, nsGmx.sqlTemplates[name]);
 
             $(canvas).append(div);
         } else {
@@ -89,7 +88,8 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                             $(canvas.parentNode).append(canvasArr);
 
                             $(canvasArr).fadeIn(100);
-                        }); 300);
+                        });
+                    }, 300);
                 }
             };
 
@@ -138,7 +138,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                 stopEvent(e);
             };
 
-            window._title(div, nsGmx.sqlTemplates[name]);
+            window._title(div, nsGmx.sqlTemplates[name] || name);
 
             $(canvas).append(div);
         }
@@ -154,7 +154,6 @@ nsGmx.SuggestWidget.prototype.setActiveTextArea = function (textArea) {
             break;
         }
     }
-    console.log(this.currentTextArea);
 };
 
 nsGmx.SuggestWidget.prototype.setCallback = function (func) {

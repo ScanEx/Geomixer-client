@@ -172,3 +172,7 @@
 .column-update-spinholder {
     margin-top: 8px;
 }
+
+.spinErrorMessage {
+    color: red;
+}

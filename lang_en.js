@@ -307,6 +307,8 @@ _translationsHash.hash["eng"] = {
 	"Список слоев" : "Layers list",
 	"Вы действительно хотите удалить этот слой?" : "Do you really want to delete the selected layer?",
 	"Ошибка!" : "Error!",
+	"Ошибка" : "Error",
+	"Выберите колонку" : "Select column",
 	"Список карт" : "Maps list",
 	"Показать" : "Show",
 	"загрузка..." : "loading...",

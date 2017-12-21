@@ -1178,6 +1178,8 @@ _translationsHash.hash["rus"] = {
 	"Загрузить" : "Загрузить",
     "Параметр" : "Параметр",
     "Значение" : "Значение",
+    "VALUE" : "VALUE",
+    "WHERE" : "WHERE",
     "Колонки" : "Колонки",
     "Операторы" : "Операторы",
     "Функции" : "Функции",
@@ -1344,6 +1346,8 @@ _translationsHash.hash["rus"] = {
 	"Список слоев" : "Список слоев",
 	"Вы действительно хотите удалить этот слой?" : "Вы действительно хотите удалить этот слой?",
 	"Ошибка!" : "Ошибка!",
+	"Ошибка" : "Ошибка",
+	"Выберите колонку" : "Выберите колонку",
 	"Список карт" : "Список карт",
 	"Показать" : "Показать",
 	"загрузка..." : "загрузка...",
@@ -1911,6 +1915,8 @@ _translationsHash.hash["eng"] = {
 	"Загрузить" : "Download",
     "Параметр" : "Parameter",
     "Значение" : "Value",
+	"VALUE" : "VALUE",
+	"WHERE" : "WHERE",
 	"Колонки" : "Columns",
 	"Операторы" : "Operators",
 	"Функции" : "Functions",
@@ -2071,6 +2077,8 @@ _translationsHash.hash["eng"] = {
 	"Список слоев" : "Layers list",
 	"Вы действительно хотите удалить этот слой?" : "Do you really want to delete the selected layer?",
 	"Ошибка!" : "Error!",
+	"Ошибка" : "Error",
+	"Выберите колонку" : "Select column",
 	"Список карт" : "Maps list",
 	"Показать" : "Show",
 	"загрузка..." : "loading...",
@@ -20386,9 +20394,72 @@ nsGmx.sqlFunctions = {
 
 }
 
+nsGmx.sqlTemplates = {
+    "length": "length(string)",
+    "lower": "lower(string)",
+    "upper": "upper(string)",
+    "trim": "trim(string)",
+    "lTrim": "lTrim(string)",
+    "rTrim": "rTrim(string)",
+    "left": "left(string, [number_of_characters])",
+    "position": "position(substring, string)",
+    "substring": "substring(string, fist_character_index, characters_count)",
+    "right": "right(string, [number_of_characters])",
+    "contains": "string contains string",
+    "contiansIgnoreCase": "string contiansIgnoreCase string",
+    "startsWith": "string startsWith string",
+    "endsWith": "string endsWith string",
+    "between and": "expression between expression and expression",
+    "addDays": "addDays(datetime|date,double)",
+    "addHours": "addHours(datetime|time, double)",
+    "addMinutes": "addMinutes(datetime|time, double)",
+    "addSeconds": "addSeconds(datetime|time, double)",
+    "day": "day(date)",
+    "month": "month(date)",
+    "year": "year(date)",
+    "now": "now()",
+    "strToDateTime": "strToDateTime(string)",
+    "strToTime": "strToTime(string)",
+    "toString": "toString(expression)",
+    "avg": "avg()",
+    "count": "count()",
+    "max": "max()",
+    "min": "min()",
+    "sum": "sum()",
+    "unionAggregate": "unionAggregate()",
+    "cast": "cast(expression as <type>)",
+    "STArea": "STArea(geometry)",
+    "geometryFromVectorLayer": "geometryFromVectorLayer(layerID, countID)",
+    "geometryToWkbHex": "geometryToWkbHex(geometry)",
+    "geometryFromWkbHex": "geometryFromWkbHex(geometry, EPSG code)",
+    "geometryFromWKT": "geometryFromWKT(string, EPSG code)",
+    "geometryFromGeoJson": "geometryFromGeoJson(string, EPSG code)",
+    "buffer": "buffer(geometry, buffer size)",
+    "makeValid": "makeValid(geometry)",
+    "STEnvelopeMinX": "STEnvelopeMinX(geometry)",
+    "STEnvelopeMaxX": "STEnvelopeMaxX(geometry)",
+    "STEnvelopeMaxY": "STEnvelopeMaxY(geometry)",
+    "STEnvelopeMinY": "STEnvelopeMinY(geometry)",
+    "STContains": "STContains(geometry, geometry)",
+    "STIntersects": "STIntersects(geometry, geometry)",
+    "STIntersection": "STIntersection(geometry, geometry)",
+    "STDifference": "STDifference(geometry, geometry)",
+    "STUnion": "STUnion(geometry, geometry)",
+    "geomIsEmpty": "geomIsEmpty(geometry)",
+    "STCentroid": "STCentroid(geometry)",
+    "STAsText": "STAsText(geometry)",
+    "geometryFromVectorLayer": "geometryFromVectorLayer(layerID, countID)",
+    "geometryFromVectorLayerUnion": "geometryFromVectorLayerUnion(layerID)",
+    "geometryFromRasterLayer": "geometryFromRasterLayer(layerID)"
+}
+
 !(function () {
 
 nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag) {
+    var _this = this;
+    this.textArea = textarea;
+    this.func = func;
+    this.currentTextArea = textarea[0];
 
     if (valuesArr && !(valuesArr instanceof nsGmx.ILazyAttributeValuesProvider)) {
         valuesArr = new nsGmx.LazyAttributeValuesProviderFromArray(valuesArr);
@@ -20422,7 +20493,6 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
             name = name.groupTag;
             var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
             $(div).css('margin-top', '3px')
-            window._title(div, name);
 
             $(canvas).append(div);
         } else {
@@ -20451,9 +20521,9 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                             if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
 
-                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, textarea, 'suggest', function()
+                            var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, [_this.currentTextArea], 'suggest', function()
                             {
-                                func && func();
+                                _this.func && _this.func();
 
                                 $(canvasArr.parentNode.childNodes[2]).fadeOut(100);
 
@@ -20474,7 +20544,6 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                             $(canvasArr).fadeIn(100);
                         });
-
                     }, 300);
                 }
             };
@@ -20506,7 +20575,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                     }
                 }
 
-                insertAtCursor(textarea, val, this.parentNode.sel);
+                insertAtCursor(_this.currentTextArea, val, this.parentNode.sel);
 
                 $(canvas).fadeOut(100);
 
@@ -20519,18 +20588,32 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                     $(this).remove();
                 });
 
-                func && func();
+                _this.func && _this.func();
 
                 stopEvent(e);
             };
 
-            window._title(div, name);
+            window._title(div, nsGmx.sqlTemplates[name] || name);
 
             $(canvas).append(div);
         }
 
     });
 };
+
+nsGmx.SuggestWidget.prototype.setActiveTextArea = function (textArea) {
+
+    for (var i = 0; i < this.textArea.length; i++) {
+        if (this.textArea[i] === textArea) {
+            this.currentTextArea = this.textArea[i];
+            break;
+        }
+    }
+};
+
+nsGmx.SuggestWidget.prototype.setCallback = function (func) {
+    this.func = func;
+}
 
 var template = Handlebars.compile('<div class="suggest-container">' +
     '<table><tbody><tr>' +
@@ -20541,15 +20624,19 @@ var template = Handlebars.compile('<div class="suggest-container">' +
 '</div>');
 
 nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback) {
+
+    this.changeCallback = changeCallback;
+    this.targetTextarea = targetTextarea;
+
     var ui = this.el = $(template());
 
-    var attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true),
-        functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest(*)', changeCallback),
-        opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', changeCallback);
+    this.attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true);
+    this.functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback);
+    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN'], targetTextarea, 'suggest', this.changeCallback);
 
-    ui.find('.suggest-attr').append(attrsSuggest.el);
-    ui.find('.suggest-func').append(functionsSuggest.el);
-    ui.find('.suggest-op').append(opsSuggest.el);
+    ui.find('.suggest-attr').append(this.attrsSuggest.el);
+    ui.find('.suggest-func').append(this.functionsSuggest.el);
+    ui.find('.suggest-op').append(this.opsSuggest.el);
 
     var clickFunc = function(div) {
         if (document.selection) {
@@ -20604,6 +20691,18 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
         return res;
      }
 };
+
+nsGmx.AttrSuggestWidget.prototype.setActiveTextArea = function (textArea) {
+    this.attrsSuggest.setActiveTextArea(textArea);
+    this.functionsSuggest.setActiveTextArea(textArea);
+    this.opsSuggest.setActiveTextArea(textArea);
+}
+
+nsGmx.AttrSuggestWidget.prototype.setCallback = function (callback) {
+    this.attrsSuggest.setCallback(callback);
+    this.functionsSuggest.setCallback(callback);
+    this.opsSuggest.setCallback(callback);
+}
 
 })();
 
@@ -21714,7 +21813,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
    findObjectsButton.style.marginRight = '10px';
 
    updateObjectsButton.onclick = function() {
-	   // $(this).addClass('gmx-disabled');
 	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
 		   $(findObjectsButton).removeClass('gmx-disabled');
 	   }
@@ -22446,11 +22544,17 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         $(_this._queryTextarea).trigger('input');
     }
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._queryTextarea, attrNames, attrProvider, suggestionCallback);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
     $(suggestCanvas).css('margin-right', '9px');
+
+    var suggestionCallback = function () {
+        $(this.currentTextArea).trigger('input');
+    }
+
+    attrSuggestWidget.setCallback(suggestionCallback);
 
     container.onclick = function(evt) {
         if (evt.target === container) {
@@ -22485,7 +22589,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
@@ -22495,6 +22599,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         paramsWidth = 320,
         _this = this;
 
+    this.currentColumnName = "",
     this._container = container;
 
     /* HIDE BUTTON */
@@ -22518,59 +22623,34 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /* SELECT COLUMN */
     var selectColumnContainer = document.createElement('div'),
-        attrsTemplate = Handlebars.compile('<select class="attrs-select">' +
+        attrsTemplate = Handlebars.compile('<select class="attrs-select selectStyle">' +
                             '{{#each this.attrs}}' +
                                 '<option value="{{this}}">' +
                                     '{{this}}' +
                                 '</option>' +
                             '{{/each}}' +
                         '</select>'),
-        attrsUI,
+        attrsUI = $(attrsTemplate({attrs: ['---' + window._gtxt("Выберите колонку").toLowerCase() + '---'].concat(info.attributes)}))[0],
         hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
-
-        attrsUI = attrsTemplate({attrs: info.attributes});
-
-
-        console.log(info.attributes);
 
     $(selectColumnContainer).append(window._gtxt("Обновить колонки"));
     $(selectColumnContainer).append(attrsUI);
 
+    attrsUI.onchange = function (e) {
+        _this.currentColumnName = e.target.value;
+    }
+
     /* VALUE TEXTAREA */
-    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._valueTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._valueTextarea.value = _this._setValue;
     this._valueTextarea.oninput = function(e) {_this._setValue = e.target.value};
 
-    var attrNames = [info.identityField].concat(info.attributes);
-    var attrHash = {};
-    for (var a = 0; a < attrNames.length; a++) {
-        attrHash[attrNames[a]] = [];
-    }
-
-    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
-
-    var suggestionCallback = function () {
-        $(_this._valueTextarea).trigger('input');
-    }
-
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget(this._valueTextarea, attrNames, attrProvider, suggestionCallback);
-
-    var suggestCanvas = attrSuggestWidget.el[0];
-
-    $(suggestCanvas).css('margin-right', '9px');
-
-    container.onclick = function(evt) {
-        if (evt.target === container) {
-            $(suggestCanvas).find('.suggest-helper').fadeOut(100);
-            return true;
-        }
-    };
-
     /* UPDATE QUERY TEXTAREA */
-    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
+    this._updateQueryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
     this._updateQueryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._updateQueryTextarea.value = _this._setUpdateQueryValue;
+
     this._updateQueryTextarea.oninput = function(e) {_this._setUpdateQueryValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
@@ -22581,15 +22661,21 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
+
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider);
+    var suggestCanvas = attrSuggestWidget.el[0];
+    $(suggestCanvas).css('margin-right', '9px');
+
+
     var suggestionCallback = function () {
-        $(_this._updateQueryTextarea).trigger('input');
+        $(this.currentTextArea).trigger('input');
     }
 
-    var attrSuggestWidget2 = new nsGmx.AttrSuggestWidget(this._updateQueryTextarea, attrNames, attrProvider, suggestionCallback);
+    attrSuggestWidget.setCallback(suggestionCallback);
 
-    var suggestCanvas2 = attrSuggestWidget2.el[0];
+    this._valueTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
+    this._updateQueryTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
 
-    $(suggestCanvas).css('margin-right', '9px');
 
     container.onclick = function(evt) {
         if (evt.target === container) {
@@ -22600,6 +22686,15 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /*STATUS BAR*/
 
+    var statusBar = $(Handlebars.compile(
+        '<div class="column-update-spinholder">' +
+            '<span class="spinHolder" style="display:none">' +
+                '<img src="img/progress.gif"/>' +
+                '<span class="spinMessage"></span>' +
+                '</span>' +
+            '<span class="spinErrorMessage" style="display:none"></span>' +
+        '</div>')({}))[0];
+
     /*APPLY BUTTON*/
     var applyButtonContainer = document.createElement('div'),
         applyButton = nsGmx.Utils.makeLinkButton(_gtxt('Применить'));
@@ -22609,7 +22704,65 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     applyButton.onclick = function() {
 
-        // $(_this).trigger('queryChange');
+        var spinHolder = $(statusBar).find('.spinHolder');
+        var spinErrorMessage = $(statusBar).find('.spinErrorMessage');
+
+        $(spinErrorMessage).hide();
+
+        if (!_this.currentColumnName || _this.currentColumnName === '---' + window._gtxt("Выберите колонку").toLowerCase() + '---') {
+
+            $(spinErrorMessage).html(window._gtxt('Выберите колонку'));
+            $(spinErrorMessage).show();
+            return;
+        }
+
+        $(spinHolder).show();
+
+        var updateQuery = _this._valueTextarea && _this._valueTextarea.value ? _this._valueTextarea.value : '';
+        var whereQuery = _this._updateQueryTextarea && _this._updateQueryTextarea.value ? _this._updateQueryTextarea.value : '';
+
+        var url = window.serverBase + 'VectorLayer/QueryScalar?sql=' +
+            'UPDATE ' + '"' + attributesTable.layerName + '"' +
+            'SET ' +  '"' + _this.currentColumnName + '"' + '=' + updateQuery +
+            'WHERE ' + whereQuery;
+
+        console.log(url);
+        console.log(attributesTable);
+
+        fetch(url, {
+             method: 'POST',
+             mode: 'cors'
+          }).then(toJson)
+          .then(resCallback)
+          .catch(catchErr);
+
+         function toJson(res) {
+             return res.text();
+         }
+
+        function resCallback(res) {
+            var json, result, fields, types, values;
+
+            $(spinHolder).hide();
+            res = res.substring(1, res.length-1);
+            json = JSON.parse(res);
+            result = json.Result;
+
+            if (json.Status === 'error') {
+                throw new Error(json.ErrorInfo.ErrorMessage);
+            }
+            console.log(json);
+            console.log(result);
+
+            $(attributesTable._serverDataProvider).change();
+        }
+
+        function catchErr(e) {
+            console.log(e);
+            $(spinHolder).hide();
+            $(spinErrorMessage).html(window._gtxt('Ошибка'));
+            $(spinErrorMessage).show();
+        }
     };
 
     $(applyButton).addClass('apply-button');
@@ -22617,8 +22770,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     /*COMPILE*/
     $(container).append(hideButtonContainer);
     $(container).append(selectColumnContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('Значение'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas2], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(container).append(statusBar);
     $(container).append(applyButtonContainer);
 }
 
@@ -31611,19 +31765,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31653,6 +31794,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(

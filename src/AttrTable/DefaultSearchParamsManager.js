@@ -81,7 +81,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
     this._queryTextarea.placeholder = '"field1" = 1 AND "field2" = \'value\'';
     this._queryTextarea.value = _this._searchValue;
-    this._queryTextarea.oninput = function(e) {console.log(_this._queryTextarea); _this._searchValue = e.target.value};
+    this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
     var attrNames = [info.identityField].concat(info.attributes);
     var attrHash = {};
@@ -140,7 +140,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('SQL-условие WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     $(container).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
@@ -150,6 +150,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         paramsWidth = 320,
         _this = this;
 
+    this.currentColumnName = "",
     this._container = container;
 
     /* HIDE BUTTON */
@@ -180,11 +181,15 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
                                 '</option>' +
                             '{{/each}}' +
                         '</select>'),
-        attrsUI = attrsTemplate({attrs: info.attributes}),
+        attrsUI = $(attrsTemplate({attrs: ['---' + window._gtxt("Выберите колонку").toLowerCase() + '---'].concat(info.attributes)}))[0],
         hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
 
     $(selectColumnContainer).append(window._gtxt("Обновить колонки"));
     $(selectColumnContainer).append(attrsUI);
+
+    attrsUI.onchange = function (e) {
+        _this.currentColumnName = e.target.value;
+    }
 
     /* VALUE TEXTAREA */
     this._valueTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px'], ['css', 'height', '80px']]);
@@ -219,8 +224,8 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     attrSuggestWidget.setCallback(suggestionCallback);
 
-    this._updateQueryTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
     this._valueTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
+    this._updateQueryTextarea.onfocus = function(e) {attrSuggestWidget.setActiveTextArea(e.target)};
 
 
     container.onclick = function(evt) {
@@ -238,7 +243,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
                 '<img src="img/progress.gif"/>' +
                 '<span class="spinMessage"></span>' +
                 '</span>' +
-            '<span class="exportErrorMessage" style="display:none"></span>' +
+            '<span class="spinErrorMessage" style="display:none"></span>' +
         '</div>')({}))[0];
 
     /*APPLY BUTTON*/
@@ -249,11 +254,66 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     $(applyButtonContainer).append(applyButton);
 
     applyButton.onclick = function() {
+
         var spinHolder = $(statusBar).find('.spinHolder');
+        var spinErrorMessage = $(statusBar).find('.spinErrorMessage');
+
+        $(spinErrorMessage).hide();
+
+        if (!_this.currentColumnName || _this.currentColumnName === '---' + window._gtxt("Выберите колонку").toLowerCase() + '---') {
+
+            $(spinErrorMessage).html(window._gtxt('Выберите колонку'));
+            $(spinErrorMessage).show();
+            return;
+        }
 
         $(spinHolder).show();
 
-        // $(_this).trigger('queryChange');
+        var updateQuery = _this._valueTextarea && _this._valueTextarea.value ? _this._valueTextarea.value : '';
+        var whereQuery = _this._updateQueryTextarea && _this._updateQueryTextarea.value ? _this._updateQueryTextarea.value : '';
+
+        var url = window.serverBase + 'VectorLayer/QueryScalar?sql=' +
+            'UPDATE ' + '"' + attributesTable.layerName + '"' +
+            'SET ' +  '"' + _this.currentColumnName + '"' + '=' + updateQuery +
+            'WHERE ' + whereQuery;
+
+        console.log(url);
+        console.log(attributesTable);
+
+        fetch(url, {
+             method: 'POST',
+             mode: 'cors'
+          }).then(toJson)
+          .then(resCallback)
+          .catch(catchErr);
+
+         function toJson(res) {
+             return res.text();
+         }
+
+        function resCallback(res) {
+            var json, result, fields, types, values;
+
+            $(spinHolder).hide();
+            res = res.substring(1, res.length-1);
+            json = JSON.parse(res);
+            result = json.Result;
+
+            if (json.Status === 'error') {
+                throw new Error(json.ErrorInfo.ErrorMessage);
+            }
+            console.log(json);
+            console.log(result);
+
+            $(attributesTable._serverDataProvider).change();
+        }
+
+        function catchErr(e) {
+            console.log(e);
+            $(spinHolder).hide();
+            $(spinErrorMessage).html(window._gtxt('Ошибка'));
+            $(spinErrorMessage).show();
+        }
     };
 
     $(applyButton).addClass('apply-button');
