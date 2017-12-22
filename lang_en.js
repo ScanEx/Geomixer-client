@@ -722,5 +722,6 @@ _translationsHash.hash["eng"] = {
     "Центрировать": "Set center",
     "Пароль изменён": "Password has been changed",
 	"портретная": "portrait view",
-	"альбомная": "layout view"
+	"альбомная": "layout view",
+	"gmx_geometry": "gmx_geometry"
 };

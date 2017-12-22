@@ -83,7 +83,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     this._queryTextarea.value = _this._searchValue;
     this._queryTextarea.oninput = function(e) {_this._searchValue = e.target.value};
 
-    var attrNames = [info.identityField].concat(info.attributes);
+    var attrNames = [info.identityField].concat(info.attributes, [window._gtxt('gmx_geometry')]);
     var attrHash = {};
     for (var a = 0; a < attrNames.length; a++) {
         attrHash[attrNames[a]] = [];
@@ -181,7 +181,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
                                 '</option>' +
                             '{{/each}}' +
                         '</select>'),
-        attrsUI = $(attrsTemplate({attrs: ['---' + window._gtxt("Выберите колонку").toLowerCase() + '---'].concat(info.attributes)}))[0],
+        attrsUI = $(attrsTemplate({
+            attrs: ['---' + window._gtxt("Выберите колонку").toLowerCase() + '---'].concat(info.attributes)
+        }))[0],
         hideButton = nsGmx.Utils.makeLinkButton(_gtxt('Скрыть'));
 
     $(selectColumnContainer).append(window._gtxt("Обновить колонку"));
@@ -204,14 +206,13 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     this._updateQueryTextarea.oninput = function(e) {_this._setUpdateQueryValue = e.target.value};
 
-    var attrNames = [info.identityField].concat(info.attributes);
+    var attrNames = [info.identityField].concat(info.attributes, [window._gtxt('gmx_geometry')]);
     var attrHash = {};
     for (var a = 0; a < attrNames.length; a++) {
         attrHash[attrNames[a]] = [];
     }
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
-
 
     var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider);
     var suggestCanvas = attrSuggestWidget.el[0];
@@ -272,12 +273,11 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         var updateQuery = _this._valueTextarea && _this._valueTextarea.value ? _this._valueTextarea.value : '';
         var whereQuery = _this._updateQueryTextarea && _this._updateQueryTextarea.value ? _this._updateQueryTextarea.value : '';
 
+        // updateQuery.match(/)
+
         var url = window.serverBase + 'VectorLayer/QueryScalar?sql=' +
             'UPDATE ' + '"' + attributesTable.layerName + '"' +
             'SET ' +  '"' + _this.currentColumnName + '"' + '=' + updateQuery + (whereQuery ? ('WHERE ' + whereQuery) : "");
-
-        console.log(url);
-        console.log(attributesTable);
 
         fetch(url, {
              method: 'POST',
@@ -302,14 +302,11 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
             if (json.Status === 'error') {
                 throw new Error(json.ErrorInfo.ErrorMessage);
             }
-            console.log(json);
-            console.log(result);
 
             $(attributesTable._serverDataProvider).change();
         }
 
         function catchErr(e) {
-            console.log(e);
             $(spinHolder).hide();
             $(spinErrorMessage).html(window._gtxt('Ошибка'));
             $(spinErrorMessage).show();
