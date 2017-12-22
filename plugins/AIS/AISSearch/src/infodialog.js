@@ -4,19 +4,29 @@ let addUnit = function(v, u){
         return v!=null && v!="" ? v+u : ""; 
     },
 	formatDate,
+	round = function(d, p){
+		let isNeg = d<0,
+			power = Math.pow(10, p)
+		return d?((isNeg?-1:1)*(Math.round((isNeg?d=-d:d)*power)/power)):d
+	},
     formatVessel = function(vessel){
                     vessel.ts_pos_utc = formatDate(new Date(vessel.ts_pos_utc*1000));
                     vessel.ts_eta = formatDate(new Date(vessel.ts_eta*1000));
-                    vessel.cog = addUnit(vessel.cog, "°");
-                    vessel.sog = addUnit(vessel.sog, " уз");
-                    vessel.rot = addUnit(vessel.rot, "°/мин");
-                    vessel.heading = addUnit(vessel.heading, "°");
-                    vessel.draught = addUnit(vessel.draught, " м");
+                    vessel.cog = addUnit(round(vessel.cog, 5), "°");
+                    vessel.sog = addUnit(round(vessel.sog, 5), " уз");
+                    vessel.rot = addUnit(round(vessel.rot, 5), "°/мин");
+                    vessel.heading = addUnit(round(vessel.heading, 5), "°");
+                    vessel.draught = addUnit(round(vessel.draught, 5), " м");
                     vessel.length = addUnit(vessel.length, " м");
                     vessel.width = addUnit(vessel.width, " м");
 					vessel.source = vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
                     return vessel;
     },
+	toDd = function(D, lng){
+		let dir = D<0?lng?'W':'S':lng?'E':'N',
+		deg = Math.round((D<0?D=-D:D)*1000000)/1000000
+		return deg+"°"+dir
+	},
 	ddToDms = function(D, lng){
 		let dms = {
 			dir : D<0?lng?'W':'S':lng?'E':'N',
@@ -55,7 +65,7 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 							'</g>'+
 						'</svg>',
 						vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>'+smallShipIcon+'</div>'+
-						'<div class="vessel_prop"><b>&nbsp;'+(vessel2.registry_name ? vessel2.registry_name:'')+'</b></div>'
+						'<div class="vessel_prop"><b>'+(vessel2.registry_name && vessel2.registry_name!=vessel2.vessel_name ? vessel2.registry_name:'')+'&nbsp;</b></div>'
 						
                         $('.content', canvas).append(Handlebars.compile(
 						'<div class="vessel_props1">'+vesselPropTempl+
@@ -69,8 +79,8 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 						
                         $('.content', canvas).append(Handlebars.compile(	
 						'<div class="vessel_props2">'+vesselPropTempl+					
-                        '<div class="vessel_prop">COG / SOG: <b>{{cog}} / {{sog}}</b></div>'+
-                        '<div class="vessel_prop">HDG / ROT: <b>{{heading}} / {{rot}}</b></div>'+
+                        '<div class="vessel_prop">COG | SOG: <b>{{cog}} | {{sog}}</b></div>'+
+                        '<div class="vessel_prop">HDG | ROT: <b>{{heading}} | {{rot}}</b></div>'+
                         '<div class="vessel_prop">{{i "AISSearch2.draught"}}: <b>{{draught}}</b></div>'+
                         '<div class="vessel_prop">{{i "AISSearch2.destination"}}: <b>{{destination}}</b></div>'+
                         '<div class="vessel_prop">{{i "AISSearch2.nav_status"}}: <b>{{nav_status}}</b></div>'+
@@ -80,7 +90,7 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
                         $(moreinfo).append('<table><tr>'+
 '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>'+
 						'<td><div class="vessel_prop coordinates"><span class="small">'+
-						v.latitude+'° '+(v.latitude<0?'S':'N')+' '+v.longitude+'° '+(v.longitude<0?'W':'E')+
+						toDd(v.latitude, false)+' '+toDd(v.longitude, true)+
 						'</small></div></td>'+
 						'</tr></table>'
                         );
@@ -228,10 +238,10 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 	let titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding','0')
 		.html('<table class="ais_info_dialog_titlebar">'+
 		'<tr><td><div class="date"><span>Последний сигнал:</span>'+
-		Handlebars.compile('<br>{{{ts_pos_utc}}}')(vessel2)
+		Handlebars.compile('<br>{{{ts_pos_utc}}}')(vessel2?vessel2:vessel)
 		+'</div></td>'+
-		'<td><div class="switch on">Общие сведения</div></td>'+
-		'<td><div class="switch">Параметры судна</div></td>'+
+		'<td><div class="switch on">Информация о судне</div></td>'+
+		'<td><div class="switch">Сведения о движении</div></td>'+
 		'<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>'+
 		'</table>')
 		

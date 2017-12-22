@@ -49,7 +49,7 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
             '<div class="close-button" title="закрыть"></div>' +
         '</div>' +
         '<div class="register panel">' +
-            '<div class="caption">123</div>' +
+            '<div class="caption"></div>' +
             '<div class="menu">' +
                 '<div>' +
                     '<table>' +
