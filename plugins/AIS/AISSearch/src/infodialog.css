@@ -1,0 +1,185 @@
+/***********************
+*                      *
+************************/
+.ais_myfleet_dialog {
+  color:#5a707e;
+  background-color:#f5f8fa
+}
+.ais_myfleet_dialog .vessel_prop {
+  margin-bottom: 5px;
+  line-height: 18px;
+}
+.ais_myfleet_dialog .vessel_prop.vname{
+  margin-bottom: 0;
+  line-height: 10px;
+}
+.ais_myfleet_dialog .vessel_prop .small{
+  font-size: 11px;
+  line-height: normal;
+}
+.ais_myfleet_dialog .vessel_prop.coordinates{
+	width:160px
+}
+.ais_myfleet_dialog .content div.summary {
+  margin-top: 15px;
+  margin-bottom: 0;
+  line-height: 15px;
+  font-weight: bold;
+}
+.ais_myfleet_dialog .menubuttons {
+  text-align: center;
+  margin-top: 10px;
+}
+.ais_myfleet_dialog .menubuttons::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+.ais_myfleet_dialog .buttons div.button {
+  width:30px;
+  height:30px;
+  color: #384b50; 
+  background-position: center;
+  background-repeat: no-repeat;   
+  cursor:pointer;
+  margin-top: 12px;
+  margin-left: 8px;
+  border-radius: 3px;
+}
+.ais_myfleet_dialog .buttons div.ais.button.active{
+  color: #48aff1; 
+  background-color: #f5f8fa; 
+  background-position: center;
+  background-repeat: no-repeat;
+  padding:0;
+}
+.ais_myfleet_dialog .buttons div.button.disabled{
+  color: #ced9e0; 
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: default;
+}
+.ais_myfleet_dialog .buttons div.button.disabled:hover{
+  color: #ced9e0; 
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: default;
+}
+.ais_myfleet_dialog .buttons div.button:hover {
+  color: #48aff1; 
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.ais_myfleet_dialog .buttons .progress{
+  padding-top:6px;
+}
+
+.ais_myfleet_dialog .addremove.disabled i{
+  color: #000;
+}
+.ais_myfleet_dialog .photo{
+  height:130px;
+}
+.ais_myfleet_dialog .photo div{
+  width:178px;
+  height:110px;
+  background: url(http://maps.kosmosnimki.ru/api/plugins/AIS/AISSearch/svg/no-image.svg) no-repeat center center;
+  background-color: #ced9e0;
+  background-size: 48px 48px;
+}
+.ais_myfleet_dialog .column1 {
+    float: left;
+    padding-top: 12px;
+    padding-left: 20px;
+    padding-right: 15px;
+    width: 185px;
+	border-right: solid 1px white
+}
+.ais_myfleet_dialog .column2 {
+    float: left;
+    padding-top: 12px;
+    width: 340px;
+	border-right: solid 1px white
+}
+.ais_myfleet_dialog .column3 {
+    float: left;
+    width: 45px;
+	border-left: solid 1px #d8e2e4;
+	height: 180px
+}
+.ais_myfleet_dialog::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.ais_info_dialog_titlebar{
+	width:100%;
+}
+.ais_info_dialog_titlebar td{
+	border-right:solid 1px #d8e2e4;
+	border-bottom:solid 1px #d8e2e4;
+	background-color:#ecf1f5;
+	color:#394b59
+}
+.ais_info_dialog_titlebar td div.date{
+	padding:0 20px 0 20px;	
+	width: 180px;	
+	font-size:12px;
+	font-weight:normal
+}
+.ais_info_dialog_titlebar td div.date span{
+	font-size:11px;
+	font-weight:normal
+}
+.ais_info_dialog_titlebar td div.date span.utc{
+	font-weight:bold;
+	font-size:12px;
+}
+.ais_info_dialog_titlebar td div.switch{
+	padding-top:15px;
+	padding-bottom:11px;
+	border-bottom:solid 4px #ecf1f5;
+	width:170px;
+	text-align:center;
+	font-size:11px;
+	font-weight:bold;
+	margin:0;
+	cursor:pointer
+}
+/*.ais_info_dialog_titlebar td div.switch:hover,*/
+.ais_info_dialog_titlebar td div.switch.on{
+	color: #48aff1;
+	border-bottom:solid 4px #48aff1;
+}
+
+.ais_info_dialog_titlebar td:nth-of-type(4){
+	border-right:none;
+	width: 150px;
+	text-align: center;
+	cursor: default
+}
+
+.ais_info_dialog_close-button{
+            border:none 1px red;
+            display: inline-block;
+            width:12px;
+            height:12px;            
+            cursor: pointer;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%23384b50;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%23384b50;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0px 0px;
+            z-index: 1000;
+			margin-top: 1px;
+        } 
+
+.ais_info_dialog_close-button:hover{
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+}
+.ais_refresh{
+	cursor:pointer;
+	color: #384b50;
+	padding-right:5px;
+}
+.ais_refresh:hover{
+	color: #48aff1;
+}
