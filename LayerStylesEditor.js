@@ -353,7 +353,7 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 
 	var mapName = elemCanvas.parentNode.gmxProperties.content.properties.mapName,
 		layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
-        attrSuggestWidget = new nsGmx.AttrSuggestWidget(filterText, attrs || [], _mapHelper.attrValues[mapName][layerName], setFilter);
+        attrSuggestWidget = new nsGmx.AttrSuggestWidget([filterText], attrs || [], _mapHelper.attrValues[mapName][layerName], setFilter);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
@@ -474,7 +474,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 
 	balloonText.value = (balloonParams.Balloon) ? balloonParams.Balloon : defaultBalloonText();
 
-	var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], balloonText, '[suggest]', setBalloon);
+	var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], [balloonText], '[suggest]', setBalloon);
 
 	var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
 
@@ -788,7 +788,7 @@ var createFilter = function(layer, styleIndex, parentStyle, geometryType, attrs,
         	nsGmx.Utils.setMapObjectStyle(layer, styleIndex, templateStyle);
     }
 
-    var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], labelText, '[suggest]', updateLabelText.bind(labelText));
+    var suggestWidget = new nsGmx.SuggestWidget(attrs ? attrs : [], [labelText], '[suggest]', updateLabelText.bind(labelText));
 
     var divAttr = _div([_t(_gtxt("Атрибут >")), suggestWidget.el], [['dir','className','suggest-link-container']]);
 

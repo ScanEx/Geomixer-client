@@ -104,8 +104,8 @@
 }
 
 .attr-table-geometry-container {
-    position: absolute;
-    bottom: 228px;
+    position: relative;
+    margin-top: 60px;
 }
 
 .attr-table-geomtitle {
@@ -153,10 +153,14 @@
     margin: 0 6px 0px 0;
 }
 
-.clean-search-buttons-container,
+.clean-search-buttons-container {
+    position: relative;
+    margin-top: 200px;
+}
+
 .apply-button-container {
-    position: absolute;
-    bottom: 8px;
+    position: relative;
+    margin-top: 162px;
 }
 
 #attrsTableParent table {
