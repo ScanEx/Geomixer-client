@@ -251,7 +251,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         disabled: !isMapEditor
                     },
                     { id: 'loadFile', title: _gtxt('Загрузить объекты'), func: drawingObjects.loadShp.load, delimiter: true },
-                    { id: 'loadPhotos', title: _gtxt('Загрузить фотографии'), func: function() { PhotoLayerDialog() }, delimiter: true },
+                    { id: 'loadPhotos', title: _gtxt('Загрузить фотографии'), func: function() { PhotoLayerDialog() }, delimiter: true, disabled: !isMapEditor },
                     { id: 'wms', title: _gtxt('Подключить WMS'), func: loadServerData.WMS.load },
                     { id: 'wfs', title: _gtxt('Подключить WFS'), func: loadServerData.WFS.load }
                 ]

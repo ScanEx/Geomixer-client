@@ -1345,7 +1345,7 @@
             listFlag = parentParams.properties.list;
 
         var div = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
-            box = $(div).find('input[type="checkbox"]')[0],
+            box = $(div).find('input[type="checkbox"]')[0] || $(div).find('input[type="radio"]')[0],
             newBox = _checkbox(
                 box.checked,
                 listFlag ? 'radio' : 'checkbox',
