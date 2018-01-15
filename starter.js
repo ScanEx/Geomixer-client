@@ -2252,13 +2252,21 @@ nsGmx.widgets = nsGmx.widgets || {};
                         delete nsGmx.widgets.commonCalendar._unbindedTemporalLayers[props.name];
                     }
                 });
-                // }
 
                 // special for steppe project
                 if (nsGmx.gmxMap.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
                     nsGmx.widgets.commonCalendar.show();
                 }
                 nsGmx.pluginsManager.afterViewer();
+
+                if (nsGmx.timeLineControl) {
+                    nsGmx.timeLineControl.on('layerRemove', function(e) {
+                        $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                    });
+                    nsGmx.timeLineControl.on('layerAdd', function(e) {
+                        $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                    });
+                }
 
                 $('#leftContent').mCustomScrollbar();
 

@@ -10,7 +10,7 @@ _translationsHash.addtext("rus", {
                         "pluginsEditor.add" : "Добавить плагин",
                         "pluginsEditor.paramsTitle" : "Параметры плагина"
                      });
-                     
+
 _translationsHash.addtext("eng", {
                         "pluginsEditor.selectedTitle" : "Map plugins",
                         "pluginsEditor.availableTitle" : "Available plugins",
@@ -23,36 +23,36 @@ var MapPlugins = function()
 {
     var _plugins = [];
     var _params = {};
-    
+
     //вместо массива из одного элемента передаём сам элемент
     var normalizeParams = function(params) {
         var res = {};
         for (var p in params) {
             res[p] = params[p].length === 1 ? params[p][0] : params[p];
         }
-        
+
         return res;
     }
-    
+
     this.addPlugin = function(pluginName, pluginParams, onlyParams)
     {
         _params[pluginName] = pluginParams || _params[pluginName] || {};
-        
+
         if (!onlyParams && _plugins.indexOf(pluginName) === -1) {
             _plugins.push(pluginName);
         }
-        
+
         $(this).change();
-        
+
         return true;
     }
-    
+
     this.each = function(callback) {
         for (var p = 0; p < _plugins.length; p++) {
             callback(_plugins[p], _params[_plugins[p]] || {});
         }
     }
-    
+
     this.remove = function(pluginName) {
         var nameIndex = _plugins.indexOf(pluginName);
         if (nameIndex !== -1) {
@@ -60,32 +60,35 @@ var MapPlugins = function()
             $(this).change();
         }
     }
-    
+
     this.isExist = function(pluginName)
     {
         return _plugins.indexOf(pluginName) !== -1;
     }
-    
+
     this.getPluginParams = function(pluginName) {
         return _params[pluginName];
     }
-    
+
     this.setPluginParams = function(pluginName, pluginParams) {
         _params[pluginName] = pluginParams;
         $(this).change();
     }
-    
+
     //обновляем используемость и параметры плагинов
     this.updateGeomixerPlugins = function() {
         for (var p = 0; p < _plugins.length; p++) {
-            nsGmx.pluginsManager.setUsePlugin(_plugins[p], true);
+            var plugin = nsGmx.pluginsManager.getPluginByName(_plugins[p]),
+                lazyLoad = plugin && plugin.lazyLoad;
+
+            nsGmx.pluginsManager.setUsePlugin(_plugins[p], !lazyLoad);
         }
-        
+
         for (var p in _params) {
             nsGmx.pluginsManager.updateParams(p, normalizeParams(_params[p]));
         }
     }
-    
+
     this.load = function(data, version) {
         if (version === 1) {
             _plugins = data;
@@ -99,7 +102,7 @@ var MapPlugins = function()
             }
         } else if (version === 3) {
             _plugins = data.plugins;
-            
+
             //поддержка ошибки, которая прокралась в базу...
             if ($.isArray(data.params) && data.params.length === 0) {
                 _params = {};
@@ -108,7 +111,7 @@ var MapPlugins = function()
             }
         }
     }
-    
+
     this.save = function(version) {
         if (version === 1) {
             return _plugins;
@@ -137,26 +140,26 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
             '<button class="pluginEditor-addButton">{{i "pluginsEditor.add"}}</button>' +
         '</div>' +
     '</div>');
-    
+
     var lang = window.nsGmx.Translations.getLanguage();
 
     var DEFAULT_GROUP_NAME = {
         eng: 'Main',
         rus: 'Основные'
     };
-    
+
     var _allPluginGroups = {},
         configGroups = window.gmxPluginGroups || [],
         groupByPluginName = [],
         groupOrder = {};
-    
+
     configGroups.forEach(function(group, index) {
         groupOrder[group[lang]] = index;
         group.plugins.forEach(function(plugin) {
             groupByPluginName[plugin] = group[lang];
         })
     })
-    
+
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
         if ( plugin.pluginName && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
@@ -167,19 +170,19 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
             //_allPlugins.push({name: plugin.pluginName, isPublic: plugin.isPublic});
         }
     })
-    
+
     //по алфавиту
     for (var g in _allPluginGroups) {
         _allPluginGroups[g].plugins.sort(function(a, b) {
             return a.name > b.name ? 1 : -1;
         })
     }
-    
+
     var isListActive = false;
     var update = function()
     {
         $(container).empty();
-        
+
         var filteredGroups = [];
         for (var g in _allPluginGroups) {
             var plugins = _allPluginGroups[g].plugins.filter(function(plugin) {return !mapPlugins.isExist(plugin.name);});
@@ -189,7 +192,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                 plugins: plugins
             });
         };
-        
+
         //сохраняем порядок, как в конфиге, default group - первой
         filteredGroups.sort(function(a, b) {
             return groupOrder[a.groupName] - groupOrder[b.groupName];
@@ -209,7 +212,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
         pluginsTree.find('.pluginEditor-pluginItem').click(function(e) {
             isListActive = true;
             var pluginName = $(this).data('pluginName');
-            
+
             if (e.ctrlKey) {
                 $(this).toggleClass('pluginEditor-activePluginItem');
             } else {
@@ -217,15 +220,15 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                 $(this).addClass('pluginEditor-activePluginItem');
             }
         });
-        
+
         pluginsTree.find('.pluginEditor-groupTitle').click(function() {
             $(this).siblings('.hitarea').click();
         })
-        
+
         var ui = $(template());
-        
+
         ui.find('.pluginEditor-treePlaceholder').append(pluginsTree);
-        
+
         ui.find('.pluginEditor-pluginInput').bind('focus', function() {
             isListActive = false;
         });
@@ -245,16 +248,16 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                     inputError(pluginInput[0]);
                 }
             }
-            
+
             for (var sp = 0; sp < selected.length; sp++)
                 mapPlugins.addPlugin( selected[sp] );
         });
 
         ui.appendTo(container);
-            
+
         pluginsTree.treeview(/*{collapsed: true}*/);
     }
-    
+
     $(mapPlugins).change(update);
     update();
 }
@@ -266,7 +269,7 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
     if (paramsWidgets[pluginName]) {
         return;
     };
-    
+
     var FakeTagMetaInfo = function()
     {
         this.isTag = function(tag) { return true; }
@@ -276,50 +279,50 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
         this.getTagArrayExt = function() { return []; }
     };
     var fakeTagMetaInfo = new FakeTagMetaInfo();
-    
+
     var pluginParams =  mapPlugins.getPluginParams(pluginName);
     var tagInitInfo = {};
-    
+
     for (var tagName in pluginParams) {
         tagInitInfo[tagName] = {Value: pluginParams[tagName]};
     }
-    
+
     var layerTags = new nsGmx.LayerTagsWithInfo(fakeTagMetaInfo, tagInitInfo);
-    
+
     var container = $('<div/>');
-    
+
     var pluginValues = new nsGmx.LayerTagSearchControl(layerTags, container);
-    
+
     var updateParams = function() {
         var newParams = {};
         layerTags.eachValid(function(tagid, tag, value) {
             newParams[tag] = newParams[tag] || [];
             newParams[tag].push(value);
         })
-        
+
         mapPlugins.setPluginParams(pluginName, newParams);
     }
-    
+
     var dialogDiv = showDialog(
-            _gtxt('pluginsEditor.paramsTitle') + " " + pluginName, 
-            container[0], 
+            _gtxt('pluginsEditor.paramsTitle') + " " + pluginName,
+            container[0],
             {
-                width: 320, 
-                height: 200, 
+                width: 320,
+                height: 200,
                 closeFunc: function() {
                     updateParams();
                     delete paramsWidgets[pluginName];
                 }
             }
         );
-    
+
     paramsWidgets[pluginName] = {
         update: updateParams,
         closeDialog: function() {
             $(dialogDiv).dialog('close');
         }
     };
-    
+
 }
 
 var MapPluginsWidget = Backbone.View.extend({
@@ -343,7 +346,7 @@ var MapPluginsWidget = Backbone.View.extend({
             var pluginName = $(event.target).data('pluginName');
             this._mapPlugins.remove(pluginName);
         },
-        
+
         'click .gmx-icon-edit': function(event) {
             var pluginName = $(event.target).data('pluginName');
             new MapPluginParamsWidget(this._mapPlugins, pluginName);
@@ -368,18 +371,18 @@ var MapPluginsWidget = Backbone.View.extend({
                 });
             }
         });
-        
+
         mapPlugins.each(function(name) {
             pluginsToShow.push({
                 name: name,
                 isCommon: false
             });
         });
-        
+
         pluginsToShow.sort(function(a, b) {
             return a.isCommon != b.isCommon ? Number(b.isCommon) - Number(a.isCommon) : (a.name > b.name ? 1 : -1);
         });
-        
+
         this.$el.empty().append(this.template({plugins: pluginsToShow}));
     }
 });
@@ -393,13 +396,13 @@ var createPluginsEditor = function(container, mapPlugins)
         mapPlugins: mapPlugins
     });
     var allPluginsWidget = new GeomixerPluginsWidget(allPluginsContainer, mapPlugins);
-    
+
     $(container)
         .append($('<table/>', {'class': 'pluginEditor-table'}).append($('<tr/>')
             .append($('<td/>', {'class': 'pluginEditor-allTD'}).append(allPluginsContainer))
             .append($('<td/>', {'class': 'pluginEditor-widgetTD'}).append(widgetContainer))
         ));
-    
+
     return {
         update: function() {
             for (var name in paramsWidgets) {
