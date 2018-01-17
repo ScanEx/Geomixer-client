@@ -1659,6 +1659,7 @@ _translationsHash.hash["rus"] = {
 	"Скрыть" : "Скрыть",
 	"SQL-условие WHERE" : "SQL-условие WHERE",
     "Искать внутри полигона" : "Искать внутри полигона",
+    "Искать по пересечению с объектом" : "Искать по пересечению с объектом",
 	"Колонки" : "Колонки",
 	"Показывать колонки" : "Показывать колонки",
 	"Найти" : "Найти",
@@ -2386,6 +2387,7 @@ _translationsHash.hash["eng"] = {
 	"Скрыть параметры поиска" : "Hide search params",
 	"Скрыть" : "Hide",
 	"Искать внутри полигона" : "Search inside polygon",
+	"Искать по пересечению с объектом" : "Search by geometry",
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Колонки" : "Columns",
 	"Показывать колонки" : "Show columns",
@@ -20362,9 +20364,8 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 
 })(nsGmx.Utils._);
 
-nsGmx.sqlFunctions = {
 
-    //строки
+nsGmx.sqlFunctions = {
     string: [
         "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
         "substring", "right"
@@ -20373,6 +20374,10 @@ nsGmx.sqlFunctions = {
     date: [
         "addDays", "addHours", "addMinutes", "addSeconds", "day", "month", "year",
         "now", "strToDateTime", "strToTime", "toString"
+    ],
+
+    math: [
+        "round"
     ],
 
     agregate: [
@@ -20393,7 +20398,6 @@ nsGmx.sqlFunctions = {
     special: [
         "geometryFromVectorLayer", "geometryFromVectorLayerUnion", "geometryFromRasterLayer"
     ]
-
 }
 
 nsGmx.sqlTemplates = {
@@ -22489,6 +22493,9 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         attributesTable.resizeFunc();
     };
 
+    var middleContainer = document.createElement('div');
+    $(middleContainer).addClass('attr-table-middle-container');
+
     /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
@@ -22496,7 +22503,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     $(geomUIContainer).addClass('attr-table-geometry-container');
 
     var geomUI = $(Handlebars.compile('<span>' +
-        '<span class="attr-table-geomtitle">{{i "Искать внутри полигона"}}</span>' +
+        '<span class="attr-table-geomtitle">{{i "Искать по пересечению с объектом"}}</span>' +
         '<span class="gmx-icon-choose"></span>' +
         '<span class="attr-table-geom-placeholder"></span>' +
     '</span>')());
@@ -22524,7 +22531,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
                     _this._geometryInfoRow = null;
                 });
             },
-            {geomType: 'POLYGON'}
+            {geomType: null}
         );
     });
 
@@ -22591,8 +22598,9 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    $(container).append(geomUIContainer);
+    $(container).append(middleContainer);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(middleContainer).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
 
@@ -22603,6 +22611,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     this.currentColumnName = "",
     this._container = container;
+
 
     /* HIDE BUTTON */
     var hideButtonContainer = document.createElement('div'),
@@ -22622,6 +22631,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         container.style.display = 'none';
         attributesTable.resizeFunc();
     };
+
+    var middleContainer = document.createElement('div');
+    $(middleContainer).addClass('attr-table-middle-container');
 
     /* SELECT COLUMN */
     var selectColumnContainer = document.createElement('div'),
@@ -22768,10 +22780,12 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    $(container).append(selectColumnContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    $(container).append(statusBar);
+    $(container).append(middleContainer);
+    $(middleContainer).append(selectColumnContainer);
+    $(middleContainer).append(selectColumnContainer);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(middleContainer).append(statusBar);
     $(container).append(applyButtonContainer);
 }
 
@@ -31660,11 +31674,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -31699,6 +31708,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {

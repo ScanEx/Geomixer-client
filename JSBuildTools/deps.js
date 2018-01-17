@@ -36,6 +36,7 @@ var jsFiles = [
     "security.js",
     "EditObjectControl.js",
 
+    "src/SliderWidget/SliderWidget.js",
     "src/sqlFunctions.js",
     "src/AttrSuggestWidget.js",
 
@@ -133,6 +134,7 @@ var cssFiles = [
     "css/layerstylesmenu.css",
     "css/swich-slider.css",
 
+    "src/SliderWidget/SliderWidget.css",
     "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
