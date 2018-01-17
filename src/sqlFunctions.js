@@ -1,6 +1,4 @@
 nsGmx.sqlFunctions = {
-
-    //строки
     string: [
         "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
         "substring", "right"
@@ -9,6 +7,10 @@ nsGmx.sqlFunctions = {
     date: [
         "addDays", "addHours", "addMinutes", "addSeconds", "day", "month", "year",
         "now", "strToDateTime", "strToTime", "toString"
+    ],
+
+    math: [
+        "round"
     ],
 
     agregate: [
@@ -29,7 +31,6 @@ nsGmx.sqlFunctions = {
     special: [
         "geometryFromVectorLayer", "geometryFromVectorLayerUnion", "geometryFromRasterLayer"
     ]
-
 }
 
 nsGmx.sqlTemplates = {

@@ -38,6 +38,9 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         attributesTable.resizeFunc();
     };
 
+    var middleContainer = document.createElement('div');
+    $(middleContainer).addClass('attr-table-middle-container');
+
     /* SEARCH INSIDE POLYGON */
     this._geometryInfoRow = null;
 
@@ -45,7 +48,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     $(geomUIContainer).addClass('attr-table-geometry-container');
 
     var geomUI = $(Handlebars.compile('<span>' +
-        '<span class="attr-table-geomtitle">{{i "Искать внутри полигона"}}</span>' +
+        '<span class="attr-table-geomtitle">{{i "Искать по пересечению с объектом"}}</span>' +
         '<span class="gmx-icon-choose"></span>' +
         '<span class="attr-table-geom-placeholder"></span>' +
     '</span>')());
@@ -73,7 +76,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
                     _this._geometryInfoRow = null;
                 });
             },
-            {geomType: 'POLYGON'}
+            {geomType: null}
         );
     });
 
@@ -140,8 +143,9 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    $(container).append(geomUIContainer);
+    $(container).append(middleContainer);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '7px 0px 3px 1px']]), cleanButton, this._queryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(middleContainer).append(geomUIContainer);
     $(container).append(buttonsContainer);
 };
 
@@ -152,6 +156,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     this.currentColumnName = "",
     this._container = container;
+
 
     /* HIDE BUTTON */
     var hideButtonContainer = document.createElement('div'),
@@ -171,6 +176,9 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         container.style.display = 'none';
         attributesTable.resizeFunc();
     };
+
+    var middleContainer = document.createElement('div');
+    $(middleContainer).addClass('attr-table-middle-container');
 
     /* SELECT COLUMN */
     var selectColumnContainer = document.createElement('div'),
@@ -317,10 +325,12 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     /*COMPILE*/
     $(container).append(hideButtonContainer);
-    $(container).append(selectColumnContainer);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    nsGmx.Utils._(container, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
-    $(container).append(statusBar);
+    $(container).append(middleContainer);
+    $(middleContainer).append(selectColumnContainer);
+    $(middleContainer).append(selectColumnContainer);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(middleContainer).append(statusBar);
     $(container).append(applyButtonContainer);
 }
 

@@ -615,6 +615,7 @@ _translationsHash.hash["eng"] = {
 	"Скрыть параметры поиска" : "Hide search params",
 	"Скрыть" : "Hide",
 	"Искать внутри полигона" : "Search inside polygon",
+	"Искать по пересечению с объектом" : "Search by geometry",
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Колонки" : "Columns",
 	"Показывать колонки" : "Show columns",

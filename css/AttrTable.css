@@ -154,13 +154,17 @@
 }
 
 .clean-search-buttons-container {
-    position: relative;
-    margin-top: 200px;
+    /* position: absolute; */
+    /* top: 200px; */
 }
 
 .apply-button-container {
-    position: relative;
-    margin-top: 162px;
+    /* position: absolute; */
+    /* top: 200px; */
+}
+
+.attr-table-middle-container {
+    height: 415px;
 }
 
 #attrsTableParent table {
