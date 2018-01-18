@@ -258,6 +258,13 @@ div.user span
 	top: 0px;
 	visibility: hidden;
 }
+#leftMenu
+{
+	position: absolute;
+	left: 0px;
+	width: 400px;
+	overflow: hidden;
+}
 .leftMenu
 {
 	position: absolute;

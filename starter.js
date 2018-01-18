@@ -845,7 +845,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
         window.layersShown = true;
 
-        window.resizeAll = function() {
+        window.resizeAll = function(sidebarWidth) {
             if (window.printMode) {
                 return;
             }
@@ -853,9 +853,19 @@ nsGmx.widgets = nsGmx.widgets || {};
             var top = 0,
                 bottom = 0,
                 right = 0,
-                left = window.exportMode ? 0 : (layersShown ? 360 : 12),
+                left,
                 headerHeight = $('#header').outerHeight(),
                 mainDiv = $('#flash')[0];
+
+            if (window.exportMode) {
+                left = 0;
+            } else {
+                if (sidebarWidth) {
+                    left = sidebarWidth;
+                } else {
+                    left = layersShown ? 400 : 40;
+                }
+            }
 
             mainDiv.style.left = left + 'px';
             mainDiv.style.top = top + 'px';
@@ -873,11 +883,11 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 $('#leftMenu')[0].style.height = baseHeight + 'px'
 
-                $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
-                $('#leftContent')[0].style.height = baseHeight -
-                    $('#leftPanelHeader')[0].offsetHeight -
-                    $('#leftPanelFooter')[0].offsetHeight -
-                    mapNameHeight + 'px';
+                // $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
+                // $('#leftContent')[0].style.height = baseHeight -
+                    // $('#leftPanelHeader')[0].offsetHeight -
+                    // $('#leftPanelFooter')[0].offsetHeight -
+                    // mapNameHeight + 'px';
             } else {
                 $('#leftMenu').hide();
             }
@@ -2067,9 +2077,74 @@ nsGmx.widgets = nsGmx.widgets || {};
                     LayersTreePermalinkParams = state.LayersTreePermalinkParams;
                 }
 
+                /**
+                 *
+                 * SIDEBAR
+                 *
+                 */
+
+                window.sidebarWidget = new nsGmx.SidebarWidget({
+                    container: document.getElementById('leftMenu'),
+                    collapsedWidth: 40,
+                    extendedWidth: 400,
+                    callback: window.resizeAll
+                });
+
+                window.createTabFunction = function(options) {
+                    return function(state) {
+                        var el = document.createElement("div"),
+                        tabEl = document.createElement("div"),
+                        href = '#' + options.icon.toLowerCase();
+
+                        el.classList.add("tab-icon");
+
+                        // el.className = 'leaflet-gmx-iconSvg';
+
+                        tabEl.innerHTML = '<svg role="img" class="svgIcon">\
+                        <use xlink:href="' + href + '" href="' + href + '"></use>\
+                        </svg>';
+
+                        el.appendChild(tabEl);
+
+                        options.hint && el.setAttribute("title", options.hint);
+                        tabEl.classList.add(options.icon);
+                        if (state === "active") {
+                            tabEl.classList.add(options.active);
+                            el.classList.add("tab-icon-active");
+                        } else {
+                            tabEl.classList.add(options.inactive);
+                        }
+                        return el;
+                    };
+                };
+
+                console.log(window.sidebarWidget);
+
+                var leftMainContainer = window.sidebarWidget.setPane(
+                    "layers-tree", {
+                        createTab: window.createTabFunction({
+                            icon: "s-tree",
+                            active: "uploadfile-uploadfile-sidebar",
+                            inactive: "uploadfile-uploadfile-sidebar",
+                            hint: "layers-tree"
+                        })
+                    }
+                );
+
+                 leftMainContainer.innerHTML = '<div class="leftMenu">' + '<div id="leftPanelHeader" class="leftPanelHeader"></div>' + '<div id="leftContent" class="leftContent">' + '<div id="leftContentInner" class="leftContentInner"></div>' + "</div>" + '<div id="leftPanelFooter" class="leftPanelFooter"></div>' + "</div>";
+
+
+                 /**
+                  *
+                  * SIDEBAR END
+                  *
+                  */
+
+
                 _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
-                var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
+                // переписать на вкладку с деревом
+                var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>')/*.prependTo($('#leftMenu'))*/;
 
                 // special for steppe Project
                 if (data.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
@@ -2142,16 +2217,16 @@ nsGmx.widgets = nsGmx.widgets || {};
                 _mapHelper.gridView = false;
 
                 var updateLeftPanelVis = function() {
-                    $('.leftCollapser-icon')
-                        .toggleClass('leftCollapser-right', !layersShown)
-                        .toggleClass('leftCollapser-left', !!layersShown);
+                    // $('.leftCollapser-icon')
+                    //     .toggleClass('leftCollapser-right', !layersShown)
+                    //     .toggleClass('leftCollapser-left', !!layersShown);
                     resizeAll();
                 }
 
-                $('#leftCollapser').click(function() {
-                    layersShown = !layersShown;
-                    updateLeftPanelVis();
-                });
+                // $('#leftCollapser').click(function() {
+                //     layersShown = !layersShown;
+                //     updateLeftPanelVis();
+                // });
                 updateLeftPanelVis();
 
                 createToolbar();
@@ -2268,7 +2343,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     });
                 }
 
-                $('#leftContent').mCustomScrollbar();
+                // $('#leftContent').mCustomScrollbar();
 
                 // экспорт карты
 
