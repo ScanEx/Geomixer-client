@@ -262,14 +262,14 @@ div.user span
 {
 	position: absolute;
 	left: 0px;
-	width: 400px;
+	/* width: 400px; */
 	overflow: hidden;
 }
 .leftMenu
 {
-	position: absolute;
+	/* position: absolute; */
 	left: 0px;
-	top: 60px;
+	/* top: 60px; */
 	width: 360px;
 	overflow: hidden;
 }
@@ -292,7 +292,8 @@ div.user span
 
 .leftContent
 {
-	width: 100%;
+	/* width: 100%; */
+	width: 360px;
 	overflow-x: hidden;
 	overflow-y: auto;
     position: absolute;

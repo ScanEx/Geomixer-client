@@ -18,12 +18,63 @@ var SidebarWidget = function (params) {
 
     this._container.appendChild(this._mainContainer);
 
-    this._collapsedWidth = params.collapsedWidth;
-    this._extendedWidth = params.extendedWidth;
+    this._collapsedWidth = params.collapsedWidth || 40;
+    this._extendedWidth = params.extendedWidth || 400;
 
+    /* sidebar events
+     * ev.opening
+     * ev.opened { <String>id }
+     * ev.closing
+     * ev.closed
+     */
+    this.listeners = {
+        "opening": [],
+        "opened": [],
+        "closing": [],
+        "closed": []
+    };
+    this.opening = document.createEvent('Event');
+    this.opening.initEvent('sidebar:opening', true, true);
+    this.opened = document.createEvent('Event');
+    this.opened.initEvent('sidebar:opened', true, true);
+    this.closing = document.createEvent('Event');
+    this.closing.initEvent('sidebar:closing', true, true);
+    this.closed = document.createEvent('Event');
+    this.closed.initEvent('sidebar:closed', true, true);
 };
 
 SidebarWidget.prototype = {
+    on: function (type, callback) {
+        if(!(type in this.listeners)) {
+            this.listeners[type] = [];
+        }
+        this.listeners[type].push(callback);
+    },
+
+    off: function (type, callback) {
+        if(!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        for(var i = 0, l = stack.length; i < l; i++) {
+            if(stack[i] === callback){
+                stack.splice(i, 1);
+                return this.removeEventListener(type, callback);
+            }
+        }
+    },
+
+    fire: function (type, options) {
+        if(!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        // event.target = this;
+        for(var i = 0, l = stack.length; i < l; i++) {
+            stack[i].call(this, options);
+        }
+    },
+
     setPane: function (id, paneOptions) {
         var paneOptions = paneOptions || {};
         var createTab = paneOptions.createTab;
@@ -45,20 +96,12 @@ SidebarWidget.prototype = {
 
     },
 
-    close: function () {
-
-    },
-
-    getActiveTabId: function () {
-
-    },
-
-    isOpened: function () {
-
-    },
-
-    fire: function (type, options) {
-        return new Event(type, options);
+    getWidth: function () {
+        if (this._isOpened) {
+            return this._extendedWidth;
+        } else {
+            return this._collapsedWidth;
+        }
     },
 
     open: function(paneId) {
@@ -90,13 +133,13 @@ SidebarWidget.prototype = {
         setTimeout(function() {
             this.fire('opened', { id: this._activeTabId });
             this._isAnimating = false;
+            this._callback(this._extendedWidth);
         }.bind(this), 250);
 
-        this._callback(this._extendedWidth);
     },
 
     _setTabActive: function (paneId, flag) {
-        var tabs = this._tabsContainer.querySelectorAll('.iconSidebarControl-tab');
+        var tabs = this._tabsContainer.querySelectorAll('.gmx-sidebar-tab');
         for (var i = 0; i < tabs.length; ++i) {
             var id = tabs[i].getAttribute('data-tab-id');
             var tab = tabs[i].querySelector('.tab-icon');
@@ -107,7 +150,6 @@ SidebarWidget.prototype = {
                 else {
                     L.DomUtil.removeClass(tab, 'tab-icon-active');
                 }
-
             } else {
                 L.DomUtil.removeClass(tab, 'tab-icon-active');
             }
@@ -132,9 +174,9 @@ SidebarWidget.prototype = {
             this._isAnimating = false;
             this._setActiveClass('');
             this._activeTabId = null;
+            this._callback(this._collapsedWidth);
         }.bind(this), 250);
 
-        this._callback(this._collapsedWidth);
     },
 
     _setActiveClass: function(activeId) {
@@ -143,9 +185,9 @@ SidebarWidget.prototype = {
             id = this._panesContainer.children[i].getAttribute('data-pane-id');
             var pane = this._panesContainer.querySelector('[data-pane-id=' + id + ']');
             if (id === activeId) {
-                L.DomUtil.addClass(pane, 'iconSidebarControl-pane-active');
+                L.DomUtil.addClass(pane, 'gmx-sidebar-pane-active');
             } else {
-                L.DomUtil.removeClass(pane, 'iconSidebarControl-pane-active');
+                L.DomUtil.removeClass(pane, 'gmx-sidebar-pane-active');
             }
         }
     },
@@ -168,7 +210,7 @@ SidebarWidget.prototype = {
             }
         }
 
-        let paneEl = L.DomUtil.create('div', 'iconSidebarControl-pane');
+        let paneEl = L.DomUtil.create('div', 'gmx-sidebar-pane');
         paneEl.setAttribute('data-pane-id', id);
         this._panesContainer.appendChild(paneEl);
 

@@ -47,6 +47,16 @@
   pointer-events: none;
 }
 
+.gmx-sidebar-pane {
+  display: none;
+  right: 0;
+  box-sizing: border-box;
+  height: 100%;
+  /* padding: 5px; */
+}
+
+.gmx-sidebar-pane.gmx-sidebar-pane-active { display: block;  }
+
 #s-tree {
   fill: #bfccd6;
 }

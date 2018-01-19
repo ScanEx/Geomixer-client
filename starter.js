@@ -845,7 +845,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
         window.layersShown = true;
 
-        window.resizeAll = function(sidebarWidth) {
+        window.resizeAll = function() {
             if (window.printMode) {
                 return;
             }
@@ -860,13 +860,12 @@ nsGmx.widgets = nsGmx.widgets || {};
             if (window.exportMode) {
                 left = 0;
             } else {
-                if (sidebarWidth) {
-                    left = sidebarWidth;
+                if (window.sidebarWidget)  {
+                    left = window.sidebarWidget.getWidth();
                 } else {
                     left = layersShown ? 400 : 40;
                 }
             }
-
             mainDiv.style.left = left + 'px';
             mainDiv.style.top = top + 'px';
             mainDiv.style.width = getWindowWidth() - left - right + 'px';
@@ -885,9 +884,9 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
                 // $('#leftContent')[0].style.height = baseHeight -
-                    // $('#leftPanelHeader')[0].offsetHeight -
-                    // $('#leftPanelFooter')[0].offsetHeight -
-                    // mapNameHeight + 'px';
+                //     $('#leftPanelHeader')[0].offsetHeight -
+                //     $('#leftPanelFooter')[0].offsetHeight -
+                //     mapNameHeight + 'px';
             } else {
                 $('#leftMenu').hide();
             }
@@ -2118,7 +2117,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                     };
                 };
 
-                console.log(window.sidebarWidget);
 
                 var leftMainContainer = window.sidebarWidget.setPane(
                     "layers-tree", {
@@ -2131,8 +2129,58 @@ nsGmx.widgets = nsGmx.widgets || {};
                     }
                 );
 
-                 leftMainContainer.innerHTML = '<div class="leftMenu">' + '<div id="leftPanelHeader" class="leftPanelHeader"></div>' + '<div id="leftContent" class="leftContent">' + '<div id="leftContentInner" class="leftContentInner"></div>' + "</div>" + '<div id="leftPanelFooter" class="leftPanelFooter"></div>' + "</div>";
+                 leftMainContainer.innerHTML =
+                    '<div class="leftMenu">' +
+                        '<div class="mainmap-title">' + data.properties.title + '</div>' +
+                        '<div id="leftPanelHeader" class="leftPanelHeader"></div>' +
+                        '<div id="leftContent" class="leftContent">' +
+                            '<div id="leftContentInner" class="leftContentInner"></div>' +
+                        '</div>' +
+                        '<div id="leftPanelFooter" class="leftPanelFooter"></div>' +
+                    '</div>';
 
+                 window.sidebarWidget.open("layers-tree");
+
+                 function handleSidebarResize(e) {
+                     var sidebarWidth = window.sidebarWidget.getWidth(),
+                        lmap = nsGmx.leafletMap,
+                        newBottomLeft,
+                        newBounds;
+                        var c = lmap.getContainer();
+
+                    var pBounds = lmap.getPixelBounds(),
+                        bl = pBounds.getBottomLeft(),
+                        tr = pBounds.getTopRight(),
+                        blll = L.latLng(lmap.unproject(bl)),
+                        trll = L.latLng(lmap.unproject(tr));
+
+                    if (e.type === 'sidebar:opened') {
+                        newBottomLeft = L.point(bl.x + sidebarWidth, bl.y);
+                    } else {
+                        newBottomLeft = L.point(bl.x - sidebarWidth, bl.y);
+
+                    }
+                    newBounds = L.latLngBounds(L.latLng(lmap.unproject(newBottomLeft)), trll);
+
+                    // console.log(newBounds);
+
+                    // lmap.fitBounds(newBounds);
+                    // lmap.panTo(newBounds.getCenter());
+
+                    L.marker(newBounds.getCenter()).addTo(lmap);
+
+                 }
+
+                 document.addEventListener('sidebar:opened', function (e) {
+                     handleSidebarResize(e);
+                 }, false);
+                 document.addEventListener('sidebar:closed', function (e) {
+                     handleSidebarResize(e);
+                 }, false);
+
+                 window.sidebarWidget.on('opened', function (e) {
+                     handleSidebarResize(e);
+                 }, false);
 
                  /**
                   *
@@ -2144,7 +2192,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
                 // переписать на вкладку с деревом
-                var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>')/*.prependTo($('#leftMenu'))*/;
+                var headerDiv = $('.mainmap-title');
 
                 // special for steppe Project
                 if (data.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
