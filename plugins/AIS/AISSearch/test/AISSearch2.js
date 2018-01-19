@@ -44,10 +44,12 @@
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
-	var NOSIDEBAR = false;
+	var NOSIDEBAR = false,
+	    PRODUCTION = false;
 	if (true) NOSIDEBAR = true;
+	if (false) PRODUCTION = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -118,7 +120,10 @@
 	});
 	
 	var pluginName = 'AISSearch2',
-	    toolbarIconId = 'AISSearch2',
+	    cssTable = pluginName;
+	if (!PRODUCTION) pluginName += 'Test';
+	
+	var toolbarIconId = 'AISSearch2',
 	    modulePath = gmxCore.getModulePath(pluginName),
 	    scheme = document.location.href.replace(/^(https?:).+/, "$1"),
 	    baseUrl = window.serverBase || scheme + '//maps.kosmosnimki.ru/',
@@ -454,7 +459,7 @@
 	}
 	
 	gmxCore.addModule(pluginName, publicInterface, {
-	    css: pluginName + '.css'
+	    css: cssTable + '.css'
 	});
 
 /***/ }),
