@@ -4,13 +4,13 @@ var gmxJSHost = window.gmxJSHost || "";
 var gmxAPIJSlist = [];
 var gmxAPICSSlist = [];
 
-if (!window.mapsSite) {
+if (!window.gmxVersion) {
     window.gmxVersion = {
     	"jsPath": {
-    		"dist/geomixer-src.js": 1
+    		"dist/geomixer/geomixer-src.js": 1
     	},
     	"cssPath": {
-    		"dist/geomixer.css": 1
+    		"dist/geomixer/geomixer.css": 1
     	}
     };
 }
