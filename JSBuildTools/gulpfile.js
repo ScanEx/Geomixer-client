@@ -113,7 +113,7 @@ var createLoader = function(params, cb) {
     console.log('GUID:', buildUUID);
 
     fs.mkdir(root + 'dist/', function() {
-        fs.writeFileSync(root + 'dist/geomixer.js', loaderTemplate({
+        fs.writeFileSync(root + 'dist/ViewerLoader.js', loaderTemplate({
             buildUUID: buildUUID,
             thirdpartyList: JSON.stringify(params.thirdpartyList),
             jsToLoad:       JSON.stringify(params.jsToLoad),
