@@ -2,7 +2,7 @@
 // AIS LAYERS SEARCHER
 //************************************
 
-module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLayer, aisLayerID}){
+module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLayer, aisLayerID, historyLayer}){
 	return {
         _serverScript: baseUrl + 'VectorLayer/Search.ashx',
 		
@@ -17,6 +17,9 @@ module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLa
 		},
 		get aisLayerID(){
 			return aisLayerID
+		},
+		set historyLayer(value){
+			historyLayer = value
 		},			
 		
         getBorder :function () {
@@ -86,6 +89,17 @@ module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLa
 				//"<span class='small'>("+ldd+"."+lm+"."+ly+" "+lh+":"+lmm+" UTC"+(offset>0?"+":"")+offset+")</span>";
             }
         }, 
+        searchPositions: function(vessels, dateInterval, callback){
+//console.log("searchById");
+            var request =  {
+                            WrapStyle: 'window',
+                            layer: historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
+                            //orderdirection: 'desc',
+                            //orderby: 'ts_pos_utc',
+                            query: "([mmsi] IN ("+vessels.join(',')+")) and '"+dateInterval.dateBegin.toISOString()+"'<=[ts_pos_utc] and [ts_pos_utc]<'"+dateInterval.dateEnd.toISOString()+"'"
+            };
+            L.gmxUtil.sendCrossDomainPostRequest(this._serverScript, request, callback);
+        },
         searchById: function(aid, callback){
 //console.log("searchById");
             var request =  {
@@ -123,7 +137,7 @@ module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLa
             if (isfuzzy)
                 request.pagesize = 1000;
             L.gmxUtil.sendCrossDomainPostRequest(this._serverScript, request, callback);
-        },      
+        },            
         searchNames: function(avessels, callback){
             var request =  {
                             WrapStyle: 'window',
@@ -153,19 +167,6 @@ module.exports = function({baseUrl,  aisServiceUrl, aisLastPoint, screenSearchLa
             L.gmxUtil.sendCrossDomainPostRequest(aisServiceUrl + "SearchScreen.ashx", 
             {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y, layer:screenSearchLayer}, 
             callback);
-        },
-		searchByCoords(x, y){
-			//VectorLayer/Search.ashx?layer=2AA3504D346343A1A5505BDC75D96EC2&pagesize=1&query=longitude>=129.052004 and  longitude<=129.052006 and latitude>=35.01017333332 and latitude<=35.01017333334
-            var x = x.toString(),
-			y = y.toString()
-			var request =  {
-                            WrapStyle: 'window',
-                            layer: aisLayer,
-                            query: "longitude>="+x.replace(/(\d)$/, parseInt(x.slice(-1))-1)+" and  longitude<="+x.replace(/(\d)$/, parseInt(x.slice(-1))+1)+
-							" and latitude>="+y.replace(/(\d)$/, parseInt(y.slice(-1))-1)+" and latitude<="+y.replace(/(\d)$/, parseInt(y.slice(-1))+1)
-            };
-console.log(request)
-            //L.gmxUtil.sendCrossDomainPostRequest(this._serverScript, request, callback);			
-		}
+        }
     };  
 }

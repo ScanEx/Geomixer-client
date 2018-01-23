@@ -9,6 +9,9 @@ module.exports = function({aisView, aisScreenSearchModel, aisDbSearchModel, high
         '<table border=0><tr><td><span class="position">{{vessel_name}}</span>'+
         '{{#if ts_pos_utc}} <span class="date">({{{ts_pos_utc}}})</span>{{/if}}'+
         '</td><td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>'+
+		
+        //'<td><div class="history" title=""> H </td>'+	// HISTORY
+		
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
         '<div></td></tr></table>' +
@@ -19,10 +22,10 @@ module.exports = function({aisView, aisScreenSearchModel, aisDbSearchModel, high
         _repaintControls: function(){
             $(this._count).text(_gtxt('AISSearch2.found')+this._model.getCount());
         },
-        _doClean: function(){
+        doClean: function(){
             $(this._count).text(_gtxt('AISSearch2.found')+0);
         },
-        _bindControlEvents: function(){
+        bindControlEvents: function(){
                 var _this = this;
                 $('select', this._canvas).change(function(e){
                     var models = [aisScreenSearchModel, aisDbSearchModel];
@@ -54,7 +57,8 @@ module.exports = function({aisView, aisScreenSearchModel, aisDbSearchModel, high
 					nsGmx.leafletMap.removeLayer(highlight);
                 })
         },
-		setModel: function(searchType){this._model = searchType=='screen' ? aisScreenSearchModel : aisDbSearchModel}
+		setModel: function(searchType){this._model = searchType=='screen' ? aisScreenSearchModel : aisDbSearchModel},
+		setDirty: function(){ aisScreenSearchModel.setDirty(); }
     }, aisView);
 	aisDbSearchModel.view = instance;
 	aisScreenSearchModel.view = instance;

@@ -6,9 +6,11 @@ module.exports = function({baseUrl, myFleetLayers, aisLayerSearcher, myFleetMemb
 	return {		
 		set view(value){ myFleetMembersView = value },	
 		set mapLayers(value){ myFleetLayers = value },
-		get mapLayers(){ return myFleetLayers },
+		//get mapLayers(){ return myFleetLayers },
 		
 		findIndex: function(vessel){
+			if (!this.data)
+				return -1;
 			return polyFindIndex(this.data.vessels, function(v){
                 return v.mmsi==vessel.mmsi && v.imo==vessel.imo;
             })
@@ -67,7 +69,7 @@ module.exports = function({baseUrl, myFleetLayers, aisLayerSearcher, myFleetMemb
             .then(function() { 
 //console.log(_this.layers)                                    
                             if (_this.layers.length>0){
-                                var layer = polyFind(_this.layers, function(l){return l.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15' && l.filter!="(1=0)";})// NOT TRACKS
+                                var layer = polyFind(_this.layers, function(l){return l.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15' && l.filter!="([mmsi]=-1000)";})// NOT TRACKS
 //console.log(layer)      
                                 if (!layer)
                                     return Promise.resolve({Status:"ok", Result:{values:[]}});
@@ -158,7 +160,7 @@ module.exports = function({baseUrl, myFleetLayers, aisLayerSearcher, myFleetMemb
             var _this = this;
             this.layers.forEach(function(layer){
                 layer.filter = _this.data.vessels.length==0?
-                "(1=0)":
+                "([mmsi]=-1000)":
                 _this.data.vessels.map(function(v){
                     return layer.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15'? // IS TRACKS
                     "([mmsi]="+v.mmsi+" and [imo]="+v.imo+")":
@@ -189,10 +191,12 @@ module.exports = function({baseUrl, myFleetLayers, aisLayerSearcher, myFleetMemb
                 */
                 var today = new Date(new Date()-3600*24*7*1000);
                 today = today.getFullYear()+"-"+("0"+(today.getMonth()+1)).slice(-2)+"-"+("0"+today.getDate()).slice(-2);
-                if (layer.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15')
-                    layer.filter = "("+layer.filter+") and [ts_pos_utc]>='"+ today +"'";
-                else
-                    layer.filter = "("+layer.filter+") and [Date]>='"+ today +"'";
+				if (layer.filter!="([mmsi]=-1000)"){
+					if (layer.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15')
+						layer.filter = "("+layer.filter+") and [ts_pos_utc]>='"+ today +"'";
+					else
+						layer.filter = "("+layer.filter+") and [Date]>='"+ today +"'";
+				}
 //console.log(layer.filter)
             });
             return Promise.all(this.layers.map(function(l){

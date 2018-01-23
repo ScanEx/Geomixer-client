@@ -2,16 +2,27 @@
 *                      *
 ************************/
 .ais_myfleet_dialog {
-  color:#5a707e;
+  color:#394b59;
   background-color:#f5f8fa
 }
 .ais_myfleet_dialog .vessel_prop {
   margin-bottom: 5px;
   line-height: 18px;
+  font-size: 13px;
+  width:140px;
+}
+.ais_myfleet_dialog .vessel_prop.value {
+  margin-left:0;
+  font-weight:bold;
+  width:100%;
 }
 .ais_myfleet_dialog .vessel_prop.vname{
   margin-bottom: 0;
   line-height: 10px;
+  width:100%;
+}
+.ais_myfleet_dialog .vessel_prop.altvname{
+  width:100%;
 }
 .ais_myfleet_dialog .vessel_prop .small{
   font-size: 11px;
@@ -126,31 +137,44 @@
 	padding:0 20px 0 20px;	
 	width: 180px;	
 	font-size:12px;
-	font-weight:normal
+	font-weight:normal;
 }
 .ais_info_dialog_titlebar td div.date span{
-	font-size:11px;
-	font-weight:normal
+	font-size:12px;
+	font-weight:normal;
+	cursor: text;
 }
 .ais_info_dialog_titlebar td div.date span.utc{
 	font-weight:bold;
 	font-size:12px;
 }
-.ais_info_dialog_titlebar td div.switch{
+.ais_info_dialog_titlebar td div.choose{
 	padding-top:15px;
 	padding-bottom:11px;
 	border-bottom:solid 4px #ecf1f5;
 	width:170px;
 	text-align:center;
-	font-size:11px;
+	font-size:12px;
 	font-weight:bold;
 	margin:0;
-	cursor:pointer
 }
-/*.ais_info_dialog_titlebar td div.switch:hover,*/
-.ais_info_dialog_titlebar td div.switch.on{
+
+.ais_info_dialog_titlebar td span.chooser{
+	cursor:pointer	
+}
+
+/*.ais_info_dialog_titlebar td div.choose:hover,*/
+.ais_info_dialog_titlebar td div.choose.done{
 	color: #48aff1;
 	border-bottom:solid 4px #48aff1;
+}
+
+.chooser{
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 .ais_info_dialog_titlebar td:nth-of-type(4){

@@ -37,10 +37,13 @@ let addUnit = function(v, u){
 		return dms.deg+"°"+dms.min+"'"+dms.sec+"\" "+dms.dir
 	}
 
-module.exports = function({vessel, closeFunc, aisLayerSearcher, getmore, scheme, modulePath, gifLoader,
+module.exports = function({vessel, closeFunc, aisLayerSearcher, getmore, scheme, modulePath,
 aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 
-	formatDate = aisLayerSearcher.formatDate
+	formatDate = aisLayerSearcher.formatDate				
+				
+	let myFleetMembersModel = myFleetMembersView.model,
+		add = myFleetMembersModel && myFleetMembersModel.findIndex(vessel)<0
 	
     let canvas = $('<div class="ais_myfleet_dialog"/>'),
         menu = $('<div class="column1 menu"></div>').appendTo(canvas),
@@ -49,7 +52,8 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
         content = Handlebars.compile(
                     '<div class="column2 content">'+
                     '</div>') (vessel),
-		buttons = $('<div class="column3 buttons"></div>')
+		buttons = $('<div class="column3 buttons"></div>'),		
+		gifLoader = '<img src="img/progress.gif">'
                     //console.log(content);
 	
     canvas.append(content).append(buttons)
@@ -65,25 +69,29 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 							'</g>'+
 						'</svg>',
 						vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>'+smallShipIcon+'</div>'+
-						'<div class="vessel_prop"><b>'+(vessel2.registry_name && vessel2.registry_name!=vessel2.vessel_name ? vessel2.registry_name:'')+'&nbsp;</b></div>'
+						'<div class="vessel_prop altvname"><b>'+(vessel2.registry_name && vessel2.registry_name!=vessel2.vessel_name ? vessel2.registry_name:'')+'&nbsp;</b></div>'
 						
                         $('.content', canvas).append(Handlebars.compile(
 						'<div class="vessel_props1">'+vesselPropTempl+
-                        '<div class="vessel_prop">Тип судна: <b>{{vessel_type}}</b></div>'+
-                        '<div class="vessel_prop">Флаг: <b>{{flag_country}}</b></div>'+
-                        '<div class="vessel_prop">IMO: <b>{{imo}}</b></div>'+
-                        '<div class="vessel_prop">MMSI: <b>{{mmsi}}</b></div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.source"}}: <b>{{source}}</b></div>'+
+						'<table>'+
+                        '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value">{{mmsi}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>'+
+						'</table>'+
 						'</div>'
                         )(v));
 						
                         $('.content', canvas).append(Handlebars.compile(	
-						'<div class="vessel_props2">'+vesselPropTempl+					
-                        '<div class="vessel_prop">COG | SOG: <b>{{cog}} | {{sog}}</b></div>'+
-                        '<div class="vessel_prop">HDG | ROT: <b>{{heading}} | {{rot}}</b></div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.draught"}}: <b>{{draught}}</b></div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.destination"}}: <b>{{destination}}</b></div>'+
-                        '<div class="vessel_prop">{{i "AISSearch2.nav_status"}}: <b>{{nav_status}}</b></div>'+
+						'<div class="vessel_props2">'+vesselPropTempl+	
+						'<table>'+				
+                        '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>'+
+                        '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>'+
+						'</table>'+
 						'</div>'
                         )(v));
 						
@@ -104,7 +112,11 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 						})
 						
 						$('.vessel_props2', canvas).hide()
-    }              
+						$('.vessel_prop.vname svg', canvas).css('visibility', add?'hidden':'visible')
+						
+    }
+
+	$(dialog).dialog({resizable: false}); 	
     
 	if (!getmore){
         vessel2 = $.extend({}, vessel);
@@ -112,17 +124,20 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
     }
     else
         aisLayerSearcher.searchNames([{mmsi:vessel.mmsi,imo:vessel.imo}], function(response){
-                        if (parseResponse(response)){                    
+                      if (parseResponse(response)){                    
                             vessel2 = {};
 							for (var i=0; i<response.Result.fields.length; ++i)
 								vessel2[response.Result.fields[i]] = response.Result.values[0][i];
-//console.log(vessel2.registry_name)
                             moreInfo(formatVessel(vessel2));
+							//if (!vessel.hasOwnProperty('ts_pos_utc'))
+							$('.date span', titlebar).html(vessel2.ts_pos_utc)
+							if (typeof(getmore)=="function")
+								getmore(vessel2)
                         }
 						else
 							console.log(response)
         })
-	
+
 	// IMAGE
     $('<img src="'+scheme+'//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi='+vessel.mmsi+'">').load(function() {
         if (this)
@@ -187,21 +202,16 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 						.addClass('ais active');      
 					}
 	//}
-				
-				
-	let myFleetMembersModel = myFleetMembersView.model,
-		addremoveIcon = function(add){
+
+	let	addremoveIcon = function(add){
 					return ( add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>'					
 :'<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>' )
-		}
-        if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels){
-                    let add = myFleetMembersModel.findIndex(vessel)<0,
-                    addremove = $('<div class="button addremove">'+
-					addremoveIcon(add) +
-					'</div>')
+	}
+    if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels){
+                    let addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
 						//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
 						.attr('title', add?'добавить в мой флот':'удалить из моего флота')
-						.appendTo(menubuttons);
+						.appendTo(menubuttons)
                     if (myFleetMembersModel.filterUpdating)
                         addremove.addClass('disabled');
                     addremove.on('click', function(){
@@ -215,7 +225,8 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
                         myFleetMembersModel.changeFilter(vessel).then(function(){  
                             add = myFleetMembersModel.findIndex(vessel)<0;
                             var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
-                            info.css('display', !add?'inline':'none'); 
+                            info.css('display', !add?'inline':'none'); 	
+							$('.vessel_prop.vname svg', canvas).css('visibility', add?'hidden':'visible')
                             
                             addremove.attr('title', add?'добавить в мой флот':'удалить из моего флота')
 							.html(addremoveIcon(add))
@@ -224,11 +235,11 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
                             progress.text('');               
                             $('.addremove').removeClass('disabled').show()
 							
-                            if (aisPluginPanel.getActiveView()==myFleetMembersView)
+                            if (aisPluginPanel.activeView==myFleetMembersView)
                                 myFleetMembersView.show();
                         });
                     }); 
-        }
+    }
 				
     let progress = $('<div class="progress"></div>')
     .appendTo(menubuttons); 
@@ -237,17 +248,21 @@ aisView, displaingTrack, myFleetMembersView, aisPluginPanel }, commands){
 	canvas.parent('div').css({'margin':'0', 'overflow':'hidden'})	
 	let titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding','0')
 		.html('<table class="ais_info_dialog_titlebar">'+
-		'<tr><td><div class="date"><span>Последний сигнал:</span>'+
-		Handlebars.compile('<br>{{{ts_pos_utc}}}')(vessel2?vessel2:vessel)
-		+'</div></td>'+
-		'<td><div class="switch on">Информация о судне</div></td>'+
-		'<td><div class="switch">Сведения о движении</div></td>'+
+		'<tr><td><div class="date"><span>'+
+		Handlebars.compile('{{{ts_pos_utc}}}')(vessel2?vessel2:vessel)
+		+'</span></div></td>'+
+		'<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>'+
+		'<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>'+
 		'<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>'+
-		'</table>')
+		'</table>'),
+		onDone = function(e){e.stopPropagation(); $('.choose', titlebar).removeClass('done'); $(e.currentTarget).parent().addClass('done');}
 		
 	$('.ais_info_dialog_close-button', titlebar).on('click', ()=>$( dialog ).dialog( "close" ))	
-	$('.switch', titlebar).eq(0).on('click', (e)=>{$('.switch', titlebar).removeClass('on'); $(e.currentTarget).addClass('on'); $('.vessel_props1', canvas).show(); $('.vessel_props2', canvas).hide()})
-	$('.switch', titlebar).eq(1).on('click', (e)=>{$('.switch', titlebar).removeClass('on'); $(e.currentTarget).addClass('on'); $('.vessel_props2', canvas).show(); $('.vessel_props1', canvas).hide()})
+	$('.chooser', titlebar).eq(0).on('mousedown', (e)=>{onDone(e); $('.vessel_props1', canvas).show(); $('.vessel_props2', canvas).hide()})
+	$('.chooser', titlebar).eq(1).on('mousedown', (e)=>{onDone(e); $('.vessel_props2', canvas).show(); $('.vessel_props1', canvas).hide()})
+	$('.date span', titlebar).on('mousedown', (e)=>{e.stopPropagation();})
+	
+	//$( dialog ).on( "dialogdragstart", function( e, ui ) {console.log(e);console.log(ui)} );
 		
 	return dialog
 }

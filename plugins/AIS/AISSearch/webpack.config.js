@@ -1,8 +1,15 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const path = require('path')
-//var webpack = require('webpack');
+const HasJsPlugin = require('./webpack-hasjs-plugin.js');
 
 const extractCSS = new ExtractTextPlugin('AISSearch2.css')
+const hasJs = new HasJsPlugin({
+            features: {
+                NOSIDEBAR: false,
+                SIDEBAR2: true,
+				PRODUCTION: false
+            }
+        })
 
 module.exports = {
     entry: './src/entry.js',
@@ -18,7 +25,8 @@ module.exports = {
         ]
     },
     plugins: [
-        extractCSS
+        extractCSS,
+		hasJs
     ],
     devtool: 'source-map'
 }

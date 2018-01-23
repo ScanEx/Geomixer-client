@@ -1,0 +1,27 @@
+
+.ui-datepicker{
+	width:200px
+}
+.history_view .ais_vessel .voyage_info{
+	margin-left:5px;
+	display:none;
+}
+.history_view .ais_vessel .show_voyage_info{
+	font-weight:bold;
+	cursor: pointer;
+}
+.history_view .ais_vessel .voyage_info table td{
+	font-size:11px;	
+}
+.history_view .ais_vessel .voyage_info table td:nth-of-type(1){
+	width:30%;	
+}
+.history_view .caption{
+	line-height:35px;
+	font-size:13px;
+	font-weight:bold;
+	width:300px;
+}
+.history_view .instruments{
+	margin-bottom:0;
+}

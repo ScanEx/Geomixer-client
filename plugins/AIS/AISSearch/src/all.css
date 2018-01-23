@@ -11,7 +11,6 @@
 }
 
 .ais_tab{
-  width: 50%;
   text-align: center;
   padding:10px;
   padding-top:11px;
@@ -94,7 +93,7 @@
   padding-left: 6px;
   font-size:11px;
   position: relative;
-  top: -18px;
+  top: -19px;
   width: 120px;
 }
 
@@ -179,11 +178,17 @@
   height:16px;
   background: url(http://kosmosnimki.ru/demo/maritime/beta/dist/dc60303ff84f3f0b6bf35c7072aab53d.svg) 0 0 no-repeat
 }
+.ais_view .ais_vessel div.history{
+  width: 20px;
+  text-align:center;
+  cursor:pointer;
+}
 .ais_view .ais_vessels .msg{
   text-align: center;
   font-weight:bold;
 }
-.ais_view .ais_vessels .date{
+.ais_view .ais_vessels .date, 
+.ais_view .ais_vessels .date .utc {
   font-size:10px;
   color: #CCC
 }
@@ -521,11 +526,7 @@
         .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
             width:10px;
         }
-
-.ais_highlight-icon {
-	pointer-events: none;
-}
-
+			
 .VesselSearchTool:hover{
 	background-color: #eee;
 }	
@@ -542,5 +543,16 @@
 	margin-top: 6px;
 	margin-right: 10px;
 	margin-left: 8px;
+}
+
+.ais_highlight-icon {
+	pointer-events: none;
+}
+
+.ais_sidebar-icon-active{
+	fill:white;
+}
+.ais_sidebar-icon{
+	fill:#999;
 }
 

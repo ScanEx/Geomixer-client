@@ -7,6 +7,9 @@ module.exports = function({aisView, myFleetMembersModel}){
         _tableTemplate: '{{#each vessels}}' +
         '<div class="ais_vessel">' +
         '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{{ts_pos_utc}}})</span></td>'+
+				
+        //'<td><div class="history" title=""> H </td>'+	// HISTORY
+
         '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">'+
         //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
         '</div></td></tr></table>' +

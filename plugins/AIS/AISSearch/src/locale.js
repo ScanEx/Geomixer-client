@@ -40,7 +40,9 @@
 		'AISSearch2.sais': 'спутниковый AIS',
 		'AISSearch2.tais': 'береговой AIS',
 		'AISSearch2.lon': 'Долгота',
-		'AISSearch2.lat': 'Широта'
+		'AISSearch2.lat': 'Широта',
+		'AISSearch2.historyTab': 'История',
+		'AISSearch2.voyageInfo': 'Параметры движения'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -83,5 +85,7 @@
 		'AISSearch2.sais': 'S-AIS',
 		'AISSearch2.tais': 'T-AIS',
 		'AISSearch2.lon': 'Longitude',
-		'AISSearch2.lat': 'Latitude'
+		'AISSearch2.lat': 'Latitude',
+		'AISSearch2.historyTab': 'History',
+		'AISSearch2.voyageInfo': 'Voyage info'
     });
