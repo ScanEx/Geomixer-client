@@ -40911,4 +40911,4 @@ nsGmx.widgets = nsGmx.widgets || {};
 })();
 
 window.nsGmx = window.nsGmx || {};
-window.nsGmx.GeomixerFrameworkVersion = '3.3.0';
+window.nsGmx.GeomixerFrameworkVersion = '3.3.1';
