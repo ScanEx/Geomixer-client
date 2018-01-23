@@ -100,7 +100,9 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             restoreOptions: function(options) {
                 this.gridControl.setUnits(options.units);
-                this.gridControl.setStep(options.customStep.x, options.customStep.y);
+                if (options.customStep) {
+                    this.gridControl.setStep(options.customStep.x, options.customStep.y);
+                }
                 this.gridControl.setColor(options.color);
                 this.gridControl.setTitleFormat(options.titleFormat);
             },

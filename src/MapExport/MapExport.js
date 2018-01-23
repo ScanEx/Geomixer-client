@@ -1004,13 +1004,13 @@ var nsGmx = window.nsGmx || {};
                 w = Math.abs(dimensions.width);
                 h = Math.abs(dimensions.height);
 
-                if (w > MAX_SIZE) {
+                if (w - MAX_SIZE > EPS) {
                     this.model.set('widthSizeErr', true)
                 } else {
                     this.model.set('widthSizeErr', false)
                 }
 
-                if (h > MAX_SIZE) {
+                if (h - MAX_SIZE > EPS) {
                     this.model.set('heightSizeErr', true)
                 } else {
                     this.model.set('heightSizeErr', false)
@@ -1060,13 +1060,13 @@ var nsGmx = window.nsGmx || {};
                     this.model.set('coords', initialCoords)
                 }
 
-                if (w > MAX_SIZE) {
+                if (w - MAX_SIZE > EPS) {
                     this.model.set('widthSizeErr', true)
                 } else {
                     this.model.set('widthSizeErr', false)
                 }
 
-                if (h > MAX_SIZE) {
+                if (h - MAX_SIZE > EPS) {
                     this.model.set('heightSizeErr', true)
                 } else {
                     this.model.set('heightSizeErr', false)
