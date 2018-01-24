@@ -2162,25 +2162,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     }
                     newBounds = L.latLngBounds(L.latLng(lmap.unproject(newBottomLeft)), trll);
 
-                    // console.log(newBounds);
-
-                    // lmap.fitBounds(newBounds);
-                    // lmap.panTo(newBounds.getCenter());
-
-                    L.marker(newBounds.getCenter()).addTo(lmap);
-
                  }
-
-                 document.addEventListener('sidebar:opened', function (e) {
-                     handleSidebarResize(e);
-                 }, false);
-                 document.addEventListener('sidebar:closed', function (e) {
-                     handleSidebarResize(e);
-                 }, false);
-
-                 window.sidebarWidget.on('opened', function (e) {
-                     handleSidebarResize(e);
-                 }, false);
 
                  /**
                   *
