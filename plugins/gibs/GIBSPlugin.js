@@ -163,14 +163,18 @@ var publicInterface = {
                 visible: false
             });
 
-            var proxyLayer = {
-                onAdd: function() {
+            var ProxyLayer = L.Layer.extend({
+				onAdd: function() {
                     gibsLayer.setVisibility(true);
                 },
                 onRemove: function() {
                     gibsLayer.setVisibility(false);
                 }
-            }
+			})
+
+            var pl = function () {return new ProxyLayer()};
+
+			var proxyLayer = pl();
 
             layersControl.addOverlay(proxyLayer, NASA_LAYERS[layerName].title);
             overlayLayerProxies.push(proxyLayer);
