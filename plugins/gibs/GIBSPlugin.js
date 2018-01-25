@@ -163,14 +163,26 @@ var publicInterface = {
                 visible: false
             });
 
-            var ProxyLayer = L.Layer.extend({
-				onAdd: function() {
-                    gibsLayer.setVisibility(true);
-                },
-                onRemove: function() {
-                    gibsLayer.setVisibility(false);
-                }
-			})
+            if (L.Evented) {
+                var ProxyLayer = L.Layer.extend({
+                    onAdd: function() {
+                        gibsLayer.setVisibility(true);
+                    },
+                    onRemove: function() {
+                        gibsLayer.setVisibility(false);
+                    }
+                });
+            } else {
+                var ProxyLayer = L.Class.extend({
+                    includes: L.Mixin.Events,
+                    onAdd: function() {
+                        gibsLayer.setVisibility(true);
+                    },
+                    onRemove: function() {
+                        gibsLayer.setVisibility(false);
+                    }
+                });
+            }
 
             var pl = function () {return new ProxyLayer()};
 
