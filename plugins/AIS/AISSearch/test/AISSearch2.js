@@ -45,17 +45,17 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	
+
 	var NOSIDEBAR = false,
 	    PRODUCTION = false,
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-	
+
 	__webpack_require__(1);
 	__webpack_require__(3);
-	
+
 	var _require = __webpack_require__(4),
 	    polyFind = _require.polyFind,
 	    polyFindIndex = _require.polyFindIndex,
@@ -70,7 +70,7 @@
 	    VesselInfoView = __webpack_require__(13),
 	    HistoryView = __webpack_require__(14),
 	    createInfoDialog = __webpack_require__(16);
-	
+
 	var showTrack = function showTrack(mmsiArr, bbox) {
 	    var lmap = nsGmx.leafletMap;
 	    var filterFunc = function filterFunc(args) {
@@ -112,19 +112,19 @@
 	        }
 	    }
 	};
-	
+
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
 	});
-	
+
 	Handlebars.registerHelper('aisjson', function (context) {
 	    return JSON.stringify(context);
 	});
-	
+
 	var pluginName = 'AISSearch2',
 	    cssTable = pluginName;
 	if (!PRODUCTION) pluginName += 'Test';
-	
+
 	var toolbarIconId = 'AISSearch2',
 	    modulePath = gmxCore.getModulePath(pluginName),
 	    scheme = document.location.href.replace(/^(https?:).+/, "$1"),
@@ -150,26 +150,26 @@
 	            path = gmxCore.getModulePath(pluginName),
 	            layersByID = nsGmx.gmxMap.layersByID,
 	            lmap = map;
-	
+
 	        aisLayer = params.aisLayerID && layersByID[params.aisLayerID]; // for track markers
-	
-	        aisLayerSearcher.aisLayerID = params.searchLayer || '8EE2C7996800458AAF70BABB43321FA4'; // searchById			
-	        aisLayerSearcher.screenSearchLayer = params.searchLayer || '8EE2C7996800458AAF70BABB43321FA4'; // screen search				
+
+	        aisLayerSearcher.aisLayerID = params.searchLayer || '8EE2C7996800458AAF70BABB43321FA4'; // searchById
+	        aisLayerSearcher.screenSearchLayer = params.searchLayer || '8EE2C7996800458AAF70BABB43321FA4'; // screen search
 	        aisLayerSearcher.aisLastPoint = params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE'; // db search
-	
+
 	        historyLayer = params.historyLayer;
 	        aisLayerSearcher.historyLayer = historyLayer;
-	
+
 	        tracksLayerID = params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15';
 	        tracksLayer = layersByID[tracksLayerID];
-	
+
 	        defaultSearch = params.defaultSearch || 'screen';
 	        toolbarIconId = params.toolbarIconId;
-	
+
 	        var setLocaleDate = function setLocaleDate(layer) {
 	            if (layer) layer.bindPopup('').on('popupopen', function (e) {
 	                //console.log(e);
-	
+
 	                var result,
 	                    re = /\[([^\[\]]+)\]/g,
 	                    lastIndex = 0,
@@ -207,7 +207,7 @@
 	                setLayerClickHandler(layer);
 	            }
 	        };
-	
+
 	        for (var key in params) {
 	            //console.log(key + ' ' +params[key])
 	            if (key == "myfleet") {
@@ -221,16 +221,16 @@
 	                forLayers(layersByID[params[key]]);
 	            }
 	        }
-	
+
 	        myFleetMembersModel.mapLayers = myFleetLayers;
-	
+
 	        highlight.addEventListener('click', function (e) {
 	            e.target.vessel && publicInterface.showInfo(e.target.vessel, true);
 	        });
-	
+
 	        aisPluginPanel.views = { aisSearchView: aisSearchView, myFleetMembersView: myFleetMembersView, historyView: historyView };
 	        aisPluginPanel.activeView = aisSearchView;
-	
+
 	        if (NOSIDEBAR) {
 	            var iconOpt_mf = {
 	                //id: toolbarIconId,
@@ -239,7 +239,7 @@
 	                title: _gtxt('AISSearch2.caption')
 	            };
 	            if (toolbarIconId) iconOpt_mf.id = toolbarIconId;else iconOpt_mf.text = _gtxt('AISSearch2.capShort');
-	
+
 	            if (!lmap.options.svgSprite) {
 	                L.extend(iconOpt, {
 	                    regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
@@ -265,12 +265,12 @@
 	                    hint: _gtxt('AISSearch2.caption')
 	                })
 	            });
-	
+
 	            sidebar.on('opened', function (e) {
 	                if (e.id == 'AISSearch') aisPluginPanel.show(sidebarTab);
 	            });
 	        }
-	
+
 	        if (location.search.search(/x=[^y=]+y=/i) != -1) {
 	            var a = location.search.toLowerCase().substr(1).split('&'),
 	                x = a.filter(function (c) {
@@ -296,7 +296,7 @@
 	            $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
 	            return;
 	        }
-	
+
 	        var dialog = createInfoDialog({
 	            vessel: vessel,
 	            getmore: getmore, displaingTrack: displaingTrack,
@@ -319,12 +319,12 @@
 	            openVesselInfoView: vesselInfoView.open,
 	            showTrack: showTrack
 	        });
-	
+
 	        if (infoDialogCascade.length > 0) {
 	            var pos = $(infoDialogCascade[infoDialogCascade.length - 1]).parent().position();
 	            $(dialog).dialog("option", "position", [pos.left + 10, pos.top + 10]);
 	        }
-	
+
 	        infoDialogCascade.push(dialog);
 	        allIinfoDialogs.push({ vessel: vessel, dialog: dialog });
 	        $(dialog).on("dialogdragstop", function (event, ui) {
@@ -346,7 +346,7 @@
 	    aisSearchView = new SearchView({ aisView: aisView, aisScreenSearchModel: aisScreenSearchModel, aisDbSearchModel: aisDbSearchModel, highlight: highlight }),
 	    myFleetMembersView = new MyFleetView({ aisView: aisView, myFleetMembersModel: myFleetMembersModel }),
 	    historyView = new HistoryView({ aisView: aisView, historyModel: historyModel, gifLoader: gifLoader });
-	
+
 	//************************************
 	//  AIS PANEL
 	//************************************
@@ -365,7 +365,7 @@
 	        var aisSearchView = value.aisSearchView,
 	            myFleetMembersView = value.myFleetMembersView,
 	            historyView = value.historyView;
-	
+
 	        _aisSearchView = aisSearchView;
 	        _myFleetMembersView = myFleetMembersView;
 	        _historyView = historyView;
@@ -375,7 +375,7 @@
 	        return _activeView;
 	    },
 	    show: function show(sidebarTab) {
-	
+
 	        if (NOSIDEBAR && !_leftMenuBlock) _leftMenuBlock = new leftMenu();
 	        if (NOSIDEBAR && !_leftMenuBlock.createWorkCanvas("aispanel", function () {
 	            icon._iconClick();
@@ -383,20 +383,20 @@
 	            {
 	                var tabsTemplate = '<table class="ais_tabs" border=0><tr>' + '<td class="ais_tab search_tab">' + '{{i "AISSearch2.title"}}' + '</td><td class="ais_tab myfleet_tab">' + // ACTIVE
 	                '{{i "AISSearch2.myFleetDialog"}}' + '</td>';
-	
+
 	                if (historyLayer) tabsTemplate += '</td><td class="ais_tab history_tab">' + '{{i "AISSearch2.historyTab"}}' + '</td>';
-	
+
 	                tabsTemplate += '</tr></table>' + '<div class="ais_view search_view">' +
 	                //SEARCH FORM
 	                '<table border=0 class="instruments"><tr>' + '<td><div><i class="icon-down-dir"><select>' + (defaultSearch == 'screen' ? '<option value="0">{{i "AISSearch2.screen"}}</option>' + '<option value="1">{{i "AISSearch2.database"}}</option>' : '<option value="1">{{i "AISSearch2.database"}}</option>' + '<option value="0">{{i "AISSearch2.screen"}}</option>') + '</select></i></div></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + gifLoader + '</div></div></td>' + '<td><span class="count"></span></td></tr>' + '<tr><td colspan="3"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-search clicable"></div></td></tr></table>' + '<div class="ais_vessels"><div class="ais_vessel">' + '<table><tr><td>NO VESSELS FOUND</td>' + '<td><div class="info">' + '<i class="clicable icon-info"></i>' + '</div></td></tr></table>' + '</div></div>' + '</div>' + '<div class="ais_view myfleet_view">' +
-	                //MY FLEET FORM                 
+	                //MY FLEET FORM
 	                '<table border=0 class="instruments"><tr>' + '<td><div class="refresh"><div>' + gifLoader + '</div></div></td><td></td><td></td>' + '</tr></table>' + '<div class="ais_vessels"><div class="ais_vessel">NO VESSELS SELECTED</div></div>' + '</div>';
 	                if (historyLayer) tabsTemplate += _historyView.template;
-	
+
 	                $(_canvas).append(Handlebars.compile(tabsTemplate));
-	
+
 	                if (NOSIDEBAR) $(_leftMenuBlock.workCanvas).append(_canvas);else $(sidebarTab).append(_canvas);
-	
+
 	                var tabs = $('.ais_tab', _canvas),
 	                    _this = this;
 	                tabs.on('click', function () {
@@ -414,7 +414,7 @@
 	                        });
 	                    }
 	                });
-	
+
 	                _aisSearchView.create({
 	                    _frame: $('.search_view', _canvas),
 	                    _container: $('.search_view .ais_vessels', _canvas),
@@ -423,15 +423,15 @@
 	                    _count: $('.count', _canvas)
 	                });
 	                _aisSearchView.setModel(defaultSearch);
-	
+
 	                _myFleetMembersView.create({
 	                    _frame: $('.myfleet_view', _canvas),
 	                    _container: $('.myfleet_view .ais_vessels', _canvas),
 	                    _refresh: $('.myfleet_view .refresh div', _canvas)
 	                });
-	
+
 	                _historyView.create({ canvas: _canvas });
-	
+
 	                var needUpdate = function needUpdate() {
 	                    _aisSearchView.setDirty();
 	                    if (_activeView === _aisSearchView) {
@@ -442,7 +442,7 @@
 	                nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
 	                this.ready = true;
 	            }
-	
+
 	        if (NOSIDEBAR) {
 	            $(_leftMenuBlock.parentWorkCanvas).attr('class', 'left_aispanel').insertAfter('.layers-before');
 	            var blockItem = _leftMenuBlock.leftPanelItem,
@@ -453,7 +453,7 @@
 	            $(blockItem).on('changeVisibility', toggleTitle);
 	            toggleTitle();
 	        }
-	
+
 	        // Show the first tab
 	        $('.ais_tab', _canvas).eq(0).removeClass('active').click();
 	        _aisSearchView.drawBackground();
@@ -461,14 +461,14 @@
 	        _historyView.drawBackground();
 	    }
 	};
-	
+
 	if (NOSIDEBAR) {
 	    aisPluginPanel.hide = function () {
 	        $(_leftMenuBlock.parentWorkCanvas).hide();
 	        nsGmx.leafletMap.removeLayer(highlight);
 	    };
 	}
-	
+
 	gmxCore.addModule(pluginName, publicInterface, {
 	    css: cssTable + '.css'
 	});
@@ -485,7 +485,7 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-	
+
 	_translationsHash.addtext('rus', {
 	    'AISSearch2.title': 'Поиск судов',
 	    'AISSearch2.title1': 'Найдено судов',
@@ -582,14 +582,14 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-	
+
 	module.exports = {
 		polyFind: function polyFind(a, predicate) {
 			var list = Object(a);
 			var length = list.length >>> 0;
 			var thisArg = arguments[2];
 			var value;
-	
+
 			for (var i = 0; i < length; i++) {
 				value = list[i];
 				if (predicate.call(thisArg, value, i, list)) {
@@ -603,7 +603,7 @@
 			var length = list.length >>> 0;
 			var thisArg = arguments[2];
 			var value;
-	
+
 			for (var i = 0; i < length; i++) {
 				value = list[i];
 				if (predicate.call(thisArg, value, i, list)) {
@@ -619,7 +619,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	
+
 	//************************************
 	//  BASE AIS VIEW
 	//************************************
@@ -627,11 +627,11 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	
+
 	module.exports = function (_ref) {
 	    var publicInterface = _ref.publicInterface,
 	        highlight = _ref.highlight;
-	
+
 	    var _waitTime = 1000;
 	    return {
 	        get model() {
@@ -673,19 +673,19 @@
 	        },
 	        show: function show() {
 	            this._start = new Date().getTime();
-	
+
 	            //if(clean) this._clean();
 	            $(this._frame).show();
-	
+
 	            var _this = this;
 	            clearTimeout(this._wait);
 	            var rest = new Date().getTime() - this._lastUpdate;
-	            //console.log(rest) 
+	            //console.log(rest)
 	            //this._refresh.parent().removeClass('clicable');
-	            //this._refresh.parent().attr('title', ''); 
+	            //this._refresh.parent().attr('title', '');
 	            //this._refresh.addClass('animate-spin');
 	            this._refresh.show();
-	
+
 	            if (!this._lastUpdate || rest >= _waitTime) {
 	                this._lastUpdate = new Date().getTime();
 	                this._model.update();
@@ -706,12 +706,12 @@
 	                    interval = nsGmx.DateInterval.getUTCDayBoundary(d);
 	                nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	            }
-	
+
 	            nsGmx.leafletMap.fitBounds([[vessel.ymin, vessel.xmin], [vessel.ymax, vessel.xmax]], {
 	                maxZoom: 9, //config.user.searchZoom,
 	                animate: false
 	            });
-	
+
 	            nsGmx.leafletMap.removeLayer(highlight);
 	            highlight.vessel = vessel;
 	            highlight.setLatLng([vessel.ymax, vessel.xmax]).addTo(nsGmx.leafletMap);
@@ -720,7 +720,7 @@
 	            var vessel = JSON.parse(item.parent().parent().find('.info').attr('vessel'));
 	            if (vessel.maxid && vessel.xmax != vessel.xmin && vessel.ymax != vessel.ymin) {
 	                var _this = this;
-	                // search latest position in group 
+	                // search latest position in group
 	                aisLayerSearcher.searchById([vessel.maxid], function (response) {
 	                    if (response.Status.toLowerCase() == "ok") {
 	                        vessel.ymin = response.Result.values[0][5];vessel.xmin = response.Result.values[0][4];
@@ -734,18 +734,18 @@
 	            } else this.positionMap(vessel);
 	        },
 	        repaint: function repaint() {
-	
+
 	            if (!$(this._container).is(':visible')) return;
-	
+
 	            //console.log("REPAINT "+(new Date().getTime()-this._start)+"ms")
-	
+
 	            //this._refresh.removeClass('animate-spin');
 	            this._refresh.hide();
 	            //this._refresh.parent().addClass('clicable');
 	            //this._refresh.parent().attr('title', _gtxt('AISSearch2.refresh'));
-	
+
 	            this._clean();
-	
+
 	            //console.log(this._model.data.vessels[0].heading_rot);
 	            var scrollCont = $(this._container).find('.mCSB_container');
 	            var content = $(Handlebars.compile(this._tableTemplate)(this._model.data));
@@ -758,7 +758,7 @@
 	            var _this = this;
 	            $('.info', this._container).on('click', function () {
 	                var _this2 = this;
-	
+
 	                var target = $(this),
 	                    vessel = JSON.parse(target.attr('vessel'));
 	                publicInterface.showInfo(vessel, function (v) {
@@ -783,7 +783,7 @@
 	                var vi = $(e.currentTarget).closest('div').find('div.voyage_info');
 	                if (vi.is(':visible')) vi.hide();else vi.show();
 	            });
-	
+
 	            if (this._repaintControls) this._repaintControls();
 	        }
 	    };
@@ -794,11 +794,11 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-	
+
 	//************************************
 	// AIS LAYERS SEARCHER
 	//************************************
-	
+
 	module.exports = function (_ref) {
 	    var baseUrl = _ref.baseUrl,
 	        aisServiceUrl = _ref.aisServiceUrl,
@@ -806,10 +806,10 @@
 	        screenSearchLayer = _ref.screenSearchLayer,
 	        aisLayerID = _ref.aisLayerID,
 	        historyLayer = _ref.historyLayer;
-	
+
 	    return {
 	        _serverScript: baseUrl + 'VectorLayer/Search.ashx',
-	
+
 	        set aisLastPoint(value) {
 	            aisLastPoint = value;
 	        },
@@ -825,7 +825,7 @@
 	        set historyLayer(value) {
 	            historyLayer = value;
 	        },
-	
+
 	        getBorder: function getBorder() {
 	            var lmap = nsGmx.leafletMap;
 	            var dFeatures = lmap.gmxDrawing.getFeatures();
@@ -841,7 +841,7 @@
 	                maxX = max.x,
 	                geo = { type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]] },
 	                w = (maxX - minX) / 2;
-	
+
 	            if (w >= 180) {
 	                geo = { type: 'Polygon', coordinates: [[[-180, min.y], [-180, max.y], [180, max.y], [180, min.y], [-180, min.y]]] };
 	            } else if (maxX > 180 || minX < -180) {
@@ -970,11 +970,11 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-	
+
 	//************************************
 	// MY FLEET MODEL
 	//************************************
-	
+
 	module.exports = function (_ref) {
 	    var baseUrl = _ref.baseUrl,
 	        myFleetLayers = _ref.myFleetLayers,
@@ -982,7 +982,7 @@
 	        myFleetMembersView = _ref.myFleetMembersView,
 	        polyFind = _ref.polyFind,
 	        polyFindIndex = _ref.polyFindIndex;
-	
+
 	    return {
 	        set view(value) {
 	            myFleetMembersView = value;
@@ -991,14 +991,14 @@
 	            myFleetLayers = value;
 	        },
 	        //get mapLayers(){ return myFleetLayers },
-	
+
 	        findIndex: function findIndex(vessel) {
 	            if (!this.data) return -1;
 	            return polyFindIndex(this.data.vessels, function (v) {
 	                return v.mmsi == vessel.mmsi && v.imo == vessel.imo;
 	            });
 	        },
-	
+
 	        _isDirty: true,
 	        getDirty: function getDirty() {
 	            return this._isDirty;
@@ -1020,7 +1020,7 @@
 	                }
 	                if (vessel) vessels.push(vessel);
 	            }
-	            //console.log(vessels);   
+	            //console.log(vessels);
 	            return vessels;
 	        },
 	        getCount: function getCount() {
@@ -1030,36 +1030,36 @@
 	        load: function load() {
 	            var _this = this;
 	            //var layerId = myFleetLayers
-	
+
 	            if (myFleetLayers.length == 0) this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }] };
-	
+
 	            if (myFleetLayers.length == 0 || !this._isDirty) return Promise.resolve();
-	
+
 	            this.layers = [];
 	            var errors = [],
 	                promises = myFleetLayers.map(function (lid) {
 	                return new Promise(function (resolve, reject) {
 	                    sendCrossDomainJSONRequest(baseUrl + "Layer/GetLayerInfo.ashx?NeedAttrValues=false&LayerName=" + lid, function (response) {
-	                        //console.log(response);                         
+	                        //console.log(response);
 	                        if (response.Status.toLowerCase() == "ok") _this.layers.push({ layerId: lid, parentLayerId: response.Result.ParentLayer, filter: response.Result.Filter });else errors.push(response);
 	                        resolve(response);
 	                    });
 	                });
 	            });
-	
+
 	            return Promise.all(promises).then(function () {
-	                //console.log(_this.layers)                                    
+	                //console.log(_this.layers)
 	                if (_this.layers.length > 0) {
 	                    var layer = polyFind(_this.layers, function (l) {
 	                        return l.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' && l.filter != "([mmsi]=-1000)";
 	                    }); // NOT TRACKS
-	                    //console.log(layer)      
+	                    //console.log(layer)
 	                    if (!layer) return Promise.resolve({ Status: "ok", Result: { values: [] } });
-	                    //console.log(layer.filter)                                    
+	                    //console.log(layer.filter)
 	                    var vessels = _this._parseFilter(layer.filter);
 	                    return new Promise(function (resolve, reject) {
 	                        aisLayerSearcher.searchNames(vessels,
-	                        //vessels.map(function(v){return v.mmsi}), 
+	                        //vessels.map(function(v){return v.mmsi}),
 	                        //vessels.map(function(v){return v.imo}),
 	                        function (response) {
 	                            resolve(response);
@@ -1069,8 +1069,8 @@
 	                    return Promise.resolve({ Status: "error", ErrorInfo: errors });
 	                }
 	            }).then(function (response) {
-	                //console.log(response)  
-	                //console.log("LOAD MY FLEET FINISH")               
+	                //console.log(response)
+	                //console.log("LOAD MY FLEET FINISH")
 	                if (response.Status.toLowerCase() == "ok") {
 	                    _this.data = { vessels: response.Result.values.reduce(function (p, c) {
 	                            var mmsi = response.Result.fields.indexOf("mmsi"),
@@ -1140,7 +1140,7 @@
 	                    return layer.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' ? // IS TRACKS
 	                    "([mmsi]=" + v.mmsi + " and [imo]=" + v.imo + ")" : "([mmsi]=" + v.mmsi + ")";
 	                }).join(" or ");
-	
+
 	                /*
 	                        var editFilter = layer.parentLayerId!='13E2051DFEE04EEF997DC5733BD69A15'? // IS TRACKS
 	                        "([mmsi]="+vessel.mmsi+" and [imo]="+vessel.imo+")":
@@ -1179,7 +1179,7 @@
 	                return new Promise(function (resolve, reject) {
 	                    sendCrossDomainJSONRequest(baseUrl + "VectorLayer/Update.ashx?VectorLayerID=" + l.layerId + "&filter=" + l.filter, function (response) {
 	                        if (response.Status.toLowerCase() == "ok") setTimeout(function run() {
-	
+
 	                            sendCrossDomainJSONRequest(baseUrl + "AsyncTask.ashx?TaskID=" + response.Result.TaskID, function (response) {
 	                                if (response.Status.toLowerCase() == "ok") {
 	                                    if (!response.Result.Completed) setTimeout(run, 1000);else {
@@ -1218,22 +1218,22 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-	
+
 	//************************************
 	// AIS SCREEN SEARCH MODEL
 	//************************************
-	
+
 	module.exports = function (_ref) {
 	    var myFleetMembersModel = _ref.myFleetMembersModel,
 	        aisLayerSearcher = _ref.aisLayerSearcher,
 	        aisSearchView = _ref.aisSearchView;
-	
+
 	    return {
-	
+
 	        set view(value) {
 	            aisSearchView = value;
 	        },
-	
+
 	        _isDirty: true,
 	        getDirty: function getDirty() {
 	            return this._isDirty;
@@ -1284,7 +1284,7 @@
 	            var actualUpdate = this._actualUpdate;
 	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
 	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")
-	
+
 	            this.load(actualUpdate).then(function () {
 	                //console.log("LOADED "+(new Date().getTime()-_this._actualUpdate)+"ms")
 	                //console.log("3>"+new Date(_this._actualUpdate))
@@ -1300,7 +1300,7 @@
 	                                return v;
 	                            }) };
 	                    }
-	
+
 	                    if (_this.data) myFleetMembersModel.markMembers(_this.data.vessels);
 	                    aisSearchView.repaint();
 	                }
@@ -1324,16 +1324,16 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-	
+
 	//************************************
 	// DB SEARCH MODEL
 	//************************************
-	
+
 	module.exports = function (_ref) {
 	    var aisSearchView = _ref.aisSearchView,
 	        myFleetMembersModel = _ref.myFleetMembersModel,
 	        aisLayerSearcher = _ref.aisLayerSearcher;
-	
+
 	    return {
 	        set view(value) {
 	            aisSearchView = value;
@@ -1347,11 +1347,11 @@
 	            var _this = this;
 	            this._actualUpdate = new Date().getTime();
 	            var actualUpdate = this._actualUpdate;
-	
+
 	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
 	            //this.filterString&&console.log(this._searchString+" "+this._searchString.search(/\r$/))
 	            this.filterString = this.filterString.replace(/\r+$/, "");
-	
+
 	            new Promise(function (resolve, reject) {
 	                if (_this.filterString.length > 0 && _this.filterString != _this._searchString) {
 	                    _this._searchString = _this.filterString;
@@ -1391,18 +1391,18 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-	
+
 	//************************************
 	// HISTORY MODEL
 	//************************************
-	
+
 	module.exports = function (_ref) {
 		var baseUrl = _ref.baseUrl,
 		    aisLayerSearcher = _ref.aisLayerSearcher,
 		    polyFind = _ref.polyFind,
 		    polyFindIndex = _ref.polyFindIndex;
-	
-	
+
+
 		var _isDirty = false,
 		    _view = void 0,
 		    _vessel = void 0,
@@ -1424,7 +1424,7 @@
 			vessel.cog_sog = vessel.cog || vessel.sog;
 			vessel.heading_rot = vessel.heading || vessel.rot;
 			vessel.x_y = vessel.longitude || vessel.latitude;
-	
+
 			vessel.ts_pos_utc = formatDate(new Date(vessel.ts_pos_utc * 1000));
 			//vessel.ts_eta = formatDate(new Date(vessel.ts_eta*1000));
 			vessel.cog = addUnit(round(vessel.cog, 5), "°");
@@ -1437,7 +1437,7 @@
 			vessel.source = vessel.source == 'T-AIS' ? _gtxt('AISSearch2.tais') : _gtxt('AISSearch2.sais');
 			vessel.longitude = toDd(vessel.longitude, true);
 			vessel.latitude = toDd(vessel.latitude);
-	
+
 			return vessel;
 		};
 		return {
@@ -1456,7 +1456,7 @@
 			set vessel(value) {
 				_vessel = value;
 			},
-	
+
 			getDirty: function getDirty() {
 				return _isDirty;
 			},
@@ -1467,12 +1467,12 @@
 				return this.data ? this.data.vessels.length : 0;
 			},
 			load: function load() {
-	
+
 				if (!_isDirty) return Promise.resolve();
 				//return new Promise((resolve)=>setTimeout(resolve, 1000))
-	
-				//console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
-	
+
+				//console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())
+
 				var _this = this;
 				return new Promise(function (resolve) {
 					aisLayerSearcher.searchPositions([_vessel.mmsi], _historyInterval, function (response) {
@@ -1496,7 +1496,7 @@
 						} else resolve(response);
 					});
 				}).then(function (response) {
-					//console.log(response)       
+					//console.log(response)
 					_isDirty = false;
 					if (response.Status.toLowerCase() == "ok") {
 						_this.data = { vessels: response.Result.values };
@@ -1532,22 +1532,22 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-	
+
 	//************************************
 	// AIS SEARCH VIEW
 	//************************************
-	
+
 	module.exports = function (_ref) {
 	    var aisView = _ref.aisView,
 	        aisScreenSearchModel = _ref.aisScreenSearchModel,
 	        aisDbSearchModel = _ref.aisDbSearchModel,
 	        highlight = _ref.highlight;
-	
+
 	    var instance = $.extend({
 	        _tableTemplate: '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><span class="position">{{vessel_name}}</span>' + '{{#if ts_pos_utc}} <span class="date">({{{ts_pos_utc}}})</span>{{/if}}' + '</td><td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' +
-	
+
 	        //'<td><div class="history" title=""> H </td>'+	// HISTORY
-	
+
 	        '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
 	        //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
 	        '<div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}',
@@ -1605,22 +1605,22 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-	
+
 	//************************************
 	// MY FLEET VIEW
 	//************************************
 	module.exports = function (_ref) {
 	  var aisView = _ref.aisView,
 	      myFleetMembersModel = _ref.myFleetMembersModel;
-	
+
 	  var instance = $.extend({
 	    get model() {
 	      return this._model;
 	    },
 	    _tableTemplate: '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><span class="position">{{vessel_name}}</span> <span class="date">({{{ts_pos_utc}}})</span></td>' +
-	
+
 	    //'<td><div class="history" title=""> H </td>'+	// HISTORY
-	
+
 	    '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
 	    //'<i class="clicable icon-info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}"></i>'+
 	    '</div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}',
@@ -1635,16 +1635,16 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-	
+
 	//************************************
 	// VESSEL INFO VIEW
-	//************************************  
-	
+	//************************************
+
 	module.exports = function (_ref) {
 	    var scheme = _ref.scheme,
 	        modulePath = _ref.modulePath,
 	        aisServiceUrl = _ref.aisServiceUrl;
-	
+
 	    var _ais,
 	        _galery,
 	        _register,
@@ -1654,7 +1654,7 @@
 	        resize,
 	        menuAction,
 	        show = function show(vessel) {
-	        //console.log(vessel) 
+	        //console.log(vessel)
 	        $("body").append('' + '<table class="vessel-info-page overlay">' + '<tr>' + '<td>' + '<table class="vessel-info-page container">' + '<tr>' + '<td class="column1">' + '<table>' + '<tr>' + '<td>' + '<div>' + '<div class="title">' + '<div class="cell">' + vessel.vessel_name + '<div class="timestamp">' + vessel.ts_pos_utc + '</div></div>  ' + '</div>' + '<div class="menu">' + '<div class="ais cell menu-item active"><img src="' + modulePath + 'svg/info_gen.svg" class="icon">Основные сведения</div>' + '<div class="register cell menu-item"><img src="' + modulePath + 'svg/info.svg" class="icon">Регистр</div>' + '<div class="galery cell menu-item"><img src="' + modulePath + 'svg/photogallery.svg" class="icon">Фотогалерея <div class="counter">0</div></div>' + '</div>' + '</div>  ' + '</td>' + '</tr>' + '<tr>' + '<td class="frame">' + '<div class="photo">' + '<img src="' + modulePath + 'svg/no-image.svg" class="no-image">' + '</div>  ' + '</td>' + '</tr>' + '</table>' + '</td>' + '<td class="column2">' + '<div class="close-button-holder">' + '<div class="close-button" title="закрыть"></div>' + '</div>' + '<div class="register panel">' + '<div class="caption"></div>' + '<div class="menu">' + '<div>' + '<table>' + '<tr>' + '<td><div class="general menu-item active">Общие сведения</div></td>' + '<td><div class="build menu-item">Сведения о постройке</div></td>' + '<td><div class="dimensions menu-item">Размеры и скорость</div></td>' + '<td><div class="gears menu-item">Оборудование</div></td>' + '</tr>' + '</table>' + '</div>' + '</div>' + '<div class="content">' + '<div class="placeholder"></div>' + '</div>' + '</div>' + '<div class="galery panel">' + '<form action="' + aisServiceUrl + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' + '<input name="Filedata" class="chooseFile" type="file">' + '<input name="imo" type="hidden" value="' + vessel.imo + '">' + '<input name="mmsi" type="hidden" value="' + vessel.mmsi + '">' +
 	        //'<input type="submit" name="submitBtn" value="Upload" />' +
 	        '</form>' + '<iframe id="upload_target" name="upload_target" src="#" style="width:0;height:0;border:0px solid #fff;"></iframe>' + '<div class="placeholder">' + '<div class="photo" onclick="document.querySelector(\'.vessel-info-page .chooseFile\').click();"' + ' style="background-image: url(' + modulePath + 'svg/add-image.svg);background-size: 50px;"></div>' + '</div>' + '</div>' + '<div class="ais panel">' + '<div class="placeholder"></div>' + '</div>' + '</td>' + '</tr>' + '</table>' + '</td>' + '</tr>' + '</table>');
@@ -1672,12 +1672,12 @@
 	                preview.click(showPicture);
 	                //console.log(preview)
 	            } else {
-	                //uploadError:            
+	                //uploadError:
 	                $('.vessel-info-page .uploader').remove();
 	                console.log(data.errmsg);
 	            }
 	        }, false);
-	
+
 	        $('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?mmsi=' + vessel.mmsi + '">').load(function () {
 	            if (this) {
 	                $('.column1 .photo img.no-image').replaceWith(this);
@@ -1695,24 +1695,24 @@
 	            var $img = jQuery(this);
 	            var imgURL = $img.attr('src');
 	            var attributes = $img.prop("attributes");
-	
+
 	            $.get(imgURL, function (data) {
 	                // Get the SVG tag, ignore the rest
 	                var $svg = jQuery(data).find('svg');
-	
+
 	                // Remove any invalid XML tags
 	                $svg = $svg.removeAttr('xmlns:a');
-	
+
 	                // Loop through IMG attributes and apply on SVG
 	                $.each(attributes, function () {
 	                    $svg.attr(this.name, this.value);
 	                });
-	
+
 	                // Replace IMG with SVG
 	                $img.replaceWith($svg);
 	            }, 'xml');
 	        });
-	
+
 	        _ais = document.querySelector('.vessel-info-page .column2 .ais');
 	        _galery = document.querySelector('.vessel-info-page .column2 .galery');
 	        _register = document.querySelector('.vessel-info-page .column2 .register .content');
@@ -1749,14 +1749,14 @@
 	            target.className += " active";
 	            resize();
 	        };
-	
+
 	        window.addEventListener("resize", resize, false);
-	
+
 	        var mia = document.querySelectorAll('.column1 .menu-item');
 	        for (var i = 0; i < mia.length; ++i) {
 	            mia[i].addEventListener('click', menuAction);
 	        }
-	
+
 	        resize();
 	        $(_ais).mCustomScrollbar({ theme: "vessel-info-theme" });
 	        $(_galery).mCustomScrollbar({ theme: "vessel-info-theme" });
@@ -1812,17 +1812,17 @@
 	            return s;
 	        };
 	        regcontent.innerHTML = drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + drawTable([ledokol.data[2]], "build", "none") + drawTable([ledokol.data[3]], "dimensions", "none") + drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
-	
+
 	        _regcap.innerHTML = "<table><tr><td>Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '') + "</td></tr></table>";
-	
+
 	        var mia = document.querySelectorAll('.column2 .menu-item');
 	        for (var i = 0; i < mia.length; ++i) {
 	            mia[i].addEventListener('click', menuAction);
 	        }
-	
+
 	        resize();
 	    };
-	
+
 	    var open = function open(vessel, vessel2) {
 	        show(vessel2);
 	        var onFail = function onFail(error) {
@@ -1848,7 +1848,7 @@
 	            //console.log(ship)
 	            drawRegister(ship);
 	        }).catch(onFail);
-	
+
 	        new Promise(function (resolve, reject) {
 	            sendCrossDomainJSONRequest(aisServiceUrl + "gallery.ashx?mmsi=" + vessel.mmsi + "&imo=" + vessel.imo, function (response) {
 	                if (response.Status == "ok") resolve(response.Result);else reject(response);
@@ -1857,7 +1857,7 @@
 	            drawGallery(gallery);
 	        }, onFail);
 	    };
-	
+
 	    return {
 	        open: open,
 	        show: show,
@@ -1872,17 +1872,17 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	
+
 	//************************************
 	// HISTORY VIEW
 	//************************************
 	__webpack_require__(15);
-	
+
 	module.exports = function (_ref) {
 		var aisView = _ref.aisView,
 		    historyModel = _ref.historyModel,
 		    gifLoader = _ref.gifLoader;
-	
+
 		var _frame = void 0,
 		    _container = void 0,
 		    _refresh = void 0,
@@ -1890,7 +1890,7 @@
 		    _calendar = void 0,
 		    _dateInterval = new nsGmx.DateInterval(),
 		    _template = '<div class="ais_view history_view">' +
-		//HIST FORM      
+		//HIST FORM
 		'<div class="calendar"></div>' + '<table border=0 class="instruments">' + '<tr><td><div class="caption">&nbsp;</div></td><td></td><td><div class="refresh"><div>' + gifLoader + '</div></div></td></tr>' + '</table>' + '<div class="ais_vessels"><div class="ais_vessel">NO HISTORY</div></div>' + '</div>';
 		var instance = $.extend({
 			get model() {
@@ -1921,7 +1921,7 @@
 			doClean: function doClean() {
 				$('.show_voyage_info', _container).off('click');
 			},
-	
+
 			get _frame() {
 				return _frame;
 			},
@@ -1937,29 +1937,29 @@
 			get _calendar() {
 				return _calendar;
 			},
-	
+
 			createForm: function createForm() {
-	
+
 				_frame = $('.history_view', this.canvas);
 				_container = $('.history_view .ais_vessels', this.canvas);
 				_refresh = $('.history_view .refresh div', this.canvas);
 				_caption = $('.history_view .caption', this.canvas);
 				_calendar = $('.history_view .calendar', this.canvas);
-	
+
 				// walkaround with focus at first input in ui-dialog
 				_calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
 				var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
 				_dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
 					if (this._model.historyInterval['dateEnd']) if (this._model.historyInterval['dateBegin'].getTime() != _dateInterval.get('dateBegin').getTime || this._model.historyInterval['dateEnd'].getTime() != _dateInterval.get('dateEnd').getTime) {
-						//console.log(this._model.historyInterval['dateBegin'].toUTCString() + ' ' + (this._model.historyInterval['dateEnd'] && this._model.historyInterval['dateEnd'].toUTCString())) 
-						//console.log('CHANGE ' + _dateInterval.get('dateBegin').toUTCString() + ' ' + _dateInterval.get('dateEnd').toUTCString()) 
+						//console.log(this._model.historyInterval['dateBegin'].toUTCString() + ' ' + (this._model.historyInterval['dateEnd'] && this._model.historyInterval['dateEnd'].toUTCString()))
+						//console.log('CHANGE ' + _dateInterval.get('dateBegin').toUTCString() + ' ' + _dateInterval.get('dateEnd').toUTCString())
 						this._model.historyInterval['dateBegin'] = _dateInterval.get('dateBegin');
 						this._model.historyInterval['dateEnd'] = _dateInterval.get('dateEnd');
 						this._model.setDirty();
 						this.show();
 					}
 				}.bind(this));
-	
+
 				var calendar = new nsGmx.CalendarWidget({
 					dateInterval: _dateInterval,
 					name: 'fobConsumptionInterval',
@@ -1996,9 +1996,9 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
-	
+
 	__webpack_require__(17);
-	
+
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
 	},
@@ -2035,7 +2035,7 @@
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir;
 	};
-	
+
 	module.exports = function (_ref, commands) {
 		var vessel = _ref.vessel,
 		    closeFunc = _ref.closeFunc,
@@ -2047,13 +2047,13 @@
 		    displaingTrack = _ref.displaingTrack,
 		    myFleetMembersView = _ref.myFleetMembersView,
 		    aisPluginPanel = _ref.aisPluginPanel;
-	
-	
+
+
 		formatDate = aisLayerSearcher.formatDate;
-	
+
 		var myFleetMembersModel = myFleetMembersView.model,
 		    add = myFleetMembersModel && myFleetMembersModel.findIndex(vessel) < 0;
-	
+
 		var canvas = $('<div class="ais_myfleet_dialog"/>'),
 		    menu = $('<div class="column1 menu"></div>').appendTo(canvas),
 		    photo = $('<div class="photo"><div></div></div>').appendTo(menu),
@@ -2062,21 +2062,21 @@
 		    buttons = $('<div class="column3 buttons"></div>'),
 		    gifLoader = '<img src="img/progress.gif">';
 		//console.log(content);
-	
+
 		canvas.append(content).append(buttons);
-	
+
 		var dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 230, closeFunc: closeFunc }),
 		    vessel2 = void 0,
 		    moreInfo = function moreInfo(v) {
 			var smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg>',
 			    vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>' + smallShipIcon + '</div>' + '<div class="vessel_prop altvname"><b>' + (vessel2.registry_name && vessel2.registry_name != vessel2.vessel_name ? vessel2.registry_name : '') + '&nbsp;</b></div>';
-	
+
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
-	
+
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '</table>' + '</div>')(v));
-	
+
 			$(moreinfo).append('<table><tr>' + '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' + '<td><div class="vessel_prop coordinates"><span class="small">' + toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) + '</small></div></td>' + '</tr></table>');
-	
+
 			var swap = "<span class='small'>" + ddToDms(v.latitude, false) + " " + ddToDms(v.longitude, true) + "</span>";
 			$('.ais_refresh', moreinfo).click(function (e) {
 				var mi = $('.coordinates', moreinfo),
@@ -2084,13 +2084,13 @@
 				mi.html(swap);
 				swap = t;
 			});
-	
+
 			$('.vessel_props2', canvas).hide();
 			$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
 		};
-	
+
 		$(dialog).dialog({ resizable: false });
-	
+
 		if (!getmore) {
 			vessel2 = $.extend({}, vessel);
 			moreInfo(formatVessel(vessel2));
@@ -2105,19 +2105,19 @@
 				if (typeof getmore == "function") getmore(vessel2);
 			} else console.log(response);
 		});
-	
+
 		// IMAGE
 		$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
 			if (this) $('div', photo).replaceWith(this);
 		});
-	
+
 		// BUTTONS
 		var menubuttons = $('<div class="menubuttons"></div>').appendTo(buttons);
-	
+
 		var openpage = $('<div class="button openpage" title="информация о судне">' + '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' + '<g class="nc-icon-wrapper" style="fill:currentColor">' + '<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>' + '</g>' + '</svg>' + '</div>').appendTo(menubuttons).on('click', function () {
 			return commands.openVesselInfoView.call(null, vessel, vessel2);
 		});
-	
+
 		var showpos = $('<div class="button showpos" title="показать положение">' + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 1,7 1,1 7,1 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 17,1 23,1 23,7 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 23,17 23,23 17,23 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 7,23 1,23 1,17 " stroke-linejoin="miter"/> <rect style="stroke:currentColor" x="8" y="8" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="8" height="8" stroke-linejoin="miter"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
 			var showVessel = {
 				xmin: vessel.xmin ? vessel.xmin : vessel.longitude,
@@ -2147,7 +2147,7 @@
 			showtrack.attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
 		}
 		//}
-	
+
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
 		};
@@ -2158,37 +2158,37 @@
 			if (myFleetMembersModel.filterUpdating) addremove.addClass('disabled');
 			addremove.on('click', function () {
 				if (addremove.is('.disabled')) return;
-	
+
 				$('.addremove').addClass('disabled');
 				addremove.hide();
 				progress.append(gifLoader);
-	
+
 				myFleetMembersModel.changeFilter(vessel).then(function () {
 					add = myFleetMembersModel.findIndex(vessel) < 0;
 					var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 					info.css('display', !add ? 'inline' : 'none');
 					$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
-	
+
 					addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').html(addremoveIcon(add));
 					//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-	
+
 					progress.text('');
 					$('.addremove').removeClass('disabled').show();
-	
+
 					if (aisPluginPanel.activeView == myFleetMembersView) myFleetMembersView.show();
 				});
 			});
 		}
-	
+
 		var progress = $('<div class="progress"></div>').appendTo(menubuttons);
-	
-		// TITLEBAR	
+
+		// TITLEBAR
 		canvas.parent('div').css({ 'margin': '0', 'overflow': 'hidden' });
 		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date"><span>' + Handlebars.compile('{{{ts_pos_utc}}}')(vessel2 ? vessel2 : vessel) + '</span></div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' + '<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
 		    onDone = function onDone(e) {
 			e.stopPropagation();$('.choose', titlebar).removeClass('done');$(e.currentTarget).parent().addClass('done');
 		};
-	
+
 		$('.ais_info_dialog_close-button', titlebar).on('click', function () {
 			return $(dialog).dialog("close");
 		});
@@ -2201,9 +2201,9 @@
 		$('.date span', titlebar).on('mousedown', function (e) {
 			e.stopPropagation();
 		});
-	
+
 		//$( dialog ).on( "dialogdragstart", function( e, ui ) {console.log(e);console.log(ui)} );
-	
+
 		return dialog;
 	};
 

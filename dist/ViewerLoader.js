@@ -1,16 +1,16 @@
-+function() {var buildGUID = "5ccb7b2e125444d886c1aeb0094c5575";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
++function() {var buildGUID = "a047ec2b45b848228bfb19553f68ad98";var gmxFilesList = ["dist/ViewerCore.js"];var thirdpartyList = ["dist/thirdparty.js"];var cssToLoad = ["dist/viewer.css"];var moduleFiles = {"L.ImageOverlay.Pane":"leaflet/plugins/L.ImageOverlay.Pane/src/L.ImageOverlay.Pane.js","ProfilePlugin":"src/GeoMixerAccount/ProfilePlugin.js"};﻿(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
 var gmxAPIJSlist = [];
 var gmxAPICSSlist = [];
 
-if (!window.mapsSite) {
+if (!window.gmxVersion) {
     window.gmxVersion = {
     	"jsPath": {
-    		"dist/geomixer-src.js": 1
+    		"dist/geomixer/geomixer-src.js": 1
     	},
     	"cssPath": {
-    		"dist/geomixer.css": 1
+    		"dist/geomixer/geomixer.css": 1
     	}
     };
 }

@@ -20364,6 +20364,56 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 
 })(nsGmx.Utils._);
 
+var nsGmx = window.nsGmx || {};
+
+var SidebarWidget = function (params) {
+    this.container = params.container;
+    this.tabsContainer = document.createElement('div');
+    this.tabsContainer.className = "leftCollapser-icon leftCollapser-left";
+
+    this.mainContainer = document.createElement('div');
+    this.mainContainer.className = "leftMenu";
+
+    this.tabsContainer.innerHTML = 'o_O';
+    this.mainContainer.innerHTML = 'test test';
+
+    this.container.appendChild(this.tabsContainer);
+    this.container.appendChild(this.mainContainer);
+
+    this.width = params.width;
+};
+
+SidebarWidget.prototype = {
+    setPane: function () {
+
+    },
+
+    enable: function () {
+
+    },
+
+    close: function () {
+
+    },
+
+    getActiveTabId: function () {
+
+    },
+
+    setPane: function () {
+
+    },
+
+    setPane: function () {
+
+    },
+
+    isOpened: function () {
+
+    },
+}
+
+nsGmx.SidebarWidget = SidebarWidget;
 
 nsGmx.sqlFunctions = {
     string: [
@@ -24201,13 +24251,13 @@ var nsGmx = window.nsGmx || {};
                 w = Math.abs(dimensions.width);
                 h = Math.abs(dimensions.height);
 
-                if (w > MAX_SIZE) {
+                if (w - MAX_SIZE > EPS) {
                     this.model.set('widthSizeErr', true)
                 } else {
                     this.model.set('widthSizeErr', false)
                 }
 
-                if (h > MAX_SIZE) {
+                if (h - MAX_SIZE > EPS) {
                     this.model.set('heightSizeErr', true)
                 } else {
                     this.model.set('heightSizeErr', false)
@@ -24257,13 +24307,13 @@ var nsGmx = window.nsGmx || {};
                     this.model.set('coords', initialCoords)
                 }
 
-                if (w > MAX_SIZE) {
+                if (w - MAX_SIZE > EPS) {
                     this.model.set('widthSizeErr', true)
                 } else {
                     this.model.set('widthSizeErr', false)
                 }
 
-                if (h > MAX_SIZE) {
+                if (h - MAX_SIZE > EPS) {
                     this.model.set('heightSizeErr', true)
                 } else {
                     this.model.set('heightSizeErr', false)
@@ -38638,7 +38688,9 @@ nsGmx.widgets = nsGmx.widgets || {};
 
             restoreOptions: function(options) {
                 this.gridControl.setUnits(options.units);
-                this.gridControl.setStep(options.customStep.x, options.customStep.y);
+                if (options.customStep) {
+                    this.gridControl.setStep(options.customStep.x, options.customStep.y);
+                }
                 this.gridControl.setColor(options.color);
                 this.gridControl.setTitleFormat(options.titleFormat);
             },
@@ -40861,4 +40913,4 @@ nsGmx.widgets = nsGmx.widgets || {};
 })();
 
 window.nsGmx = window.nsGmx || {};
-window.nsGmx.GeomixerFrameworkVersion = '3.3.0';
+window.nsGmx.GeomixerFrameworkVersion = '3.3.1';
