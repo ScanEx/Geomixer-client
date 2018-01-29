@@ -14,25 +14,21 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         this._initLayout();
         this._update();
 
-        map
-            .on('layeradd', this._onLayerChange, this)
-            .on('layerremove', this._onLayerChange, this);
-
-            this._iconClick = function () {
-                if (this._iconContainer) {
-                    this.setActive(!this.options.isActive);
-                    this._update();
-                    if (this.options.stateChange) { this.options.stateChange(this); }
-                }
-            };
-            var stop = L.DomEvent.stopPropagation;
-            L.DomEvent
-                .on(this._iconContainer, 'mousemove', stop)
-                .on(this._iconContainer, 'touchstart', stop)
-                .on(this._iconContainer, 'mousedown', stop)
-                .on(this._iconContainer, 'dblclick', stop)
-                .on(this._iconContainer, 'click', stop)
-                .on(this._iconContainer, 'click', this._iconClick, this);
+        this._iconClick = function () {
+            if (this._iconContainer) {
+                this.setActive(!this.options.isActive);
+                this._update();
+                if (this.options.stateChange) { this.options.stateChange(this); }
+            }
+        };
+        var stop = L.DomEvent.stopPropagation;
+        L.DomEvent
+            .on(this._iconContainer, 'mousemove', stop)
+            .on(this._iconContainer, 'touchstart', stop)
+            .on(this._iconContainer, 'mousedown', stop)
+            .on(this._iconContainer, 'dblclick', stop)
+            .on(this._iconContainer, 'click', stop)
+            .on(this._iconContainer, 'click', this._iconClick, this);
 
         return this._container;
     },

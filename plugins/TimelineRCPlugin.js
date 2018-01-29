@@ -190,7 +190,7 @@ var MapController = function(data) {
     })
 }
 
-var TimelineController = function(data, map, options) {
+var TimelineController = function (data, map, options) {
     options = $.extend({
         showModeControl: true,
         showSelectionControl: true,
@@ -199,13 +199,20 @@ var TimelineController = function(data, map, options) {
         hideWithoutActiveLayers: false
     }, options);
 
-    function isPointInPoly(poly, pt){
+    var _projFunc;
+    if (!map.options.srs) {
+        _projFunc = L.Projection.Mercator;
+    } else if (map.options.srs == 3857) {
+        _projFunc = L.CRS.EPSG3857;
+    }
+
+    function isPointInPoly(poly, pt) {
         var l = poly.length;
-        poly[0][0] == poly[l-1][0] && poly[0][1] == poly[l-1][1] && l--;
-        for(var c = false, i = -1, j = l - 1; ++i < l; j = i)
+        poly[0][0] == poly[l - 1][0] && poly[0][1] == poly[l - 1][1] && l--;
+        for (var c = false, i = -1, j = l - 1; ++i < l; j = i)
             ((poly[i][1] <= pt.y && pt.y < poly[j][1]) || (poly[j][1] <= pt.y && pt.y < poly[i][1]))
-            && (pt.x < (poly[j][0] - poly[i][0]) * (pt.y - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0])
-            && (c = !c);
+                && (pt.x < (poly[j][0] - poly[i][0]) * (pt.y - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0])
+                && (c = !c);
         return c;
     }
 
@@ -220,16 +227,16 @@ var TimelineController = function(data, map, options) {
 
     var timeline = null,
         countSpan = null,
-        container = $('<div/>', {'class': 'timeline-container'}),
-        footerContainer = $('<div/>', {'class': 'timeline-footer'}),
-        headerContainer = $('<div/>', {'class': 'timeline-header'}),
+        container = $('<div/>', { 'class': 'timeline-container' }),
+        footerContainer = $('<div/>', { 'class': 'timeline-footer' }),
+        headerContainer = $('<div/>', { 'class': 'timeline-header' }),
         _this = this;
 
-    container.on('mousedown', function(event) {
+    container.on('mousedown', function (event) {
         event.stopPropagation();
     })
 
-    container.on('mousewheel', function(event) {
+    container.on('mousewheel', function (event) {
         event.stopPropagation();
     })
 
@@ -237,7 +244,7 @@ var TimelineController = function(data, map, options) {
 
     var layerObservers = {};
 
-    var getObserversBbox = function() {
+    var getObserversBbox = function () {
         if (data.get('timelineMode') === 'center') {
             return L.latLngBounds([map.getCenter()]);
             // return L.gmxUtil.bounds([[center.lng, center.lat]]);
@@ -248,7 +255,7 @@ var TimelineController = function(data, map, options) {
         return null;
     }
 
-    var updateTimelineVisibility = function() {
+    var updateTimelineVisibility = function () {
         if (options.hideWithoutActiveLayers) {
             for (var i in layerObservers) {
                 if (layerObservers[i].isActive()) {
@@ -260,20 +267,39 @@ var TimelineController = function(data, map, options) {
         }
     }
 
+    function joinPolygons(objs) {
+        var polygonObjects = [];
+        for (var i = 0; i < objs.length; i++) {
+            var geom = objs[i];
+            if (geom.type == 'POLYGON') {
+                polygonObjects.push(geom.coordinates);
+            }
+            else if (geom.type == 'MULTIPOLYGON') {
+                for (var iC = 0; iC < geom.coordinates.length; iC++)
+                    polygonObjects.push(geom.coordinates[iC]);
+            }
+        }
+
+        if (polygonObjects.length > 1)
+            return { type: "MULTIPOLYGON", coordinates: polygonObjects }
+        else if (polygonObjects.length == 1) {
+            return { type: "POLYGON", coordinates: polygonObjects[0] }
+        }
+        else
+            return null;
+    };
+
     var modeFilters = {
-        none: function() {return true;},
-        center: function(item, mapCenter, mapExtent, layer)
-        {
-            var geom = item.geom = item.geom || nsGmx.Utils.joinPolygons(layer._gmx.dataManager.getItemGeometries(item.obj.id)),
+        none: function () { return true; },
+        center: function (item, mapCenter, mapExtent, layer) {
+            var geom = item.geom = item.geom || joinPolygons(layer._gmx.dataManager.getItemGeometries(item.obj.id)),
                 c = geom.coordinates,
                 intersects = false;
 
-            if (geom.type == "POLYGON")
-            {
+            if (geom.type == "POLYGON") {
                 intersects = isPointInPoly(c[0], mapCenter);
             }
-            else
-            {
+            else {
                 for (var r = 0; r < c.length; r++) {
                     intersects = intersects || isPointInPoly(c[r][0], mapCenter);
                 }
@@ -281,13 +307,12 @@ var TimelineController = function(data, map, options) {
 
             return intersects;
         },
-        screen: function(item, mapCenter, mapExtent)
-        {
+        screen: function (item, mapCenter, mapExtent) {
             return item.bounds.intersects(mapExtent);
         }
     }
 
-    var deleteLayerItemsFromTimeline = function(layerName) {
+    var deleteLayerItemsFromTimeline = function (layerName) {
         var index = 0;
         while (index < timeline.items.length) {
             var itemData = timeline.getData()[index].userdata;
@@ -300,38 +325,37 @@ var TimelineController = function(data, map, options) {
         timeline.render();
     }
 
-    var sortSelectionFunction = function(a, b) {
+    var sortSelectionFunction = function (a, b) {
         return a.row < b.row ? -1 : 1;
     }
 
-    var updateCalendarSelection = function() {
+    var updateCalendarSelection = function () {
         var modelSelection = data.get('selection'),
             curSelection = timeline.getSelection().slice(0),
             timelineData = timeline.getData(),
             modelSelectionHash = {},
             newSelection = [];
 
-            for (var l in modelSelection) {
-                var byID = {};
-                for (var k = 0; k < modelSelection[l].length; k++) {
-                    byID[modelSelection[l][k].id] = true;
-                }
-                modelSelectionHash[l] = byID;
-            };
+        for (var l in modelSelection) {
+            var byID = {};
+            for (var k = 0; k < modelSelection[l].length; k++) {
+                byID[modelSelection[l][k].id] = true;
+            }
+            modelSelectionHash[l] = byID;
+        };
 
         for (var k = 0; k < timelineData.length; k++) {
             var userdata = timelineData[k].userdata;
 
             if (userdata.layerName in modelSelectionHash && userdata.objID in modelSelectionHash[userdata.layerName]) {
-                newSelection.push({row: k});
+                newSelection.push({ row: k });
             }
         }
 
         timeline.setSelection(newSelection, true);
     }
 
-    var updateLayerItems = function(layerInfo)
-    {
+    var updateLayerItems = function (layerInfo) {
         var layerName = layerInfo.name,
             layer = layerInfo.layer,
             props = layer.getGmxProperties(),
@@ -340,10 +364,10 @@ var TimelineController = function(data, map, options) {
 
         var elemsToAdd = [];
         // var center = map.getCenter();
-        var mapCenter = L.Projection.Mercator.project(map.getCenter());
+        var mapCenter = _projFunc.project(map.getCenter());
         var mapBounds = map.getBounds();
-        var nw = L.Projection.Mercator.project(mapBounds.getNorthWest());
-        var se = L.Projection.Mercator.project(mapBounds.getSouthEast());
+        var nw = _projFunc.project(mapBounds.getNorthWest());
+        var se = _projFunc.project(mapBounds.getSouthEast());
         var mapExtend = L.gmxUtil.bounds([[nw.x, nw.y], [se.x, se.y]]);
         var items = data.get('items');
         var filters = data.get('userFilters').slice(0);
@@ -366,8 +390,7 @@ var TimelineController = function(data, map, options) {
         }
 
         var deletedCount = 0;
-        for (var i in items[layerName])
-        {
+        for (var i in items[layerName]) {
             var item = items[layerName][i],
                 obj = item.obj;
 
@@ -382,34 +405,27 @@ var TimelineController = function(data, map, options) {
                 }
             }
 
-            if (!item.timelineItem && showItem)
-            {
+            if (!item.timelineItem && showItem) {
                 var date = layerInfo.dateFunction(layer, obj),
-                    content, propHash;
+                    content;
 
-                if (props.NameObject)
-                {
-                    propHash = L.gmxUtil.getPropertiesHash(obj.properties, layer._gmx.tileAttributeIndexes);
-                    content = L.gmxUtil.parseTemplate(props.NameObject, propHash);
+                if (props.NameObject) {
+                    content = gmxAPI.applyTemplate(props.NameObject, obj.properties);
                 }
-                else
-                {
+                else {
                     content = nsGmx.Utils.convertFromServer('date', obj.properties[temporalIndex]);
                 }
 
                 elemsToAdd.push({
                     start: date,
                     content: content,
-                    userdata: {objID: obj.id, layerName: layerName}
+                    userdata: { objID: obj.id, layerName: layerName }
                 });
             }
-            else if (item.timelineItem && !showItem)
-            {
-                for (var index = 0; index < timeline.items.length; index++)
-                {
+            else if (item.timelineItem && !showItem) {
+                for (var index = 0; index < timeline.items.length; index++) {
                     var itemData = timeline.getData()[index].userdata;
-                    if (itemData.objID == i && itemData.layerName === layerName)
-                    {
+                    if (itemData.objID == i && itemData.layerName === layerName) {
                         timeline.deleteItem(index, true);
                         delete item.timelineItem;
                         deletedCount++;
@@ -425,7 +441,7 @@ var TimelineController = function(data, map, options) {
 
         if (elemsToAdd.length) {
             timeline.addItems(elemsToAdd);
-            $.each(elemsToAdd, function(i, elem) {
+            $.each(elemsToAdd, function (i, elem) {
                 items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length - elemsToAdd.length + i];
             });
             updateCalendarSelection();
@@ -434,12 +450,12 @@ var TimelineController = function(data, map, options) {
         }
     }
 
-    var updateCount = function() {
+    var updateCount = function () {
         if (!timeline) return;
         var count = 0;
         var range = timeline.getVisibleChartRange();
 
-        $.each(timeline.getData(), function(i, item) {
+        $.each(timeline.getData(), function (i, item) {
             item.start >= range.start && item.start <= range.end && count++;
         })
 
@@ -448,43 +464,38 @@ var TimelineController = function(data, map, options) {
 
     var updateCalendarRange;
 
-    var updateItems = function() {
+    var updateItems = function () {
         data.get('layers').forEach(updateLayerItems);
         updateCount();
     };
 
-    var fireSelectionEvent = function() {
+    var fireSelectionEvent = function () {
         var selectedItems = [];
         var items = data.get('items');
 
         var selectedIds = {};
 
-        $.each(timeline.getSelection(), function(i, selection)
-        {
+        $.each(timeline.getSelection(), function (i, selection) {
             var item = timeline.getData()[selection.row],
                 userdata = item.userdata,
                 layerName = userdata.layerName;
 
             selectedIds[layerName] = selectedIds[layerName] || [];
-            selectedIds[layerName].push({id: userdata.objID, date: item.start});
+            selectedIds[layerName].push({ id: userdata.objID, date: item.start });
         })
 
         data.set('selection', selectedIds);
     }
 
-    var findNextByTime = function(itemIndex, step)
-    {
-        var sortedItems = $.map(timeline.items, function(item, i)
-        {
-            return {index: i, date: item.start.valueOf()};
-        }).sort(function(a, b)
-        {
+    var findNextByTime = function (itemIndex, step) {
+        var sortedItems = $.map(timeline.items, function (item, i) {
+            return { index: i, date: item.start.valueOf() };
+        }).sort(function (a, b) {
             return a.date - b.date || a.index - b.index;
         });
 
         var res = null;
-        $.each(sortedItems, function(i, item)
-        {
+        $.each(sortedItems, function (i, item) {
             if (item.index === itemIndex)
                 res = sortedItems[i + step] ? sortedItems[i + step].index : null;
         })
@@ -496,15 +507,12 @@ var TimelineController = function(data, map, options) {
         return timeline;
     }
 
-    this.shiftActiveItem = function(step)
-    {
+    this.shiftActiveItem = function (step) {
         var curSelection = timeline.getSelection();
-        if (curSelection.length > 0)
-        {
+        if (curSelection.length > 0) {
             var newIndex = findNextByTime(curSelection[0].row, step);
 
-            if (newIndex !== null)
-            {
+            if (newIndex !== null) {
                 curSelection[0].row = newIndex;
                 timeline.setSelection(curSelection);
             }
@@ -530,18 +538,18 @@ var TimelineController = function(data, map, options) {
         }
     };
 
-    var createTimelineLazy = function()
-    {
+    var createTimelineLazy = function () {
         if (timeline) return;
 
         var LeafletTimelineControl = L.Control.extend({
-            onAdd: function() {
+            onAdd: function () {
                 return this.options.timelineContainer;
             },
-            onRemove: function() {}
+            onRemove: function () { }
         });
 
-        nsGmx.leafletMap.addControl(new LeafletTimelineControl({position: options.position, timelineContainer: container[0]}));
+        //nsGmx.leafletMap.addControl(new LeafletTimelineControl({ position: options.position, timelineContainer: container[0] }));
+        map.addControl(new LeafletTimelineControl({ position: options.position, timelineContainer: container[0] }));
 
         //Ugly hack: мы перемещаем контейнер таймлайна наверх соответствующего контейнера контролов leaflet
         container.parent().prepend(container);
@@ -557,7 +565,7 @@ var TimelineController = function(data, map, options) {
 
         timeline.draw([], timelineOptions);
 
-        //подписываемся на событие reflow, которое возникает
+        //подписываемся на событие reflow, которое возникает 
         //при обновлении элеменов на таймлайне
         links.events.addListener(timeline, 'reflow', function () {
             $(_this).trigger('reflow');
@@ -565,21 +573,22 @@ var TimelineController = function(data, map, options) {
 
         links.events.addListener(timeline, 'select', fireSelectionEvent);
 
-        links.Timeline.addEventListener(timeline.dom.content, 'dblclick', function(elem) {
+        links.Timeline.addEventListener(timeline.dom.content, 'dblclick', function (elem) {
             if (timeline.eventParams.itemIndex !== undefined) {
                 var items = data.get('items');
                 var userdata = timeline.getData()[timeline.eventParams.itemIndex].userdata;
                 var b = items[userdata.layerName][userdata.objID].bounds;
-                var min = L.Projection.Mercator.unproject(b.min);
-                var max = L.Projection.Mercator.unproject(b.max);
+
+                var min = _projFunc.unproject(b.min);
+                var max = _projFunc.unproject(b.max);
+
                 map.fitBounds(L.latLngBounds([min, max]));
             }
         });
 
         var prevDiv = makeImageButton("img/prev.png", "img/prev_a.png");
         _title(prevDiv, _gtxt("Предыдущий слой"));
-        prevDiv.onclick = function()
-        {
+        prevDiv.onclick = function () {
             _this.shiftActiveItem(-1);
         }
         $(prevDiv).addClass('timeline-shift-icon');
@@ -587,33 +596,32 @@ var TimelineController = function(data, map, options) {
         var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
         _title(nextDiv, _gtxt("Следующий слой"));
 
-        nextDiv.onclick = function()
-        {
+        nextDiv.onclick = function () {
             _this.shiftActiveItem(1);
         }
         $(nextDiv).addClass('timeline-shift-icon');
 
         // container.keypress(function(event) {
-            // console.log(event);
-            // if (event.keyCode === 37) { //влево
-                // shiftActiveItem(-1);
-            // } else if (event.keyCode === 39) { //вправо
-                // shiftActiveItem(1);
-            // }
+        // console.log(event);
+        // if (event.keyCode === 37) { //влево
+        // shiftActiveItem(-1);
+        // } else if (event.keyCode === 39) { //вправо
+        // shiftActiveItem(1);
+        // }
         // })
 
         var timelineModeSelect = $('<select/>').addClass('selectStyle')
-                .append($('<option/>').val('none').text(_gtxt('timeline.mapMode.none')))
-                .append($('<option/>').val('screen').text(_gtxt('timeline.mapMode.screen')))
-                .append($('<option/>').val('center').text(_gtxt('timeline.mapMode.center')));
+            .append($('<option/>').val('none').text(_gtxt('timeline.mapMode.none')))
+            .append($('<option/>').val('screen').text(_gtxt('timeline.mapMode.screen')))
+            .append($('<option/>').val('center').text(_gtxt('timeline.mapMode.center')));
 
-        timelineModeSelect.change(function() {
+        timelineModeSelect.change(function () {
             data.set('timelineMode', $(':selected', this).val());
         })
 
-        var updateTimelineModeSelect = function() {
+        var updateTimelineModeSelect = function () {
             var mode = data.get('timelineMode');
-            $('option', timelineModeSelect).each(function(i, option) {
+            $('option', timelineModeSelect).each(function (i, option) {
                 this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
             })
         }
@@ -622,13 +630,13 @@ var TimelineController = function(data, map, options) {
         updateTimelineModeSelect();
 
         var mapModeSelect = $('<select/>').addClass('selectStyle')
-                .append($('<option/>').val('selected').text(_gtxt('timeline.timelineMode.selected')))
-                .append($('<option/>').val('range').text(_gtxt('timeline.timelineMode.range')))
-                .append($('<option/>').val('none').text(_gtxt('timeline.timelineMode.none')));
+            .append($('<option/>').val('selected').text(_gtxt('timeline.timelineMode.selected')))
+            .append($('<option/>').val('range').text(_gtxt('timeline.timelineMode.range')))
+            .append($('<option/>').val('none').text(_gtxt('timeline.timelineMode.none')));
 
-        var updateMapModeSelect = function() {
+        var updateMapModeSelect = function () {
             var mode = data.get('mapMode');
-            $('option', mapModeSelect).each(function(i, option) {
+            $('option', mapModeSelect).each(function (i, option) {
                 this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
             })
         }
@@ -636,27 +644,30 @@ var TimelineController = function(data, map, options) {
         data.on('change:mapMode', updateMapModeSelect);
         updateMapModeSelect();
 
-        mapModeSelect.change(function() {
+        mapModeSelect.change(function () {
             data.set('mapMode', $(':selected', this).val());
         })
 
-        var calendarContainer = $('<div/>', {'class': 'timeline-calendar'});
-        var dateInterval = new nsGmx.DateInterval();
-        var calendarControl = new nsGmx.CalendarWidget({
-            name: 'timelineCalendar',
-            minimized: false,
-            showSwitcher: false,
-            container: calendarContainer,
-            dateInterval: dateInterval
-        });
+        fromUTC = function (date) {
+            if (!date) return null;
+            var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+            return new Date(date.valueOf() - timeOffset);
+        };
 
-        updateCalendarRange = function() {
+        toUTC = function (date) {
+            if (!date) return null;
+            var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+            return new Date(date.valueOf() + timeOffset);
+        };
+        var dateInterval = new nsGmx.DateInterval();
+
+        updateCalendarRange = function () {
             if (!timeline) return;
             var range = timeline.getVisibleChartRange();
 
             //TODO: не использовать UTC даты в таймлайне (нужна поддержка отображения UTC).
-            var trueStart = nsGmx.CalendarWidget.fromUTC(range.start);
-            var trueEnd = nsGmx.CalendarWidget.fromUTC(range.end);
+            var trueStart = fromUTC(range.start);
+            var trueEnd = fromUTC(range.end);
 
             dateInterval.set({
                 dateBegin: trueStart,
@@ -679,21 +690,20 @@ var TimelineController = function(data, map, options) {
 
         $(headerContainer).prependTo(container);
 
-        countSpan = $('<span/>', {'class': 'count-container'});
+        countSpan = $('<span/>', { 'class': 'count-container' });
 
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
             $('<div/>').addClass('timeline-mode-control').append(
-                $('<span/>').text(_gtxt('timeline.modesTextTitle') + ': ' +_gtxt('timeline.modesTextTimeline')), timelineModeSelect, countSpan,
+                $('<span/>').text(_gtxt('timeline.modesTextTitle') + ': ' + _gtxt('timeline.modesTextTimeline')), timelineModeSelect, countSpan,
                 $('<span></span>').text(_gtxt('timeline.modesTextMap')).css('margin-left', '10px'), mapModeSelect
             ),
-            prevDiv, nextDiv,
-            calendarContainer
+            prevDiv, nextDiv//,
+            //calendarContainer
         ).appendTo(container);
 
-        updateControlsVisibility = function() {
+        updateControlsVisibility = function () {
             $('.timeline-mode-control', controlsContainer).toggle(options.showModeControl);
             $([prevDiv, nextDiv]).toggle(options.showSelectionControl);
-            $(calendarContainer).toggle(options.showCalendar);
         }
         updateControlsVisibility();
 
@@ -702,30 +712,28 @@ var TimelineController = function(data, map, options) {
 
     data.on('change:userFilters change:items', updateItems);
 
-    map.on('moveend', function() {
+    map.on('moveend', function () {
         var bounds = getObserversBbox();
         for (var layerName in layerObservers) {
             layerObservers[layerName].setBounds(bounds);
         }
     });
 
-    data.on('change:timelineMode', function() {
+    data.on('change:timelineMode', function () {
         var bounds = getObserversBbox();
         for (var layerName in layerObservers) {
             layerObservers[layerName].setBounds(bounds);
         }
     });
 
-    data.on('bindLayer', function(layerInfo) {
+    data.on('bindLayer', function (layerInfo) {
         var layerName = layerInfo.name,
             layer = layerInfo.layer,
             props = layer.getGmxProperties(),
-            dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin)*1000),
-            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd)*1000 + 24*3600*1000);
+            dateBegin = new Date(nsGmx.Utils.convertToServer('date', props.DateBegin) * 1000),
+            dateEnd = new Date(nsGmx.Utils.convertToServer('date', props.DateEnd) * 1000 + 24 * 3600 * 1000);
 
         createTimelineLazy();
-
-        nsGmx.widgets.commonCalendar.unbindLayer(layerName);
 
         var items = data.get('items');
         items[layerName] = items[layerName] || {};
@@ -755,7 +763,7 @@ var TimelineController = function(data, map, options) {
         filters = filters.length ? filters : null;
 
         layerObservers[layerName] = layer.addObserver({
-            callback: function(observerData) {
+            'callback': function (observerData) {
                 //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
                 if (data.get('allItems')) {
                     return;
@@ -795,23 +803,27 @@ var TimelineController = function(data, map, options) {
 
                 data.trigger('change change:items');
             },
-            filters: filters,
-            bounds: getObserversBbox(),
-            dateInterval: [dateBegin, dateEnd],
-            active: !!layer._map || !layerInfo.trackVisibility
+            'filters': filters,
+            'bounds': getObserversBbox(),
+            'dateInterval': [dateBegin, dateEnd],
+            'active': !!layer._map || !layerInfo.trackVisibility,
+            'ftc': layer.options.ftc,
+            'srs': layer.options.srs,
+            'layerID': layerName,
+            'needBbox': true
         });
 
         updateTimelineVisibility();
     });
 
-    map.on('layeradd layerremove', function(event) {
+    map.on('layeradd layerremove', function (event) {
         var layerInfo = data.getLayerInfo(event.layer);
         if (layerInfo && layerInfo.trackVisibility) {
             updateLayerItems(layerInfo);
         }
     }, this);
 
-    data.on('unbindLayer', function(layerInfo) {
+    data.on('unbindLayer', function (layerInfo) {
         var layerName = layerInfo.name;
         layerInfo.layer.removeObserver(layerObservers[layerName]);
         delete layerObservers[layerName];
@@ -821,25 +833,22 @@ var TimelineController = function(data, map, options) {
         updateTimelineVisibility();
     });
 
-    data.on('change:range', function(){
+    data.on('change:range', function () {
         if (!timeline) return;
         var currRange = timeline.getVisibleChartRange();
         var newRange = data.get('range');
 
-        if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf() ) {
-            timeline.setVisibleChartRange(
-                nsGmx.CalendarWidget.toUTC(newRange.start),
-                nsGmx.CalendarWidget.toUTC(newRange.end)
-            );
+        if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf()) {
+            timeline.setVisibleChartRange(toUTC(newRange.start), toUTC(newRange.end));
             updateCalendarRange && updateCalendarRange();
         }
     })
 
-    this.toggle = function(isVisible) {
+    this.toggle = function (isVisible) {
         container.toggle(isVisible);
     }
 
-    this.getFooterContainer = function() {
+    this.getFooterContainer = function () {
         return footerContainer;
     }
 
@@ -851,7 +860,7 @@ var TimelineController = function(data, map, options) {
         return container;
     }
 
-    this.setOptions = function(newOptions) {
+    this.setOptions = function (newOptions) {
         options = $.extend(options, newOptions);
         updateControlsVisibility && updateControlsVisibility();
     }
