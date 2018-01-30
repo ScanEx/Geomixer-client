@@ -31,9 +31,6 @@
 [submodule "plugins/external/GMXPluginWikimapia"]
 	path = plugins/external/GMXPluginWikimapia
 	url = git@github.com:ScanEx/GMXPluginWikimapia.git
-[submodule "plugins/gibs/leaflet-GIBS"]
-	path = plugins/gibs/leaflet-GIBS
-	url = git@github.com:aparshin/leaflet-GIBS.git
 [submodule "plugins/external/GMXPluginCadastre"]
 	path = plugins/external/GMXPluginCadastre
 	url = git@github.com:ScanEx/GMXPluginCadatsre.git
