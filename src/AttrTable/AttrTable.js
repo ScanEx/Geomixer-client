@@ -290,6 +290,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {
 						copy: true,
+						editColumns: true,
 						sourceLayerName: info.name,
 						query: query,
 						doneCallback: function(res) {
