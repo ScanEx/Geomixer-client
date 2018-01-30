@@ -117,6 +117,84 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
         }
     },
 
+    _addItem: function (obj) {
+        if (L.version === '0.7.7') {
+            var label = document.createElement('label'),
+            input,
+            checked = this._map.hasLayer(obj.layer);
+
+            if (obj.overlay) {
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'leaflet-control-layers-selector';
+                input.defaultChecked = checked;
+            } else {
+                input = this._createRadioElement('leaflet-base-layers', checked);
+            }
+
+            input.layerId = L.stamp(obj.layer);
+
+            L.DomEvent.on(input, 'click', this._onInputClick, this);
+
+            var name = document.createElement('span');
+            name.innerHTML = ' ' + obj.name;
+
+            label.appendChild(input);
+            label.appendChild(name);
+
+            var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+            container.appendChild(label);
+
+            return label;
+        } else {
+            var label = document.createElement('label'),
+                checked = this._map.hasLayer(obj.layer),
+                input;
+
+            if (obj.overlay) {
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'leaflet-control-layers-selector';
+                input.defaultChecked = checked;
+            } else {
+                input = this._createRadioElement('leaflet-base-layers', checked);
+            }
+
+            var presentLayer = this._layerControlInputs.find(function(inp) {return inp.layerId === obj.layer._leaflet_id}),
+                presentIndex =  this._layerControlInputs.indexOf(presentLayer);
+
+            if (presentLayer) {
+                this._layerControlInputs = [].concat(
+                    this._layerControlInputs.slice(0, presentIndex),
+                    input,
+                    this._layerControlInputs.slice(presentIndex + 1, this._layerControlInputs.length));
+            } else {
+                this._layerControlInputs.push(input);
+            }
+
+            input.layerId = L.Util.stamp(obj.layer);
+
+            L.DomEvent.on(input, 'click', this._onInputClick, this);
+
+            var name = document.createElement('span');
+            name.innerHTML = ' ' + obj.name;
+
+            // Helps from preventing layer control flicker when checkboxes are disabled
+            // https://github.com/Leaflet/Leaflet/issues/2771
+            var holder = document.createElement('div');
+
+            label.appendChild(holder);
+            holder.appendChild(input);
+            holder.appendChild(name);
+
+            var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+            container.appendChild(label);
+
+            this._checkDisabledLayers();
+            return label;
+        }
+    },
+
     _update: function () {
         if (!this._listContainer) {
             return;
@@ -157,6 +235,14 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
             this._form.style.display = 'none';
             this._placeHolder.style.display = 'none';
         }
+    },
+
+    _expand: function () {
+        L.DomUtil.addClass(this._listContainer, 'leaflet-control-layers-expanded');
+    },
+
+    _collapse: function () {
+        this._listContainer.className = this._listContainer.className.replace(' leaflet-control-layers-expanded', '');
     },
 
     setActive: function (active, skipEvent) {
