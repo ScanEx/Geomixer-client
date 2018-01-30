@@ -977,7 +977,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     fileAttrModel.initFromServerFormat(props.get('Columns'));
 
     var fileAttrView = new nsGmx.ManualAttrView();
-    fileAttrView.init(fileColumnsContainer, fileAttrModel);
+    fileAttrView.init(fileColumnsContainer, fileAttrModel, {editColumns: params.editColumns});
     var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file') || params.editColumns);
     fileAttrView.setActive(allowEdit);
 

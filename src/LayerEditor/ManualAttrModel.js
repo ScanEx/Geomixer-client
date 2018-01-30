@@ -48,14 +48,14 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
 
     this.getAttribute = function(idx) { return _attributes[idx]; };
     this.getCount = function() { return _attributes.length; };
-    this.each = function(callback, addInternalColumns) {
+    this.each = function(callback, addInternalColumns, params) {
         for (var k = 0; k < _attributes.length; k++) {
             var column = _attributes[k];
             var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed ||
                              column.type.server === 'geometry' || (isRCLayer && column.name === 'GMX_RasterCatalogID');
 
             if (!isInternal || addInternalColumns) {
-                callback(column, k);
+                callback(column, k, params);
             }
         }
     };
