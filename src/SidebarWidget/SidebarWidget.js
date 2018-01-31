@@ -44,7 +44,7 @@ SidebarWidget.prototype = {
 
     isOpened: function () {
 
-    },
-}
+    }
+};
 
 nsGmx.SidebarWidget = SidebarWidget;
