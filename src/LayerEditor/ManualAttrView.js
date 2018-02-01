@@ -2,12 +2,14 @@
 var utils = nsGmx.Utils;
 _translationsHash.addtext('rus', {ManualAttrView: {
     headerName: 'Название',
-    headerType: 'Тип'
+    headerType: 'Тип',
+    headerExp: 'Выражение'
 }});
 
 _translationsHash.addtext('eng', {ManualAttrView: {
     headerName: 'Name',
-    headerType: 'Type'
+    headerType: 'Type',
+    headerExp: 'Expression'
 }});
 
 
@@ -60,7 +62,34 @@ nsGmx.ManualAttrView = function()
         var deleteIcon = utils.makeImageButton('img/recycle.png', 'img/recycle_a.png');
 
         if (params.editColumns) {
-            sqlSelector = params.editColumns ? utils._input(null, [['attr', 'class', 'manualSqlAttrInput inputStyle'], ['css', 'width', '30px']]) : null;
+
+            var obj = _model.expressions.find(function (obj){
+                return obj.name === attr.name
+            });
+
+            var expression = obj ? obj.expression : '';
+
+            sqlSelector = utils._input(null, [['attr', 'class', 'manualSqlAttrInput inputStyle'], ['css', 'width', '100px']]);
+            $(sqlSelector).data('idx', i).val(_model.replaceString(expression));
+
+            $(sqlSelector).on('keyup', function()
+            {
+                var idx = $(this).data('idx');
+                var exp = $(this).val();
+
+                if (idx >= 0) {
+                    _model.changeExpression(attr.name, exp);
+                } else if (name) {
+                    // isAddingNew = true;
+                    // $(tr).find('td:gt(0)').show();
+                    // $(tr).removeClass('customAttributes-new');
+                    // var newIdx = _model.addAttribute(nsGmx.ManualAttrModel.TYPES.STRING, name);
+                    // $([nameSelector, typeSelector, deleteIcon]).data('idx', newIdx);
+                    // isAddingNew = false;
+                }
+            });
+
+
             cellsArr = [utils._td([nameSelector]), utils._td([typeSelector]), utils._td([sqlSelector]), utils._td([deleteIcon])];
         } else {
             // sqlSelector =
@@ -113,7 +142,14 @@ nsGmx.ManualAttrView = function()
         _trs.push(newAttr);
 
         var tbody = nsGmx.Utils._tbody(_trs);
-        var theader = $(Handlebars.compile('<thead><tr><th>{{i "ManualAttrView.headerName"}}</th><th>{{i "ManualAttrView.headerType"}}</th></tr></thead>')());
+        var theader = $(Handlebars.compile(
+            '<thead>' +
+                '<tr>' +
+                    '<th>{{i "ManualAttrView.headerName"}}</th>' +
+                    '<th>{{i "ManualAttrView.headerType"}}</th>' +
+                    '{{#if editColumns}}<th>{{i "ManualAttrView.headerExp"}}</th>{{/if}}' +
+                '</tr>' +
+            '</thead>')({editColumns: _params.editColumns}));
 
         $(_parent).append($('<fieldset/>').css('border', 'none').append(nsGmx.Utils._table([theader[0], tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);

@@ -984,6 +984,8 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     $(fileAttrModel).change(function() {
         var isManual = props.get('SourceType') === 'manual';
         props.set('Columns', fileAttrModel.toServerFormat());
+        console.log(props.set('Columns'));
+
     });
 
     _(parent, [fileColumnsContainer]);

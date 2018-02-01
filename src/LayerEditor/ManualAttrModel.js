@@ -5,9 +5,10 @@ function capitaliseFirstLetter(str)
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-//events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
+//events: newAttribute, delAttribute, updateAttribute, updateExpression, moveAttribute, change
 nsGmx.ManualAttrModel = function(isRCLayer) {
     var _attributes = [];
+    this.expressions = [];
 
     this.addAttribute = function(type, name)
     {
@@ -16,8 +17,14 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
             name: name,
             IsPrimary: false,
             IsIdentity: false,
-            IsComputed: false
+            IsComputed: false,
+            expression: name
         });
+
+        this.expressions.push({
+            name: name,
+            expression: name
+        })
 
         $(this).triggerHandler('newAttribute');
         $(this).triggerHandler('change');
@@ -36,6 +43,17 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     {
         _attributes[idx].type = newType;
         $(this).triggerHandler('updateAttribute');
+        $(this).triggerHandler('change');
+    };
+
+
+    this.changeExpression = function(name, newExp)
+    {
+        var obj = this.expressions.find(function (obj){return obj.name === name});
+        // var expression = expIndex !== -1 ? this.expressions[expIndex].expression : column.Name;
+
+        obj.expression = newExp;
+        $(this).triggerHandler('updateExpression');
         $(this).triggerHandler('change');
     };
 
@@ -73,9 +91,20 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     };
 
     this.initFromServerFormat = function(serverColumns) {
+        var _this = this;
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
             var type = window._.find(nsGmx.ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase();});
+
+            var obj = _this.expressions.find(function (obj){return obj.name === column.Name});
+
+            if (!obj) {
+                _this.expressions.push({
+                    name: column.Name,
+                    expression: column.Name
+                })
+            }
+
             _attributes.push({
                 type: type || {server: column.ColumnSimpleType.toLowerCase()},
                 name: column.Name,
@@ -90,18 +119,37 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     };
 
     this.toServerFormat = function() {
+        var _this = this;
         var res = [];
         $.each(_attributes, function(i, attr) {
+            var obj = _this.expressions.find(function (obj){return obj.name === attr.name});
+
             res.push({
                 Name: attr.name,
                 OldName: attr.oldName,
                 ColumnSimpleType: capitaliseFirstLetter(attr.type.server),
                 IsPrimary: attr.IsPrimary,
                 IsIdentity: attr.IsIdentity,
-                IsComputed: attr.IsComputed});
+                IsComputed: attr.IsComputed,
+                expression: obj ? obj.expression : attr.name
+            });
         });
 
         return res;
+    };
+
+    this.replaceString = function (string) {
+        if (!string) return;
+        _attributes.forEach(function (attr) {
+            if (attr.name) {
+                var re = new RegExp('\\[' + attr.name + '\\]',"g");
+
+                if (!string.match(re)) {
+                    string = string.replace(attr.name, '[' + attr.name + ']');
+                }
+            }
+        });
+        return string;
     };
 };
 
