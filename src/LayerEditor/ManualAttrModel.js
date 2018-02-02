@@ -12,18 +12,18 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
 
     this.addAttribute = function(type, name)
     {
-        _attributes.push({
+        _attributes({
             type: type,
             name: name,
             IsPrimary: false,
             IsIdentity: false,
             IsComputed: false,
-            expression: name
+            expression: '[' + name + ']'
         });
 
         this.expressions.push({
             name: name,
-            expression: name
+            expression: '[' + name + ']'
         })
 
         $(this).triggerHandler('newAttribute');
@@ -50,7 +50,6 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     this.changeExpression = function(name, newExp)
     {
         var obj = this.expressions.find(function (obj){return obj.name === name});
-        // var expression = expIndex !== -1 ? this.expressions[expIndex].expression : column.Name;
 
         obj.expression = newExp;
         $(this).triggerHandler('updateExpression');
@@ -101,7 +100,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
             if (!obj) {
                 _this.expressions.push({
                     name: column.Name,
-                    expression: column.Name
+                    expression: '[' + column.Name + ']'
                 })
             }
 
@@ -131,7 +130,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
                 IsPrimary: attr.IsPrimary,
                 IsIdentity: attr.IsIdentity,
                 IsComputed: attr.IsComputed,
-                expression: obj ? obj.expression : attr.name
+                expression: obj ? obj.expression : '[' + attr.name + ']'
             });
         });
 

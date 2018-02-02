@@ -246,20 +246,25 @@ var LayerProperties = Backbone.Model.extend(
                         Alias: col.Name
                     });
 
-                    sqlString += i < attrs.Columns.length - 1 ? col.exression + ',' : col.exression;
+                    var exp = col.expression || '[' + col.Name + ']';
+
+                    sqlString += i < attrs.Columns.length - 1 ? exp + ', ' : exp;
                 }
 
-                sqlString += 'from';
+                sqlString += ' from [' + params.sourceLayerName + ']';
+                // sqlString = 'select [id] + 100 from [' + params.sourceLayerName + ']';
 
                 console.log(sqlString);
-                reqParams.WrapStyle = "message",
-                reqParams.layer = params.sourceLayerName;
-                reqParams.query = params.query;
-                reqParams.Columns = JSON.stringify(columnsList);
-                reqParams.Title = attrs.Title;
-                // reqParams.Sql = attrs.Title;
+                // console.log(re);
+                copyParams.WrapStyle = "message",
+                // reqParams.layer = params.sourceLayerName;
+                // reqParams.query = params.query;
+                // reqParams.Columns = JSON.stringify(columnsList);
+                copyParams.Title = attrs.Title;
+                copyParams.SourceType = attrs.SourceType;
+                copyParams.Sql = sqlString;
 
-                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/Insert.ashx", reqParams);
+                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/Insert.ashx", copyParams);
             } else {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
                 var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
