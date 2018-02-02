@@ -53,7 +53,7 @@ nsGmx.ManualAttrView = function()
             _model.changeType($(this).data('idx'), attrType);
         });
 
-        var nameSelectorLength = params.editColumns ? 90 : 120;
+        var nameSelectorLength = params.copy ? 90 : 120;
 
         var nameSelector = utils._input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', nameSelectorLength + 'px']]);
 
@@ -61,7 +61,7 @@ nsGmx.ManualAttrView = function()
 
         var deleteIcon = utils.makeImageButton('img/recycle.png', 'img/recycle_a.png');
 
-        if (params.editColumns) {
+        if (params.copy) {
 
             var obj = _model.expressions.find(function (obj){
                 return obj.name === attr.name
@@ -147,9 +147,9 @@ nsGmx.ManualAttrView = function()
                 '<tr>' +
                     '<th>{{i "ManualAttrView.headerName"}}</th>' +
                     '<th>{{i "ManualAttrView.headerType"}}</th>' +
-                    '{{#if editColumns}}<th>{{i "ManualAttrView.headerExp"}}</th>{{/if}}' +
+                    '{{#if copy}}<th>{{i "ManualAttrView.headerExp"}}</th>{{/if}}' +
                 '</tr>' +
-            '</thead>')({editColumns: _params.editColumns}));
+            '</thead>')({copy: _params.copy}));
 
         $(_parent).append($('<fieldset/>').css('border', 'none').append(nsGmx.Utils._table([theader[0], tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);

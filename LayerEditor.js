@@ -115,7 +115,7 @@ var getFileExt = function(path)
    - {function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
 
   @param {Object} [params.additionalUI] Хеш массивов с доп. UI во вкладках. Ключ хеша - ID вкладки (main, attrs, metadata, advanced)
-  @param {Boolean} [params.copy] Является ли создаваемы слой копией
+  @param {Boolean} [params.copy] Является ли создаваемый слой копией
 */
 var LayerEditor = function(div, type, parent, properties, params) {
 
@@ -129,6 +129,14 @@ var LayerEditor = function(div, type, parent, properties, params) {
             standardTabs: ['main', 'attrs', 'metadata', 'advanced'],
             additionalUI: {}
         }, params)
+
+
+    // меняем тип источника на 'Sql', если слой является копией
+
+    if (_params.copy) {
+        properties = JSON.parse(JSON.stringify(properties));
+        properties.SourceType = 'Sql';
+    }
 
     var _this = this;
     this._originalTabs = [];
@@ -968,7 +976,7 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
 
     if (isNewLayer) {
         props.on('change:Columns', function() {
-            if (props.get('SourceType') !== 'manual') {
+            if (props.get('SourceType') !== 'manual' && props.get('SourceType') !== 'Sql') {
                 fileAttrModel.initFromServerFormat(props.get('Columns'));
             }
         });
@@ -977,15 +985,13 @@ LayerEditor.prototype._createPageAttributes = function(parent, props, isReadonly
     fileAttrModel.initFromServerFormat(props.get('Columns'));
 
     var fileAttrView = new nsGmx.ManualAttrView();
-    fileAttrView.init(fileColumnsContainer, fileAttrModel, {editColumns: params.editColumns});
-    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file') || params.editColumns);
+    fileAttrView.init(fileColumnsContainer, fileAttrModel, {copy: params.copy});
+    var allowEdit = !isReadonly && (type === 'manual' || (!isNewLayer && type === 'file') || params.copy);
     fileAttrView.setActive(allowEdit);
 
     $(fileAttrModel).change(function() {
         var isManual = props.get('SourceType') === 'manual';
         props.set('Columns', fileAttrModel.toServerFormat());
-        console.log(props.set('Columns'));
-
     });
 
     _(parent, [fileColumnsContainer]);
