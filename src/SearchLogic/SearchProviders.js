@@ -58,9 +58,20 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
         cache: 'default'
     };
     return new Promise(function (resolve, reject) {
-        fetch(req, init).then(function (response) {
-            return response.json();
-        }).then(function (json) {
+        var initPromise;
+
+        if (!window.useInternalSearch) {
+            initPromise = fetch(req, init).then(function (response) {
+                return response.json();
+            });
+        } else {
+            initPromise = Promise.resolve({
+                Status: 'ok',
+                Result: []
+            });
+        }
+
+        initPromise.then(function (json) {
             if (json.Status === 'ok') {
                 json.Result.searchString = _this2.searchString;
                 result = json;

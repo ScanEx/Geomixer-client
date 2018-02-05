@@ -557,22 +557,25 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
+            var searchProviders = [];
+            searchProviders.push(
+                new nsGmx.searchProviders.Osm2DataProvider({
+                    showOnMap: true,
+                    serverBase: 'http://maps.kosmosnimki.ru',
+                    limit: 10,
+                    onFetch: function(response) {
+                        window.searchLogic.showResult(response);
+                    }.bind(this)
+                })
+            );
+
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
                 position: 'topright',
                 limit: 10,
                 retrieveManyOnEnter: true,
-                providers: [
-                    new nsGmx.searchProviders.Osm2DataProvider({
-                        showOnMap: true,
-                        serverBase: 'http://maps.kosmosnimki.ru',
-                        limit: 10,
-                        onFetch: function(response) {
-                            window.searchLogic.showResult(response);
-                        }.bind(this)
-                    })
-                ],
+                providers: searchProviders,
                 style: {
                     editable: false,
                     map: true,

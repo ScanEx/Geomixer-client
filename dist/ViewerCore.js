@@ -20410,8 +20410,8 @@ SidebarWidget.prototype = {
 
     isOpened: function () {
 
-    },
-}
+    }
+};
 
 nsGmx.SidebarWidget = SidebarWidget;
 
@@ -20671,28 +20671,40 @@ nsGmx.SuggestWidget.prototype.setCallback = function (func) {
     this.func = func;
 }
 
-var template = Handlebars.compile('<div class="suggest-container">' +
-    '<table><tbody><tr>' +
-        '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-    '</tr></tbody></table>' +
-'</div>');
 
-nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback) {
+/**
+ * @param {domElement} targetTextarea textArea to append
+ * @param {array} attrNames
+ * @param {object} attrValuesProvider
+ * @param {function} changeCallback
+ * @param {array} selectors array of sub-widgets (attrs, operators, functions)
+ */
 
+nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback, selectors) {
     this.changeCallback = changeCallback;
     this.targetTextarea = targetTextarea;
 
-    var ui = this.el = $(template());
+    var template = Handlebars.compile('<div class="suggest-container">' +
+        '<table><tbody><tr>' +
+            '{{#if attrs}}<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+            '{{#if operators}}<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+            '{{#if functions}}<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+        '</tr></tbody></table>' +
+    '</div>');
 
-    this.attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true);
-    this.functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback);
-    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback);
+    var ui = this.el = $(template({
+        attrs: selectors.indexOf('attrs') !== -1,
+        functions: selectors.indexOf('functions') !== -1,
+        operators: selectors.indexOf('operators') !== -1
+    }));
 
-    ui.find('.suggest-attr').append(this.attrsSuggest.el);
-    ui.find('.suggest-func').append(this.functionsSuggest.el);
-    ui.find('.suggest-op').append(this.opsSuggest.el);
+    this.attrsSuggest = selectors.indexOf('attrs') !== -1 ? new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true) : null;
+    this.functionsSuggest = selectors.indexOf('functions') !== -1 ? new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback) : null;
+    this.operatorsSuggest = selectors.indexOf('operators') !== -1 ? new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback) : null;
+
+    this.attrsSuggest && ui.find('.suggest-attr').append(this.attrsSuggest.el);
+    this.functionsSuggest && ui.find('.suggest-func').append(this.functionsSuggest.el);
+    this.operatorsSuggest && ui.find('.suggest-op').append(this.operatorsSuggest.el);
 
     var clickFunc = function(div) {
         if (document.selection) {
@@ -20749,15 +20761,15 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 };
 
 nsGmx.AttrSuggestWidget.prototype.setActiveTextArea = function (textArea) {
-    this.attrsSuggest.setActiveTextArea(textArea);
-    this.functionsSuggest.setActiveTextArea(textArea);
-    this.opsSuggest.setActiveTextArea(textArea);
+    this.attrsSuggest && this.attrsSuggest.setActiveTextArea(textArea);
+    this.functionsSuggest && this.functionsSuggest.setActiveTextArea(textArea);
+    this.operatorsSuggest && this.operatorsSuggest.setActiveTextArea(textArea);
 }
 
 nsGmx.AttrSuggestWidget.prototype.setCallback = function (callback) {
-    this.attrsSuggest.setCallback(callback);
-    this.functionsSuggest.setCallback(callback);
-    this.opsSuggest.setCallback(callback);
+    this.attrsSuggest && this.attrsSuggest.setCallback(callback);
+    this.functionsSuggest && this.functionsSuggest.setCallback(callback);
+    this.operatorsSuggest && this.operatorsSuggest.setCallback(callback);
 }
 
 })();
@@ -21478,7 +21490,7 @@ nsGmx.TemporalLayerParamsWidget = function(parentDiv, paramsModel, columns)
             layerProperties.get('Quicklook').set('template', quicklookText.val());
         };
 
-        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText[0], '[suggest]', setQuicklook);
+        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText[0], '[suggest]', setQuicklook, ['attrs', 'operators']);
 
         quicklookText.on('focus', function() {
             $(suggestWidget.el).hide();
@@ -21790,6 +21802,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {
 						copy: true,
+						editColumns: true,
 						sourceLayerName: info.name,
 						query: query,
 						doneCallback: function(res) {
@@ -22603,7 +22616,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         $(_this._queryTextarea).trigger('input');
     }
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider, null, ['attrs', 'operators', 'functions']);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
@@ -22727,7 +22740,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider, null, ['attrs', 'operators', 'functions']);
     var suggestCanvas = attrSuggestWidget.el[0];
     $(suggestCanvas).css('margin-right', '9px');
 
@@ -31832,6 +31845,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31861,19 +31887,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -36829,9 +36842,20 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
         cache: 'default'
     };
     return new Promise(function (resolve, reject) {
-        fetch(req, init).then(function (response) {
-            return response.json();
-        }).then(function (json) {
+        var initPromise;
+
+        if (!window.useInternalSearch) {
+            initPromise = fetch(req, init).then(function (response) {
+                return response.json();
+            });
+        } else {
+            initPromise = Promise.resolve({
+                Status: 'ok',
+                Result: []
+            });
+        }
+
+        initPromise.then(function (json) {
             if (json.Status === 'ok') {
                 json.Result.searchString = _this2.searchString;
                 result = json;
@@ -39227,22 +39251,25 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
+            var searchProviders = [];
+            searchProviders.push(
+                new nsGmx.searchProviders.Osm2DataProvider({
+                    showOnMap: true,
+                    serverBase: 'http://maps.kosmosnimki.ru',
+                    limit: 10,
+                    onFetch: function(response) {
+                        window.searchLogic.showResult(response);
+                    }.bind(this)
+                })
+            );
+
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
                 position: 'topright',
                 limit: 10,
                 retrieveManyOnEnter: true,
-                providers: [
-                    new nsGmx.searchProviders.Osm2DataProvider({
-                        showOnMap: true,
-                        serverBase: 'http://maps.kosmosnimki.ru',
-                        limit: 10,
-                        onFetch: function(response) {
-                            window.searchLogic.showResult(response);
-                        }.bind(this)
-                    })
-                ],
+                providers: searchProviders,
                 style: {
                     editable: false,
                     map: true,

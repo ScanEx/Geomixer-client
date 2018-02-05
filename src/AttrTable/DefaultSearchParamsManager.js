@@ -98,7 +98,7 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
         $(_this._queryTextarea).trigger('input');
     }
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._queryTextarea], attrNames, attrProvider, null, ['attrs', 'operators', 'functions']);
 
     var suggestCanvas = attrSuggestWidget.el[0];
 
@@ -222,7 +222,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
 
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer(attrHash, info.name);
 
-    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider);
+    var attrSuggestWidget = new nsGmx.AttrSuggestWidget([this._valueTextarea, this._updateQueryTextarea], attrNames, attrProvider, null, ['attrs', 'operators', 'functions']);
     var suggestCanvas = attrSuggestWidget.el[0];
     $(suggestCanvas).css('margin-right', '9px');
 
