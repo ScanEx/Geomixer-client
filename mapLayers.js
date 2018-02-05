@@ -1267,12 +1267,18 @@
             var layer = elem.content,
                 name = layer.properties.name;
 
+            // hack to avoid API defaults by initFromDescription;
+            var propsHostName = window.serverBase.replace(/https?:\/\//, '');
+            propsHostName = propsHostName.replace(/\//g, '');
+
+            layer.properties.hostName = propsHostName;
+
             if (!nsGmx.gmxMap.layersByID[name]) {
                 var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false,
                     rcMinZoom = layer.properties.RCMinZoomForRasters,
                     layerOnMap = L.gmx.createLayer(layer, {
                         layerID: name,
-                        hostName: window.serverBase,
+                        hostName: propsHostName,
                         zIndexOffset: null,
                         srs: nsGmx.leafletMap.options.srs || '',
                         skipTiles: nsGmx.leafletMap.options.skipTiles || '',

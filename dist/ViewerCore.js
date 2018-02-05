@@ -11448,12 +11448,18 @@ pointsBinding.pointsBinding.unload = function()
             var layer = elem.content,
                 name = layer.properties.name;
 
+            // hack to avoid API defaults by initFromDescription;
+            var propsHostName = window.serverBase.replace(/https?:\/\//, '');
+            propsHostName = propsHostName.replace(/\//g, '');
+
+            layer.properties.hostName = propsHostName;
+
             if (!nsGmx.gmxMap.layersByID[name]) {
                 var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false,
                     rcMinZoom = layer.properties.RCMinZoomForRasters,
                     layerOnMap = L.gmx.createLayer(layer, {
                         layerID: name,
-                        hostName: window.serverBase,
+                        hostName: propsHostName,
                         zIndexOffset: null,
                         srs: nsGmx.leafletMap.options.srs || '',
                         skipTiles: nsGmx.leafletMap.options.skipTiles || '',
@@ -23967,7 +23973,7 @@ var nsGmx = window.nsGmx || {};
                         },
                         latLng: dimensions.latLng,
                         exportBounds: attrs.selArea.getBounds(),
-                        grid: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? nsGmx.gridManager.state : false
+                        grid: nsGmx.gridManager.state
                     },
                     exportParams = {
                         width: Math.floor(Number(attrs.width)),
