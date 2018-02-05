@@ -18,12 +18,12 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
             IsPrimary: false,
             IsIdentity: false,
             IsComputed: false,
-            expression: '[' + name + ']'
+            expression: '"' + name + '"'
         });
 
         this.expressions.push({
             name: name,
-            expression: '[' + name + ']'
+            expression: '"' + name + '"'
         })
 
         $(this).triggerHandler('newAttribute');
@@ -100,7 +100,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
             if (!obj) {
                 _this.expressions.push({
                     name: column.Name,
-                    expression: '[' + column.Name + ']'
+                    expression: '"' + column.Name + '"'
                 })
             }
 
@@ -130,7 +130,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
                 IsPrimary: attr.IsPrimary,
                 IsIdentity: attr.IsIdentity,
                 IsComputed: attr.IsComputed,
-                expression: obj ? obj.expression : '[' + attr.name + ']'
+                expression: obj ? obj.expression : '"' + attr.name + '"'
             });
         });
 
@@ -141,10 +141,10 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
         if (!string) return;
         _attributes.forEach(function (attr) {
             if (attr.name) {
-                var re = new RegExp('\\[' + attr.name + '\\]',"g");
+                var re = new RegExp('\\"' + attr.name + '\\"',"g");
 
                 if (!string.match(re)) {
-                    string = string.replace(attr.name, '[' + attr.name + ']');
+                    string = string.replace(attr.name, '"' + attr.name + '"');
                 }
             }
         });

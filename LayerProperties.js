@@ -246,20 +246,14 @@ var LayerProperties = Backbone.Model.extend(
                         Alias: col.Name
                     });
 
-                    var exp = col.expression || '[' + col.Name + ']';
+                    var exp = col.expression || '"' + col.Name + '"';
 
-                    sqlString += i < attrs.Columns.length - 1 ? exp + ', ' : exp;
+                    sqlString += i < attrs.Columns.length - 1 ? exp + ' as ' + col.Name + ', ' : exp + ' as ' + col.Name;
                 }
 
-                // sqlString += ' from [' + params.sourceLayerName + ']';
-                sqlString = 'select [id] + 500 as id from [' + params.sourceLayerName + ']';
+                sqlString += ' from [' + params.sourceLayerName + ']';
 
-                console.log(sqlString);
-                // console.log(re);
                 copyParams.WrapStyle = "message";
-                // reqParams.layer = params.sourceLayerName;
-                // reqParams.query = params.query;
-                // reqParams.Columns = JSON.stringify(columnsList);
                 copyParams.Title = attrs.Title;
                 copyParams.SourceType = attrs.SourceType;
                 copyParams.Sql = sqlString;

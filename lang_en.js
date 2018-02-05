@@ -249,6 +249,7 @@ _translationsHash.hash["eng"] = {
 	"Масштабирование в миникарте" : "Minimap zoom delta",
 	"Показывать всплывающие подсказки" : "Show tooltips",
 	"Свойства" : "Properties",
+	"Создать копию слоя" : "Create layer copy",
 	"Стили" : "Styles",
 	"Изображение на карте" : "Ground overlay",
 	"Слой [value0]" : "Layer [value0]",
