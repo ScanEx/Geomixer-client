@@ -557,13 +557,10 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
-            window.searchControl = new nsGmx.SearchControl({
-                id: 'searchcontrol',
-                placeHolder: 'Поиск по векторным слоям и адресной базе',
-                position: 'topright',
-                limit: 10,
-                retrieveManyOnEnter: true,
-                providers: [
+            var searchProviders = [];
+
+            if (!window.useInternalSearch) {
+                searchProviders.push(
                     new nsGmx.searchProviders.Osm2DataProvider({
                         showOnMap: true,
                         serverBase: 'http://maps.kosmosnimki.ru',
@@ -572,7 +569,16 @@ nsGmx.widgets = nsGmx.widgets || {};
                             window.searchLogic.showResult(response);
                         }.bind(this)
                     })
-                ],
+                );
+            }
+
+            window.searchControl = new nsGmx.SearchControl({
+                id: 'searchcontrol',
+                placeHolder: 'Поиск по векторным слоям и адресной базе',
+                position: 'topright',
+                limit: 10,
+                retrieveManyOnEnter: true,
+                providers: searchProviders,
                 style: {
                     editable: false,
                     map: true,

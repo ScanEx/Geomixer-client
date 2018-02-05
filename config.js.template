@@ -10,6 +10,7 @@
 //var mapsSite = true;
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;
+var useInternalSearch = true;   // использовать поиск только по внутренним слоям
 
 /**
  * baseMap - объект для задания базовых подложек вручную
