@@ -236,7 +236,9 @@ var LayerProperties = Backbone.Model.extend(
             } else if (!name && (params && params.copy)) {
                 var copyParams = {},
                     columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}],
-                    sqlString = 'select '
+                    sqlString = 'select [geomixergeojson] as gmx_geometry, ';
+
+                    console.log();
 
                 for (var i = 0; i < attrs.Columns.length; i++) {
                     var col = attrs.Columns[i];

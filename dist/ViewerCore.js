@@ -1285,6 +1285,7 @@ _translationsHash.hash["rus"] = {
 	"Масштабирование в миникарте" : "Масштабирование в миникарте",
 	"Показывать всплывающие подсказки" : "Показывать всплывающие подсказки",
 	"Свойства" : "Свойства",
+	"Создать копию слоя" : "Создать копию слоя",
 	"Стили" : "Стили",
 	"Изображение на карте" : "Изображение на карте",
 	"Слой [value0]" : "Слой [value0]",
@@ -2021,6 +2022,7 @@ _translationsHash.hash["eng"] = {
 	"Масштабирование в миникарте" : "Minimap zoom delta",
 	"Показывать всплывающие подсказки" : "Show tooltips",
 	"Свойства" : "Properties",
+	"Создать копию слоя" : "Create layer copy",
 	"Стили" : "Styles",
 	"Изображение на карте" : "Ground overlay",
 	"Слой [value0]" : "Layer [value0]",
@@ -12410,24 +12412,24 @@ pointsBinding.pointsBinding.unload = function()
 
 nsGmx = nsGmx || {};
 
-/** 
+/**
 * Контроллёр контекстных меню.
 * @class
 * @name ContextMenuController
 * @memberOf nsGmx
-* 
-* @description Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам. 
-* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст, 
+*
+* @description Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам.
+* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст,
 * указанный при привязке меню к элементу (он так же может создаваться в момент клика на элементе)
-* Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер. 
+* Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер.
 * При создании меню определённого типа из этого набора выбираются нужные элементы.
 */
 nsGmx.ContextMenuController = (function()
 {
 	var _menuItems = {};
 	var SUGGEST_TIMEOUT = 700;
-	
-	// Показывает контектное меню для конкретного элемента. 
+
+	// Показывает контектное меню для конкретного элемента.
 	// В Opera меню показывается при наведении на элемент в течении некоторого времени, во всех остальных браузерах - по правому клику.
 	// Меню исчезает при потере фокуса
 	// Параметры:
@@ -12441,58 +12443,58 @@ nsGmx.ContextMenuController = (function()
         {
             if (typeof checkFunc != 'undefined' && !checkFunc())
                 return false;
-                
-            if (menu && menu.parentNode) 
+
+            if (menu && menu.parentNode)
                 menu.parentNode.removeChild(menu);
-                
+
             menu = menuFunc();
             if (!menu) return false;
-            
+
             var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
-            
+
             var evt = e || window.event;
-            
+
             hidden(contextMenu);
             document.body.appendChild(contextMenu)
-            
+
             // определение координат курсора для ie
             if (evt.pageX == null && evt.clientX != null )
             {
                 var html = document.documentElement
                 var body = document.body
-                
+
                 evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
                 evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
             }
-            
+
             if (evt.pageX + contextMenu.clientWidth < getWindowWidth())
                 contextMenu.style.left = evt.pageX - 5 + 'px';
             else
                 contextMenu.style.left = evt.pageX - contextMenu.clientWidth + 5 + 'px';
-            
+
             if (evt.pageY + contextMenu.clientHeight < getWindowHeight())
                 contextMenu.style.top = evt.pageY - 5 + 'px';
             else
                 contextMenu.style.top = evt.pageY - contextMenu.clientHeight + 5 + 'px';
-            
+
             visible(contextMenu)
-            
+
             var menuArea = contextMenu.getBoundingClientRect();
-            
+
             contextMenu.onmouseout = function(e)
             {
                 var evt = e || window.event;
-                
+
                 // определение координат курсора для ie
                 if (evt.pageX == null && evt.clientX != null )
                 {
                     var html = document.documentElement
                     var body = document.body
-                    
+
                     evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
                     evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
                 }
-                
+
                 if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
                     evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
                 {
@@ -12500,41 +12502,41 @@ nsGmx.ContextMenuController = (function()
                     contextMenu.removeNode(true);
                 }
             }
-            
+
             return false;
         }
-	}	
-	
+	}
+
 	var _contextClose = function()
 	{
         $('#contextMenuCanvas').remove();
-	}	
-	
+	}
+
 	var _generateMenuDiv = function(type, context)
 	{
         var uiTemplate = Handlebars.compile('<div>' +
             '{{#menuItems}}' +
-                '{{#if separator}}<div class = "contextMenuSeparator"></div>{{/if}}' + 
+                '{{#if separator}}<div class = "contextMenuSeparator"></div>{{/if}}' +
                 '<div class = "contextMenuItem" data-itemIndex="{{index}}">{{title}}</div>' +
             '{{/menuItems}}' +
         '</div>');
-        
+
 		var items = _menuItems[type],
             visibleItems = [];
-		
+
 		for (var e = 0; e < items.length; e++) {
 			var menuElem = items[e];
             if (menuElem.isVisible && !menuElem.isVisible(context)) {
                 continue;
             }
-            
+
             visibleItems.push({
                 index: e,
                 title: typeof menuElem.title === 'function' ? menuElem.title() : menuElem.title,
                 separator: menuElem.isSeparatorBefore && menuElem.isSeparatorBefore(context)
             });
         }
-        
+
         if (visibleItems.length) {
             var ui = $(uiTemplate({menuItems: visibleItems}));
             ui.find('.contextMenuItem').click(function() {
@@ -12544,16 +12546,16 @@ nsGmx.ContextMenuController = (function()
                 _contextClose();
                 _menuItems[type][itemIndex].clickCallback(context);
             });
-            
+
             return ui[0];
         }
-        
+
         return null;
 	}
-	
+
 	//public interface
 	return {
-	
+
 		/**
 		 * Добавляет новый пункт меню
          * @memberOf nsGmx.ContextMenuController
@@ -12565,14 +12567,14 @@ nsGmx.ContextMenuController = (function()
 		{
 			if (typeof menuType === 'string')
 				menuType = [menuType];
-				
+
 			for (var i = 0; i < menuType.length; i++)
 			{
 				_menuItems[menuType[i]] = _menuItems[menuType[i]] || [];
 				_menuItems[menuType[i]].push(menuItem);
 			}
 		},
-		
+
 		/**
 		 * Добавляет к DOM элементу контекстное меню
 		 * @function
@@ -12580,7 +12582,7 @@ nsGmx.ContextMenuController = (function()
 		 * @param {DOMElement} elem Целевой DOM-элемент
 		 * @param {String} type Тип меню
 		 * @param {function():Boolean} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
-		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
+		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе.
 		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contentMenuType.
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)
@@ -12589,7 +12591,7 @@ nsGmx.ContextMenuController = (function()
 			{
 				if (typeof context === 'function')
 					context = context(); //
-					
+
 				return _generateMenuDiv(type, context);
 			}, checkFunc, SUGGEST_TIMEOUT)
 		}
@@ -12621,7 +12623,7 @@ nsGmx.ContextMenuController = (function()
 * @name clickCallback
 * @memberOf nsGmx.ContextMenuController.IContextMenuElem.prototype
 * @param {object} context - контекст, который был передан при привязке меню к DOM-элементу. В контекст будут добавлены поля:
-* 
+*
 *  * contentMenuArea {Object} - координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
 *  * contentMenuType {String}- тип вызванного контекстного меню. Актуально, если элемент меню используется в нескольких типах меню.
 */
@@ -12690,8 +12692,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Права доступа"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && 
-				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
+		return !context.layerManagerFlag &&
+				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) &&
 				_queryMapLayers.layerRights(context.elem.name) === 'edit';
 	},
 	clickCallback: function(context) {
@@ -12709,8 +12711,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Скачать"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && 
-				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) && 
+		return !context.layerManagerFlag &&
+				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) &&
 				context.elem.type == "Vector" &&
 				context.tree.treeModel.getMapProperties().CanDownloadVectors;
 	},
@@ -12732,24 +12734,24 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		_queryMapLayers.removeLayer(context.elem.name)
-		
+
 		var div;
-			
+
 		if (context.elem.MultiLayerID)
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
-		
+
 		var treeElem = _layersTree.findTreeElem(div).elem,
 			node = div.parentNode,
 			parentTree = node.parentNode;
-		
+
 		_layersTree.removeTreeElem(div);
 
 		node.removeNode(true);
-		
+
 		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
+
 		_mapHelper.updateUnloadEvent(true);
 	}
 }, 'Layer');
@@ -12760,7 +12762,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
         var layerRights = _queryMapLayers.layerRights(context.elem.name);
 		return !context.layerManagerFlag &&
-               (layerRights === 'edit' || layerRights === 'editrows') && 
+               (layerRights === 'edit' || layerRights === 'editrows') &&
                context.elem.type == "Vector" &&
                context.elem.IsRasterCatalog;
 	},
@@ -12774,7 +12776,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Копировать стиль"); },
 	isVisible: function(context)
 	{
-		return context.elem.type == "Vector" && 
+		return context.elem.type == "Vector" &&
 		       (context.layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
 	},
 	isSeparatorBefore: function(context)
@@ -12782,7 +12784,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		return !context.layerManagerFlag;
 	},
 	clickCallback: function(context)
-	{            
+	{
 		var rawTree = context.tree.treeModel,
             elem;
         if (context.elem.MultiLayerID)
@@ -12794,19 +12796,74 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	}
 }, 'Layer');
 
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: function() { return _gtxt("Создать копию слоя"); },
+	isVisible: function(context)
+	{
+		return context.elem.type == "Vector" &&
+		       (context.layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
+	},
+	isSeparatorBefore: function(context)
+	{
+		return false;
+	},
+	clickCallback: function(context)
+	{
+		sendCrossDomainJSONRequest(window.serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + context.elem.name, function(response) {
+			if (!parseResponse(response)) {
+				return;
+			}
+
+			createEditorFromSelection(response.Result);
+
+			function createEditorFromSelection(props) {
+				var query = '';
+
+				var parent = nsGmx.Utils._div(null, [['attr','id','new' + 'Vector' + 'Layer'], ['css', 'height', '100%']]),
+					properties = {
+						Title:  props.Title + ' ' + _gtxt('копия'),
+						Copyright: props.Copyright,
+						Description: props.Description,
+						Date: props.Date,
+						MetaProperties: props.MetaProperties,
+						TilePath: {
+							Path: ''
+						},
+						ShapePath: props.ShapePath,
+						Columns: props.Columns,
+						IsRasterCatalog: props.IsRasterCatalog,
+						SourceType: "sql",
+						Quicklook: props.Quicklook
+					},
+					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
+					params = {
+						copy: true,
+						sourceLayerName: context.elem.name,
+						query: query,
+						doneCallback: function(res) {
+							nsGmx.Utils.removeDialog(dialogDiv);
+						}
+					};
+
+				nsGmx.createLayerEditor(false, 'Vector', parent, properties, params);
+			}
+		});
+	}
+}, 'Layer');
+
 var applyStyleContentMenuItem = {
 	title: function() { return _gtxt("Применить стиль"); },
 	isVisible: function(context)
 	{
-        if (context.layerManagerFlag || 
-            _queryMapLayers.currentMapRights() !== "edit" || 
-            nsGmx.ClipboardController.getCount('LayerStyle') === 0 ) 
+        if (context.layerManagerFlag ||
+            _queryMapLayers.currentMapRights() !== "edit" ||
+            nsGmx.ClipboardController.getCount('LayerStyle') === 0 )
         {
             return false;
         }
-        
+
         if (context.contentMenuType === 'Layer') {
-            return context.elem.type == "Vector" && 
+            return context.elem.type == "Vector" &&
                 nsGmx.ClipboardController.get('LayerStyle', -1).type === context.elem.GeometryType;
         } else { //группы
             return true;
@@ -12814,34 +12871,34 @@ var applyStyleContentMenuItem = {
 	},
 	clickCallback: function(context)
 	{
-		var 
+		var
             newStyles = nsGmx.ClipboardController.get('LayerStyle', -1).style,
             stylesType = nsGmx.ClipboardController.get('LayerStyle', -1).type;
-            
+
 		if (context.contentMenuType === 'Layer') {
             var div;
             if (context.elem.MultiLayerID)
                 div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
             else
                 div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.name + "']")[0];
-            
+
             div.gmxProperties.content.properties.styles = newStyles;
-            
+
             _mapHelper.updateMapStyles(newStyles, context.elem.name);
-            
+
             _mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
         } else { //группа
             var tree = context.tree.treeModel,
                 node = tree.findElemByGmxProperties(context.div.gmxProperties).elem;
-                
+
             tree.forEachLayer(function(layerContent) {
                 if (layerContent.properties.type !== "Vector" || layerContent.properties.GeometryType !== stylesType){
                     return;
                 };
-                
+
                 layerContent.properties.styles = newStyles;
                 _mapHelper.updateMapStyles(newStyles, layerContent.properties.name);
-                
+
                 var div = context.tree.findUITreeElem({content: layerContent});
                 if (div) {
                     // div.gmxProperties.content.properties.styles = newStyles;
@@ -20862,19 +20919,26 @@ function capitaliseFirstLetter(str)
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-//events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
+//events: newAttribute, delAttribute, updateAttribute, updateExpression, moveAttribute, change
 nsGmx.ManualAttrModel = function(isRCLayer) {
     var _attributes = [];
+    this.expressions = [];
 
     this.addAttribute = function(type, name)
     {
-        _attributes.push({
+        _attributes({
             type: type,
             name: name,
             IsPrimary: false,
             IsIdentity: false,
-            IsComputed: false
+            IsComputed: false,
+            expression: '"' + name + '"'
         });
+
+        this.expressions.push({
+            name: name,
+            expression: '"' + name + '"'
+        })
 
         $(this).triggerHandler('newAttribute');
         $(this).triggerHandler('change');
@@ -20896,6 +20960,16 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
         $(this).triggerHandler('change');
     };
 
+
+    this.changeExpression = function(name, newExp)
+    {
+        var obj = this.expressions.find(function (obj){return obj.name === name});
+
+        obj.expression = newExp;
+        $(this).triggerHandler('updateExpression');
+        $(this).triggerHandler('change');
+    };
+
     this.deleteAttribute = function(idx)
     {
         _attributes.splice(idx, 1);
@@ -20905,14 +20979,14 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
 
     this.getAttribute = function(idx) { return _attributes[idx]; };
     this.getCount = function() { return _attributes.length; };
-    this.each = function(callback, addInternalColumns) {
+    this.each = function(callback, addInternalColumns, params) {
         for (var k = 0; k < _attributes.length; k++) {
             var column = _attributes[k];
             var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed ||
                              column.type.server === 'geometry' || (isRCLayer && column.name === 'GMX_RasterCatalogID');
 
             if (!isInternal || addInternalColumns) {
-                callback(column, k);
+                callback(column, k, params);
             }
         }
     };
@@ -20930,9 +21004,20 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     };
 
     this.initFromServerFormat = function(serverColumns) {
+        var _this = this;
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
             var type = window._.find(nsGmx.ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase();});
+
+            var obj = _this.expressions.find(function (obj){return obj.name === column.Name});
+
+            if (!obj) {
+                _this.expressions.push({
+                    name: column.Name,
+                    expression: '"' + column.Name + '"'
+                })
+            }
+
             _attributes.push({
                 type: type || {server: column.ColumnSimpleType.toLowerCase()},
                 name: column.Name,
@@ -20947,18 +21032,37 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
     };
 
     this.toServerFormat = function() {
+        var _this = this;
         var res = [];
         $.each(_attributes, function(i, attr) {
+            var obj = _this.expressions.find(function (obj){return obj.name === attr.name});
+
             res.push({
                 Name: attr.name,
                 OldName: attr.oldName,
                 ColumnSimpleType: capitaliseFirstLetter(attr.type.server),
                 IsPrimary: attr.IsPrimary,
                 IsIdentity: attr.IsIdentity,
-                IsComputed: attr.IsComputed});
+                IsComputed: attr.IsComputed,
+                expression: obj ? obj.expression : '"' + attr.name + '"'
+            });
         });
 
         return res;
+    };
+
+    this.replaceString = function (string) {
+        if (!string) return;
+        _attributes.forEach(function (attr) {
+            if (attr.name) {
+                var re = new RegExp('\\"' + attr.name + '\\"',"g");
+
+                if (!string.match(re)) {
+                    string = string.replace(attr.name, '"' + attr.name + '"');
+                }
+            }
+        });
+        return string;
     };
 };
 
@@ -20978,12 +21082,14 @@ nsGmx.ManualAttrModel.TYPES = {
 var utils = nsGmx.Utils;
 _translationsHash.addtext('rus', {ManualAttrView: {
     headerName: 'Название',
-    headerType: 'Тип'
+    headerType: 'Тип',
+    headerExp: 'Выражение'
 }});
 
 _translationsHash.addtext('eng', {ManualAttrView: {
     headerName: 'Name',
-    headerType: 'Type'
+    headerType: 'Type',
+    headerExp: 'Expression'
 }});
 
 
@@ -20998,6 +21104,7 @@ nsGmx.ManualAttrView = function()
 {
     var _parent = null;
     var _model = null;
+    var _params = null;
     var _trs = [];
     var _isActive = true;
     var _this = this;
@@ -21013,7 +21120,9 @@ nsGmx.ManualAttrView = function()
         }));
     };
 
-    var createRow = function(attr, i) {
+    var createRow = function(attr, i, params) {
+        var sqlSelector, cellsArr;
+
         var typeSelector = createTypeSelector(attr.type.server)[0];
         $(typeSelector).data('idx', i);
 
@@ -21024,12 +21133,51 @@ nsGmx.ManualAttrView = function()
             _model.changeType($(this).data('idx'), attrType);
         });
 
-        var nameSelector = utils._input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', '120px']]);
+        var nameSelectorLength = params.copy ? 90 : 120;
+
+        var nameSelector = utils._input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', nameSelectorLength + 'px']]);
 
         $(nameSelector).data('idx', i).val(attr.name);
 
         var deleteIcon = utils.makeImageButton('img/recycle.png', 'img/recycle_a.png');
-        var tr = utils._tr([utils._td([nameSelector]), utils._td([typeSelector]), utils._td([deleteIcon])]);
+
+        if (params.copy) {
+
+            var obj = _model.expressions.find(function (obj){
+                return obj.name === attr.name
+            });
+
+            var expression = obj ? obj.expression : '';
+
+            sqlSelector = utils._input(null, [['attr', 'class', 'manualSqlAttrInput inputStyle'], ['css', 'width', '100px']]);
+            $(sqlSelector).data('idx', i).val(_model.replaceString(expression));
+
+            $(sqlSelector).on('keyup', function()
+            {
+                var idx = $(this).data('idx');
+                var exp = $(this).val();
+
+                if (idx >= 0) {
+                    _model.changeExpression(attr.name, exp);
+                } else if (name) {
+                    // isAddingNew = true;
+                    // $(tr).find('td:gt(0)').show();
+                    // $(tr).removeClass('customAttributes-new');
+                    // var newIdx = _model.addAttribute(nsGmx.ManualAttrModel.TYPES.STRING, name);
+                    // $([nameSelector, typeSelector, deleteIcon]).data('idx', newIdx);
+                    // isAddingNew = false;
+                }
+            });
+
+
+            cellsArr = [utils._td([nameSelector]), utils._td([typeSelector]), utils._td([sqlSelector]), utils._td([deleteIcon])];
+        } else {
+            // sqlSelector =
+            cellsArr = [utils._td([nameSelector]), utils._td([typeSelector]), utils._td([deleteIcon])];
+        }
+
+        var tr = utils._tr(cellsArr);
+
         $(nameSelector).on('keyup', function()
         {
             var idx = $(this).data('idx');
@@ -21064,17 +21212,24 @@ nsGmx.ManualAttrView = function()
         _trs = [];
 
         _model.each(function(attr, i) {
-            _trs.push(createRow(attr, i));
+            _trs.push(createRow(attr, i, _params));
         });
 
-        var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1);
+        var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1, _params);
         $(newAttr).find('td:gt(0)').hide();
         $(newAttr).addClass('customAttributes-new');
 
         _trs.push(newAttr);
 
         var tbody = nsGmx.Utils._tbody(_trs);
-        var theader = $(Handlebars.compile('<thead><tr><th>{{i "ManualAttrView.headerName"}}</th><th>{{i "ManualAttrView.headerType"}}</th></tr></thead>')());
+        var theader = $(Handlebars.compile(
+            '<thead>' +
+                '<tr>' +
+                    '<th>{{i "ManualAttrView.headerName"}}</th>' +
+                    '<th>{{i "ManualAttrView.headerType"}}</th>' +
+                    '{{#if copy}}<th>{{i "ManualAttrView.headerExp"}}</th>{{/if}}' +
+                '</tr>' +
+            '</thead>')({copy: _params.copy}));
 
         $(_parent).append($('<fieldset/>').css('border', 'none').append(nsGmx.Utils._table([theader[0], tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);
@@ -21091,10 +21246,11 @@ nsGmx.ManualAttrView = function()
         $('.removeIcon, .customAttributes-new', fieldset).toggle(isActive);
     };
 
-    this.init = function(parent, model)
+    this.init = function(parent, model, params)
     {
         _parent = parent;
         _model = model;
+        _params = params;
         $(_model).on('newAttribute delAttribute moveAttribute', redraw);
 
         $(_model).on('newAttribute', function() {
@@ -21808,7 +21964,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 					dialogDiv = nsGmx.Utils.showDialog(_gtxt('Создать векторный слой'), parent, 340, 340, false, false),
 					params = {
 						copy: true,
-						editColumns: true,
 						sourceLayerName: info.name,
 						query: query,
 						doneCallback: function(res) {
@@ -31851,19 +32006,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -31893,6 +32035,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
