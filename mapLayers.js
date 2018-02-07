@@ -502,12 +502,12 @@
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
         //TODO: enable animation!
-        lmap.fitBounds(bounds, { animation: false });
+        lmap.fitBounds(bounds, { animation: false, maxZoom: z });
 
         //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
-        if (z !== lmap.getZoom()) {
-            lmap.setZoom(z);
-        }
+        // if (z !== lmap.getZoom()) {
+        //     lmap.setZoom(z);
+        // }
     }
 
     layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
