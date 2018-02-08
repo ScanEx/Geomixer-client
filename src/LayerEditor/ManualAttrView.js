@@ -175,7 +175,7 @@ nsGmx.ManualAttrView = function()
 
         $(_model).on('newAttribute', function() {
             if (!$(_parent).find('.customAttributes-new').length) {
-                var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1);
+                var newAttr = createRow({name: '', type: nsGmx.ManualAttrModel.TYPES.STRING}, -1, params);
                 $(newAttr).find('td:gt(0)').hide();
                 $(newAttr).addClass('customAttributes-new');
                 $(_parent).find('tbody').append(newAttr);
