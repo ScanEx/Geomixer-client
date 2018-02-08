@@ -36,6 +36,7 @@ _translationsHash.hash["eng"] = {
     "Объекты": "User objects",
     "Результаты поиска": "Search results",
     "Буфер": "Buffer",
+    "Создание буферных зон": "Buffer zones",
     "Ручная привязка растров": "Manual rasters shift",
     "Поиск слоев на карте": "Search layers on map",
     "Краудсорсинг данных": "Crowdsourcing",

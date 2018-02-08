@@ -1,0 +1,120 @@
+.bufferZonesConfigLeftMenu {
+    position: relative;
+    padding: 3px 0px 3px 7px;
+}
+
+.settings,
+.export-progress-container {
+    width: 90%;
+    margin: 4px 4px 10px 4px;
+}
+
+.areaButton,
+.bufferZonesButton {
+    margin: 4px 0px 4px 0px;
+    cursor: pointer;
+}
+
+.zoomToBoxButton {
+    margin: 0px 0px 0px 8px;
+}
+
+.selectButtons {
+    margin: 4px 4px 4px 0px;
+}
+
+.zoomSelect,
+.dims,
+.formatSelect,
+.typeSelect,
+.nameSelect {
+    padding: 4px;
+    margin: 4px 0px 4px 0px;
+    clear:both;
+}
+
+.zoomLevel,
+.formatTypes,
+.fileTypes,
+.bufferZonesWidth,
+.bufferZonesHeight,
+.bufferZonesName {
+    clear:both;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.zoomLevel,
+.formatTypes,
+.fileTypes {
+    width: 80px;
+    vertical-align:top;
+    height:20px;
+}
+
+.zoomToLevel {
+    text-align: left;
+}
+
+.bufferZonesWidth,
+.bufferZonesHeight {
+    width: 80px;
+}
+
+.bufferZonesName {
+    width: 80px;
+}
+
+.eLabel, .eInput, .bufferZonesWarn {
+    height: 25px;
+    width: 33%;
+}
+
+.eLabel {
+    text-align:left;
+}
+
+.eInput {
+    text-align:right;
+}
+
+.exportWrap {
+    height: 52px;
+}
+
+.export {
+    padding: 0px;
+    vertical-align: top;
+    clear: both;
+    line-height: 30px;
+}
+
+.exportErrorMessage,
+.spinHolder {
+    margin: 0px 0px 0px 8px;
+}
+
+.spinMessage {
+    margin: 0px 0px 0px 4px;
+}
+
+.exportErrorMessage {
+    color: red;
+}
+
+.zoomToLevel, .bufferZonesWarn {
+    padding-left: 8px;
+}
+
+.error {
+	background-color: #FFABAB;
+}
+
+.export-progressbar.ui-progressbar{
+    height: 1em;
+}
+
+.export-progressbar .ui-progressbar-value {
+    background: grey;
+}

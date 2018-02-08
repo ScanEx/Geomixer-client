@@ -287,6 +287,14 @@ nsGmx.widgets = nsGmx.widgets || {};
                             indexGridMenu();
                         }
                     },
+                    {
+                        id: 'buffer',
+                        title: _gtxt('Создание буферных зон'),
+                        func: function() {
+                            BufferZonesMenu();
+                        },
+                        disabled: !isLogined
+                    },
                     { id: 'shift', title: _gtxt('Ручная привязка растров'), func: function() {}, disabled: true },
                     { id: 'crowdsourcing', title: _gtxt('Краудсорсинг данных'), func: function() {}, disabled: true },
                     { id: 'geocoding', title: _gtxt('Пакетный геокодинг'), func: function() {}, disabled: true },
@@ -2286,6 +2294,13 @@ nsGmx.widgets = nsGmx.widgets || {};
         function mapExportMenu() {
             gmxCore.loadModule('MapExport', 'src/MapExport/MapExport.js').then(function(def) {
                 var menu = new def.MapExportMenu();
+                menu.Load();
+            });
+        }
+
+        function BufferZonesMenu() {
+            gmxCore.loadModule('BufferZones', 'src/BufferZones/BufferZones.js').then(function(def) {
+                var menu = new def.BufferZonesMenu();
                 menu.Load();
             });
         }

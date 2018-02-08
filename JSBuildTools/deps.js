@@ -55,6 +55,7 @@ var jsFiles = [
     "src/AttrTable/DefaultSearchParamsManager.js",
     "src/GridPlugin/GridPlugin.js",
     "src/MapExport/MapExport.js",
+    "src/BufferZones/BufferZones.js",
     "src/IndexGrid/IndexGrid.js",
     "src/PhotoLayer/PhotoLayer.js",
 
@@ -143,6 +144,7 @@ var cssFiles = [
 
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
+    "src/BufferZones/BufferZones.css",
     "src/IndexGrid/IndexGrid.css",
 
     "src/PhotoLayer/PhotoLayer.css",

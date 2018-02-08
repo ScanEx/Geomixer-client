@@ -12,7 +12,7 @@ nsGmx.ManualAttrModel = function(isRCLayer) {
 
     this.addAttribute = function(type, name)
     {
-        _attributes({
+        _attributes.push({
             type: type,
             name: name,
             IsPrimary: false,
