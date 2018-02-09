@@ -7,8 +7,10 @@ var nsGmx = window.nsGmx || {};
             selectTooltip: 'Выберите кликом векторный слой в дерев',
             select: 'Выберите векторный слой',
             selectedLayer: 'Выбранный слой',
+            layerTypeError: 'Слой не является векторным',
             bufferSize: 'Размер буфера',
             createBuffer: 'Создать буфер',
+            units: 'м'
         }
     });
     window._translationsHash.addtext('eng', {
@@ -17,8 +19,10 @@ var nsGmx = window.nsGmx || {};
             selectTooltip: 'Select vector layer by click in the tree',
             select: 'Select vector layer',
             selectedLayer: 'Selected layer',
+            layerTypeError: 'Selected layer is not vector type',
             bufferSize: 'Buffer size',
             createBuffer: 'Create Buffer',
+            units: 'm'
         }
     });
 
@@ -34,7 +38,7 @@ var nsGmx = window.nsGmx || {};
                 selectedLayer: null,
                 selectedLayerName: '',
                 bufferSize: 50,
-                exportErr: false
+                error: true
             }
         });
 
@@ -45,16 +49,20 @@ var nsGmx = window.nsGmx || {};
             model: model,
             template: window.Handlebars.compile(
                 '<div class="">' +
-                    '<div>{{i "bufferZones.select"}}</div>' +
-                    '<div>{{i "bufferZones.selectedLayer"}}: {{selectedLayerName}}</div>' +
-                    '<div>{{i "bufferZones.bufferSize"}}: ' +
-                        '<input type="number" class="bufferZonesName"value={{bufferSize}}></input>' +
+                    '<div class="buffer-row buffer-select-title">{{i "bufferZones.select"}}</div>' +
+                    '<div class="buffer-row">{{i "bufferZones.selectedLayer"}}: ' +
+                        '<span class="buffer-layer-name {{#if error}}buffer-layer-name-error{{/if}}">{{selectedLayerName}}</span>' +
                     '</div>' +
-                    '<div><span class="buttonLink createBufferButton">{{i "bufferZones.createBuffer"}}</span></div>' +
+                    '<div class="buffer-row">{{i "bufferZones.bufferSize"}}: ' +
+                        '<input type="number" class="buffer-size"value={{bufferSize}}></input>' +
+                        ' {{i "bufferZones.units"}}' +
+                    '</div>' +
+                    '<div class="buffer-row buffer-button-container"><span class="buttonLink create-buffer-button {{#if error}}gmx-disabled{{/if}}">{{i "bufferZones.createBuffer"}}</span></div>' +
                 '</div>'
             ),
             events: {
-                'click .createBufferButton': 'createBuffer',
+                'click .create-buffer-button': 'createBuffer',
+                'change .buffer-size': 'setBufferSize',
             },
 
             initialize: function () {
@@ -63,20 +71,51 @@ var nsGmx = window.nsGmx || {};
 
                 $(_layersTree).on('activeNodeChange', function(event, elem) {
                     if (elem) {
+                        if (elem.hasAttribute('groupid')) {
+                            _this.model.set({
+                                selectedLayerName: '',
+                                selectedLayer: null,
+                                error: true
+                            });
+                            return;
+                        }
+
                         var layerID = $(elem).attr('layerid'),
                             layer = nsGmx.gmxMap.layersByID[layerID];
 
-                        if (layer && layer instanceof L.gmx.VectorLayer) {
+                        if (layer && layer.getGmxProperties) {
+                            var type = layer.getGmxProperties().type
+                            if (type === 'Vector') {
+                                _this.model.set({
+                                    selectedLayerName: layer.getGmxProperties ? layer.getGmxProperties().title : '',
+                                    selectedLayer: layerID,
+                                    error: false
+                                });
+                            } else {
+                                _this.model.set({
+                                    selectedLayerName: window._gtxt('bufferZones.layerTypeError'),
+                                    selectedLayer: null,
+                                    error: true
+                                });
+                            }
+                        } else {
                             _this.model.set({
-                                selectedLayerName: layer.getGmxProperties ? layer.getGmxProperties().title : '',
-                                selectedLayer: layerID
+                                selectedLayerName: window._gtxt('bufferZones.layerTypeError'),
+                                selectedLayer: null,
+                                error: true
                             });
                         }
+                    } else {
+                        _this.model.set({
+                            selectedLayerName: '',
+                            selectedLayer: null,
+                            error: true
+                        });
                     }
                 });
 
                 this.listenTo(this.model, 'selectedLayerName: change', this.render);
-
+                this.listenTo(this.model, 'bufferSize: change', this.render);
 
                 this.render();
             },
@@ -84,7 +123,23 @@ var nsGmx = window.nsGmx || {};
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
 
+                // console.log('----- bs: ', this.model.get('bufferSize'));
+
                 return this;
+            },
+
+            setBufferSize: function (e) {
+                var value = Number(e.target.value);
+
+                if (isNaN(value)) {
+                    this.model.set('error', true);
+                    return;
+                } else {
+                    this.model.set({
+                        error: false,
+                        bufferSize: value
+                    });
+                }
             },
 
             createBuffer: function () {
@@ -110,7 +165,7 @@ var nsGmx = window.nsGmx || {};
                         },
                         properties = {
                             Columns: response.Result.Columns,
-                            Title:  response.Result.Title,
+                            Title:  response.Result.Title + '_' + window._gtxt('Буфер').toLowerCase(),
                             Copyright: response.Result.Copyright,
                             Description: response.Result.Description,
                             Date: response.Result.Date,
@@ -133,131 +188,13 @@ var nsGmx = window.nsGmx || {};
                         window._queryMapLayers.asyncCreateLayer(def, layerTitle);
                     }
                 });
-
-            },
-
-            exportMap: function () {
-                // var _this = this,
-                //     attrs = this.model.toJSON(),
-                //     initialCoords = attrs.selArea.rings[0].ring._getLatLngsArr(),
-                //     screenCoords = !attrs.coords ? this._convertFromLatLngs(initialCoords, attrs.z) : this._convertFromLatLngs(attrs.coords, attrs.z),
-                //     dimensions = this._getDimensions(screenCoords),
-                //     mapStateParams = {
-                //         exportMode: true,
-                //         isFullScreen: true,
-                //         width: Math.floor(Number(attrs.width)) + 'px',
-                //         height: Math.floor(Number(attrs.height)) + 'px',
-                //         position: {
-                //             x: dimensions.mercCenter.x,
-                //             y: dimensions.mercCenter.y,
-                //             z: attrs.z ? 17 - attrs.z : 17 - attrs.lmap.getZoom()
-                //         },
-                //         latLng: dimensions.latLng,
-                //         exportBounds: attrs.selArea.getBounds(),
-                //         grid: nsGmx.gridManager.state
-                //     },
-                //     exportParams = {
-                //         width: Math.floor(Number(attrs.width)),
-                //         height: Math.floor(Number(attrs.height)),
-                //         filename: attrs.name,
-                //         container: attrs.fileType === window._gtxt('mapExport.filetypes.raster') ? 'grimage' : attrs.fileType,
-                //         format: attrs.format
-                //     },
-                //     exportButton = this.$('.mapExportButton'),
-                //     cancelButton = this.$('.cancelButton'),
-                //     progressBarContainer = this.$('.export-progress-container'),
-                //     progressBar = this.$('.export-progressbar'),
-                //     spinHolder = this.$('.spinHolder'),
-                //     spinMessage = this.$('.spinMessage'),
-                //     def;
-                //
-                // $(exportButton).toggle();
-                // $(cancelButton).toggle();
-                //
-                // window._mapHelper.createExportPermalink(mapStateParams, processLink);
-                //
-                // function processLink(id){
-                //     var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + 'http://' + window.location.host + window.location.pathname + '?permalink=' + id;
-                //
-                //     _this.model.set({
-                //         exportErr: false
-                //     });
-                //
-                //     $(exportButton).addClass('gmx-disabled');
-                //
-                //     $(progressBarContainer).toggle();
-                //     $(spinHolder).toggle();
-                //
-                //     $(progressBar).progressbar({
-                //         max: 100,
-                //         value: 0
-                //     });
-                //
-                //     def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
-                //
-                //     def.done(function(taskInfo){
-                //         var url2 = window.serverBase + taskInfo.Result.downloadFile,
-                //             selArea = _this.model.get('selArea');
-                //
-                //         if (selArea) {
-                //             $(exportButton).removeClass('gmx-disabled');
-                //         } else {
-                //             $(exportButton).addClass('gmx-disabled');
-                //         }
-                //
-                //         $(exportButton).toggle();
-                //         $(cancelButton).toggle();
-                //         $(spinHolder).toggle();
-                //         $(progressBarContainer).toggle();
-                //
-                //         downloadFile(url2);
-                //
-                //     }).fail(function(taskInfo){
-                //         if (taskInfo.ErrorInfo.ErrorMessage !== 'Task is canceled') {
-                //             $(exportButton).removeClass('gmx-disabled');
-                //
-                //             _this.model.set({
-                //                 exportErr: true
-                //             });
-                //         }
-                //     }).progress(function(taskInfo){
-                //         _this.model.set({
-                //             taskInfo: taskInfo
-                //         });
-                //
-                //         if (taskInfo.Status === 'queue') {
-                //             $(spinMessage).html(window._gtxt('mapExport.inQueue'));
-                //         } else if (taskInfo.Status === 'progress') {
-                //             $(spinMessage).html(window._gtxt('mapExport.inProcess'));
-                //
-                //             $(progressBar).progressbar('value', taskInfo.Progress);
-                //         }
-                //     });
-                //
-                //     function downloadFile(url) {
-                //         var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1,
-                //             isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
-                //
-                //         if (isChrome || isSafari) {
-                //             var link = document.createElement('a');
-                //             link.href = url;
-                //             link.download = attrs.name;
-                //
-                //             if (document.createEvent) {
-                //                 var e = document.createEvent('MouseEvents');
-                //                 e.initEvent('click', true, true);
-                //                 link.dispatchEvent(e);
-                //                 return true;
-                //             }
-                //         } else {
-                //             window.open(url, '_self');
-                //         }
-                //     }
-                // }
             }
         });
 
         view = new BufferView();
+
+        // DEBUG:
+        window.v = view;
 
         this.Load = function () {
             var lm = model.get('lm');

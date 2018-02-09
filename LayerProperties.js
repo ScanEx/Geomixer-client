@@ -237,7 +237,7 @@ var LayerProperties = Backbone.Model.extend(
                 var copyParams = {},
                     columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}],
                     sqlString = params.buffer ?
-                        'select Buffer([geomixergeojson], ' + (params.bufferSize || 0) + ') as gmx_geometry, ' :
+                        'select Buffer([gmx_geometry], ' + (params.bufferSize || 0) + ') as gmx_geometry, ' :
                         'select [geomixergeojson] as gmx_geometry, ';
 
 
