@@ -4,24 +4,24 @@ var nsGmx = window.nsGmx || {};
     window._translationsHash.addtext('rus', {
         bufferZones: {
             title: 'Создание буферных зон',
-            selectTooltip: 'Выберите кликом векторный слой в дерев',
+            selectTooltip: 'Выберите кликом векторный слой',
             select: 'Выберите векторный слой',
             selectedLayer: 'Выбранный слой',
             layerTypeError: 'Слой не является векторным',
             bufferSize: 'Размер буфера',
-            createBuffer: 'Создать буфер',
+            createBuffer: 'Создать',
             units: 'м'
         }
     });
     window._translationsHash.addtext('eng', {
         bufferZones: {
             title: 'Buffer zones creation',
-            selectTooltip: 'Select vector layer by click in the tree',
+            selectTooltip: 'Select vector layer by click',
             select: 'Select vector layer',
             selectedLayer: 'Selected layer',
             layerTypeError: 'Selected layer is not vector type',
             bufferSize: 'Buffer size',
-            createBuffer: 'Create Buffer',
+            createBuffer: 'Create',
             units: 'm'
         }
     });
@@ -49,12 +49,12 @@ var nsGmx = window.nsGmx || {};
             model: model,
             template: window.Handlebars.compile(
                 '<div class="">' +
-                    '<div class="buffer-row buffer-select-title">{{i "bufferZones.select"}}</div>' +
-                    '<div class="buffer-row">{{i "bufferZones.selectedLayer"}}: ' +
-                        '<span class="buffer-layer-name {{#if error}}buffer-layer-name-error{{/if}}">{{selectedLayerName}}</span>' +
+                    '<div class="buffer-row buffer-select-title">{{i "bufferZones.select"}}:</div>' +
+                    '<div class="buffer-row buffer-layer-name {{#if error}}buffer-layer-name-error{{/if}}">' +
+                        '{{selectedLayerName}}' +
                     '</div>' +
                     '<div class="buffer-row">{{i "bufferZones.bufferSize"}}: ' +
-                        '<input type="number" class="buffer-size"value={{bufferSize}}></input>' +
+                        '<input type="number" class="buffer-size" value={{bufferSize}}></input>' +
                         ' {{i "bufferZones.units"}}' +
                     '</div>' +
                     '<div class="buffer-row buffer-button-container"><span class="buttonLink create-buffer-button {{#if error}}gmx-disabled{{/if}}">{{i "bufferZones.createBuffer"}}</span></div>' +

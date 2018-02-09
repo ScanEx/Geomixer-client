@@ -7,7 +7,6 @@
     margin: 4px 0 4px 0;
 }
 
-.buffer-select-title,
 .buffer-layer-name {
     font-weight: bold;
 }
@@ -17,7 +16,7 @@
 }
 
 .buffer-layer-name {
-    margin-left: 2px;
+    height: 18px;
 }
 
 .buffer-layer-name-error {
