@@ -20434,51 +20434,275 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 var nsGmx = window.nsGmx || {};
 
 var SidebarWidget = function (params) {
-    this.container = params.container;
-    this.tabsContainer = document.createElement('div');
-    this.tabsContainer.className = "leftCollapser-icon leftCollapser-left";
+    this._panes = {};
+    this._callback = params.callback;
+    this._container = params.container;
 
-    this.mainContainer = document.createElement('div');
-    this.mainContainer.className = "leftMenu";
+    this._mainContainer = document.createElement('div');
+    this._tabsContainer = document.createElement('ul');
+    this._panesContainer = document.createElement('div');
 
-    this.tabsContainer.innerHTML = 'o_O';
-    this.mainContainer.innerHTML = 'test test';
+    this._mainContainer.className = "gmx-sidebar";
+    this._tabsContainer.className = "gmx-sidebar-tabs";
+    this._panesContainer.className = "gmx-sidebar-content";
 
-    this.container.appendChild(this.tabsContainer);
-    this.container.appendChild(this.mainContainer);
+    this._mainContainer.appendChild(this._tabsContainer);
+    this._mainContainer.appendChild(this._panesContainer);
 
-    this.width = params.width;
+    this._container.appendChild(this._mainContainer);
+
+    this._collapsedWidth = params.collapsedWidth || 40;
+    this._extendedWidth = params.extendedWidth || 400;
+
+    /* sidebar events
+     * ev.opening
+     * ev.opened { <String>id }
+     * ev.closing
+     * ev.closed
+     */
+    this.listeners = {
+        "opening": [],
+        "opened": [],
+        "closing": [],
+        "closed": []
+    };
+    this.opening = document.createEvent('Event');
+    this.opening.initEvent('sidebar:opening', true, true);
+    this.opened = document.createEvent('Event');
+    this.opened.initEvent('sidebar:opened', true, true);
+    this.closing = document.createEvent('Event');
+    this.closing.initEvent('sidebar:closing', true, true);
+    this.closed = document.createEvent('Event');
+    this.closed.initEvent('sidebar:closed', true, true);
 };
 
 SidebarWidget.prototype = {
-    setPane: function () {
+    on: function (type, callback) {
+        if(!(type in this.listeners)) {
+            this.listeners[type] = [];
+        }
+        this.listeners[type].push(callback);
+    },
 
+    off: function (type, callback) {
+        if(!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        for(var i = 0, l = stack.length; i < l; i++) {
+            if(stack[i] === callback){
+                stack.splice(i, 1);
+                return this.removeEventListener(type, callback);
+            }
+        }
+    },
+
+    fire: function (type, options) {
+        if(!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        // event.target = this;
+        for(var i = 0, l = stack.length; i < l; i++) {
+            stack[i].call(this, options);
+        }
+    },
+
+    setPane: function (id, paneOptions) {
+        var paneOptions = paneOptions || {};
+        var createTab = paneOptions.createTab;
+        var position = paneOptions.position;
+        var enabled = paneOptions.enabled;
+        var defaultPaneOptions = { position: 0, enabled: true };
+
+        this._panes[id] = L.extend({}, defaultPaneOptions, this._panes[id] || {}, paneOptions);
+
+        if (!this._panes[id].enabled && this._activeTabId === id) {
+            this.close();
+        }
+
+        this._renderTabs({});
+        return this._ensurePane(id);
     },
 
     enable: function () {
 
     },
 
-    close: function () {
+    getWidth: function () {
+        if (this._isOpened) {
+            return this._extendedWidth;
+        } else {
+            return this._collapsedWidth;
+        }
+    },
+
+    open: function(paneId) {
+        if (this._isAnimating) {
+            return;
+        }
+
+        var pane = this._panes[paneId];
+        if (!pane || !pane.enabled) {
+            return;
+        }
+
+        this._activeTabId = paneId;
+
+        this._setTabActive(paneId, true);
+
+        this._setActiveClass(paneId);
+
+        if (this._isOpened) {
+            this.fire('opened', { id: this._activeTabId});
+            return;
+        }
+
+        this._isAnimating = true;
+        L.DomUtil.addClass(this._container, 'gmx-sidebar-opened');
+        L.DomUtil.addClass(this._container, 'gmx-sidebar-expanded');
+        this._isOpened = true;
+        this.fire('opening');
+        setTimeout(function() {
+            this.fire('opened', { id: this._activeTabId });
+            this._isAnimating = false;
+            this._callback(this._extendedWidth);
+        }.bind(this), 250);
 
     },
 
-    getActiveTabId: function () {
+    _setTabActive: function (paneId, flag) {
+        var tabs = this._tabsContainer.querySelectorAll('.gmx-sidebar-tab');
+        for (var i = 0; i < tabs.length; ++i) {
+            var id = tabs[i].getAttribute('data-tab-id');
+            var tab = tabs[i].querySelector('.tab-icon');
+            if (id === paneId) {
+                if (flag) {
+                    L.DomUtil.addClass(tab, 'tab-icon-active');
+                }
+                else {
+                    L.DomUtil.removeClass(tab, 'tab-icon-active');
+                }
+            } else {
+                L.DomUtil.removeClass(tab, 'tab-icon-active');
+            }
+        }
+    },
+
+    close: function() {
+        if (this._isAnimating) {
+            return;
+        }
+        this._setTabActive(this._activeTabId, false);
+
+        L.DomUtil.removeClass(this._container, 'gmx-sidebar-opened');
+
+        this._isAnimating = true;
+        L.DomUtil.removeClass(this._container, 'gmx-sidebar-opened');
+        this._isOpened = false;
+        this.fire('closing');
+        setTimeout(function() {
+            L.DomUtil.removeClass(this._container, 'gmx-sidebar-expanded');
+            this.fire('closed', { id: this._activeTabId });
+            this._isAnimating = false;
+            this._setActiveClass('');
+            this._activeTabId = null;
+            this._callback(this._collapsedWidth);
+        }.bind(this), 250);
 
     },
 
-    setPane: function () {
-
+    _setActiveClass: function(activeId) {
+        var i, id;
+        for (i = 0; i < this._panesContainer.children.length; i++) {
+            id = this._panesContainer.children[i].getAttribute('data-pane-id');
+            var pane = this._panesContainer.querySelector('[data-pane-id=' + id + ']');
+            if (id === activeId) {
+                L.DomUtil.addClass(pane, 'gmx-sidebar-pane-active');
+            } else {
+                L.DomUtil.removeClass(pane, 'gmx-sidebar-pane-active');
+            }
+        }
     },
 
-    setPane: function () {
-
+    getActiveTabId: function() {
+        return this._activeTabId;
     },
 
     isOpened: function () {
+        return this._isOpened;
+    },
 
+
+    _ensurePane: function(id) {
+
+        for (let i = 0; i < this._panesContainer.childNodes.length; ++i) {
+            let node = this._panesContainer.childNodes[i];
+            if (node.getAttribute('data-pane-id') === id) {
+                return node;
+            }
+        }
+
+        let paneEl = L.DomUtil.create('div', 'gmx-sidebar-pane');
+        paneEl.setAttribute('data-pane-id', id);
+        this._panesContainer.appendChild(paneEl);
+
+        return paneEl;
+    },
+
+
+    _onTabClick: function(e) {
+        var tabId = e.currentTarget.getAttribute('data-tab-id');
+        var pane = this._panes[tabId];
+        if (!pane || !pane.enabled) {
+            return;
+        }
+        if (!this._isOpened || this._activeTabId !== tabId) {
+            this._renderTabs({ activeTabId: tabId });
+            this.open(tabId);
+        } else {
+            this._renderTabs({});
+            this.close();
+        }
+    },
+
+    _renderTabs: function (options) {
+        var activeTabId = options.activeTabId;
+        var hoveredTabId = options.hoveredTabId;
+        this._tabsContainer.innerHTML = '';
+        Object.keys(this._panes).map(function(id) {
+            return L.extend({ id: id }, this._panes[id]);
+        }.bind(this)).sort(function (a, b) {
+            return a.position - b.position;
+        }).map(function (options) {
+            var id = options.id;
+            var createTab = options.createTab;
+            var enabled = options.enabled;
+            if (!createTab) {
+                return;
+            }
+            var tabContainerEl = document.createElement('li');
+            tabContainerEl.className = 'gmx-sidebar-tab';
+            tabContainerEl.setAttribute('data-tab-id', id);
+            var tabEl = createTab(getFlag(id, activeTabId, hoveredTabId, enabled));
+            L.DomEvent.on(tabContainerEl, 'click', this._onTabClick, this);
+            tabContainerEl.appendChild(tabEl);
+            this._tabsContainer.appendChild(tabContainerEl);
+        }.bind(this));
+
+        function getFlag(tabId, activeTabId, hoveredTabId, enabled) {
+            if (!enabled) {
+                return 'disabled';
+            } else if (hoveredTabId && tabId === hoveredTabId) {
+                return 'hover';
+            } else if (activeTabId && tabId === activeTabId) {
+                return 'active';
+            } else {
+                return 'default';
+            }
+        }
     }
-};
+}
 
 nsGmx.SidebarWidget = SidebarWidget;
 
@@ -32148,11 +32372,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32187,6 +32406,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -32256,6 +32480,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32285,19 +32522,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -39971,10 +40195,19 @@ nsGmx.widgets = nsGmx.widgets || {};
             var top = 0,
                 bottom = 0,
                 right = 0,
-                left = window.exportMode ? 0 : (layersShown ? 360 : 12),
+                left,
                 headerHeight = $('#header').outerHeight(),
                 mainDiv = $('#flash')[0];
 
+            if (window.exportMode) {
+                left = 0;
+            } else {
+                if (window.sidebarWidget)  {
+                    left = window.sidebarWidget.getWidth();
+                } else {
+                    left = layersShown ? 400 : 40;
+                }
+            }
             mainDiv.style.left = left + 'px';
             mainDiv.style.top = top + 'px';
             mainDiv.style.width = getWindowWidth() - left - right + 'px';
@@ -39991,11 +40224,11 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 $('#leftMenu')[0].style.height = baseHeight + 'px'
 
-                $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
-                $('#leftContent')[0].style.height = baseHeight -
-                    $('#leftPanelHeader')[0].offsetHeight -
-                    $('#leftPanelFooter')[0].offsetHeight -
-                    mapNameHeight + 'px';
+                // $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
+                // $('#leftContent')[0].style.height = baseHeight -
+                //     $('#leftPanelHeader')[0].offsetHeight -
+                //     $('#leftPanelFooter')[0].offsetHeight -
+                //     mapNameHeight + 'px';
             } else {
                 $('#leftMenu').hide();
             }
@@ -41185,9 +41418,105 @@ nsGmx.widgets = nsGmx.widgets || {};
                     LayersTreePermalinkParams = state.LayersTreePermalinkParams;
                 }
 
+                /**
+                 *
+                 * SIDEBAR
+                 *
+                 */
+
+                window.sidebarWidget = new nsGmx.SidebarWidget({
+                    container: document.getElementById('leftMenu'),
+                    collapsedWidth: 40,
+                    extendedWidth: 400,
+                    callback: window.resizeAll
+                });
+
+                window.createTabFunction = function(options) {
+                    return function(state) {
+                        var el = document.createElement("div"),
+                        tabEl = document.createElement("div"),
+                        href = '#' + options.icon.toLowerCase();
+
+                        el.classList.add("tab-icon");
+
+                        // el.className = 'leaflet-gmx-iconSvg';
+
+                        tabEl.innerHTML = '<svg role="img" class="svgIcon">\
+                        <use xlink:href="' + href + '" href="' + href + '"></use>\
+                        </svg>';
+
+                        el.appendChild(tabEl);
+
+                        options.hint && el.setAttribute("title", options.hint);
+                        tabEl.classList.add(options.icon);
+                        if (state === "active") {
+                            tabEl.classList.add(options.active);
+                            el.classList.add("tab-icon-active");
+                        } else {
+                            tabEl.classList.add(options.inactive);
+                        }
+                        return el;
+                    };
+                };
+
+
+                var leftMainContainer = window.sidebarWidget.setPane(
+                    "layers-tree", {
+                        createTab: window.createTabFunction({
+                            icon: "s-tree",
+                            active: "uploadfile-uploadfile-sidebar",
+                            inactive: "uploadfile-uploadfile-sidebar",
+                            hint: "layers-tree"
+                        })
+                    }
+                );
+
+                 leftMainContainer.innerHTML =
+                    '<div class="leftMenu">' +
+                        '<div class="mainmap-title">' + data.properties.title + '</div>' +
+                        '<div id="leftPanelHeader" class="leftPanelHeader"></div>' +
+                        '<div id="leftContent" class="leftContent">' +
+                            '<div id="leftContentInner" class="leftContentInner"></div>' +
+                        '</div>' +
+                        '<div id="leftPanelFooter" class="leftPanelFooter"></div>' +
+                    '</div>';
+
+                 window.sidebarWidget.open("layers-tree");
+
+                 function handleSidebarResize(e) {
+                     var sidebarWidth = window.sidebarWidget.getWidth(),
+                        lmap = nsGmx.leafletMap,
+                        newBottomLeft,
+                        newBounds;
+                        var c = lmap.getContainer();
+
+                    var pBounds = lmap.getPixelBounds(),
+                        bl = pBounds.getBottomLeft(),
+                        tr = pBounds.getTopRight(),
+                        blll = L.latLng(lmap.unproject(bl)),
+                        trll = L.latLng(lmap.unproject(tr));
+
+                    if (e.type === 'sidebar:opened') {
+                        newBottomLeft = L.point(bl.x + sidebarWidth, bl.y);
+                    } else {
+                        newBottomLeft = L.point(bl.x - sidebarWidth, bl.y);
+
+                    }
+                    newBounds = L.latLngBounds(L.latLng(lmap.unproject(newBottomLeft)), trll);
+
+                 }
+
+                 /**
+                  *
+                  * SIDEBAR END
+                  *
+                  */
+
+
                 _queryMapLayers.addLayers(data, condition, mapStyles, LayersTreePermalinkParams);
 
-                var headerDiv = $('<div class="mainmap-title">' + data.properties.title + '</div>').prependTo($('#leftMenu'));
+                // переписать на вкладку с деревом
+                var headerDiv = $('.mainmap-title');
 
                 // special for steppe Project
                 if (data.properties.MapID === '0786A7383DF74C3484C55AFC3580412D') {
@@ -41260,16 +41589,16 @@ nsGmx.widgets = nsGmx.widgets || {};
                 _mapHelper.gridView = false;
 
                 var updateLeftPanelVis = function() {
-                    $('.leftCollapser-icon')
-                        .toggleClass('leftCollapser-right', !layersShown)
-                        .toggleClass('leftCollapser-left', !!layersShown);
+                    // $('.leftCollapser-icon')
+                    //     .toggleClass('leftCollapser-right', !layersShown)
+                    //     .toggleClass('leftCollapser-left', !!layersShown);
                     resizeAll();
                 }
 
-                $('#leftCollapser').click(function() {
-                    layersShown = !layersShown;
-                    updateLeftPanelVis();
-                });
+                // $('#leftCollapser').click(function() {
+                //     layersShown = !layersShown;
+                //     updateLeftPanelVis();
+                // });
                 updateLeftPanelVis();
 
                 createToolbar();
@@ -41386,7 +41715,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     });
                 }
 
-                $('#leftContent').mCustomScrollbar();
+                // $('#leftContent').mCustomScrollbar();
 
                 // экспорт карты
 
