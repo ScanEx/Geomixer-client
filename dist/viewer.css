@@ -2171,7 +2171,7 @@ leaflet-control-layers-toggle {
   max-height: 310px;
   overflow: auto;
   right: 8px;
-  margin: -16px 7px 0 0;
+  margin: 4px 7px 0 0;
   background-color: white;
   min-width: 115px;
   box-shadow: rgba(100, 100, 100, 0.7) 0px 0px 3px;
@@ -2807,39 +2807,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?5966117");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5966117");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?5966117");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5966117");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?5966117");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?5966117");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?5966117");
   /*{iconsError}*/
 }
 
@@ -4952,19 +4952,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?5966117");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?5966117");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?5966117");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?5966117");
 }
 
 /* ---------------------------------
@@ -5010,7 +5010,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?5966117");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -5020,7 +5020,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?1171823");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?5966117");
 }
 
 .search-form table {
@@ -5121,11 +5121,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1171823");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1171823#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?1171823") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?1171823") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?1171823#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?5966117");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?5966117#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?5966117") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?5966117") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?5966117#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5138,7 +5138,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?1171823#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?5966117#fontello') format('svg');
   }
 }
 */
@@ -5695,7 +5695,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?1171823");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?5966117");
 }
 
 .authWidget-loginButton {
@@ -5877,11 +5877,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?1171823");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?5966117");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?1171823");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?5966117");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6654,7 +6654,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?1171823");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?5966117");
   /* ie9 fix */
 }
 
@@ -6710,7 +6710,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?1171823");
+  background: url("../common_components/dist/src/check.png?5966117");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6756,7 +6756,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?1171823");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?5966117");
   opacity: .4;
   display: none;
 }

@@ -621,6 +621,7 @@ _translationsHash.hash["eng"] = {
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Колонки" : "Columns",
 	"Показывать колонки" : "Show columns",
+	"Скрыть колонки" : "Hide columns",
 	"Найти" : "Search",
 	"Нет полей" : "Empty fields",
 	"Нет данных" : "Empty data",

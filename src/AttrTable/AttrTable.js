@@ -196,15 +196,17 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   }
 	   });
 
-	   columnsList.onmouseleave = function () {
-		   this.style.display = 'none';
-	   }
+	   // columnsList.onmouseleave = function () {
+		//    this.style.display = 'none';
+	   // }
 
 	   return columnsList;
 };
 
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
+	var _this = this;
+
     var _params = $.extend({
         hideDownload: false,
         hideActions: false,
@@ -450,6 +452,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 			['attr', 'class', 'attrsSelectedCont']
 		]);
 
+	canvas.onclick = function (e) {
+		if ($(showColumnsListButton).hasClass('hide-columns-list-button')) {
+			$(showColumnsListButton).toggleClass('hide-columns-list-button');
+			$(showColumnsListButton).html(_gtxt('Показывать колонки'))
+		}
+
+		$(columnsList).hide();
+	}
+	columnsList.onclick = function (e) {
+		e.stopPropagation();
+	}
+
 	selectAllItems.onchange = function() {
 		var table2 = _this.table2;
 		table2.getVisibleItems().forEach(function(it) {
@@ -482,10 +496,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
-	showColumnsListButton.onclick = function() {
-		if (columnsList.style.display === 'none') {
+	showColumnsListButton.onclick = function(e) {
+		e.stopPropagation();
+		$(this).toggleClass('hide-columns-list-button');
+		if ($(this).hasClass('hide-columns-list-button')) {
+			$(this).html(_gtxt('Скрыть колонки'));
 			$(columnsList).show();
+		} else {
+			$(this).html(_gtxt('Показывать колонки'))
+			$(columnsList).hide();
 		}
+
 	}
 
 	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '0px 0px 10px 1px']]);

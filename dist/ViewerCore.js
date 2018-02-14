@@ -1664,6 +1664,7 @@ _translationsHash.hash["rus"] = {
     "Искать по пересечению с объектом" : "Искать по пересечению с объектом",
 	"Колонки" : "Колонки",
 	"Показывать колонки" : "Показывать колонки",
+	"Скрыть колонки" : "Скрыть колонки",
 	"Найти" : "Найти",
 	"Нет полей" : "Нет полей",
 	"Нет данных" : "Нет данных",
@@ -2395,6 +2396,7 @@ _translationsHash.hash["eng"] = {
 	"SQL-условие WHERE" : "WHERE SQL expression",
 	"Колонки" : "Columns",
 	"Показывать колонки" : "Show columns",
+	"Скрыть колонки" : "Hide columns",
 	"Найти" : "Search",
 	"Нет полей" : "Empty fields",
 	"Нет данных" : "Empty data",
@@ -21872,15 +21874,17 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   }
 	   });
 
-	   columnsList.onmouseleave = function () {
-		   this.style.display = 'none';
-	   }
+	   // columnsList.onmouseleave = function () {
+		//    this.style.display = 'none';
+	   // }
 
 	   return columnsList;
 };
 
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
+	var _this = this;
+
     var _params = $.extend({
         hideDownload: false,
         hideActions: false,
@@ -22126,6 +22130,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 			['attr', 'class', 'attrsSelectedCont']
 		]);
 
+	canvas.onclick = function (e) {
+		if ($(showColumnsListButton).hasClass('hide-columns-list-button')) {
+			$(showColumnsListButton).toggleClass('hide-columns-list-button');
+			$(showColumnsListButton).html(_gtxt('Показывать колонки'))
+		}
+
+		$(columnsList).hide();
+	}
+	columnsList.onclick = function (e) {
+		e.stopPropagation();
+	}
+
 	selectAllItems.onchange = function() {
 		var table2 = _this.table2;
 		table2.getVisibleItems().forEach(function(it) {
@@ -22158,10 +22174,17 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
 
-	showColumnsListButton.onclick = function() {
-		if (columnsList.style.display === 'none') {
+	showColumnsListButton.onclick = function(e) {
+		e.stopPropagation();
+		$(this).toggleClass('hide-columns-list-button');
+		if ($(this).hasClass('hide-columns-list-button')) {
+			$(this).html(_gtxt('Скрыть колонки'));
 			$(columnsList).show();
+		} else {
+			$(this).html(_gtxt('Показывать колонки'))
+			$(columnsList).hide();
 		}
+
 	}
 
 	var manageSection = nsGmx.Utils._div([findObjectsButton, updateObjectsButton, addObjectButton, changeFieldsListButton], [['css', 'margin', '0px 0px 10px 1px']]);
@@ -32125,6 +32148,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32159,11 +32187,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -32233,19 +32256,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32275,6 +32285,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
