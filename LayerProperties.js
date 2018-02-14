@@ -41,7 +41,7 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @property {nsGmx.LayerProperties.Column[]} Columns Описание типов и названий атрибутов слоя. Только для векторных слоёв
  * @property {String} TableName Название таблицы, если источник был таблицей. Только для векторных слоёв
  * @property {String} TableCS Система координат выбранной таблицы ("EPSG:4326"/"EPSG:3395"). Только для векторных слоёв
- * @property {String} SourceType Тип источника данных для слоя (file/table/manual)
+ * @property {String} SourceType Тип источника данных для слоя (file/table/manual/sql)
  * @property {String[]} Attributes Список имён атрибутов векторного слоя (не сохраняется)
  * @property {String[]} AttrTypes Список типов атрибутов векторного слоя (не сохраняется)
  * @property {nsGmx.LayerRCProperties} RC Параметры каталога растров. Только для векторных слоёв
@@ -78,7 +78,6 @@ var LayerProperties = Backbone.Model.extend(
             TableCS:        layerProperties.TableCS,
             SourceType:     layerProperties.SourceType || 'file',
             Geometry:       layerProperties.Geometry,
-
             Attributes:     divProperties ? divProperties.attributes : [],
             AttrTypes:      divProperties ? divProperties.attrTypes : []
         })
@@ -236,7 +235,11 @@ var LayerProperties = Backbone.Model.extend(
                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
             } else if (!name && (params && params.copy)) {
                 var copyParams = {},
-                    columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}];
+                    columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}],
+                    sqlString = params.buffer ?
+                        'select Buffer([gmx_geometry], ' + (params.bufferSize || 0) + ') as gmx_geometry, ' :
+                        'select [geomixergeojson] as gmx_geometry, ';
+
 
                 for (var i = 0; i < attrs.Columns.length; i++) {
                     var col = attrs.Columns[i];
@@ -245,14 +248,20 @@ var LayerProperties = Backbone.Model.extend(
                         Value: col.Name,
                         Alias: col.Name
                     });
-                }
-                reqParams.WrapStyle = "message",
-                reqParams.layer = params.sourceLayerName;
-                reqParams.query = params.query;
-                reqParams.Columns = JSON.stringify(columnsList);
-                reqParams.Title = attrs.Title;
 
-                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/copy", reqParams);
+                    var exp = col.expression || '"' + col.Name + '"';
+
+                    sqlString += i < attrs.Columns.length - 1 ? exp + ' as ' + col.Name + ', ' : exp + ' as ' + col.Name;
+                }
+
+                sqlString += ' from [' + params.sourceLayerName + ']';
+
+                copyParams.WrapStyle = "message";
+                copyParams.Title = attrs.Title;
+                copyParams.SourceType = attrs.SourceType;
+                copyParams.Sql = sqlString;
+
+                 def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/Insert.ashx", copyParams);
             } else {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
                 var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);

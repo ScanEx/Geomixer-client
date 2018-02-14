@@ -160,28 +160,40 @@ nsGmx.SuggestWidget.prototype.setCallback = function (func) {
     this.func = func;
 }
 
-var template = Handlebars.compile('<div class="suggest-container">' +
-    '<table><tbody><tr>' +
-        '<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-        '<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>' +
-    '</tr></tbody></table>' +
-'</div>');
 
-nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback) {
+/**
+ * @param {domElement} targetTextarea textArea to append
+ * @param {array} attrNames
+ * @param {object} attrValuesProvider
+ * @param {function} changeCallback
+ * @param {array} selectors array of sub-widgets (attrs, operators, functions)
+ */
 
+nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider, changeCallback, selectors) {
     this.changeCallback = changeCallback;
     this.targetTextarea = targetTextarea;
 
-    var ui = this.el = $(template());
+    var template = Handlebars.compile('<div class="suggest-container">' +
+        '<table><tbody><tr>' +
+            '{{#if attrs}}<td><div class="suggest-link-container selectStyle suggest-attr">{{i "Колонки"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+            '{{#if operators}}<td><div class="suggest-link-container selectStyle suggest-op">{{i "Операторы"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+            '{{#if functions}}<td><div class="suggest-link-container selectStyle suggest-func">{{i "Функции"}}<span class="ui-icon ui-icon-triangle-1-s"></span></div></td>{{/if}}' +
+        '</tr></tbody></table>' +
+    '</div>');
 
-    this.attrsSuggest = new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true);
-    this.functionsSuggest = new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback);
-    this.opsSuggest = new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback);
+    var ui = this.el = $(template({
+        attrs: selectors.indexOf('attrs') !== -1,
+        functions: selectors.indexOf('functions') !== -1,
+        operators: selectors.indexOf('operators') !== -1
+    }));
 
-    ui.find('.suggest-attr').append(this.attrsSuggest.el);
-    ui.find('.suggest-func').append(this.functionsSuggest.el);
-    ui.find('.suggest-op').append(this.opsSuggest.el);
+    this.attrsSuggest = selectors.indexOf('attrs') !== -1 ? new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true) : null;
+    this.functionsSuggest = selectors.indexOf('functions') !== -1 ? new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback) : null;
+    this.operatorsSuggest = selectors.indexOf('operators') !== -1 ? new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback) : null;
+
+    this.attrsSuggest && ui.find('.suggest-attr').append(this.attrsSuggest.el);
+    this.functionsSuggest && ui.find('.suggest-func').append(this.functionsSuggest.el);
+    this.operatorsSuggest && ui.find('.suggest-op').append(this.operatorsSuggest.el);
 
     var clickFunc = function(div) {
         if (document.selection) {
@@ -238,15 +250,15 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
 };
 
 nsGmx.AttrSuggestWidget.prototype.setActiveTextArea = function (textArea) {
-    this.attrsSuggest.setActiveTextArea(textArea);
-    this.functionsSuggest.setActiveTextArea(textArea);
-    this.opsSuggest.setActiveTextArea(textArea);
+    this.attrsSuggest && this.attrsSuggest.setActiveTextArea(textArea);
+    this.functionsSuggest && this.functionsSuggest.setActiveTextArea(textArea);
+    this.operatorsSuggest && this.operatorsSuggest.setActiveTextArea(textArea);
 }
 
 nsGmx.AttrSuggestWidget.prototype.setCallback = function (callback) {
-    this.attrsSuggest.setCallback(callback);
-    this.functionsSuggest.setCallback(callback);
-    this.opsSuggest.setCallback(callback);
+    this.attrsSuggest && this.attrsSuggest.setCallback(callback);
+    this.functionsSuggest && this.functionsSuggest.setCallback(callback);
+    this.operatorsSuggest && this.operatorsSuggest.setCallback(callback);
 }
 
 })();

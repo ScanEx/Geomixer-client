@@ -502,12 +502,12 @@
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
         //TODO: enable animation!
-        lmap.fitBounds(bounds, { animation: false });
+        lmap.fitBounds(bounds, { animation: false, maxZoom: z });
 
         //если вызывать setZoom всегда, карта начнёт глючить (бага Leaflet?)
-        if (z !== lmap.getZoom()) {
-            lmap.setZoom(z);
-        }
+        // if (z !== lmap.getZoom()) {
+        //     lmap.setZoom(z);
+        // }
     }
 
     layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
@@ -1267,12 +1267,18 @@
             var layer = elem.content,
                 name = layer.properties.name;
 
+            // hack to avoid API defaults by initFromDescription;
+            var propsHostName = window.serverBase.replace(/https?:\/\//, '');
+            propsHostName = propsHostName.replace(/\//g, '');
+
+            layer.properties.hostName = propsHostName;
+
             if (!nsGmx.gmxMap.layersByID[name]) {
                 var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false,
                     rcMinZoom = layer.properties.RCMinZoomForRasters,
                     layerOnMap = L.gmx.createLayer(layer, {
                         layerID: name,
-                        hostName: window.serverBase,
+                        hostName: propsHostName,
                         zIndexOffset: null,
                         srs: nsGmx.leafletMap.options.srs || '',
                         skipTiles: nsGmx.leafletMap.options.skipTiles || '',

@@ -287,6 +287,14 @@ nsGmx.widgets = nsGmx.widgets || {};
                             indexGridMenu();
                         }
                     },
+                    {
+                        id: 'buffer',
+                        title: _gtxt('Создание буферных зон'),
+                        func: function() {
+                            BufferZonesMenu();
+                        },
+                        disabled: !isLogined
+                    },
                     { id: 'shift', title: _gtxt('Ручная привязка растров'), func: function() {}, disabled: true },
                     { id: 'crowdsourcing', title: _gtxt('Краудсорсинг данных'), func: function() {}, disabled: true },
                     { id: 'geocoding', title: _gtxt('Пакетный геокодинг'), func: function() {}, disabled: true },
@@ -557,22 +565,25 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
+            var searchProviders = [];
+            searchProviders.push(
+                new nsGmx.searchProviders.Osm2DataProvider({
+                    showOnMap: true,
+                    serverBase: 'http://maps.kosmosnimki.ru',
+                    limit: 10,
+                    onFetch: function(response) {
+                        window.searchLogic.showResult(response);
+                    }.bind(this)
+                })
+            );
+
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
                 placeHolder: 'Поиск по векторным слоям и адресной базе',
                 position: 'topright',
                 limit: 10,
                 retrieveManyOnEnter: true,
-                providers: [
-                    new nsGmx.searchProviders.Osm2DataProvider({
-                        showOnMap: true,
-                        serverBase: 'http://maps.kosmosnimki.ru',
-                        limit: 10,
-                        onFetch: function(response) {
-                            window.searchLogic.showResult(response);
-                        }.bind(this)
-                    })
-                ],
+                providers: searchProviders,
                 style: {
                     editable: false,
                     map: true,
@@ -2388,6 +2399,13 @@ nsGmx.widgets = nsGmx.widgets || {};
         function mapExportMenu() {
             gmxCore.loadModule('MapExport', 'src/MapExport/MapExport.js').then(function(def) {
                 var menu = new def.MapExportMenu();
+                menu.Load();
+            });
+        }
+
+        function BufferZonesMenu() {
+            gmxCore.loadModule('BufferZones', 'src/BufferZones/BufferZones.js').then(function(def) {
+                var menu = new def.BufferZonesMenu();
                 menu.Load();
             });
         }

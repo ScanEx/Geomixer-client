@@ -1,0 +1,32 @@
+.bufferZonesConfigLeftMenu {
+    position: relative;
+    padding: 3px 0px 3px 7px;
+}
+
+.buffer-row {
+    margin: 4px 0 4px 0;
+}
+
+.buffer-layer-name {
+    font-weight: bold;
+}
+
+.buffer-select-title {
+    margin-bottom: 8px;
+}
+
+.buffer-layer-name {
+    height: 18px;
+}
+
+.buffer-layer-name-error {
+    color: red;
+}
+
+.buffer-size {
+    width: 50px;
+}
+
+.buffer-button-container {
+    margin-top: 8px;
+}

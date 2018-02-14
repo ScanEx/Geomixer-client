@@ -101,7 +101,7 @@
             layerProperties.get('Quicklook').set('template', quicklookText.val());
         };
 
-        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText[0], '[suggest]', setQuicklook);
+        var suggestWidget = new nsGmx.SuggestWidget(layerProperties.get('Attributes') || [], quicklookText[0], '[suggest]', setQuicklook, ['attrs', 'operators']);
 
         quicklookText.on('focus', function() {
             $(suggestWidget.el).hide();
