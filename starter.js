@@ -873,8 +873,8 @@ nsGmx.widgets = nsGmx.widgets || {};
             if (window.exportMode) {
                 left = 0;
             } else {
-                if (window.sidebarWidget)  {
-                    left = window.sidebarWidget.getWidth();
+                if (window.iconSidebarWidget)  {
+                    left = window.iconSidebarWidget.getWidth();
                 } else {
                     left = layersShown ? 400 : 40;
                 }
@@ -2095,7 +2095,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                  *
                  */
 
-                window.sidebarWidget = new nsGmx.SidebarWidget({
+                window.iconSidebarWidget = new nsGmx.IconSidebarWidget({
                     container: document.getElementById('leftMenu'),
                     collapsedWidth: 40,
                     extendedWidth: 400,
@@ -2131,7 +2131,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 };
 
 
-                var leftMainContainer = window.sidebarWidget.setPane(
+                var leftMainContainer = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
                             icon: "s-tree",
@@ -2152,10 +2152,10 @@ nsGmx.widgets = nsGmx.widgets || {};
                         '<div id="leftPanelFooter" class="leftPanelFooter"></div>' +
                     '</div>';
 
-                 window.sidebarWidget.open("layers-tree");
+                 window.iconSidebarWidget.open("layers-tree");
 
                  function handleSidebarResize(e) {
-                     var sidebarWidth = window.sidebarWidget.getWidth(),
+                     var sidebarWidth = window.iconSidebarWidget.getWidth(),
                         lmap = nsGmx.leafletMap,
                         newBottomLeft,
                         newBounds;
