@@ -36,7 +36,6 @@ var jsFiles = [
     "security.js",
     "EditObjectControl.js",
 
-    "src/SidebarWidget/SidebarWidget.js",
     "src/sqlFunctions.js",
     "src/AttrSuggestWidget.js",
 
@@ -79,6 +78,7 @@ var jsFiles = [
     "src/SearchLogic/SearchProviders.js",
     "src/SearchLogic/SearchLogic.js",
     "leaflet/plugins/gmxLayers2/gmxLayers2.js",
+    "leaflet/plugins/IconSidebarControl/dist/iconSidebarWidget.js",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
     "starter.js",
     "version.js"
@@ -135,9 +135,9 @@ var cssFiles = [
     "css/layerstylesmenu.css",
     "css/swich-slider.css",
 
-    "src/SidebarWidget/SidebarWidget.css",
     "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
+    "leaflet/plugins/IconSidebarControl/dist/iconSidebarWidget.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",
     "leaflet/leafletGmx.css",
