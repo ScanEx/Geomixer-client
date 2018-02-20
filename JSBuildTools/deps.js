@@ -1,4 +1,5 @@
 var jsFiles = [
+    "polyfills.js",
     "gmxcore.js",
     "DefaultPlugins.js",
     "PluginsManager.js",

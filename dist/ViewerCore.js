@@ -1,3 +1,21 @@
+Array.prototype.find = Array.prototype.find || function(callback) {
+  if (this === null) {
+    throw new TypeError('Array.prototype.find called on null or undefined');
+  } else if (typeof callback !== 'function') {
+    throw new TypeError('callback must be a function');
+  }
+  var list = Object(this);
+  // Makes sures is always has an positive integer as length.
+  var length = list.length >>> 0;
+  var thisArg = arguments[1];
+  for (var i = 0; i < length; i++) {
+    var element = list[i];
+    if ( callback.call(thisArg, element, i, list) ) {
+      return element;
+    }
+  }
+};
+
 /** Загрузчик модулей ГеоМиксера
 Позволяет загружать модули из разных файлов. 
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
@@ -20431,57 +20449,6 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 
 })(nsGmx.Utils._);
 
-var nsGmx = window.nsGmx || {};
-
-var SidebarWidget = function (params) {
-    this.container = params.container;
-    this.tabsContainer = document.createElement('div');
-    this.tabsContainer.className = "leftCollapser-icon leftCollapser-left";
-
-    this.mainContainer = document.createElement('div');
-    this.mainContainer.className = "leftMenu";
-
-    this.tabsContainer.innerHTML = 'o_O';
-    this.mainContainer.innerHTML = 'test test';
-
-    this.container.appendChild(this.tabsContainer);
-    this.container.appendChild(this.mainContainer);
-
-    this.width = params.width;
-};
-
-SidebarWidget.prototype = {
-    setPane: function () {
-
-    },
-
-    enable: function () {
-
-    },
-
-    close: function () {
-
-    },
-
-    getActiveTabId: function () {
-
-    },
-
-    setPane: function () {
-
-    },
-
-    setPane: function () {
-
-    },
-
-    isOpened: function () {
-
-    }
-};
-
-nsGmx.SidebarWidget = SidebarWidget;
-
 nsGmx.sqlFunctions = {
     string: [
         "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
@@ -32148,11 +32115,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32187,6 +32149,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -32256,6 +32223,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32285,19 +32265,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -38466,6 +38433,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
     },
 
     initialize: function (baseLayers, overlays, options) {
+        this._layerControlInputs = [];
         L.Control.Layers.prototype.initialize.call(this, baseLayers, overlays, options);
     },
     onAdd: function (map) {
@@ -38775,6 +38743,350 @@ L.control.gmxLayers2 = function (baseLayers, overlays, options) {
   return new L.Control.GmxLayers2(baseLayers, overlays, options);
 };
 
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */,
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+window.nsGmx = window.nsGmx || {};
+
+var IconSidebarWidget = function (params) {
+    this._panes = {};
+    this._callback = params.callback;
+    this._container = params.container;
+
+    this._mainContainer = document.createElement('div');
+    this._tabsContainer = document.createElement('ul');
+    this._panesContainer = document.createElement('div');
+
+    this._mainContainer.className = "gmx-sidebar";
+    this._tabsContainer.className = "gmx-sidebar-tabs";
+    this._panesContainer.className = "gmx-sidebar-content";
+
+    this._mainContainer.appendChild(this._tabsContainer);
+    this._mainContainer.appendChild(this._panesContainer);
+
+    this._container.appendChild(this._mainContainer);
+
+    this._collapsedWidth = params.collapsedWidth || 40;
+    this._extendedWidth = params.extendedWidth || 400;
+
+    /* sidebar events
+     * ev.opening
+     * ev.opened { <String>id }
+     * ev.closing
+     * ev.closed
+     */
+    this.listeners = {
+        "opening": [],
+        "opened": [],
+        "closing": [],
+        "closed": []
+    };
+    this.opening = document.createEvent('Event');
+    this.opening.initEvent('sidebar:opening', true, true);
+    this.opened = document.createEvent('Event');
+    this.opened.initEvent('sidebar:opened', true, true);
+    this.closing = document.createEvent('Event');
+    this.closing.initEvent('sidebar:closing', true, true);
+    this.closed = document.createEvent('Event');
+    this.closed.initEvent('sidebar:closed', true, true);
+};
+
+IconSidebarWidget.prototype = {
+    on: function (type, callback) {
+        if (!(type in this.listeners)) {
+            this.listeners[type] = [];
+        }
+        this.listeners[type].push(callback);
+    },
+
+    off: function (type, callback) {
+        if (!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        for (var i = 0, l = stack.length; i < l; i++) {
+            if (stack[i] === callback) {
+                stack.splice(i, 1);
+                return this.removeEventListener(type, callback);
+            }
+        }
+    },
+
+    fire: function (type, options) {
+        if (!(type in this.listeners)) {
+            return;
+        }
+        var stack = this.listeners[type];
+        // event.target = this;
+        for (var i = 0, l = stack.length; i < l; i++) {
+            stack[i].call(this, options);
+        }
+    },
+
+    setPane: function (id, paneOptions) {
+        var paneOptions = paneOptions || {};
+        var createTab = paneOptions.createTab;
+        var position = paneOptions.position;
+        var enabled = paneOptions.enabled;
+        var defaultPaneOptions = { position: 0, enabled: true };
+
+        this._panes[id] = L.extend({}, defaultPaneOptions, this._panes[id] || {}, paneOptions);
+
+        if (!this._panes[id].enabled && this._activeTabId === id) {
+            this.close();
+        }
+
+        this._renderTabs({});
+        return this._ensurePane(id);
+    },
+
+    enable: function () {},
+
+    getWidth: function () {
+        if (this._isOpened) {
+            return this._extendedWidth;
+        } else {
+            return this._collapsedWidth;
+        }
+    },
+
+    open: function (paneId) {
+        if (this._isAnimating) {
+            return;
+        }
+
+        var pane = this._panes[paneId];
+        if (!pane || !pane.enabled) {
+            return;
+        }
+
+        this._activeTabId = paneId;
+
+        this._setTabActive(paneId, true);
+
+        this._setActiveClass(paneId);
+
+        if (this._isOpened) {
+            this.fire('opened', { id: this._activeTabId });
+            return;
+        }
+
+        this._isAnimating = true;
+        L.DomUtil.addClass(this._container, 'gmx-sidebar-opened');
+        L.DomUtil.addClass(this._container, 'gmx-sidebar-expanded');
+        this._isOpened = true;
+        this.fire('opening');
+        setTimeout(function () {
+            this.fire('opened', { id: this._activeTabId });
+            this._isAnimating = false;
+            this._callback(this._extendedWidth);
+        }.bind(this), 250);
+    },
+
+    _setTabActive: function (paneId, flag) {
+        var tabs = this._tabsContainer.querySelectorAll('.gmx-sidebar-tab');
+        for (var i = 0; i < tabs.length; ++i) {
+            var id = tabs[i].getAttribute('data-tab-id');
+            var tab = tabs[i].querySelector('.tab-icon');
+            if (id === paneId) {
+                if (flag) {
+                    L.DomUtil.addClass(tab, 'tab-icon-active');
+                } else {
+                    L.DomUtil.removeClass(tab, 'tab-icon-active');
+                }
+            } else {
+                L.DomUtil.removeClass(tab, 'tab-icon-active');
+            }
+        }
+    },
+
+    close: function () {
+        if (this._isAnimating) {
+            return;
+        }
+        this._setTabActive(this._activeTabId, false);
+
+        L.DomUtil.removeClass(this._container, 'gmx-sidebar-opened');
+
+        this._isAnimating = true;
+        L.DomUtil.removeClass(this._container, 'gmx-sidebar-opened');
+        this._isOpened = false;
+        this.fire('closing');
+        setTimeout(function () {
+            L.DomUtil.removeClass(this._container, 'gmx-sidebar-expanded');
+            this.fire('closed', { id: this._activeTabId });
+            this._isAnimating = false;
+            this._setActiveClass('');
+            this._activeTabId = null;
+            this._callback(this._collapsedWidth);
+        }.bind(this), 250);
+    },
+
+    _setActiveClass: function (activeId) {
+        var i, id;
+        for (i = 0; i < this._panesContainer.children.length; i++) {
+            id = this._panesContainer.children[i].getAttribute('data-pane-id');
+            var pane = this._panesContainer.querySelector('[data-pane-id=' + id + ']');
+            if (id === activeId) {
+                L.DomUtil.addClass(pane, 'gmx-sidebar-pane-active');
+            } else {
+                L.DomUtil.removeClass(pane, 'gmx-sidebar-pane-active');
+            }
+        }
+    },
+
+    getActiveTabId: function () {
+        return this._activeTabId;
+    },
+
+    isOpened: function () {
+        return this._isOpened;
+    },
+
+    _ensurePane: function (id) {
+
+        for (let i = 0; i < this._panesContainer.childNodes.length; ++i) {
+            let node = this._panesContainer.childNodes[i];
+            if (node.getAttribute('data-pane-id') === id) {
+                return node;
+            }
+        }
+
+        let paneEl = L.DomUtil.create('div', 'gmx-sidebar-pane');
+        paneEl.setAttribute('data-pane-id', id);
+        this._panesContainer.appendChild(paneEl);
+
+        return paneEl;
+    },
+
+    _onTabClick: function (e) {
+        var tabId = e.currentTarget.getAttribute('data-tab-id');
+        var pane = this._panes[tabId];
+        if (!pane || !pane.enabled) {
+            return;
+        }
+        if (!this._isOpened || this._activeTabId !== tabId) {
+            this._renderTabs({ activeTabId: tabId });
+            this.open(tabId);
+        } else {
+            this._renderTabs({});
+            this.close();
+        }
+    },
+
+    _renderTabs: function (options) {
+        var activeTabId = options.activeTabId;
+        var hoveredTabId = options.hoveredTabId;
+        this._tabsContainer.innerHTML = '';
+        Object.keys(this._panes).map(function (id) {
+            return L.extend({ id: id }, this._panes[id]);
+        }.bind(this)).sort(function (a, b) {
+            return a.position - b.position;
+        }).map(function (options) {
+            var id = options.id;
+            var createTab = options.createTab;
+            var enabled = options.enabled;
+            if (!createTab) {
+                return;
+            }
+            var tabContainerEl = document.createElement('li');
+            tabContainerEl.className = 'gmx-sidebar-tab';
+            tabContainerEl.setAttribute('data-tab-id', id);
+            var tabEl = createTab(getFlag(id, activeTabId, hoveredTabId, enabled));
+            L.DomEvent.on(tabContainerEl, 'click', this._onTabClick, this);
+            tabContainerEl.appendChild(tabEl);
+            this._tabsContainer.appendChild(tabContainerEl);
+        }.bind(this));
+
+        function getFlag(tabId, activeTabId, hoveredTabId, enabled) {
+            if (!enabled) {
+                return 'disabled';
+            } else if (hoveredTabId && tabId === hoveredTabId) {
+                return 'hover';
+            } else if (activeTabId && tabId === activeTabId) {
+                return 'active';
+            } else {
+                return 'default';
+            }
+        }
+    }
+};
+
+window.nsGmx.IconSidebarWidget = IconSidebarWidget;
+
+/* harmony default export */ __webpack_exports__["default"] = (IconSidebarWidget);
+
+/***/ })
+/******/ ]);
 L.Control.Dialog = L.Control.extend({
   options: {
     size: [ 300, 300 ],
