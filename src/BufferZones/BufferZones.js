@@ -5,7 +5,7 @@ var nsGmx = window.nsGmx || {};
         bufferZones: {
             title: 'Создание буферных зон',
             selectTooltip: 'Выберите кликом векторный слой',
-            select: 'Выберите векторный слой',
+            select: 'Выберите кликом векторный слой',
             selectedLayer: 'Выбранный слой',
             layerTypeError: 'Слой не является векторным',
             bufferSize: 'Размер буфера',
@@ -17,7 +17,7 @@ var nsGmx = window.nsGmx || {};
         bufferZones: {
             title: 'Buffer zones creation',
             selectTooltip: 'Select vector layer by click',
-            select: 'Select vector layer',
+            select: 'Select vector layer by click',
             selectedLayer: 'Selected layer',
             layerTypeError: 'Selected layer is not vector type',
             bufferSize: 'Buffer size',

@@ -5,6 +5,8 @@ nsGmx.ShareIconControl = L.Control.gmxIcon.extend({
         className: 'shareIcon',
         id: 'share',
         text: 'Share',
+        togglable: true,
+        active: false,
         style: {
             width: 'auto'
         }
