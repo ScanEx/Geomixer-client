@@ -588,8 +588,10 @@
         spanDescr.innerHTML = elem.description ? elem.description : '';
 
         if (layerManagerFlag == 1) {
+	    var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
+	    if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
             return [_img(null, [
-                ['attr', 'src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],
+                ['attr', 'src', imgIconSrc],
                 ['css', 'marginLeft', '3px']
             ]), spanParent, spanDescr];
         }
