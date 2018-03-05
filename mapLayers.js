@@ -1906,7 +1906,7 @@
                     _layersTree.addLayersToMap({ content: { properties: newLayerProperties, geometry: origGeometry } });
 
                     var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
+                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0] || $(layerDiv).find('input[type="radio"]')[0]));
 
                     $(li).find('[multiStyle]').treeview();
 

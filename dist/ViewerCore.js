@@ -10793,8 +10793,10 @@ pointsBinding.pointsBinding.unload = function()
         spanDescr.innerHTML = elem.description ? elem.description : '';
 
         if (layerManagerFlag == 1) {
+	    var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
+	    if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
             return [_img(null, [
-                ['attr', 'src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],
+                ['attr', 'src', imgIconSrc],
                 ['css', 'marginLeft', '3px']
             ]), spanParent, spanDescr];
         }
@@ -12109,7 +12111,7 @@ pointsBinding.pointsBinding.unload = function()
                     _layersTree.addLayersToMap({ content: { properties: newLayerProperties, geometry: origGeometry } });
 
                     var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
+                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0] || $(layerDiv).find('input[type="radio"]')[0]));
 
                     $(li).find('[multiStyle]').treeview();
 
@@ -32115,11 +32117,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32154,6 +32151,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -32223,6 +32225,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32252,19 +32267,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -40574,6 +40576,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                     })
                 }
             });
+			L.marker = function (latlng, options) {
+				return new L.Marker(latlng, options);
+			}
 
             var hostName = L.gmxUtil.normalizeHostname(window.serverBase),
                 apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
