@@ -30,8 +30,20 @@ public class ScreenSearch : IHttpHandler {
 		}
 		
 		try
-		{
-			var table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+		{           	
+			string table, filter = "";
+			if (li["TableName"]!=null)
+				table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+			else if (li["ParentLayer"]!=null)
+			{
+				filter = li["Filter"].ToString().Replace("\"", "");			
+				prms = new LayerWeb.GetLayerInfo.LayerInfoParams { LayerName = li["ParentLayer"].ToString(), NeedAttrValues = false };
+				li = LayerWeb.GetLayerInfo.GetInformation(prms, UserSecurity.GetUserFromRequset(context));
+				table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+			}	
+			else
+				throw new Exception("NO TABLE");
+			
 		
 			double minX = double.Parse(context.Request["minx"].Replace(',', '.'), new CultureInfo("En-us")), maxX = double.Parse(context.Request["maxx"].Replace(',', '.'), new CultureInfo("En-us")),
 				   minY = double.Parse(context.Request["miny"].Replace(',', '.'), new CultureInfo("En-us")), maxY = double.Parse(context.Request["maxy"].Replace(',', '.'), new CultureInfo("En-us"));
@@ -96,7 +108,7 @@ public class ScreenSearch : IHttpHandler {
 	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax FROM(
 		SELECT MAX(maxid) maxid, mmsi, imo, vessel_name FROM (
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
-			WHERE 
+			WHERE "+(filter!=""?filter+" and ":"")+@"
 			(@minX1<=longitude and longitude<=@maxX1 and  
 			@minY1<=latitude and latitude<=@maxY1) and
 			(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))
@@ -128,13 +140,14 @@ public class ScreenSearch : IHttpHandler {
 					com.CommandText = @"
 	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax FROM(
 		SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
-		WHERE 
+		WHERE "+(filter!=""?filter+" and ":"")+@"
 		(@minX1<=longitude and longitude<=@maxX1 and  
 		@minY1<=latitude and latitude<=@maxY1) and
 		(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))
 		GROUP BY mmsi, imo , vessel_name
 	) t, " + table + @" p WHERE t.maxid=p.id ORDER BY t.vessel_name
 	";
+	//throw new Exception(com.CommandText);
 					var p = new SqlParameter("@s", start); com.Parameters.Add(p);
 					p = new SqlParameter("@e", end); com.Parameters.Add(p);
 					p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
