@@ -160,7 +160,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
                 input = this._createRadioElement('leaflet-base-layers', checked);
             }
 
-            var presentLayer = this._layerControlInputs.find(function(inp) {return inp.layerId === obj.layer._leaflet_id}),
+            var presentLayer = this._layerControlInputs.filter(function(inp) {return inp.layerId === obj.layer._leaflet_id})[0],
                 presentIndex =  this._layerControlInputs.indexOf(presentLayer);
 
             if (presentLayer) {

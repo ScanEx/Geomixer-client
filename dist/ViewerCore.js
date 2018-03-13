@@ -1,21 +1,3 @@
-Array.prototype.find = Array.prototype.find || function(callback) {
-  if (this === null) {
-    throw new TypeError('Array.prototype.find called on null or undefined');
-  } else if (typeof callback !== 'function') {
-    throw new TypeError('callback must be a function');
-  }
-  var list = Object(this);
-  // Makes sures is always has an positive integer as length.
-  var length = list.length >>> 0;
-  var thisArg = arguments[1];
-  for (var i = 0; i < length; i++) {
-    var element = list[i];
-    if ( callback.call(thisArg, element, i, list) ) {
-      return element;
-    }
-  }
-};
-
 /** Загрузчик модулей ГеоМиксера
 Позволяет загружать модули из разных файлов. 
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
@@ -32225,19 +32207,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32267,6 +32236,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -38591,7 +38573,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
                 input = this._createRadioElement('leaflet-base-layers', checked);
             }
 
-            var presentLayer = this._layerControlInputs.find(function(inp) {return inp.layerId === obj.layer._leaflet_id}),
+            var presentLayer = this._layerControlInputs.filter(function(inp) {return inp.layerId === obj.layer._leaflet_id})[0],
                 presentIndex =  this._layerControlInputs.indexOf(presentLayer);
 
             if (presentLayer) {
