@@ -2815,39 +2815,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1428027");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1428027");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1428027");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1428027");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1428027");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?1428027");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?1428027");
   /*{iconsError}*/
 }
 
@@ -4960,19 +4960,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?1428027");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?1428027");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?1428027");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?1428027");
 }
 
 /* ---------------------------------
@@ -5018,7 +5018,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?1428027");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -5028,7 +5028,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?7049314");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?1428027");
 }
 
 .search-form table {
@@ -5129,11 +5129,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?7049314");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?7049314#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?7049314") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?7049314") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?7049314#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1428027");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1428027#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?1428027") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?1428027") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?1428027#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5146,7 +5146,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?7049314#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?1428027#fontello') format('svg');
   }
 }
 */
@@ -5703,7 +5703,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?7049314");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?1428027");
 }
 
 .authWidget-loginButton {
@@ -5885,11 +5885,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?7049314");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?1428027");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?7049314");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?1428027");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6662,7 +6662,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?7049314");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?1428027");
   /* ie9 fix */
 }
 
@@ -6718,7 +6718,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?7049314");
+  background: url("../common_components/dist/src/check.png?1428027");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6764,7 +6764,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?7049314");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?1428027");
   opacity: .4;
   display: none;
 }
@@ -12744,70 +12744,6 @@ input:checked + .switch-slider:before {
 .switch-slider.round:before {
   border-radius: 50%;
 }
-.gmx-sidebar {
-  width: 100%;
-  height: 100%;
-  background-color: #4c5567 !important;
-}
-
-.gmx-sidebar-tabs {
-  width: 40px;
-  float: left;
-}
-
-.gmx-sidebar-opened {
-  width: 400px !important;
-}
-
-.gmx-sidebar-content {
-  width: 360px;
-  float: right;
-  height: 100%;
-  background-color: #FFF;
-}
-
-.gmx-sidebar-tab {
-  /* width: 100%; */
-  height: 40px;
-  color: #333;
-  font-size: 12pt;
-  overflow: hidden;
-  transition: all 80ms;
-  line-height: 40px;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.layers-tree {
-  background-image: url("../src/img/favicon16x16_sample6.png") center no-repeat;
-  cursor: pointer;
-}
-
-.tab-icon svg {
-  height: 18px;
-  width: 18px;
-  margin-left: 11px;
-  margin-right: 11px;
-  margin-top: 11px;
-  pointer-events: none;
-}
-
-.gmx-sidebar-pane {
-  display: none;
-  right: 0;
-  box-sizing: border-box;
-  height: 100%;
-  /* padding: 5px; */
-}
-
-.gmx-sidebar-pane.gmx-sidebar-pane-active {
-  display: block;
-}
-
-#s-tree {
-  fill: #bfccd6;
-}
 /** временный файл для интеграции общих стилей Common Components в ГеоМиксер*/
 
 .table {
@@ -12993,6 +12929,70 @@ input:checked + .switch-slider:before {
   background-image: url("../leaflet/plugins/Leaflet.ExtSearch/src/search-input-field.png");
   background-repeat: no-repeat;
   background-position: center;
+}
+.gmx-sidebar {
+  width: 100%;
+  height: 100%;
+  background-color: #4c5567 !important;
+}
+
+.gmx-sidebar-tabs {
+  width: 40px;
+  float: left;
+}
+
+.gmx-sidebar-opened {
+  width: 400px !important;
+}
+
+.gmx-sidebar-content {
+  width: 360px;
+  float: right;
+  height: 100%;
+  background-color: #FFF;
+}
+
+.gmx-sidebar-tab {
+  /* width: 100%; */
+  height: 40px;
+  color: #333;
+  font-size: 12pt;
+  overflow: hidden;
+  transition: all 80ms;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.layers-tree {
+  background-image: url("../leaflet/plugins/IconSidebarControl/img/favicon16x16_sample6.png") center no-repeat;
+  cursor: pointer;
+}
+
+.tab-icon svg {
+  height: 18px;
+  width: 18px;
+  margin-left: 11px;
+  margin-right: 11px;
+  margin-top: 11px;
+  pointer-events: none;
+}
+
+.gmx-sidebar-pane {
+  display: none;
+  right: 0;
+  box-sizing: border-box;
+  height: 100%;
+  /* padding: 5px; */
+}
+
+.gmx-sidebar-pane.gmx-sidebar-pane-active {
+  display: block;
+}
+
+#s-tree {
+  fill: #bfccd6;
 }
 .leaflet-control-dialog {
   position: absolute;
