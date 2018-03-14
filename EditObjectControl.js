@@ -117,7 +117,7 @@ var FieldsCollection = function() {
         return field && field.value;
     }
 
-    //Сначала isRequired, потом identityField, потом в порядке добавления
+    //Сначала isRequired, потом identityField, потом в порядке следования в таблице
     this.sort = function() {
         _asArray = _asArray.sort(function(a, b) {
             if (!!a.isRequired !== !!b.isRequired) {
@@ -128,8 +128,8 @@ var FieldsCollection = function() {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
 
-            var userZIndexDelta = (b.index || 0) - (a.index || 0);
-            return userZIndexDelta || (b.origIndex - a.origIndex);
+            var userZIndexDelta = (a.index || 0) - (b.index || 0);
+            return userZIndexDelta || (a.origIndex - b.origIndex);
         })
     }
 }

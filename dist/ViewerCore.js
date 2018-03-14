@@ -19915,7 +19915,7 @@ var FieldsCollection = function() {
         return field && field.value;
     }
 
-    //Сначала isRequired, потом identityField, потом в порядке добавления
+    //Сначала isRequired, потом identityField, потом в порядке следования в таблице
     this.sort = function() {
         _asArray = _asArray.sort(function(a, b) {
             if (!!a.isRequired !== !!b.isRequired) {
@@ -19926,8 +19926,8 @@ var FieldsCollection = function() {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
 
-            var userZIndexDelta = (b.index || 0) - (a.index || 0);
-            return userZIndexDelta || (b.origIndex - a.origIndex);
+            var userZIndexDelta = (a.index || 0) - (b.index || 0);
+            return userZIndexDelta || (a.origIndex - b.origIndex);
         })
     }
 }
@@ -32099,6 +32099,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32133,11 +32138,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -32207,6 +32207,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32236,19 +32249,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -35348,7 +35348,7 @@ window.L.Control.GmxIconLayers = window.L.Control.IconLayers.extend({
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -35361,15 +35361,84 @@ window.L.Control.GmxIconLayers = window.L.Control.IconLayers.extend({
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var EventTarget = function () {
+    function EventTarget() {
+        _classCallCheck(this, EventTarget);
+
+        this.listeners = {};
+    }
+
+    _createClass(EventTarget, [{
+        key: "addEventListener",
+        value: function addEventListener(type, callback) {
+            if (!(type in this.listeners)) {
+                this.listeners[type] = [];
+            }
+            this.listeners[type].push(callback);
+        }
+    }, {
+        key: "removeEventListener",
+        value: function removeEventListener(type, callback) {
+            if (!(type in this.listeners)) {
+                return;
+            }
+            var stack = this.listeners[type];
+            for (var i = 0, l = stack.length; i < l; i++) {
+                if (stack[i] === callback) {
+                    stack.splice(i, 1);
+                    return this.removeEventListener(type, callback);
+                }
+            }
+        }
+    }, {
+        key: "dispatchEvent",
+        value: function dispatchEvent(event) {
+            if (!(event.type in this.listeners)) {
+                return;
+            }
+            var stack = this.listeners[event.type];
+            // event.target = this;
+            for (var i = 0, l = stack.length; i < l; i++) {
+                stack[i].call(this, event);
+            }
+        }
+    }]);
+
+    return EventTarget;
+}();
+
+exports.EventTarget = EventTarget;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 exports.SearchWidget = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-__webpack_require__(7);
+__webpack_require__(8);
 
-var _ResultView = __webpack_require__(6);
+var _ResultView = __webpack_require__(7);
+
+var _EventTarget2 = __webpack_require__(0);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function chain(tasks, state) {
     return tasks.reduce(function (prev, next) {
@@ -35379,54 +35448,76 @@ function chain(tasks, state) {
     }));
 }
 
-var SearchWidget = function () {
+var SearchWidget = function (_EventTarget) {
+    _inherits(SearchWidget, _EventTarget);
+
     function SearchWidget(container, _ref) {
         var placeHolder = _ref.placeHolder,
             providers = _ref.providers,
             _ref$suggestionTimeou = _ref.suggestionTimeout,
             suggestionTimeout = _ref$suggestionTimeou === undefined ? 1000 : _ref$suggestionTimeou,
-            _ref$limit = _ref.limit,
-            limit = _ref$limit === undefined ? 10 : _ref$limit,
+            _ref$suggestionLimit = _ref.suggestionLimit,
+            suggestionLimit = _ref$suggestionLimit === undefined ? 10 : _ref$suggestionLimit,
             _ref$fuzzySearchLimit = _ref.fuzzySearchLimit,
             fuzzySearchLimit = _ref$fuzzySearchLimit === undefined ? 1000 : _ref$fuzzySearchLimit,
             _ref$retrieveManyOnEn = _ref.retrieveManyOnEnter,
-            retrieveManyOnEnter = _ref$retrieveManyOnEn === undefined ? false : _ref$retrieveManyOnEn;
+            retrieveManyOnEnter = _ref$retrieveManyOnEn === undefined ? false : _ref$retrieveManyOnEn,
+            _ref$replaceInputOnEn = _ref.replaceInputOnEnter,
+            replaceInputOnEnter = _ref$replaceInputOnEn === undefined ? false : _ref$replaceInputOnEn;
 
         _classCallCheck(this, SearchWidget);
 
-        this._container = container;
-        this._allowSuggestion = true;
-        this._providers = providers;
-        this._suggestionTimeout = suggestionTimeout;
-        this._limit = limit;
-        this._fuzzySearchLimit = fuzzySearchLimit;
-        this._retrieveManyOnEnter = retrieveManyOnEnter;
+        var _this = _possibleConstructorReturn(this, (SearchWidget.__proto__ || Object.getPrototypeOf(SearchWidget)).call(this));
 
-        this._container.classList.add('leaflet-ext-search');
-        this._container.innerHTML = '<input type="text" value="" placeholder="' + placeHolder + '" /><span class="leaflet-ext-search-button"></span>';
-        this._input = this._container.querySelector('input');
-        this._input.addEventListener('input', this._handleChange.bind(this));
-        this._input.addEventListener('mousemove', this._handleMouseMove.bind(this));
-        this._input.addEventListener('dragstart', this._handleMouseMove.bind(this));
-        this._input.addEventListener('drag', this._handleMouseMove.bind(this));
+        _this._container = container;
+        _this._allowSuggestion = true;
+        _this._providers = providers;
+        _this._suggestionTimeout = suggestionTimeout;
+        _this._suggestionLimit = suggestionLimit;
+        _this._fuzzySearchLimit = fuzzySearchLimit;
+        _this._retrieveManyOnEnter = retrieveManyOnEnter;
+        _this._replaceInputOnEnter = replaceInputOnEnter;
 
-        this._button = this._container.querySelector('.leaflet-ext-search-button');
-        this._button.addEventListener('click', this._handleSearch.bind(this));
+        _this._container.classList.add('leaflet-ext-search');
+        _this._container.innerHTML = '<input type="text" value="" placeholder="' + placeHolder + '" /><span class="leaflet-ext-search-button"></span>';
+        _this._input = _this._container.querySelector('input');
 
-        this.results = new _ResultView.ResultView({
-            input: this._input,
-            onSelect: this._selectItem.bind(this),
-            onEnter: this._search.bind(this)
+        _this._handleChange = _this._handleChange.bind(_this);
+        _this._input.addEventListener('input', _this._handleChange);
+
+        _this._handleMouseMove = _this._handleMouseMove.bind(_this);
+        _this._input.addEventListener('mousemove', _this._handleMouseMove);
+        _this._input.addEventListener('dragstart', _this._handleMouseMove);
+        _this._input.addEventListener('drag', _this._handleMouseMove);
+
+        _this._handleSearch = _this._handleSearch.bind(_this);
+
+        _this._button = _this._container.querySelector('.leaflet-ext-search-button');
+        _this._button.addEventListener('click', _this._handleSearch);
+
+        _this.results = new _ResultView.ResultView({ input: _this._input, replaceInput: _this._replaceInputOnEnter });
+
+        _this._search = _this._search.bind(_this);
+        _this._selectItem = _this._selectItem.bind(_this);
+
+        _this.results.addEventListener('suggestions:confirm', function (e) {
+            var event = document.createEvent('Event');
+            event.initEvent('suggestions:confirm', false, false);
+            event.detail = e.detail;
+            _this.dispatchEvent(event);
+            _this._search(e);
         });
+        _this.results.addEventListener('suggestions:select', _this._selectItem);
 
         // map.on ('click', this.results.hide.bind(this.results));
         // map.on ('dragstart', this.results.hide.bind(this.results));
+        return _this;
     }
 
     _createClass(SearchWidget, [{
         key: '_suggest',
         value: function _suggest(text) {
-            var _this = this;
+            var _this2 = this;
 
             this.results.allowNavigation = false;
             var tasks = this._providers.filter(function (provider) {
@@ -35437,7 +35528,7 @@ var SearchWidget = function () {
                         if (state.completed) {
                             resolve(state);
                         } else {
-                            provider.find(text, _this._limit, false, false).then(function (response) {
+                            provider.find(text, _this2._suggestionLimit, false, false).then(function (response) {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);
                                 resolve(state);
@@ -35449,23 +35540,23 @@ var SearchWidget = function () {
                 };
             });
             chain(tasks, { completed: false, response: [] }).then(function (state) {
-                _this.results.show(state.response, text.trim());
-                _this.results.allowNavigation = true;
+                _this2.results.show(state.response, text.trim());
+                _this2.results.allowNavigation = true;
             });
         }
     }, {
         key: '_handleChange',
         value: function _handleChange(e) {
-            var _this2 = this;
+            var _this3 = this;
 
             if (this._input.value.length) {
                 if (this._allowSuggestion) {
                     this._allowSuggestion = false;
                     this._timer = setTimeout(function () {
-                        clearTimeout(_this2._timer);
-                        _this2._allowSuggestion = true;
-                        var text = _this2._input.value;
-                        _this2._suggest(text);
+                        clearTimeout(_this3._timer);
+                        _this3._allowSuggestion = true;
+                        var text = _this3._input.value;
+                        _this3._suggest(text);
                     }, this._suggestionTimeout);
                 }
             } else {
@@ -35476,12 +35567,14 @@ var SearchWidget = function () {
         key: '_handleMouseMove',
         value: function _handleMouseMove(e) {
             e.stopPropagation();
+            e.preventDefault();
         }
     }, {
         key: '_search',
-        value: function _search(text) {
-            var _this3 = this;
+        value: function _search(e) {
+            var _this4 = this;
 
+            var text = e.detail;
             var tasks = this._providers.filter(function (provider) {
                 return provider.showOnEnter;
             }).map(function (provider) {
@@ -35490,9 +35583,12 @@ var SearchWidget = function () {
                         if (state.completed) {
                             resolve(state);
                         } else {
-                            provider.find(text, _this3._retrieveManyOnEnter ? _this3._fuzzySearchLimit : 1, true, true).then(function (response) {
+                            provider.find(text, _this4._retrieveManyOnEnter ? _this4._fuzzySearchLimit : 1, true, true).then(function (response) {
                                 state.completed = response.length > 0;
                                 state.response = state.response.concat(response);
+                                resolve(state);
+                            }).catch(function (e) {
+                                console.log(e);
                                 resolve(state);
                             });
                         }
@@ -35513,14 +35609,15 @@ var SearchWidget = function () {
         }
     }, {
         key: '_selectItem',
-        value: function _selectItem(item) {
+        value: function _selectItem(e) {
+            var item = e.detail;
             return item.provider.fetch(item.properties);
         }
     }, {
         key: '_handleSearch',
         value: function _handleSearch(e) {
             e.stopPropagation();
-            this._search(this._input.value);
+            this._search({ detail: this._input.value });
         }
     }, {
         key: 'setText',
@@ -35535,12 +35632,12 @@ var SearchWidget = function () {
     }]);
 
     return SearchWidget;
-}();
+}(_EventTarget2.EventTarget);
 
 exports.SearchWidget = SearchWidget;
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35549,40 +35646,50 @@ exports.SearchWidget = SearchWidget;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.CadastreDataProvider = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _EventTarget2 = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var CadastreDataProvider = function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var CadastreDataProvider = function (_EventTarget) {
+    _inherits(CadastreDataProvider, _EventTarget);
+
     function CadastreDataProvider(_ref) {
         var serverBase = _ref.serverBase,
-            tolerance = _ref.tolerance,
-            onFetch = _ref.onFetch;
+            tolerance = _ref.tolerance;
 
         _classCallCheck(this, CadastreDataProvider);
 
-        this._serverBase = serverBase;
-        this._tolerance = tolerance;
-        this._onFetch = onFetch;
-        this.showSuggestion = true;
-        this.showOnSelect = false;
-        this.showOnEnter = true;
-        this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
-            // ,
-            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-            // /[^\d\:]/g,
-            // /\d\d:\d+$/,
-            // /\d\d:\d+:\d+$/,
-            // /\d\d:\d+:\d+:\d+$/
-        }];
+        var _this = _possibleConstructorReturn(this, (CadastreDataProvider.__proto__ || Object.getPrototypeOf(CadastreDataProvider)).call(this));
+
+        _this._serverBase = serverBase;
+        _this._tolerance = tolerance;
+        _this.showSuggestion = true;
+        _this.showOnSelect = false;
+        _this.showOnEnter = true;
+        _this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
+        // ,
+        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+        // /[^\d\:]/g,
+        // /\d\d:\d+$/,
+        // /\d\d:\d+:\d+$/,
+        // /\d\d:\d+:\d+:\d+$/
+        ];
+        return _this;
     }
 
     _createClass(CadastreDataProvider, [{
@@ -35603,12 +35710,12 @@ var CadastreDataProvider = function () {
     }, {
         key: 'find',
         value: function find(value, limit, strong, retrieveGeometry) {
-            var _this = this;
+            var _this2 = this;
 
             var cadastreLayer = this.getCadastreLayer(value);
             return new Promise(function (resolve) {
                 // let req = new Request(`${this._serverBase}/typeahead?limit=${limit}&skip=0&text=${value}&type=${cadastreLayer.id}`);
-                var req = new Request(_this._serverBase + '/features/' + cadastreLayer.id + '?text=' + value + '&tolerance=' + _this._tolerance + '&limit=' + limit);
+                var req = new Request(_this2._serverBase + '/features/' + cadastreLayer.id + '?text=' + value + '&tolerance=' + _this2._tolerance + '&limit=' + limit);
                 var headers = new Headers();
                 headers.append('Content-Type', 'application/json');
                 var init = {
@@ -35624,7 +35731,7 @@ var CadastreDataProvider = function () {
                         return {
                             name: x.attrs.name || x.attrs.cn || x.attrs.id,
                             properties: x,
-                            provider: _this,
+                            provider: _this2,
                             query: value
                         };
                     });
@@ -35649,14 +35756,14 @@ var CadastreDataProvider = function () {
 
             return fetch;
         }(function (obj) {
-            var _this2 = this;
+            var _this3 = this;
 
             var text = obj.attrs.name || obj.attrs.cn || obj.attrs.id;
             var cadastreLayer = this.getCadastreLayer(text, obj.type);
             return new Promise(function (resolve) {
                 if (cadastreLayer) {
                     // let req = new Request(`${this._serverBase}/features/${cadastreLayer.id}?tolerance=${this._tolerance}&limit=1&text=${obj.value}`);
-                    var req = new Request(_this2._serverBase + '/features/' + cadastreLayer.id + '?tolerance=' + _this2._tolerance + '&limit=1&text=' + text);
+                    var req = new Request(_this3._serverBase + '/features/' + cadastreLayer.id + '?tolerance=' + _this3._tolerance + '&limit=1&text=' + text);
                     var headers = new Headers();
                     headers.append('Content-Type', 'application/json');
                     var init = {
@@ -35668,14 +35775,16 @@ var CadastreDataProvider = function () {
                         return response.json();
                     }).then(function (json) {
                         if (json.status === 200) {
-                            if (typeof _this2._onFetch === 'function') {
-                                _this2._onFetch(json);
-                            }
+                            var event = document.createEvent('Event');
+                            event.initEvent('fetch', false, false);
+                            event.detail = json;
+                            _this3.dispatchEvent(event);
+
                             var rs = json.features.map(function (x) {
                                 return {
                                     name: x.attrs.name || x.attrs.cn || x.attrs.id,
                                     properties: x,
-                                    provider: _this2,
+                                    provider: _this3,
                                     query: obj
                                 };
                             });
@@ -35692,15 +35801,12 @@ var CadastreDataProvider = function () {
     }]);
 
     return CadastreDataProvider;
-}();
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.CadastreDataProvider = CadastreDataProvider;
+}(_EventTarget2.EventTarget);
 
 exports.CadastreDataProvider = CadastreDataProvider;
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35709,28 +35815,37 @@ exports.CadastreDataProvider = CadastreDataProvider;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.CoordinatesDataProvider = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _EventTarget2 = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var CoordinatesDataProvider = function () {
-    function CoordinatesDataProvider(_ref) {
-        var onFetch = _ref.onFetch;
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var CoordinatesDataProvider = function (_EventTarget) {
+    _inherits(CoordinatesDataProvider, _EventTarget);
+
+    function CoordinatesDataProvider() {
         _classCallCheck(this, CoordinatesDataProvider);
 
-        this._onFetch = onFetch;
-        this.showSuggestion = false;
-        this.showOnSelect = false;
-        this.showOnEnter = true;
-        this.fetch = this.fetch.bind(this);
-        this.find = this.find.bind(this);
+        var _this = _possibleConstructorReturn(this, (CoordinatesDataProvider.__proto__ || Object.getPrototypeOf(CoordinatesDataProvider)).call(this));
 
-        this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+[N|S])?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+[E|W])?');
-        this.rxD = new RegExp('^\\s*(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[N|S])?,?\\s+(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[E|W])?');
+        _this.showSuggestion = false;
+        _this.showOnSelect = false;
+        _this.showOnEnter = true;
+        _this.fetch = _this.fetch.bind(_this);
+        _this.find = _this.find.bind(_this);
+
+        _this.rxF = new RegExp('^\\s*\\-?(\\d+(\\.\\d+)?)(\\s+[N|S])?(,\\s*|\\s+)\\-?(\\d+(\\.\\d+)?)(\\s+[E|W])?');
+        _this.rxD = new RegExp('^\\s*(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[N|S])?,?\\s+(\\d{1,2})[\\s|\\u00b0](\\d{1,2})[\\s|\\u0027](\\d{1,2}\\.\\d+)\\u0022?(\\s+[E|W])?');
+        return _this;
     }
 
     _createClass(CoordinatesDataProvider, [{
@@ -35751,14 +35866,14 @@ var CoordinatesDataProvider = function () {
         }
     }, {
         key: '_parseDegrees',
-        value: function _parseDegrees(_ref2) {
-            var _ref3 = _slicedToArray(_ref2, 6),
-                latDeg = _ref3[0],
-                latMin = _ref3[1],
-                latSec = _ref3[2],
-                lngDeg = _ref3[3],
-                lngMin = _ref3[4],
-                lngSec = _ref3[5];
+        value: function _parseDegrees(_ref) {
+            var _ref2 = _slicedToArray(_ref, 6),
+                latDeg = _ref2[0],
+                latMin = _ref2[1],
+                latSec = _ref2[2],
+                lngDeg = _ref2[3],
+                lngMin = _ref2[4],
+                lngSec = _ref2[5];
 
             return { type: 'Point', coordinates: [lngDeg + lngMin / 60 + lngSec / 3600, latDeg + latMin / 60 + latSec / 3600] };
         }
@@ -35772,13 +35887,16 @@ var CoordinatesDataProvider = function () {
     }, {
         key: 'find',
         value: function find(value, limit, strong, retrieveGeometry) {
-            var _this = this;
+            var _this2 = this;
 
             var g = this._parseCoordinates(value);
             return new Promise(function (resolve) {
-                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this, query: value };
-                if (g && typeof _this._onFetch === 'function') {
-                    _this._onFetch(result);
+                var result = { feature: { type: 'Feature', geometry: g, properties: {} }, provider: _this2, query: value };
+                if (g) {
+                    var event = document.createEvent('Event');
+                    event.initEvent('fetch', false, false);
+                    event.detail = result;
+                    _this2.dispatchEvent(event);
                 }
                 resolve(g ? [result] : []);
             });
@@ -35786,15 +35904,12 @@ var CoordinatesDataProvider = function () {
     }]);
 
     return CoordinatesDataProvider;
-}();
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.CoordinatesDataProvider = CoordinatesDataProvider;
+}(_EventTarget2.EventTarget);
 
 exports.CoordinatesDataProvider = CoordinatesDataProvider;
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35803,28 +35918,38 @@ exports.CoordinatesDataProvider = CoordinatesDataProvider;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.OsmDataProvider = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _EventTarget2 = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var OsmDataProvider = function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var OsmDataProvider = function (_EventTarget) {
+    _inherits(OsmDataProvider, _EventTarget);
+
     function OsmDataProvider(_ref) {
-        var serverBase = _ref.serverBase,
-            onFetch = _ref.onFetch;
+        var serverBase = _ref.serverBase;
 
         _classCallCheck(this, OsmDataProvider);
 
-        this._serverBase = serverBase;
-        this._onFetch = onFetch;
-        this.showSuggestion = true;
-        this.showOnSelect = true;
-        this.showOnEnter = true;
-        this.find = this.find.bind(this);
-        this.fetch = this.fetch.bind(this);
-        this._convertGeometry = this._convertGeometry.bind(this);
+        var _this = _possibleConstructorReturn(this, (OsmDataProvider.__proto__ || Object.getPrototypeOf(OsmDataProvider)).call(this));
 
-        this._key = window.KOSMOSNIMKI_SESSION_KEY == null || window.KOSMOSNIMKI_SESSION_KEY == 'INVALID' ? '' : '&key=' + window.KOSMOSNIMKI_SESSION_KEY;
+        _this._serverBase = serverBase;
+        _this.showSuggestion = true;
+        _this.showOnSelect = true;
+        _this.showOnEnter = true;
+        _this.find = _this.find.bind(_this);
+        _this.fetch = _this.fetch.bind(_this);
+        _this._convertGeometry = _this._convertGeometry.bind(_this);
+
+        _this._key = window.KOSMOSNIMKI_SESSION_KEY == null || window.KOSMOSNIMKI_SESSION_KEY == 'INVALID' ? '' : '&key=' + window.KOSMOSNIMKI_SESSION_KEY;
+        return _this;
     }
 
     _createClass(OsmDataProvider, [{
@@ -35865,7 +35990,7 @@ var OsmDataProvider = function () {
 
             return fetch;
         }(function (obj) {
-            var _this = this;
+            var _this2 = this;
 
             var query = 'WrapStyle=None&RequestType=ID&ID=' + obj.ObjCode + '&TypeCode=' + obj.TypeCode + '&UseOSM=1';
             var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
@@ -35885,7 +36010,7 @@ var OsmDataProvider = function () {
                         var rs = json.Result.reduce(function (a, x) {
                             return a.concat(x.SearchResult);
                         }, []).map(function (x) {
-                            var g = _this._convertGeometry(x.Geometry);
+                            var g = _this2._convertGeometry(x.Geometry);
                             var props = Object.keys(x).filter(function (k) {
                                 return k !== 'Geometry';
                             }).reduce(function (a, k) {
@@ -35898,13 +36023,14 @@ var OsmDataProvider = function () {
                                     geometry: g,
                                     properties: props
                                 },
-                                provider: _this,
+                                provider: _this2,
                                 query: obj
                             };
                         });
-                        if (typeof _this._onFetch === 'function') {
-                            _this._onFetch(rs);
-                        }
+                        var event = document.createEvent('Event');
+                        event.initEvent('fetch', false, false);
+                        event.detail = rs;
+                        _this2.dispatchEvent(event);
                         resolve(rs);
                     } else {
                         reject(json);
@@ -35917,80 +36043,84 @@ var OsmDataProvider = function () {
     }, {
         key: 'find',
         value: function find(value, limit, strong, retrieveGeometry) {
-            var _this2 = this;
+            var _this3 = this;
 
-            var _strong = Boolean(strong) ? 1 : 0;
-            var _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1;
-            var query = 'WrapStyle=None&RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
-            var req = new Request(this._serverBase + '/SearchObject/SearchAddress.ashx?' + query + this._key);
-            var headers = new Headers();
-            headers.append('Content-Type', 'application/json');
-            var init = {
-                method: 'GET',
-                mode: 'cors',
-                credentials: 'include',
-                cache: 'default'
-            };
             return new Promise(function (resolve, reject) {
-                fetch(req, init).then(function (response) {
-                    return response.json();
-                }).then(function (json) {
-                    if (json.Status === 'ok') {
-                        var rs = json.Result.reduce(function (a, x) {
-                            return a.concat(x.SearchResult);
-                        }, []).map(function (x) {
-                            if (retrieveGeometry && x.Geometry) {
-                                var g = _this2._convertGeometry(x.Geometry);
-                                var props = Object.keys(x).filter(function (k) {
-                                    return k !== 'Geometry';
-                                }).reduce(function (a, k) {
-                                    a[k] = x[k];
-                                    return a;
-                                }, {});
-                                return {
-                                    name: x.ObjNameShort,
-                                    feature: {
-                                        type: 'Feature',
-                                        geometry: g,
-                                        properties: props
-                                    },
-                                    properties: props,
-                                    provider: _this2,
-                                    query: value
-                                };
-                            } else {
-                                return {
-                                    name: x.ObjNameShort,
-                                    properties: x,
-                                    provider: _this2,
-                                    query: value
-                                };
+                if (value || value.trim()) {
+                    var _strong = Boolean(strong) ? 1 : 0;
+                    var _withoutGeometry = Boolean(retrieveGeometry) ? 0 : 1;
+                    var query = 'WrapStyle=None&RequestType=SearchObject&IsStrongSearch=' + _strong + '&WithoutGeometry=' + _withoutGeometry + '&UseOSM=1&Limit=' + limit + '&SearchString=' + encodeURIComponent(value);
+                    var req = new Request(_this3._serverBase + '/SearchObject/SearchAddress.ashx?' + query + _this3._key);
+                    var headers = new Headers();
+                    headers.append('Content-Type', 'application/json');
+                    var init = {
+                        method: 'GET',
+                        mode: 'cors',
+                        credentials: 'include',
+                        cache: 'default'
+                    };
+                    fetch(req, init).then(function (response) {
+                        return response.json();
+                    }).then(function (json) {
+                        if (json.Status === 'ok') {
+                            var rs = json.Result.reduce(function (a, x) {
+                                return a.concat(x.SearchResult);
+                            }, []).map(function (x) {
+                                if (retrieveGeometry && x.Geometry) {
+                                    var g = _this3._convertGeometry(x.Geometry);
+                                    var props = Object.keys(x).filter(function (k) {
+                                        return k !== 'Geometry';
+                                    }).reduce(function (a, k) {
+                                        a[k] = x[k];
+                                        return a;
+                                    }, {});
+                                    return {
+                                        name: x.ObjNameShort,
+                                        feature: {
+                                            type: 'Feature',
+                                            geometry: g,
+                                            properties: props
+                                        },
+                                        properties: props,
+                                        provider: _this3,
+                                        query: value
+                                    };
+                                } else {
+                                    return {
+                                        name: x.ObjNameShort,
+                                        properties: x,
+                                        provider: _this3,
+                                        query: value
+                                    };
+                                }
+                            });
+                            if (strong && retrieveGeometry) {
+                                var event = document.createEvent('Event');
+                                event.initEvent('fetch', false, false);
+                                event.detail = rs;
+                                _this3.dispatchEvent(event);
                             }
-                        });
-                        if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
-                            _this2._onFetch(rs);
+                            resolve(rs);
+                        } else {
+                            reject(json);
                         }
-                        resolve(rs);
-                    } else {
-                        reject(json);
-                    }
-                }).catch(function (response) {
-                    return reject(response);
-                });
+                    }).catch(function (response) {
+                        return reject(response);
+                    });
+                } else {
+                    reject('Empty string');
+                }
             });
         }
     }]);
 
     return OsmDataProvider;
-}();
-
-window.nsGmx = window.nsGmx || {};
-window.nsGmx.OsmDataProvider = OsmDataProvider;
+}(_EventTarget2.EventTarget);
 
 exports.OsmDataProvider = OsmDataProvider;
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36001,7 +36131,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SearchControl = undefined;
 
-var _SearchWidget = __webpack_require__(0);
+var _SearchWidget = __webpack_require__(1);
 
 var SearchControl = L.Control.extend({
     includes: L.Evented ? L.Evented.prototype : L.Mixin.Events,
@@ -36009,7 +36139,7 @@ var SearchControl = L.Control.extend({
         L.setOptions(this, options);
         this._allowSuggestion = true;
         this.options.suggestionTimeout = this.options.suggestionTimeout || 1000;
-        this.options.limit = this.options.limit || 10;
+        this.options.suggestionLimit = this.options.suggestionLimit || 10;
     },
     onAdd: function onAdd(map) {
         this._container = L.DomUtil.create('div', 'leaflet-ext-search');
@@ -36056,21 +36186,21 @@ var SearchControl = L.Control.extend({
 exports.SearchControl = SearchControl;
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _SearchWidget = __webpack_require__(0);
+var _SearchWidget = __webpack_require__(1);
 
-var _SearchControl = __webpack_require__(4);
+var _SearchControl = __webpack_require__(5);
 
-var _OsmDataProvider = __webpack_require__(3);
+var _OsmDataProvider = __webpack_require__(4);
 
-var _CoordinatesDataProvider = __webpack_require__(2);
+var _CoordinatesDataProvider = __webpack_require__(3);
 
-var _CadastreDataProvider = __webpack_require__(1);
+var _CadastreDataProvider = __webpack_require__(2);
 
 window.nsGmx = window.nsGmx || {};
 window.nsGmx.SearchWidget = _SearchWidget.SearchWidget;
@@ -36080,7 +36210,7 @@ window.nsGmx.CoordinatesDataProvider = _CoordinatesDataProvider.CoordinatesDataP
 window.nsGmx.CadastreDataProvider = _CadastreDataProvider.CadastreDataProvider;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36089,46 +36219,64 @@ window.nsGmx.CadastreDataProvider = _CadastreDataProvider.CadastreDataProvider;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.ResultView = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _EventTarget2 = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var ResultView = function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ResultView = function (_EventTarget) {
+    _inherits(ResultView, _EventTarget);
+
     function ResultView(_ref) {
         var input = _ref.input,
-            onSelect = _ref.onSelect,
-            onEnter = _ref.onEnter,
             _ref$replaceInput = _ref.replaceInput,
             replaceInput = _ref$replaceInput === undefined ? false : _ref$replaceInput;
 
         _classCallCheck(this, ResultView);
 
-        this._input = input;
-        this._onSelect = onSelect;
-        this._onEnter = onEnter;
-        this.index = -1;
-        this.count = 0;
-        this._item = null;
-        this._inputText = '';
-        this._replaceInput = replaceInput;
-        this._list = L.DomUtil.create('div');
-        this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
+        var _this = _possibleConstructorReturn(this, (ResultView.__proto__ || Object.getPrototypeOf(ResultView)).call(this));
 
-        this.allowNavigation = true;
+        _this._input = input;
+        _this.index = -1;
+        _this.count = 0;
+        _this._item = null;
+        _this._inputText = '';
+        _this._replaceInput = replaceInput;
+        _this._list = L.DomUtil.create('div');
+        _this._list.setAttribute('class', 'leaflet-ext-search-list noselect');
 
-        this._list.style.top = this._input.offsetTop + this._input.offsetHeight + 2 + 'px';
-        this._list.style.left = this._input.offsetLeft + 'px';
-        this._input.addEventListener('keydown', this._handleKey.bind(this));
-        this._input.addEventListener('click', this._handleInputClick.bind(this));
-        this._input.addEventListener('focus', this._handleFocus.bind(this));
-        this._list.addEventListener('keydown', this._handleKey.bind(this));
-        this._list.addEventListener('wheel', this._handleWheel.bind(this));
-        L.DomEvent.disableClickPropagation(this._list).disableScrollPropagation(this._list);
+        _this.allowNavigation = true;
+
+        _this._list.style.top = _this._input.offsetTop + _this._input.offsetHeight + 2 + 'px';
+        _this._list.style.left = _this._input.offsetLeft + 'px';
+
+        _this._handleKey = _this._handleKey.bind(_this);
+        _this._input.addEventListener('keydown', _this._handleKey);
+
+        _this._handleInputClick = _this._handleInputClick.bind(_this);
+        _this._input.addEventListener('click', _this._handleInputClick);
+
+        _this._handleFocus = _this._handleFocus.bind(_this);
+        _this._input.addEventListener('focus', _this._handleFocus);
+        _this._list.addEventListener('keydown', _this._handleKey);
+
+        _this._handleWheel = _this._handleWheel.bind(_this);
+        _this._list.addEventListener('wheel', _this._handleWheel);
+        L.DomEvent.disableClickPropagation(_this._list).disableScrollPropagation(_this._list);
         // this._list.addEventListener('mousewheel', this._handleWheel.bind(this));
         // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));       
-        this._input.parentElement.appendChild(this._list);
-        this._input.addEventListener('input', this._handleChange.bind(this));
+        _this._input.parentElement.appendChild(_this._list);
+
+        _this._handleChange = _this._handleChange.bind(_this);
+        _this._input.addEventListener('input', _this._handleChange);
+        return _this;
     }
 
     _createClass(ResultView, [{
@@ -36209,12 +36357,16 @@ var ResultView = function () {
                         break;
                     // Enter
                     case 13:
-                        if (this.index < 0 && this._input.value && typeof this._onEnter === 'function') {
+                        if (this.index < 0 && this._input.value) {
                             var text = this._input.value;
                             this._input.focus();
                             this._input.setSelectionRange(text.length, text.length);
                             this.hide();
-                            this._onEnter(text);
+
+                            var event = document.createEvent('Event');
+                            event.initEvent('suggestions:confirm', false, false);
+                            event.detail = text;
+                            this.dispatchEvent(event);
                         } else {
                             this.complete(this.index);
                         }
@@ -36231,10 +36383,14 @@ var ResultView = function () {
                         break;
                 }
             } else {
-                if (e.keyCode === 13 && this._input.value && typeof this._onEnter == 'function') {
+                if (e.keyCode === 13 && this._input.value) {
                     var _text = this._input.value;
                     this._input.setSelectionRange(_text.length, _text.length);
-                    this._onEnter(_text);
+
+                    var _event = document.createEvent('Event');
+                    _event.initEvent('suggestions:confirm', false, false);
+                    _event.detail = _text;
+                    this.dispatchEvent(_event);
                 } else if (e.keyCode === 27) {
                     this._input.value = '';
                     this.index = -1;
@@ -36277,9 +36433,11 @@ var ResultView = function () {
                 }
                 this._input.focus();
                 this.hide();
-                if (typeof this._onSelect === 'function') {
-                    this._onSelect(item);
-                }
+
+                var event = document.createEvent('Event');
+                event.initEvent('suggestions:select', false, false);
+                event.detail = item;
+                this.dispatchEvent(event);
             }
         }
     }, {
@@ -36328,12 +36486,12 @@ var ResultView = function () {
     }]);
 
     return ResultView;
-}();
+}(_EventTarget2.EventTarget);
 
 exports.ResultView = ResultView;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
