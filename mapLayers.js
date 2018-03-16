@@ -713,6 +713,23 @@
                                 }
                             }
 
+                            if (nsGmx.timeLineControl) {
+                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
+                                    layerOnTimeline = false;
+
+                                for (var key in timelineData) {
+                                    if (timelineData[key].layerID === elem.name) {
+                                        layerOnTimeline = true;
+                                    }
+                                }
+
+                                if (layerOnTimeline && props.visible === true) {
+                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                    $(timelineIcon).removeClass('disabled');
+                                }
+                            }
+
                             $(this).on('layerTimelineRemove', function(e, data) {
                                 if (data.layerID === layerName) {
                                     timelineIcon.src = 'img/timeline-icon-disabled.svg';

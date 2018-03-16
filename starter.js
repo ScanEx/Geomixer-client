@@ -2105,12 +2105,12 @@ nsGmx.widgets = nsGmx.widgets || {};
                 window.createTabFunction = function(options) {
                     return function(state) {
                         var el = document.createElement("div"),
-                        tabEl = document.createElement("div"),
-                        href = '#' + options.icon.toLowerCase();
-
+                            tabEl = document.createElement("div"),
+                            href = '#' + options.icon.toLowerCase(),
+                            symbol = document.querySelector(href);
                         el.classList.add("tab-icon");
 
-                        // el.className = 'leaflet-gmx-iconSvg';
+                        symbol.classList.add("sidebar-icon");
 
                         tabEl.innerHTML = '<svg role="img" class="svgIcon">\
                         <use xlink:href="' + href + '" href="' + href + '"></use>\
@@ -2123,20 +2123,23 @@ nsGmx.widgets = nsGmx.widgets || {};
                         if (state === "active") {
                             tabEl.classList.add(options.active);
                             el.classList.add("tab-icon-active");
+                            symbol.classList.add("sidebar-active-icon");
                         } else {
+                            if (symbol.classList.contains("sidebar-active-icon")) {
+                                symbol.classList.remove("sidebar-active-icon");
+                            }
                             tabEl.classList.add(options.inactive);
                         }
                         return el;
                     };
                 };
 
-
                 var leftMainContainer = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
                             icon: "s-tree",
-                            active: "uploadfile-uploadfile-sidebar",
-                            inactive: "uploadfile-uploadfile-sidebar",
+                            active: "sidebar-icon-active",
+                            inactive: "sidebar-icon-inactive",
                             hint: "layers-tree"
                         })
                     }
