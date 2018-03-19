@@ -2109,8 +2109,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                             href = '#' + options.icon.toLowerCase(),
                             symbol = document.querySelector(href);
                         el.classList.add("tab-icon");
-
-                        symbol.classList.add("sidebar-icon");
+                        symbol && symbol.classList.add("sidebar-icon");
 
                         tabEl.innerHTML = '<svg role="img" class="svgIcon">\
                         <use xlink:href="' + href + '" href="' + href + '"></use>\
@@ -2123,9 +2122,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                         if (state === "active") {
                             tabEl.classList.add(options.active);
                             el.classList.add("tab-icon-active");
-                            symbol.classList.add("sidebar-active-icon");
+                            symbol && symbol.classList.add("sidebar-active-icon");
                         } else {
-                            if (symbol.classList.contains("sidebar-active-icon")) {
+                            if (symbol && symbol.classList.contains("sidebar-active-icon")) {
                                 symbol.classList.remove("sidebar-active-icon");
                             }
                             tabEl.classList.add(options.inactive);
