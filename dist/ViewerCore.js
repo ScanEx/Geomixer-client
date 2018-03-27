@@ -10900,6 +10900,23 @@ pointsBinding.pointsBinding.unload = function()
                                 }
                             }
 
+                            if (nsGmx.timeLineControl) {
+                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
+                                    layerOnTimeline = false;
+
+                                for (var key in timelineData) {
+                                    if (timelineData[key].layerID === elem.name) {
+                                        layerOnTimeline = true;
+                                    }
+                                }
+
+                                if (layerOnTimeline && props.visible === true) {
+                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                    $(timelineIcon).removeClass('disabled');
+                                }
+                            }
+
                             $(this).on('layerTimelineRemove', function(e, data) {
                                 if (data.layerID === layerName) {
                                     timelineIcon.src = 'img/timeline-icon-disabled.svg';
@@ -32205,19 +32222,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32247,6 +32251,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -39044,7 +39061,7 @@ IconSidebarWidget.prototype = {
             this.close();
         }
 
-        this._renderTabs({});
+        this._renderTabs({ activeTabId: this._activeTabId });
         return this._ensurePane(id);
     },
 
@@ -41661,12 +41678,12 @@ nsGmx.widgets = nsGmx.widgets || {};
                 window.createTabFunction = function(options) {
                     return function(state) {
                         var el = document.createElement("div"),
-                        tabEl = document.createElement("div"),
-                        href = '#' + options.icon.toLowerCase();
-
+                            tabEl = document.createElement("div"),
+                            href = '#' + options.icon.toLowerCase(),
+                            symbol = document.querySelector(href);
                         el.classList.add("tab-icon");
 
-                        // el.className = 'leaflet-gmx-iconSvg';
+                        symbol.classList.add("sidebar-icon");
 
                         tabEl.innerHTML = '<svg role="img" class="svgIcon">\
                         <use xlink:href="' + href + '" href="' + href + '"></use>\
@@ -41679,20 +41696,23 @@ nsGmx.widgets = nsGmx.widgets || {};
                         if (state === "active") {
                             tabEl.classList.add(options.active);
                             el.classList.add("tab-icon-active");
+                            symbol.classList.add("sidebar-active-icon");
                         } else {
+                            if (symbol.classList.contains("sidebar-active-icon")) {
+                                symbol.classList.remove("sidebar-active-icon");
+                            }
                             tabEl.classList.add(options.inactive);
                         }
                         return el;
                     };
                 };
 
-
                 var leftMainContainer = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
                             icon: "s-tree",
-                            active: "uploadfile-uploadfile-sidebar",
-                            inactive: "uploadfile-uploadfile-sidebar",
+                            active: "sidebar-icon-active",
+                            inactive: "sidebar-icon-inactive",
                             hint: "layers-tree"
                         })
                     }

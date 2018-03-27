@@ -1,215 +1,47 @@
-/***********************
-*                      *
-************************/
-.left_aispanel{
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);.left_aispanel{
   margin-bottom: 8px;
   border: 1px solid #DDD;
  }
 
-.ais_tabs{
-  width: 100%
+.ais_tabs *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
 }
-
+.ais_tabs{
+  width: 100%;
+}
 .ais_tab{
   text-align: center;
+  cursor:pointer;
+  background-color: #e1e8ed;
+  border-bottom: solid 1px #d8e1e4;
+  color: #182026;
+}
+.ais_tab div{
   padding:10px;
-  padding-top:11px;
-  cursor:pointer;
-  background-color: #EEE;
-  border-bottom:1px solid #DDD
+  border-bottom: solid 3px #e1e8e4;
+  font-family: 'Roboto', sans-serif;
+  font-weight:500;
+  font-size:14px;
 }
-
 .ais_tab.active {
-  padding-top:10px;
-  background-color: #FFF;
-  border:1px solid #DDD;
-  border-bottom:none
+  border-bottom:solid 1px #48aff1;
 }
-
-.ais_tab:first-of-type {
-  border-left:none
+.ais_tab.active div{
+  border-bottom: solid 3px #48aff1;
 }
-
-.ais_tab:last-of-type {
-  border-right:none
-}
-
-.ais_view{
-  margin:10px;
-}
-
-.ais_view .count{
-  color: #CCC;
-}
-
-.ais_view .ais_vessels i{
-  color:#777;
-}
-
-.ais_view div.refresh{
-  /*background-color: #EEE;
-  margin-left:10px;
-  border:1px solid #DDD;
-  border-radius: 2px;*/
-  height: 22px;
-  width: 22px;
-  text-align: center;
-}
-.ais_view div.refresh div{
-  display:none;
-}
-.ais_view div.refresh div img{
-  margin-top:3px;
-}
-
-.ais_view div.refresh div{
-  height: 22px;
-  width: 22px;
-}
-
-.ais_view div.refresh i{
-  vertical-align: middle;
-  line-height:20px;
-  font-size:11px
-}
-
-.ais_view .clicable{
-  cursor:pointer;
-}
-
-.myfleet_view div.refresh{
-  margin-left:0px;
-}
-
-
-.ais_view.search_view select{
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  
-  background: transparent;
-  border: none;
-
-  padding-right: 22px;
-  padding-left: 6px;
-  font-size:11px;
-  position: relative;
-  top: -19px;
-  width: 120px;
-}
-
-.ais_view.search_view select::-ms-expand {
-        display: none;
-}
-
-.ais_view i.icon-down-dir{  
-  position: relative;
-  top: 4px;
-}
-
-.ais_view.search_view select option{
-  font-size:11px;
-  /*padding-left: 6px;*/
-}
-
-.ais_view .instruments{
-  width:100%;
-  margin-bottom: 10px
-}
-
-.ais_view.search_view .instruments tr:nth-of-type(1) td:nth-of-type(1) div{
-  border:1px solid #DDD;
-  background-color: #EEE;
-  height: 22px;
-  padding-right: 4px;
-  text-align:right;
-}
-.ais_view .instruments tr td:nth-of-type(3){
-  width:90%;
-  text-align:right
-}
-
-.ais_view .filter{
-  background-color: #EEE;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  width:99%;
-  margin-top: 10px;
-  border: 1px solid #DDD;
-}
-
-.ais_view .filter input{
-  width: 88%;
-  padding-left: 8px;
-  border: none;  
-  background: transparent;
-}
-
-.ais_view .filter i{
-  margin-left: 5px;
-}
-
-.ais_view .ais_vessel{
-  border: 1px solid #DDD;
-  padding:5px;
-  margin-top:5px;
-  margin-right:1px;
-}
-
-/*
-.ais_view .ais_vessel div.info{
-  width:20px;
-  height:20px;
-  border: 2px solid #DDD;
-  border-radius: 50%;
-  line-height: 16px;
-  text-align: center;
-}
-.ais_view .ais_vessel .icon-info{
-  position: relative;
-  top: 1px
-}
-*/
-.ais_view .ais_vessel .position{
-  cursor:pointer;
-}
-.ais_view .ais_vessel div.info{
-  cursor:pointer;
-  width:16px;
-  height:16px;
-  background: url(http://kosmosnimki.ru/demo/maritime/beta/dist/dc60303ff84f3f0b6bf35c7072aab53d.svg) 0 0 no-repeat
-}
-.ais_view .ais_vessel div.history{
-  width: 20px;
-  text-align:center;
-  cursor:pointer;
-}
-.ais_view .ais_vessels .msg{
-  text-align: center;
-  font-weight:bold;
-}
-.ais_view .ais_vessels .date, 
-.ais_view .ais_vessels .date .utc {
-  font-size:10px;
-  color: #CCC
-}
-.ais_view .ais_vessels .date .small{
-  display: none;
-}
-.ais_view .ais_vessels .date br{
-  display: none;
-}
-.ais_view .ais_vessel:first-of-type{
-  margin-top:0;
-}
-.ais_view .ais_vessel table{
-  width: 100%
-}
-.ais_view .ais_vessel table td:first-of-type{
-  width: 98%
-}
-.ais_view .ais_vessel table td:nth-of-type(2){
-  padding-right:10px
-}
+.ais_tab.unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
 /**********************/
 
         .vessel-info-page.overlay{
@@ -526,7 +358,8 @@
         .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
             width:10px;
         }
-			
+
+        		
 .VesselSearchTool:hover{
 	background-color: #eee;
 }	
@@ -553,39 +386,599 @@
 	fill:white;
 }
 .ais_sidebar-icon{
-	fill:#999;
+	fill:#d8e1e8;
+}
+
+.ais_view * {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+.ais_view{
+    margin:0;
+}
+
+.ais_view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+
+.ais_view .ais_vessels{
+  color:#182026;
+}
+  .ais_view .ais_vessels .msg{
+    text-align: center;
+    font-weight:500;
+  }
+
+  .ais_view div.refresh{
+    /*background-color: #EEE;
+    margin-left:10px;
+    border:1px solid #DDD;
+    border-radius: 2px;*/
+    height: 22px;
+    width: 22px;
+    text-align: center;
+    margin-bottom:10px;
+  }
+  .ais_view div.refresh div{
+    display:none;
+  }
+  .ais_view div.refresh div img{
+    margin-top:3px;
+  }
+  .ais_view div.refresh div{
+    height: 22px;
+    width: 22px;
+  }
+  .ais_view div.refresh i{
+    vertical-align: middle;
+    line-height:20px;
+    font-size:11px
+  }
+  .ais_view .clicable{
+    cursor:pointer;
+  }
+  .myfleet_view div.refresh{
+    margin-left:0px;
+  }
+  .ais_view.search_view select{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    background: transparent;
+    border: none;
+  
+    padding-right: 22px;
+    padding-left: 6px;
+    font-size:11px;
+    position: relative;
+    top: -19px;
+    width: 120px;
+  }
+  .ais_view.search_view select::-ms-expand {
+          display: none;
+  }
+  .ais_view i.icon-down-dir{  
+    position: relative;
+    top: 4px;
+  }
+  .ais_view.search_view select option{
+    font-size:11px;
+    /*padding-left: 6px;*/
+  }
+  .ais_view .instruments{
+    width: 360px;
+    background-color: #e1e8ed;
+  }
+  
+  .ais_view .instruments td{
+      padding:15px;
+    }
+  
+  .ais_view .instruments .count{
+      width:90%;
+      color: #CCC;
+      padding-left: 10px;
+    }
+  
+    .ais_view .calendar{
+      margin-bottom:10px;
+    }
+  
+    .ais_view .calendar td{
+      padding:0;
+    }
+  
+  .ais_view .filter{
+    background-color: #fff;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    width:99%;
+    border: 1px solid #DDD;
+    margin-top:10px;
+    border-radius: 3px;
+  }
+  .ais_view .filter div{
+      float:right;
+      margin-right:10px;
+  }
+  .ais_view .filter input{
+    width: 88%;
+    padding-left: 10px;
+    border: none;  
+    background: transparent;
+    text-transform: uppercase;
+    font-weight:700;
+  }
+  .ais_view .filter input::-webkit-input-placeholder { /* WebKit browsers */
+      text-transform: none;
+  }
+  .ais_view .filter input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+      text-transform: none;
+  }
+  .ais_view .filter input::-moz-placeholder { /* Mozilla Firefox 19+ */
+      text-transform: none;
+  }
+  .ais_view .filter input:-ms-input-placeholder { /* Internet Explorer 10+ */
+      text-transform: none;
+  }
+  .ais_view .filter input::placeholder { /* Recent browsers */
+      text-transform: none;
+  }
+  .ais_view .filter .remove{
+    display: none;
+    margin-top:2px;
+  }
+  .ais_view .filter i{
+    font-size:16px;
+  }
+
+.ais_view .results{
+    width:100%;
+    background-color: #f5f8fa;
+    border-bottom: solid 1px #e1e8ed;
+    color:#182026;
+    font-weight: 500;
+    opacity:0.8;
+}
+.ais_view .results td{
+    padding:6px;
+}
+.ais_view .results td:nth-of-type(1){
+    padding-left:15px;
+    width:98%;
+}
+.ais_view .results .refresh{
+    margin-bottom:0;
+}
+
+  .ais_view .ais_vessel{
+    border: solid 1px #fff;
+    border-bottom: solid 1px #e1e8ed;
+    padding:10px;
+    padding-left:15px;
+    cursor:pointer;
+    height: 29px;
+  }
+  .ais_view .ais_vessel:hover{
+    border: solid 1px #48aff1;
+  }
+  .ais_view .ais_vessel .position{
+      font-weight:500;
+      height: 15px;
+  }
+  .ais_view .ais_vessel .date{
+    opacity:0.8;
+  }
+  .ais_view .ais_vessel div.info{
+    cursor:pointer;
+  }  
+  .ais_view .ais_vessel div.info img{
+    margin-left: 10px;
+    visibility: hidden;
+  }
+  .ais_view .ais_vessel:hover div.info img{
+    visibility: visible;
+  }
+  /*
+  .ais_view .ais_vessel div.history{
+    width: 20px;
+    text-align:center;
+    cursor:pointer;
+  }
+  */
+  .ais_view .ais_vessel:first-of-type{
+    margin-top:0;
+  }
+  .ais_view .ais_vessel table{
+    width: 100%
+  }
+  .ais_view .ais_vessel table td:first-of-type{
+    width: 75%
+  }
+  .ais_view .ais_vessel table td:first-of-type div{
+    overflow: hidden;
+  }
+  .ais_view .ais_vessel table td:first-of-type div:nth-of-type(2){
+    font-size: 10px;
+    opacity: 0.8;
+  }
+  .ais_view .ais_vessel table td:nth-of-type(2){
+    padding-right:10px
+  }
+
+  	
+.ais_view .mCSB_scrollTools .mCSB_draggerRail{
+    width:6px;
+}
+
+.ais_view .mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{
+    width:6px;
+}.ais_view.search_view .suggestions{
+    background-color: white;
+    position:absolute;
+    display:none;
+    border-radius: 0 0 3px 3px;
+    border: 1px solid #DDD;
+    border-top:none;
+}
+.ais_view.search_view .suggestions .suggestion{
+    padding: 5px;
+    border-top: solid 1px #DDD;
+    cursor: pointer;
+}
+.ais_view.search_view .suggestions .suggestion.selected{
+    background-color: #fafafa;
+}
+.ais_view.search_view .suggestions .suggestion span{
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+.ais_view.search_view .instruments .time span{
+    padding: 1px 15px 2px 15px;
+}
+.ais_view.search_view .instruments .time .local,.utc{
+    cursor: pointer;
+}
+.ais_view.search_view .instruments .time .on{
+    background-color:#48aff1;
+    color :white;
+    border-radius: 16px;
+}
+.ais_view.search_view .instruments .calendar input{
+    padding: 8px;
+    border-radius: 3px;
+}
+.ais_view.search_view .instruments .CalendarWidget-inputCell{
+    border-radius: 3px;
+}
+
+.ais_history{
+    color:#394b59;
+}
+.ais_history .message{
+    text-align: center;
+    font-weight: 700;
+}
+
+.ais_history .ais_positions_date{
+    width:100%;
+    background-color: #f5f8fa;
+    border-bottom: solid 1px #e1e8ed;
+    color:#182026;
+    font-weight: 700;
+    height:31px;
+}
+.ais_history .ais_positions_date td{
+    padding:6px;
+}
+.ais_history .ais_positions_date td .date{
+    font-weight:500;
+}
+.ais_history .ais_positions_date td .count{
+    font-weight:700;
+}
+.ais_history .ais_positions_date td:nth-of-type(1){
+    width:1%;
+    padding-right:0;
+}
+.ais_history .ais_positions_date td:nth-of-type(3){
+    text-align: right;
+    opacity: 0.8;
+    padding-right:12px;
+    color:#394b59;
+}
+
+.ais_history .open_positions{
+    cursor: pointer;
+    font-size:14px;
+}
+
+.ais_history .ais_positions{
+    width:100%;
+    border-collapse: initial;
+    border-spacing: 0;
+}
+
+.ais_history .ais_positions td{
+    padding:10px 5px 10px 0px;
+    cursor:pointer;
+    border-top: solid 1px white;
+}
+.ais_history .ais_positions tr td:nth-of-type(1){
+    color:#182026;
+    padding-left:28px;
+    width:55px; 
+    border-left: solid 1px white;
+}
+.ais_history .ais_positions tr td:nth-of-type(6){
+    border-right:solid 1px #fff;
+}
+
+.ais_history .ais_positions td.more{
+    border-bottom: solid 1px #e1e8ed;
+    border-top: none;
+    border-left: none;
+    cursor:default;
+    padding:0;
+}
+.ais_history .ais_positions td.more .vi_more{
+    display:none;
+}
+.ais_history .ais_positions td.more hr{
+    border-top: solid 1px #e1e8ed;
+    border-bottom: none;
+    margin: 0 28px 10px 0px;
+    display:none;
+}
+.ais_history .ais_positions td.more .vi_more::after {
+    content: "";
+    clear: both;
+    /*display: table;*/
+}
+.ais_history .ais_positions td.more .vi_more div {
+    float:left;
+}
+.ais_history .ais_positions td.more .vi_more .c1 {
+    width:100px;
+    padding: 9px;
+}
+.ais_history .ais_positions td.more .vi_more .c2 {
+    width:200px;
+    padding: 9px 0 9px 0;
+}
+
+.ais_history .ais_positions td.active{
+    border-top:solid 1px #48aff1;
+    background-color: #f5f8fa;
+}
+.ais_history .ais_positions td.more.active{
+    border:solid 1px #48aff1;
+    border-top:none;
+    background-color: #f5f8fa;
+    padding:0 0 10px 28px;
+}
+.ais_history .ais_positions td.more.active .vi_more, 
+.ais_history .ais_positions td.more.active hr{
+    display:block;
+}
+.ais_history .ais_positions tr td:nth-of-type(1).active{    
+    border-left:solid 1px #48aff1;
+}
+.ais_history .ais_positions tr td:nth-of-type(6).active{    
+    border-right:solid 1px #48aff1;
 }
 
 
-.ui-datepicker{
-	width:200px
+.ais_history .ais_positions td:nth-of-type(2){
+    opacity: 0.8;
+    width:70px;
 }
-.history_view .ais_vessel .voyage_info{
-	margin-left:5px;
-	display:none;
+.ais_history .ais_positions .local_time{
+    display:none;
 }
-.history_view .ais_vessel .show_voyage_info{
-	font-weight:bold;
-	cursor: pointer;
+.ais_history .ais_positions .local_date{
+    display:none;
 }
-.history_view .ais_vessel .voyage_info table td{
-	font-size:11px;	
+.ais_history .ais_positions tr .show_pos{
+    visibility: hidden;
 }
-.history_view .ais_vessel .voyage_info table td:nth-of-type(1){
-	width:30%;	
+.ais_history .ais_positions tr:hover .show_pos{
+    visibility: visible;
 }
-.history_view .caption{
-	line-height:35px;
-	font-size:13px;
-	font-weight:bold;
-	width:300px;
+
+.ais_view.search_view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+
+.ais_history .ais_positions .rotateimg15 {
+    -webkit-transform: rotate(15deg);
+    -moz-transform: rotate(15deg);
+    -ms-transform: rotate(15deg);
+    -o-transform: rotate(15deg);
+    transform: rotate(15deg);
 }
-.history_view .instruments{
-	margin-bottom:0;
+.ais_history .ais_positions .rotateimg30 {
+    -webkit-transform: rotate(30deg);
+    -moz-transform: rotate(30deg);
+    -ms-transform: rotate(30deg);
+    -o-transform: rotate(30deg);
+    transform: rotate(30deg);
 }
-/***********************
-*                      *
-************************/
+.ais_history .ais_positions .rotateimg45 {
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.ais_history .ais_positions .rotateimg60 {
+    -webkit-transform: rotate(60deg);
+    -moz-transform: rotate(60deg);
+    -ms-transform: rotate(60deg);
+    -o-transform: rotate(60deg);
+    transform: rotate(60deg);
+}
+.ais_history .ais_positions .rotateimg75 {
+    -webkit-transform: rotate(75deg);
+    -moz-transform: rotate(75deg);
+    -ms-transform: rotate(75deg);
+    -o-transform: rotate(75deg);
+    transform: rotate(75deg2);
+}
+.ais_history .ais_positions .rotateimg90 {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.ais_history .ais_positions .rotateimg105 {
+    -webkit-transform: rotate(105deg);
+    -moz-transform: rotate(105deg);
+    -ms-transform: rotate(105deg);
+    -o-transform: rotate(105deg);
+    transform: rotate(105deg);
+}
+.ais_history .ais_positions .rotateimg120 {
+    -webkit-transform: rotate(120deg);
+    -moz-transform: rotate(120deg);
+    -ms-transform: rotate(120deg);
+    -o-transform: rotate(120deg);
+    transform: rotate(120deg);
+}
+.ais_history .ais_positions .rotateimg135 {
+    -webkit-transform: rotate(135deg);
+    -moz-transform: rotate(135deg);
+    -ms-transform: rotate(135deg);
+    -o-transform: rotate(135deg);
+    transform: rotate(135deg);
+}
+.ais_history .ais_positions .rotateimg150 {
+    -webkit-transform: rotate(150deg);
+    -moz-transform: rotate(150deg);
+    -ms-transform: rotate(150deg);
+    -o-transform: rotate(150deg);
+    transform: rotate(150deg);
+}
+.ais_history .ais_positions .rotateimg165 {
+    -webkit-transform: rotate(165deg);
+    -moz-transform: rotate(165deg);
+    -ms-transform: rotate(165deg);
+    -o-transform: rotate(165deg);
+    transform: rotate(165deg);
+}
+.ais_history .ais_positions .rotateimg180 {
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+.ais_history .ais_positions .rotateimg195 {
+    -webkit-transform: rotate(195deg);
+    -moz-transform: rotate(195deg);
+    -ms-transform: rotate(195deg);
+    -o-transform: rotate(195deg);
+    transform: rotate(195deg);
+}
+.ais_history .ais_positions .rotateimg210 {
+    -webkit-transform: rotate(210deg);
+    -moz-transform: rotate(210deg);
+    -ms-transform: rotate(210deg);
+    -o-transform: rotate(210deg);
+    transform: rotate(210deg);
+}
+.ais_history .ais_positions .rotateimg225 {
+    -webkit-transform: rotate(225deg);
+    -moz-transform: rotate(225deg);
+    -ms-transform: rotate(225deg);
+    -o-transform: rotate(225deg);
+    transform: rotate(225deg);
+}
+.ais_history .ais_positions .rotateimg240 {
+    -webkit-transform: rotate(240deg);
+    -moz-transform: rotate(240deg);
+    -ms-transform: rotate(240deg);
+    -o-transform: rotate(240deg);
+    transform: rotate(240deg);
+}
+.ais_history .ais_positions .rotateimg255 {
+    -webkit-transform: rotate(255deg);
+    -moz-transform: rotate(255deg);
+    -ms-transform: rotate(255deg);
+    -o-transform: rotate(255deg);
+    transform: rotate(255deg);
+}
+.ais_history .ais_positions .rotateimg270 {
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+.ais_history .ais_positions .rotateimg285 {
+    -webkit-transform: rotate(285deg);
+    -moz-transform: rotate(285deg);
+    -ms-transform: rotate(285deg);
+    -o-transform: rotate(285deg);
+    transform: rotate(285deg);
+}
+.ais_history .ais_positions .rotateimg300 {
+    -webkit-transform: rotate(300deg);
+    -moz-transform: rotate(300deg);
+    -ms-transform: rotate(300deg);
+    -o-transform: rotate(300deg);
+    transform: rotate(300deg);
+}
+.ais_history .ais_positions .rotateimg315 {
+    -webkit-transform: rotate(315deg);
+    -moz-transform: rotate(315deg);
+    -ms-transform: rotate(315deg);
+    -o-transform: rotate(315deg);
+    transform: rotate(315deg);
+}
+.ais_history .ais_positions .rotateimg330 {
+    -webkit-transform: rotate(330deg);
+    -moz-transform: rotate(330deg);
+    -ms-transform: rotate(330deg);
+    -o-transform: rotate(330deg);
+    transform: rotate(330deg);
+}
+.ais_history .ais_positions .rotateimg345 {
+    -webkit-transform: rotate(345deg);
+    -moz-transform: rotate(345deg);
+    -ms-transform: rotate(345deg);
+    -o-transform: rotate(345deg);
+    transform: rotate(345deg);
+}.ais_myfleet_dialog *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+.ais_info_dialog_titlebar *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+
 .ais_myfleet_dialog {
   color:#394b59;
   background-color:#f5f8fa
@@ -733,6 +1126,11 @@
 	font-weight:bold;
 	font-size:12px;
 }
+
+.ais_info_dialog_titlebar td div.date span.local{
+	font-size:10px;
+}
+
 .ais_info_dialog_titlebar td div.choose{
 	padding-top:15px;
 	padding-bottom:11px;
@@ -745,7 +1143,9 @@
 }
 
 .ais_info_dialog_titlebar td span.chooser{
-	cursor:pointer	
+  cursor:pointer;
+  font-size:14px;
+  font-weight:bold;	
 }
 
 /*.ais_info_dialog_titlebar td div.choose:hover,*/
