@@ -893,13 +893,15 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 var baseHeight = getWindowHeight() - top - bottom - headerHeight;
 
-                $('#leftMenu')[0].style.height = baseHeight + 'px'
+                $('#leftMenu')[0].style.height = baseHeight + 'px';
 
-                // $('#leftContent')[0].style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
-                // $('#leftContent')[0].style.height = baseHeight -
-                //     $('#leftPanelHeader')[0].offsetHeight -
-                //     $('#leftPanelFooter')[0].offsetHeight -
-                //     mapNameHeight + 'px';
+                var leftContentContainer = $('#leftContent')[0];
+                if (leftContentContainer) {
+                    leftContentContainer.style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
+                    leftContentContainer.style.height = baseHeight -
+                        $('#leftPanelFooter')[0].offsetHeight -
+                        mapNameHeight + 'px';
+                }
             } else {
                 $('#leftMenu').hide();
             }
@@ -2156,6 +2158,8 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                  window.iconSidebarWidget.open("layers-tree");
 
+                 $('.leftContent').mCustomScrollbar();
+
                  function handleSidebarResize(e) {
                      var sidebarWidth = window.iconSidebarWidget.getWidth(),
                         lmap = nsGmx.leafletMap,
@@ -2387,8 +2391,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                         $(window._layersTree).triggerHandler('layerTimelineAdd', e);
                     });
                 }
-
-                // $('#leftContent').mCustomScrollbar();
 
                 // экспорт карты
 
