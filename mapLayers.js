@@ -588,8 +588,10 @@
         spanDescr.innerHTML = elem.description ? elem.description : '';
 
         if (layerManagerFlag == 1) {
+	    var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
+	    if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
             return [_img(null, [
-                ['attr', 'src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],
+                ['attr', 'src', imgIconSrc],
                 ['css', 'marginLeft', '3px']
             ]), spanParent, spanDescr];
         }
@@ -710,6 +712,23 @@
                                         $(multiStyleParent).removeClass("invisible");
                                         _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
                                     }
+                                }
+                            }
+
+                            if (nsGmx.timeLineControl) {
+                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
+                                    layerOnTimeline = false;
+
+                                for (var key in timelineData) {
+                                    if (timelineData[key].layerID === elem.name) {
+                                        layerOnTimeline = true;
+                                    }
+                                }
+
+                                if (layerOnTimeline && props.visible === true) {
+                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                    $(timelineIcon).removeClass('disabled');
                                 }
                             }
 
@@ -1904,7 +1923,7 @@
                     _layersTree.addLayersToMap({ content: { properties: newLayerProperties, geometry: origGeometry } });
 
                     var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
+                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0] || $(layerDiv).find('input[type="radio"]')[0]));
 
                     $(li).find('[multiStyle]').treeview();
 
