@@ -19930,7 +19930,7 @@ var FieldsCollection = function() {
         return field && field.value;
     }
 
-    //Сначала isRequired, потом identityField, потом в порядке добавления
+    //Сначала isRequired, потом identityField, потом в порядке следования в таблице
     this.sort = function() {
         _asArray = _asArray.sort(function(a, b) {
             if (!!a.isRequired !== !!b.isRequired) {
@@ -19941,8 +19941,8 @@ var FieldsCollection = function() {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
 
-            var userZIndexDelta = (b.index || 0) - (a.index || 0);
-            return userZIndexDelta || (b.origIndex - a.origIndex);
+            var userZIndexDelta = (a.index || 0) - (b.index || 0);
+            return userZIndexDelta || (a.origIndex - b.origIndex);
         })
     }
 }
@@ -32222,6 +32222,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32251,19 +32264,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
