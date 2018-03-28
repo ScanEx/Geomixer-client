@@ -45,51 +45,51 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var NOSIDEBAR = false,
 	    PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (true) NOSIDEBAR = true;
+	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-
+	
 	__webpack_require__(1);
 	__webpack_require__(3);
 	__webpack_require__(4);
-
+	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
 	});
-
+	
 	Handlebars.registerHelper('aisjson', function (context) {
 	    return JSON.stringify(context);
 	});
-
+	
 	var pluginName = PRODUCTION ? 'AISSearch2' : 'AISSearch2Test',
 	    menuId = 'AISSearch',
 	    toolbarIconId = null,
 	    //'AISSearch2',
 	cssTable = 'AISSearch2',
 	    modulePath = gmxCore.getModulePath(pluginName);
-
+	
 	var highlight = L.marker([0, 0], { icon: L.icon({
 	        className: "ais_highlight-icon",
 	        iconAnchor: [12, 12],
 	        iconSize: [25, 25],
 	        iconUrl: 'plugins/ais/aissearch/highlight.png' }), zIndexOffset: 1000 });
-
+	
 	var AisPluginPanel = __webpack_require__(5),
 	    ViewsFactory = __webpack_require__(6);
 	var publicInterface = {
 	    pluginName: pluginName,
 	    afterViewer: function afterViewer(params, map) {
 	        var options = {
-	            aisLayerID: params.aisLayerID, // || '8EE2C7996800458AAF70BABB43321FA4',	// searchById
-	            screenSearchLayer: params.searchLayer, // || '8EE2C7996800458AAF70BABB43321FA4', // screen search
+	            aisLayerID: params.aisLayerID, // || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
+	            screenSearchLayer: params.searchLayer, // || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
 	            aisLastPoint: params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
 	            historyLayer: params.historyLayer,
 	            tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
-
+	
 	            modulePath: modulePath,
 	            highlight: highlight
 	        };
@@ -105,7 +105,7 @@
 	        //     if (layer)
 	        //         layer.bindPopup('').on('popupopen', function (e) {
 	        //             //console.log(e);
-
+	
 	        //             var result, re = /\[([^\[\]]+)\]/g, lastIndex = 0, template = "",
 	        //                 str = e.gmx.templateBalloon, props = e.gmx.properties;
 	        //             while ((result = re.exec(str)) !== null) {
@@ -144,7 +144,7 @@
 	                setLayerClickHandler(layer);
 	            }
 	        };
-
+	
 	        for (var key in params) {
 	            var layersId = params[key].split(",").map(function (id) {
 	                return id.replace(/\s/, "");
@@ -154,10 +154,10 @@
 	                forLayers(layersByID[layersId[i]]);
 	            }
 	        }
-
+	
 	        var aisPluginPanel = new AisPluginPanel(viewFactory);
 	        aisPluginPanel.menuId = menuId;
-
+	
 	        if (NOSIDEBAR) {
 	            var lmap = nsGmx.leafletMap,
 	                iconOpt_mf = {
@@ -190,7 +190,7 @@
 	                if (e.id == menuId) aisPluginPanel.show();
 	            });
 	        }
-
+	
 	        if (location.search.search(/x=[^y=]+y=/i) != -1) {
 	            var a = location.search.toLowerCase().substr(1).split('&'),
 	                x = a.filter(function (c) {
@@ -208,7 +208,7 @@
 	        }
 	    }
 	};
-
+	
 	gmxCore.addModule(pluginName, publicInterface, {
 	    css: cssTable + '.css'
 	});
@@ -231,7 +231,7 @@
 /***/ (function(module, exports) {
 
 	'use strict';
-
+	
 	_translationsHash.addtext('rus', {
 	    'AISSearch2.title': 'Поиск судов',
 	    'AISSearch2.title1': 'Найдено судов',
@@ -336,20 +336,20 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var NOSIDEBAR = false,
 	    PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (true) NOSIDEBAR = true;
+	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-
+	
 	module.exports = function (viewFactory) {
 	    var _leftMenuBlock = void 0,
 	        _canvas = _div(null),
 	        _activeView = void 0,
 	        _views = viewFactory.create(),
-
+	
 	    // _aisSearchView,
 	    // _myFleetMembersView,
 	    // _historyView,
@@ -358,14 +358,14 @@
 	        _createTabs = function _createTabs() {
 	        var tabsTemplate = '<table class="ais_tabs" border=0><tr>' + '<td class="ais_tab dbsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.DbSearchTab"}}</div>' + '</td><td class="ais_tab scrsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' + '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
 	        '<div>{{i "AISSearch2.MyFleetTab"}}</div>' + '</td></tr></table>';
-
+	
 	        if (NOSIDEBAR) $(_leftMenuBlock.workCanvas).append(_canvas);else $(this.sidebarPane).append(_canvas);
-
+	
 	        $(_canvas).append(Handlebars.compile(tabsTemplate));
 	        $(_canvas).append(_views.map(function (v) {
 	            return v.frame;
 	        }));
-
+	
 	        var tabs = $('.ais_tab', _canvas),
 	            _this = this;
 	        _views.forEach(function (v, i) {
@@ -387,16 +387,16 @@
 	                });
 	            }
 	        });
-
+	
 	        // Show the first tab
 	        tabs.eq(0).removeClass('active').click();
-
+	
 	        if (NOSIDEBAR) {
 	            _returnInstance.hide = function () {
 	                $(_leftMenuBlock.parentWorkCanvas).hide();
 	                nsGmx.leafletMap.removeLayer(highlight);
 	            };
-
+	
 	            $(_leftMenuBlock.parentWorkCanvas).attr('class', 'left_aispanel').insertAfter('.layers-before');
 	            var blockItem = _leftMenuBlock.leftPanelItem,
 	                blockTitle = $('.leftmenu-path', blockItem.panelCanvas);
@@ -406,7 +406,7 @@
 	            $(blockItem).on('changeVisibility', toggleTitle);
 	            toggleTitle();
 	        }
-
+	
 	        // All has been done at first time
 	        _isReady = true;
 	    },
@@ -414,7 +414,7 @@
 	        show: function show() {
 	            var lmap = nsGmx.leafletMap;
 	            if (NOSIDEBAR && !_leftMenuBlock) _leftMenuBlock = new leftMenu();
-
+	
 	            if (NOSIDEBAR && !_leftMenuBlock.createWorkCanvas("aispanel", function () {
 	                lmap.gmxControlIconManager.get(this.menuId)._iconClick();
 	            }, { path: [_gtxt('AISSearch2.caption')] }) || !_isReady) // SIDEBAR
@@ -436,7 +436,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var ScreenSearchView = __webpack_require__(7),
 	    ScreenSearchModel = __webpack_require__(9),
 	    MyFleetView = __webpack_require__(10),
@@ -446,10 +446,10 @@
 	    InfoDialogView = __webpack_require__(16),
 	    Searcher = __webpack_require__(20),
 	    Toolbox = __webpack_require__(21);
-
+	
 	module.exports = function (options) {
 	    var _tools = new Toolbox(options),
-
+	
 	    //_layersByID = nsGmx.gmxMap.layersByID,
 	    _searcher = new Searcher(options),
 	        _mfm = new MyFleetModel({ aisLayerSearcher: _searcher, myFleetLayers: options.myFleetLayers }),
@@ -485,7 +485,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var BaseView = __webpack_require__(8);
 	var ScreenSearchView = function ScreenSearchView(model) {
 	    BaseView.apply(this, arguments);
@@ -495,7 +495,7 @@
 	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' + '<div class="ais_vessels">' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">NO VESSELS</div><div>mmsi: 0 imo: 0</div></td>' + '<td><i class="icon-ship" vessel="" title=""></i></td>' + '<td><span class="date"></span></td>' + '<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '</div>' + '</div>')());
 	    this.container = this.frame.find('.ais_vessels');
 	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' + '<td><span class="date">{{ts_pos_utc}}</span></td>' + '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
-
+	
 	    var cleanFilter = this.frame.find('.remove'),
 	        filterReady = this.frame.find('.search'),
 	        filterInput = this.frame.find('input'),
@@ -515,7 +515,7 @@
 	    }.bind(this));
 	    filterInput.keyup(function (e) {
 	        var _this = this;
-
+	
 	        var input = filterInput.val() || "";
 	        input = input.replace(/^\s+/, "").replace(/\s+$/, "");
 	        if (input === "") {
@@ -525,7 +525,7 @@
 	            cleanFilter.show();
 	            filterReady.hide();
 	        }
-
+	
 	        if (input == this.model.filterString && e.keyCode != 13) return;
 	        this.model.filterString = input;
 	        if (e.keyCode == 13) this.model.filterString += '\r';
@@ -535,13 +535,13 @@
 	        }.bind(this), 500);
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
-
+	
 	    var needUpdate = function needUpdate() {
 	        var _this2 = this;
-
+	
 	        this.model.isDirty = true;
 	        if (this.container.is(':visible')) {
-
+	
 	            clearTimeout(delay);
 	            delay = setTimeout(function () {
 	                _this2.model.update();
@@ -551,9 +551,9 @@
 	    nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
 	    nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
 	};
-
+	
 	ScreenSearchView.prototype = Object.create(BaseView.prototype);
-
+	
 	var _clean = function _clean() {
 	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + 0);
 	    // let scrollCont = this.container.find('.mCSB_container')
@@ -562,23 +562,23 @@
 	    // else
 	    //     this.container.empty();
 	};
-
+	
 	ScreenSearchView.prototype.inProgress = function (state) {
 	    var progress = this.frame.find('.refresh div');
 	    if (state) progress.show();else progress.hide();
 	};
-
+	
 	ScreenSearchView.prototype.repaint = function () {
 	    _clean.call(this);
 	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + this.model.data.vessels.length);
 	    BaseView.prototype.repaint.apply(this, arguments);
 	};
-
+	
 	ScreenSearchView.prototype.show = function () {
 	    BaseView.prototype.show.apply(this, arguments);
 	    this.frame.find('.filter input').focus();
 	};
-
+	
 	/*
 	ScreenSearchView.prototype.hide = function () {
 	//console.log('hide ScreenSearchView')
@@ -592,14 +592,14 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var NOSIDEBAR = false,
 	    PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (true) NOSIDEBAR = true;
+	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-
+	
 	var _calcHeight = function _calcHeight() {
 	    var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
 	        h = template.getBoundingClientRect().height;
@@ -610,20 +610,20 @@
 	        return H - H % h;
 	    }
 	};
-
+	
 	var BaseView = function BaseView(model) {
 	    model.view = this;
 	    this.model = model;
 	    this.gifLoader = '<img src="img/progress.gif">';
 	};
-
+	
 	var _clean = function _clean() {
 	    this.container.find('.info').off('click');
 	    this.container.find('.position').off('click');
 	    var scrollCont = this.container.find('.mCSB_container');
 	    if (scrollCont[0]) scrollCont.empty();else this.container.empty();
 	};
-
+	
 	BaseView.prototype = function () {
 	    return {
 	        get isActive() {
@@ -660,11 +660,11 @@
 	            } else {
 	                $(scrollCont).append(content);
 	            }
-
+	
 	            var _this = this;
 	            this.container.find('.info').on('click', function (e) {
 	                var _this2 = this;
-
+	
 	                var target = $(this),
 	                    vessel = JSON.parse(target.attr('vessel'));
 	                //console.log(vessel)
@@ -695,7 +695,7 @@
 	        }
 	    };
 	}();
-
+	
 	module.exports = BaseView;
 
 /***/ }),
@@ -703,11 +703,11 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	module.exports = function (_ref) {
 	    var aisLayerSearcher = _ref.aisLayerSearcher,
 	        myFleetModel = _ref.myFleetModel;
-
+	
 	    var _actualUpdate = void 0;
 	    return {
 	        filterString: "",
@@ -750,7 +750,7 @@
 	        },
 	        setFilter: function setFilter() {
 	            var _this2 = this;
-
+	
 	            this.filterString = this.filterString.replace(/\r+$/, "");
 	            if (this.dataSrc) if (this.filterString != "") {
 	                this.data = {
@@ -765,15 +765,15 @@
 	            }
 	        },
 	        update: function update() {
-
+	
 	            if (!this.isDirty) return;
 	            _actualUpdate = new Date().getTime();
 	            var _this = this,
 	                actualUpdate = _actualUpdate;
 	            this.view.inProgress(true);
 	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
-	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")
-
+	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
+	
 	            this.load(actualUpdate).then(function () {
 	                //console.log("LOADED "+(new Date().getTime()-_this._actualUpdate)+"ms")
 	                //console.log("3>"+new Date(_this._actualUpdate))
@@ -805,7 +805,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var BaseView = __webpack_require__(8);
 	var MyFleetView = function MyFleetView(model) {
 	    BaseView.apply(this, arguments);
@@ -814,34 +814,34 @@
 	    this.container = this.frame.find('.ais_vessels');
 	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="visibility:hidden" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' + '<td><span class="date">{{dt_pos_utc}}</span></td>' + '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '<div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	};
-
+	
 	MyFleetView.prototype = Object.create(BaseView.prototype);
-
-	// let _clean = function(){
-	//     //this.frame.find('.count').text(_gtxt('AISSearch2.found') + 0);
+	
+	// let _clean = function(){ 
+	//     //this.frame.find('.count').text(_gtxt('AISSearch2.found') + 0); 
 	//     let scrollCont = this.container.find('.mCSB_container')
 	//     if (scrollCont[0])
 	//         scrollCont.empty();
 	//     else
 	//         this.container.empty();
 	// };
-
+	
 	MyFleetView.prototype.inProgress = function (state) {
 	    var progress = this.frame.find('.refresh div');
 	    if (state) progress.show();else progress.hide();
 	};
-
+	
 	/*
 	MyFleetView.prototype.repaint = function () {
-	    _clean.call(this);
+	    _clean.call(this);  
 	    BaseView.prototype.repaint.apply(this, arguments);
 	};
-
-	MyFleetView.prototype.show = function (){
+	
+	MyFleetView.prototype.show = function (){ 
 	//console.log('show MyFleetView')
 	    BaseView.prototype.show.apply(this, arguments);
 	};
-	MyFleetView.prototype.hide = function (){
+	MyFleetView.prototype.hide = function (){   
 	//console.log('hide MyFleetView')
 	    BaseView.prototype.hide.apply(this, arguments);
 	};
@@ -853,12 +853,12 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
-
+	
 	var Polyfill = __webpack_require__(12);
 	module.exports = function (_ref) {
 	    var aisLayerSearcher = _ref.aisLayerSearcher,
 	        myFleetLayers = _ref.myFleetLayers;
-
+	
 	    var _actualUpdate = void 0,
 	        _parseFilter = function _parseFilter(filter) {
 	        var vessels = [];
@@ -874,7 +874,7 @@
 	            }
 	            if (vessel) vessels.push(vessel);
 	        }
-	        //console.log(vessels);
+	        //console.log(vessels);   
 	        return vessels;
 	    };
 	    return {
@@ -887,37 +887,37 @@
 	        },
 	        load: function load(actualUpdate) {
 	            var _this = this;
-
+	
 	            if (!myFleetLayers || myFleetLayers.length == 0) this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }] };
-
+	
 	            if (!myFleetLayers || myFleetLayers.length == 0 || !this.isDirty) return Promise.resolve();
-
+	
 	            this.layers = [];
 	            var errors = [],
 	                promises = myFleetLayers.map(function (lid) {
 	                return new Promise(function (resolve, reject) {
 	                    //console.log(lid)
 	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/GetLayerInfo.ashx?NeedAttrValues=false&LayerName=" + lid, function (response) {
-	                        //console.log(response);
+	                        //console.log(response);                         
 	                        if (response.Status.toLowerCase() == "ok") _this.layers.push({ layerId: lid, parentLayerId: response.Result.ParentLayer, filter: response.Result.Filter });else errors.push(response);
 	                        resolve(response);
 	                    });
 	                });
 	            });
-
+	
 	            return Promise.all(promises).then(function () {
-	                //console.log(_this.layers)
+	                //console.log(_this.layers)                                    
 	                if (_this.layers.length > 0) {
 	                    var layer = Polyfill.find(_this.layers, function (l) {
 	                        return l.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' && l.filter != "([mmsi]=-1000)";
 	                    }); // NOT TRACKS
-	                    //console.log(layer)
+	                    //console.log(layer)      
 	                    if (!layer) return Promise.resolve({ Status: "ok", Result: { values: [] } });
-	                    //console.log(layer.filter)
+	                    //console.log(layer.filter)                                    
 	                    var vessels = _parseFilter(layer.filter);
 	                    return new Promise(function (resolve, reject) {
 	                        aisLayerSearcher.searchNames(vessels,
-	                        //vessels.map(function(v){return v.mmsi}),
+	                        //vessels.map(function(v){return v.mmsi}), 
 	                        //vessels.map(function(v){return v.imo}),
 	                        function (response) {
 	                            resolve(response);
@@ -927,8 +927,8 @@
 	                    return Promise.resolve({ Status: "error", ErrorInfo: errors });
 	                }
 	            }).then(function (response) {
-	                //console.log(response)
-	                //console.log("LOAD MY FLEET FINISH")
+	                //console.log(response)  
+	                //console.log("LOAD MY FLEET FINISH")               
 	                if (response.Status.toLowerCase() == "ok") {
 	                    _this.data = { vessels: response.Result.values.reduce(function (p, c) {
 	                            var mmsi = response.Result.fields.indexOf("mmsi"),
@@ -965,7 +965,7 @@
 	            var _this = this,
 	                actualUpdate = _actualUpdate;
 	            this.view.inProgress(true);
-
+	
 	            this.load(actualUpdate).then(function () {
 	                if (_actualUpdate == actualUpdate) {
 	                    _this.view.inProgress(false);
@@ -1009,7 +1009,7 @@
 	                    return layer.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' ? // IS TRACKS
 	                    "([mmsi]=" + v.mmsi + " and [imo]=" + v.imo + ")" : "([mmsi]=" + v.mmsi + ")";
 	                }).join(" or ");
-
+	
 	                var today = new Date(new Date() - 3600 * 24 * 7 * 1000);
 	                today = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
 	                if (layer.filter != "([mmsi]=-1000)") {
@@ -1021,7 +1021,7 @@
 	                return new Promise(function (resolve, reject) {
 	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Update.ashx?VectorLayerID=" + l.layerId + "&filter=" + l.filter, function (response) {
 	                        if (response.Status.toLowerCase() == "ok") setTimeout(function run() {
-
+	
 	                            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "AsyncTask.ashx?TaskID=" + response.Result.TaskID, function (response) {
 	                                if (response.Status.toLowerCase() == "ok") {
 	                                    if (!response.Result.Completed) setTimeout(run, 1000);else {
@@ -1060,14 +1060,14 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	module.exports = {
 		find: function find(a, predicate) {
 			var list = Object(a);
 			var length = list.length >>> 0;
 			var thisArg = arguments[2];
 			var value;
-
+	
 			for (var i = 0; i < length; i++) {
 				value = list[i];
 				if (predicate.call(thisArg, value, i, list)) {
@@ -1081,7 +1081,7 @@
 			var length = list.length >>> 0;
 			var thisArg = arguments[2];
 			var value;
-
+	
 			for (var i = 0; i < length; i++) {
 				value = list[i];
 				if (predicate.call(thisArg, value, i, list)) {
@@ -1097,10 +1097,10 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
-
+	
 	__webpack_require__(14);
 	var BaseView = __webpack_require__(8);
-
+	
 	var _searchString = "",
 	    _setSearchInputValue = function _setSearchInputValue(s) {
 	    var searchIc = this.frame.find('.filter .search'),
@@ -1114,14 +1114,14 @@
 	},
 	    _highlight = void 0,
 	    _tools = void 0;
-
+	
 	var DbSearchView = function DbSearchView(_ref) {
 	    var _this = this;
-
+	
 	    var model = _ref.model,
 	        highlight = _ref.highlight,
 	        tools = _ref.tools;
-
+	
 	    BaseView.call(this, model);
 	    _highlight = highlight;
 	    _tools = tools;
@@ -1129,21 +1129,21 @@
 	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time"><span class="label">Время:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">Местное</span></td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
 	    this.container = this.frame.find('.ais_history');
 	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td><td><span class="count">{{count}}</span></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
-
+	
 	    var calendar = this.frame.find('.calendar');
-
+	
 	    // walkaround with focus at first input in ui-dialog
 	    calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
 	    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
 	        dateInterval = new nsGmx.DateInterval();
 	    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-	        //console.log(this.model.historyInterval)
-	        //console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString())
+	        //console.log(this.model.historyInterval) 
+	        //console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
 	        this.model.historyInterval = { dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') };
 	        this.model.isDirty = true;
 	        this.show();
 	    }.bind(this));
-
+	
 	    this.calendar = new nsGmx.CalendarWidget({
 	        dateInterval: dateInterval,
 	        name: 'searchInterval',
@@ -1157,11 +1157,11 @@
 	        dateEnd: new Date(2000, 10, 10)
 	        //buttonImage: 'img/calendar.png'
 	    });
-
+	
 	    var td = calendar.find('tr:nth-of-type(1) td');
 	    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
 	    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-
+	
 	    //sidebarControl && sidebarControl.on('closing', ()=>calendar.reset())
 	    this.frame.on('click', function (e) {
 	        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
@@ -1169,7 +1169,7 @@
 	        }
 	        suggestions.hide();
 	    }.bind(this));
-
+	
 	    this.frame.find('.time .utc,.local').click(function (e) {
 	        var trg = $(e.currentTarget);
 	        if (!trg.is('.on')) {
@@ -1188,9 +1188,9 @@
 	            }
 	        }
 	    }.bind(this));
-
+	
 	    this.searchInput = this.frame.find('.filter input');
-
+	
 	    var searchIc = this.frame.find('.filter .search'),
 	        removeBut = this.frame.find('.filter .remove'),
 	        delay = void 0,
@@ -1228,17 +1228,17 @@
 	            });
 	        }.bind(this)).then(function () {
 	            var _this2 = this;
-
+	
 	            // SUCCEEDED
 	            if (found.values.length == 0) {
 	                suggestions.hide();
 	                return;
 	            }
-
+	
 	            var scrollCont = suggestions.find('.mCSB_container'),
 	                content = $(Handlebars.compile('{{#each values}}<div class="suggestion" id="{{@index}}">{{vessel_name}}<br><span>mmsi:{{mmsi}}, imo:{{imo}}</span></div>{{/each}}')(found));
 	            if (!scrollCont[0]) suggestions.html(content).mCustomScrollbar();else $(scrollCont).html(content);
-
+	
 	            var suggestion = suggestions.find('.suggestion');
 	            if (!suggestions.is(':visible')) {
 	                var cr = this.frame.find('.filter')[0].getBoundingClientRect();
@@ -1246,7 +1246,7 @@
 	                suggestions.offset({ left: cr.left, top: cr.bottom - 3 });
 	                suggestions.outerWidth(cr.width);
 	            }
-
+	
 	            suggestions.innerHeight(suggestion[0].getBoundingClientRect().height * (found.values.length > suggestionsCount ? suggestionsCount : found.values.length));
 	            suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 };
 	            suggestion.eq(suggestionsFrame.current).addClass('selected');
@@ -1296,19 +1296,19 @@
 	    });
 	    this.searchInput.keyup(function (e) {
 	        var _this3 = this;
-
+	
 	        var temp = (this.searchInput.val() || "").replace(/^\s+/, "").replace(/\s+$/, "");
-
+	
 	        if (_searchString == temp && e.keyCode != 13) return;
-
+	
 	        _searchString = temp;
 	        clearTimeout(delay);
-
+	
 	        if (_searchString == "") {
 	            removeBut.click();
 	            return;
 	        }
-
+	
 	        removeBut.show();
 	        searchIc.hide();
 	        if (e.keyCode == 13) {
@@ -1320,33 +1320,33 @@
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
 	};
-
+	
 	DbSearchView.prototype = Object.create(BaseView.prototype);
-
+	
 	var _clean = function _clean() {
 	    this.frame.find('.open_positions').off('click');
 	    var scrollCont = this.container.find('.mCSB_container');
 	    if (scrollCont[0]) scrollCont.empty();else this.container.empty();
 	};
-
+	
 	DbSearchView.prototype.inProgress = function (state) {
 	    var progress = this.frame.find('.refresh div');
 	    if (state) progress.show();else progress.hide();
 	};
-
+	
 	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="6" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">Осадка:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">Назначение:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">Статус:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
 	DbSearchView.prototype.repaint = function () {
 	    var _this4 = this;
-
+	
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
-
+	
 	    var open_pos = this.frame.find('.open_positions');
 	    open_pos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
 	                vi_cont = _this4.frame.find('#voyage_info' + ind);
-
+	
 	            if (icon.is('.icon-down-open')) {
 	                icon.removeClass('icon-down-open').addClass('.icon-right-open');
 	                vi_cont.find('.ais_positions td[class!="more"]').off('click');
@@ -1376,26 +1376,26 @@
 	                    //showPosition
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
 	                        vessel = _this4.model.data.vessels[ind].positions[parseInt(i)];
-
+	
 	                    _this4.positionMap(vessel);
 	                    _this4.showTrack(vessel);
-
+	
 	                    e.stopPropagation();
 	                }.bind(_this4));
 	            }
 	        }.bind(_this4));
 	    });
-
+	
 	    if (this.model.data.vessels.length == 1) open_pos.eq(0).click();
 	};
-
+	
 	Object.defineProperty(DbSearchView.prototype, "vessel", {
 	    get: function get() {
 	        return this.model.vessel;
 	    },
 	    set: function set(v) {
 	        _setSearchInputValue.call(this, v.vessel_name);
-
+	
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
 	        this.model.vessel = null;
 	        this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
@@ -1405,23 +1405,23 @@
 	        this.model.isDirty = true;
 	    }
 	});
-
+	
 	DbSearchView.prototype.show = function () {
-
+	
 	    this.frame.show();
 	    this.searchInput.focus();
 	    if (!this.vessel) return;
-
+	
 	    console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type);
 	    //console.log(this.model.historyInterval.dateBegin + " " + this.model.historyInterval.dateEnd)
 	    BaseView.prototype.show.apply(this, arguments);
 	};
-
+	
 	DbSearchView.prototype.hide = function () {
 	    //console.log('hide DbSearchView')
 	    BaseView.prototype.hide.apply(this, arguments);
 	};
-
+	
 	DbSearchView.prototype.showTrack = function (vessel) {
 	    var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
 	    if (dlg[0]) {
@@ -1431,7 +1431,7 @@
 	        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('active');
 	    }
 	};
-
+	
 	DbSearchView.prototype.positionMap = function (vessel) {
 	    //console.log(vessel);
 	    var interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
@@ -1448,7 +1448,7 @@
 	    _highlight.vessel = vessel;
 	    _highlight.setLatLng([ymax, xmax]).addTo(nsGmx.leafletMap);
 	};
-
+	
 	module.exports = DbSearchView;
 
 /***/ }),
@@ -1462,7 +1462,7 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	module.exports = function (aisLayerSearcher) {
 	    var _actualUpdate = void 0,
 	        _round = function _round(d, p) {
@@ -1499,12 +1499,12 @@
 	        //vessel.length = _addUnit(vessel.length, " м");
 	        //vessel.width = _addUnit(vessel.width, " м");
 	        vessel.source = 'plugins/AIS/AISSearch/svg/satellite-ais.svg'; //vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
-
+	
 	        vessel.xmin = vessel.longitude;
 	        vessel.xmax = vessel.longitude;
 	        vessel.ymin = vessel.latitude;
 	        vessel.ymax = vessel.latitude;
-
+	
 	        vessel.longitude = _toDd(vessel.longitude, true);
 	        vessel.latitude = _toDd(vessel.latitude);
 	        switch (vessel.vessel_type.toLowerCase()) {
@@ -1537,7 +1537,7 @@
 	                break;
 	        }
 	        vessel.sog = _addUnit(_round(vessel.sog, 5), " уз");
-
+	
 	        return vessel;
 	    },
 	        _formatTime = function _formatTime(d, local) {
@@ -1557,7 +1557,7 @@
 	        load: function load(actualUpdate) {
 	            if (!this.isDirty) return Promise.resolve();
 	            //return new Promise((resolve)=>setTimeout(resolve, 1000))
-	            //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())
+	            //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
 	            var _this = this;
 	            return new Promise(function (resolve) {
 	                aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
@@ -1596,7 +1596,7 @@
 	                    } else resolve(response);
 	                });
 	            }).then(function (response) {
-	                //console.log(response)
+	                //console.log(response)       
 	                _this.isDirty = false;
 	                if (response.Status.toLowerCase() == "ok") {
 	                    _this.data = { vessels: response.Result.values };
@@ -1608,20 +1608,20 @@
 	        },
 	        update: function update() {
 	            if (!this.isDirty) return;
-
+	
 	            _actualUpdate = new Date().getTime();
 	            var _this = this,
 	                actualUpdate = _actualUpdate;
 	            this.view.inProgress(true);
 	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
-	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")
-
+	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
+	
 	            this.load(actualUpdate).then(function () {
 	                //console.log("LOADED "+(new Date().getTime()-_this._actualUpdate)+"ms")
 	                //console.log("3>"+new Date(_this._actualUpdate))
 	                //console.log("4>"+new Date(actualUpdate))
 	                if (_actualUpdate == actualUpdate) {
-	                    //_this.data.vessels && (_this.data.vessels.length>0) && console.log(_this.data.vessels[0].positions[0])
+	                    //_this.data.vessels && (_this.data.vessels.length>0) && console.log(_this.data.vessels[0].positions[0])                    
 	                    _this.view.inProgress(false);
 	                    _this.view.repaint();
 	                }
@@ -1646,23 +1646,23 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	
 	var createInfoDialog = __webpack_require__(17),
 	    Polyfill = __webpack_require__(12),
 	    VesselInfoScreen = __webpack_require__(19);
-
+	
 	var infoDialogCascade = [],
 	    allIinfoDialogs = [],
 	    vesselInfoScreen = void 0;
-
+	
 	module.exports = function (_ref) {
 	    var tools = _ref.tools,
 	        aisLayerSearcher = _ref.aisLayerSearcher,
 	        modulePath = _ref.modulePath,
 	        aisView = _ref.aisView,
 	        myFleetMembersView = _ref.myFleetMembersView;
-
-
+	
+	
 	    vesselInfoScreen = new VesselInfoScreen({ modulePath: modulePath, aisServices: aisLayerSearcher.aisServices });
 	    var _showPosition = function _showPosition(vessel) {
 	        aisView.vessel = vessel;
@@ -1682,7 +1682,7 @@
 	                $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
 	                return;
 	            }
-
+	
 	            var dialog = createInfoDialog({
 	                vessel: vessel,
 	                getmore: getmore,
@@ -1706,12 +1706,12 @@
 	                showTrack: tools.showTrack,
 	                showPosition: _showPosition
 	            });
-
+	
 	            if (infoDialogCascade.length > 0) {
 	                var pos = $(infoDialogCascade[infoDialogCascade.length - 1]).parent().position();
 	                $(dialog).dialog("option", "position", [pos.left + 10, pos.top + 10]);
 	            }
-
+	
 	            infoDialogCascade.push(dialog);
 	            allIinfoDialogs.push({ vessel: vessel, dialog: dialog });
 	            $(dialog).on("dialogdragstop", function (event, ui) {
@@ -1729,9 +1729,9 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
-
+	
 	__webpack_require__(18);
-
+	
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
 	},
@@ -1773,7 +1773,7 @@
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir;
 	};
-
+	
 	module.exports = function (_ref, commands) {
 		var vessel = _ref.vessel,
 		    closeFunc = _ref.closeFunc,
@@ -1784,14 +1784,14 @@
 		    displaingTrack = _ref.displaingTrack,
 		    myFleetMembersView = _ref.myFleetMembersView,
 		    aisPluginPanel = _ref.aisPluginPanel;
-
-
+	
+	
 		formatDate = aisLayerSearcher.formatDate;
 		formatDateTime = aisLayerSearcher.formatDateTime;
-
+	
 		var myFleetMembersModel = myFleetMembersView.model,
 		    add = myFleetMembersModel && myFleetMembersModel.findIndex(vessel) < 0;
-
+	
 		var canvas = $('<div class="ais_myfleet_dialog"/>'),
 		    menu = $('<div class="column1 menu"></div>').appendTo(canvas),
 		    photo = $('<div class="photo"><div></div></div>').appendTo(menu),
@@ -1800,21 +1800,21 @@
 		    buttons = $('<div class="column3 buttons"></div>'),
 		    gifLoader = '<img src="img/progress.gif">';
 		//console.log(content);
-
+	
 		canvas.append(content).append(buttons);
-
+	
 		var dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 230, closeFunc: closeFunc }),
 		    vessel2 = void 0,
 		    moreInfo = function moreInfo(v) {
 			var smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg>',
 			    vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>' + smallShipIcon + '</div>' + '<div class="vessel_prop altvname"><b>' + (vessel2.registry_name && vessel2.registry_name != vessel2.vessel_name ? vessel2.registry_name : '') + '&nbsp;</b></div>';
-
+	
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
-
+	
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '</table>' + '</div>')(v));
-
+	
 			$(moreinfo).append('<table><tr>' + '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' + '<td><div class="vessel_prop coordinates"><span class="small">' + toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) + '</small></div></td>' + '</tr></table>');
-
+	
 			var swap = "<span class='small'>" + ddToDms(v.latitude, false) + " " + ddToDms(v.longitude, true) + "</span>";
 			$('.ais_refresh', moreinfo).click(function (e) {
 				var mi = $('.coordinates', moreinfo),
@@ -1822,13 +1822,13 @@
 				mi.html(swap);
 				swap = t;
 			});
-
+	
 			$('.vessel_props2', canvas).hide();
 			$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
 		};
-
+	
 		$(dialog).dialog({ resizable: false });
-
+	
 		if (!getmore) {
 			vessel2 = $.extend({}, vessel);
 			moreInfo(formatVessel(vessel2));
@@ -1842,20 +1842,20 @@
 				if (typeof getmore == "function") getmore(vessel2);
 			} else console.log(response);
 		});
-
-		// IMAGE
+	
+		// IMAGE	
 		var scheme = document.location.href.replace(/^(https?:).+/, "$1");
 		$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
 			if (this) $('div', photo).replaceWith(this);
 		});
-
+	
 		// BUTTONS
 		var menubuttons = $('<div class="menubuttons"></div>').appendTo(buttons);
-
+	
 		var openpage = $('<div class="button openpage" title="информация о судне">' + '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' + '<g class="nc-icon-wrapper" style="fill:currentColor">' + '<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>' + '</g>' + '</svg>' + '</div>').appendTo(menubuttons).on('click', function () {
 			return commands.openVesselInfoScreen.call(null, vessel, vessel2);
 		});
-
+	
 		var showpos = $('<div class="button showpos" title="показать положение">' + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 1,7 1,1 7,1 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 17,1 23,1 23,7 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 23,17 23,23 17,23 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 7,23 1,23 1,17 " stroke-linejoin="miter"/> <rect style="stroke:currentColor" x="8" y="8" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="8" height="8" stroke-linejoin="miter"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
 			if (!vessel.ts_pos_org) vessel.ts_pos_org = vessel.ts_pos_utc;
 			commands.showPosition(vessel);
@@ -1882,7 +1882,7 @@
 			showtrack.attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
 		}
 		//}
-
+	
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
 		};
@@ -1893,36 +1893,36 @@
 			if (myFleetMembersModel.filterUpdating) addremove.addClass('disabled');
 			addremove.on('click', function () {
 				if (addremove.is('.disabled')) return;
-
+	
 				$('.addremove').addClass('disabled');
 				addremove.hide();
 				progress.append(gifLoader);
-
+	
 				myFleetMembersModel.changeFilter(vessel).then(function () {
 					add = myFleetMembersModel.findIndex(vessel) < 0;
 					var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 					info.css('visibility', !add ? 'visible' : 'hidden');
 					$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
-
+	
 					addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').html(addremoveIcon(add));
 					//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-
+	
 					progress.text('');
 					$('.addremove').removeClass('disabled').show();
 					if (myFleetMembersView.isActive) myFleetMembersView.show();
 				});
 			});
 		}
-
+	
 		var progress = $('<div class="progress"></div>').appendTo(menubuttons);
-
-		// TITLEBAR
+	
+		// TITLEBAR	
 		canvas.parent('div').css({ 'margin': '0', 'overflow': 'hidden' });
 		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' + '<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
 		    onDone = function onDone(e) {
 			e.stopPropagation();$('.choose', titlebar).removeClass('done');$(e.currentTarget).parent().addClass('done');
 		};
-
+	
 		$('.ais_info_dialog_close-button', titlebar).on('click', function () {
 			return $(dialog).dialog("close");
 		});
@@ -1935,9 +1935,9 @@
 		$('.date span', titlebar).on('mousedown', function (e) {
 			e.stopPropagation();
 		});
-
+	
 		//$( dialog ).on( "dialogdragstart", function( e, ui ) {console.log(e);console.log(ui)} );
-
+	
 		return dialog;
 	};
 
@@ -1952,15 +1952,15 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	//************************************
 	// VESSEL INFO VIEW
-	//************************************
-
+	//************************************  
+	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
 	        aisServices = _ref.aisServices;
-
+	
 	    var _ais,
 	        _galery,
 	        _register,
@@ -1971,7 +1971,7 @@
 	        menuAction,
 	        scheme = document.location.href.replace(/^(https?:).+/, "$1"),
 	        show = function show(vessel) {
-	        //console.log(vessel)
+	        //console.log(vessel) 
 	        $("body").append('' + '<table class="vessel-info-page overlay">' + '<tr>' + '<td>' + '<table class="vessel-info-page container">' + '<tr>' + '<td class="column1">' + '<table>' + '<tr>' + '<td>' + '<div>' + '<div class="title">' + '<div class="cell">' + vessel.vessel_name + '<div class="timestamp">' + vessel.ts_pos_utc + '</div></div>  ' + '</div>' + '<div class="menu">' + '<div class="ais cell menu-item active"><img src="' + modulePath + 'svg/info_gen.svg" class="icon">Основные сведения</div>' + '<div class="register cell menu-item"><img src="' + modulePath + 'svg/info.svg" class="icon">Регистр</div>' + '<div class="galery cell menu-item"><img src="' + modulePath + 'svg/photogallery.svg" class="icon">Фотогалерея <div class="counter">0</div></div>' + '</div>' + '</div>  ' + '</td>' + '</tr>' + '<tr>' + '<td class="frame">' + '<div class="photo">' + '<img src="' + modulePath + 'svg/no-image.svg" class="no-image">' + '</div>  ' + '</td>' + '</tr>' + '</table>' + '</td>' + '<td class="column2">' + '<div class="close-button-holder">' + '<div class="close-button" title="закрыть"></div>' + '</div>' + '<div class="register panel">' + '<div class="caption"></div>' + '<div class="menu">' + '<div>' + '<table>' + '<tr>' + '<td><div class="general menu-item active">Общие сведения</div></td>' + '<td><div class="build menu-item">Сведения о постройке</div></td>' + '<td><div class="dimensions menu-item">Размеры и скорость</div></td>' + '<td><div class="gears menu-item">Оборудование</div></td>' + '</tr>' + '</table>' + '</div>' + '</div>' + '<div class="content">' + '<div class="placeholder"></div>' + '</div>' + '</div>' + '<div class="galery panel">' + '<form action="' + aisServices + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' + '<input name="Filedata" class="chooseFile" type="file">' + '<input name="imo" type="hidden" value="' + vessel.imo + '">' + '<input name="mmsi" type="hidden" value="' + vessel.mmsi + '">' +
 	        //'<input type="submit" name="submitBtn" value="Upload" />' +
 	        '</form>' + '<iframe id="upload_target" name="upload_target" src="#" style="width:0;height:0;border:0px solid #fff;"></iframe>' + '<div class="placeholder">' + '<div class="photo" onclick="document.querySelector(\'.vessel-info-page .chooseFile\').click();"' + ' style="background-image: url(' + modulePath + 'svg/add-image.svg);background-size: 50px;"></div>' + '</div>' + '</div>' + '<div class="ais panel">' + '<div class="placeholder"></div>' + '</div>' + '</td>' + '</tr>' + '</table>' + '</td>' + '</tr>' + '</table>');
@@ -1989,12 +1989,12 @@
 	                preview.click(showPicture);
 	                //console.log(preview)
 	            } else {
-	                //uploadError:
+	                //uploadError:            
 	                $('.vessel-info-page .uploader').remove();
 	                console.log(data.errmsg);
 	            }
 	        }, false);
-
+	
 	        $('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?mmsi=' + vessel.mmsi + '">').load(function () {
 	            if (this) {
 	                $('.column1 .photo img.no-image').replaceWith(this);
@@ -2012,24 +2012,24 @@
 	            var $img = jQuery(this);
 	            var imgURL = $img.attr('src');
 	            var attributes = $img.prop("attributes");
-
+	
 	            $.get(imgURL, function (data) {
 	                // Get the SVG tag, ignore the rest
 	                var $svg = jQuery(data).find('svg');
-
+	
 	                // Remove any invalid XML tags
 	                $svg = $svg.removeAttr('xmlns:a');
-
+	
 	                // Loop through IMG attributes and apply on SVG
 	                $.each(attributes, function () {
 	                    $svg.attr(this.name, this.value);
 	                });
-
+	
 	                // Replace IMG with SVG
 	                $img.replaceWith($svg);
 	            }, 'xml');
 	        });
-
+	
 	        _ais = document.querySelector('.vessel-info-page .column2 .ais');
 	        _galery = document.querySelector('.vessel-info-page .column2 .galery');
 	        _register = document.querySelector('.vessel-info-page .column2 .register .content');
@@ -2066,14 +2066,14 @@
 	            target.className += " active";
 	            resize();
 	        };
-
+	
 	        window.addEventListener("resize", resize, false);
-
+	
 	        var mia = document.querySelectorAll('.column1 .menu-item');
 	        for (var i = 0; i < mia.length; ++i) {
 	            mia[i].addEventListener('click', menuAction);
 	        }
-
+	
 	        resize();
 	        $(_ais).mCustomScrollbar({ theme: "vessel-info-theme" });
 	        $(_galery).mCustomScrollbar({ theme: "vessel-info-theme" });
@@ -2129,17 +2129,17 @@
 	            return s;
 	        };
 	        regcontent.innerHTML = drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + drawTable([ledokol.data[2]], "build", "none") + drawTable([ledokol.data[3]], "dimensions", "none") + drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
-
+	
 	        _regcap.innerHTML = "<table><tr><td>Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '') + "</td></tr></table>";
-
+	
 	        var mia = document.querySelectorAll('.column2 .menu-item');
 	        for (var i = 0; i < mia.length; ++i) {
 	            mia[i].addEventListener('click', menuAction);
 	        }
-
+	
 	        resize();
 	    };
-
+	
 	    var open = function open(vessel, vessel2) {
 	        show(vessel2);
 	        var onFail = function onFail(error) {
@@ -2165,7 +2165,7 @@
 	            //console.log(ship)
 	            drawRegister(ship);
 	        }).catch(onFail);
-
+	
 	        new Promise(function (resolve, reject) {
 	            sendCrossDomainJSONRequest(aisServices + "gallery.ashx?mmsi=" + vessel.mmsi + "&imo=" + vessel.imo, function (response) {
 	                if (response.Status == "ok") resolve(response.Result);else reject(response);
@@ -2174,7 +2174,7 @@
 	            drawGallery(gallery);
 	        }, onFail);
 	    };
-
+	
 	    return {
 	        open: open,
 	        show: show,
@@ -2189,7 +2189,7 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	module.exports = function (options) {
 	    var _baseUrl = window.serverBase || document.location.href.replace(/^(https?:).+/, "$1") + '//maps.kosmosnimki.ru/',
 	        _aisServices = _baseUrl + "Plugins/AIS/",
@@ -2198,8 +2198,8 @@
 	        _screenSearchLayer = options.screenSearchLayer,
 	        _aisLayerID = options.aisLayerID,
 	        _historyLayer = options.historyLayer;
-
-
+	
+	
 	    return {
 	        baseUrl: _baseUrl,
 	        aisServices: _aisServices,
@@ -2218,7 +2218,7 @@
 	                maxX = max.x,
 	                geo = { type: 'Polygon', coordinates: [[[minX, min.y], [minX, max.y], [maxX, max.y], [maxX, min.y], [minX, min.y]]] },
 	                w = (maxX - minX) / 2;
-
+	
 	            if (w >= 180) {
 	                geo = { type: 'Polygon', coordinates: [[[-180, min.y], [-180, max.y], [180, max.y], [180, min.y], [-180, min.y]]] };
 	            } else if (maxX > 180 || minX < -180) {
@@ -2241,7 +2241,7 @@
 	            }
 	            return geo;
 	        },
-
+	
 	        formatTime: function formatTime(d, local) {
 	            var temp = new Date(d);
 	            if (!local) temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset());
@@ -2258,7 +2258,7 @@
 	            if (!local) temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset());
 	            return temp.toLocaleString().replace(/,/, "");
 	        },
-
+	
 	        formatDate2: function formatDate2(d, local) {
 	            var dd, m, y, h, mm;
 	            if (local) {
@@ -2293,7 +2293,7 @@
 	                orderdirection: 'desc',
 	                orderby: 'ts_pos_utc',
 	                columns: '[{"Value":"mmsi"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},' + '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"}]',
-
+	
 	                query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
 	            };
 	            L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -2380,13 +2380,13 @@
 /***/ (function(module, exports) {
 
 	"use strict";
-
+	
 	module.exports = function (options) {
 	    var _layersByID = nsGmx.gmxMap.layersByID,
 	        _aisLayer = _layersByID[options.aisLayerID],
 	        _tracksLayer = _layersByID[options.tracksLayerID];
 	    var _displaingTrack = { mmsi: null };
-
+	
 	    return {
 	        displaingTrack: _displaingTrack,
 	        showTrack: function showTrack(mmsiArr, bbox) {
