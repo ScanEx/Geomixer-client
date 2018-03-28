@@ -41734,6 +41734,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     '</div>';
 
                  window.iconSidebarWidget.open("layers-tree");
+                 window.iconSidebarWidget.fire('open');
 
                  $('.leftContent').mCustomScrollbar();
 
