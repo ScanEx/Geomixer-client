@@ -31,6 +31,10 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.fetch = function (obj) {
                 if (typeof _this._onFetch === 'function') {
                     _this._onFetch(json.Result);
                 }
+                var event = document.createEvent('Event');
+                event.initEvent('fetch', false, false);
+                event.detail = json.Result;
+                _this.dispatchEvent(event);
                 resolve(json.Result);
             } else {
                 reject(json.Result);

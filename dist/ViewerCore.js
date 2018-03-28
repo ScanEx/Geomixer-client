@@ -10775,8 +10775,10 @@ pointsBinding.pointsBinding.unload = function()
         spanDescr.innerHTML = elem.description ? elem.description : '';
 
         if (layerManagerFlag == 1) {
+	    var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
+	    if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
             return [_img(null, [
-                ['attr', 'src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],
+                ['attr', 'src', imgIconSrc],
                 ['css', 'marginLeft', '3px']
             ]), spanParent, spanDescr];
         }
@@ -12108,7 +12110,7 @@ pointsBinding.pointsBinding.unload = function()
                     _layersTree.addLayersToMap({ content: { properties: newLayerProperties, geometry: origGeometry } });
 
                     var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
-                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0]));
+                        li = _layersTree.getChildsList({ type: 'layer', content: { properties: newLayerProperties, geometry: convertedGeometry } }, parentProperties, false, _layersTree.getLayerVisibility($(layerDiv).find('input[type="checkbox"]')[0] || $(layerDiv).find('input[type="radio"]')[0]));
 
                     $(li).find('[multiStyle]').treeview();
 
@@ -32114,11 +32116,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32153,6 +32150,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -35687,21 +35689,21 @@ var CadastreDataProvider = function (_EventTarget) {
         _this.showSuggestion = true;
         _this.showOnSelect = false;
         _this.showOnEnter = true;
-        _this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/ }
-        // ,
-        // {id: 7, title: 'Границы', 	reg: /^\w+$/},
-        // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
-        // {id: 12, title: 'Лес', 		reg: /^\w+$/},
-        // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
-        // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
-        // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
-        // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
-        // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
-        // /[^\d\:]/g,
-        // /\d\d:\d+$/,
-        // /\d\d:\d+:\d+$/,
-        // /\d\d:\d+:\d+:\d+$/
-        ];
+        _this._cadastreLayers = [{ id: 1, title: 'Участок', reg: /^\d\d:\d+:\d+:\d+$/ }, { id: 2, title: 'Квартал', reg: /^\d\d:\d+:\d+$/ }, { id: 3, title: 'Район', reg: /^\d\d:\d+$/ }, { id: 4, title: 'Округ', reg: /^\d\d$/ }, { id: 5, title: 'ОКС', reg: /^\d\d:\d+:\d+:\d+:\d+$/ }, { id: 10, title: 'ЗОУИТ', reg: /^\d+\.\d+\.\d+/
+            // ,
+            // {id: 7, title: 'Границы', 	reg: /^\w+$/},
+            // {id: 6, title: 'Тер.зоны', 	reg: /^\w+$/},
+            // {id: 12, title: 'Лес', 		reg: /^\w+$/},
+            // {id: 13, title: 'Красные линии', 		reg: /^\w+$/},
+            // {id: 15, title: 'СРЗУ', 	reg: /^\w+$/},
+            // {id: 16, title: 'ОЭЗ', 		reg: /^\w+$/},
+            // {id: 9, title: 'ГОК', 		reg: /^\w+$/},
+            // {id: 10, title: 'ЗОУИТ', 	reg: /^\w+$/}
+            // /[^\d\:]/g,
+            // /\d\d:\d+$/,
+            // /\d\d:\d+:\d+$/,
+            // /\d\d:\d+:\d+:\d+$/
+        }];
         return _this;
     }
 
@@ -37350,6 +37352,10 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.fetch = function (obj) {
                 if (typeof _this._onFetch === 'function') {
                     _this._onFetch(json.Result);
                 }
+                var event = document.createEvent('Event');
+                event.initEvent('fetch', false, false);
+                event.detail = json.Result;
+                _this.dispatchEvent(event);
                 resolve(json.Result);
             } else {
                 reject(json.Result);
@@ -37454,12 +37460,12 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
                         };
                     }
                 });
-                if (strong && retrieveGeometry) {
+                 if (strong && retrieveGeometry) {
                     var event = document.createEvent('Event');
                     event.initEvent('fetch', false, false);
                     event.detail = json3.Result;
                     _this2.dispatchEvent(event);
-                }
+                 }
                 resolve(rs);
             } else {
                 reject(json3);
@@ -40141,18 +40147,18 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
-            var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
-                showOnMap: true,
-                serverBase: 'http://maps.kosmosnimki.ru',
-                limit: 10
-            });
+             var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
+                 showOnMap: true,
+                 serverBase: 'http://maps.kosmosnimki.ru',
+                 limit: 10
+             });
 
-            var searchProviders = [];
-            searchProviders.push(osmProvider);
+             var searchProviders = [];
+             searchProviders.push(osmProvider);
 
-            osmProvider.addEventListener('fetch', function (e) {
-                window.searchLogic.showResult(e.detail);
-            })
+             osmProvider.addEventListener('fetch', function (e) {
+                 window.searchLogic.showResult(e.detail);
+             })
 
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
@@ -41712,6 +41718,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                     };
                 };
 
+                // init tab
+                window.iconSidebarWidget._activeTabId = "layers-tree";
+
                 var leftMainContainer = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
@@ -41733,8 +41742,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         '<div id="leftPanelFooter" class="leftPanelFooter"></div>' +
                     '</div>';
 
-                 window.iconSidebarWidget.open("layers-tree");
-                 window.iconSidebarWidget.fire('open');
+                window.iconSidebarWidget.open("layers-tree");
 
                  $('.leftContent').mCustomScrollbar();
 

@@ -2136,6 +2136,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                     };
                 };
 
+                // init tab
+                window.iconSidebarWidget._activeTabId = "layers-tree";
+
                 var leftMainContainer = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
@@ -2157,8 +2160,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         '<div id="leftPanelFooter" class="leftPanelFooter"></div>' +
                     '</div>';
 
-                 window.iconSidebarWidget.open("layers-tree");
-                 window.iconSidebarWidget.fire('open');
+                window.iconSidebarWidget.open("layers-tree");
 
                  $('.leftContent').mCustomScrollbar();
 
