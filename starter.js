@@ -565,17 +565,18 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
-            var searchProviders = [];
-            searchProviders.push(
-                new nsGmx.searchProviders.Osm2DataProvider({
-                    showOnMap: true,
-                    serverBase: 'http://maps.kosmosnimki.ru',
-                    limit: 10,
-                    onFetch: function(response) {
-                        window.searchLogic.showResult(response);
-                    }.bind(this)
-                })
-            );
+             var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
+                 showOnMap: true,
+                 serverBase: 'http://maps.kosmosnimki.ru',
+                 limit: 10
+             });
+
+             var searchProviders = [];
+             searchProviders.push(osmProvider);
+
+             osmProvider.addEventListener('fetch', function (e) {
+                 window.searchLogic.showResult(e.detail);
+             })
 
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',

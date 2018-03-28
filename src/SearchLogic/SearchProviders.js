@@ -135,8 +135,11 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
                         };
                     }
                 });
-                if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
-                    _this2._onFetch(json3.Result);
+                if (strong && retrieveGeometry) {
+                    var event = document.createEvent('Event');
+                    event.initEvent('fetch', false, false);
+                    event.detail = json3.Result;
+                    _this2.dispatchEvent(event);
                 }
                 resolve(rs);
             } else {
