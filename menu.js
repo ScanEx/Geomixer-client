@@ -26,6 +26,8 @@ var UpMenu = function()
     this._isCreated = false;
     this.defaultHash = 'layers';
     this.clicked = false;
+    this.openedMenus = [];
+    this.currentTopHash = null;
 };
 
 //предполагает, что если callback возвращает true, то итерирование можно прекратить
@@ -104,11 +106,17 @@ UpMenu.prototype.setParent = function(parent)
 UpMenu.prototype.showmenu = function(elem)
 {
 	elem.style.visibility = 'visible';
+    if (this.openedMenus.indexOf(elem) === -1) {
+        this.openedMenus.push(elem);
+    }
 }
 // Скрывает элемент меню
 UpMenu.prototype.hidemenu = function(elem)
 {
 	elem.style.visibility = 'hidden';
+    if (this.openedMenus.indexOf(elem) !== -1) {
+        this.openedMenus.splice(this.openedMenus.indexOf(elem), 1);
+    }
 }
 
 UpMenu.prototype._template = Handlebars.compile(
@@ -233,27 +241,77 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
 	elem.onclick = function(e) {
         if (!_this.clicked) {
             _this.clicked = true;
-            if ($('#' + this.getAttribute('hash'))[0])
-            _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            if ($('#' + this.getAttribute('hash'))[0]) {
+                _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            }
         } else {
             return;
         }
 	}
+
+
+    document.addEventListener('click', function (e) {
+        var parents = $(e.target).parents(),
+            parentsArr = $(parents).toArray(),
+            isInsideHeader = parentsArr.some(function (elem) {
+                return $(elem).hasClass('headerWidget-menuContainer');
+            });
+
+        if (!isInsideHeader) {
+            _this.clicked = false;
+            _this.hideMenus();
+            $(document).find('.header1').each(function() {
+                $(this).removeClass('menuActive');
+            });
+        }
+    });
 }
 
 UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 {
 	var _this = this;
 	elem.onmouseover = function(e) {
-        $(this).addClass(className);
-
         if (_this.clicked) {
-            if ($('#' + this.getAttribute('hash'))[0])
-            _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            var itemsToClose = [];
+            for (var i = 0; i < _this.openedMenus.length; i++) {
+                if (!_this.checkInsideElem(elem, _this.openedMenus[i])) {
+                    itemsToClose.push(_this.openedMenus[i]);
+                }
+            }
+
+            for (var i = 0; i < itemsToClose.length; i++) {
+                var ee = itemsToClose[i];
+                _this.hidemenu(ee);
+            }
+
+            if ($('#' + this.getAttribute('hash'))[0]) {
+                _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            }
+
+            //add top-level hash
+            var isTopLevel = $(elem).hasClass('header1'),
+                hash = this.getAttribute('hash');
+            if (isTopLevel) {
+                _this.currentTopHash = hash;
+                $(document).find('.header1').each(function() {
+                    $(this).removeClass('menuActive');
+                });
+            }
         }
+        $(this).addClass(className);
 	}
 }
 
+UpMenu.prototype.checkInsideElem = function(elem, descendant)
+{
+    var parents = $(descendant).parents(),
+        parentsArr = $(parents).toArray(),
+        isInsideElem = parentsArr.some(function (em) {
+            return $(em).attr('hash') === $(elem).attr('hash');
+        });
+
+    return isInsideElem;
+}
 UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 {
 	var _this = this;
@@ -261,43 +319,29 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 		var evt = e || window.event,
 			target = evt.srcElement || evt.target,
 			relTarget = evt.relatedTarget || evt.toElement,
-			elem = this;
+			elem = this,
+            isTopLevel = $(elem).hasClass('header1'),
+            hash = this.getAttribute('hash');
 
-        // console.log(relTarget);
-        var parents = $(relTarget).parents(),
-            parentsArr = $(parents).toArray(),
-            isInsideHeader = parentsArr.some(function (elem) {
-                return $(elem).hasClass('headerWidget-menuContainer');
-            });
-        console.log(isInsideHeader);
-        if (!isInsideHeader) {
-            _this.clicked = false;
-            // return;
-        }
+        try {
+    		while (relTarget) {
+    			if (relTarget == elem) {
+    				stopEvent(e);
 
-        // if (_this.clicked) {
-            try {
-    			while (relTarget) {
-    				if (relTarget == elem) {
-    					stopEvent(e);
-
-    					return false;
-    				}
-    				relTarget = relTarget.parentNode;
-
+    				return false;
     			}
-
-    			$(elem).removeClass(className)
-
-    			if ($('#' + elem.getAttribute('hash')).length)
-    				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
-    		} catch (e) {
-    			$(elem).removeClass(className)
-
-    			if ($('#' + elem.getAttribute('hash')).length)
-    				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
+    			relTarget = relTarget.parentNode;
     		}
-        // }
+            if (isTopLevel && hash === _this.currentTopHash) {
+                return false;
+            }
+    		$(elem).removeClass(className)
+    	} catch (e) {
+            if (isTopLevel && hash === _this.currentTopHash) {
+                return false;
+            }
+    		$(elem).removeClass(className)
+    	}
 	}
 }
 
