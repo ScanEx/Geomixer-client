@@ -249,7 +249,6 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
         }
 	}
 
-
     document.addEventListener('click', function (e) {
         var parents = $(e.target).parents(),
             parentsArr = $(parents).toArray(),
@@ -263,6 +262,7 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
             $(document).find('.header1').each(function() {
                 $(this).removeClass('menuActive');
             });
+            _this.currentTopHash = null;
         }
     });
 }
@@ -271,6 +271,7 @@ UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 {
 	var _this = this;
 	elem.onmouseover = function(e) {
+        $(this).addClass(className);
         if (_this.clicked) {
             var itemsToClose = [];
             for (var i = 0; i < _this.openedMenus.length; i++) {
@@ -296,9 +297,9 @@ UpMenu.prototype.attachEventOnMouseover = function(elem, className)
                 $(document).find('.header1').each(function() {
                     $(this).removeClass('menuActive');
                 });
+                $(this).addClass(className);
             }
         }
-        $(this).addClass(className);
 	}
 }
 
@@ -334,13 +335,17 @@ UpMenu.prototype.attachEventOnMouseout = function(elem, className)
     		}
             if (isTopLevel && hash === _this.currentTopHash) {
                 return false;
+            } else {
+                // _this.currentTopHash = null;
+                $(elem).removeClass(className)
             }
-    		$(elem).removeClass(className)
     	} catch (e) {
             if (isTopLevel && hash === _this.currentTopHash) {
                 return false;
+            } else {
+                // _this.currentTopHash = null;
+                $(elem).removeClass(className)
             }
-    		$(elem).removeClass(className)
     	}
 	}
 }
