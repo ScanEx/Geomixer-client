@@ -991,13 +991,15 @@ nsGmx.widgets = nsGmx.widgets || {};
                         }
 
                         listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
-                        layer.on('click', listeners[props.name]);
+                        if (layer instanceof L.gmx.VectorLayer) {
+							layer.on('click', listeners[props.name]);
+						}
                     }
                 } else {
                     for (var layerName in listeners) {
                         var pt = listeners[layerName];
                         var layer = nsGmx.gmxMap.layersByID[layerName];
-                        if (layer) {
+                        if (layer && layer instanceof L.gmx.VectorLayer) {
                             layer.off('click', listeners[layerName]);
                             if (layer.getGmxProperties().type !== 'Virtual') {
                                 layer.enableFlip();
