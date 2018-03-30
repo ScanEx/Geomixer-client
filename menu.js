@@ -28,7 +28,33 @@ var UpMenu = function()
     this.clicked = false;
     this.openedMenus = [];
     this.currentTopHash = null;
+
+    var _this = this;
+
+    document.addEventListener('click', this.hideOnClick.bind(this));
+
 };
+
+UpMenu.prototype.hideOnClick = function(e) {
+    var parents = $(e.target).parents(),
+        parentsArr = $(parents).toArray(),
+        isHeader = $(e.target).hasClass('header1Internal'),
+        isInsideHeader = parentsArr.some(function (elem) {
+            return $(elem).hasClass('header1');
+        });
+
+    if (!isInsideHeader) {
+        this.clicked = false;
+        this.hideMenus();
+        this.currentTopHash = null;
+    }
+
+    if (!isHeader) {
+        $(document).find('.header1').each(function() {
+            $(this).removeClass('menuActive');
+        });
+    }
+}
 
 //предполагает, что если callback возвращает true, то итерирование можно прекратить
 UpMenu.prototype._iterateMenus = function(elem, callback) {
@@ -240,31 +266,22 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
 	var _this = this;
 	elem.onclick = function(e) {
         if (!_this.clicked) {
+            var isTopLevel = $(elem).hasClass('header1'),
+                hash = this.getAttribute('hash');
             _this.clicked = true;
-            if ($('#' + this.getAttribute('hash'))[0]) {
+
+            if (isTopLevel && !_this.currentTopHash) {
+                _this.currentTopHash = hash;
+            }
+
+            if ($('#' + hash)[0]) {
                 _this.showmenu($('#' + this.getAttribute('hash'))[0]);
             }
+
         } else {
             return;
         }
 	}
-
-    document.addEventListener('click', function (e) {
-        var parents = $(e.target).parents(),
-            parentsArr = $(parents).toArray(),
-            isInsideHeader = parentsArr.some(function (elem) {
-                return $(elem).hasClass('headerWidget-menuContainer');
-            });
-
-        if (!isInsideHeader) {
-            _this.clicked = false;
-            _this.hideMenus();
-            $(document).find('.header1').each(function() {
-                $(this).removeClass('menuActive');
-            });
-            _this.currentTopHash = null;
-        }
-    });
 }
 
 UpMenu.prototype.attachEventOnMouseover = function(elem, className)

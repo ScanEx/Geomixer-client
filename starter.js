@@ -2175,6 +2175,17 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 createToolbar();
 
+
+                var controls = lmap.gmxControlsManager.getAll();
+
+                for (var key in controls) {
+                    var ctrl = controls[key],
+                        cntr = ctrl.getContainer();
+                    cntr.addEventListener('click', function (e) {
+                        _menuUp.hideOnClick(e);
+                    });
+                };
+
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);
                 } else if (baseLayers.length && !lmap.gmxBaseLayersManager.getCurrentID()) {
@@ -2285,12 +2296,18 @@ nsGmx.widgets = nsGmx.widgets || {};
                             moduleName = plugin.moduleName,
                             file = plugin.file;
 
-                        if ("switchOnTimelineByDefault" in params) {
+                        if ("bindLayersToTimeline" in params) {
                             plugin.setUsage("used");
                             window.gmxCore.loadModule(moduleName, file).then(function(res) {
                                 var paramsClone = $.extend(true, {}, params);
-                                var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+                                if (!nsGmx.timeLineControl) {
+                                    var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+                                } else {
+                                    var timeLineControl = nsGmx.timeLineControl;
+                                }
                                 _mapHelper.mapPlugins.addPlugin(moduleName, params);
+
+                                nsGmx.bindLayersToTimeline = true;
 
                                 if (timeLineControl) {
                                     timeLineControl.on('layerRemove', function(e) {
@@ -2301,12 +2318,18 @@ nsGmx.widgets = nsGmx.widgets || {};
                                     });
                                 }
 
-                                if (Array.isArray(params.switchOnTimelineByDefault)) {
-                                    var layersArr = params.switchOnTimelineByDefault.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
+                                if (Array.isArray(params.bindLayersToTimeline)) {
+                                    var layersArr = params.bindLayersToTimeline.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
                                     addLayersToTimeline(res, layersArr);
-                                } else if (params.switchOnTimelineByDefault === "true") {
+                                } else if (params.bindLayersToTimeline === "true") {
                                     addLayersToTimeline(res);
                                 }
+
+                                $('.gmx-timeline-icon').each(function () {
+                                    $(this).css("cursor", "	nw-resize");
+                                    $(this).css("pointer-events", "none");
+                                    $(this).addClass("gmx-disabled");
+                                })
 
                                 function addLayersToTimeline(timeline, layers) {
                                     layers = layers || nsGmx.gmxMap.layers;
