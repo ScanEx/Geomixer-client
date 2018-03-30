@@ -25,7 +25,36 @@ var UpMenu = function()
     this.loginContainer = null;
     this._isCreated = false;
     this.defaultHash = 'layers';
+    this.clicked = false;
+    this.openedMenus = [];
+    this.currentTopHash = null;
+
+    var _this = this;
+
+    document.addEventListener('click', this.hideOnClick.bind(this));
+
 };
+
+UpMenu.prototype.hideOnClick = function(e) {
+    var parents = $(e.target).parents(),
+        parentsArr = $(parents).toArray(),
+        isHeader = $(e.target).hasClass('header1Internal'),
+        isInsideHeader = parentsArr.some(function (elem) {
+            return $(elem).hasClass('header1');
+        });
+
+    if (!isInsideHeader) {
+        this.clicked = false;
+        this.hideMenus();
+        this.currentTopHash = null;
+    }
+
+    if (!isHeader) {
+        $(document).find('.header1').each(function() {
+            $(this).removeClass('menuActive');
+        });
+    }
+}
 
 //предполагает, что если callback возвращает true, то итерирование можно прекратить
 UpMenu.prototype._iterateMenus = function(elem, callback) {
@@ -66,14 +95,14 @@ UpMenu.prototype.addChildItem = function(newElem, parentID, insertBeforeID)
     this._iterateMenus({childs: this.submenus}, function(elem) {
         if (elem.id && elem.id === parentID) {
             elem.childs = elem.childs || [];
-            
+
             var index = elem.childs.length;
             elem.childs.forEach(function(childElem, i) {
                 if (childElem.id === insertBeforeID) {
                     index = i;
                 }
             })
-            
+
             elem.childs.splice(index, 0, newElem);
 
             this._isCreated && this.draw();
@@ -103,11 +132,17 @@ UpMenu.prototype.setParent = function(parent)
 UpMenu.prototype.showmenu = function(elem)
 {
 	elem.style.visibility = 'visible';
+    if (this.openedMenus.indexOf(elem) === -1) {
+        this.openedMenus.push(elem);
+    }
 }
 // Скрывает элемент меню
 UpMenu.prototype.hidemenu = function(elem)
 {
 	elem.style.visibility = 'hidden';
+    if (this.openedMenus.indexOf(elem) !== -1) {
+        this.openedMenus.splice(this.openedMenus.indexOf(elem), 1);
+    }
 }
 
 UpMenu.prototype._template = Handlebars.compile(
@@ -158,6 +193,7 @@ UpMenu.prototype.draw = function()
     $(this.parent.firstChild).empty().append(ui);
 
     $(ui).find('.header1').each(function() {
+        _this.attachEventOnClick(this, 'menuActive');
         _this.attachEventOnMouseover(this, 'menuActive');
         _this.attachEventOnMouseout(this, 'menuActive');
         $(this).width($(this).width() + 10);
@@ -225,52 +261,109 @@ UpMenu.prototype.openRef = function(hash)
 	_menuUp.openTab(hash);
 }
 
+UpMenu.prototype.attachEventOnClick = function(elem, className)
+{
+	var _this = this;
+	elem.onclick = function(e) {
+        if (!_this.clicked) {
+            var isTopLevel = $(elem).hasClass('header1'),
+                hash = this.getAttribute('hash');
+            _this.clicked = true;
+
+            if (isTopLevel && !_this.currentTopHash) {
+                _this.currentTopHash = hash;
+            }
+
+            if ($('#' + hash)[0]) {
+                _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            }
+
+        } else {
+            return;
+        }
+	}
+}
+
 UpMenu.prototype.attachEventOnMouseover = function(elem, className)
 {
 	var _this = this;
-	elem.onmouseover = function(e)
-	{
-		$(this).addClass(className);
+	elem.onmouseover = function(e) {
+        $(this).addClass(className);
+        if (_this.clicked) {
+            var itemsToClose = [];
+            for (var i = 0; i < _this.openedMenus.length; i++) {
+                if (!_this.checkInsideElem(elem, _this.openedMenus[i])) {
+                    itemsToClose.push(_this.openedMenus[i]);
+                }
+            }
 
-		if ($('#' + this.getAttribute('hash'))[0])
-			_this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            for (var i = 0; i < itemsToClose.length; i++) {
+                var ee = itemsToClose[i];
+                _this.hidemenu(ee);
+            }
+
+            if ($('#' + this.getAttribute('hash'))[0]) {
+                _this.showmenu($('#' + this.getAttribute('hash'))[0]);
+            }
+
+            //add top-level hash
+            var isTopLevel = $(elem).hasClass('header1'),
+                hash = this.getAttribute('hash');
+            if (isTopLevel) {
+                _this.currentTopHash = hash;
+                $(document).find('.header1').each(function() {
+                    $(this).removeClass('menuActive');
+                });
+                $(this).addClass(className);
+            }
+        }
 	}
+}
+
+UpMenu.prototype.checkInsideElem = function(elem, descendant)
+{
+    var parents = $(descendant).parents(),
+        parentsArr = $(parents).toArray(),
+        isInsideElem = parentsArr.some(function (em) {
+            return $(em).attr('hash') === $(elem).attr('hash');
+        });
+
+    return isInsideElem;
 }
 UpMenu.prototype.attachEventOnMouseout = function(elem, className)
 {
 	var _this = this;
-	elem.onmouseout = function(e)
-	{
+	elem.onmouseout = function(e) {
 		var evt = e || window.event,
 			target = evt.srcElement || evt.target,
 			relTarget = evt.relatedTarget || evt.toElement,
-			elem = this;
+			elem = this,
+            isTopLevel = $(elem).hasClass('header1'),
+            hash = this.getAttribute('hash');
 
-		try
-		{
-			while (relTarget)
-			{
-				if (relTarget == elem)
-				{
-					stopEvent(e);
+        try {
+    		while (relTarget) {
+    			if (relTarget == elem) {
+    				stopEvent(e);
 
-					return false;
-				}
-				relTarget = relTarget.parentNode;
-			}
-
-			$(elem).removeClass(className)
-
-			if ($('#' + elem.getAttribute('hash')).length)
-				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
-		}
-		catch (e)
-		{
-			$(elem).removeClass(className)
-
-			if ($('#' + elem.getAttribute('hash')).length)
-				_this.hidemenu($('#' + elem.getAttribute('hash'))[0]);
-		}
+    				return false;
+    			}
+    			relTarget = relTarget.parentNode;
+    		}
+            if (isTopLevel && hash === _this.currentTopHash) {
+                return false;
+            } else {
+                // _this.currentTopHash = null;
+                $(elem).removeClass(className)
+            }
+    	} catch (e) {
+            if (isTopLevel && hash === _this.currentTopHash) {
+                return false;
+            } else {
+                // _this.currentTopHash = null;
+                $(elem).removeClass(className)
+            }
+    	}
 	}
 }
 
@@ -278,7 +371,7 @@ UpMenu.prototype.getNavigatePath = function(path) {
 	for (var menuIdx = 0; menuIdx < this.submenus.length; menuIdx++)
 	{
         var submenu = this.submenus[menuIdx];
-        
+
         if (!submenu) {continue};
 
 		if (path == submenu.id)
@@ -292,7 +385,7 @@ UpMenu.prototype.getNavigatePath = function(path) {
 			for (var i = 0; i < childsLevel2.length; i++)
 			{
                 if (!childsLevel2[i]) {continue};
-                
+
 				if (childsLevel2[i].childs)
 				{
 					var childsLevel3 = childsLevel2[i].childs;
@@ -300,7 +393,7 @@ UpMenu.prototype.getNavigatePath = function(path) {
 					for(var j = 0; j < childsLevel3.length; j++)
 					{
                         if (!childsLevel3[j]) {continue};
-                        
+
 						if (path == childsLevel3[j].id)
 						{
                             return [submenu.title, childsLevel2[i].title, childsLevel3[j].title];
@@ -435,7 +528,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
         showCloseButton: true,
         showMinimizeButton: true
     }, options);
-    
+
     //по умолчанию оставляем только последний элемент списка
     if (!options.path) {
         var menuPath = _menuUp.getNavigatePath(canvasID);
@@ -463,9 +556,9 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     var ui = Handlebars.compile(
         '<div class="leftmenu-canvas {{id}}" id="{{id}}">' +
             '{{#isTitle}}<div class="leftTitle">' +
-                '{{#showMinimizeButton}}' + 
-                    '<div class = "leftmenu-toggle-zone">' + 
-                        '<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>' + 
+                '{{#showMinimizeButton}}' +
+                    '<div class = "leftmenu-toggle-zone">' +
+                        '<div class="ui-helper-noselect leftmenu-toggle-icon leftmenu-down-icon"></div>' +
                     '</div>' +
                 '{{/showMinimizeButton}}' +
                 '<table class="leftmenu-path ui-helper-noselect">{{{pathTR}}}</table>' +
@@ -493,7 +586,7 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
 
     var isUICollapsed = false,
         _this = this;
-    
+
     var toggleContentVisibility = function(isCollapsed) {
         if (isUICollapsed !== isCollapsed) {
             isUICollapsed = !isUICollapsed;
@@ -506,17 +599,17 @@ nsGmx.LeftPanelItem = function(canvasID, options) {
     $('.leftmenu-toggle-zone, .leftmenu-path', this.panelCanvas).click(function() {
         toggleContentVisibility(!isUICollapsed);
     });
-    
+
     /** Свернуть панель
         @function
     */
     this.hide = toggleContentVisibility.bind(null, true);
-    
+
     /** Развернуть панель
         @function
     */
     this.show = toggleContentVisibility.bind(null, false);
-    
+
     /** Свёрнута ли панель */
     this.isCollapsed = function() {return isUICollapsed};
 
@@ -569,7 +662,7 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
         this.parentWorkCanvas = leftPanelItem.panelCanvas;
         this.workCanvas = leftPanelItem.workCanvas;
         this.leftPanelItem = leftPanelItem;
-        
+
         // так как мы используем dom элементы для поиска панелей после первого добавления
         // возможно, лучше сделать полноценный менеджер панелей левой вкладки
         this.parentWorkCanvas.leftPanelItem = leftPanelItem;
@@ -586,7 +679,7 @@ leftMenu.prototype.createWorkCanvas = function(canvasID, closeFunc, options)
         this.leftPanelItem.close = options.closeFunc;
 
 		$(this.parentWorkCanvas).show();
-        
+
         $('#leftContentInner').prepend(this.parentWorkCanvas);
 
 		return true;

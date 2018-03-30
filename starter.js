@@ -1003,13 +1003,15 @@ nsGmx.widgets = nsGmx.widgets || {};
                         }
 
                         listeners[props.name] = clickHandler.bind(null); //bind чтобы были разные ф-ции
-                        layer.on('click', listeners[props.name]);
+                        if (layer instanceof L.gmx.VectorLayer) {
+							layer.on('click', listeners[props.name]);
+						}
                     }
                 } else {
                     for (var layerName in listeners) {
                         var pt = listeners[layerName];
                         var layer = nsGmx.gmxMap.layersByID[layerName];
-                        if (layer) {
+                        if (layer && layer instanceof L.gmx.VectorLayer) {
                             layer.off('click', listeners[layerName]);
                             if (layer.getGmxProperties().type !== 'Virtual') {
                                 layer.enableFlip();
@@ -2284,6 +2286,17 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 createToolbar();
 
+
+                var controls = lmap.gmxControlsManager.getAll();
+
+                for (var key in controls) {
+                    var ctrl = controls[key],
+                        cntr = ctrl.getContainer();
+                    cntr.addEventListener('click', function (e) {
+                        _menuUp.hideOnClick(e);
+                    });
+                };
+
                 if (state.mode) {
                     lmap.gmxBaseLayersManager.setCurrentID(lmap.gmxBaseLayersManager.getIDByAlias(state.mode) || state.mode);
                 } else if (baseLayers.length && !lmap.gmxBaseLayersManager.getCurrentID()) {
@@ -2386,6 +2399,84 @@ nsGmx.widgets = nsGmx.widgets || {};
                     nsGmx.widgets.commonCalendar.show();
                 }
                 nsGmx.pluginsManager.afterViewer();
+
+                // обработка специальных параметров плагинов
+                nsGmx.pluginsManager.forEachPlugin(function (plugin) {
+                    if (plugin.moduleName === "gmxTimeLine") {
+                        var params = plugin.params,
+                            moduleName = plugin.moduleName,
+                            file = plugin.file;
+
+                        if ("bindLayersToTimeline" in params) {
+                            plugin.setUsage("used");
+                            window.gmxCore.loadModule(moduleName, file).then(function(res) {
+                                var paramsClone = $.extend(true, {}, params);
+                                if (!nsGmx.timeLineControl) {
+                                    var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+                                } else {
+                                    var timeLineControl = nsGmx.timeLineControl;
+                                }
+                                _mapHelper.mapPlugins.addPlugin(moduleName, params);
+
+                                nsGmx.bindLayersToTimeline = true;
+
+                                if (timeLineControl) {
+                                    timeLineControl.on('layerRemove', function(e) {
+                                        $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                    });
+                                    timeLineControl.on('layerAdd', function(e) {
+                                        $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                    });
+                                }
+
+                                if (Array.isArray(params.bindLayersToTimeline)) {
+                                    var layersArr = params.bindLayersToTimeline.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
+                                    addLayersToTimeline(res, layersArr);
+                                } else if (params.bindLayersToTimeline === "true") {
+                                    addLayersToTimeline(res);
+                                }
+
+                                $('.gmx-timeline-icon').each(function () {
+                                    $(this).css("cursor", "	nw-resize");
+                                    $(this).css("pointer-events", "none");
+                                    $(this).addClass("gmx-disabled");
+                                })
+
+                                function addLayersToTimeline(timeline, layers) {
+                                    layers = layers || nsGmx.gmxMap.layers;
+
+                                    layers.forEach(function (layer) {
+                                        if (layer.getGmxProperties) {
+                                            var lprops = layer.getGmxProperties(),
+                                                lId = lprops.LayerID;
+
+                                            if (
+                                                lprops.visible &&
+                                                lprops.Temporal && (lprops.IsRasterCatalog || (lprops.Quicklook && lprops.Quicklook !== 'null'))) {
+                                                    timeline.addLayer(layer);
+                                            }
+
+                                            $(_layersTree).on('layerVisibilityChange', function(event, elem) {
+                                                var props = elem.content.properties,
+                                                    visible = props.visible,
+                                                    layerID = props.LayerID;
+
+                                                if (
+                                                    lId === layerID &&
+                                                    visible &&
+                                                    (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')))) {
+                                                        timeline.addLayer(layer);
+                                                    }
+                                            });
+                                        }
+                                    });
+                                };
+                            }).then(function(err) {
+                                console.log(err);
+                            });
+                        }
+                    }
+                });
 
                 if (nsGmx.timeLineControl) {
                     nsGmx.timeLineControl.on('layerRemove', function(e) {
