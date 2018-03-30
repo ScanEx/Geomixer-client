@@ -31,6 +31,10 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.fetch = function (obj) {
                 if (typeof _this._onFetch === 'function') {
                     _this._onFetch(json.Result);
                 }
+                var event = document.createEvent('Event');
+                event.initEvent('fetch', false, false);
+                event.detail = json.Result;
+                _this.dispatchEvent(event);
                 resolve(json.Result);
             } else {
                 reject(json.Result);
@@ -135,8 +139,11 @@ nsGmx.searchProviders.Osm2DataProvider.prototype.find = function (value, limit, 
                         };
                     }
                 });
-                if (typeof _this2._onFetch === 'function' && strong && retrieveGeometry) {
-                    _this2._onFetch(json3.Result);
+                if (strong && retrieveGeometry) {
+                    var event = document.createEvent('Event');
+                    event.initEvent('fetch', false, false);
+                    event.detail = json3.Result;
+                    _this2.dispatchEvent(event);
                 }
                 resolve(rs);
             } else {
