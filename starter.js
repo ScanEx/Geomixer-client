@@ -565,17 +565,18 @@ nsGmx.widgets = nsGmx.widgets || {};
              * seachParams
              */
 
-            var searchProviders = [];
-            searchProviders.push(
-                new nsGmx.searchProviders.Osm2DataProvider({
-                    showOnMap: true,
-                    serverBase: 'http://maps.kosmosnimki.ru',
-                    limit: 10,
-                    onFetch: function(response) {
-                        window.searchLogic.showResult(response);
-                    }.bind(this)
-                })
-            );
+             var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
+                 showOnMap: true,
+                 serverBase: 'http://maps.kosmosnimki.ru',
+                 limit: 10
+             });
+
+             var searchProviders = [];
+             searchProviders.push(osmProvider);
+
+             osmProvider.addEventListener('fetch', function (e) {
+                 window.searchLogic.showResult(e.detail);
+             })
 
             window.searchControl = new nsGmx.SearchControl({
                 id: 'searchcontrol',
@@ -2276,6 +2277,72 @@ nsGmx.widgets = nsGmx.widgets || {};
                     nsGmx.widgets.commonCalendar.show();
                 }
                 nsGmx.pluginsManager.afterViewer();
+
+                // обработка специальных параметров плагинов
+                nsGmx.pluginsManager.forEachPlugin(function (plugin) {
+                    if (plugin.moduleName === "gmxTimeLine") {
+                        var params = plugin.params,
+                            moduleName = plugin.moduleName,
+                            file = plugin.file;
+
+                        if ("switchOnTimelineByDefault" in params) {
+                            plugin.setUsage("used");
+                            window.gmxCore.loadModule(moduleName, file).then(function(res) {
+                                var paramsClone = $.extend(true, {}, params);
+                                var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
+                                _mapHelper.mapPlugins.addPlugin(moduleName, params);
+
+                                if (timeLineControl) {
+                                    timeLineControl.on('layerRemove', function(e) {
+                                        $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                    });
+                                    timeLineControl.on('layerAdd', function(e) {
+                                        $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                    });
+                                }
+
+                                if (Array.isArray(params.switchOnTimelineByDefault)) {
+                                    var layersArr = params.switchOnTimelineByDefault.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
+                                    addLayersToTimeline(res, layersArr);
+                                } else if (params.switchOnTimelineByDefault === "true") {
+                                    addLayersToTimeline(res);
+                                }
+
+                                function addLayersToTimeline(timeline, layers) {
+                                    layers = layers || nsGmx.gmxMap.layers;
+
+                                    layers.forEach(function (layer) {
+                                        if (layer.getGmxProperties) {
+                                            var lprops = layer.getGmxProperties(),
+                                                lId = lprops.LayerID;
+
+                                            if (
+                                                lprops.visible &&
+                                                lprops.Temporal && (lprops.IsRasterCatalog || (lprops.Quicklook && lprops.Quicklook !== 'null'))) {
+                                                    timeline.addLayer(layer);
+                                            }
+
+                                            $(_layersTree).on('layerVisibilityChange', function(event, elem) {
+                                                var props = elem.content.properties,
+                                                    visible = props.visible,
+                                                    layerID = props.LayerID;
+
+                                                if (
+                                                    lId === layerID &&
+                                                    visible &&
+                                                    (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')))) {
+                                                        timeline.addLayer(layer);
+                                                    }
+                                            });
+                                        }
+                                    });
+                                };
+                            }).then(function(err) {
+                                console.log(err);
+                            });
+                        }
+                    }
+                });
 
                 if (nsGmx.timeLineControl) {
                     nsGmx.timeLineControl.on('layerRemove', function(e) {
