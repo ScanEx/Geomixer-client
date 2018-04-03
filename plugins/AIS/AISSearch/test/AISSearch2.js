@@ -444,15 +444,15 @@
 	    DbSearchView = __webpack_require__(13),
 	    DbSearchModel = __webpack_require__(15),
 	    InfoDialogView = __webpack_require__(16),
-	    Searcher = __webpack_require__(20),
-	    Toolbox = __webpack_require__(21);
+	    Searcher = __webpack_require__(21),
+	    Toolbox = __webpack_require__(22);
 	
 	module.exports = function (options) {
 	    var _tools = new Toolbox(options),
 	
 	    //_layersByID = nsGmx.gmxMap.layersByID,
 	    _searcher = new Searcher(options),
-	        _mfm = new MyFleetModel({ aisLayerSearcher: _searcher, myFleetLayers: options.myFleetLayers }),
+	        _mfm = new MyFleetModel(_searcher),
 	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
 	        _dbsm = new DbSearchModel(_searcher),
 	        _dbsv = new DbSearchView({ model: _dbsm, highlight: options.highlight, tools: _tools }),
@@ -855,82 +855,121 @@
 	"use strict";
 	
 	var Polyfill = __webpack_require__(12);
-	module.exports = function (_ref) {
-	    var aisLayerSearcher = _ref.aisLayerSearcher,
-	        myFleetLayers = _ref.myFleetLayers;
+	module.exports = function (aisLayerSearcher) {
+	
+	    var _myFleetLayers = [],
+	        _vessels = [],
+	        _mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID),
+	        fetchMyFleet = function fetchMyFleet(lid) {
+	        return new Promise(function (resolve, reject) {
+	            //console.log(lid)
+	            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Search.ashx?layer=" + lid, function (response) {
+	                //console.log(response);
+	                if (response.Status.toLowerCase() == "ok") {
+	                    var v = response.Result.values,
+	                        f = response.Result.fields;
+	                    for (var i = 0; i < v.length; ++i) {
+	                        _vessels.push({});
+	                        for (var j = 0; j < f.length; ++j) {
+	                            _vessels[i][f[j]] = v[i][j];
+	                        }
+	                    }
+	                } else console.log(response);
+	                resolve(response);
+	            });
+	        });
+	    };
+	    new Promise(function (resolve, reject) {
+	        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "User/GetUserInfo.ashx", function (response) {
+	            if (response.Status.toLowerCase() == "ok" && response.Result) resolve(response);
+	        });
+	    }).then(function (response) {
+	        var nickname = response.Result.Nickname;
+	        return new Promise(function (resolve, reject) {
+	            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname] containsIC '" + nickname + "')", function (response) {
+	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response);
+	            });
+	        });
+	    }).then(function (response) {
+	        //console.log('resolved')
+	        var lid = response.Result.layers[0].LayerID;
+	        _myFleetLayers.push(lid);
+	        fetchMyFleet(lid);
+	        //.then(()=>console.log(_vessels));
+	    }, function (response) {
+	        //console.log('rejected');
+	        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' + '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""}]', function (response) {
+	            if (response.Status.toLowerCase() == "ok") _myFleetLayers.push(response.Result.properties.name);else console.log(response);
+	        });
+	    });
 	
 	    var _actualUpdate = void 0,
-	        _parseFilter = function _parseFilter(filter) {
-	        var vessels = [];
-	        var attributes = filter.toLowerCase().replace(/and \[ts_pos_utc\].+$/, "").split("or");
-	        //console.log(attributes);
-	        var myRe = /\[*([^\[\]=]+)\]*=([^ \)]+)\)? *\)?( |$)/ig;
-	        var myArray;
-	        for (var i = 0; i < attributes.length; ++i) {
-	            var vessel = null;
-	            while ((myArray = myRe.exec(attributes[i])) !== null) {
-	                if (!vessel) vessel = {};
-	                vessel[myArray[1]] = myArray[2];
-	            }
-	            if (vessel) vessels.push(vessel);
-	        }
-	        //console.log(vessels);   
-	        return vessels;
-	    };
+	        _data = void 0;
 	    return {
 	        isDirty: true,
+	        get data() {
+	            return _data;
+	        },
+	        set data(value) {
+	            _data = value;
+	        },
 	        findIndex: function findIndex(vessel) {
-	            if (!this.data) return -1;
-	            return Polyfill.findIndex(this.data.vessels, function (v) {
+	            if (_vessels.length == 0) return -1;
+	            return Polyfill.findIndex(_vessels, function (v) {
 	                return v.mmsi == vessel.mmsi && v.imo == vessel.imo;
 	            });
 	        },
 	        load: function load(actualUpdate) {
 	            var _this = this;
 	
-	            if (!myFleetLayers || myFleetLayers.length == 0) this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }] };
+	            if (_myFleetLayers.length == 0) this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }] };
 	
-	            if (!myFleetLayers || myFleetLayers.length == 0 || !this.isDirty) return Promise.resolve();
+	            if (_myFleetLayers.length == 0 || !this.isDirty) return Promise.resolve();
 	
-	            this.layers = [];
+	            _vessels = [];
 	            var errors = [],
-	                promises = myFleetLayers.map(function (lid) {
+	                promises = _myFleetLayers.map(fetchMyFleet
+	            //function(lid){
+	            //return new Promise(function(resolve, reject) {
+	            //console.log(lid)
+	            //                         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Search.ashx?layer=" + lid,
+	            //                         function(response){   
+	            // //console.log(response);
+	            //                             _vessels = [];                         
+	            //                             if (response.Status.toLowerCase()=="ok"){
+	            //                                 let v = response.Result.values,
+	            //                                 f = response.Result.fields;
+	            //                                 for(let i=0; i<v.length;++i){
+	            //                                     _vessels.push({})
+	            //                                     for(let j=0; j<f.length;++j)
+	            //                                         _vessels[i][f[j]]=v[i][j];
+	            //                                 }
+	            //                             }
+	            //                             else 
+	            //                                 console.log(response);
+	            //                             resolve(response); 
+	            //                         }); 
+	            //})}
+	            );
+	
+	            return Promise.all(promises).then(function () {
+	                //console.log(_vessels)                    
+	                if (_vessels.length == 0) return Promise.resolve({ Status: "ok", Result: { values: [] } });
+	
 	                return new Promise(function (resolve, reject) {
-	                    //console.log(lid)
-	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/GetLayerInfo.ashx?NeedAttrValues=false&LayerName=" + lid, function (response) {
-	                        //console.log(response);                         
-	                        if (response.Status.toLowerCase() == "ok") _this.layers.push({ layerId: lid, parentLayerId: response.Result.ParentLayer, filter: response.Result.Filter });else errors.push(response);
+	                    aisLayerSearcher.searchNames(_vessels,
+	                    //vessels.map(function(v){return v.mmsi}), 
+	                    //vessels.map(function(v){return v.imo}),
+	                    function (response) {
 	                        resolve(response);
 	                    });
 	                });
-	            });
-	
-	            return Promise.all(promises).then(function () {
-	                //console.log(_this.layers)                                    
-	                if (_this.layers.length > 0) {
-	                    var layer = Polyfill.find(_this.layers, function (l) {
-	                        return l.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' && l.filter != "([mmsi]=-1000)";
-	                    }); // NOT TRACKS
-	                    //console.log(layer)      
-	                    if (!layer) return Promise.resolve({ Status: "ok", Result: { values: [] } });
-	                    //console.log(layer.filter)                                    
-	                    var vessels = _parseFilter(layer.filter);
-	                    return new Promise(function (resolve, reject) {
-	                        aisLayerSearcher.searchNames(vessels,
-	                        //vessels.map(function(v){return v.mmsi}), 
-	                        //vessels.map(function(v){return v.imo}),
-	                        function (response) {
-	                            resolve(response);
-	                        });
-	                    });
-	                } else {
-	                    return Promise.resolve({ Status: "error", ErrorInfo: errors });
-	                }
 	            }).then(function (response) {
 	                //console.log(response)  
 	                //console.log("LOAD MY FLEET FINISH")               
 	                if (response.Status.toLowerCase() == "ok") {
-	                    _this.data = { vessels: response.Result.values.reduce(function (p, c) {
+	                    _this.data = {
+	                        vessels: response.Result.values.reduce(function (p, c) {
 	                            var mmsi = response.Result.fields.indexOf("mmsi"),
 	                                vessel_name = response.Result.fields.indexOf("vessel_name"),
 	                                ts_pos_utc = response.Result.fields.indexOf("ts_pos_utc"),
@@ -941,13 +980,16 @@
 	                                return v.mmsi == c[mmsi];
 	                            })) {
 	                                var d = new Date(c[ts_pos_utc] * 1000);
-	                                p.push({ vessel_name: c[vessel_name], mmsi: c[mmsi], imo: c[imo],
+	                                p.push({
+	                                    vessel_name: c[vessel_name], mmsi: c[mmsi], imo: c[imo],
 	                                    ts_pos_utc: aisLayerSearcher.formatDateTime(d), dt_pos_utc: aisLayerSearcher.formatDate(d),
 	                                    ts_pos_org: c[ts_pos_utc],
-	                                    xmin: c[lat], xmax: c[lat], ymin: c[lon], ymax: c[lon] });
+	                                    xmin: c[lat], xmax: c[lat], ymin: c[lon], ymax: c[lon]
+	                                });
 	                            }
 	                            return p;
-	                        }, []) };
+	                        }, [])
+	                    };
 	                    _this.data.vessels.sort(function (a, b) {
 	                        return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1;
 	                    });
@@ -992,63 +1034,33 @@
 	                if (member) member.mf_member = "visibilty:visible";
 	            });
 	        },
-	        // Layer filter example "(([mmsi]=273452320 and [imo]=8971059) or ([mmsi]=273349220 and [imo]=8811015)) and [ts_pos_utc]>=2017-07-08"
 	        changeFilter: function changeFilter(vessel) {
-	            //console.log(this.data);
-	            var add = true,
-	                temp = { vessels: [] },
-	                vessels = this.data.vessels;
-	            for (var i = 0; i < this.data.vessels.length; ++i) {
-	                if (this.data.vessels[i].imo == vessel.imo && this.data.vessels[i].mmsi == vessel.mmsi) add = false;else temp.vessels.push(this.data.vessels[i]);
-	            }
-	            if (add) temp.vessels.push(vessel);
-	            this.data = temp;
-	            var _this = this;
-	            this.layers.forEach(function (layer) {
-	                layer.filter = _this.data.vessels.length == 0 ? "([mmsi]=-1000)" : _this.data.vessels.map(function (v) {
-	                    return layer.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15' ? // IS TRACKS
-	                    "([mmsi]=" + v.mmsi + " and [imo]=" + v.imo + ")" : "([mmsi]=" + v.mmsi + ")";
-	                }).join(" or ");
-	
-	                var today = new Date(new Date() - 3600 * 24 * 7 * 1000);
-	                today = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
-	                if (layer.filter != "([mmsi]=-1000)") {
-	                    if (layer.parentLayerId != '13E2051DFEE04EEF997DC5733BD69A15') layer.filter = "(" + layer.filter + ") and [ts_pos_utc]>='" + today + "'";else layer.filter = "(" + layer.filter + ") and [Date]>='" + today + "'";
+	            //console.log(vessel);
+	            //console.log(_vessels);
+	            var remove = false;
+	            for (var i = 0; i < _vessels.length; ++i) {
+	                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
+	                    remove = _vessels[i].gmx_id;
+	                    _vessels.splice(i, 1);
 	                }
-	                //console.log(layer.filter)
-	            });
-	            return Promise.all(this.layers.map(function (l) {
-	                return new Promise(function (resolve, reject) {
-	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Update.ashx?VectorLayerID=" + l.layerId + "&filter=" + l.filter, function (response) {
-	                        if (response.Status.toLowerCase() == "ok") setTimeout(function run() {
-	
-	                            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "AsyncTask.ashx?TaskID=" + response.Result.TaskID, function (response) {
-	                                if (response.Status.toLowerCase() == "ok") {
-	                                    if (!response.Result.Completed) setTimeout(run, 1000);else {
-	                                        if (response.Result.ErorInfo) {
-	                                            console.log(response);
-	                                            reject();
-	                                        } else resolve();
-	                                    }
-	                                } else {
-	                                    console.log(response);
-	                                    reject();
-	                                }
-	                            });
-	                        }, 1000);else {
-	                            console.log(response);
-	                            reject();
-	                        }
-	                    });
+	            }
+	            //console.log(remove);
+	            return new Promise(function (resolve, reject) {
+	                if (!remove) sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},' + '"geometry":{"type":"Point","coordinates":[0,0]},"action":"insert"}]', function (response) {
+	                    if (response.Status.toLowerCase() == "ok") {
+	                        resolve();
+	                        _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+	                    } else reject(response);
+	                });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"id":' + remove + ',"action":"delete"}]', function (response) {
+	                    if (response.Status.toLowerCase() == "ok") resolve();else reject(response);
 	                });
-	            })).then(
-	            //return Promise.resolve().then(
-	            function () {
+	            }).then(function () {
 	                this.isDirty = true;
 	                //console.log(this.data);
-	                L.gmx.layersVersion.chkVersion();
+	                //L.gmx.layersVersion.chkVersion();
 	                return Promise.resolve();
-	            }.bind(this), function () {
+	            }.bind(this), function (response) {
+	                console.log(response);
 	                return Promise.reject();
 	            });
 	        }
@@ -1387,6 +1399,7 @@
 	    });
 	
 	    if (this.model.data.vessels.length == 1) open_pos.eq(0).click();
+	    if (this.vessel.lastPosition) this.positionMap(this.vessel);
 	};
 	
 	Object.defineProperty(DbSearchView.prototype, "vessel", {
@@ -1412,7 +1425,7 @@
 	    this.searchInput.focus();
 	    if (!this.vessel) return;
 	
-	    console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type);
+	    //console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type)
 	    //console.log(this.model.historyInterval.dateBegin + " " + this.model.historyInterval.dateEnd)
 	    BaseView.prototype.show.apply(this, arguments);
 	};
@@ -1433,7 +1446,7 @@
 	};
 	
 	DbSearchView.prototype.positionMap = function (vessel) {
-	    //console.log(vessel);
+	    //console.log(vessel.lastPosition);
 	    var interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
 	    nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
@@ -1441,7 +1454,7 @@
 	        ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
 	        ymax = vessel.ymax ? vessel.ymax : vessel.latitude;
 	    nsGmx.leafletMap.fitBounds([[ymin, xmin], [ymax, xmax]], {
-	        maxZoom: 9, //config.user.searchZoom,
+	        maxZoom: nsGmx.leafletMap.getZoom(), //9,//config.user.searchZoom,
 	        animate: false
 	    });
 	    nsGmx.leafletMap.removeLayer(_highlight);
@@ -1666,8 +1679,9 @@
 	    vesselInfoScreen = new VesselInfoScreen({ modulePath: modulePath, aisServices: aisLayerSearcher.aisServices });
 	    var _showPosition = function _showPosition(vessel) {
 	        aisView.vessel = vessel;
+	        aisView.vessel.lastPosition = true;
 	        if (aisView.tab) if (aisView.tab.is('.active')) aisView.show();else aisView.tab.click();
-	        aisView.positionMap(vessel);
+	        //aisView.positionMap(vessel);    
 	    };
 	    return {
 	        showPosition: function showPosition(vessel) {
@@ -1748,7 +1762,7 @@
 		vessel.dt_pos_utc = formatDate(d);
 		vessel.ts_pos_utc = formatDateTime(d);
 		vessel.ts_pos_loc = "<br><span class='local'>" + formatDateTime(d, true) + "</span>";
-		vessel.ts_eta = formatDateTime(new Date(vessel.ts_eta * 1000));
+		vessel.ts_eta = vessel.ts_eta ? formatDateTime(new Date(vessel.ts_eta * 1000)) : "";
 		vessel.cog = addUnit(round(vessel.cog, 5), "°");
 		vessel.sog = addUnit(round(vessel.sog, 5), " уз");
 		vessel.rot = addUnit(round(vessel.rot, 5), "°/мин");
@@ -1803,15 +1817,15 @@
 	
 		canvas.append(content).append(buttons);
 	
-		var dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 230, closeFunc: closeFunc }),
+		var dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 250, closeFunc: closeFunc }),
 		    vessel2 = void 0,
 		    moreInfo = function moreInfo(v) {
 			var smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg>',
 			    vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>' + smallShipIcon + '</div>' + '<div class="vessel_prop altvname"><b>' + (vessel2.registry_name && vessel2.registry_name != vessel2.vessel_name ? vessel2.registry_name : '') + '&nbsp;</b></div>';
 	
-			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
+			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Позывной: </div></td><td><div class="vessel_prop value mmsi">{{callsign}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
 	
-			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '</table>' + '</div>')(v));
+			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '<tr><td><div class="vessel_prop">ETA: </div></td><td><div class="vessel_prop value">{{ts_eta}}</div></td></tr>' + '</div>')(v));
 	
 			$(moreinfo).append('<table><tr>' + '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' + '<td><div class="vessel_prop coordinates"><span class="small">' + toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) + '</small></div></td>' + '</tr></table>');
 	
@@ -1886,33 +1900,33 @@
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
 		};
-		if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels) {
-			var addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
-			//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-			.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').appendTo(menubuttons);
-			if (myFleetMembersModel.filterUpdating) addremove.addClass('disabled');
-			addremove.on('click', function () {
-				if (addremove.is('.disabled')) return;
+		//if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels) {
+		var addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
+		//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
+		.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').appendTo(menubuttons);
+		if (myFleetMembersModel.filterUpdating) addremove.addClass('disabled');
+		addremove.on('click', function () {
+			if (addremove.is('.disabled')) return;
 	
-				$('.addremove').addClass('disabled');
-				addremove.hide();
-				progress.append(gifLoader);
+			$('.addremove').addClass('disabled');
+			addremove.hide();
+			progress.append(gifLoader);
 	
-				myFleetMembersModel.changeFilter(vessel).then(function () {
-					add = myFleetMembersModel.findIndex(vessel) < 0;
-					var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
-					info.css('visibility', !add ? 'visible' : 'hidden');
-					$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
+			myFleetMembersModel.changeFilter(vessel).then(function () {
+				add = myFleetMembersModel.findIndex(vessel) < 0;
+				var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
+				info.css('visibility', !add ? 'visible' : 'hidden');
+				$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
 	
-					addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').html(addremoveIcon(add));
-					//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
+				addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').html(addremoveIcon(add));
+				//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
 	
-					progress.text('');
-					$('.addremove').removeClass('disabled').show();
-					if (myFleetMembersView.isActive) myFleetMembersView.show();
-				});
+				progress.text('');
+				$('.addremove').removeClass('disabled').show();
+				if (myFleetMembersView.isActive) myFleetMembersView.show();
 			});
-		}
+		});
+		//}
 	
 		var progress = $('<div class="progress"></div>').appendTo(menubuttons);
 	
@@ -1949,13 +1963,11 @@
 
 /***/ }),
 /* 19 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	//************************************
-	// VESSEL INFO VIEW
-	//************************************  
+	__webpack_require__(20);
 	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
@@ -1967,6 +1979,7 @@
 	        _regcap,
 	        _leftPanel,
 	        _minh,
+	        _lloyds,
 	        resize,
 	        menuAction,
 	        scheme = document.location.href.replace(/^(https?:).+/, "$1"),
@@ -2116,28 +2129,63 @@
 	        var regcontent = _register.querySelector(".placeholder"),
 	            drawTable = function drawTable(groups, article, display) {
 	            var s = "<div class='panel " + article + " article' style='display:" + display + "'>";
-	            for (var i = 0; i < groups.length; ++i) {
-	                s += "<div class='group'>" + groups[i].name + "</div><table>";
-	                for (var j = 0; j < groups[i].properties.length; ++j) {
-	                    var pn = groups[i].properties[j].name,
-	                        pv = groups[i].properties[j].value;
-	                    s += "<tr><td>" + pn + "</td><td>" + (pn == "Название судна" || pn == "Латинское название" ? "<b>" + pv + "</b>" : pv) + "</td></tr>";
+	            for (var _i = 0; _i < groups.length; ++_i) {
+	                if (!groups[_i]) continue;
+	                s += "<div class='group'>" + groups[_i].name + "</div><table>";
+	                for (var j = 0; j < groups[_i].properties.length; ++j) {
+	                    var pn = groups[_i].properties[j].name,
+	                        desc = groups[_i].properties[j].description,
+	                        pv = groups[_i].properties[j].value;
+	                    s += "<tr><td>" + pn + (desc ? "<div class='description'>" + desc + "</div>" : "") + "</td><td>" + (pn == "Название судна" || pn == "Латинское название" ? "<b>" + pv + "</b>" : pv) + "</td></tr>";
 	                }
 	                s += "</table>";
 	            }
 	            s += "</div>";
 	            return s;
 	        };
-	        regcontent.innerHTML = drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + drawTable([ledokol.data[2]], "build", "none") + drawTable([ledokol.data[3]], "dimensions", "none") + drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
 	
-	        _regcap.innerHTML = "<table><tr><td>Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '') + "</td></tr></table>";
+	        _regcap.innerHTML = "<table class='register-title'>" + "<tr><td><span class='switch active'>РМРС</span> <span class='switch'>Lloyd's register</span></td></tr>" + "<tr><td><span class='update'></span></td></tr>" + "</table>";
 	
+	        var drawRMR = function drawRMR() {
+	            if (ledokol) {
+	                regcontent.innerHTML = drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + drawTable([ledokol.data[2]], "build", "none") + drawTable([ledokol.data[3]], "dimensions", "none") + drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
+	                _regcap.querySelector('.update').innerText = "Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '');
+	            } else {
+	                regcontent.innerHTML = "";
+	                _regcap.querySelector('.update').innerHTML = "&nbsp;";
+	            }
+	        },
+	            drawLloyds = function drawLloyds() {
+	            regcontent.innerHTML = drawTable([_lloyds.data[1], _lloyds.data[2], _lloyds.data[0]], "general", "block") + drawTable([_lloyds.data[9]], "build", "none") + drawTable([_lloyds.data[8]], "dimensions", "none") + drawTable([_lloyds.data[3], _lloyds.data[4], _lloyds.data[5], _lloyds.data[6], _lloyds.data[7]], "gears", "none");
+	            _regcap.querySelector('.update').innerText = "Обновление базы данных " + _lloyds.version.replace(/ \S+$/g, '');
+	        },
+	            regSwitches = _regcap.querySelectorAll(".switch");
+	        regSwitches.forEach(function (item, i) {
+	            return item.addEventListener('click', function (e) {
+	                var cl = e.currentTarget.classList;
+	                if (!cl.contains('active')) {
+	                    _regcap.querySelector(".switch.active").classList.remove('active');
+	                    cl.add('active');
+	                    switch (i) {
+	                        case 0:
+	                            drawRMR();
+	                            break;
+	                        case 1:
+	                            if (_lloyds) drawLloyds();else regcontent.innerHTML = "";
+	                            break;
+	                    }
+	                    resize();
+	                    mia[0].click();
+	                }
+	            });
+	        });
 	        var mia = document.querySelectorAll('.column2 .menu-item');
 	        for (var i = 0; i < mia.length; ++i) {
 	            mia[i].addEventListener('click', menuAction);
 	        }
-	
+	        drawRMR();
 	        resize();
+	        if (!ledokol) regSwitches[1].click();
 	    };
 	
 	    var open = function open(vessel, vessel2) {
@@ -2154,16 +2202,33 @@
 	            //console.log(ship)
 	            drawAis(ship);
 	        }, onFail);
-	        var registerServerUrl = scheme + "//kosmosnimki.ru/demo/register/api/v1/";
+	        var registerServerUrl = scheme + "//kosmosnimki.ru/demo/register/api/v1/",
+	            lloydsServerUrl = scheme + "//kosmosnimki.ru/demo/lloyds/api/v1/",
+	            rmr;
 	        if (vessel.imo && vessel.imo != 0 && vessel.imo != -1) fetch(registerServerUrl + "Ship/Search/" + vessel.imo + "/ru").then(function (response) {
 	            return response.json();
 	        }).then(function (ship) {
-	            if (ship.length > 0) return fetch(registerServerUrl + "Ship/Get/" + ship[0].RS + "/ru");else return Promise.reject('register_no_data');
+	            if (ship.length > 0) return fetch(registerServerUrl + "Ship/Get/" + ship[0].RS + "/ru");else return Promise.resolve({ json: function json() {
+	                    return null;
+	                } });
+	            //else
+	            //    return Promise.reject('register_no_data');
 	        }).then(function (response) {
 	            return response.json();
 	        }).then(function (ship) {
 	            //console.log(ship)
-	            drawRegister(ship);
+	            rmr = ship;
+	            if (rmr) drawRegister(rmr);
+	            return fetch(lloydsServerUrl + "Ship/Search/" + vessel.imo + "/ru");
+	        }).then(function (response) {
+	            return response.json();
+	        }).then(function (ship) {
+	            if (ship.length > 0) return fetch(lloydsServerUrl + "Ship/Get/" + ship[0].RS + "/ru");else return Promise.reject('register_no_data');
+	        }).then(function (response) {
+	            return response.json();
+	        }).then(function (ship) {
+	            _lloyds = ship;
+	            if (!rmr) drawRegister(rmr);
 	        }).catch(onFail);
 	
 	        new Promise(function (resolve, reject) {
@@ -2186,6 +2251,12 @@
 
 /***/ }),
 /* 20 */
+/***/ (function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 21 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2376,7 +2447,7 @@
 	};
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2407,15 +2478,14 @@
 	            }
 	            // console.log(_aisLayer._gmx.layerID)
 	            // console.log(_tracksLayer._gmx.layerID)
+	            if (_aisLayer || _tracksLayer) _displaingTrack.mmsi = mmsiArr[0];else _displaingTrack.mmsi = null;
 	            if (_aisLayer) {
 	                if (mmsiArr.length) {
-	                    _displaingTrack.mmsi = mmsiArr[0];
 	                    _aisLayer.setFilter(filterFunc);
 	                    if (!_aisLayer._map) {
 	                        lmap.addLayer(_aisLayer);
 	                    }
 	                } else {
-	                    _displaingTrack.mmsi = null;
 	                    _aisLayer.removeFilter();
 	                    lmap.removeLayer(_aisLayer);
 	                }
