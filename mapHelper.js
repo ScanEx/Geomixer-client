@@ -1267,7 +1267,17 @@ mapHelper.prototype.exportMap = function(params) {
 
     $('#all').toggleClass('print-preview-all', true);
 
-	$('.leaflet-control-container').hide();
+	if (params.controls) {
+		$('.gmx-slider-control').hide();
+		var cs = nsGmx.leafletMap.gmxControlsManager.getAll();
+		for (var key in cs) {
+			if (!(key in params.controls)) {
+				nsGmx.leafletMap.removeControl(cs[key]);
+			}
+		}
+	} else {
+		$('.leaflet-control-container').hide();
+	}
 
     $('#leftContent').mCustomScrollbar({live:"off"});
 

@@ -8622,7 +8622,17 @@ mapHelper.prototype.exportMap = function(params) {
 
     $('#all').toggleClass('print-preview-all', true);
 
-	$('.leaflet-control-container').hide();
+    if (params.controls) {
+		$('.gmx-slider-control').hide();
+		var cs = nsGmx.leafletMap.gmxControlsManager.getAll();
+		for (var key in cs) {
+			if (!(key in params.controls)) {
+				nsGmx.leafletMap.removeControl(cs[key]);
+			}
+		}
+	} else {
+		$('.leaflet-control-container').hide();
+	}
 
     $('#leftContent').mCustomScrollbar({live:"off"});
 
@@ -32220,6 +32230,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32254,11 +32269,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -42130,10 +42140,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                                     });
                                 }
 
-                                var dataSources = timeLineControl.saveState().dataSources;
-
-
-
                                 if (Array.isArray(params.bindLayersToTimeline)) {
                                     var layersArr = params.bindLayersToTimeline.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
                                     addLayersToTimeline(res, layersArr);
@@ -42147,25 +42153,15 @@ nsGmx.widgets = nsGmx.widgets || {};
                                     $(this).addClass("gmx-disabled");
                                 })
 
-                                function addLayersToTimeline(timeline, sources, layers) {
+                                function addLayersToTimeline(timeline, layers) {
                                     layers = layers || nsGmx.gmxMap.layers;
-
-
 
                                     layers.forEach(function (layer) {
                                         if (layer.getGmxProperties) {
                                             var lprops = layer.getGmxProperties(),
-                                                lId = lprops.LayerID,
-                                                alreadyOnTimeline = false;
+                                                lId = lprops.LayerID;
 
-                                            for (var i = 0; i < dataSources.length; i++) {
-                                                if (lId === dataSources[i].layerID) {
-                                                    alreadyOnTimeline = true;
-                                                }
-                                            }
-                                            console.log(alreadyOnTimeline);
                                             if (
-                                                !alreadyOnTimeline &&
                                                 lprops.visible &&
                                                 lprops.Temporal && (lprops.IsRasterCatalog || (lprops.Quicklook && lprops.Quicklook !== 'null'))) {
                                                     timeline.addLayer(layer);
