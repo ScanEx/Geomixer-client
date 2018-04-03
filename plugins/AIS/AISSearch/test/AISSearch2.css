@@ -437,7 +437,8 @@
     padding: 9px;
 }
 .ais_history .ais_positions td.more .vi_more .c2 {
-    width:200px;
+    /*width:200px;*/
+    width:165px;
     padding: 9px 0 9px 0;
 }
 
