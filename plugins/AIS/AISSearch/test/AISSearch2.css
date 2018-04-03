@@ -42,323 +42,6 @@
     -ms-user-select: none;
     user-select: none;
  }
-/**********************/
-
-        .vessel-info-page.overlay{
-            position: absolute;
-            left:0;
-            top:0;
-            width:100%;
-            height:100%;
-            background-color: rgba(20,20,20,0.9);
-            z-index:11000;
-        }
-        .vessel-info-page.overlay td{
-            border:none;
-            padding:0;
-        } 
-
-        .vessel-info-page.container{
-            margin: auto;
-      
-            font-family: 'Open Sans', sans-serif;     
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            width:70%;
-            border: none 1px white;
-            display: none;
-            
-        }   
- 
-        .vessel-info-page .column1{
-            width:1%;
-            color: #f5f8fa;
-        }      
-        .vessel-info-page.container .column1 table{
-            width:275px;
-            background-color: #394b59;
-            height:100%;
-        }
-        .vessel-info-page .column1 td{
-            border:none;
-            vertical-align: top;
-        } 
-        .vessel-info-page .column1 td.frame{
-            vertical-align: bottom
-        } 
-        .vessel-info-page .column1 .cell{
-            width:240px;
-            padding: 16px 16px;
-            border-left:solid 5px #394b59;
-            color: #f5f8fa;
-        }
-        .vessel-info-page .column1 .cell .icon{
-            float:left;
-            margin-right:10px
-        } 
-        .vessel-info-page .column1 .title{
-            height:64px;
-            border-bottom: solid 1px #5c7080;
-            font-weight:bold;
-        }
-        .vessel-info-page .column1 .title .cell{
-            font-size:14px;
-        }  
-        .vessel-info-page .column1 .title .timestamp{
-            font-size: 10px;
-            font-weight:normal;
-        }
-        .vessel-info-page .column1 .title .timestamp .small{
-            font-size: 10px;
-            font-weight:normal;
-        }
-        .vessel-info-page .column1 .title .timestamp br{
-            display:none;
-        }	
-        .vessel-info-page .column1 .menu-item{
-            line-height:14px;
-            cursor: pointer;
-            font-size:14px;
-            color:#b7c4cf
-        } 
-        .vessel-info-page .column1 .menu-item img{
-            visibility: visible
-        }
-        .vessel-info-page .column1 .menu-item.active{
-            border-left:solid 5px #3ca1d0;
-            background-color: #30404d;
-            color:#f5f8fa
-        }
-        .vessel-info-page .column1 .menu-item svg path{
-            fill: #b7c4cf;
-        }
-        .vessel-info-page .column1 .menu-item svg rect{
-            fill: #b7c4cf;
-        }
-        .vessel-info-page .column1 .menu-item svg polygon{
-            fill: #b7c4cf;
-        }
-        .vessel-info-page .column1 .menu-item.active svg path{
-            fill: #f5f8fa;
-        }
-        .vessel-info-page .column1 .menu-item.active svg rect{
-            fill: #f5f8fa;
-        }
-        .vessel-info-page .column1 .menu-item.active svg polygon{
-            fill: #f5f8fa;
-        }
-
-        .vessel-info-page .column1 .menu-item:hover{
-            border-left:solid 5px #3ca1d0;
-            background-color: #30404d;
-        }
-        .vessel-info-page .column1 .menu-item .counter{
-           display:none;
-           font-size: 10px;
-           border-radius: 4px;
-           padding:0 7px 2px 6px;
-           background-color: #3ca1d0;
-           border:none;
-           color: white;
-           margin-left:10px;
-        }
-        .vessel-info-page .column1 .photo{
-            width:275px;
-            height: 190px;
-            vertical-align: middle;
-            text-align: center;
-            display: table-cell;
-            background-color: #30404d;
-        }  
-        .vessel-info-page .column1 .photo img{
-            max-height: 140px;
-        }
-
-        .vessel-info-page.container .column2{
-            vertical-align: top;
-            min-width: 670px;
-        }
-
-        .vessel-info-page .column2 .galery{
-            background-color: white;
-            display: none;
-            padding-left:80px;
-        }
-        .vessel-info-page .column2 .galery::after{
-            content: "";
-            clear:both;
-        }
-        .vessel-info-page .column2 .galery .photo{
-            float:left;
-            width: 180px;
-            height:180px;
-            border: solid 1px #738694;
-            border-radius: 10px;
-            margin:40px 40px 20px 0;
-            background-size: 300px;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-            text-align: center;
-            display: table-cell;
-            cursor:pointer;
-        }  
-
-        .vessel-info-page .column2 .register{
-            background-color: white;
-            display: none;
-        }
-        .vessel-info-page .column2 .register .caption{
-            height:64px;
-            border-bottom:solid 1px #e1e8ed;
-        }
-        .vessel-info-page .column2 .register .caption table{
-			width:100%;
-			height:100%;
-		}
-        .vessel-info-page .column2 .register .caption td{	
-			padding-left:40px
-		}		
-        .vessel-info-page .column2 .register .menu{
-            height:0;
-            margin-right:10px;
-        }
-        .vessel-info-page .column2 .register .menu div{
-            position:relative;
-            top:0px;
-            z-index: 1000;
-            border:none 1px blue;
-            background-color: #f5f8fa;
-        }
-        .vessel-info-page .column2 .register .menu table{
-            margin:0 20px 0 5px;
-            border: none 1px black;
-        }
-        .vessel-info-page .column2 .register .menu table td {
-            white-space:nowrap;
-            font-weight:bold;
-        }
-        .vessel-info-page .column2 .register .menu table td div {
-            padding: 10px 0 10px 0;
-            margin: 0 5px 0 30px;
-            border-top: solid 3px #f5f8fa;
-            cursor:pointer;
-            font-size:14px;
-            color:#738694;
-            font-size:12px;
-        }
-        .vessel-info-page .column2 .register .menu table td div.active {
-            border-top: solid 3px #3ca1d0;
-            color:#3ca1d0;
-        }
-        .vessel-info-page .column2 .register .menu table td div:hover {
-            border-top: solid 3px #3ca1d0;
-        }
-        .vessel-info-page .column2 .register .content{
-            padding-left: 80px;
-            height:360px;
-            overflow:hidden;
-            background-color: #f5f8fa;
-            color:#5c7080;
-        }
-        .vessel-info-page .column2 .register .content  div.article{
-            margin-top: 60px;
-        }
-        .vessel-info-page .column2 .register .content  div.group{
-            margin-top: 20px;
-            font-weight:bolder;
-            font-size:14px;
-        }
-        .vessel-info-page .column2 .register .content  table{
-            margin: 0 20px 0 0
-        }
-        .vessel-info-page .column2 .register .content  table td{
-            border: none 1px #3ca1d0;
-            vertical-align: top;
-            padding-top:15px;
-            font-size:12px;
-        }
-        .vessel-info-page .column2 .register .content  table td:nth-of-type(1){
-            width:300px
-        }
-
-        .vessel-info-page .column2 .ais{
-            height:420px;
-            overflow:hidden;
-            padding-left: 80px;
-            color:#5c7080;
-            background-color: #f5f8fa;
-        }  
-        .vessel-info-page .column2 .ais .caption:nth-of-type(1){
-            padding-top: 56px;
-            background-position: 0 64px;
-        }
-        .vessel-info-page .column2 .ais .caption{
-            width: 10%;
-            display:table-cell;
-            vertical-align: middle;
-            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='1250' y2='0' style='stroke:rgb(225,232,237);stroke-width:1px'/%3E%3C/svg%3E") no-repeat;
-            background-position: 0 24px;
-            background-size: 90% 1px;
-            border: none 1px black;
-            padding-top:15px;
-            color: #3ca1d0;
-            font-size:14px;
-            font-weight:bolder;
-        }
-        .vessel-info-page .column2 .ais .caption div{
-            padding-right:10px;
-            background-color: #f5f8fa;
-            display:table-cell
-        }
-        .vessel-info-page .column2 .ais table{
-            margin-top:15px;
-            margin-bottom:15px;
-            border: none 1px black
-        }
-        .vessel-info-page .column2 .ais td{
-            padding-top:15px;
-            width:300px
-        }
-
-        .vessel-info-page .close-button-holder{
-            border:none 1px red;
-            width:100%;
-            height:0;
-            color:white;
-            text-align: right;
-        }
-        .vessel-info-page .close-button{
-            border:none 1px red;
-            display: inline-block;
-            position:relative;
-            top: 22px;
-            left:-20px;
-            width:16px;
-            height:16px;            
-            cursor: pointer;
-            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='16' y2='16' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3Cline x1='0' y1='16' x2='16' y2='0' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
-            background-position: 0px 0px;
-            z-index: 1000;
-        } 
-        .vessel-info-page .picture{
-            z-index: 1000;
-            cursor:pointer;
-        }
-  
-        .vessel-info-page .mCustomScrollBox div{
-            border: none
-        }
-        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerContainer{
-            left:-4px
-        }
-        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_dragger_bar{
-            width:10px;
-            background-color: #394b59
-        }
-        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
-            width:10px;
-        }
-
         		
 .VesselSearchTool:hover{
 	background-color: #eee;
@@ -378,7 +61,7 @@
 	margin-left: 8px;
 }
 
-.ais_highlight-icon {
+.leaflet-marker-icon.ais_highlight-icon {
 	pointer-events: none;
 }
 
@@ -416,6 +99,7 @@
   .ais_view .ais_vessels .msg{
     text-align: center;
     font-weight:500;
+    margin-top:15px;
   }
 
   .ais_view div.refresh{
@@ -1067,7 +751,7 @@
   color: #000;
 }
 .ais_myfleet_dialog .photo{
-  height:130px;
+  height:150px;
 }
 .ais_myfleet_dialog .photo div{
   width:178px;
@@ -1094,7 +778,7 @@
     float: left;
     width: 45px;
 	border-left: solid 1px #d8e2e4;
-	height: 180px
+	height: 200px
 }
 .ais_myfleet_dialog::after {
     content: "";
@@ -1192,5 +876,356 @@
 .ais_refresh:hover{
 	color: #48aff1;
 }
+
+.vessel-info-page *{
+    font-family: 'Roboto', sans-serif;  
+    font-weight: 400;
+}
+        .vessel-info-page.overlay{
+            position: absolute;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            background-color: rgba(20,20,20,0.9);
+            z-index:11000;
+        }
+        .vessel-info-page.overlay td{
+            border:none;
+            padding:0;
+        } 
+
+        .vessel-info-page.container{
+            margin: auto;
+      
+            font-family: 'Open Sans', sans-serif;     
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            width:70%;
+            border: none 1px white;
+            display: none;
+            
+        }   
+ 
+        .vessel-info-page .column1{
+            width:1%;
+            color: #f5f8fa;
+        }      
+        .vessel-info-page.container .column1 table{
+            width:275px;
+            background-color: #394b59;
+            height:100%;
+        }
+        .vessel-info-page .column1 td{
+            border:none;
+            vertical-align: top;
+        } 
+        .vessel-info-page .column1 td.frame{
+            vertical-align: bottom
+        } 
+        .vessel-info-page .column1 .cell{
+            width:240px;
+            padding: 16px 16px;
+            border-left:solid 5px #394b59;
+            color: #f5f8fa;
+        }
+        .vessel-info-page .column1 .cell .icon{
+            float:left;
+            margin-right:10px
+        } 
+        .vessel-info-page .column1 .title{
+            height:64px;
+            border-bottom: solid 1px #5c7080;
+            font-weight:bold;
+        }
+        .vessel-info-page .column1 .title .cell{
+            font-size:14px;
+        }  
+        .vessel-info-page .column1 .title .timestamp{
+            font-size: 10px;
+            font-weight:normal;
+        }
+        .vessel-info-page .column1 .title .timestamp .small{
+            font-size: 10px;
+            font-weight:normal;
+        }
+        .vessel-info-page .column1 .title .timestamp br{
+            display:none;
+        }	
+        .vessel-info-page .column1 .menu-item{
+            line-height:14px;
+            cursor: pointer;
+            font-size:14px;
+            color:#b7c4cf
+        } 
+        .vessel-info-page .column1 .menu-item img{
+            visibility: visible
+        }
+        .vessel-info-page .column1 .menu-item.active{
+            border-left:solid 5px #3ca1d0;
+            background-color: #30404d;
+            color:#f5f8fa
+        }
+        .vessel-info-page .column1 .menu-item svg path{
+            fill: #b7c4cf;
+        }
+        .vessel-info-page .column1 .menu-item svg rect{
+            fill: #b7c4cf;
+        }
+        .vessel-info-page .column1 .menu-item svg polygon{
+            fill: #b7c4cf;
+        }
+        .vessel-info-page .column1 .menu-item.active svg path{
+            fill: #f5f8fa;
+        }
+        .vessel-info-page .column1 .menu-item.active svg rect{
+            fill: #f5f8fa;
+        }
+        .vessel-info-page .column1 .menu-item.active svg polygon{
+            fill: #f5f8fa;
+        }
+
+        .vessel-info-page .column1 .menu-item:hover{
+            border-left:solid 5px #3ca1d0;
+            background-color: #30404d;
+        }
+        .vessel-info-page .column1 .menu-item .counter{
+           display:none;
+           font-size: 10px;
+           border-radius: 4px;
+           padding:0 7px 2px 6px;
+           background-color: #3ca1d0;
+           border:none;
+           color: white;
+           margin-left:10px;
+        }
+        .vessel-info-page .column1 .photo{
+            width:275px;
+            height: 190px;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+            background-color: #30404d;
+        }  
+        .vessel-info-page .column1 .photo img{
+            max-height: 140px;
+        }
+
+        .vessel-info-page.container .column2{
+            vertical-align: top;
+            min-width: 670px;
+        }
+
+        .vessel-info-page .column2 .galery{
+            background-color: white;
+            display: none;
+            padding-left:80px;
+        }
+        .vessel-info-page .column2 .galery::after{
+            content: "";
+            clear:both;
+        }
+        .vessel-info-page .column2 .galery .photo{
+            float:left;
+            width: 180px;
+            height:180px;
+            border: solid 1px #738694;
+            border-radius: 10px;
+            margin:40px 40px 20px 0;
+            background-size: 300px;
+            background-repeat: no-repeat;
+            background-position: center;
+            vertical-align: middle;
+            text-align: center;
+            display: table-cell;
+            cursor:pointer;
+        }  
+
+        .vessel-info-page .column2 .register{
+            background-color: white;
+            display: none;
+        }
+        .vessel-info-page .column2 .register .caption{
+            height:64px;
+            border-bottom:solid 1px #e1e8ed;
+        }
+        .vessel-info-page .column2 .register .caption table{
+			width:100%;
+			height:100%;
+		}
+        .vessel-info-page .column2 .register .caption td{	
+			padding-left:40px
+		}		
+        .vessel-info-page .column2 .register .menu{
+            height:0;
+            margin-right:10px;
+        }
+        .vessel-info-page .column2 .register .menu div{
+            position:relative;
+            top:0px;
+            z-index: 1000;
+            border:none 1px blue;
+            background-color: #f5f8fa;
+        }
+        .vessel-info-page .column2 .register .menu table{
+            margin:0 20px 0 5px;
+            border: none 1px black;
+        }
+        .vessel-info-page .column2 .register .menu table td {
+            white-space:nowrap;
+            font-weight:bold;
+        }
+        .vessel-info-page .column2 .register .menu table td div {
+            padding: 10px 0 10px 0;
+            margin: 0 5px 0 30px;
+            border-top: solid 3px #f5f8fa;
+            cursor:pointer;
+            font-size:14px;
+            color:#738694;
+            font-size:12px;
+        }
+        .vessel-info-page .column2 .register .menu table td div.active {
+            border-top: solid 3px #3ca1d0;
+            color:#3ca1d0;
+        }
+        .vessel-info-page .column2 .register .menu table td div:hover {
+            border-top: solid 3px #3ca1d0;
+        }
+        .vessel-info-page .column2 .register .content{
+            padding-left: 80px;
+            height:360px;
+            overflow:hidden;
+            background-color: #f5f8fa;
+            color:#5c7080;
+        }
+        .vessel-info-page .column2 .register .content  div.article{
+            margin-top: 60px;
+        }
+        .vessel-info-page .column2 .register .content  div.group{
+            margin-top: 20px;
+            font-weight:bolder;
+            font-size:14px;
+        }
+        .vessel-info-page .column2 .register .content  table{
+            margin: 0 20px 0 0
+        }
+        .vessel-info-page .column2 .register .content  table td{
+            border: none 1px #3ca1d0;
+            vertical-align: top;
+            padding-top:15px;
+            font-size:12px;
+        }
+        .vessel-info-page .column2 .register .content  table td .description{
+            font-size: 11px;
+        }
+        .vessel-info-page .column2 .register .content  table td{
+            border: none 1px #3ca1d0;
+            vertical-align: top;
+            padding-top:15px;
+            font-size:12px;
+        }
+        .vessel-info-page .column2 .register .content  table td:nth-of-type(1){
+            width:300px
+        }
+
+        .vessel-info-page .column2 .ais{
+            height:420px;
+            overflow:hidden;
+            padding-left: 80px;
+            color:#5c7080;
+            background-color: #f5f8fa;
+        }  
+        .vessel-info-page .column2 .ais .caption:nth-of-type(1){
+            padding-top: 56px;
+            background-position: 0 64px;
+        }
+        .vessel-info-page .column2 .ais .caption{
+            width: 10%;
+            display:table-cell;
+            vertical-align: middle;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='1250' y2='0' style='stroke:rgb(225,232,237);stroke-width:1px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0 24px;
+            background-size: 90% 1px;
+            border: none 1px black;
+            padding-top:15px;
+            color: #3ca1d0;
+            font-size:14px;
+            font-weight:bolder;
+        }
+        .vessel-info-page .column2 .ais .caption div{
+            padding-right:10px;
+            background-color: #f5f8fa;
+            display:table-cell
+        }
+        .vessel-info-page .column2 .ais table{
+            margin-top:15px;
+            margin-bottom:15px;
+            border: none 1px black
+        }
+        .vessel-info-page .column2 .ais td{
+            padding-top:15px;
+            width:300px
+        }
+
+        .vessel-info-page .close-button-holder{
+            border:none 1px red;
+            width:100%;
+            height:0;
+            color:white;
+            text-align: right;
+        }
+        .vessel-info-page .close-button{
+            border:none 1px red;
+            display: inline-block;
+            position:relative;
+            top: 22px;
+            left:-20px;
+            width:16px;
+            height:16px;            
+            cursor: pointer;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='16' y2='16' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3Cline x1='0' y1='16' x2='16' y2='0' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+            background-position: 0px 0px;
+            z-index: 1000;
+        } 
+        .vessel-info-page .picture{
+            z-index: 1000;
+            cursor:pointer;
+        }
+  
+        .vessel-info-page .mCustomScrollBox div{
+            border: none
+        }
+        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerContainer{
+            left:-4px
+        }
+        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_dragger_bar{
+            width:10px;
+            background-color: #394b59
+        }
+        .mCS-vessel-info-theme.mCSB_scrollTools .mCSB_draggerRail{
+            width:10px;
+        }
+.vessel-info-page .register-title .switch{
+        font-weight: 700;
+        padding-left: 10px;
+        padding-right: 10px;
+        font-size: 14px;
+        border-radius: 10px;
+        color: #5c7080;
+        cursor: pointer;
+        background-color: inherit;
+        width:auto;
+        height:auto;
+        margin-left:0;
+}
+.vessel-info-page .register-title .switch.active{
+    background-color: #3ca1d0;    
+    color: white;
+    cursor: default;
+}
+.vessel-info-page .register-title .update{
+    font-size: 12px;
+    color: #5c7080;
+}
+
 
 /*# sourceMappingURL=AISSearch2.css.map*/
