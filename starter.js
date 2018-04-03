@@ -2362,6 +2362,21 @@ nsGmx.widgets = nsGmx.widgets || {};
                     }
                 }
 
+                if (state.filters) {
+                    for (var key in state.filters) {
+                        var l = nsGmx.gmxMap.layersByID[key],
+                            filtersArr = state.filters[key];
+
+                        for (var i = 0; i < filtersArr.length; i++) {
+                            if ('filterById' in filtersArr[i]) {
+                                var filteredId = filtersArr[i]['filterById'];
+
+                                l.addLayerFilter(function(it) { return it.id === filteredId });
+                            }
+                        }
+                    }
+                }
+
                 initEditUI();
                 initTemporalLayers();
 
