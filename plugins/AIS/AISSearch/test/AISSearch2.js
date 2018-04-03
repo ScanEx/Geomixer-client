@@ -683,7 +683,9 @@
 	            });
 	            this.container.find('.ais_vessel').on('click', function () {
 	                //console.log(JSON.parse($(this).find('.info').attr('vessel')))
-	                _this.infoDialogView.showPosition(JSON.parse($(this).find('.info').attr('vessel')));
+	                var v = JSON.parse($(this).find('.info').attr('vessel'));
+	                v.lastPosition = true;
+	                _this.infoDialogView.showPosition(v);
 	            });
 	        },
 	        show: function show() {
@@ -1398,8 +1400,10 @@
 	        }.bind(_this4));
 	    });
 	
-	    if (this.model.data.vessels.length == 1) open_pos.eq(0).click();
-	    if (this.vessel.lastPosition) this.positionMap(this.vessel);
+	    if (this.model.data.vessels.length == 1) {
+	        open_pos.eq(0).click();
+	        if (this.vessel.lastPosition) this.positionMap(this.model.data.vessels[0].positions[0]);
+	    }
 	};
 	
 	Object.defineProperty(DbSearchView.prototype, "vessel", {
@@ -1446,7 +1450,6 @@
 	};
 	
 	DbSearchView.prototype.positionMap = function (vessel) {
-	    //console.log(vessel.lastPosition);
 	    var interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
 	    nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
@@ -1679,9 +1682,8 @@
 	    vesselInfoScreen = new VesselInfoScreen({ modulePath: modulePath, aisServices: aisLayerSearcher.aisServices });
 	    var _showPosition = function _showPosition(vessel) {
 	        aisView.vessel = vessel;
-	        aisView.vessel.lastPosition = true;
 	        if (aisView.tab) if (aisView.tab.is('.active')) aisView.show();else aisView.tab.click();
-	        //aisView.positionMap(vessel);    
+	        if (!vessel.lastPosition) aisView.positionMap(vessel);
 	    };
 	    return {
 	        showPosition: function showPosition(vessel) {
@@ -1872,6 +1874,7 @@
 	
 		var showpos = $('<div class="button showpos" title="показать положение">' + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 1,7 1,1 7,1 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 17,1 23,1 23,7 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 23,17 23,23 17,23 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 7,23 1,23 1,17 " stroke-linejoin="miter"/> <rect style="stroke:currentColor" x="8" y="8" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="8" height="8" stroke-linejoin="miter"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
 			if (!vessel.ts_pos_org) vessel.ts_pos_org = vessel.ts_pos_utc;
+			vessel.lastPosition = true;
 			commands.showPosition(vessel);
 			if (!showtrack.is('.active')) showtrack.click();
 		});
