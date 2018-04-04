@@ -1170,6 +1170,10 @@ nsGmx.widgets = nsGmx.widgets || {};
                     })
                 }
             });
+            
+            L.marker = function (latlng, options) {
+                return new L.Marker(latlng, options);
+            }
 
             var hostName = L.gmxUtil.normalizeHostname(window.serverBase),
                 apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера

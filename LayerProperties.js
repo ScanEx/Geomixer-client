@@ -184,6 +184,7 @@ var LayerProperties = Backbone.Model.extend(
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
             reqParams.NameObject = attrs.NameObject || '';
+            reqParams.srs = nsGmx.leafletMap.options.srs || '';
             if (stype === 'table') reqParams.TableCS = attrs.TableCS;
 
             var rcProps = attrs.RC;
@@ -260,6 +261,7 @@ var LayerProperties = Backbone.Model.extend(
                 copyParams.Title = attrs.Title;
                 copyParams.SourceType = attrs.SourceType;
                 copyParams.Sql = sqlString;
+                copyParams.srs = nsGmx.leafletMap.options.srs || '';
 
                  def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/Insert.ashx", copyParams);
             } else {
@@ -281,6 +283,7 @@ var LayerProperties = Backbone.Model.extend(
             var curBorder = _mapHelper.drawingBorders.get(name);
 
             reqParams.Legend = attrs.Legend;
+            reqParams.srs = nsGmx.leafletMap.options.srs || '';
             if (attrs.TilePath.Path) reqParams.TilePath = attrs.TilePath.Path;
             reqParams.GeometryChanged = geometryChanged;
 
