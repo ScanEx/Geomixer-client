@@ -6,12 +6,21 @@
     border-left: 4px solid #70cbe0 !important;
 }
 
+.tab-icon-active svg {
+    fill: #70cbe0;
+}
+
+
 .tab-icon svg {
     width: 20px;
     height: 20px;
     margin: auto;
     margin-top: 10px;
     left: -4px;
+}
+
+.gmx-sidebar-tabs {
+    color: #70cbe0;
 }
 
 .gmx-sidebar-tab {

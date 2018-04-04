@@ -10982,7 +10982,6 @@ pointsBinding.pointsBinding.unload = function()
                                             var paramsClone = $.extend(true, {}, timelinePlugin.params);
                                             var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
                                             _mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
-                                            res.addLayer(layer);
 
                                             if (timeLineControl) {
                                                 timeLineControl.on('layerRemove', function(e) {
@@ -10992,10 +10991,23 @@ pointsBinding.pointsBinding.unload = function()
                                                     $(window._layersTree).triggerHandler('layerTimelineAdd', e);
                                                 });
                                             }
+                                            res.addLayer(layer);
                                         }).then(function(err) {
                                             console.log(err);
                                         });
                                     } else {
+                                        if (!nsGmx.timeLineControl) {
+                                            var paramsClone = $.extend(true, {}, timelinePlugin.body.params);
+                                            var timeLineControl = timelinePlugin.body.afterViewer && timelinePlugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
+
+                                            timeLineControl.on('layerRemove', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                            });
+                                            timeLineControl.on('layerAdd', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                            });
+                                        }
+
                                         disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
                                     }
 
@@ -41809,8 +41821,9 @@ nsGmx.widgets = nsGmx.widgets || {};
                             tabEl = document.createElement("div"),
                             href = '#' + options.icon.toLowerCase(),
                             symbol = document.querySelector(href);
-                        el.classList.add("tab-icon");
-                        symbol && symbol.classList.add("sidebar-icon");
+						$(el).addClass("tab-icon");
+
+                        if (symbol) $(symbol).addClass("sidebar-icon");
 
                         tabEl.innerHTML = '<svg role="img" class="svgIcon">\
                         <use xlink:href="' + href + '" href="' + href + '"></use>\
@@ -41819,16 +41832,16 @@ nsGmx.widgets = nsGmx.widgets || {};
                         el.appendChild(tabEl);
 
                         options.hint && el.setAttribute("title", options.hint);
-                        tabEl.classList.add(options.icon);
+                        $(tabEl).addClass(options.icon);
                         if (state === "active") {
-                            tabEl.classList.add(options.active);
-                            el.classList.add("tab-icon-active");
-                            symbol && symbol.classList.add("sidebar-active-icon");
+                            $(tabEl).addClass(options.active);
+                            $(el).addClass("tab-icon-active");
+                            if (symbol) $(symbol).addClass("sidebar-active-icon");
                         } else {
-                            if (symbol && symbol.classList.contains("sidebar-active-icon")) {
-                                symbol.classList.remove("sidebar-active-icon");
+                            if (symbol && $(symbol).hasClass("sidebar-active-icon")) {
+                                $(symbol).removeClass("sidebar-active-icon");
                             }
-                            tabEl.classList.add(options.inactive);
+                            $(tabEl).addClass(options.inactive);
                         }
                         return el;
                     };

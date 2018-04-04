@@ -691,7 +691,6 @@
                                             var paramsClone = $.extend(true, {}, timelinePlugin.params);
                                             var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
                                             _mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
-                                            res.addLayer(layer);
 
                                             if (timeLineControl) {
                                                 timeLineControl.on('layerRemove', function(e) {
@@ -701,10 +700,23 @@
                                                     $(window._layersTree).triggerHandler('layerTimelineAdd', e);
                                                 });
                                             }
+                                            res.addLayer(layer);
                                         }).then(function(err) {
                                             console.log(err);
                                         });
                                     } else {
+                                        if (!nsGmx.timeLineControl) {
+                                            var paramsClone = $.extend(true, {}, timelinePlugin.body.params);
+                                            var timeLineControl = timelinePlugin.body.afterViewer && timelinePlugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
+
+                                            timeLineControl.on('layerRemove', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                            });
+                                            timeLineControl.on('layerAdd', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                            });
+                                        }
+
                                         disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
                                     }
 
