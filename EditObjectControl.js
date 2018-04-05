@@ -128,8 +128,8 @@ var FieldsCollection = function() {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
 
-            var userZIndexDelta = (b.index || 0) - (a.index || 0);
-            return userZIndexDelta || (b.origIndex - a.origIndex);
+            var userZIndexDelta = (a.index || 0) - (b.index || 0);
+            return userZIndexDelta || (a.origIndex - b.origIndex);
         })
     }
 }
