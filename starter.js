@@ -1170,7 +1170,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     })
                 }
             });
-            
+
             L.marker = function (latlng, options) {
                 return new L.Marker(latlng, options);
             }
@@ -2152,7 +2152,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                             icon: "s-tree",
                             active: "sidebar-icon-active",
                             inactive: "sidebar-icon-inactive",
-                            hint: "layers-tree"
+                            hint: "Слои"
                         })
                     }
                 );
