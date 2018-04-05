@@ -1290,6 +1290,21 @@
         this.copyHandler(gmxProperties, targetDiv, false, true);
     }
 
+    layersTree.prototype.checkGroupForDuplicates = function(elements) {
+        var alreadyOnMap = false;
+        for (var i = 0; i < elements.length; i++) {
+            var elem = elements[i],
+                layer = elem.content,
+                name = layer.properties.name;
+
+            if (nsGmx.gmxMap.layersByID[name]) {
+                alreadyOnMap = nsGmx.gmxMap.layersByID[name].getGmxProperties().title;
+                break;
+            }
+        }
+        return alreadyOnMap;
+    }
+
     //геометрия слоёв должна быть в координатах меркатора
     layersTree.prototype.addLayersToMap = function(elem) {
         var DEFAULT_VECTOR_LAYER_ZINDEXOFFSET = 2000000;
@@ -1298,12 +1313,18 @@
             currentZoom = nsGmx.leafletMap.getZoom();
 
         if (typeof elem.content.properties.GroupID != 'undefined') {
-            for (var i = 0; i < elem.content.children.length; i++) {
-                var res = this.addLayersToMap(elem.content.children[i]);
+			var alreadyOnMap = this.checkGroupForDuplicates(elem.content.children);
+			if (alreadyOnMap) {
+				showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", alreadyOnMap), true);
+                return false;
+			} else {
+				for (var i = 0; i < elem.content.children.length; i++) {
+				var res = this.addLayersToMap(elem.content.children[i]);
 
-                if (!res)
-                    return false;
-            }
+    				if (!res)
+    					return false;
+    			}
+    		}
         } else {
             var layer = elem.content,
                 name = layer.properties.name;
