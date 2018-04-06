@@ -4,7 +4,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
     var _this = this;
     this.textArea = textarea;
     this.func = func;
-    this.currentTextArea = textarea[0];
+    this.currentTextArea = textarea[0] || textarea;
 
     if (valuesArr && !(valuesArr instanceof nsGmx.ILazyAttributeValuesProvider)) {
         valuesArr = new nsGmx.LazyAttributeValuesProviderFromArray(valuesArr);
