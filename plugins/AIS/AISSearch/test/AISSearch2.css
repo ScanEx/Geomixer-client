@@ -4,7 +4,7 @@
  }
 
 .ais_tabs *{
-  font-family: 'Roboto', sans-serif;  
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
 }
 .ais_tabs{
@@ -34,7 +34,7 @@
     -moz-user-select: none;
     -khtml-user-select: none;
     -webkit-user-select: none;
- 
+
     /*
       Introduced in IE 10.
       See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
@@ -42,13 +42,13 @@
     -ms-user-select: none;
     user-select: none;
  }
-        		
+
 .VesselSearchTool:hover{
 	background-color: #eee;
-}	
+}
 .leaflet-gmx-icon-active.VesselSearchTool > span{
 	color:#f57c00;
-}	
+}
 .VesselSearchTool{
 	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
 	background-color: white;
@@ -84,7 +84,7 @@
     -moz-user-select: none;
     -khtml-user-select: none;
     -webkit-user-select: none;
- 
+
     /*
       Introduced in IE 10.
       See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
@@ -136,10 +136,10 @@
   .ais_view.search_view select{
     -webkit-appearance: none;
     -moz-appearance: none;
-    
+
     background: transparent;
     border: none;
-  
+
     padding-right: 22px;
     padding-left: 6px;
     font-size:11px;
@@ -150,7 +150,7 @@
   .ais_view.search_view select::-ms-expand {
           display: none;
   }
-  .ais_view i.icon-down-dir{  
+  .ais_view i.icon-down-dir{
     position: relative;
     top: 4px;
   }
@@ -162,25 +162,25 @@
     width: 360px;
     background-color: #e1e8ed;
   }
-  
+
   .ais_view .instruments td{
       padding:15px;
     }
-  
+
   .ais_view .instruments .count{
       width:90%;
       color: #CCC;
       padding-left: 10px;
     }
-  
+
     .ais_view .calendar{
       margin-bottom:10px;
     }
-  
+
     .ais_view .calendar td{
       padding:0;
     }
-  
+
   .ais_view .filter{
     background-color: #fff;
     padding-top: 14px;
@@ -197,7 +197,7 @@
   .ais_view .filter input{
     width: 88%;
     padding-left: 10px;
-    border: none;  
+    border: none;
     background: transparent;
     text-transform: uppercase;
     font-weight:700;
@@ -264,7 +264,7 @@
   }
   .ais_view .ais_vessel div.info{
     cursor:pointer;
-  }  
+  }
   .ais_view .ais_vessel div.info img{
     margin-left: 10px;
     visibility: hidden;
@@ -299,7 +299,7 @@
     padding-right:10px
   }
 
-  	
+
 .ais_view .mCSB_scrollTools .mCSB_draggerRail{
     width:6px;
 }
@@ -401,7 +401,7 @@
 .ais_history .ais_positions tr td:nth-of-type(1){
     color:#182026;
     padding-left:28px;
-    width:55px; 
+    width:55px;
     border-left: solid 1px white;
 }
 .ais_history .ais_positions tr td:nth-of-type(6){
@@ -452,14 +452,14 @@
     background-color: #f5f8fa;
     padding:0 0 10px 28px;
 }
-.ais_history .ais_positions td.more.active .vi_more, 
+.ais_history .ais_positions td.more.active .vi_more,
 .ais_history .ais_positions td.more.active hr{
     display:block;
 }
-.ais_history .ais_positions tr td:nth-of-type(1).active{    
+.ais_history .ais_positions tr td:nth-of-type(1).active{
     border-left:solid 1px #48aff1;
 }
-.ais_history .ais_positions tr td:nth-of-type(6).active{    
+.ais_history .ais_positions tr td:nth-of-type(6).active{
     border-right:solid 1px #48aff1;
 }
 
@@ -485,7 +485,7 @@
     -moz-user-select: none;
     -khtml-user-select: none;
     -webkit-user-select: none;
- 
+
     /*
       Introduced in IE 10.
       See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
@@ -656,11 +656,11 @@
     -o-transform: rotate(345deg);
     transform: rotate(345deg);
 }.ais_myfleet_dialog *{
-  font-family: 'Roboto', sans-serif;  
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
 }
 .ais_info_dialog_titlebar *{
-  font-family: 'Roboto', sans-serif;  
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
 }
 
@@ -712,35 +712,35 @@
 .ais_myfleet_dialog .buttons div.button {
   width:30px;
   height:30px;
-  color: #384b50; 
+  color: #384b50;
   background-position: center;
-  background-repeat: no-repeat;   
+  background-repeat: no-repeat;
   cursor:pointer;
   margin-top: 12px;
   margin-left: 8px;
   border-radius: 3px;
 }
 .ais_myfleet_dialog .buttons div.ais.button.active{
-  color: #48aff1; 
-  background-color: #f5f8fa; 
+  color: #48aff1;
+  background-color: #f5f8fa;
   background-position: center;
   background-repeat: no-repeat;
   padding:0;
 }
 .ais_myfleet_dialog .buttons div.button.disabled{
-  color: #ced9e0; 
+  color: #ced9e0;
   background-position: center;
   background-repeat: no-repeat;
   cursor: default;
 }
 .ais_myfleet_dialog .buttons div.button.disabled:hover{
-  color: #ced9e0; 
+  color: #ced9e0;
   background-position: center;
   background-repeat: no-repeat;
   cursor: default;
 }
 .ais_myfleet_dialog .buttons div.button:hover {
-  color: #48aff1; 
+  color: #48aff1;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -797,8 +797,8 @@
 	color:#394b59
 }
 .ais_info_dialog_titlebar td div.date{
-	padding:0 20px 0 20px;	
-	width: 180px;	
+	padding:0 20px 0 20px;
+	width: 180px;
 	font-size:12px;
 	font-weight:normal;
 }
@@ -830,7 +830,7 @@
 .ais_info_dialog_titlebar td span.chooser{
   cursor:pointer;
   font-size:14px;
-  font-weight:bold;	
+  font-weight:bold;
 }
 
 /*.ais_info_dialog_titlebar td div.choose:hover,*/
@@ -858,13 +858,13 @@
             border:none 1px red;
             display: inline-block;
             width:12px;
-            height:12px;            
+            height:12px;
             cursor: pointer;
             background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%23384b50;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%23384b50;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
             background-position: 0px 0px;
             z-index: 1000;
 			margin-top: 1px;
-        } 
+        }
 
 .ais_info_dialog_close-button:hover{
             background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
@@ -879,7 +879,7 @@
 }
 
 .vessel-info-page *{
-    font-family: 'Roboto', sans-serif;  
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
 }
         .vessel-info-page.overlay{
@@ -894,23 +894,23 @@
         .vessel-info-page.overlay td{
             border:none;
             padding:0;
-        } 
+        }
 
         .vessel-info-page.container{
             margin: auto;
-      
-            font-family: 'Open Sans', sans-serif;     
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+
+            font-family: 'Open Sans', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             width:70%;
             border: none 1px white;
             display: none;
-            
-        }   
- 
+
+        }
+
         .vessel-info-page .column1{
             width:1%;
             color: #f5f8fa;
-        }      
+        }
         .vessel-info-page.container .column1 table{
             width:275px;
             background-color: #394b59;
@@ -919,10 +919,10 @@
         .vessel-info-page .column1 td{
             border:none;
             vertical-align: top;
-        } 
+        }
         .vessel-info-page .column1 td.frame{
             vertical-align: bottom
-        } 
+        }
         .vessel-info-page .column1 .cell{
             width:240px;
             padding: 16px 16px;
@@ -932,7 +932,7 @@
         .vessel-info-page .column1 .cell .icon{
             float:left;
             margin-right:10px
-        } 
+        }
         .vessel-info-page .column1 .title{
             height:64px;
             border-bottom: solid 1px #5c7080;
@@ -940,7 +940,7 @@
         }
         .vessel-info-page .column1 .title .cell{
             font-size:14px;
-        }  
+        }
         .vessel-info-page .column1 .title .timestamp{
             font-size: 10px;
             font-weight:normal;
@@ -951,13 +951,13 @@
         }
         .vessel-info-page .column1 .title .timestamp br{
             display:none;
-        }	
+        }
         .vessel-info-page .column1 .menu-item{
             line-height:14px;
             cursor: pointer;
             font-size:14px;
             color:#b7c4cf
-        } 
+        }
         .vessel-info-page .column1 .menu-item img{
             visibility: visible
         }
@@ -1006,7 +1006,7 @@
             text-align: center;
             display: table-cell;
             background-color: #30404d;
-        }  
+        }
         .vessel-info-page .column1 .photo img{
             max-height: 140px;
         }
@@ -1039,7 +1039,7 @@
             text-align: center;
             display: table-cell;
             cursor:pointer;
-        }  
+        }
 
         .vessel-info-page .column2 .register{
             background-color: white;
@@ -1053,9 +1053,9 @@
 			width:100%;
 			height:100%;
 		}
-        .vessel-info-page .column2 .register .caption td{	
+        .vessel-info-page .column2 .register .caption td{
 			padding-left:40px
-		}		
+		}
         .vessel-info-page .column2 .register .menu{
             height:0;
             margin-right:10px;
@@ -1134,7 +1134,7 @@
             padding-left: 80px;
             color:#5c7080;
             background-color: #f5f8fa;
-        }  
+        }
         .vessel-info-page .column2 .ais .caption:nth-of-type(1){
             padding-top: 56px;
             background-position: 0 64px;
@@ -1181,17 +1181,17 @@
             top: 22px;
             left:-20px;
             width:16px;
-            height:16px;            
+            height:16px;
             cursor: pointer;
             background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='16' y2='16' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3Cline x1='0' y1='16' x2='16' y2='0' style='stroke:rgb(89,75,57);stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
             background-position: 0px 0px;
             z-index: 1000;
-        } 
+        }
         .vessel-info-page .picture{
             z-index: 1000;
             cursor:pointer;
         }
-  
+
         .vessel-info-page .mCustomScrollBox div{
             border: none
         }
@@ -1219,7 +1219,7 @@
         margin-left:0;
 }
 .vessel-info-page .register-title .switch.active{
-    background-color: #3ca1d0;    
+    background-color: #3ca1d0;
     color: white;
     cursor: default;
 }
