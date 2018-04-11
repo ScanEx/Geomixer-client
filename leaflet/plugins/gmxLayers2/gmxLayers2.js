@@ -243,6 +243,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
 
     _collapse: function () {
         this._listContainer.className = this._listContainer.className.replace(' leaflet-control-layers-expanded', '');
+        this.setActive(false);
     },
 
     setActive: function (active, skipEvent) {
