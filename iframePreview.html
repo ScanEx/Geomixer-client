@@ -2,33 +2,26 @@
 <html>
     <head>
         <title>Preview</title>
-        <script src="http://kosmosnimki.ru/jquery/jquery-2.1.0.min.js"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="utf-8">
-        <script type="text/javascript">
-            var getQueryVariable = function(variable) {
-                var query = window.location.search.substring(1);
-                var vars = query.split('&');
-                for (var i = 0; i < vars.length; i++) {
-                    var pair = vars[i].split('=');
-                    if (decodeURIComponent(pair[0]) == variable) {
-                        return decodeURIComponent(pair[1]);
-                    }
-                }
-            };
-
-            $(document).ready(function() {
-                var permalink = getQueryVariable('permalinkUrl');
-                var iframeWidth = getQueryVariable('width');
-                var iframeHeight = getQueryVariable('height');
-                $('body').append('<iframe' +
-                    ' src=\"' + permalink + '\"' +
-                    ' width=\"' + iframeWidth + '\"' +
-                    ' height=\"' + iframeHeight + '\"' +
-                    '></iframe>');
-            });
-        </script>
     </head>
     <body>
+        <script type="text/javascript">
+			var search = window.location.search,
+				arr = (search.indexOf('?') === 0 ? search.substr(1) : search).split('&'),
+				queryKey = {};
+
+			arr.forEach(function(pt) {
+				var arr1 = pt.split('=');
+				queryKey[arr1[0]] = decodeURIComponent(arr1[1]);
+
+			});
+
+			var iframe = document.createElement('iframe');
+			iframe.width = queryKey.width || 800;
+			iframe.height = queryKey.height || 600;
+			iframe.src = decodeURIComponent(queryKey.permalinkUrl);
+			document.body.appendChild(iframe);
+        </script>
     </body>
 </html>
