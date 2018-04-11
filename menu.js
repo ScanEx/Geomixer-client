@@ -494,7 +494,7 @@ UpMenu.prototype.openTab = function(id, event)
     if (this.disabledTabs[id] || !this.refs[id]) {
         return;
     }
-    debugger;
+
     var item = this.refs[id];
 
     this.removeSelections();
