@@ -210,8 +210,9 @@ UpMenu.prototype.draw = function()
 
     $(ui).find('.menuClickable').each(function() {
         var id = $(this).attr('hash');
-        $(this).click(function() {
-            _this.refs[id].disabled || _this.openTab(id);
+        $(this).click(function(e) {
+            e.stopPropagation();
+            _this.refs[id].disabled || _this.openTab(id, e);
         });
     });
 
@@ -268,10 +269,10 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
         if (!_this.clicked) {
             var isTopLevel = $(elem).hasClass('header1'),
                 hash = this.getAttribute('hash');
-            _this.clicked = true;
 
             if (isTopLevel && !_this.currentTopHash) {
                 _this.currentTopHash = hash;
+                _this.clicked = true;
             }
 
             if ($('#' + hash)[0]) {
@@ -488,18 +489,21 @@ UpMenu.prototype.go = function(container)
 	this.openTab(this.defaultHash);
 }
 
-UpMenu.prototype.openTab = function(id)
+UpMenu.prototype.openTab = function(id, event)
 {
     if (this.disabledTabs[id] || !this.refs[id]) {
         return;
     }
-
+    debugger;
     var item = this.refs[id];
 
     this.removeSelections();
 	this.hideMenus();
 
     if (item.func) {
+        this.clicked = false;
+        event.stopPropagation();
+        this.hideOnClick(event);
         item.func(id);
     } else {
         var func = item[item.checked ? 'onunsel' : 'onsel'];
