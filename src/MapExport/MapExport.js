@@ -727,10 +727,14 @@ var nsGmx = window.nsGmx || {};
                 $(exportButton).toggle();
                 $(cancelButton).toggle();
 
+                if (nsGmx.leafletMap.gmxBaseLayersManager.getCurrentID() === 'empty') {
+                    exportParams.transparentColor='DDDDDD';
+                }
+
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
 
                 function processLink(id){
-                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + 'http://' + window.location.host + window.location.pathname + '?permalink=' + id;
+                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.location.protocol + '//' + window.location.host + window.location.pathname + '?permalink=' + id;
 
                     _this.model.set({
                         exportErr: false
