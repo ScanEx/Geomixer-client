@@ -727,7 +727,7 @@ var nsGmx = window.nsGmx || {};
                 $(exportButton).toggle();
                 $(cancelButton).toggle();
 
-                if (nsGmx.leafletMap.gmxBaseLayersManager.getCurrentID() === 'empty') {
+                if (attrs.format === 'png' && nsGmx.leafletMap.gmxBaseLayersManager.getCurrentID() === 'empty') {
                     exportParams.transparentColor='DDDDDD';
                 }
 

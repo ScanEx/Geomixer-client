@@ -1,10 +1,10 @@
 /** Загрузчик модулей ГеоМиксера
-Позволяет загружать модули из разных файлов. 
+Позволяет загружать модули из разных файлов.
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
 @namespace
 */
 
-var gmxCore = function() 
+var gmxCore = function()
 {
     var _callbacks = [];
     var _modules = {}; //null - файл модуля уже загружается, но сам модуль пока не доступен
@@ -12,7 +12,7 @@ var gmxCore = function()
 	var _modulesDefaultHost = "";
 	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
 	var _moduleFiles = {/*#buildinclude<module_files.txt>*/};
-    
+
     var getScriptURL = function(scriptName)
 	{
         scriptName = scriptName.toLowerCase();
@@ -25,7 +25,7 @@ var gmxCore = function()
 		}
 		return false;
 	}
-    
+
     //производится регистронезависимое сравнение
 	var getScriptBase = function(scriptName)
 	{
@@ -33,7 +33,7 @@ var gmxCore = function()
 		var url = getScriptURL(scriptName);
 		return url ? url.toLowerCase().substring(0, url.toLowerCase().indexOf(scriptName)) : "";
 	}
-    
+
     var invokeCallbacks = function()
     {
         for (var k = 0; k < _callbacks.length; k++)
@@ -50,11 +50,11 @@ var gmxCore = function()
                 }
 				modules.push(_modules[curModules[m]]);
 			}
-                
+
             if (isAllModules)
             {
                 var curCallback = _callbacks[k].callback;
-                
+
                 //first delete, then callback!
                 _callbacks.splice(k, 1);
                 k = k - 1;
@@ -67,7 +67,7 @@ var gmxCore = function()
     {
         if (!LABjsDeferred) {
             LABjsDeferred = $.Deferred();
-            
+
             //load LAB.js (snippest from its website)
             (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
             H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;LABjsDeferred.resolve()};
@@ -75,14 +75,14 @@ var gmxCore = function()
             a.src = ( getScriptBase('gmxcore.js') || window.gmxJSHost || "" ) + 'LAB.min.js';
 
             c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
-        
+
         }
-        
+
         return LABjsDeferred.promise();
     }
-    
+
     var cssLoader = null;
-    
+
     var withCachePostfix = function(filename) {
         var sym = filename.indexOf('?') === -1 ? '?' : '&';
         if (window.gmxDropBrowserCache) {
@@ -90,11 +90,11 @@ var gmxCore = function()
         } else if (window.nsGmx && nsGmx.buildGUID){
             filename += sym + nsGmx.buildGUID;
         }
-        
+
         return filename;
     }
-    
-    var publicInterface = 
+
+    var publicInterface =
     /** @lends gmxCore */
     {
         /** Добавить новый модуль
@@ -110,10 +110,10 @@ var gmxCore = function()
             var requiredModules = (options && 'require' in options) ? options.require : [];
             var initDeferred = null;
             var _this = this;
-            
+
             for (var r = 0; r < requiredModules.length; r++)
                 this.loadModule( requiredModules[r] );
-                
+
             this.addModulesCallback( requiredModules, function()
             {
 
@@ -121,12 +121,12 @@ var gmxCore = function()
 				{
                     initDeferred = options.init(moduleObj, _modulePathes[moduleName]);
 				}
-                
+
                 if (options && 'css' in options)
 				{
                     var cssFiles = typeof options.css === 'string' ? [options.css] : options.css;
                     var path = _modulePathes[moduleName] || window.gmxJSHost || "";
-                    
+
                     for (var iF = 0; iF < cssFiles.length; iF++)
                         _this.loadCSS(withCachePostfix(path + cssFiles[iF]));
 				}
@@ -138,7 +138,7 @@ var gmxCore = function()
                     _modules[moduleName] = moduleObj;
                     invokeCallbacks();
                 }
-                
+
                 if (initDeferred) {
                     initDeferred.done(doAdd);
                 } else {
@@ -146,7 +146,7 @@ var gmxCore = function()
                 }
             });
         },
-        
+
         /** Загрузить модуль
         * @param { String } moduleName Имя модуля для загрузки
         * @param { String } [moduleSource] Имя файла, откуда загружать модуль. Если не указан, будет сформирован в виде (defaultHost + moduleName + '.js')
@@ -156,25 +156,25 @@ var gmxCore = function()
         loadModule: function(moduleName, moduleSource, callback)
         {
             var def = $.Deferred();
-            
+
             if (typeof moduleSource === 'function') {
                 callback = moduleSource;
                 moduleSource = undefined;
             }
-            
+
             this.addModulesCallback([moduleName], function(module)
             {
                 callback && callback(module);
                 def.resolve(module);
             });
-            
+
             if ( ! (moduleName in _modules) )
             {
                 _modules[moduleName] = null;
-                
+
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
-                
+
                 var path;
                 if (typeof moduleSource != 'undefined')
                 {
@@ -188,22 +188,22 @@ var gmxCore = function()
                 var pathRegexp = /(.*)\/[^\/]+/;
                 if ( typeof _modulePathes[moduleName] === 'undefined' )
                     _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
-				
+
                 var pathPostfix = "";
-                
+
                 newScript.onerror = function() {
                     def.reject();
                 }
-                
+
                 newScript.type = 'text/javascript';
                 newScript.src = withCachePostfix(path);
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
             }
-            
+
             return def;
         },
-        
+
         /** Добавить callback, который будет вызван после загрузки моделей
         *
         * Если модули уже загружены, callback будет вызван сразу же
@@ -216,7 +216,7 @@ var gmxCore = function()
             _callbacks.push({modules: moduleNames, callback: callback});
             invokeCallbacks();
         },
-        
+
         /** Получить модуль по имени.
         *
         * @param {String} moduleName Имя модуля
@@ -226,7 +226,7 @@ var gmxCore = function()
         {
             return _modules[moduleName] || null;
         },
-		
+
         /** Установить дефольный путь к модулям. Используется если указан локальный файл модуля.
         * @param {String} defaultHost Дефолтный путь у модулям.
         */
@@ -234,7 +234,7 @@ var gmxCore = function()
 		{
 			_modulesDefaultHost = defaultHost;
 		},
-        
+
         /** Явно задать полный путь к модулю
         * @param {String} moduleName Имя модуля
         * @param {String} defaultHost Путь к файлу модулю. При загрузке модуля будет загружен файл по указанному пути
@@ -243,16 +243,16 @@ var gmxCore = function()
         {
             _moduleFiles[moduleName] = moduleFile;
         },
-		
+
         pushModule2GlobalNamespace: function(moduleName)
         {
             if ( !_modules[moduleName] ) return;
             var module = _modules[moduleName];
-            
+
             for (var p in module)
                 _globalNamespace[p] = module[p];
         },
-		
+
         /** Получить путь к директории, из которой был загружен модуль.
         * @param {String} moduleName Имя модуля
         * @returns {String} Путь к директории, из которой был загружен модуль. Для не загруженных модулей ничего не возвращает
@@ -261,7 +261,7 @@ var gmxCore = function()
 		{
 			return _modulePathes[moduleName];
 		},
-        
+
         /** Возвращает ф-цию, которая делает следующее:
         *
         *  - Если модуль moduleName не загружен, загружает его
@@ -285,11 +285,11 @@ var gmxCore = function()
                     callback && callback(res);
                     deferred.resolve(res);
                 });
-                
+
                 return deferred.promise();
             }
         },
-        
+
         /** Загружает скрипт после предвариетельной проверки условий.
         *
         * @param {Array} filesInfo Массив объектов со следующими свойствами:
@@ -304,7 +304,7 @@ var gmxCore = function()
             var _this = this;
             var localFilesInfo = filesInfo.slice(0);
             var def = $.Deferred();
-            
+
             var doLoad = function(info)
             {
                 if (localFilesInfo.length > 0)
@@ -319,7 +319,7 @@ var gmxCore = function()
                             css = [css];
                         }
                         css.forEach(_this.loadCSS);
-                        
+
                         if (curInfo.script)
                             _this.loadScript(curInfo.script).then(doLoad);
                         else
@@ -329,11 +329,11 @@ var gmxCore = function()
                 else
                     def.resolve();
             }
-            
+
             doLoad();
             return def.promise();
         },
-        
+
         /**
         * Загружает отдельный скрипт
         * @param {String} fileName Имя файла скрипта
@@ -350,7 +350,7 @@ var gmxCore = function()
                 if (charset) {
                     descr.charset = charset;
                 }
-                
+
                 $LAB.script(descr).wait(function()
                 {
                     def.resolve();
@@ -358,8 +358,8 @@ var gmxCore = function()
                 })
             })
             return def.promise();
-        }, 
-        
+        },
+
         /** Загрузить отдельный css файл
         * @param {String} cssFilename Имя css файла.
         */
@@ -369,7 +369,7 @@ var gmxCore = function()
             {
                 $.getCSS(withCachePostfix(cssFilename));
             }
-            
+
             if ('getCSS' in $)
             {
                 doLoadCss()
@@ -381,12 +381,12 @@ var gmxCore = function()
                     var path = getScriptBase('gmxcore.js') || window.gmxJSHost || "";
                     cssLoader = $.getScript(path + "jquery/jquery.getCSS.js");
                 }
-                
+
                 cssLoader.done(doLoadCss);
             }
         }
     }
-    
+
     return publicInterface;
 }();
 window.nsGmx = window.nsGmx || {};
@@ -762,50 +762,50 @@ gmxCore.addModule('PluginsManager', publicInterface);
 var translationsHash = function()
 {
 	this.hash = {};
-	
+
 	this.flags = {};
-	
+
 	this.titles = {};
-    
+
     this._errorHandlers = [];
 }
 
 var DEFAULT_LANGUAGE = 'rus';
 
-//Для запоминания выбора языка пользователем используются куки. 
+//Для запоминания выбора языка пользователем используются куки.
 //Запоминается выбор для каждого pathname, а не только для домена целиком
 //Формат куки: pathname1=lang1&pathname2=lang2&...
 var _parseLanguageCookie = function()
 {
     var text = readCookie("language");
-    
-    if (!text) 
+
+    if (!text)
         return {};
-    
+
     var items = text.split('&');
 
     //поддержка старого формата кук (просто названия взыка для всех pathname)
     if (items % 2) items = [];
-    
+
     var langs = {};
     for (var i = 0; i < items.length; i++)
     {
         var elems = items[i].split('=');
         langs[decodeURIComponent(elems[0])] = decodeURIComponent(elems[1]);
     }
-    
+
     return langs;
 }
 
 var _saveLanguageCookie = function(langs)
 {
     var cookies = [];
-    
+
     for (var h in langs)
     {
         cookies.push(encodeURIComponent(h) + '=' + encodeURIComponent(langs[h]));
     }
-    
+
     eraseCookie("language");
     createCookie("language", cookies.join('&'));
 }
@@ -849,7 +849,7 @@ TranslationsManager.prototype._addTextWithPrefix = function(prefix, lang, newHas
  @param {String} lang Язык, к которому добавляются строки
  @param {Object} strings Список добавляемых строк. Должен быть объектом, в котором атрибуты являются ключами перевода.
                  Если значение атрибута - строка, то она записывается как результат локализации данного ключа.
-                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой 
+                 Если значение атрибута - другой объект, то название текущего атрибута будет добавлено с точкой
                  к названию атрибутов в этом объекте. Например: {a: {b: 'бэ', c: 'це'}} сформируют ключи локализации 'a.b' и 'a.c'.
 */
 TranslationsManager.prototype.addText = function(lang, newHash) {
@@ -894,12 +894,12 @@ TranslationsManager.prototype.setLanguage = function(lang) {
  @return {String} Текущий язык (eng/rus/...)
 */
 TranslationsManager.prototype.getLanguage = function() {
-    return TranslationsManager.prototype._language || 
-           (typeof window !== 'undefined' && window.language) || 
+    return TranslationsManager.prototype._language ||
+           (typeof window !== 'undefined' && window.language) ||
            DEFAULT_LANGUAGE;
 }
 
-/** Добавить обработчик ошибок локализации. 
+/** Добавить обработчик ошибок локализации.
     При возникновении ошибок (не определён язык, не найден перевод) будет вызываться каждый из обработчиков
  @func addErrorHandler
  @memberOf nsGmx.Translations
@@ -963,7 +963,7 @@ window.nsGmx.Translations = commonTranslationsManager;
 var prev_gtxt = window._gtxt,
     prev_translationsHash = window._translationsHash,
     prevTranslationsHash = window.translationsHash;
-    
+
 /** Убирает из глобальной видимости все объекты и ф-ции, связанные с локализацией
  @name noConflicts
  @memberOf nsGmx.Translations
@@ -983,13 +983,13 @@ _translationsHash.gettext = commonTranslationsManager.getText.bind(commonTransla
 _translationsHash.addtext = commonTranslationsManager.addText.bind(commonTranslationsManager),
 _translationsHash.showLanguages = function() {
     var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']]);
-    
+
     for (var lang in this.hash)
     {
         if (lang != window.language)
         {
             var button = makeLinkButton(_translationsHash.titles[lang]);
-            
+
             button.style.marginLeft = '5px';
             button.style.fontSize = '11px';
 
@@ -1003,12 +1003,12 @@ _translationsHash.showLanguages = function() {
                     window.location.reload();
                 }
             }.bind(null, lang);
-            
+
             _title(button, this.titles[lang]);
-            
+
             langCanvas.appendChild(button);
         }
-        else 
+        else
         {
             langCanvas.appendChild(_span([_t(_translationsHash.titles[lang])], [['css','marginLeft','5px'], ['css','color','#fc830b']]));
         }
@@ -4332,11 +4332,11 @@ var nsGmx = nsGmx || {};
 (function($)
 {
     $.extend(nsGmx, {
-        ROLE_ADMIN        : 'admin', 
+        ROLE_ADMIN        : 'admin',
         ROLE_USER         : 'user',
         ROLE_GUEST        : 'guest',
         ROLE_UNAUTHORIZED : 'none',
-        
+
         ACTION_CREATE_LAYERS        : 'createData',      // Создавать новые слои (векторные и растровые)
         ACTION_CREATE_MAP           : 'createMap',       // Cоздавать новые карты
         ACTION_SAVE_MAP             : 'saveMap',         // Сохранять карту (нужны права редактирования на карту)
@@ -4349,9 +4349,9 @@ var nsGmx = nsGmx || {};
         ACTION_SEE_USER_FULLNAME    : 'seeUserFullname', // Видеть полные имена и логины пользователей (а не только псевдонимы)
         ACTION_UPLOAD_FILES         : 'uploadFiles'      // Загружать файлы на сервер через web-интерфейс
     });
-    
+
     var _actions = {};
-    _actions[nsGmx.ROLE_ADMIN] = {};    
+    _actions[nsGmx.ROLE_ADMIN] = {};
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_CREATE_LAYERS       ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_CREATE_MAP          ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SAVE_MAP            ] = true;
@@ -4363,7 +4363,7 @@ var nsGmx = nsGmx || {};
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_ALL_USERS       ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_USER_FULLNAME   ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_UPLOAD_FILES        ] = true;
-    
+
     _actions[nsGmx.ROLE_USER] = {};
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_CREATE_LAYERS     ] = true;
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_CREATE_MAP        ] = true;
@@ -4371,75 +4371,75 @@ var nsGmx = nsGmx || {};
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_SEE_OPEN_MAP_LIST ] = true;
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_SEE_MAP_RIGHTS    ] = true;
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_UPLOAD_FILES      ] = true;
-    
+
     _actions[nsGmx.ROLE_GUEST] = {}
     _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_SEE_OPEN_MAP_LIST ] = true;
     _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_SAVE_MAP          ] = true;
-    
+
     nsGmx.AuthManager = new function()
     {
         var _userInfo = null;
         var _this = this;
-        
+
         this.getLogin = function()
         {
             if (!_userInfo) return null;
             return _userInfo.Login || null;
         };
-        
+
         this.getNickname = function()
         {
             if (!_userInfo) return null;
             return _userInfo.Nickname || null;
         };
-        
+
         this.getFullname = function()
         {
             if (!_userInfo) return null;
             return _userInfo.FullName || null;
         };
-        
+
         this.getUserFolder = function()
         {
             if (!_userInfo) return null;
             return _userInfo.Folder;
         };
-        
+
         this.isRole = function(role)
         {
             return _userInfo && _userInfo.Role === role;
         };
-        
+
         this.canDoAction = function(action)
         {
             return _userInfo && _userInfo.Role in _actions && action in _actions[_userInfo.Role];
         };
-        
+
         this.isAccounts = function()
         {
             return _userInfo && _userInfo.IsAccounts;
         };
-        
+
         this.isLogin = function()
         {
             return _userInfo && _userInfo.Login !== false && _userInfo.Role !== this.ROLE_UNAUTHORIZED;
         };
-        
+
         this.setUserInfo = function(userInfo)
         {
             _userInfo = $.extend({}, {IsAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
             $(this).triggerHandler('change');
-        };        
-        
+        };
+
         this.checkUserInfo = function(callback, errorCallback)
         {
             //var isTokenUsed = false;
             var _processResponse = function( response )
             {
                 var resOk = parseResponse(response);
-                
+
                 !resOk && errorCallback && errorCallback();
-                    
+
                 if (response.Result == null || !resOk)
                 {
                     // юзер не авторизован
@@ -4449,11 +4449,11 @@ var nsGmx = nsGmx || {};
                 {
                     _this.setUserInfo(response.Result);
                 }
-                
+
                 resOk && callback && callback();
             }
-            
-            
+
+
             for (var iProvider = 0; iProvider < checkProviders.length; iProvider++)
             {
                 if (checkProviders[iProvider].canAuth())
@@ -4462,7 +4462,7 @@ var nsGmx = nsGmx || {};
                     return;
                 }
             }
-            
+
             sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', function(response) {
                 if (response.Status === 'ok' && !response.Result && window.mapsSite && window.gmxAuthServer) {
                     var callbackPath = location.href.match(/(.*)\//)[0] + 'oAuthCallback.html';
@@ -4475,7 +4475,7 @@ var nsGmx = nsGmx || {};
                 }
             })
         }
-        
+
         this.login = function(login, password, callback, errorCallback)
         {
             sendCrossDomainPostRequest(serverBase + "Login.ashx", {WrapStyle: 'message', login: login, pass: password}, function(response)
@@ -4483,9 +4483,9 @@ var nsGmx = nsGmx || {};
                 if (response.Status == 'ok' && response.Result)
                 {
                     _this.setUserInfo(response.Result);
-                    
+
                     doAuthServerLogin(response.Result && response.Result.Token);
-                    
+
                     callback && callback();
                 }
                 else
@@ -4498,14 +4498,14 @@ var nsGmx = nsGmx || {};
                 }
             });
         }
-        
+
         this.logout = function(callback)
         {
             sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1", function(response)
             {
                 if (!parseResponse(response))
                     return;
-                    
+
                 if (_this.isAccounts() && window.gmxAuthServer)
                 {
                     sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Logout", function(response)
@@ -4522,7 +4522,7 @@ var nsGmx = nsGmx || {};
                 }
             });
         }
-        
+
         this.changePassword = function(oldPass, newPass, callback, errorCallback)
         {
             sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + encodeURIComponent(oldPass) + "&new=" + encodeURIComponent(newPass), function(response)
@@ -4537,9 +4537,9 @@ var nsGmx = nsGmx || {};
             });
         }
     }
-    
+
     var checkProviders = [];
-    
+
     var doAuthServerLogin = function(token) {
         if (token && window.mapsSite && window.gmxAuthServer) {
             sendCrossDomainJSONRequest(gmxAuthServer + 'Handler/Me?token=' + encodeURIComponent(token), function(response) {
@@ -4547,7 +4547,7 @@ var nsGmx = nsGmx || {};
             }, 'callback');
         }
     }
-    
+
     //canAuth() -> bool
     //doAuth(callbackSuccess, callbackError)
     nsGmx.AuthManager.addCheckUserMethod = function(provider)
@@ -4837,7 +4837,7 @@ var UPDATE_INTERVAL = 2000;
 
 var sendGmxRequest = function(requestType, url, params) {
     var def = $.Deferred();
-    
+
     var processResponse = function(response) {
         if (!response.Result || !response.Result.TaskID) {
             if (response.Status === 'ok' && !response.ErrorInfo) {
@@ -4848,13 +4848,13 @@ var sendGmxRequest = function(requestType, url, params) {
             }
             return;
         }
-        
+
         def.notify(response.Result);
-        
+
         var taskID = response.Result.TaskID;
-        
+
         var interval = setInterval(function(){
-            sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskID, 
+            sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskID,
                 function(response)
                 {
                     var res = response.Result;
@@ -4874,7 +4874,7 @@ var sendGmxRequest = function(requestType, url, params) {
                     {
                         def.notify(res);
                     }
-                }, null, 
+                }, null,
                 function() {
                     clearInterval(interval);
                     def.reject();
@@ -4882,22 +4882,22 @@ var sendGmxRequest = function(requestType, url, params) {
             );
         }, UPDATE_INTERVAL);
     }
-    
+
     if (requestType === 'get') {
-    
+
         params = params || {};
-    
+
         var paramStrItems = [];
-        
+
         for (var p in params) {
             paramStrItems.push(p + '=' + encodeURIComponent(params[p]));
         }
-        
+
         var sepSym = url.indexOf('?') == -1 ? '?' : '&';
-        
-        
+
+
         sendCrossDomainJSONRequest(
-            url + sepSym + paramStrItems.join('&'), 
+            url + sepSym + paramStrItems.join('&'),
             processResponse, null, def.reject.bind(def)
         );
     } else if (requestType === 'post') {
@@ -4906,7 +4906,7 @@ var sendGmxRequest = function(requestType, url, params) {
     } else {
         throw 'Wrong request type';
     }
-    
+
     return def.promise();
 }
 
@@ -4930,7 +4930,7 @@ nsGmx.DrawingObjectCustomControllers = (function()
 		{
 			_delegates.push(delegate);
 		},
-		
+
 		isHidden: function(obj)
 		{
 			for (var d = 0; d < _delegates.length; d++)
@@ -4938,7 +4938,7 @@ nsGmx.DrawingObjectCustomControllers = (function()
 					return true;
 			return false;
 		},
-		
+
 		isSerializable: function(obj)
 		{
 			for (var d = 0; d < _delegates.length; d++)
@@ -5160,8 +5160,9 @@ UpMenu.prototype.draw = function()
 
     $(ui).find('.menuClickable').each(function() {
         var id = $(this).attr('hash');
-        $(this).click(function() {
-            _this.refs[id].disabled || _this.openTab(id);
+        $(this).click(function(e) {
+            e.stopPropagation();
+            _this.refs[id].disabled || _this.openTab(id, e);
         });
     });
 
@@ -5218,10 +5219,10 @@ UpMenu.prototype.attachEventOnClick = function(elem, className)
         if (!_this.clicked) {
             var isTopLevel = $(elem).hasClass('header1'),
                 hash = this.getAttribute('hash');
-            _this.clicked = true;
 
             if (isTopLevel && !_this.currentTopHash) {
                 _this.currentTopHash = hash;
+                _this.clicked = true;
             }
 
             if ($('#' + hash)[0]) {
@@ -5438,7 +5439,7 @@ UpMenu.prototype.go = function(container)
 	this.openTab(this.defaultHash);
 }
 
-UpMenu.prototype.openTab = function(id)
+UpMenu.prototype.openTab = function(id, event)
 {
     if (this.disabledTabs[id] || !this.refs[id]) {
         return;
@@ -5450,6 +5451,9 @@ UpMenu.prototype.openTab = function(id)
 	this.hideMenus();
 
     if (item.func) {
+        this.clicked = false;
+        event.stopPropagation();
+        this.hideOnClick(event);
         item.func(id);
     } else {
         var func = item[item.checked ? 'onunsel' : 'onsel'];
@@ -6609,7 +6613,7 @@ var nsMapCommon = function($){
                 lmap = nsGmx.leafletMap,
                 center = lmap.getCenter(),
                 layersState = {expanded: {}, visible: {}};
-                
+
             _layersTree.treeModel.forEachNode(function(elem) {
                 var props = elem.content.properties;
                 if (elem.type == 'group') {
@@ -6624,7 +6628,7 @@ var nsMapCommon = function($){
                     }
                 }
             });
-            
+
             var config = {
                 app: {
                     gmxMap: {
@@ -6657,7 +6661,7 @@ var nsMapCommon = function($){
         {
             var _array = [];
             var _hash = {};
-            
+
             var _getLayersInGroup = function(map, mapTree, groupTitle)
             {
                 var res = {};
@@ -6678,8 +6682,8 @@ var nsMapCommon = function($){
 
                 visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
                 return res;
-            }    
-            
+            }
+
             for (var k = 0; k < description.length; k++)
                 if ( typeof description[k] === "string" )
                 {
@@ -6695,28 +6699,28 @@ var nsMapCommon = function($){
                         _array.push( groupHash[l] );
                     }
                 }
-                
+
             return {
                 asArray: function() { return _array; },
                 asHash: function() { return _hash; },
                 names: function()
                 {
                     var res = [];
-                    
-                    for (var l in _hash) 
+
+                    for (var l in _hash)
                         res.push(l);
-                        
+
                     return res;
                 }
             }
         }
     };
-    
+
     if (typeof gmxCore !== 'undefined')
     {
         gmxCore.addModule('MapCommon', publicInterface);
     }
-    
+
     return publicInterface;
 }(jQuery);
 !(function(_) {
@@ -7132,50 +7136,50 @@ var nsGmx = nsGmx || {};
 */
 nsGmx.LayersTree = function( tree )
 {
-    /** Изменилась видимость узла дерева. Если изменения касаются нескольких узлов, событие будет 
-        генерироваться для каждого узла по отдельности. Кроме того, это же событие генерируется 
+    /** Изменилась видимость узла дерева. Если изменения касаются нескольких узлов, событие будет
+        генерироваться для каждого узла по отдельности. Кроме того, это же событие генерируется
         на отдельных узлах дерева.
      * @event nsGmx.LayersTree#nodeVisibilityChange
      * @param {nsGmx.LayersTree~Node} node Узел, видимость которой изменилась
      */
     var _tree = tree;
     var _this = this;
-    
+
     var _findElem = function(elem, propName, propValue, parents)
     {
         var childs = typeof elem.children != 'undefined' ? elem.children : elem.content.children;
-        
+
         for (var i = 0; i < childs.length; i++)
         {
             var props = childs[i].content.properties;
             if (propName in props && props[propName] === propValue) {
                 return {elem:childs[i], parents: [elem].concat(parents || []), index: i};
             }
-            
+
             if (typeof childs[i].content.children != 'undefined')
             {
                 var res = _findElem(childs[i], propName, propValue, [elem].concat(parents || []));
-                
+
                 if (res)
                     return res;
             }
         }
     }
-    
+
     /** Получить исходное дерево слоёв
     */
-    this.getRawTree = function() 
+    this.getRawTree = function()
     {
         return _tree;
     }
-    
+
     /** Получить свойства карты
     */
-    this.getMapProperties = function() 
+    this.getMapProperties = function()
     {
         return _tree.properties;
     }
-    
+
     /** Поиск узла дерева по значению одного из атрибутов. Ищет как папки, так и слои. Возвращает первый найденный результат
      * @param {String} propName Имя атрибута
      * @param {String} propValue Значение атрибута
@@ -7185,7 +7189,7 @@ nsGmx.LayersTree = function( tree )
     {
         return _findElem(_tree, propName, propValue);
     }
-    
+
     this.findElemByGmxProperties = function(gmxProperties)
     {
         if (gmxProperties.type == 'group') //группа
@@ -7193,7 +7197,7 @@ nsGmx.LayersTree = function( tree )
         else
             return this.findElem("name", gmxProperties.content.properties.name);
     }
-    
+
     /** Итерирование по всем слоям группы дерева
      * @param {nsGmx.LayersTree~LayerVisitor} callback Будет вызвана для каждого слоя внутри группы. Первый аргумент - свойства слоя, второй - видимость слоя
      * @param {nsGmx.LayersTree~Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
@@ -7206,7 +7210,7 @@ nsGmx.LayersTree = function( tree )
             }
         }, groupNode)
     }
-    
+
     /** Итерирование по всем под-узлам узла дерева
      * @param {nsGmx.LayersTree~NodeVisitor} callback Будет вызвана для каждого узла внутри группы. Первый аргумент - узел, второй - видимость узла
      * @param {nsGmx.LayersTree~Node} [groupNode] Группа, внутри которой проводить поиск. Если не указана, будет проводиться поиск по всему дереву.
@@ -7216,25 +7220,25 @@ nsGmx.LayersTree = function( tree )
         var forEachNodeRec = function(o, isVisible, nodeDepth)
         {
             isVisible = isVisible && !!o.content.properties.visible;
-            
+
             callback(o, isVisible, nodeDepth);
-            
+
             if (o.type === 'group') {
                 var a = o.content.children;
                 for (var k = a.length - 1; k >= 0; k--)
                     forEachNodeRec(a[k], isVisible, nodeDepth + 1);
             }
         }
-        
+
         var layers = groupNode ? groupNode.content : _tree;
-        
+
         for (var k = layers.children.length - 1; k >= 0; k--) {
             forEachNodeRec(layers.children[k], true, 0);
         }
     }
-    
+
     /** Клонирование дерева с возможностью его модификации
-     * @param {function(node):nsGmx.LayersTree~Node|null} filterFunc - ф-ция, которая может модифицировать узлы дерева. 
+     * @param {function(node):nsGmx.LayersTree~Node|null} filterFunc - ф-ция, которая может модифицировать узлы дерева.
                 Вызывается при клонировании очередного узла. Изменения данных можно делать in-place.
                 Для групп вызывается после обработки всех потомков. Если возвращает null, то узел удаляется
      */
@@ -7254,7 +7258,7 @@ nsGmx.LayersTree = function( tree )
                     newNode && newChildren.push(newNode);
                 }
                 return filterFunc({
-                    type: 'group', 
+                    type: 'group',
                     content: {
                         children: newChildren,
                         properties: $.extend(true, {}, o.content.properties)
@@ -7262,21 +7266,21 @@ nsGmx.LayersTree = function( tree )
                 })
             }
         }
-        
+
         var newFirstLevelGroups = [];
         for (var k = 0; k < _tree.children.length; k++) {
             var newNode = forEachLayerRec(_tree.children[k]);
             newNode && newFirstLevelGroups.push(newNode);
         }
-        
+
         return {
             properties: $.extend(true, {}, _tree.properties),
             children: newFirstLevelGroups
         }
     }
-    
+
     //Методы управления видимостью слоёв в дереве
-    
+
     //проходится по всему поддереву elem и устанавливает видимость isVisible всем узлам включая elem (учитывая ограничения на radio buttons)
     var setSubtreeVisibility = function(elem, isVisible) {
         var props = elem.content.properties;
@@ -7284,7 +7288,7 @@ nsGmx.LayersTree = function( tree )
             props.visible = isVisible;
             $(_this).triggerHandler('nodeVisibilityChange', [elem]);
             $(elem).triggerHandler('nodeVisibilityChange', [elem]);
-            
+
             if (elem.content.children) {
                 for (var c = 0; c < elem.content.children.length; c++) {
                     var vis = isVisible && (!props.list || c == 0); //когда делаем видимой группу-список, виден только первый элемент группы
@@ -7292,8 +7296,8 @@ nsGmx.LayersTree = function( tree )
                 }
             }
         }
-    }    
-    
+    }
+
     /** Устанавливает видимость узла дерева и всех родительских элементов данного узла в зависимости от видимости его прямых потомков. Узел должен быть группой.
      * При этом разруливаются конфликты с несколькими видимыми узлами в radio-группах.
      * @param {nsGmx.LayersTree~Node} node Узел дерева, видимость которого нужно обновить
@@ -7306,28 +7310,28 @@ nsGmx.LayersTree = function( tree )
             children = elem.content.children,
             triggerNodeVisible = triggerSubnode ? triggerSubnode.content.properties.visible : false,
             visibleNode = triggerNodeVisible ? triggerSubnode : null;
-        
+
         var isVisible = false;
         for (var c = 0; c < children.length; c++) {
             var child = children[c];
             var childVisible = child.content.properties.visible;
             isVisible = isVisible || childVisible;
-            
+
             if (childVisible && !visibleNode) {
                 visibleNode = child;
             }
-            
+
             if (isList && childVisible && child !== visibleNode) {
                 setSubtreeVisibility(child, false);
             }
         }
-        
+
         if (isVisible !== props.visible) {
             props.visible = isVisible;
-            
+
             $(this).triggerHandler('nodeVisibilityChange', [elem]);
             $(elem).triggerHandler('nodeVisibilityChange', [elem]);
-            
+
             if (!parents) {
                 parents = this.findElemByGmxProperties(elem).parents;
                 parents.pop(); //последний элемент - карта; нас не интересует
@@ -7336,8 +7340,8 @@ nsGmx.LayersTree = function( tree )
             parent && this.updateNodeVisibility(parent, elem, parents);
         }
     }
-    
-    /** Задать видимость узла дерева. Будут сделаны все нужные изменения видимости как выше, 
+
+    /** Задать видимость узла дерева. Будут сделаны все нужные изменения видимости как выше,
      * так и ниже по дереву относительно этого узла.
      * @param {nsGmx.LayersTree~Node} node Узел дерева, которому мы хотим задать видимость
      * @param {Boolean} isVisible Видимость узла (true - виден)
@@ -7346,7 +7350,7 @@ nsGmx.LayersTree = function( tree )
         if (node.content.properties.visible != isVisible) {
             //устанавливаем видимость поддерева, которое начинается с этого элемента
             setSubtreeVisibility(node, isVisible);
-            
+
             //идём вверх по дереву до корня и меняем видимость родителей
             var parentElem = _this.findElemByGmxProperties(node).parents[0];
             parentElem && parentElem.content && this.updateNodeVisibility(parentElem, node);
@@ -9019,9 +9023,9 @@ nsGmx.LazyAttributeValuesProviderFromArray = function( attributes )
 
 	this.isAttributeExists = function( attrName )
 	{
-		return attrName in _attrs; 
+		return attrName in _attrs;
 	};
-	
+
 	this.getValuesForAttribute = function( attrName, callback )
 	{
 		if ( attrName in _attrs )
@@ -9043,7 +9047,7 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 	var _attrs = attributes;
 	var _isInited = false;
 	var _isProcessing = false;
-	
+
 	//в процессе ожидания ответа от сервера мы можем получать запросы на разные аттрибуты
 	//важно все их правильно сохранить и выхвать при получении данных
 	var _callbacks = {};
@@ -9054,9 +9058,9 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
     */
 	this.isAttributeExists = function( attrName )
 	{
-		return attrName in _attrs; 
+		return attrName in _attrs;
 	};
-	
+
     /** Получить доступные значения атрибута
         @param {String} attrName Имя атрибута
         @param {Function} callback Ф-ция, которая будет вызвана со списком атрибутов, когда он станет доступным
@@ -9066,19 +9070,19 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 		if ( !(attrName in _attrs) ) //вообще нет такого имени
 			callback();
 		else if ( _attrs[attrName].length ) //есть вектор значений!
-			callback( _attrs[attrName] ); 
+			callback( _attrs[attrName] );
 		else if (_isInited) //вектора значений всё ещё нет и уже ходили на сервер - второй раз пробовать не будем...
-			callback(); 
+			callback();
 		else
 		{
 			if ( !(attrName in _callbacks) )
 				_callbacks[attrName] = [];
-			
+
 			_callbacks[attrName].push(callback);
-			
+
 			if (_isProcessing) return;
 			//идём на сервер и запрашиваем значения аттрибутов!
-			
+
 			_isProcessing = true;
 			sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetVectorAttrValues.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
 			{
@@ -9091,7 +9095,7 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 							_callbacks[n][k]();
 					return;
 				}
-				
+
 				_attrs = response.Result;
 				for (var n in _callbacks)
 					for (var k = 0; k < _callbacks[n].length; k++)
@@ -9114,12 +9118,12 @@ nsGmx.ShpEncodingWidget = function()
         'iso-8859-5': 'iso-8859-5',
         'koi8-u': 'koi8-u',
         'cp866': 'cp866'
-        
+
     };
     var _DEFAULT_ENCODING = 'windows-1251';
     var _curEncoding = _DEFAULT_ENCODING;
     var _this = this;
-    
+
     this.drawWidget = function(container, initialEncoding)
     {
         initialEncoding = initialEncoding || _DEFAULT_ENCODING;
@@ -9129,25 +9133,25 @@ nsGmx.ShpEncodingWidget = function()
             _curEncoding = $('option:selected', select).val();
             $(_this).change();
         });
-        
+
         var isStandard = false;
         for (var enc in _encodings)
         {
             var opt = $('<option></option>').val(enc).text(enc);
-            
+
             if (_encodings[enc] === initialEncoding)
             {
                 opt.attr('selected', 'selected');
                 _curEncoding = enc;
                 isStandard = true;
             }
-                
+
             select.append(opt);
         }
-        
+
         var anotherCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'otherEncoding'});
         var anotherInput = $("<input></input>", {'class': 'VectorLayerEncodingInput'});
-        
+
         if (!isStandard)
         {
             anotherCheckbox[0].checked = 'checked';
@@ -9158,13 +9162,13 @@ nsGmx.ShpEncodingWidget = function()
         {
             anotherInput.attr('disabled', 'disabled');
         }
-        
+
         anotherInput.bind('keyup', function()
         {
             _curEncoding = this.value;
             $(_this).change();
         });
-        
+
         anotherCheckbox.click(function()
         {
             if (this.checked)
@@ -9182,21 +9186,21 @@ nsGmx.ShpEncodingWidget = function()
             }
             $(_this).change();
         });
-        
-        
+
+
         var tr1 = $("<tr></tr>")
             .append($("<td></td>").text(_gtxt("Кодировка")))
             .append($("<td></td>").append(select));
-            
+
         var tr2 = $("<tr></tr>")
             .append($("<td></td>").append(anotherCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Другая"))))
             .append($("<td></td>").append(anotherInput));
-        
+
         $(container)
             .append($("<table></table>", {'class': 'VectorLayerEncoding'})
                 .append(tr1).append(tr2));
     }
-    
+
     this.getServerEncoding = function()
     {
         return _curEncoding;
@@ -9204,12 +9208,12 @@ nsGmx.ShpEncodingWidget = function()
 };
 /** Менеджер дополнительных данных карты. Данные собираются и используются набором сборщиков данных, каждый из которых имеет свой уникальный id.
  @class userObjectsManager
- @memberOf nsGmx 
+ @memberOf nsGmx
 */
 nsGmx.userObjectsManager = {
     _data: {},
     _collectors: {},
-    
+
     /**
      Устанавливает данные, которые потом могут быть использованы поставщиками данных
 	 @method
@@ -9217,7 +9221,7 @@ nsGmx.userObjectsManager = {
     setData: function(data) {
         this._data = data;
     },
-    
+
     /**
      Возвращает собранные данные
 	 @method
@@ -9225,7 +9229,7 @@ nsGmx.userObjectsManager = {
     getData: function() {
         return this._data;
     },
-    
+
 	/**
 	 Собирает данные со всех сборщиков данных. Собранные данные доступны через метод getData
 	 @method
@@ -9240,7 +9244,7 @@ nsGmx.userObjectsManager = {
             }
         }
     },
-    
+
     /**
 	 Вызывает метод load() у всех поставщиков данных, для которых есть данные.
      После вызова метода данные для данного загрузчика будут удалены (чтобы предотвратить множественную загрузку)
@@ -9248,7 +9252,7 @@ nsGmx.userObjectsManager = {
 	*/
     load: function(dataCollectorNames) {
         var collectors = {};
-        
+
         if (dataCollectorNames)
         {
             if (typeof dataCollectorNames === 'string')
@@ -9263,7 +9267,7 @@ nsGmx.userObjectsManager = {
         }
         else
             collectors = this._collectors;
-        
+
         for (var id in collectors) {
             if (id in this._data && 'load' in collectors[id])
             {
@@ -9272,7 +9276,7 @@ nsGmx.userObjectsManager = {
             }
         }
     },
-    
+
     /**
 	 Добавляет новый сборщик данных. Если в момент добавления есть какие-нибудь данные для загрузчика, они будут ему сразу же переданы
 	 @method
@@ -9860,7 +9864,7 @@ nsGmx.userObjectsManager.addDataCollector('externalMaps', {
 
 })(nsGmx.Utils._);
 
-var pointsBinding = 
+var pointsBinding =
 {
 	pointsBinding: {}
 }
@@ -9868,18 +9872,18 @@ var pointsBinding =
 var queryBinding = function()
 {
 	this.conf = false;
-	
+
 	this.imgPoints = [],
 	this.mapPoints = [],
 	this.mapPointsFlags = [0,0,0,0],
 	this.parentImage = null;
 	this.toggle = null;
-	
+
 	this.dx = -7;
 	this.dy = -26;
-	
+
 	this.loadTimer = null;
-	
+
 	this.imgDialog = null;
 }
 
@@ -9888,16 +9892,16 @@ queryBinding.prototype = new leftMenu();
 queryBinding.prototype.load = function()
 {
 	this.parentImage = globalFlashMap.rasters.addObject();
-	
+
 	for (var i = 0; i < 4; i++)
 	{
 		this.mapPoints[i] = globalFlashMap.addObject({type:'POINT', coordinates: [0, 0]});
 	  	this.mapPoints[i].setStyle({marker: {image: "img/" + (i + 1) + "u.png", dx: this.dx, dy: this.dy}},{marker: {image: "img/" + (i + 1) + "uh.png", dx: this.dx, dy: this.dy}});
 		this.mapPoints[i].setVisible(false);
 	}
-	
+
 	var _this = this;
-	
+
 	for (var i = 0; i < 4; i++)
 	{
 		(function(i)
@@ -9912,7 +9916,7 @@ queryBinding.prototype.load = function()
 				globalFlashMap.setHandler('onMouseMove', function()
 				{
 					draggedPoint.setPoint(globalFlashMap.getMouseX() + dx, globalFlashMap.getMouseY() + dy);
-					
+
 					if (_this.getConformity(true))
 						_this.drawConformity();
 				});
@@ -9924,19 +9928,19 @@ queryBinding.prototype.load = function()
 	    	});
     	})(i)
 	}
-	
+
 	this.workArea = _div(null,[['dir','className','workArea']]);
 	this.imgCanvas = _img(null, [['css','display','none']]);
-	
+
 	_(this.workArea, [this.imgCanvas]);
-	
+
 	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', getAPIHostRoot() + 'imgSave.ashx?WrapStyle=window'],['attr','target','pictureBinding_iframe']]);
 	formFile.style.width = '220px';
 	_(formFile, [_input(null,[['attr','type','hidden'],['attr','name','id'],['dir','className','inputStyle'], ['attr','value','pictureBinding' + Math.random()]])]);
 
 	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['attr','size',25]]);
 	_(formFile, [attach]);
-	
+
 	var loadButton = makeButton(_gtxt("Загрузить"));
 	loadButton.onclick = function()
 	{
@@ -9944,94 +9948,94 @@ queryBinding.prototype.load = function()
 		{
 			if (!parseResponse(response))
 				return;
-			
+
 			reloadButton.disabled = false;
-			
+
 			_this.showPictureDialog();
-			
+
 			_this.reloadImg(response.Result)
 		});
-		
+
 		_(document.body, [iframe]);
-		
+
 		formFile.firstChild.setAttribute('value','pictureBinding' + Math.random())
 		formFile.submit();
 	}
-	
+
 	_(this.workCanvas, [_table([_tbody([_tr([_td([formFile]), _td([loadButton])])])],[['css','margin','10px 0px 5px 20px']])]);
-		
+
 	var imgTds = [],
 		mapTds = [];
-	
+
 	this.workArea.imgLeft = 0;
 	this.workArea.imgTop = 0;
-		
+
 	for (var i = 0; i < 4; i++)
 	{
 		(function(i)
 		{
 			var imgPoint = _div(null, [['dir','className','imgBoundingPoint'],['css','position','absolute']]);
-			
+
 			imgPoint.style.marginLeft = _this.dx + 'px';
 			imgPoint.style.marginTop = _this.dy + 'px';
-			
+
 			$(imgPoint).draggable(
 			{
 				containment: _this.workArea,
 				drag: function(ev, ui)
 				{
 					var pos = _this.getImgPosition();
-					
+
 					imgPoint.beginLeft = ui.absolutePosition.left - _this.workArea.imgLeft - pos.left,
 					imgPoint.beginTop = ui.absolutePosition.top - _this.workArea.imgTop - pos.top;
-					
+
 					if (_this.getConformity(true))
 						_this.drawConformity();
 				}
 			})
-			
+
 			imgPoint.style.left = '-500px';
 			imgPoint.style.top = '-500px';
-			
+
 			imgPoint.beginLeft = -500;
 			imgPoint.beginTop = -500;
-			
+
 			imgPoint.style.display = 'none';
 
 			_(_this.workArea, [imgPoint]);
-				
+
 			_this.imgPoints.push(imgPoint);
-			
+
 			var imgHelperPoint = _div(null, [['dir','className','imgHelperPoint']])
 			imgHelperPoint.onclick = function()
 			{
 				imgPoint.style.left = Math.floor(_this.getImgWidth() / 2) + 'px';
 				imgPoint.style.top = Math.floor(_this.getImgHeight() / 2) + 'px';
-				
+
 				imgPoint.beginLeft = Math.floor(_this.getImgWidth() / 2) - _this.workArea.imgLeft;
 				imgPoint.beginTop = Math.floor(_this.getImgHeight() / 2) - _this.workArea.imgTop;
-				
+
 				imgPoint.style.display = '';
 			}
-			
+
 			imgTds.push(_td([imgHelperPoint]));
-			
+
 			var mapHelperPoint = _div(null, [['dir','className','imgHelperPoint']])
 			mapHelperPoint.onclick = function(e)
 			{
 				_this.mapPoints[i].setGeometry({type:'POINT', coordinates: [globalFlashMap.getX(),globalFlashMap.getY()]})
-				
+
 				_this.mapPoints[i].setVisible(true);
-				
+
 				_this.mapPointsFlags[i] = 1;
 			}
-			
+
 			mapTds.push(_td([mapHelperPoint]));
-			
+
 			imgHelperPoint.style.backgroundImage = "url(img/" + (i + 1) + "i.png)";
 			mapHelperPoint.style.backgroundImage = "url(img/" + (i + 1) + "i.png)";
 			imgPoint.style.backgroundImage = "url(img/" + (i + 1) + "u.png)";
-			
+
 			imgPoint.onmouseover = function()
 			{
 				imgPoint.style.backgroundImage = "url(img/" + (i + 1) + "uh.png)";
@@ -10042,50 +10046,50 @@ queryBinding.prototype.load = function()
 			}
 		})(i)
 	}
-	
+
 	_(this.workCanvas, [_div([_table([_tbody([_tr([_td([_t(_gtxt('Точки на изображении:'))],[['css','width','150px'],['css','fontSize','12px']])].concat(imgTds))])],[['css','margin','5px 0px 0px 20px']])]),
 						  _div([_table([_tbody([_tr([_td([_t(_gtxt('Точки на карте:'))],[['css','width','150px'],['css','fontSize','12px']])].concat(mapTds))])],[['css','margin','5px 0px 0px 20px']])])]);
-	
+
 	var drawButton = makeButton(_gtxt('Нарисовать'))
 	drawButton.onclick = function()
 	{
 		if (_this.getConformity())
 			_this.drawConformity();
 	}
-	
+
 	var reloadButton = makeButton(_gtxt("Восстановить"))
 	reloadButton.onclick = function()
 	{
 		$(_this.imgDialog).dialog('open')
 	}
-	
+
 	if (!this.imgLoaded)
 		reloadButton.disabled = true;
-	
+
 	this.toggle = _input(null, [['attr','type','checkbox'],['dir','className','box']])
 	this.toggle.onclick = function()
 	{
 		if (_this.parentImage)
 			_this.parentImage.setVisible(this.checked);
 	}
-	
+
 	var tempStyle = typeof this.tempStyle != 'undefined' ? this.tempStyle : {fill: {opacity: 100}};
-	
-	this.slider = nsGmx.Controls.createSlider(typeof this.tempStyle != 'undefined' ? _this.tempStyle.fill.opacity : 100, 
+
+	this.slider = nsGmx.Controls.createSlider(typeof this.tempStyle != 'undefined' ? _this.tempStyle.fill.opacity : 100,
 		function(event, ui)
 		{
 			if (_this.parentImage)
 			{
 				tempStyle.fill.opacity = ui.value;
 				_this.tempStyle = tempStyle;
-				
+
 				_this.parentImage.setStyle(tempStyle);
 			}
 		});
-	
+
 	var table = _table([_tbody([_tr([_td([_t(_gtxt("Видимость"))],[['css','width','100px'],['css','fontSize','12px']]),_td([this.toggle])]),
 								_tr([_td([_t(_gtxt("Прозрачность"))],[['css','fontSize','12px']]), _td([this.slider])])])], [['css','margin','15px 0px 10px 0px']])
-	
+
 	_(this.workCanvas, [_div([_table([_tbody([_tr([_td([drawButton],[['css','paddingRight','15px']]),_td([reloadButton])])])]), table],[['css','padding','15px 0px 0px 20px']])]);
 }
 
@@ -10107,14 +10111,14 @@ queryBinding.prototype.showPictureDialog = function()
 	if (this.imgDialog)
 	{
 		$(this.imgDialog).dialog('destroy');
-		
+
 		this.imgDialog.removeNode(true);
 	}
-	
+
 	var canvas = _div([this.workArea]);
-	
+
 	showDialog(_gtxt("Привязка изображения"), canvas, 400, 400, 310, 35, null, function(){return true});
-	
+
 	this.imgDialog = canvas.parentNode;
 }
 
@@ -10122,13 +10126,13 @@ queryBinding.prototype.reloadImg = function(id)
 {
 	var img = _img(null, [['attr','src',getAPIHostRoot() + 'imgSave.ashx?id=' + id]]),
 		_this = this;
-	
+
 	img.onload = function()
 	{
 		img.style.width = img.width + 'px';
 		img.style.height = img.height + 'px';
 	}
-	
+
 	$(img).draggable(
 	{
 		cursor: 'crosshair',
@@ -10137,13 +10141,13 @@ queryBinding.prototype.reloadImg = function(id)
 			for (var i = 0; i < 4; i++)
 			{
 				var imgPoint = _this.imgPoints[i];
-				
+
 				var left = imgPoint.beginLeft + ui.position.left,
 					top = imgPoint.beginTop + ui.position.top;
-				
+
 				imgPoint.style.left = left + 'px';
 				imgPoint.style.top = top + 'px';
-				
+
 				if (top < 0 ||
 					top > _this.getImgHeight() ||
 					left < 0 ||
@@ -10152,31 +10156,31 @@ queryBinding.prototype.reloadImg = function(id)
 				else
 					imgPoint.style.display = '';
 			}
-			
+
 			_this.workArea.imgLeft = ui.position.left;
 			_this.workArea.imgTop = ui.position.top;
 		}
 	});
-	
+
 	$(this.imgCanvas).replaceWith(img);
-	
+
 	this.imgCanvas = img;
-	
+
 	this.workArea.imgLeft = 0;
 	this.workArea.imgTop = 0;
-	
+
 	delete this.tempStyle;
-	
+
 	for (var i = 0; i < 4; i++)
 	{
 		var imgPoint = this.imgPoints[i];
-			
+
 		imgPoint.style.left = '-500px';
 		imgPoint.style.top = '-500px';
-		
+
 		imgPoint.beginLeft = -500;
 		imgPoint.beginTop = -500;
-		
+
 		imgPoint.style.display = 'none';
 	}
 }
@@ -10191,11 +10195,11 @@ queryBinding.prototype.unload = function()
 		this.mapPoints[1].setVisible(false);
 	if (this.mapPoints && this.mapPoints[2])
 		this.mapPoints[2].setVisible(false);
-	
+
 	if (this.imgDialog)
 	{
 		$(this.imgDialog).dialog("destroy")
-			
+
 		this.imgDialog.removeNode(true);
 	}
 }
@@ -10214,12 +10218,12 @@ queryBinding.prototype.reload = function()
 queryBinding.prototype.getConformity = function(skipMessage)
 {
 	this.conf = false;
-	
+
 	for (var i = 0; i < 4; i++)
 	{
 		var imgPoint = this.imgPoints[i],
 			conformity = {};
-		
+
 		if (imgPoint.beginLeft < 0 ||
 			imgPoint.beginLeft > this.imgCanvas.clientWidth ||
 			imgPoint.beginTop < 0 ||
@@ -10227,30 +10231,30 @@ queryBinding.prototype.getConformity = function(skipMessage)
 		{
 			if (typeof skipMessage != 'undefined' && !skipMessage)
 				showErrorMessage(_gtxt("$$phrase$$_2", i + 1), true)
-			
+
 			return false;
 		}
-		
+
 		conformity.x = imgPoint.beginLeft;
 		conformity.y = imgPoint.beginTop;
-		
+
 		if (!this.mapPointsFlags[i])
 		{
 			if (typeof skipMessage != 'undefined' && !skipMessage)
 				showErrorMessage(_gtxt("$$phrase$$_3", i + 1), true)
-			
+
 			return false;
 		}
-		
+
 		conformity.lat = this.mapPoints[i].getGeometry().coordinates[0];
 		conformity.lon = this.mapPoints[i].getGeometry().coordinates[1];
-		
+
 		if (!this.conf)
 			this.conf = [];
-		
+
 		this.conf.push(conformity)
 	}
-	
+
 	return true;
 }
 
@@ -10264,11 +10268,11 @@ queryBinding.prototype.drawConformity = function()
 																	this.conf[1].lat, this.conf[1].lon,
 																	this.conf[2].lat, this.conf[2].lon,
 																	this.conf[3].lat, this.conf[3].lon)
-	
+
 	this.parentImage.setVisible(true);
-	
+
 	this.parentImage.setStyle({fill: {opacity: $(this.slider).slider('option', 'value')}});
-	
+
 	this.toggle.checked = true;
 }
 
@@ -10277,7 +10281,7 @@ var _queryBinding = new queryBinding();
 pointsBinding.pointsBinding.load = function()
 {
 	var alreadyLoaded = _queryBinding.createWorkCanvas(arguments[0], _queryBinding.unload);
-	
+
 	if (!alreadyLoaded)
 		_queryBinding.load();
 	else
@@ -13198,15 +13202,15 @@ nsGmx.MapsManagerControl = function()
     this._mapsTable = new nsGmx.ScrollTable();
     this._canvas = _div(null, [['attr','id','mapsList']]);
     this._mapPreview = null;
-    
+
     $(this._canvas).append('<div class="gmx-icon-progress"></div>');
-    
+
     this._dialogDiv = showDialog(_gtxt("Список карт"), this._canvas, 571, 360, 535, 130, this._resize.bind(this));
-    
+
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
         $(_this._canvas).empty();
-        
+
         if (!parseResponse(response))
             return;
 
@@ -13219,7 +13223,7 @@ nsGmx.MapsManagerControl.prototype._resize = function() {
     var canvas = this._canvas,
         mapsTable = this._mapsTable,
         mapPreview = this._mapPreview;
-        
+
     var dialogWidth = canvas.parentNode.parentNode.offsetWidth;
     mapsTable.tableParent.style.width = dialogWidth - 15 - 21 + 'px';
     mapsTable.tableBody.parentNode.parentNode.style.width = dialogWidth + 5 - 21 + 'px';
@@ -13229,7 +13233,7 @@ nsGmx.MapsManagerControl.prototype._resize = function() {
 
     mapsTable.tableParent.style.height = '200px';
     mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
-    
+
     if (mapPreview) {
         mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
         mapPreview.style.width = dialogWidth + 5 - 21 + 'px';
@@ -13248,20 +13252,20 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
                 '</td>' +
             '</tr></table>' +
         '</div>');
-        
+
     var searchCanvas = $(searchUITemplate())[0];
 	var canvas = this._canvas,
 		name = 'maps',
         mapsTable = this._mapsTable,
 		_this = this;
-	
+
 	var mapNameInput = $('.mapslist-search-name', searchCanvas)[0],
         mapOwnerInput = $('.mapslist-search-owner', searchCanvas)[0];
 	_(canvas, [searchCanvas]);
-	
+
 	var tableParent = _div(),
 		sortFuncs = {};
-			
+
 	var sign = function(n1, n2) { return n1 < n2 ? -1 : (n1 > n2 ? 1 : 0) };
 	var sortFuncFactory = function(f1, f2) {
 		return [
@@ -13269,23 +13273,23 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 			function(_b,_a){ return sign(f1(_a), f1(_b)) || sign(f2(_a), f2(_b)); }
 		]
 	}
-	
+
     var idFunc = function(_a){ return _a.Name; };
     var titleFunc = function(_a){ return String(_a.Title).toLowerCase(); };
     var ownerFunc = function(_a){ return String(_a.Owner).toLowerCase(); };
     var dateFunc  = function(_a){ return _a.LastModificationDateTime; };
-    
+
 	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(titleFunc, idFunc);
 	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
-	
+
 	mapsTable.createTable(tableParent, name, 410, ["", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '55%', '15%', '15%', '5%'], function(map, i)
     {
         return _this._drawMaps.call(this, map, i, _this);
     }, sortFuncs);
-    
+
     mapsTable.getDataProvider().setSortFunctions(sortFuncs);
-	
+
 	var inputPredicate = function(value, fieldValue)
     {
         return !!value && String(value).toLowerCase().indexOf(fieldValue) > -1;
@@ -13293,59 +13297,59 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 
     $([mapNameInput, mapOwnerInput]).bind('keydown', function(event) {
         var numItems = mapsTable.getVisibleItems().length;
-        
+
         if (event.keyCode === 13) {
             var firstItem = mapsTable.getVisibleItems()[_this._activeIndex];
             firstItem && window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + firstItem.Name);
         }
-        
+
         if (event.keyCode === 38) {
             _this._activeIndex = Math.max(0, Math.min(_this._activeIndex - 1, numItems - 1));
             $(mapsTable.getDataProvider()).change();
             event.preventDefault();
         }
-        
+
         if (event.keyCode === 40) {
             _this._activeIndex = Math.max(0, Math.min(_this._activeIndex + 1, numItems - 1));
             $(mapsTable.getDataProvider()).change();
             event.preventDefault();
         }
     })
-    
+
 	mapsTable.getDataProvider().attachFilterEvents(mapNameInput, 'Title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "") {
 			return vals;
         }
-        
+
         fieldValue = fieldValue.toLowerCase();
-		
+
         return vals.filter(function(value) {
             return inputPredicate(value[fieldName], fieldValue) || value['Name'].toLowerCase() === fieldValue;
         });
 	})
-	
+
 	mapsTable.getDataProvider().attachFilterEvents(mapOwnerInput, 'Owner', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "") {
 			return vals;
         }
-        
+
         fieldValue = fieldValue.toLowerCase();
-        
+
         return vals.filter(function(value) {
             return inputPredicate(value[fieldName], fieldValue);
         });
 	})
 
 	_(canvas, [tableParent]);
-	
+
 	mapsTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 
 	this._resize();
-	
+
 	mapsTable.getDataProvider().setOriginalItems(mapsList);
-	
+
 	mapNameInput.focus();
 }
 
@@ -13359,88 +13363,88 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManag
 	_title(name, _gtxt("Загрузить"));
 	_title(load, _gtxt("Показать"));
 	_title(remove, _gtxt("Удалить"));
-	
+
     name.className = name.className + ' maps-manager-mapname';
-	
+
 	name.onclick = function()
 	{
 		window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + map.Name);
 	}
-    
+
     nsGmx.ContextMenuController.bindMenuToElem(name, 'MapListItem', function(){return true;},
     {
         name: map.Name
 	});
-	
+
 	load.onclick = function()
 	{
 		$(mapsManager._mapPreview).empty();
-		
+
 		var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]);
-		
+
         if (!mapsManager._mapPreview) {
             mapsManager._mapPreview = _div(null, [['css','marginTop','5px'],['css','borderTop','1px solid #216B9C'],['css','overflowY','auto']]);
             $(mapsManager._canvas).append(mapsManager._mapPreview);
             $(mapsManager._dialogDiv).dialog('option', 'height', 550);
             $(mapsManager._dialogDiv).dialog('option', 'minHeight', 550);
             mapsManager._resize();
-            
+
         }
 		_(mapsManager._mapPreview, [loading]);
-        
+
 
 		// раз уж мы список получили с сервера, то и карты из этого списка точно нужно загружать с него же...
-		mapsManager._loadMapJSON(window.serverBase, map.Name, mapsManager._mapPreview); 
+		mapsManager._loadMapJSON(window.serverBase, map.Name, mapsManager._mapPreview);
 
         $(mapsManager._mapsTable.getDataProvider()).change();
 	}
-	
+
 	remove.onclick = function()
 	{
 		if (map.Name == defaultMapID)
 		{
 			showErrorMessage(_gtxt("$$phrase$$_14"), true)
-			
+
 			return;
 		}
-		
+
 		if (map.Name == globalMapName)
 		{
 			showErrorMessage(_gtxt("$$phrase$$_15"), true)
-			
+
 			return;
 		}
-		
+
 		if (confirm(_gtxt("Вы действительно хотите удалить эту карту?")))
 		{
 			var loading = loading = _div([_img(null, [['attr','src','img/progress.gif']]), _t(_gtxt('удаление...'))], [['css','marginLeft','5px']]);
-		
+
 			$(remove.parentNode.parentNode).replaceWith(_tr([_td([loading], [['attr','colSpan', 5]])]))
-			
+
 			sendCrossDomainJSONRequest(serverBase + "Map/Delete.ashx?WrapStyle=func&MapID=" + map.MapID, function(response){mapsManager._deleteMapHandler(response, map.MapID)});
 		}
 	}
-	
+
 	var date = new Date(map.LastModificationDateTime*1000);
 	var modificationDateString = $.datepicker.formatDate('dd.mm.yy', date); // + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-	
+
 	var tr = _tr([
-		_td([load], [['css','textAlign','center']]), 
-		_td([name]), 
-		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible maps-manager-owner'], ['dir','title',map.Owner]]), 
-		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([load], [['css','textAlign','center']]),
+		_td([name]),
+		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible maps-manager-owner'], ['dir','title',map.Owner]]),
+		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]),
 		_td([remove], [['css','textAlign','center']])
 	]);
-	
+
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this._fields[i].width;
-	
+
 	attachEffects(tr, 'hover');
-    
+
     if (mapsManager._activeIndex === mapIndex) {
         $(tr).addClass('maps-manager-active');
     }
-	
+
 	return tr;
 }
 
@@ -13448,9 +13452,9 @@ nsGmx.MapsManagerControl.prototype._deleteMapHandler = function(response, id)
 {
 	if (!parseResponse(response))
 		return;
-	
+
     var mapsTable = this._mapsTable;
-    
+
 	if (response.Result == 'deleted')
 	{
         mapsTable.start = 0;
@@ -13468,10 +13472,10 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
 	//loadMapJSON(host, name, function(layers)
     this._previewMapName = name;
-    
+
     var hostName = L.gmxUtil.normalizeHostname(host),
         apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
-    
+
     L.gmx.gmxMapManager.getMap(hostName, apiKey, name, window.gmxSkipTiles).then(function(mapInfo) {
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
             ul = previewLayersTree.drawTree(mapInfo, 2);
@@ -13485,13 +13489,13 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
                 clickDiv.length && $(clickDiv[0]).trigger('click');
             }
         })
-		
+
 		$(parent).empty();
-        
+
         var hint = $('<div class="mapslist-hint">' + _gtxt('maplist.hint') + '</div>');
 
 		_(parent, [hint[0], ul]);
-		
+
 		_queryMapLayers.addDraggable(parent);
 	})
 }
@@ -13932,14 +13936,14 @@ _translationsHash.addtext("rus", {
                             "loadShape.loadDone": "Геометрия успешно загружена",
                             "loadShape.loadFail": "Ошибка загрузки геометрии"
 						 });
-						 
+
 _translationsHash.addtext("eng", {
 							"loadShape.inputTitle": "Add shp-file (zipped)",
                             "loadShape.loadDone": "Successfully loaded",
                             "loadShape.loadFail": "Error loading file"
 						 });
 
-var drawingObjects = 
+var drawingObjects =
 {
 	loadShp: {}
 }
@@ -13947,7 +13951,7 @@ var drawingObjects =
 var queryLoadShp = function()
 {
 	this.builded = false;
-	
+
 	this.uploader = null;
 }
 
@@ -14010,18 +14014,18 @@ queryLoadShp.prototype._showObjectsOnMap = function(objs){
 //files - массив File или WebForms
 queryLoadShp.prototype.loadAndShowFiles = function(files) {
     nsGmx.widgets.notifications.startAction('uploadShp');
-    
+
     var def = $.when.apply($, [].slice.call(files).map(function(file) {
         return nsGmx.Utils.parseShpFile(file);
     }));
-    
+
     def.then(function() {
         this._showObjectsOnMap(_.flatten([].slice.call(arguments)));
         nsGmx.widgets.notifications.stopAction('uploadShp', 'success', _gtxt('loadShape.loadDone'));
     }.bind(this), function() {
         nsGmx.widgets.notifications.stopAction('uploadShp', 'failure', _gtxt('loadShape.loadFail'));
     });
-    
+
     return def;
 }
 
@@ -14252,7 +14256,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
 		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc);
-        
+
         $(jQueryDialog).addClass('drawing-object-leaflet-id-' + parentObject._leaflet_id);
 	}
 
@@ -14937,16 +14941,16 @@ gmxCore.addModule("DrawingObjects", publicInterface);
 
 !(function(_){
 
-/** 
+/**
 * @class Веб браузер для выбора и загрузки файлов на сервер
 */
 var fileBrowser = function()
 {
     var _this = this;
 	this.parentCanvas = null;
-	
+
 	this._homeDir = '';
-    
+
     this._status = {
         _state: false,
         start: function() {
@@ -14963,7 +14967,7 @@ var fileBrowser = function()
             this._state = false;
         }
     }
-    
+
     this._path = (function()
     {
         var path;
@@ -15011,16 +15015,16 @@ var fileBrowser = function()
             }
         }
     })();
-	
+
 	this.currentFiles = [];
-	
+
 	this.slash = "\\";
-	
+
 	this.fileCanvas = null;
 	this.fileHeader = null;
 	this.fileUpload = null;
-	
-	this.sortFuncs = 
+
+	this.sortFuncs =
 	{
 		name:[
 			function(_a,_b){var a = String(_a.Name).toLowerCase(), b = String(_b.Name).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
@@ -15035,7 +15039,7 @@ var fileBrowser = function()
 					ext1 = a.substr(index1 + 1, a.length),
 					index2 = b.lastIndexOf('.'),
 					ext2 = b.substr(index2 + 1, b.length);
-				
+
 				if (ext1 > ext2) return 1; else if (ext1 < ext2) return -1; else return 0;
 			},
 			function(_a,_b)
@@ -15046,7 +15050,7 @@ var fileBrowser = function()
 					ext1 = a.substr(index1 + 1, a.length),
 					index2 = b.lastIndexOf('.'),
 					ext2 = b.substr(index2 + 1, b.length);
-				
+
 				if (ext1 < ext2) return 1; else if (ext1 > ext2) return -1; else return 0;
 			}
 		],
@@ -15059,24 +15063,24 @@ var fileBrowser = function()
 			function(a,b){return b.Date - a.Date}
 		]
 	};
-	
+
 	this.currentSortType = 'name';
-	this.currentSortIndex = 
+	this.currentSortIndex =
 	{
 		name: 0,
 		ext: 0,
 		size: 0,
 		date: 0
 	};
-		
+
 	this.shownPathScroll = false;
 
 	this.returnMask = ['noname'];
-	
+
 	this._discs = null;
-     
+
     this._params = null;
-	
+
 	this.ext7z = ['7Z', 'ZIP', 'GZIP', 'BZIP2', 'TAR', 'ARJ', 'CAB', 'CHM', 'CPIO', 'DEB', 'DMG', 'HFS', 'ISO', 'LZH', 'LZMA', 'MSI', 'NSIS', 'RAR', 'RPM', 'UDF', 'WIM', 'XAR', 'Z'];
 }
 
@@ -15094,30 +15098,30 @@ fileBrowser.MAX_UPLOAD_SIZE = 500*1024*1024;
 fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
 {
     this._params = $.extend({restrictDir: null, startDir: null}, params);
-    
+
     if (this._params.startDir !== null)
         this._path.set(this._params.startDir);
-    
+
 	if ($('#fileBrowserDialog').length)
 	{
 		$('#fileBrowserDialog').parent().dialog("destroy");
 		$('#fileBrowserDialog').parent().remove();
 	}
-	
+
 	var canvas = _div(null, [['attr','id','fileBrowserDialog']]);
-    
+
 	var oDialog = showDialog(title, canvas, 800, 400, false, false, this.resize);
-	
+
 	this.returnMask = mask;
 	this.parentCanvas = canvas;
 	this.closeFunc = closeFunc;
     this._homeDir = nsGmx.AuthManager.getUserFolder();
-	
+
 	if (this._discs === null )// && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE )
 		this.loadInfo();
 	else
 		this.loadInfoHandler()
-		
+
 	return oDialog;
 }
 
@@ -15125,23 +15129,23 @@ fileBrowser.prototype.resize = function()
 {
 	if (!$("#fileBrowserDialog").find(".fileCanvas").length)
 		return;
-    
+
     var container = $('#fileBrowserDialog')[0];
-	
+
 	var titleHeight = container.parentNode.parentNode.firstChild.offsetHeight;
-    
-	
+
+
 	container.childNodes[1].lastChild.style.height = container.parentNode.parentNode.offsetHeight - titleHeight - 6 - container.lastChild.offsetHeight - container.firstChild.offsetHeight - container.childNodes[1].firstChild.offsetHeight - 20 + 'px';
 }
 
 fileBrowser.prototype.close = function(path)
 {
 	this.closeFunc(path);
-	
+
 	var canvas = $('#fileBrowserDialog')[0];
-	
+
 	$(canvas.parentNode).dialog("destroy");
-	
+
 	canvas.parentNode.removeNode(true);
 }
 
@@ -15152,7 +15156,7 @@ fileBrowser.prototype.loadInfo = function()
 	{
 		if (!parseResponse(response))
 			return;
-		
+
         _this._discs = response.Result;
 		_this.loadInfoHandler()
 	})
@@ -15167,37 +15171,37 @@ fileBrowser.prototype._uploadFilesAjax = function(formData) {
     var _this = this;
     this.progressBar.progressbar('option', 'value', 0);
     this.progressBar.show();
-    
+
     formData.append('WrapStyle', 'None');
-    
+
     var xhr = new XMLHttpRequest();
-    
+
     xhr.upload.addEventListener("progress", function(e) {
         _this.progressBar.progressbar('option', 'value', e.loaded / e.total * 100);
     }, false);
-    
+
     xhr.open('POST', serverBase + 'FileBrowser/Upload.ashx');
     xhr.withCredentials = true;
     xhr.onload = function () {
         _this.progressBar.hide();
         if (xhr.status === 200) {
             response = JSON.parse(xhr.responseText);
-            
+
             if (!parseResponse(response))
                 return;
-                
+
             if (typeof response.Result == 'string') {
                 var indexSlash = String(response.Result).lastIndexOf(_this.slash),
                     fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-                
+
                 _this.shownPath = fileName;
             }
-            
+
             _this.getFiles();
         }
     };
-    
-    xhr.send(formData);    
+
+    xhr.send(formData);
 }
 
 fileBrowser.prototype.loadInfoHandler = function()
@@ -15212,53 +15216,53 @@ fileBrowser.prototype.loadInfoHandler = function()
             this._path.set(nsGmx.AuthManager.getUserFolder());
         }
 	}
-	
+
 	this.currentSortFunc = this.sortFuncs['name'][0];
-	
+
 	this.fileUpload = _div(null, [['dir','className','fileUpload']]);
 	this.fileHeader = _div(null, [['css','height','24px']]);
 	this.fileCanvas = _div(null, [['dir','className','fileCanvas']]);
-    
+
     $(this.parentCanvas).bind('dragover', function()
     {
         return false;
     });
-    
+
     $(this.parentCanvas).bind('drop', function(e)
     {
         if (!window.FormData) return false;
-        
+
         var files = e.originalEvent.dataTransfer.files;
         var formData = new FormData();
-        
+
         var totalSize = 0;
         for (var f = 0; f < files.length; f++) {
             totalSize += files[f].size;
         }
-        
+
         if (totalSize > fileBrowser.MAX_UPLOAD_SIZE) {
             _this._showWarningDialog();
             return false;
         }
-        
+
         for (var f = 0; f < files.length; f++) {
             formData.append('rawdata', files[f]);
         }
-        
+
         formData.append('ParentDir', _this._path.get());
-        
+
         _this._uploadFilesAjax(formData);
-        
+
         return false;
     })
-	
+
 	_(this.parentCanvas, [this.fileHeader, this.fileCanvas, this.fileUpload]);
-	
+
 	this.createHeader();
 	this.createUpload();
-	
+
 	this._updateUploadVisibility();
-	
+
 	this.getFiles();
 }
 
@@ -15273,35 +15277,35 @@ fileBrowser.prototype.createHeader = function()
 		homeButton = makeImageButton("img/home.png"),
 		discButtonTds = [],
 		_this = this;
-	
+
 	reloadButton.style.margin = '0px 5px 0px 10px';
 	homeButton.style.margin = '0px 10px 0px 5px';
-	
+
 	reloadButton.style.width = '14px';
 	reloadButton.style.height = '15px';
 	homeButton.style.width = '15px';
 	homeButton.style.height = '15px';
-	
+
 	_title(reloadButton, _gtxt("Обновить"));
 	_title(homeButton, _gtxt("Домашняя директория"));
-	
+
 	reloadButton.onclick = function()
 	{
 		_this.getFiles();
 	}
-	
+
 	homeButton.onclick = function()
 	{
         _this._path.set(_layersTree.treeModel.getMapProperties().LayersDir, _this._homeDir);
 		_this.getFiles(_layersTree.treeModel.getMapProperties().LayersDir);
 	}
-	
+
 	//if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	//{
 		for (var i = 0; i < this._discs.length; i++)
 		{
 			var discButtons = makeButton(this._discs[i]);
-			
+
 			(function(i)
 			{
 				discButtons.onclick = function()
@@ -15309,14 +15313,14 @@ fileBrowser.prototype.createHeader = function()
 					_this.getFiles(_this._discs[i])
 				}
 			})(i)
-			
+
 			discButtonTds.push(_td([discButtons]))
 		}
 	//}
-	
+
 	discButtonTds.push(_td([reloadButton], [['attr','vAlign','top']]));
 	discButtonTds.push(_td([homeButton], [['attr','vAlign','top']]));
-	
+
 	var newFolderName = _input(null, [['dir','className','inputStyle'], ['css','width','150px']]),
 		showFolderButton = makeImageButton("img/newfolder.png"),
 		newFolderButton = makeButton(_gtxt("Создать")),
@@ -15328,33 +15332,33 @@ fileBrowser.prototype.createHeader = function()
                 _this._status.stop();
 				if (!parseResponse(response))
 					return;
-				
+
 				_this.shownPath = newFolderName.value;
-				
+
 				newFolderName.value = '';
-				
+
 				_this.getFiles();
 			})
 		};
-		
+
 	showFolderButton.style.width = '16px';
 	showFolderButton.style.height = '13px';
-	
+
 	newFolderName.style.margin = '0px 3px';
-	
+
 	_title(showFolderButton, _gtxt("Новая папка"))
-	
+
 	showFolderButton.style.marginRight = '10px';
-	
+
 	showFolderButton.onclick = function()
 	{
         $(newFolderName).toggle().focus();
         $(newFolderButton).toggle();
 	}
-	
+
 	newFolderName.style.display = 'none';
 	newFolderButton.style.display = 'none';
-		
+
 	$(newFolderName).on('keydown', function(e)
 	{
 		if (e.keyCode === 13)
@@ -15363,11 +15367,11 @@ fileBrowser.prototype.createHeader = function()
 				createFolder();
 			else
 				inputError(newFolderName);
-	  		
+
 	  		return false;
 	  	}
 	});
-	
+
 	newFolderButton.onclick = function()
 	{
 		if (newFolderName.value != '')
@@ -15375,15 +15379,15 @@ fileBrowser.prototype.createHeader = function()
 		else
 			inputError(newFolderName);
 	}
-	
+
 	this.tdAddFolder = _td([_table([_tbody([_tr([
             _td([showFolderButton], [['attr','vAlign','top']]),
             _td([newFolderName]),
             _td([newFolderButton])]
         )])])], [['attr','vAlign','top'], ['css','height','20px']]);
-        
+
 	discButtonTds.push(this.tdAddFolder);
-	
+
 	_(this.fileHeader, [_table([_tbody([_tr(discButtonTds)])])]);
 }
 
@@ -15391,19 +15395,19 @@ fileBrowser.prototype.createUpload = function()
 {
 	var div = _div(null, [['css','height','30px']]),
 		_this = this;
-	
+
 	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=message'],['attr','target','fileBrowserUpload_iframe']]);
 
 	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px'], ['attr','multiple','multiple']]);
 	_(formFile, [attach]);
-    
+
     attach.onchange = function()
 	{
         if (attach.files && attach.files[0] && attach.files[0].size > fileBrowser.MAX_UPLOAD_SIZE) {
             _this._showWarningDialog();
             return;
         }
-        
+
         //если можем послать через AJAX, посылаем - будет работать прогресс-бар
         if (window.FormData) {
             var formData = new FormData(formFile);
@@ -15411,8 +15415,8 @@ fileBrowser.prototype.createUpload = function()
             _this._uploadFilesAjax(formData);
             return;
         }
-        
-        sendCrossDomainPostRequest(serverBase + 'FileBrowser/Upload.ashx', 
+
+        sendCrossDomainPostRequest(serverBase + 'FileBrowser/Upload.ashx',
             {
                 WrapStyle: 'message',
                 ParentDir: _this._path.get()
@@ -15420,29 +15424,29 @@ fileBrowser.prototype.createUpload = function()
             function(response) {
                 if (!parseResponse(response))
                     return;
-                
+
                 var indexSlash = String(response.Result).lastIndexOf(_this.slash),
                     fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-                
+
                 _this.shownPath = fileName;
-                
+
                 _this.getFiles();
-            }, 
+            },
             formFile
         );
 	}
-    
+
     var dropInfoDiv = window.FormData ? _div([_t(_gtxt('FileBrowser.DropInfo'))], [['dir', 'className', 'fileBrowser-dragFileMessage']]) : _div();
-	
+
 	_(div, [
         dropInfoDiv,
         _table([_tbody([_tr([
             _td([formFile], [['css', 'paddingTop', '18px']])
         ])])])
     ]);
-    
+
     this.progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100}).hide();
-    
+
     _(this.fileUpload, [this.progressBar[0], div]);
 }
 
@@ -15451,16 +15455,16 @@ fileBrowser.prototype.getFiles = function(path)
 	var path = (typeof path != 'undefined') ? path : this._path.get();
     var alternativePath = this._path.getAlternative();
 	var _this = this;
-    
-    if (this._isRestrictedPath(path)) 
+
+    if (this._isRestrictedPath(path))
         return;
-        
+
     var doProcessResponce = function(response) {
         _this._status.stop();
-        
+
 		if (!parseResponse(response))
 			return;
-		
+
 		_this.getFilesHandler(response.Result, path);
     }
 
@@ -15491,10 +15495,10 @@ fileBrowser.prototype.pathWidget = function()
 {
     var shortPath = this._path.get();
     var _this = this;
-    
+
     var parent = $('<span/>', {'class': 'fileBrowser-pathWidget'});
     var pathElements = [];
-    
+
     var highlightPath = function(index)
     {
         for (var e = 0; e < pathElements.length; e++)
@@ -15503,7 +15507,7 @@ fileBrowser.prototype.pathWidget = function()
             else
                 pathElements[e].removeClass('fileBrowser-activePathElem');
     }
-    
+
     var appendElem = function(text, path){
         var elemIndex = pathElements.length;
         var newElem = $('<span/>', {'class': 'fileBrowser-pathElem'}).text(text + _this.slash)
@@ -15512,17 +15516,17 @@ fileBrowser.prototype.pathWidget = function()
             _this.getFiles(path[path.legnth - 1] === _this.slash ? path : path  + _this.slash);
         })
         .hover(function(){highlightPath(elemIndex)}, function(){highlightPath(-1)});
-        
+
         pathElements.push(newElem);
         parent.append(newElem);//.append( $('<span/>').text(_this.slash) );
     }
-    
+
     var curFolder = '';
     while (shortPath.length)
     {
         var index = shortPath.indexOf(this.slash);
         if (index == 0) break;
-            
+
         if (index < 0)
         {
             appendElem(shortPath, curFolder + shortPath);
@@ -15531,10 +15535,10 @@ fileBrowser.prototype.pathWidget = function()
         var curText = shortPath.substr(0, index);
         curFolder += curText + this.slash;
         shortPath = shortPath.substr(index+1);
-        
+
         appendElem(curText, curFolder.substr(0, curFolder.length-1));
     }
-    
+
     return parent[0];
 }
 
@@ -15542,52 +15546,52 @@ fileBrowser.prototype.quickSearch = function()
 {
 	var input = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
 		_this = this;
-	
+
 	input.onkeyup = function()
 	{
 		if (this.value != "")
 		{
 			var scroll = _this.findContent(this.value);
-			
+
 			if (scroll >= 0)
 				_this.fileCanvas.lastChild.scrollTop = scroll;
 		}
 	}
-	
+
 	return input;
 }
 
 fileBrowser.prototype.findContent = function(value)
 {
 	var tbody = this.fileCanvas.lastChild.firstChild.lastChild;
-	
+
 	for (var i = 0; i < tbody.childNodes.length; ++i)
 	{
 		var text = tbody.childNodes[i].textContent.toLowerCase();
-		
+
 		if (text != "[..]" && text.indexOf(value.toLowerCase()) == 0)
 			return tbody.childNodes[i].offsetTop;
 	}
-	
+
 	return -1;
 }
 
 fileBrowser.prototype.reloadFiles = function()
 {
     $(this.fileCanvas).empty();
-    
+
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
-	
+
 	_(this.fileCanvas, [_div([this.pathWidget(), _br(), _t(_gtxt("Фильтр")), this.quickSearch(), this.statusContainer], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
-	
+
 	_(this.fileCanvas, [this.draw(this.currentFiles)]);
-	
+
 	this.resize();
-	
+
 	if (this.shownPathScroll)
 	{
 		this.fileCanvas.lastChild.scrollTop = this.shownPathScroll.offsetTop;
-		
+
 		this.shownPathScroll = false;
 	}
 }
@@ -15596,10 +15600,10 @@ fileBrowser.prototype._getParentFolder = function(path)
 {
     var index = String(path).lastIndexOf(this.slash),
         newPath = String(path).substr(0, index);
-    
+
     if (new RegExp(/^[a-z]:$/i).test(newPath))
         newPath += this.slash;
-        
+
     return newPath;
 }
 
@@ -15615,43 +15619,43 @@ fileBrowser.prototype.draw = function(files)
 		sizeSort = makeLinkButton(_gtxt("Размер")),
 		dateSort = makeLinkButton(_gtxt("Дата")),
 		_this = this;
-	
+
 	nameSort.sortType = 'name';
 	extSort.sortType = 'ext';
 	sizeSort.sortType = 'size';
 	dateSort.sortType = 'date';
-	
+
 	nameSort.onclick = extSort.onclick = sizeSort.onclick = dateSort.onclick = function()
 	{
 		_this.currentSortType = this.sortType;
 		_this.currentSortIndex[_this.currentSortType] = 1 - _this.currentSortIndex[_this.currentSortType];
-		
+
 		_this.reloadFiles();
 	}
-	
+
 	var tdRoot = _td(null, [['css','width','20px']]);
-	
+
 	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	{
 		var rootButton = makeButton(this.slash);
-		
+
 		_(tdRoot, [rootButton]);
-		
+
 		rootButton.onclick = function()
 		{
 			_this.getFiles(_this._path.getRoot());
 		}
 	}
-	
+
 	var tableHeaderTr = _tr([tdRoot, _td([nameSort],[['css','textAlign','left']]), _td([extSort], [['css','width','10%'],['css','textAlign','center']]), _td([sizeSort], [['css','width','15%'],['css','textAlign','center']]), _td([dateSort], [['css','width','25%'],['css','textAlign','center']])]),
 		prevDirTr = _tr([_td(), _td([_t("[..]")]), _td(), _td(), _td()]),
 		tableFilesTrs = [];
-	
+
     var parentFolder = _this._path.getParentFolder();
 	if (parentFolder && !this._isRestrictedPath(parentFolder))
 	{
         tableFilesTrs.push(prevDirTr)
-	
+
 		attachEffects(prevDirTr, 'hover')
 
 		prevDirTr.onclick = function()
@@ -15659,10 +15663,10 @@ fileBrowser.prototype.draw = function(files)
 			_this.getFiles(parentFolder);
 		}
 	}
-	
+
 	tableFilesTrs = tableFilesTrs.concat(this.drawFolders(files));
 	tableFilesTrs = tableFilesTrs.concat(this.drawFiles(files));
-	
+
 	return _div([_table([_thead([tableHeaderTr]), _tbody(tableFilesTrs)], [['css','width','100%']])], [['css','overflowY','scroll']]);
 }
 
@@ -15695,65 +15699,65 @@ fileBrowser.prototype.drawFolders = function(arr)
 	var folders = [],
 		trs = [],
 		_this = this;;
-	
+
 	for (var i = 0; i < arr.length; i++)
 		if (arr[i].Directory)
 			folders.push(arr[i]);
-	
+
 	if (this.currentSortType == 'name' || this.currentSortType == 'date')
 		folders = folders.sort(this.getCurrentSortFunc());
-	
+
 	for (var i = 0; i < folders.length; i++)
 	{
 		var tdReturn = _td();
-		
+
 		if (!this.returnMask.length)
 		{
 			var returnButton = makeImageButton("img/choose.png", "img/choose_a.png");
 			returnButton.style.cursor = 'pointer';
 			returnButton.style.marginLeft = '5px';
-			
+
 			_title(returnButton, _gtxt("Выбрать"));
-			
+
 			(function(i){
 				returnButton.onclick = function(e)
 				{
 					_this.close(_this._path.get() + folders[i].Name + _this.slash);
 				}
 			})(i);
-			
+
 			_(tdReturn, [returnButton])
 		}
-		
+
 		var tr = _tr([
-            tdReturn, 
-            _td([_div(null, [['dir','className','fileCanvas-folder-icon']]), this.createFolderActions(folders[i].Name)]), 
-            _td(), 
-            _td([_t(_gtxt("Папка"))],[['css','textAlign','center'],['dir','className','invisible']]), 
+            tdReturn,
+            _td([_div(null, [['dir','className','fileCanvas-folder-icon']]), this.createFolderActions(folders[i].Name)]),
+            _td(),
+            _td([_t(_gtxt("Папка"))],[['css','textAlign','center'],['dir','className','invisible']]),
             _td([_t(this.formatDate(folders[i].Date))],[['css','textAlign','center'],['dir','className','invisible']])
         ]);
-		
+
 		(function(i){
 			tr.onclick = function()
 			{
 				_this.getFiles(_this._path.get() + folders[i].Name);
 			}
 		})(i);
-		
+
 		attachEffects(tr, 'hover');
-		
+
 		if (this.shownPath && folders[i].Name == this.shownPath)
 		{
 			$(tr).children("td").css('backgroundColor', '#CEEECE');
-			
+
 			this.shownPath = null;
-			
+
 			this.shownPathScroll = tr;
 		}
-		
+
 		trs.push(tr)
 	}
-	
+
 	return trs;
 }
 
@@ -15762,13 +15766,13 @@ fileBrowser.prototype.drawFiles = function(arr)
 	var files = [],
 		trs = [],
 		_this = this;
-	
+
 	for (var i = 0; i < arr.length; i++)
 		if (!arr[i].Directory)
 			files.push(arr[i]);
-	
+
 	files = files.sort(this.getCurrentSortFunc());
-	
+
 	for (var i = 0; i < files.length; i++)
 	{
 		var index = String(files[i].Name).lastIndexOf('.'),
@@ -15776,41 +15780,41 @@ fileBrowser.prototype.drawFiles = function(arr)
 			ext = String(files[i].Name).substr(index + 1, files[i].Name.length),
 			tdReturn = _td()
 			tdSize = _td([_t(this.makeSize(files[i].Size))], [['attr','size',files[i].Size],['css','textAlign','right'],['dir','className','invisible']]);
-		
+
 		if (this.returnMask.length && valueInArray(this.returnMask, ext.toLowerCase()))
 		{
 			var returnButton = makeImageButton("img/choose.png", "img/choose_a.png");
 			returnButton.style.cursor = 'pointer';
 			returnButton.style.marginLeft = '5px';
-			
+
 			_title(returnButton, _gtxt("Выбрать"));
-			
+
 			(function(i){
 				returnButton.onclick = function(e)
 				{
 					_this.close(_this._path.get() + files[i].Name);
 				}
 			})(i);
-			
+
 			_(tdReturn, [returnButton])
 		}
-		
+
 		var	tr = _tr([tdReturn, _td([this.createFileActions(name, ext)]), _td([_t(ext)],[['css','textAlign','right'],['css','fontSize','12px']]), tdSize, _td([_t(this.formatDate(files[i].Date))],[['css','textAlign','center'],['dir','className','invisible']])]);
-		
+
 		attachEffects(tr, 'hover');
-		
+
 		if (this.shownPath && files[i].Name == this.shownPath)
 		{
 			$(tr).children("td").css('backgroundColor', '#CEEECE');
-			
+
 			this.shownPath = null;
-			
+
 			this.shownPathScroll = tr;
 		}
 
 		trs.push(tr)
 	}
-	
+
 	return trs;
 }
 
@@ -15819,12 +15823,12 @@ fileBrowser.prototype.createFolderActions = function(name)
 	var span = _span([_t(name)],[['css','fontSize','12px']]),
 		spanParent = _div([span],[['css','display', 'inline-block'],['css','position','relative']]),
 		_this = this;
-	
-	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
+
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder',
 		function()
 		{
 			return _this._path.isInHome() || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
-		}, 
+		},
 		{
 			fullPath: this._path.get() + name + this.slash,
 			fileBrowser: this,
@@ -15841,18 +15845,18 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative']]),
 		_this = this;
 
-	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile',
 		function()
 		{
 			return _this._path.isInHome() || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
-		}, 
+		},
 		{
 			fullPath: this._path.get() + name + '.' + ext,
 			fileBrowser: this,
 			enableUnzip: valueInArray(_this.ext7z, ext.toUpperCase())
 		}
 	);
-	
+
 	return spanParent;
 }
 
@@ -15865,7 +15869,7 @@ fileBrowser.prototype.makeSize = function(size)
 		return (size / (1024 * 1024)).toFixed(2) + ' Мб';
 	else if (size > 1024)
 		return (size / 1024).toFixed(2) + ' Кб';
-	
+
 	return size + ' б';
 }
 
@@ -15887,15 +15891,15 @@ var zipUnzipActionFactory = function(isZip)
 			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 			{
                 context.fileBrowser._status.stop();
-                
+
 				if (!parseResponse(response))
 					return;
-				
+
 				var indexSlash = String(response.Result).lastIndexOf('\\'),
 					fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-				
+
 				context.fileBrowser.shownPath = fileName;
-				
+
 				context.fileBrowser.getFiles();
 			})
 		},
@@ -15911,11 +15915,11 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		var form = _form([_input(null,[['attr','name','FullName'], ['attr','value', context.fullPath]])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "FileBrowser/Download.ashx"]]);
-		
+
 		_(document.body, [form]);
-		
+
 		form.submit();
-		
+
 		form.removeNode(true);
 	}
 }, ['FileBrowserFolder', 'FileBrowserFile']);
@@ -15930,7 +15934,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
             context.fileBrowser._status.stop();
 			if (!parseResponse(response))
 				return;
-			
+
 			context.fileBrowser.getFiles();
 		})
 	}
@@ -15946,9 +15950,9 @@ nsGmx.ContextMenuController.addContextMenuElem({
             context.fileBrowser._status.stop();
 			if (!parseResponse(response))
 				return;
-			
+
 			context.fileBrowser.getFiles();
-		})	
+		})
 	}
 }, 'FileBrowserFolder');
 
@@ -15964,38 +15968,38 @@ _translationsHash.addtext("rus", {
                             "tableBrowser.title" : "Список таблиц",
                             "tableBrowser.filterText" : "Фильтр по названию"
                          });
-                         
+
 _translationsHash.addtext("eng", {
                             "tableBrowser.title" : "Tables list",
                             "tableBrowser.filterText" : "Filter by name"
-                         });                         
+                         });
 
 var tableBrowser = function()
 {
-	this.sortFuncs = 
+	this.sortFuncs =
 	{
 		name:[
 			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
 			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
 		]
 	};
-	
+
 	this.tables = [];
 }
 
 tableBrowser.prototype.createBrowser = function(closeFunc)
 {
     var canvas = $('#tableBrowserDialog');
-    
+
 	if (canvas)
 	{
 		canvas.parent().dialog("destroy");
-		
+
 		canvas.parent().remove();
 	}
-		
+
 	this.closeFunc = closeFunc;
-	
+
 	if (!this.tables.length)
 		this.loadInfo();
 	else
@@ -16005,11 +16009,11 @@ tableBrowser.prototype.createBrowser = function(closeFunc)
 tableBrowser.prototype.close = function(name)
 {
 	this.closeFunc(name);
-	
+
 	var canvas = $('#tableBrowserDialog');
-	
+
 	$(canvas).parent().dialog("destroy");
-	
+
 	$(canvas).parent().remove();
 }
 
@@ -16019,7 +16023,7 @@ tableBrowser.prototype.loadInfo = function()
 	{
 		if (!parseResponse(response))
 			return;
-		
+
 		_tableBrowser.loadInfoHandler(response.Result)
 	})
 }
@@ -16027,54 +16031,54 @@ tableBrowser.prototype.loadInfo = function()
 tableBrowser.prototype.loadInfoHandler = function(tables)
 {
 	this.tables = tables;
-    
+
     var _this = this;
     var renderTableRow = function(table)
     {
         var	tdName = _td([_t(table)],[['css','fontSize','12px']]),
 			returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
 			tr = _tr([_td([returnButton]), tdName], [['dir', 'className', 'tableTableRow']]);
-		
+
 		returnButton.style.cursor = 'pointer';
 		returnButton.style.marginLeft = '5px';
-	
+
 		_title(returnButton, _gtxt("Выбрать"));
-			
+
         returnButton.onclick = function()
         {
             _this.close(table);
         }
-		
+
 		attachEffects(tr, 'hover');
-        
+
         for (var i = 0; i < tr.childNodes.length; i++)
             tr.childNodes[i].style.width = this._fields[i].width;
-        
+
         return tr;
     }
-    
+
     var sortFuncs = {};
     sortFuncs[_gtxt('Имя')] = this.sortFuncs['name'];
-    
+
     var tableProvider = new nsGmx.ScrollTable.StaticDataProvider();
     tableProvider.setOriginalItems(this.tables);
     tableProvider.setSortFunctions(sortFuncs);
-    
+
     var tableTable = new nsGmx.ScrollTable({limit:5000, pagesCount: 5, height: 220, showFooter: false});
     tableTable.setDataProvider(tableProvider);
-    
+
     var tableParent = _div(null, [['dir', 'id', 'tableBrowserDialog']]);
     tableTable.createTable({
-        parent: tableParent, 
-        name: 'tableTable', 
-        width: 0, 
-        fields: ['', _gtxt('Имя')], 
-        fieldsWidths: ['10%', '90%'], 
+        parent: tableParent,
+        name: 'tableTable',
+        width: 0,
+        fields: ['', _gtxt('Имя')],
+        fieldsWidths: ['10%', '90%'],
         sortableFields: sortFuncs,
-        drawFunc: renderTableRow, 
+        drawFunc: renderTableRow,
         isWidthScroll: false
     });
-    
+
     var filterInput = _input(null, [['css','width','150px'],['dir','className','selectStyle']]);
     $(tableParent).prepend(filterInput).prepend($('<span/>', {'class': 'tableFilter'}).text(_gtxt("tableBrowser.filterText") + ": "));
     tableProvider.attachFilterEvents(filterInput, 'Table', function(fieldName, fieldValue, vals)
@@ -16083,23 +16087,23 @@ tableBrowser.prototype.loadInfoHandler = function(tables)
             return String(val).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
         });
     });
-    
+
     showDialog( _gtxt("tableBrowser.title"), tableParent, {width: 300, height: 300} );
 }
 
 var _tableBrowser = new tableBrowser();
 !(function(_) {
-    
+
 var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
-    
+
 var getTextContent = function(node) {
     if (typeof node.textContent != 'undefined')
         return node.textContent;
-    
+
     var data = '';
     for (var i = 0; i < node.childNodes.length; i++)
         data += node.childNodes[i].data;
-    
+
     return data;
 }
 
@@ -16123,17 +16127,17 @@ var getScale = function(z)
 var getWMSMapURL = function(url, props, requestProperties)
 {
     var CRSParam = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
-    
+
     requestProperties = requestProperties || {};
 
     var lmap = nsGmx.leafletMap,
         extend = lmap.getBounds();
-    
+
     var miny = Math.max(extend.getSouth(), -90);
     var maxy = Math.min(extend.getNorth(), 90);
     var minx = Math.max(extend.getWest(), -180);
     var maxx = Math.min(extend.getEast(), 180);
-    
+
     if (props.bbox)
     {
         minx = Math.max(props.bbox.minx, minx);
@@ -16144,10 +16148,10 @@ var getWMSMapURL = function(url, props, requestProperties)
         if (minx >= maxx || miny >= maxy)
             return;
     }
-    
+
     var mercMin = L.Projection.Mercator.project({lat: miny, lng: minx}),
         mercMax = L.Projection.Mercator.project({lat: maxy, lng: maxx});
-    
+
     var scale = getScale(lmap.getZoom());
     var w = Math.round((mercMax.x - mercMin.x)/scale);
     var h = Math.round((mercMax.y - mercMin.y)/scale);
@@ -16159,10 +16163,10 @@ var getWMSMapURL = function(url, props, requestProperties)
     var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
     var version = props.version || '1.1.1';
     var isV130 = version === '1.3.0';
-    
+
     //st = st.replace(/Service=WMS[\&]*/i, '');
     //st = st.replace(/\&$/, '');
-    
+
     st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap&Service=WMS';
     st += "&layers=" + encodeURIComponent(props.name) +
         "&VERSION=" + encodeURIComponent(version) +
@@ -16177,7 +16181,7 @@ var getWMSMapURL = function(url, props, requestProperties)
 
     if (url.indexOf('format=') == -1) st += "&format=" + encodeURIComponent(format);
     if (url.indexOf('transparent=') == -1) st += "&transparent=" + encodeURIComponent(transparentParam);
-   
+
     return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
 }
 
@@ -16197,11 +16201,11 @@ var parseWMSCapabilities = function(response)
         mainTag = xml.getElementsByTagName('WMS_Capabilities')[0] || xml.getElementsByTagName('WMT_MS_Capabilities')[0],
         version = mainTag.getAttribute('version'),
         layersXML = xml.getElementsByTagName('Layer');
-    
+
     if (!(version in supportedVersions)) {
         return [];
     }
-    
+
     for (var i = 0; i < layersXML.length; i++)
     {
         var layer = {version: version},
@@ -16209,7 +16213,7 @@ var parseWMSCapabilities = function(response)
             title = layersXML[i].getElementsByTagName('Title'),
             bbox = layersXML[i].getElementsByTagName(BBOXTagName[version]),
             srs = layersXML[i].getElementsByTagName(SRSTagName[version]);
-        
+
         if (srs.length)
         {
             layer.srs = null;
@@ -16219,7 +16223,7 @@ var parseWMSCapabilities = function(response)
                 var srsName = strip(getTextContent(srs[si]));
                 supportedSrs[srsName] = true;
             }
-            
+
             //порядок имеет значение!
             for (var p = 0; p < wmsProjections.length; p++) {
                 if (wmsProjections[p] in supportedSrs) {
@@ -16235,11 +16239,11 @@ var parseWMSCapabilities = function(response)
 
         if (name.length)
             layer.name = getTextContent(name[0]);
-        
+
         if (bbox.length)
         {
             if (version == '1.1.1') {
-                layer.bbox = 
+                layer.bbox =
                 {
                     minx: Number(bbox[0].getAttribute('minx')),
                     miny: Number(bbox[0].getAttribute('miny')),
@@ -16247,7 +16251,7 @@ var parseWMSCapabilities = function(response)
                     maxy: Number(bbox[0].getAttribute('maxy'))
                 };
             } else {
-                layer.bbox = 
+                layer.bbox =
                 {
                     minx: Number(getTextContent(bbox[0].getElementsByTagName('westBoundLongitude')[0])),
                     miny: Number(getTextContent(bbox[0].getElementsByTagName('southBoundLatitude')[0])),
@@ -16256,14 +16260,14 @@ var parseWMSCapabilities = function(response)
                 };
             }
         }
-        
+
         if (title.length)
             layer.title = getTextContent(title[0]);
-        
+
         if (layer.name)
             serviceLayers.push(layer);
     }
-    
+
     return serviceLayers;
 }
 
@@ -16283,14 +16287,14 @@ var wfsParser = function()
 {
 	this.gmlns = 'http://www.opengis.net/gml';
 	this.kmlns = 'http://earth.google.com/kml/2.0';
-	
+
 	this.axisOrder = null;
 }
 
 wfsParser.prototype.elementsNS = function(node,uri,name)
 {
 	var elements=[];
-	
+
 	if (node.getElementsByTagNameNS)
 		elements = node.getElementsByTagNameNS(uri,name);
 	else
@@ -16298,7 +16302,7 @@ wfsParser.prototype.elementsNS = function(node,uri,name)
 		var allNodes = node.getElementsByTagName("*"),
 			potentialNode,
 			fullName;
-		
+
 		for (var i = 0, len = allNodes.length; i < len ; ++i)
 		{
 			potentialNode = allNodes[i];
@@ -16310,7 +16314,7 @@ wfsParser.prototype.elementsNS = function(node,uri,name)
 			}
 		}
 	}
-	
+
 	return elements;
 }
 
@@ -16328,7 +16332,7 @@ wfsParser.prototype.getChildValue = function(node, def)
 			}
 		}
 	}
-	
+
 	return value;
 }
 
@@ -16339,25 +16343,25 @@ wfsParser.prototype.parse = function(response, srs)
 		strResp = strResp.replace(/\s+/g, ' '),
 		xml = parseXML(strResp),
 		parsedNS = strResp.indexOf('<kml') > -1 ? this.kmlns : this.gmlns;
-	
+
 	this.axisOrder = srs && srs.indexOf("urn:") == 0 ? 'latlong' : 'longlat';
-	
+
 	var order = ["Polygon","LineString","Point"];
-	
+
 	for (var i = 0, len = order.length; i < len; ++i)
 	{
 		var type = order[i],
 			nodeList = this.elementsNS(xml.documentElement,parsedNS,type);
-		
+
 		for (var j = 0; j < nodeList.length; ++j)
 		{
 			geometry = this['parse' + type].apply(this,[nodeList[j]]);
-			
+
 			if (geometry)
 				geometries.push(geometry);
 		}
 	}
-	
+
 	return geometries;
 }
 
@@ -16366,7 +16370,7 @@ wfsParser.prototype.parsePoint = function(node)
 	var coordString,
 		coords=[],
 		nodeList = this.elementsNS(node,this.gmlns,"pos");
-	
+
 	if (nodeList.length > 0)
 	{
 		coordString = strip(nodeList[0].firstChild.nodeValue);
@@ -16375,7 +16379,7 @@ wfsParser.prototype.parsePoint = function(node)
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coordinates");
-		
+
 		if (nodeList.length > 0)
 		{
 			coordString = strip(nodeList[0].firstChild.nodeValue);
@@ -16385,17 +16389,17 @@ wfsParser.prototype.parsePoint = function(node)
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coord");
-		
+
 		if (nodeList.length > 0)
 		{
 			var xList = this.elementsNS(nodeList[0],this.gmlns,"X"),
 				yList = this.elementsNS(nodeList[0],this.gmlns,"Y");
-			
+
 			if (xList.length > 0 && yList.length > 0)
 				coords = [xList[0].firstChild.nodeValue, yList[0].firstChild.nodeValue];
 		}
 	}
-	
+
 	return {feature:{}, geometry:{type: 'Point', coordinates: this.swapCoordinates([Number(coords[0]), Number(coords[1])])}}
 }
 
@@ -16406,68 +16410,68 @@ wfsParser.prototype.parseLineString = function(node)
 		coords = [],
 		points = [],
 		nodeList = this.elementsNS(node,this.gmlns,"posList");
-	
+
 	if (nodeList.length > 0)
 	{
 		coordString = strip(this.getChildValue(nodeList[0]));
 		coords = coordString.split(" ");
-		
+
 		for (var i = 0; i < coords.length / 2; ++i)
 		{
 			j = i * 2;
 			x = coords[j];
 			y = coords[j + 1];
-			
+
 			points.push(this.swapCoordinates([Number(coords[j]), Number(coords[j + 1])]));
 		}
 	}
 	if (coords.length == 0)
 	{
 		nodeList = this.elementsNS(node,this.gmlns,"coordinates");
-		
+
 		if (nodeList.length > 0)
 		{
 			coordString = strip(this.getChildValue(nodeList[0]));
 			coordString = coordString.replace(/\s*,\s*/g,",");
-			
+
 			var pointList = coordString.split(" ");
-			
+
 			for (var i = 0; i < pointList.length; ++i)
 			{
 				coords = pointList[i].split(",");
-				
+
 				points.push(this.swapCoordinates([Number(coords[0]), Number(coords[1])]));
 			}
 		}
 	}
-	
+
 	if (points.length != 0)
 	{
 		return {feature:{}, geometry:{type: 'LineString', coordinates: points}}
 	}
 	else
 		return false
-		
+
 }
 
 wfsParser.prototype.parsePolygon = function(node)
 {
 	var nodeList = this.elementsNS(node,this.gmlns,"LinearRing"),
 		components = [];
-	
+
 	if (nodeList.length > 0)
 	{
 		var ring;
-		
+
 		for (var i = 0; i < nodeList.length; ++i)
 		{
 			ring = this.parseLineString.apply(this,[nodeList[i],true]);
-			
+
 			if (ring)
 				components.push(ring.geometry.coordinates);
 		}
 	}
-	
+
 	return {feature:{}, geometry:{type: 'Polygon', coordinates: components}}
 }
 
@@ -16490,9 +16494,9 @@ jsonParser.prototype.parse = function(response, srs)
 {
 	var resp = JSON.parse(response),
 		geometries = [];
-	
+
 	this.axisOrder = srs && srs.indexOf("urn:") == 0 ? 'latlong' : 'longlat';
-	
+
 	for (var i = 0; i < resp.features.length; i++)
 	{
 		if (resp.features[i].geometry.type.toLowerCase().indexOf('point') > -1)
@@ -16502,7 +16506,7 @@ jsonParser.prototype.parse = function(response, srs)
 		else if (resp.features[i].geometry.type.toLowerCase().indexOf('polygon') > -1)
 			this.parsePolygon(resp.features[i], geometries);
 	}
-	
+
 	return geometries;
 }
 
@@ -16521,10 +16525,10 @@ jsonParser.prototype.parseLineString = function(feature, geometryArr)
 	if (feature.geometry.type.toLowerCase().indexOf('multi') < 0)
 	{
 		var newCoords = [];
-		
+
 		for (var j = 0; j < feature.geometry.coordinates.length; j++)
 			newCoords.push(this.swapCoordinates(feature.geometry.coordinates[j]))
-		
+
 		geometryArr.push({feature: feature, geometry:{type: 'LINESTRING', coordinates: newCoords}});
 	}
 	else
@@ -16532,10 +16536,10 @@ jsonParser.prototype.parseLineString = function(feature, geometryArr)
 		for (var i = 0; i < feature.geometry.coordinates.length; i++)
 		{
 			var newCoords = [];
-		
+
 			for (var j = 0; j < feature.geometry.coordinates[i].length; j++)
 				newCoords.push(this.swapCoordinates(feature.geometry.coordinates[i][j]))
-			
+
 			geometryArr.push({feature: feature, geometry:{type: 'LINESTRING', coordinates: newCoords}});
 		}
 	}
@@ -16545,17 +16549,17 @@ jsonParser.prototype.parsePolygon = function(feature, geometryArr)
 	if (feature.geometry.type.toLowerCase().indexOf('multi') < 0)
 	{
 		var newCoords = [];
-		
+
 		for (var k = 0; k < feature.geometry.coordinates.length; j++)
 		{
 			var newCoords2 = [];
-			
+
 			for (var j = 0; j < feature.geometry.coordinates[k].length; k++)
 				newCoords2.push(this.swapCoordinates(feature.geometry.coordinates[k][j]))
-			
+
 			newCoords.push(newCoords2)
 		}
-		
+
 		geometryArr.push({feature: feature, geometry:{type: 'POLYGON', coordinates: newCoords}});
 	}
 	else
@@ -16563,17 +16567,17 @@ jsonParser.prototype.parsePolygon = function(feature, geometryArr)
 		for (var i = 0; i < feature.geometry.coordinates.length; i++)
 		{
 			var newCoords = [];
-			
+
 			for (var k = 0; k < feature.geometry.coordinates[i].length; k++)
 			{
 				var newCoords2 = [];
-				
+
 				for (var j = 0; j < feature.geometry.coordinates[i][k].length; j++)
 					newCoords2.push(this.swapCoordinates(feature.geometry.coordinates[i][k][j]))
-				
+
 				newCoords.push(newCoords2)
 			}
-			
+
 			geometryArr.push({feature: feature, geometry:{type: 'POLYGON', coordinates: newCoords}});
 		}
 	}
@@ -16592,14 +16596,14 @@ var queryServerData = function()
 {
 	this.inputField = null;
 	this.parentCanvas = null;
-	
+
 	this.wfsFormats = {};
-	
+
 	this.oldBalloon = false;
 	this.oldBalloonIndex = -1;
-	
+
 	this.proj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
-	
+
 	this.customParams = undefined;
 }
 
@@ -16608,9 +16612,9 @@ queryServerData.prototype = new leftMenu();
 /**
     Загружает виджет для добавления/просмотра WMS/WFS слоёв
  @param protocol
- @param parseFunc 
+ @param parseFunc
  @param drawFunc
- @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/> 
+ @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/>
         - init(targetDiv)->void Добавляет контрол к элементу targetDiv<br/>
         - collect()->Object Возвращает выбранные пользователем объекты<br/>
  @param version {string} Версия протокола, которая будет использоваться
@@ -16621,7 +16625,7 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 	{
 		var res = [],
 			coordsPairs = strip(coordsStr).replace(/\s+/,' ').split(' ');
-		
+
 		if (coordsStr.indexOf(',') == -1)
 		{
 			for (var j = 0; j < Math.floor(coordsPairs.length / 2); j++)
@@ -16632,14 +16636,14 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 			for (var j = 0; j < coordsPairs.length; j++)
 			{
 				var parsedCoords = coordsPairs[j].split(',');
-				
+
 				res.push([Number(parsedCoords[1]), Number(parsedCoords[0])])
 			}
 		}
-		
+
 		return res;
 	}
-	
+
 	window.parseGML = function(response, format, srs)
 	{
 		if (format == 'gml')
@@ -16649,31 +16653,31 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 		else
 			return [];
 	}
-	
+
 	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]);
-	
+
 	this.parentCanvas = _div(null, [['dir','className','serverDataCanvas']]);
-	
+
 	var goButton = makeButton(_gtxt("Загрузить")),
 		_this = this;
-		
+
 	var doGetCapabilities = function()
 	{
 		if (inputField.value != '')
 		{
 			if ( customParamsManager )
 				_this.customParams = customParamsManager.collect();
-				
+
 			_this.getCapabilities(protocol, strip(inputField.value), parseFunc, drawFunc);
-				
+
 			inputField.value = '';
 		}
 		else
 			inputError(inputField);
 	}
-	
+
 	goButton.onclick = doGetCapabilities;
-	
+
 	$(inputField).on('keydown', function(e)
 	{
 		if (e.keyCode === 13)
@@ -16682,15 +16686,15 @@ queryServerData.prototype.load = function(protocol, parseFunc, drawFunc, customP
 	  		return false;
 	  	}
 	});
-	
+
 	var canvas = _div([_div([_span([_t(_gtxt("URL сервера"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
-	
+
 	if (customParamsManager)
 	{
 		var customParamsDiv = _div();
 		$(canvas).append(customParamsDiv);
 		_this.customParams = customParamsManager.init(customParamsDiv);
-	}	
+	}
 
 	_(this.workCanvas, [canvas, this.parentCanvas])
 }
@@ -16699,24 +16703,24 @@ queryServerData.prototype.getCapabilities = function(protocol, url, parseFunc, d
 {
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
-	
+
 	if (this.parentCanvas.childNodes.length == 0)
 		_(this.parentCanvas, [loading]);
 	else
 		this.parentCanvas.insertBefore(loading, this.parentCanvas.firstChild);
-	
-    var capabilitiesUrl = 
+
+    var capabilitiesUrl =
             url.replace(/REQUEST=GetCapabilities[\&]*/i, '')
                .replace(new RegExp('SERVICE=' + protocol + '[\&]', 'i'), '')
                .replace(/\&$/, '');
-    
+
     capabilitiesUrl += capabilitiesUrl.indexOf('?') !== -1 ? '&' : '?';
     capabilitiesUrl += 'REQUEST=GetCapabilities&SERVICE=' + protocol;
-    
+
     if (version) {
         capabilitiesUrl += '&VERSION=' + version;
     }
-    
+
 	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(capabilitiesUrl), function(response) {
 		if (!parseResponse(response)) return;
 
@@ -16732,34 +16736,34 @@ queryServerData.prototype.parseWFSCapabilities = function(response)
 		strResp = response.replace(/[\t\n\r]/g, ' '),
 		strResp = strResp.replace(/\s+/g, ' '),
 		featuresXML = parseXML(response).getElementsByTagName('FeatureType');
-	
+
 	for (var i = 0; i < featuresXML.length; i++)
 	{
 		var layer = {},
 			name = featuresXML[i].getElementsByTagName('Name'),
 			title = featuresXML[i].getElementsByTagName('Title'),
 			srs = featuresXML[i].getElementsByTagName('DefaultSRS');
-		
+
 		if (name.length)
 			layer.name = getTextContent(name[0]);
-		
+
 		if (title.length)
 			layer.title = getTextContent(title[0]);
-		
+
 		if (srs.length)
 			layer.srs = getTextContent(srs[0]);
-		
+
 		if (layer.name)
 			serviceLayers.push(layer);
 	}
-	
+
 	return serviceLayers;
 }
 
 queryServerData.prototype.loadGML = function(url, parentTreeCanvas, box, header, format, loadLayerParams, srs)
 {
 	var _this = this;
-	
+
 	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
 	{
 		if (!parseResponse(response)) return;
@@ -16773,18 +16777,18 @@ queryServerData.prototype.saveGML = function(geometries)
 	if (typeof geometries == 'undefined' || geometries == null)
 	{
 		geometries = [];
-		
+
 		globalFlashMap.drawing.forEachObject(function(ret)
 		{
 			geometries.push(ret.geometry);
 		})
 	}
-	
+
 	window.promptFunction(_gtxt('Введите имя gml-файла для скачивания:'), 'objects.gml', function(fileName)
 	{
 		globalFlashMap.saveObjects(geometries, nsGmx.Utils.translit(fileName));
 	});
-	
+
 	return false;
 }
 
@@ -16803,17 +16807,17 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	// parent['POINT'].setStyle(styles['POINT']);
 	// parent['LINESTRING'].setStyle(styles['LINESTRING']);
 	// parent['POLYGON'].setStyle(styles['POLYGON']);
-	
+
 	var geomsPresent = {},
 		bounds = L.gmxUtil.bounds(),
         items = {'Point': [], 'LineString': [], 'Polygon': []};
-	
+
 	for (var i = 0; i < geometries.length; i++)
 	{
 		//var elem = parent[geometries[i].geometry.type].addObject(geometries[i].geometry);
         items[geometries[i].geometry.type].push([L.gmxUtil.geoJSONtoGeometry(geometries[i].geometry, true)]);
         //parent[geometries[i].geometry.type].addItems();
-		
+
 		/*if (objLength(geometries[i].feature) > 0)
 		{
 			(function(i)
@@ -16821,16 +16825,16 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 				elem.setHandler("onClick", function(obj)
 				{
 					var elemCanvas = $(divCanvas).find("[geometryType='" + geometries[i].geometry.type + "']")[0];
-					
+
 					if (!elemCanvas.graphDataProperties ||
 						!geometries[i].feature.properties)
 						return;
-					
+
 					var balloonCanvas = _div();
-						
+
 					if (!_diagram.createBalloon(obj, balloonCanvas))
 						return;
-					
+
 					if (_diagram.createDateTimeDiagramByAttrs(balloonCanvas, 500, 300, geometries[i].feature.properties, elemCanvas.graphDataProperties))
 						_diagram.oldBalloon.resize();
 				})
@@ -16850,7 +16854,7 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		divChilds = _div(),
 		spanHeader = _span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')]),
 		_this = this;
-	
+
 	var clickFunc = function(flag)
 	{
         var lmap = nsGmx.leafletMap,
@@ -16864,50 +16868,50 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		else
 			hide(divChilds);
 	}
-	
+
 	parentTreeCanvas.loaded = function() // переопределим функцию загрузки слоя на центрирование
 	{
 		if (!box.checked)
 		{
 			clickFunc.call(_this, true);
-			
+
 			box.checked = true;
 		}
-		
+
 		//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
         nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
 	}
-	
+
 	parentTreeCanvas.clear = function()
 	{
         var lmap = nsGmx.leafletMap;
 		lmap.removeLayer(parent['Point']);
 		lmap.removeLayer(parent['LineString']);
 		lmap.removeLayer(parent['Polygon']);
-		
+
 		divCanvas.removeNode(true);
 	}
-	
+
 	box.onclick = function()
 	{
 		clickFunc.call(_this, this.checked);
 	}
-	
+
 	$(parentTreeCanvas).empty();
-	
+
 	if (parentTreeCanvas.childNodes.length == 0)
 		_(parentTreeCanvas, [divCanvas]);
 	else
 		parentTreeCanvas.insertBefore(divCanvas, parentTreeCanvas.firstChild);
-	
+
 	_(divCanvas, [divChilds]);
-	
+
 	// for (var type in geomsPresent)
 	// {
 		// var elemCanvas = _div(null, [['css','padding','2px'],['attr','geometryType', type]]),
 			// //icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
 			// spanElem = _span(null, [['dir','className','layerfeature']]);
-		
+
 		// if (type == 'Point')
 			// _(spanElem, [_t(_gtxt('точки'))]);
 		// else if (type == 'LineString')
@@ -16919,11 +16923,11 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		// (function(type){
 			// icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)
 		// })(type);
-		
+
 		// if (typeof loadLayerParams != 'undefined' && loadLayerParams[type.toLowerCase()])
 		// {
 			// var info = loadLayerParams[type.toLowerCase()];
-			
+
 			// elemCanvas.graphDataType = info.graphDataType;
 			// elemCanvas.graphDataProperties = info.graphDataProperties;
 		// }
@@ -16932,15 +16936,15 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 			// elemCanvas.graphDataType = "func";
 			// elemCanvas.graphDataProperties = "";
 		// }
-		
+
 		// _(elemCanvas, [icon, spanElem])
 		// _(divChilds, [elemCanvas]);
-		
+
 	// }
-	
+
 	//globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
     nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]]);
-	
+
 	box.checked = true;
 }
 
@@ -16953,11 +16957,11 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this,
         lmap = nsGmx.leafletMap;
-	
+
 	$(replaceElem).replaceWith(ulCanvas)
-    
+
     $(ulCanvas).data('serverParams', serverParams);
-	
+
 	remove.onclick = function()
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
@@ -16965,15 +16969,15 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 			ulChilds.childNodes[i].firstChild.lastChild.clear && ulChilds.childNodes[i].firstChild.lastChild.clear();
             lmap.removeLayer(ulChilds.childNodes[i].firstChild.lastChild.gmxObject);
 		}
-        
+
 		this.parentNode.parentNode.parentNode.removeNode(true);
 	}
-	
+
 	remove.className = 'remove';
 	remove.style.right = '0px';
-	
+
 	_(ulCanvas, [_li([_div([_span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')],[['dir','className','urlHeader']]), remove],[['css','position','relative']]), ulChilds])])
-	
+
 	var clickFunc = function(layer, parent, flag)
 	{
 		if (!flag) {
@@ -16992,9 +16996,9 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
             requestParams.format = "image/" + serverParams.format;
             requestParams.transparent = serverParams.format === 'png';
         }
-        
+
         var res = getWMSMapURL(url, layer, requestParams);
-        
+
         if (res)
         {
             var b = res.bounds;
@@ -17002,7 +17006,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
             parent.addLayer(L.imageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), L.latLngBounds([[b.minY, b.minX], [b.maxY, b.maxX]])));
         }
 	}
-	
+
 	serviceLayers.forEach(function(layer)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px']]),
@@ -17018,7 +17022,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         {
             if (!box.checked)
                 box.checked = true;
-            
+
             clickFunc(layer, parent, true);
         }
         box.onclick = function()
@@ -17029,12 +17033,12 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         {
             updateFunc(layer, parent);
         }
-		
+
 		box.setAttribute('layerName', layer.name);
-		
+
 		_(elemCanvas, [box, spanElem]);
 		_(ulChilds, [_li([elemCanvas])]);
-		
+
 		if (typeof loadParams != 'undefined' && loadParams[layer.name])
 			$(spanElem).trigger("click");
 	});
@@ -17058,7 +17062,7 @@ queryServerData.prototype.customWMSParamsManager = (function()
 {
 	var _targetDiv = null;
 	return {
-		init: function(targetDiv) 
+		init: function(targetDiv)
 		{
 			var select = nsGmx.Utils._select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
 			_targetDiv = targetDiv;
@@ -17078,9 +17082,9 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		divFormat = _div(),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this;
-	
+
 	$(replaceElem).replaceWith(ulCanvas)
-	
+
 	remove.onclick = function()
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
@@ -17103,26 +17107,26 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 	{
 		if (flag) {
 			var newFormat = formatSelect.value;
-			
+
 			// загружаем данные только один раз
 			if (!elemCanvas.loaded || elemCanvas.format != newFormat)
 			{
 				elemCanvas.clear && elemCanvas.clear();
-				
+
                 var separator = url.indexOf('?') !== -1 ? '&' : '?';
-                
+
 				var objUrl = url + separator + "request=GetFeature&version=1.0.0&typeName=" + layer.name;
-				
+
 				if (formatSelect.value == 'json')
 					objUrl += '&outputFormat=json'
-				
+
 				_this.loadGML(objUrl, elemCanvas, box, header, newFormat, loadLayerParams, layer.srs);
-				
+
 				elemCanvas.loaded = true;
 				elemCanvas.format = newFormat;
-				
+
 				var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px']]);
-		
+
 				_(elemCanvas, [loading]);
 			}
 			else
@@ -17132,7 +17136,7 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 			}
 		}
 	}
-	
+
 	for (var i = 0; i < serviceLayers.length; i++)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px']]),
@@ -17143,13 +17147,13 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 		box.className = 'floatLeft';
 
 		box.setAttribute('layerName', serviceLayers[i].name);
-		
+
 		(function(layer, parentTreeCanvas, box, header){
 			spanElem.onclick = function()
 			{
 				if (!box.checked)
 					box.checked = true;
-				
+
 				clickFunc.call(_this, layer, true, parentTreeCanvas, box, header);
 			}
 			box.onclick = function()
@@ -17157,20 +17161,20 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 				clickFunc.call(_this, layer, this.checked, parentTreeCanvas, box, header);
 			}
 		})(serviceLayers[i], elemChilds, box, spanElem);
-		
+
 		_(elemCanvas, [box, _div([spanElem],[['css','display','inline']]), elemChilds])
 		_(ulChilds, [_li([elemCanvas])])
-			
+
 		if (typeof loadParams != 'undefined' && loadParams[serviceLayers[i].name])
 		{
 			if (!box.checked)
 				box.checked = true;
-			
+
 			formatSelect.value = loadParams[serviceLayers[i].name].format;
 			clickFunc.call(_this, serviceLayers[i], true, elemChilds, box, spanElem, loadParams[serviceLayers[i].name].info);
 		}
 	}
-	
+
 	$(ulCanvas).treeview();
 }
 
@@ -17181,7 +17185,7 @@ var _queryServerDataWFS = new queryServerData(),
 loadServerData.WFS.load = function()
 {
 	var alreadyLoaded = _queryServerDataWFS.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryServerDataWFS.load('WFS', _queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS, null, '1.0.0');
 }
@@ -17193,7 +17197,7 @@ loadServerData.WFS.unload = function()
 loadServerData.WMS.load = function()
 {
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryServerDataWMS.load('WMS', parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
 }
@@ -17207,16 +17211,16 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
     {
         if (!_queryServerDataWMS.workCanvas)
             return null;
-        
+
         var value = {};
-        
+
         $(_queryServerDataWMS.workCanvas.lastChild).children("ul[url]").each(function()
         {
             var url = this.getAttribute('url');
             var serverParams = $(this).data('serverParams');
-            
+
             value[url] = {params: serverParams, layersVisibility: {}};
-            
+
             $(this).find("input[type='checkbox']").each(function()
             {
                 if (this.checked)
@@ -17225,24 +17229,24 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                 }
             })
         })
-        
+
         if (!objLength(value))
             return null;
-        
+
         return value;
     },
-    
+
     load: function(data)
     {
         if (!data)
             return;
 
         $('#left_wms').remove();
-        
+
         _queryServerDataWMS.builded = false;
-        
+
         loadServerData.WMS.load('wms');
-        
+
         for (var url in data)
         {
             (function(loadParams)
@@ -17252,7 +17256,7 @@ nsGmx.userObjectsManager.addDataCollector('wms', {
                 {
                     loadParams = {layersVisibility: loadParams};
                 }
-                
+
                 _queryServerDataWMS.getCapabilities('WMS', url, parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
@@ -17267,48 +17271,48 @@ nsGmx.userObjectsManager.addDataCollector('wfs', {
     {
         if (!_queryServerDataWFS.workCanvas)
             return null;
-        
+
         var value = {};
-        
+
         $(_queryServerDataWFS.workCanvas.lastChild).children("ul[url]").each(function()
         {
             var url = this.getAttribute('url');
-            
+
             value[url] = {};
-            
+
             $(this).find("input[type='checkbox']").each(function()
             {
                 if (this.checked)
                 {
                     var wfsLayerInfo = {};
-                    
+
                     $(this.parentNode.lastChild).find(".colorIcon").each(function()
                     {
                         wfsLayerInfo[this.geometryType] = {RenderStyle: this.getStyle(), graphDataType: this.parentNode.graphDataType, graphDataProperties: this.parentNode.graphDataProperties}
                     })
-                    
+
                     value[url][this.getAttribute('layerName')] = {format: this.parentNode.lastChild.format, info: wfsLayerInfo};
                 }
             })
         })
-        
-        if (!objLength(value))   
+
+        if (!objLength(value))
             return null;
-        
+
         return value;
     },
-    
+
     load: function(data)
     {
         if (!data)
             return;
 
         $('#left_wfs').remove();
-        
+
         _queryServerDataWFS.builded = false;
-        
+
         loadServerData.WFS.load('wfs');
-        
+
         for (var url in data)
         {
             (function(loadParams)
@@ -17335,10 +17339,10 @@ window.Raphael=(function(){var a=/[, ]+/,aH=/^(circle|rect|path|ellipse|text|ima
 var Diagram = function()
 {
 	this.rad = Math.PI / 180;
-	
+
 	this.oldBalloon = false,
 	this.oldBalloonIndex = -1;
-	
+
 	this.colors = ["#FF3300", "#FF9900", "#CCFF00", "#33CC00", "#33CCCC", "#66CCFF", "#0066FF", "#CC33FF", "#CC0066", "#FF6633", "#CCFF66", "#33FF33", "#00CCCC", "#0099FF", "#0033CC", "#9933FF", "#CC3399", "#990033", "#FF9933", "#99CC00", "#33CC99", "#33CCFF", "#006699", "#660099"];
 	this.colorCounter = 0;
 }
@@ -17346,7 +17350,7 @@ var Diagram = function()
 Diagram.prototype.draw = function(parent, width, height)
 {
 	var graphID = 'graph' + Math.random();
-	
+
 	_(parent, [_div([_div(null,[['attr','id',graphID],['css','width',width + 'px'],['css','height',height + 'px']])])]);
 
 	return Raphael(graphID, width, height);
@@ -17355,9 +17359,9 @@ Diagram.prototype.draw = function(parent, width, height)
 Diagram.prototype.getNextColor = function()
 {
 	var color = this.colors[this.colorCounter % this.colors.length];
-	
+
 	++this.colorCounter;
-	
+
 	return color;
 }
 
@@ -17370,32 +17374,32 @@ Diagram.prototype.createPieDiagram = function(parent, width, height, data)
 {
 	var graph = this.draw(parent, width, height),
 		_this = this;
-	
+
 	this.resetColor()
-	
+
 	// определяем суммарное значение для масштабирования
 	var countGraphValue = 0;
 	for (var layer in data)
 			countGraphValue += Number(data[layer]);
-	
+
 	// отсупы и размеры
 	var cx = width / 2,
 		cy = height / 2,
 		r = height / 3.5;
-	
+
 	function sector(cx, cy, r, startAngle, endAngle, params)
 	{
 		if (Math.abs(endAngle - startAngle - 360) < 180 / (Math.PI * r))
 			return graph.circle(cx, cy, r).attr(params);
-		
+
 		var x1 = cx + r * Math.cos(-startAngle * _this.rad),
 			x2 = cx + r * Math.cos(-endAngle * _this.rad),
 			y1 = cy + r * Math.sin(-startAngle * _this.rad),
 			y2 = cy + r * Math.sin(-endAngle * _this.rad);
-		
+
 		return graph.path(["M", cx, cy, "L", x1, y1, "A", r, r, 0, +(endAngle - startAngle > 180), 0, x2, y2, "z"]).attr(params);
 	}
-	
+
 	var angle = 0,
 		startColor = 0,
 		littleAngle = 0,
@@ -17411,15 +17415,15 @@ Diagram.prototype.createPieDiagram = function(parent, width, height, data)
 				value = Number(data[layer]),
 				proc = Number(100 * value / countGraphValue).toFixed(1),
 	            angleplus = 360 * value / countGraphValue;
-	        
+
 	        if (angleplus < 180 / (Math.PI * r))
 			{
 				littleValue += value;
 				littleAngle += angleplus;
-				
+
 				return;
 			}
-	        
+
 	        var	popangle = angle + (angleplus / 2),
 				bcolor = _diagram.getNextColor(),
 				hsbBcolor = Raphael.rgb2hsb(bcolor),
@@ -17427,23 +17431,23 @@ Diagram.prototype.createPieDiagram = function(parent, width, height, data)
 				p = sector(cx, cy, r, angle, angle + angleplus, {gradient: Math.abs(Math.round(angle + angleplus - 90)) + "-" + bcolor + "-" + color, stroke: color, "stroke-width": 1}).attr({id:layer}),
 				txt = graph.text(cx + (r + delta) * Math.cos(-popangle * _this.rad), cy + (r + delta) * Math.sin(-popangle * _this.rad), textTemplate.replace(/text/g,textData).replace(/value/g, value).replace(/proc/g, proc))
 	        					.attr({fill: "#153069", stroke: "none", opacity: startOpacity, "font-family": '"Arial"', "font-size": "13px", "text-anchor": (angle + angleplus /2 > 90 && angle + angleplus / 2 < 270) ? "end" : "start"});
-	        
+
 	        p.mouseover(function()
 	        {
 	        	p.animate({scale: [maxScale, maxScale, cx, cy]}, ms, "elastic");
-				
+
 			//	txt.animate({opacity: 1}, ms, "elastic");
 				txt.node.setAttribute("fill","#FC830B")
 	        }).mouseout(function()
 	        {
 	        	p.animate({scale: [1, 1, cx, cy]}, ms, "elastic");
-	        	
+
 			//	txt.animate({opacity: startOpacity}, ms);
 				txt.node.setAttribute("fill","#153069")
 	        });
 	        angle += angleplus;
 	        startColor += .1;
-	        
+
 	        if (startColor > 1)
 	        	startColor = 0.1;
 		},
@@ -17455,18 +17459,18 @@ Diagram.prototype.createPieDiagram = function(parent, width, height, data)
 				popangle = angle + (angleplus / 2),
 				color = "#CCCCCF",
 				bcolor = "#99999B";
-		       
+
 			var p = sector(cx, cy, r, angle, angle + angleplus, {gradient: Math.abs(Math.round(angle + angleplus - 90)) + "-" + bcolor + "-" + color, stroke: color, "stroke-width": 1}).attr({id:data}),
 			    txt = graph.text(cx + (r + delta) * Math.cos(-popangle * _this.rad), cy + (r + delta) * Math.sin(-popangle * _this.rad), textTemplate.replace(/text/g,textData).replace(/value/g, value))
 			                                       .attr({fill: "#4970AC", stroke: "none", opacity: startOpacity, "font-family": '"Arial"', "font-size": "10px"});
-		       
+
 		//	txt.node.setAttribute("angle", -popangle)
 		//	p.node.setAttribute("angle", 0)
 
 			p.mouseover(function()
 			{
 				p.animate({scale: [maxScale, maxScale, cx, cy]}, ms, "elastic");
-				       
+
 				txt.animate({opacity: 1}, ms, "elastic");
 			}).mouseout(function()
 			{
@@ -17475,14 +17479,14 @@ Diagram.prototype.createPieDiagram = function(parent, width, height, data)
 				txt.animate({opacity: startOpacity}, ms);
 			});
 		}
-	
+
 	Raphael.getColor.reset();
-	
+
 	for (var layer in data)
 		process(layer);
-	
+
 	if (littleAngle > 0)
-		processLittle();	
+		processLittle();
 }
 
 Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
@@ -17493,25 +17497,25 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		minValue = Number.MAX_VALUE,
 		maxValue = -Number.MAX_VALUE,
 		_this = this;
-	
+
 	for (var propName in data)
 	{
 		dateTimeData.push({date:Number(propName), value:data[propName]});
-		
+
 		if (data[propName] < minValue)
 			minValue = data[propName];
-		
+
 		if (data[propName] > maxValue)
 			maxValue = data[propName];
 	}
-	
+
 	Raphael.getColor.reset();
-	
+
 	dateTimeData = dateTimeData.sort(function(a,b)
 	{
 		return a.date - b.date;
 	});
-	
+
 	var cx = width - 50,
 		cy = height - 40,
 		firstDate = dateTimeData[0].date,
@@ -17526,7 +17530,7 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		{
 			var xCoord = 40 + cx * (data.date - firstDate) / scaleX,
 				yCoord = 10 + cy - cy * (data.value - minValue) / scaleY;
-			
+
 			if (i == 0)
 				funcPath = funcPath.concat(['M', xCoord, yCoord]);
 			else
@@ -17536,19 +17540,19 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		{
 			var xCoord = 40 + cx * (data.date - firstDate) / scaleX,
 				yCoord = 10 + cy - cy * (data.value - minValue) / scaleY;
-			
+
 			var dot = graph.circle(xCoord, yCoord, 3).attr({fill: '#33AB33', stroke: '#88CB99'});
-			
+
 			dot.mouseover(function()
 	        {
 	            dot.attr("r", 5);
 
                 var newWidth = String(data.value).length * 7 + 12 + 55,
 					newcoord = {x: xCoord + 20, y: yCoord > 10 + cy - 24 ? 10 + cy - 24 : yCoord};
-                
-                if (newcoord.x + newWidth > cx + 40) 
+
+                if (newcoord.x + newWidth > cx + 40)
                     newcoord.x -= (newWidth + 40);
-				
+
 				if (!$.browser.msie)
 				{
 		            clearTimeout(leaveTimer);
@@ -17562,11 +17566,11 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
    	               	ttFrame.show().attr({x: newcoord.x, y: newcoord.y, width:newWidth});
                 	ttText.show().attr({text: stringDate(data.date) + ': ' + String(data.value),x: newcoord.x + 6, y: newcoord.y + 12});
 	            }
-	            
+
 	        }).mouseout(function()
 	        {
 	            dot.attr("r", 3);
-	            
+
 	            if (!$.browser.msie)
 				{
 	                graph.safari();
@@ -17588,25 +17592,25 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 
 	graph.path(["M", 40, 10, "L", 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
 	graph.path(["M", 40, cy + 10, "L", cx + 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
-	
+
 	if (lastDate - firstDate > 2 * 1000 * 86400 * 365)
 	{
 		// разбивка по годам
 		var year = new Date(firstDate).getFullYear() + 1,
 			lastXYear = -1;
-		
+
 		while (new Date(year, 0, 1) < lastDate)
 		{
 			var xYear = 40 + cx * (new Date(year, 0, 1).valueOf() - firstDate) / scaleX;
-			
+
 			if (lastXYear < 0 || (xYear - lastXYear) > 40)
 			{
 				graph.path(["M", xYear, 10, "L", xYear, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 				graph.text(xYear, cy + 25, String(year)).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "middle"});
-				
+
 				lastXYear = xYear;
 			}
-			
+
 			year++;
 		}
 	}
@@ -17617,27 +17621,27 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 			month = new Date(firstDate).getMonth() + 1,
 			monthNames = {'0':'январь','1':'февраль','2':'март','3':'апрель','4':'май','5':'июнь','6':'июль','7':'август','8':'сентябрь','9':'октябрь','10':'ноябрь','11':'декабрь'},
 			lastXYear = -1;
-		
+
 		if (month > 11)
 		{
 			month = 0;
 			year++;
 		}
-		
+
 		while (new Date(year, month, 1) < lastDate)
 		{
 			var xYear = 40 + cx * (new Date(year, month, 1).valueOf() - firstDate) / scaleX;
-			
+
 			if (lastXYear < 0 || (xYear - lastXYear) > 40)
 			{
 				graph.path(["M", xYear, 10, "L", xYear, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 				graph.text(xYear, cy + 25, String(monthNames[month] + '\n' + year)).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "middle"});
-				
+
 				lastXYear = xYear;
 			}
-			
+
 			month++;
-			
+
 			if (month > 11)
 			{
 				month = 0;
@@ -17651,10 +17655,10 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		var currDate = firstDate + 24 * 3600 * 1000,
 			monthNames = {'0':'января','1':'февраля','2':'марта','3':'апреля','4':'мая','5':'июня','6':'июля','7':'августа','8':'сентября','9':'октября','10':'ноября','11':'декабря'},
 			lastXYear = -1;
-		
+
 		if (new Date(currDate).getDate() == new Date(firstDate).getDate())
 			currDate = firstDate + 25 * 3600 * 1000;
-		
+
 		currDate = new Date(currDate);
 		currDate.setHours(0);
 		currDate = currDate.valueOf();
@@ -17662,32 +17666,32 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		while (currDate < lastDate)
 		{
 			var xYear = 40 + cx * (currDate - firstDate) / scaleX;
-			
+
 			if (lastXYear < 0 || (xYear - lastXYear) > 40)
 			{
 				graph.path(["M", xYear, 10, "L", xYear, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 				graph.text(xYear, cy + 25, String(String(new Date(currDate).getDate()) + ' ' + monthNames[new Date(currDate).getMonth()] + '\n' + String(new Date(currDate).getFullYear()))).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "middle"});
-				
+
 				lastXYear = xYear;
 			}
-			
+
 			var oldCurrDate = new Date(currDate).getDate();
-			
+
 			currDate = currDate + 24 * 3600 * 1000;
-			
+
 			if (new Date(currDate).getDate() == oldCurrDate)
 				currDate = currDate + 25 * 3600 * 1000;
-			
+
 			currDate = new Date(currDate);
 			currDate.setHours(0);
 			currDate = currDate.valueOf();
 		}
 
 	}
-	
+
 	var yLabels = [],
 		labelIndex = -1;;
-	
+
 	// "красивые метки" на ось y
 	for (var i = 0; i < 13; i++)
 	{
@@ -17695,45 +17699,45 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 		yLabels.push(2 * Math.pow(10, i - 5));
 		yLabels.push(5 * Math.pow(10, i - 5));
 	}
-	
+
 	for (var i = 0; i < yLabels.length; i++)
 	{
 		if (scaleY / yLabels[i] > cy / 100 &&
 			scaleY / yLabels[i] < cy / 50)
 		{
 			labelIndex = i;
-			
+
 			break;
 		}
 	}
-	
+
 	if (labelIndex > 0)
 	{
 		var labelCount = Math.floor(scaleY / yLabels[labelIndex]),
 			firstYLabel = (Math.floor(minValue / yLabels[labelIndex]) + 1) * yLabels[labelIndex];
-		
+
 		while (firstYLabel < maxValue)
 		{
 			var yLabel = 10 + cy - cy * (firstYLabel - minValue) / scaleY;
-		
+
 			graph.path(["M", 40, yLabel, "L", cx + 40, yLabel]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 			graph.text(35, yLabel, String(firstYLabel)).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "end"});
-			
+
 			firstYLabel += yLabels[labelIndex]
 		}
 	}
-	
+
 	for (var i = 0; i < dateTimeData.length; i++)
 		processPath(dateTimeData[i], i);
 
 	graph.path(funcPath).attr({stroke: '#88CB99', 'stroke-width':2})
-		
+
 	var ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 		ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
 
 	for (var i = 0; i < dateTimeData.length; i++)
 		process(dateTimeData[i], i);
-	
+
 	ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 	ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
 }
@@ -17744,9 +17748,9 @@ Diagram.prototype.createDateTimeDiagram = function(parent, width, height, data)
 Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data, dataColumns, legendFlag)
 {
 	var graph = this.draw(parent, width, height);
-	
+
 	this.resetColor();
-	
+
 	var chartId = String(Math.random()).substr(2,12),
 		minValue = Number.MAX_VALUE,
 		maxValue = -Number.MAX_VALUE,
@@ -17755,7 +17759,7 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 		curPosition = 0,
 		legendCellHeight = 20,
 		startColor = 0;
-		
+
 	for (var label in data)
 	{
 		layerNames.push(label.replace(/\s/g, ''));
@@ -17770,55 +17774,55 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 			if (data[label][j] < minValue)
 				minValue = data[label][j];
 		}
-		
+
 		startColor += 0.1 * (1 + Math.random());
-		
+
 		if (startColor > 1)
 	    	startColor = 0.1 * (1 + Math.random());
 	}
-	
+
 	var cx = width - 55 - (legendFlag > 0 ? 130 : 0),
 		cy = height - 40,
 		namesByPage = Math.floor((cy - 40) / legendCellHeight),
 		scaleY = maxValue - minValue != 0 ? maxValue - minValue : 1;
-	
+
 	// оси
 	graph.path(["M", 40, 10, "L", 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
 	graph.path(["M", 40, cy + 10, "L", cx + 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
-	
+
 	// "красивые метки" на ось x
 	var columnTextLengths = [];
-	
+
 	for (var i = 0; i < dataColumns.length; i++)
 	{
 		var strs = dataColumns[i].split("\n"),
 			maxLen = strs[0].length;
-		
+
 		for (var j = 1; j < strs.length; j++)
 			if (strs[j].length > maxLen)
 				maxLen = strs[j].length;
-		
+
 		columnTextLengths.push(maxLen * 7)
 	}
-	
+
 	var lastTextCoord = -1;
-	
+
 	for (var i = 0; i < dataColumns.length; i++)
 	{
 		var currXCoord = 40 + cx * i / (dataColumns.length - 1);
-		
+
 		if (lastTextCoord < 0 || (currXCoord - lastTextCoord) > 10 + columnTextLengths[i] / 2)
 		{
 			graph.path(["M", currXCoord, 10, "L", currXCoord, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 			graph.text(currXCoord, cy + 25, String(dataColumns[i])).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "middle"});
-			
+
 			lastTextCoord = currXCoord + columnTextLengths[i] / 2;
 		}
 	}
-	
+
 	var yLabels = [],
 		labelIndex = -1;;
-	
+
 	// "красивые метки" на ось y
 	for (var i = 0; i < 13; i++)
 	{
@@ -17826,34 +17830,34 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 		yLabels.push(2 * Math.pow(10, i - 5));
 		yLabels.push(5 * Math.pow(10, i - 5));
 	}
-	
+
 	for (var i = 0; i < yLabels.length; i++)
 	{
 		if (scaleY / yLabels[i] > cy / 200 &&
 			scaleY / yLabels[i] < cy / 20)
 		{
 			labelIndex = i;
-			
+
 			break;
 		}
 	}
-	
+
 	if (labelIndex > 0)
 	{
 		var labelCount = Math.floor(scaleY / yLabels[labelIndex]),
 			firstYLabel = (Math.floor(minValue / yLabels[labelIndex]) + 1) * yLabels[labelIndex];
-		
+
 		while (firstYLabel <= maxValue)
 		{
 			var yLabel = 10 + cy - cy * (firstYLabel - minValue) / scaleY;
-		
+
 			graph.path(["M", 40, yLabel, "L", cx + 40, yLabel]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 			graph.text(35, yLabel, String(firstYLabel)).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "end"});
-			
+
 			firstYLabel += yLabels[labelIndex]
 		}
 	}
-	
+
 	// сам график
 	var	leaveTimer,
 		isLabelVisible = false,
@@ -17861,41 +17865,41 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 		{
 			var values = data[label],
 				funcPath = [];
-			
+
 			for (var i = 0; i < dataColumns.length; i++)
 			{
 				var xCoord = 40 + cx * i / (dataColumns.length - 1),
 					yCoord = 10 + cy - cy * (values[i] - minValue) / scaleY;
-			
+
 				if (i == 0)
 					funcPath = funcPath.concat(['M', xCoord, yCoord]);
 				else
 					funcPath = funcPath.concat(['L', xCoord, yCoord]);
 			}
-			
+
 			var line = graph.path(funcPath).attr({stroke: layerColors[label], 'stroke-width':2});
 			line.node.setAttribute('id', chartId + 'line_' + label);
-			
+
 			for (var i = 0; i < dataColumns.length; i++)
 			{
 				(function(i)
 				{
 					var xCoord = 40 + cx * i / (dataColumns.length - 1),
 					yCoord = 10 + cy - cy * (values[i] - minValue) / scaleY;
-					
+
 					var dot = graph.circle(xCoord, yCoord, 3).attr({fill: layerColors[label], stroke: layerColors[label]});
 					dot.node.setAttribute('id', chartId + 'dot_' + label + '_' + i);
-					
+
 					dot.mouseover(function()
 			        {
 			            dot.attr("r", 5);
-			            
+
 		                var newWidth = String(values[i]).length * 7 + 12,
 		                	newcoord = {x: xCoord + 20, y: yCoord > 10 + cy - 24 ? 10 + cy - 24 : yCoord};
-                		
-                		if (newcoord.x + newWidth > cx + 40) 
+
+                		if (newcoord.x + newWidth > cx + 40)
                     		newcoord.x -= (newWidth + 40);
-						
+
 						if (!$.browser.msie)
 						{
 				            clearTimeout(leaveTimer);
@@ -17909,11 +17913,11 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 		   	               	ttFrame.show().attr({x: newcoord.x, y: newcoord.y, width:newWidth});
 		                	ttText.show().attr({text: String(values[i]),x: newcoord.x + 6, y: newcoord.y + 12});
 			            }
-			            
+
 			        }).mouseout(function()
 			        {
 			            dot.attr("r", 3);
-			            
+
 			            if (!$.browser.msie)
 						{
 			                graph.safari();
@@ -17938,35 +17942,35 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 
 	var ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 		ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
-	
+
 	for (var label in data)
 		process(label)
-	
+
 	ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 	ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
-	
+
 	// легенда
 	if (legendFlag > 0)
 	{
 		var width = 130,
 			height = Math.min(namesByPage, objLength(data)) * legendCellHeight + 40;
-		
+
 		graph.rect(cx + 50, 10, width, height, 5)
 			.attr('fill','#FAFAFE')
 			.attr('stroke','#BABABE')
 			.attr('stroke-width',1);
-		
+
 		var up = graph.path(["M", cx + 50 + 5, 10 + 15, "L", cx + 50 + width - 5, 10 + 15, "L", cx + 50 + width / 2, 10 + 5, "L", cx + 50 + 5,  10 + 15,"Z"]).attr({fill: '#ABCDEF', opacity: 0.5}),
 			down = graph.path(["M", cx + 50 + 5, 10 + height - 15, "L", cx + 50 + width - 5, 10 + height - 15, "L", cx + 50 + width / 2,  10 + height - 5, "L",cx + 50 + 5,  10 + height - 15, "Z"]).attr({fill: '#ABCDEF', opacity: 0.5});
-		
+
 		up.node.style.cursor = "pointer";
 		down.node.style.cursor = "pointer";
-		
+
 		var drawCurrentPage = function(position, count, names)
 		{
 			var length = count,
 				endPosition = (names.length < position + length) ? names.length : position + length;
-			
+
 			var attachEvent = function(elem, name)
 			{
 				$(elem.node).mousedown(function()
@@ -17978,10 +17982,10 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 							var bar = $('#' + chartId + 'dot_' + name + '_' + i)[0];
 							$(bar).hide();
 						}
-						
+
 						$('#' + chartId + 'line_' + name).hide();
 						$('#' + chartId + 'legRect_' + name).attr('fill','#999999');
-						
+
 						elem.attr('opacity', 0.2);
 					}
 					else
@@ -17991,20 +17995,20 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 							var bar = $('#' + chartId + 'dot_' + name + '_' + i)[0];
 							$(bar).show();
 						}
-						
+
 						$('#' + chartId + 'line_' + name).show();
 						$('#' + chartId + 'legRect_' + name).attr('fill','#153069');
-						
+
 						elem.attr('opacity', 1);
 					}
 				})
 			}
-			
+
 			if (position == 0)
 				$(up.node).hide()
 			else
 				$(up.node).show()
-				
+
 			if (position + count >= names.length)
 				$(down.node).hide()
 			else
@@ -18018,28 +18022,28 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 					area = $('#' + chartId + 'dot_' + layerName + '_0')[0],
 					opacity = area.style.display == 'none' ? 0.2 : 1,
 					shownName = layerName.length > 12 ? layerName.substring(0, 12) + '...' : layerName;
-				
+
 				var txt = graph.text(xCoord - 20, yCoord + 5, shownName)
 							.attr({fill: '#153069', stroke: "none", "font-family": '"Arial"',
 									"font-size": "12px", "text-anchor": "start"});
-				
+
 				txt.node.setAttribute('id', chartId + 'legRect_' + layerName)
-				
+
 				var rect = graph.rect(xCoord - 45, yCoord, 20, 10)
 									.attr({fill: layerColors[layerName], opacity: opacity, stroke: layerColors[layerName]});
-				
+
 				rect.node.setAttribute('id', chartId + 'legTxt_' + layerName)
-									
+
 				rect.node.style.cursor = "pointer";
 				attachEvent(rect, layerName);
 			}
 		}
-		
+
 		$(up.node).mousedown(function()
 		{
 			if (curPosition == 0)
 				return;
-			
+
 			for (var i = 0; i < layerNames.length; i++)
 			{
 				$('#' + chartId + 'legRect_' + layerNames[i]).remove();
@@ -18053,17 +18057,17 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 		{
 			if (curPosition + namesByPage >= layerNames.length)
 				return;
-				
+
 			for (var i = 0; i < layerNames.length; i++)
 			{
 				$('#' + chartId + 'legRect_' + layerNames[i]).remove();
 				$('#' + chartId + 'legTxt_' + layerNames[i]).remove();
 			}
-			
+
 			curPosition += namesByPage;
 			drawCurrentPage(curPosition, namesByPage, layerNames);
 		})
-		
+
 		drawCurrentPage(0, namesByPage, layerNames);
 	}
 }
@@ -18071,9 +18075,9 @@ Diagram.prototype.createMultiLinesDiagram = function(parent, width, height, data
 Diagram.prototype.createBarsDiagram = function(parent, width, height, data, dataColumns, legendFlag, multipleFlag)
 {
 	var graph = this.draw(parent, width, height);
-	
+
 	this.resetColor();
-	
+
 	var chartId = String(Math.random()).substr(2,12),
 		minValue = 0,
 		maxValue = -Number.MAX_VALUE,
@@ -18082,7 +18086,7 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 		curPosition = 0,
 		legendCellHeight = 20,
 		startColor = 0;
-		
+
 	for (var label in data)
 	{
 		layerNames.push(label);
@@ -18094,57 +18098,57 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 			if (data[label][j] > maxValue)
 				maxValue = data[label][j];
 		}
-		
+
 		startColor += 0.1 * (1 + Math.random());
-		
+
 		if (startColor > 1)
 	    	startColor = 0.1 * (1 + Math.random());
 	}
-	
+
 	var cx = width - 55 - (legendFlag > 0 ? 130 : 0),
 		cy = height - 40,
 		namesByPage = Math.floor((cy - 40) / legendCellHeight),
 		scaleY = maxValue - minValue != 0 ? maxValue - minValue : 1;
-	
+
 	// оси
 	graph.path(["M", 40, 10, "L", 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
 	graph.path(["M", 40, cy + 10, "L", cx + 40, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 2, opacity: 0.7});
-	
+
 	// "красивые метки" на ось x
 	var columnTextLengths = [];
-	
+
 	for (var i = 0; i < dataColumns.length; i++)
 	{
 		var strs = dataColumns[i].split("\n"),
 			maxLen = strs[0].length;
-		
+
 		for (var j = 1; j < strs.length; j++)
 			if (strs[j].length > maxLen)
 				maxLen = strs[j].length;
-		
+
 		columnTextLengths.push(maxLen * 7)
 	}
-	
+
 	var lastTextCoord = -1;
-	
+
 	for (var i = 0; i < dataColumns.length; i++)
 	{
 		var barWidth = 0.9 * cx / dataColumns.length,
 			size = cx / dataColumns.length,
 			currXCoord = 40 + size * i + size / 2 + 10;
-		
+
 		if (lastTextCoord < 0 || (currXCoord - lastTextCoord) > 10 + columnTextLengths[i] / 2)
 		{
 			graph.path(["M", currXCoord, 10, "L", currXCoord, cy + 10]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 			graph.text(currXCoord, cy + 25, String(dataColumns[i])).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "middle"});
-			
+
 			lastTextCoord = currXCoord + columnTextLengths[i] / 2;
 		}
 	}
-	
+
 	var yLabels = [],
 		labelIndex = -1;;
-	
+
 	// "красивые метки" на ось y
 	for (var i = 0; i < 13; i++)
 	{
@@ -18152,49 +18156,49 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 		yLabels.push(2 * Math.pow(10, i - 5));
 		yLabels.push(5 * Math.pow(10, i - 5));
 	}
-	
+
 	for (var i = 0; i < yLabels.length; i++)
 	{
 		if (scaleY / yLabels[i] > cy / 200 &&
 			scaleY / yLabels[i] < cy / 20)
 		{
 			labelIndex = i;
-			
+
 			break;
 		}
 	}
-	
+
 	if (labelIndex > 0)
 	{
 		var labelCount = Math.floor(scaleY / yLabels[labelIndex]),
 			firstYLabel = (Math.floor(minValue / yLabels[labelIndex]) + 1) * yLabels[labelIndex];
-		
+
 		while (firstYLabel <= maxValue)
 		{
 			var yLabel = 10 + cy - cy * (firstYLabel - minValue) / scaleY;
-		
+
 			graph.path(["M", 40, yLabel, "L", cx + 40, yLabel]).attr({stroke: "#ABABAB", "stroke-width": 1, opacity: 0.2});
 			graph.text(35, yLabel, String(firstYLabel)).attr({"font": '12px "Arial"', stroke: "none", fill: "#153069", "text-anchor": "end"});
-			
+
 			firstYLabel += yLabels[labelIndex]
 		}
 	}
-	
+
 	// сам график
-	
+
 	var	leaveTimer,
 		isLabelVisible = false,
 		process = function(i)
 		{
 			var barValues = [],
 				size = cx / dataColumns.length;
-			
+
 			for (var label in data)
 				barValues.push({label: label, value: data[label][i], color:layerColors[label]})
-			
-			if (!multipleFlag)	
+
+			if (!multipleFlag)
 				barValues = barValues.sort(function(a, b){return b.value - a.value});
-			
+
 			for (var j = 0; j < barValues.length; j++)
 			{
 				(function(i,j)
@@ -18206,22 +18210,22 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 						hsbFillColor = Raphael.rgb2hsb(color),
 						xCoord = Math.floor(40 + size * i + size / 2 - maxBarWidth / 2 + 10 + (multipleFlag ? barWidth * j : 0)),
 						yCoord =  cy + 10 - barHeight;
-					
+
 					var rect = graph.rect(xCoord, yCoord, barWidth, barHeight)
 							.attr({stroke: Raphael.hsb2rgb(hsbFillColor.h, hsbFillColor.s, hsbFillColor.b * 0.75).hex, 'stroke-width': 1, fill : color, opacity: 1});
-					
+
 					rect.node.setAttribute('id',chartId + 'rect_' + barValues[j].label + '_' + i);
 
 					rect.mouseover(function()
 			        {
 			            rect.attr("stroke", color);
-			            
+
 		                var newWidth = String(barValues[j].value).length * 7 + 12,
 		                	newcoord = {x: xCoord + barWidth + 5, y: yCoord > 10 + cy - 24 ? 10 + cy - 24 : yCoord};
-	            		
-	            		if (newcoord.x + newWidth > cx + 40) 
+
+	            		if (newcoord.x + newWidth > cx + 40)
 	                		newcoord.x -= (newWidth + barWidth + 5);
-						
+
 						if (!$.browser.msie)
 						{
 				            clearTimeout(leaveTimer);
@@ -18235,11 +18239,11 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 		   	               	ttFrame.show().attr({x: newcoord.x, y: newcoord.y, width:newWidth});
 		                	ttText.show().attr({text: String(barValues[j].value),x: newcoord.x + 6, y: newcoord.y + 12});
 			            }
-			            
+
 			        }).mouseout(function()
 			        {
 			            rect.attr("stroke", Raphael.hsb2rgb(hsbFillColor.h, hsbFillColor.s, hsbFillColor.b * 0.75).hex);
-			            
+
 			            if (!$.browser.msie)
 						{
 			                graph.safari();
@@ -18257,42 +18261,42 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 		                    ttText.hide();
 			            }
 			        });
-				})(i,j) 
+				})(i,j)
 			}
 		},
 		_this = this;
-	
+
 	var ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 		ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
-	
+
 	for (var i = 0; i < dataColumns.length; i++)
 		process(i)
-	
+
 	ttFrame = graph.rect(10, 10, 120, 20, 5).attr({fill: "#CBCBEA", stroke: "#ABABFA", "stroke-width": 2, opacity: 1}).hide(),
 	ttText = graph.text(60, 10, String(minValue)).attr({"font": '12px "Arial"', stroke: "none", fill: "#FFF", "text-anchor": "start"}).hide();
-	
+
 	// легенда
 	if (legendFlag > 0)
 	{
 		var width = 130,
 			height = Math.min(namesByPage, objLength(data)) * legendCellHeight + 40;
-		
+
 		graph.rect(cx + 50, 10, width, height, 5)
 			.attr('fill','#FAFAFE')
 			.attr('stroke','#BABABE')
 			.attr('stroke-width',1);
-		
+
 		var up = graph.path(["M", cx + 50 + 5, 10 + 15, "L", cx + 50 + width - 5, 10 + 15, "L", cx + 50 + width / 2, 10 + 5, "L", cx + 50 + 5,  10 + 15,"Z"]).attr({fill: '#ABCDEF', opacity: 0.5}),
 			down = graph.path(["M", cx + 50 + 5, 10 + height - 15, "L", cx + 50 + width - 5, 10 + height - 15, "L", cx + 50 + width / 2,  10 + height - 5, "L",cx + 50 + 5,  10 + height - 15, "Z"]).attr({fill: '#ABCDEF', opacity: 0.5});
-		
+
 		up.node.style.cursor = "pointer";
 		down.node.style.cursor = "pointer";
-		
+
 		var drawCurrentPage = function(position, count, names)
 		{
 			var length = count,
 				endPosition = (names.length < position + length) ? names.length : position + length;
-			
+
 			var attachEvent = function(elem, name)
 			{
 				$(elem.node).mousedown(function()
@@ -18304,9 +18308,9 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 							var bar = $('#' + chartId + 'rect_' + name + '_' + i)[0];
 							$(bar).hide();
 						}
-						
+
 						$('#' + chartId + 'legRect_' + name).attr('fill','#999999');
-						
+
 						elem.attr('opacity', 0.2);
 					}
 					else
@@ -18316,19 +18320,19 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 							var bar = $('#' + chartId + 'rect_' + name + '_' + i)[0];
 							$(bar).show();
 						}
-						
+
 						$('#' + chartId + 'legRect_' + name).attr('fill','#153069');
-						
+
 						elem.attr('opacity', 1);
 					}
 				})
 			}
-			
+
 			if (position == 0)
 				$(up.node).hide()
 			else
 				$(up.node).show()
-				
+
 			if (position + count >= names.length)
 				$(down.node).hide()
 			else
@@ -18342,28 +18346,28 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 					area = $('#' + chartId + 'rect_' + layerName + '_0')[0],
 					opacity = area.style.display == 'none' ? 0.2 : 1,
 					shownName = layerName.length > 12 ? layerName.substring(0, 12) + '...' : layerName;
-				
+
 				var txt = graph.text(xCoord - 20, yCoord + 5, shownName)
 							.attr({fill: '#153069', stroke: "none", "font-family": '"Arial"',
 									"font-size": "12px", "text-anchor": "start"});
-				
+
 				txt.node.setAttribute('id', chartId + 'legRect_' + layerName)
-				
+
 				var rect = graph.rect(xCoord - 45, yCoord, 20, 10)
 									.attr({fill: layerColors[layerName], opacity: opacity, stroke: layerColors[layerName]});
-				
+
 				rect.node.setAttribute('id', chartId + 'legTxt_' + layerName)
-									
+
 				rect.node.style.cursor = "pointer";
 				attachEvent(rect, layerName);
 			}
 		}
-		
+
 		$(up.node).mousedown(function()
 		{
 			if (curPosition == 0)
 				return;
-			
+
 			for (var i = 0; i < layerNames.length; i++)
 			{
 				$('#' + chartId + 'legRect_' + layerNames[i]).remove();
@@ -18377,17 +18381,17 @@ Diagram.prototype.createBarsDiagram = function(parent, width, height, data, data
 		{
 			if (curPosition + namesByPage >= layerNames.length)
 				return;
-				
+
 			for (var i = 0; i < layerNames.length; i++)
 			{
 				$('#' + chartId + 'legRect_' + layerNames[i]).remove();
 				$('#' + chartId + 'legTxt_' + layerNames[i]).remove();
 			}
-			
+
 			curPosition += namesByPage;
 			drawCurrentPage(curPosition, namesByPage, layerNames);
 		})
-		
+
 		drawCurrentPage(0, namesByPage, layerNames);
 	}
 }
@@ -18396,92 +18400,92 @@ Diagram.prototype.createBalloon = function(obj, htmlContent)
 {
 	if (this.oldBalloon)
 		this.oldBalloon.remove();
-	
+
 	if (this.oldBalloonIndex == obj.objectId)
 	{
 		this.oldBalloonIndex = -1;
-		
+
 		this.oldBalloon = false;
-		
+
 		return false;
 	}
-	
+
 	var coords = obj.getGeometry().coordinates,
 		_this = this;
-		
+
 	this.oldBalloon = globalFlashMap.addBalloon();
-	
+
 	this.oldBalloon.setPoint(coords[0], coords[1]);
-	
+
 	_(this.oldBalloon.div, [htmlContent]);
-	
+
 	var remove = makeImageButton("img/close.png", "img/close_orange.png");
 	remove.onclick = function()
 	{
 		_this.oldBalloon.remove();
-		
+
 		_this.oldBalloonIndex = -1;
-		
+
 		_this.oldBalloon = false;
 	}
-	
+
 	remove.style.position = 'absolute';
 	remove.style.right = '9px';
 	remove.style.top = '5px';
 	remove.style.cursor = 'pointer';
-	
+
 	_(this.oldBalloon.div, [remove])
-	
+
 	this.oldBalloon.resize();
-	
+
 	this.oldBalloonIndex = obj.objectId;
-	
+
 	return true;
 }
 
 Diagram.prototype.createDateTimeDiagramByAttrs = function(parent, width, height, attrs, regexp)
 {
 	var graphDataFunc;
-	
+
 	if (regexp.indexOf("%") > -1)
 	{
 		var replaceIndex = {},
 			currReplaceIndex = 0;
-		
+
 		regexp = regexp.replace(/%y%y%y%y/, function(){currReplaceIndex++; replaceIndex['y'] = currReplaceIndex; return "(\\d\\d\\d\\d)"})
 						.replace(/%m%m/, function(){currReplaceIndex++; replaceIndex['m'] = currReplaceIndex; return "(\\d\\d)"})
 						.replace(/%d%d/, function(){currReplaceIndex++; replaceIndex['d'] = currReplaceIndex; return "(\\d\\d)"});
-						
+
 		graphDataFunc = function(x, reResult)
 		{
 			var year = reResult[replaceIndex['y']],
 				month = reResult[replaceIndex['m']] - 1,
 				date = reResult[replaceIndex['d']];
-			
+
 			return String(new Date(year, month, date).valueOf());
 		};
 	}
 	else
 		return false;
-	
+
 	var re = new RegExp(regexp),
 		graphData = {};
-	
+
 	for (var prop in attrs)
 	{
 		var res = re.exec(prop);
-		
+
 		if (res && res.length == 4)
 			graphData[graphDataFunc(prop, res)] = Number(attrs[prop]);
 	}
-	
+
 	if (objLength(graphData) > 0)
 	{
 		_diagram.createDateTimeDiagram(parent, width, height, graphData);
-		
+
 		return true;
 	}
-	
+
 	return false
 }
 
@@ -18489,46 +18493,46 @@ Diagram.prototype.createDateTimeDiagramByAttrsText = function(width, height, att
 {
 	var id = String(Math.random()).substr(2, 12),
 		text = "<div style=\"width:" + width + "px;height:" + height + "px\">";
-		
+
 	text += "<div><div id=\"balloonGraph" + id + "\" style=\"width:" + width + "px;height:" + height + "px\"></div></div>";
-	
+
 	text += "<iframe src=\"blank.html\" onload=\"javascript:_diagram.createDateTimeDiagramByAttrs($$('balloonGraph" + id + "'), " + width + ", " + height + ", " + JSON.stringify(attrs).replace(/\"/g, "'") + ", '" + regexp + "')\" style=\"display:none\"/>";
-	
+
 	text += "</div>";
-	
+
 	return text;
 }
 
 Diagram.prototype.createPieDiagramByAttrs = function(parent, width, height, attrs, regexp)
 {
 	var graphDataFunc;
-	
+
 	if (regexp.indexOf("%") > -1)
 	{
 		var replaceIndex = {},
 			currReplaceIndex = 0;
-		
+
 		regexp = regexp.replace(/%y%y%y%y/, function(){currReplaceIndex++; replaceIndex['y'] = currReplaceIndex; return "(\\d\\d\\d\\d)"})
 						.replace(/%m%m/, function(){currReplaceIndex++; replaceIndex['m'] = currReplaceIndex; return "(\\d\\d)"})
 						.replace(/%d%d/, function(){currReplaceIndex++; replaceIndex['d'] = currReplaceIndex; return "(\\d\\d)"});
-						
+
 		graphDataFunc = function(x, reResult)
 		{
 			var year = reResult[replaceIndex['y']],
 				month = reResult[replaceIndex['m']] - 1,
 				date = reResult[replaceIndex['d']];
-			
+
 			return stringDate(new Date(year, month, date).valueOf());
 		};
 	}
-	
+
 	var re = new RegExp(regexp),
 		graphData = {};
-	
+
 	for (var prop in attrs)
 	{
 		var res = re.exec(prop);
-		
+
 		if (res)
 		{
 			if (res.length == 4)
@@ -18537,14 +18541,14 @@ Diagram.prototype.createPieDiagramByAttrs = function(parent, width, height, attr
 				graphData[prop] = Number(attrs[prop]);
 		}
 	}
-	
+
 	if (objLength(graphData) > 0)
 	{
 		_diagram.createPieDiagram(parent, width, height, graphData);
-		
+
 		return true;
 	}
-	
+
 	return false
 }
 
@@ -18552,13 +18556,13 @@ Diagram.prototype.createPieDiagramByAttrsText = function(width, height, attrs, r
 {
 	var id = String(Math.random()).substr(2, 12),
 		text = "<div style=\"width:" + width + "px;height:" + height + "px\">";
-		
+
 	text += "<div><div id=\"balloonGraph" + id + "\" style=\"width:" + width + "px;height:" + height + "px\"></div></div>";
-	
+
 	text += "<iframe src=\"blank.html\" onload=\"javascript:_diagram.createPieDiagramByAttrs($$('balloonGraph" + id + "'), " + width + ", " + height + ", " + JSON.stringify(attrs).replace(/\"/g, "'") + ", '" + regexp + "')\" style=\"display:none\"/>";
-	
+
 	text += "</div>";
-	
+
 	return text;
 }
 
@@ -18574,13 +18578,13 @@ Diagram.prototype.createMultiLinesDiagramText = function(width, height, data, da
 {
 	var id = String(Math.random()).substr(2, 12),
 		text = "<div style=\"width:" + width + "px;height:" + height + "px\">";
-		
+
 	text += "<div><div id=\"balloonGraph" + id + "\" style=\"width:" + width + "px;height:" + height + "px\"></div></div>";
-	
+
 	text += "<iframe src=\"blank.html\" onload=\"javascript:_diagram.createMultiLinesDiagram($$('balloonGraph" + id + "'), " + width + ", " + height + ", " + JSON.stringify(data).replace(/\"/g, "'") + ", " + JSON.stringify(dataColumns).replace(/\"/g, "'") + ", " + legendFlag + ")\" style=\"display:none\"/>";
-	
+
 	text += "</div>";
-	
+
 	return text;
 }
 
@@ -18588,13 +18592,13 @@ Diagram.prototype.createBarsDiagramText = function(width, height, data, dataColu
 {
 	var id = String(Math.random()).substr(2, 12),
 		text = "<div style=\"width:" + width + "px;height:" + height + "px\">";
-		
+
 	text += "<div><div id=\"balloonGraph" + id + "\" style=\"width:" + width + "px;height:" + height + "px\"></div></div>";
-	
+
 	text += "<iframe src=\"blank.html\" onload=\"javascript:_diagram.createBarsDiagram($$('balloonGraph" + id + "'), " + width + ", " + height + ", " + JSON.stringify(data).replace(/\"/g, "'") + ", " + JSON.stringify(dataColumns).replace(/\"/g, "'") + ", " + legendFlag + ", " + multipleFlag + ")\" style=\"display:none\"/>";
-	
+
 	text += "</div>";
-	
+
 	return text;
 }
 
@@ -18620,73 +18624,73 @@ function(map)
 	{
 		return _diagram.createDateTimeDiagramByAttrsText(500,300,o.properties,'D%y%y%y%y%m%m%d%d')
 	});
-	
+
 	layer.filters[1].enableHoverBalloon(function(o)
 	{
 		var props = {};
-			
+
 		$.extend(props, o.properties);
-		
+
 		for (var name in props)
 			if (!/D(1993)/.test(name))
 				delete props[name];
-			
+
 		return _diagram.createPieDiagramByAttrsText(300,300,props,'D%y%y%y%y%m%m%d%d')
 	});
-	
+
 	layer.filters[2].enableHoverBalloon(function(o)
 	{
 		var dataColumns = ['1992','1993','1995','1996','1997','1999','2000'],
 			data = {'Слой1': [], 'Слой2': []};
-		
+
 		for (var i = 0; i < dataColumns.length; i++)
 		{
 			data['Слой1'].push(Number(o.properties['V_' + String(dataColumns[i])]));
 			data['Слой2'].push(Number(o.properties['VSTD_' + String(dataColumns[i])]));
 		}
-		
+
 		return _diagram.createMultiLinesDiagramText(500,300,data,dataColumns,1);
 	});
-	
+
 	layer.filters[3].enableHoverBalloon(function(o)
 	{
 		var dataColumns = ['1995','1996','1997','1999','2000'],
 			data = {'Слой1': [], 'Слой2': []};
-		
+
 		for (var i = 0; i < dataColumns.length; i++)
 		{
 			data['Слой1'].push(50 + Number(o.properties['V_' + String(dataColumns[i])]));
 			data['Слой2'].push(50 + Number(o.properties['VSTD_' + String(dataColumns[i])]));
 		}
-		
+
 		return _diagram.createBarsDiagramText(500,300,data,dataColumns,1,0);
 	});
-	
+
 	layer.filters[4].enableHoverBalloon(function(o)
 	{
 		var dataColumns = ['1995','1996','1997','1999','2000'],
 			data = {'Слой1': [], 'Слой2': []};
-		
+
 		for (var i = 0; i < dataColumns.length; i++)
 		{
 			data['Слой1'].push(50 + Number(o.properties['V_' + String(dataColumns[i])]));
 			data['Слой2'].push(50 + Number(o.properties['VSTD_' + String(dataColumns[i])]));
 		}
-		
+
 		return _diagram.createBarsDiagramText(500,300,data,dataColumns,1,1);
 	});
-	
+
 	layer.filters[5].enableHoverBalloon(function(o)
 	{
 		var dataColumns = ['1992','1993','1995','1996'],
 			data = {'Слой1': [], 'Слой2': []};
-		
+
 		for (var i = 0; i < dataColumns.length; i++)
 		{
 			data['Слой1'].push(50 + Number(o.properties['V_' + String(dataColumns[i])]));
 			data['Слой2'].push(50 + Number(o.properties['VSTD_' + String(dataColumns[i])]));
 		}
-		
+
 		return _diagram.createBarsDiagramText(400,300,data,dataColumns,0,1);
 	});
 }
@@ -18718,12 +18722,12 @@ queryKML.prototype.load = function()
 {
 	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
 		_this = this;
-	
+
 	this.parentCanvas = _div(null, [['dir','className','drawingObjectsCanvas']]);
-	
+
 	var goButton = makeButton(_gtxt("Загрузить")),
 		_this = this;
-	
+
 	goButton.onclick = function()
 	{
 		if (inputField.value != '')
@@ -18731,78 +18735,78 @@ queryKML.prototype.load = function()
 			if (!nsGmx.AuthManager.isLogin())
 			{
 				nsGmx.widgets.authWidget.showLoginDialog();
-				
+
 				return;
 			}
-            
+
 			var kmlURL = strip(inputField.value);
 			gmxAPI._kmlParser.get(kmlURL, function(resp)
 			{
 				var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-				
+
                 var kmlInfo = {
-                    id: _this.newID(), 
-                    url: kmlURL, 
+                    id: _this.newID(),
+                    url: kmlURL,
                     name: resp.name,
                     isVisible: true
                 };
                 _this._loadedKML.push(kmlInfo);
-                
+
 				_this.addFile(info, resp.name, true, kmlInfo.id);
 			})
-				
+
 			inputField.value = '';
 		}
 		else
 			inputError(inputField);
 	}
-	
+
 	$(inputField).on('keydown', function(e)
 	{
 		if (e.keyCode === 13)
-	  	{	
+	  	{
 			if (inputField.value != '')
 			{
 				if (!nsGmx.AuthManager.isLogin())
 				{
 					nsGmx.widgets.authWidget.showLoginDialog();
-					
+
 					return;
 				}
-				
+
                 var kmlURL = strip(inputField.value);
 				gmxAPI._kmlParser.get(kmlURL, function(resp)
 				{
 					var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-				
+
                     var kmlInfo = {
-                        id: _this.newID(), 
-                        url: kmlURL, 
+                        id: _this.newID(),
+                        url: kmlURL,
                         name: resp.name,
                         isVisible: true
                     };
                     _this._loadedKML.push(kmlInfo);
 					_this.addFile(info, resp.name, true, kmlInfo.id);
 				})
-					
+
 				inputField.value = '';
 			}
 			else
 				inputError(inputField);
-	  		
+
 	  		return false;
 	  	}
 	})
-	
-    
-    
+
+
+
 	var canvas = _div([_div([_span([_t(_gtxt("URL файла"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField],[['css','width','220px']]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
 
 	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','220px']]);
     var formFile = _form([attach], [['attr', 'method', 'POST'], ['attr', 'encoding', 'multipart/form-data'], ['attr', 'enctype', 'multipart/form-data'], ['attr', 'id', 'upload_shapefile_form']]);
     formFile.style.width = '200px';
 	formFile.style.marginLeft = '3px';
-	
+
 	var loadButton = makeButton(_gtxt("Загрузить"));
 	loadButton.onclick = function()
 	{
@@ -18810,13 +18814,13 @@ queryKML.prototype.load = function()
         //иначе просто прокачаем через наш сервер без сохранения
 		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES) && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit")
 		{
-        
+
             var shareKMLFolder = nsGmx.AuthManager.getUserFolder() + "\\share\\kml";
             sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + shareKMLFolder, function(response)
             {
                 if (!parseResponse(response))
                     return;
-                    
+
                 var randomFilename = String(Math.random()).slice(2) + '.kml';
                 sendCrossDomainPostRequest(serverBase + "FileBrowser/Upload.ashx", {WrapStyle: "window", ParentDir: shareKMLFolder, name: randomFilename}, function(response)
                 {
@@ -18825,14 +18829,14 @@ queryKML.prototype.load = function()
                     {
                         if (!parseResponse(response))
                             return;
-                        
+
                         var resp = gmxAPI._kmlParser.parse(response.Result);
 
                         var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-                        
+
                         var kmlInfo = {
-                            id: _this.newID(), 
-                            url: kmlURL, 
+                            id: _this.newID(),
+                            url: kmlURL,
                             name: resp.name,
                             isVisible: true
                         };
@@ -18848,16 +18852,16 @@ queryKML.prototype.load = function()
             {
                 if (!parseResponse(response))
                     return;
-                
+
                 var resp = gmxAPI._kmlParser.parse(response.Result);
 
                 var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-                
+
                 _this.addFile(info, resp.name, true)
             }, formFile);
         }
 	}
-	
+
 	_(this.workCanvas, [canvas, _table([_tbody([_tr([_td([formFile],[['css','width','220px']]), _td([loadButton])])])],[['css','margin','5px 0px 10px 10px']]), this.parentCanvas])
 }
 
@@ -18868,14 +18872,14 @@ queryKML.prototype.addFile = function(info, name, isVisible, kmlID)
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		box = _checkbox(isVisible, 'checkbox'),
 		_this = this;
-	
+
 	_title(title, name);
     info.parent.setVisible(isVisible);
-	
+
 	box.onclick = function()
 	{
 		info.parent.setVisible(this.checked);
-        
+
         for (var k = 0; k < _this._loadedKML.length; k++)
             if (_this._loadedKML[k].id == kmlID)
             {
@@ -18883,22 +18887,22 @@ queryKML.prototype.addFile = function(info, name, isVisible, kmlID)
                 break;
             }
 	}
-	
+
 	title.onclick = function()
 	{
 		info.parent.setVisible(true);
-		
+
 		globalFlashMap.zoomToExtent(info.bounds.minX, info.bounds.minY, info.bounds.maxX, info.bounds.maxY);
-		
+
 		box.checked = true;
 	}
-	
+
 	title.style.marginLeft = '5px';
-	
+
 	remove.onclick = function()
 	{
 		info.parent.remove();
-        
+
         if (typeof kmlID !== 'undefined')
         {
             for (var k = 0; k < _this._loadedKML.length; k++)
@@ -18908,14 +18912,14 @@ queryKML.prototype.addFile = function(info, name, isVisible, kmlID)
                     break;
                 }
         }
-		
+
 		canvas.removeNode(true);
 	}
-	
+
 	remove.className = 'remove';
-	
+
 	_(canvas, [_div([box, title], [['dir','className','item']]), remove])
-	
+
 	_(this.parentCanvas, [canvas]);
 }
 
@@ -18924,7 +18928,7 @@ var _queryKML = new queryKML();
 KML.KML.load = function()
 {
 	var alreadyLoaded = _queryKML.createWorkCanvas(arguments[0]);
-	
+
 	if (!alreadyLoaded)
 		_queryKML.load()
 }
@@ -18938,43 +18942,43 @@ nsGmx.userObjectsManager.addDataCollector('kml', {
     {
         if (_queryKML.parentCanvas == null || _queryKML._loadedKML.length == 0)
             return null;
-            
+
         var res = [];
         for (var k = 0; k < _queryKML._loadedKML.length; k++)
             res.push({url: _queryKML._loadedKML[k].url, isVisible: _queryKML._loadedKML[k].isVisible});
-            
+
         return res;
     },
-    
+
     load: function(data)
     {
         if (!data)
             return;
-        
+
         KML.KML.load('kml');
-        
+
         _queryKML._loadedKML = [];
         var loadedCount = 0;
         var allInfo = [];
-        
+
         var showKML = function()
         {
             for (var k = 0; k < _queryKML._loadedKML.length; k++)
                 _queryKML.addFile(allInfo[k], _queryKML._loadedKML[k].name, _queryKML._loadedKML[k].isVisible, _queryKML._loadedKML[k].id);
         }
-        
+
         for (var k = 0; k < data.length; k++)
         (function(curKMLData, index)
         {
             gmxAPI._kmlParser.get(curKMLData.url, function(resp)
 			{
 				var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-				
+
                 _queryKML._loadedKML[index] = {id: _queryKML.newID(), url: curKMLData.url, name: resp.name, isVisible: curKMLData.isVisible};
                 allInfo[index] = info;
-                
+
                 loadedCount++;
-                
+
                 //когда всё загрузили, можно показать пользователям
                 if (loadedCount == data.length)
                     showKML();
@@ -24288,10 +24292,14 @@ var nsGmx = window.nsGmx || {};
                 $(exportButton).toggle();
                 $(cancelButton).toggle();
 
+                if (attrs.format === 'png' && nsGmx.leafletMap.gmxBaseLayersManager.getCurrentID() === 'empty') {
+                    exportParams.transparentColor='DDDDDD';
+                }
+
                 window._mapHelper.createExportPermalink(mapStateParams, processLink);
 
                 function processLink(id){
-                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + 'http://' + window.location.host + window.location.pathname + '?permalink=' + id;
+                    var url = window.serverBase + 'Map/Render?' + $.param(exportParams) + '&uri=' + window.location.protocol + '//' + window.location.host + window.location.pathname + '?permalink=' + id;
 
                     _this.model.set({
                         exportErr: false
@@ -26755,7 +26763,7 @@ var nsGmx = nsGmx || {};
 
 /**
 Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности. Поддерживает фильтрацию дополнительных карт.
-* @class 
+* @class
 */
 var CoverControl = function()
 {
@@ -26780,9 +26788,9 @@ CoverControl.prototype.saveState = function()
 CoverControl.prototype.loadState = function( data )
 {
 	this.currCloudsIndex = data.currCloudsIndex;
-	
+
 	$("#MapCalendar .ui-slider").slider("value", data.currCloudsIndex );
-	
+
 	if (typeof this.cloudsIndexes[data.currCloudsIndex] !== 'undefined')
 		_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
@@ -26790,27 +26798,27 @@ CoverControl.prototype.loadState = function( data )
 CoverControl.prototype._updateStyles = function()
 {
 	if ( this.commonStyles || this.coverLayers.length == 0 ) return;
-	
+
 	var commonStyles = globalFlashMap.layers[this.coverLayers[0]].properties.styles,
 		cloudsCount = 0;
-	
+
 	for (var i = 0; i < this._icons.length; i++)
 		this.cloudsIndexes.push({icon:this._icons[i]});
-	
+
 	for (var i = 0; i < commonStyles.length; ++i)
 	{
 		if (this.cloudsIndexes[i])
 			this.cloudsIndexes[i].name = commonStyles[i].Name;
-		
+
 		cloudsCount++;
 	}
-	
+
 	if ( typeof this._initCloudIndex !== 'undefined' )
 		this.currCloudsIndex = this._initCloudIndex;
-		
+
 	this.cloudsCount = Math.round(cloudsCount / 2);
 	this.commonStyles = commonStyles;
-	
+
 	if (typeof this.cloudsIndexes[this.currCloudsIndex] !== 'undefined' && $("#MapCalendar .ui-slider").length > 0)
 		_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
 }
@@ -26836,10 +26844,10 @@ CoverControl.prototype._updateLayers = function()
 CoverControl.prototype._addWidget = function()
 {
 	if (this.cloudsIndexes.length == 0 || !this._parent ) return;
-	
+
 	var	cloudsSlider = nsGmx.Controls.createSlider(this.currCloudsIndex, function(){}),
 		_this = this;
-	
+
 	$(cloudsSlider).slider("option", "step", 1);
 	$(cloudsSlider).slider("option", "min", 0);
 	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
@@ -26847,14 +26855,14 @@ CoverControl.prototype._addWidget = function()
 	$(cloudsSlider).bind("slidestop", function(event, ui)
 	{
 		_this.currCloudsIndex = ui.value;
-		
+
 		_this.setFilters();
-		
+
 		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
 	});
-	
+
 	cloudsSlider.style.margin = '10px 3px';
-	
+
 	// добавляем раскраску
 	cloudsSlider.style.backgroundImage = '';
 	var colorTds = [];
@@ -26862,30 +26870,30 @@ CoverControl.prototype._addWidget = function()
 	{
 		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height','7px'], ['css','backgroundColor', nsGmx.Utils.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
 	}
-	
+
 	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
-	
+
 	_title(cloudsSlider, _gtxt("Облачность"));
 	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
-	
+
 	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
-	
+
 	for (var i = 0; i < this.cloudsIndexes.length; ++i)
 	{
 		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
-		
+
 		img.style.left = (25 * i - 5) + 'px';
-		
+
 		_title(img, this.cloudsIndexes[i].name)
-		
+
 		_(cloudsLabelDiv, [img])
 	}
-	
+
 	var trs = [];
-	
+
 	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
 	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
-	
+
 	_(this._parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 	this._parent = null;
 }
@@ -26907,16 +26915,16 @@ CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cl
 	this._initCloudIndex = initCloudIndex;
 	this._icons = icons;
 	this._calendar = calendar;
-	
+
 	this.dateAttribute = dateAttribute;
 	this.cloudsAttribute = cloudsAttribute;
-	
+
 	this._updateLayers();
-	
+
 	this._updateStyles();
-	
+
 	var _this = this;
-	
+
 	if (typeof _queryExternalMaps !== 'undefined')
 	{
 		$(_queryExternalMaps).bind('map_loaded', function()
@@ -26927,19 +26935,19 @@ CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cl
 			_this.setFilters();
 		});
 	}
-	
+
 	setInterval(function(){
 		_this.fixLayers.apply(_this);
 	}, 300);
-	
+
 	var updateDates = function()
 	{
 		_this.dateBegin = _this._calendar.getDateBegin();
 		_this.dateEnd = _this._calendar.getDateEnd();
-	
+
 		_this.setFilters();
 	}
-	
+
 	$(calendar).change( updateDates );
 	updateDates();
 }
@@ -26950,33 +26958,33 @@ CoverControl.prototype.fixLayers = function()
 	{
 		var layerId = globalFlashMap.layers[this.coverLayers[i]].properties.LayerID,
 			div = $("[LayerID='" + layerId + "']");
-		
+
 		if (!div.length)
 			continue;
-		
+
 		$(div[0]).children("[multiStyle]").hide();
-		
+
 		if (typeof _mapHelper == 'undefined') continue;
-		
+
 		if ($(div[0]).children("[styleType='multi']").length) {
 			var icon = nsGmx.Controls.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
-				
+
 			// if ($.browser.msie)
 			// {
 				// icon.style.width = '9px';
 				// icon.style.height = '13px';
 				// icon.style.margin = '0px 3px -3px 1px';
 			// }
-			
+
 			_title(icon, _gtxt("Редактировать стили"));
-			
+
 			icon.geometryType = "polygon";
-			
+
 			icon.onclick = function()
 			{
 				_mapHelper.createLayerEditor(this.parentNode, _layersTree, 'styles', -1);
 			}
-			
+
 			$(div[0]).children("[styleType='multi']").replaceWith(icon);
 		}
 	}
@@ -26988,22 +26996,22 @@ CoverControl.prototype.setFilters = function()
 	{
 		var name = this.coverLayers[i],
 			layer = globalFlashMap.layers[name];
-		
+
 		if (!layer)
 			continue;
-		
+
 		var	properties = layer.properties;
-		
+
 		var timePostfixBegin = this._params.useTimePostfix ? " 00:00:00" : "";
 		var timePostfixEnd   = this._params.useTimePostfix ? " 23:59:59" : "";
-		
+
 		var filterString = "`" + this.dateAttribute + "` >= '" + $.datepicker.formatDate(this._params.dateFormat, this.dateBegin) + timePostfixBegin + "'" + " AND " + "`" + this.dateAttribute + "` <= '" + $.datepicker.formatDate(this._params.dateFormat, this.dateEnd) + timePostfixEnd + "'",
 			filters = layer.filters;
-		
+
 		for (var j = 0; j < this.cloudsCount; j++)
 		{
 			var lastFilter = properties.styles[j].Filter;
-			
+
 			if (j <= this.currCloudsIndex)
 			{
 				filters[j].setVisible(true);
@@ -27031,7 +27039,7 @@ CoverControl.prototype.add = function(parent)
 	this._updateLayers();
 	this._updateStyles();
 	this._addWidget();
-	
+
 }
 
 if ( typeof gmxCore !== 'undefined' )
@@ -27050,7 +27058,7 @@ var nsGmx = nsGmx || {};
 
 /**
 Фильтрует слои со спутниковыми покрытиями по облачности. Поддерживает фильтрацию дополнительных карт.
-* @class 
+* @class
 */
 var CoverControl2 = function()
 {
@@ -27060,7 +27068,7 @@ var CoverControl2 = function()
 	this.cloudsCount = 0;
 	this.coverLayers = [];
     this._parent = null;
-    
+
     CoverControlInstance.addInstance(this);
 }
 
@@ -27078,9 +27086,9 @@ CoverControl2.prototype.saveState = function()
 CoverControl2.prototype.loadState = function( data )
 {
 	this.currCloudsIndex = data.currCloudsIndex;
-	
+
 	$(".ui-slider", this._parent).slider("value", data.currCloudsIndex );
-	
+
 	if (typeof this.cloudsIndexes[data.currCloudsIndex] !== 'undefined')
 		_title($(".ui-slider", this._parent)[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
@@ -27088,27 +27096,27 @@ CoverControl2.prototype.loadState = function( data )
 CoverControl2.prototype._updateStyles = function()
 {
 	if ( this.commonStyles || this.coverLayers.length == 0 || !(this.coverLayers[0] in globalFlashMap.layers) ) return;
-	
+
 	var commonStyles = globalFlashMap.layers[this.coverLayers[0]].properties.styles,
 		cloudsCount = 0;
-	
+
 	for (var i = 0; i < this._icons.length; i++)
 		this.cloudsIndexes.push({icon:this._icons[i]});
-	
+
 	for (var i = 0; i < commonStyles.length; ++i)
 	{
 		if (this.cloudsIndexes[i])
 			this.cloudsIndexes[i].name = commonStyles[i].Name;
-		
+
 		cloudsCount++;
 	}
-	
+
 	if ( typeof this._initCloudIndex !== 'undefined' )
 		this.currCloudsIndex = this._initCloudIndex;
-		
+
 	this.cloudsCount = Math.round(cloudsCount / 2);
 	this.commonStyles = commonStyles;
-	
+
 	if (typeof this.cloudsIndexes[this.currCloudsIndex] !== 'undefined' && $(".ui-slider", this._parent).length > 0)
 		_title($(".ui-slider", this._parent)[0].firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
 }
@@ -27116,7 +27124,7 @@ CoverControl2.prototype._updateStyles = function()
 CoverControl2.prototype._updateLayers = function()
 {
 	if (typeof _mapHelper === 'undefined') return;
-    
+
 	//проверим основную карту
 	this.coverLayers = nsMapCommon.selectLayersFromTree( globalFlashMap, _layersTree._mapTree, this._coverLayersDescription ).names();
 
@@ -27135,10 +27143,10 @@ CoverControl2.prototype._updateLayers = function()
 CoverControl2.prototype._addWidget = function()
 {
 	if (this.cloudsIndexes.length == 0 || !this._parent ) return;
-	
+
 	var	cloudsSlider = nsGmx.Controls.createSlider(this.currCloudsIndex, function(){}),
 		_this = this;
-	
+
 	$(cloudsSlider).slider("option", "step", 1);
 	$(cloudsSlider).slider("option", "min", 0);
 	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
@@ -27146,14 +27154,14 @@ CoverControl2.prototype._addWidget = function()
 	$(cloudsSlider).bind("slidestop", function(event, ui)
 	{
 		_this.currCloudsIndex = ui.value;
-		
+
 		_this.setFilters();
-		
+
 		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
 	});
-	
+
 	cloudsSlider.style.margin = '10px 3px';
-	
+
 	// добавляем раскраску
 	cloudsSlider.style.backgroundImage = '';
 	var colorTds = [];
@@ -27161,30 +27169,30 @@ CoverControl2.prototype._addWidget = function()
 	{
 		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height','7px'], ['css','backgroundColor', nsGmx.Utils.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
 	}
-	
+
 	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
-	
+
 	_title(cloudsSlider, _gtxt("Облачность"));
 	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
-	
+
 	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
-	
+
 	for (var i = 0; i < this.cloudsIndexes.length; ++i)
 	{
 		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
-		
+
 		img.style.left = (25 * i - 5) + 'px';
-		
+
 		_title(img, this.cloudsIndexes[i].name)
-		
+
 		_(cloudsLabelDiv, [img])
 	}
-    
+
 	var trs = [];
-	
+
 	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
 	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
-	
+
 	_(this._parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
@@ -27200,15 +27208,15 @@ CoverControl2.prototype.init = function(coverLayersDescription, cloudsAttribute,
 	this._coverLayersDescription = coverLayersDescription;
 	this._initCloudIndex = initCloudIndex;
 	this._icons = icons;
-	
+
 	this.cloudsAttribute = cloudsAttribute;
-	
+
 	this._updateLayers();
-	
+
 	this._updateStyles();
-	
+
 	var _this = this;
-	
+
 	if (typeof _queryExternalMaps !== 'undefined')
 	{
 		$(_queryExternalMaps).bind('map_loaded', function()
@@ -27219,7 +27227,7 @@ CoverControl2.prototype.init = function(coverLayersDescription, cloudsAttribute,
 			_this.setFilters();
 		});
 	}
-	
+
 	setInterval(function(){
 		_this.fixLayers.apply(_this);
 	}, 300);
@@ -27228,35 +27236,35 @@ CoverControl2.prototype.init = function(coverLayersDescription, cloudsAttribute,
 CoverControl2.prototype.fixLayers = function()
 {
     if (typeof _mapHelper == 'undefined') return;
-    
+
 	for (var i = 0; i < this.coverLayers.length; ++i)
 	{
         if (!globalFlashMap.layers[this.coverLayers[i]])
             continue;
-            
+
 		var layerId = globalFlashMap.layers[this.coverLayers[i]].properties.LayerID,
 			div = $("[LayerID='" + layerId + "']");
-		
+
 		if (!div.length)
 			continue;
-		
+
 		$(div[0]).children("[multiStyle]").hide();
-		
-		if ($(div[0]).children("[styleType='multi']").length) 
+
+		if ($(div[0]).children("[styleType='multi']").length)
         {
 			var icon = nsGmx.Controls.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
-				
+
 			// if ($.browser.msie)
 			// {
 				// icon.style.width = '9px';
 				// icon.style.height = '13px';
 				// icon.style.margin = '0px 3px -3px 1px';
 			// }
-			
+
 			_title(icon, _gtxt("Редактировать стили"));
-			
+
 			icon.geometryType = "polygon";
-			
+
             $(div[0]).children("[styleType='multi']").empty().append(icon);
 		}
 	}
@@ -27268,12 +27276,12 @@ CoverControl2.prototype.setFilters = function()
 	{
 		var name = this.coverLayers[i],
 			layer = globalFlashMap.layers[name];
-		
+
 		if (!layer)
 			continue;
-		
+
 		var filters = layer.filters;
-        
+
 		for (var j = 0; j < this.cloudsCount; j++)
 		{
 			if (j <= this.currCloudsIndex)
@@ -27317,7 +27325,7 @@ var CoverControlInstance = (function()
         addInstance: function(coverControl)
         {
             if (theInstance) return;
-            
+
             theInstance = coverControl;
             $(coverControl).bind('init', function()
             {
@@ -27350,10 +27358,10 @@ var nsGmx = nsGmx || {};
 
 (function($){
 
-/** Управляет видимостью слоёв в зависимости от диапазона дат. 
+/** Управляет видимостью слоёв в зависимости от диапазона дат.
     Может фильтровать слои только из определённой группы. Работает только с вьюером. Поддерживает фильтрацию в доп. картах.
 	@memberOf cover
-	@class 
+	@class
 */
 var LayerFiltersControl = function()
 {
@@ -27361,45 +27369,45 @@ var LayerFiltersControl = function()
 	var _groupTitle = null;
 	var _layers = null;
 	var _map = null;
-	
+
 	//по умолчанию слои фильтруются по дате
 	var _defaultFilterFunc = function(layer, dateBegin, dateEnd)
 	{
 		var layerDate = $.datepicker.parseDate('dd.mm.yy', layer.properties.date);
 		return dateBegin <= layerDate && layerDate <= dateEnd;
 	}
-	
+
 	var _filterFunc = _defaultFilterFunc;
-	
+
 	var _IterateElems = function(treeElem, callback, parentVisible)
 	{
 		var visible = parentVisible && (treeElem.content ? treeElem.content.properties.visible : true);
 		var childsArr = treeElem.content ? treeElem.content.children : treeElem.children;
-		
+
 		for (var i = 0; i < childsArr.length; i++)
 		{
 			var child = childsArr[i];
-			
+
 			if (child.type == 'group')
 			{
 				callback(child, visible);
-				
+
 				_IterateElems(child, callback, visible)
 			}
 			else
 				callback(child, visible);
 		}
 	}
-	
+
 	var _getMapLayersAsHash = function()
 	{
 		var res = {};
 		for (var l = 0;l < _map.layers.length; l++)
 			res[_map.layers[l].properties.name] = _map.layers[l];
-			
+
 		return res;
 	}
-	
+
 	var _update = function()
 	{
 		if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
@@ -27411,22 +27419,22 @@ var LayerFiltersControl = function()
 					_updateTree(mapElem.extLayersTree, mapElem.extLayersTree._mapTree, mapElem);
 			}
 		}
-		
+
 		_updateTree(_layersTree, _layersTree._mapTree, _queryMapLayers.buildedTree);
 	}
-	
+
 	var _updateTree = function(layersTree, mapTree, domTreeRoot)
 	{
 		var dateBegin = _calendar.getDateBegin();
 		var dateEnd = _calendar.getDateEnd();
-		
+
 		var layers = [];
-		
+
 		if (_layers)
 			layers = nsMapCommon.selectLayersFromTree(_map, mapTree, _layers).asHash();
-		else 
+		else
 			layers = _groupTitle ? nsMapCommon.selectLayersFromTree(_map, mapTree, [{group: _groupTitle}]).asHash() : _getMapLayersAsHash();
-		
+
 		_IterateElems( mapTree, function(elem, parentVisible)
 		{
 			if (elem.content.properties.name in layers)
@@ -27436,7 +27444,7 @@ var LayerFiltersControl = function()
 			}
 		}, true);
 	}
-	
+
 	/**
 	 * @function Инициализитует фильтрацию слоёв. Далее классом будут отслеживаться события календарика.
 	 * @param map Основная карта
@@ -27449,25 +27457,25 @@ var LayerFiltersControl = function()
 	this.init = function(map, calendar, params)
 	{
 		_map = map;
-		
+
 		if ( typeof params != 'undefined' )
 		{
 			_groupTitle = params.groupTitle;
 			_layers = params.layers;
-			if (params.filterFunc) 
+			if (params.filterFunc)
 				_filterFunc = params.filterFunc;
 		}
-		
+
 		if (_calendar)
 			$(_calendar).unbind('change', _update);
-			
+
 		_calendar = calendar;
 		$(_calendar).bind('change', _update);
 		_update();
-		
+
 		$(_queryExternalMaps).bind('map_loaded', _update);
 	}
-	
+
 	this.update = function() { _update() };
 }
 
@@ -27496,29 +27504,29 @@ var FiltersControl = function()
 	var _dateEnd = null;
 	var _type = null;
 	var _params = null;
-	
+
 	var _setFilters = function()
 	{
 		var filterLayer = function(layer)
 		{
 			var	properties = layer.properties;
-			
+
 			var timePostfixBegin = _params.useTimePostfix ? " 00:00:00" : "";
 			var timePostfixEnd   = _params.useTimePostfix ? " 23:59:59" : "";
 
 			var filterString = "`" + _dateAttribute + "` >= '" + $.datepicker.formatDate(_params.dateFormat, _dateBegin) + timePostfixBegin + "'" + " AND " + "`" + _dateAttribute + "` <= '" + $.datepicker.formatDate(_params.dateFormat, _dateEnd) + timePostfixEnd + "'",
 				filters = layer.filters;
-			
+
 			for (var j = 0; j < filters.length; j++)
 			{
 				var lastFilter = properties.styles[j].Filter;
-				
+
 				filters[j].setFilter((lastFilter && lastFilter != "") ? ("(" + lastFilter + ") AND" + filterString) : filterString);
-			}			
+			}
 		}
-		
+
 		if (_type)
-		{ //фильтруем все слои данного типа 
+		{ //фильтруем все слои данного типа
 			for (var i = 0; i < globalFlashMap.layers.length; ++i)
 				if (globalFlashMap.layers[i].properties.type === _type)
 					filterLayer(globalFlashMap.layers[i]);
@@ -27529,10 +27537,10 @@ var FiltersControl = function()
 			{
 				var name = _layers[i],
 					layer = globalFlashMap.layers[name];
-				
+
 				if (!layer)
 					continue;
-					
+
 				filterLayer(layer);
 			}
 		}
@@ -27550,21 +27558,21 @@ var FiltersControl = function()
 			_type = layers;
 		else
 			_layers = layers;
-		
+
 		_dateAttribute = dateAttribute;
-		
+
 		var updateDate = function()
 		{
 			_dateBegin = calendar.getDateBegin();
 			_dateEnd = calendar.getDateEnd();
-		
+
 			_setFilters();
 		}
-		
+
 		$(calendar).change(updateDate);
 		updateDate();
 	}
-	
+
 	if (typeof _queryExternalMaps !== 'undefined')
 		$(_queryExternalMaps).bind('map_loaded', _setFilters);
 }
@@ -27581,7 +27589,7 @@ nsGmx.FiltersControl = FiltersControl;
 })(jQuery);
 var nsGmx = nsGmx || {};
 
-/** 
+/**
 * Контроллёр глобального буфера обмена
 * @memberOf nsGmx
 * @class Синглетон. Позволяет хранить массивы объектов разного типа. Тип объектов - строка. В рамках одного типа объекты упорядочены.
@@ -27595,32 +27603,32 @@ nsGmx.ClipboardController = (function()
             _clipboard[type] = _clipboard[type] || [];
             _clipboard[type].push(item);
         },
-        
+
         popItem: function(type)
         {
             if (typeof _clipboard[type] === 'undefined' || _clipboard[type].length == 0) return null;
             return _clipboard[type].pop();
         },
-        
+
         //количество объектов данного типа
         getCount: function(type)
         {
-            if ( typeof _clipboard[type] === 'undefined' ) 
+            if ( typeof _clipboard[type] === 'undefined' )
                 return 0;
-            
+
             return _clipboard[type].length;
         },
-        
+
         //получить объект типа type с индексом index. Если index < 0, то индексация с конца (-1 - последний элемент)
         get: function(type, index)
         {
             if ( typeof _clipboard[type] === 'undefined' ) return null;
-            
+
             if (index < 0) index += _clipboard[type].length;
-            
+
             if (index < 0 || _clipboard[type].length <= index )
                 return null;
-                
+
             return _clipboard[type][index];
         }
     }
@@ -28225,13 +28233,13 @@ nsGmx.addHeaderLinks = function()
 							"clusterControl.radius" : "Радиус кластеризации",
                             "clusterControl.title": "Стиль кластера"
 						 });
-						 
+
     _translationsHash.addtext("eng", {
 							"clusterControl.maxMembers" : "Max. members in cluster",
 							"clusterControl.radius" : "Clustering radius",
                             "clusterControl.title": "Cluster style"
 						 });
-                         
+
     var ClusterParamsControl = function(container, initStyle)
     {
         var _this = this;
@@ -28246,10 +28254,10 @@ nsGmx.addHeaderLinks = function()
             },
             'lineStyle': { 'color': 0x0600ff, 'opacity': 30, 'thickness': 1 }    // Стиль линии соединяющей центр кластера с отображаемым обьектом
         };
-    
+
         var clusterStyle = {
         }
-        
+
         var ph = {
             radius: 50,                // радиус кластеризации в пикселах (по умолчанию 20)
             iterationCount: 1,        // количество итераций K-means (по умолчанию 1)
@@ -28257,13 +28265,13 @@ nsGmx.addHeaderLinks = function()
             RenderStyle: null,      // стили кластеров
             HoverStyle: null        // стили кластеров при наведении
         };
-        
+
         ph = $.extend(true, ph, initStyle);
-                
+
         var clusterStyleControl = $('<div/>', {'class': 'clusterStyleControl'});
         var clusterStyleContainer = $('<div/>');
         clusterStyleControl.append($('<span/>').text(_gtxt('clusterControl.title'))).append(clusterStyleContainer);
-        
+
         var clusterRadiusInput = $('<input/>', {'class': 'inputStyle'}).val(ph.radius).bind('keyup', function()
         {
             if (ph.radius != this.value)
@@ -28272,7 +28280,7 @@ nsGmx.addHeaderLinks = function()
                 $(_this).change();
             }
         });
-        
+
         var maxMembersInput = $('<input/>', {'class': 'inputStyle'}).val(ph.clusterView.maxMembers).bind('keyup', function()
         {
             if (ph.clusterView.maxMembers != this.value)
@@ -28281,7 +28289,7 @@ nsGmx.addHeaderLinks = function()
                 $(_this).change();
             }
         });
-        
+
         var clusterViewTable = $('<table/>')
             .append($('<tr/>')
                 .append($('<td/>').append($('<span/>').text(_gtxt('clusterControl.radius'))))
@@ -28290,33 +28298,33 @@ nsGmx.addHeaderLinks = function()
                 .append($('<td/>').append($('<span/>').text(_gtxt('clusterControl.maxMembers'))))
                 .append($('<td/>').append(maxMembersInput))
             );
-            
+
         var clusterViewContainer = $('<div/>', {'class': 'clusterViewContainer'}).append(clusterViewTable);
-        
+
         $(container).append(clusterStyleControl).append(clusterViewContainer);
-        
+
         var initRenderStyle = ph.RenderStyle || {marker:{size:3}, outline: {color: 0xff0000, opacity: 100, thickness: 2}};
-        
+
         //предполагаем что модуль уже загружен
         //TODO: или это не так?
         var resObject = gmxCore.getModule('LayerStylesEditor').createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", true);
-        
+
         $(resObject).change(function()
         {
             ph.RenderStyle = ph.HoverStyle = initRenderStyle;
             $(_this).change();
         });
-        
+
         this.isApplyCluster = function()
         {
             return isApplyClusters;
         }
-        
+
         this.getClusterStyle = function()
         {
             return ph;
         }
-        
+
         this.applyClusters = function(isApply)
         {
             if (isApply != isApplyClusters)
@@ -28327,7 +28335,7 @@ nsGmx.addHeaderLinks = function()
             }
         }
     }
-    
+
     nsGmx.ClusterParamsControl = ClusterParamsControl;
 })();
 (function()
@@ -28807,7 +28815,7 @@ nsGmx.addHeaderLinks = function()
     nsGmx.TagMetaInfo = TagMetaInfo;
 })();
 
-// Контрол для добавления в каталог растров новых слоёв. 
+// Контрол для добавления в каталог растров новых слоёв.
 // Позволяет выбирать из существующих на сервере слоёв, слоёв внутри карты и создавать новый слой
 nsGmx.RCAddLayerControl = function(map, layerName)
 {
@@ -28820,38 +28828,38 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         var loaderImage = $('<img/>', {src: 'img/loader2.gif'}).hide();
         var statusContainer = $('<span/>', {'class': 'RCAdd-info-container'});
         var warningContainer = $('<span/>', {'class': 'RCAdd-warning-container'});
-        
+
         container.append(loaderImage, statusContainer, warningContainer);
-        
+
         this.startProcess = function()
         {
             loaderImage.show();
             return curProcID++;
         }
-        
+
         this.doneProcess = function(message)
         {
             loaderImage.hide();
             $(statusContainer).empty().show().text(message).fadeOut(2000, 'easeInExpo');
         }
-        
+
         this.failProcess = function(message)
         {
             //$(container).empty().show().text(message).fadeOut(2000, 'easeInExpo');
         }
-        
+
         this.warning = function(message) {
             $(warningContainer).empty().show().text(message).fadeOut(2000, 'easeInExpo');
         }
     }
     var infoControl = new InfoControl(infoContainer);
-    
+
     var LayersToAddWidget = function(parent) {
         var objsByLayer = {};
         var dataProvider = new nsGmx.ScrollTable.StaticDataProvider();
         var table = new nsGmx.ScrollTable();
         table.setDataProvider(dataProvider);
-        
+
         table.createTable({
             parent: parent[0],
             name: 'objtoadd',
@@ -28871,65 +28879,65 @@ nsGmx.RCAddLayerControl = function(map, layerName)
 
                 if (item.layerprops.NameObject) {
                     objname = L.gmxUtil.parseBalloonTemplate(item.layerprops.NameObject, {
-                        properties: item.obj, 
+                        properties: item.obj,
                         tileAttributeTypes: item.attrTypes
                     });
                 } else {
                     objname = item.obj[item.layerprops.identityField];
                 }
-                
+
                 var tr = _tr([
                     _td([_t(item.layerprops.title)], [['dir', 'className', 'RCAdd-vis-td']]),
                     _td([_t(objname)],               [['dir', 'className', 'RCAdd-vis-td']]),
                     _td([removeIcon],                [['dir', 'className', 'RCAdd-vis-remove']])
                 ])
-                
+
                 for (var i = 0; i < tr.childNodes.length; i++)
                     tr.childNodes[i].style.width = this._fields[i].width;
-                    
+
                 return tr;
             }
         })
-        
+
         this.addObject = function(layerprops, attrTypes, obj) {
             objsByLayer[layerprops.name] = objsByLayer[layerprops.name] || {};
             objsByLayer[layerprops.name][obj[layerprops.identityField]] = true;
             dataProvider.addOriginalItem({layerprops: layerprops, attrTypes: attrTypes, obj: obj});
         }
-        
+
         this.getObjects = function() {
             return dataProvider.getOriginalItems();
         }
-        
+
         this.clear = function() {
             dataProvider.setOriginalItems([]);
             objsByLayer = {};
         }
-        
+
         this.isExist = function(layerprops, obj) {
             return objsByLayer[layerprops.name] && objsByLayer[layerprops.name][obj[layerprops.identityField]];
         }
     }
-    
+
     var id = layerName;
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
     var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id, 'class': 'RCAdd-maplayers-container'});
     var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
     var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '465px');
     var visLayerCanvas   = $('<div/>', {id: 'vislayer' + id});
-    
+
     var tabMenu = _div([_ul([_li([_a([_t(_gtxt("Существующие слои"))],[['attr','href','#existlayer' + id]])]),
                              _li([_a([_t(_gtxt("Слои из карты"))],[['attr','href','#maplayer' + id]])]),
                              _li([_a([_t(_gtxt("Слои из КР"))],[['attr','href','#rclayer' + id]])]),
                              _li([_a([_t(_gtxt("Новый слой"))],[['attr','href','#newlayer' + id]])]),
                              _li([_a([_t(_gtxt("С экрана"))],[['attr','href','#vislayer' + id]])])
                             ])]);
-        
+
     $(tabMenu).append(existLayerCanvas, newLayerCanvas, RCLayerCanvas, mapLayerCanvas, visLayerCanvas);
     var dialogCanvas = $('<div/>').append(tabMenu, infoContainer);
-    
+
     var suggestLayersControl = new nsGmx.LayerManagerControl(existLayerCanvas, 'addimage', {
-            fixType: 'raster', 
+            fixType: 'raster',
             enableDragging: false,
             onclick: function(clickContext) {
                 infoControl.startProcess();
@@ -28940,14 +28948,14 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     })
             }
         });
-        
+
     var RCLayerLayerCanvas = $('<div/>').appendTo(RCLayerCanvas);
     var RCLayerObjectCanvas = $('<div/>').appendTo(RCLayerCanvas).css({
-        'border-top-width': '1px', 
+        'border-top-width': '1px',
         'border-top-style': 'solid',
         'border-top-color': '#216B9C'
     });
-    
+
     var sizeProvider = function() {
         console.log(dialogCanvas[0].parentNode.offsetHeight, dialogCanvas[0].parentNode.parentNode.offsetWidth);
         return {
@@ -28955,7 +28963,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight - 9
         }
     }
-    
+
     var RCLayersControl = new nsGmx.LayerManagerControl(RCLayerLayerCanvas, 'addrclayer', {
             fixType: 'catalog',
             enableDragging: false,
@@ -28969,11 +28977,11 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     onClick: function(elem) {
                         var idfield = currAttrControl.getLayerInfo().identityField;
                         var objid = elem.values[elem.fields[idfield].index];
-                        
+
                         var dstProps = map.layersByID[layerName].getGmxProperties();
-                        
+
                         var properties = {};
-                        
+
                         //переносим все атрибуты объекта, у которых совпадает имя и тип
                         for (var srcAttr in elem.fields) {
                             if (srcAttr !== idfield) {
@@ -28985,17 +28993,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                                 }
                             }
                         }
-                        
+
                         _mapHelper.modifyObjectLayer(layerName, [{source: {rc: currRCName, rcobj: objid}, properties: properties}]);
                     }
                 });
             }
         });
-        
+
     var newLayerProperties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
     nsGmx.createLayerEditor(null, 'Raster', newLayerCanvas[0], newLayerProperties,
         {
-            addToMap: false, 
+            addToMap: false,
             doneCallback: function(promise)
             {
                 infoControl.startProcess();
@@ -29010,41 +29018,41 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             }
         }
     );
-    
+
     var visLayersWidget = new LayersToAddWidget($('<div/>').appendTo(visLayerCanvas));
     var addVisLayersButton = makeLinkButton(_gtxt("Добавить выбранные растры"));
     addVisLayersButton.onclick = function() {
         infoControl.startProcess();
         var objs = $.map(visLayersWidget.getObjects(), function(item) {
-            return {source: {rc: item.layerprops.name, rcobj: item.obj[item.layerprops.identityField] }}; 
+            return {source: {rc: item.layerprops.name, rcobj: item.obj[item.layerprops.identityField] }};
         });
         _mapHelper.modifyObjectLayer(layerName, objs).done(function() {
             visLayersWidget.clear();
             infoControl.doneProcess(_gtxt('Добавлены растры') + ' (' + objs.length + ')');
         });
     }
-    
+
     $(addVisLayersButton).appendTo(visLayerCanvas);
-    
+
     var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
-    
+
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
-    
+
     var ul = previewLayersTree.drawTree(_layersTree.treeModel.getRawTree(), 2);
     $(ul).treeview().appendTo(treeContainer);
-    
+
     var addMapButton = makeLinkButton(_gtxt("Добавить выбранные растры"));
-    
+
     addMapButton.onclick = function()
     {
         var activeElem = previewLayersTree.getActive();
         if (!activeElem) return;
-        
+
         var objectsToAdd = [];
-        
+
         //если выбрали карту, то elem тут окажется равным undefined
         var elem = activeElem.gmxProperties.content && previewLayersTree.treeModel.findElemByGmxProperties(activeElem.gmxProperties).elem;
-        
+
         if (!elem || elem.type === 'group') {
             previewLayersTree.treeModel.forEachLayer(function(layerElem) {
                 var props = layerElem.properties;
@@ -29055,7 +29063,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         } else {
             objectsToAdd.push({source: {layerName: elem.content.properties.name}});
         }
-        
+
         if (objectsToAdd.length > 0)
         {
             infoControl.startProcess();
@@ -29066,9 +29074,9 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                 })
         }
     }
-    
+
     mapLayerCanvas.append(treeContainer, addMapButton);
-    
+
     var listeners = [];
     var clearListeners = function() {
         for (var i = 0; i < listeners.length; i++) {
@@ -29078,27 +29086,27 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         }
         listeners = [];
     }
-    
+
     var clickListener = function(event) {
-        
+
         var layerProps = event.gmx.layer.getGmxProperties(),
             attrTypes = event.gmx.layer._gmx.tileAttributeTypes,
             objProps = event.gmx.properties;
-        
+
         if (!objProps['GMX_RasterCatalogID']) {
             infoControl.warning(_gtxt('Выбранный объект не имеет растра'));
             return true;
         }
-        
+
         if (visLayersWidget.isExist(layerProps, objProps)) {
             infoControl.warning(_gtxt('Этот растр уже был выбран'));
             return true;
         }
-        
+
         visLayersWidget.addObject(layerProps, attrTypes, objProps);
         return true;	// Отключить дальнейшую обработку события
     }
-    
+
     $(tabMenu).tabs({
         activate: function(event, ui) {
             var index = $(tabMenu).tabs('option', 'active');
@@ -29109,8 +29117,8 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     if (props.type === 'Vector' && props.IsRasterCatalog)
                     {
                         //тут нужна уникальная ф-ция для дальнейшей очистки слушателей
-                        var listener = clickListener.bind(null); 
-                        
+                        var listener = clickListener.bind(null);
+
                         layer.on('click', listener);
                         listeners.push({layerName: props.name, listener: listener});
                     }
@@ -29120,10 +29128,10 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             }
         }
     });
-    
+
     showDialog(_gtxt('Добавить снимки'), dialogCanvas[0], {
-        width: 550, 
-        height: 550, 
+        width: 550,
+        height: 550,
         resizeFunc: function() {
             currAttrControl && currAttrControl.resizeFunc();
         },
@@ -31288,7 +31296,7 @@ gmxCore.addModule("search", publicInterface, {
         _messagesToShow: [],
         _messageTimer: null,
         _currentStatusClass: '',
-        
+
         startAction: function(actionId) {
             this._initContainerLazy();
             if (this._actions.indexOf(actionId) === -1) {
@@ -31296,28 +31304,28 @@ gmxCore.addModule("search", publicInterface, {
                 this._container.find('.notification-process').show();
             }
         },
-        
+
         //supported statuses: success, failure, warning
         stopAction: function(actionId, status, message, timeout) {
             var index = this._actions.indexOf(actionId);
-            
+
             if (index !== -1) {
                 this._actions.splice(index, 1);
                 this._container.find('.notification-process').toggle(this._actions.length);
             }
-                
+
             if (message) {
                 timeout = typeof timeout !== 'undefined' ? timeout : 1500;
                 this._messagesToShow.push({text: message, status: status, timeout: timeout});
                 this._checkMessages();
             }
         },
-        
+
         _checkMessages: function() {
             if (this._messageTimer || !this._messagesToShow.length) {
                 return;
             }
-            
+
             var msg = this._messagesToShow.shift();
             var statusClass = 'notification-' + msg.status;
             this._initContainerLazy();
@@ -31325,7 +31333,7 @@ gmxCore.addModule("search", publicInterface, {
                 .show().text(msg.text)
                 .removeClass(this._currentStatusClass)
                 .addClass(statusClass);
-                
+
             if (msg.timeout) {
                 this._messageTimer = setTimeout(function(){
                     this._messageTimer = null;
@@ -31334,18 +31342,18 @@ gmxCore.addModule("search", publicInterface, {
                 }.bind(this), msg.timeout);
             }
         },
-        
+
         _initContainerLazy: function() {
             if (this._container) {
                 return;
             }
-            
+
             this._container = $(Handlebars.compile(
                 '<div class="notification-container">' +
                     '<span class="notification-process"></span>' +
                     '<span class="notification-message"></span>' +
                 '</div>')()).appendTo($('#flash'));
-                
+
             this._container.find('.notification-message, .notification-process').hide();
         }
     }
@@ -31358,16 +31366,16 @@ nsGmx.VirtualLayerManager = function() {
 nsGmx.VirtualLayerManager.prototype.loader = function(type) {
     var promise = new L.gmx.Deferred(),
         classInfo = this._classes[type];
-    
+
     if (!classInfo) {
         promise.resolve();
         return promise;
     }
-    
+
     gmxCore.loadModule(classInfo.module, classInfo.file).then(function(module) {
         promise.resolve(module.layerClass);
     }, promise.reject);
-    
+
     return promise;
 };
 /*!
@@ -32371,19 +32379,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32413,6 +32408,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -32490,7 +32498,7 @@ nsGmx.Translations.addText('rus', { TransparencySliderWidget: {
     title: 'Прозрачность растровых слоёв',
     onOffTitle: 'Показать/скрыть растры'
 }});
-                         
+
 nsGmx.Translations.addText("eng", { TransparencySliderWidget: {
     title: 'Raster layers transparency',
     onOffTitle: 'Show/hide rasters'
@@ -32657,7 +32665,7 @@ nsGmx.Translations.addText("eng", { TransparencySliderWidget: {
 
   Tooltip.prototype._preloadImages = function() {
     var that = this;
-    
+
     var $images = $('<div>').html(that.getContent()).find('img');
     var srcs = Array.prototype.slice.apply($images).map(function(el) {
       return el.src;
@@ -34905,7 +34913,7 @@ nsGmx.ShareIconControl.ShareDialog = nsGmx.GmxWidget.extend({
         var embeddedUrl = urls.embeddedUrl = tpl(this.options.embeddedUrlTemplate)({
             origin: origin,
             href: href,
-            winnieId: this.model.get('includePermalink') ? this.model.get('winnieId') : false            
+            winnieId: this.model.get('includePermalink') ? this.model.get('winnieId') : false
         });
 
         var previewUrl = urls.previewUrl = tpl(this.options.previewUrlTemplate)({
@@ -34915,7 +34923,7 @@ nsGmx.ShareIconControl.ShareDialog = nsGmx.GmxWidget.extend({
             width: this.model.get('iframeWidth'),
             height: this.model.get('iframeHeight')
         });
-        
+
         var winnieUrl = urls.winnieUrl = tpl(this.options.winnieUrlTemplate)({
             origin: origin,
             href: href,
@@ -35763,7 +35771,7 @@ var SearchWidget = function (_EventTarget) {
                 //     let item = state.response[0];
                 //     item.provider
                 //     .fetch(item.properties)
-                //     .then(response => {});                    
+                //     .then(response => {});
                 // }
             });
 
@@ -35901,7 +35909,7 @@ var CadastreDataProvider = function (_EventTarget) {
                     // }
                     // else {
                     // resolve(json);
-                    // }                                       
+                    // }
                 });
             });
         }
@@ -36433,7 +36441,7 @@ var ResultView = function (_EventTarget) {
         _this._list.addEventListener('wheel', _this._handleWheel);
         L.DomEvent.disableClickPropagation(_this._list).disableScrollPropagation(_this._list);
         // this._list.addEventListener('mousewheel', this._handleWheel.bind(this));
-        // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));       
+        // this._list.addEventListener('MozMousePixelScroll', this._handleWheel.bind(this));
         _this._input.parentElement.appendChild(_this._list);
 
         _this._handleChange = _this._handleChange.bind(_this);
@@ -37027,7 +37035,7 @@ var nsGmx = nsGmx || {};
 
         updateTemporalLayers: function(layers) {
             layers = layers || nsGmx.gmxMap.layers;
-            
+
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
@@ -38983,6 +38991,7 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
 
     _collapse: function () {
         this._listContainer.className = this._listContainer.className.replace(' leaflet-control-layers-expanded', '');
+        this.setActive(false);
     },
 
     setActive: function (active, skipEvent) {
