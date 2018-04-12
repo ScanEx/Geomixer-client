@@ -1,15 +1,12 @@
 .tab-icon {
     border-left: 4px solid transparent;
+    fill: #d8e1e8;
 }
 
 .tab-icon-active {
     border-left: 4px solid #70cbe0 !important;
-}
-
-.tab-icon-active svg {
     fill: #70cbe0;
 }
-
 
 .tab-icon svg {
     width: 20px;
