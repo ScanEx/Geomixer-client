@@ -485,6 +485,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     style: {
                         width: 'auto'
                     },
+                    togglable: true,
                     permalinkManager: {
                         save: function() {
                             return $.when(
