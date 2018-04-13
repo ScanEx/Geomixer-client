@@ -271,7 +271,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
+		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'view' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
 	},
 	clickCallback: function(context)
 	{
@@ -292,7 +292,6 @@ nsGmx.ContextMenuController.addContextMenuElem({
             var securityDialog = new nsGmx.multiLayerSecurity();
 			securityDialog.getRights(context.elem.MultiLayerID, context.elem.title);
         } else {
-			console.log(context.elem);
             var securityDialog = new nsGmx.layerSecurity(context.elem.name);
 			securityDialog.getRights(context.elem.name, context.elem.title);
         }
