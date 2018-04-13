@@ -581,7 +581,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
              var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
                  showOnMap: true,
-                 serverBase: 'http://maps.kosmosnimki.ru',
+                 serverBase: '//maps.kosmosnimki.ru',
                  limit: 10
              });
 
