@@ -238,7 +238,20 @@ nsGmx.widgets = nsGmx.widgets || {};
                         childs: [
                             { id: 'createRasterLayer', title: _gtxt('Растровый'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'), disabled: !isMapEditor },
                             { id: 'createVectorLayer', title: _gtxt('Векторный'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'), disabled: !isMapEditor },
-                            { id: 'createMultiLayer', title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor }
+                            { id: 'createMultiLayer', title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor },
+                            { id:'createVirtualLayer', title: 'Виртуальный', func: function() {
+                                    var parent = _div(null, [['attr','id','newVirtualLayer'], ['css', 'height', '100%']]),
+                                        properties = {Title:'', Description: '', Date: ''};
+
+                                    var dialogDiv = showDialog('Создать виртуальный слой', parent, 340, 340, false, false);
+
+                                    nsGmx.createLayerEditor(false, 'Virtual', parent, properties, {
+                                        doneCallback: function() {
+                                            removeDialog(dialogDiv);
+                                        }
+                                    });
+                                }, disabled: !isMapEditor
+                            }
                         ],
                         disabled: !isMapEditor
                     },
