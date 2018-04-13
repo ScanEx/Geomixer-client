@@ -292,7 +292,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
             var securityDialog = new nsGmx.multiLayerSecurity();
 			securityDialog.getRights(context.elem.MultiLayerID, context.elem.title);
         } else {
-            var securityDialog = new nsGmx.layerSecurity(context.elem.type);
+			console.log(context.elem);
+            var securityDialog = new nsGmx.layerSecurity(context.elem.name);
 			securityDialog.getRights(context.elem.name, context.elem.title);
         }
 	}

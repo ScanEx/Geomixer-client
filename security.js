@@ -323,15 +323,32 @@ var mapSecurity = function()
 mapSecurity.prototype = new security();
 mapSecurity.prototype.constructor = mapSecurity;
 
-var layerSecurity = function(layerType)
+var layerSecurity = function(layerName)
 {
+    var layer = nsGmx.gmxMap.layersByID[layerName],
+        props = layer.getGmxProperties && layer.getGmxProperties();
+
+    if (!props) {
+        return;
+    }
+
     this.getSecurityName = "Layer/GetSecurity.ashx";
     this.updateSecurityName = "Layer/UpdateSecurity.ashx";
 
     this.propertyName = "LayerID";
     this.dialogTitle = "Редактирование прав доступа слоя [value0]";
 
-    this.accessTypes = layerType === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+    var layerType = props.type;
+
+    if (layerType === 'Raster') {
+        this.accessTypes = ['no', 'preview', 'view', 'edit'];
+    } else if (layerType === 'Vector') {
+        if (props.IsRasterCatalog) {
+            this.accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
+        } else {
+            this.accessTypes = ['no', 'view', 'editrows', 'edit'];
+        }
+    }
 }
 
 layerSecurity.prototype = new security();
@@ -837,7 +854,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                     defTemplateJSON;
 
                 if (checkSameLayersType(array)) {
-                    accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+                    accessTypes = getAccessTypes(array[0].type);
                 } else {
                     accessTypes = ['no', 'preview', 'view', 'edit'];
                 }
@@ -888,7 +905,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                 _this.originalItems = [];
 
                 if (templateSecurityInfo.Users.length) {
-                    accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+                    accessTypes = getAccessTypes(array[0].type);
 
                     for (var i = 0; i < templateSecurityInfo.Users.length; i++) {
                         _this.originalItems.push(templateSecurityInfo.Users[i]);
@@ -948,6 +965,21 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                 return array.every(function(element) {
                     return element.type === first;
                 });
+            }
+
+            function getAccessTypes(layerType) {
+                var accessTypes;
+                if (layerType === 'Raster') {
+                    accessTypes = ['no', 'preview', 'view', 'edit'];
+                } else if (layerType === 'Vector') {
+                    if (props.IsRasterCatalog) {
+                        accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
+                    } else {
+                        accessTypes = ['no', 'view', 'editrows', 'edit'];
+                    }
+                }
+
+                return accessTypes;
             }
 
         }
