@@ -350,6 +350,32 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
             WMSLink = _a([_t(_gtxt('ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?map=' + elemProperties.name]]),
+            WMSLinks = $(Handlebars.compile(
+                '<div>' +
+                    '<ul>' +
+                        '{{#each this.services}}' +
+                        '<li>' +
+                            '{{this.upper}}: {{this.protocol}}//maps.kosmosnimki.ru/rest/ver1/service/{{this.name}}?map={{mapName}}&apikey=[APIKEY_VALUE]' +
+                        '</li>' +
+                        '<br>' +
+                        '{{/each}}' +
+                    '</ul>' +
+                '</div>'
+            )({
+                services: [{
+                        protocol: window.location.protocol,
+                        name: 'wms',
+                        upper: 'WMS'
+                    }, {
+                        protocol: window.location.protocol,
+                        name: 'wfs',
+                        upper: 'WFS'
+                    }, {
+                        protocol: window.location.protocol,
+                        name: 'tms',
+                        upper: 'TMS'
+                    }]
+            }))[0],
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
 			defLat = _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.DefaultLat !== null ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defLong = _input(null,[['attr','placeholder', _gtxt("placeholder degrees")], ['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -453,7 +479,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 
 			rawTree.properties = div.gmxProperties.properties;
 
-            $(WMSLink).toggle(this.checked);
+            $(WMSLinks).toggle(this.checked);
 		}
 
 		defLat.onkeyup = function()
@@ -575,7 +601,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		}
 
         WMSAccess.style.verticalAlign = "middle";
-        $(WMSLink).toggle(elemProperties.WMSAccess);
+        $(WMSLinks).toggle(elemProperties.WMSAccess);
 
 		var shownCommonProperties = [
 										{name: _gtxt("Имя"), field: 'title', elem: title},
@@ -595,7 +621,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			shownPolicyProperties = [
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
 																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])},
-                                        {name: _gtxt("WMS доступ"), elem: _div([WMSAccess, WMSLink])}
+                                        {name: _gtxt("WMS доступ"), elem: _div([WMSAccess/*, WMSLinks*/])}
                                     ],
 			shownViewProperties = [
                 {
@@ -650,7 +676,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         var baseLayersControl = new BaseLayersControl(divBaseLayers, nsGmx.leafletMap.gmxBaseLayersManager);
 
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
-		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
+		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']]), WMSLinks]);
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divOnload, [onLoad]);
 
