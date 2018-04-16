@@ -6613,7 +6613,7 @@ var nsMapCommon = function($){
                 lmap = nsGmx.leafletMap,
                 center = lmap.getCenter(),
                 layersState = {expanded: {}, visible: {}};
-                
+
             _layersTree.treeModel.forEachNode(function(elem) {
                 var props = elem.content.properties;
                 if (elem.type == 'group') {
@@ -6628,11 +6628,12 @@ var nsMapCommon = function($){
                     }
                 }
             });
-            
+
             var config = {
                 app: {
                     gmxMap: {
-                        mapID: mapProps.name
+                        mapID: mapProps.name,
+                        apiKey: window.apiKey
                     }
                 },
                 state: {
@@ -6661,7 +6662,7 @@ var nsMapCommon = function($){
         {
             var _array = [];
             var _hash = {};
-            
+
             var _getLayersInGroup = function(map, mapTree, groupTitle)
             {
                 var res = {};
@@ -6682,8 +6683,8 @@ var nsMapCommon = function($){
 
                 visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
                 return res;
-            }    
-            
+            }
+
             for (var k = 0; k < description.length; k++)
                 if ( typeof description[k] === "string" )
                 {
@@ -6699,30 +6700,31 @@ var nsMapCommon = function($){
                         _array.push( groupHash[l] );
                     }
                 }
-                
+
             return {
                 asArray: function() { return _array; },
                 asHash: function() { return _hash; },
                 names: function()
                 {
                     var res = [];
-                    
-                    for (var l in _hash) 
+
+                    for (var l in _hash)
                         res.push(l);
-                        
+
                     return res;
                 }
             }
         }
     };
-    
+
     if (typeof gmxCore !== 'undefined')
     {
         gmxCore.addModule('MapCommon', publicInterface);
     }
-    
+
     return publicInterface;
 }(jQuery);
+
 !(function(_) {
 /** Разнообразные вспомогательные контролы (базовые элементы GUI)
     @namespace nsGmx.Controls
@@ -22080,6 +22082,12 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(addObjectButton).addClass('attr-table-add-button');
 	$(changeFieldsListButton).addClass('attr-table-list-button');
 
+	if (info.Access !== 'edit' && info.Access !== 'editrows') {
+		$(updateObjectsButton).addClass('gmx-disabled');
+		$(addObjectButton).addClass('gmx-disabled');
+		$(changeFieldsListButton).addClass('gmx-disabled');
+	}
+
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
     });
@@ -22202,47 +22210,52 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    findObjectsButton.style.marginRight = '10px';
 
-   updateObjectsButton.onclick = function() {
-	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
-		   $(findObjectsButton).removeClass('gmx-disabled');
-	   }
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+	   updateObjectsButton.onclick = function() {
+		   if ($(findObjectsButton).hasClass('gmx-disabled')) {
+			   $(findObjectsButton).removeClass('gmx-disabled');
+		   }
 
-	   tdParams.innerHTML = '';
+		   tdParams.innerHTML = '';
 
-	   oldCanvasWidth = outerSizeProvider().width;
+		   oldCanvasWidth = outerSizeProvider().width;
 
-	   searchParamsManager.drawUpdateUI(tdParams, _this);
+		   searchParamsManager.drawUpdateUI(tdParams, _this);
 
-	   if (tdParams.style.display === 'none') {
-		   tdParams.style.display = '';
-	   } else {
-		   return;
-	   }
+		   if (tdParams.style.display === 'none') {
+			   tdParams.style.display = '';
+		   } else {
+			   return;
+		   }
 
-	   resizeFunc();
-   };
+		   resizeFunc();
+	   };
+	}
 
    updateObjectsButton.style.marginRight = '10px';
 
-	addObjectButton.onclick = function() {
-        new nsGmx.EditObjectControl(_this.layerName);
-	};
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+	   addObjectButton.onclick = function() {
+	    new nsGmx.EditObjectControl(_this.layerName);
+		};
+	}
 
 	addObjectButton.style.marginRight = '10px';
 
     if (_params.hideActions) {
         $(addObjectButton).hide();
 	}
-
-	changeFieldsListButton.onclick = function() {
-		var div;
-		if (info.MultiLayerID) {
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
-		} else {
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
-		}
-		_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
-	};
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+		changeFieldsListButton.onclick = function() {
+			var div;
+			if (info.MultiLayerID) {
+				div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
+			} else {
+				div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
+			}
+			_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+		};
+	}
 
 	changeFieldsListButton.style.marginRight = '10px';
 

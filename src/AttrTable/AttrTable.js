@@ -248,6 +248,12 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 	$(addObjectButton).addClass('attr-table-add-button');
 	$(changeFieldsListButton).addClass('attr-table-list-button');
 
+	if (info.Access !== 'edit' && info.Access !== 'editrows') {
+		$(updateObjectsButton).addClass('gmx-disabled');
+		$(addObjectButton).addClass('gmx-disabled');
+		$(changeFieldsListButton).addClass('gmx-disabled');
+	}
+
     downloadSection.find('.attrsDownloadLink').click(function() {
         downloadLayer($(this).data('format'));
     });
@@ -370,47 +376,52 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    findObjectsButton.style.marginRight = '10px';
 
-   updateObjectsButton.onclick = function() {
-	   if ($(findObjectsButton).hasClass('gmx-disabled')) {
-		   $(findObjectsButton).removeClass('gmx-disabled');
-	   }
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+	   updateObjectsButton.onclick = function() {
+		   if ($(findObjectsButton).hasClass('gmx-disabled')) {
+			   $(findObjectsButton).removeClass('gmx-disabled');
+		   }
 
-	   tdParams.innerHTML = '';
+		   tdParams.innerHTML = '';
 
-	   oldCanvasWidth = outerSizeProvider().width;
+		   oldCanvasWidth = outerSizeProvider().width;
 
-	   searchParamsManager.drawUpdateUI(tdParams, _this);
+		   searchParamsManager.drawUpdateUI(tdParams, _this);
 
-	   if (tdParams.style.display === 'none') {
-		   tdParams.style.display = '';
-	   } else {
-		   return;
-	   }
+		   if (tdParams.style.display === 'none') {
+			   tdParams.style.display = '';
+		   } else {
+			   return;
+		   }
 
-	   resizeFunc();
-   };
+		   resizeFunc();
+	   };
+	}
 
    updateObjectsButton.style.marginRight = '10px';
 
-	addObjectButton.onclick = function() {
-        new nsGmx.EditObjectControl(_this.layerName);
-	};
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+	   addObjectButton.onclick = function() {
+	    new nsGmx.EditObjectControl(_this.layerName);
+		};
+	}
 
 	addObjectButton.style.marginRight = '10px';
 
     if (_params.hideActions) {
         $(addObjectButton).hide();
 	}
-
-	changeFieldsListButton.onclick = function() {
-		var div;
-		if (info.MultiLayerID) {
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
-		} else {
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
-		}
-		_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
-	};
+   if (info.Access === 'edit' && info.Access === 'editrows') {
+		changeFieldsListButton.onclick = function() {
+			var div;
+			if (info.MultiLayerID) {
+				div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + info.MultiLayerID + "']")[0];
+			} else {
+				div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + info.name + "']")[0];
+			}
+			_mapHelper.createLayerEditor(div, false, 'attrs', div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+		};
+	}
 
 	changeFieldsListButton.style.marginRight = '10px';
 

@@ -5,7 +5,7 @@
                 lmap = nsGmx.leafletMap,
                 center = lmap.getCenter(),
                 layersState = {expanded: {}, visible: {}};
-                
+
             _layersTree.treeModel.forEachNode(function(elem) {
                 var props = elem.content.properties;
                 if (elem.type == 'group') {
@@ -20,11 +20,12 @@
                     }
                 }
             });
-            
+
             var config = {
                 app: {
                     gmxMap: {
-                        mapID: mapProps.name
+                        mapID: mapProps.name,
+                        apiKey: window.apiKey
                     }
                 },
                 state: {
@@ -53,7 +54,7 @@
         {
             var _array = [];
             var _hash = {};
-            
+
             var _getLayersInGroup = function(map, mapTree, groupTitle)
             {
                 var res = {};
@@ -74,8 +75,8 @@
 
                 visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
                 return res;
-            }    
-            
+            }
+
             for (var k = 0; k < description.length; k++)
                 if ( typeof description[k] === "string" )
                 {
@@ -91,27 +92,27 @@
                         _array.push( groupHash[l] );
                     }
                 }
-                
+
             return {
                 asArray: function() { return _array; },
                 asHash: function() { return _hash; },
                 names: function()
                 {
                     var res = [];
-                    
-                    for (var l in _hash) 
+
+                    for (var l in _hash)
                         res.push(l);
-                        
+
                     return res;
                 }
             }
         }
     };
-    
+
     if (typeof gmxCore !== 'undefined')
     {
         gmxCore.addModule('MapCommon', publicInterface);
     }
-    
+
     return publicInterface;
 }(jQuery);
