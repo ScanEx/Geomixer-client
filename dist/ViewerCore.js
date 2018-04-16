@@ -12857,7 +12857,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
+		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'view' || _queryMapLayers.layerRights(context.elem.name) === 'editrows') && context.elem.type === "Vector";
 	},
 	clickCallback: function(context)
 	{
@@ -12878,7 +12878,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
             var securityDialog = new nsGmx.multiLayerSecurity();
 			securityDialog.getRights(context.elem.MultiLayerID, context.elem.title);
         } else {
-            var securityDialog = new nsGmx.layerSecurity(context.elem.type);
+            var securityDialog = new nsGmx.layerSecurity(context.elem.name);
 			securityDialog.getRights(context.elem.name, context.elem.title);
         }
 	}
@@ -19320,15 +19320,32 @@ var mapSecurity = function()
 mapSecurity.prototype = new security();
 mapSecurity.prototype.constructor = mapSecurity;
 
-var layerSecurity = function(layerType)
+var layerSecurity = function(layerName)
 {
+    var layer = nsGmx.gmxMap.layersByID[layerName],
+        props = layer.getGmxProperties && layer.getGmxProperties();
+
+    if (!props) {
+        return;
+    }
+
     this.getSecurityName = "Layer/GetSecurity.ashx";
     this.updateSecurityName = "Layer/UpdateSecurity.ashx";
 
     this.propertyName = "LayerID";
     this.dialogTitle = "Редактирование прав доступа слоя [value0]";
 
-    this.accessTypes = layerType === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+    var layerType = props.type;
+
+    if (layerType === 'Raster') {
+        this.accessTypes = ['no', 'preview', 'view', 'edit'];
+    } else if (layerType === 'Vector') {
+        if (props.IsRasterCatalog) {
+            this.accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
+        } else {
+            this.accessTypes = ['no', 'view', 'editrows', 'edit'];
+        }
+    }
 }
 
 layerSecurity.prototype = new security();
@@ -19834,7 +19851,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                     defTemplateJSON;
 
                 if (checkSameLayersType(array)) {
-                    accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+                    accessTypes = getAccessTypes(array[0].type);
                 } else {
                     accessTypes = ['no', 'preview', 'view', 'edit'];
                 }
@@ -19885,7 +19902,7 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                 _this.originalItems = [];
 
                 if (templateSecurityInfo.Users.length) {
-                    accessTypes = array[0].type === 'Raster' ? ['no', 'preview', 'view', 'edit'] : ['no', 'preview', 'view', 'editrows', 'edit'];
+                    accessTypes = getAccessTypes(array[0].type);
 
                     for (var i = 0; i < templateSecurityInfo.Users.length; i++) {
                         _this.originalItems.push(templateSecurityInfo.Users[i]);
@@ -19945,6 +19962,21 @@ layersGroupSecurity.prototype.addCustomUI = function(ui, resizeFunc) {
                 return array.every(function(element) {
                     return element.type === first;
                 });
+            }
+
+            function getAccessTypes(layerType) {
+                var accessTypes;
+                if (layerType === 'Raster') {
+                    accessTypes = ['no', 'preview', 'view', 'edit'];
+                } else if (layerType === 'Vector') {
+                    if (props.IsRasterCatalog) {
+                        accessTypes = ['no', 'preview', 'view', 'editrows', 'edit'];
+                    } else {
+                        accessTypes = ['no', 'view', 'editrows', 'edit'];
+                    }
+                }
+
+                return accessTypes;
             }
 
         }
@@ -32274,11 +32306,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32313,6 +32340,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -39979,7 +40011,20 @@ nsGmx.widgets = nsGmx.widgets || {};
                         childs: [
                             { id: 'createRasterLayer', title: _gtxt('Растровый'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Raster'), disabled: !isMapEditor },
                             { id: 'createVectorLayer', title: _gtxt('Векторный'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'), disabled: !isMapEditor },
-                            { id: 'createMultiLayer', title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor }
+                            { id: 'createMultiLayer', title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor },
+                            { id:'createVirtualLayer', title: 'Виртуальный', func: function() {
+                                    var parent = _div(null, [['attr','id','newVirtualLayer'], ['css', 'height', '100%']]),
+                                        properties = {Title:'', Description: '', Date: ''};
+
+                                    var dialogDiv = showDialog('Создать виртуальный слой', parent, 340, 340, false, false);
+
+                                    nsGmx.createLayerEditor(false, 'Virtual', parent, properties, {
+                                        doneCallback: function() {
+                                            removeDialog(dialogDiv);
+                                        }
+                                    });
+                                }, disabled: !isMapEditor
+                            }
                         ],
                         disabled: !isMapEditor
                     },
@@ -40309,7 +40354,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
              var osmProvider = new nsGmx.searchProviders.Osm2DataProvider({
                  showOnMap: true,
-                 serverBase: 'http://maps.kosmosnimki.ru',
+                 serverBase: '//maps.kosmosnimki.ru',
                  limit: 10
              });
 
