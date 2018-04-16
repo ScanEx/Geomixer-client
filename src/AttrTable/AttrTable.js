@@ -376,7 +376,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    findObjectsButton.style.marginRight = '10px';
 
-   if (info.Access === 'edit' && info.Access === 'editrows') {
+   if (info.Access === 'edit' || info.Access === 'editrows') {
 	   updateObjectsButton.onclick = function() {
 		   if ($(findObjectsButton).hasClass('gmx-disabled')) {
 			   $(findObjectsButton).removeClass('gmx-disabled');
@@ -400,7 +400,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
    updateObjectsButton.style.marginRight = '10px';
 
-   if (info.Access === 'edit' && info.Access === 'editrows') {
+   if (info.Access === 'edit' || info.Access === 'editrows') {
 	   addObjectButton.onclick = function() {
 	    new nsGmx.EditObjectControl(_this.layerName);
 		};
@@ -411,7 +411,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     if (_params.hideActions) {
         $(addObjectButton).hide();
 	}
-   if (info.Access === 'edit' && info.Access === 'editrows') {
+   if (info.Access === 'edit' || info.Access === 'editrows') {
 		changeFieldsListButton.onclick = function() {
 			var div;
 			if (info.MultiLayerID) {
