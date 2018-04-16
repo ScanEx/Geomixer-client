@@ -679,7 +679,7 @@
                             if (!nsGmx.bindLayersToTimeline) {
                                 timelineIcon.onclick = function() {
                                     var disabled = $(this).hasClass('disabled'),
-                                    timelinePluginName = 'Timeline Vectors',
+                                    timelinePluginName = 'GeoMixer Timeline',
                                     timeLineModuleName = 'gmxTimeLine',
                                     timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
 
