@@ -355,7 +355,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                     '<ul>' +
                         '{{#each this.services}}' +
                         '<li>' +
-                            '{{this.upper}}: {{this.protocol}}//maps.kosmosnimki.ru/rest/ver1/service/{{this.name}}?map={{mapName}}&apikey=[APIKEY_VALUE]' +
+                            '{{this.upper}}: {{this.url}}rest/ver1/service/{{this.name}}?map={{this.mapName}}&apikey=[APIKEY_VALUE]' +
                         '</li>' +
                         '<br>' +
                         '{{/each}}' +
@@ -363,15 +363,18 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                 '</div>'
             )({
                 services: [{
-                        protocol: window.location.protocol,
+                        url: window.serverBase,
+                        mapName: elemProperties.MapID,
                         name: 'wms',
                         upper: 'WMS'
                     }, {
-                        protocol: window.location.protocol,
+                        url: window.serverBase,
+                        mapName: elemProperties.MapID,
                         name: 'wfs',
                         upper: 'WFS'
                     }, {
-                        protocol: window.location.protocol,
+                        url: window.serverBase,
+                        mapName: elemProperties.MapID,
                         name: 'tms',
                         upper: 'TMS'
                     }]
