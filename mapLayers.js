@@ -676,7 +676,6 @@
                             timelineIcon.className = 'gmx-timeline-icon disabled';
                             timelineIcon.title = window._gtxt("Добавить в таймлайн");
 
-                            if (!nsGmx.bindLayersToTimeline) {
                                 timelineIcon.onclick = function() {
                                     var disabled = $(this).hasClass('disabled'),
                                     timelinePluginName = 'GeoMixer Timeline',
@@ -727,11 +726,6 @@
                                         }
                                     }
                                 }
-                            } else {
-                                $(timelineIcon).css("cursor", "	nw-resize");
-                                $(timelineIcon).css("pointer-events", "none");
-                                $(timelineIcon).addClass("gmx-disabled");
-                            }
 
                             if (nsGmx.timeLineControl) {
                                 var timelineData = nsGmx.timeLineControl.saveState().dataSources,

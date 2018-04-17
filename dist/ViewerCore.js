@@ -393,7 +393,7 @@ window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
-    {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
+    {pluginName: 'GeoMixer Timeline', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
         { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
         // { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
     // {pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
@@ -10976,9 +10976,8 @@ pointsBinding.pointsBinding.unload = function()
                             timelineIcon.className = 'gmx-timeline-icon disabled';
                             timelineIcon.title = window._gtxt("Добавить в таймлайн");
 
-                            if (!nsGmx.bindLayersToTimeline) {
-                                timelineIcon.onclick = function() {
-                                    var disabled = $(this).hasClass('disabled'),
+                            timelineIcon.onclick = function() {
+                                var disabled = $(this).hasClass('disabled'),
                                     timelinePluginName = 'GeoMixer Timeline',
                                     timeLineModuleName = 'gmxTimeLine',
                                     timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
@@ -11027,11 +11026,6 @@ pointsBinding.pointsBinding.unload = function()
                                         }
                                     }
                                 }
-                            } else {
-                                $(timelineIcon).css("cursor", "	nw-resize");
-                                $(timelineIcon).css("pointer-events", "none");
-                                $(timelineIcon).addClass("gmx-disabled");
-                            }
 
                             if (nsGmx.timeLineControl) {
                                 var timelineData = nsGmx.timeLineControl.saveState().dataSources,
@@ -33996,7 +33990,7 @@ var Calendar1 = window.Backbone.View.extend({
         $('#leftMenu').on('click', function (e) {
             if (e.target.className !== 'CalendarWidget-show-calendar-icon icon-calendar-empty' &&
                 e.target.className !== 'layers-before' &&
-                !(e.target.className instanceof SVGAnimatedString) && 
+                !(e.target.className instanceof SVGAnimatedString) &&
                 e.target.className.indexOf('CalendarWidget-timeInput') === -1 &&
                 e.target.className !== 'calendar-container'
             ) {
