@@ -7,43 +7,43 @@ var initTranslations = function()
 {
     _translationsHash.addtext("rus", { FireVirtualLayer: {
         "LayerClusterBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "LayerClusterBalloonIndustrial" :
-            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "LayerGeometryBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Приблизьте карту, чтобы увидеть контур"
     }});
-                             
+
     _translationsHash.addtext("eng", { FireVirtualLayer: {
-        "LayerClusterBalloon" : 
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+        "LayerClusterBalloon" :
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
-        "LayerClusterBalloonIndustrial" : 
-            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+        "LayerClusterBalloonIndustrial" :
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "LayerGeometryBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Zoom-in to see the outline"
     }});
 }
-    
+
 // Lookup table for pixel dimensions based on scan index of the pixel
 var ModisPixelDimensions = [];
 function buildModisPixelDimensionsTable()
@@ -87,39 +87,39 @@ var _hq = {
         for (var idx in points) {
             var pt = points[idx];
             var d = this.getDistant(pt, baseLine);
-            
+
             if ( d > 0) {
                 newPoints.push(pt);
             } else {
                 continue;
             }
-            
+
             if ( d > maxD ) {
                 maxD = d;
                 maxPt = pt;
             }
-        
-        } 
+
+        }
         return {'maxPoint':maxPt, 'newPoints':newPoints}
     },
 
     buildConvexHull: function(baseLine, points) {
-        
+
         var convexHullBaseLines = new Array();
         var t = this.findMostDistantPointFromBaseLine(baseLine, points);
         if (t.maxPoint.length) {
             convexHullBaseLines = convexHullBaseLines.concat( this.buildConvexHull( [baseLine[0],t.maxPoint], t.newPoints) );
             convexHullBaseLines = convexHullBaseLines.concat( this.buildConvexHull( [t.maxPoint,baseLine[1]], t.newPoints) );
             return convexHullBaseLines;
-        } else {       
+        } else {
             return [baseLine];
-        }    
+        }
     },
-    getConvexHull: function(points) {    
+    getConvexHull: function(points) {
 
         if (points.length == 1)
             return [[points[0], points[0]]];
-            
+
         //find first baseline
         var maxX, minX;
         var maxPt, minPt;
@@ -144,89 +144,89 @@ var _hq = {
             unitedMultiPolygon = [],
             nStartPolygons = 0,
             currentPolygon;
-        
+
         do {
             nStartPolygons = multiPolygon.length;
             unitedMultiPolygon = [];
-            
+
             while(multiPolygon.length > 0){
                 currentPolygon = multiPolygon.pop();
                 var iOther = 0;
-                
+
                 // Check if it overlaps with any remaining polygons
                 while(iOther < multiPolygon.length) {
-                
+
                     var unionResults = currentPolygon.union(multiPolygon[iOther]);
-                    
+
                     if(unionResults != null){
                         currentPolygon = unionResults;
                         multiPolygon.splice(iOther,1);
                     } else {
                         iOther++;
-                    }                    
-                }            
-                unitedMultiPolygon.push(currentPolygon)                
+                    }
+                }
+                unitedMultiPolygon.push(currentPolygon)
             }
             multiPolygon = unitedMultiPolygon;
         }while(multiPolygon.length < nStartPolygons);
-        
+
         for(var i = 0; i < unitedMultiPolygon.length;i++) {
             var poly = unitedMultiPolygon[i].to_point_array_2d();
-            poly.push(poly[0]); 
-            
+            poly.push(poly[0]);
+
             matrixMultiPolygon.push([poly]);
-        }    
-        
+        }
+
         return matrixMultiPolygon;
     },
     getPixelMultiPolygon: function(points) {
         var results = [];
-        
+
         for(var i = 0;i < points.length;i++) {
             var pt = points[i];
             var dims = ModisPixelDimensions[pt[2]];
-            
+
             var merc = L.Projection.Mercator.project({lat: pt[1], lng: pt[0]});
             var X1 = merc.x;
             var Y1 = merc.y;
-            
+
             var X2 = X1 + 1000;
             var Y2 = Y1;
-            
+
             var newLatLng = L.Projection.Mercator.unproject({x: X2, y: Y2});
             var newLat = pt[1];
             var newLon = newLatLng.lng;
-            
+
             var mdelta = L.gmxUtil.distVincenty(pt[0],pt[1],newLon,newLat);
 
             var h_scale = dims[0] / mdelta;
             var v_scale = dims[1] / mdelta;
-            
-                    
+
+
             var h_dx = 0.5*(X2 - X1)*h_scale;
             var h_dy = 0.5*(Y2 - Y1)*h_scale;
-            
+
             var v_dx = 0.5*(Y2-Y1)*v_scale;
             var v_dy = 0.5*(X2-X1)*v_scale;
-            
+
             var frontX = X1 + h_dx;
             var frontY = Y1 + h_dy;
-            
+
             var backX = X1 - h_dx;
             var backY = Y1 - h_dy;
-        
+
             var corner1x =  frontX + v_dx;
             var corner1y =  frontY + v_dy;
-        
+
             var corner2x =  frontX - v_dx;
             var corner2y =  frontY - v_dy;
-        
+
             var corner3x =  backX - v_dx;
             var corner3y =  backY - v_dy;
-            
+
             var corner4x =  backX + v_dx;
-            var corner4y =  backY + v_dy;    
-            
+            var corner4y =  backY + v_dy;
+
             results.push( SpatialQuery.$p([
                 [corner1x, corner1y],
                 [corner2x, corner2y],
@@ -234,7 +234,7 @@ var _hq = {
                 [corner4x, corner4y]
             ]));
         }
-        
+
         return results;
     }
 }
@@ -255,19 +255,19 @@ var getExtendedBbox = function(mercOld, newBbox) {
     var extendBbox = function(bbox) {
         var sx = (bbox.max.x - bbox.min.x)*0.15,
             sy = (bbox.max.y - bbox.min.y)*0.15;
-            
+
         return L.gmxUtil.bounds([[bbox.min.x - sx, bbox.min.y - sy], [bbox.max.x + sx, bbox.max.y + sy]]);
     }
-    
+
     var mercNew = mercBbox(newBbox);
-    
+
     if (!mercOld) {
         return fromMercBbox(extendBbox(mercNew));
     }
-    
+
     var oldSquare = (mercOld.max.x - mercOld.min.x) * (mercOld.max.y - mercOld.min.y),
         newSquare = (mercNew.max.x - mercNew.min.x) * (mercNew.max.y - mercNew.min.y);
-        
+
     if (!mercOld.contains([mercNew.min.x, mercNew.min.y]) || !mercOld.contains([mercNew.max.x, mercNew.max.y]) || 2 * newSquare < oldSquare) {
         return fromMercBbox(extendBbox(mercNew));
     } else {
@@ -277,13 +277,13 @@ var getExtendedBbox = function(mercOld, newBbox) {
 
 var dateToString = function(timestamp) {
     var date = new Date(timestamp*1000);
-    
+
     var lz = function(n) {return n > 9 ? n : '0' + n;};
-    
+
     return lz(date.getUTCDate()) + '.' + lz(date.getUTCMonth()+1) + '.' + date.getUTCFullYear();
 }
 
-var FireVirtualLayer = L.Class.extend({
+var FireVirtualLayer = (L.Layer || L.Class).extend({
     options: {
         minGeomZoom: 8,
         minHotspotZoom: 11,
@@ -294,7 +294,7 @@ var FireVirtualLayer = L.Class.extend({
     },
     initialize: function(options) {
         L.setOptions(this, options);
-        
+
         this._clustersLayer = L.gmx.createLayer({
             properties: {
                 title: 'FireClusters',
@@ -342,7 +342,7 @@ var FireVirtualLayer = L.Class.extend({
                 }]
             }
         });
-        
+
         this._clustersGeomLayer = L.gmx.createLayer({
             properties: {
                 type: 'Vector',
@@ -353,17 +353,17 @@ var FireVirtualLayer = L.Class.extend({
                     MinZoom: this.options.minGeomZoom,
                     MaxZoom: 21,
                     RenderStyle: {
-                        outline: { color: 0xff0000, thickness: 2 }, 
+                        outline: { color: 0xff0000, thickness: 2 },
                         fill:    { color: 0xff0000, opacity: 15 }
                     },
                     HoverStyle: {
-                        outline: { color: 0xff0000, thickness: 3 }, 
+                        outline: { color: 0xff0000, thickness: 3 },
                         fill:    { color: 0xff0000, opacity: 45 }
                     }
                 }]
             }
         });
-        
+
         var _this = this;
         this._clustersLayer.on('popupopen', function(event) {
             var popup = event.popup,
@@ -372,7 +372,7 @@ var FireVirtualLayer = L.Class.extend({
                     _this._map.closePopup(event.popup);
                     _this._map.setView(event.gmx.latlng, _this.options.minGeomZoom + 3);
                 });
-            
+
             var div = $('<div/>').html(html).append(zoomLink);
             event.popup.setContent(div[0]);
         })
@@ -385,13 +385,13 @@ var FireVirtualLayer = L.Class.extend({
             if (!this._map) {
                 return;
             }
-            
+
             map.on('zoomend', this._updateLayersVisibility, this);
             map.on('moveend', this._updateBbox, this);
-            
+
             this._updateLayersVisibility();
             this._updateBbox();
-            
+
 			this._hotspotLayer.setZIndex(this.options.zIndex);
 			this._clustersLayer.setZIndex(this.options.zIndex);
 			this._clustersGeomLayer.setZIndex(this.options.zIndex);
@@ -400,7 +400,7 @@ var FireVirtualLayer = L.Class.extend({
             map.addLayer(this._clustersGeomLayer);
         }.bind(this));
     },
-    
+
     onRemove: function(map) {
         delete this._map;
         map.off('moveend', this._updateBbox, this);
@@ -416,11 +416,11 @@ var FireVirtualLayer = L.Class.extend({
         this._dateEnd = dateEnd;
         this._rawClusterLayer && this._rawClusterLayer.setDateInterval(dateBegin, dateEnd);
         this._hotspotLayer && this._hotspotLayer.setDateInterval(dateBegin, dateEnd);
-        
+
         this._observerClusters && this._observerClusters.setDateInterval(dateBegin, dateEnd);
         this._observerHotspots && this._observerHotspots.setDateInterval(dateBegin, dateEnd);
     },
-    
+
     _updateBbox: function() {
         var observersBbox = this._observerHotspots.bbox,
             screenBounds = this._map.getBounds(),
@@ -428,7 +428,7 @@ var FireVirtualLayer = L.Class.extend({
             p2 = screenBounds.getSouthEast(),
             newBbox = L.gmxUtil.bounds([[p1.lng, p1.lat], [p2.lng, p2.lat]]),
             extendedBbox = getExtendedBbox(observersBbox, newBbox);
-            
+
         if (extendedBbox) {
             this._observerHotspots.setBounds(extendedBbox);
             this._observerClusters.setBounds(extendedBbox);
@@ -440,7 +440,7 @@ var FireVirtualLayer = L.Class.extend({
         if (this._loadLayersPromise) {
             return this._loadLayersPromise;
         }
-        
+
         this._loadLayersPromise = L.gmx.loadLayers([
                 {
                     mapID: this.options.mapID,
@@ -450,7 +450,9 @@ var FireVirtualLayer = L.Class.extend({
                     layerID: this.options.dailyLayerID
                 }
             ], {hostName: this.options.hostName}
-        ).then(function(rawHotspotLayer, rawClustersLayer) {
+        ).then(function(arr) {
+			var rawHotspotLayer = arr[0],
+				rawClustersLayer = arr[1];
             if (this.options.minHotspotZoom) {
                 var minZoom = this.options.minHotspotZoom;
                 rawHotspotLayer.setStyles(rawHotspotLayer.getStyles().map(function(style) {
@@ -476,15 +478,15 @@ var FireVirtualLayer = L.Class.extend({
                 dateInterval: [this._dateBegin, this._dateEnd]
             });
         }.bind(this));
-        
+
         return this._loadLayersPromise;
     },
-    
+
     _updateClustersByObject: function(layer, estimeteGeometry, clusterAttr, countAttr, fromLayer) {
         var indexes = fromLayer._gmx.tileAttributeIndexes,
             dateAttr = fromLayer.getGmxProperties().TemporalColumnName,
             idAttr = fromLayer.getGmxProperties().identityField;
-            
+
         var parseItem = function(item) {
                 var props = item.properties;
                 return {
@@ -492,37 +494,37 @@ var FireVirtualLayer = L.Class.extend({
                     geometry: props[props.length - 1]
                 };
             };
-            
+
         var clusters = {};
 
         return function( data ) {
             var objects = [];
             var clustersToRepaint = {};
-            
+
             (data.removed || []).map(function(it) {
                 objects.push({ onExtent: false, item: parseItem(it) });
             });
             (data.added || []).map(function(it) {
                 objects.push({ onExtent: true, item: parseItem(it) });
             });
-            
+
             for (var k = 0; k < objects.length; k++)
             {
                 var props = objects[k].item.properties;
                 var mult = objects[k].onExtent ? 1 : -1;
                 var count = (countAttr ? props[countAttr] : 1) * mult;
-                
+
                 if (!props[clusterAttr])
                     continue;
-                    
+
                 var clusterId = '_' + props[clusterAttr];
                 var hotspotId = '_' + props[idAttr];
 
                 if (!clusters[clusterId]) {
                     clusters[clusterId] = {
                         spots: {},
-                        lat: 0, 
-                        lng: 0, 
+                        lat: 0,
+                        lng: 0,
                         count: 0,
                         startDate: Number.POSITIVE_INFINITY,
                         endDate: Number.NEGATIVE_INFINITY,
@@ -530,34 +532,34 @@ var FireVirtualLayer = L.Class.extend({
                     };
                 }
                 var cluster = clusters[clusterId];
-                
+
                 //два раза одну и ту же точку не добавляем
                 if (hotspotId in cluster.spots && objects[k].onExtent)
                     continue;
 
                 var coords = objects[k].item.geometry.coordinates,
                     latlng = L.Projection.Mercator.unproject({y: coords[1], x: coords[0]});
-                
+
                 if (objects[k].onExtent)
                     cluster.spots[hotspotId] = [latlng.lng, latlng.lat, 250]; //TODO: выбрать правильный номер sample
                 else
                     delete cluster.spots[hotspotId];
 
                 var hotspotDate = props[dateAttr];
-                
+
                 cluster.lat += count * coords[1];
                 cluster.lng += count * coords[0];
                 cluster.count += count;
                 cluster.startDate = Math.min(cluster.startDate, hotspotDate);
                 cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
                 cluster.isIndustrial = cluster.isIndustrial || (Number(props.FireType) & 1);
-                
+
                 clustersToRepaint[clusterId] = true;
             }
-            
+
             var clustersToAdd = [],
                 itemIDsToRemove = [];
-            
+
             for (var k in clustersToRepaint)
             {
                 var cluster = clusters[k],
@@ -577,15 +579,15 @@ var FireVirtualLayer = L.Class.extend({
                         cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate,
                         Number(cluster.isIndustrial)
                     ];
-                    
+
                     if (estimeteGeometry) {
                         var points = [];
                         for (var p in clusters[k].spots)
                             points.push(clusters[k].spots[p]);
-                            
+
                         var multiPolygon = _hq.getPixelMultiPolygon(points);
                         var tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
-                        
+
                         newItem.push({
                             type: 'MULTIPOLYGON',
                             coordinates: tmpPolygon
@@ -596,24 +598,24 @@ var FireVirtualLayer = L.Class.extend({
                             coordinates: [clusters[k].lng / count, clusters[k].lat / count]
                         });
                     }
-                    
-                    clustersToAdd.push(newItem);               
+
+                    clustersToAdd.push(newItem);
                 } else {
                     itemIDsToRemove.push(k);
                     delete clusters[k];
-                    
+
                 }
             }
-            
+
             layer.addData(clustersToAdd);
             layer.removeData(itemIDsToRemove);
         }
     },
-    
+
     _updateLayersVisibility: function() {
         var isVisible = !!this._map,
             zoom = this._map && this._map.getZoom();
-        
+
         this._observerHotspots && this._observerHotspots.toggleActive(isVisible && zoom >= this.options.minGeomZoom);
         this._observerClusters && this._observerClusters.toggleActive(isVisible && zoom <  this.options.minGeomZoom);
     }
@@ -623,17 +625,17 @@ var FireVirtualFactory = function() {};
 FireVirtualFactory.prototype.initFromDescription = function(layerDescription) {
     var props = layerDescription.properties,
         meta = props.MetaProperties;
-    
+
     var options = {
         mapID: meta.mapID.Value,
         hotspotLayerID: meta.hotspotLayerID.Value,
         dailyLayerID: meta.dailyLayerID.Value
     }
-    
+
     if ('minGeomZoom' in meta) {
         options.minGeomZoom = Number(meta.minGeomZoom.Value);
     }
-    
+
     if ('minHotspotZoom' in meta) {
         options.minHotspotZoom = Number(meta.minHotspotZoom.Value);
     }
@@ -645,7 +647,7 @@ FireVirtualFactory.prototype.initFromDescription = function(layerDescription) {
     }
 
     var layer = new FireVirtualLayer(options);
-    
+
     layer.getGmxProperties = function() {
         return props;
     }
