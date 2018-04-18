@@ -2475,7 +2475,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                                 } else {
                                     var timeLineControl = nsGmx.timeLineControl;
                                 }
-                                _mapHelper.mapPlugins.addPlugin(moduleName, params);
+                                // _mapHelper.mapPlugins.addPlugin(moduleName, params);
 
                                 nsGmx.bindLayersToTimeline = true;
 
