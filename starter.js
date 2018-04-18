@@ -240,6 +240,29 @@ nsGmx.widgets = nsGmx.widgets || {};
                             { id: 'createVectorLayer', title: _gtxt('Векторный'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Vector'), disabled: !isMapEditor },
                             { id: 'createMultiLayer', title: _gtxt('Мультислой'), func: _mapHelper.createNewLayer.bind(_mapHelper, 'Multi'), disabled: !isMapEditor },
                             { id:'createVirtualLayer', title: 'Виртуальный', func: function() {
+
+                                gmxCore.loadModule('LayerEditor').then(function() {
+                                    nsGmx.LayerEditor.addInitHook(function(layerEditor, layerProperties, params) {
+                                        if (layerProperties.get('Type') !== 'Virtual') {
+                                            return;
+                                        }
+
+                                        $(layerEditor).on('premodify', function() {
+                                            layerProperties.set('ContentID', ui.find('.vlayer-contentid').val());
+                                        });
+
+                                        var template = Handlebars.compile('<div type="vlayer-container">' +
+                                            '<span class="vlayer-label">Тип слоя</span>' +
+                                            '<input class="vlayer-contentid inputStyle" value="{{ContentID}}">' +
+                                        '</div>');
+
+                                        var ui = $(template({ContentID: layerProperties.get('ContentID')}));
+
+                                        params.additionalUI = params.additionalUI || {};
+                                        params.additionalUI.main = params.additionalUI.advanced || [];
+                                        params.additionalUI.main.push(ui);
+                                    });
+
                                     var parent = _div(null, [['attr','id','newVirtualLayer'], ['css', 'height', '100%']]),
                                         properties = {Title:'', Description: '', Date: ''};
 
@@ -250,6 +273,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                                             removeDialog(dialogDiv);
                                         }
                                     });
+                                });
+
                                 }, disabled: !isMapEditor
                             }
                         ],
