@@ -202,7 +202,7 @@ var Calendar1 = window.Backbone.View.extend({
         $('#leftMenu').on('click', function (e) {
             if (e.target.className !== 'CalendarWidget-show-calendar-icon icon-calendar-empty' &&
                 e.target.className !== 'layers-before' &&
-                !(e.target.className instanceof SVGAnimatedString) && 
+                !(e.target.className instanceof SVGAnimatedString) &&
                 e.target.className.indexOf('CalendarWidget-timeInput') === -1 &&
                 e.target.className !== 'calendar-container'
             ) {
@@ -611,7 +611,7 @@ var Calendar1 = window.Backbone.View.extend({
         $(timeBegin).val(Calendar1.prefixTimeValue(hourBegin));
         $(timeEnd).val(Calendar1.prefixTimeValue(hourEnd));
 
-        this.enableDailyFilter();
+        this.enableDailyFilter && this.enableDailyFilter();
     },
 
     setActive: function (value) {

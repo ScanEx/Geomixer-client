@@ -559,8 +559,8 @@ var FireBurntRenderer3 = function(params)
 
     _lazyLoadFireLayers({mapName: _params.mapName}).done(function(gmxMap)
     {
-        rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
-        rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
+        rawHotspotsLayer = window.rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
+        rawClustersLayer = window.rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
 
         if (window.language === 'eng') {
             var engString = "<p>" +
@@ -879,10 +879,10 @@ var FireControlCollection = {instances: []};
 //настройки виджета пожаров по умолчанию
 FireControl.DEFAULT_OPTIONS =
 {
-    firesHost:       'http://sender.kosmosnimki.ru/v3/',
-    modisHost:      'http://maps.kosmosnimki.ru/',
-    burntHost:       'http://sender.kosmosnimki.ru/',
-    fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
+    firesHost:       window.location.protocol + '//sender.kosmosnimki.ru/v3/',
+    modisHost:      window.location.protocol + '//maps.kosmosnimki.ru/',
+    burntHost:      window.location.protocol +  '//sender.kosmosnimki.ru/',
+    fireIconsHost:   window.location.protocol + '//maps.kosmosnimki.ru/images/',
 
     initExtent: null,
 
@@ -1327,14 +1327,14 @@ var initGeoMixerFireControl = _.once(function(params, map) {
         if (!nsGmx.widgets.commonCalendar.model.get('isAppended')) { nsGmx.widgets.commonCalendar.show(); }
 
         var fireCalendar = new nsGmx.FireCalendarWidget({dateInterval: params.dateInterval});
-        nsGmx.widgets.commonCalendar.replaceCalendarWidget(fireCalendar);
+        // nsGmx.widgets.commonCalendar.replaceCalendarWidget(fireCalendar);
 
         var div = $('<div/>').css('margin', '5px');
         _queryMapLayers.getContainerBefore().prepend(div);
 
         params.container = div;
 
-        var fireControl = new FireControl2(map, params);
+        var fireControl = window.fireControl = new FireControl2(map, params);
 
         //сериализация состояния
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
