@@ -21044,7 +21044,7 @@ nsGmx.QuicklookParams = Backbone.Model.extend({
                 var p = JSON.parse(quicklookString);
                 this.set({
                     template: p.template,
-                    minZoom: p.minZoom,
+                    minZoom: p.minZoom || 8,
                     X1: p.X1, Y1: p.Y1,
                     X2: p.X2, Y2: p.Y2,
                     X3: p.X3, Y3: p.Y3,
@@ -21052,9 +21052,14 @@ nsGmx.QuicklookParams = Backbone.Model.extend({
                 });
             } else {
                 this.set({
-                    template: quicklookString
+                    template: quicklookString,
+                    minZoom: 8
                 });
             }
+        } else {
+            this.set({
+                minZoom: 8
+            });
         }
     },
     /** Сохраняет все параметры в строку, которую можно передать серверу.
