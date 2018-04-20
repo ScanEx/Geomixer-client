@@ -257,6 +257,10 @@ var LayerProperties = Backbone.Model.extend(
 
                 sqlString += ' from [' + params.sourceLayerName + ']';
 
+                if (params.query) {
+                    sqlString += (' WHERE ' + params.query);
+                }
+
                 copyParams.WrapStyle = "message";
                 copyParams.Title = attrs.Title;
                 copyParams.SourceType = attrs.SourceType;
