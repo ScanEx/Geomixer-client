@@ -939,6 +939,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 if (leftContentContainer) {
                     leftContentContainer.style.top = ($('#leftPanelHeader')[0].offsetHeight + mapNameHeight) + 'px';
                     leftContentContainer.style.height = baseHeight -
+                        $('#leftPanelHeader')[0].offsetHeight -
                         $('#leftPanelFooter')[0].offsetHeight -
                         mapNameHeight + 'px';
                 }
