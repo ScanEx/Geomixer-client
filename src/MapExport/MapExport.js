@@ -1155,8 +1155,8 @@ var nsGmx = window.nsGmx || {};
         function getZoomLevels() {
             var zoomLevels = [],
                 lmap = nsGmx.leafletMap,
-                min = lmap.getMinZoom(),
-                max = lmap.getMaxZoom(),
+                min = lmap.getMinZoom() || 0,
+                max = lmap.getMaxZoom() !== Infinity ? lmap.getMaxZoom() : 21,
                 currentZoom = lmap.getZoom();
 
             for (var i = min; i <= max; i++) {
