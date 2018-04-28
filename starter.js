@@ -1819,6 +1819,31 @@ nsGmx.widgets = nsGmx.widgets || {};
                     }
                 });
 
+                $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
+                    // div.gmxProperties.content.properties
+                    var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
+                        styles = it.getStyles(),
+                        st = styles[styleVisibilityProps.styleIndex];
+
+                    if (styleVisibilityProps.show) {
+                        st._MinZoom = st.MinZoom;
+                        st.MinZoom = 25;
+                    } else {
+                        st.MinZoom = st._MinZoom;
+                    }
+                    it.setStyles(styles);
+
+                    var treeStyles = styleVisibilityProps.elem.styles,
+                        treeSt = treeStyles[styleVisibilityProps.styleIndex];
+
+                    if (styleVisibilityProps.show) {
+                        treeSt._MinZoom = treeSt.MinZoom;
+                        treeSt.MinZoom = 25;
+                    } else {
+                        treeSt.MinZoom = treeSt._MinZoom;
+                    }
+                });
+
                 _mapHelper.customParamsManager.addProvider({
                     name: 'commonCalendar',
                     loadState: function(state) {

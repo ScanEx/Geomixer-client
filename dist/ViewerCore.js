@@ -8423,21 +8423,22 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 
 	var ulFilters = _ul();
 
-	for (var i = 0; i < filters.length; i++)
-	{
-		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
+	for (var i = 0; i < filters.length; i++) {
+		var checkbox = $('<input type="checkbox" class="multistlye-visibility-checkbox">'),
+		// var eye = $('<span class="multistyle-visibility-icon"><svg><use xlink:href="#transparency-eye"></use></svg></span>'),
+			icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
 			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
             iconSpan = _span([icon]),
-			li = _li([_div([iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
+			li = _li([_div([$(checkbox)[0], iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
 
         $(iconSpan).attr('styleType', $(icon).attr('styleType'));
+		$(checkbox).prop('checked', filters[i].MinZoom !== 25);
 
-		if (!layerManagerFlag)
-		{
-			(function(i)
-			{
-				iconSpan.onclick = function()
-				{
+		bindCheckboxHandler(checkbox, i);
+
+		if (!layerManagerFlag) {
+			(function(i) {
+				iconSpan.onclick = function() {
                     nsGmx.createStylesDialog(elem, treeView, i);
 					//_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 'styles', i);
 				}
@@ -8445,6 +8446,18 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 		}
 
 		_(ulFilters, [li])
+	}
+
+	function bindCheckboxHandler(checkbox, index) {
+		$(checkbox).on('change', function (e) {
+			var styleVisibilityProps = {
+				elem: elem,
+				styleIndex: index,
+				show: !e.target.checked
+			};
+
+			$(_layersTree).triggerHandler('styleVisibilityChange', [styleVisibilityProps]);
+		})
 	}
 
 	ulFilters.style.display = 'none';
@@ -10457,6 +10470,7 @@ pointsBinding.pointsBinding.unload = function()
     //  * layerVisibilityChange - при изменении видимости слоя (параметр - элемент дерева с изменившимся слоем)
     //  * addTreeElem - добавили новый элемент дерева (параметр - новый элемент)
     //  * activeNodeChange - изменили активную ноду дерева (парамер - div активной ноды)
+    //  * styleVisibilityChange - при изменении видимости стиля слоя 
     var layersTree = function(renderParams) {
         this._renderParams = $.extend({
             showVisibilityCheckbox: true,
@@ -32326,11 +32340,6 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32365,6 +32374,11 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -41612,6 +41626,31 @@ nsGmx.widgets = nsGmx.widgets || {};
                             }
                         }
                         return visibleTemporalLayers;
+                    }
+                });
+
+                $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
+                    // div.gmxProperties.content.properties
+                    var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
+                        styles = it.getStyles(),
+                        st = styles[styleVisibilityProps.styleIndex];
+
+                    if (styleVisibilityProps.show) {
+                        st._MinZoom = st.MinZoom;
+                        st.MinZoom = 25;
+                    } else {
+                        st.MinZoom = st._MinZoom;
+                    }
+                    it.setStyles(styles);
+
+                    var treeStyles = styleVisibilityProps.elem.styles,
+                        treeSt = treeStyles[styleVisibilityProps.styleIndex];
+
+                    if (styleVisibilityProps.show) {
+                        treeSt._MinZoom = treeSt.MinZoom;
+                        treeSt.MinZoom = 25;
+                    } else {
+                        treeSt.MinZoom = treeSt._MinZoom;
                     }
                 });
 

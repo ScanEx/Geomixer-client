@@ -1060,21 +1060,22 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 
 	var ulFilters = _ul();
 
-	for (var i = 0; i < filters.length; i++)
-	{
-		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
+	for (var i = 0; i < filters.length; i++) {
+		var checkbox = $('<input type="checkbox" class="multistlye-visibility-checkbox">'),
+		// var eye = $('<span class="multistyle-visibility-icon"><svg><use xlink:href="#transparency-eye"></use></svg></span>'),
+			icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
 			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
             iconSpan = _span([icon]),
-			li = _li([_div([iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
+			li = _li([_div([$(checkbox)[0], iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
 
         $(iconSpan).attr('styleType', $(icon).attr('styleType'));
+		$(checkbox).prop('checked', filters[i].MinZoom !== 25);
 
-		if (!layerManagerFlag)
-		{
-			(function(i)
-			{
-				iconSpan.onclick = function()
-				{
+		bindCheckboxHandler(checkbox, i);
+
+		if (!layerManagerFlag) {
+			(function(i) {
+				iconSpan.onclick = function() {
                     nsGmx.createStylesDialog(elem, treeView, i);
 					//_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 'styles', i);
 				}
@@ -1082,6 +1083,18 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 		}
 
 		_(ulFilters, [li])
+	}
+
+	function bindCheckboxHandler(checkbox, index) {
+		$(checkbox).on('change', function (e) {
+			var styleVisibilityProps = {
+				elem: elem,
+				styleIndex: index,
+				show: !e.target.checked
+			};
+
+			$(_layersTree).triggerHandler('styleVisibilityChange', [styleVisibilityProps]);
+		})
 	}
 
 	ulFilters.style.display = 'none';
