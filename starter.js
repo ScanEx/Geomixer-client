@@ -2208,7 +2208,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // init tab
                 window.iconSidebarWidget._activeTabId = "layers-tree";
 
-                var leftMainContainer = window.iconSidebarWidget.setPane(
+                var leftMainContainer = nsGmx.layersTreePane = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
                             icon: "s-tree",
