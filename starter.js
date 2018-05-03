@@ -1820,28 +1820,25 @@ nsGmx.widgets = nsGmx.widgets || {};
                 });
 
                 $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
-                    // div.gmxProperties.content.properties
                     var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
                         styles = it.getStyles(),
-                        st = styles[styleVisibilityProps.styleIndex];
-
-                    if (styleVisibilityProps.show) {
-                        st._MinZoom = st.MinZoom;
-                        st.MinZoom = 25;
-                    } else {
-                        st.MinZoom = st._MinZoom;
-                    }
-                    it.setStyles(styles);
-
-                    var treeStyles = styleVisibilityProps.elem.styles,
+                        st = styles[styleVisibilityProps.styleIndex],
+                        treeStyles = styleVisibilityProps.elem.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
-                    if (styleVisibilityProps.show) {
+                    if (typeof treeSt._MinZoom === 'undefined') {
                         treeSt._MinZoom = treeSt.MinZoom;
-                        treeSt.MinZoom = 25;
-                    } else {
-                        treeSt.MinZoom = treeSt._MinZoom;
                     }
+
+                    if (styleVisibilityProps.show) {
+                        treeSt.MinZoom = treeSt._MinZoom;
+                        st.MinZoom = st._MinZoom;
+                    } else {
+                        treeSt.MinZoom = 25;
+                        st.MinZoom = 25;
+                    }
+
+                    it.setStyles(styles);
                 });
 
                 _mapHelper.customParamsManager.addProvider({

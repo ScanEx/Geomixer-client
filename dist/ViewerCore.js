@@ -8453,7 +8453,7 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 			var styleVisibilityProps = {
 				elem: elem,
 				styleIndex: index,
-				show: !e.target.checked
+				show: e.target.checked
 			};
 
 			$(_layersTree).triggerHandler('styleVisibilityChange', [styleVisibilityProps]);
@@ -32448,6 +32448,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32477,19 +32490,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -37107,7 +37107,7 @@ var nsGmx = nsGmx || {};
 
         updateTemporalLayers: function(layers) {
             layers = layers || nsGmx.gmxMap.layers;
-            
+
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
@@ -37477,6 +37477,10 @@ var nsGmx = nsGmx || {};
                             isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
+
+                            if (layer.getGmxProperties().name === '509762F05B0044D8A7CCC9D3C2383365') {
+                                debugger;
+                            }
 
                             if (!synchronyzed && layer.getDateInterval()) {
                                 dateInterval = layer.getDateInterval();
@@ -41630,28 +41634,25 @@ nsGmx.widgets = nsGmx.widgets || {};
                 });
 
                 $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
-                    // div.gmxProperties.content.properties
                     var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
                         styles = it.getStyles(),
-                        st = styles[styleVisibilityProps.styleIndex];
-
-                    if (styleVisibilityProps.show) {
-                        st._MinZoom = st.MinZoom;
-                        st.MinZoom = 25;
-                    } else {
-                        st.MinZoom = st._MinZoom;
-                    }
-                    it.setStyles(styles);
-
-                    var treeStyles = styleVisibilityProps.elem.styles,
+                        st = styles[styleVisibilityProps.styleIndex],
+                        treeStyles = styleVisibilityProps.elem.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
-                    if (styleVisibilityProps.show) {
+                    if (typeof treeSt._MinZoom === 'undefined') {
                         treeSt._MinZoom = treeSt.MinZoom;
-                        treeSt.MinZoom = 25;
-                    } else {
-                        treeSt.MinZoom = treeSt._MinZoom;
                     }
+
+                    if (styleVisibilityProps.show) {
+                        treeSt.MinZoom = treeSt._MinZoom;
+                        st.MinZoom = st._MinZoom;
+                    } else {
+                        treeSt.MinZoom = 25;
+                        st.MinZoom = 25;
+                    }
+
+                    it.setStyles(styles);
                 });
 
                 _mapHelper.customParamsManager.addProvider({

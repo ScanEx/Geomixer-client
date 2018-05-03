@@ -1090,7 +1090,7 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 			var styleVisibilityProps = {
 				elem: elem,
 				styleIndex: index,
-				show: !e.target.checked
+				show: e.target.checked
 			};
 
 			$(_layersTree).triggerHandler('styleVisibilityChange', [styleVisibilityProps]);
