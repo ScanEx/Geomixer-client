@@ -1822,8 +1822,11 @@ nsGmx.widgets = nsGmx.widgets || {};
                 $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
                     var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
                         styles = it.getStyles(),
-                        st = styles[styleVisibilityProps.styleIndex],
-                        treeStyles = styleVisibilityProps.elem.styles,
+                        st = styles[styleVisibilityProps.styleIndex];
+
+                    var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + styleVisibilityProps.elem.LayerID + "']")[0],
+                        elemProperties = div.gmxProperties.content.properties,
+                        treeStyles = elemProperties.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
                     if (typeof treeSt._MinZoom === 'undefined') {
@@ -1832,7 +1835,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                     if (styleVisibilityProps.show) {
                         treeSt.MinZoom = treeSt._MinZoom;
-                        st.MinZoom = st._MinZoom;
+                        st.MinZoom = treeSt._MinZoom;
                     } else {
                         treeSt.MinZoom = 25;
                         st.MinZoom = 25;
@@ -2489,7 +2492,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                             moduleName = plugin.moduleName,
                             file = plugin.file;
 
-                        if ("bindLayersToTimeline" in params) {
+                        if ("bindLayersToTimeline" in params && !plugin.body) {
                             plugin.setUsage("used");
                             window.gmxCore.loadModule(moduleName, file).then(function(res) {
                                 var paramsClone = $.extend(true, {}, params);

@@ -1836,7 +1836,14 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
 
     var updateFunc = function()
     {
+        var _styles = elemProperties.styles;
         elemProperties.styles = styleEditor.getUpdatedStyles();
+
+        for (var i = 0; i < elemProperties.styles.length; i++) {
+            if (_styles[i] && _styles[i]._MinZoom) {
+                elemProperties.styles[i]._MinZoom = _styles[i]._MinZoom;
+            }
+        }
         treeView.findTreeElem(div).elem.content.properties = elemProperties;
     };
 
