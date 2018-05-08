@@ -23,7 +23,7 @@ nsGmx.Controls = {
 	/** Создаёт иконку по описанию стиля слоя и типа геометрии
     */
 	createGeometryIcon: function(parentStyle, type){
-		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
+		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],/*['css','backgroundColor','#FFFFFF']*/]);
 		if (window.newStyles) {
 			if (type.indexOf('linestring') < 0) {
 				if (parentStyle.fill && parentStyle.fill.pattern) {
@@ -32,10 +32,10 @@ nsGmx.Controls = {
 					icon = patternData ? patternData.canvas : document.createElement('canvas');
 					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
 				} else {
-					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor', parentStyle.fillColor ? nsGmx.Utils.convertColor(parentStyle.fillColor) : "#FFFFFF"]]),
-						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.outline ? nsGmx.Utils.convertColor(parentStyle.outline) : "#0000FF"]]),
-						fillOpacity = (parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 100,
-						borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.outline.opacity : 100;
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
+						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
+						fillOpacity = (typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 100,
+						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
 
 
 					fill.style.opacity = fillOpacity / 100;
@@ -57,8 +57,8 @@ nsGmx.Controls = {
 					_(icon, [border, fill]);
 				}
 			} else {
-				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.fillColor ? nsGmx.Utils.convertColor(parentStyle.fillColor) : "#0000FF"]]),
-					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.outline.opacity : 100;
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
+					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
 
 				border.style.opacity = borderOpacity / 100;
 
@@ -121,12 +121,23 @@ nsGmx.Controls = {
 			}
 		}
 
-		icon.oncontextmenu = function(e)
-		{
+		icon.oncontextmenu = function(e) {
 			return false;
 		}
 
 		return icon;
+
+		function color2Hex(color) {
+			if (typeof color === 'number') {
+				return nsGmx.Utils.convertColor(color);
+			} else if (typeof color === 'string') {
+				if ((color.indexOf('#') === -1)) {
+					return color2Hex(Number(color));
+				} else {
+					return color;
+				}
+			}
+		}
 	},
 
 	/** Создаёт контрол "слайдер".
