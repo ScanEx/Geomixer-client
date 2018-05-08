@@ -327,7 +327,12 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name)
 mapHelper.prototype.updateTreeStyles = function(newStyles, div, treeView, isEditableStyles)
 {
     isEditableStyles = typeof isEditableStyles === 'undefined' || isEditableStyles;
-	div.gmxProperties.content.properties.styles = newStyles;
+
+	if (window.newStyles) {
+		div.gmxProperties.content.properties.gmxStyles.styles = newStyles;
+	} else {
+		div.gmxProperties.content.properties.styles = newStyles;
+	}
 
 	var multiStyleParent = $(div).children('[multiStyle]')[0];
 
@@ -603,62 +608,41 @@ mapHelper.ImageInputControl = function(initURL) {
 
 //params:
 //  * addTitle {bool, default: true}
-mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params)
-{
+mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params) {
     var _params = $.extend({addTitle: true}, params);
 	var icon;
 
-	if ($.isArray(parentStyles) && parentStyles.length > 1)
-		icon =  _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
-	else
-	{
+	if ($.isArray(parentStyles) && parentStyles.length > 1) {
+		icon = _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
+	} else {
 		var parentStyle = _mapHelper.makeStyle(parentStyles[0]);
+		var iconUrlProp = window.newStyles ? parentStyle.iconUrl : parentStyle.marker && parentStyle.marker.image;
+		if (iconUrlProp) {
+			icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
 
-		if (parentStyle.marker && parentStyle.marker.image)
-		{
-			if (true /*typeof parentStyle.marker.color == 'undefined'*/)
-			{
-				icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
+			var fixFunc = function() {
+				var width = this.width,
+					height = this.height,
+					scale;
 
-				var fixFunc = function()
-					{
-						var width = this.width,
-							height = this.height,
-                            scale;
+				if (width && height) {
+					var scaleX = 14.0 / width;
+					var scaleY = 14.0 / height
+					scale = Math.min(scaleX, scaleY);
+				} else {
+					scale = 1;
+					width = height = 14;
+				}
 
-                        if (width && height) {
-							var scaleX = 14.0 / width;
-							var scaleY = 14.0 / height
-							scale = Math.min(scaleX, scaleY);
-                        } else {
-                            scale = 1;
-                            width = height = 14;
-                        }
-
-						setTimeout(function()
-						{
-							icon.style.width = Math.round(width * scale) + 'px';
-							icon.style.height = Math.round(height * scale) + 'px';
-						}, 10);
-					}
-
-				icon.onload = fixFunc;
-                icon.src = parentStyle.marker.image;
+				setTimeout(function() {
+					icon.style.width = Math.round(width * scale) + 'px';
+					icon.style.height = Math.round(height * scale) + 'px';
+				}, 10);
 			}
-			else
-			{
-				var dummyStyle = {};
 
-				$.extend(dummyStyle, parentStyle);
-
-				dummyStyle.outline = {color: parentStyle.marker.color, opacity: 100};
-				dummyStyle.fill = {color: parentStyle.marker.color, opacity: 100};
-
-				icon = nsGmx.Controls.createGeometryIcon(dummyStyle, type);
-			}
-		}
-		else
-		{
+			icon.onload = fixFunc;
+			icon.src = iconUrlProp;
+		} else {
 			icon = nsGmx.Controls.createGeometryIcon(parentStyle, type);
 		}
 	}
@@ -671,8 +655,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 	return icon;
 }
 
-mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties, params)
-{
+mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties, params) {
 	var elemProperties = div.gmxProperties.content.properties,
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
         type = elemProperties.type,
@@ -1047,7 +1030,7 @@ mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
 
 mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent, treeviewFlag, layerManagerFlag)
 {
-	var filters = elem.styles;
+	var filters = window.newStyles ? elem.gmxStyles.styles : elem.styles;
 
 	if (filters.length < 2)
 	{
@@ -1063,8 +1046,8 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 	for (var i = 0; i < filters.length; i++) {
 		var checkbox = $('<input type="checkbox" class="multistlye-visibility-checkbox">'),
 		// var eye = $('<span class="multistyle-visibility-icon"><svg><use xlink:href="#transparency-eye"></use></svg></span>'),
-			icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
-			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
+			icon = this.createStylesEditorIcon([filters[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
+			name = filters[i].Name || filters[i].Filter || 'Без имени ' + (i + 1),
             iconSpan = _span([icon]),
 			li = _li([_div([$(checkbox)[0], iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
 

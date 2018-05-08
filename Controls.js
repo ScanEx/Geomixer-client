@@ -24,60 +24,101 @@ nsGmx.Controls = {
     */
 	createGeometryIcon: function(parentStyle, type){
 		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
-
-		if (type.indexOf('linestring') < 0)
-		{
-            if (parentStyle.fill && parentStyle.fill.pattern)
-            {
-                var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
-                    patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
-                icon = patternData ? patternData.canvas : document.createElement('canvas');
-                _(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
-            }
-            else
-            {
-                var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-                    border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-                    fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-                    borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+		if (window.newStyles) {
+			if (type.indexOf('linestring') < 0) {
+				if (parentStyle.fill && parentStyle.fill.pattern) {
+					var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+						patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+					icon = patternData ? patternData.canvas : document.createElement('canvas');
+					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
+				} else {
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor', parentStyle.fillColor ? nsGmx.Utils.convertColor(parentStyle.fillColor) : "#FFFFFF"]]),
+						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.outline ? nsGmx.Utils.convertColor(parentStyle.outline) : "#0000FF"]]),
+						fillOpacity = (parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 100,
+						borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.outline.opacity : 100;
 
 
-                fill.style.opacity = fillOpacity / 100;
-                border.style.opacity = borderOpacity / 100;
+					fill.style.opacity = fillOpacity / 100;
+					border.style.opacity = borderOpacity / 100;
 
-                if (type.indexOf('point') > -1)
-                {
+					if (type.indexOf('point') > -1) {
 
-                    border.style.height = '5px';
-                    fill.style.height = '5px';
-                    border.style.width = '5px';
-                    fill.style.width = '5px';
+						border.style.height = '5px';
+						fill.style.height = '5px';
+						border.style.width = '5px';
+						fill.style.width = '5px';
 
-                    border.style.top = '3px';
-                    fill.style.top = '4px';
-                    border.style.left = '1px';
-                    fill.style.left = '2px';
-                }
+						border.style.top = '3px';
+						fill.style.top = '4px';
+						border.style.left = '1px';
+						fill.style.left = '2px';
+					}
 
-                _(icon, [border, fill]);
-            }
-		}
-		else
-		{
-			var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-				borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+					_(icon, [border, fill]);
+				}
+			} else {
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.fillColor ? nsGmx.Utils.convertColor(parentStyle.fillColor) : "#0000FF"]]),
+					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.outline.opacity : 100;
+
+				border.style.opacity = borderOpacity / 100;
+
+				border.style.width = '4px';
+				border.style.height = '13px';
+
+				border.style.borderTop = 'none';
+				border.style.borderBottom = 'none';
+				border.style.borderLeft = 'none';
+
+				_(icon, [border]);
+			}
+		} else {
+			if (type.indexOf('linestring') < 0) {
+				if (parentStyle.fill && parentStyle.fill.pattern) {
+					var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+						patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+					icon = patternData ? patternData.canvas : document.createElement('canvas');
+					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
+				} else {
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
+						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+						fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
+						borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
 
 
-            border.style.opacity = borderOpacity / 100;
+					fill.style.opacity = fillOpacity / 100;
+					border.style.opacity = borderOpacity / 100;
 
-            border.style.width = '4px';
-            border.style.height = '13px';
+					if (type.indexOf('point') > -1) {
 
-			border.style.borderTop = 'none';
-			border.style.borderBottom = 'none';
-			border.style.borderLeft = 'none';
+						border.style.height = '5px';
+						fill.style.height = '5px';
+						border.style.width = '5px';
+						fill.style.width = '5px';
 
-			_(icon, [border]);
+						border.style.top = '3px';
+						fill.style.top = '4px';
+						border.style.left = '1px';
+						fill.style.left = '2px';
+					}
+
+					_(icon, [border, fill]);
+				}
+			} else {
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+					borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+
+
+				border.style.opacity = borderOpacity / 100;
+
+				border.style.width = '4px';
+				border.style.height = '13px';
+
+				border.style.borderTop = 'none';
+				border.style.borderBottom = 'none';
+				border.style.borderLeft = 'none';
+
+				_(icon, [border]);
+			}
 		}
 
 		icon.oncontextmenu = function(e)

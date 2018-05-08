@@ -155,7 +155,7 @@
     //  * layerVisibilityChange - при изменении видимости слоя (параметр - элемент дерева с изменившимся слоем)
     //  * addTreeElem - добавили новый элемент дерева (параметр - новый элемент)
     //  * activeNodeChange - изменили активную ноду дерева (парамер - div активной ноды)
-    //  * styleVisibilityChange - при изменении видимости стиля слоя 
+    //  * styleVisibilityChange - при изменении видимости стиля слоя
     var layersTree = function(renderParams) {
         this._renderParams = $.extend({
             showVisibilityCheckbox: true,
@@ -713,6 +713,13 @@
                                                 $(window._layersTree).triggerHandler('layerTimelineRemove', e);
                                             });
                                             timeLineControl.on('layerAdd', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                            });
+                                        } else {
+                                            nsGmx.timeLineControl.on('layerRemove', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                            });
+                                            nsGmx.timeLineControl.on('layerAdd', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineAdd', e);
                                             });
                                         }
