@@ -1,12 +1,16 @@
 .gmx-sidebar {
-    background-color: white !important;
+    background-color: #2f444e !important;
+}
+
+.tab-icon {
+    fill: #ffffff;
 }
 
 .tab-icon-active {
-    border-left: 4px solid red !important;
-    fill: red;
+    border-left: 4px solid #8bc540 !important;
+    fill: #8bc540;
 }
 
 .headerWidget-right {
-    border-bottom: 1px red;
+    border-bottom: 1px #8bc540;
 }
