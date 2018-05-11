@@ -1164,7 +1164,7 @@ mapHelper.prototype.print = function() {
     	};
 
     toggleMode(true);
-	centerControl.removeFrom(map);
+	centerControl.removeFrom ? centerControl.removeFrom(map) : centerControl.remove();
 
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
