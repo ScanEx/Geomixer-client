@@ -2206,6 +2206,9 @@
             $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
 
             var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
+
+            if (window.newStyles) attributesToSave.push('gmxStyles');
+
             saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
 
             //раскрываем все группы так, как записано в свойствах групп
