@@ -1526,7 +1526,7 @@ nsGmx.widgets = nsGmx.widgets || {};
             // bind clusters to photoLayers
             for (var l = 0; l < gmxMap.layers.length; l++) {
                 var layer = gmxMap.layers[l],
-                props = layer.getGmxProperties();
+                    props = layer.getGmxProperties();
 
                 if (props.IsPhotoLayer) {
                     layer.bindClusters({
@@ -1541,6 +1541,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         },
                         maxClusterRadius: 40,
                         spiderfyOnMaxZoom: true,
+                        spiderfyZoom: 14,
                         spiderfyDistanceMultiplier: 1.2,
                         disableClusteringAtZoom: 19,
                         maxZoom: 19

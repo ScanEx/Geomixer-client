@@ -484,6 +484,7 @@ var nsGmx = window.nsGmx || {},
                                             },
                                             maxClusterRadius: 40,
                                             spiderfyOnMaxZoom: true,
+                                            spiderfyZoom: 14,
                                             spiderfyDistanceMultiplier: 1.2,
                                             disableClusteringAtZoom: 19,
                                             maxZoom: 19
