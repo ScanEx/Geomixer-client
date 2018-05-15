@@ -6752,69 +6752,121 @@ nsGmx.Controls = {
 	/** Создаёт иконку по описанию стиля слоя и типа геометрии
     */
 	createGeometryIcon: function(parentStyle, type){
-		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
-
-		if (type.indexOf('linestring') < 0)
-		{
-            if (parentStyle.fill && parentStyle.fill.pattern)
-            {
-                var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
-                    patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
-                icon = patternData ? patternData.canvas : document.createElement('canvas');
-                _(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
-            }
-            else
-            {
-                var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-                    border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-                    fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-                    borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],/*['css','backgroundColor','#FFFFFF']*/]);
+		if (window.newStyles) {
+			if (type.indexOf('linestring') < 0) {
+				if (parentStyle.fill && parentStyle.fill.pattern) {
+					var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+						patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+					icon = patternData ? patternData.canvas : document.createElement('canvas');
+					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
+				} else {
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
+						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
+						fillOpacity = (typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 100,
+						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
 
 
-                fill.style.opacity = fillOpacity / 100;
-                border.style.opacity = borderOpacity / 100;
+					fill.style.opacity = fillOpacity / 100;
+					border.style.opacity = borderOpacity / 100;
 
-                if (type.indexOf('point') > -1)
-                {
+					if (type.indexOf('point') > -1) {
 
-                    border.style.height = '5px';
-                    fill.style.height = '5px';
-                    border.style.width = '5px';
-                    fill.style.width = '5px';
+						border.style.height = '5px';
+						fill.style.height = '5px';
+						border.style.width = '5px';
+						fill.style.width = '5px';
 
-                    border.style.top = '3px';
-                    fill.style.top = '4px';
-                    border.style.left = '1px';
-                    fill.style.left = '2px';
-                }
+						border.style.top = '3px';
+						fill.style.top = '4px';
+						border.style.left = '1px';
+						fill.style.left = '2px';
+					}
 
-                _(icon, [border, fill]);
-            }
+					_(icon, [border, fill]);
+				}
+			} else {
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
+					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
+
+				border.style.opacity = borderOpacity / 100;
+
+				border.style.width = '4px';
+				border.style.height = '13px';
+
+				border.style.borderTop = 'none';
+				border.style.borderBottom = 'none';
+				border.style.borderLeft = 'none';
+
+				_(icon, [border]);
+			}
+		} else {
+			if (type.indexOf('linestring') < 0) {
+				if (parentStyle.fill && parentStyle.fill.pattern) {
+					var opaqueStyle = L.gmxUtil.fromServerStyle($.extend(true, {}, parentStyle, {fill: {opacity: 100}})),
+						patternData = L.gmxUtil.getPatternIcon(null, opaqueStyle);
+					icon = patternData ? patternData.canvas : document.createElement('canvas');
+					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
+				} else {
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
+						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+						fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
+						borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+
+
+					fill.style.opacity = fillOpacity / 100;
+					border.style.opacity = borderOpacity / 100;
+
+					if (type.indexOf('point') > -1) {
+
+						border.style.height = '5px';
+						fill.style.height = '5px';
+						border.style.width = '5px';
+						fill.style.width = '5px';
+
+						border.style.top = '3px';
+						fill.style.top = '4px';
+						border.style.left = '1px';
+						fill.style.left = '2px';
+					}
+
+					_(icon, [border, fill]);
+				}
+			} else {
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+					borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+
+
+				border.style.opacity = borderOpacity / 100;
+
+				border.style.width = '4px';
+				border.style.height = '13px';
+
+				border.style.borderTop = 'none';
+				border.style.borderBottom = 'none';
+				border.style.borderLeft = 'none';
+
+				_(icon, [border]);
+			}
 		}
-		else
-		{
-			var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-				borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
 
-
-            border.style.opacity = borderOpacity / 100;
-
-            border.style.width = '4px';
-            border.style.height = '13px';
-
-			border.style.borderTop = 'none';
-			border.style.borderBottom = 'none';
-			border.style.borderLeft = 'none';
-
-			_(icon, [border]);
-		}
-
-		icon.oncontextmenu = function(e)
-		{
+		icon.oncontextmenu = function(e) {
 			return false;
 		}
 
 		return icon;
+
+		function color2Hex(color) {
+			if (typeof color === 'number') {
+				return nsGmx.Utils.convertColor(color);
+			} else if (typeof color === 'string') {
+				if ((color.indexOf('#') === -1)) {
+					return color2Hex(Number(color));
+				} else {
+					return color;
+				}
+			}
+		}
 	},
 
 	/** Создаёт контрол "слайдер".
@@ -7396,7 +7448,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: 'img/camera18.png',
+				image: '//maps.kosmosnimki.ru/api/img/camera18.png.png',
 				center: true
 			}
 		}
@@ -7690,7 +7742,12 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name)
 mapHelper.prototype.updateTreeStyles = function(newStyles, div, treeView, isEditableStyles)
 {
     isEditableStyles = typeof isEditableStyles === 'undefined' || isEditableStyles;
-	div.gmxProperties.content.properties.styles = newStyles;
+
+	if (window.newStyles) {
+		div.gmxProperties.content.properties.gmxStyles.styles = newStyles;
+	} else {
+		div.gmxProperties.content.properties.styles = newStyles;
+	}
 
 	var multiStyleParent = $(div).children('[multiStyle]')[0];
 
@@ -7966,62 +8023,41 @@ mapHelper.ImageInputControl = function(initURL) {
 
 //params:
 //  * addTitle {bool, default: true}
-mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params)
-{
+mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params) {
     var _params = $.extend({addTitle: true}, params);
 	var icon;
 
-	if ($.isArray(parentStyles) && parentStyles.length > 1)
-		icon =  _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
-	else
-	{
+	if ($.isArray(parentStyles) && parentStyles.length > 1) {
+		icon = _img(null, [['attr','src','img/misc.png'],['css','margin','0px 2px -3px 4px'],['css','cursor','pointer'],['attr','styleType','multi']]);
+	} else {
 		var parentStyle = _mapHelper.makeStyle(parentStyles[0]);
+		var iconUrlProp = window.newStyles ? parentStyle.iconUrl : parentStyle.marker && parentStyle.marker.image;
+		if (iconUrlProp) {
+			icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
 
-		if (parentStyle.marker && parentStyle.marker.image)
-		{
-			if (true /*typeof parentStyle.marker.color == 'undefined'*/)
-			{
-				icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
+			var fixFunc = function() {
+				var width = this.width,
+					height = this.height,
+					scale;
 
-				var fixFunc = function()
-					{
-						var width = this.width,
-							height = this.height,
-                            scale;
+				if (width && height) {
+					var scaleX = 14.0 / width;
+					var scaleY = 14.0 / height
+					scale = Math.min(scaleX, scaleY);
+				} else {
+					scale = 1;
+					width = height = 14;
+				}
 
-                        if (width && height) {
-							var scaleX = 14.0 / width;
-							var scaleY = 14.0 / height
-							scale = Math.min(scaleX, scaleY);
-                        } else {
-                            scale = 1;
-                            width = height = 14;
-                        }
-
-						setTimeout(function()
-						{
-							icon.style.width = Math.round(width * scale) + 'px';
-							icon.style.height = Math.round(height * scale) + 'px';
-						}, 10);
-					}
-
-				icon.onload = fixFunc;
-                icon.src = parentStyle.marker.image;
+				setTimeout(function() {
+					icon.style.width = Math.round(width * scale) + 'px';
+					icon.style.height = Math.round(height * scale) + 'px';
+				}, 10);
 			}
-			else
-			{
-				var dummyStyle = {};
 
-				$.extend(dummyStyle, parentStyle);
-
-				dummyStyle.outline = {color: parentStyle.marker.color, opacity: 100};
-				dummyStyle.fill = {color: parentStyle.marker.color, opacity: 100};
-
-				icon = nsGmx.Controls.createGeometryIcon(dummyStyle, type);
-			}
-		}
-		else
-		{
+			icon.onload = fixFunc;
+			icon.src = iconUrlProp;
+		} else {
 			icon = nsGmx.Controls.createGeometryIcon(parentStyle, type);
 		}
 	}
@@ -8034,8 +8070,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 	return icon;
 }
 
-mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties, params)
-{
+mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties, params) {
 	var elemProperties = div.gmxProperties.content.properties,
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
         type = elemProperties.type,
@@ -8410,7 +8445,7 @@ mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
 
 mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent, treeviewFlag, layerManagerFlag)
 {
-	var filters = elem.styles;
+	var filters = window.newStyles ? elem.gmxStyles.styles : elem.styles;
 
 	if (filters.length < 2)
 	{
@@ -8426,8 +8461,8 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 	for (var i = 0; i < filters.length; i++) {
 		var checkbox = $('<input type="checkbox" class="multistlye-visibility-checkbox">'),
 		// var eye = $('<span class="multistyle-visibility-icon"><svg><use xlink:href="#transparency-eye"></use></svg></span>'),
-			icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
-			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
+			icon = this.createStylesEditorIcon([filters[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
+			name = filters[i].Name || filters[i].Filter || 'Без имени ' + (i + 1),
             iconSpan = _span([icon]),
 			li = _li([_div([$(checkbox)[0], iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
 
@@ -8544,7 +8579,7 @@ mapHelper.prototype.print = function() {
     	};
 
     toggleMode(true);
-	centerControl.removeFrom(map);
+	centerControl.removeFrom ? centerControl.removeFrom(map) : centerControl.remove();
 
     var ui = $(Handlebars.compile('<div class="print-ui"><span class="print-ui-inner">' +
         '<button class="print-ui-close">Закрыть</button>' +
@@ -10470,7 +10505,7 @@ pointsBinding.pointsBinding.unload = function()
     //  * layerVisibilityChange - при изменении видимости слоя (параметр - элемент дерева с изменившимся слоем)
     //  * addTreeElem - добавили новый элемент дерева (параметр - новый элемент)
     //  * activeNodeChange - изменили активную ноду дерева (парамер - div активной ноды)
-    //  * styleVisibilityChange - при изменении видимости стиля слоя 
+    //  * styleVisibilityChange - при изменении видимости стиля слоя
     var layersTree = function(renderParams) {
         this._renderParams = $.extend({
             showVisibilityCheckbox: true,
@@ -11028,6 +11063,13 @@ pointsBinding.pointsBinding.unload = function()
                                                 $(window._layersTree).triggerHandler('layerTimelineRemove', e);
                                             });
                                             timeLineControl.on('layerAdd', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
+                                            });
+                                        } else {
+                                            nsGmx.timeLineControl.on('layerRemove', function(e) {
+                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
+                                            });
+                                            nsGmx.timeLineControl.on('layerAdd', function(e) {
                                                 $(window._layersTree).triggerHandler('layerTimelineAdd', e);
                                             });
                                         }
@@ -12514,6 +12556,9 @@ pointsBinding.pointsBinding.unload = function()
             $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
 
             var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
+
+            if (window.newStyles) attributesToSave.push('gmxStyles');
+
             saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
 
             //раскрываем все группы так, как записано в свойствах групп
@@ -26675,7 +26720,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="//maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
@@ -26684,6 +26729,7 @@ var nsGmx = window.nsGmx || {},
                                             },
                                             maxClusterRadius: 40,
                                             spiderfyOnMaxZoom: true,
+                                            spiderfyZoom: 14,
                                             spiderfyDistanceMultiplier: 1.2,
                                             disableClusteringAtZoom: 19,
                                             maxZoom: 19
@@ -32448,19 +32494,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32490,6 +32523,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -37479,7 +37525,7 @@ var nsGmx = nsGmx || {};
                         if (isTemporalLayer && layer.getDataManager) {
 
                             if (layer.getGmxProperties().name === '509762F05B0044D8A7CCC9D3C2383365') {
-                                debugger;
+                                // debugger;
                             }
 
                             if (!synchronyzed && layer.getDateInterval()) {
@@ -41340,13 +41386,13 @@ nsGmx.widgets = nsGmx.widgets || {};
             // bind clusters to photoLayers
             for (var l = 0; l < gmxMap.layers.length; l++) {
                 var layer = gmxMap.layers[l],
-                props = layer.getGmxProperties();
+                    props = layer.getGmxProperties();
 
                 if (props.IsPhotoLayer) {
                     layer.bindClusters({
                         iconCreateFunction: function(cluster) {
                             var photoClusterIcon = L.divIcon({
-                                html: '<img src="img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                html: '<img src="//maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                 className: 'photo-div-icon',
                                 iconSize: [14, 12],
                                 iconAnchor: [0, 0]
@@ -41355,6 +41401,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         },
                         maxClusterRadius: 40,
                         spiderfyOnMaxZoom: true,
+                        spiderfyZoom: 14,
                         spiderfyDistanceMultiplier: 1.2,
                         disableClusteringAtZoom: 19,
                         maxZoom: 19
@@ -41636,8 +41683,11 @@ nsGmx.widgets = nsGmx.widgets || {};
                 $(_layersTree).on('styleVisibilityChange', function(event, styleVisibilityProps) {
                     var it = nsGmx.gmxMap.layersByID[styleVisibilityProps.elem.name],
                         styles = it.getStyles(),
-                        st = styles[styleVisibilityProps.styleIndex],
-                        treeStyles = styleVisibilityProps.elem.styles,
+                        st = styles[styleVisibilityProps.styleIndex];
+
+                    var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + styleVisibilityProps.elem.LayerID + "']")[0],
+                        elemProperties = div.gmxProperties.content.properties,
+                        treeStyles = elemProperties.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
                     if (typeof treeSt._MinZoom === 'undefined') {
@@ -41646,7 +41696,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                     if (styleVisibilityProps.show) {
                         treeSt.MinZoom = treeSt._MinZoom;
-                        st.MinZoom = st._MinZoom;
+                        st.MinZoom = treeSt._MinZoom;
                     } else {
                         treeSt.MinZoom = 25;
                         st.MinZoom = 25;
@@ -42022,7 +42072,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // init tab
                 window.iconSidebarWidget._activeTabId = "layers-tree";
 
-                var leftMainContainer = window.iconSidebarWidget.setPane(
+                var leftMainContainer = nsGmx.layersTreePane = window.iconSidebarWidget.setPane(
                     "layers-tree", {
                         createTab: window.createTabFunction({
                             icon: "s-tree",
@@ -42303,7 +42353,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                             moduleName = plugin.moduleName,
                             file = plugin.file;
 
-                        if ("bindLayersToTimeline" in params) {
+                        if ("bindLayersToTimeline" in params && !plugin.body) {
                             plugin.setUsage("used");
                             window.gmxCore.loadModule(moduleName, file).then(function(res) {
                                 var paramsClone = $.extend(true, {}, params);
