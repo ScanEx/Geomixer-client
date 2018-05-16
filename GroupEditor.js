@@ -355,7 +355,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                     '<ul>' +
                         '{{#each this.services}}' +
                         '<li>' +
-                            '{{this.upper}}: {{this.url}}rest/ver1/service/{{this.name}}?map={{this.mapName}}&apikey=[APIKEY_VALUE]' +
+                            '{{this.upper}}: {{this.url}}rest/ver1/service/{{this.name}}?map={{this.mapName}}{{#if this.site}}&apikey=[APIKEY_VALUE]{{/if}}' +
                         '</li>' +
                         '<br>' +
                         '{{/each}}' +
@@ -363,16 +363,19 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                 '</div>'
             )({
                 services: [{
+                        site: window.mapsSite,
                         url: window.serverBase,
                         mapName: elemProperties.MapID,
                         name: 'wms',
                         upper: 'WMS'
                     }, {
+                        site: window.mapsSite,
                         url: window.serverBase,
                         mapName: elemProperties.MapID,
                         name: 'wfs',
                         upper: 'WFS'
                     }, {
+                        site: window.mapsSite,
                         url: window.serverBase,
                         mapName: elemProperties.MapID,
                         name: 'tms',
