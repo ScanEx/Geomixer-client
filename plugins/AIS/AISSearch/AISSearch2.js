@@ -1220,19 +1220,24 @@ console.log(json)
         },
         searchScreen:  function(options, callback) {
             var lmap = nsGmx.leafletMap;
-            var dt1 = options.dateInterval.get('dateBegin'),
-                dt2 = options.dateInterval.get('dateEnd');
-                //query += '([' + TemporalColumnName + '] >= \'' + dt1.toJSON() + '\')';
-                //query += ' and ([' + TemporalColumnName + '] < \'' + dt2.toJSON() + '\')';
             var latLngBounds = lmap.getBounds(),
                 sw = latLngBounds.getSouthWest(),
                 ne = latLngBounds.getNorthEast(),
                 min = { x: sw.lng, y: sw.lat },
                 max = { x: ne.lng, y: ne.lat };
-//console.log(min);
-//console.log(max);
-            L.gmxUtil.sendCrossDomainPostRequest(aisServiceUrl + "SearchScreen.ashx", 
-            {WrapStyle: 'window',s:dt1.toJSON(),e:dt2.toJSON(),minx:min.x,miny:min.y,maxx:max.x,maxy:max.y, layer:screenSearchLayer}, 
+
+            var queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: screenSearchLayer },
+                layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+screenSearchLayer+"']")[0];
+            if (layerTreeNode){   
+                var gmxProp = layerTreeNode.gmxProperties.content.properties;
+                if (gmxProp.Temporal) {
+                    queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+                    queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+                }
+            }
+//console.log(queryParams);
+            L.gmxUtil.sendCrossDomainPostRequest(aisServiceUrl + "SearchScreen.ashx",
+            queryParams,
             callback);
         },
 		searchByCoords: function(x, y){
