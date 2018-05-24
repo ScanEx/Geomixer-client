@@ -7448,7 +7448,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: '//maps.kosmosnimki.ru/api/img/camera18.png.png',
+				image: '//maps.kosmosnimki.ru/api/img/camera18.png',
 				center: true
 			}
 		}
@@ -22941,6 +22941,9 @@ var DefaultSearchParamsManager = function() {
     this._updateQueryTextarea = null; // lower textArea in update panel
     this._setUpdateQueryValue = '';   // value of this._updateQueryTextarea
     this._container = null;
+
+    /* SEARCH INSIDE POLYGON */
+    this._geometryInfoRow = null;
 };
 
 DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attributesTable) {
@@ -22973,43 +22976,8 @@ DefaultSearchParamsManager.prototype.drawSearchUI = function(container, attribut
     $(middleContainer).addClass('attr-table-middle-container');
 
     /* SEARCH INSIDE POLYGON */
-    this._geometryInfoRow = null;
 
-    var geomUIContainer = document.createElement('div');
-    $(geomUIContainer).addClass('attr-table-geometry-container');
-
-    var geomUI = $(Handlebars.compile('<span>' +
-        '<span class="attr-table-geomtitle">{{i "Искать по пересечению с объектом"}}</span>' +
-        '<span class="gmx-icon-choose"></span>' +
-        '<span class="attr-table-geom-placeholder"></span>' +
-    '</span>')());
-
-    $(geomUIContainer).append(geomUI);
-
-    geomUI.find('.gmx-icon-choose').click(function() {
-        nsGmx.Controls.chooseDrawingBorderDialog(
-            'attrTable',
-            function(drawingObject) {
-                _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
-                var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
-                _this._geometryInfoRow = new InfoRow(
-                    nsGmx.leafletMap,
-                    geomUI.find('.attr-table-geom-placeholder')[0],
-                    drawingObject,
-                    {
-                        editStyle: false,
-                        allowDelete: true
-                    }
-                );
-
-                $(_this._geometryInfoRow).on('onRemove', function() {
-                    _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
-                    _this._geometryInfoRow = null;
-                });
-            },
-            {geomType: null}
-        );
-    });
+    var geomUIContainer = this.drawGeomUI();
 
     /*SQL TEXTAREA*/
     this._queryTextarea = nsGmx.Utils._textarea(null, [['dir', 'className', 'inputStyle'], ['dir', 'className', 'attr-table-query-area'], ['css', 'overflow', 'auto'], ['css', 'width', '300px']]);
@@ -23088,6 +23056,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     this.currentColumnName = "",
     this._container = container;
 
+    var geomUIContainer = this.drawGeomUI();
 
     /* HIDE BUTTON */
     var hideButtonContainer = document.createElement('div'),
@@ -23212,7 +23181,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
         var updateQuery = _this._valueTextarea && _this._valueTextarea.value ? _this._valueTextarea.value : '';
         var whereQuery = _this._updateQueryTextarea && _this._updateQueryTextarea.value ? _this._updateQueryTextarea.value : '';
 
-        // updateQuery.match(/)
+        whereQuery = _this.addGeomQuery(whereQuery);
 
         var url = window.serverBase + 'VectorLayer/QueryScalar?sql=' +
             'UPDATE ' + '"' + attributesTable.layerName + '"' +
@@ -23261,6 +23230,7 @@ DefaultSearchParamsManager.prototype.drawUpdateUI = function(container, attribut
     $(middleContainer).append(selectColumnContainer);
     nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('VALUE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._valueTextarea], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
     nsGmx.Utils._(middleContainer, [nsGmx.Utils._div([nsGmx.Utils._span([nsGmx.Utils._t(_gtxt('WHERE'))], [['css', 'fontSize', '12px'], ['css', 'margin', '4px 0px 3px 1px'], ['css', 'display', 'inline-block']]), this._updateQueryTextarea, suggestCanvas], [['dir', 'className', 'attr-query-container'], ['attr', 'filterTable', true]])]);
+    $(middleContainer).append(geomUIContainer);
     $(middleContainer).append(statusBar);
     $(container).append(applyButtonContainer);
 }
@@ -23273,6 +23243,58 @@ DefaultSearchParamsManager.prototype.getQuery = function() {
         resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
     return resQuery;
 };
+
+DefaultSearchParamsManager.prototype.addGeomQuery = function(query) {
+    var drawingObject = this._geometryInfoRow && this._geometryInfoRow.getDrawingObject(),
+        geom = drawingObject && drawingObject.toGeoJSON().geometry,
+        geomStr = geom ? 'intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(geom) + '\', 4326))' : '',
+        resQuery = (query && geomStr) ? '(' + query + ') AND ' + geomStr : (query || geomStr);
+    return resQuery;
+};
+
+DefaultSearchParamsManager.prototype.drawGeomUI = function() {
+    var geomUIContainer = document.createElement('div');
+    var geomUI = $(Handlebars.compile('<span>' +
+        '<span class="attr-table-geomtitle">{{i "Искать по пересечению с объектом"}}</span>' +
+        '<span class="gmx-icon-choose"></span>' +
+        '<span class="attr-table-geom-placeholder"></span>' +
+    '</span>')());
+
+    $(geomUIContainer).addClass('attr-table-geometry-container');
+    $(geomUIContainer).append(geomUI);
+
+    geomUI.find('.gmx-icon-choose').click(onGeometrySelectButtonClick);
+
+
+    var _this = this;
+
+    function onGeometrySelectButtonClick() {
+        nsGmx.Controls.chooseDrawingBorderDialog(
+            'attrTable',
+            function(drawingObject) {
+                _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+                var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
+                _this._geometryInfoRow = new InfoRow(
+                    nsGmx.leafletMap,
+                    geomUI.find('.attr-table-geom-placeholder')[0],
+                    drawingObject,
+                    {
+                        editStyle: false,
+                        allowDelete: true
+                    }
+                );
+
+                $(_this._geometryInfoRow).on('onRemove', function() {
+                    _this._geometryInfoRow && _this._geometryInfoRow.RemoveRow();
+                    _this._geometryInfoRow = null;
+                });
+            },
+            {geomType: null}
+        );
+    }
+
+    return geomUIContainer;
+}
 
 DefaultSearchParamsManager.prototype.getActiveColumns = function() {
     return this._activeColumns;
@@ -32494,6 +32516,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32523,19 +32558,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -41542,8 +41564,10 @@ nsGmx.widgets = nsGmx.widgets || {};
                         var layer = layers[i],
                             props = layer.getGmxProperties(),
                             isVisible = props.visible,
-                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
-
+                            isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
+                        if (props.type === 'Virtual') {
+                            debugger;
+                        }
                         if (isTemporalLayer) {
                             // показываем виджет календаря, если в карте есть хоть один мультивременной слой
                             showCalendar = true;
