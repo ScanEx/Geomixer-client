@@ -51,7 +51,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -341,7 +341,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	module.exports = function (viewFactory) {
 	    var _leftMenuBlock = void 0,
@@ -729,7 +729,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
 	    var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
@@ -2678,4 +2678,4 @@
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=AISSearch2Test.js.map
+//# sourceMappingURL=AISPlugin.js.map
