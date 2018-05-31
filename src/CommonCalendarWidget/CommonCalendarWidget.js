@@ -364,7 +364,7 @@ var nsGmx = nsGmx || {};
 
         updateTemporalLayers: function(layers) {
             layers = layers || nsGmx.gmxMap.layers;
-            
+
             var attrs = this.model.toJSON(),
                 synchronyzed = attrs.synchronyzed,
                 dateBegin = this.dateInterval.get('dateBegin'),
@@ -380,7 +380,7 @@ var nsGmx = nsGmx || {};
                 for (var i = 0, len = layers.length; i < len; i++) {
                     var layer = layers[i],
                     props = layer.getGmxProperties(),
-                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
+                    isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.setDateInterval);
 
                     if (isTemporalLayer && !(props.name in attrs.unbindedTemporalLayers)) {
                         if (props.DateEnd) {
@@ -734,6 +734,10 @@ var nsGmx = nsGmx || {};
                             isTemporalLayer = (layer instanceof L.gmx.VectorLayer && props.Temporal) || (props.type === 'Virtual' && layer.getDateInterval);
 
                         if (isTemporalLayer && layer.getDataManager) {
+
+                            if (layer.getGmxProperties().name === '509762F05B0044D8A7CCC9D3C2383365') {
+                                // debugger;
+                            }
 
                             if (!synchronyzed && layer.getDateInterval()) {
                                 dateInterval = layer.getDateInterval();
