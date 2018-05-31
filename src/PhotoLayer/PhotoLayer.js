@@ -428,6 +428,9 @@ var nsGmx = window.nsGmx || {},
                                             '<div>' +
                                                 '[SUMMARY]' +
                                             '</div>' +
+                                            '<div>' +
+                                                '<b>' + "Комментарии" + ':</b> ' + '[Comments]' +
+                                            '</div>' +
                                         '</div>';
 
                                 gmxProperties.content.properties.mapName = mapProperties.name;
