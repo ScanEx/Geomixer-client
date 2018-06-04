@@ -629,14 +629,15 @@
         }
 
         if (elem.type == "Vector") {
-            var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', { addTitle: !layerManagerFlag }),
+            var styles = window.newStyles ? elem.gmxStyles.styles : elem.styles;
+            var icon = _mapHelper.createStylesEditorIcon(styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', { addTitle: !layerManagerFlag }),
                 multiStyleParent = _div(null, [
                     ['attr', 'multiStyle', true]
                 ]),
                 timelineIcon,
                 iconSpan = _span([icon]);
 
-            if (elem.styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID) {
+            if (styles.length === 1 && elem.name in nsGmx.gmxMap.layersByID) {
                 var layer = nsGmx.gmxMap.layersByID[elem.name];
                 layer.on('stylechange', function() {
                     if (layer.getStyles().length === 1) {

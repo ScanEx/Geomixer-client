@@ -33,13 +33,13 @@ nsGmx.Controls = {
 					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
 				} else {
 					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
+						fillOpacity = (typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 1,
 						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
-						fillOpacity = (typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity : 100,
-						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
+						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 1;
 
 
-					fill.style.opacity = fillOpacity / 100;
-					border.style.opacity = borderOpacity / 100;
+					fill.style.opacity = fillOpacity;
+					border.style.opacity = borderOpacity;
 
 					if (type.indexOf('point') > -1) {
 
@@ -57,10 +57,10 @@ nsGmx.Controls = {
 					_(icon, [border, fill]);
 				}
 			} else {
-				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF"]]),
-					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 100;
+				var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
+					borderOpacity = (parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 1;
 
-				border.style.opacity = borderOpacity / 100;
+				border.style.opacity = borderOpacity;
 
 				border.style.width = '4px';
 				border.style.height = '13px';
