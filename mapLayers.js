@@ -629,7 +629,17 @@
         }
 
         if (elem.type == "Vector") {
-            var styles = window.newStyles ? elem.gmxStyles.styles : elem.styles;
+            var styles;
+
+            if (window.newStyles) {
+                if (elem.styles && !elem.gmxStyles) {
+                    elem.gmxStyles = L.gmx.StyleManager.decodeOldStyles(elem);
+                }
+                styles = elem.gmxStyles;
+            } else {
+                styles = elem.styles;
+            }
+
             var icon = _mapHelper.createStylesEditorIcon(styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', { addTitle: !layerManagerFlag }),
                 multiStyleParent = _div(null, [
                     ['attr', 'multiStyle', true]
@@ -2208,8 +2218,6 @@
 
             var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
 
-            if (window.newStyles) attributesToSave.push('gmxStyles');
-
             saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
 
             //раскрываем все группы так, как записано в свойствах групп
@@ -2232,6 +2240,26 @@
 
                     for (var s = 0; s < styles.length; s++) {
                         delete styles[s].HoverStyle;
+                    }
+
+                    if (window.newStyles) {
+                        var keys = L.gmx.StyleManager.DEFAULT_STYLE_KEYS,
+                            stylesHash = {};
+
+                        for (var i = 0; i < keys.length; i++) {
+                            stylesHash[keys[i]] = true;
+                        }
+                        propsToSave.gmxStyles = props.gmxStyles;
+
+                        for (var s = 0; s < propsToSave.gmxStyles.styles.length; s++) {
+                            var st = propsToSave.gmxStyles.styles[s];
+                            delete st.HoverStyle;
+                            for (var key in st.RenderStyle) {
+                                if (!(key in stylesHash)) {
+                                    delete st.RenderStyle[key];
+                                }
+                            }
+                        }
                     }
 
                     child.content.properties = propsToSave;

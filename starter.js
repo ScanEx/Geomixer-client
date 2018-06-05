@@ -1445,8 +1445,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                 //подсчитаем общий extend всех видимых слоёв
                 var visBounds = L.latLngBounds([]);
 
-
-
                 for (var l = 0; l < gmxMap.layers.length; l++) {
                     var layer = gmxMap.layers[l];
 
@@ -1819,7 +1817,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                     var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + styleVisibilityProps.elem.LayerID + "']")[0],
                         elemProperties = div.gmxProperties.content.properties,
-                        treeStyles = elemProperties.styles,
+                        treeStyles = window.newStyles ?  elemProperties.gmxStyles.styles : elemProperties.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
                     if (typeof treeSt._MinZoom === 'undefined') {
