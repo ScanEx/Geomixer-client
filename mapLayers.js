@@ -635,7 +635,7 @@
                 if (elem.styles && !elem.gmxStyles) {
                     elem.gmxStyles = L.gmx.StyleManager.decodeOldStyles(elem);
                 }
-                styles = elem.gmxStyles;
+                styles = elem.gmxStyles.styles;
             } else {
                 styles = elem.styles;
             }
