@@ -10979,7 +10979,17 @@ pointsBinding.pointsBinding.unload = function()
         }
 
         if (elem.type == "Vector") {
-            var styles = window.newStyles ? elem.gmxStyles.styles : elem.styles;
+            var styles;
+
+            if (window.newStyles) {
+                if (elem.styles && !elem.gmxStyles) {
+                    elem.gmxStyles = L.gmx.StyleManager.decodeOldStyles(elem);
+                }
+                styles = elem.gmxStyles.styles;
+            } else {
+                styles = elem.styles;
+            }
+
             var icon = _mapHelper.createStylesEditorIcon(styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', { addTitle: !layerManagerFlag }),
                 multiStyleParent = _div(null, [
                     ['attr', 'multiStyle', true]
@@ -12558,8 +12568,6 @@ pointsBinding.pointsBinding.unload = function()
 
             var attributesToSave = ['visible', 'styles', 'AllowSearch', 'TiledQuicklook', 'TiledQuicklookMinZoom', 'name', 'MapStructureID'];
 
-            if (window.newStyles) attributesToSave.push('gmxStyles');
-
             saveTree.properties.BaseLayers = JSON.stringify(nsGmx.leafletMap.gmxBaseLayersManager.getActiveIDs());
 
             //раскрываем все группы так, как записано в свойствах групп
@@ -12582,6 +12590,26 @@ pointsBinding.pointsBinding.unload = function()
 
                     for (var s = 0; s < styles.length; s++) {
                         delete styles[s].HoverStyle;
+                    }
+
+                    if (window.newStyles) {
+                        var keys = L.gmx.StyleManager.DEFAULT_STYLE_KEYS,
+                            stylesHash = {};
+
+                        for (var i = 0; i < keys.length; i++) {
+                            stylesHash[keys[i]] = true;
+                        }
+                        propsToSave.gmxStyles = props.gmxStyles;
+
+                        for (var s = 0; s < propsToSave.gmxStyles.styles.length; s++) {
+                            var st = propsToSave.gmxStyles.styles[s];
+                            delete st.HoverStyle;
+                            for (var key in st.RenderStyle) {
+                                if (!(key in stylesHash)) {
+                                    delete st.RenderStyle[key];
+                                }
+                            }
+                        }
                     }
 
                     child.content.properties = propsToSave;
@@ -31587,16 +31615,19 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         wss: 443
     };
 
-    var _currUrl;
+    var _currNodeUrl;
     function getCurrUrl() {
-      if (!_currUrl) {
-        _currUrl = isNode ? ('file://' +
-            (process.platform.match(/^win/i) ? '/' : '') +
-            nodeRequire('fs').realpathSync('.')
-        ) : document.location.href;
-      }
-
-      return _currUrl;
+        if (isNode) {
+            if (!_currNodeUrl) {
+                _currNodeUrl = ('file://' +
+                    (process.platform.match(/^win/i) ? '/' : '') +
+                    nodeRequire('fs').realpathSync('.')
+                );
+            }
+            return _currNodeUrl;
+        } else {
+            return document.location.href;
+        }
     }
 
     function parse (self, url, absolutize) {
@@ -32520,19 +32551,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -32562,6 +32580,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -41331,8 +41362,6 @@ nsGmx.widgets = nsGmx.widgets || {};
                 //подсчитаем общий extend всех видимых слоёв
                 var visBounds = L.latLngBounds([]);
 
-
-
                 for (var l = 0; l < gmxMap.layers.length; l++) {
                     var layer = gmxMap.layers[l];
 
@@ -41705,7 +41734,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                     var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + styleVisibilityProps.elem.LayerID + "']")[0],
                         elemProperties = div.gmxProperties.content.properties,
-                        treeStyles = elemProperties.styles,
+                        treeStyles = window.newStyles ?  elemProperties.gmxStyles.styles : elemProperties.styles,
                         treeSt = treeStyles[styleVisibilityProps.styleIndex];
 
                     if (typeof treeSt._MinZoom === 'undefined') {
