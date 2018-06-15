@@ -374,12 +374,6 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                         mapName: elemProperties.MapID,
                         name: 'wfs',
                         upper: 'WFS'
-                    }, {
-                        site: window.mapsSite,
-                        url: window.serverBase,
-                        mapName: elemProperties.MapID,
-                        name: 'tms',
-                        upper: 'TMS'
                     }]
             }))[0],
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
