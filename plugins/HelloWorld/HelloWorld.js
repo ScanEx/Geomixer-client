@@ -80,8 +80,8 @@
 					},
 					{
 						check: function(){ return window.L.control.dialog; },
-						css: 'http://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css'
-					}					
+						css: window.location.protocol + '//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css'
+					}
 				]).done(function() {
 					def.resolve();
 				});

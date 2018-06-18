@@ -15,29 +15,29 @@ var showInfo = function(obj)
 	for (var key in obj.properties)
     {
 		var objValue = obj.properties[key];
-		if (objValue.indexOf && objValue.indexOf('/Date(') != -1) 
+		if (objValue.indexOf && objValue.indexOf('/Date(') != -1)
 			objValue = new Date(Number(objValue.replace('/Date(', '').replace(')/', ''))).toDateString();
-		else if(objValue.TotalMilliseconds) 
+		else if(objValue.TotalMilliseconds)
 			objValue = new Date(objValue.TotalMilliseconds).toTimeString();
         var content = _div(),
             contentText = String(objValue);
-        
-        if (contentText.indexOf("http://") == 0 || contentText.indexOf("www.") == 0)
+
+        if (contentText.indexOf("http://") == 0 || contentText.indexOf("https://") == 0 || contentText.indexOf("www.") == 0)
             contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
-        
+
         content.innerHTML = contentText;
-        
+
         var typeSpan = _span([_t(key)]);
-        
+
         typeSpans[key] = typeSpan;
-        
+
         trs.push(_tr([_td([typeSpan], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
     }
-	
+
 	var div = _div();
-		
+
 	_(div, [_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
-	
+
 	showDialog('Атрибуты', div, 320, 50 + trs.length * 17 , false, false, false);
 }
 
@@ -71,37 +71,37 @@ var cbtext = function(oContainer, sceneID, sceneDesc, callback){
 	var info = infoIcon(function(){
 		oMap.layers[scenesLayerID].getFeatures('"SCENEID" = \'' + sceneID + '\'', function(features){
 			if (features.length > 1) {
-				alert('Attribute SCENEID is not unique') 
+				alert('Attribute SCENEID is not unique')
 			}
-			else if (features.length == 0) { 
-				alert('Layer does not contains this scene') 
+			else if (features.length == 0) {
+				alert('Layer does not contains this scene')
 			}
-			else { 
-				showInfo(features[0]); 
+			else {
+				showInfo(features[0]);
 			}
 		});
-		
+
 	});
-	
+
 	var edit = editIcon(scenesLayerID, function(getIDCallback){
 		oMap.layers[scenesLayerID].getFeatures('"SCENEID" = \'' + sceneID + '\'', function(features){
-			if (features.length > 1) { 
-				alert('Attribute SCENEID is not unique') 
+			if (features.length > 1) {
+				alert('Attribute SCENEID is not unique')
 			}
-			else if (features.length == 0) { 
-				alert('Layer does not contains this scene') 
+			else if (features.length == 0) {
+				alert('Layer does not contains this scene')
 			}
-			else { 
+			else {
 				getIDCallback(features[0].properties.ogc_fid);
 			}
 		});
 	});
-	
+
 	_(oContainer, [_div([cb, txt, info, edit], [['css', 'margin', '3px']])]);
-	
+
 	this.sceneID = sceneID;
 	cb.onclick = callback;
-	this.checked = function(){ 
+	this.checked = function(){
 		return cb.checked;
 	}
 }
@@ -124,7 +124,7 @@ var clsScenesList = function(oContainer){
 		for (var i=0; i<oMap.layers[scenesLayerID].filters.length; i++)	{
 				 oMap.layers[scenesLayerID].filters[i].setFilter(sFilter);
 			}
-            
+
         topImageDef && topImageDef.done(function(id)
         {
             setTimeout(function()
@@ -133,7 +133,7 @@ var clsScenesList = function(oContainer){
             }, 1000)
         })
 	}
-	
+
 	this.FilterScenes = function(oRubka){
 		this.ClearFilter();
 		var sceneIDs = [];
@@ -153,21 +153,21 @@ var clsScenesList = function(oContainer){
 		if (oRubka.obj.properties.AddRSD_ID1) sceneIDs.push({id: oRubka.obj.properties.AddRSD_ID1, desc: "Проверочный снимок"});
 		// if (oRubka.obj.properties.AddRSD_ID2) sceneIDs.push({id: oRubka.obj.properties.AddRSD_ID2, desc: "AddRSD_ID2"});
 		if (sceneIDs.length == 0) return;
-		
+
 		var contour = makeLinkButton('Нарушение');
 		contour.onclick = function(){
 			var oExtent = getBounds(oRubka.obj.getGeometry().coordinates);
 			oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
 		}
-		var info = infoIcon(function(){ 
+		var info = infoIcon(function(){
 			showInfo(oRubka.obj);
 		});
 		var edit = editIcon(rubkiLayerID, function(getIDCallback){
 			getIDCallback(oRubka.obj.properties.ogc_fid);
 		});
 		_(oContainer, [_div([contour, info, edit])]);
-		
-		
+
+
 		for (var i=0; i<sceneIDs.length; i++){
 			arrFilters.push(new cbtext(oContainer, sceneIDs[i].id, sceneIDs[i].desc, function(){
 				Filter();
@@ -188,7 +188,7 @@ var clsScenesList = function(oContainer){
 		oMap.layers[scenesLayerID].setDateInterval(new Date(0), new Date());
 		oCalendar.unbindLayer(scenesLayerID);
 	}
-	
+
 	this.ClearFilter = function(){
 		$(oContainer).empty();
 		arrFilters = [];
@@ -215,14 +215,14 @@ var loadMenu = function(){
 		if(!alreadyLoaded) _(oMenu.workCanvas, [oRubkiDiv]);
 	}
 }
-	
+
 
 var afterViewer = function(){
 	oMap = globalFlashMap;
     for (var i=0; i<oMap.layers[scenesLayerID].filters.length; i++)	{
          oMap.layers[scenesLayerID].filters[i].setFilter('"SCENEID" = \'NOT_FOUND\'');
     }
-    
+
 	oScenesList = new clsScenesList(oRubkiDiv);
 	oMap.layers[rubkiLayerID].addListener('onClick', function(obj){
 		oScenesList.FilterScenes(obj);
@@ -234,7 +234,7 @@ var addMenuItems = function(){
 	return [{item: {id:'rubki', title:_gtxt('Нарушения'), func:loadMenu},
 			parentID: 'viewMenu'}];
 }
- 
+
 var publicInterface = {
 	afterViewer: afterViewer,
 	addMenuItems: addMenuItems

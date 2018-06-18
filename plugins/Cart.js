@@ -12,7 +12,7 @@
 		"Общая сумма:": "Total price:",
 		"Корзина пуста": "Cart is empty"
 	});
-	
+
 	var arrCartObjects = {};
 	var oCartDiv = _div(null, [['attr', 'Title', _gtxt("Корзина")]]);
 	var oItemList = _div();
@@ -21,15 +21,15 @@
 
 	var oSendButton = makeLinkButton(_gtxt('Отправить заказ'));
 	_(oCartDiv, [oItemList, oItemSummary, _br(), oCommentInput, _br(), oSendButton]);
-		
+
 	var drawRow = function(id){
 		var title = arrCartObjects[id].title;
 		var price = arrCartObjects[id].price;
-		
+
 		var oContainer = _div(null, [['css', 'position', 'relative']]);
 		var oItem = makeLinkButton(title);
 		var oPrice = _span([_t("$" + price.toString())], [['css', 'position', 'absolute'], ['css', 'right', '15px']]);
-		
+
 		var remove = makeImageButton('img/closemin.png','img/close_orange.png');
 		remove.setAttribute('title', _gtxt('Удалить'));
 		remove.style.right = '0px';
@@ -49,17 +49,17 @@
 
 	var totalPrice = 0;
 	var idsString = "";
-	
+
 	oSendButton.onclick = function(){
 		if (idsString == ""){alert("Корзина пуста"); return;}
 		_mapHelper.createPermalink(function(id){
-			var permalinkUrl = "http://" + window.location.host + window.location.pathname + "?permalink=" + id;
+			var permalinkUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?permalink=" + id;
 			var EMail = nsGmx.AuthManager.isAccounts() ? escape(nsGmx.AuthManager.getLogin()) : escape("sales@scanex.ru");
 			var callbackUrl = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + encodeURIComponent(permalinkUrl) + "&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=WMS";
 			var url = "http://search.kosmosnimki.ru/LoginDialog.ashx?redirect_uri=" + encodeURIComponent(callbackUrl);
 			location.replace(url);
 		});
-		
+
 	}
 
 	var drawList = function(){
@@ -67,7 +67,7 @@
 		idsString = "";
 		$(oItemList).empty();
 		$(oItemSummary).empty();
-		
+
 		for (var id in arrCartObjects){
 			drawRow(id);
 			totalPrice += arrCartObjects[id].price;
@@ -80,7 +80,7 @@
 			_(oItemSummary, [oSummary]);
 		}
 	}
-	
+
 	var addToCart = function(oCartObject){
 		if (oCartObject.title in arrCartObjects) return;
 		arrCartObjects[oCartObject.title] = oCartObject;
@@ -88,11 +88,11 @@
 		drawList();
 		loadMenu();
 	}
-	
+
 	var loadMenu = function(){
 		$(oCartDiv).dialog();
 	}
-	
+
 	var addMenuItems = function(){
 		return [{item: {id:'Cart', title:_gtxt('Корзина'),func:loadMenu},
 				parentID: 'servicesMenu'}];
@@ -100,7 +100,7 @@
 	var afterViewer = function(){
 		oMap = globalFlashMap;
 	}
-	
+
 	var publicInterface = {
 		afterViewer: afterViewer,
 		addMenuItems: addMenuItems,
@@ -113,7 +113,7 @@
 		loadState: function(state) { for (var oCartObject in state.objectsInCart) { addToCart(state.objectsInCart[oCartObject]);} },
 		saveState: function() { return { objectsInCart: arrCartObjects }; }
 	});
-				
+
 	gmxCore.addModule("Cart", publicInterface, {init: function(module, path)
 		{
 			pluginPath = path;

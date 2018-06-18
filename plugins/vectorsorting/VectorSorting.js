@@ -37,7 +37,7 @@ var publicInterface = {
                     sorted = layer.getReorderArrays && layer.getReorderArrays(),
                     isNeedMenu = sorted && sorted.top.length + sorted.bottom.length > 0;
                 return isNeedMenu &&
-                    props.type === 'Vector' && 
+                    props.type === 'Vector' &&
                     (props.GeometryType === 'polygon' || props.GeometryType === 'linestring') &&
                     !context.layerManagerFlag &&
                     _queryMapLayers.layerRights(elem.name) == 'edit';
@@ -51,11 +51,11 @@ var publicInterface = {
                     sorted = layer.getReorderArrays(),
                     isNeedMenu = sorted.top.length + sorted.bottom.length;
 
-                
+
                 var ZIndexField = props.ZIndexField || ZINDEX_DEFAULT_FIELD;
                 var saveReorderArrays = function() {
                     L.gmxUtil.sendCrossDomainPostRequest(
-                        'http://' + layer._gmx.hostName + '/VectorLayer/Search.ashx',
+                        window.location.protocol + '//' + layer._gmx.hostName + '/VectorLayer/Search.ashx',
                         {
                             WrapStyle: 'window',
                             layer: layerID,
@@ -65,7 +65,7 @@ var publicInterface = {
                             if (!parseResponse(ph)) {
                                 return;
                             }
-                            
+
                             var minmax = ph.Result.values[0];
                             var updater = function(startIndex, delta, id, i) {
                                 var properties = {};
@@ -74,7 +74,7 @@ var publicInterface = {
                             };
 
                             var out = [].concat(
-                                sorted.bottom.reverse().map(updater.bind(null, minmax[0] - 1, -1)), 
+                                sorted.bottom.reverse().map(updater.bind(null, minmax[0] - 1, -1)),
                                 sorted.top.map(updater.bind(null, minmax[1] + 1, 1))
                             );
                             if (out.length) {
@@ -86,7 +86,7 @@ var publicInterface = {
                         }
                     );
                 };
-                
+
                 var isFieldFound = layer._gmx.tileAttributeIndexes[ZIndexField];
                 if (!props.ZIndexField || !isFieldFound) {
                     var dialogGUI = $('<div class="vectorSortingDialog"><button class="vectorSortingDialogButton">'+_gtxt('VectorSorting.button')+'</button></div>').css("text-align", 'center');

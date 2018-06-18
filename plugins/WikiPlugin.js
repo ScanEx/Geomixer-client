@@ -1,4 +1,4 @@
-/** 
+/**
 * @name Wiki
 * @namespace Предоставляет возможность написания сообщений
 * @description Предоставляет возможность написания сообщений
@@ -82,9 +82,9 @@ Function.prototype.bind = Function.prototype.bind ||
 /* --------------------------------
  * jQuery extensions
  * -------------------------------- */
- 
+
 var extendJQuery;
-extendJQuery = function() { 
+extendJQuery = function() {
     if (typeof $ !== 'undefined') {
         $.getCSS = $.getCSS || function(url) {
             if (document.createStyleSheet) {
@@ -120,7 +120,7 @@ WikiService.prototype = {
     getWikiLink: function(relativeUrl) {
         return this._wikiBasePath + relativeUrl;
     },
-    
+
 	/**Сохраняет страницу*/
 	updatePage: function(pageInfo, callback){
 		var _data = {WrapStyle: 'window'
@@ -134,7 +134,7 @@ WikiService.prototype = {
 				, IconUrl: pageInfo.IconUrl
 				, IsDeleted: pageInfo.IsDeleted
 		};
-			
+
 		sendCrossDomainPostRequest(this.getWikiLink('UpdateMessage.ashx'), _data, function(data) { if (parseResponse(data) && callback) callback(data); });
 	},
 	/**Загружает данные для списка страниц*/
@@ -159,11 +159,11 @@ var addthis_config = {
 var ActiveMessageID = null;
 _mapHelper.customParamsManager.addProvider({
 	name: 'WikiPlugin',
-	loadState: function(state) { 
-		if(state) oWiki.showPage(state); 
+	loadState: function(state) {
+		if(state) oWiki.showPage(state);
 	},
-	saveState: function() { 
-		return ActiveMessageID; 
+	saveState: function() {
+		return ActiveMessageID;
 	}
 });
 
@@ -183,7 +183,7 @@ var fnShare = function(pageInfo, container){
 				}
 				_(toolbox, [getButton('facebook'), getButton('twitter'), getButton('vk'), getButton('odnoklassniki_ru'), getButton('compact')]);
 				_(container, [toolbox]);
-				
+
 				addthis.toolbox(toolbox, {}, {
 					title: pageInfo.Title,
 					url_transforms : { add: {permalink: id}}
@@ -191,10 +191,10 @@ var fnShare = function(pageInfo, container){
 			});
 		}
 	};
-	
+
 	if (!bShareModuleLoaded){
 				   //http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93
-		$LAB.script("http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
+		$LAB.script(window.location.protocol + "//s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
 			addthis.init();
 			fnRenderShare();
 			bShareModuleLoaded = true;
@@ -205,7 +205,7 @@ var fnShare = function(pageInfo, container){
 	}
 }
 
-	
+
 /** Конструктор
  @class Класс, обеспечивающий отображение сообщений на карте
  @memberOf Wiki
@@ -215,7 +215,7 @@ var fnShare = function(pageInfo, container){
 WikiObjectsHandler = function(map, wikiPlugin) {
     this._map = map;
     this._wikiPlugin = wikiPlugin;
-    
+
     this._objectsCache = {};
 	this._pageLayer = map.addObject();
 }
@@ -223,7 +223,7 @@ WikiObjectsHandler = function(map, wikiPlugin) {
 WikiObjectsHandler.prototype = {
 	/**Рисует объекты на карте*/
     createObjects: function(objects) {
-        
+
 		for (var objectIndex = 0; objectIndex < objects.length; ++objectIndex) {
 			this._createObject(objects[objectIndex]);
 		}
@@ -236,7 +236,7 @@ WikiObjectsHandler.prototype = {
 
 		if (!this._objectsCache[pageInfo.LayerName]) {
 			this._objectsCache[pageInfo.LayerName] = this._pageLayer.addObject();
-			if(pageInfo.LayerName) this._objectsCache[pageInfo.LayerName].setVisible(this._map.layers[pageInfo.LayerName].isVisible); 
+			if(pageInfo.LayerName) this._objectsCache[pageInfo.LayerName].setVisible(this._map.layers[pageInfo.LayerName].isVisible);
 		}
 		mapObject = this._objectsCache[pageInfo.LayerName].addObject(pageInfo.Geometry);
 		pageInfo.mapObject = mapObject;
@@ -250,22 +250,22 @@ WikiObjectsHandler.prototype = {
 				break;
 		}
 	},
-	
+
 	/** Отображает балун с сообщением*/
 	showPage: function(pageInfo){
 		if (!pageInfo) return;
-		
+
 		var coords = pageInfo.Geometry.coordinates;
 		var balloon = this._map.addBalloon();
 		balloon.setPoint(coords[0], coords[1]);
 		this._getBaloon(pageInfo)(null, balloon.div);
 		balloon.resize();
 	},
-	
+
 	/**Возвращает функцию для отображения балуна к статье*/
 	_getBaloon: function(pageInfo){
 		var _this = this;
-		return function(attr, div) { 
+		return function(attr, div) {
 					var divEdit = _div();
 					if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP)){
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
@@ -273,8 +273,8 @@ WikiObjectsHandler.prototype = {
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
 						btnDelete.onclick = function() {
 							if (confirm(_gtxt("Вы действительно хотите удалить это сообщение?"))){
-								_this._wikiPlugin.deletePage(pageInfo); 
-								_this._map.balloonClassObject.hideHoverBalloons(); 
+								_this._wikiPlugin.deletePage(pageInfo);
+								_this._map.balloonClassObject.hideHoverBalloons();
 							}
 						}
 						_(divEdit, [btnEdit, _t(" "), btnDelete]);
@@ -283,16 +283,16 @@ WikiObjectsHandler.prototype = {
 					var divContent = _div();
 					divContent.innerHTML = pageInfo.Content;
 					var divBaloon = _div([divTitle, divContent, divEdit]);
-					
+
 					$(div).empty();
 					fnShare(pageInfo, divBaloon);
-					
+
 					_(div, [divBaloon]);
-					return {}; 
+					return {};
 				};
 	},
-	
-	/**Удаляет все объекты с карты*/	
+
+	/**Удаляет все объекты с карты*/
     removeObjects: function() {
         if (this._objectsCache.length == 0) return;
         for (var layerName in this._objectsCache) {
@@ -300,13 +300,13 @@ WikiObjectsHandler.prototype = {
         }
         this._objectsCache = {};
     },
-	
-	/**Устанавливает видимость всех объектов*/	
+
+	/**Устанавливает видимость всех объектов*/
 	setObjectsVisibility: function(isVisible) {
         this._pageLayer.setVisible(isVisible);
     },
-    
-	/**Устанавливает видимость объектов определённого слоя*/	
+
+	/**Устанавливает видимость объектов определённого слоя*/
 	setLayerVisible: function(layerName, isVisible){
 		this._objectsCache[layerName] && this._objectsCache[layerName].setVisible(isVisible);
 	}
@@ -324,12 +324,12 @@ WikiFilter = function(oContainer){
 	this._checkExtent = _checkbox(false, 'checkbox');
 	this._checkExtent.id = 'wiki-filter-area-checkbox';
 	this.pagesCache=[];
-	
+
 	this._initialize();
 }
 
 WikiFilter.prototype = {
-	/**Отрисовка всех элементов пользовательского интерфейса*/	
+	/**Отрисовка всех элементов пользовательского интерфейса*/
 	_initialize: function(){
 		var _this = this;
 		var label = _label([_t(_gtxt("Искать в видимой области"))], [['attr', 'for', 'wiki-filter-area-checkbox']]);
@@ -338,7 +338,7 @@ WikiFilter.prototype = {
 		//$(this._container).append(_span([])], [['css', 'margin-top', '10px']]));
 		$(this._container).append(this._list);
 		var fnFilter = function(){ return _this.filter();}
-		this._checkExtent.onclick = function(){ 
+		this._checkExtent.onclick = function(){
 			if (this.checked) {
 				_this._moveListenerId = oFlashMap.addListener("positionChanged", fnFilter);
 			}
@@ -395,27 +395,27 @@ var InitEditor = function(target) {
 
 		window.WikiFileBrowser_open = function(field_name, url, type, win){
 			_wikiFileBrowser = new fileBrowser();
-			
+
 			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + sFolder, function(response){
 				if (!parseResponse(response))
 					return;
-				
-				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
+
+				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){
 					var relativePath = path.slice(sFolder.length - path.length);
-					win.document.getElementById(field_name).value = serverBase + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;  
+					win.document.getElementById(field_name).value = serverBase + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;
 				}, { restrictDir: sFolder, startDir: sFolder });
-				
+
 			});
 		}
 	}
-	
+
 	var applyChromeBugfix = function(){
 		if (jQuery.browser.webkit){
 				document.getElementById('message_content_parent').style.display = 'block';
 				document.getElementById('message_content_parent').style.height = '100%'
 		}
 	}
-	
+
     var options = {
         language : _translationsHash.getLanguage().substr(0,2),
         mode: 'exact',
@@ -423,9 +423,9 @@ var InitEditor = function(target) {
 		skin : "o2k7",
         elements: target,
 		convert_urls: false,
-        
+
 		dialog_type: "window",
-		
+
         theme_advanced_buttons1 : "bold,italic,underline,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect,|,bullist,numlist,|,outdent,indent,|,undo,redo,|,link,image,cleanup,help,code",
         theme_advanced_buttons2 : "", // "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code",
         theme_advanced_buttons3 : "", //"hr,removeformat,visualaid,|,sub,sup,|,charmap",
@@ -435,17 +435,17 @@ var InitEditor = function(target) {
 
         plugins: 'advimage,jqueryinlinepopups',
         extended_valid_elements: 'img[!src|border:0|alt|title|width|height|style]a[name|href|target|title|onclick]',
-		
+
 		oninit: applyChromeBugfix
     };
 
-    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES) ) 
+    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES) )
 		options.file_browser_callback = "WikiFileBrowser_open";
-	
+
 	if(!tinyMCELoaded) {
 		$LAB.script(getAPIHostRoot() + "/api/plugins/tiny_mce/tiny_mce_src.js").wait(function(){
 			tinyMCELoaded = true;
-			tinymce.dom.Event.domLoaded = true; 
+			tinymce.dom.Event.domLoaded = true;
 			tinyMCE.init(options);
 			applyChromeBugfix()
 		});
@@ -469,7 +469,7 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._layerChooseFlag = false;
 	this._geometryChooseFlag = false;
 	this._geometryRowContainer = _div();
-	
+
 	this._txtIconUrl = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
 	this._geometryTable = _table([_tbody([_tr([_td([_t(_gtxt("Объект для привязки: "))]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))], [['css', 'width', '100%']]), _td([_t(_gtxt("Иконка"))]), _td([this._txtIconUrl])])])], [['css','white-space', 'nowrap']]);
 	this._drawingObjectInfoRow = null;
@@ -482,9 +482,9 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
 	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._btnLayerClear]), _td([this._hlpLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle])])])], [['dir', 'className', 'wiki-editor-tblfields']]);
 	this._txtContent = _textarea(null, [['attr', 'id', 'message_content'], ['css', 'width', '100%'], ['css', 'height', '100%']]);
-	if (pageInfo.IconUrl) this._txtIconUrl.value = pageInfo.IconUrl;		
+	if (pageInfo.IconUrl) this._txtIconUrl.value = pageInfo.IconUrl;
 	if (pageInfo.LayerName) this._txtLayer.value = this._wikiPlugin._map.layers[pageInfo.LayerName].properties.title;
-	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;		
+	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;
 	if (pageInfo.Content) this._txtContent.value = pageInfo.Content;
 	var _btnOK = _button([_t(_gtxt("Сохранить"))], [['dir', 'className', 'wiki-editor-btnok']]);
 	if ($.browser.webkit || $.browser.opera) {_btnOK.style.padding='3px'}
@@ -497,7 +497,7 @@ WikiEditor.prototype = {
 	/** Отображает диалог редактирования */
 	showDialog: function(){
 		var _this = this;
-		if (this._pageInfo.Geometry) { 
+		if (this._pageInfo.Geometry) {
 			if (this._pageInfo.mapObject) this._pageInfo.mapObject.remove();
 			var obj = this._wikiPlugin._map.drawing.addObject(this._pageInfo.Geometry);
 		}else{
@@ -509,7 +509,7 @@ WikiEditor.prototype = {
 		//$(this._div).dialog({height: 350, width: 500, close: );
 		InitEditor('message_content');
 	},
-	
+
 	/** Обрабатывает события нажатия на кнопку "Сохранить"*/
 	updatePage: function(){
 		this._pageInfo.Title = this._txtTitle.value;
@@ -524,7 +524,7 @@ WikiEditor.prototype = {
 		if (!this._pageInfo.Geometry) { alert(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник")); return; };
 		$(this).triggerHandler('updatePage', [this._pageInfo]);
 	},
-	
+
 	/** Устанавливает для сообщения переданный объект на карте в качестве геометрии*/
 	setGeometry: function(drawing){
 		if (drawing && this._drawing) this._drawing.remove();
@@ -540,7 +540,7 @@ WikiEditor.prototype = {
 		}
 		this._drawing = drawing;
 	},
-	
+
 	/** Устанавливает для сообщения переданный слой*/
 	setLayer: function(layerName){
 		if (layerName){
@@ -548,11 +548,11 @@ WikiEditor.prototype = {
 			this._pageInfo.LayerName = layerName;
 		}
 		else{
-			this._txtLayer.value = ''; 
+			this._txtLayer.value = '';
 			this._pageInfo.LayerName = null;
 		}
 	},
-	
+
 	/** Закрывает диалог */
 	closeDialog: function(){
 		$(this._dialog).dialog('close');
@@ -569,10 +569,10 @@ WikiPlugin = function() {
 	this._wikiEditor = null;
     this._pagesCache = [];
     this._map = null;
-	
+
     this._treeView = null;
 	this._uiWikiButton = null;
-    
+
     this._createButton = null;
     this._filter = null;
 	this._pageToShow = null;
@@ -600,7 +600,7 @@ WikiPlugin.prototype = {
 									, function(){})
 		this._loadPages();
     },
-    
+
 	/** Создает новое сообщение */
 	createPage: function(layerID){
 		if (this._isUserLoggedIn()) {
@@ -619,7 +619,7 @@ WikiPlugin.prototype = {
 			this._pageToShow = pageID;
 		}
 	},
-	
+
 	/** Открывает редактор сообщения*/
 	openEditor: function(pageInfo){
 		if (this._wikiEditor){
@@ -638,14 +638,14 @@ WikiPlugin.prototype = {
 			this._wikiEditor.showDialog();
 		}
 	},
-    
+
 	/** Удаляет сообщение */
 	deletePage: function(pageInfo){
 		var _this = this;
 		pageInfo.IsDeleted = 1;
 		this._wikiService.updatePage(pageInfo, function(response) { _this._loadPages(); } );
 	},
-	
+
 	/** Возвращает сообщение по его Ид.*/
 	_getPageInfo: function(pageID){
 		var pageInfo = null;
@@ -657,37 +657,37 @@ WikiPlugin.prototype = {
 		}
 		return pageInfo
 	},
-	
+
 	/** Проверяет, авторизован ли пользователь*/
     _isUserLoggedIn: function() {
         return nsGmx.AuthManager.isLogin();
     },
-       
+
 	/** Добавляет кнопку "Создать сообщение" */
 	_addButton: function(){
         var clickFunction = function() {
 					this.createPage();
                 }.bind(this);
-		
+
 		this._createButton = $('<span class="wiki-wizard-button">' + _gtxt("Создать сообщение") + '</span>').click(clickFunction);
 		$(oWikiDiv).append($('<div class="wiki-wizard-button"></div>').append(this._createButton));
 	},
-	
+
 	/** Добавляет обработчик события добавления нового объекта на карту */
     _attachDrawingObjectsEvents: function() {
         if (!this._isUserLoggedIn()) return;
-    
+
         this._map.drawing.setHandlers({
 		    onAdd: this._onDrawingObjectAdded.bind(this),
 			onRemove: this._onDrawingObjectRemove.bind(this)
 		});
     },
-    
+
 	/** Обработчик события добавления нового объекта на карту */
     _onDrawingObjectAdded: function(elem) {
         if (elem.geometry.type != 'POINT' &&
             elem.geometry.type != 'POLYGON') return;
-			
+
 		if(this._wikiEditor) {
 			this._wikiEditor.setGeometry(elem);
 			if (elem.geometry.type == 'POLYGON'){
@@ -698,22 +698,22 @@ WikiPlugin.prototype = {
 			}
 		}
     },
-	
+
 	/** Обработчик события удаления объекта с карты */
 	_onDrawingObjectRemove: function(){
 		if(this._wikiEditor) this._wikiEditor.setGeometry(null);
 	},
-	
+
 	/** Добавляет обработчик события выбора слоя в дереве слоев */
 	_attachTreeEvents: function() {
         var that = this;
-                
+
         $(_layersTree).bind('layerVisibilityChange', function(event, elem) {
             var layerInfo = elem.content.properties;
             if(that._wikiObjects) that._wikiObjects.setLayerVisible(layerInfo.name, layerInfo.visible);
             that._filter.filter();
         })
-        
+
         $(_layersTree).bind('activeNodeChange', function(event, div) {
             if (that._wikiEditor && div.gmxProperties.type === 'layer') {
                 var layerInfo = div.gmxProperties.content.properties;
@@ -721,10 +721,10 @@ WikiPlugin.prototype = {
             }
         })
     },
-    
+
 	/** Добавляет кнопку "Отобразить/скрыть все сообщения на карте" */
 	_ensureWikiButton: function() {
-        if (!this._pagesCache || !this._pagesCache.length) return;        
+        if (!this._pagesCache || !this._pagesCache.length) return;
         if (!this._uiWikiButton) {
             this._uiWikiButton = $('<div class="wiki-button" title="' + _gtxt('Показать/скрыть сообщения на карте') + '" />')
                 .addClass('page-button-on')
@@ -733,31 +733,31 @@ WikiPlugin.prototype = {
 		if (jQuery.browser.msie) { this._uiWikiButton.css('display', 'inline'); };
         this._treeView.find('div[mapid="' + this._map.properties.MapID + '"] div:first').append(this._uiWikiButton);
     },
-    
+
 	/** Обрабатывает событие нажатия на кнопку "Отобразить/скрыть все сообщения на карте"  */
     _toggleWikiObjectsVisibility: function() {
-        this._wikiObjects.setObjectsVisibility( 
+        this._wikiObjects.setObjectsVisibility(
             this._isWikiButtonOn(this._uiWikiButton.toggleClass('page-button-on').toggleClass('page-button-off'))
         );
     },
-	
+
 	/** Переключает состояние кнопки "Отобразить/скрыть все сообщения на карте"  */
 	_setWikiButtonState: function(button, isOn) {
         if (!button) return;
         button.removeClass('page-button-on page-button-off').addClass('page-button-' + (isOn ? 'on' : 'off'));
     },
-    
+
 	/** Возвращает состояние кнопки "Отобразить/скрыть все сообщения на карте" */
     _isWikiButtonOn: function(button) {
         return button && button.length && button.hasClass('page-button-on');
     },
-    
+
 	/** Загружает список сообщений */
     _loadPages: function() {
 		var _this = this;
 		var objects = this._wikiObjects;
         objects.removeObjects();
-		
+
         this._wikiService.getPages(function(status, data){
 			if (status != 'ok' || data.Status != 'ok') {
 				// Something went wrong
@@ -782,10 +782,10 @@ WikiPlugin.prototype = {
 				objects.showPage(_this._getPageInfo(_this._pageToShow));
 				_this._pageToShow = null;
 			}
-			
+
 			_this._filter.pagesCache = _this._pagesCache;
 			_this._filter.filter();
-			
+
 			_this._ensureWikiButton();
 		});
     }
@@ -836,7 +836,7 @@ var addMenuItems = function(){
 	return [{item: {id:'wiki', title:_gtxt('Сообщения'),func:loadMenu},
 			parentID: 'viewMenu'}];
 }
- 
+
 var publicInterface = {
     pluginName: 'Wiki',
 	beforeViewer: beforeViewer,
@@ -847,7 +847,7 @@ var publicInterface = {
 gmxCore.addModule("wiki", publicInterface, {init: function(module, path)
     {
         pluginPath = path;
-        
+
         //Необходимо для того, чтобы дополнительные скрипты tiny_mce загружались
         window.tinyMCEPreInit = {
             base: path + 'tiny_mce',

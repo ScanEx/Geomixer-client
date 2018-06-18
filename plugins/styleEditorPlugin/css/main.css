@@ -1,0 +1,162 @@
+@import "~@blueprintjs/core";
+@import 'colorpicker.css';
+html, body {
+    width: 100%;
+    margin: 0px;
+}
+
+body {
+    background-color: #F3F3F3;
+    background-color: white;
+    font-family: Arial;
+}
+
+h2 {
+    text-align: center;
+}
+
+#map {
+    height: 600px;
+}
+
+.wrap {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+.gmx-style-editor {
+    width: 360px;
+    height: 100%;
+    float: left;
+    background-color: rgba(236, 241, 245, 1);
+    /*padding: 0 5px 0 5px;*/
+    padding: 0;
+}
+
+.header {
+    /*margin: 12px 0 10px 0;*/
+    padding: 12px 0 10px 0;
+    border-right: 1px dotted rgba(0,0,0,0.2);
+}
+
+.content {
+    width: 100%;
+    background:#f4f8fb;
+    border-right: 1px dotted rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+
+.width-setting {
+    vertical-align: middle;
+}
+
+.reset {
+    width: 120px;
+    margin: auto;
+}
+
+.div-table {
+    margin: 8 0;
+    display: table;
+    width: auto;
+}
+
+.div-table-row {
+    display: table-row;
+    width: auto;
+    clear: both;
+}
+
+.div-table-col {
+    float: left; /* fix for  buggy browsers */
+    display: table-column;
+    width: 120px;
+    max-width: 120px;
+}
+
+.div-table-col input {
+    width: 120px;
+    margin: 0;
+}
+
+.div-table-col .width-type {
+    text-align: left;
+}
+
+
+
+.iconSidebarControl_expanded {
+    height: 1000px;
+}
+
+.iconSidebarControl-content {
+    position: absolute;
+    right: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(255, 255, 255);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.iconSidebarControl-content .content {
+    background-color: rgb(255, 255, 255);
+}
+/*
+.iconSidebarControl {
+    background-color: #4c5567 !important;
+    height: 100%;
+}
+.iconSidebarControl-pane{
+    padding: 0px !important;
+}
+.iconSidebarControl_opened {
+    width: 415px !important;
+}*/
+
+.iconSidebarControl {
+    background-color: #4c5567 !important;
+    /* background-color: #FFF !important; */
+    height: 100%;
+}
+
+.iconSidebarControl-pane {
+    padding: 0px !important;
+}
+
+.iconSidebarControl_opened {
+    width: 400px !important;
+}
+
+.iconSidebarControl {
+    margin: 0;
+}
+
+.leaflet-left .iconSidebarControl {
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.rc-color-picker-panel-inner {
+    position: relative;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px #ccc;
+    border: 1px solid #ccc;
+    padding-bottom: 8px;
+    background: #FFF!important;
+    width: 237px!important;
+}
+
+.style-slider {
+    vertical-align: middle;
+    width: 80px;
+    margin-right: 7px!important;
+    margin-left: 7px!important;
+    display: inline-block;
+}
+
+label {
+    font-weight: 400!important;
+}

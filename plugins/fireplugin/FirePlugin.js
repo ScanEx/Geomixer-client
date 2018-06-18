@@ -155,7 +155,7 @@ var _formatDateForServer = function( datetime, skipTime )
 */
 var ModisImagesProvider = function( params )
 {
-    var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
+    var _params = $.extend({host: window.location.protocol + "//maps.kosmosnimki.ru/"}, params)
     var layersNamesToLoad = ['C2E8FE742B754B99A3F89A2D850BAF5B']; //слои, в которых хранятся снимки Terra и Aqua
     var initDone = false;
 

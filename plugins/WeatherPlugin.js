@@ -40,8 +40,8 @@
                     });
                 }
                 var dataGlobal = null,
-                    weatherURL = 'http://maps.kosmosnimki.ru/Weather.ashx',
-                    imagesHost = 'http://maps.kosmosnimki.ru/api/img/weather/',
+                    weatherURL = window.location.protocol + '//maps.kosmosnimki.ru/Weather.ashx',
+                    imagesHost = window.location.protocol + '//maps.kosmosnimki.ru/api/img/weather/',
                     accordingTo = _gtxt('WeatherPlugin.AccordingTo') || rus.accordingTo,
                     weekdays = _gtxt('WeatherPlugin.weekdays') || rus.weekdays,
                     tods = _gtxt('WeatherPlugin.tods') || rus.tods,
@@ -77,7 +77,7 @@
                                 pres = Math.round((pt.PressureMax + pt.PressureMin) / 2),
                                 rel = Math.round((pt.HumidityMax + pt.HumidityMin) / 2),
                                 date = new Date(Number(pt.DateTime.replace("/Date(","").replace(")/","")));
-                          
+
                             str += '<tr>' +
                                 '<td style="width:70px">' + weekdays[date.getDay()] + ', ' + tods[pt.TimeOfDay] + '</td>';
 
@@ -94,7 +94,7 @@
                             str += '</tr>';
                         }
                         str += '</table></tbody>';
-                        str += '<div style="margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;">' + accordingTo + ' <a href="http://gismeteo.ru" target="_blank">Gismeteo.ru</a></div>';
+                        str += '<div style="margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;">' + accordingTo + ' <a href="' + window.location.protocol + '//gismeteo.ru" target="_blank">Gismeteo.ru</a></div>';
                         popup.setContent(str);
                     };
 
@@ -183,7 +183,7 @@
                     if (!dataGlobal) {
                         dataGlobal = {};
                         L.gmxUtil.requestJSONP(
-                            params.weatherURL || 'http://maps.kosmosnimki.ru/Weather.ashx',
+                            params.weatherURL || window.location.protocol + '//maps.kosmosnimki.ru/Weather.ashx',
                             {
                                 WrapStyle: 'func',
                                 country: params.countryCode || 0

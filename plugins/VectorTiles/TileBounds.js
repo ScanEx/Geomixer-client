@@ -15,7 +15,7 @@
         } else if (params.DefaultLayerID) {
             out = params.DefaultLayerID;
         }
-        
+
         return out;
     }
 
@@ -32,7 +32,7 @@
             var LMap = nsGmx.leafletMap,
                 featureGroup = L.featureGroup();
 
-            var tileSenderPrefix = 'http://maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=func&key=&ModeKey=tile&r=j',
+            var tileSenderPrefix = window.location.protocol + '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=func&key=&ModeKey=tile&r=j',
                 testLayer = null;
                 tileKeyBboxHash = {};
             function popupFunc(ev) {
@@ -64,7 +64,7 @@
                     linkHref = L.DomUtil.create('a', 'TileBounds-popup-href', link),
                     showBbox = L.DomUtil.create('button', 'TileBounds-popup-bbox', content),
                     objCount = L.DomUtil.create('div', 'TileBounds-popup-count', content);
-                    
+
                 objCount.innerHTML = (tile.isGeneralized ? '<br>Генерализованный' : '') +
                     '<br>Объектов: <b>' + (tile.data ? tile.data.length : 0) + '</b>';
                 titleDiv.innerHTML = title;
@@ -94,7 +94,7 @@
                             }
                         });
                     }
-                    
+
                 };
                 popup.setContent(content);
             };
@@ -103,7 +103,7 @@
             featureGroup.on('popupopen', popupFunc, featureGroup);
             featureGroup.addTo(LMap);
             var tileIcon = L.control.gmxIcon({
-                    id: 'tileIcon', 
+                    id: 'tileIcon',
                     togglable: true,
                     className: 'leaflet-gmx-icon-sprite',
                     regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,

@@ -14,48 +14,48 @@ var initTranslations = function()
         "TitleFiresScanEx" : "Пожары ScanEx",
         "TitleFiresFIRMS" : "Пожары FIRMS",
         "LayerClusterBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
             // "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
         "LayerClusterBalloonIndustrial" :
-            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></span> (вероятный техногенный источник <a target='blank' href='" + window.location.protocol + "//fires.kosmosnimki.ru/help.html#techno'>?</a>) <br/>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
             // "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
         "LayerGeometryBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
-            "<b>Кол-во термоточек:</b> [count]<br/>" + 
-            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" +
+            "<b>Кол-во термоточек:</b> [count]<br/>" +
+            "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Приблизьте карту, чтобы увидеть контур",
         "timeTitlePrefix" : "За ",
         "timeTitleLastPrefix" : "За последние ",
         "timeTitlePostfix" : "ч (UTC)"
     }});
-                             
+
     _translationsHash.addtext("eng", { firesWidget: {
         "DailyCoverage.Description" : "Satellite images (MODIS)",
         "TitleFiresScanEx" : "Fires from ScanEx",
         "TitleFiresFIRMS" : "Fires from FIRMS",
-        "LayerClusterBalloon" : 
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+        "LayerClusterBalloon" :
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
             // "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
-        "LayerClusterBalloonIndustrial" : 
-            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href='http://fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+        "LayerClusterBalloonIndustrial" :
+            "<span style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></span> (probable industrial hotspot <a target='_blank' href=" + window.location.protocol + "'//fires.kosmosnimki.ru/help.html#techno'>?</a>)<br/>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
             // "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
         "LayerGeometryBalloon" :
-            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
-            "<b>Number of hotspots:</b> [count]<br/>" + 
-            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" +
+            "<b>Number of hotspots:</b> [count]<br/>" +
+            "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Zoom-in to see the outline",
         "timeTitlePrefix" : "For ",
@@ -111,7 +111,7 @@ var AggregateStatus = function()
 	var _statuses = {};
 	var _statusCommon = true;
 	var _this = this;
-	
+
 	var _updateCommonStatus = function()
 	{
 		var newStatus = true;
@@ -121,21 +121,21 @@ var AggregateStatus = function()
 				newStatus = false;
 				break;
 			}
-			
+
 		var isStatusChanged = newStatus != _statusCommon;
 		_statusCommon = newStatus;
-			
-		if (isStatusChanged) 
+
+		if (isStatusChanged)
 			$(_this).triggerHandler('change');
 	}
-	
+
 	//public
 	this.setStatus = function( type, status )
 	{
 		_statuses[type] = status;
 		_updateCommonStatus();
 	}
-	
+
 	this.getCommonStatus = function(){ return _statusCommon };
 }
 
@@ -150,7 +150,7 @@ var _formatDateForServer = function( datetime, skipTime )
  ************************************
  *          Data Providers          *
  ************************************/
- 
+
 // IDataProvider interface
 //   getDescription: function(){}, //возвращает строчку, которая показывается рядом с checkbox
 //   getData: function( dateBegin, dateEnd, bbox, onSucceess, onError ){} //onSucceess(data) - полученные данные; onError(type) - ошибка определённого типа
@@ -163,10 +163,10 @@ var _formatDateForServer = function( datetime, skipTime )
 */
 var ModisImagesProvider = function( params )
 {
-    var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
+    var _params = $.extend({host: window.location.protocol + "//maps.kosmosnimki.ru/"}, params)
     var layersNamesToLoad = ['C2E8FE742B754B99A3F89A2D850BAF5B']; //слои, в которых хранятся снимки Terra и Aqua
     var initDone = false;
-	
+
 	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
@@ -183,7 +183,7 @@ var ModisImagesProvider = function( params )
                 layer.setDateInterval(new Date(dateEnd.valueOf() - 24*3600*1000), dateEnd);
                 modisLayers.push(layer);
             }
-            
+
             onSucceess({modisLayers: modisLayers});
         })
 	}
@@ -194,16 +194,16 @@ var _createHoverFunction = function(params, balloonProps)
 	return function(o)
 	{
 		var p = balloonProps[o.objectId];
-		
+
 		if (!p) return;
-					
+
 		var res = typeof params.title !== 'undefined' ? params.title : "";
 		for ( var i in p )
 			res += "<b>" + i + ":</b> " + p[i] + "<br />";
-		
+
 		if (typeof params.addGeometrySummary === 'undefined' || params.addGeometrySummary)
 			res += o.getGeometrySummary();
-		
+
 		return res + (typeof params.endTitle !== 'undefined' ? "<br/>" + params.endTitle : "");
 	}
 }
@@ -221,39 +221,39 @@ var _hq = {
 		for (var idx in points) {
 			var pt = points[idx];
 			var d = this.getDistant(pt, baseLine);
-			
+
 			if ( d > 0) {
 				newPoints.push(pt);
 			} else {
 				continue;
 			}
-			
+
 			if ( d > maxD ) {
 				maxD = d;
 				maxPt = pt;
 			}
-		
-		} 
+
+		}
 		return {'maxPoint':maxPt, 'newPoints':newPoints}
 	},
 
 	buildConvexHull: function(baseLine, points) {
-		
+
 		var convexHullBaseLines = new Array();
 		var t = this.findMostDistantPointFromBaseLine(baseLine, points);
 		if (t.maxPoint.length) {
 			convexHullBaseLines = convexHullBaseLines.concat( this.buildConvexHull( [baseLine[0],t.maxPoint], t.newPoints) );
 			convexHullBaseLines = convexHullBaseLines.concat( this.buildConvexHull( [t.maxPoint,baseLine[1]], t.newPoints) );
 			return convexHullBaseLines;
-		} else {       
+		} else {
 			return [baseLine];
-		}    
+		}
 	},
-	getConvexHull: function(points) {	
+	getConvexHull: function(points) {
 
 		if (points.length == 1)
 			return [[points[0], points[0]]];
-			
+
 		//find first baseline
 		var maxX, minX;
 		var maxPt, minPt;
@@ -278,89 +278,89 @@ var _hq = {
             unitedMultiPolygon = [],
             nStartPolygons = 0,
             currentPolygon;
-		
+
 		do {
 			nStartPolygons = multiPolygon.length;
 			unitedMultiPolygon = [];
-			
+
 			while(multiPolygon.length > 0){
 				currentPolygon = multiPolygon.pop();
 				var iOther = 0;
-				
+
 				// Check if it overlaps with any remaining polygons
 				while(iOther < multiPolygon.length) {
-				
+
 					var unionResults = currentPolygon.union(multiPolygon[iOther]);
-					
+
 					if(unionResults != null){
 						currentPolygon = unionResults;
 						multiPolygon.splice(iOther,1);
 					} else {
 						iOther++;
-					}					
-				}			
-				unitedMultiPolygon.push(currentPolygon)				
+					}
+				}
+				unitedMultiPolygon.push(currentPolygon)
 			}
 			multiPolygon = unitedMultiPolygon;
 		}while(multiPolygon.length < nStartPolygons);
-		
+
 		for(var i = 0; i < unitedMultiPolygon.length;i++) {
 			var poly = unitedMultiPolygon[i].to_point_array_2d();
-			poly.push(poly[0]); 
-			
+			poly.push(poly[0]);
+
 			matrixMultiPolygon.push([poly]);
-		}	
-		
+		}
+
 		return matrixMultiPolygon;
 	},
 	getPixelMultiPolygon: function(points) {
 		var results = [];
-		
+
 		for(var i = 0;i < points.length;i++) {
 			var pt = points[i];
 			var dims = ModisPixelDimensions[pt[2]];
-			
+
             var merc = L.Projection.Mercator.project({lat: pt[1], lng: pt[0]});
             var X1 = merc.x;
 			var Y1 = merc.y;
-			
+
 			var X2 = X1 + 1000;
 			var Y2 = Y1;
-			
+
             var newLatLng = L.Projection.Mercator.unproject({x: X2, y: Y2});
 			var newLat = pt[1];
 			var newLon = newLatLng.lng;
-			
+
 			var mdelta = L.gmxUtil.distVincenty(pt[0],pt[1],newLon,newLat);
 
 			var h_scale = dims[0] / mdelta;
 			var v_scale = dims[1] / mdelta;
-			
-					
+
+
 			var h_dx = 0.5*(X2 - X1)*h_scale;
 			var h_dy = 0.5*(Y2 - Y1)*h_scale;
-			
+
 			var v_dx = 0.5*(Y2-Y1)*v_scale;
 			var v_dy = 0.5*(X2-X1)*v_scale;
-			
+
 			var frontX = X1 + h_dx;
 			var frontY = Y1 + h_dy;
-			
+
 			var backX = X1 - h_dx;
 			var backY = Y1 - h_dy;
-		
+
 			var corner1x =  frontX + v_dx;
 			var corner1y =  frontY + v_dy;
-		
+
 			var corner2x =  frontX - v_dx;
 			var corner2y =  frontY - v_dy;
-		
+
 			var corner3x =  backX - v_dx;
 			var corner3y =  backY - v_dy;
-			
+
 			var corner4x =  backX + v_dx;
-			var corner4y =  backY + v_dy;    
-            
+			var corner4y =  backY + v_dy;
+
 			results.push( SpatialQuery.$p([
 				[corner1x, corner1y],
 				[corner2x, corner2y],
@@ -368,7 +368,7 @@ var _hq = {
 				[corner4x, corner4y]
             ]));
 		}
-		
+
 		return results;
 	}
 }
@@ -376,9 +376,9 @@ var _hq = {
 
 var dateToString = function(timestamp) {
     var date = new Date(timestamp*1000);
-    
+
     var lz = function(n) {return n > 9 ? n : '0' + n;};
-    
+
     return lz(date.getUTCDate()) + '.' + lz(date.getUTCMonth()+1) + '.' + date.getUTCFullYear();
 }
 //По начальной и конечной дате формирует строчку для отображения интервала дат
@@ -394,44 +394,44 @@ var _datePeriodHelper = function(dateMin, dateMax)
  ************************************
  *            Renderers             *
  ************************************/
- 
+
 var _lazyLoadFireLayers = (function()
 {
     var loadDeferred = null;
-    
+
     return function(params)
     {
         //TODO: remove default values
         var _params = $.extend(true, {
             hotspotLayerName: 'A78AC25E0D924258B5AF40048C21F7E7',
-            mapName: '3PORS', 
+            mapName: '3PORS',
             host: 'maps.kosmosnimki.ru'
         }, params);
-        
+
         if (!loadDeferred)
         {
             if (_params.host.indexOf('http://') === 0)
                 _params.host = _params.host.substring(7, _params.host.length - 1);
-                
+
             loadDeferred = $.Deferred();
-                
+
             L.gmx.loadMap(_params.mapName, {hostName: _params.host}).then(function(gmxMap)
             {
                 var layer = gmxMap.layersByID[_params.hotspotLayerName];
-                
+
                 if (typeof _params.minZoom !== 'undefined')
                 {
                     layer.setZoomBounds(_params.minZoom, 17);
                 }
-                
+
                 if (nsGmx && nsGmx.widgets && nsGmx.widgets.commonCalendar) {
                     nsGmx.widgets.commonCalendar.unbindLayer(_params.hotspotLayerName);
                 }
-                
+
                 loadDeferred.resolve(gmxMap);
             });
         }
-        
+
         return loadDeferred.promise();
     }
 })();
@@ -439,7 +439,7 @@ var _lazyLoadFireLayers = (function()
 var FireBurntProvider3 = function( params )
 {
     this.getDescription = function() {
-        return params.title; 
+        return params.title;
     };
 
     this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
@@ -461,9 +461,9 @@ var FireBurntRenderer3 = function(params)
         clusterTimeAttr: 'ClusterDate',
         mapName: 'NDFYK'
     }, params);
-    
+
     buildModisPixelDimensionsTable();
-    
+
     var map = params.map,
         rawHotspotsLayer,
         rawClustersLayer,
@@ -473,9 +473,9 @@ var FireBurntRenderer3 = function(params)
         observerClusters,
         dateBegin,
         dateEnd;
-        
+
     var isVisible = false;
-    
+
     clustersLayer = L.gmx.createLayer({
         properties: {
             title: 'FireClusters',
@@ -525,7 +525,7 @@ var FireBurntRenderer3 = function(params)
             }]
         }
     }).addTo(map);
-    
+
     clustersLayer.on('popupopen', function(event) {
         var popup = event.popup,
             html = popup.getContent(),
@@ -533,15 +533,15 @@ var FireBurntRenderer3 = function(params)
                 map.closePopup(event.popup);
                 map.setView(event.gmx.latlng, _params.minGeomZoom + 3);
             });
-        
+
         var div = $('<div/>').html(html).append(zoomLink);
         event.popup.setContent(div[0]);
     })
-    
+
     if (_params.zIndex) {
         clustersLayer.setZIndex(_params.zIndex);
     }
-        
+
     clustersGeomLayer = L.gmx.createLayer({
         properties: {
             type: 'Vector',
@@ -553,24 +553,24 @@ var FireBurntRenderer3 = function(params)
                 MinZoom: _params.minGeomZoom,
                 MaxZoom: 21,
                 RenderStyle: {
-                    outline: { color: 0xff0000, thickness: 2 }, 
+                    outline: { color: 0xff0000, thickness: 2 },
                     fill:    { color: 0xff0000, opacity: 15 }
                 },
                 HoverStyle: {
-                    outline: { color: 0xff0000, thickness: 3 }, 
+                    outline: { color: 0xff0000, thickness: 3 },
                     fill:    { color: 0xff0000, opacity: 45 }
                 }
             }]
         }
     }).addTo(map);
-    
+
     if (_params.zIndex) {
         clustersGeomLayer.setZIndex(_params.zIndex);
     }
 
     var updateLayersVisibility = function() {
         var zoom = map.getZoom();
-        
+
         observerHotspots && observerHotspots.toggleActive(zoom >= _params.minGeomZoom && isVisible);
         observerClusters && observerClusters.toggleActive(zoom < _params.minGeomZoom && isVisible);
 
@@ -587,17 +587,17 @@ var FireBurntRenderer3 = function(params)
     {
         rawHotspotsLayer = gmxMap.layersByID[_params.hotspotLayerName];
         rawClustersLayer = gmxMap.layersByID[_params.dailyLayerName];
-        
+
         if (nsGmx.widgets && nsGmx.widgets.getCommonCalendar) {
             var commonCalendar = nsGmx.widgets.getCommonCalendar()
             commonCalendar.unbindLayer(_params.hotspotLayerName);
             commonCalendar.unbindLayer(_params.rawClustersLayer);
         }
-        
+
         if (_params.zIndex) {
             rawHotspotsLayer.setZIndex(_params.zIndex);
         }
-        
+
         var parseServerDateTime = function(dateStr) {
             var p = dateStr.match(/^(\d\d\d\d).(\d\d).(\d\d)(.(\d\d).(\d\d).(\d\d))?$/); //YYYY.MM.DD HH.MM.SS или без вреемни: YYYY.MM.DD
             if (!p) return null;
@@ -605,11 +605,11 @@ var FireBurntRenderer3 = function(params)
                 parseInt(p[1]), parseInt(p[2]-1), parseInt(p[3]),  //дата
                 parseInt(p[5] || 0), parseInt(p[6] || 0), parseInt(p[7] || 0) //время
             );
-            
+
             var timeOffset = localDate.getTimezoneOffset()*60*1000;
             return localDate - timeOffset;
         }
-        
+
         var updateClustersByObject = function(layer, estimeteGeometry, clusterAttr, hotspotAttr, countAttr, dateAttr, fromLayer) {
             var clusters = {};
             return function( data ) {
@@ -634,18 +634,18 @@ var FireBurntRenderer3 = function(params)
                     var props = objects[k].item.properties;
                     var mult = objects[k].onExtent ? 1 : -1;
                     var count = (countAttr ? props[countAttr] : 1) * mult;
-                    
+
                     if (!props[clusterAttr])
                         continue;
-                        
+
                     var clusterId = '_' + props[clusterAttr];
                     var hotspotId = '_' + props[hotspotAttr];
 
                     if (!clusters[clusterId]) {
                         clusters[clusterId] = {
                             spots: {},
-                            lat: 0, 
-                            lng: 0, 
+                            lat: 0,
+                            lng: 0,
                             count: 0,
                             startDate: Number.POSITIVE_INFINITY,
                             endDate: Number.NEGATIVE_INFINITY,
@@ -653,35 +653,35 @@ var FireBurntRenderer3 = function(params)
                         };
                     }
                     var cluster = clusters[clusterId];
-                    
+
                     //два раза одну и ту же точку не добавляем
                     if (hotspotId in cluster.spots && objects[k].onExtent)
                         continue;
 
                     var coords = objects[k].item.geometry.coordinates,
                         latlng = L.Projection.Mercator.unproject({y: coords[1], x: coords[0]});
-                    
+
                     if (objects[k].onExtent)
                         cluster.spots[hotspotId] = [latlng.lng, latlng.lat, 250]; //TODO: выбрать правильный номер sample
                     else
                         delete cluster.spots[hotspotId];
-                        
+
                     //var hotspotDate = parseServerDateTime(props[dateAttr]);
                     var hotspotDate = props[dateAttr];
-                    
+
                     cluster.lat += count * coords[1];
                     cluster.lng += count * coords[0];
                     cluster.count += count;
                     cluster.startDate = Math.min(cluster.startDate, hotspotDate);
                     cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
                     cluster.isIndustrial = cluster.isIndustrial || (Number(props.FireType) & 1);
-                    
+
                     clustersToRepaint[clusterId] = true;
                 }
-                
+
                 var clustersToAdd = [],
                     itemIDsToRemove = [];
-                
+
                 for (var k in clustersToRepaint)
                 {
                     var cluster = clusters[k],
@@ -714,15 +714,15 @@ var FireBurntRenderer3 = function(params)
                             cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate,
                             Number(cluster.isIndustrial)
                         ];
-                        
+
                         if (estimeteGeometry) {
                             var points = [];
                             for (var p in clusters[k].spots)
                                 points.push(clusters[k].spots[p]);
-                                
+
                             var multiPolygon = _hq.getPixelMultiPolygon(points);
                             var tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
-                            
+
                             newItem.push({
                                 type: 'MULTIPOLYGON',
                                 coordinates: tmpPolygon
@@ -733,20 +733,20 @@ var FireBurntRenderer3 = function(params)
                                 coordinates: [clusters[k].lng / count, clusters[k].lat / count]
                             });
                         }
-                        
-                        clustersToAdd.push(newItem);               
+
+                        clustersToAdd.push(newItem);
                     } else {
                         itemIDsToRemove.push(k);
                         delete clusters[k];
-                        
+
                     }
                 }
-                
+
                 layer.addData(clustersToAdd);
                 layer.removeData(itemIDsToRemove);
             }
         }
-        
+
         observerClusters = rawClustersLayer.addObserver({
             type: 'update',
             callback: updateClustersByObject(clustersLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', _params.clusterTimeAttr, rawClustersLayer)
@@ -756,47 +756,47 @@ var FireBurntRenderer3 = function(params)
             type: 'update',
             callback: updateClustersByObject(clustersGeomLayer, true, 'ClusterID', _params.hotspotIDAttr, null, _params.hotspotTimeAttr, rawHotspotsLayer)
         });
-        
+
         map.on('zoomend', updateLayersVisibility);
         updateLayersVisibility();
-        
+
         var mercBbox = function(latlngBbox) {
             var mercMin = L.Projection.Mercator.project({lat: latlngBbox.min.y, lng: latlngBbox.min.x});
             var mercMax = L.Projection.Mercator.project({lat: latlngBbox.max.y, lng: latlngBbox.max.x});
             return L.gmxUtil.bounds([[mercMin.x, mercMin.y], [mercMax.x, mercMax.y]]);
         }
-        
+
         var fromMercBbox = function(bbox) {
             var min = L.Projection.Mercator.unproject(bbox.min);
             var max = L.Projection.Mercator.unproject(bbox.max);
             return L.gmxUtil.bounds([[min.lng, min.lat], [max.lng, max.lat]]);
         }
-        
-        //если старый 
+
+        //если старый
         var getExtendedBbox = function(mercOld, newBbox) {
             var extendBbox = function(bbox) {
                 var sx = (bbox.max.x - bbox.min.x)*0.15,
                     sy = (bbox.max.y - bbox.min.y)*0.15;
-                    
+
                 return L.gmxUtil.bounds([[bbox.min.x - sx, bbox.min.y - sy], [bbox.max.x + sx, bbox.max.y + sy]]);
             }
-            
+
             var mercNew = mercBbox(newBbox);
-            
+
             if (!mercOld) {
                 return fromMercBbox(extendBbox(mercNew));
             }
-            
+
             var oldSquare = (mercOld.max.x - mercOld.min.x) * (mercOld.max.y - mercOld.min.y),
                 newSquare = (mercNew.max.x - mercNew.min.x) * (mercNew.max.y - mercNew.min.y);
-                
+
             if (!mercOld.contains([mercNew.min.x, mercNew.min.y]) || !mercOld.contains([mercNew.max.x, mercNew.max.y]) || 2 * newSquare < oldSquare) {
                 return fromMercBbox(extendBbox(mercNew));
             } else {
                 return null;
             }
         }
-        
+
         var updateBbox = function() {
             var observersBbox = observerHotspots.bbox,
                 screenBounds = map.getBounds(),
@@ -804,16 +804,16 @@ var FireBurntRenderer3 = function(params)
                 p2 = screenBounds.getSouthEast(),
                 newBbox = L.gmxUtil.bounds([[p1.lng, p1.lat], [p2.lng, p2.lat]]),
                 extendedBbox = getExtendedBbox(observersBbox, newBbox);
-                
+
             if (extendedBbox) {
                 observerHotspots.setBounds(extendedBbox);
                 observerClusters.setBounds(extendedBbox);
             }
         };
-        
+
         map.on('moveend', updateBbox);
         updateBbox();
-        
+
         updateLayersDateInterval();
     });
 
@@ -821,21 +821,21 @@ var FireBurntRenderer3 = function(params)
         if (!dateBegin || !dateEnd) {
             return;
         }
-        
+
         rawClustersLayer && rawClustersLayer.setDateInterval(dateBegin, dateEnd);
         rawHotspotsLayer && rawHotspotsLayer.setDateInterval(dateBegin, dateEnd);
-        
+
         observerClusters && observerClusters.setDateInterval(dateBegin, dateEnd);
         observerHotspots && observerHotspots.setDateInterval(dateBegin, dateEnd);
     }
-    
+
     this.bindData = function(data)
 	{
         dateBegin = data.dateBegin;
         dateEnd = data.dateEnd;
         updateLayersDateInterval();
     }
-    
+
     this.setVisible = function(visibilityFlag)
     {
         isVisible = visibilityFlag;
@@ -848,7 +848,7 @@ var FireBurntRenderer3 = function(params)
 
 /** Рисует на карте картинки MODIS
 * @memberOf FireMapplet
-* @class 
+* @class
 */
 var ModisImagesRenderer = function( params )
 {
@@ -858,7 +858,7 @@ var ModisImagesRenderer = function( params )
         if (data)
             modisLayers = data.modisLayers;
 	}
-	
+
 	this.setVisible = function(flag)
 	{
 		if (modisLayers) {
@@ -873,29 +873,29 @@ var ModisImagesRenderer = function( params )
  ************************************
  *            FireControl          *
  ************************************/
- 
+
  /**
 * @memberOf FireMapplet
-* @class 
+* @class
 */
 var FireControl = function(map)
 {
 	this.dateFiresBegin = null;
 	this.dateFiresEnd   = null;
-	
+
 	this.dataControllers = {};
-	
+
 	this.statusModel = new AggregateStatus();
 	this.processingModel = new AggregateStatus();
-	
+
 	this._currentVisibility = true;
-	
+
 	this._timeShift = null; //фиксированный сдвиг по времени (например, из пермалинка)
-	
+
 	this._map = map;
-	
+
 	this._initDeferred = new $.Deferred();
-	
+
 	FireControlCollection.instances.push(this);
 	$(FireControlCollection).triggerHandler('newInstance');
 }
@@ -903,15 +903,15 @@ var FireControl = function(map)
 var FireControlCollection = {instances: []};
 
 //настройки виджета пожаров по умолчанию
-FireControl.DEFAULT_OPTIONS = 
+FireControl.DEFAULT_OPTIONS =
 {
-	firesHost:       'http://sender.kosmosnimki.ru/v3/',
-	modisHost:      'http://maps.kosmosnimki.ru/',
-	burntHost:       'http://sender.kosmosnimki.ru/',
-	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
-	
+	firesHost:       window.location.protocol + '//sender.kosmosnimki.ru/v3/',
+	modisHost:      window.location.protocol + '//maps.kosmosnimki.ru/',
+	burntHost:       window.location.protocol + '//sender.kosmosnimki.ru/',
+	fireIconsHost:   window.location.protocol + '//maps.kosmosnimki.ru/images/',
+
 	initExtent: null,
-    
+
     minPower: null,
     minConfidence: null,
 
@@ -928,15 +928,15 @@ FireControl.prototype.saveState = function()
 	var dc = [];
 	for (k in this.dataControllers)
 		dc.push({name: this.dataControllers[k].name, visible: this.dataControllers[k].visible});
-	
+
 	var resData = {
 		dataContrololersState: dc
 	}
-	
+
     var ts = this.getCurrentTimeShift();
 	if (ts)
 		$.extend(true, resData, {timeShift: this._timeShift || ts});
-	
+
 	return resData;
 }
 
@@ -948,12 +948,12 @@ FireControl.prototype.loadState = function( data )
             if (dc[k].name in this.dataControllers)
             {
                 var curController = this.dataControllers[dc[k].name];
-                
+
                 curController.visible = dc[k].visible;
                 $("#" + dc[k].name, this._parentDiv).attr({checked: dc[k].visible});
                 curController.renderer.setVisible(curController.visible && this._currentVisibility);
             }
-            
+
         if (data.timeShift)
         {
             this._timeShift = $.extend({}, data.timeShift);
@@ -981,23 +981,23 @@ FireControl.prototype.setVisible = function(isVisible)
 	}
 }
 
-// providerParams: 
+// providerParams:
 //     - isVisible - {Bool, default: true} виден ли по умолчанию сразу после загрузки
 //     - isUseDate - {Bool, default: true} зависят ли данные от даты
 //     - isUseBbox - {Bool, default: true} зависят ли данные от bbox
 FireControl.prototype.addDataProvider = function( name, dataProvider, dataRenderer, providerParams )
 {
 	providerParams = $.extend( { isVisible: true, isUseDate: true, isUseBbox: true }, providerParams );
-		
+
 	this.dataControllers[name] = {
-		provider: dataProvider, 
-		renderer: dataRenderer, 
-		visible: providerParams.isVisible, 
-		name: name, 
+		provider: dataProvider,
+		renderer: dataRenderer,
+		visible: providerParams.isVisible,
+		name: name,
 		params: providerParams,
 		curRequestIndex: 0 //для отслеживания устаревших запросов
 	};
-	
+
 	this._updateCheckboxList();
 	this.update();
 }
@@ -1029,7 +1029,7 @@ FireControl.prototype._doFiltering = function(date)
 //Перерисовывает все checkbox'ы. Возможно, стоит оптимизировать
 FireControl.prototype._updateCheckboxList = function()
 {
-    var uiTemplate = '<table class = "fireMappletContainer">' + 
+    var uiTemplate = '<table class = "fireMappletContainer">' +
             '{{#providers}}' +
                 '<tr>' +
                     '<td><input id = "{{name}}" type = "checkbox"{{#visible}} checked{{/visible}}></td>' +
@@ -1037,10 +1037,10 @@ FireControl.prototype._updateCheckboxList = function()
                 '</tr>' +
             '{{/providers}}' +
         '</table>';
-        
+
 	var providers = [],
         _this = this;
-        
+
     for (var name in this.dataControllers) {
         var dc = this.dataControllers[name];
         providers.push({
@@ -1049,13 +1049,13 @@ FireControl.prototype._updateCheckboxList = function()
             description: dc.provider.getDescription()
         })
     }
-    
+
     var ui = $(Mustache.render(uiTemplate, {providers: providers}));
-    
+
     ui.find('input').click(function() {
         _this.setDataVisibility(this.id, this.checked);
     })
-    
+
 	$("#checkContainer", this._parentDiv).empty().append(ui);
 }
 
@@ -1075,12 +1075,12 @@ FireControl.prototype.setDataVisibility = function(dataName, isVisible) {
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
     if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE ) {
-        
+
         //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
         if (dateEnd - dateBegin < 12*3600*1000) {
             dateBegin = new Date(dateBegin.valueOf() - 24*60*60*1000);
         }
-        
+
         var hours = Math.ceil((dateEnd - dateBegin)/3600000);
         var hoursStr = hours > 24 ? "24+" + (hours-24) : hours;
         var prefix = hours === 24 ? _gtxt("firesWidget.timeTitlePrefix") : _gtxt("firesWidget.timeTitleLastPrefix");
@@ -1098,29 +1098,29 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	{
 		var curController = this.dataControllers[k];
         var isDatesChanged = !curController.dateFiresBegin || !curController.dateFiresEnd || dateBegin.getTime() != curController.dateFiresBegin.getTime() || dateEnd.getTime() != curController.dateFiresEnd.getTime();
-        
+
 		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || !curController.data ) )
 		{
             curController.dateFiresBegin = dateBegin;
             curController.dateFiresEnd = dateEnd;
 
             this.processingModel.setStatus( curController.name, false);
-            
+
             (function(curController){
                 curController.curRequestIndex++;
                 var requestIndex = curController.curRequestIndex;
-                curController.provider.getData( dateBegin, dateEnd, null, 
+                curController.provider.getData( dateBegin, dateEnd, null,
                     function( data )
                     {
                         if (requestIndex != curController.curRequestIndex) return; //был отправлен ещё один запрос за то время, как пришёл этот ответ -> этот ответ пропускаем
-                        
+
                         curController.data = data;
                         _this.processingModel.setStatus( curController.name, true);
                         _this.statusModel.setStatus( curController.name, true );
-                        
+
                         curController.renderer.bindData( data, _this._calendar );
                         curController.renderer.setVisible(curController.visible && _this._currentVisibility);
-                    }, 
+                    },
                     function( type )
                     {
                         _this.processingModel.setStatus( curController.name, true);
@@ -1130,7 +1130,7 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
             })(curController);
 		}
 	}
-    
+
     $(this).trigger('datechange');
 }
 
@@ -1154,10 +1154,10 @@ FireControl.prototype._updateCalendarTime = function(timeShift)
         //если выбран сегодняшний день, показываем время не 23:59, а до текущего часа
         var maxDayString = $.datepicker.formatDate('yy.mm.dd', nsGmx.Calendar.toUTC(this._calendar.getDateMax()));
         var curDayString = $.datepicker.formatDate('yy.mm.dd', nsGmx.Calendar.toUTC(this._calendar.getDateEnd()));
-        
+
         this._calendar.setTimeBegin( 0, 0, 0 );
         var curHour = (new Date()).getUTCHours();
-        
+
         if (maxDayString != curDayString || curHour === 23)
         {
             this._calendar.setTimeEnd( 23, 59, 59 );
@@ -1175,12 +1175,12 @@ FireControl.prototype.getCurrentTimeShift = function()
     {
         var now = new Date();
         return {
-            hours: now.getUTCHours(), 
-            minutes: now.getUTCMinutes(), 
+            hours: now.getUTCHours(),
+            minutes: now.getUTCMinutes(),
             seconds: now.getUTCSeconds()
         };
     }
-    
+
     return null;
 }
 
@@ -1188,8 +1188,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 {
     var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' : '';
 	this._firesOptions = $.extend(
-        {resourceHost: resourceHost, map: this._map}, 
-        FireControl.DEFAULT_OPTIONS, 
+        {resourceHost: resourceHost, map: this._map},
+        FireControl.DEFAULT_OPTIONS,
         firesOptions
     );
 
@@ -1215,7 +1215,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             }),
             {isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
     }
-							  
+
     if (this._firesOptions.fires) {
         this.addDataProvider(
             "firedots_layer_global", //название должно быть firedots_layer_scanex - оставлено из-за обратной совместимости
@@ -1234,7 +1234,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             { isVisible: !!this._firesOptions.firesInit }
         );
     }
-    
+
     if (this._firesOptions.firesGlobal) {
         this.addDataProvider(
             "firedots_layer_scanex", //название должно быть firedots_layer_global - оставлено из-за обратной совместимости
@@ -1256,9 +1256,9 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
-    
+
     this._infoDiv = $('<div/>', {'class': 'fireMappletHours'}).insertAfter(calendar.canvas);
-	
+
 	var trs = [];
 	var _this = this;
 
@@ -1267,17 +1267,17 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
         _this._updateCalendarTime( false /*_this._timeShift || _this.getCurrentTimeShift()*/ );
         _this._calendar.setShowTime( _this._visModeController.getMode() !==  _this._visModeController.SIMPLE_MODE );
 	}
-	
+
 	updateTimeInfo();
-    
+
 	$(this._calendar).bind('change', function()
 	{
 		updateTimeInfo();
 		_this.update();
 	});
-	
+
 	this.update();
-    
+
 	this._initDeferred.resolve();
 }
 
@@ -1300,7 +1300,7 @@ var FireControl2 = function(map, params)
 {
     params = params || {};
     params.data = params.data || "+fires !images";
-    
+
     var parseParams = function(params)
     {
         var arr = params.split(' ');
@@ -1309,7 +1309,7 @@ var FireControl2 = function(map, params)
         {
             var parsed = arr[p].match(/([!+-]?)(\w+)/);
             if (!parsed) return;
-            
+
             res[parsed[2]] = {
                 init: parsed[1] !== '!',
                 show: parsed[1] !== '-'
@@ -1317,20 +1317,20 @@ var FireControl2 = function(map, params)
         }
         return res;
     }
-    
+
     var parsedData = parseParams(params.data);
-    
+
     this.getProviderParams = function(providerName)
     {
         return parsedData[providerName];
     }
-    
+
     var dataNamesDict = {
         images: 'images',
         fires: 'firedots_layer_global',
         firesGlobal: 'firedots_layer_scanex'
     }
-    
+
     /** Установить видимость определённого типа данных
       @param {String} dataName Имя типа данных. Поддерживается `images`, `fires` и `firesGlobal`
       @param {Boolean} isVisible Видимость типа данных
@@ -1338,9 +1338,9 @@ var FireControl2 = function(map, params)
     this.setDataVisibility = function(dataName, isVisible) {
         dataNamesDict[dataName] && baseFireControl.setDataVisibility(dataNamesDict[dataName], isVisible);
     }
-    
+
     var baseFireControl = new FireControl(map);
-    
+
     $(baseFireControl).on('datechange', function() {
         $(this).trigger('datechange');
     }.bind(this))
@@ -1368,46 +1368,46 @@ var FireControl2 = function(map, params)
                 $(params.container).append(params.calendar.canvas);
             }
         }
-        
+
         var fireOptions = $.extend({}, params);
-        
+
         if ('images' in parsedData)
         {
             fireOptions.images = parsedData.images.show;
             fireOptions.imagesInit = parsedData.images.init;
         }
-        
+
         if ('fires' in parsedData)
         {
             fireOptions.fires = parsedData.fires.show;
             fireOptions.firesInit = parsedData.fires.init;
         }
-        
+
         if ('firesGlobal' in parsedData)
         {
             fireOptions.firesGlobal = parsedData.firesGlobal.show;
             fireOptions.firesGlobalInit = parsedData.firesGlobal.init;
         }
-        
+
         if ('burnt' in parsedData)
         {
             fireOptions.burnt = parsedData.burnt.show;
             fireOptions.burntInit = parsedData.burnt.init;
         }
-        
+
         baseFireControl.add(params.container, fireOptions, params.calendar);
     }
-    
+
     if (typeof params.container === 'string')
         params.container = $('#' + params.container)[0];
-        
+
     if (!params.container)
     {
         //в Геомиксере будем добавлять непосредственно перед деревом слоёв
         if ('_queryMapLayers' in window)
         {
             var doInit = function() {
-                //если не указан календарик, то мы будем использовать общий. 
+                //если не указан календарик, то мы будем использовать общий.
                 //Однако в этом случае мы хотим, чтобы календарик был под списком провайдеров
                 //Поэтому покажем календарик заранее
                 if (typeof params.calendar === 'undefined')
@@ -1421,12 +1421,12 @@ var FireControl2 = function(map, params)
                     var table = $(_queryMapLayers.workCanvas).children("table");
                     table.after(div);
                 }
-                
+
                 params.container = div;
-                
+
                 doCreate();
             }
-            
+
             if (_queryMapLayers.loadDeferred) {
                 _queryMapLayers.loadDeferred.done(doInit);
             } else {
@@ -1442,34 +1442,34 @@ var FireControl2 = function(map, params)
     {
         doCreate();
     }
-    
+
     this.getCalendar = function() {
         return params.calendar;
     }
-    
+
     //проксируем несколько команд из FireControl
-    
+
     /** Селиализовать текущее состояние виджета пожаров
      * @return {Object} Простой объект, описывающий состояние виджета
      * @method
     */
     this.saveState = baseFireControl.saveState.bind(baseFireControl);
-    
+
     /** Применить ранее сериализованное состояние. После применения нужно явно вызвать ф-цию update()
      * @param {Object} data Сериализованное состояние
      * @method
     */
     this.loadState = baseFireControl.loadState.bind(baseFireControl);
-    
+
     /** Перерисовать данные на карте
      * @method
     */
     this.update = baseFireControl.update.bind(baseFireControl);
-    
+
     this.getDateBegin = function() {
         return baseFireControl.dateFiresBegin;
     }
-    
+
     this.getDateEnd = function() {
         return baseFireControl.dateFiresEnd;
     }
@@ -1489,7 +1489,7 @@ var publicInterface = {
             data = data[0];
         }
         var fireControl = new FireControl2(map, params);
-        
+
         //сериализация состояния
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
             _mapHelper.customParamsManager.addProvider({
@@ -1498,7 +1498,7 @@ var publicInterface = {
                 saveState: function() { return fireControl.saveState(); }
             });
         }
-        
+
         //Читаем старый формат
         if (!_mapHelper.customParamsManager.isProvider('firesWidget2')) {
             _mapHelper.customParamsManager.addProvider({
@@ -1506,9 +1506,9 @@ var publicInterface = {
                 loadState: function(state)
                 {
                     if (!state) return;
-                    
+
                     var calendar = fireControl.getCalendar();
-                    
+
                     state.calendar.vismode = state.vismode;
                     calendar.loadState(state.calendar);
                     fireControl.loadState(state.fires);
@@ -1523,10 +1523,10 @@ var publicInterface = {
     },
     //провайдеры данных
     ModisImagesProvider: ModisImagesProvider,
-    
+
     //рендереры
     ModisImagesRenderer: ModisImagesRenderer,
-    
+
 	FireControl: FireControl,
 	FireControl2: FireControl2,
 	FireControlCollection: FireControlCollection
@@ -1534,7 +1534,7 @@ var publicInterface = {
 
 if ( typeof gmxCore !== 'undefined' )
 {
-	gmxCore.addModule('FireMapplet', publicInterface, 
+	gmxCore.addModule('FireMapplet', publicInterface,
 	{
         css: 'FireMapplet_v2.css',
         init: function(module, path)
@@ -1544,7 +1544,7 @@ if ( typeof gmxCore !== 'undefined' )
                 alert('Плагин пожаров не совместим с данной версией ГеоМиксера! Необходима версия 1.9.1 или старше');
                 return;
             }
-            
+
             initTranslations();
             return gmxCore.loadScriptWithCheck([
                 {

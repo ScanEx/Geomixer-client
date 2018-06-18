@@ -1,7 +1,7 @@
 ﻿/** Плагин для генерации стилей для слоёв, представляющих из себя наборы фотографий (для сервиса Космоагро)
 */
 (function ($){
-    
+
 nsGmx.Translations.addText("rus", {
     "PhotoStylePlugin.menuTitle" : "Настроить фотографии",
     "PhotoStylePlugin.dialogTitle" : "Выберите папку с фотографиями"
@@ -20,7 +20,7 @@ var defaultStyles = [{
     "Balloon": "",
     "RenderStyle": {
         "marker": {
-            "image": "http://maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-12.png",
+            "image": window.location.protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-12.png",
             "center": true
         }
     },
@@ -50,13 +50,13 @@ var defaultStyles = [{
         },
         "RenderStyle": {
             "marker": {
-                "image": "http://maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-18.png",
+                "image": window.location.protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-18.png",
                 "center": true
             }
         },
         "HoverStyle": {
             "marker": {
-                "image": "http://maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-18.png",
+                "image": window.location.protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=lvnikita%40gmail.com&img=renders%5Crenders%5Ccamera-18.png",
                 "center": true
             }
         },
@@ -66,34 +66,34 @@ var defaultStyles = [{
     }
 }];
 
-var balloonTemplate = 
+var balloonTemplate =
     '<div>' +
-        '<img src="http://maps.kosmosnimki.ru/GetImage.ashx?usr={{user}}&img={{folder}}preview\\[filename]" alt="" />' +
+        '<img src=' + window.location.protocol + '"//maps.kosmosnimki.ru/GetImage.ashx?usr={{user}}&img={{folder}}preview\\[filename]" alt="" />' +
     '</div><div>' +
-        '<a title="Открыть снимок в полном размере" href="http://maps.kosmosnimki.ru/GetImage.ashx?usr={{user}}&img={{folder}}[filename]" target="_blank">Полный размер</a>' +
+        '<a title="Открыть снимок в полном размере" href=' + window.location.protocol + '//maps.kosmosnimki.ru/GetImage.ashx?usr={{user}}&img={{folder}}[filename]" target="_blank">Полный размер</a>' +
     '</div><div>' +
         '<strong>Имя файла:</strong> [filename]<br />' +
         '<strong>Время съемки:</strong> [img_date] <br />' +
         '[SUMMARY]' +
     '</div>';
-    
+
 
 var publicInterface = {
     pluginName: 'Photo Style Plugin',
-    
+
     afterViewer: function(params, map) {
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() {
-                return _gtxt("PhotoStylePlugin.menuTitle"); 
+                return _gtxt("PhotoStylePlugin.menuTitle");
             },
-            
+
             isVisible: function(context) {
-                return !context.layerManagerFlag && 
-                    context.elem.type === 'Vector' && 
+                return !context.layerManagerFlag &&
+                    context.elem.type === 'Vector' &&
                     context.elem.GeometryType === 'point' &&
                     _queryMapLayers.currentMapRights() === "edit";
             },
-            
+
             clickCallback: function(context) {
                 var imageFolder = nsGmx.AuthManager.getUserFolder() + 'images\\';
                 var fb = new fileBrowser();
@@ -109,17 +109,17 @@ var publicInterface = {
                         div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
                     else
                         div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-                    
+
                     div.gmxProperties.content.properties.styles = defaultStyles;
-                    
+
                     _mapHelper.updateMapStyles(defaultStyles, elem.name);
-                    
+
                     _mapHelper.updateTreeStyles(defaultStyles, div, context.tree, true);
                 }, {restrictDir: imageFolder, startDir: imageFolder});
             }
         }, 'Layer');
     },
-    
+
     unload: function() {
     }
 }

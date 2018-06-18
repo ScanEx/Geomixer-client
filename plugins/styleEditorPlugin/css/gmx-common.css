@@ -1,0 +1,251 @@
+.gmx-style-editor {
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.gmx-style-editor textarea {
+    resize: none;
+}
+
+.gmx-style-editor *,
+.gmx-style-editor *::before,
+.gmx-style-editor *::after {
+    -moz-box-sizing: inherit;
+    box-sizing: inherit;
+}
+
+.gmx-style-editor ol,
+.gmx-style-editor ul {
+    margin: 10px 0;
+    padding-left: 40px;
+}
+
+.gmx-style-editor-header {
+    margin: 0 0 0 0;
+    background-color: #ecf1f5;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    padding-bottom: 8px;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+
+.gmx-style-editor-label {
+    font-weight: bold;
+    margin: 5px 0 5px 3px;
+    border-top: 1px solid rgba(0,0,0,0.2);
+    margin: 0;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding-left: 25px;
+}
+
+.gmx-style-editor-zoom-settings {
+    display: inline;
+    margin-left: 57px;
+}
+
+.gmx-style-editor-label-small {
+    display: inline-block;
+    width: 120px;
+}
+
+.gmx-style-editor-back-button {
+    float: left;
+    width: 10%;
+    clear: both;
+    cursor: pointer;
+}
+
+.gmx-style-editor-top-header{
+    display: block;
+    font-size: 0.9em;
+}
+
+.gmx-style-editor-layer-name {
+    display: block;
+    font-weight: bold;
+}
+
+.colorIcon {
+    height: 13px;
+    box-sizing: content-box;
+    margin: 0px 3px 0px 4px;
+    position: relative;
+    width: 9px;
+    border: none;
+    cursor: pointer;
+    font-size: 0px;
+    display: inline-block;
+    margin: 2px 15px 2px 5px;
+}
+
+.gmx-line-icon {
+    height: 12px;
+    position: absolute;
+    width: 2px;
+    /* border-style: solid; */
+    /* border-width: 1px; */
+    cursor: pointer;
+    font-size: 0px;
+    top: 1px;
+    left: 1px;
+    /* margin: 1px; */
+}
+
+.gmx-border-icon {
+    height: 12px;
+    position: absolute;
+    width: 12px;
+    border-style: solid;
+    border-width: 1px;
+    cursor: pointer;
+    font-size: 0px;
+    top: 1px;
+    left: 1px;
+    /* margin: 1px; */
+}
+
+.gmx-fill-icon {
+    height: 12px;
+    margin: 0px;
+    border: none;
+    position: absolute;
+    width: 12px;
+    font-size: 0px;
+    top: 1px;
+    left: 1px;
+    margin: 1px;
+}
+
+.pt-tab-list {
+    border-top: 1px solid rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    padding-left: 5px;
+    padding-right: 5px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-around;
+}
+
+span.gmx-style-editor-top-header {
+    color: #6e889b;
+}
+
+span.gmx-style-editor-style-selector-item-name {
+    font-weight: 400;
+}
+
+img.gmx-style-editor-back-button {
+    width: 24px!important;
+    height: 24px!important;
+    position: relative!important;
+    top: 4px!important;
+    margin-right: 5px!important;
+}
+
+.gmx-style-editor-label.gmx-style-editor-label-small {
+    border-top: none;
+    display: inline-flex;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.gmx-style-editor-zoom-settings {
+    display: inline;
+    margin-left: 50px;
+}
+
+
+.gmx-style-editor-left {
+    float: left;
+    margin: 0 10px 0 23px!important;
+    font-weight: 400;
+}
+
+.gmx-style-editor-block-small {
+    height: 50px!important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-right: 15px;
+    position: relative;
+    bottom: 7px;
+}
+
+.gmx-style-editor-right {
+    float: right;
+    margin-right: 5px;
+    margin-left: 5px;
+    width: 137px;
+    height: 30px;
+}
+
+span.rc-color-picker-trigger {
+    width: 100%;
+    height: 100%;
+}
+
+textarea.gmx-style-editor-input-big.gmx-style-editor-right {
+    display: flex;
+    align-items: center;
+    line-height: 23px;
+    text-transform: uppercase;
+    color: #5b7284;
+    padding-right: 10px;
+    padding-left: 10px;
+    text-align: left;
+    margin-right: 20px!important;
+    width: 137px;
+    height: 200px;
+    margin-top: -5px!important;
+}
+
+.gmx-style-editor textarea {
+    .gmx-style-editor textarea {
+        resize: none;
+        margin-bottom: 10px!important;
+        background: #FFF;
+        margin: 0 5px 0 0;
+        border: 1px solid 1px solid rgba(216, 225, 232, 1);
+        /* margin: 20px!important; */
+        width: 317px;
+        height: 80px;
+        color: #5b7284;
+        line-height: 30px;
+        position: relative;
+        top: 5px;
+    }
+
+}
+
+input[type="radio"] {
+    margin-left: 23px;
+}
+
+.pt-transition-container.pt-overlay-content.pt-popover-enter-done {
+    /* transform: translate3d(40px, -29px, 0px)!important; */
+}
+
+.gmx-style-editor-icon {
+    cursor: pointer;
+}
+
+.gmx-style-editor-icon-disabled {
+    fill: #999;
+    cursor: default;
+    pointer-events: none;
+}

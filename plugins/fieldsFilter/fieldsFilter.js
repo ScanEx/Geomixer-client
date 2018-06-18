@@ -6,10 +6,10 @@
             afterViewer: function (params) {
                 if ('layerId' in params) { layerId = params.layerId; }
                 new RepTable();
-                
+
             }
         },
-        serverPrefix = window.serverBase || 'http://maps.kosmosnimki.ru/',
+        serverPrefix = window.serverBase || window.location.protocol + '//maps.kosmosnimki.ru/',
         serverScript = serverPrefix + 'VectorLayer/Search.ashx',
         layerId = '7C8E51CA3E30414482A3CF6AB22789B6',
         titleToField = {
