@@ -1,24 +1,21 @@
 ﻿(function(){
 
 //Интерфейс для провайдеров значений параметров
-nsGmx.ILazyAttributeValuesProvider = function()
-{
+nsGmx.ILazyAttributeValuesProvider = function() {
 	this.isAttributeExists = function( attrName ){};
 	this.getValuesForAttribute = function( attrName, callback ){};
 };
 
 //Простая обёртка над массивами для обратной совместимости
-nsGmx.LazyAttributeValuesProviderFromArray = function( attributes )
-{
+nsGmx.LazyAttributeValuesProviderFromArray = function( attributes ) {
 	var _attrs = attributes;
 
 	this.isAttributeExists = function( attrName )
 	{
-		return attrName in _attrs; 
+		return attrName in _attrs;
 	};
-	
-	this.getValuesForAttribute = function( attrName, callback )
-	{
+
+	this.getValuesForAttribute = function( attrName, callback )	{
 		if ( attrName in _attrs )
 			callback(_attrs[attrName]);
 		else
@@ -33,12 +30,11 @@ nsGmx.LazyAttributeValuesProviderFromArray.prototype = new nsGmx.ILazyAttributeV
  * @param {Object} attributes Хеш имён атрибутов, значения которых хочется иметь
  * @param {String} layerName ID слоя
 */
-nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
-{
+nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName) {
 	var _attrs = attributes;
 	var _isInited = false;
 	var _isProcessing = false;
-	
+
 	//в процессе ожидания ответа от сервера мы можем получать запросы на разные аттрибуты
 	//важно все их правильно сохранить и выхвать при получении данных
 	var _callbacks = {};
@@ -47,33 +43,31 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
         @param {String} attrName Имя атрибута
         @return {Boolean} Есть ли такой атрибут среди атрибутов
     */
-	this.isAttributeExists = function( attrName )
-	{
-		return attrName in _attrs; 
+	this.isAttributeExists = function( attrName ) {
+		return attrName in _attrs;
 	};
-	
+
     /** Получить доступные значения атрибута
         @param {String} attrName Имя атрибута
         @param {Function} callback Ф-ция, которая будет вызвана со списком атрибутов, когда он станет доступным
     */
-	this.getValuesForAttribute = function( attrName, callback )
-	{
+	this.getValuesForAttribute = function( attrName, callback )	{
 		if ( !(attrName in _attrs) ) //вообще нет такого имени
 			callback();
 		else if ( _attrs[attrName].length ) //есть вектор значений!
-			callback( _attrs[attrName] ); 
+			callback( _attrs[attrName] );
 		else if (_isInited) //вектора значений всё ещё нет и уже ходили на сервер - второй раз пробовать не будем...
-			callback(); 
+			callback();
 		else
 		{
 			if ( !(attrName in _callbacks) )
 				_callbacks[attrName] = [];
-			
+
 			_callbacks[attrName].push(callback);
-			
+
 			if (_isProcessing) return;
 			//идём на сервер и запрашиваем значения аттрибутов!
-			
+
 			_isProcessing = true;
 			sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetVectorAttrValues.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
 			{
@@ -86,7 +80,7 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 							_callbacks[n][k]();
 					return;
 				}
-				
+
 				_attrs = response.Result;
 				for (var n in _callbacks)
 					for (var k = 0; k < _callbacks[n].length; k++)
@@ -94,6 +88,29 @@ nsGmx.LazyAttributeValuesProviderFromServer = function(attributes, layerName)
 			});
 		}
 	};
+
+	this.getAttributesTypesHash = function(layerName) {
+		var layer = nsGmx.gmxMap.layersByID[layerName],
+			props = layer.getGmxProperties && layer.getGmxProperties(),
+			res = {};
+
+		if (props) {
+			var attrTypes = props.attrTypes,
+				attributes = props.attributes;
+
+			for (var i = 0; i < attributes.length; i++) {
+				res[attributes[i]] = attrTypes[i];
+			}
+		}
+
+		return res;
+	}
+
+	var _attrsTypes = this.getAttributesTypesHash(layerName);
+
+	this.getAttributeType = function (attr) {
+		return _attrsTypes[attr];
+	}
 }
 nsGmx.LazyAttributeValuesProviderFromServer.prototype = new nsGmx.ILazyAttributeValuesProvider();
 

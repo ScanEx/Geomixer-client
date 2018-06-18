@@ -1,6 +1,6 @@
 !(function () {
 
-nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag) {
+nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesArr, addValueFlag, attrType) {
     var _this = this;
     this.textArea = textarea;
     this.func = func;
@@ -44,7 +44,9 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
             var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
 
             div.onmouseover = function() {
-                var _curDiv = this;
+                var _curDiv = this,
+                    attrType;
+
                 $(this.parentNode).children('.suggest-helper-hover').removeClass('suggest-helper-hover');
                 $(this).addClass('suggest-helper-hover');
 
@@ -60,10 +62,11 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                 if (!valuesArr.isAttributeExists(name)) { return; }
 
+                attrType = valuesArr.getAttributeType(name);
+
                 if (!$(canvas.parentNode).children('[arr=\'' + name + '\']').length) {
                     this.timer = setTimeout(function() {
                         valuesArr.getValuesForAttribute(name, function(attrValues) {
-
                             if (!attrValues || !$(_curDiv).hasClass('suggest-helper-hover')) { return; }
 
                             var arrSuggestCanvas = new nsGmx.SuggestWidget(attrValues, [_this.currentTextArea], 'suggest', function()
@@ -73,7 +76,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                                 $(canvasArr.parentNode.childNodes[2]).fadeOut(100);
 
                                 canvasArr.removeNode(true);
-                            }, false, addValueFlag);
+                            }, false, addValueFlag, attrType);
 
                             var canvasArr = arrSuggestCanvas.el;
 
@@ -109,9 +112,12 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
             div.onclick = function(e) {
                 var val = textTemplate.replace(/suggest/g, name);
-                if (this.parentNode.getAttribute('arr') != null)
-                {
-                    if (isNaN(Number(val))) {
+                if (this.parentNode.getAttribute('arr') != null) {
+                    var isNumber = attrType === 'float' || attrType === 'integer';
+
+                    if (isNumber) {
+                        val = val.replace(/,/g, '.')
+                    } else {
                         val = '\'' + val + '\'';
                     }
 
