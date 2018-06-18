@@ -68,13 +68,9 @@ iframe {
     font-weight: bold;
 }
 
-.preview-row-value {
-
-}
-
 #preview-footer {
     position: absolute;
-    bottom: 300px;
+    top: 18cm;
     width: 100%;
 }
 
