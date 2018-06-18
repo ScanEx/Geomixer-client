@@ -352,7 +352,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/**Объект, в котором находится контрол (div)*/
 	var Container = oInitContainer;
 	var _this = this;
-	var sImagesHost = ImagesHost || "http://maps.kosmosnimki.ru/api/img";
+	var sImagesHost = ImagesHost || window.location.protocol + "//maps.kosmosnimki.ru/api/img";
 
 	var arrDisplayedObjects = []; //Объекты, которые отображаются на текущей странице
 	var iLimit = 10; //Максимальное количество результатов на странице
@@ -863,7 +863,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 var ResultRenderer = function(map, sInitImagesHost, bInitAutoCenter){
 	if (map == null)  throw "ResultRenderer.Map is null";
 
-	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
+	var sImagesHost = sInitImagesHost || window.location.protocol + "//maps.kosmosnimki.ru/api/img";
 	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 
 	var arrContainer = [];
@@ -1315,7 +1315,7 @@ var SearchDataProvider = function(sInitServerBase, gmxMap, arrDisplayFields){
 		if (layersToSearch.length > 0){
             layersToSearch.forEach(function(props) {
                 var mapName = gmxMap.layersByID[props.name].options.mapID;
-                var url = "http://" + props.hostName + "/SearchObject/SearchVector.ashx" +
+                var url = window.location.protocol + "//" + props.hostName + "/SearchObject/SearchVector.ashx" +
                     "?LayerNames=" + props.name +
                     "&MapName=" + mapName +
                     (sInitSearchString ? ("&SearchString=" + encodeURIComponent(sInitSearchString)) : "") +

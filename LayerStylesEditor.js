@@ -444,7 +444,7 @@ var createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityFie
 		br = "\n";
 
 
-    gmxCore.loadModule('TinyMCELoader', 'http://' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
+    gmxCore.loadModule('TinyMCELoader', window.location.protocol + '//' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
         tinyMCE.onAddEditor.add(function(mgr,ed) {
             if (ed.id === textareaID) {
                 ed.onKeyUp.add(setBalloon);

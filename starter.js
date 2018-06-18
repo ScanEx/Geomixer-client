@@ -398,7 +398,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         id: 'usage',
                         title: _gtxt('Руководство'),
                         func: function() {
-                            window.open('http://kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
+                            window.open(window.location.protocol + '//kosmosnimki.ru/downloads/%D1%86%D1%81%D0%BC%D1%81.pdf', '_blank');
                         }
                     }]
             });
@@ -533,8 +533,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                         }
                     },
                     permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
-                    embeddedUrlTemplate: 'http://winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
-                    winnieUrlTemplate: 'http://winnie.kosmosnimki.ru/?config={{winnieId}}',
+                    embeddedUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
+                    winnieUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/?config={{winnieId}}',
                     previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
                 });
                 lmap.addControl(shareIconControl);

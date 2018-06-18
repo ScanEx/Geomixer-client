@@ -193,7 +193,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
 		jQueryDialog = showDialog(_gtxt('drawingObjects.edit.title'), canvas, 280, 130, pos.left, pos.top, false, closeFunc);
-        
+
         $(jQueryDialog).addClass('drawing-object-leaflet-id-' + parentObject._leaflet_id);
 	}
 
@@ -709,7 +709,7 @@ var DrawingObjectGeomixer = function() {
             var truncate9 = function(x) { return ("" + x).substring(0, 9); };
 
             window.location.href =
-                "http://" + props.hostName + "/DownloadLayer.ashx" +
+                window.location.protocol + "//" + props.hostName + "/DownloadLayer.ashx" +
                 "?t=" + props.name +
                 "&MinX=" + truncate9(bounds.getWest()) +
                 "&MinY=" + truncate9(bounds.getSouth()) +

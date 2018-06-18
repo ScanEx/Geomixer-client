@@ -1,10 +1,10 @@
 ﻿/** Загрузчик модулей ГеоМиксера
-Позволяет загружать модули из разных файлов. 
+Позволяет загружать модули из разных файлов.
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
 @namespace
 */
 
-var gmxCore = function() 
+var gmxCore = function()
 {
     var _callbacks = [];
     var _modules = {}; //null - файл модуля уже загружается, но сам модуль пока не доступен
@@ -12,7 +12,7 @@ var gmxCore = function()
 	var _modulesDefaultHost = "";
 	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
 	var _moduleFiles = {/*#buildinclude<module_files.txt>*/};
-    
+
     var getScriptURL = function(scriptName)
 	{
         scriptName = scriptName.toLowerCase();
@@ -25,7 +25,7 @@ var gmxCore = function()
 		}
 		return false;
 	}
-    
+
     //производится регистронезависимое сравнение
 	var getScriptBase = function(scriptName)
 	{
@@ -33,7 +33,7 @@ var gmxCore = function()
 		var url = getScriptURL(scriptName);
 		return url ? url.toLowerCase().substring(0, url.toLowerCase().indexOf(scriptName)) : "";
 	}
-    
+
     var invokeCallbacks = function()
     {
         for (var k = 0; k < _callbacks.length; k++)
@@ -50,11 +50,11 @@ var gmxCore = function()
                 }
 				modules.push(_modules[curModules[m]]);
 			}
-                
+
             if (isAllModules)
             {
                 var curCallback = _callbacks[k].callback;
-                
+
                 //first delete, then callback!
                 _callbacks.splice(k, 1);
                 k = k - 1;
@@ -67,7 +67,7 @@ var gmxCore = function()
     {
         if (!LABjsDeferred) {
             LABjsDeferred = $.Deferred();
-            
+
             //load LAB.js (snippest from its website)
             (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
             H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;LABjsDeferred.resolve()};
@@ -75,14 +75,14 @@ var gmxCore = function()
             a.src = ( getScriptBase('gmxcore.js') || window.gmxJSHost || "" ) + 'LAB.min.js';
 
             c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
-        
+
         }
-        
+
         return LABjsDeferred.promise();
     }
-    
+
     var cssLoader = null;
-    
+
     var withCachePostfix = function(filename) {
         var sym = filename.indexOf('?') === -1 ? '?' : '&';
         if (window.gmxDropBrowserCache) {
@@ -90,11 +90,11 @@ var gmxCore = function()
         } else if (window.nsGmx && nsGmx.buildGUID){
             filename += sym + nsGmx.buildGUID;
         }
-        
+
         return filename;
     }
-    
-    var publicInterface = 
+
+    var publicInterface =
     /** @lends gmxCore */
     {
         /** Добавить новый модуль
@@ -110,10 +110,10 @@ var gmxCore = function()
             var requiredModules = (options && 'require' in options) ? options.require : [];
             var initDeferred = null;
             var _this = this;
-            
+
             for (var r = 0; r < requiredModules.length; r++)
                 this.loadModule( requiredModules[r] );
-                
+
             this.addModulesCallback( requiredModules, function()
             {
 
@@ -121,12 +121,12 @@ var gmxCore = function()
 				{
                     initDeferred = options.init(moduleObj, _modulePathes[moduleName]);
 				}
-                
+
                 if (options && 'css' in options)
 				{
                     var cssFiles = typeof options.css === 'string' ? [options.css] : options.css;
                     var path = _modulePathes[moduleName] || window.gmxJSHost || "";
-                    
+
                     for (var iF = 0; iF < cssFiles.length; iF++)
                         _this.loadCSS(withCachePostfix(path + cssFiles[iF]));
 				}
@@ -138,7 +138,7 @@ var gmxCore = function()
                     _modules[moduleName] = moduleObj;
                     invokeCallbacks();
                 }
-                
+
                 if (initDeferred) {
                     initDeferred.done(doAdd);
                 } else {
@@ -146,7 +146,7 @@ var gmxCore = function()
                 }
             });
         },
-        
+
         /** Загрузить модуль
         * @param { String } moduleName Имя модуля для загрузки
         * @param { String } [moduleSource] Имя файла, откуда загружать модуль. Если не указан, будет сформирован в виде (defaultHost + moduleName + '.js')
@@ -156,29 +156,29 @@ var gmxCore = function()
         loadModule: function(moduleName, moduleSource, callback)
         {
             var def = $.Deferred();
-            
+
             if (typeof moduleSource === 'function') {
                 callback = moduleSource;
                 moduleSource = undefined;
             }
-            
+
             this.addModulesCallback([moduleName], function(module)
             {
                 callback && callback(module);
                 def.resolve(module);
             });
-            
+
             if ( ! (moduleName in _modules) )
             {
                 _modules[moduleName] = null;
-                
+
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
-                
+
                 var path;
                 if (typeof moduleSource != 'undefined')
                 {
-                    path = moduleSource.match(/^http:\/\//i) ? moduleSource : (window.gmxJSHost || "") + moduleSource;
+                    path = moduleSource.match(/^http(s):\/\//i) ? moduleSource : (window.gmxJSHost || "") + moduleSource;
                 }
                 else
                 {
@@ -188,22 +188,22 @@ var gmxCore = function()
                 var pathRegexp = /(.*)\/[^\/]+/;
                 if ( typeof _modulePathes[moduleName] === 'undefined' )
                     _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
-				
+
                 var pathPostfix = "";
-                
+
                 newScript.onerror = function() {
                     def.reject();
                 }
-                
+
                 newScript.type = 'text/javascript';
                 newScript.src = withCachePostfix(path);
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
             }
-            
+
             return def;
         },
-        
+
         /** Добавить callback, который будет вызван после загрузки моделей
         *
         * Если модули уже загружены, callback будет вызван сразу же
@@ -216,7 +216,7 @@ var gmxCore = function()
             _callbacks.push({modules: moduleNames, callback: callback});
             invokeCallbacks();
         },
-        
+
         /** Получить модуль по имени.
         *
         * @param {String} moduleName Имя модуля
@@ -226,7 +226,7 @@ var gmxCore = function()
         {
             return _modules[moduleName] || null;
         },
-		
+
         /** Установить дефольный путь к модулям. Используется если указан локальный файл модуля.
         * @param {String} defaultHost Дефолтный путь у модулям.
         */
@@ -234,7 +234,7 @@ var gmxCore = function()
 		{
 			_modulesDefaultHost = defaultHost;
 		},
-        
+
         /** Явно задать полный путь к модулю
         * @param {String} moduleName Имя модуля
         * @param {String} defaultHost Путь к файлу модулю. При загрузке модуля будет загружен файл по указанному пути
@@ -243,16 +243,16 @@ var gmxCore = function()
         {
             _moduleFiles[moduleName] = moduleFile;
         },
-		
+
         pushModule2GlobalNamespace: function(moduleName)
         {
             if ( !_modules[moduleName] ) return;
             var module = _modules[moduleName];
-            
+
             for (var p in module)
                 _globalNamespace[p] = module[p];
         },
-		
+
         /** Получить путь к директории, из которой был загружен модуль.
         * @param {String} moduleName Имя модуля
         * @returns {String} Путь к директории, из которой был загружен модуль. Для не загруженных модулей ничего не возвращает
@@ -261,7 +261,7 @@ var gmxCore = function()
 		{
 			return _modulePathes[moduleName];
 		},
-        
+
         /** Возвращает ф-цию, которая делает следующее:
         *
         *  - Если модуль moduleName не загружен, загружает его
@@ -285,11 +285,11 @@ var gmxCore = function()
                     callback && callback(res);
                     deferred.resolve(res);
                 });
-                
+
                 return deferred.promise();
             }
         },
-        
+
         /** Загружает скрипт после предвариетельной проверки условий.
         *
         * @param {Array} filesInfo Массив объектов со следующими свойствами:
@@ -304,7 +304,7 @@ var gmxCore = function()
             var _this = this;
             var localFilesInfo = filesInfo.slice(0);
             var def = $.Deferred();
-            
+
             var doLoad = function(info)
             {
                 if (localFilesInfo.length > 0)
@@ -319,7 +319,7 @@ var gmxCore = function()
                             css = [css];
                         }
                         css.forEach(_this.loadCSS);
-                        
+
                         if (curInfo.script)
                             _this.loadScript(curInfo.script).then(doLoad);
                         else
@@ -329,11 +329,11 @@ var gmxCore = function()
                 else
                     def.resolve();
             }
-            
+
             doLoad();
             return def.promise();
         },
-        
+
         /**
         * Загружает отдельный скрипт
         * @param {String} fileName Имя файла скрипта
@@ -350,7 +350,7 @@ var gmxCore = function()
                 if (charset) {
                     descr.charset = charset;
                 }
-                
+
                 $LAB.script(descr).wait(function()
                 {
                     def.resolve();
@@ -358,8 +358,8 @@ var gmxCore = function()
                 })
             })
             return def.promise();
-        }, 
-        
+        },
+
         /** Загрузить отдельный css файл
         * @param {String} cssFilename Имя css файла.
         */
@@ -369,7 +369,7 @@ var gmxCore = function()
             {
                 $.getCSS(withCachePostfix(cssFilename));
             }
-            
+
             if ('getCSS' in $)
             {
                 doLoadCss()
@@ -381,11 +381,11 @@ var gmxCore = function()
                     var path = getScriptBase('gmxcore.js') || window.gmxJSHost || "";
                     cssLoader = $.getScript(path + "jquery/jquery.getCSS.js");
                 }
-                
+
                 cssLoader.done(doLoadCss);
             }
         }
     }
-    
+
     return publicInterface;
 }();

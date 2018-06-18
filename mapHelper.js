@@ -231,7 +231,7 @@ mapHelper.prototype.makeStyle = function(style)
 			givenStyle.marker = { size: parseInt(style.PointSize) };
 		if (style.Icon)
 		{
-			var src = (style.Icon.indexOf("http://") != -1) ?
+			var src = (style.Icon.indexOf("http://") != -1) || (style.Icon.indexOf("https://") != -1) ?
 				style.Icon :
 				(baseAddress + "/" + style.Icon);
 			givenStyle.marker = { image: src, center: true };
@@ -504,7 +504,7 @@ mapHelper.prototype.getMapStyles = function()
 mapHelper.prototype.showPermalink = function()
 {
 	this.createPermalink(function(id){
-        var url = "http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName));
+        var url = window.location.protocol + "//" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName));
         var input = _input(null, [['dir','className','inputStyle inputFullWidth'],['attr','value', url]]);
 
         showDialog(_gtxt("Ссылка на текущее состояние карты"), _div([input]), 311, 80, false, false);
@@ -531,7 +531,7 @@ mapHelper.prototype.createPermalink = function(callback)
 }
 
 mapHelper.prototype.updateTinyMCE = function(container) {
-    gmxCore.loadModule('TinyMCELoader', 'http://' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
+    gmxCore.loadModule('TinyMCELoader', window.location + '//' + window.location.host + window.location.pathname.replace('index.html', '') + 'TinyMCELoader.js', function() {
         $('.balloonEditor', container).each(function() {
             var id = $(this).attr('id');
             if (!tinyMCE.get(id)) {
@@ -1121,7 +1121,7 @@ mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, d
 		callback(Handlebars.compile(text)({gmxVersion: num, gmxData: data}));
 	}
 
-	if (fileName.indexOf("http://") !== 0)
+	if (fileName.indexOf("http://") !== 0 || fileName.indexOf("https://") !== 0)
 		$.ajax({url: fileName, success: proceess});
 	else
 		sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName), function(response)
@@ -1479,7 +1479,7 @@ mapHelper.prototype.downloadVectorLayer = function(params) {
         requestParams.columns = JSON.stringify(params.columns);
     }
 
-    sendCrossDomainPostRequest("http://" + params.host + "/" + "DownloadLayer.ashx", requestParams);
+    sendCrossDomainPostRequest(window.location.protocol + "//" + params.host + "/" + "DownloadLayer.ashx", requestParams);
 
 
 	// if (window.FormData) {

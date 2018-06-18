@@ -333,7 +333,7 @@ nsGmx.Controls = {
             var content = _div(),
                 contentText = String(obj.properties[key]);
 
-            if (contentText.indexOf("http://") == 0 || contentText.indexOf("www.") == 0)
+            if (contentText.indexOf("http://") == 0 || contentText.indexOf("https://") == 0 || contentText.indexOf("www.") == 0)
                 contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
 
             content.innerHTML = contentText;

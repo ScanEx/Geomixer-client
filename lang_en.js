@@ -20,7 +20,7 @@ _translationsHash.hash["eng"] = {
     "Поиск снимков": "Search Imagery",
     "Платформа Геомиксер": "GeoMixer Web-GIS",
     "http://fires.ru": "http://fires-map.com",
-    "http://search.kosmosnimki.ru": "http://search.kosmosnimki.ru/index_eng.html",
+    "https://search.kosmosnimki.ru": "https://search.kosmosnimki.ru/index_eng.html",
 
     "Данные": "Datasets",
     "Сервисы": "Services",
