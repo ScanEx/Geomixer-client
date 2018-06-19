@@ -178,7 +178,7 @@ var gmxCore = function()
                 var path;
                 if (typeof moduleSource != 'undefined')
                 {
-                    path = moduleSource.match(/^http(s):\/\//i) ? moduleSource : (window.gmxJSHost || "") + moduleSource;
+                    path = moduleSource.match(/^https?:\/\//i) ? moduleSource : (window.gmxJSHost || "") + moduleSource;
                 }
                 else
                 {
