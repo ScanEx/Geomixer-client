@@ -1,6 +1,6 @@
 nsGmx.sqlFunctions = {
     string: [
-        "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position",
+        "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position", "replace", 
         "substring", "right"
     ],
 
