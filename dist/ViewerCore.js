@@ -20744,7 +20744,7 @@ nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.
 
 nsGmx.sqlFunctions = {
     string: [
-        "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position", "replace", 
+        "length", "lower", "upper", "trim", "lTrim", "rTrim", "left", "position", "replace",
         "substring", "right"
     ],
 
@@ -32469,6 +32469,11 @@ nsGmx.Translations.addText('eng', {
 	}
 });
 ;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
+nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
+    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.LanguageWidget = (function() {
@@ -32503,11 +32508,6 @@ nsGmx.LanguageWidget = (function() {
     return LanguageWidget;
 })();
 ;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.LanguageWidget = {};
-nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widget\">\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
-    "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
-    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -39113,8 +39113,16 @@ L.Control.GmxLayers2 = L.Control.Layers.extend({
                 input = this._createRadioElement('leaflet-base-layers', checked);
             }
 
-            var presentLayer = this._layerControlInputs.find(function(inp) {return inp.layerId === obj.layer._leaflet_id}),
-                presentIndex =  this._layerControlInputs.indexOf(presentLayer);
+            var presentLayer, presentIndex;
+
+            for (var i = 0; i < this._layerControlInputs.length; i++) {
+                var inp = this._layerControlInputs[i];
+                if (inp.layerId === obj.layer._leaflet_id) {
+                    presentLayer = inp;
+                }
+            }
+
+            presentIndex =  this._layerControlInputs.indexOf(presentLayer);
 
             if (presentLayer) {
                 this._layerControlInputs = [].concat(
