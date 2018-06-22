@@ -1975,13 +1975,18 @@ nsGmx.widgets = nsGmx.widgets || {};
                  * SIDEBAR
                  *
                  */
+                if (!nsGmx.IconSidebarWidget) {
+                    nsGmx.IconSidebarWidget = window.IconSidebar.default;
+                }
 
-                window.iconSidebarWidget = new nsGmx.IconSidebarWidget({
-                    container: document.getElementById('leftMenu'),
+                window.iconSidebarWidget = new nsGmx.IconSidebarWidget(document.getElementById('leftMenu'), {
                     collapsedWidth: 40,
                     extendedWidth: 400,
-                    callback: window.resizeAll
+                    position: 'left'
                 });
+
+                window.iconSidebarWidget.addEventListener('opened', window.resizeAll);
+                window.iconSidebarWidget.addEventListener('closed', window.resizeAll);
 
                 window.createTabFunction = function(options) {
                     return function(state) {
