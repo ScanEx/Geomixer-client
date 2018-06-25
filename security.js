@@ -208,12 +208,21 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
             doAddUser(usersHash[name]);
         } else {
             security.findUsers(name, {maxRecords: 1}).then(function(userInfos) {
-                //TODO: обработать ситуацию, когда пользователь вводит email
-                if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
-                    doAddUser(userInfos[0]);
-                } else {
+				var isEmail = name.indexOf('@') !== -1;
+
+				if (isEmail) {
+					if (userInfos[0] && userInfos[0].Login.toLowerCase() === name.toLowerCase()) {
+						doAddUser(userInfos[0]);
+					} else {
+						inputError(input[0]);
+					}
+				} else {
+					if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
+						doAddUser(userInfos[0]);
+					} else {
                     inputError(input[0]);
-                }
+					}
+				}
             }, inputError.bind(null, input[0]));
         }
     });
@@ -268,7 +277,7 @@ SecurityUserListWidget._drawMapUsers = function(user, securityScope)
     ui.find('.gmx-icon-recycle').click(function() {
         // уберем пользователя из списка
         securityScope.securityUsersProvider.filterOriginalItems(function(elem) {
-            return elem.Nickname !== user.Nickname;
+            return elem.Login !== user.Login;
         });
     });
 
