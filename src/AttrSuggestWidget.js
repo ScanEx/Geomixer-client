@@ -144,7 +144,16 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
                 stopEvent(e);
             };
 
-            window._title(div, nsGmx.sqlTemplates[name] || name);
+            var titleObj = nsGmx.sqlTemplates[name],
+                title;
+
+            if (titleObj) {
+                title = window.language === 'rus' ? titleObj.descRus : titleObj.descEng;
+            } else {
+                title = name;
+            }
+
+            window._title(div, title);
 
             $(canvas).append(div);
         }
