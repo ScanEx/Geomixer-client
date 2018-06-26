@@ -3,12 +3,45 @@ using System;
 using System.Web;
 using System.IO;
 using System.Data;
-using System.Data.SqlClient;
+//using System.Data.SqlClient;
+using Npgsql;
  
 public class GetPhoto : IHttpHandler {
    
     public void ProcessRequest (HttpContext context) {
 
+		var response = context.Response; 
+		int id = int.Parse(context.Request["id"]);  
+		byte[] imageBytes = null;	
+		
+		using (var conn = new NpgsqlConnection("Server=192.168.14.190; Port = 5432; User id=postgres;password=postgres;Database=VesselGallery"))
+		{
+			string sQL = "SELECT middle from picture WHERE id=:id";
+			using (var command = new NpgsqlCommand(sQL, conn))
+			{
+				command.Parameters.AddWithValue("id", id);
+				conn.Open();
+				var rdr = command.ExecuteReader();
+				if (rdr.Read())
+				{
+					imageBytes = (byte[])rdr[0];
+				}
+				rdr.Close();
+				conn.Close();
+			}
+		}
+
+        response.Clear();  
+        response.Buffer = true;  
+        response.Charset = "";  
+        response.Cache.SetCacheability(HttpCacheability.NoCache);  
+        response.ContentType = "image/jpg";  
+        //response.AppendHeader("Content-Disposition", "attachment; filename=" + fileName);  
+        response.BinaryWrite(imageBytes);  
+        response.Flush();   
+        response.End();  
+		
+		/*
         var constr = "Data Source=KOSMO-MSSQL2.kosmosnimki.ru;Failover Partner=KOSMO-MSSQL1.kosmosnimki.ru;Initial Catalog=Maps;User Id=Maps1410;Password=8ewREh4z";
         var Response = context.Response; 
         int id = int.Parse(context.Request["id"]);  
@@ -41,6 +74,7 @@ public class GetPhoto : IHttpHandler {
         Response.BinaryWrite(bytes);  
         Response.Flush();   
         Response.End();  
+		*/
     }
  
     public bool IsReusable {
