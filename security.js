@@ -54,6 +54,8 @@ nsGmx.Translations.addText('eng', {security: {
 
 var usersHash = {};
 
+var currentSelectedItem = null;
+
 var autocompleteLabelTemplate = Handlebars.compile(
     '<a class="security-autocomplete-item">' +
     '{{#if showIcon}}<span class="{{#if IsGroup}}security-group-icon{{else}}security-user-icon{{/if}}"></span>{{/if}}' +
@@ -76,15 +78,18 @@ var wrapUserListInput = function(input, options) {
         source: function(request, cbResponse) {
             security.findUsers(request.term, {maxRecords: 7, type: options && options.type}).then(function(userInfos) {
                 cbResponse(userInfos.map(function(userInfo) {
-                    usersHash[userInfo.Nickname] = userInfo;
-                    return {value: userInfo.Nickname, label: ''};
+                    usersHash[userInfo.Login] = userInfo;
+                    return {login: userInfo.Login, value: userInfo.Nickname, label: ''};
                 }));
             }, cbResponse.bind(null, []));
+        },
+        select: function( event, ui ) {
+            currentSelectedItem = ui.item;
         }
     });
 
     $(input).data("ui-autocomplete")._renderItem = function(ul, item) {
-        var userInfo = usersHash[item.value],
+        var userInfo = usersHash[item.login],
             templateParams = $.extend({showIcon: options && options.showIcon}, userInfo);
         return $('<li></li>')
             .append($(autocompleteLabelTemplate(templateParams)))
@@ -193,8 +198,19 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
         var input = $('.security-add-input', ui),
             name = input.val();
 
+        var isEmail = name.indexOf('@') !== -1,
+    		searchObj = isEmail ? {Login: name} : {Nickname: name};
+
         var addedUsers = _this.securityUsersProvider.getOriginalItems();
-        if (_.findWhere(addedUsers, {Nickname: name})) {
+
+        if (currentSelectedItem) {
+            searchObj = {
+                Login: currentSelectedItem.login,
+                Nickname: currentSelectedItem.value
+            };
+        }
+
+        if (_.findWhere(addedUsers, searchObj)) {
             inputError(input[0]);
             return;
         }
@@ -202,27 +218,36 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
         var doAddUser = function(user) {
             _this._addMapUser(user);
             input.val('').focus();
+            currentSelectedItem = null;
         }
 
         if (name in usersHash) {
             doAddUser(usersHash[name]);
         } else {
-            security.findUsers(name, {maxRecords: 1}).then(function(userInfos) {
-				var isEmail = name.indexOf('@') !== -1;
+            security.findUsers(name).then(function(userInfos) {
+                var curUserInfo;
 
-				if (isEmail) {
-					if (userInfos[0] && userInfos[0].Login.toLowerCase() === name.toLowerCase()) {
-						doAddUser(userInfos[0]);
-					} else {
-						inputError(input[0]);
-					}
+				if (currentSelectedItem) {
+					curUserInfo = userInfos.filter(function (ui) {return ui.Login === searchObj.Login})
+					if (curUserInfo[0]) doAddUser(curUserInfo[0]);
 				} else {
-					if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
-						doAddUser(userInfos[0]);
-					} else {
-                    inputError(input[0]);
-					}
-				}
+                    var isEmail = name.indexOf('@') !== -1;
+
+                    if (isEmail) {
+                        if (userInfos[0] && userInfos[0].Login.toLowerCase() === name.toLowerCase()) {
+                            doAddUser(userInfos[0]);
+                        } else {
+                            inputError(input[0]);
+                        }
+                    } else {
+                        if (userInfos[0] && userInfos[0].Nickname.toLowerCase() === name.toLowerCase()) {
+                            doAddUser(userInfos[0]);
+                        } else {
+                        inputError(input[0]);
+                        }
+                    }
+                }
+
             }, inputError.bind(null, input[0]));
         }
     });
