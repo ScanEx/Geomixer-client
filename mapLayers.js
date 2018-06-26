@@ -746,23 +746,6 @@
                                     }
                                 }
 
-                            if (nsGmx.timeLineControl) {
-                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
-                                    layerOnTimeline = false;
-
-                                for (var key in timelineData) {
-                                    if (timelineData[key].layerID === elem.name) {
-                                        layerOnTimeline = true;
-                                    }
-                                }
-
-                                if (layerOnTimeline && props.visible === true) {
-                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
-                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
-                                    $(timelineIcon).removeClass('disabled');
-                                }
-                            }
-
                             $(this).on('layerTimelineRemove', function(e, data) {
                                 if (data.layerID === layerName) {
                                     timelineIcon.src = 'img/timeline-icon-disabled.svg';
@@ -782,6 +765,43 @@
                                     $(timelineIcon).removeClass('disabled');
                                 }
                             });
+
+                            if (nsGmx.timeLineControl) {
+                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
+                                    layerOnTimeline = false;
+
+                                for (var key in timelineData) {
+                                    if (timelineData[key].layerID === elem.name) {
+                                        layerOnTimeline = true;
+                                    }
+                                }
+
+                                if (layerOnTimeline) {
+                                    if (props.visible) {
+                                        timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                        timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                        $(timelineIcon).removeClass('disabled');
+                                    }
+                                } else {
+                                    if (props.visible) {
+                                        var disabled = $(this).hasClass('disabled'),
+                                            timelinePluginName = 'GeoMixer Timeline',
+                                            timeLineModuleName = 'gmxTimeLine',
+                                            timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
+                                        timelinePlugin.body.addLayer(layer);
+
+                                        timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                        timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                        $(timelineIcon).removeClass('disabled');
+                                    }
+                                }
+
+                                if (layerOnTimeline && props.visible === true) {
+                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
+                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
+                                    $(timelineIcon).removeClass('disabled');
+                                }
+                            }
                         }
                     }
                 }
