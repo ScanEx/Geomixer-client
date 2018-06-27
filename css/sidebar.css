@@ -1,3 +1,85 @@
+.gmx-sidebar {
+    width: 100%;
+    height: 100%;
+}
+
+/* .iconSidebarControl-tabs */
+/* .gmx-sidebar-tabs  */
+.iconSidebarControl-tabs
+{
+    width: 40px;
+    height: 100%;
+    float: left;
+    background-color: #4c5567 !important;
+}
+
+.gmx-sidebar-opened {
+    width: 400px !important;
+}
+
+/*.iconSidebarControl-content  */
+/* .gmx-sidebar-content  */
+.iconSidebarControl-content
+{
+    width: 360px;
+    float: right;
+    height: 100%;
+    background-color: #FFF;
+}
+
+/* .gmx-sidebar-tab */
+.iconSidebarControl-tab
+ {
+    /* width: 100%; */
+    height: 40px;
+    color: #333;
+    font-size: 12pt;
+    overflow: hidden;
+    transition: all 80ms;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.layers-tree {
+  background-image: url("../img/favicon16x16_sample6.png") center no-repeat;
+  cursor: pointer;
+}
+
+.tab-icon svg {
+  height: 18px;
+  width: 18px;
+  margin-left: 11px;
+  margin-right: 11px;
+  margin-top: 11px;
+  pointer-events: none;
+}
+
+/* .gmx-sidebar-pane  */
+.iconSidebarControl-pane
+{
+  display: none;
+  right: 0;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.iconSidebarControl-pane.iconSidebarControl-pane-active { display: block; }
+/* .gmx-sidebar-pane.gmx-sidebar-pane-active { display: block; } */
+
+.tab-icon:hover {
+  background-color: #737b8c;
+}
+
+.sidebar-icon {
+  fill: #bfccd6;
+}
+
+.sidebar-active-icon {
+    fill: #70cbe0;
+}
+
 .tab-icon {
     border-left: 4px solid transparent;
     fill: #d8e1e8;

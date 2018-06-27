@@ -137,7 +137,6 @@ var cssFiles = [
 
     "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
-    "leaflet/plugins/IconSidebarControl/dist/iconSidebarWidget.css",
     "css/sidebar.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",
