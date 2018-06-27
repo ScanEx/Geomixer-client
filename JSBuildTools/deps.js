@@ -78,7 +78,7 @@ var jsFiles = [
     "src/SearchLogic/SearchProviders.js",
     "src/SearchLogic/SearchLogic.js",
     "leaflet/plugins/gmxLayers2/gmxLayers2.js",
-    "leaflet/plugins/IconSidebarControl/dist/iconSidebarWidget.js",
+    "leaflet/plugins/IconSidebarControl/dist/bundle.js",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.js",
     "starter.js",
     "version.js"
@@ -137,6 +137,7 @@ var cssFiles = [
 
     "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
+    // "leaflet/plugins/IconSidebarControl/dist/bundle.css",
     "css/sidebar.css",
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",

@@ -1975,11 +1975,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                  * SIDEBAR
                  *
                  */
-                if (!nsGmx.IconSidebarWidget) {
-                    nsGmx.IconSidebarWidget = window.IconSidebar.default;
-                }
 
-                window.iconSidebarWidget = new nsGmx.IconSidebarWidget(document.getElementById('leftMenu'), {
+                window.iconSidebarWidget = new window.IconSidebar.IconSidebarWidget(document.getElementById('leftMenu'), {
                     collapsedWidth: 40,
                     extendedWidth: 400,
                     position: 'left'

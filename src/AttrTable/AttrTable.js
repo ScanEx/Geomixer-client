@@ -235,6 +235,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         '<span class="buttonLink attrsDownloadLink" data-format="csv">{{i "Скачать csv"}}</span>' +
         '<span class="buttonLink attrsDownloadLink" data-format="geojson">{{i "Скачать geojson"}}</span>' +
         '<span class="buttonLink createLayerLink">{{i "Создать слой"}}</span>' +
+		'<span class="buttonLink copyObjectsLink">{{i "Копировать объекты"}}</span>' +
         '{{#if isPolygon}}<span class="buttonLink attrs-table-square-link">{{i "Рассчитать площадь"}}</span>{{/if}}' +
     '</div>')({
         isPolygon: info.GeometryType === 'polygon'
@@ -309,6 +310,12 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 			}
 		});
     });
+
+	downloadSection.find('.copyObjectsLink').click(function() {
+		var copyLayerParams = {layerName: info.name, query: _params.searchParamsManager.getQuery()};
+		nsGmx.ClipboardController.addItem('CopyObjects', copyLayerParams);
+		window.showErrorMessage(window._gtxt("Выберите правым кликом слой в левой панели и нажмите \"Вставить объекты\""), true, window._gtxt("Объекты скопированы"));
+	});
 
     this.tableFields.init(_params.attributes, info);
 
@@ -565,8 +572,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         editButton.style.width = '12px';
 
         deleteItem.onchange = function() {
-			if (deleteItem.checked) { _this._selected[id] = true; }
-			else  {
+			if (deleteItem.checked) {
+				 _this._selected[id] = true;
+				 console.log(_this._selected);
+			 } else {
 				delete _this._selected[id];
 				selectAllItems.checked = false;
 			}

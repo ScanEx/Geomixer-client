@@ -442,6 +442,41 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	}
 }, 'Layer');
 
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: function() { return _gtxt("Вставить объекты"); },
+	isVisible: function(context)
+	{
+		return context.elem.type == "Vector" &&
+		       (context.layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
+	},
+	isSeparatorBefore: function(context)
+	{
+		return false;
+	},
+	clickCallback: function(context)
+	{
+		var copyLayerParams = nsGmx.ClipboardController.get('CopyObjects', -1),
+			copyLayerName = copyLayerParams.layerName,
+			copyLayerQuery = copyLayerParams.query;
+
+		var url = window.serverBase +
+			"VectorLayer/Append?LayerName=" + context.elem.name +
+			"&FromLayer=" + copyLayerName +
+			"&Query=" + copyLayerQuery;
+
+		var  def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
+
+		def.done(function(taskInfo){
+				// console.log(taskInfo);
+        }).fail(function(taskInfo){
+			showErrorMessage(window._gtxt('Вставить объекты не удалось'), true);
+			// console.log(taskInfo);
+        }).progress(function(taskInfo){
+			// console.log(taskInfo);
+        });
+	}
+}, 'Layer');
+
 var applyStyleContentMenuItem = {
 	title: function() { return _gtxt("Применить стиль"); },
 	isVisible: function(context)
