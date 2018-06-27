@@ -4,14 +4,29 @@ using System.Web;
 using System.IO;
 using System.Data;
 using System.Data.SqlClient;
+using WebSecurity;
+using LayerData;
+using System.Linq;
  
 public class Upload : IHttpHandler {
    
     public void ProcessRequest (HttpContext context) {
-        context.Response.ContentType = "text/html";
-        context.Response.Expires = -1;
+
         try
-        {
+        {		
+			context.Response.ContentType = "text/html";
+			context.Response.Expires = -1;
+			
+			var u = UserSecurity.MyGetUserFromRequest(context);
+			if (u==null)
+				throw new Exception("You must to be authenticated");
+			if (!UserAccess.CanUserViewUser(UserSecurity.MyGetUserFromRequest(context), u)) 
+				throw new Exception("You can not view this user");
+			if (!u.RequestMemberOfGroups().Any(g=>g.Nickname.ToLower()=="scanex_all") && u.Role!="admin")
+				throw new Exception("You are not authorized");
+				
+			throw new Exception("Currently unavailable");
+
             if (context.Request.Files.Count == 0 || context.Request.Files["Filedata"].ContentLength==0)
                 throw new Exception("Upload: no files");
             HttpPostedFile postedFile = context.Request.Files["Filedata"];

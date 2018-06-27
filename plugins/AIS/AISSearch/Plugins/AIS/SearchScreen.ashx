@@ -30,8 +30,20 @@ public class ScreenSearch : IHttpHandler {
 		}
 		
 		try
-		{
-			var table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+		{           	
+			string table, filter = "";
+			if (li["TableName"]!=null)
+				table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+			else if (li["ParentLayer"]!=null)
+			{
+				filter = li["Filter"].ToString().Replace("\"", "");			
+				prms = new LayerWeb.GetLayerInfo.LayerInfoParams { LayerName = li["ParentLayer"].ToString(), NeedAttrValues = false };
+				li = LayerWeb.GetLayerInfo.GetInformation(prms, UserSecurity.GetUserFromRequset(context));
+				table = li["TableName"].ToString().Split('.')[2].Trim(new char[]{'[',']'});
+			}	
+			else
+				throw new Exception("NO TABLE");
+			
 		
 			double minX = double.Parse(context.Request["minx"].Replace(',', '.'), new CultureInfo("En-us")), maxX = double.Parse(context.Request["maxx"].Replace(',', '.'), new CultureInfo("En-us")),
 				   minY = double.Parse(context.Request["miny"].Replace(',', '.'), new CultureInfo("En-us")), maxY = double.Parse(context.Request["maxy"].Replace(',', '.'), new CultureInfo("En-us"));
@@ -82,7 +94,7 @@ public class ScreenSearch : IHttpHandler {
 			//return bounds;
 			var result = new
 			{
-				columns = new string[] { "vessel_name", "mmsi", "imo", "maxid", "xmin", "xmax", "ymin", "ymax" },
+				columns = new string[] { "vessel_name", "mmsi", "imo", "maxid", "xmin", "xmax", "ymin", "ymax", "vessel_type", "sog", "cog", "heading", "ts_pos_utc" },
 				values = new List<List<object>>(),
 				elapsed = new int[]{0}
 			};
@@ -93,28 +105,27 @@ public class ScreenSearch : IHttpHandler {
 				if (bounds.Length == 8)
 				{
 					com.CommandText = @"
-	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax FROM(
+	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax, p.vessel_type, p.sog, p.cog, p.heading, p.ts_pos_utc FROM(
 		SELECT MAX(maxid) maxid, mmsi, imo, vessel_name FROM (
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
-			WHERE 
+			WHERE "+(filter!=""?filter+" and ":"")+@"
 			(@minX1<=longitude and longitude<=@maxX1 and  
-			@minY1<=latitude and latitude<=@maxY1) and
-			(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))
+			@minY1<=latitude and latitude<=@maxY1) " +
+			(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
 			GROUP BY mmsi, imo , vessel_name
 			UNION 
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
 			WHERE 
 			@minX2<=longitude and longitude<=@maxX2 and  
-			@minY2<=latitude and latitude<=@maxY2 and
-			(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))
+			@minY2<=latitude and latitude<=@maxY2 " +
+			(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
 			GROUP BY mmsi, imo , vessel_name
 		) tt 
 		GROUP BY mmsi, imo , vessel_name
 	) t, " + table + @" p WHERE t.maxid=p.id ORDER BY t.vessel_name 
 	";
-					var p = new SqlParameter("@s", start); com.Parameters.Add(p);
-						p = new SqlParameter("@e", end); com.Parameters.Add(p);
-						p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
+		
+					var p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
 						p = new SqlParameter("@minY1", bounds[1]); com.Parameters.Add(p);
 						p = new SqlParameter("@maxX1", bounds[2]); com.Parameters.Add(p);
 						p = new SqlParameter("@maxY1", bounds[3]); com.Parameters.Add(p);
@@ -122,25 +133,34 @@ public class ScreenSearch : IHttpHandler {
 						p = new SqlParameter("@minY2", bounds[5]); com.Parameters.Add(p);
 						p = new SqlParameter("@maxX2", bounds[6]); com.Parameters.Add(p);
 						p = new SqlParameter("@maxY2", bounds[7]); com.Parameters.Add(p);
+					if (start!=null && end!=null)
+					{
+						p = new SqlParameter("@s", start); com.Parameters.Add(p);			
+						p = new SqlParameter("@e", end); com.Parameters.Add(p);
+					}
 				}
 				else
 				{
 					com.CommandText = @"
-	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax FROM(
+	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax, p.vessel_type, p.sog, p.cog, p.heading, p.ts_pos_utc FROM(
 		SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
-		WHERE 
+		WHERE "+(filter!=""?filter+" and ":"")+@"
 		(@minX1<=longitude and longitude<=@maxX1 and  
-		@minY1<=latitude and latitude<=@maxY1) and
-		(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))
+		@minY1<=latitude and latitude<=@maxY1) " +
+		(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
 		GROUP BY mmsi, imo , vessel_name
 	) t, " + table + @" p WHERE t.maxid=p.id ORDER BY t.vessel_name
 	";
-					var p = new SqlParameter("@s", start); com.Parameters.Add(p);
-					p = new SqlParameter("@e", end); com.Parameters.Add(p);
-					p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
-					p = new SqlParameter("@minY1", bounds[1]); com.Parameters.Add(p);
-					p = new SqlParameter("@maxX1", bounds[2]); com.Parameters.Add(p);
-					p = new SqlParameter("@maxY1", bounds[3]); com.Parameters.Add(p);
+	//throw new Exception(com.CommandText);
+					var p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
+						p = new SqlParameter("@minY1", bounds[1]); com.Parameters.Add(p);
+						p = new SqlParameter("@maxX1", bounds[2]); com.Parameters.Add(p);
+						p = new SqlParameter("@maxY1", bounds[3]); com.Parameters.Add(p);
+					if (start!=null && end!=null)
+					{
+						p = new SqlParameter("@s", start); com.Parameters.Add(p);			
+						p = new SqlParameter("@e", end); com.Parameters.Add(p);
+					}
 				}
 
 				var begin = DateTime.Now;            
@@ -152,7 +172,12 @@ public class ScreenSearch : IHttpHandler {
 				{
 					var vessel = new List<object>();
 					for (var i=0; i<result.columns.Length; ++i)
-						vessel.Add(r[result.columns[i]]);
+					{
+						if (result.columns[i]=="ts_pos_utc")
+							vessel.Add(((DateTime)r[result.columns[i]]).Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds);
+						else
+							vessel.Add(r[result.columns[i]]);
+					}
 					result.values.Add(vessel);
 				}
 			}
