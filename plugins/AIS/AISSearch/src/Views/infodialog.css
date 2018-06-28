@@ -104,6 +104,9 @@
   background-color: #ced9e0;
   background-size: 48px 48px;
 }
+.ais_myfleet_dialog .photo img{
+  width:178px;
+}
 .ais_myfleet_dialog .column1 {
     float: left;
     padding-top: 12px;

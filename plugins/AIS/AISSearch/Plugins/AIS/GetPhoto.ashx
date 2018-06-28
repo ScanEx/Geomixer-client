@@ -11,15 +11,24 @@ public class GetPhoto : IHttpHandler {
     public void ProcessRequest (HttpContext context) {
 
 		var response = context.Response; 
-		int id = int.Parse(context.Request["id"]);  
+		int param1, param2;
+		string sQL = "SELECT middle from picture WHERE id=:param1";
+		if (int.TryParse(context.Request["id"], out param1))
+		{
+			sQL = "SELECT middle from picture WHERE id=:param1";
+		}
+		else if (int.TryParse(context.Request["mmsi"], out param1))
+		{
+			sQL = "SELECT small from picture WHERE mmsi=:param1";
+		}
+		
 		byte[] imageBytes = null;	
 		
 		using (var conn = new NpgsqlConnection("Server=192.168.14.190; Port = 5432; User id=postgres;password=postgres;Database=VesselGallery"))
 		{
-			string sQL = "SELECT middle from picture WHERE id=:id";
 			using (var command = new NpgsqlCommand(sQL, conn))
 			{
-				command.Parameters.AddWithValue("id", id);
+				command.Parameters.AddWithValue("param1", param1);
 				conn.Open();
 				var rdr = command.ExecuteReader();
 				if (rdr.Read())

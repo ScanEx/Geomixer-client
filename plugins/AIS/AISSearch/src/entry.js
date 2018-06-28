@@ -55,35 +55,6 @@ const publicInterface = {
                 break;
             }
         const viewFactory = new ViewsFactory(options);
-        // const setLocaleDate = function (layer) {
-        //     if (layer)
-        //         layer.bindPopup('').on('popupopen', function (e) {
-        //             //console.log(e);
-
-        //             var result, re = /\[([^\[\]]+)\]/g, lastIndex = 0, template = "",
-        //                 str = e.gmx.templateBalloon, props = e.gmx.properties;
-        //             while ((result = re.exec(str)) !== null) {
-        //                 template += str.substring(lastIndex, result.index);
-        //                 if (props.hasOwnProperty(result[1]))
-        //                     if (result[1].search(/^ts_pos_utc/i) != -1) {
-        //                         template += aisLayerSearcher.formatDate(new Date(props[result[1]] * 1000))
-        //                     }
-        //                     else if (result[1].search(/^Date/i) != -1) {
-        //                         template += aisLayerSearcher.formatDate(new Date(props[result[1]] * 1000)).replace(/ .+/, "")
-        //                     }
-        //                     else
-        //                         template += props[result[1]]
-        //                 if (result[1].search(/summary/i) != -1) {
-        //                     template += e.gmx.summary
-        //                 }
-        //                 //console.log(lastIndex+", "+result.index+" "+str.substring(lastIndex, result.index)+" "+props[result[1]]+" "+result[1])
-        //                 lastIndex = re.lastIndex;
-        //             }
-        //             template += str.substring(lastIndex);
-        //             //console.log(lastIndex+", "+re.lastIndex+" "+str.substring(lastIndex))
-        //             e.popup.setContent(template);
-        //         })
-        //     },
         const   layersByID = nsGmx.gmxMap.layersByID,
                 setLayerClickHandler = function (layer) {
                 layer.removeEventListener('click')
@@ -149,7 +120,6 @@ const publicInterface = {
                     }
                 )
             sidebar.addEventListener('opened', function (e) {
-                console.log(sidebar._activeTabId)
                 if (sidebar._activeTabId==menuId)
                     aisPluginPanel.show();
             })

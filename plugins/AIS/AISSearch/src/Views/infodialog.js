@@ -150,10 +150,18 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 
 	// IMAGE	
 	let scheme = document.location.href.replace(/^(https?:).+/, "$1");
-	$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+
+	$('<img src="' + scheme + window.serverBase.replace(/^https?:/, "")+'plugins/ais/getphoto.ashx?mmsi=' + vessel.mmsi + '">')
+	.load(function () {	
 		if (this)
-			$('div', photo).replaceWith(this);
+			$('div', photo).replaceWith(this);	
+	}).error(function(){		
+		$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+				if (this)
+					$('div', photo).replaceWith(this);
+		});
 	});
+	
 
 	// BUTTONS
 	let menubuttons = $('<div class="menubuttons"></div>').appendTo(buttons)

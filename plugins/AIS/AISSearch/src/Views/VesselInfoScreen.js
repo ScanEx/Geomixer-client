@@ -114,11 +114,17 @@ module.exports = function ({modulePath, aisServices}){
             }  
         }, false);
 
-        $('<img src="'+scheme+'//photos.marinetraffic.com/ais/showphoto.aspx?mmsi='+vessel.mmsi+'">').load(function() {
-            if (this){
-                $('.column1 .photo img.no-image').replaceWith(this);
-            }
+        $('<img src="' + scheme + window.serverBase.replace(/^https?:/, "")+'plugins/ais/getphoto.ashx?mmsi=' + vessel.mmsi + '">')
+        .load(function () {	
+            if (this)
+                $('.column1 .photo img.no-image').replaceWith(this);	
+        }).error(function(){			
+            $('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+                    if (this)
+                        $('.column1 .photo img.no-image').replaceWith(this);
+            });
         });
+
         $('.vessel-info-page .chooseFile').change(function(){            
             $('<div class="photo uploader" style="background-image:url(img/progress.gif);background-size:20px;"></div>')
             .insertAfter($('.vessel-info-page .galery .placeholder .photo').eq(0));

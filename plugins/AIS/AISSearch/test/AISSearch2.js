@@ -100,35 +100,6 @@
 	                break;
 	            }
 	        }var viewFactory = new ViewsFactory(options);
-	        // const setLocaleDate = function (layer) {
-	        //     if (layer)
-	        //         layer.bindPopup('').on('popupopen', function (e) {
-	        //             //console.log(e);
-	
-	        //             var result, re = /\[([^\[\]]+)\]/g, lastIndex = 0, template = "",
-	        //                 str = e.gmx.templateBalloon, props = e.gmx.properties;
-	        //             while ((result = re.exec(str)) !== null) {
-	        //                 template += str.substring(lastIndex, result.index);
-	        //                 if (props.hasOwnProperty(result[1]))
-	        //                     if (result[1].search(/^ts_pos_utc/i) != -1) {
-	        //                         template += aisLayerSearcher.formatDate(new Date(props[result[1]] * 1000))
-	        //                     }
-	        //                     else if (result[1].search(/^Date/i) != -1) {
-	        //                         template += aisLayerSearcher.formatDate(new Date(props[result[1]] * 1000)).replace(/ .+/, "")
-	        //                     }
-	        //                     else
-	        //                         template += props[result[1]]
-	        //                 if (result[1].search(/summary/i) != -1) {
-	        //                     template += e.gmx.summary
-	        //                 }
-	        //                 //console.log(lastIndex+", "+result.index+" "+str.substring(lastIndex, result.index)+" "+props[result[1]]+" "+result[1])
-	        //                 lastIndex = re.lastIndex;
-	        //             }
-	        //             template += str.substring(lastIndex);
-	        //             //console.log(lastIndex+", "+re.lastIndex+" "+str.substring(lastIndex))
-	        //             e.popup.setContent(template);
-	        //         })
-	        //     },
 	        var layersByID = nsGmx.gmxMap.layersByID,
 	            setLayerClickHandler = function setLayerClickHandler(layer) {
 	            layer.removeEventListener('click');
@@ -186,7 +157,6 @@
 	                })
 	            });
 	            sidebar.addEventListener('opened', function (e) {
-	                console.log(sidebar._activeTabId);
 	                if (sidebar._activeTabId == menuId) aisPluginPanel.show();
 	            });
 	        }
@@ -497,7 +467,10 @@
 	    '<div class="ais_vessels">' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">NO VESSELS</div><div>mmsi: 0 imo: 0</div></td>' + '<td><i class="icon-ship" vessel="" title=""></i></td>' + '<td><span class="date"></span></td>' + '<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '</div>' + '</div>')());
 	    this.container = this.frame.find('.ais_vessels');
 	    //this.startScreen = this.frame.find('.start_screen');
-	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' + '<td><span class="date">{{ts_pos_utc}}</span></td>' + '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+	
+	    //'<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' +
+	    '<td><span vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}">' + '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg></span></td>' + '<td><span class="date">{{ts_pos_utc}}</span></td>' + '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	
 	    var cleanFilter = this.frame.find('.remove'),
 	        filterReady = this.frame.find('.search'),
@@ -1993,8 +1966,13 @@
 	
 		// IMAGE	
 		var scheme = document.location.href.replace(/^(https?:).+/, "$1");
-		$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+	
+		$('<img src="' + scheme + window.serverBase.replace(/^https?:/, "") + 'plugins/ais/getphoto.ashx?mmsi=' + vessel.mmsi + '">').load(function () {
 			if (this) $('div', photo).replaceWith(this);
+		}).error(function () {
+			$('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+				if (this) $('div', photo).replaceWith(this);
+			});
 		});
 	
 		// BUTTONS
@@ -2143,11 +2121,14 @@
 	            }
 	        }, false);
 	
-	        $('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?mmsi=' + vessel.mmsi + '">').load(function () {
-	            if (this) {
-	                $('.column1 .photo img.no-image').replaceWith(this);
-	            }
+	        $('<img src="' + scheme + window.serverBase.replace(/^https?:/, "") + 'plugins/ais/getphoto.ashx?mmsi=' + vessel.mmsi + '">').load(function () {
+	            if (this) $('.column1 .photo img.no-image').replaceWith(this);
+	        }).error(function () {
+	            $('<img src="' + scheme + '//photos.marinetraffic.com/ais/showphoto.aspx?size=thumb&mmsi=' + vessel.mmsi + '">').load(function () {
+	                if (this) $('.column1 .photo img.no-image').replaceWith(this);
+	            });
 	        });
+	
 	        $('.vessel-info-page .chooseFile').change(function () {
 	            $('<div class="photo uploader" style="background-image:url(img/progress.gif);background-size:20px;"></div>').insertAfter($('.vessel-info-page .galery .placeholder .photo').eq(0));
 	            $('.vessel-info-page .uploadFile')[0].submit();

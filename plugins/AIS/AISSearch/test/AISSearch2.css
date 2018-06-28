@@ -790,6 +790,9 @@
   background-color: #ced9e0;
   background-size: 48px 48px;
 }
+.ais_myfleet_dialog .photo img{
+  width:178px;
+}
 .ais_myfleet_dialog .column1 {
     float: left;
     padding-top: 12px;
@@ -1022,7 +1025,7 @@
            display:none;
            font-size: 10px;
            border-radius: 4px;
-           padding:0 7px 2px 6px;
+           padding:2px 7px 2px 7px;
            background-color: #3ca1d0;
            border:none;
            color: white;
