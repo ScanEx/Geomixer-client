@@ -185,8 +185,9 @@
 	                    hint: _gtxt('AISSearch2.caption')
 	                })
 	            });
-	            sidebar.on('opened', function (e) {
-	                if (e.id == menuId) aisPluginPanel.show();
+	            sidebar.addEventListener('opened', function (e) {
+	                console.log(sidebar._activeTabId);
+	                if (sidebar._activeTabId == menuId) aisPluginPanel.show();
 	            });
 	        }
 	
@@ -735,8 +736,9 @@
 	    var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
 	        h = template.getBoundingClientRect().height;
 	    if (NOSIDEBAR) return h * 5;else {
-	        var H = $('.gmx-sidebar-pane').height() - this.topOffset;
+	        var H = $('.iconSidebarControl-pane').height() - this.topOffset;
 	        // console.log(template.getBoundingClientRect())
+	        // console.log(this.topOffset)
 	        // console.log(H)
 	        return H - H % h;
 	    }

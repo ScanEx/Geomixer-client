@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+
+.left_aispanel{
+  margin-bottom: 8px;
+  border: 1px solid #DDD;
+ }
+
+.ais_tabs *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+.ais_tabs{
+  width: 100%;
+}
+.ais_tab{
+  text-align: center;
+  cursor:pointer;
+  background-color: #e1e8ed;
+  border-bottom: solid 1px #d8e1e4;
+  color: #182026;
+}
+.ais_tab div{
+  padding:10px;
+  border-bottom: solid 3px #e1e8e4;
+  font-family: 'Roboto', sans-serif;
+  font-weight:500;
+  font-size:14px;
+}
+.ais_tab.active {
+  border-bottom:solid 1px #48aff1;
+}
+.ais_tab.active div{
+  border-bottom: solid 3px #48aff1;
+}
+.ais_tab.unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+        		
+.VesselSearchTool:hover{
+	background-color: #eee;
+}	
+.leaflet-gmx-icon-active.VesselSearchTool > span{
+	color:#f57c00;
+}	
+.VesselSearchTool{
+	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+	background-color: white;
+}
+.VesselSearchTool > span{
+	color:black;
+	font-weight:bold;
+	margin-top: 6px;
+	margin-right: 10px;
+	margin-left: 8px;
+}
+
+.leaflet-marker-icon.ais_highlight-icon {
+	pointer-events: none;
+}
+
+.ais_sidebar-icon-active{
+	fill:white;
+}
+.ais_sidebar-icon{
+	fill:#d8e1e8;
+}
+
+.start_screen{
+  width:100%;
+}
+.start_screen td{
+  text-align: center;
+}
+.start_screen td div{
+  opacity: 0.3;
+  font-size: 18px;
+}
+

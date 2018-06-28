@@ -1,0 +1,401 @@
+.ais_view * {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+.ais_view{
+    margin:0;
+}
+
+.ais_view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+
+.ais_view .ais_vessels{
+  color:#182026;
+}
+  .ais_view .ais_vessels .msg{
+    text-align: center;
+    font-weight:500;
+    margin-top:15px;
+  }
+
+  .ais_view div.refresh{
+    /*background-color: #EEE;
+    margin-left:10px;
+    border:1px solid #DDD;
+    border-radius: 2px;*/
+    height: 22px;
+    width: 22px;
+    text-align: center;
+    margin-bottom:10px;
+  }
+  .ais_view div.refresh div{
+    display:none;
+  }
+  .ais_view div.refresh div img{
+    margin-top:3px;
+  }
+  .ais_view div.refresh div{
+    height: 22px;
+    width: 22px;
+  }
+  .ais_view div.refresh i{
+    vertical-align: middle;
+    line-height:20px;
+    font-size:11px
+  }
+  .ais_view .clicable{
+    cursor:pointer;
+  }
+  .myfleet_view div.refresh{
+    margin-left:0px;
+  }
+  .ais_view.search_view select{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    background: transparent;
+    border: none;
+  
+    padding-right: 22px;
+    padding-left: 6px;
+    font-size:11px;
+    position: relative;
+    top: -19px;
+    width: 120px;
+  }
+  .ais_view.search_view select::-ms-expand {
+          display: none;
+  }
+  .ais_view i.icon-down-dir{  
+    position: relative;
+    top: 4px;
+  }
+  .ais_view.search_view select option{
+    font-size:11px;
+    /*padding-left: 6px;*/
+  }
+  .ais_view .instruments{
+    width: 360px;
+    background-color: #e1e8ed;
+  }
+  
+  .ais_view .instruments td{
+      padding:15px;
+    }
+  
+  .ais_view .instruments .count{
+      width:90%;
+      color: #CCC;
+      padding-left: 10px;
+    }
+  
+    .ais_view .calendar{
+      margin-bottom:10px;
+    }
+  
+    .ais_view .calendar td{
+      padding:0;
+    }
+  
+  .ais_view .filter{
+    background-color: #fff;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    width:99%;
+    border: 1px solid #DDD;
+    margin-top:10px;
+    border-radius: 3px;
+  }
+  .ais_view .filter div{
+      float:right;
+      margin-right:10px;
+  }
+  .ais_view .filter input{
+    width: 88%;
+    padding-left: 10px;
+    border: none;  
+    background: transparent;
+    text-transform: uppercase;
+    font-weight:700;
+  }
+  .ais_view .filter input::-webkit-input-placeholder { /* WebKit browsers */
+      text-transform: none;
+  }
+  .ais_view .filter input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+      text-transform: none;
+  }
+  .ais_view .filter input::-moz-placeholder { /* Mozilla Firefox 19+ */
+      text-transform: none;
+  }
+  .ais_view .filter input:-ms-input-placeholder { /* Internet Explorer 10+ */
+      text-transform: none;
+  }
+  .ais_view .filter input::placeholder { /* Recent browsers */
+      text-transform: none;
+  }
+  .ais_view .filter .remove{
+    display: none;
+    margin-top:2px;
+  }
+  .ais_view .filter i{
+    font-size:16px;
+  }
+
+.ais_view .results{
+    width:100%;
+    background-color: #f5f8fa;
+    border-bottom: solid 1px #e1e8ed;
+    color:#182026;
+    font-weight: 500;
+    opacity:0.8;
+}
+.ais_view .results td{
+    padding:6px;
+}
+.ais_view .results td:nth-of-type(1){
+    padding-left:15px;
+    width:98%;
+}
+.ais_view .results .refresh{
+    margin-bottom:0;
+}
+
+  .ais_view .ais_vessel{
+    border: solid 1px #fff;
+    border-bottom: solid 1px #e1e8ed;
+    padding:10px;
+    padding-left:15px;
+    cursor:pointer;
+    height: 29px;
+  }
+  .ais_view .ais_vessel:hover{
+    border: solid 1px #48aff1;
+  }
+  .ais_view .ais_vessel .position{
+      font-weight:500;
+      height: 15px;
+  }
+  .ais_view .ais_vessel .date{
+    opacity:0.8;
+  }
+  .ais_view .ais_vessel div.info{
+    cursor:pointer;
+  }  
+  .ais_view .ais_vessel div.info img{
+    margin-left: 10px;
+    visibility: hidden;
+  }
+  .ais_view .ais_vessel:hover div.info img{
+    visibility: visible;
+  }
+  /*
+  .ais_view .ais_vessel div.history{
+    width: 20px;
+    text-align:center;
+    cursor:pointer;
+  }
+  */
+  .ais_view .ais_vessel:first-of-type{
+    margin-top:0;
+  }
+  .ais_view .ais_vessel table{
+    width: 100%
+  }
+  .ais_view .ais_vessel table td:first-of-type{
+    width: 75%
+  }
+  .ais_view .ais_vessel table td:first-of-type div{
+    overflow: hidden;
+  }
+  .ais_view .ais_vessel table td:first-of-type div:nth-of-type(2){
+    font-size: 10px;
+    opacity: 0.8;
+  }
+  .ais_view .ais_vessel table td:nth-of-type(2){
+    padding-right:10px
+  }
+  .ais_view .ais_vessel table td:nth-of-type(3){
+    padding-right:10px
+  }
+
+  	
+.ais_view .mCSB_scrollTools .mCSB_draggerRail{
+    width:6px;
+}
+
+.ais_view .mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{
+    width:6px;
+}
+
+
+.ais_view .rotateimg15 {
+  -webkit-transform: rotate(15deg);
+  -moz-transform: rotate(15deg);
+  -ms-transform: rotate(15deg);
+  -o-transform: rotate(15deg);
+  transform: rotate(15deg);
+}
+.ais_view .rotateimg30 {
+  -webkit-transform: rotate(30deg);
+  -moz-transform: rotate(30deg);
+  -ms-transform: rotate(30deg);
+  -o-transform: rotate(30deg);
+  transform: rotate(30deg);
+}
+.ais_view .rotateimg45 {
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.ais_view .rotateimg60 {
+  -webkit-transform: rotate(60deg);
+  -moz-transform: rotate(60deg);
+  -ms-transform: rotate(60deg);
+  -o-transform: rotate(60deg);
+  transform: rotate(60deg);
+}
+.ais_view .rotateimg75 {
+  -webkit-transform: rotate(75deg);
+  -moz-transform: rotate(75deg);
+  -ms-transform: rotate(75deg);
+  -o-transform: rotate(75deg);
+  transform: rotate(75deg2);
+}
+.ais_view .rotateimg90 {
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+.ais_view .rotateimg105 {
+  -webkit-transform: rotate(105deg);
+  -moz-transform: rotate(105deg);
+  -ms-transform: rotate(105deg);
+  -o-transform: rotate(105deg);
+  transform: rotate(105deg);
+}
+.ais_view .rotateimg120 {
+  -webkit-transform: rotate(120deg);
+  -moz-transform: rotate(120deg);
+  -ms-transform: rotate(120deg);
+  -o-transform: rotate(120deg);
+  transform: rotate(120deg);
+}
+.ais_view .rotateimg135 {
+  -webkit-transform: rotate(135deg);
+  -moz-transform: rotate(135deg);
+  -ms-transform: rotate(135deg);
+  -o-transform: rotate(135deg);
+  transform: rotate(135deg);
+}
+.ais_view .rotateimg150 {
+  -webkit-transform: rotate(150deg);
+  -moz-transform: rotate(150deg);
+  -ms-transform: rotate(150deg);
+  -o-transform: rotate(150deg);
+  transform: rotate(150deg);
+}
+.ais_view .rotateimg165 {
+  -webkit-transform: rotate(165deg);
+  -moz-transform: rotate(165deg);
+  -ms-transform: rotate(165deg);
+  -o-transform: rotate(165deg);
+  transform: rotate(165deg);
+}
+.ais_view .rotateimg180 {
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+.ais_view .rotateimg195 {
+  -webkit-transform: rotate(195deg);
+  -moz-transform: rotate(195deg);
+  -ms-transform: rotate(195deg);
+  -o-transform: rotate(195deg);
+  transform: rotate(195deg);
+}
+.ais_view .rotateimg210 {
+  -webkit-transform: rotate(210deg);
+  -moz-transform: rotate(210deg);
+  -ms-transform: rotate(210deg);
+  -o-transform: rotate(210deg);
+  transform: rotate(210deg);
+}
+.ais_view .rotateimg225 {
+  -webkit-transform: rotate(225deg);
+  -moz-transform: rotate(225deg);
+  -ms-transform: rotate(225deg);
+  -o-transform: rotate(225deg);
+  transform: rotate(225deg);
+}
+.ais_view .rotateimg240 {
+  -webkit-transform: rotate(240deg);
+  -moz-transform: rotate(240deg);
+  -ms-transform: rotate(240deg);
+  -o-transform: rotate(240deg);
+  transform: rotate(240deg);
+}
+.ais_view .rotateimg255 {
+  -webkit-transform: rotate(255deg);
+  -moz-transform: rotate(255deg);
+  -ms-transform: rotate(255deg);
+  -o-transform: rotate(255deg);
+  transform: rotate(255deg);
+}
+.ais_view .rotateimg270 {
+  -webkit-transform: rotate(270deg);
+  -moz-transform: rotate(270deg);
+  -ms-transform: rotate(270deg);
+  -o-transform: rotate(270deg);
+  transform: rotate(270deg);
+}
+.ais_view .rotateimg285 {
+  -webkit-transform: rotate(285deg);
+  -moz-transform: rotate(285deg);
+  -ms-transform: rotate(285deg);
+  -o-transform: rotate(285deg);
+  transform: rotate(285deg);
+}
+.ais_view .rotateimg300 {
+  -webkit-transform: rotate(300deg);
+  -moz-transform: rotate(300deg);
+  -ms-transform: rotate(300deg);
+  -o-transform: rotate(300deg);
+  transform: rotate(300deg);
+}
+.ais_view .rotateimg315 {
+  -webkit-transform: rotate(315deg);
+  -moz-transform: rotate(315deg);
+  -ms-transform: rotate(315deg);
+  -o-transform: rotate(315deg);
+  transform: rotate(315deg);
+}
+.ais_view .rotateimg330 {
+  -webkit-transform: rotate(330deg);
+  -moz-transform: rotate(330deg);
+  -ms-transform: rotate(330deg);
+  -o-transform: rotate(330deg);
+  transform: rotate(330deg);
+}
+.ais_view .rotateimg345 {
+  -webkit-transform: rotate(345deg);
+  -moz-transform: rotate(345deg);
+  -ms-transform: rotate(345deg);
+  -o-transform: rotate(345deg);
+  transform: rotate(345deg);
+}
