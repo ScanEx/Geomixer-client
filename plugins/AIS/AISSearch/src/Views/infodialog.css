@@ -1,6 +1,12 @@
-/***********************
-*                      *
-************************/
+.ais_myfleet_dialog *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+.ais_info_dialog_titlebar *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+
 .ais_myfleet_dialog {
   color:#394b59;
   background-color:#f5f8fa
@@ -89,7 +95,7 @@
   color: #000;
 }
 .ais_myfleet_dialog .photo{
-  height:130px;
+  height:150px;
 }
 .ais_myfleet_dialog .photo div{
   width:178px;
@@ -116,7 +122,7 @@
     float: left;
     width: 45px;
 	border-left: solid 1px #d8e2e4;
-	height: 180px
+	height: 200px
 }
 .ais_myfleet_dialog::after {
     content: "";
@@ -148,6 +154,11 @@
 	font-weight:bold;
 	font-size:12px;
 }
+
+.ais_info_dialog_titlebar td div.date span.local{
+	font-size:10px;
+}
+
 .ais_info_dialog_titlebar td div.choose{
 	padding-top:15px;
 	padding-bottom:11px;
@@ -160,7 +171,9 @@
 }
 
 .ais_info_dialog_titlebar td span.chooser{
-	cursor:pointer	
+  cursor:pointer;
+  font-size:14px;
+  font-weight:bold;	
 }
 
 /*.ais_info_dialog_titlebar td div.choose:hover,*/

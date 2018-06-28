@@ -1,16 +1,16 @@
-//************************************
-// VESSEL INFO VIEW
-//************************************  
+require("./VesselInfoScreen.css")
 
-module.exports = function ({scheme, modulePath, aisServiceUrl}){
+module.exports = function ({modulePath, aisServices}){
         var _ais,  
         _galery, 
         _register, 
         _regcap,    
         _leftPanel,  
         _minh,
+        _lloyds,
         resize,
-        menuAction,
+        menuAction,       
+	    scheme = document.location.href.replace(/^(https?:).+/, "$1"),
         show = function(vessel){
 //console.log(vessel) 
             $("body").append(''+  
@@ -49,7 +49,10 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
             '<div class="close-button" title="закрыть"></div>' +
         '</div>' +
         '<div class="register panel">' +
-            '<div class="caption"></div>' +
+            '<div class="caption">' +
+                '<span style="display: inline-block;height: 100%;vertical-align: middle;width: 40px;"></span>' +
+                '<img src="img/progress.gif" style="vertical-align: middle">' +
+            '</div>' +
             '<div class="menu">' +
                 '<div>' +
                     '<table>' +
@@ -68,7 +71,7 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
         '</div>' +
 
         '<div class="galery panel">' +   
-'<form action="' + aisServiceUrl + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' +
+'<form action="' + aisServices + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' +
     '<input name="Filedata" class="chooseFile" type="file">' +    
     '<input name="imo" type="hidden" value="'+vessel.imo+'">' +    
     '<input name="mmsi" type="hidden" value="'+vessel.mmsi+'">' +
@@ -100,7 +103,7 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
                 var counter = $('.vessel-info-page .menu-item .counter'), 
                 count = parseInt(counter.text())+1;
                 counter.text(count).css('display', 'inline');
-                var preview = $("<div class='photo preview' id='"+data.id+"' style='background-image: url("+aisServiceUrl+"getphoto.ashx?id="+data.id+")'/>");
+                var preview = $("<div class='photo preview' id='"+data.id+"' style='background-image: url("+aisServices+"getphoto.ashx?id="+data.id+")'/>");
                 $('.vessel-info-page .uploader').replaceWith(preview);
                 preview.click(showPicture);
 //console.log(preview)
@@ -203,7 +206,7 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
             $('.vessel-info-page .picture').remove();
             var div = $('<div class="picture" style="display:none;position:absolute;"></div>')
             .insertAfter('.vessel-info-page.container').click(function(){this.remove()});
-            $('<img src="'+aisServiceUrl+'getphoto.ashx?id='+this.id+'">').load(function() {
+            $('<img src="'+aisServices+'getphoto.ashx?id='+this.id+'">').load(function() {
                     if (this){
                         var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
                         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -223,7 +226,7 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
             $('.vessel-info-page .menu-item .counter').text(gallery.length).css('display', 'inline');   
         var galcontent = $(".vessel-info-page .galery .placeholder")
         for (var i=0; i<gallery.length; ++i)
-            galcontent.append("<div class='photo preview' id='"+gallery[i]+"' style='background-image: url("+aisServiceUrl+"getphoto.ashx?id="+gallery[i]+")'/>" )             
+            galcontent.append("<div class='photo preview' id='"+gallery[i]+"' style='background-image: url("+aisServices+"getphoto.ashx?id="+gallery[i]+")'/>" )             
         $('.photo.preview').click(showPicture)
         resize();     
     },
@@ -255,42 +258,91 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
         resize();        
     },
     drawRegister = function(ledokol){
-        var regcontent = _register.querySelector(".placeholder"),
+        let regcontent = _register.querySelector(".placeholder"),
         drawTable = function(groups, article, display){
-            var s = "<div class='panel "+article+" article' style='display:"+display+"'>";
-            for(var i=0; i<groups.length; ++i){
+            let s = "<div class='panel "+article+" article' style='display:"+display+"'>";
+            for(let i=0; i<groups.length; ++i){
+                if (!groups[i])
+                    continue;
                 s += "<div class='group'>"+groups[i].name+"</div><table>"
-                for(var j=0; j<groups[i].properties.length; ++j){
-                    var pn = groups[i].properties[j].name,
+                for(let j=0; j<groups[i].properties.length; ++j){
+                    let pn = groups[i].properties[j].name,
+                    desc = groups[i].properties[j].description, 
                     pv = groups[i].properties[j].value
-                    s+= "<tr><td>"+pn+"</td><td>"+(pn=="Название судна"||pn=="Латинское название"?"<b>"+pv+"</b>":pv)+"</td></tr>"
+                    s+= "<tr><td>"+pn+
+                    (desc ? "<div class='description'>" + desc + "</div>" : "")+ 
+                    "</td><td>"+(pn=="Название судна"||pn=="Латинское название"?"<b>"+pv+"</b>":pv)+"</td></tr>"
                 }
                 s += "</table>"
             }
             s += "</div>"
             return s;
-        }
-        regcontent.innerHTML = 
-        drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + 
-        drawTable([ledokol.data[2]], "build", "none") + 
-        drawTable([ledokol.data[3]], "dimensions", "none") + 
-        drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
-		
-        _regcap.innerHTML = "<table><tr><td>Обновление базы данных "+ledokol.version.replace(/ \S+$/g, '')+"</td></tr></table>"
+        }	
 
+        _regcap.innerHTML = "<table class='register-title'>"+
+        "<tr><td><span class='switch active'>РМРС</span> <span class='switch'>Lloyd's register</span></td></tr>"+
+        "<tr><td><span class='update'></span></td></tr>"+
+        "</table>";
+
+        let drawRMR = function(){
+            if (ledokol) {
+                regcontent.innerHTML =
+                    drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") +
+                    drawTable([ledokol.data[2]], "build", "none") +
+                    drawTable([ledokol.data[3]], "dimensions", "none") +
+                    drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
+                _regcap.querySelector('.update').innerText = "Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '');
+            }
+            else{
+                regcontent.innerHTML = "";
+                _regcap.querySelector('.update').innerHTML = "&nbsp;"; 
+            }
+        },
+        drawLloyds = function(){
+            regcontent.innerHTML =
+                drawTable([_lloyds.data[1], _lloyds.data[2], _lloyds.data[0]], "general", "block") +
+                drawTable([_lloyds.data[9]], "build", "none") +
+                drawTable([_lloyds.data[8]], "dimensions", "none") +
+                drawTable([_lloyds.data[3], _lloyds.data[4], _lloyds.data[5], _lloyds.data[6], _lloyds.data[7]], "gears", "none");
+            _regcap.querySelector('.update').innerText = "Обновление базы данных " + _lloyds.version.replace(/ \S+$/g, '');   
+        },
+        regSwitches = _regcap.querySelectorAll(".switch");
+        regSwitches.forEach((item, i)=>item.addEventListener('click', e => {
+            let cl = e.currentTarget.classList;
+            if (!cl.contains('active')) {
+                _regcap.querySelector(".switch.active").classList.remove('active');
+                cl.add('active');
+                switch (i){
+                    case 0:
+                        drawRMR();
+                        break;
+                    case 1:
+                        if (_lloyds)
+                            drawLloyds();
+                        else
+                            regcontent.innerHTML = "";                        
+                        break;
+                }           
+                resize();   
+                mia[0].click();
+            }
+        }));
         var mia = document.querySelectorAll('.column2 .menu-item');
         for (var i=0; i<mia.length; ++i){
             mia[i].addEventListener('click', menuAction)
         }
-             
-        resize();        
+        drawRMR();             
+        resize(); 
+        if (!ledokol)        
+            regSwitches[1].click();         
     }
 	
 	let open = function(vessel, vessel2){
                     show(vessel2);
                     var onFail = function(error){
                         if (error!='register_no_data')
-                        console.log(error)
+                            console.log(error)
+                        _regcap.innerHTML = "";
                     } 
                     new Promise(function(resolve, reject){
                         (function wait(){
@@ -304,8 +356,10 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
                         drawAis(ship)
                     }, 
                     onFail);
-                    var registerServerUrl = scheme + "//kosmosnimki.ru/demo/register/api/v1/";
-                    if(vessel.imo && vessel.imo!=0 && vessel.imo!=-1)
+                    var registerServerUrl = scheme + "//kosmosnimki.ru/demo/register/api/v1/",
+                        lloydsServerUrl = scheme + "//kosmosnimki.ru/demo/lloyds/api/v1/",
+                        rmr;
+                    if(vessel.imo && vessel.imo!=0 && vessel.imo!=-1){
                         fetch(registerServerUrl+"Ship/Search/"+vessel.imo+"/ru")
                         .then(function(response){
                             return response.json();
@@ -314,19 +368,44 @@ module.exports = function ({scheme, modulePath, aisServiceUrl}){
                             if (ship.length>0)
                                 return fetch(registerServerUrl+"Ship/Get/"+ship[0].RS+"/ru")
                             else
-                                return Promise.reject('register_no_data');
+                                return Promise.resolve({json:()=>null});
+                            //else
+                            //    return Promise.reject('register_no_data');
                         })
                         .then(function(response){
                             return response.json();
                         })  
                         .then(function(ship) {
                             //console.log(ship)
-                            drawRegister(ship)
+                            rmr = ship;
+                            if (rmr)
+                                drawRegister(rmr);
+                            return fetch(lloydsServerUrl+"Ship/Search/"+vessel.imo+"/ru");
+                        })                        
+                        .then(function(response){
+                            return response.json();
+                        })  
+                        .then(function(ship) {
+                            if (ship.length>0)
+                                return fetch(lloydsServerUrl+"Ship/Get/"+ship[0].RS+"/ru")
+                            else
+                                return Promise.reject('register_no_data');
+                        })
+                        .then(function(response){
+                            return response.json();
+                        })  
+                        .then(function(ship) {
+                            _lloyds = ship;
+                            if (!rmr)
+                                drawRegister(rmr);
                         })
                         .catch( onFail );
+                    }
+                    else                    
+                        _regcap.innerHTML = "";
 
                     new Promise(function(resolve, reject){
-                        sendCrossDomainJSONRequest(aisServiceUrl + 
+                        sendCrossDomainJSONRequest(aisServices + 
                             "gallery.ashx?mmsi="+vessel.mmsi+"&imo="+vessel.imo, function(response){
                             if (response.Status=="ok") 
                                 resolve(response.Result);

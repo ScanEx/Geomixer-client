@@ -1,5 +1,5 @@
 module.exports = { 
-	polyFind: function(a, predicate) {
+	find: function(a, predicate) {
 		var list = Object(a);
 		var length = list.length >>> 0;
 		var thisArg = arguments[2];
@@ -13,7 +13,7 @@ module.exports = {
 		}
 		return undefined;
 	},
-	polyFindIndex: function(a, predicate) {
+	findIndex: function(a, predicate) {
 		var list = Object(a);
 		var length = list.length >>> 0;
 		var thisArg = arguments[2];

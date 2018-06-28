@@ -17,6 +17,7 @@
         'AISSearch2.info': 'информация',
         'AISSearch2.found':'Найдено: ',
         'AISSearch2.filter':'Введите название или mmsi или imo судна',
+        'AISSearch2.filterName':'Введите название судна',
         'AISSearch2.screen':'По экрану',
         'AISSearch2.database':'По базе данных',
         'AISSearch2.capShort': 'Поиск судов',
@@ -42,7 +43,10 @@
 		'AISSearch2.lon': 'Долгота',
 		'AISSearch2.lat': 'Широта',
 		'AISSearch2.historyTab': 'История',
-		'AISSearch2.voyageInfo': 'Параметры движения'
+        'AISSearch2.voyageInfo': 'Параметры движения',
+        'AISSearch2.DbSearchTab':'БАЗА ДАННЫХ',
+        'AISSearch2.ScreenSearchTab':'СУДА НА ЭКРАНЕ',
+        'AISSearch2.MyFleetTab':'МОЙ ФЛОТ'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -62,6 +66,7 @@
         'AISSearch2.info': 'info',
         'AISSearch2.found':'Found ',
         'AISSearch2.filter':'Insert vessel name or mmsi or imo',
+        'AISSearch2.filterName':'Insert vessel name',
         'AISSearch2.screen':'On screen',
         'AISSearch2.database':'In database',
         'AISSearch2.capShort': 'Vessel Search',
@@ -87,5 +92,8 @@
 		'AISSearch2.lon': 'Longitude',
 		'AISSearch2.lat': 'Latitude',
 		'AISSearch2.historyTab': 'History',
-		'AISSearch2.voyageInfo': 'Voyage info'
+		'AISSearch2.voyageInfo': 'Voyage info',
+        'AISSearch2.DbSearchTab':'DATA BASE',
+        'AISSearch2.ScreenSearchTab':'VESSELS ON SCREEN',
+        'AISSearch2.MyFleetTab':'MY FLEET'
     });

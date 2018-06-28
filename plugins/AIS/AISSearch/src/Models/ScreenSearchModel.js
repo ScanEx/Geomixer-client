@@ -1,95 +1,102 @@
-//************************************
-// AIS SCREEN SEARCH MODEL
-//************************************
-
-module.exports = function({myFleetMembersModel, aisLayerSearcher, aisSearchView}){
-	return {
-		
-		set view(value){ aisSearchView = value },
-		
-        _isDirty: true,
-        getDirty: function(){return this._isDirty},
-        setDirty: function(){this._isDirty = true},
-        getCount: function(){
-            return this.data ? this.data.vessels.length : 0;
-        },
-        load: function(actualUpdate){
-            var _this = this;
-            if (!this._isDirty){
+module.exports = function ({aisLayerSearcher, myFleetModel}) {
+    let _actualUpdate;
+    return {
+        filterString: "",
+        isDirty: true,
+        load: function (actualUpdate) {
+            if (!this.isDirty) {
                 return Promise.resolve();
             }
-            return Promise.all([new Promise(function(resolve, reject){
+            let thisInst = this;
+            return Promise.all([new Promise(function (resolve, reject) {
                 aisLayerSearcher.searchScreen({
                     dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
                     border: true,
-                    group:true
+                    group: true
                 }, function (json) {
-//console.log(json)
-                    if (json.Status.toLowerCase()=="ok")
-                    {
-                        _this.dataSrc = {vessels: json.Result.values.map(function(v){
-                            return {vessel_name:v[0], mmsi:v[1], imo:v[2], mf_member:'display:none', 
-                        xmin:v[4], xmax:v[5], ymin:v[6], ymax:v[7], maxid:v[3]}
-                        })};
-                        if (_this._actualUpdate==actualUpdate){
-//console.log("ALL CLEAN")
-//console.log("1>"+new Date(_this._actualUpdate))
-//console.log("2>"+new Date(actualUpdate))
-                            _this._isDirty = false;
+//console.log(json.Result.values[0][12])
+                    if (json.Status.toLowerCase() == "ok") {
+                        thisInst.dataSrc = {
+                            vessels: json.Result.values.map(function (v) {
+                                let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
+                                vessel = {
+                                    vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden', 
+                                    ts_pos_utc: aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime()/1000),
+                                    xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
+                                    vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
+                                };
+                                vessel.icon_rot = Math.round(vessel.cog/15)*15;
+                                aisLayerSearcher.placeVesselTypeIcon(vessel);
+                                return vessel;
+                            })
+                        };
+                        if (_actualUpdate == actualUpdate) {
+                            //console.log("ALL CLEAN")
+                            //console.log("1>"+new Date(thisInst._actualUpdate))
+                            //console.log("2>"+new Date(actualUpdate))
+                            thisInst.isDirty = false;
                         }
                         resolve();
                     }
-                    else{
+                    else {
                         reject(json);
                     }
-//console.log("LOAD SCREEN SEARCH DONE")
-                    //return resolve();
                 });
             })
-            ,myFleetMembersModel.load()
+                ,myFleetModel.load()
             ]);
         },
-        _actualUpdate: new Date().getTime(),
-        filterString: "",
-        update: function(){
-            var _this = this;
-            this._actualUpdate = new Date().getTime();
-            var actualUpdate = this._actualUpdate;  
-//this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
-//this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")
-
-            this.load(actualUpdate).then(function(){
-//console.log("LOADED "+(new Date().getTime()-_this._actualUpdate)+"ms")
-//console.log("3>"+new Date(_this._actualUpdate))
-//console.log("4>"+new Date(actualUpdate))
-                if (_this._actualUpdate==actualUpdate){
-                    _this.filterString = _this.filterString.replace(/\r+$/, "");
-                    if (_this.dataSrc)
-                        if(_this.filterString!=""){
-                            _this.data = {vessels:_this.dataSrc.vessels.filter(function(v){
-                                return v.vessel_name.search(new RegExp("\\b"+_this.filterString, "ig"))!=-1;
-                            })}; 
-                        }
-                        else{
-                            _this.data = {vessels:_this.dataSrc.vessels.map(function(v){return v;})};
-                        }
-                    
-                    if (_this.data)
-                        myFleetMembersModel.markMembers(_this.data.vessels);
-                    aisSearchView.repaint();
+        setFilter: function () {
+            this.filterString = this.filterString.replace(/\r+$/, "");
+            if (this.dataSrc){
+                if (this.filterString != "") {
+                    this.data = {
+                        vessels: this.dataSrc.vessels.filter(((v)=>{
+                            return v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1;
+                        }).bind(this))
+                    };
                 }
-            }, function(json){
-                _this.dataSrc = null;
-console.log(json)
-                if (json.Status.toLowerCase()=="auth" || 
-                    (json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function(r){return r.Status.toLowerCase()=="auth"})))
-                    _this.data = {msg:[{txt:_gtxt("AISSearch2.auth")}], vessels:[]};
-                else{
-                    //_this.data = {msg:[{txt:"!!!"}], vessels:[]};
+                else {
+                    this.data = { vessels: this.dataSrc.vessels.map((v)=>v) };
+                }
+            }
+        },
+        update: function () {
+//let start = new Date();
+            if (!this.isDirty)
+                return;
+            _actualUpdate = new Date().getTime();
+            let thisInst = this,
+                actualUpdate = _actualUpdate;
+            this.view.inProgress(true);
+            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
+            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
+
+            this.load(actualUpdate).then(function () {
+                //console.log("LOADED "+(new Date().getTime()-thisInst._actualUpdate)+"ms")
+                //console.log("3>"+new Date(thisInst._actualUpdate))
+                //console.log("4>"+new Date(actualUpdate))
+                if (_actualUpdate == actualUpdate) {
+                    if (thisInst.dataSrc)
+                        myFleetModel.markMembers(thisInst.dataSrc.vessels);
+                    thisInst.setFilter();
+//console.log("load "+(new Date()-start)+"ms")                  
+                    thisInst.view.inProgress(false);
+                    thisInst.view.repaint();
+                }
+            }, function (json) {
+                thisInst.dataSrc = null;
+//console.logconsole.log(json)
+                if (json.Status.toLowerCase() == "auth" ||
+                    (json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) { return r.Status.toLowerCase() == "auth" })))
+                    thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], vessels: [] };
+                else {
+                    //thisInst.data = {msg:[{txt:"!!!"}], vessels:[]};
                     console.log(json);
                 }
-                aisSearchView.repaint();
+                thisInst.view.inProgress(false);
+                thisInst.view.repaint();
             });
         }
-    }
-}
+    };
+};
