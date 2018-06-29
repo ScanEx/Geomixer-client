@@ -1,4 +1,8 @@
-.gmx-button-container {
+.gmx-sidebar-container {
+  width: 100%;
+  height: 40px;
+  margin: 10px 0;
+}.gmx-button-container {
   width: 100%;
   height: 40px;
   margin: 10px 0;
@@ -7,10 +11,6 @@
 .gmx-button-container button {
   display: block;
   margin: 0 auto;
-}.gmx-sidebar-container {
-  width: 100%;
-  height: 40px;
-  margin: 10px 0;
 }.gmx-sidebar-select,
 .gmx-sidebar-select-medium,
 .gmx-sidebar-select-large,
@@ -87,43 +87,6 @@
   font-weight: 600;
   line-height: 38px;
   text-align: left;
-}.gmx-table-icon-container {
-  width: 16px;
-  height: 16px;
-  margin: auto;
-  cursor: pointer;
-}
-
-.gmx-status-indicator,
-.gmx-status-indicator-bad,
-.gmx-status-indicator-mean,
-.gmx-status-indicator-good {
-  width: 8px;
-  height: 8px;
-  line-height: 24px;
-  border-radius: 50%;
-  margin: 0 auto;
-}
-
-.gmx-status-indicator-bad {
-  background-color: #f96060;
-}
-
-.gmx-status-indicator-mean {
-  background-color: #f9de60;
-}
-
-.gmx-status-indicator-good {
-  background-color: #4de371;
-}
-
-.gmx-table-icon {
-  width: 100%;
-  height: 100%;
-}
-
-.gmx-table-icon:hover {
-  fill: #70cbe0;
 }.gmx-icon {
   width: 20px;
   height: 20px;
@@ -524,6 +487,80 @@ div[data-pane-id="forest-project"] {
 
 .gmx-table-icon:hover {
   fill: #70cbe0;
+}.gmx-geometry-select-container {
+  width: 100%;
+  height: 40px;
+}
+
+.gmx-geometry-select-container button {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  margin-top: 15px !important;
+  font-family: Arial;
+  color: #5b7284;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 31.249px;
+  text-align: center;
+  border: 1px solid rgba(27, 68, 97, 0.3);
+  background: url(https://png.icons8.com/material/22/57717d/polygon.png) no-repeat right #d8e1e8 !important;
+  background-position-x: 17% !important;
+  padding-left: 30px;
+  transition: all 0.25s ease;
+}
+
+.gmx-geometry-select-container button:hover {
+  background: url(https://png.icons8.com/material/22/57717d/polygon.png) no-repeat right #d4e2ed !important;
+  background-position-x: 17% !important;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}.gmx-checkbox-container {
+  margin: auto;
+  padding-top: 5px;
+  padding-left: 10px;
+  font-family: Arial;
+  color: #5baceb;
+  font-size: 13px;
+  font-weight: 600;
+  align-items: center;
+  display: flex;
+}.gmx-table-icon-container {
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  cursor: pointer;
+}
+
+.gmx-status-indicator,
+.gmx-status-indicator-bad,
+.gmx-status-indicator-mean,
+.gmx-status-indicator-good {
+  width: 8px;
+  height: 8px;
+  line-height: 24px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.gmx-status-indicator-bad {
+  background-color: #f96060;
+}
+
+.gmx-status-indicator-mean {
+  background-color: #f9de60;
+}
+
+.gmx-status-indicator-good {
+  background-color: #4de371;
+}
+
+.gmx-table-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.gmx-table-icon:hover {
+  fill: #70cbe0;
 }
 
 .ReactTable {
@@ -623,43 +660,6 @@ div[data-pane-id="forest-project"] {
   background-color: #d7e1e7;
   border: 1px solid #d7e1e7;
   cursor: pointer;
-}.gmx-geometry-select-container {
-  width: 100%;
-  height: 40px;
-}
-
-.gmx-geometry-select-container button {
-  display: block;
-  margin: 0 auto;
-  width: 100%;
-  margin-top: 15px !important;
-  font-family: Arial;
-  color: #5b7284;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 31.249px;
-  text-align: center;
-  border: 1px solid rgba(27, 68, 97, 0.3);
-  background: url(https://png.icons8.com/material/22/57717d/polygon.png) no-repeat right #d8e1e8 !important;
-  background-position-x: 17% !important;
-  padding-left: 30px;
-  transition: all 0.25s ease;
-}
-
-.gmx-geometry-select-container button:hover {
-  background: url(https://png.icons8.com/material/22/57717d/polygon.png) no-repeat right #d4e2ed !important;
-  background-position-x: 17% !important;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-}.gmx-checkbox-container {
-  margin: auto;
-  padding-top: 5px;
-  padding-left: 10px;
-  font-family: Arial;
-  color: #5baceb;
-  font-size: 13px;
-  font-weight: 600;
-  align-items: center;
-  display: flex;
 }.gmx-sidebar-input,
 .gmx-sidebar-input-medium,
 .gmx-sidebar-input-large,
@@ -824,4 +824,4 @@ div[data-pane-id="forest-project"] {
   background-color: #efefef;
   cursor: default;
 }
-/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9jc3MvZm9yZXN0UHJvamVjdFBsdWdpbi5jc3MiLCJzb3VyY2VzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7OztBOzs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0EiLCJzb3VyY2VSb290IjoiIn0=*/
+/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9jc3MvZm9yZXN0UHJvamVjdFBsdWdpbi5jc3MiLCJzb3VyY2VzIjpbXSwibWFwcGluZ3MiOiI7Ozs7QTs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBOzs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0EiLCJzb3VyY2VSb290IjoiIn0=*/
