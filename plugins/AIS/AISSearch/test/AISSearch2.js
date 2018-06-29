@@ -1287,6 +1287,7 @@
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
 	        _this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
 	        _this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
+	        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
 	    });
 	
 	    //sidebarControl && sidebarControl.on('closing', ()=>calendar.reset())
