@@ -302,8 +302,8 @@ nsGmx.sqlTemplates = {
         descEng: "Creating a geometry object from the hexadecimal WKB string and the projection code."
     },
 
-    geometryFromWkt: {
-        interface: "geometryFromWkt(string, ESPG code)",
+    geometryFromWKT: {
+        interface: "geometryFromWKT(string, ESPG code)",
         descRus: "Возвращает геометрию по WKT.",
         descEng: "Returns the geometry by WKT."
     },

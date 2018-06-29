@@ -188,3 +188,33 @@
 .attr-table-hide-button-container {
     margin-top: 0;
 }
+
+div[data-custom-tooltip] {
+    background-color: red;
+}
+
+div[data-custom-tooltip]:hover:after {
+  content: attr(title);
+  position: absolute;
+}
+
+.suggest-helper-elem-custom-tooltip span { /* Внешний вид нашего тултипа */
+	background-color: rgba(0,0,0, 0.8);
+	border-radius: 15px 15px 15px 0px;
+	box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
+	color: #fff;
+	margin-left: 2px;
+	margin-top: -75px;
+	opacity: 0; /* Делаем его прозрачным */
+	padding: 10px 10px 10px 40px;
+	position: absolute;
+	text-decoration: none;
+	visibility: hidden; /* И прячем */
+	width: 350px;
+	z-index: 10;
+}
+
+.suggest-helper-elem-custom-tooltip:hover span { /* По hover отображаем тултип */
+	opacity: 1;
+	visibility: visible;
+}
