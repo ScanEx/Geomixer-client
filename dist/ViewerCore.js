@@ -20521,8 +20521,8 @@ var EditObjectControl = function(layerName, objectId, params)
 
             if (!selectedGeom)
             {
-                showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
-                return;
+                // showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
+                // return;
             }
 
             if (!isNew)
@@ -21145,8 +21145,8 @@ nsGmx.sqlTemplates = {
         descEng: "Creating a geometry object from the hexadecimal WKB string and the projection code."
     },
 
-    geometryFromWkt: {
-        interface: "geometryFromWkt(string, ESPG code)",
+    geometryFromWKT: {
+        interface: "geometryFromWKT(string, ESPG code)",
         descRus: "Возвращает геометрию по WKT.",
         descEng: "Returns the geometry by WKT."
     },
@@ -21284,14 +21284,33 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
     };
 
     attrNames.forEach(function(name) {
+        var className;
+        if (attrType === 'functions') {
+            className = 'suggest-helper-elem suggest-helper-elem-custom-tooltip';
+        } else {
+            className = 'suggest-helper-elem';
+        }
+
         if (typeof name === 'object') {
             name = name.groupTag;
-            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem'], ['dir', 'className', 'suggest-helper-elem-group']]);
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', className], ['dir', 'className', 'suggest-helper-elem-group']]);
             $(div).css('margin-top', '3px')
 
             $(canvas).append(div);
         } else {
-            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', 'suggest-helper-elem']]);
+            var div = nsGmx.Utils._div([nsGmx.Utils._t(String(name))], [['dir', 'className', className]]);
+            var hasCustomTooltip = $(div).hasClass('suggest-helper-elem-custom-tooltip');
+
+            if (hasCustomTooltip) {
+                var titleObj = nsGmx.sqlTemplates[name],
+                    isRus = window.language === 'rus',
+                    description = isRus ? titleObj.descRus : titleObj.descEng,
+                    title = titleObj.interface + ' - \n' + description;
+
+                window._title(div, title);
+            } else {
+                window._title(div, name);
+            }
 
             div.onmouseover = function() {
                 var _curDiv = this,
@@ -21361,6 +21380,7 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
             };
 
             div.onclick = function(e) {
+                console.log(div);
                 var val = textTemplate.replace(/suggest/g, name);
                 if (this.parentNode.getAttribute('arr') != null) {
                     var isNumber = attrType === 'float' || attrType === 'integer';
@@ -21393,17 +21413,6 @@ nsGmx.SuggestWidget = function(attrNames, textarea, textTemplate, func, valuesAr
 
                 stopEvent(e);
             };
-
-            var titleObj = nsGmx.sqlTemplates[name],
-                title;
-
-            if (titleObj) {
-                title = window.language === 'rus' ? titleObj.descRus : titleObj.descEng;
-            } else {
-                title = name;
-            }
-
-            window._title(div, title);
 
             $(canvas).append(div);
         }
@@ -21453,7 +21462,7 @@ nsGmx.AttrSuggestWidget = function(targetTextarea, attrNames, attrValuesProvider
     }));
 
     this.attrsSuggest = selectors.indexOf('attrs') !== -1 ? new nsGmx.SuggestWidget(attrNames, targetTextarea, '"suggest"', changeCallback, attrValuesProvider, true) : null;
-    this.functionsSuggest = selectors.indexOf('functions') !== -1 ? new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback) : null;
+    this.functionsSuggest = selectors.indexOf('functions') !== -1 ? new nsGmx.SuggestWidget(transformHash(nsGmx.sqlFunctions), targetTextarea, 'suggest()', this.changeCallback, null, false, 'functions') : null;
     this.operatorsSuggest = selectors.indexOf('operators') !== -1 ? new nsGmx.SuggestWidget(['=', '>', '<', '>=', '<=', '<>', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS', 'CONTAINSIGNORECASE', 'BETWEEN', 'STARTSWITH', 'ENDSWITH'], targetTextarea, 'suggest', this.changeCallback) : null;
 
     this.attrsSuggest && ui.find('.suggest-attr').append(this.attrsSuggest.el);
