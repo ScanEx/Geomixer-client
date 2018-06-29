@@ -2,14 +2,14 @@ require("./DbSearch.css")
 const BaseView = require('./BaseView.js');
 
 let _searchString = "",
-    _setSearchInputValue = function(s){   
-        let searchIc = this.frame.find('.filter .search'),
+    _setSearchInputValue = function (s) {
+        let searchBut = this.frame.find('.filter .search'),
             removeBut = this.frame.find('.filter .remove'),
-        _searchString = s;
+            _searchString = s;
         this.searchInput.val(_searchString);
-        if (s!=""){
+        if (s != "") {
             removeBut.show();
-            searchIc.hide();
+            searchBut.hide();
         }
         else
             removeBut.click();
@@ -17,7 +17,7 @@ let _searchString = "",
     _highlight,
     _tools;
 
-const DbSearchView = function ({model, highlight, tools}) {
+const DbSearchView = function ({ model, highlight, tools }) {
     BaseView.call(this, model);
     _highlight = highlight;
     _tools = tools;
@@ -36,11 +36,11 @@ const DbSearchView = function ({model, highlight, tools}) {
         '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' +
         '</table>' +
 
-        '<table class="start_screen"><tr><td>'+
-        '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">'+
-        '<div>Здесь будут отображаться<br>результаты поиска по названию,<br>'+
-        'IMO илм MMSI судна'+
-        '</div></td></tr></table>'+
+        '<table class="start_screen"><tr><td>' +
+        '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' +
+        '<div>Здесь будут отображаться<br>результаты поиска по названию,<br>' +
+        'IMO илм MMSI судна' +
+        '</div></td></tr></table>' +
 
         '<div class="ais_history">' +
         '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' +
@@ -68,11 +68,11 @@ const DbSearchView = function ({model, highlight, tools}) {
         .set('dateBegin', mapDateInterval.get('dateBegin'))
         .set('dateEnd', mapDateInterval.get('dateEnd'))
         .on('change', function (e) {
-//console.log(this.model.historyInterval) 
-//console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
+            //console.log(this.model.historyInterval) 
+            //console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
             this.model.historyInterval = { dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') };
             this.model.isDirty = true;
-            this.show();	
+            this.show();
         }.bind(this));
 
     this.calendar = new nsGmx.CalendarWidget({
@@ -91,9 +91,9 @@ const DbSearchView = function ({model, highlight, tools}) {
 
     let td = calendar.find('tr:nth-of-type(1) td');
     td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-    td.eq(td.length-1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="сегодня" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-    
-    calendar.find('.default_date').on('click', ()=>{
+    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="сегодня" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
+
+    calendar.find('.default_date').on('click', () => {
         let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
         this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
         this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
@@ -130,7 +130,7 @@ const DbSearchView = function ({model, highlight, tools}) {
 
     this.searchInput = this.frame.find('.filter input');
 
-    let searchIc = this.frame.find('.filter .search'),
+    let searchBut = this.frame.find('.filter .search'),
         removeBut = this.frame.find('.filter .remove'),
         delay,
         suggestions = this.frame.find('.suggestions'),
@@ -142,7 +142,7 @@ const DbSearchView = function ({model, highlight, tools}) {
                 _searchString = found.values[suggestionsFrame.current].vessel_name;
                 this.searchInput.val(_searchString);
                 let v = found.values[suggestionsFrame.current];
-                if (!this.vessel || this.vessel.mmsi!=v.mmsi){
+                if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date')[0]) {
                     this.vessel = v;
                     this.show();
                 }
@@ -207,9 +207,10 @@ const DbSearchView = function ({model, highlight, tools}) {
         };
     removeBut.click(function (e) {
         this.searchInput.val('');
+        this.searchInput.focus();
         clearTimeout(delay)
         removeBut.hide();
-        searchIc.show();
+        searchBut.show();
         suggestions.hide();
         _clean.call(this);
         //nsGmx.leafletMap.removeLayer(highlight);
@@ -240,23 +241,25 @@ const DbSearchView = function ({model, highlight, tools}) {
             suggestions.mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, { scrollInertia: 0 });
         }
     });
+
+    let prepareSearchInput = function (temp, keyCode) {
+        removeBut.show();
+        searchBut.hide();
+        if (_searchString == temp && (!keyCode || keyCode != 13))
+            return false;
+        _searchString = temp;
+        clearTimeout(delay);
+        if (_searchString == "") {
+            removeBut.click();
+            return false;
+        }
+        return true;
+    }
     this.searchInput.keyup(function (e) {
         let temp = (this.searchInput.val() || "")
             .replace(/^\s+/, "").replace(/\s+$/, "");
-            
-        if (_searchString == temp && e.keyCode != 13)
+        if (!prepareSearchInput(temp, e.keyCode))
             return;
-
-        _searchString = temp;
-        clearTimeout(delay);
-
-        if (_searchString == "") {
-            removeBut.click();
-            return;
-        }
-
-        removeBut.show();
-        searchIc.hide();
         if (e.keyCode == 13) {
             suggestions.hide();
             searchDone.call(this);
@@ -266,7 +269,16 @@ const DbSearchView = function ({model, highlight, tools}) {
                 doSearch.call(this)
             }).bind(this), 200);
         //nsGmx.leafletMap.removeLayer(highlight);
-    }.bind(this))
+    }.bind(this));
+    this.searchInput.on("paste", function (e) {
+        let temp = ((e.originalEvent || window.clipboardData).clipboardData.getData('text') || "")
+            .replace(/^\s+/, "").replace(/\s+$/, "");
+        if (!prepareSearchInput(temp))
+            return;
+        delay = setTimeout((() => {
+            doSearch.call(this)
+        }).bind(this), 200);
+    }.bind(this));
 };
 
 DbSearchView.prototype = Object.create(BaseView.prototype);
@@ -278,8 +290,8 @@ let _clean = function () {
         scrollCont.empty();
     else
         this.container.empty();
-//console.log("EMPTY ON SELF.CLEAN "+this)
-    this.startScreen.css({visibility:"hidden"});
+    //console.log("EMPTY ON SELF.CLEAN "+this)
+    this.startScreen.css({ visibility: "hidden" });
     nsGmx.leafletMap.removeLayer(_highlight);
 };
 
@@ -351,11 +363,11 @@ DbSearchView.prototype.repaint = function () {
                         td.parent().next().find('td').addClass('active')
                     }
                 });
-                let infoDialog = this.infoDialogView, 
+                let infoDialog = this.infoDialogView,
                     vessel = this.vessel;
                 vi_cont.find('.ais_positions .show_info').click(((e) => {
                     let i = e.currentTarget.id.replace(/show_info/, ""),
-                        position = this.model.data.vessels[0].positions[i];
+                        position = this.model.data.vessels[ind].positions[i];
                     position.vessel_name = vessel.vessel_name;
                     position.imo = vessel.imo;
                     position.latitude = position.ymax;
@@ -368,8 +380,8 @@ DbSearchView.prototype.repaint = function () {
                 vi_cont.find('.ais_positions .show_pos').click(((e) => {
                     //showPosition
                     let i = e.currentTarget.id.replace(/show_pos/, ""),
-                    vessel = this.model.data.vessels[ind].positions[parseInt(i)];
-                    
+                        vessel = this.model.data.vessels[ind].positions[parseInt(i)];
+
                     this.positionMap(vessel);
                     this.showTrack(vessel);
 
@@ -379,7 +391,7 @@ DbSearchView.prototype.repaint = function () {
         }).bind(this))
     })
 
-    if (this.model.data.vessels.length == 1){
+    if (this.model.data.vessels.length == 1) {
         open_pos.eq(0).click();
         if (this.vessel.lastPosition)
             this.positionMap(this.model.data.vessels[0].positions[0]);
@@ -399,8 +411,8 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
         this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
         this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
         this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
-        this.model.vessel = v;  
-        this.model.isDirty = true;      
+        this.model.vessel = v;
+        this.model.isDirty = true;
     }
 });
 
@@ -411,8 +423,8 @@ DbSearchView.prototype.show = function () {
     if (!this.vessel)
         return;
 
-//console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type)
-//console.log(this.model.historyInterval.dateBegin + " " + this.model.historyInterval.dateEnd)
+    //console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type)
+    //console.log(this.model.historyInterval.dateBegin + " " + this.model.historyInterval.dateEnd)
     BaseView.prototype.show.apply(this, arguments);
 };
 
@@ -421,7 +433,7 @@ DbSearchView.prototype.hide = function () {
     BaseView.prototype.hide.apply(this, arguments);
 };
 
-DbSearchView.prototype.showTrack = function(vessel){
+DbSearchView.prototype.showTrack = function (vessel) {
     let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
     if (dlg[0]) {
         dlg.find('.showtrack:not(.active)').click();
@@ -433,21 +445,21 @@ DbSearchView.prototype.showTrack = function(vessel){
     }
 };
 
-DbSearchView.prototype.positionMap = function(vessel){
-    let interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org*1000));
+DbSearchView.prototype.positionMap = function (vessel) {
+    let interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
     nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
-    xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
-    ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
-    ymax = vessel.ymax ? vessel.ymax : vessel.latitude;
+        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
+        ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
+        ymax = vessel.ymax ? vessel.ymax : vessel.latitude;
     nsGmx.leafletMap.fitBounds([
         [ymin, xmin],
         [ymax, xmax]
     ], {
-                maxZoom: nsGmx.leafletMap.getZoom(),//9,//config.user.searchZoom,
-                animate: false
-    });    
-    nsGmx.leafletMap.removeLayer(_highlight); 
+            maxZoom: nsGmx.leafletMap.getZoom(),//9,//config.user.searchZoom,
+            animate: false
+        });
+    nsGmx.leafletMap.removeLayer(_highlight);
     _highlight.vessel = vessel;
     _highlight.setLatLng([ymax, xmax]).addTo(nsGmx.leafletMap);
 };

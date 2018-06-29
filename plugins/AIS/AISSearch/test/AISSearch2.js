@@ -1223,13 +1223,13 @@
 	
 	var _searchString = "",
 	    _setSearchInputValue = function _setSearchInputValue(s) {
-	    var searchIc = this.frame.find('.filter .search'),
+	    var searchBut = this.frame.find('.filter .search'),
 	        removeBut = this.frame.find('.filter .remove'),
 	        _searchString = s;
 	    this.searchInput.val(_searchString);
 	    if (s != "") {
 	        removeBut.show();
-	        searchIc.hide();
+	        searchBut.hide();
 	    } else removeBut.click();
 	},
 	    _highlight = void 0,
@@ -1318,7 +1318,7 @@
 	
 	    this.searchInput = this.frame.find('.filter input');
 	
-	    var searchIc = this.frame.find('.filter .search'),
+	    var searchBut = this.frame.find('.filter .search'),
 	        removeBut = this.frame.find('.filter .remove'),
 	        delay = void 0,
 	        suggestions = this.frame.find('.suggestions'),
@@ -1330,7 +1330,7 @@
 	            _searchString = found.values[suggestionsFrame.current].vessel_name;
 	            this.searchInput.val(_searchString);
 	            var v = found.values[suggestionsFrame.current];
-	            if (!this.vessel || this.vessel.mmsi != v.mmsi) {
+	            if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date')[0]) {
 	                this.vessel = v;
 	                this.show();
 	            }
@@ -1389,9 +1389,10 @@
 	    };
 	    removeBut.click(function (e) {
 	        this.searchInput.val('');
+	        this.searchInput.focus();
 	        clearTimeout(delay);
 	        removeBut.hide();
-	        searchIc.show();
+	        searchBut.show();
 	        suggestions.hide();
 	        _clean.call(this);
 	        //nsGmx.leafletMap.removeLayer(highlight);
@@ -1421,23 +1422,24 @@
 	            suggestions.mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, { scrollInertia: 0 });
 	        }
 	    });
+	
+	    var prepareSearchInput = function prepareSearchInput(temp, keyCode) {
+	        removeBut.show();
+	        searchBut.hide();
+	        if (_searchString == temp && (!keyCode || keyCode != 13)) return false;
+	        _searchString = temp;
+	        clearTimeout(delay);
+	        if (_searchString == "") {
+	            removeBut.click();
+	            return false;
+	        }
+	        return true;
+	    };
 	    this.searchInput.keyup(function (e) {
 	        var _this3 = this;
 	
 	        var temp = (this.searchInput.val() || "").replace(/^\s+/, "").replace(/\s+$/, "");
-	
-	        if (_searchString == temp && e.keyCode != 13) return;
-	
-	        _searchString = temp;
-	        clearTimeout(delay);
-	
-	        if (_searchString == "") {
-	            removeBut.click();
-	            return;
-	        }
-	
-	        removeBut.show();
-	        searchIc.hide();
+	        if (!prepareSearchInput(temp, e.keyCode)) return;
 	        if (e.keyCode == 13) {
 	            suggestions.hide();
 	            searchDone.call(this);
@@ -1445,6 +1447,15 @@
 	            doSearch.call(_this3);
 	        }.bind(this), 200);
 	        //nsGmx.leafletMap.removeLayer(highlight);
+	    }.bind(this));
+	    this.searchInput.on("paste", function (e) {
+	        var _this4 = this;
+	
+	        var temp = ((e.originalEvent || window.clipboardData).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
+	        if (!prepareSearchInput(temp)) return;
+	        delay = setTimeout(function () {
+	            doSearch.call(_this4);
+	        }.bind(this), 200);
 	    }.bind(this));
 	};
 	
@@ -1466,7 +1477,7 @@
 	
 	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">Осадка:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">Назначение:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">Статус:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
 	DbSearchView.prototype.repaint = function () {
-	    var _this4 = this;
+	    var _this5 = this;
 	
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
@@ -1475,7 +1486,7 @@
 	    open_pos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
-	                vi_cont = _this4.frame.find('#voyage_info' + ind);
+	                vi_cont = _this5.frame.find('#voyage_info' + ind);
 	
 	            if (icon.is('.icon-down-open')) {
 	                icon.removeClass('icon-down-open').addClass('.icon-right-open');
@@ -1483,8 +1494,8 @@
 	                vi_cont.empty();
 	            } else {
 	                icon.addClass('icon-down-open').removeClass('.icon-right-open');
-	                vi_cont.html(Handlebars.compile(_vi_template)(_this4.model.data.vessels[ind]));
-	                if (_this4.frame.find('.time .local').is('.on')) {
+	                vi_cont.html(Handlebars.compile(_vi_template)(_this5.model.data.vessels[ind]));
+	                if (_this5.frame.find('.time .local').is('.on')) {
 	                    vi_cont.find('.utc_time').hide();
 	                    vi_cont.find('.local_time').show();
 	                    vi_cont.find('.utc_date').hide();
@@ -1502,11 +1513,11 @@
 	                        td.parent().next().find('td').addClass('active');
 	                    }
 	                });
-	                var infoDialog = _this4.infoDialogView,
-	                    vessel = _this4.vessel;
+	                var infoDialog = _this5.infoDialogView,
+	                    vessel = _this5.vessel;
 	                vi_cont.find('.ais_positions .show_info').click(function (e) {
 	                    var i = e.currentTarget.id.replace(/show_info/, ""),
-	                        position = _this4.model.data.vessels[0].positions[i];
+	                        position = _this5.model.data.vessels[ind].positions[i];
 	                    position.vessel_name = vessel.vessel_name;
 	                    position.imo = vessel.imo;
 	                    position.latitude = position.ymax;
@@ -1515,19 +1526,19 @@
 	                    //console.log(position)
 	                    infoDialog.show(position, false);
 	                    e.stopPropagation();
-	                }.bind(_this4));
+	                }.bind(_this5));
 	                vi_cont.find('.ais_positions .show_pos').click(function (e) {
 	                    //showPosition
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
-	                        vessel = _this4.model.data.vessels[ind].positions[parseInt(i)];
+	                        vessel = _this5.model.data.vessels[ind].positions[parseInt(i)];
 	
-	                    _this4.positionMap(vessel);
-	                    _this4.showTrack(vessel);
+	                    _this5.positionMap(vessel);
+	                    _this5.showTrack(vessel);
 	
 	                    e.stopPropagation();
-	                }.bind(_this4));
+	                }.bind(_this5));
 	            }
-	        }.bind(_this4));
+	        }.bind(_this5));
 	    });
 	
 	    if (this.model.data.vessels.length == 1) {
