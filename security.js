@@ -78,8 +78,12 @@ var wrapUserListInput = function(input, options) {
         source: function(request, cbResponse) {
             security.findUsers(request.term, {maxRecords: 7, type: options && options.type}).then(function(userInfos) {
                 cbResponse(userInfos.map(function(userInfo) {
-                    usersHash[userInfo.Login] = userInfo;
-                    return {login: userInfo.Login, value: userInfo.Nickname, label: ''};
+                    if (userInfo.IsGroup) {
+                        usersHash[userInfo.Nickname] = userInfo;
+                    } else {
+                        usersHash[userInfo.Login] = userInfo;
+                    }
+                    return {login: userInfo.Login, value: userInfo.Nickname, label: '', isGroup: userInfo.IsGroup};
                 }));
             }, cbResponse.bind(null, []));
         },
@@ -89,7 +93,8 @@ var wrapUserListInput = function(input, options) {
     });
 
     $(input).data("ui-autocomplete")._renderItem = function(ul, item) {
-        var userInfo = usersHash[item.login],
+        var isGroup = item.isGroup,
+            userInfo = usersHash[isGroup ? item.value : item.login],
             templateParams = $.extend({showIcon: options && options.showIcon}, userInfo);
         return $('<li></li>')
             .append($(autocompleteLabelTemplate(templateParams)))
@@ -204,10 +209,16 @@ var SecurityUserListWidget = function(securityInfo, container, options) {
         var addedUsers = _this.securityUsersProvider.getOriginalItems();
 
         if (currentSelectedItem) {
-            searchObj = {
-                Login: currentSelectedItem.login,
-                Nickname: currentSelectedItem.value
-            };
+            if (currentSelectedItem.isGroup) {
+                searchObj = {
+                    Nickname: currentSelectedItem.value
+                };
+            } else {
+                searchObj = {
+                    Login: currentSelectedItem.login,
+                    Nickname: currentSelectedItem.value
+                };
+            }
         }
 
         if (_.findWhere(addedUsers, searchObj)) {
@@ -302,7 +313,7 @@ SecurityUserListWidget._drawMapUsers = function(user, securityScope)
     ui.find('.gmx-icon-recycle').click(function() {
         // уберем пользователя из списка
         securityScope.securityUsersProvider.filterOriginalItems(function(elem) {
-            return elem.Login !== user.Login;
+            return elem.UserID !== user.UserID;
         });
     });
 
