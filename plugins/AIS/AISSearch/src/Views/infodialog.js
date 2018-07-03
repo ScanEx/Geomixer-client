@@ -57,7 +57,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	let canvas = $('<div class="ais_myfleet_dialog"/>'),
 		menu = $('<div class="column1 menu"></div>').appendTo(canvas),
 		photo = $('<div class="photo"><div></div></div>').appendTo(menu),
-		moreinfo = $('<div class="moreinfo"><div></div></div>').appendTo(menu),
+		underphoto = $('<div class="underphoto"><div></div></div>').appendTo(menu),
 		content = Handlebars.compile(
 			'<div class="column2 content">' +
 			'</div>')(vessel),
@@ -67,7 +67,12 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 
 	canvas.append(content).append(buttons)
 
-	let dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 250, closeFunc: closeFunc }),
+	let searchInput = $('.leaflet-ext-search'),
+		dialogW = 610, dialogH = 250,
+		posX = searchInput.offset().left + searchInput.width() - dialogW,
+		posY = searchInput.offset().top + searchInput.height() + 10,
+		dialog = showDialog(vessel.vessel_name, canvas[0], { width: dialogW, height: dialogH, posX: posX, posY:posY, 
+		closeFunc: closeFunc }),
 		vessel2,
 		moreInfo = function (v) {
 			let smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' +
@@ -106,7 +111,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 				'</div>'
 			)(v));
 
-			$(moreinfo).append('<table><tr>' +
+			$(underphoto).append('<table><tr>' +
 				'<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' +
 				'<td><div class="vessel_prop coordinates"><span class="small">' +
 				toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) +
@@ -115,8 +120,8 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			);
 
 			let swap = "<span class='small'>" + ddToDms(v.latitude, false) + " " + ddToDms(v.longitude, true) + "</span>"
-			$('.ais_refresh', moreinfo).click((e) => {
-				let mi = $('.coordinates', moreinfo),
+			$('.ais_refresh', underphoto).click((e) => {
+				let mi = $('.coordinates', underphoto),
 					t = mi.html()
 				mi.html(swap)
 				swap = t
