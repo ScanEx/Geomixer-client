@@ -1,4 +1,4 @@
-const createInfoDialog = require('./infodialog.js'),
+const displayInfoDialog = require('./infodialog.js'),
       Polyfill = require('../Polyfill'),
       VesselInfoScreen = require('./VesselInfoScreen');
 
@@ -22,6 +22,14 @@ module.exports = function ({
             aisView.tab.click();  
         if (!vessel.lastPosition)             
             aisView.positionMap(vessel);    
+    }, 
+    _updateView = function (displayed, vessel, getmore){
+        if (displayed.vessel.ts_pos_utc!=vessel.ts_pos_utc){
+            $(displayed.dialog).dialog("close")
+            return true;
+        }
+        else
+            return false;
     };
     return {
         showPosition: function(vessel){   
@@ -29,20 +37,28 @@ module.exports = function ({
             aisView.showTrack(vessel);
         },
         show: function (vessel, getmore) {
-            var ind = Polyfill.findIndex(allIinfoDialogs, function (d) { 
+            let ind = Polyfill.findIndex(allIinfoDialogs, function (d) { 
                 return d.vessel.imo == vessel.imo && d.vessel.mmsi == vessel.mmsi 
-            });
+            }),
+            isNew = true,
+            dialogOffset;
             if (ind >= 0) {
-                $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
-                return;
+                isNew = false;
+                let displayed = allIinfoDialogs[ind];
+                dialogOffset = $(displayed.dialog).parent().offset();
+                ind = Polyfill.findIndex(infoDialogCascade, function (d) { return d.id == displayed.dialog.id })
+                if(!_updateView(displayed, vessel)){
+                    $(displayed.dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
+                    return;
+                }
             }
 
-            var dialog = createInfoDialog({
+            let dialog = displayInfoDialog({
                 vessel: vessel,
                 getmore: getmore,
                 displaingTrack: tools.displaingTrack,
                 closeFunc: function (event) {
-                    var ind = Polyfill.findIndex(infoDialogCascade, function (d) { return d.id == dialog.id });
+                    let ind = Polyfill.findIndex(infoDialogCascade, function (d) { return d.id == dialog.id });
                     if (ind >= 0)
                         infoDialogCascade.splice(ind, 1);
                     ind = Polyfill.findIndex(allIinfoDialogs, function (d) { return d.dialog.id == dialog.id });
@@ -60,12 +76,17 @@ module.exports = function ({
                     showPosition: _showPosition
                 })
 
-            if (infoDialogCascade.length > 0) {
-                var pos = $(infoDialogCascade[infoDialogCascade.length - 1]).parent().position();
-                $(dialog).dialog("option", "position", [pos.left + 10, pos.top + 10]);
+            if (!dialogOffset && infoDialogCascade.length > 0) {
+                let pos = $(infoDialogCascade[infoDialogCascade.length - 1]).parent().position();
+                dialogOffset = {left:pos.left - 10, top:pos.top + 10};
             }
+            if (dialogOffset)
+                $(dialog).dialog("option", "position", [dialogOffset.left, dialogOffset.top]);
+            if (ind >= 0)
+                infoDialogCascade.splice(ind, 0, dialog);
+            else if(isNew)
+                infoDialogCascade.push(dialog);
 
-            infoDialogCascade.push(dialog);
             allIinfoDialogs.push({ vessel: vessel, dialog: dialog });
             $(dialog).on("dialogdragstop", function (event, ui) {
                 var ind = Polyfill.findIndex(infoDialogCascade, function (d) { return d.id == dialog.id });

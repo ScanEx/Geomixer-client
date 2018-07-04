@@ -1780,7 +1780,7 @@
 
 	'use strict';
 	
-	var createInfoDialog = __webpack_require__(17),
+	var displayInfoDialog = __webpack_require__(17),
 	    Polyfill = __webpack_require__(12),
 	    VesselInfoScreen = __webpack_require__(19);
 	
@@ -1801,6 +1801,12 @@
 	        aisView.vessel = vessel;
 	        if (aisView.tab) if (aisView.tab.is('.active')) aisView.show();else aisView.tab.click();
 	        if (!vessel.lastPosition) aisView.positionMap(vessel);
+	    },
+	        _updateView = function _updateView(displayed, vessel, getmore) {
+	        if (displayed.vessel.ts_pos_utc != vessel.ts_pos_utc) {
+	            $(displayed.dialog).dialog("close");
+	            return true;
+	        } else return false;
 	    };
 	    return {
 	        showPosition: function showPosition(vessel) {
@@ -1810,13 +1816,23 @@
 	        show: function show(vessel, getmore) {
 	            var ind = Polyfill.findIndex(allIinfoDialogs, function (d) {
 	                return d.vessel.imo == vessel.imo && d.vessel.mmsi == vessel.mmsi;
-	            });
+	            }),
+	                isNew = true,
+	                dialogOffset = void 0;
 	            if (ind >= 0) {
-	                $(allIinfoDialogs[ind].dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
-	                return;
+	                isNew = false;
+	                var displayed = allIinfoDialogs[ind];
+	                dialogOffset = $(displayed.dialog).parent().offset();
+	                ind = Polyfill.findIndex(infoDialogCascade, function (d) {
+	                    return d.id == displayed.dialog.id;
+	                });
+	                if (!_updateView(displayed, vessel)) {
+	                    $(displayed.dialog).parent().insertAfter($('.ui-dialog').eq($('.ui-dialog').length - 1));
+	                    return;
+	                }
 	            }
 	
-	            var dialog = createInfoDialog({
+	            var dialog = displayInfoDialog({
 	                vessel: vessel,
 	                getmore: getmore,
 	                displaingTrack: tools.displaingTrack,
@@ -1840,12 +1856,13 @@
 	                showPosition: _showPosition
 	            });
 	
-	            if (infoDialogCascade.length > 0) {
+	            if (!dialogOffset && infoDialogCascade.length > 0) {
 	                var pos = $(infoDialogCascade[infoDialogCascade.length - 1]).parent().position();
-	                $(dialog).dialog("option", "position", [pos.left + 10, pos.top + 10]);
+	                dialogOffset = { left: pos.left - 10, top: pos.top + 10 };
 	            }
+	            if (dialogOffset) $(dialog).dialog("option", "position", [dialogOffset.left, dialogOffset.top]);
+	            if (ind >= 0) infoDialogCascade.splice(ind, 0, dialog);else if (isNew) infoDialogCascade.push(dialog);
 	
-	            infoDialogCascade.push(dialog);
 	            allIinfoDialogs.push({ vessel: vessel, dialog: dialog });
 	            $(dialog).on("dialogdragstop", function (event, ui) {
 	                var ind = Polyfill.findIndex(infoDialogCascade, function (d) {
@@ -1928,7 +1945,7 @@
 		var canvas = $('<div class="ais_myfleet_dialog"/>'),
 		    menu = $('<div class="column1 menu"></div>').appendTo(canvas),
 		    photo = $('<div class="photo"><div></div></div>').appendTo(menu),
-		    moreinfo = $('<div class="moreinfo"><div></div></div>').appendTo(menu),
+		    underphoto = $('<div class="underphoto"><div></div></div>').appendTo(menu),
 		    content = Handlebars.compile('<div class="column2 content">' + '</div>')(vessel),
 		    buttons = $('<div class="column3 buttons"></div>'),
 		    gifLoader = '<img src="img/progress.gif">';
@@ -1936,7 +1953,13 @@
 	
 		canvas.append(content).append(buttons);
 	
-		var dialog = showDialog(vessel.vessel_name, canvas[0], { width: 610, height: 250, closeFunc: closeFunc }),
+		var searchInput = $('.leaflet-ext-search'),
+		    dialogW = 610,
+		    dialogH = 250,
+		    posX = searchInput.offset().left + searchInput.width() - dialogW,
+		    posY = searchInput.offset().top + searchInput.height() + 10,
+		    dialog = showDialog(vessel.vessel_name, canvas[0], { width: dialogW, height: dialogH, posX: posX, posY: posY,
+			closeFunc: closeFunc }),
 		    vessel2 = void 0,
 		    moreInfo = function moreInfo(v) {
 			var smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg>',
@@ -1946,11 +1969,11 @@
 	
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '<tr><td><div class="vessel_prop">ETA: </div></td><td><div class="vessel_prop value">{{ts_eta}}</div></td></tr>' + '</div>')(v));
 	
-			$(moreinfo).append('<table><tr>' + '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' + '<td><div class="vessel_prop coordinates"><span class="small">' + toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) + '</small></div></td>' + '</tr></table>');
+			$(underphoto).append('<table><tr>' + '<td class="ais_refresh"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" height="16" width="16"><g class="nc-icon-wrapper" fill="#444444"><polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,16 7,16 7,13 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 15,18 17,16 15,14 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="15,18 17,16 15,14 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <polyline data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 9,8 17,8 17,11 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points="9,6 7,8 9,10 " stroke-linejoin="miter" style="stroke: currentColor;"/> <polygon data-color="color-2" data-stroke="none" fill="#444444" points="9,6 7,8 9,10 " stroke-linejoin="miter" stroke-linecap="square" style="stroke: currentColor;fill: currentColor;"/> <rect x="2" y="1" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="20" height="22" stroke-linejoin="miter" style="stroke: currentColor;"/></g></svg></td>' + '<td><div class="vessel_prop coordinates"><span class="small">' + toDd(v.latitude, false) + ' ' + toDd(v.longitude, true) + '</small></div></td>' + '</tr></table>');
 	
 			var swap = "<span class='small'>" + ddToDms(v.latitude, false) + " " + ddToDms(v.longitude, true) + "</span>";
-			$('.ais_refresh', moreinfo).click(function (e) {
-				var mi = $('.coordinates', moreinfo),
+			$('.ais_refresh', underphoto).click(function (e) {
+				var mi = $('.coordinates', underphoto),
 				    t = mi.html();
 				mi.html(swap);
 				swap = t;
