@@ -20530,11 +20530,11 @@ var EditObjectControl = function(layerName, objectId, params)
 
             var selectedGeom = _this.getGeometry();
 
-            if (!selectedGeom)
-            {
+            // if (!selectedGeom)
+            // {
                 // showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
                 // return;
-            }
+            // }
 
             if (!isNew)
             {
