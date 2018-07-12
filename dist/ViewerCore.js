@@ -22522,16 +22522,17 @@ attrsTable.prototype._updateSearchString = function(query) {
 attrsTable.prototype.createColumnsList = function(paramsManager) {
 	var _this = this,
 	 	info = this._layerInfo,
-	 	paramsWidth = 300,
+	 	_activeColumns_ = '_activeColumns_' + info.name,
+		paramsWidth = 300,
 		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto']]);//
 
 	var attrTitles = this.tableFields.fieldsAsArray;
 	   if (!paramsManager._activeColumns) {
-	       paramsManager._activeColumns = {};
+			paramsManager._activeColumns = {};
 
-	       for (var i = 0; i < attrTitles.length; ++i) {
-	           paramsManager._activeColumns[attrTitles[i]] = true;
-			}
+				for (var i = 0; i < attrTitles.length; ++i) {
+				   paramsManager._activeColumns[attrTitles[i]] = true;
+				}
 	   }
 
 	   var presentColumns = false;
@@ -22573,6 +22574,7 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   $('input', rowUI).click(function() {
 			   paramsManager._activeColumns[columnName] = this.checked;
 			   $(paramsManager).trigger('columnsChange');
+				window.localStorage.setItem(_activeColumns_, JSON.stringify(paramsManager._activeColumns));	// сохранение активных колонок
 		   });
 	   });
 
@@ -22592,7 +22594,6 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 	   // columnsList.onmouseleave = function () {
 		//    this.style.display = 'none';
 	   // }
-
 	   return columnsList;
 };
 
@@ -22609,6 +22610,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         searchParamsManager: new nsGmx.AttrTable.DefaultSearchParamsManager()
         /*attributes: [] */
     }, params);
+	_params.searchParamsManager._activeColumns = JSON.parse(localStorage.getItem('_activeColumns_' + info.name));		// чтение активных колонок
 
 	var paramsWidth = 300,
 		tdParams = nsGmx.Utils._td(null, [['css', 'width', paramsWidth + 'px'], ['attr', 'vAlign', 'top']]),
@@ -23097,6 +23099,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
+
+	if (_params.searchParamsManager._activeColumns) {
+		var obj = _params.searchParamsManager._activeColumns;
+	   for (var key in obj) {
+		   this.table2.activateField(key, obj[key]);
+	   }
+	}
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
@@ -33042,19 +33051,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -33084,6 +33080,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
