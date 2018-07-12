@@ -1688,6 +1688,7 @@ _translationsHash.hash["rus"] = {
 	"Обновить объекты" : "Обновить объекты",
 	"Копировать объекты" : "Копировать объекты",
 	"Объекты скопированы" : "Объекты скопированы",
+	"Объекты добавлены" : "Объекты добавлены",
 	"Вставить объекты" : "Вставить объекты",
 	"Вставить объекты не удалось" : "Вставить объекты не удалось",
 	"Выберите правым кликом слой в левой панели и нажмите \"Вставить объекты\"": "Выберите правым кликом слой в левой панели и нажмите \"Вставить объекты\"",
@@ -2425,6 +2426,7 @@ _translationsHash.hash["eng"] = {
 	"Обновить объекты" : "Update objects",
 	"Копировать объекты" : "Copy objects",
 	"Объекты скопированы" : "Objects are copied",
+	"Объекты добавлены" : "Объекты добавлены",
 	"Вставить объекты" : "Paste objects",
 	"Вставить объекты не удалось" : "Paste objects failed",
 	"Выберите правым кликом слой в левой панели и нажмите \"Вставить объекты\"": "Right-click on layer name and select \"Paste objects\"",
@@ -13178,7 +13180,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		var copyLayerParams = nsGmx.ClipboardController.get('CopyObjects', -1),
 			copyLayerName = copyLayerParams.layerName,
-			copyLayerQuery = copyLayerParams.query;
+			copyLayerQuery = copyLayerParams.query,
+			list = copyLayerParams.list || '';
 
 		var url = window.serverBase +
 			"VectorLayer/Append?LayerName=" + context.elem.name +
@@ -13188,7 +13191,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		var  def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
 		def.done(function(taskInfo){
-				// console.log(taskInfo);
+			showErrorMessage(list, true, window._gtxt('Объекты добавлены'));
         }).fail(function(taskInfo){
 			showErrorMessage(window._gtxt('Вставить объекты не удалось'), true);
 			// console.log(taskInfo);
@@ -22841,13 +22844,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
 		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Показывать колонки')),
-		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
+		selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
 		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
 		selectedCont = nsGmx.Utils._span([
 			nsGmx.Utils._t('Выбрано объектов:'),
 			selectedCount,
 			selectedDelete,
-			// selectedCopy,
+			selectedCopy,
 			// selectedDownload
 		], [['attr', 'class', 'hiddenCommands']]),
 		groupBox = nsGmx.Utils._div([
@@ -22900,6 +22903,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		var offset = $(selectedDelete).offset();
 		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
+	};
+
+	selectedCopy.onclick = function() {
+		var list = '(' + Object.keys(_this._selected).join(',') + ')',
+			copyLayerParams = {
+				layerName: info.name,
+				list: list,
+				query: '[gmx_id] IN ' + list
+			};
+			
+		nsGmx.ClipboardController.addItem('CopyObjects', copyLayerParams);
+		window.showErrorMessage(list, true, window._gtxt('Объекты скопированы'));
 	};
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
@@ -22963,8 +22978,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
         deleteItem.onchange = function() {
 			if (deleteItem.checked) {
-				 _this._selected[id] = true;
-				 console.log(_this._selected);
+				_this._selected[id] = true;
+				 // console.log(_this._selected);
 			 } else {
 				delete _this._selected[id];
 				selectAllItems.checked = false;
