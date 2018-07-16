@@ -143,8 +143,7 @@
 
                         weatherOptions.iconUrl = imagesHost + '24/' + icon + '.png';
                         weather.push(
-                            L.marker(latlng,
-                            {
+                            new L.Wmarker(latlng, {
                                 type: 'weather',
                                 num: i,
                                 icon: L.icon(weatherOptions)
@@ -157,8 +156,7 @@
                         windOptions.iconAnchor = [w2, w2];
 
                         wind.push(
-                            L.marker(latlng,
-                            {
+                            new L.Wmarker(latlng, {
                                 type: 'wind',
                                 zIndexOffset: 100,
                                 num: i,
@@ -197,9 +195,7 @@
                         });
                     }
                 };
-
-                var _old__setPos = L.Marker.prototype._setPos;
-                L.Marker.include({
+                L.Wmarker = L.Marker.extend({
                     _updateImg: function(i, a, s) {
                         a = L.point(s).divideBy(2)._subtract(L.point(a));
                         var opt = this.options,
@@ -228,7 +224,7 @@
                             this._shadow.style[L.DomUtil.TRANSFORM] = '';
                         }
 
-                        _old__setPos.apply(this,[pos]);
+                        L.Marker.prototype._setPos.apply(this,[pos]);
 
                         var opt = this.options;
                         if (opt.iconAngle) {
