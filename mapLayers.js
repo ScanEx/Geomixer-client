@@ -683,132 +683,13 @@
                             layerName = props.name;
 
                         if (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null'))) {
-                            timelineIcon = document.createElement('img');
-                            timelineIcon.src = 'img/timeline-icon-disabled.svg';
-                            timelineIcon.className = 'gmx-timeline-icon disabled';
-                            timelineIcon.title = window._gtxt("Добавить в таймлайн");
-
-                                timelineIcon.onclick = function() {
-                                    var disabled = $(this).hasClass('disabled'),
-                                    timelinePluginName = 'GeoMixer Timeline',
-                                    timeLineModuleName = 'gmxTimeLine',
-                                    timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
-
-                                    // lazy load timeline plugin
-                                    if (!timelinePlugin.body) {
-                                        nsGmx.pluginsManager.setUsePlugin(timelinePluginName, true);
-
-                                        window.gmxCore.loadModule(timeLineModuleName, timelinePlugin.file).then(function(res) {
-                                            var paramsClone = $.extend(true, {}, timelinePlugin.params);
-                                            var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
-                                            _mapHelper.mapPlugins.addPlugin(timelinePluginName, timelinePlugin.params);
-
-                                            if (timeLineControl) {
-                                                timeLineControl.on('layerRemove', function(e) {
-                                                    $(window._layersTree).triggerHandler('layerTimelineRemove', e);
-                                                });
-                                                timeLineControl.on('layerAdd', function(e) {
-                                                    $(window._layersTree).triggerHandler('layerTimelineAdd', e);
-                                                });
-                                            }
-                                            res.addLayer(layer);
-                                        }).then(function(err) {
-                                            console.log(err);
-                                        });
-                                    } else {
-                                        if (!nsGmx.timeLineControl) {
-                                            var paramsClone = $.extend(true, {}, timelinePlugin.body.params);
-                                            var timeLineControl = timelinePlugin.body.afterViewer && timelinePlugin.body.afterViewer(paramsClone, nsGmx.leafletMap);
-
-                                            timeLineControl.on('layerRemove', function(e) {
-                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
-                                            });
-                                            timeLineControl.on('layerAdd', function(e) {
-                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
-                                            });
-                                        } else {
-                                            nsGmx.timeLineControl.on('layerRemove', function(e) {
-                                                $(window._layersTree).triggerHandler('layerTimelineRemove', e);
-                                            });
-                                            nsGmx.timeLineControl.on('layerAdd', function(e) {
-                                                $(window._layersTree).triggerHandler('layerTimelineAdd', e);
-                                            });
-                                        }
-
-                                        disabled ? timelinePlugin.body.addLayer(layer) : timelinePlugin.body.removeLayer(layer);
-                                    }
-
-                                    if (disabled) {
-                                        if (!parentVisibility || !elem.visible) {
-                                            $(multiStyleParent).removeClass("invisible");
-                                            _this.treeModel.setNodeVisibility(_this.findTreeElem(span.parentNode.parentNode).elem, true);
-                                        }
-                                    }
-                                }
-
-                            $(this).on('layerTimelineRemove', function(e, data) {
-                                if (data.layerID === layerName) {
-                                    timelineIcon.src = 'img/timeline-icon-disabled.svg';
-                                    timelineIcon.title = window._gtxt("Удалить из таймлайна");
-                                    $(timelineIcon).addClass('disabled');
-
-                                    if (nsGmx.bindLayersToTimeline) {
-                                        _this.treeModel.setNodeVisibility(_this.treeModel.findElem("name", elem.name).elem, false);
-                                    }
-                                }
-                            });
-
-                            $(this).on('layerTimelineAdd', function(e, data) {
-                                if (data.layerID === layerName) {
-                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
-                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
-                                    $(timelineIcon).removeClass('disabled');
-                                }
-                            });
-
-                            if (nsGmx.timeLineControl) {
-                                var timelineData = nsGmx.timeLineControl.saveState().dataSources,
-                                    layerOnTimeline = false;
-
-                                for (var key in timelineData) {
-                                    if (timelineData[key].layerID === elem.name) {
-                                        layerOnTimeline = true;
-                                    }
-                                }
-
-                                if (layerOnTimeline) {
-                                    if (props.visible) {
-                                        timelineIcon.src = 'img/timeline-icon-enabled.svg';
-                                        timelineIcon.title = window._gtxt("Добавить в таймлайн");
-                                        $(timelineIcon).removeClass('disabled');
-                                    }
-                                } else {
-                                    if (props.visible) {
-                                        var disabled = $(this).hasClass('disabled'),
-                                            timelinePluginName = 'GeoMixer Timeline',
-                                            timeLineModuleName = 'gmxTimeLine',
-                                            timelinePlugin = nsGmx.pluginsManager.getPluginByName(timelinePluginName);
-                                        timelinePlugin.body.addLayer(layer);
-
-                                        timelineIcon.src = 'img/timeline-icon-enabled.svg';
-                                        timelineIcon.title = window._gtxt("Добавить в таймлайн");
-                                        $(timelineIcon).removeClass('disabled');
-                                    }
-                                }
-
-                                if (layerOnTimeline && props.visible === true) {
-                                    timelineIcon.src = 'img/timeline-icon-enabled.svg';
-                                    timelineIcon.title = window._gtxt("Добавить в таймлайн");
-                                    $(timelineIcon).removeClass('disabled');
-                                }
-                            }
-                        }
+                            timelineIcon = this.CreateTimelineIcon(elem);
+						}
                     }
                 }
             }
 
             var resElems = [spanParent, spanDescr, borderDescr];
-
 
             if (this._renderParams.showStyle) {
                 resElems.push(multiStyleParent);
@@ -827,6 +708,59 @@
                 return [spanParent, spanDescr, borderDescr];
         }
     }
+
+    layersTree.prototype.CreateTimelineIcon = function(elem) {
+		var conf = {
+			disabledSrc: 'img/timeline-icon-disabled.svg',
+			enabledSrc: 'img/timeline-icon-enabled.svg',
+			addTitle: window._gtxt('Добавить в таймлайн'),
+			removeTitle: window._gtxt('Удалить из таймлайна')
+		},
+		layerID = elem.name,
+		icon = nsGmx.Utils._img(null, [
+			['attr', 'src', conf.disabledSrc],
+			['dir','className', 'gmx-timeline-icon disabled'],
+			['dir','title', conf.addTitle]
+		]),
+		toggleIcon = function(flag) {
+			if (flag) {
+				icon.src = conf.enabledSrc;
+				icon.title = conf.addTitle;
+				icon.classList.remove('disabled');
+			} else {
+				icon.src = conf.disabledSrc;
+				icon.title = conf.removeTitle;
+				icon.classList.add('disabled');
+			}
+		};
+
+		// TODO: требуется замена jQuery	+ не эффективно устанавливается множество хэндлеров
+		$(this).on('layerTimelineRemove', function(e, data) {
+			if (data.layerID === layerID) {
+				toggleIcon(false);
+			}
+		});
+
+		$(this).on('layerTimelineAdd', function(e, data) {
+			if (data.layerID === layerID) {
+				toggleIcon(true);
+			}
+		});
+
+        L.DomEvent
+            .on(icon, 'click', function() {
+				var disabled = icon.classList.contains('disabled'),
+					tlc = nsGmx.timeLineControl,
+					layer = nsGmx.gmxMap.layersByID[layerID];
+				if (disabled) {
+					if (!tlc._map) { nsGmx.leafletMap.addControl(tlc); }
+					tlc.addLayer(layer);
+				} else {
+					tlc.removeLayer(layer);
+				}
+			}, this)
+		return icon;
+	}
 
     layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
         var box,

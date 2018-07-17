@@ -280,7 +280,7 @@ mapHelper.prototype.reloadMap = function()
     _mapHelper.getMapStateAsPermalink(function(permalinkID)
     {
         createCookie("TempPermalink", permalinkID);
-        window.location.replace(window.location.href.split("?")[0] + "?permalink=" + permalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
+        window.location.replace(window.location.href.split("?")[0] + "?permalink=" + permalinkID + (window.defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
     })
 }
 
@@ -504,7 +504,7 @@ mapHelper.prototype.getMapStyles = function()
 mapHelper.prototype.showPermalink = function()
 {
 	this.createPermalink(function(id){
-        var url = window.location.protocol + "//" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName));
+        var url = window.location.protocol + "//" + window.location.host + window.location.pathname + "?permalink=" + id + (window.defaultMapID == globalMapName ? "" : ("&" + globalMapName));
         var input = _input(null, [['dir','className','inputStyle inputFullWidth'],['attr','value', url]]);
 
         showDialog(_gtxt("Ссылка на текущее состояние карты"), _div([input]), 311, 80, false, false);

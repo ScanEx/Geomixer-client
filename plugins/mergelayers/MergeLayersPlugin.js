@@ -16,12 +16,12 @@ var template = '<div class="mergeLayers-container">\
 var publicInterface = {
     pluginName: 'Merge Layers Plugin',
     afterViewer: function(params, map) {
-		var menuUp = window.nsGmx.menuUp;
+		var menuUp = window.nsGmx.menuUp || window._menuUp;
         menuUp.addChildItem({
             id: 'mergeLayers', 
             title: 'Объединить слои', 
             func: function() {
-                var menu = new nsGmx.leftMenu();
+                var menu = new (nsGmx.leftMenu || window.leftMenu)();
                 menu.createWorkCanvas('mergelayers', {
                     path: ['Объединение слоёв карты'],
                     closeFunc: function() {
