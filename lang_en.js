@@ -644,6 +644,7 @@ _translationsHash.hash["eng"] = {
 	"Обновить объекты" : "Update objects",
 	"Копировать объекты" : "Copy objects",
 	"Объекты скопированы" : "Objects are copied",
+	"Объекты добавлены" : "Объекты добавлены",
 	"Вставить объекты" : "Paste objects",
 	"Вставить объекты не удалось" : "Paste objects failed",
 	"Выберите правым кликом слой в левой панели и нажмите \"Вставить объекты\"": "Right-click on layer name and select \"Paste objects\"",

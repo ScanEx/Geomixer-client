@@ -238,21 +238,22 @@ var LayerProperties = Backbone.Model.extend(
                 var copyParams = {},
                     columnsList = [{Value:"[geomixergeojson]",Alias:"gmx_geometry"}],
                     sqlString = params.buffer ?
-                        'select Buffer([gmx_geometry], ' + (params.bufferSize || 0) + ') as gmx_geometry, ' :
-                        'select [geomixergeojson] as gmx_geometry, ';
-
+                        'select Buffer([gmx_geometry], ' + (params.bufferSize || 0) + ') as gmx_geometry' :
+                        'select [geomixergeojson] as gmx_geometry';
 
                 for (var i = 0; i < attrs.Columns.length; i++) {
                     var col = attrs.Columns[i];
 
-                    columnsList.push({
-                        Value: col.Name,
-                        Alias: col.Name
-                    });
+					if (col.Name !== 'gmx_geometry') {
+						columnsList.push({
+							Value: col.Name,
+							Alias: col.Name
+						});
 
-                    var exp = col.expression || '"' + col.Name + '"';
+						var exp = col.expression || '"' + col.Name + '"';
 
-                    sqlString += i < attrs.Columns.length - 1 ? exp + ' as ' + col.Name + ', ' : exp + ' as ' + col.Name;
+						sqlString += ', ' + exp + ' as ' + col.Name;
+					}
                 }
 
                 sqlString += ' from [' + params.sourceLayerName + ']';

@@ -61,3 +61,6 @@
 [submodule "leaflet/plugins/IconSidebarControl"]
 	path = leaflet/plugins/IconSidebarControl
 	url = git@github.com:ScanEx/IconSidebarControl.git
+[submodule "plugins/external/GMXPluginPolylineMeasure"]
+	path = plugins/external/GMXPluginPolylineMeasure
+	url = git@github.com:ScanEx/GMXPluginPolylineMeasure.git

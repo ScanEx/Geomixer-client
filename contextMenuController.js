@@ -457,7 +457,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		var copyLayerParams = nsGmx.ClipboardController.get('CopyObjects', -1),
 			copyLayerName = copyLayerParams.layerName,
-			copyLayerQuery = copyLayerParams.query;
+			copyLayerQuery = copyLayerParams.query,
+			list = copyLayerParams.list || '';
 
 		var url = window.serverBase +
 			"VectorLayer/Append?LayerName=" + context.elem.name +
@@ -467,7 +468,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		var  def = nsGmx.asyncTaskManager.sendGmxPostRequest(url);
 
 		def.done(function(taskInfo){
-				// console.log(taskInfo);
+			showErrorMessage(list, true, window._gtxt('Объекты добавлены'));
         }).fail(function(taskInfo){
 			showErrorMessage(window._gtxt('Вставить объекты не удалось'), true);
 			// console.log(taskInfo);

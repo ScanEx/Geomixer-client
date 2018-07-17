@@ -833,7 +833,17 @@ nsGmx.widgets = nsGmx.widgets || {};
                 eraseCookie('TinyReference');
                 createCookie('TinyReference', params['permalink']);
 
-                window.location.replace(documentHref + (givenMapName ? ('?' + givenMapName) : ''));
+                if (location.search.indexOf('debug=1') === -1) {
+					window.location.replace(documentHref + (givenMapName ? ('?' + givenMapName) : ''));
+				} else {
+					var tinyRef = readCookie('TinyReference');
+					_mapHelper.restoreTinyReference(tinyRef, function(obj) {
+						if (obj.mapName) {
+							window.globalMapName = obj.mapName;
+						}
+						loadMap(obj);
+					});
+				}
                 return;
             }
 
@@ -2297,89 +2307,19 @@ nsGmx.widgets = nsGmx.widgets || {};
                 // обработка специальных параметров плагинов
                 nsGmx.pluginsManager.forEachPlugin(function (plugin) {
                     if (plugin.moduleName === "gmxTimeLine") {
-                        var params = plugin.params,
-                            moduleName = plugin.moduleName,
-                            file = plugin.file;
-
-                        if ("bindLayersToTimeline" in params && !plugin.body) {
-                            plugin.setUsage("used");
-                            window.gmxCore.loadModule(moduleName, file).then(function(res) {
-                                var paramsClone = $.extend(true, {}, params);
-                                if (!nsGmx.timeLineControl) {
-                                    var timeLineControl = res.afterViewer && res.afterViewer(paramsClone, nsGmx.leafletMap);
-                                } else {
-                                    var timeLineControl = nsGmx.timeLineControl;
-                                }
-                                // _mapHelper.mapPlugins.addPlugin(moduleName, params);
-
-                                nsGmx.bindLayersToTimeline = true;
-
-                                if (timeLineControl) {
-                                    timeLineControl.on('layerRemove', function(e) {
-                                        $(window._layersTree).triggerHandler('layerTimelineRemove', e);
-                                    });
-                                    timeLineControl.on('layerAdd', function(e) {
-                                        $(window._layersTree).triggerHandler('layerTimelineAdd', e);
-                                    });
-                                }
-
-                                if (Array.isArray(params.bindLayersToTimeline)) {
-                                    var layersArr = params.bindLayersToTimeline.map(function (id) {return nsGmx.gmxMap.layersByID[id]});
-                                    addLayersToTimeline(res, layersArr);
-                                } else if (params.bindLayersToTimeline === "true") {
-                                    addLayersToTimeline(res);
-                                }
-
-                                $('.gmx-timeline-icon').each(function () {
-                                    $(this).css("cursor", "	nw-resize");
-                                    $(this).css("pointer-events", "none");
-                                    $(this).addClass("gmx-disabled");
-                                })
-
-                                function addLayersToTimeline(timeline, layers) {
-                                    layers = layers || nsGmx.gmxMap.layers;
-
-                                    layers.forEach(function (layer) {
-                                        if (layer.getGmxProperties) {
-                                            var lprops = layer.getGmxProperties(),
-                                                lId = lprops.LayerID;
-
-                                            if (
-                                                lprops.visible &&
-                                                lprops.Temporal && (lprops.IsRasterCatalog || (lprops.Quicklook && lprops.Quicklook !== 'null'))) {
-                                                    timeline.addLayer(layer);
-                                            }
-
-                                            $(_layersTree).on('layerVisibilityChange', function(event, elem) {
-                                                var props = elem.content.properties,
-                                                    visible = props.visible,
-                                                    layerID = props.LayerID;
-
-                                                if (
-                                                    lId === layerID &&
-                                                    visible &&
-                                                    (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null')))) {
-                                                        timeline.addLayer(layer);
-                                                    }
-                                            });
-                                        }
-                                    });
-                                };
-                            }).then(function(err) {
-                                console.log(err);
-                            });
-                        }
+						var treeLayers = $(window._layersTree);
+						nsGmx.timeLineControl
+							.on('layerRemove', function(e) {
+								treeLayers.triggerHandler('layerTimelineRemove', e);
+							})
+							.on('layerAdd', function(e) {
+								treeLayers.triggerHandler('layerTimelineAdd', e);
+							})
+							.saveState().dataSources.forEach(function(it) {
+								treeLayers.triggerHandler('layerTimelineAdd', {type: 'layerAdd', layerID: it.layerID});
+							});
                     }
                 });
-
-                if (nsGmx.timeLineControl) {
-                    nsGmx.timeLineControl.on('layerRemove', function(e) {
-                        $(window._layersTree).triggerHandler('layerTimelineRemove', e);
-                    });
-                    nsGmx.timeLineControl.on('layerAdd', function(e) {
-                        $(window._layersTree).triggerHandler('layerTimelineAdd', e);
-                    });
-                }
 
                 // экспорт карты
 

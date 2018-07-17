@@ -129,16 +129,17 @@ attrsTable.prototype._updateSearchString = function(query) {
 attrsTable.prototype.createColumnsList = function(paramsManager) {
 	var _this = this,
 	 	info = this._layerInfo,
-	 	paramsWidth = 300,
+	 	_activeColumns_ = '_activeColumns_' + info.name,
+		paramsWidth = 300,
 		columnsList = nsGmx.Utils._div(null, [['dir', 'className', 'attrsColumnsList'], ['css', 'overflowY', 'auto']]);//
 
 	var attrTitles = this.tableFields.fieldsAsArray;
 	   if (!paramsManager._activeColumns) {
-	       paramsManager._activeColumns = {};
+			paramsManager._activeColumns = {};
 
-	       for (var i = 0; i < attrTitles.length; ++i) {
-	           paramsManager._activeColumns[attrTitles[i]] = true;
-			}
+				for (var i = 0; i < attrTitles.length; ++i) {
+				   paramsManager._activeColumns[attrTitles[i]] = true;
+				}
 	   }
 
 	   var presentColumns = false;
@@ -180,6 +181,7 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 		   $('input', rowUI).click(function() {
 			   paramsManager._activeColumns[columnName] = this.checked;
 			   $(paramsManager).trigger('columnsChange');
+				window.localStorage.setItem(_activeColumns_, JSON.stringify(paramsManager._activeColumns));	// сохранение активных колонок
 		   });
 	   });
 
@@ -199,7 +201,6 @@ attrsTable.prototype.createColumnsList = function(paramsManager) {
 	   // columnsList.onmouseleave = function () {
 		//    this.style.display = 'none';
 	   // }
-
 	   return columnsList;
 };
 
@@ -216,6 +217,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         searchParamsManager: new nsGmx.AttrTable.DefaultSearchParamsManager()
         /*attributes: [] */
     }, params);
+	_params.searchParamsManager._activeColumns = JSON.parse(localStorage.getItem('_activeColumns_' + info.name));		// чтение активных колонок
 
 	var paramsWidth = 300,
 		tdParams = nsGmx.Utils._td(null, [['css', 'width', paramsWidth + 'px'], ['attr', 'vAlign', 'top']]),
@@ -451,13 +453,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		selectedCount = nsGmx.Utils._span([], [['attr', 'class', 'selectedCount']]),
 		selectedDelete = nsGmx.Utils.makeLinkButton(_gtxt('Удалить')),
 		showColumnsListButton = nsGmx.Utils.makeLinkButton(_gtxt('Показывать колонки')),
-		// selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
+		selectedCopy = nsGmx.Utils.makeLinkButton(_gtxt('Скопировать')),
 		// selectedDownload = nsGmx.Utils.makeLinkButton(_gtxt('Скачать')),
 		selectedCont = nsGmx.Utils._span([
 			nsGmx.Utils._t('Выбрано объектов:'),
 			selectedCount,
 			selectedDelete,
-			// selectedCopy,
+			selectedCopy,
 			// selectedDownload
 		], [['attr', 'class', 'hiddenCommands']]),
 		groupBox = nsGmx.Utils._div([
@@ -510,6 +512,18 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
 		var offset = $(selectedDelete).offset();
 		var jDialog = nsGmx.Utils.showDialog(_gtxt('Удалить отмеченные объекты?'), nsGmx.Utils._div([remove], [['css', 'textAlign', 'center']]), 280, 75, offset.left + 20, offset.top - 30);
+	};
+
+	selectedCopy.onclick = function() {
+		var list = '(' + Object.keys(_this._selected).join(',') + ')',
+			copyLayerParams = {
+				layerName: info.name,
+				list: list,
+				query: '[gmx_id] IN ' + list
+			};
+			
+		nsGmx.ClipboardController.addItem('CopyObjects', copyLayerParams);
+		window.showErrorMessage(list, true, window._gtxt('Объекты скопированы'));
 	};
 
 	$(showColumnsListButton).addClass('show-columns-list-button');
@@ -573,8 +587,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
         deleteItem.onchange = function() {
 			if (deleteItem.checked) {
-				 _this._selected[id] = true;
-				 console.log(_this._selected);
+				_this._selected[id] = true;
+				 // console.log(_this._selected);
 			 } else {
 				delete _this._selected[id];
 				selectAllItems.checked = false;
@@ -692,6 +706,13 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 
     this.table2.setDataProvider(this._serverDataProvider);
     this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, $.extend(attrNamesHash, {'': true}), true);
+
+	if (_params.searchParamsManager._activeColumns) {
+		var obj = _params.searchParamsManager._activeColumns;
+	   for (var key in obj) {
+		   this.table2.activateField(key, obj[key]);
+	   }
+	}
 
 	nsGmx.Utils._(canvas, [nsGmx.Utils._table([nsGmx.Utils._tbody([nsGmx.Utils._tr([tdParams, tdTable2])])], ['css', 'width', '100%'])]);
 
