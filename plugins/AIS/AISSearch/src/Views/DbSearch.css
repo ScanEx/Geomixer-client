@@ -61,20 +61,31 @@
 .ais_history .ais_positions_date td .date{
     font-weight:500;
 }
+.ais_history .ais_positions_date td div.track{
+    vertical-align: middle;
+}
+.ais_history .ais_positions_date td div.track input[type="checkbox"]{
+    margin-top:-4px;
+    vertical-align: middle;
+}  
 .ais_history .ais_positions_date td .count{
     font-weight:700;
+    width: 30px;
 }
 .ais_history .ais_positions_date td:nth-of-type(1){
     width:1%;
     padding-right:0;
 }
 .ais_history .ais_positions_date td:nth-of-type(3){
+    width:1%;
+}
+.ais_history .ais_positions_date td:nth-of-type(4){
     text-align: right;
     opacity: 0.8;
     padding-right:12px;
     color:#394b59;
+    width:1%;
 }
-
 .ais_history .open_positions{
     cursor: pointer;
     font-size:14px;

@@ -6,13 +6,24 @@ module.exports = function (options) {
 
     return {
         displaingTrack: _displaingTrack,
-        showTrack: function (mmsiArr, bbox) {
+        showTrack: function (mmsiArr, bbox) {            
+            let dates = _displaingTrack.history && mmsiArr[0]==_displaingTrack.history.mmsi ? _displaingTrack.history.dates: null;
             var lmap = nsGmx.leafletMap;
             var filterFunc = function (args) {
                 var mmsi = args.properties[1],
-                    i, len;
+                    dt = new Date(args.properties[2]*1000),
+                    i, j, len;
                 for (i = 0, len = mmsiArr.length; i < len; i++) {
-                    if (mmsi === mmsiArr[i]) { return true; }
+                    if (mmsi === mmsiArr[i]) { 
+                        if (dates)
+                            for (j=0; j<dates.length; ++j){
+                                if (dates[j].getTime()==dt.getTime()){
+                                    return true;
+                                }
+                            }
+                        else
+                            return true; 
+                    }
                 }
                 return false;
             };

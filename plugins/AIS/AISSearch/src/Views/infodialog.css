@@ -199,7 +199,9 @@
 	text-align: center;
 	cursor: default
 }
-
+.ais_info_dialog_titlebar #closebut{
+  cursor: pointer;
+}
 .ais_info_dialog_close-button{
             border:none 1px red;
             display: inline-block;
@@ -211,10 +213,10 @@
             z-index: 1000;
 			margin-top: 1px;
         } 
-
+/*
 .ais_info_dialog_close-button:hover{
             background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
-}
+}*/
 .ais_refresh{
 	cursor:pointer;
 	color: #384b50;

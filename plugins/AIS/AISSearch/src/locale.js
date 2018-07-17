@@ -46,7 +46,8 @@
         'AISSearch2.voyageInfo': 'Параметры движения',
         'AISSearch2.DbSearchTab':'БАЗА ДАННЫХ',
         'AISSearch2.ScreenSearchTab':'СУДА НА ЭКРАНЕ',
-        'AISSearch2.MyFleetTab':'МОЙ ФЛОТ'
+        'AISSearch2.MyFleetTab':'МОЙ ФЛОТ',
+        'AISSearch2.dailyTrack':'трек за сутки'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -95,5 +96,6 @@
 		'AISSearch2.voyageInfo': 'Voyage info',
         'AISSearch2.DbSearchTab':'DATA BASE',
         'AISSearch2.ScreenSearchTab':'VESSELS ON SCREEN',
-        'AISSearch2.MyFleetTab':'MY FLEET'
+        'AISSearch2.MyFleetTab':'MY FLEET',
+        'AISSearch2.dailyTrack':'daily track'
     });

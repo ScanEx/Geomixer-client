@@ -115,9 +115,9 @@ public class ScreenSearch : IHttpHandler {
 			GROUP BY mmsi, imo , vessel_name
 			UNION 
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
-			WHERE 
-			@minX2<=longitude and longitude<=@maxX2 and  
-			@minY2<=latitude and latitude<=@maxY2 " +
+			WHERE "+(filter!=""?filter+" and ":"")+@"
+			(@minX2<=longitude and longitude<=@maxX2 and  
+			@minY2<=latitude and latitude<=@maxY2) " +
 			(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
 			GROUP BY mmsi, imo , vessel_name
 		) tt 

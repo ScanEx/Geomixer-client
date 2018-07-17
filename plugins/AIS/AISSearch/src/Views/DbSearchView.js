@@ -54,7 +54,9 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '{{#each vessels}}' +
         '<table class="ais_positions_date" border=0><tr>' +
         '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' +
-        '<td><span class="date">{{{ts_pos_utc}}}</span></td><td><span class="count">{{count}}</span></td></tr></table>' +
+        '<td><span class="date">{{{ts_pos_utc}}}</span></td>' +
+        '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}" checked></div></td>' +
+        '<td><div class="count">{{count}}</div></td></tr></table>' +
         '<div id="voyage_info{{n}}"></div>' +
         '{{/each}}';
 
@@ -286,6 +288,7 @@ DbSearchView.prototype = Object.create(BaseView.prototype);
 
 let _clean = function () {
     this.frame.find('.open_positions').off('click');
+    this.frame.find('.ais_positions_date .track input[type="checkbox"]').off('click');
     let scrollCont = this.container.find('.mCSB_container')
     if (scrollCont[0])
         scrollCont.empty();
@@ -330,6 +333,15 @@ let _vi_template = '<table class="ais_positions">' +
 DbSearchView.prototype.repaint = function () {
     _clean.call(this);
     BaseView.prototype.repaint.apply(this, arguments);
+    
+    _tools.displaingTrack.history = null;
+    for (let i=0; i<this.model.data.vessels.length; ++i){
+        if (i==0)
+            _tools.displaingTrack.history = {mmsi:this.model.data.vessels[0].positions[0].mmsi, dates:[]};
+         _tools.displaingTrack.history.dates.push(
+            new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
+            );
+    }
 
     let open_pos = this.frame.find('.open_positions');
     open_pos.each((ind, elm) => {
@@ -382,15 +394,28 @@ DbSearchView.prototype.repaint = function () {
                     //showPosition
                     let i = e.currentTarget.id.replace(/show_pos/, ""),
                         vessel = this.model.data.vessels[ind].positions[parseInt(i)];
-
-                    this.positionMap(vessel);
-                    this.showTrack(vessel);
-
+                    this.positionMap(vessel, this.calendar.getDateInterval());
+                    let dailyTrack = this.frame.find('.track input').eq(ind);
+                    if (dailyTrack[0].checked)
+                        this.showTrack(vessel);
+                    else
+                        dailyTrack.click();
                     e.stopPropagation();
                 }).bind(this));
             }
         }).bind(this))
     })
+
+    this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(((e)=>{
+        _tools.displaingTrack.history.dates = [];
+        this.frame.find('.ais_positions_date .track').each((i, el)=>{            
+            if ($('input', el)[0].checked)
+                _tools.displaingTrack.history.dates.push(
+                    new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
+                );
+        })
+        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi});
+    }).bind(this));
 
     if (this.model.data.vessels.length == 1) {
         open_pos.eq(0).click();
@@ -409,9 +434,16 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
 
         let db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
         this.model.vessel = null;
-        this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-        this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-        this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+        let checkInterval = this.calendar.getDateInterval();
+        //console.log(checkInterval.get('dateBegin')+' || '+checkInterval.set('dateEnd'))
+        if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin){
+            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
+            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+        }
+        else{
+           this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
+        }
         this.model.vessel = v;
         this.model.isDirty = true;
     }
@@ -437,7 +469,10 @@ DbSearchView.prototype.hide = function () {
 DbSearchView.prototype.showTrack = function (vessel) {
     let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
     if (dlg[0]) {
-        dlg.find('.showtrack:not(.active)').click();
+        if (dlg.find('.showtrack:not(.active)')[0])
+            dlg.find('.showtrack:not(.active)').click();
+        else
+            _tools.showTrack([vessel.mmsi]);
     }
     else {
         _tools.showTrack([vessel.mmsi]);
@@ -446,8 +481,11 @@ DbSearchView.prototype.showTrack = function (vessel) {
     }
 };
 
-DbSearchView.prototype.positionMap = function (vessel) {
-    let interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
+DbSearchView.prototype.positionMap = function (vessel, interval) {
+    //console.log(interval.get("dateBegin")+' '+interval.get("dateEnd"))
+    interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
+    if (!interval) //let     
+    interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
     nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,

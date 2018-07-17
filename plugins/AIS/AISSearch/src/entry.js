@@ -111,7 +111,9 @@ const publicInterface = {
         else {
             let sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
             aisPluginPanel.sidebarPane =  sidebar.setPane(
-                    menuId, { createTab: window.createTabFunction({
+                    menuId, { 
+                        position: params.showOnTop ? -100 : 0,
+                        createTab: window.createTabFunction({
                             icon: menuId,
                             active: "ais_sidebar-icon-active",
                             inactive: "ais_sidebar-icon",
@@ -120,9 +122,14 @@ const publicInterface = {
                     }
                 )
             sidebar.addEventListener('opened', function (e) {
-                if (sidebar._activeTabId==menuId)
+                if (sidebar._activeTabId==menuId)                
                     aisPluginPanel.show();
-            })
+            });
+            if (params.showOnTop) { // hack
+                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active')
+                sidebar._renderTabs({ activeTabId: menuId });
+                setTimeout(() => sidebar.open(menuId), 50);
+            }
         }
 
         if (location.search.search(/x=[^y=]+y=/i) != -1) {

@@ -274,11 +274,18 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		'</div></td>' +
 		'<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' +
 		'<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' +
-		'<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' +
+		'<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' +
 		'</table>'),
 		onDone = function (e) { e.stopPropagation(); $('.choose', titlebar).removeClass('done'); $(e.currentTarget).parent().addClass('done'); }
 
-	$('.ais_info_dialog_close-button', titlebar).on('click', () => $(dialog).dialog("close"))
+	$('#closebut', titlebar).on('click', (e) => {$(dialog).dialog("close"); })
+	.on('mouseover', (e) => { 
+		$('.ais_info_dialog_close-button', titlebar).css('background', 'url("data:image/svg+xml;charset=utf8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cline x1=\'0\' y1=\'0\' x2=\'12\' y2=\'12\' style=\'stroke:%2348aff1;stroke-width:2px\'/%3E%3Cline x1=\'0\' y1=\'12\' x2=\'12\' y2=\'0\' style=\'stroke:%2348aff1;stroke-width:2px\'/%3E%3C/svg%3E") no-repeat')
+	})
+	.on('mouseout', (e) => { 
+		$('.ais_info_dialog_close-button', titlebar).attr('style', '')
+	})
+	//url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat
 	$('.chooser', titlebar).eq(0).on('mousedown', (e) => { onDone(e); $('.vessel_props1', canvas).show(); $('.vessel_props2', canvas).hide() })
 	$('.chooser', titlebar).eq(1).on('mousedown', (e) => { onDone(e); $('.vessel_props2', canvas).show(); $('.vessel_props1', canvas).hide() })
 	$('.date span', titlebar).on('mousedown', (e) => { e.stopPropagation(); })
