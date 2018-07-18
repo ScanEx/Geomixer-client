@@ -546,20 +546,31 @@
 .ais_history .ais_positions_date td .date{
     font-weight:500;
 }
+.ais_history .ais_positions_date td div.track{
+    vertical-align: middle;
+}
+.ais_history .ais_positions_date td div.track input[type="checkbox"]{
+    margin-top:-4px;
+    vertical-align: middle;
+}  
 .ais_history .ais_positions_date td .count{
     font-weight:700;
+    width: 30px;
 }
 .ais_history .ais_positions_date td:nth-of-type(1){
     width:1%;
     padding-right:0;
 }
 .ais_history .ais_positions_date td:nth-of-type(3){
+    width:1%;
+}
+.ais_history .ais_positions_date td:nth-of-type(4){
     text-align: right;
     opacity: 0.8;
     padding-right:12px;
     color:#394b59;
+    width:1%;
 }
-
 .ais_history .open_positions{
     cursor: pointer;
     font-size:14px;
@@ -885,7 +896,9 @@
 	text-align: center;
 	cursor: default
 }
-
+.ais_info_dialog_titlebar #closebut{
+  cursor: pointer;
+}
 .ais_info_dialog_close-button{
             border:none 1px red;
             display: inline-block;
@@ -897,10 +910,10 @@
             z-index: 1000;
 			margin-top: 1px;
         } 
-
+/*
 .ais_info_dialog_close-button:hover{
             background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
-}
+}*/
 .ais_refresh{
 	cursor:pointer;
 	color: #384b50;

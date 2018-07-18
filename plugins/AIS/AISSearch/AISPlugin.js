@@ -149,7 +149,9 @@
 	            lmap.addControl(icon_mf);
 	        } else {
 	            var sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-	            aisPluginPanel.sidebarPane = sidebar.setPane(menuId, { createTab: window.createTabFunction({
+	            aisPluginPanel.sidebarPane = sidebar.setPane(menuId, {
+	                position: params.showOnTop ? -100 : 0,
+	                createTab: window.createTabFunction({
 	                    icon: menuId,
 	                    active: "ais_sidebar-icon-active",
 	                    inactive: "ais_sidebar-icon",
@@ -159,6 +161,14 @@
 	            sidebar.addEventListener('opened', function (e) {
 	                if (sidebar._activeTabId == menuId) aisPluginPanel.show();
 	            });
+	            if (params.showOnTop) {
+	                // hack
+	                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active');
+	                sidebar._renderTabs({ activeTabId: menuId });
+	                setTimeout(function () {
+	                    return sidebar.open(menuId);
+	                }, 50);
+	            }
 	        }
 	
 	        if (location.search.search(/x=[^y=]+y=/i) != -1) {
@@ -249,7 +259,8 @@
 	    'AISSearch2.voyageInfo': 'Параметры движения',
 	    'AISSearch2.DbSearchTab': 'БАЗА ДАННЫХ',
 	    'AISSearch2.ScreenSearchTab': 'СУДА НА ЭКРАНЕ',
-	    'AISSearch2.MyFleetTab': 'МОЙ ФЛОТ'
+	    'AISSearch2.MyFleetTab': 'МОЙ ФЛОТ',
+	    'AISSearch2.dailyTrack': 'трек за сутки'
 	});
 	_translationsHash.addtext('eng', {
 	    'AISSearch2.title': 'Searching vessels',
@@ -298,7 +309,8 @@
 	    'AISSearch2.voyageInfo': 'Voyage info',
 	    'AISSearch2.DbSearchTab': 'DATA BASE',
 	    'AISSearch2.ScreenSearchTab': 'VESSELS ON SCREEN',
-	    'AISSearch2.MyFleetTab': 'MY FLEET'
+	    'AISSearch2.MyFleetTab': 'MY FLEET',
+	    'AISSearch2.dailyTrack': 'daily track'
 	});
 
 /***/ }),
@@ -1249,7 +1261,7 @@
 	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time"><span class="label">Время:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">Местное</span></td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>Здесь будут отображаться<br>результаты поиска по названию,<br>' + 'IMO илм MMSI судна' + '</div></td></tr></table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
 	    this.container = this.frame.find('.ais_history');
 	    this.startScreen = this.frame.find('.start_screen');
-	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td><td><span class="count">{{count}}</span></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
+	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}" checked></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
 	
 	    var calendar = this.frame.find('.calendar');
 	
@@ -1464,6 +1476,7 @@
 	
 	var _clean = function _clean() {
 	    this.frame.find('.open_positions').off('click');
+	    this.frame.find('.ais_positions_date .track input[type="checkbox"]').off('click');
 	    var scrollCont = this.container.find('.mCSB_container');
 	    if (scrollCont[0]) scrollCont.empty();else this.container.empty();
 	    //console.log("EMPTY ON SELF.CLEAN "+this)
@@ -1482,6 +1495,12 @@
 	
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
+	
+	    _tools.displaingTrack.history = null;
+	    for (var i = 0; i < this.model.data.vessels.length; ++i) {
+	        if (i == 0) _tools.displaingTrack.history = { mmsi: this.model.data.vessels[0].positions[0].mmsi, dates: [] };
+	        _tools.displaingTrack.history.dates.push(new Date(new Date(1000 * this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
+	    }
 	
 	    var open_pos = this.frame.find('.open_positions');
 	    open_pos.each(function (ind, elm) {
@@ -1532,15 +1551,22 @@
 	                    //showPosition
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
 	                        vessel = _this5.model.data.vessels[ind].positions[parseInt(i)];
-	
-	                    _this5.positionMap(vessel);
-	                    _this5.showTrack(vessel);
-	
+	                    _this5.positionMap(vessel, _this5.calendar.getDateInterval());
+	                    var dailyTrack = _this5.frame.find('.track input').eq(ind);
+	                    if (dailyTrack[0].checked) _this5.showTrack(vessel);else dailyTrack.click();
 	                    e.stopPropagation();
 	                }.bind(_this5));
 	            }
 	        }.bind(_this5));
 	    });
+	
+	    this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(function (e) {
+	        _tools.displaingTrack.history.dates = [];
+	        _this5.frame.find('.ais_positions_date .track').each(function (i, el) {
+	            if ($('input', el)[0].checked) _tools.displaingTrack.history.dates.push(new Date(new Date(1000 * _this5.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
+	        });
+	        _this5.showTrack({ mmsi: _this5.model.data.vessels[0].positions[0].mmsi });
+	    }.bind(this));
 	
 	    if (this.model.data.vessels.length == 1) {
 	        open_pos.eq(0).click();
@@ -1557,9 +1583,15 @@
 	
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
 	        this.model.vessel = null;
-	        this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-	        this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-	        this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+	        var checkInterval = this.calendar.getDateInterval();
+	        //console.log(checkInterval.get('dateBegin')+' || '+checkInterval.set('dateEnd'))
+	        if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin) {
+	            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+	            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
+	            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+	        } else {
+	            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
+	        }
 	        this.model.vessel = v;
 	        this.model.isDirty = true;
 	    }
@@ -1584,15 +1616,18 @@
 	DbSearchView.prototype.showTrack = function (vessel) {
 	    var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
 	    if (dlg[0]) {
-	        dlg.find('.showtrack:not(.active)').click();
+	        if (dlg.find('.showtrack:not(.active)')[0]) dlg.find('.showtrack:not(.active)').click();else _tools.showTrack([vessel.mmsi]);
 	    } else {
 	        _tools.showTrack([vessel.mmsi]);
 	        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('active');
 	    }
 	};
 	
-	DbSearchView.prototype.positionMap = function (vessel) {
-	    var interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
+	DbSearchView.prototype.positionMap = function (vessel, interval) {
+	    //console.log(interval.get("dateBegin")+' '+interval.get("dateEnd"))
+	    interval = { dateBegin: interval.get("dateBegin"), dateEnd: interval.get("dateEnd") };
+	    if (!interval) //let     
+	        interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
 	    nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
 	        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
@@ -2080,14 +2115,19 @@
 	
 		// TITLEBAR	
 		canvas.parent('div').css({ 'margin': '0', 'overflow': 'hidden' });
-		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' + '<td id="closebut"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
+		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' + '<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
 		    onDone = function onDone(e) {
 			e.stopPropagation();$('.choose', titlebar).removeClass('done');$(e.currentTarget).parent().addClass('done');
 		};
 	
-		$('.ais_info_dialog_close-button', titlebar).on('click', function () {
-			return $(dialog).dialog("close");
+		$('#closebut', titlebar).on('click', function (e) {
+			$(dialog).dialog("close");
+		}).on('mouseover', function (e) {
+			$('.ais_info_dialog_close-button', titlebar).css('background', 'url("data:image/svg+xml;charset=utf8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cline x1=\'0\' y1=\'0\' x2=\'12\' y2=\'12\' style=\'stroke:%2348aff1;stroke-width:2px\'/%3E%3Cline x1=\'0\' y1=\'12\' x2=\'12\' y2=\'0\' style=\'stroke:%2348aff1;stroke-width:2px\'/%3E%3C/svg%3E") no-repeat');
+		}).on('mouseout', function (e) {
+			$('.ais_info_dialog_close-button', titlebar).attr('style', '');
 		});
+		//url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat
 		$('.chooser', titlebar).eq(0).on('mousedown', function (e) {
 			onDone(e);$('.vessel_props1', canvas).show();$('.vessel_props2', canvas).hide();
 		});
@@ -2650,14 +2690,23 @@
 	    return {
 	        displaingTrack: _displaingTrack,
 	        showTrack: function showTrack(mmsiArr, bbox) {
+	            var dates = _displaingTrack.history && mmsiArr[0] == _displaingTrack.history.mmsi ? _displaingTrack.history.dates : null;
 	            var lmap = nsGmx.leafletMap;
 	            var filterFunc = function filterFunc(args) {
 	                var mmsi = args.properties[1],
+	                    dt = new Date(new Date(args.properties[args.properties.length > 20 ? 23 : 2] * 1000).setUTCHours(0, 0, 0, 0)),
 	                    i,
+	                    j,
 	                    len;
 	                for (i = 0, len = mmsiArr.length; i < len; i++) {
 	                    if (mmsi === mmsiArr[i]) {
-	                        return true;
+	                        if (dates) for (j = 0; j < dates.length; ++j) {
+	                            if (dates[j].getTime() == dt.getTime()) {
+	                                return true;
+	                            }
+	                        } else {
+	                            return true;
+	                        }
 	                    }
 	                }
 	                return false;

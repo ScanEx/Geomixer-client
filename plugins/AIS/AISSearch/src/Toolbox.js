@@ -11,7 +11,7 @@ module.exports = function (options) {
             var lmap = nsGmx.leafletMap;
             var filterFunc = function (args) {
                 var mmsi = args.properties[1],
-                    dt = new Date(args.properties[2]*1000),
+                    dt = new Date(new Date(args.properties[args.properties.length>20?23:2]*1000).setUTCHours(0,0,0,0)),
                     i, j, len;
                 for (i = 0, len = mmsiArr.length; i < len; i++) {
                     if (mmsi === mmsiArr[i]) { 
@@ -21,8 +21,9 @@ module.exports = function (options) {
                                     return true;
                                 }
                             }
-                        else
+                        else{
                             return true; 
+                        }
                     }
                 }
                 return false;
