@@ -7,10 +7,10 @@ module.exports = function (options) {
     return {
         displaingTrack: _displaingTrack,
         showTrack: function (mmsiArr, bbox) {            
-            let dates = _displaingTrack.history && mmsiArr[0]==_displaingTrack.history.mmsi ? _displaingTrack.history.dates: null;
-            var lmap = nsGmx.leafletMap;
-            var filterFunc = function (args) {
-                var mmsi = args.properties[1],
+            let dates = _displaingTrack.dates && mmsiArr[0]==_displaingTrack.dates.mmsi ? _displaingTrack.dates.list: null,
+            lmap = nsGmx.leafletMap,
+            filterFunc = function (args) {
+                let mmsi = args.properties[1],
                     dt = new Date(new Date(args.properties[args.properties.length>20?23:2]*1000).setUTCHours(0,0,0,0)),
                     i, j, len;
                 for (i = 0, len = mmsiArr.length; i < len; i++) {

@@ -55,7 +55,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<table class="ais_positions_date" border=0><tr>' +
         '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' +
         '<td><span class="date">{{{ts_pos_utc}}}</span></td>' +
-        '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}" checked></div></td>' +
+        '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' +
         '<td><div class="count">{{count}}</div></td></tr></table>' +
         '<div id="voyage_info{{n}}"></div>' +
         '{{/each}}';
@@ -330,18 +330,44 @@ let _vi_template = '<table class="ais_positions">' +
     '</div></td></tr>' +
     '{{/each}}' +
     '</table>';
+
+let _prepare_history = function(){        
+    if (this.model.data.vessels.length>0){
+        // console.log("hist="+this.model.data.vessels[0].positions[0].mmsi
+        // +" track={"+_tools.displaingTrack.mmsi+"; "+_tools.displaingTrack.dates+"}"); 
+        console.log(this.model.data)
+
+        if (_tools.displaingTrack.mmsi!=this.model.data.vessels[0].positions[0].mmsi){        
+            _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};
+        }
+
+        this.frame.find('.ais_positions_date').each((i, el) => {
+            let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org*1000).setUTCHours(0,0,0,0),
+            layerInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+console.log(layerInterval.get('dateBegin').getTime()+" "+modelDate+" "+layerInterval.get('dateEnd').getTime())
+            if (!_tools.displaingTrack.dates && 
+                layerInterval.get('dateBegin').getTime()<=modelDate && 
+                modelDate<layerInterval.get('dateEnd').getTime())
+                $(el).find('.track input')[0].checked = true;
+            else
+            for (let j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
+                let trackDate = _tools.displaingTrack.dates.list[j];
+                if (modelDate === trackDate.getTime()) {
+                    $(el).find('.track input')[0].checked = true;
+                    break;
+                }
+            }
+        })
+    }
+}
+
 DbSearchView.prototype.repaint = function () {
     _clean.call(this);
-    BaseView.prototype.repaint.apply(this, arguments);
-    
-    _tools.displaingTrack.history = null;
-    for (let i=0; i<this.model.data.vessels.length; ++i){
-        if (i==0)
-            _tools.displaingTrack.history = {mmsi:this.model.data.vessels[0].positions[0].mmsi, dates:[]};
-         _tools.displaingTrack.history.dates.push(
-            new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
-            );
-    }
+    BaseView.prototype.repaint.apply(this, arguments); 
+
+
+    _prepare_history.call(this);
+console.log(_tools.displaingTrack) 
 
     let open_pos = this.frame.find('.open_positions');
     open_pos.each((ind, elm) => {
@@ -407,10 +433,14 @@ DbSearchView.prototype.repaint = function () {
     })
 
     this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(((e)=>{
-        _tools.displaingTrack.history.dates = [];
+        let calendarInterval = this.calendar.getDateInterval(),
+        interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
+        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+
+        _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};;
         this.frame.find('.ais_positions_date .track').each((i, el)=>{            
             if ($('input', el)[0].checked)
-                _tools.displaingTrack.history.dates.push(
+                _tools.displaingTrack.dates.list.push(
                     new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
                 );
         })

@@ -13,7 +13,8 @@ module.exports = function ({
     aisView: aisView, myFleetMembersView: myFleetMembersView }) {
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
-    const _showPosition = function(vessel){   
+    const _showPosition = function(vessel){  
+        tools.displaingTrack.dates = null; 
         aisView.vessel = vessel;
         if (aisView.tab)
         if (aisView.tab.is('.active'))
