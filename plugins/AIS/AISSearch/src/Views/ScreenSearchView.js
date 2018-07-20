@@ -241,33 +241,7 @@ ScreenSearchView.prototype.repaint = function () {
         this.container.mCustomScrollbar("scrollTo", "top", {scrollInertia:0, callbacks:false, timeout:200});
     }
     _setEventHandlers.call(this);
-/*
-    this.container.find('.info', ).on('click', function (e) {
-        let target = $(this),
-            vessel = JSON.parse(target.attr('vessel'))
-//console.log(vessel)
-        thisInst.infoDialogView && thisInst.infoDialogView.show(vessel, (v) => {
-//console.log(v)
-            vessel.xmin = vessel.xmax = v.longitude
-            vessel.ymin = vessel.ymax = v.latitude
-            if (vessel.hasOwnProperty('ts_pos_utc')) {
-                 vessel.ts_pos_utc = v.ts_pos_utc;
-                 vessel.ts_pos_org = v.ts_pos_org;
-                 v.dt_pos_utc && $(this).closest('tr').find('.date').html(v.dt_pos_utc);
-            }
-            target.attr('vessel', JSON.stringify(vessel))
-        });
-        e.stopPropagation();
-    });
-    this.container.find('.ais_vessel').on('click', function () {
-//console.log(JSON.parse($(this).find('.info').attr('vessel')))
-        let v = JSON.parse($(this).find('.info').attr('vessel'));                
-        v.lastPosition = true;
-        thisInst.infoDialogView.showPosition(v);
-    }); 
-//console.log("repaint "+(new Date()-start)+"ms" )  
-*/
-    ////////////////////////////////////////////////////
+
 };
 
 ScreenSearchView.prototype.show = function () {
@@ -275,10 +249,4 @@ ScreenSearchView.prototype.show = function () {
     this.frame.find('.filter input').focus();
 };
 
-/*
-ScreenSearchView.prototype.hide = function () {
-//console.log('hide ScreenSearchView')
-    BaseView.prototype.hide.apply(this, arguments);
-};
-*/
 module.exports = ScreenSearchView;

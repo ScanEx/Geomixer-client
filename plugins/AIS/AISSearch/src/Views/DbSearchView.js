@@ -333,30 +333,25 @@ let _vi_template = '<table class="ais_positions">' +
 
 let _prepare_history = function(){        
     if (this.model.data.vessels.length>0){
-        // console.log("hist="+this.model.data.vessels[0].positions[0].mmsi
-        // +" track={"+_tools.displaingTrack.mmsi+"; "+_tools.displaingTrack.dates+"}"); 
-        console.log(this.model.data)
-
         if (_tools.displaingTrack.mmsi!=this.model.data.vessels[0].positions[0].mmsi){        
             _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};
         }
-
         this.frame.find('.ais_positions_date').each((i, el) => {
             let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org*1000).setUTCHours(0,0,0,0),
             layerInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-console.log(layerInterval.get('dateBegin').getTime()+" "+modelDate+" "+layerInterval.get('dateEnd').getTime())
-            if (!_tools.displaingTrack.dates && 
-                layerInterval.get('dateBegin').getTime()<=modelDate && 
+            if (!_tools.displaingTrack.dates){
+                if(layerInterval.get('dateBegin').getTime()<=modelDate && 
                 modelDate<layerInterval.get('dateEnd').getTime())
-                $(el).find('.track input')[0].checked = true;
-            else
-            for (let j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
-                let trackDate = _tools.displaingTrack.dates.list[j];
-                if (modelDate === trackDate.getTime()) {
                     $(el).find('.track input')[0].checked = true;
-                    break;
-                }
             }
+            else
+                for (let j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
+                    let trackDate = _tools.displaingTrack.dates.list[j];
+                    if (modelDate === trackDate.getTime()) {
+                        $(el).find('.track input')[0].checked = true;
+                        break;
+                    }
+                }
         })
     }
 }
@@ -365,9 +360,7 @@ DbSearchView.prototype.repaint = function () {
     _clean.call(this);
     BaseView.prototype.repaint.apply(this, arguments); 
 
-
     _prepare_history.call(this);
-console.log(_tools.displaingTrack) 
 
     let open_pos = this.frame.find('.open_positions');
     open_pos.each((ind, elm) => {
@@ -447,11 +440,10 @@ console.log(_tools.displaingTrack)
         this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi});
     }).bind(this));
 
-    if (this.model.data.vessels.length == 1) {
+    if (this.model.data.vessels.length == 1)
         open_pos.eq(0).click();
-        if (this.vessel.lastPosition)
-            this.positionMap(this.model.data.vessels[0].positions[0]);
-    }
+    if (this.vessel.lastPosition)
+        this.positionMap(this.vessel);
 };
 
 
@@ -480,14 +472,10 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
 });
 
 DbSearchView.prototype.show = function () {
-
     this.frame.show();
     this.searchInput.focus();
     if (!this.vessel)
         return;
-
-    //console.log(this.vessel.vessel_name + " " + this.vessel.mmsi + " " + this.vessel.vessel_type)
-    //console.log(this.model.historyInterval.dateBegin + " " + this.model.historyInterval.dateEnd)
     BaseView.prototype.show.apply(this, arguments);
 };
 
@@ -498,25 +486,20 @@ DbSearchView.prototype.hide = function () {
 
 DbSearchView.prototype.showTrack = function (vessel) {
     let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
-    if (dlg[0]) {
-        if (dlg.find('.showtrack:not(.active)')[0])
-            dlg.find('.showtrack:not(.active)').click();
-        else
-            _tools.showTrack([vessel.mmsi]);
-    }
-    else {
-        _tools.showTrack([vessel.mmsi]);
-        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-            .removeClass('active');
-    }
+    $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+        .removeClass('ais active');
+    if (dlg[0]) 
+        dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track'))
+        .addClass('ais active')
+    _tools.showTrack([vessel.mmsi]);
 };
 
 DbSearchView.prototype.positionMap = function (vessel, interval) {
     //console.log(interval.get("dateBegin")+' '+interval.get("dateEnd"))
-    interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
-    if (!interval) //let     
-    interval = nsGmx.DateInterval.getUTCDayBoundary(new Date(vessel.ts_pos_org * 1000));
-    nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+    if (interval) {    
+        interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
+        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+    }
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
         ymin = vessel.ymin ? vessel.ymin : vessel.latitude,

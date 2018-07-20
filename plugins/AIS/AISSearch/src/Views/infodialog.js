@@ -190,8 +190,8 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 				vessel.ts_pos_org = vessel.ts_pos_utc;
 			vessel.lastPosition = true;
 			commands.showPosition(vessel);
-			if(!showtrack.is('.active'))
-				showtrack.click();
+			if(showtrack.is('.active'))
+				commands.showTrack.call(null, [vessel.mmsi])
 		});
 	//if (tracksLayer){
 	let templ = '<div class="button showtrack" title="' + _gtxt('AISSearch2.show_track') + '">' +
@@ -199,7 +199,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		'</div>',
 		activateTrackBut = function () {
 			$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-				.removeClass('active');
+				.removeClass('ais active');
 			showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
 				.addClass('ais active');
 		},
