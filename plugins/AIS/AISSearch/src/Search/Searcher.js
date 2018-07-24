@@ -143,7 +143,7 @@ module.exports = function (options) {
         },
 
         searchPositionsAgg: function (vessels, dateInterval, callback) {
-            //console.log("searchById");
+            //console.log(dateInterval);
             var request = {
                 WrapStyle: 'window',
                 layer: _historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
@@ -226,14 +226,17 @@ module.exports = function (options) {
                 min = { x: sw.lng, y: sw.lat },
                 max = { x: ne.lng, y: ne.lat };
             let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-                layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
-            if (layerTreeNode){   
-                var gmxProp = layerTreeNode.gmxProperties.content.properties;
-                if (gmxProp.Temporal) {
-                    queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-                    queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-                }
-            }
+            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
+            // if (layerTreeNode){   
+            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
+            //     if (gmxProp.Temporal) {
+            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+            //     }
+            // }
+            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+            queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+            queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 //console.log(queryParams);
             L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
                 queryParams,

@@ -14,7 +14,7 @@ module.exports = function ({
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
     const _showPosition = function(vessel){  
-        tools.displaingTrack.dates = null; 
+        //tools.displaingTrack.dates = null; 
         aisView.vessel = vessel;
         if (aisView.tab)
         if (aisView.tab.is('.active'))

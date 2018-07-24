@@ -1461,22 +1461,19 @@
 	var _prepare_history = function _prepare_history() {
 	    var _this5 = this;
 	
-	    if (this.model.data.vessels.length > 0) {
-	        if (_tools.displaingTrack.mmsi != this.model.data.vessels[0].positions[0].mmsi) {
-	            _tools.displaingTrack.dates = { mmsi: this.model.data.vessels[0].positions[0].mmsi, list: [] };
-	        }
+	    //console.log(_tools.displaingTrack)     
+	    if (this.model.data.vessels.length > 0 && _tools.displaingTrack && _tools.displaingTrack.mmsi == this.model.data.vessels[0].positions[0].mmsi) {
 	        this.frame.find('.ais_positions_date').each(function (i, el) {
-	            var modelDate = new Date(_this5.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0),
-	                layerInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-	            if (!_tools.displaingTrack.dates) {
-	                if (layerInterval.get('dateBegin').getTime() <= modelDate && modelDate < layerInterval.get('dateEnd').getTime()) $(el).find('.track input')[0].checked = true;
-	            } else for (var j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
-	                var trackDate = _tools.displaingTrack.dates.list[j];
-	                if (modelDate === trackDate.getTime()) {
-	                    $(el).find('.track input')[0].checked = true;
-	                    break;
+	            if (_tools.displaingTrack.dates) {
+	                var modelDate = new Date(_this5.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0);
+	                for (var j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
+	                    var trackDate = _tools.displaingTrack.dates.list[j];
+	                    if (modelDate === trackDate.getTime()) {
+	                        $(el).find('.track input')[0].checked = true;
+	                        break;
+	                    }
 	                }
-	            }
+	            } else $(el).find('.track input')[0].checked = true;
 	        });
 	    }
 	};
@@ -1552,7 +1549,8 @@
 	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
 	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	
-	        _tools.displaingTrack.dates = { mmsi: _this6.model.data.vessels[0].positions[0].mmsi, list: [] };;
+	        _tools.displaingTrack.mmsi = _this6.model.data.vessels[0].positions[0].mmsi;
+	        _tools.displaingTrack.dates = { mmsi: _this6.model.data.vessels[0].positions[0].mmsi, list: [] };
 	        _this6.frame.find('.ais_positions_date .track').each(function (i, el) {
 	            if ($('input', el)[0].checked) _tools.displaingTrack.dates.list.push(new Date(new Date(1000 * _this6.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
 	        });
@@ -1573,11 +1571,19 @@
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
 	        this.model.vessel = null;
 	        var checkInterval = this.calendar.getDateInterval();
-	        //console.log(checkInterval.get('dateBegin')+' || '+checkInterval.set('dateEnd'))
-	        if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin) {
+	        // console.log(db.dateBegin + '<' + checkInterval.get('dateBegin'))
+	        // console.log(checkInterval.get('dateEnd') + '<' + db.dateEnd)
+	        // if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin){
+	        //     this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+	        //     this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
+	        //     this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+	        // }
+	        if (db.dateBegin < checkInterval.get('dateBegin')) {
 	            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+	            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: checkInterval.get('dateEnd') };
+	        } else if (checkInterval.get('dateEnd') < db.dateEnd) {
 	            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-	            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+	            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: db.dateEnd };
 	        } else {
 	            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
 	        }
@@ -1815,7 +1821,7 @@
 	
 	    vesselInfoScreen = new VesselInfoScreen({ modulePath: modulePath, aisServices: aisLayerSearcher.aisServices });
 	    var _showPosition = function _showPosition(vessel) {
-	        tools.displaingTrack.dates = null;
+	        //tools.displaingTrack.dates = null; 
 	        aisView.vessel = vessel;
 	        if (aisView.tab) if (aisView.tab.is('.active')) aisView.show();else aisView.tab.click();
 	        //if (vessel.lastPosition)             
@@ -2040,28 +2046,39 @@
 			if (!vessel.ts_pos_org) vessel.ts_pos_org = vessel.ts_pos_utc;
 			vessel.lastPosition = true;
 			commands.showPosition(vessel);
-			if (showtrack.is('.active')) commands.showTrack.call(null, [vessel.mmsi]);
+			// if(showtrack.is('.active'))
+			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});
 		//if (tracksLayer){
-		var templ = '<div class="button showtrack" title="' + _gtxt('AISSearch2.show_track') + '">' + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><path style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M4,13V5 c0-2.209,1.791-4,4-4h0c2.209,0,4,1.791,4,4v14c0,2.209,1.791,4,4,4h0c2.209,0,4-1.791,4-4v-8" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="20" cy="4" r="3" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="4" cy="20" r="3" stroke-linejoin="miter"/></g></svg>' + '</div>',
-		    activateTrackBut = function activateTrackBut() {
-			$('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('ais active');
-			showtrack.attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
-		},
-		    showtrack = $(templ).appendTo(menubuttons).on('click', function () {
-			if (showtrack.attr('title') != _gtxt('AISSearch2.hide_track')) {
-				commands.showTrack.call(null, [vessel.mmsi]);
-				activateTrackBut();
-			} else {
-				$('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('ais active');
-				commands.showTrack.call(null, []);
-			}
-		});
-		if (!displaingTrack.mmsi || displaingTrack.mmsi != vessel.mmsi) {
-			showtrack.attr('title', _gtxt('AISSearch2.show_track'));
-		} else {
-			showtrack.attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
-		}
+		// let templ = '<div class="button showtrack" title="' + _gtxt('AISSearch2.show_track') + '">' +
+		// 	'<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><path style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M4,13V5 c0-2.209,1.791-4,4-4h0c2.209,0,4,1.791,4,4v14c0,2.209,1.791,4,4,4h0c2.209,0,4-1.791,4-4v-8" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="20" cy="4" r="3" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="4" cy="20" r="3" stroke-linejoin="miter"/></g></svg>' +
+		// 	'</div>',
+		// activateTrackBut = function () {
+		// 	$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+		// 		.removeClass('ais active');
+		// 	showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+		// 		.addClass('ais active');
+		// },
+		// showtrack = $(templ)
+		//.appendTo(menubuttons)
+		// .on('click', function () {
+		// 	if (showtrack.attr('title') != _gtxt('AISSearch2.hide_track')) {
+		// 		commands.showTrack.call(null, [vessel.mmsi])
+		// 		activateTrackBut();
+		// 	}
+		// 	else {
+		// 		$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+		// 			.removeClass('ais active');
+		// 		commands.showTrack.call(null, [])
+		// 	}
+		// });
+		// if (!displaingTrack.mmsi || displaingTrack.mmsi != vessel.mmsi) {
+		// 	showtrack.attr('title', _gtxt('AISSearch2.show_track'))
+		// }
+		// else {
+		// 	showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+		// 		.addClass('ais active');
+		// }
 		//}
 	
 		var addremoveIcon = function addremoveIcon(add) {
@@ -2567,7 +2584,7 @@
 	        },
 	
 	        searchPositionsAgg: function searchPositionsAgg(vessels, dateInterval, callback) {
-	            //console.log("searchById");
+	            //console.log(dateInterval);
 	            var request = {
 	                WrapStyle: 'window',
 	                layer: _historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
@@ -2646,13 +2663,17 @@
 	                min = { x: sw.lng, y: sw.lat },
 	                max = { x: ne.lng, y: ne.lat };
 	            var queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-	                layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='" + _screenSearchLayer + "']")[0];
-	            if (layerTreeNode) {
-	                var gmxProp = layerTreeNode.gmxProperties.content.properties;
-	                if (gmxProp.Temporal) {
-	                    queryParams.s = options.dateInterval.get('dateBegin').toJSON(), queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-	                }
-	            }
+	
+	            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
+	            // if (layerTreeNode){   
+	            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
+	            //     if (gmxProp.Temporal) {
+	            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+	            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+	            //     }
+	            // }
+	            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+	            queryParams.s = options.dateInterval.get('dateBegin').toJSON(), queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 	            //console.log(queryParams);
 	            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx", queryParams, callback);
 	        }
@@ -2674,7 +2695,8 @@
 	    return {
 	        displaingTrack: _displaingTrack,
 	        showTrack: function showTrack(mmsiArr, bbox) {
-	            var dates = _displaingTrack.dates && mmsiArr[0] == _displaingTrack.dates.mmsi ? _displaingTrack.dates.list : null,
+	            if (mmsiArr[0] != _displaingTrack.mmsi) _displaingTrack.dates = null;
+	            var dates = _displaingTrack.dates ? _displaingTrack.dates.list : null,
 	                lmap = nsGmx.leafletMap,
 	                filterFunc = function filterFunc(args) {
 	                var mmsi = args.properties[1],

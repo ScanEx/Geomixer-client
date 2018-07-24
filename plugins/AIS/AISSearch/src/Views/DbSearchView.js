@@ -331,20 +331,13 @@ let _vi_template = '<table class="ais_positions">' +
     '{{/each}}' +
     '</table>';
 
-let _prepare_history = function(){        
-    if (this.model.data.vessels.length>0){
-        if (_tools.displaingTrack.mmsi!=this.model.data.vessels[0].positions[0].mmsi){        
-            _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};
-        }
+let _prepare_history = function(){   
+    //console.log(_tools.displaingTrack)     
+    if (this.model.data.vessels.length>0 && _tools.displaingTrack && 
+        _tools.displaingTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){            
         this.frame.find('.ais_positions_date').each((i, el) => {
-            let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org*1000).setUTCHours(0,0,0,0),
-            layerInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-            if (!_tools.displaingTrack.dates){
-                if(layerInterval.get('dateBegin').getTime()<=modelDate && 
-                modelDate<layerInterval.get('dateEnd').getTime())
-                    $(el).find('.track input')[0].checked = true;
-            }
-            else
+            if (_tools.displaingTrack.dates) {
+                let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0)
                 for (let j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
                     let trackDate = _tools.displaingTrack.dates.list[j];
                     if (modelDate === trackDate.getTime()) {
@@ -352,7 +345,10 @@ let _prepare_history = function(){
                         break;
                     }
                 }
-        })
+            }
+            else
+                $(el).find('.track input')[0].checked = true;
+        });
     }
 }
 
@@ -430,7 +426,8 @@ DbSearchView.prototype.repaint = function () {
         interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
         nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 
-        _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};;
+        _tools.displaingTrack.mmsi = this.model.data.vessels[0].positions[0].mmsi;
+        _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};
         this.frame.find('.ais_positions_date .track').each((i, el)=>{            
             if ($('input', el)[0].checked)
                 _tools.displaingTrack.dates.list.push(
@@ -457,11 +454,20 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
         let db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
         this.model.vessel = null;
         let checkInterval = this.calendar.getDateInterval();
-        //console.log(checkInterval.get('dateBegin')+' || '+checkInterval.set('dateEnd'))
-        if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin){
-            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+// console.log(db.dateBegin + '<' + checkInterval.get('dateBegin'))
+// console.log(checkInterval.get('dateEnd') + '<' + db.dateEnd)
+        // if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin){
+        //     this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+        //     this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
+        //     this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+        // }
+        if (db.dateBegin < checkInterval.get('dateBegin')){
+            this.calendar.getDateInterval().set('dateBegin', db.dateBegin); 
+            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: checkInterval.get('dateEnd') };
+        }
+        else if (checkInterval.get('dateEnd') < db.dateEnd){
             this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
-            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
+            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: db.dateEnd };
         }
         else{
            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };

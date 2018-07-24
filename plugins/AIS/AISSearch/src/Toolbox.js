@@ -7,7 +7,9 @@ module.exports = function (options) {
     return {
         displaingTrack: _displaingTrack,
         showTrack: function (mmsiArr, bbox) {            
-            let dates = _displaingTrack.dates && mmsiArr[0]==_displaingTrack.dates.mmsi ? _displaingTrack.dates.list: null,
+            if (mmsiArr[0]!=_displaingTrack.mmsi)
+                _displaingTrack.dates = null;    
+            let dates = _displaingTrack.dates ? _displaingTrack.dates.list : null,
             lmap = nsGmx.leafletMap,
             filterFunc = function (args) {
                 let mmsi = args.properties[1],

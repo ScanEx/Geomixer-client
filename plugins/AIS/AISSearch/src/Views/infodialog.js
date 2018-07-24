@@ -190,39 +190,39 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 				vessel.ts_pos_org = vessel.ts_pos_utc;
 			vessel.lastPosition = true;
 			commands.showPosition(vessel);
-			if(showtrack.is('.active'))
-				commands.showTrack.call(null, [vessel.mmsi])
+			// if(showtrack.is('.active'))
+			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});
 	//if (tracksLayer){
-	let templ = '<div class="button showtrack" title="' + _gtxt('AISSearch2.show_track') + '">' +
-		'<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><path style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M4,13V5 c0-2.209,1.791-4,4-4h0c2.209,0,4,1.791,4,4v14c0,2.209,1.791,4,4,4h0c2.209,0,4-1.791,4-4v-8" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="20" cy="4" r="3" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="4" cy="20" r="3" stroke-linejoin="miter"/></g></svg>' +
-		'</div>',
-		activateTrackBut = function () {
-			$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-				.removeClass('ais active');
-			showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
-				.addClass('ais active');
-		},
-		showtrack = $(templ)
-			.appendTo(menubuttons)
-			.on('click', function () {
-				if (showtrack.attr('title') != _gtxt('AISSearch2.hide_track')) {
-					commands.showTrack.call(null, [vessel.mmsi])
-					activateTrackBut();
-				}
-				else {
-					$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
-						.removeClass('ais active');
-					commands.showTrack.call(null, [])
-				}
-			});
-	if (!displaingTrack.mmsi || displaingTrack.mmsi != vessel.mmsi) {
-		showtrack.attr('title', _gtxt('AISSearch2.show_track'))
-	}
-	else {
-		showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
-			.addClass('ais active');
-	}
+	// let templ = '<div class="button showtrack" title="' + _gtxt('AISSearch2.show_track') + '">' +
+	// 	'<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><path style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M4,13V5 c0-2.209,1.791-4,4-4h0c2.209,0,4,1.791,4,4v14c0,2.209,1.791,4,4,4h0c2.209,0,4-1.791,4-4v-8" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="20" cy="4" r="3" stroke-linejoin="miter"/> <circle style="stroke:currentColor" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" cx="4" cy="20" r="3" stroke-linejoin="miter"/></g></svg>' +
+	// 	'</div>',
+		// activateTrackBut = function () {
+		// 	$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+		// 		.removeClass('ais active');
+		// 	showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+		// 		.addClass('ais active');
+		// },
+		// showtrack = $(templ)
+			//.appendTo(menubuttons)
+			// .on('click', function () {
+			// 	if (showtrack.attr('title') != _gtxt('AISSearch2.hide_track')) {
+			// 		commands.showTrack.call(null, [vessel.mmsi])
+			// 		activateTrackBut();
+			// 	}
+			// 	else {
+			// 		$('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
+			// 			.removeClass('ais active');
+			// 		commands.showTrack.call(null, [])
+			// 	}
+			// });
+	// if (!displaingTrack.mmsi || displaingTrack.mmsi != vessel.mmsi) {
+	// 	showtrack.attr('title', _gtxt('AISSearch2.show_track'))
+	// }
+	// else {
+	// 	showtrack.attr('title', _gtxt('AISSearch2.hide_track'))
+	// 		.addClass('ais active');
+	// }
 	//}
 
 	let addremoveIcon = function (add) {
