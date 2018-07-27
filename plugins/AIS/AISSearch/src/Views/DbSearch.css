@@ -45,6 +45,7 @@
 .ais_history .message{
     text-align: center;
     font-weight: 700;
+    margin-top: 15px;
 }
 
 .ais_history .ais_positions_date{

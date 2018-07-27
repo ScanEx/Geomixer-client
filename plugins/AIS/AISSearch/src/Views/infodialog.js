@@ -171,7 +171,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	// BUTTONS
 	let menubuttons = $('<div class="menubuttons"></div>').appendTo(buttons)
 
-	let openpage = $('<div class="button openpage" title="информация о судне">' +
+	let openpage = $('<div class="button openpage" title="' + _gtxt('AISSearch2.show_info') + '">' +
 		'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
 		'<g class="nc-icon-wrapper" style="fill:currentColor">' +
 		'<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>' +
@@ -181,7 +181,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		.appendTo(menubuttons)
 		.on('click', () => commands.openVesselInfoScreen.call(null, vessel, vessel2));
 
-	let showpos = $('<div class="button showpos" title="показать положение">' +
+	let showpos = $('<div class="button showpos" title="' + _gtxt('AISSearch2.show_pos') + '">' +
 		'<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" xml:space="preserve" width="20" height="20"><g class="nc-icon-wrapper" fill="#444444"><polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 1,7 1,1 7,1 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 17,1 23,1 23,7 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 23,17 23,23 17,23 " stroke-linejoin="miter"/> <polyline style="stroke:currentColor" data-color="color-2" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" points=" 7,23 1,23 1,17 " stroke-linejoin="miter"/> <rect style="stroke:currentColor" x="8" y="8" fill="none" stroke="#444444" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" width="8" height="8" stroke-linejoin="miter"/></g></svg>' +
 		'</div>')
 		.appendTo(menubuttons)

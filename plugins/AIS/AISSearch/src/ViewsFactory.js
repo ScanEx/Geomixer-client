@@ -17,7 +17,7 @@ module.exports = function (options) {
         _dbsm = new DbSearchModel(_searcher),
         _dbsv = new DbSearchView({model:_dbsm, highlight:options.highlight, tools:_tools}),
         _ssv = new ScreenSearchView(_ssm),
-        _mfv = new MyFleetView(_mfm),
+        _mfv = new MyFleetView(_mfm, _tools),
         _idv = new InfoDialogView({
             tools:_tools,
             aisLayerSearcher: _searcher, 

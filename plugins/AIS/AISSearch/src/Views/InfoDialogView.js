@@ -13,16 +13,13 @@ module.exports = function ({
     aisView: aisView, myFleetMembersView: myFleetMembersView }) {
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
-    const _showPosition = function(vessel){  
-        //tools.displaingTrack.dates = null; 
+    const _showPosition = function(vessel){ 
         aisView.vessel = vessel;
         if (aisView.tab)
         if (aisView.tab.is('.active'))
             aisView.show();
         else
-            aisView.tab.click();  
-        //if (vessel.lastPosition)             
-        //    aisView.positionMap(vessel);    
+            aisView.tab.click();    
     }, 
     _updateView = function (displayed, vessel, getmore){
         if (displayed.vessel.ts_pos_utc!=vessel.ts_pos_utc){

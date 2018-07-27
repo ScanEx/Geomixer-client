@@ -113,13 +113,13 @@
     padding-left: 20px;
     padding-right: 15px;
     width: 185px;
-	border-right: solid 1px white
+	border-right: solid 1px #f5f8fa
 }
 .ais_myfleet_dialog .column2 {
     float: left;
     padding-top: 12px;
     width: 340px;
-	border-right: solid 1px white
+	border-right: solid 1px #f5f8fa
 }
 .ais_myfleet_dialog .column3 {
     float: left;

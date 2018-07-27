@@ -332,7 +332,7 @@ let _vi_template = '<table class="ais_positions">' +
     '</table>';
 
 let _prepare_history = function(){   
-    //console.log(_tools.displaingTrack)     
+//console.log(_tools.displaingTrack)     
     if (this.model.data.vessels.length>0 && _tools.displaingTrack && 
         _tools.displaingTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){            
         this.frame.find('.ais_positions_date').each((i, el) => {
@@ -410,37 +410,39 @@ DbSearchView.prototype.repaint = function () {
                     let i = e.currentTarget.id.replace(/show_pos/, ""),
                         vessel = this.model.data.vessels[ind].positions[parseInt(i)];
                     this.positionMap(vessel, this.calendar.getDateInterval());
-                    let dailyTrack = this.frame.find('.track input').eq(ind);
-                    if (dailyTrack[0].checked)
-                        this.showTrack(vessel);
-                    else
-                        dailyTrack.click();
+                    this.frame.find('.track input')[ind].checked = true;                    
+                    let dates = getDates.call(this);
+                    this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
                     e.stopPropagation();
                 }).bind(this));
             }
         }).bind(this))
     })
 
+    let getDates = function(){
+        let dates = [];
+        this.frame.find('.ais_positions_date .track').each((i, el)=>{            
+            if ($('input', el)[0].checked)
+                dates.push(
+                    new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
+                );
+        })
+        return dates;
+    };
+
     this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(((e)=>{
         let calendarInterval = this.calendar.getDateInterval(),
         interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
         nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
-
-        _tools.displaingTrack.mmsi = this.model.data.vessels[0].positions[0].mmsi;
-        _tools.displaingTrack.dates = {mmsi:this.model.data.vessels[0].positions[0].mmsi, list:[]};
-        this.frame.find('.ais_positions_date .track').each((i, el)=>{            
-            if ($('input', el)[0].checked)
-                _tools.displaingTrack.dates.list.push(
-                    new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
-                );
-        })
-        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi});
+        let dates = getDates.call(this);
+        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
     }).bind(this));
 
     if (this.model.data.vessels.length == 1)
         open_pos.eq(0).click();
+
     if (this.vessel.lastPosition)
-        this.positionMap(this.vessel);
+        this.positionMap(this.vessel, this.calendar.getDateInterval());
 };
 
 
@@ -451,27 +453,18 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
     set(v) {
         _setSearchInputValue.call(this, v.vessel_name);
 
-        let db = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
+        let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
         this.model.vessel = null;
         let checkInterval = this.calendar.getDateInterval();
-// console.log(db.dateBegin + '<' + checkInterval.get('dateBegin'))
-// console.log(checkInterval.get('dateEnd') + '<' + db.dateEnd)
-        // if (db.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < db.dateBegin){
-        //     this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-        //     this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
-        //     this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: db.dateEnd };
-        // }
-        if (db.dateBegin < checkInterval.get('dateBegin')){
-            this.calendar.getDateInterval().set('dateBegin', db.dateBegin); 
-            this.model.historyInterval = { dateBegin: db.dateBegin, dateEnd: checkInterval.get('dateEnd') };
+// console.log(positionDate.dateBegin + '<' + checkInterval.get('dateBegin'))
+// console.log(checkInterval.get('dateEnd') + '<' + positionDate.dateEnd)
+        if (positionDate.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < positionDate.dateEnd){
+            this.calendar.getDateInterval().set('dateBegin', positionDate.dateBegin);
+            this.calendar.getDateInterval().set('dateEnd', positionDate.dateEnd);      
+            this.model.historyInterval = { dateBegin: positionDate.dateBegin, dateEnd: positionDate.dateEnd };
         }
-        else if (checkInterval.get('dateEnd') < db.dateEnd){
-            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);      
-            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: db.dateEnd };
-        }
-        else{
-           this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
-        }
+        else
+            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
         this.model.vessel = v;
         this.model.isDirty = true;
     }
@@ -490,22 +483,22 @@ DbSearchView.prototype.hide = function () {
     BaseView.prototype.hide.apply(this, arguments);
 };
 
-DbSearchView.prototype.showTrack = function (vessel) {
+DbSearchView.prototype.showTrack = function (vessel, dates) {
     let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
     $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
         .removeClass('ais active');
     if (dlg[0]) 
         dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track'))
         .addClass('ais active')
-    _tools.showTrack([vessel.mmsi]);
+    _tools.showTrack([vessel.mmsi], dates);
 };
 
 DbSearchView.prototype.positionMap = function (vessel, interval) {
-    //console.log(interval.get("dateBegin")+' '+interval.get("dateEnd"))
     if (interval) {    
         interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
         nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
     }
+
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
         ymin = vessel.ymin ? vessel.ymin : vessel.latitude,

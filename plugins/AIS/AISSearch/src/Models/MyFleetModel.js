@@ -83,7 +83,7 @@ module.exports = function (aisLayerSearcher) {
             var _this = this;
 
             if (_myFleetLayers.length == 0)
-                this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }] };
+                this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }], vessels: [] };
 
             if (_myFleetLayers.length == 0 || !this.isDirty)
                 return Promise.resolve();

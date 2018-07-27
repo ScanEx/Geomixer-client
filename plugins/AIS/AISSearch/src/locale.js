@@ -47,7 +47,10 @@
         'AISSearch2.DbSearchTab':'БАЗА ДАННЫХ',
         'AISSearch2.ScreenSearchTab':'СУДА НА ЭКРАНЕ',
         'AISSearch2.MyFleetTab':'МОЙ ФЛОТ',
-        'AISSearch2.dailyTrack':'трек за сутки'
+        'AISSearch2.dailyTrack':'трек за сутки',
+        'AISSearch2.myFleetOnly':'Только мой флот',
+        'AISSearch2.show_pos':'показать положение и историю',
+        'AISSearch2.show_info':'информация о судне'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -93,9 +96,12 @@
 		'AISSearch2.lon': 'Longitude',
 		'AISSearch2.lat': 'Latitude',
 		'AISSearch2.historyTab': 'History',
-		'AISSearch2.voyageInfo': 'Voyage info',
+		'AISSearch2.voyageInfo': 'Voyage Info',
         'AISSearch2.DbSearchTab':'DATA BASE',
         'AISSearch2.ScreenSearchTab':'VESSELS ON SCREEN',
         'AISSearch2.MyFleetTab':'MY FLEET',
-        'AISSearch2.dailyTrack':'daily track'
+        'AISSearch2.dailyTrack':'Daily Track',
+        'AISSearch2.myFleetOnly':'My Fleet Only',
+        'AISSearch2.show_pos':'position and history',
+        'AISSearch2.show_info':'vessel data'
     });

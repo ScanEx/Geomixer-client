@@ -20,7 +20,7 @@
  }
 
 .ais_view .ais_vessels{
-  color:#182026;
+  color:#394b59;
 }
   .ais_view .ais_vessels .msg{
     text-align: center;
@@ -398,4 +398,41 @@
   -ms-transform: rotate(345deg);
   -o-transform: rotate(345deg);
   transform: rotate(345deg);
+}
+
+.ais_view input:checked + .switch-slider {
+  background-color: #48aff1;
+}
+.ais_view.myfleet_view .ais_vessel table td:first-of-type{
+  width:8%;
+}
+.ais_view.myfleet_view table.results td:nth-of-type(1){
+  width:1%;
+}
+.ais_view.myfleet_view table.results td:nth-of-type(2){
+  width:90%;
+}
+.ais_view.myfleet_view .ais_vessel .course{
+  display:block;
+}
+.ais_view.myfleet_view .ais_vessel .date{
+  display:block;
+}
+.ais_view.myfleet_view .ais_vessel:hover .course{
+  display:none;
+}
+.ais_view.myfleet_view .ais_vessel:hover .date{
+  display:none;
+}
+.ais_view.myfleet_view .ais_vessel .info{
+  display:none;
+}
+.ais_view.myfleet_view .ais_vessel:hover .info{
+  display:block;
+}
+.ais_view.myfleet_view .ais_vessel .exclude{
+  display:none;
+}
+.ais_view.myfleet_view .ais_vessel:hover .exclude{
+  display:block;
 }

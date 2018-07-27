@@ -1,64 +1,111 @@
 module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID,
           _aisLayer = _layersByID[options.aisLayerID],
-          _tracksLayer = _layersByID[options.tracksLayerID];
-    let _displaingTrack = {mmsi:null};
+          _tracksLayer = _layersByID[options.tracksLayerID],
+          _screenSearchLayer = _layersByID[options.screenSearchLayer];
+    let _displaingTrack = {mmsi:null},
+    _displayingMyFleet = null,
+    _filtered = [],
+    _filterFunc = function (args) {
+        let dates = _displaingTrack.dates ? _displaingTrack.dates.list : null,
+        mmsiArr = [];
+        mmsiArr.push(_displaingTrack.mmsi);
 
-    return {
-        displaingTrack: _displaingTrack,
-        showTrack: function (mmsiArr, bbox) {            
-            if (mmsiArr[0]!=_displaingTrack.mmsi)
-                _displaingTrack.dates = null;    
-            let dates = _displaingTrack.dates ? _displaingTrack.dates.list : null,
-            lmap = nsGmx.leafletMap,
-            filterFunc = function (args) {
-                let mmsi = args.properties[1],
-                    dt = new Date(new Date(args.properties[args.properties.length>20?23:2]*1000).setUTCHours(0,0,0,0)),
-                    i, j, len;
-                for (i = 0, len = mmsiArr.length; i < len; i++) {
-                    if (mmsi === mmsiArr[i]) { 
-                        if (dates)
-                            for (j=0; j<dates.length; ++j){
-                                if (dates[j].getTime()==dt.getTime()){
-                                    return true;
-                                }
-                            }
-                        else{
-                            return true; 
+        let mmsi = args.properties[1],
+            dt = new Date(new Date(args.properties[args.properties.length>20 ? 23 : 2]*1000).setUTCHours(0,0,0,0)),
+            i, j, len;
+        for (i = 0, len = mmsiArr.length; i < len; i++) {
+            if (mmsi === mmsiArr[i]) { 
+                if (dates)
+                    for (j=0; j<dates.length; ++j){
+                        if (dates[j].getTime()==dt.getTime()){
+                            return true;
                         }
                     }
+                else{
+                    return true; 
                 }
-                return false;
-            };
-            if (bbox) { lmap.fitBounds(bbox, { maxZoom: 11 }); }
-    // console.log(_aisLayer._gmx.layerID)
-    // console.log(_tracksLayer._gmx.layerID)
+            }
+        }
+        return false;
+    }, 
+    _setTrackFilter = function(){
+console.log(_displaingTrack)
+        let lmap = nsGmx.leafletMap;
+        if (_aisLayer) {
+            if (_displaingTrack.mmsi) {
+                _aisLayer.setFilter(_filterFunc);
+                if (!_aisLayer._map) {
+                    lmap.addLayer(_aisLayer);
+                }
+            } else {
+                _aisLayer.removeFilter();
+                lmap.removeLayer(_aisLayer);
+            }
+        }
+        if (_tracksLayer) {
+            if (_displaingTrack.mmsi) {
+                _tracksLayer.setFilter(_filterFunc);
+                if (!_tracksLayer._map) {
+                    lmap.addLayer(_tracksLayer);
+                }
+            } else {
+                _tracksLayer.removeFilter();
+                lmap.removeLayer(_tracksLayer);
+            }
+        }
+    }, 
+    _searchArray = function(obj){
+
+    },
+    _setMyFleetFilter = function(){
+        _setTrackFilter();
+console.log(_displayingMyFleet)
+console.log(_filtered)
+        let lmap = nsGmx.leafletMap;
+        if (_screenSearchLayer) {
+            if (_displayingMyFleet || _filtered.length) {
+                _screenSearchLayer.setFilter((args) => {
+                    let mmsi = args.properties[1];
+                    if (_filtered.indexOf(mmsi) < 0){
+                        if (_displayingMyFleet && _displayingMyFleet.indexOf(mmsi) < 0)
+                            return false;
+                        else
+                            return true;
+                    }
+                    else
+                        return false;
+                });
+            } else {
+                _screenSearchLayer.removeFilter();
+            }
+        }
+
+    };
+
+    return {
+        get displaingTrack(){ return _displaingTrack; },
+        set displaingTrack(value){ _displaingTrack = value; },
+        //get displayingMyFleet(){ return _displayingMyFleet; },
+        set displayingMyFleet(value){ _displayingMyFleet = value; },
+        get filtered(){ return _filtered; },
+        set filtered(value){ _filtered = value; },
+        showTrack: function (mmsiArr, dates) { //bbox) {
+            _displaingTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
+            if (dates)
+                _displaingTrack.dates = { mmsi:mmsiArr[0], list:dates };
+            //if (bbox) { lmap.fitBounds(bbox, { maxZoom: 11 }); }
             if (_aisLayer || _tracksLayer)
                 _displaingTrack.mmsi = mmsiArr[0];
             else
                 _displaingTrack.mmsi = null;
-            if (_aisLayer) {
-                if (mmsiArr.length) {
-                    _aisLayer.setFilter(filterFunc);
-                    if (!_aisLayer._map) {
-                        lmap.addLayer(_aisLayer);
-                    }
-                } else {
-                    _aisLayer.removeFilter();
-                    lmap.removeLayer(_aisLayer);
-                }
-            }
-            if (_tracksLayer) {
-                if (mmsiArr.length) {
-                    _tracksLayer.setFilter(filterFunc);
-                    if (!_tracksLayer._map) {
-                        lmap.addLayer(_tracksLayer);
-                    }
-                } else {
-                    _tracksLayer.removeFilter();
-                    lmap.removeLayer(_tracksLayer);
-                }
-            }
+            _setTrackFilter();
+        },
+        hideOnMap: function () { 
+            _setMyFleetFilter();
+        },
+        hideAllOnMap: function () { 
+            _setMyFleetFilter();
         }
     };
 }
