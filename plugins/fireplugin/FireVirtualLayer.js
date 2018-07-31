@@ -655,7 +655,8 @@ FireVirtualFactory.prototype.initFromDescription = function(layerDescription) {
     return layer;
 }
 
-L.gmx.addLayerClass('Fire', FireVirtualLayer);
+L.gmx.addLayerClass('Fire', FireVirtualFactory);
+// L.gmx.addLayerClass('Fire', FireVirtualLayer);
 
 if (window.gmxCore) {
     gmxCore.addModule('FireVirtualLayer', {layerClass: FireVirtualFactory}, {
