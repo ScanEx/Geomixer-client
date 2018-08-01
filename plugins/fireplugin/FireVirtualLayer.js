@@ -3,9 +3,8 @@
 
 "use strict";
 
-var initTranslations = function()
-{
-    _translationsHash.addtext("rus", { FireVirtualLayer: {
+var transHash = {
+	rus: {
         "LayerClusterBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" +
             "<b>Кол-во термоточек:</b> [count]<br/>" +
@@ -22,9 +21,8 @@ var initTranslations = function()
             "<b>Время наблюдения:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Приблизьте карту, чтобы увидеть контур"
-    }});
-
-    _translationsHash.addtext("eng", { FireVirtualLayer: {
+	},
+	eng: {
         "LayerClusterBalloon" :
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" +
             "<b>Number of hotspots:</b> [count]<br/>" +
@@ -41,7 +39,12 @@ var initTranslations = function()
             "<b>Observation period:</b> [dateRange]<br/>" +
             "<div>[SUMMARY]</div>",
         "zoomInMessage": "Zoom-in to see the outline"
-    }});
+	}
+}
+var initTranslations = function()
+{
+    _translationsHash.addtext("rus", { FireVirtualLayer: transHash.rus });
+    _translationsHash.addtext("eng", { FireVirtualLayer: transHash.eng });
 }
 
 // Lookup table for pixel dimensions based on scan index of the pixel
@@ -186,14 +189,14 @@ var _hq = {
             var pt = points[i];
             var dims = ModisPixelDimensions[pt[2]];
 
-            var merc = L.Projection.Mercator.project({lat: pt[1], lng: pt[0]});
+            var merc = L.CRS.EPSG3857.project({lat: pt[1], lng: pt[0]});
             var X1 = merc.x;
             var Y1 = merc.y;
 
             var X2 = X1 + 1000;
             var Y2 = Y1;
 
-            var newLatLng = L.Projection.Mercator.unproject({x: X2, y: Y2});
+            var newLatLng = L.Projection.SphericalMercator.unproject({x: X2, y: Y2});
             var newLat = pt[1];
             var newLon = newLatLng.lng;
 
@@ -240,14 +243,14 @@ var _hq = {
 }
 
 var mercBbox = function(latlngBbox) {
-    var mercMin = L.Projection.Mercator.project({lat: latlngBbox.min.y, lng: latlngBbox.min.x});
-    var mercMax = L.Projection.Mercator.project({lat: latlngBbox.max.y, lng: latlngBbox.max.x});
+    var mercMin = L.CRS.EPSG3857.project({lat: latlngBbox.min.y, lng: latlngBbox.min.x});
+    var mercMax = L.CRS.EPSG3857.project({lat: latlngBbox.max.y, lng: latlngBbox.max.x});
     return L.gmxUtil.bounds([[mercMin.x, mercMin.y], [mercMax.x, mercMax.y]]);
 }
 
 var fromMercBbox = function(bbox) {
-    var min = L.Projection.Mercator.unproject(bbox.min);
-    var max = L.Projection.Mercator.unproject(bbox.max);
+    var min = L.Projection.SphericalMercator.unproject(bbox.min);
+    var max = L.Projection.SphericalMercator.unproject(bbox.max);
     return L.gmxUtil.bounds([[min.lng, min.lat], [max.lng, max.lat]]);
 }
 
@@ -295,13 +298,14 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
     initialize: function(options) {
         L.setOptions(this, options);
 
+		var titelHash = transHash[nsGmx.Translations.getLanguage() || 'rus'];
         this._clustersLayer = L.gmx.createLayer({
             properties: {
                 title: 'FireClusters',
                 attributes: ['scale', 'count', 'label', 'startDate', 'endDate', 'dateRange', 'isIndustrial'],
                 styles: [{
                     Filter: '"isIndustrial"=0',
-                    Balloon: _gtxt('FireVirtualLayer.LayerClusterBalloon'),
+                    Balloon: _gtxt('FireVirtualLayer.LayerClusterBalloon') || titelHash.LayerClusterBalloon,
                     MinZoom: 1,
                     MaxZoom: this.options.minGeomZoom - 1,
                     RenderStyle: {
@@ -324,7 +328,7 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
                     }
                 }, {
                     Filter: '"isIndustrial"=1',
-                    Balloon: _gtxt('FireVirtualLayer.LayerClusterBalloonIndustrial'),
+                    Balloon: _gtxt('FireVirtualLayer.LayerClusterBalloonIndustrial') || titelHash.LayerClusterBalloonIndustrial,
                     MinZoom:1,
                     MaxZoom: this.options.minGeomZoom - 1,
                     RenderStyle: {
@@ -341,7 +345,7 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
                     }
                 }]
             }
-        });
+        }, {srs: 3857});
 
         this._clustersGeomLayer = L.gmx.createLayer({
             properties: {
@@ -349,7 +353,7 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
                 title: 'FirePolygons',
                 attributes: ['scale', 'count', 'label', 'startDate', 'endDate', 'dateRange', 'isIndustrial'],
                 styles: [{
-                    Balloon: _gtxt('FireVirtualLayer.LayerGeometryBalloon'),
+                    Balloon: _gtxt('FireVirtualLayer.LayerGeometryBalloon') || titelHash.LayerGeometryBalloon,
                     MinZoom: this.options.minGeomZoom,
                     MaxZoom: 21,
                     RenderStyle: {
@@ -362,13 +366,14 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
                     }
                 }]
             }
-        });
+        }, {srs: 3857});
 
         var _this = this;
         this._clustersLayer.on('popupopen', function(event) {
             var popup = event.popup,
                 html = popup.getContent(),
-                zoomLink = $('<div style="margin-top: 5px;"><a href="javascript:void(0)"><i>' + _gtxt('FireVirtualLayer.zoomInMessage') + '</i></a></div>').click(function() {
+				title = _gtxt('FireVirtualLayer.zoomInMessage') || titelHash.zoomInMessage,
+                zoomLink = $('<div style="margin-top: 5px;"><a href="javascript:void(0)"><i>' + title + '</i></a></div>').click(function() {
                     _this._map.closePopup(event.popup);
                     _this._map.setView(event.gmx.latlng, _this.options.minGeomZoom + 3);
                 });
@@ -538,7 +543,7 @@ var FireVirtualLayer = (L.Layer || L.Class).extend({
                     continue;
 
                 var coords = objects[k].item.geometry.coordinates,
-                    latlng = L.Projection.Mercator.unproject({y: coords[1], x: coords[0]});
+                    latlng = L.Projection.SphericalMercator.unproject({y: coords[1], x: coords[0]});
 
                 if (objects[k].onExtent)
                     cluster.spots[hotspotId] = [latlng.lng, latlng.lat, 250]; //TODO: выбрать правильный номер sample
