@@ -517,6 +517,7 @@
 }
 .ais_view.myfleet_view .ais_vessel .exclude{
   display:none;
+  margin-right: 5px;
 }
 .ais_view.myfleet_view .ais_vessel:hover .exclude{
   display:block;

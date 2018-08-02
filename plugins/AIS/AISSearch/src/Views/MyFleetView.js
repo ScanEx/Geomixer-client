@@ -52,11 +52,11 @@ const MyFleetView = function (model, tools){
     '<td><input type="checkbox" checked></td>' +
     '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +
     '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' +
-    '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + 
+    '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
+    '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + 
     '</td>' +  
     '<td>' +
-    '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
-    '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' +
+    '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' +
     '<span class="date">{{dt_pos_utc}}</span></td>'+
     '</tr></table>' +
     '</div>' +

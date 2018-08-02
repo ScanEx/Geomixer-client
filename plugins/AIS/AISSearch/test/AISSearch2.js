@@ -931,7 +931,7 @@
 	        _tools.hideAllOnMap();
 	    }.bind(this));
 	
-	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + '</td>' + '<td>' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '</td>' + '<td>' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	};
 	
 	MyFleetView.prototype = Object.create(BaseView.prototype);
@@ -1719,9 +1719,10 @@
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
 	        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
 	        ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
-	        ymax = vessel.ymax ? vessel.ymax : vessel.latitude;
+	        ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
+	        zoom = nsGmx.leafletMap.getZoom();
 	    nsGmx.leafletMap.fitBounds([[ymin, xmin], [ymax, xmax]], {
-	        maxZoom: nsGmx.leafletMap.getZoom(), //9,//config.user.searchZoom,
+	        maxZoom: zoom < 9 ? 12 : zoom,
 	        animate: false
 	    });
 	    nsGmx.leafletMap.removeLayer(_highlight);

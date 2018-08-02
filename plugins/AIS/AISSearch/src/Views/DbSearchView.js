@@ -502,12 +502,13 @@ DbSearchView.prototype.positionMap = function (vessel, interval) {
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
         ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
-        ymax = vessel.ymax ? vessel.ymax : vessel.latitude;
+        ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
+        zoom = nsGmx.leafletMap.getZoom();
     nsGmx.leafletMap.fitBounds([
         [ymin, xmin],
         [ymax, xmax]
     ], {
-            maxZoom: nsGmx.leafletMap.getZoom(),//9,//config.user.searchZoom,
+            maxZoom: (zoom < 9 ? 12 : zoom),
             animate: false
         });
     nsGmx.leafletMap.removeLayer(_highlight);
