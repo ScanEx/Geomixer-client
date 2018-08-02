@@ -225,6 +225,7 @@
 	    'AISSearch2.vesselName': 'название',
 	    'AISSearch2.vesselAdd': 'добавить',
 	    'AISSearch2.vesselRemove': 'удалить',
+	    'AISSearch2.vesselExclude': 'исключить',
 	    'AISSearch2.myFleetMembers': 'Состав',
 	    'AISSearch2.myFleetMember': 'мой флот',
 	    'AISSearch2.info': 'информация',
@@ -278,6 +279,7 @@
 	    'AISSearch2.vesselName': 'name',
 	    'AISSearch2.vesselAdd': 'add',
 	    'AISSearch2.vesselRemove': 'remove',
+	    'AISSearch2.vesselExclude': 'exclude',
 	    'AISSearch2.myFleetMembers': 'Members',
 	    'AISSearch2.myFleetMember': 'my fleet',
 	    'AISSearch2.info': 'info',
@@ -926,10 +928,10 @@
 	            });
 	            if (myfleet.length > 0) _tools.displayingMyFleet = myfleet;
 	        }
-	        _tools.hideAllOnMap.call(_this);
+	        _tools.hideAllOnMap();
 	    }.bind(this));
 	
-	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselRemove"}}"></div>' + '</td>' + '<td>' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + '</td>' + '<td>' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	};
 	
 	MyFleetView.prototype = Object.create(BaseView.prototype);
@@ -941,7 +943,8 @@
 	
 	var _clean = function _clean() {
 	    if (this.frame.find('.ais_vessel')[0]) this.frame.find('.ais_vessel input[type="checkbox"]').off('click');
-	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + this.model.data.vessels.length);
+	    var count = this.model.data && this.model.data.vessels ? this.model.data.vessels.length : 0;
+	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + count);
 	},
 	    _tools = void 0,
 	    _hideOnMap = function _hideOnMap() {
@@ -964,21 +967,78 @@
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
 	
-	    this.frame.find('.ais_vessel input[type="checkbox"]').on('click', function (e) {
-	        e.stopPropagation();
-	        _hideOnMap.call(_this2);
+	    _tools.filtered = _filteredState.map(function (mmsi) {
+	        return mmsi;
+	    });
+	    //_displayngState && (_tools.displayingMyFleet = _displayngState.map(v=>v));
+	    if (_displayngState) _tools.displayingMyFleet = this.model.data.vessels.map(function (v) {
+	        return v.mmsi;
+	    });
+	
+	    if (_tools.displayingMyFleet) this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = true;
+	    this.frame.find('.results input[type="checkbox"]')[0].checked = !_tools.filtered.length;
+	    _tools.hideAllOnMap();
+	
+	    this.frame.find('.ais_vessel input[type="checkbox"]').each(function (i, elm) {
+	        var mmsi = _this2.model.data.vessels[i].mmsi;
+	        elm.checked = _tools.filtered.indexOf(mmsi) < 0;
+	        $(elm).on('click', function (e) {
+	            e.stopPropagation();
+	            _hideOnMap.call(_this2);
+	        });
+	    }.bind(this));
+	    this.frame.find('.ais_vessel .exclude').each(function (i, elm) {
+	        var view = _this2;
+	        $(elm).on('click', function (e) {
+	            e.stopPropagation();
+	            $(elm).off('click');
+	            var vessel = view.model.data.vessels[i];
+	            view.prepare(vessel);
+	            var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
+	            if (dlg[0]) {
+	                dlg.find('.button.addremove').click();
+	            } else {
+	                view.model.changeFilter(vessel).then(function () {
+	                    if (view.isActive) view.show();
+	                });
+	            }
+	        });
 	    }.bind(this));
 	};
-	/*
-	MyFleetView.prototype.show = function (){ 
-	//console.log('show MyFleetView')
-	    BaseView.prototype.show.apply(this, arguments);
+	
+	var _filteredState = [],
+	    _displayngState = void 0;
+	
+	MyFleetView.prototype.prepare = function (vessel) {
+	    if (this.isActive) {
+	        _filteredState = _tools.filtered.filter(function (mmsi) {
+	            return mmsi != vessel.mmsi;
+	        });
+	        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.filter(function (mmsi) {
+	            return mmsi != vessel.mmsi;
+	        }) : null;
+	        if (_displayngState && _displayngState.length == 0) _displayngState = null;
+	    }
 	};
-	MyFleetView.prototype.hide = function (){   
-	//console.log('hide MyFleetView')
+	
+	MyFleetView.prototype.hide = function () {
+	    if (this.isActive) {
+	        _filteredState = _tools.filtered.map(function (v) {
+	            return v;
+	        });
+	        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.map(function (v) {
+	            return v;
+	        }) : null;
+	
+	        _tools.filtered = [];
+	        _tools.displayingMyFleet = null;
+	        _tools.hideAllOnMap();
+	    }
 	    BaseView.prototype.hide.apply(this, arguments);
 	};
-	*/
+	// MyFleetView.prototype.show = function () {
+	//     BaseView.prototype.show.apply(this, arguments); 
+	// }
 	module.exports = MyFleetView;
 
 /***/ }),
@@ -2132,6 +2192,7 @@
 			addremove.hide();
 			progress.append(gifLoader);
 	
+			myFleetMembersView.prepare(vessel);
 			myFleetMembersModel.changeFilter(vessel).then(function () {
 				add = myFleetMembersModel.findIndex(vessel) < 0;
 				var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
@@ -2741,7 +2802,7 @@
 	            j = void 0,
 	            len = void 0;
 	        for (i = 0, len = mmsiArr.length; i < len; i++) {
-	            if (mmsi === mmsiArr[i]) {
+	            if (mmsi === mmsiArr[i] && _filtered.indexOf(mmsi) < 0 && (!_displayingMyFleet || _displayingMyFleet.indexOf(mmsi) >= 0)) {
 	                if (dates) for (j = 0; j < dates.length; ++j) {
 	                    if (dates[j].getTime() == dt.getTime()) {
 	                        return true;
@@ -2754,7 +2815,7 @@
 	        return false;
 	    },
 	        _setTrackFilter = function _setTrackFilter() {
-	        console.log(_displaingTrack);
+	        //console.log(_displaingTrack)
 	        var lmap = nsGmx.leafletMap;
 	        if (_aisLayer) {
 	            if (_displaingTrack.mmsi) {
@@ -2779,11 +2840,10 @@
 	            }
 	        }
 	    },
-	        _searchArray = function _searchArray(obj) {},
 	        _setMyFleetFilter = function _setMyFleetFilter() {
 	        _setTrackFilter();
-	        console.log(_displayingMyFleet);
-	        console.log(_filtered);
+	        //console.log(_displayingMyFleet)
+	        //console.log(_filtered)
 	        var lmap = nsGmx.leafletMap;
 	        if (_screenSearchLayer) {
 	            if (_displayingMyFleet || _filtered.length) {
@@ -2806,7 +2866,9 @@
 	        set displaingTrack(value) {
 	            _displaingTrack = value;
 	        },
-	        //get displayingMyFleet(){ return _displayingMyFleet; },
+	        get displayingMyFleet() {
+	            return _displayingMyFleet;
+	        },
 	        set displayingMyFleet(value) {
 	            _displayingMyFleet = value;
 	        },

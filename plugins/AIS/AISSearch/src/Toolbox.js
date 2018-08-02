@@ -15,7 +15,8 @@ module.exports = function (options) {
             dt = new Date(new Date(args.properties[args.properties.length>20 ? 23 : 2]*1000).setUTCHours(0,0,0,0)),
             i, j, len;
         for (i = 0, len = mmsiArr.length; i < len; i++) {
-            if (mmsi === mmsiArr[i]) { 
+            if (mmsi === mmsiArr[i] && _filtered.indexOf(mmsi)<0 
+            && (!_displayingMyFleet || _displayingMyFleet.indexOf(mmsi)>=0)) { 
                 if (dates)
                     for (j=0; j<dates.length; ++j){
                         if (dates[j].getTime()==dt.getTime()){
@@ -30,7 +31,7 @@ module.exports = function (options) {
         return false;
     }, 
     _setTrackFilter = function(){
-console.log(_displaingTrack)
+//console.log(_displaingTrack)
         let lmap = nsGmx.leafletMap;
         if (_aisLayer) {
             if (_displaingTrack.mmsi) {
@@ -55,13 +56,10 @@ console.log(_displaingTrack)
             }
         }
     }, 
-    _searchArray = function(obj){
-
-    },
     _setMyFleetFilter = function(){
         _setTrackFilter();
-console.log(_displayingMyFleet)
-console.log(_filtered)
+//console.log(_displayingMyFleet)
+//console.log(_filtered)
         let lmap = nsGmx.leafletMap;
         if (_screenSearchLayer) {
             if (_displayingMyFleet || _filtered.length) {
@@ -86,7 +84,7 @@ console.log(_filtered)
     return {
         get displaingTrack(){ return _displaingTrack; },
         set displaingTrack(value){ _displaingTrack = value; },
-        //get displayingMyFleet(){ return _displayingMyFleet; },
+        get displayingMyFleet(){ return _displayingMyFleet; },
         set displayingMyFleet(value){ _displayingMyFleet = value; },
         get filtered(){ return _filtered; },
         set filtered(value){ _filtered = value; },

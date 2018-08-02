@@ -244,6 +244,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			addremove.hide()
 			progress.append(gifLoader)
 
+			myFleetMembersView.prepare(vessel);
 			myFleetMembersModel.changeFilter(vessel).then(function () {
 				add = myFleetMembersModel.findIndex(vessel) < 0;
 				var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');

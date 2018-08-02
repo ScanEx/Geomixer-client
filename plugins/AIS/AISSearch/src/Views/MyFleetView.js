@@ -43,7 +43,7 @@ const MyFleetView = function (model, tools){
             if (myfleet.length > 0)
                 _tools.displayingMyFleet = myfleet;
         }
-        _tools.hideAllOnMap.call(this);
+        _tools.hideAllOnMap();
     }).bind(this)); 
 
     this.tableTemplate = '{{#each vessels}}' +
@@ -52,7 +52,7 @@ const MyFleetView = function (model, tools){
     '<td><input type="checkbox" checked></td>' +
     '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +
     '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' +
-    '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselRemove"}}"></div>' + 
+    '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + 
     '</td>' +  
     '<td>' +
     '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
@@ -77,7 +77,8 @@ MyFleetView.prototype.inProgress = function (state) {
 let _clean = function(){  
     if (this.frame.find('.ais_vessel')[0])
         this.frame.find('.ais_vessel input[type="checkbox"]').off('click');
-    this.frame.find('.count').text(_gtxt('AISSearch2.found') + this.model.data.vessels.length);
+    let count = this.model.data && this.model.data.vessels ? this.model.data.vessels.length : 0;
+    this.frame.find('.count').text(_gtxt('AISSearch2.found') + count);
 },
 _tools,
 _hideOnMap = function(){
@@ -98,20 +99,70 @@ _hideOnMap = function(){
 MyFleetView.prototype.repaint = function () {
     _clean.call(this);  
     BaseView.prototype.repaint.apply(this, arguments);
+    
+    _tools.filtered = _filteredState.map(mmsi=>mmsi);
+    //_displayngState && (_tools.displayingMyFleet = _displayngState.map(v=>v));
+    if (_displayngState)
+        _tools.displayingMyFleet = this.model.data.vessels.map(v=>v.mmsi)
 
-    this.frame.find('.ais_vessel input[type="checkbox"]').on('click', ((e) => {
-        e.stopPropagation();
-        _hideOnMap.call(this);
+    if (_tools.displayingMyFleet)
+        this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = true;
+    this.frame.find('.results input[type="checkbox"]')[0].checked = !_tools.filtered.length; 
+    _tools.hideAllOnMap();
+
+    this.frame.find('.ais_vessel input[type="checkbox"]').each(((i, elm)=>{
+        let mmsi = this.model.data.vessels[i].mmsi;
+        elm.checked = _tools.filtered.indexOf(mmsi)<0;
+        $(elm).on('click', (e) => {
+            e.stopPropagation();
+            _hideOnMap.call(this);
+        });
     }).bind(this));
+    this.frame.find('.ais_vessel .exclude').each(((i, elm)=>{
+        let view = this;
+        $(elm).on('click', (e) => {
+            e.stopPropagation();
+            $(elm).off('click');
+            let vessel = view.model.data.vessels[i];
+            view.prepare(vessel);
+            let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
+            if (dlg[0]){ 
+                dlg.find('.button.addremove').click();
+            }
+            else{
+                view.model.changeFilter(vessel).then(function () {
+                    if (view.isActive)
+                        view.show();
+                })
+            }
+        })
+    }).bind(this));
+
 };
-/*
-MyFleetView.prototype.show = function (){ 
-//console.log('show MyFleetView')
-    BaseView.prototype.show.apply(this, arguments);
-};
-MyFleetView.prototype.hide = function (){   
-//console.log('hide MyFleetView')
+
+let _filteredState = [], _displayngState;
+
+MyFleetView.prototype.prepare = function (vessel) {
+    if (this.isActive){
+        _filteredState = _tools.filtered.filter(mmsi=>mmsi!=vessel.mmsi);
+        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.filter(mmsi=>mmsi!=vessel.mmsi) : null;   
+        if (_displayngState && _displayngState.length==0)
+            _displayngState = null;
+    }
+}
+
+MyFleetView.prototype.hide = function () {
+    if (this.isActive){
+        _filteredState = _tools.filtered.map(v=>v);
+        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.map(v=>v) : null;
+
+        _tools.filtered = [];   
+        _tools.displayingMyFleet = null;
+        _tools.hideAllOnMap();
+    }
     BaseView.prototype.hide.apply(this, arguments);
-};
-*/
+}
+// MyFleetView.prototype.show = function () {
+//     BaseView.prototype.show.apply(this, arguments); 
+// }
 module.exports = MyFleetView;
