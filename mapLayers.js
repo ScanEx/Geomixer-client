@@ -1479,7 +1479,7 @@
             return;
 
         var parentElem = typeof div == 'undefined' ? _layersTree.treeModel.getRawTree() : _layersTree.findTreeElem(div).elem,
-            visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility($(div).find('input[type="checkbox"]')[0]),
+            visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility($(div).find('input[type="checkbox"]')[0] || $(div).find('input[type="radio"]')[0]),
             _this = this;
 
         _mapHelper.findTreeElems(parentElem, function(elem, visibleFlag) {
@@ -1492,8 +1492,10 @@
 
                     var group = $(_this.buildedTree).find("div[GroupID='" + groupId + "']");
 
-                    if (group.length)
-                        $(group).find('input[type="checkbox"]')[0].checked = condition.visible[groupId];
+                    if (group.length) {
+                        var it = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
+                        if (it) it.checked = condition.visible[groupId];
+					}
                 }
 
                 if (typeof condition.expanded[groupId] != 'undefined' && props.expanded != condition.expanded[groupId]) {

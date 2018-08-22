@@ -63,6 +63,7 @@ var publicInterface = {
                 cont.getElementsByClassName('mergeLayers-merge')[0].onclick = function() {
                     nsGmx.widgets.notifications.startAction('mergeLayers');
                     var layers = [],
+						attributes = [],
 						columns = {};
                     searchRawTree.forEachLayer(function(layer, isVisible) {
                         if (!isVisible) {return;}
@@ -72,6 +73,7 @@ var publicInterface = {
 							lObj = nsGmx.gmxMap.layersByID[id];
 						layers.push({
 							id: id,
+							attributes: props.attributes,
 							types: lObj.getTileAttributeTypes()
 						});
 						props.attributes.forEach(function(name, i) {
@@ -99,12 +101,22 @@ var publicInterface = {
 					combinedLayerProps.save().then(function(response) {
 						if (response.Status === 'ok') {
 							var props = response.Result.properties;
-							L.gmx.getJSON('//maps.kosmosnimki.ru/VectorLayer/QuerySelect',{
-								params: {
-									WrapStyle: 'none',
-									sql: 'insert into [' + props.name + '] (' + arrKeys.join(',') + ', GeomixerGeoJson) (' + sel + ')'
-								},
-								options: {type: 'json'}
+							Promise.all(layers.map(function(item) {
+								var attr = item.attributes.join(',') + ', GeomixerGeoJson';
+								return L.gmx.getJSON('//maps.kosmosnimki.ru/VectorLayer/QuerySelect',{
+									params: {
+										WrapStyle: 'none',
+										sql: 'insert into [' + props.name + '] (' + attr + ') (select ' + attr + ') from [' + item.id + ']'
+									},
+									options: {type: 'json'}
+								});
+							// });
+							// L.gmx.getJSON('//maps.kosmosnimki.ru/VectorLayer/QuerySelect',{
+								// params: {
+									// WrapStyle: 'none',
+									// sql: 'insert into [' + props.name + '] (' + arrKeys.join(',') + ', GeomixerGeoJson) (' + sel + ')'
+								// },
+								// options: {type: 'json'}
 							}).then(function(json) {
 								if (json.res && json.res.Status === 'ok') {
 									window._layersTree.addLayerToTree(props.name);

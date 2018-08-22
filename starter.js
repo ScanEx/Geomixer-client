@@ -2306,7 +2306,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 // обработка специальных параметров плагинов
                 nsGmx.pluginsManager.forEachPlugin(function (plugin) {
-                    if (plugin.moduleName === "gmxTimeLine") {
+                    if (plugin.moduleName === "gmxTimeLine" && nsGmx.timeLineControl) {
 						var treeLayers = $(window._layersTree);
 						nsGmx.timeLineControl
 							.on('layerRemove', function(e) {
