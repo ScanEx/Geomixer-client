@@ -441,3 +441,17 @@
 .ais_view.myfleet_view .ais_vessel:hover .exclude:hover{
   background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%23ff0000;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%23ff0000;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
 }
+.ais_view.myfleet_view .ais_vessel .position{
+  width: 190px;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+.ais_view.myfleet_view .ais_vessel table td:nth-of-type(2){
+  padding-right: 0;
+}
+.ais_view.myfleet_view .ais_vessel table td:nth-of-type(3){
+  padding-right: 20px;
+}
+.ais_view.myfleet_view .ais_vessel table td:nth-of-type(4){
+  padding-right: 10px;
+}

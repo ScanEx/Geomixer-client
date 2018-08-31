@@ -2214,7 +2214,7 @@
 	
 		// TITLEBAR	
 		canvas.parent('div').css({ 'margin': '0', 'overflow': 'hidden' });
-		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движении</span></div></td>' + '<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
+		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движения</span></div></td>' + '<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
 		    onDone = function onDone(e) {
 			e.stopPropagation();$('.choose', titlebar).removeClass('done');$(e.currentTarget).parent().addClass('done');
 		};
