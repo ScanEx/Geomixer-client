@@ -26462,8 +26462,8 @@ var nsGmx = window.nsGmx || {};
                     bottomLeft,
                     topRight;
 
-                lats = [latLngs[0].lat, latLngs[1].lat, latLngs[2].lat, latLngs[3].lat];
-                lngs = [latLngs[0].lng, latLngs[1].lng, latLngs[2].lng, latLngs[3].lng];
+				lats = [latLngs[0][0].lat, latLngs[0][1].lat, latLngs[0][2].lat, latLngs[0][3].lat];
+                lngs = [latLngs[0][0].lng, latLngs[0][1].lng, latLngs[0][2].lng, latLngs[0][3].lng];
                 bottomLeft = L.latLng(this._getMin(lats), this._getMin(lngs));
                 topRight = L.latLng(this._getMax(lats), this._getMax(lngs));
 
@@ -26539,8 +26539,8 @@ var nsGmx = window.nsGmx || {};
                     bottomLeft, topLeft,
                     topRight, bottomRight;
 
-                lats = [latlngs[0].lat, latlngs[1].lat, latlngs[2].lat, latlngs[3].lat];
-                lngs = [latlngs[0].lng, latlngs[1].lng, latlngs[2].lng, latlngs[3].lng];
+				lats = [latlngs[0][0].lat, latlngs[0][1].lat, latlngs[0][2].lat, latlngs[0][3].lat];
+                lngs = [latlngs[0][0].lng, latlngs[0][1].lng, latlngs[0][2].lng, latlngs[0][3].lng];
                 bottomLeft = L.latLng(this._getMin(lats), this._getMin(lngs));
                 topLeft = L.latLng(this._getMax(lats), this._getMin(lngs));
                 topRight = L.latLng(this._getMax(lats), this._getMax(lngs));
@@ -32987,19 +32987,6 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -33029,6 +33016,19 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
