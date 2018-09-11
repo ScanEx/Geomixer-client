@@ -43,7 +43,18 @@ public class ScreenSearch : IHttpHandler {
 			}	
 			else
 				throw new Exception("NO TABLE");
-			
+				
+			switch(table)
+			{
+				case "ais_data":
+					table = "AISWFSPoints";
+					break;
+				case "ais_last_data":
+					table = "AISWFSLastPoint";
+					break;
+				default:
+					throw new Exception("NO TABLE EQUIVALENT");
+			}			
 		
 			double minX = double.Parse(context.Request["minx"].Replace(',', '.'), new CultureInfo("En-us")), maxX = double.Parse(context.Request["maxx"].Replace(',', '.'), new CultureInfo("En-us")),
 				   minY = double.Parse(context.Request["miny"].Replace(',', '.'), new CultureInfo("En-us")), maxY = double.Parse(context.Request["maxy"].Replace(',', '.'), new CultureInfo("En-us"));
