@@ -90,6 +90,9 @@
         .vessel-info-page .column1 .menu-item svg path{
             fill: #b7c4cf;
         }
+        .vessel-info-page .column1 .menu-item svg circle{
+            fill: #b7c4cf;
+        }
         .vessel-info-page .column1 .menu-item svg rect{
             fill: #b7c4cf;
         }
@@ -97,6 +100,9 @@
             fill: #b7c4cf;
         }
         .vessel-info-page .column1 .menu-item.active svg path{
+            fill: #f5f8fa;
+        }
+        .vessel-info-page .column1 .menu-item.active svg circle{
             fill: #f5f8fa;
         }
         .vessel-info-page .column1 .menu-item.active svg rect{
