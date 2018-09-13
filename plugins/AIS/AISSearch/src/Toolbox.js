@@ -12,7 +12,7 @@ module.exports = function (options) {
         mmsiArr.push(_displaingTrack.mmsi);
 
         let mmsi = args.properties[1],
-            dt = new Date(new Date(args.properties[args.properties.length>20 ? 23 : 2]*1000).setUTCHours(0,0,0,0)),
+            dt = new Date(new Date(args.properties[args.properties.length>20 ? 25 : 3]*1000).setUTCHours(0,0,0,0)),
             i, j, len;
         for (i = 0, len = mmsiArr.length; i < len; i++) {
             if (mmsi === mmsiArr[i] && _filtered.indexOf(mmsi)<0 

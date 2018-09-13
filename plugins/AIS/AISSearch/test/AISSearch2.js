@@ -2446,7 +2446,7 @@
 	            }
 	        },
 	            drawLloyds = function drawLloyds() {
-	            regcontent.innerHTML = drawTable([_lloyds.data[1], _lloyds.data[2], _lloyds.data[0]], "general", "block") + drawTable([_lloyds.data[9]], "build", "none") + drawTable([_lloyds.data[8]], "dimensions", "none") + drawTable([_lloyds.data[3], _lloyds.data[4], _lloyds.data[5], _lloyds.data[6], _lloyds.data[7]], "gears", "none");
+	            regcontent.innerHTML = drawTable([_lloyds.data[14], _lloyds.data[13], _lloyds.data[12], _lloyds.data[11], _lloyds.data[10]], "general", "block") + drawTable([_lloyds.data[9]], "build", "none") + drawTable([_lloyds.data[8], _lloyds.data[7], _lloyds.data[6], _lloyds.data[5]], "dimensions", "none") + drawTable([_lloyds.data[4], _lloyds.data[3], _lloyds.data[2], _lloyds.data[1], _lloyds.data[0]], "gears", "none");
 	            _regcap.querySelector('.update').innerText = "Обновление базы данных " + _lloyds.version.replace(/ \S+$/g, '');
 	        },
 	            regSwitches = _regcap.querySelectorAll(".switch");
@@ -2798,7 +2798,7 @@
 	        mmsiArr.push(_displaingTrack.mmsi);
 	
 	        var mmsi = args.properties[1],
-	            dt = new Date(new Date(args.properties[args.properties.length > 20 ? 23 : 2] * 1000).setUTCHours(0, 0, 0, 0)),
+	            dt = new Date(new Date(args.properties[args.properties.length > 20 ? 25 : 3] * 1000).setUTCHours(0, 0, 0, 0)),
 	            i = void 0,
 	            j = void 0,
 	            len = void 0;
