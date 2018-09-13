@@ -292,10 +292,11 @@ scrollTable.prototype._drawRows = function()
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 
 	if (this._currValsCount) {
+		var cntStr = this._currValsCount >= 100000 ? 'более 100000' : this._currValsCount;
 		_(this.tableCount, [_span([
             _t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))),
             _span([_t(' ')],[['css','margin','0px 3px']]),
-            _t("(" + this._currValsCount + ")")
+            _t("(" + cntStr + ")")
         ]), this.statusContainer]);
     }
 	else {
