@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using WebSecurity;
 
+using Npgsql;
+
 public class ScreenSearch : IHttpHandler {
  
     public bool IsReusable {
@@ -43,18 +45,21 @@ public class ScreenSearch : IHttpHandler {
 			}	
 			else
 				throw new Exception("NO TABLE");
-				
+			
 			switch(table)
 			{
 				case "ais_data":
-					table = "AISWFSPoints";
+					//table = "AISWFSPoints";
+					table = "ais.ais_data";
 					break;
 				case "ais_last_data":
-					table = "AISWFSLastPoint";
+					//table = "AISWFSLastPoint";
+					table = "ais.ais_last_data";
 					break;
 				default:
 					throw new Exception("NO TABLE EQUIVALENT");
-			}			
+			}
+				//throw new Exception(table);
 		
 			double minX = double.Parse(context.Request["minx"].Replace(',', '.'), new CultureInfo("En-us")), maxX = double.Parse(context.Request["maxx"].Replace(',', '.'), new CultureInfo("En-us")),
 				   minY = double.Parse(context.Request["miny"].Replace(',', '.'), new CultureInfo("En-us")), maxY = double.Parse(context.Request["maxy"].Replace(',', '.'), new CultureInfo("En-us"));
@@ -109,8 +114,8 @@ public class ScreenSearch : IHttpHandler {
 				values = new List<List<object>>(),
 				elapsed = new int[]{0}
 			};
-			
-			using (var conn = new SqlConnection("Data Source=KOSMO-MSSQL2.kosmosnimki.ru;Failover Partner=KOSMO-MSSQL1.kosmosnimki.ru;Initial Catalog=Maps;User Id=Maps1410;Password=8ewREh4z"))
+
+            using (var conn = new NpgsqlConnection("Host=10.1.2.25;Port=5432;User ID=postgres; Password=PgKosmo; Database=maps; CommandTimeout=6000; Timeout=1024; Pooling=true; MinPoolSize=1; MaxPoolSize=20"))
 			{
 				var com = conn.CreateCommand();
 				if (bounds.Length == 8)
@@ -120,34 +125,34 @@ public class ScreenSearch : IHttpHandler {
 		SELECT MAX(maxid) maxid, mmsi, imo, vessel_name FROM (
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
 			WHERE "+(filter!=""?filter+" and ":"")+@"
-			(@minX1<=longitude and longitude<=@maxX1 and  
-			@minY1<=latitude and latitude<=@maxY1) " +
-			(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
+			(:minX1<=longitude and longitude<=:maxX1 and  
+			:minY1<=latitude and latitude<=:maxY1) " +
+			(start!=null && end!=null ? @"and((ts_pos_utc >= :s) and (ts_pos_utc < :e))" : @"") + @"
 			GROUP BY mmsi, imo , vessel_name
 			UNION 
 			SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
 			WHERE "+(filter!=""?filter+" and ":"")+@"
-			(@minX2<=longitude and longitude<=@maxX2 and  
-			@minY2<=latitude and latitude<=@maxY2) " +
-			(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
+			(:minX2<=longitude and longitude<=:maxX2 and  
+			:minY2<=latitude and latitude<=:maxY2) " +
+			(start!=null && end!=null ? @"and((ts_pos_utc >= :s) and (ts_pos_utc < :e))" : @"") + @"
 			GROUP BY mmsi, imo , vessel_name
 		) tt 
 		GROUP BY mmsi, imo , vessel_name
 	) t, " + table + @" p WHERE t.maxid=p.id ORDER BY t.vessel_name 
 	";
 		
-					var p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
-						p = new SqlParameter("@minY1", bounds[1]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxX1", bounds[2]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxY1", bounds[3]); com.Parameters.Add(p);
-						p = new SqlParameter("@minX2", bounds[4]); com.Parameters.Add(p);
-						p = new SqlParameter("@minY2", bounds[5]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxX2", bounds[6]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxY2", bounds[7]); com.Parameters.Add(p);
+					com.Parameters.AddWithValue("minX1", bounds[0]);
+					com.Parameters.AddWithValue("minY1", bounds[1]);
+					com.Parameters.AddWithValue("maxX1", bounds[2]);
+					com.Parameters.AddWithValue("maxY1", bounds[3]);
+					com.Parameters.AddWithValue("minX2", bounds[4]);
+					com.Parameters.AddWithValue("minY2", bounds[5]);
+					com.Parameters.AddWithValue("maxX2", bounds[6]);
+					com.Parameters.AddWithValue("maxY2", bounds[7]);
 					if (start!=null && end!=null)
 					{
-						p = new SqlParameter("@s", start); com.Parameters.Add(p);			
-						p = new SqlParameter("@e", end); com.Parameters.Add(p);
+						com.Parameters.AddWithValue("s", start);			
+						com.Parameters.AddWithValue("e", end);
 					}
 				}
 				else
@@ -156,21 +161,21 @@ public class ScreenSearch : IHttpHandler {
 	SELECT t.maxid, t.mmsi, t.imo, t.vessel_name, p.longitude xmin, p.longitude xmax, p.latitude ymin, p.latitude ymax, p.vessel_type, p.sog, p.cog, p.heading, p.ts_pos_utc FROM(
 		SELECT MAX(id) maxid, mmsi, imo, vessel_name FROM " + table + @"
 		WHERE "+(filter!=""?filter+" and ":"")+@"
-		(@minX1<=longitude and longitude<=@maxX1 and  
-		@minY1<=latitude and latitude<=@maxY1) " +
-		(start!=null && end!=null ? @"and(([ts_pos_utc] >= @s) and ([ts_pos_utc] < @e))" : @"") + @"
+		(:minX1<=longitude and longitude<=:maxX1 and  
+		:minY1<=latitude and latitude<=:maxY1) " +
+		(start!=null && end!=null ? @"and((ts_pos_utc >= :s) and (ts_pos_utc < :e))" : @"") + @"
 		GROUP BY mmsi, imo , vessel_name
 	) t, " + table + @" p WHERE t.maxid=p.id ORDER BY t.vessel_name
 	";
 	//throw new Exception(com.CommandText);
-					var p = new SqlParameter("@minX1", bounds[0]); com.Parameters.Add(p);
-						p = new SqlParameter("@minY1", bounds[1]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxX1", bounds[2]); com.Parameters.Add(p);
-						p = new SqlParameter("@maxY1", bounds[3]); com.Parameters.Add(p);
+					com.Parameters.AddWithValue("minX1", bounds[0]);
+					com.Parameters.AddWithValue("minY1", bounds[1]);
+					com.Parameters.AddWithValue("maxX1", bounds[2]);
+					com.Parameters.AddWithValue("maxY1", bounds[3]);
 					if (start!=null && end!=null)
 					{
-						p = new SqlParameter("@s", start); com.Parameters.Add(p);			
-						p = new SqlParameter("@e", end); com.Parameters.Add(p);
+						com.Parameters.AddWithValue("s", start);			
+						com.Parameters.AddWithValue("e", end);
 					}
 				}
 
