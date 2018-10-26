@@ -28,9 +28,9 @@ module.exports = function ({modulePath, aisServices}){
                                    '<div class="cell">'+vessel.vessel_name+'<div class="timestamp">'+vessel.ts_pos_utc+'</div></div>  ' +                  
                                 '</div>' +
                                 '<div class="menu">' +
-                                '<div class="ais cell menu-item active"><img src="'+modulePath+'svg/info_gen.svg" class="icon">Основные сведения</div>' +
-                                '<div class="register cell menu-item"><img src="'+modulePath+'svg/info.svg" class="icon">Регистр</div>' +
-                                '<div class="galery cell menu-item"><img src="'+modulePath+'svg/photogallery.svg" class="icon">Фотогалерея <div class="counter">0</div></div>' +
+                                '<div class="ais cell menu-item active"><img src="'+modulePath+'svg/info_gen.svg" class="icon">'+_gtxt("AISSearch2.infoscreen_gen")+'</div>' +
+                                '<div class="register cell menu-item"><img src="'+modulePath+'svg/info.svg" class="icon">'+_gtxt("AISSearch2.infoscreen_reg")+'</div>' +
+                                '<div class="galery cell menu-item"><img src="'+modulePath+'svg/photogallery.svg" class="icon">'+_gtxt("AISSearch2.infoscreen_gal")+'<div class="counter">0</div></div>' +
                                '</div>' +
                             '</div>  ' +
                         '</td>' +
@@ -46,7 +46,7 @@ module.exports = function ({modulePath, aisServices}){
     '</td>' +
     '<td class="column2">' +
         '<div class="close-button-holder">' +
-            '<div class="close-button" title="закрыть"></div>' +
+            '<div class="close-button" title="'+_gtxt("AISSearch2.close_but")+'"></div>' +
         '</div>' +
         '<div class="register panel">' +
             '<div class="caption">' +
@@ -57,10 +57,10 @@ module.exports = function ({modulePath, aisServices}){
                 '<div>' +
                     '<table>' +
                         '<tr>' +
-                            '<td><div class="general menu-item active">Общие сведения</div></td>' +
-                            '<td><div class="build menu-item">Сведения о постройке</div></td>' +
-                            '<td><div class="dimensions menu-item">Размеры и скорость</div></td>' +
-                            '<td><div class="gears menu-item">Оборудование</div></td>' +
+                            '<td><div class="general menu-item active">'+_gtxt("AISSearch2.reg_general_tab")+'</div></td>' +
+                            '<td><div class="build menu-item">'+_gtxt("AISSearch2.reg_build_tab")+'</div></td>' +
+                            '<td><div class="dimensions menu-item">'+_gtxt("AISSearch2.reg_chars_tab")+'</div></td>' +
+                            '<td><div class="gears menu-item">'+_gtxt("AISSearch2.reg_devs_tab")+'</div></td>' +
                         '</tr>' +
                     '</table>' +
                 '</div>' +
@@ -239,27 +239,27 @@ module.exports = function ({modulePath, aisServices}){
     drawAis = function(ledokol){
     var aiscontent = document.querySelector(".vessel-info-page .ais .placeholder")
     aiscontent.innerHTML = "" +                
-    "<div class='caption'><div>ИНФОРМАЦИЯ О СУДНЕ</div></div>" +
+    "<div class='caption'><div>"+_gtxt("AISSearch2.vessel_info")+"</div></div>" +
     "<table>" +
-        "<tr><td>Название судна</td><td><b>"+ledokol.vessel_name+(ledokol.registry_name?" ("+ledokol.registry_name+")":"")+"</b></td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.vessel_name")+"</td><td><b>"+ledokol.vessel_name+(ledokol.registry_name?" ("+ledokol.registry_name+")":"")+"</b></td></tr>" +
         "<tr><td>IMO</td><td>"+ledokol.imo+"</td></tr>" +
         "<tr><td>MMSI</td><td>"+ledokol.mmsi+"</td></tr>" +
-        "<tr><td>Тип</td><td>"+ledokol.vessel_type+"</td></tr>" +
-        "<tr><td>Флаг</td><td>"+ledokol.flag_country+"</td></tr>" +
-        "<tr><td>Позывной</td><td>"+ledokol.callsign+"</td></tr>" +
-        "<tr><td>Длина</td><td>"+ledokol.length+"</td></tr>" +
-        "<tr><td>Ширина</td><td>"+ledokol.width+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.vessel_type")+"</td><td>"+ledokol.vessel_type+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.flag")+"</td><td>"+ledokol.flag_country+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.callsign")+"</td><td>"+ledokol.callsign+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.length")+"</td><td>"+ledokol.length+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.width")+"</td><td>"+ledokol.width+"</td></tr>" +
     "</table>" +
-    "<div class='caption'><div>СВЕДЕНИЯ О ДВИЖЕНИИ</div></div>" +
+    "<div class='caption'><div>"+_gtxt("AISSearch2.vessel_voyage")+"</div></div>" +
     "<table>" +
-        "<tr><td>Навигационный статус</td><td>"+ledokol.nav_status+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.nav_status")+"</td><td>"+ledokol.nav_status+"</td></tr>" +
         "<tr><td>COG</td><td>"+ledokol.cog+"</td></tr>" +
         "<tr><td>SOG</td><td>"+ledokol.sog+"</td></tr>" +
         "<tr><td>HDG</td><td>"+ledokol.heading+"</td></tr>" +
         "<tr><td>ROT</td><td>"+ledokol.rot+"</td></tr>" +
-        "<tr><td>Осадка</td><td>"+ledokol.draught+"</td></tr>" +
-        "<tr><td>Назначение</td><td>"+ledokol.destination+"</td></tr>" +
-        "<tr><td>Расчетное время прибытия</td><td>"+ledokol.ts_eta+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.draught")+"</td><td>"+ledokol.draught+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.destination")+"</td><td>"+ledokol.destination+"</td></tr>" +
+        "<tr><td>"+_gtxt("AISSearch2.eta")+"</td><td>"+ledokol.ts_eta+"</td></tr>" +
     "</table>";     
         resize();        
     },
@@ -273,20 +273,20 @@ module.exports = function ({modulePath, aisServices}){
                 s += "<div class='group'>"+groups[i].name+"</div><table>"
                 for(let j=0; j<groups[i].properties.length; ++j){
                     let pn = groups[i].properties[j].name,
-                    desc = groups[i].properties[j].description, 
+                    desc = nsGmx.Translations.getLanguage()=="rus"?groups[i].properties[j].description:null, 
                     pv = groups[i].properties[j].value
                     s+= "<tr><td>"+pn+
                     (desc ? "<div class='description'>" + desc + "</div>" : "")+ 
                     "</td><td>"+(pn=="Название судна"||pn=="Латинское название"?"<b>"+pv+"</b>":pv)+"</td></tr>"
                 }
-                s += "</table>"
+                s += "<tr><td>&nbsp;</td><td>&nbsp;</td></tr></table>"
             }
             s += "</div>"
             return s;
         }	
 
         _regcap.innerHTML = "<table class='register-title'>"+
-        "<tr><td><span class='switch active'>РМРС</span> <span class='switch'>Lloyd's register</span></td></tr>"+
+        "<tr><td><span class='switch active'>"+_gtxt("AISSearch2.rmrs")+"</span> <span class='switch'>Lloyd's register</span></td></tr>"+
         "<tr><td><span class='update'></span></td></tr>"+
         "</table>";
 
@@ -297,7 +297,7 @@ module.exports = function ({modulePath, aisServices}){
                     drawTable([ledokol.data[2]], "build", "none") +
                     drawTable([ledokol.data[3]], "dimensions", "none") +
                     drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
-                _regcap.querySelector('.update').innerText = "Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '');
+                _regcap.querySelector('.update').innerText = _gtxt("AISSearch2.last_update") + " " + ledokol.version.replace(/ \S+$/g, '');
             }
             else{
                 regcontent.innerHTML = "";
@@ -306,11 +306,11 @@ module.exports = function ({modulePath, aisServices}){
         },
         drawLloyds = function(){
             regcontent.innerHTML =
-                drawTable([_lloyds.data[14], _lloyds.data[13], _lloyds.data[12], _lloyds.data[11], _lloyds.data[10]], "general", "block") +
-                drawTable([_lloyds.data[9]], "build", "none") +
-                drawTable([_lloyds.data[8], _lloyds.data[7], _lloyds.data[6], _lloyds.data[5]], "dimensions", "none") +
-                drawTable([_lloyds.data[4], _lloyds.data[3], _lloyds.data[2], _lloyds.data[1], _lloyds.data[0]], "gears", "none");
-            _regcap.querySelector('.update').innerText = "Обновление базы данных " + _lloyds.version.replace(/ \S+$/g, '');   
+                drawTable([_lloyds.data[15], _lloyds.data[14], _lloyds.data[13], _lloyds.data[11], _lloyds.data[0]], "general", "block") +
+                drawTable([_lloyds.data[10], _lloyds.data[12]], "build", "none") +
+                drawTable([_lloyds.data[9], _lloyds.data[8], _lloyds.data[7], _lloyds.data[6]], "dimensions", "none") +
+                drawTable([_lloyds.data[4], _lloyds.data[3], _lloyds.data[2], _lloyds.data[1], _lloyds.data[5]], "gears", "none");
+            _regcap.querySelector('.update').innerText = _gtxt("AISSearch2.last_update") + " " + _lloyds.version.replace(/ \S+$/g, '');   
         },
         regSwitches = _regcap.querySelectorAll(".switch");
         regSwitches.forEach((item, i)=>item.addEventListener('click', e => {
@@ -366,13 +366,13 @@ module.exports = function ({modulePath, aisServices}){
                         lloydsServerUrl = scheme + "//kosmosnimki.ru/demo/lloyds/api/v1/",
                         rmr;
                     if(vessel.imo && vessel.imo!=0 && vessel.imo!=-1){
-                        fetch(registerServerUrl+"Ship/Search/"+vessel.imo+"/ru")
+                        fetch(registerServerUrl+"Ship/Search/"+vessel.imo+(nsGmx.Translations.getLanguage()=="rus"?"/ru":"/en"))
                         .then(function(response){
                             return response.json();
                         })  
                         .then(function(ship) {
                             if (ship.length>0)
-                                return fetch(registerServerUrl+"Ship/Get/"+ship[0].RS+"/ru")
+                                return fetch(registerServerUrl+"Ship/Get/"+ship[0].RS+(nsGmx.Translations.getLanguage()=="rus"?"/ru":"/en"))
                             else
                                 return Promise.resolve({json:()=>null});
                             //else
@@ -386,14 +386,14 @@ module.exports = function ({modulePath, aisServices}){
                             rmr = ship;
                             if (rmr)
                                 drawRegister(rmr);
-                            return fetch(lloydsServerUrl+"Ship/Search/"+vessel.imo+"/ru");
+                            return fetch(lloydsServerUrl+"Ship/Search/"+vessel.imo+(nsGmx.Translations.getLanguage()=="rus"?"/ru":"/en"));
                         })                        
                         .then(function(response){
                             return response.json();
                         })  
                         .then(function(ship) {
                             if (ship.length>0)
-                                return fetch(lloydsServerUrl+"Ship/Get/"+ship[0].RS+"/ru")
+                                return fetch(lloydsServerUrl+"Ship/Get/"+ship[0].RS+(nsGmx.Translations.getLanguage()=="rus"?"/ru":"/en"))
                             else
                                 return Promise.reject('register_no_data');
                         })
@@ -402,6 +402,24 @@ module.exports = function ({modulePath, aisServices}){
                         })  
                         .then(function(ship) {
                             _lloyds = ship;
+                            if (nsGmx.Translations.getLanguage()!="rus"){
+                                _lloyds.data[15].name = "Vessel Data";
+                                _lloyds.data[14].name = "Type and Status";
+                                _lloyds.data[13].name = "Companies";
+                                _lloyds.data[12].name = "Companies";
+                                _lloyds.data[11].name = "Safety";
+                                _lloyds.data[10].name = "History";
+                                _lloyds.data[9].name = "Characteristics";
+                                _lloyds.data[8].name = "Dimensions";
+                                _lloyds.data[7].name = "Hull";
+                                _lloyds.data[6].name = "Capacity";
+                                _lloyds.data[5].name = "Cargo";
+                                _lloyds.data[4].name = "Machinery";
+                                _lloyds.data[3].name = "Fuel";
+                                _lloyds.data[2].name = "Energy Supply";
+                                _lloyds.data[1].name = "Propellers and Thrusters";
+                                _lloyds.data[0].name = "Codes";
+                            }
                             if (!rmr)
                                 drawRegister(rmr);
                         })
