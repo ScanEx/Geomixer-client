@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+      <clippath id="clip-path"><rect x="4.5" y="4.02" width="15" height="16"/></clippath>
+  </defs>
+    <symbol id="clusters" viewbox="0 0 20 20">
+       <circle cx="6" cy="6" r="4" fill="#F44646" /> <circle cx="15" cy="10" r="3" fill="#36E486" /> <circle cx="8" cy="15" r="3" fill="#EBA640" /> 
+    </symbol>
+</svg>

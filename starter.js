@@ -377,21 +377,21 @@ nsGmx.widgets = nsGmx.widgets || {};
                         id: 'usage',
                         title: _gtxt('Руководство пользователя'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/', '_blank');
                         }
                     },
                     {
                         id: 'api',
                         title: _gtxt('GeoMixer API'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/dev-manual/getting-started', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/dev-manual/getting-started', '_blank');
                         }
                     },
                     {
                         id: 'pluginsUsage',
                         title: _gtxt('Использование плагинов'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/manual/plugins', '_blank');
                         }
                     }
                 ] : []) : [{
