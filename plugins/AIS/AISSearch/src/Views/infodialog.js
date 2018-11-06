@@ -18,12 +18,12 @@ let addUnit = function (v, u) {
 		vessel.ts_pos_loc = "<br><span class='local'>" + formatDateTime(d, true) + "</span>";
 		vessel.ts_eta = vessel.ts_eta ? formatDateTime(new Date(vessel.ts_eta * 1000)) : "";
 		vessel.cog = !isNaN(vessel.cog)?addUnit(round(vessel.cog, 5), "°"):vessel.cog;
-		vessel.sog = !isNaN(vessel.sog)?addUnit(round(vessel.sog, 5), " уз"):vessel.sog;
-		vessel.rot = !isNaN(vessel.rot)?addUnit(round(vessel.rot, 5), "°/мин"):vessel.rot;
+		vessel.sog = !isNaN(vessel.sog)?addUnit(round(vessel.sog, 5), nsGmx.Translations.getLanguage()=="rus"?" уз":" kn"):vessel.sog;
+		vessel.rot = !isNaN(vessel.rot)?addUnit(round(vessel.rot, 5), nsGmx.Translations.getLanguage()=="rus"?"°/мин":"°/min"):vessel.rot;
 		vessel.heading = !isNaN(vessel.heading)?addUnit(round(vessel.heading, 5), "°"):vessel.heading;
-		vessel.draught = !isNaN(vessel.draught)?addUnit(round(vessel.draught, 5), " м"):vessel.draught;
-		vessel.length = !isNaN(vessel.length)?addUnit(vessel.length, " м"):vessel.length;
-		vessel.width = !isNaN(vessel.width)?addUnit(vessel.width, " м"):vessel.width;
+		vessel.draught = !isNaN(vessel.draught)?addUnit(round(vessel.draught, 5), nsGmx.Translations.getLanguage()=="rus"?" м":" m"):vessel.draught;
+		vessel.length = !isNaN(vessel.length)?addUnit(vessel.length, nsGmx.Translations.getLanguage()=="rus"?" м":" m"):vessel.length;
+		vessel.width = !isNaN(vessel.width)?addUnit(vessel.width, nsGmx.Translations.getLanguage()=="rus"?" м":" m"):vessel.width;
 		vessel.source = vessel.source == 'T-AIS' ? _gtxt('AISSearch2.tais') : _gtxt('AISSearch2.sais');
 		return vessel;
 	},
@@ -88,11 +88,11 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			$('.content', canvas).append(Handlebars.compile(
 				'<div class="vessel_props1">' + vesselPropTempl +
 				'<table>' +
-				'<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' +
-				'<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' +
+				'<tr><td><div class="vessel_prop">{{i "AISSearch2.vessel_type"}}: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' +
+				'<tr><td><div class="vessel_prop">{{i "AISSearch2.flag"}}: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' +
 				'<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' +
 				'<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' +
-				'<tr><td><div class="vessel_prop">Позывной: </div></td><td><div class="vessel_prop value mmsi">{{callsign}}</div></td></tr>' +
+				'<tr><td><div class="vessel_prop">{{i "AISSearch2.callsign"}}: </div></td><td><div class="vessel_prop value mmsi">{{callsign}}</div></td></tr>' +
 				'<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' +
 				'</table>' +
 				'</div>'
@@ -232,7 +232,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	//if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels) {
 		let addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
 			//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-			.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота')
+			.attr('title', add ? _gtxt('AISSearch2.myfleet_add') : _gtxt('AISSearch2.myfleet_remove'))
 			.appendTo(menubuttons)
 		if (myFleetMembersModel.filterUpdating)
 			addremove.addClass('disabled');
@@ -273,9 +273,9 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		'<tr><td><div class="date">' +
 		(!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') +
 		'</div></td>' +
-		'<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' +
-		'<td><div class="choose"><span unselectable="on" class="chooser">Параметры движения</span></div></td>' +
-		'<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' +
+		'<td><div class="choose done"><span unselectable="on" class="chooser">'+_gtxt('AISSearch2.dialog_tab_general')+'</span></div></td>' +
+		'<td><div class="choose"><span unselectable="on" class="chooser">'+_gtxt('AISSearch2.dialog_tab_params')+'</span></div></td>' +
+		'<td id="closebut" title="'+_gtxt('AISSearch2.close_but')+'"><div class="ais_info_dialog_close-button" title="'+_gtxt("AISSearch2.close_but")+'"></div></td></tr>' +
 		'</table>'),
 		onDone = function (e) { e.stopPropagation(); $('.choose', titlebar).removeClass('done'); $(e.currentTarget).parent().addClass('done'); }
 

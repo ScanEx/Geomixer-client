@@ -30,16 +30,15 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '</div></div>' +
 
         '</td></tr>' +
-        '<tr><td class="time"><span class="label">Время:</span>' +
-        '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">Местное</span></td>' +
+        '<tr><td class="time"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' +
+        '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span></td>' +
         '<tr><td><div class="calendar"></div></td>' +
         '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' +
         '</table>' +
 
         '<table class="start_screen"><tr><td>' +
         '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' +
-        '<div>Здесь будут отображаться<br>результаты поиска по названию,<br>' +
-        'IMO илм MMSI судна' +
+        '<div>{{{i "AISSearh2.searchresults_view"}}}' +
         '</div></td></tr></table>' +
 
         '<div class="ais_history">' +
@@ -93,7 +92,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
 
     let td = calendar.find('tr:nth-of-type(1) td');
     td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="сегодня" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
+    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="'+_gtxt('AISSearch2.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
 
     calendar.find('.default_date').on('click', () => {
         let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
@@ -310,21 +309,21 @@ DbSearchView.prototype.inProgress = function (state) {
 let _vi_template = '<table class="ais_positions">' +
     '{{#each positions}}' +
     '<tr>' +
-    '<td><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' +
+    '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' +
     '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' +
     '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' +
     '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
     '<td><img src="{{source}}"></td>' +
     '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' +
-    '<td><div class="show_pos" id="show_pos{{@index}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' +
+    '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' +
     '</tr>' +
     '<tr><td colspan="7" class="more"><hr><div class="vi_more">' +
 
     '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' +
     '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' +
-    '<div class="c1">Осадка:</div><div class="c2">&nbsp;{{draught}}</div>' +
-    '<div class="c1">Назначение:</div><div class="c2">&nbsp;{{destination}}</div>' +
-    '<div class="c1">Статус:</div><div class="c2">&nbsp;{{nav_status}}</div>' +
+    '<div class="c1">{{i "AISSearch2.draught"}}:</div><div class="c2">&nbsp;{{draught}}</div>' +
+    '<div class="c1">{{i "AISSearch2.destination"}}:</div><div class="c2">&nbsp;{{destination}}</div>' +
+    '<div class="c1">{{i "AISSearch2.nav_status"}}:</div><div class="c2">&nbsp;{{nav_status}}</div>' +
     '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' +
 
     '</div></td></tr>' +

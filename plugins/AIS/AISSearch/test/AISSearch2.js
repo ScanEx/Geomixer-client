@@ -229,6 +229,7 @@
 	    'AISSearch2.myFleetMembers': 'Состав',
 	    'AISSearch2.myFleetMember': 'мой флот',
 	    'AISSearch2.info': 'информация',
+	    'AISSearch2.position': 'положение',
 	    'AISSearch2.found': 'Найдено: ',
 	    'AISSearch2.filter': 'Введите название или mmsi или imo судна',
 	    'AISSearch2.filterName': 'Введите название судна',
@@ -240,13 +241,20 @@
 	    'AISSearch2.refreshing': 'обновляется',
 	    'AISSearch2.nomyfleet': 'Сервис не доступен',
 	    'AISSearch2.auth': 'Требуется авторизация',
+	    'AISSearch2.vessel_info': 'ИНФОРМАЦИЯ О СУДНЕ',
+	    'AISSearch2.vessel_voyage': 'СВЕДЕНИЯ О ДВИЖЕНИИ',
 	    'AISSearch2.vessel_name': 'Название',
 	    'AISSearch2.mmsi': 'MMSI',
 	    'AISSearch2.imo': 'IMO',
 	    'AISSearch2.flag_country': 'Страна',
 	    'AISSearch2.vessel_type': 'Тип судна',
+	    'AISSearch2.flag': 'Флаг',
+	    'AISSearch2.callsign': 'Позывной',
+	    'AISSearch2.length': 'Длина',
+	    'AISSearch2.width': 'Ширина',
 	    'AISSearch2.draught': 'Осадка',
 	    'AISSearch2.destination': 'Назначение',
+	    'AISSearch2.eta': 'Расчетное время прибытия',
 	    'AISSearch2.nav_status': 'Статус',
 	    'AISSearch2.last_sig': 'Последний сигнал',
 	    'AISSearch2.show_track': 'трек за сутки',
@@ -264,7 +272,25 @@
 	    'AISSearch2.dailyTrack': 'трек за сутки',
 	    'AISSearch2.myFleetOnly': 'Только мой флот',
 	    'AISSearch2.show_pos': 'показать положение и историю',
-	    'AISSearch2.show_info': 'информация о судне'
+	    'AISSearch2.show_info': 'информация о судне',
+	    'AISSearch2.time_switch': 'Время',
+	    'AISSearch2.time_local': 'Местное',
+	    'AISSearch2.calendar_today': 'today',
+	    'AISSearh2.searchresults_view': 'Здесь будут отображаться<br>результаты поиска по названию,<br>IMO илм MMSI судна',
+	    'AISSearch2.dialog_tab_general': 'Общие сведения',
+	    'AISSearch2.dialog_tab_params': 'Параметры движения',
+	    'AISSearch2.close_but': 'закрыть',
+	    'AISSearch2.myfleet_add': 'добавить в мой флот',
+	    'AISSearch2.myfleet_remove': 'удалить из моего флота',
+	    'AISSearch2.infoscreen_gen': 'Основные сведения',
+	    'AISSearch2.infoscreen_reg': 'Регистр',
+	    'AISSearch2.infoscreen_gal': 'Фотогалерея',
+	    'AISSearch2.last_update': 'Обновление базы данных',
+	    'AISSearch2.reg_general_tab': 'Общие сведения',
+	    'AISSearch2.reg_build_tab': 'Сведения о постройке',
+	    'AISSearch2.reg_chars_tab': 'Размеры и скорость',
+	    'AISSearch2.reg_devs_tab': 'Оборудование',
+	    'AISSearch2.rmrs': 'РМРС'
 	});
 	_translationsHash.addtext('eng', {
 	    'AISSearch2.title': 'Searching vessels',
@@ -283,6 +309,7 @@
 	    'AISSearch2.myFleetMembers': 'Members',
 	    'AISSearch2.myFleetMember': 'my fleet',
 	    'AISSearch2.info': 'info',
+	    'AISSearch2.position': 'position',
 	    'AISSearch2.found': 'Found ',
 	    'AISSearch2.filter': 'Insert vessel name or mmsi or imo',
 	    'AISSearch2.filterName': 'Insert vessel name',
@@ -294,13 +321,20 @@
 	    'AISSearch2.refreshing': 'refreshing',
 	    'AISSearch2.nomyfleet': 'Service is unavailable',
 	    'AISSearch2.auth': 'Authorization required',
+	    'AISSearch2.vessel_info': 'VESSEL INFORMATION',
+	    'AISSearch2.vessel_voyage': 'VOYAGE INFORMATION',
 	    'AISSearch2.vessel_name': 'Name',
 	    'AISSearch2.mmsi': 'MMSI',
 	    'AISSearch2.imo': 'IMO',
 	    'AISSearch2.flag_country': 'Flag',
 	    'AISSearch2.vessel_type': 'Vessel type',
+	    'AISSearch2.flag': 'Flag',
+	    'AISSearch2.callsign': 'Callsign',
+	    'AISSearch2.length': 'Length',
+	    'AISSearch2.width': 'Width',
 	    'AISSearch2.draught': 'Draught',
 	    'AISSearch2.destination': 'Destination',
+	    'AISSearch2.eta': 'ETA',
 	    'AISSearch2.nav_status': 'Navigation status',
 	    'AISSearch2.last_sig': 'Last signal',
 	    'AISSearch2.show_track': 'show track',
@@ -318,7 +352,25 @@
 	    'AISSearch2.dailyTrack': 'Daily Track',
 	    'AISSearch2.myFleetOnly': 'My Fleet Only',
 	    'AISSearch2.show_pos': 'position and history',
-	    'AISSearch2.show_info': 'vessel data'
+	    'AISSearch2.show_info': 'vessel data',
+	    'AISSearch2.time_switch': 'Time',
+	    'AISSearch2.time_local': 'Local',
+	    'AISSearch2.calendar_today': 'today',
+	    'AISSearh2.searchresults_view': 'Results View of Vessel Search<br>by Name,IMO or MMSI',
+	    'AISSearch2.dialog_tab_general': 'General',
+	    'AISSearch2.dialog_tab_params': 'Parameters',
+	    'AISSearch2.close_but': 'close',
+	    'AISSearch2.myfleet_add': 'include in my fleet',
+	    'AISSearch2.myfleet_remove': 'exclude from my fleet',
+	    'AISSearch2.infoscreen_gen': 'General',
+	    'AISSearch2.infoscreen_reg': 'Register',
+	    'AISSearch2.infoscreen_gal': 'Gallery',
+	    'AISSearch2.last_update': 'Last update',
+	    'AISSearch2.reg_general_tab': 'General',
+	    'AISSearch2.reg_build_tab': 'Building',
+	    'AISSearch2.reg_chars_tab': 'Specification',
+	    'AISSearch2.reg_devs_tab': 'Equipment',
+	    'AISSearch2.rmrs': 'RMRS'
 	});
 
 /***/ }),
@@ -1326,7 +1378,7 @@
 	    _highlight = highlight;
 	    _tools = tools;
 	    this.topOffset = 240;
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time"><span class="label">Время:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">Местное</span></td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>Здесь будут отображаться<br>результаты поиска по названию,<br>' + 'IMO илм MMSI судна' + '</div></td></tr></table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span></td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
 	    this.container = this.frame.find('.ais_history');
 	    this.startScreen = this.frame.find('.start_screen');
 	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
@@ -1361,7 +1413,7 @@
 	
 	    var td = calendar.find('tr:nth-of-type(1) td');
 	    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-	    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="сегодня" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
+	    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
 	
 	    calendar.find('.default_date').on('click', function () {
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
@@ -1557,7 +1609,7 @@
 	    if (state) progress.show();else progress.hide();
 	};
 	
-	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">Осадка:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">Назначение:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">Статус:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
+	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">{{i "AISSearch2.draught"}}:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">{{i "AISSearch2.destination"}}:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">{{i "AISSearch2.nav_status"}}:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
 	
 	var _prepare_history = function _prepare_history() {
 	    var _this5 = this;
@@ -2022,12 +2074,12 @@
 		vessel.ts_pos_loc = "<br><span class='local'>" + formatDateTime(d, true) + "</span>";
 		vessel.ts_eta = vessel.ts_eta ? formatDateTime(new Date(vessel.ts_eta * 1000)) : "";
 		vessel.cog = !isNaN(vessel.cog) ? addUnit(round(vessel.cog, 5), "°") : vessel.cog;
-		vessel.sog = !isNaN(vessel.sog) ? addUnit(round(vessel.sog, 5), " уз") : vessel.sog;
-		vessel.rot = !isNaN(vessel.rot) ? addUnit(round(vessel.rot, 5), "°/мин") : vessel.rot;
+		vessel.sog = !isNaN(vessel.sog) ? addUnit(round(vessel.sog, 5), nsGmx.Translations.getLanguage() == "rus" ? " уз" : " kn") : vessel.sog;
+		vessel.rot = !isNaN(vessel.rot) ? addUnit(round(vessel.rot, 5), nsGmx.Translations.getLanguage() == "rus" ? "°/мин" : "°/min") : vessel.rot;
 		vessel.heading = !isNaN(vessel.heading) ? addUnit(round(vessel.heading, 5), "°") : vessel.heading;
-		vessel.draught = !isNaN(vessel.draught) ? addUnit(round(vessel.draught, 5), " м") : vessel.draught;
-		vessel.length = !isNaN(vessel.length) ? addUnit(vessel.length, " м") : vessel.length;
-		vessel.width = !isNaN(vessel.width) ? addUnit(vessel.width, " м") : vessel.width;
+		vessel.draught = !isNaN(vessel.draught) ? addUnit(round(vessel.draught, 5), nsGmx.Translations.getLanguage() == "rus" ? " м" : " m") : vessel.draught;
+		vessel.length = !isNaN(vessel.length) ? addUnit(vessel.length, nsGmx.Translations.getLanguage() == "rus" ? " м" : " m") : vessel.length;
+		vessel.width = !isNaN(vessel.width) ? addUnit(vessel.width, nsGmx.Translations.getLanguage() == "rus" ? " м" : " m") : vessel.width;
 		vessel.source = vessel.source == 'T-AIS' ? _gtxt('AISSearch2.tais') : _gtxt('AISSearch2.sais');
 		return vessel;
 	},
@@ -2087,7 +2139,7 @@
 			var smallShipIcon = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" style="margin-left: 10px" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg>',
 			    vesselPropTempl = '<div class="vessel_prop vname"><b>{{vessel_name}}</b>' + smallShipIcon + '</div>' + '<div class="vessel_prop altvname"><b>' + (vessel2.registry_name && vessel2.registry_name != vessel2.vessel_name ? vessel2.registry_name : '') + '&nbsp;</b></div>';
 	
-			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">Тип судна: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Флаг: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">Позывной: </div></td><td><div class="vessel_prop value mmsi">{{callsign}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
+			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props1">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.vessel_type"}}: </div></td><td><div class="vessel_prop value">{{vessel_type}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.flag"}}: </div></td><td><div class="vessel_prop value">{{flag_country}}</div></td></tr>' + '<tr><td><div class="vessel_prop">IMO: </div></td><td><div class="vessel_prop value">{{imo}}</div></td></tr>' + '<tr><td><div class="vessel_prop">MMSI: </div></td><td><div class="vessel_prop value mmsi">{{mmsi}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.callsign"}}: </div></td><td><div class="vessel_prop value mmsi">{{callsign}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.source"}}: </div></td><td><div class="vessel_prop value">{{source}}</div></td></tr>' + '</table>' + '</div>')(v));
 	
 			$('.content', canvas).append(Handlebars.compile('<div class="vessel_props2">' + vesselPropTempl + '<table>' + '<tr><td><div class="vessel_prop">COG | SOG: </div></td><td><div class="vessel_prop value">{{cog}}&nbsp;&nbsp;&nbsp;{{sog}}</div></td></tr>' + '<tr><td><div class="vessel_prop">HDG | ROT: </div></td><td><div class="vessel_prop value">{{heading}}&nbsp;&nbsp;&nbsp;{{rot}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.draught"}}: </div></td><td><div class="vessel_prop value">{{draught}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.destination"}}: </div></td><td><div class="vessel_prop value">{{destination}}</div></td></tr>' + '<tr><td><div class="vessel_prop">{{i "AISSearch2.nav_status"}}: </div></td><td><div class="vessel_prop value">{{nav_status}}</div></td></tr>' + '<tr><td><div class="vessel_prop">ETA: </div></td><td><div class="vessel_prop value">{{ts_eta}}</div></td></tr>' + '</div>')(v));
 	
@@ -2184,7 +2236,7 @@
 		//if (myFleetMembersModel && myFleetMembersModel.data && myFleetMembersModel.data.vessels) {
 		var addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
 		//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-		.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').appendTo(menubuttons);
+		.attr('title', add ? _gtxt('AISSearch2.myfleet_add') : _gtxt('AISSearch2.myfleet_remove')).appendTo(menubuttons);
 		if (myFleetMembersModel.filterUpdating) addremove.addClass('disabled');
 		addremove.on('click', function () {
 			if (addremove.is('.disabled')) return;
@@ -2214,7 +2266,7 @@
 	
 		// TITLEBAR	
 		canvas.parent('div').css({ 'margin': '0', 'overflow': 'hidden' });
-		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">Общие сведения</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">Параметры движения</span></div></td>' + '<td id="closebut" title="закрыть"><div class="ais_info_dialog_close-button" title="закрыть"></div></td></tr>' + '</table>'),
+		var titlebar = $(dialog).parent().find('.ui-dialog-titlebar').css('padding', '0').html('<table class="ais_info_dialog_titlebar">' + '<tr><td><div class="date">' + (!getmore ? Handlebars.compile('<span class="utc">{{{ts_pos_utc}}} UTC</span>{{{ts_pos_loc}}}')(vessel2 ? vessel2 : vessel) : '') + '</div></td>' + '<td><div class="choose done"><span unselectable="on" class="chooser">' + _gtxt('AISSearch2.dialog_tab_general') + '</span></div></td>' + '<td><div class="choose"><span unselectable="on" class="chooser">' + _gtxt('AISSearch2.dialog_tab_params') + '</span></div></td>' + '<td id="closebut" title="' + _gtxt('AISSearch2.close_but') + '"><div class="ais_info_dialog_close-button" title="' + _gtxt("AISSearch2.close_but") + '"></div></td></tr>' + '</table>'),
 		    onDone = function onDone(e) {
 			e.stopPropagation();$('.choose', titlebar).removeClass('done');$(e.currentTarget).parent().addClass('done');
 		};
@@ -2272,7 +2324,7 @@
 	        scheme = document.location.href.replace(/^(https?:).+/, "$1"),
 	        show = function show(vessel) {
 	        //console.log(vessel) 
-	        $("body").append('' + '<table class="vessel-info-page overlay">' + '<tr>' + '<td>' + '<table class="vessel-info-page container">' + '<tr>' + '<td class="column1">' + '<table>' + '<tr>' + '<td>' + '<div>' + '<div class="title">' + '<div class="cell">' + vessel.vessel_name + '<div class="timestamp">' + vessel.ts_pos_utc + '</div></div>  ' + '</div>' + '<div class="menu">' + '<div class="ais cell menu-item active"><img src="' + modulePath + 'svg/info_gen.svg" class="icon">Основные сведения</div>' + '<div class="register cell menu-item"><img src="' + modulePath + 'svg/info.svg" class="icon">Регистр</div>' + '<div class="galery cell menu-item"><img src="' + modulePath + 'svg/photogallery.svg" class="icon">Фотогалерея <div class="counter">0</div></div>' + '</div>' + '</div>  ' + '</td>' + '</tr>' + '<tr>' + '<td class="frame">' + '<div class="photo">' + '<img src="' + modulePath + 'svg/no-image.svg" class="no-image">' + '</div>  ' + '</td>' + '</tr>' + '</table>' + '</td>' + '<td class="column2">' + '<div class="close-button-holder">' + '<div class="close-button" title="закрыть"></div>' + '</div>' + '<div class="register panel">' + '<div class="caption">' + '<span style="display: inline-block;height: 100%;vertical-align: middle;width: 40px;"></span>' + '<img src="img/progress.gif" style="vertical-align: middle">' + '</div>' + '<div class="menu">' + '<div>' + '<table>' + '<tr>' + '<td><div class="general menu-item active">Общие сведения</div></td>' + '<td><div class="build menu-item">Сведения о постройке</div></td>' + '<td><div class="dimensions menu-item">Размеры и скорость</div></td>' + '<td><div class="gears menu-item">Оборудование</div></td>' + '</tr>' + '</table>' + '</div>' + '</div>' + '<div class="content">' + '<div class="placeholder"></div>' + '</div>' + '</div>' + '<div class="galery panel">' + '<form action="' + aisServices + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' + '<input name="Filedata" class="chooseFile" type="file">' + '<input name="imo" type="hidden" value="' + vessel.imo + '">' + '<input name="mmsi" type="hidden" value="' + vessel.mmsi + '">' +
+	        $("body").append('' + '<table class="vessel-info-page overlay">' + '<tr>' + '<td>' + '<table class="vessel-info-page container">' + '<tr>' + '<td class="column1">' + '<table>' + '<tr>' + '<td>' + '<div>' + '<div class="title">' + '<div class="cell">' + vessel.vessel_name + '<div class="timestamp">' + vessel.ts_pos_utc + '</div></div>  ' + '</div>' + '<div class="menu">' + '<div class="ais cell menu-item active"><img src="' + modulePath + 'svg/info_gen.svg" class="icon">' + _gtxt("AISSearch2.infoscreen_gen") + '</div>' + '<div class="register cell menu-item"><img src="' + modulePath + 'svg/info.svg" class="icon">' + _gtxt("AISSearch2.infoscreen_reg") + '</div>' + '<div class="galery cell menu-item"><img src="' + modulePath + 'svg/photogallery.svg" class="icon">' + _gtxt("AISSearch2.infoscreen_gal") + '<div class="counter">0</div></div>' + '</div>' + '</div>  ' + '</td>' + '</tr>' + '<tr>' + '<td class="frame">' + '<div class="photo">' + '<img src="' + modulePath + 'svg/no-image.svg" class="no-image">' + '</div>  ' + '</td>' + '</tr>' + '</table>' + '</td>' + '<td class="column2">' + '<div class="close-button-holder">' + '<div class="close-button" title="' + _gtxt("AISSearch2.close_but") + '"></div>' + '</div>' + '<div class="register panel">' + '<div class="caption">' + '<span style="display: inline-block;height: 100%;vertical-align: middle;width: 40px;"></span>' + '<img src="img/progress.gif" style="vertical-align: middle">' + '</div>' + '<div class="menu">' + '<div>' + '<table>' + '<tr>' + '<td><div class="general menu-item active">' + _gtxt("AISSearch2.reg_general_tab") + '</div></td>' + '<td><div class="build menu-item">' + _gtxt("AISSearch2.reg_build_tab") + '</div></td>' + '<td><div class="dimensions menu-item">' + _gtxt("AISSearch2.reg_chars_tab") + '</div></td>' + '<td><div class="gears menu-item">' + _gtxt("AISSearch2.reg_devs_tab") + '</div></td>' + '</tr>' + '</table>' + '</div>' + '</div>' + '<div class="content">' + '<div class="placeholder"></div>' + '</div>' + '</div>' + '<div class="galery panel">' + '<form action="' + aisServices + 'Upload.ashx" class="uploadFile" method="post" enctype="multipart/form-data" target="upload_target" style="display:none" >' + '<input name="Filedata" class="chooseFile" type="file">' + '<input name="imo" type="hidden" value="' + vessel.imo + '">' + '<input name="mmsi" type="hidden" value="' + vessel.mmsi + '">' +
 	        //'<input type="submit" name="submitBtn" value="Upload" />' +
 	        '</form>' + '<iframe id="upload_target" name="upload_target" src="#" style="width:0;height:0;border:0px solid #fff;"></iframe>' + '<div class="placeholder">' + '<div class="photo" onclick="document.querySelector(\'.vessel-info-page .chooseFile\').click();"' + ' style="background-image: url(' + modulePath + 'svg/add-image.svg);background-size: 50px;"></div>' + '</div>' + '</div>' + '<div class="ais panel">' + '<div class="placeholder"></div>' + '</div>' + '</td>' + '</tr>' + '</table>' + '</td>' + '</tr>' + '</table>');
 	        window.addEventListener("message", function (e) {
@@ -2412,7 +2464,7 @@
 	    },
 	        drawAis = function drawAis(ledokol) {
 	        var aiscontent = document.querySelector(".vessel-info-page .ais .placeholder");
-	        aiscontent.innerHTML = "" + "<div class='caption'><div>ИНФОРМАЦИЯ О СУДНЕ</div></div>" + "<table>" + "<tr><td>Название судна</td><td><b>" + ledokol.vessel_name + (ledokol.registry_name ? " (" + ledokol.registry_name + ")" : "") + "</b></td></tr>" + "<tr><td>IMO</td><td>" + ledokol.imo + "</td></tr>" + "<tr><td>MMSI</td><td>" + ledokol.mmsi + "</td></tr>" + "<tr><td>Тип</td><td>" + ledokol.vessel_type + "</td></tr>" + "<tr><td>Флаг</td><td>" + ledokol.flag_country + "</td></tr>" + "<tr><td>Позывной</td><td>" + ledokol.callsign + "</td></tr>" + "<tr><td>Длина</td><td>" + ledokol.length + "</td></tr>" + "<tr><td>Ширина</td><td>" + ledokol.width + "</td></tr>" + "</table>" + "<div class='caption'><div>СВЕДЕНИЯ О ДВИЖЕНИИ</div></div>" + "<table>" + "<tr><td>Навигационный статус</td><td>" + ledokol.nav_status + "</td></tr>" + "<tr><td>COG</td><td>" + ledokol.cog + "</td></tr>" + "<tr><td>SOG</td><td>" + ledokol.sog + "</td></tr>" + "<tr><td>HDG</td><td>" + ledokol.heading + "</td></tr>" + "<tr><td>ROT</td><td>" + ledokol.rot + "</td></tr>" + "<tr><td>Осадка</td><td>" + ledokol.draught + "</td></tr>" + "<tr><td>Назначение</td><td>" + ledokol.destination + "</td></tr>" + "<tr><td>Расчетное время прибытия</td><td>" + ledokol.ts_eta + "</td></tr>" + "</table>";
+	        aiscontent.innerHTML = "" + "<div class='caption'><div>" + _gtxt("AISSearch2.vessel_info") + "</div></div>" + "<table>" + "<tr><td>" + _gtxt("AISSearch2.vessel_name") + "</td><td><b>" + ledokol.vessel_name + (ledokol.registry_name ? " (" + ledokol.registry_name + ")" : "") + "</b></td></tr>" + "<tr><td>IMO</td><td>" + ledokol.imo + "</td></tr>" + "<tr><td>MMSI</td><td>" + ledokol.mmsi + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.vessel_type") + "</td><td>" + ledokol.vessel_type + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.flag") + "</td><td>" + ledokol.flag_country + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.callsign") + "</td><td>" + ledokol.callsign + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.length") + "</td><td>" + ledokol.length + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.width") + "</td><td>" + ledokol.width + "</td></tr>" + "</table>" + "<div class='caption'><div>" + _gtxt("AISSearch2.vessel_voyage") + "</div></div>" + "<table>" + "<tr><td>" + _gtxt("AISSearch2.nav_status") + "</td><td>" + ledokol.nav_status + "</td></tr>" + "<tr><td>COG</td><td>" + ledokol.cog + "</td></tr>" + "<tr><td>SOG</td><td>" + ledokol.sog + "</td></tr>" + "<tr><td>HDG</td><td>" + ledokol.heading + "</td></tr>" + "<tr><td>ROT</td><td>" + ledokol.rot + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.draught") + "</td><td>" + ledokol.draught + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.destination") + "</td><td>" + ledokol.destination + "</td></tr>" + "<tr><td>" + _gtxt("AISSearch2.eta") + "</td><td>" + ledokol.ts_eta + "</td></tr>" + "</table>";
 	        resize();
 	    },
 	        drawRegister = function drawRegister(ledokol) {
@@ -2424,30 +2476,30 @@
 	                s += "<div class='group'>" + groups[_i].name + "</div><table>";
 	                for (var j = 0; j < groups[_i].properties.length; ++j) {
 	                    var pn = groups[_i].properties[j].name,
-	                        desc = groups[_i].properties[j].description,
+	                        desc = nsGmx.Translations.getLanguage() == "rus" ? groups[_i].properties[j].description : null,
 	                        pv = groups[_i].properties[j].value;
 	                    s += "<tr><td>" + pn + (desc ? "<div class='description'>" + desc + "</div>" : "") + "</td><td>" + (pn == "Название судна" || pn == "Латинское название" ? "<b>" + pv + "</b>" : pv) + "</td></tr>";
 	                }
-	                s += "</table>";
+	                s += "<tr><td>&nbsp;</td><td>&nbsp;</td></tr></table>";
 	            }
 	            s += "</div>";
 	            return s;
 	        };
 	
-	        _regcap.innerHTML = "<table class='register-title'>" + "<tr><td><span class='switch active'>РМРС</span> <span class='switch'>Lloyd's register</span></td></tr>" + "<tr><td><span class='update'></span></td></tr>" + "</table>";
+	        _regcap.innerHTML = "<table class='register-title'>" + "<tr><td><span class='switch active'>" + _gtxt("AISSearch2.rmrs") + "</span> <span class='switch'>Lloyd's register</span></td></tr>" + "<tr><td><span class='update'></span></td></tr>" + "</table>";
 	
 	        var drawRMR = function drawRMR() {
 	            if (ledokol) {
 	                regcontent.innerHTML = drawTable([ledokol.data[0], ledokol.data[1], ledokol.data[9]], "general", "block") + drawTable([ledokol.data[2]], "build", "none") + drawTable([ledokol.data[3]], "dimensions", "none") + drawTable([ledokol.data[4], ledokol.data[5], ledokol.data[6], ledokol.data[7], ledokol.data[8]], "gears", "none");
-	                _regcap.querySelector('.update').innerText = "Обновление базы данных " + ledokol.version.replace(/ \S+$/g, '');
+	                _regcap.querySelector('.update').innerText = _gtxt("AISSearch2.last_update") + " " + ledokol.version.replace(/ \S+$/g, '');
 	            } else {
 	                regcontent.innerHTML = "";
 	                _regcap.querySelector('.update').innerHTML = "&nbsp;";
 	            }
 	        },
 	            drawLloyds = function drawLloyds() {
-	            regcontent.innerHTML = drawTable([_lloyds.data[14], _lloyds.data[13], _lloyds.data[12], _lloyds.data[11], _lloyds.data[10]], "general", "block") + drawTable([_lloyds.data[9]], "build", "none") + drawTable([_lloyds.data[8], _lloyds.data[7], _lloyds.data[6], _lloyds.data[5]], "dimensions", "none") + drawTable([_lloyds.data[4], _lloyds.data[3], _lloyds.data[2], _lloyds.data[1], _lloyds.data[0]], "gears", "none");
-	            _regcap.querySelector('.update').innerText = "Обновление базы данных " + _lloyds.version.replace(/ \S+$/g, '');
+	            regcontent.innerHTML = drawTable([_lloyds.data[15], _lloyds.data[14], _lloyds.data[13], _lloyds.data[11], _lloyds.data[0]], "general", "block") + drawTable([_lloyds.data[10], _lloyds.data[12]], "build", "none") + drawTable([_lloyds.data[9], _lloyds.data[8], _lloyds.data[7], _lloyds.data[6]], "dimensions", "none") + drawTable([_lloyds.data[4], _lloyds.data[3], _lloyds.data[2], _lloyds.data[1], _lloyds.data[5]], "gears", "none");
+	            _regcap.querySelector('.update').innerText = _gtxt("AISSearch2.last_update") + " " + _lloyds.version.replace(/ \S+$/g, '');
 	        },
 	            regSwitches = _regcap.querySelectorAll(".switch");
 	        regSwitches.forEach(function (item, i) {
@@ -2497,10 +2549,10 @@
 	            lloydsServerUrl = scheme + "//kosmosnimki.ru/demo/lloyds/api/v1/",
 	            rmr;
 	        if (vessel.imo && vessel.imo != 0 && vessel.imo != -1) {
-	            fetch(registerServerUrl + "Ship/Search/" + vessel.imo + "/ru").then(function (response) {
+	            fetch(registerServerUrl + "Ship/Search/" + vessel.imo + (nsGmx.Translations.getLanguage() == "rus" ? "/ru" : "/en")).then(function (response) {
 	                return response.json();
 	            }).then(function (ship) {
-	                if (ship.length > 0) return fetch(registerServerUrl + "Ship/Get/" + ship[0].RS + "/ru");else return Promise.resolve({ json: function json() {
+	                if (ship.length > 0) return fetch(registerServerUrl + "Ship/Get/" + ship[0].RS + (nsGmx.Translations.getLanguage() == "rus" ? "/ru" : "/en"));else return Promise.resolve({ json: function json() {
 	                        return null;
 	                    } });
 	                //else
@@ -2511,15 +2563,33 @@
 	                //console.log(ship)
 	                rmr = ship;
 	                if (rmr) drawRegister(rmr);
-	                return fetch(lloydsServerUrl + "Ship/Search/" + vessel.imo + "/ru");
+	                return fetch(lloydsServerUrl + "Ship/Search/" + vessel.imo + (nsGmx.Translations.getLanguage() == "rus" ? "/ru" : "/en"));
 	            }).then(function (response) {
 	                return response.json();
 	            }).then(function (ship) {
-	                if (ship.length > 0) return fetch(lloydsServerUrl + "Ship/Get/" + ship[0].RS + "/ru");else return Promise.reject('register_no_data');
+	                if (ship.length > 0) return fetch(lloydsServerUrl + "Ship/Get/" + ship[0].RS + (nsGmx.Translations.getLanguage() == "rus" ? "/ru" : "/en"));else return Promise.reject('register_no_data');
 	            }).then(function (response) {
 	                return response.json();
 	            }).then(function (ship) {
 	                _lloyds = ship;
+	                if (nsGmx.Translations.getLanguage() != "rus") {
+	                    _lloyds.data[15].name = "Vessel Data";
+	                    _lloyds.data[14].name = "Type and Status";
+	                    _lloyds.data[13].name = "Companies";
+	                    _lloyds.data[12].name = "Companies";
+	                    _lloyds.data[11].name = "Safety";
+	                    _lloyds.data[10].name = "History";
+	                    _lloyds.data[9].name = "Characteristics";
+	                    _lloyds.data[8].name = "Dimensions";
+	                    _lloyds.data[7].name = "Hull";
+	                    _lloyds.data[6].name = "Capacity";
+	                    _lloyds.data[5].name = "Cargo";
+	                    _lloyds.data[4].name = "Machinery";
+	                    _lloyds.data[3].name = "Fuel";
+	                    _lloyds.data[2].name = "Energy Supply";
+	                    _lloyds.data[1].name = "Propellers and Thrusters";
+	                    _lloyds.data[0].name = "Codes";
+	                }
 	                if (!rmr) drawRegister(rmr);
 	            }).catch(onFail);
 	        } else _regcap.innerHTML = "";
