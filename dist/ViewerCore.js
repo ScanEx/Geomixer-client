@@ -5949,10 +5949,11 @@ scrollTable.prototype._drawRows = function()
     this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 
 	if (this._currValsCount) {
+		var cntStr = this._currValsCount === 100001 ? 'более 100000' : this._currValsCount;
 		_(this.tableCount, [_span([
             _t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))),
             _span([_t(' ')],[['css','margin','0px 3px']]),
-            _t("(" + this._currValsCount + ")")
+            _t("(" + cntStr + ")")
         ]), this.statusContainer]);
     }
 	else {
@@ -9901,7 +9902,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
-                map.tree = gmxMap.layers;
+                map.tree = layers;
                 break;
             }
         }
@@ -32987,6 +32988,19 @@ nsGmx.HeaderWidget = (function() {
 
     return HeaderWidget;
 })();;
+nsGmx.Translations.addText('rus', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});
+
+nsGmx.Translations.addText('eng', {
+    header: {
+        'langRu': 'Ru',
+        'langEn': 'En'
+    }
+});;
 var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
 nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
     "    <div class=\"headerWidget-left\">\n" +
@@ -33016,19 +33030,6 @@ nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons
     "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
     "    {{/if}}\n" +
     "</div>";;
-nsGmx.Translations.addText('rus', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});
-
-nsGmx.Translations.addText('eng', {
-    header: {
-        'langRu': 'Ru',
-        'langEn': 'En'
-    }
-});;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
@@ -41294,21 +41295,21 @@ nsGmx.widgets = nsGmx.widgets || {};
                         id: 'usage',
                         title: _gtxt('Руководство пользователя'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/', '_blank');
                         }
                     },
                     {
                         id: 'api',
                         title: _gtxt('GeoMixer API'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/dev-manual/getting-started', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/dev-manual/getting-started', '_blank');
                         }
                     },
                     {
                         id: 'pluginsUsage',
                         title: _gtxt('Использование плагинов'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/ru/docs/manual/plugins', '_blank');
+                            window.open('http://geomixer.ru/index.php/docs/manual/plugins', '_blank');
                         }
                     }
                 ] : []) : [{
