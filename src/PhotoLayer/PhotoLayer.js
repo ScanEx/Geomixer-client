@@ -478,7 +478,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="//maps.kosmosnimki.ru/api/img/camera18.png" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="' + _mapHelper.defaultPhotoIconStyles.point.marker.image +'" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
