@@ -1216,7 +1216,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                         popupAnchor: [3, -25],
                         shadowUrl: iconUrl,
                         shadowSize: [0, 0],
-                        shadowAnchor: [0, 0]
+                        shadowAnchor: [0, 0],
+						iconRetinaUrl: L.Icon.Default.imagePath + '/marker-icon.png'
                     })
                 }
             });

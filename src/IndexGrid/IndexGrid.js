@@ -995,9 +995,9 @@ var nsGmx = window.nsGmx || {};
             _getLetterIndexes: function (number) {
                 var convert = function(srcNum, scrDict, targetDict) {
                    var targetNum = "";
-                   for (var idx in srcNum) {
+                   for (var idx = 0; idx < srcNum.length; ++idx) {
                       var srcDictIdx = scrDict.search(srcNum[idx]);
-                      targetNum += targetDict[srcDictIdx]
+                      targetNum += targetDict[srcDictIdx];
                    }
                    return targetNum;
                 }

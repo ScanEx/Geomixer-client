@@ -208,7 +208,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
-                map.tree = layers;
+                map.tree = gmxMap.layers;
                 break;
             }
         }

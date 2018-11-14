@@ -9902,7 +9902,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
         for (var i = 0; i < _this.maps.length; i++) {
             var map = _this.maps[i];
             if (map.hostName === hostName && map.mapName === mapName) {
-                map.tree = layers;
+                map.tree = gmxMap.layers;
                 break;
             }
         }
@@ -26610,9 +26610,9 @@ var nsGmx = window.nsGmx || {};
             _getLetterIndexes: function (number) {
                 var convert = function(srcNum, scrDict, targetDict) {
                    var targetNum = "";
-                   for (var idx in srcNum) {
+                   for (var idx = 0; idx < srcNum.length; ++idx) {
                       var srcDictIdx = scrDict.search(srcNum[idx]);
-                      targetNum += targetDict[srcDictIdx]
+                      targetNum += targetDict[srcDictIdx];
                    }
                    return targetNum;
                 }
@@ -42134,7 +42134,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                         popupAnchor: [3, -25],
                         shadowUrl: iconUrl,
                         shadowSize: [0, 0],
-                        shadowAnchor: [0, 0]
+                        shadowAnchor: [0, 0],
+						iconRetinaUrl: L.Icon.Default.imagePath + '/marker-icon.png'
                     })
                 }
             });
