@@ -33,7 +33,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: (window.serverBase || window.origin + '/') + 'api/img/camera18.png',
+				image: (window.serverBase || '/') + 'api/img/camera18.png',
 				center: true
 			}
 		}
