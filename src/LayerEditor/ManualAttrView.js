@@ -12,7 +12,6 @@ _translationsHash.addtext('eng', {ManualAttrView: {
     headerExp: 'Expression'
 }});
 
-
 var selectorTemplate = Handlebars.compile('<select class="selectStyle customAttr-typesselect">' +
         '{{#each types}}' +
             '<option value="{{server}}" id="{{server}}"{{#if @root.isSelected}} selected{{/if}}>{{user}}</option>' +

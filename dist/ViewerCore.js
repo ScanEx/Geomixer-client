@@ -1,3 +1,51 @@
+(function () {
+	// https://tc39.github.io/ecma262/#sec-array.prototype.find
+	if (!Array.prototype.find) {
+	  Object.defineProperty(Array.prototype, 'find', {
+		value: function(predicate) {
+		 // 1. Let O be ? ToObject(this value).
+		  if (this == null) {
+			throw new TypeError('"this" is null or not defined');
+		  }
+
+		  var o = Object(this);
+
+		  // 2. Let len be ? ToLength(? Get(O, "length")).
+		  var len = o.length >>> 0;
+
+		  // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+		  if (typeof predicate !== 'function') {
+			throw new TypeError('predicate must be a function');
+		  }
+
+		  // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+		  var thisArg = arguments[1];
+
+		  // 5. Let k be 0.
+		  var k = 0;
+
+		  // 6. Repeat, while k < len
+		  while (k < len) {
+			// a. Let Pk be ! ToString(k).
+			// b. Let kValue be ? Get(O, Pk).
+			// c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+			// d. If testResult is true, return kValue.
+			var kValue = o[k];
+			if (predicate.call(thisArg, kValue, k, o)) {
+			  return kValue;
+			}
+			// e. Increase k by 1.
+			k++;
+		  }
+
+		  // 7. Return undefined.
+		  return undefined;
+		},
+		configurable: true,
+		writable: true
+	  });
+	}
+}());
 /** Загрузчик модулей ГеоМиксера
 Позволяет загружать модули из разных файлов.
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
@@ -394,7 +442,7 @@ window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
     {pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
-    {pluginName: 'Timeline Vectors', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
+    {pluginName: 'Geomixer Timeline', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: true},
         { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
         // { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
     // {pluginName: 'TimeSlider', file: 'plugins/TimeSlider/TimeSlider.js', module: 'TimeSlider', mapPlugin: true, isPublic: true},
@@ -7462,7 +7510,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: (window.serverBase || '/') + 'api/img/camera18.png',
+				image: (window.serverBase ? window.serverBase + 'api/img/camera18.png' : '/api/img/camera18.png'),
 				center: true
 			}
 		}
@@ -21569,7 +21617,7 @@ nsGmx.QuicklookParams = Backbone.Model.extend({
 });
 
 (function() {
-
+	
 function capitaliseFirstLetter(str)
 {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -21747,7 +21795,6 @@ _translationsHash.addtext('eng', {ManualAttrView: {
     headerType: 'Type',
     headerExp: 'Expression'
 }});
-
 
 var selectorTemplate = Handlebars.compile('<select class="selectStyle customAttr-typesselect">' +
         '{{#each types}}' +
@@ -32919,6 +32966,35 @@ nsGmx.Templates.LanguageWidget["layout"] = "<div class=\"languageWidget ui-widge
     "    <div class=\"languageWidget-item languageWidget-item_rus\"><span class=\"{{^rus}}link languageWidget-link{{/rus}}{{#rus}}languageWidget-disabled{{/rus}}\">Ru</span></div>\n" +
     "    <div class=\"languageWidget-item languageWidget-item_eng\"><span class=\"{{^eng}}link languageWidget-link{{/eng}}{{#eng}}languageWidget-disabled{{/eng}}\">En</span></div>\n" +
     "</div>";;
+var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
+nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
+    "    <div class=\"headerWidget-left\">\n" +
+    "        <div class=\"headerWidget-logoContainer\">\n" +
+    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"headerWidget-right\">\n" +
+    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
+    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
+    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</div>\n" +
+    "";
+nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
+    "    {{#if vk}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if facebook}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "    {{#if twitter}}\n" +
+    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
+    "    {{/if}}\n" +
+    "</div>";;
 var nsGmx = window.nsGmx = window.nsGmx || {};
 
 nsGmx.HeaderWidget = (function() {
@@ -33001,35 +33077,6 @@ nsGmx.Translations.addText('eng', {
         'langEn': 'En'
     }
 });;
-var nsGmx = window.nsGmx = window.nsGmx || {};nsGmx.Templates = nsGmx.Templates || {};nsGmx.Templates.HeaderWidget = {};
-nsGmx.Templates.HeaderWidget["layout"] = "<div class=\"headerWidget\">\n" +
-    "    <div class=\"headerWidget-left\">\n" +
-    "        <div class=\"headerWidget-logoContainer\">\n" +
-    "            <img class=\"headerWidget-logo\" src=\"{{logo}}\" />\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"headerWidget-right\">\n" +
-    "        <div class=\"headerWidget-bar headerWidget-controlsBar\">\n" +
-    "            <div class=\"headerWidget-barTable headerWidget-controlsBarTable\">\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-menuContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-authContainer\"></div>\n" +
-    "                <div class=\"headerWidget-barCell headerWidget-languageContainer\"></div>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "    </div>\n" +
-    "</div>\n" +
-    "";
-nsGmx.Templates.HeaderWidget["socials"] = "<div class=\"headerWidget-socialIcons\">\n" +
-    "    {{#if vk}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{vk}}\" target=\"_blank\"><i class=\"icon-vk\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if facebook}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{facebook}}\" target=\"_blank\"><i class=\"icon-facebook\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "    {{#if twitter}}\n" +
-    "        <div class=\"headerWidget-socialIconCell\"><a href=\"{{twitter}}\" target=\"_blank\"><i class=\"icon-twitter\"></i></a></div>\n" +
-    "    {{/if}}\n" +
-    "</div>";;
 nsGmx.TransparencySliderWidget = function(container) {
     var _this = this;
     var ui = $(Handlebars.compile(
