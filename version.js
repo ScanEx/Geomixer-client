@@ -1,2 +1,2 @@
 ﻿window.nsGmx = window.nsGmx || {};
-window.nsGmx.GeomixerFrameworkVersion = '14.11.2018';
+window.nsGmx.GeomixerFrameworkVersion = '16.11.2018';
