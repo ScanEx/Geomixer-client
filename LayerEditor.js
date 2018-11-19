@@ -924,7 +924,7 @@ LayerEditor.prototype._createPageRasterSource = function(layerProperties) {
 
     shapeLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp', 'geojson', 'kmz'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp', 'geojson', 'kmz', 'sqlite'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
