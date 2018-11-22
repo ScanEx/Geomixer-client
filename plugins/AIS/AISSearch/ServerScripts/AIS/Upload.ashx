@@ -42,7 +42,7 @@ public class Upload : IHttpHandler {
             using (BinaryReader br = new BinaryReader(postedFile.InputStream))
             {
                 byte[] bytes = br.ReadBytes((Int32)postedFile.InputStream.Length);
-                using (var conn = new SqlConnection("Data Source=KOSMO-MSSQL2.kosmosnimki.ru;Failover Partner=KOSMO-MSSQL1.kosmosnimki.ru;Initial Catalog=Maps;User Id=Maps1410;Password=8ewREh4z"))
+                using (var conn = new SqlConnection(""))
                 {
                     string query = "insert into AIS_Gallery output inserted.id values (@mmsi, @imo, @ContentType, @Data)";
                     using (SqlCommand cmd = new SqlCommand(query))
