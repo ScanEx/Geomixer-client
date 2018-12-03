@@ -153,7 +153,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
                 _clean.call(this);
             }
         },
-        doSearch = function () {
+        doSearch = function (actualId) {
             //console.log(_searchString)
             new Promise(function (resolve, reject) {
                 this.model.searcher.searchString(_searchString, true, function (response) {
@@ -170,8 +170,19 @@ const DbSearchView = function ({ model, highlight, tools }) {
                     }
                 })
             }.bind(this))
-                .then(function () { // SUCCEEDED
+                .then(function () { 
+                    
+                    if (actualId!=delay)
+                        return;
+
+                    // SUCCEEDED
                     if (found.values.length == 0) {
+                        suggestions.hide();
+                        return;
+                    }
+
+//console.log("ss: "+_searchString)
+                    if (_searchString=="") {
                         suggestions.hide();
                         return;
                     }
@@ -268,7 +279,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         }
         else
             delay = setTimeout((() => {
-                doSearch.call(this)
+                doSearch.apply(this, [delay])
             }).bind(this), 200);
         //nsGmx.leafletMap.removeLayer(highlight);
     }.bind(this));
@@ -278,7 +289,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         if (!prepareSearchInput(temp))
             return;
         delay = setTimeout((() => {
-            doSearch.call(this)
+            doSearch.apply(this, [delay])
         }).bind(this), 200);
     }.bind(this));
 };

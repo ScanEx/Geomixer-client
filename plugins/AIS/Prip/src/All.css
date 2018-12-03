@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+
+.Prip.prip_sidebar-icon svg
+{
+    margin-top:12px;
+    width:16px;
+    height:16px;
+}
+
+.prip_tabs *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+.prip_tabs{
+  width: 100%;
+}
+.prip_tab{
+  text-align: center;
+  cursor:pointer;
+  background-color: #e1e8ed;
+  border-bottom: solid 1px #d8e1e4;
+  color: #182026;
+}
+.prip_tab div{
+  padding:10px;
+  border-bottom: solid 3px #e1e8e4;
+  font-family: 'Roboto', sans-serif;
+  font-weight:500;
+  font-size:14px;
+}
+.prip_tab.active {
+  border-bottom:solid 1px #48aff1;
+}
+.prip_tab.active div{
+  border-bottom: solid 3px #48aff1;
+}
+.prip_tab.unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+  

@@ -1471,7 +1471,7 @@
 	            _clean.call(this);
 	        }
 	    },
-	        doSearch = function doSearch() {
+	        doSearch = function doSearch(actualId) {
 	        //console.log(_searchString)
 	        new Promise(function (resolve, reject) {
 	            this.model.searcher.searchString(_searchString, true, function (response) {
@@ -1489,8 +1489,16 @@
 	        }.bind(this)).then(function () {
 	            var _this2 = this;
 	
+	            if (actualId != delay) return;
+	
 	            // SUCCEEDED
 	            if (found.values.length == 0) {
+	                suggestions.hide();
+	                return;
+	            }
+	
+	            //console.log("ss: "+_searchString)
+	            if (_searchString == "") {
 	                suggestions.hide();
 	                return;
 	            }
@@ -1577,7 +1585,7 @@
 	            suggestions.hide();
 	            searchDone.call(this);
 	        } else delay = setTimeout(function () {
-	            doSearch.call(_this3);
+	            doSearch.apply(_this3, [delay]);
 	        }.bind(this), 200);
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
@@ -1587,7 +1595,7 @@
 	        var temp = ((e.originalEvent || window.clipboardData).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
 	        if (!prepareSearchInput(temp)) return;
 	        delay = setTimeout(function () {
-	            doSearch.call(_this4);
+	            doSearch.apply(_this4, [delay]);
 	        }.bind(this), 200);
 	    }.bind(this));
 	};

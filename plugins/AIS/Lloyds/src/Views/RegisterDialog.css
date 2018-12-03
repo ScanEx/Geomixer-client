@@ -1,0 +1,286 @@
+.lloyds_register_dlg_view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+
+.lloyds_register_dlg_view *{
+    font-family: 'Roboto', sans-serif;  
+    font-weight: 400;
+  }
+  .lloyds_dialog_titlebar *{
+    font-family: 'Roboto', sans-serif;  
+    font-weight: 400;
+  }
+.lloyds_dialog_titlebar{
+      width:100%;
+  }
+  .lloyds_dialog_titlebar td{
+      border-bottom:solid 1px #d8e2e4;
+      background-color:#ecf1f5;
+      color:#394b59
+  }
+
+  .lloyds_dialog_titlebar td div.choose{
+      padding-top:15px;
+      padding-bottom:11px;
+      padding-left:25px;
+      border-bottom:solid 4px #ecf1f5;
+      width:170px;
+      font-size:12px;
+      font-weight:bold;
+      margin:0;
+  }
+  .lloyds_dialog_titlebar .window_button{
+    width: 1%;
+    cursor: pointer;
+  } 
+.lloyds_dialog_button{
+    display: inline-block;
+    width:12px;
+    height:12px;            
+    cursor: pointer;
+    background-position: 0px 0px;
+    z-index: 1000;
+    margin-top: 1px;
+}  
+.lloyds_dialog_button.close{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%23384b50;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%23384b50;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+    margin-right: 25px;
+    margin-left:15px;
+} 
+.lloyds_dialog_button.close:hover{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='0' x2='12' y2='12' style='stroke:%2348aff1;stroke-width:2px'/%3E%3Cline x1='0' y1='12' x2='12' y2='0' style='stroke:%2348aff1;stroke-width:2px'/%3E%3C/svg%3E") no-repeat;
+} 
+
+.lloyds_dialog_button.expand{
+    width:14px;
+    height:14px;            
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%23384b50;stroke-width:2;fill:%23ecf1f5' points='1,1 1,13 13,13 13,1'/%3E%3C/svg%3E") no-repeat;
+}  
+.lloyds_dialog_button.expand:hover{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%2348aff1;stroke-width:2;fill:%23ecf1f5' points='1,1 1,13 13,13 13,1'/%3E%3C/svg%3E") no-repeat;
+} 
+.lloyds_dialog_button.shrink{
+    width:14px;
+    height:14px;            
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%23384b50;stroke-width:2;fill:%23ecf1f5' points='1,1 1,13 13,13 13,1'/%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%23384b50;stroke-width:2;fill:white' points='6,6 6,13 13,13 13,6'/%3E%3C/svg%3E") no-repeat;
+}  
+.lloyds_dialog_button.shrink:hover{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%2348aff1;stroke-width:2;fill:%23ecf1f5' points='1,1 1,13 13,13 13,1'/%3E%3Cpolygon xmlns='http://www.w3.org/2000/svg' style='stroke:%2348aff1;stroke-width:2;fill:white' points='6,6 6,13 13,13 13,6'/%3E%3C/svg%3E") no-repeat;
+} 
+
+.lloyds_dialog_button.branch_expand{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon style='fill:black;' points='4,2 4,10 8,6'/%3E%3C/svg%3E") no-repeat;
+} 
+.lloyds_dialog_button.branch_shrink{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon style='fill:black;' points='1,4 9,4 5,9'/%3E%3C/svg%3E") no-repeat;
+} 
+.lloyds_dialog_button.select_down{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='1' y1='5' x2='6' y2='8' style='stroke:black;stroke-width:1'/%3E%3Cline x1='6' y1='8' x2='11' y2='5' style='stroke:black;stroke-width:1'/%3E%3C/svg%3E") no-repeat;
+} 
+.lloyds_dialog_button.select_up{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='1' y1='5' x2='6' y2='2' style='stroke:black;stroke-width:1'/%3E%3Cline x1='6' y1='2' x2='11' y2='5' style='stroke:black;stroke-width:1'/%3E%3C/svg%3E") no-repeat;
+} 
+
+.lloyds_register_dlg_view .instruments{
+    margin: 15px;    
+    margin-left: 25px;
+}
+.lloyds_register_dlg_view .fieldstree_selector{
+    width: 400px;
+    float: left;
+    padding: 10px;    
+    padding-top: 8px;
+    border: solid 1px #bbc8cb;
+    border-right: none;    
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    height:15px;
+}
+.lloyds_register_dlg_view .fieldstree_selector span{
+    opacity: 0.6;
+}
+.lloyds_register_dlg_view .rollout{
+    float: left;
+    padding: 10px;  
+    border: solid 1px #bbc8cb;
+    border-left: none;    
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    cursor: pointer;
+    width:12px;
+    height:13px;
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='5' x2='6' y2='10' style='stroke:black;stroke-width:1.5'/%3E%3Cline x1='6' y1='10' x2='12' y2='5' style='stroke:black;stroke-width:1.5'/%3E%3C/svg%3E") no-repeat 10px 10px;
+    
+}
+.lloyds_register_dlg_view .rollout.up{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='6' x2='6' y2='1' style='stroke:black;stroke-width:1.5'/%3E%3Cline x1='6' y1='1' x2='12' y2='6' style='stroke:black;stroke-width:1.5'/%3E%3C/svg%3E") no-repeat 10px 10px;
+    
+}
+
+.lloyds_register_dlg_view .fieldstree_display{
+    border: solid 1px #bbc8cb;   
+    border-radius: 3px;
+    position: absolute;
+    z-index: 10;
+    background-color: white;
+}
+.lloyds_register_dlg_view .fieldstree_display hr{
+width: 96%;
+border: none;
+border-top: 1px solid;
+position: relative;
+left: 2%;
+}
+.lloyds_register_dlg_view .fieldstree_display .fieldstree_selector{
+    border:none;
+}
+.lloyds_register_dlg_view .fieldstree_display .rollout{
+    border:none;
+}
+.lloyds_register_dlg_view .fieldstree_display .select::after {
+    content: "";
+    clear: both;    
+    display: block;
+}
+.lloyds_register_dlg_view .fieldstree_display ul ul{
+    padding-left: 20px;
+}
+.lloyds_register_dlg_view .fieldstree_display ul ul ul{
+    padding-left: 20px;
+}
+.lloyds_register_dlg_view .fieldstree_panel{
+    height: 200px;
+    overflow: hidden;
+    padding:10px;
+    opacity:0.7;
+}
+
+.lloyds_register_dlg_view .refresh{
+    margin-left: 20px;
+}
+.lloyds_register_dlg_view .instruments::after {
+    content: "";
+    clear: both;
+}
+.lloyds_register_dlg_view .vessels{
+    margin: 25px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+
+.lloyds_register_dlg_view .vessels_columns {
+    overflow: hidden;
+    border: solid 1px #bbc8cb;
+    margin-left: 25px;
+    margin-right: 25px;
+    background-color: #ecf1f5;
+}
+.lloyds_register_dlg_view .vessels_columns td {
+    border-left: solid 1px #bbc8cb;
+    background-color: #ecf1f5;
+}
+.lloyds_register_dlg_view .vessels_columns td:first-of-type {
+    border-left: none;
+}
+.lloyds_register_dlg_view .vessels_columns .column {
+    overflow: hidden;
+    padding: 4px 12px 4px 12px;
+    white-space: nowrap;
+    text-align: center;
+}
+.lloyds_register_dlg_view .vessels_columns .column div{
+    font-size: 11px;
+    opacity: 0.6;
+    padding-top: 4px;
+}
+.lloyds_register_dlg_view .vessels_data .column {
+    white-space: nowrap;
+}
+.lloyds_register_dlg_view .vessels_data td {
+    border: solid 1px #bbc8cb;
+    border-right:none;
+    border-top:none;
+    padding: 6px 12px 6px 12px;
+}
+.lloyds_register_dlg_view .vessels_data td:first-of-type {
+    border-left: none;
+    text-align: center;
+}
+.lloyds_register_dlg_view .vessels_data td:last-of-type {
+    padding-right:20px;
+}
+
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools_vertical .mCSB_draggerRail{
+    width:8px;
+  }
+  
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools_vertical .mCSB_dragger .mCSB_dragger_bar{
+    width:8px;
+}
+
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools_horizontal .mCSB_draggerRail{
+    height:8px;
+    margin:0;
+  }
+  
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools_horizontal .mCSB_dragger .mCSB_dragger_bar{
+    height:8px;
+    margin:0;
+}
+.lloyds_register_dlg_view .vessels .mCSB_container_wrapper{
+    margin-right:10px;
+    margin-bottom:10px;
+    border: solid 1px #bbc8cb;
+    border-top:none;
+}
+.lloyds_register_dlg_view .vessels .mCSB_container{
+    padding-right:0;/*8px;*/
+    padding-bottom:10px;
+}
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools.mCSB_scrollTools_vertical{
+    top: 1px;
+    bottom:11px;
+    width:9px;
+}
+.lloyds_register_dlg_view .vessels .mCSB_scrollTools.mCSB_scrollTools_horizontal{
+    left:1px;
+    right:11px;
+    height:9px;
+}
+.lloyds_register_dlg_view .section{
+    padding-bottom:5px
+}
+.lloyds_register_dlg_view .section li{
+    padding-top:5px
+}
+.lloyds_register_dlg_view li label span{
+    opacity: 0.6;
+}
+.lloyds_register_dlg_view li input[type="checkbox"]{
+    margin-right: 4px;
+    margin-left: 2px;
+    top: 1px;
+    position: relative;
+}
+
+
+.lloyds_register_dlg_view .export.button{
+    border: solid 1px #bbc8cb;
+    border-radius: 3px;
+    width: 80px;
+    text-align: center;
+    float: right;
+    margin-right: 25px;
+    cursor: pointer;
+}
+

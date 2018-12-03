@@ -115,7 +115,7 @@ public class ScreenSearch : IHttpHandler {
 				elapsed = new int[]{0}
 			};
 
-            using (var conn = new NpgsqlConnection("Host=10.1.2.25;Port=5432;User ID=postgres; Password=PgKosmo; Database=maps; CommandTimeout=6000; Timeout=1024; Pooling=true; MinPoolSize=1; MaxPoolSize=20"))
+            using (var conn = new NpgsqlConnection(""))
 			{
 				var com = conn.CreateCommand();
 				if (bounds.Length == 8)

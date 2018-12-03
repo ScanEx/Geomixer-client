@@ -1,0 +1,145 @@
+.prip_view{
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    color:#394b59;
+    margin:0;
+}
+
+.prip_view div{
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    color:#394b59;
+}
+
+.prip_view .message{
+    text-align: center;
+    font-weight: 700;
+    margin-top: 15px;
+}
+
+.prip_view .prips_year{
+    width:100%;
+    background-color: #f5f8fa;
+    border-bottom: solid 1px #e1e8ed;
+    color:#182026;
+    font-weight: 700;
+    height:31px;
+    cursor: pointer;
+}
+.prip_view .prips_year td{
+    padding:6px;
+}
+.prip_view .prips_year td .date{
+    font-weight:700;
+}
+.prip_view .prips_year td div.track{
+    vertical-align: middle;
+}
+.prip_view .prips_year td div.track input[type="checkbox"]{
+    margin-top:-4px;
+    vertical-align: middle;
+}  
+.prip_view .prips_year td .count{
+    font-weight:700;
+    width: 30px;
+}
+.prip_view .prips_year td:nth-of-type(1){
+    width:1%;
+    padding-right:0;
+}
+
+.prip_view .open_positions{
+    cursor: pointer;
+    font-size:14px;
+}
+
+.prip_view .prip_content{
+    width:100%;
+    border-collapse: initial;
+    border-spacing: 0;
+}
+
+.prip_view .prip_content .coordinate{
+    color:#48aff1;
+    cursor: pointer;
+}
+.prip_view .prip_content .coordinate:hover{
+    text-decoration: underline
+}
+
+.prip_view .prip_content td{
+    padding:10px 5px 10px 0px;
+    cursor:pointer;
+    border-top: solid 1px white;
+    font-weight:500;
+}
+.prip_view .prip_content tr td:nth-of-type(1){
+    border-left: solid 1px white;
+    width:1%;
+    padding-left:28px;
+}
+.prip_view .prip_content tr td:nth-of-type(2){
+    color:#182026;
+    /*padding-left:28px;*/
+    width:55px; 
+    border-right:solid 1px #fff;
+}
+
+.prip_view .prip_content td.more{
+    border-bottom: solid 1px #e1e8ed;
+    border-top: none;
+    border-left: none;
+    cursor:default;
+    padding:0;
+}
+.prip_view .prip_content td.more .vi_more{
+    display:none;
+}
+.prip_view .prip_content td.more hr{
+    border-top: solid 1px #e1e8ed;
+    border-bottom: none;
+    margin: 0 28px 10px 0px;
+    display:none;
+}
+.prip_view .prip_content td.more .vi_more::after {
+    content: "";
+    clear: both;
+    /*display: table;*/
+}
+.prip_view .prip_content td.more .vi_more div {
+    padding: 2px 10px 2px 25px;
+}
+
+.prip_view .prip_content td.active{
+    border-top:solid 1px #48aff1;
+    background-color: #f5f8fa;
+}
+.prip_view .prip_content td.more.active{
+    border:solid 1px #48aff1;
+    border-top:none;
+    background-color: #f5f8fa;
+    padding:0 0 10px 28px;
+}
+.prip_view .prip_content td.more.active .vi_more, 
+.prip_view .prip_content td.more.active hr{
+    display:block;
+}
+.prip_view .prip_content tr td:nth-of-type(1).active{    
+    border-left:solid 1px #48aff1;
+}
+.prip_view .prip_content tr td:nth-of-type(2).active{    
+    border-right:solid 1px #48aff1;
+}
+
+.prip_view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }

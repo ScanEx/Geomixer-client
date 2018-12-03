@@ -1,0 +1,56 @@
+.lloyds_view.search_view .filter .preferences{
+    width:16px;
+    height:19px;            
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline style='stroke:%23384b50;stroke-width:2;' x1='0' y1='4' x2='16' y2='4'/%3E %3Cline style='stroke:%23384b50;stroke-width:2;' x1='0' y1='12' x2='16' y2='12'/%3E    %3Cline style='stroke:white;stroke-width:2;' x1='8' y1='0' x2='8' y2='19'/%3E    %3Cline style='stroke:%23384b50;stroke-width:4;' x1='5' y1='0' x2='5' y2='8'/%3E    %3Cline style='stroke:%23384b50;stroke-width:4;' x1='11' y1='8' x2='11' y2='16'/%3E    %3C/svg%3E") no-repeat;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.lloyds_view.search_view .preferences{
+    background-color: white;
+    height: 180px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border-radius: 5px;
+    width: 270px;
+}
+
+.lloyds_view.search_view .preferences div.section{
+    padding: 15px 12px 15px 12px;
+}
+.lloyds_view.search_view .preferences .line:hover{
+    background-color: #ddd
+}
+.lloyds_view.search_view .preferences .line{
+    margin: 0px 10px 0px 10px;
+    padding: 5px 10px 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.lloyds_view.search_view .preferences .checkbox{
+    float: left;
+    width: 12px;
+    height: 12px;
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%2348aff1' stroke='%23ccc' stroke-width='1'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+    padding-right: 0;
+}
+
+.lloyds_view.search_view .preferences .checkbox.checked{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%2348aff1' stroke='%23ccc' stroke-width='1'/%3E%3Cline x1='3' x2='5' y1='5' y2='8' stroke='white' fill='transparent' stroke-width='2'/%3E%3Cline x1='5' x2='9' y1='8' y2='3' stroke='white' fill='transparent' stroke-width='2'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+}
+
+.lloyds_view.search_view .preferences .checkbox.disabled{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%23ddd' stroke='%23ccc' stroke-width='1'/%3E%3Cline x1='3' x2='5' y1='5' y2='8' stroke='white' fill='transparent' stroke-width='2'/%3E%3Cline x1='5' x2='9' y1='8' y2='3' stroke='white' fill='transparent' stroke-width='2'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+}
+
+.lloyds_view.search_view .preferences .label{
+    float: left;
+    margin-left: 10px;
+}
+.lloyds_view.search_view .preferences .line::after{
+    clear: both; 
+    content: "";   
+    display: block;
+}
+
+
