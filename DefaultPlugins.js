@@ -1,7 +1,7 @@
 ﻿window.nsGmx = window.nsGmx || {};
 nsGmx._defaultPlugins =
 [
-    { pluginName: 'Media Plugin',         file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js',        module: 'MediaPlugin2',       mapPlugin: false, isPublic: true},
+    { pluginName: 'Media Plugin', file: 'plugins/external/GMXPluginMedia/MediaPlugin2.js', module: 'MediaPlugin2', mapPlugin: false, isPublic: true},
     { pluginName: 'Geomixer Timeline', file: 'plugins/external/GMXPluginTimeLine/L.Control.gmxTimeLine.js', module: 'gmxTimeLine', mapPlugin: false, isPublic: false, lazyLoad: false},
     { pluginName: 'AISSearch', file: 'plugins/AIS/AISSearch/AISSearch.js', module: 'AISSearch', mapPlugin: true },
         // { pluginName: 'FieldsTablePlugin', file: 'plugins/agro_plugins_api_v2/fieldsTable/main.js', module: 'FieldsTablePlugin' },
@@ -9,7 +9,7 @@ nsGmx._defaultPlugins =
     // {pluginName: 'AttributionMenu', file: 'plugins/AttributionMenu/AttributionMenu.js', module: 'AttributionMenu', mapPlugin: true, isPublic: true},
     // {pluginName: 'Fire Plugin',          file: 'plugins/fireplugin/FirePlugin.js',                               module: 'FirePlugin',        mapPlugin: true,  isPublic: true},
     // {pluginName: 'Shift Rasters Plugin', file: 'plugins/shiftrasters/ShiftRasterPlugin.js',              module: 'ShiftRastersPlugin', mapPlugin: true,  isPublic: true},
-    { pluginName: 'Cadastre',             file: 'plugins/external/GMXPluginCadastre/cadastre.js',         module: 'cadastre',           mapPlugin: true,  isPublic: true, params: {notHideDrawing: true}},
+    { pluginName: 'Cadastre', file: 'plugins/external/GMXPluginCadastre/cadastre.js', module: 'cadastre', mapPlugin: true,  isPublic: true, params: {notHideDrawing: true}},
     // {pluginName: 'ScanEx catalog',       file: '../GeoMixerModules/catalog/CatalogPlugin.js',            module: 'Catalog',            mapPlugin: true,  isPublic: true},
     // {pluginName: 'GIBS Plugin',          file: 'plugins/gibs/GIBSPlugin.js',                             module: 'GIBSPlugin',         mapPlugin: true,  isPublic: true},
     // {pluginName: 'BufferPlugin',         file: 'plugins/external/GMXPluginBuffer/BufferPlugin.js',       module: 'BufferPlugin',       mapPlugin: true,  isPublic: true},
