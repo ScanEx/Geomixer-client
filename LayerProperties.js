@@ -252,7 +252,7 @@ var LayerProperties = Backbone.Model.extend(
 
 						var exp = col.expression || '"' + col.Name + '"';
 
-						sqlString += ', ' + exp + ' as ' + col.Name;
+						sqlString += ', ' + exp + ' as "' + col.Name + '"';
 					}
                 }
 
