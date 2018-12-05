@@ -1989,7 +1989,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 window.iconSidebarWidget = new window.IconSidebar.IconSidebarWidget(document.getElementById('leftMenu'), {
                     collapsedWidth: 40,
-                    extendedWidth: 387,
+                    extendedWidth: 427,
                     position: 'left'
                 });
 
