@@ -1687,6 +1687,7 @@
 	                    position.imo = vessel.imo;
 	                    position.latitude = position.ymax;
 	                    position.longitude = position.xmax;
+						position.source = position.source_orig;
 	                    //console.log(vessel)
 	                    //console.log(position)
 	                    infoDialog.show(position, false);
@@ -1839,8 +1840,9 @@
 	        vessel.draught = _addUnit(_round(vessel.draught, 5), " м");
 	        //vessel.length = _addUnit(vessel.length, " м");
 	        //vessel.width = _addUnit(vessel.width, " м");
-	        vessel.source = 'plugins/AIS/AISSearch/svg/satellite-ais.svg'; //vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
-	
+            vessel.source_orig = vessel.source;
+            vessel.source = vessel.source=='T-AIS'?'plugins/AIS/AISSearch/svg/waterside-radar.svg':'plugins/AIS/AISSearch/svg/satellite-ais.svg';
+
 	        vessel.xmin = vessel.longitude;
 	        vessel.xmax = vessel.longitude;
 	        vessel.ymin = vessel.latitude;
@@ -2766,7 +2768,7 @@
 	                layer: _historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
 	                orderdirection: 'desc',
 	                orderby: 'ts_pos_utc',
-	                columns: '[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},' + '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"}]',
+	                columns: '[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},' + '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
 	
 	                query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
 	            };
@@ -2788,7 +2790,7 @@
 	            var request = {
 	                WrapStyle: 'window',
 	                layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
+	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
 	                query: "([id] IN (" + aid.join(',') + "))"
 	            };
 	            L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -2808,7 +2810,7 @@
 	            var request = {
 	                WrapStyle: 'window',
 	                layer: _aisLastPoint,
-	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"}]',
+	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
 	                //orderdirection: 'desc',
 	                orderby: 'vessel_name',
 	                query: query
@@ -2858,25 +2860,31 @@
 
 /***/ }),
 /* 22 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
-	
+		
+	var Polyfill = __webpack_require__(12);
 	module.exports = function (options) {
 	    var _layersByID = nsGmx.gmxMap.layersByID,
 	        _aisLayer = _layersByID[options.aisLayerID],
 	        _tracksLayer = _layersByID[options.tracksLayerID],
-	        _screenSearchLayer = _layersByID[options.screenSearchLayer];
-	    var _displaingTrack = { mmsi: null },
+			_screenSearchLayer = _layersByID[options.screenSearchLayer];
+		var _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
+			_tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "mmsi"==p.toLowerCase();}) + 1,
+			_aldt = _aisLayer.getGmxProperties().attributes.indexOf("ts_pos_utc") + 1, 
+			_tldt = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "date"==p.toLowerCase();}) + 1;
+// console.log(_almmsi+" "+_aldt)
+// console.log(_tlmmsi+" "+_tldt)		
+		var _displaingTrack = { mmsi: null },
 	        _displayingMyFleet = null,
 	        _filtered = [],
 	        _filterFunc = function _filterFunc(args) {
 	        var dates = _displaingTrack.dates ? _displaingTrack.dates.list : null,
 	            mmsiArr = [];
 	        mmsiArr.push(_displaingTrack.mmsi);
-	
-	        var mmsi = args.properties[1],
-	            dt = new Date(new Date(args.properties[args.properties.length > 20 ? 25 : 3] * 1000).setUTCHours(0, 0, 0, 0)),
+	        var mmsi = args.properties[args.properties.length > 20 ? _almmsi : _tlmmsi],
+	            dt = new Date(new Date(args.properties[args.properties.length > 20 ? _aldt : _tldt] * 1000).setUTCHours(0, 0, 0, 0)),
 	            i = void 0,
 	            j = void 0,
 	            len = void 0;
@@ -2894,7 +2902,6 @@
 	        return false;
 	    },
 	        _setTrackFilter = function _setTrackFilter() {
-	        //console.log(_displaingTrack)
 	        var lmap = nsGmx.leafletMap;
 	        if (_aisLayer) {
 	            if (_displaingTrack.mmsi) {
@@ -2962,7 +2969,8 @@
 	            _displaingTrack = { mmsi: mmsiArr && mmsiArr.length ? mmsiArr[0] : null };
 	            if (dates) _displaingTrack.dates = { mmsi: mmsiArr[0], list: dates };
 	            //if (bbox) { lmap.fitBounds(bbox, { maxZoom: 11 }); }
-	            if (_aisLayer || _tracksLayer) _displaingTrack.mmsi = mmsiArr[0];else _displaingTrack.mmsi = null;
+				if (_aisLayer || _tracksLayer) _displaingTrack.mmsi = mmsiArr[0];
+				else _displaingTrack.mmsi = null;
 	            _setTrackFilter();
 	        },
 	        hideOnMap: function hideOnMap() {
