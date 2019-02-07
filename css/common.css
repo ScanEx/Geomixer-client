@@ -202,13 +202,13 @@ div.user span
 {
 	background: transparent url(../img/geomixer_transpar.png) center no-repeat;
 	height: 60px;
-	width: 360px;
+	width: 387px;
 }
 
 .emptyLogo
 {
 	height: 60px;
-	width: 360px;
+	width: 387px;
 }
 
 #leftCollapser {
@@ -270,7 +270,7 @@ div.user span
 	/* position: absolute; */
 	left: 0px;
 	/* top: 60px; */
-	width: 360px;
+	width: 387px;
 	overflow: hidden;
 }
 
@@ -293,7 +293,7 @@ div.user span
 .leftContent
 {
 	/* width: 100%; */
-	width: 360px;
+	width: 387px;
 	overflow-x: hidden;
 	overflow-y: auto;
     position: inherit;
@@ -301,7 +301,7 @@ div.user span
 .layerManager
 {
 	position: absolute;
-	left: 360px;
+	left: 387px;
 	top: 30px;
 	width: 300px;
 	overflow: hidden;
@@ -674,7 +674,7 @@ div.unit .unitInfo
 
 div.fileBrowser-progressBar
 {
-    width: 400px;
+    width: 387px;
     margin: 16px 18px 0px 0px;
     position: absolute;
     right: 0px;

@@ -36,19 +36,15 @@ var jsFiles = [
     "kmlParser.js",
     "security.js",
     "EditObjectControl.js",
-
     "src/sqlFunctions.js",
     "src/AttrSuggestWidget.js",
-
     "src/TemporalLayerParams.js",
     "src/QuicklookParams.js",
-
     "src/LayerEditor/ManualAttrModel.js",
     "src/LayerEditor/ManualAttrView.js",
     "src/LayerEditor/TemporalLayerParamsWidget.js",
     "src/LayerEditor/LayerRasterCatalogWidget.js",
     "src/LayerEditor/LayerQuicklookWidget.js",
-
     "src/AttrTable/AttrTable.js",
     "src/AttrTable/ServerDataProvider.js",
     "src/AttrTable/SquareCalculation.js",
@@ -58,7 +54,6 @@ var jsFiles = [
     "src/BufferZones/BufferZones.js",
     "src/IndexGrid/IndexGrid.js",
     "src/PhotoLayer/PhotoLayer.js",
-
     "CoverControl.js",
     "CoverControl2.js",
     "DateLayerVisibilityControl.js",
@@ -74,7 +69,6 @@ var jsFiles = [
     "NotificationWidget.js",
     "VirtualLayerManager.js",
     "src/primary.js",
-
     "src/CommonCalendarWidget/CommonCalendarWidget.js",
     "src/SearchLogic/SearchProviders.js",
     "src/SearchLogic/SearchLogic.js",
@@ -98,16 +92,12 @@ var jsFilesThirdparty = [
     "jquery/jquery-ui-timepicker-addon.js",
     "jquery/ui.timepicker-ru.js",
     "jquery/jquery.treeview.js",
-
     "jquery/handlebars.js",
-
     "jquery/underscore-min.js",
     "jquery/backbone-min.js",
-
     "colorpicker/js/colorpicker.js",
     "colorpicker/js/eye.js",
     "colorpicker/js/utils.js",
-
     "thirdparty/customscrollbar/jquery.mCustomScrollbar.js"
 ];
 
@@ -135,7 +125,6 @@ var cssFiles = [
     "css/LayerQuicklookWidget.css",
     "css/layerstylesmenu.css",
     "css/swich-slider.css",
-
     "src/adapter.css",
     "leaflet/plugins/Leaflet.ExtSearch/src/SearchWidget.css",
     // "leaflet/plugins/IconSidebarControl/dist/bundle.css",
@@ -143,12 +132,10 @@ var cssFiles = [
     "leaflet/plugins/Leaflet.Dialog/Leaflet.Dialog.css",
     "leaflet/plugins/gmxLayers2/gmxLayers2.css",
     "leaflet/leafletGmx.css",
-
     "src/GridPlugin/GridPlugin.css",
     "src/MapExport/MapExport.css",
     "src/BufferZones/BufferZones.css",
     "src/IndexGrid/IndexGrid.css",
-
     "src/PhotoLayer/PhotoLayer.css",
     "src/CommonCalendarWidget/CommonCalendarWidget.css"
 ];

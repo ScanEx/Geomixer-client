@@ -197,12 +197,12 @@ div.user span {
 .logo {
   background: transparent url("../img/geomixer_transpar.png") center no-repeat;
   height: 60px;
-  width: 360px;
+  width: 387px;
 }
 
 .emptyLogo {
   height: 60px;
-  width: 360px;
+  width: 387px;
 }
 
 #leftCollapser {
@@ -263,7 +263,7 @@ div.user span {
   /* position: absolute; */
   left: 0px;
   /* top: 60px; */
-  width: 360px;
+  width: 387px;
   overflow: hidden;
 }
 
@@ -283,7 +283,7 @@ div.user span {
 
 .leftContent {
   /* width: 100%; */
-  width: 360px;
+  width: 387px;
   overflow-x: hidden;
   overflow-y: auto;
   position: inherit;
@@ -291,7 +291,7 @@ div.user span {
 
 .layerManager {
   position: absolute;
-  left: 360px;
+  left: 387px;
   top: 30px;
   width: 300px;
   overflow: hidden;
@@ -642,7 +642,7 @@ div.unit .unitInfo {
 }
 
 div.fileBrowser-progressBar {
-  width: 400px;
+  width: 387px;
   margin: 16px 18px 0px 0px;
   position: absolute;
   right: 0px;
@@ -2425,7 +2425,7 @@ span.searchElemParent:hover {
 }
 
 .SearchResultText.ui-draggable-dragging {
-  width: 360px;
+  width: 387px;
   background-color: #edf4f6;
 }
 
@@ -2873,39 +2873,39 @@ span.searchLocationPath:hover {
 
 .ui-icon,
 .ui-widget-content .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0094762");
   /*{iconsContent}*/
 }
 
 .ui-widget-header .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0094762");
   /*{iconsHeader}*/
 }
 
 .ui-state-default .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_454545_256x240.png?0094762");
   /*{iconsDefault}*/
 }
 
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0094762");
   /*{iconsHover}*/
 }
 
 .ui-state-active .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_222222_256x240.png?0094762");
   /*{iconsActive}*/
 }
 
 .ui-state-highlight .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_2e83ff_256x240.png?0094762");
   /*{iconsHighlight}*/
 }
 
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/ui-icons_cd0a0a_256x240.png?0094762");
   /*{iconsError}*/
 }
 
@@ -5017,19 +5017,19 @@ button.ui-button::-moz-focus-inner {
 }
 
 .picker-checkbox:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check.png?0094762");
 }
 
 .picker-checkbox.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/check-a.png?0094762");
 }
 
 .picker-radio:hover .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot.png?0094762");
 }
 
 .picker-radio.checked .picker-flag {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/dot-a.png?0094762");
 }
 
 /* ---------------------------------
@@ -5075,7 +5075,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search.png?0094762");
   border-left: none;
   width: 30px;
   height: 24px;
@@ -5085,7 +5085,7 @@ input.searchCenterValueExists {
 }
 
 .searchEnd:hover {
-  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?1223637");
+  background-image: url("../common_components/dist/CommonStyles/dist/images/search-a.png?0094762");
 }
 
 .search-form table {
@@ -5186,11 +5186,11 @@ input.submit {
 
 @font-face {
   font-family: 'fontello';
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1223637");
-  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?1223637#iefix") format('embedded-opentype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?1223637") format('woff'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?1223637") format('truetype'),
-       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?1223637#fontello") format('svg');
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0094762");
+  src: url("../common_components/dist/CommonStyles/dist/font/fontello.eot?0094762#iefix") format('embedded-opentype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.woff?0094762") format('woff'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.ttf?0094762") format('truetype'),
+       url("../common_components/dist/CommonStyles/dist/font/fontello.svg?0094762#fontello") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -5203,7 +5203,7 @@ input.submit {
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?54222525?1223637#fontello') format('svg');
+    src: url('../font/fontello.svg?54222525?0094762#fontello') format('svg');
   }
 }
 */
@@ -5760,7 +5760,7 @@ input.submit {
 .authWidget-userPanel-userIcon {
   width: 18px;
   height: 17px;
-  background-image: url("../common_components/dist/AuthWidget/build/user.png?1223637");
+  background-image: url("../common_components/dist/AuthWidget/build/user.png?0094762");
 }
 
 .authWidget-loginButton {
@@ -5942,11 +5942,11 @@ input.submit {
 .headerWidget-menuDot .dropdownMenuWidget-itemAnchor {
   padding-left: 20px;
   background-repeat: no-repeat;
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?1223637");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_off.png?0094762");
 }
 
 .headerWidget-menuDot:hover .dropdownMenuWidget-itemAnchor {
-  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?1223637");
+  background-image: url("../common_components/dist/HeaderWidget/build/assets/dot_on.png?0094762");
 }
 
 .headerWidget .dropdownMenuWidget-dropdownMenu {
@@ -6719,7 +6719,7 @@ tbody.collapse.in {
 
 .leaflet-iconLayers-layerCell {
   display: table-cell;
-  background-image: url("../common_components/dist/src/transparent-pixel.png?1223637");
+  background-image: url("../common_components/dist/src/transparent-pixel.png?0094762");
   /* ie9 fix */
 }
 
@@ -6775,7 +6775,7 @@ tbody.collapse.in {
   right: 3px;
   width: 18px;
   height: 18px;
-  background: url("../common_components/dist/src/check.png?1223637");
+  background: url("../common_components/dist/src/check.png?0094762");
   background-color: #fff;
   background-repeat: no-repeat;
   background-position: 4px 4px;
@@ -6821,7 +6821,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?1223637");
+  background-image: url("../common_components/dist/GmxIconLayers/stroke.png?0094762");
   opacity: .4;
   display: none;
 }
@@ -12945,7 +12945,7 @@ input:checked + .switch-slider:before {
 
 .leaflet-ext-search,
 .leaflet-ext-search-list {
-  width: 400px;
+  width: 387px;
 }
 
 .leaflet-ext-search-list {
@@ -13005,7 +13005,7 @@ input:checked + .switch-slider:before {
 }
 
 .gmx-sidebar-opened {
-  width: 400px !important;
+  width: 387px !important;
 }
 
 /*.iconSidebarControl-content  */
@@ -13013,7 +13013,7 @@ input:checked + .switch-slider:before {
 /* .gmx-sidebar-content  */
 
 .iconSidebarControl-content {
-  width: 360px;
+  width: 387px;
   float: right;
   height: 100%;
   background-color: #FFF;
