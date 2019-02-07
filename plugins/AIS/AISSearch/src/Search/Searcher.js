@@ -150,7 +150,7 @@ module.exports = function (options) {
                 orderdirection: 'desc',
                 orderby: 'ts_pos_utc',
                 columns:'[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},'+
-                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"}]',
+                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 
                 query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
             };
@@ -172,7 +172,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 query: "([id] IN (" + aid.join(',') + "))"
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -196,7 +196,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLastPoint,
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 //orderdirection: 'desc',
                 orderby: 'vessel_name',
                 query: query

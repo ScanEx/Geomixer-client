@@ -410,6 +410,7 @@ DbSearchView.prototype.repaint = function () {
                     position.imo = vessel.imo;
                     position.latitude = position.ymax;
                     position.longitude = position.xmax;
+                    position.source = position.source_orig;
                     //console.log(vessel)
                     //console.log(position)
                     infoDialog.show(position, false);

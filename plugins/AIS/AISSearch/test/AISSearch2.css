@@ -170,7 +170,7 @@
     /*padding-left: 6px;*/
   }
   .ais_view .instruments{
-    width: 360px;
+    width: 387px;
     background-color: #e1e8ed;
   }
   
@@ -1201,7 +1201,7 @@
         }
         .vessel-info-page .column2 .register .content{
             padding-left: 80px;
-            height:360px;
+            height:387px;
             overflow:hidden;
             background-color: #f5f8fa;
             color:#5c7080;
