@@ -1,22 +1,42 @@
+require("./MyFleet.css")
 const BaseView = require('./BaseView.js');
-const MyFleetView = function (model, tools){
-    _tools = tools;
+const GroupList = require('../Controls/GroupList.js');
+
+let _clean = function(){  
+    this.frame.find('.ais_vessels input[type="checkbox"]').off('click');
+};
+
+const MyFleetView = function (model){
     BaseView.call(this, model);
-    this.topOffset = 160;
+    this.topOffset = 200;
+    let settings = []; //DEFAULT SETTINGS
     this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' +
     '<table class="instruments">'+
-    '<tr><td>'+
+    '<tr><td style="vertical-align:top; padding-right:0">'+
+    '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' +
     '<label class="sync-switch switch"><input type="checkbox">'+
     '<div class="sync-switch-slider switch-slider round"></div></label>' +
-    '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span>'+
+    '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span>'+    
     '</td>' +
-    '</table>'+    
+    '<td style="padding-right:0">' +
+    '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name')<0?'':'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' +
+    '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name')<0?'':'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' +
+    '<div style="width:70px;float:left;" class="setting"><label><input type="checkbox" id="sog" ' + (settings.indexOf('sog')<0?'':'checked') + '>{{i "AISSearch2.DisplaySog"}}</label></div>' +
+    '<div style="width:45px;float:left;" class="setting"><label><input type="checkbox" id="cog" ' + (settings.indexOf('cog')<0?'':'checked') + '>{{i "AISSearch2.DisplayCog"}}</label></div>' +
+    '</td>' +
+    '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' +
+
+    '<tr><td colspan="3" style="padding-top:0">' +
+    '<table><tr><td>{{i "AISSearch2.NewGroup"}}</td>' +
+    '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' +
+    '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' +
+    '</tr></table>' +
+    '</td></tr>' +
+    '</table>'+ 
+    '<div class="ais_vessels">'+
     '<table class="results">'+
     '<td><input type="checkbox" checked></td>' +
-    '<td class="count"></td>' +
-    '<td><div class="refresh clicable"><div>' + this.gifLoader + '</div></div></td></tr>' +
-    '</table>'+
-    '<div class="ais_vessels">'+
+    '<td class="count"></td></tr></table>'+
     '<div class="ais_vessel">' +
     '<table border=0><tr>' +
     '<td><input type="checkbox" checked></td>' +
@@ -30,38 +50,79 @@ const MyFleetView = function (model, tools){
     '</div>' +
     '</div>')());
     this.container = this.frame.find('.ais_vessels'); 
-    this.frame.find('.results input[type="checkbox"]').on("click", ((e)=>{
-        this.frame.find('.ais_vessel input[type="checkbox"]').each((i, elm)=>{
-            elm.checked = e.target.checked;
-        }) 
-        _hideOnMap.call(this);
-    }).bind(this)); 
-    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", ((e)=>{
-        _tools.displayingMyFleet = null;
-        if (e.currentTarget.checked && this.model.data.vessels) {
-            let myfleet = this.model.data.vessels.map(v => v.mmsi);
-            if (myfleet.length > 0)
-                _tools.displayingMyFleet = myfleet;
+    // DEFAULT SETTINGS
+    this.model.markerTemplate =  '<div><table><tr>' +
+        '<td style="vertical-align:top">' +
+        //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
+        '{{{marker}}}' +
+        '</td><td>{{{foo}}}</td></tr></table></div>'; 
+    
+    // craete group controller
+    let newGroupNameValid = function(ngn){
+        let isValid = ngn.search(/\S/)!=-1;
+        this.model.data.groups.forEach(g=>{
+            if (isValid)
+                isValid = g.title!=ngn;
+        });
+        return isValid;
+    },
+    createGroup = function(ngn){
+        if (newGroupNameValid.call(this, ngn)){
+            this.inProgress(true);
+            this.model.createGroup(ngn)
+            .then((group)=>{
+                this.groupList.appendGroup(group, this.model.data.groups.length-1);
+                this.inProgress(false);
+            },
+            (error)=>{
+                this.inProgress(false);
+                console.log(error)
+            }
+            );
+        }        
+    };
+    this.frame.find('.instruments .create').on("click", (e=>{
+        let input = this.frame.find('.instruments .newgroupname input'),
+        ngn = input.val();
+        input.val('');
+        createGroup.call(this, ngn);
+    }).bind(this))
+    this.frame.find('.instruments .newgroupname input').on("keyup", (e=>{
+        let ngn = e.target.value;
+        if (e.keyCode==13){
+            e.target.value = '';
+            createGroup.call(this, ngn);
         }
-        _tools.hideAllOnMap();
     }).bind(this)); 
 
-    this.tableTemplate = '{{#each vessels}}' +
-    '<div class="ais_vessel">' +
-    '<table border=0><tr>' +
-    '<td><input type="checkbox" checked></td>' +
-    '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +
-    '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' +
-    '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
-    '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + 
-    '</td>' +  
-    '<td>' +
-    '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' +
-    '<span class="date">{{dt_pos_utc}}</span></td>'+
-    '</tr></table>' +
-    '</div>' +
-    '{{/each}}' +
-    '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+    // marker settings
+    this.frame.find('.instruments .setting input')
+    .on('change', e=>{
+        let display = '';
+        this.frame.find('.instruments .setting input').each((i, e)=>{
+            if (e.checked)
+                display += "{{{" + e.id + "}}}";
+        });
+        if (display=='')
+            display = '{{{foo}}}';  
+        this.model.markerTemplate =  this.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
+        this.model.drawMarkers();
+    })
+    
+    // visibility controller
+    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", this.model.showOnlyMyfleet); 
+
+    // group list
+    this.groupList = new GroupList(this.frame);
+    this.groupList.onRepaintItem = ((i, elm)=>{
+        elm.querySelector('input[type=checkbox]').checked = this.model.isMemberShown(elm.querySelector('.mmsi').innerText);
+    }).bind(this);
+    this.groupList.onDeleteGroup = (group=>{
+        this.inProgress(true);
+        this.model.deleteGroup(group);
+    }).bind(this);
+    
+    this.tableTemplate = this.groupList.toString();
 };
 
 MyFleetView.prototype = Object.create(BaseView.prototype);
@@ -74,92 +135,67 @@ MyFleetView.prototype.inProgress = function (state) {
         progress.hide();
 };
 
-let _clean = function(){  
-    if (this.frame.find('.ais_vessel')[0])
-        this.frame.find('.ais_vessel input[type="checkbox"]').off('click');
-    let count = this.model.data && this.model.data.vessels ? this.model.data.vessels.length : 0;
-    this.frame.find('.count').text(_gtxt('AISSearch2.found') + count);
-},
-_tools,
-_hideOnMap = function(){
-    _tools.filtered = [];
-    let selectAll = this.frame.find('.results input[type="checkbox"]'),
-        selectOne = this.frame.find('.ais_vessel input[type="checkbox"]');
-    for (let i = 0; i < selectOne.length; i++)
-        if (!selectOne[i].checked) {
-            _tools.filtered.push(this.model.data.vessels[i].mmsi);
-            selectAll[0].checked = false;
-        }
-    if (_tools.filtered.length == 0)
-        selectAll[0].checked = true;
-
-    _tools.hideOnMap();    
-};
-
 MyFleetView.prototype.repaint = function () {
     _clean.call(this);  
     BaseView.prototype.repaint.apply(this, arguments);
-    
-    _tools.filtered = _filteredState.map(mmsi=>mmsi);
-    //_displayngState && (_tools.displayingMyFleet = _displayngState.map(v=>v));
-    if (_displayngState)
-        _tools.displayingMyFleet = this.model.data.vessels.map(v=>v.mmsi)
 
-    if (_tools.displayingMyFleet)
-        this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = true;
-    this.frame.find('.results input[type="checkbox"]')[0].checked = !_tools.filtered.length; 
-    _tools.hideAllOnMap();
+    let onlyMyfleet = this.model.showOnlyMyFleet();
+    this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = onlyMyfleet;
 
-    this.frame.find('.ais_vessel input[type="checkbox"]').each(((i, elm)=>{
-        let mmsi = this.model.data.vessels[i].mmsi;
-        elm.checked = _tools.filtered.indexOf(mmsi)<0;
-        $(elm).on('click', (e) => {
-            e.stopPropagation();
-            _hideOnMap.call(this);
-        });
-    }).bind(this));
-    this.frame.find('.ais_vessel .exclude').each(((i, elm)=>{
+    this.groupList.repaint();   
+    this.groupList.onCheckItem = this.model.showMembers;
+    this.groupList.onChangeGroup = ((mmsi, group)=>{
         let view = this;
-        $(elm).on('click', (e) => {
-            e.stopPropagation();
-            $(elm).off('click');
-            let vessel = view.model.data.vessels[i];
-            view.prepare(vessel);
+        this.inProgress(true);          
+        this.model.changeGroup(mmsi, group)
+        .then((r)=>{
+            view.repaint();
+            view.inProgress(false); 
+            view.model.drawMarkers();  
+        })
+        .catch((err)=>{
+            console.log(err)
+            view.inProgress(false);   
+        });
+    }).bind(this);
+    this.groupList.onExcludeItem = ((ev, mmsi, i) => {
+            ev.stopPropagation();
+            let view = this;
+            let vessel = view.model.vessels[i];
+            view.prepare(vessel.mmsi.toString());
             let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
             if (dlg[0]){ 
                 dlg.find('.button.addremove').click();
             }
             else{
-                view.model.changeFilter(vessel).then(function () {
-                    if (view.isActive)
-                        view.show();
+                view.model.change(vessel).then(function () {
+                    view.show();
                 })
-            }
-        })
-    }).bind(this));
-
+            }        
+    }).bind(this);    
+    this.groupList.onGroupMenuShow = ((group)=>{
+        let i = parseInt(group.replace(/gr/, ''), 10);
+        return {
+            marker_style:parseInt(this.model.data.groups[i].marker_style.replace(/#/, ''), 16),
+            label_color:parseInt(this.model.data.groups[i].label_color.replace(/#/, ''), 16),
+            label_shadow:parseInt(this.model.data.groups[i].label_shadow.color.replace(/#/, ''), 16)
+        };
+    }).bind(this);
+    this.groupList.onChangeGroupStyle = ((group, colors)=>{
+        let i = parseInt(group.replace(/gr/, ''), 10);
+        this.model.changeGroupStyle(i, colors);
+    }).bind(this);
+    this.groupList.onSaveGroupStyle = this.model.saveGroupStyle;
 };
 
-let _filteredState = [], _displayngState;
-
-MyFleetView.prototype.prepare = function (vessel) {
+MyFleetView.prototype.prepare = function (mmsi) {
     if (this.isActive){
-        _filteredState = _tools.filtered.filter(mmsi=>mmsi!=vessel.mmsi);
-        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.filter(mmsi=>mmsi!=vessel.mmsi) : null;   
-        if (_displayngState && _displayngState.length==0)
-            _displayngState = null;
+       this.model.freeMember(mmsi);
     }
 }
 
 MyFleetView.prototype.hide = function () {
-    if (this.isActive){
-        _filteredState = _tools.filtered.map(v=>v);
-        _displayngState = _tools.displayingMyFleet ? _tools.displayingMyFleet.map(v=>v) : null;
-
-        _tools.filtered = [];   
-        _tools.displayingMyFleet = null;
-        _tools.hideAllOnMap();
-    }
+    this.model.showNotOnlyMyfleet();
     BaseView.prototype.hide.apply(this, arguments);
 }
 // MyFleetView.prototype.show = function () {

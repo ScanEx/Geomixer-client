@@ -330,7 +330,7 @@ module.exports = function ({modulePath, aisServices}){
                         break;
                 }           
                 resize();   
-                mia[0].click();
+                mia[0] && mia[0].click();
             }
         }));
         var mia = document.querySelectorAll('.column2 .menu-item');

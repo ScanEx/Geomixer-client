@@ -12,18 +12,19 @@ module.exports = function (options) {
     const _tools = new Toolbox(options),
         //_layersByID = nsGmx.gmxMap.layersByID,
         _searcher = new Searcher(options),
-        _mfm = new MyFleetModel(_searcher),
+        _mfm = new MyFleetModel({aisLayerSearcher:_searcher, toolbox:_tools}),
         _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
         _dbsm = new DbSearchModel(_searcher),
         _dbsv = new DbSearchView({model:_dbsm, highlight:options.highlight, tools:_tools}),
         _ssv = new ScreenSearchView(_ssm),
-        _mfv = new MyFleetView(_mfm, _tools),
+        _mfv = new MyFleetView(_mfm),
         _idv = new InfoDialogView({
             tools:_tools,
             aisLayerSearcher: _searcher, 
             modulePath: options.modulePath,
             aisView: _dbsv, 
-            myFleetMembersView: _mfv
+            myFleetView: _mfv,
+            menuId: options.menuId
         });
         _ssv.infoDialogView = _idv;
         _mfv.infoDialogView = _idv;
@@ -33,7 +34,7 @@ module.exports = function (options) {
             return _idv;
         },
         create: function () {
-            return [ _dbsv, _ssv, _mfv ];
+            return [ _mfv, _dbsv, _ssv ];
         }
     };
 }

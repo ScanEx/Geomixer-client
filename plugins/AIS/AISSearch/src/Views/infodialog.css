@@ -171,6 +171,7 @@
 	font-size:12px;
 	font-weight:bold;
 	margin:0;
+  cursor: pointer;
 }
 
 .ais_info_dialog_titlebar td span.chooser{

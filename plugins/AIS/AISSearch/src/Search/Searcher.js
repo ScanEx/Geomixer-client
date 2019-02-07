@@ -10,6 +10,7 @@ module.exports = function (options) {
 
     return {
         baseUrl: _baseUrl,
+        get screenSearchLayer(){return _screenSearchLayer},
         aisServices: _aisServices,
         getBorder: function () {
             var lmap = nsGmx.leafletMap;
@@ -150,7 +151,7 @@ module.exports = function (options) {
                 orderdirection: 'desc',
                 orderby: 'ts_pos_utc',
                 columns:'[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},'+
-                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"}]',
+                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 
                 query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
             };
@@ -172,7 +173,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 query: "([id] IN (" + aid.join(',') + "))"
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -196,7 +197,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLastPoint,
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 //orderdirection: 'desc',
                 orderby: 'vessel_name',
                 query: query
@@ -206,16 +207,18 @@ module.exports = function (options) {
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
         },
         searchNames: function (avessels, callback) {
-            var request = {
+            var a = avessels.reduce((p,c)=>{
+                if((c.mmsi && c.mmsi!="") || (c.imo && c.imo!="" && c.imo!=-1)) 
+                    p.push(c); 
+                return p;
+            },[]),
+            request = {
                 WrapStyle: 'window',
                 layer: _aisLastPoint,
                 orderdirection: 'desc',
                 orderby: 'ts_pos_utc',
-                query: avessels.map(function (v) { return "([mmsi]=" + v.mmsi + (v.imo && v.imo != "" ? (" and [imo]=" + v.imo) : "") + ")" }).join(" or ")
-                //([mmsi] IN (" + ammsi.join(',') + "))"+
-                //"and ([imo] IN (" + aimo.join(',') + "))"
+                query: a.map(function (v) { return "([mmsi]=" + v.mmsi + (v.imo && v.imo != "" ? (" and [imo]=" + v.imo) : "") + ")" }).join(" or ")
             };
-            //console.log(request)
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
         },
         searchScreen: function (options, callback) {

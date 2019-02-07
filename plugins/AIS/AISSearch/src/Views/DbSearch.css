@@ -19,8 +19,12 @@
     opacity: 0.6;
 }
 
+.ais_view.search_view .instruments .time .label{
+padding-left: 12px;
+padding-right: 5px;
+}
 .ais_view.search_view .instruments .time span{
-    padding: 1px 15px 2px 15px;
+    padding: 0px 12px 1px 12px;
 }
 .ais_view.search_view .instruments .time .local,.utc{
     cursor: pointer;

@@ -14,19 +14,18 @@ module.exports = function (viewFactory) {
         _canvas = _div(null),
         _activeView,
         _views = viewFactory.create(),
-        // _aisSearchView,
-        // _myFleetMembersView,
-        // _historyView,
-        //_gifLoader = '<img src="img/progress.gif">',
         _isReady = false,
         _createTabs = function () {
             let tabsTemplate = '<table class="ais_tabs" border=0><tr>' +
+
+                '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
+                '<div>{{i "AISSearch2.MyFleetTab"}}</div>' +
+              
                 '<td class="ais_tab dbsearch_tab unselectable" unselectable="on">' +
                 '<div>{{i "AISSearch2.DbSearchTab"}}</div>' +
                 '</td><td class="ais_tab scrsearch_tab unselectable" unselectable="on">' +
                 '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' +
-                '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
-                '<div>{{i "AISSearch2.MyFleetTab"}}</div>' +
+              
                 '</td></tr></table>'
 
             if (NOSIDEBAR)

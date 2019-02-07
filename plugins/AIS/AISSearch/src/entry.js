@@ -45,7 +45,8 @@ const publicInterface = {
             tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
 
             modulePath: modulePath,
-            highlight: highlight
+            highlight: highlight,
+            menuId: menuId
         };
         for (var key in params) 
             if (key.toLowerCase() == "myfleet") {

@@ -1,0 +1,110 @@
+
+.myfleet_view .instruments td table{
+    width:100%;
+}
+.myfleet_view .instruments td table td{
+    padding: 0;
+}
+.myfleet_view .instruments .newgroupname{
+    background-color: #fff;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    width:92%;
+    border: 1px solid #DDD;
+    margin-top:0;
+    border-radius: 3px;
+  }
+.myfleet_view .instruments .newgroupname div{
+    float:right;
+    margin-right:10px;
+  }
+.myfleet_view .instruments .newgroupname input{
+    width: 80%;
+    padding-left: 10px;
+    border: none;  
+    background: transparent;
+    font-weight:700;
+  }
+  .myfleet_view .instruments .setting{
+  padding: 0 5px 5px 0;
+  }
+  .myfleet_view .instruments .setting input[type=checkbox]{
+      position: relative;
+      top:3px;
+      margin-right: 4px;
+  }
+  .myfleet_view .instruments .setting label{
+      cursor: pointer;
+  }
+
+.ais_view.myfleet_view table.results td:nth-of-type(1){
+    width:18%
+  }
+.ais_view.myfleet_view table.results td:nth-of-type(1) input{
+    margin-top:3px
+  }
+.ais_view.myfleet_view table.results td:nth-of-type(1) div{
+    margin-top:2px
+}
+.ais_view.myfleet_view table.results td:nth-of-type(2){
+    width:60%
+}
+.ais_view.myfleet_view table.results td:nth-of-type(3) img{
+    margin-top:3px
+  }
+  .ais_view.myfleet_view table.results .count .title{
+      margin-right:15px
+    }
+
+.mf_group_menu{
+display: none;
+position:absolute;
+background-color: #fff;
+border: solid 1px #bbb;
+cursor: pointer;
+width: 165px;
+}
+.mf_group_menu div{
+    padding: 5px;
+    overflow:hidden;
+}
+.mf_group_menu div span{
+    margin-left: 5px;
+}
+
+.mf_group_menu div.command.remove{
+    border-top:solid 1px #bbb;
+}
+.mf_group_menu div.command.remove.lonely{
+    border:none;
+}
+.mf_group_menu div.command.remove.lonely:hover{
+    background-color:#fff;
+}
+
+.mf_group_menu div.command:hover{
+    background-color: #bbb;
+}
+.mf_group_menu .colorSelector{
+    float:left;
+    height:0;
+    width:5px;
+}
+
+.leaflet-marker-icon.leaflet-interactive.mf_label{
+    padding-left: 0;
+    white-space: nowrap;
+    line-height: 12px;
+    pointer-events: none;
+}
+.mf_label svg{
+margin-right: 0px;
+}
+.mf_label table{
+position:relative;
+top:-4px;
+left:-4px;
+}
+.myfleet_view .instruments .switch{
+    margin-left:0;
+}

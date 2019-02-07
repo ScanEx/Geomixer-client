@@ -6,6 +6,7 @@ let _searchString = "",
         let searchBut = this.frame.find('.filter .search'),
             removeBut = this.frame.find('.filter .remove'),
             _searchString = s;
+            
         this.searchInput.val(_searchString);
         if (s != "") {
             removeBut.show();
@@ -15,7 +16,8 @@ let _searchString = "",
             removeBut.click();
     },
     _highlight,
-    _tools;
+    _tools,
+    _displayedOnly = null;
 
 const DbSearchView = function ({ model, highlight, tools }) {
     BaseView.call(this, model);
@@ -30,10 +32,18 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '</div></div>' +
 
         '</td></tr>' +
-        '<tr><td class="time"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' +
-        '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span></td>' +
+        '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' +
+        '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>'+
+        '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>'+ 
+        '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' +
+        '</td>' +
+
         '<tr><td><div class="calendar"></div></td>' +
-        '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' +
+        '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
+        '<div class="progress">' + this.gifLoader + '</div>' +
+        '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' +
+        '</div></td></tr>' +
         '</table>' +
 
         '<table class="start_screen"><tr><td>' +
@@ -69,8 +79,8 @@ const DbSearchView = function ({ model, highlight, tools }) {
         .set('dateBegin', mapDateInterval.get('dateBegin'))
         .set('dateEnd', mapDateInterval.get('dateEnd'))
         .on('change', function (e) {
-            //console.log(this.model.historyInterval) 
-            //console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
+//console.log(this.model.historyInterval) 
+//console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
             this.model.historyInterval = { dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') };
             this.model.isDirty = true;
             this.show();
@@ -109,6 +119,18 @@ const DbSearchView = function ({ model, highlight, tools }) {
         suggestions.hide();
     }).bind(this));
 
+    this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
+        _displayedOnly = null;
+//console.log(this.model.data.vessels[0].positions[0].mmsi.toString())
+        if (e.currentTarget.checked && this.frame.find('.show_info')[0] ) {
+            _displayedOnly = [this.model.data.vessels[0].positions[0].mmsi.toString()];
+            _tools.showOtherMarkers([this.model.data.vessels[0].positions[0].mmsi.toString()])
+        }
+        else
+            _tools.showOtherMarkers();
+        _tools.hideVesselMarkers([], _displayedOnly);  
+    }).bind(this));
+
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
@@ -128,6 +150,13 @@ const DbSearchView = function ({ model, highlight, tools }) {
             }
         }
 
+    }).bind(this));
+
+    this.frame.find('.refresh .reload').click((e=>{
+        if (e.currentTarget.style.display="block"){
+            this.model.isDirty = true;
+            this.model.update();
+        }
     }).bind(this));
 
     this.searchInput = this.frame.find('.filter input');
@@ -151,6 +180,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
             }
             else {
                 _clean.call(this);
+                _cleanMap();
             }
         },
         doSearch = function (actualId) {
@@ -226,6 +256,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         searchBut.show();
         suggestions.hide();
         _clean.call(this);
+        _cleanMap();
         //nsGmx.leafletMap.removeLayer(highlight);
     }.bind(this));
     this.searchInput.keydown(function (e) {
@@ -307,14 +338,24 @@ let _clean = function () {
     //console.log("EMPTY ON SELF.CLEAN "+this)
     this.startScreen.css({ visibility: "hidden" });
     nsGmx.leafletMap.removeLayer(_highlight);
+},
+_cleanMap = function(){
+    _displayedOnly = null;
+    _tools.showOtherMarkers(_displayedOnly);  
+    _tools.hideVesselMarkers([], _displayedOnly);
 };
 
 DbSearchView.prototype.inProgress = function (state) {
-    let progress = this.frame.find('.refresh div');
-    if (state)
+    let progress = this.frame.find('.refresh div.progress'),
+    reload = this.frame.find('.refresh div.reload');
+    if (state){
         progress.show();
-    else
+        reload.hide();
+    }
+    else{
         progress.hide();
+        reload.show();
+    }
 };
 
 let _vi_template = '<table class="ais_positions">' +
@@ -342,14 +383,14 @@ let _vi_template = '<table class="ais_positions">' +
     '</table>';
 
 let _prepare_history = function(){   
-//console.log(_tools.displaingTrack)     
-    if (this.model.data.vessels.length>0 && _tools.displaingTrack && 
-        _tools.displaingTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){            
+//console.log(_tools.displayedTrack)     
+    if (this.model.data.vessels.length>0 && _tools.displayedTrack && 
+        _tools.displayedTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){            
         this.frame.find('.ais_positions_date').each((i, el) => {
-            if (_tools.displaingTrack.dates) {
+            if (_tools.displayedTrack.dates) {
                 let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0)
-                for (let j = 0; j < _tools.displaingTrack.dates.list.length; ++j) {
-                    let trackDate = _tools.displaingTrack.dates.list[j];
+                for (let j = 0; j < _tools.displayedTrack.dates.list.length; ++j) {
+                    let trackDate = _tools.displayedTrack.dates.list[j];
                     if (modelDate === trackDate.getTime()) {
                         $(el).find('.track input')[0].checked = true;
                         break;
@@ -367,6 +408,13 @@ DbSearchView.prototype.repaint = function () {
     BaseView.prototype.repaint.apply(this, arguments); 
 
     _prepare_history.call(this);
+
+//console.log("REPAINT")
+    if (this.frame.find('.time .only_this  input[type="checkbox"]')[0].checked) {
+        _displayedOnly = [this.model.data.vessels[0].positions[0].mmsi.toString()];
+        _tools.showOtherMarkers(_displayedOnly); 
+        _tools.hideVesselMarkers([], _displayedOnly);  
+    }
 
     let open_pos = this.frame.find('.open_positions');
     open_pos.each((ind, elm) => {
@@ -410,6 +458,7 @@ DbSearchView.prototype.repaint = function () {
                     position.imo = vessel.imo;
                     position.latitude = position.ymax;
                     position.longitude = position.xmax;
+                    position.source = position.source_orig;
                     //console.log(vessel)
                     //console.log(position)
                     infoDialog.show(position, false);
@@ -422,7 +471,7 @@ DbSearchView.prototype.repaint = function () {
                     this.positionMap(vessel, this.calendar.getDateInterval());
                     this.frame.find('.track input')[ind].checked = true;                    
                     let dates = getDates.call(this);
-                    this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
+                    this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates, [], _displayedOnly);
                     e.stopPropagation();
                 }).bind(this));
             }
@@ -445,7 +494,7 @@ DbSearchView.prototype.repaint = function () {
         interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
         nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
         let dates = getDates.call(this);
-        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
+        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates, [], _displayedOnly);
     }).bind(this));
 
     if (this.model.data.vessels.length == 1)
@@ -462,7 +511,8 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
     },
     set(v) {
         _setSearchInputValue.call(this, v.vessel_name);
-
+        _searchString = v.vessel_name;
+        
         let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
         this.model.vessel = null;
         let checkInterval = this.calendar.getDateInterval();
@@ -483,13 +533,17 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
 DbSearchView.prototype.show = function () {
     this.frame.show();
     this.searchInput.focus();
+
+    _tools.showOtherMarkers(_displayedOnly);  
+    _tools.hideVesselMarkers([], _displayedOnly); 
+
     if (!this.vessel)
         return;
     BaseView.prototype.show.apply(this, arguments);
 };
 
 DbSearchView.prototype.hide = function () {
-    //console.log('hide DbSearchView')
+    _tools.showOtherMarkers(); // throwaway filter  
     BaseView.prototype.hide.apply(this, arguments);
 };
 
@@ -500,30 +554,30 @@ DbSearchView.prototype.showTrack = function (vessel, dates) {
     if (dlg[0]) 
         dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track'))
         .addClass('ais active')
-    _tools.showTrack([vessel.mmsi], dates);
+    _tools.showTrack([vessel.mmsi], dates, [], _displayedOnly);
 };
 
 DbSearchView.prototype.positionMap = function (vessel, interval) {
     if (interval) {    
-        interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
-        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+        // interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
+        // nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);        
+        nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
     }
-
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
         ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
         ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
         zoom = nsGmx.leafletMap.getZoom();
-    nsGmx.leafletMap.fitBounds([
-        [ymin, xmin],
-        [ymax, xmax]
-    ], {
-            maxZoom: (zoom < 9 ? 12 : zoom),
-            animate: false
-        });
+    // nsGmx.leafletMap.fitBounds([
+    //     [ymin, xmin],
+    //     [ymax, xmax]
+    // ], {
+    //         maxZoom: (zoom < 9 ? 12 : zoom)
+    //     });
+    nsGmx.leafletMap.setView([ymax, xmax<0?(360+xmax):xmax], (zoom < 9 ? 12 : zoom));
     nsGmx.leafletMap.removeLayer(_highlight);
     _highlight.vessel = vessel;
-    _highlight.setLatLng([ymax, xmax]).addTo(nsGmx.leafletMap);
+    _highlight.setLatLng([ymax, xmax<0?(360+xmax):xmax]).addTo(nsGmx.leafletMap);
 };
 
 module.exports = DbSearchView;

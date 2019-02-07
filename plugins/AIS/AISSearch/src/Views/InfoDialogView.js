@@ -10,10 +10,14 @@ module.exports = function ({
     tools,
     aisLayerSearcher: aisLayerSearcher,
     modulePath: modulePath,
-    aisView: aisView, myFleetMembersView: myFleetMembersView }) {
+    aisView: aisView, 
+    myFleetView: myFleetView,
+    menuId:menuId }) {
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
     const _showPosition = function(vessel){ 
+        window.iconSidebarWidget.open(menuId);
+
         aisView.vessel = vessel;
         if (aisView.tab)
         if (aisView.tab.is('.active'))
@@ -54,7 +58,7 @@ module.exports = function ({
             let dialog = displayInfoDialog({
                 vessel: vessel,
                 getmore: getmore,
-                displaingTrack: tools.displaingTrack,
+                displayedTrack: tools.displayedTrack,
                 closeFunc: function (event) {
                     let ind = Polyfill.findIndex(infoDialogCascade, function (d) { return d.id == dialog.id });
                     if (ind >= 0)
@@ -66,7 +70,7 @@ module.exports = function ({
                 aisLayerSearcher: aisLayerSearcher,
                 modulePath:modulePath, 
                 aisView: aisView,
-                myFleetMembersView: myFleetMembersView
+                myFleetView: myFleetView
             },
                 {
                     openVesselInfoScreen: vesselInfoScreen.open,
