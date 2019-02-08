@@ -1,12 +1,15 @@
 let NOSIDEBAR = false,
     PRODUCTION = false,
-    SIDEBAR2 = false;
+    SIDEBAR2 = false,
+    BETA = false;
 if (has('NOSIDEBAR'))
     NOSIDEBAR = true;
 if (has('SIDEBAR2'))
     SIDEBAR2 = true;
 if (has('PRODUCTION'))
     PRODUCTION = true;
+if (has('BETA'))
+    BETA = true;
 
 require("./all.css")
 require("./Views/AisView.css")
@@ -20,10 +23,10 @@ Handlebars.registerHelper('aisjson', function (context) {
     return JSON.stringify(context);
 });
 
-const pluginName = PRODUCTION ? 'AISPlugin' : 'AISSearch2Test',
+const pluginName = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSearch2Test',
     menuId = 'AISSearch',
     toolbarIconId = null, 
-    cssTable = PRODUCTION ? 'AISPlugin' : 'AISSearch2',
+    cssTable = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSearch2',
     modulePath = gmxCore.getModulePath(pluginName);
 
 const highlight = L.marker([0, 0], {icon:L.icon({

@@ -1,17 +1,20 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const path = require('path')
 const HasJsPlugin = require('./webpack-hasjs-plugin.js');
-var isProduction = true;
+let isProduction = true,
+    isBeta = true;
 switch(String(process.env.PRODUCTION).toLowerCase()) {case'undefined': case'false': case'no': case '0':isProduction = false;}
+switch(String(process.env.BETA).toLowerCase()) {case'undefined': case'false': case'no': case '0':isBeta = false;}
 const hasJs = new HasJsPlugin({
             features: {
                 NOSIDEBAR: false,
                 SIDEBAR2: true,
-				PRODUCTION: isProduction
+				PRODUCTION: isProduction,
+				BETA: isBeta
             }
         })
 
-const fileName = isProduction ? 'AISPlugin' : 'AISSearch2Test';
+const fileName = isProduction ? (isBeta ? 'AISPluginBeta' : 'AISPlugin') : 'AISSearch2Test';
 const extractCSS = new ExtractTextPlugin(fileName + '.css');
 
 module.exports = {
