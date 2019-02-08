@@ -48,10 +48,12 @@
 	
 	var NOSIDEBAR = false,
 	    PRODUCTION = false,
-	    SIDEBAR2 = false;
+	    SIDEBAR2 = false,
+	    BETA = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
+	if (true) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -65,10 +67,10 @@
 	    return JSON.stringify(context);
 	});
 	
-	var pluginName = PRODUCTION ? 'AISPlugin' : 'AISSearch2Test',
+	var pluginName = PRODUCTION ? BETA ? 'AISPluginBeta' : 'AISPlugin' : 'AISSearch2Test',
 	    menuId = 'AISSearch',
 	    toolbarIconId = null,
-	    cssTable = PRODUCTION ? 'AISPlugin' : 'AISSearch2',
+	    cssTable = PRODUCTION ? BETA ? 'AISPluginBeta' : 'AISPlugin' : 'AISSearch2',
 	    modulePath = gmxCore.getModulePath(pluginName);
 	
 	var highlight = L.marker([0, 0], { icon: L.icon({
@@ -423,7 +425,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	module.exports = function (viewFactory) {
 	    var _leftMenuBlock = void 0,
@@ -777,7 +779,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
 	    var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
@@ -3893,4 +3895,4 @@
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=AISSearch2Test.js.map
+//# sourceMappingURL=AISPluginBeta.js.map
