@@ -3,7 +3,10 @@ module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID,
           _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
-          _screenSearchLayer = _layersByID[options.screenSearchLayer];
+          _screenSearchLayer = _layersByID[options.screenSearchLayer],
+          _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
+          _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
+          _historyLayerAlt = _layersByID[options.historyLayerAlt];
 
     let _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
         _tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "mmsi"==p.toLowerCase();}) + 1,
@@ -113,6 +116,18 @@ module.exports = function (options) {
         },
         hideAllOnMap: function () { 
             _setMyFleetFilter();
+        },
+        switchLayers: function(showAlternative){
+            if (showAlternative) {
+                _lastPointLayerAlt && console.log(_lastPointLayerAlt.getGmxProperties().name)
+                _historyLayerAlt && console.log(_historyLayerAlt.getGmxProperties().name)
+                _tracksLayerAlt && console.log(_tracksLayerAlt.getGmxProperties().name)
+            }
+            else {
+                console.log(_screenSearchLayer.getGmxProperties().name)
+                console.log(_aisLayer.getGmxProperties().name)
+                console.log(_tracksLayer.getGmxProperties().name)
+            }
         }
     };
 }

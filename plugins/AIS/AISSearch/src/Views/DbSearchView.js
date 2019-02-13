@@ -32,6 +32,10 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '</td></tr>' +
         '<tr><td class="time"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' +
         '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span></td>' +
+ 
+        '<tr><td class="legend"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' +
+        '<span class="type on unselectable" unselectable="on">{{i "AISSearch2.legend_type"}}</span><span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td>' +
+        
         '<tr><td><div class="calendar"></div></td>' +
         '<td style="padding-left:5px"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' +
         '</table>' +
@@ -109,6 +113,15 @@ const DbSearchView = function ({ model, highlight, tools }) {
         suggestions.hide();
     }).bind(this));
 
+    this.frame.find('.legend .type,.speed').click((e => {
+        console.log(e.currentTarget)        
+        let trg = $(e.currentTarget);
+        if (!trg.is('.on')) {
+            this.frame.find('.legend span').removeClass("on");
+            trg.addClass('on');
+            _tools.switchLayers(trg.is('.speed'));
+        }
+    }).bind(this));
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {

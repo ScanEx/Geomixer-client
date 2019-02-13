@@ -12,6 +12,8 @@ require("./all.css")
 require("./Views/AisView.css")
 require("./locale.js")
 
+console.log("HOTFIX")
+
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
 });
@@ -43,6 +45,10 @@ const publicInterface = {
             aisLastPoint: params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
             historyLayer: params.historyLayer,	
             tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
+
+            lastPointLayerAlt: params.lastPointLayerAlt,
+            tracksLayerAlt: params.tracksLayerAlt,
+            historyLayerAlt: params.historyLayerAlt,
 
             modulePath: modulePath,
             highlight: highlight

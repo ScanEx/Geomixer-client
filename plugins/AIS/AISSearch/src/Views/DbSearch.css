@@ -30,6 +30,19 @@
     color :white;
     border-radius: 16px;
 }
+.ais_view.search_view .instruments .legend span{
+    padding: 1px 15px 2px 15px;
+}
+.ais_view.search_view .instruments .legend .type,.speed{
+    cursor: pointer;
+}
+.ais_view.search_view .instruments .legend .on{
+    background-color:#48aff1;
+    color :white;
+    border-radius: 16px;
+}
+
+
 .ais_view.search_view .instruments .calendar input{
     padding: 8px;
     border-radius: 3px;
