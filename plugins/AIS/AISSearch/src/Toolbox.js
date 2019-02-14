@@ -100,6 +100,7 @@ module.exports = function (options) {
         set displayingMyFleet(value){ _displayingMyFleet = value; },
         get filtered(){ return _filtered; },
         set filtered(value){ _filtered = value; },
+        get hasAlternativeLayers(){ return !!_lastPointLayerAlt; },
         showTrack: function (mmsiArr, dates) { //bbox) {
             _displaingTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
             if (dates)
