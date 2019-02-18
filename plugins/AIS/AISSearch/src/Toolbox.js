@@ -1,7 +1,7 @@
 const Polyfill = require('./Polyfill');
 module.exports = function (options) {
-    const _layersByID = nsGmx.gmxMap.layersByID,
-          _aisLayer = _layersByID[options.aisLayerID],
+    const _layersByID = nsGmx.gmxMap.layersByID;
+      let _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
           _screenSearchLayer = _layersByID[options.screenSearchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
@@ -91,7 +91,15 @@ module.exports = function (options) {
             }
         }
 
-    };
+    },
+    _switchLayers = function(l1, l2){
+        //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
+        let lmap = nsGmx.leafletMap;
+        if (l1 && l1._map && l2){
+            lmap.removeLayer(l1);
+            lmap.addLayer(l2);
+        }
+    } ;
 
     return {
         get displaingTrack(){ return _displaingTrack; },
@@ -119,16 +127,19 @@ module.exports = function (options) {
             _setMyFleetFilter();
         },
         switchLayers: function(showAlternative){
-            if (showAlternative) {
-                _lastPointLayerAlt && console.log(_lastPointLayerAlt.getGmxProperties().name)
-                _historyLayerAlt && console.log(_historyLayerAlt.getGmxProperties().name)
-                _tracksLayerAlt && console.log(_tracksLayerAlt.getGmxProperties().name)
-            }
-            else {
-                console.log(_screenSearchLayer.getGmxProperties().name)
-                console.log(_aisLayer.getGmxProperties().name)
-                console.log(_tracksLayer.getGmxProperties().name)
-            }
+                _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
+                let temp = _screenSearchLayer;
+                _screenSearchLayer = _lastPointLayerAlt;
+                _lastPointLayerAlt = temp;
+                _switchLayers(_aisLayer, _historyLayerAlt);
+                temp = _aisLayer;
+                _aisLayer = _historyLayerAlt;
+                _historyLayerAlt = temp;
+                _switchLayers(_tracksLayer, _tracksLayerAlt);
+                temp = _tracksLayer;
+                _tracksLayer = _tracksLayerAlt;
+                _tracksLayerAlt = temp;
+                _setMyFleetFilter();
         }
     };
 }

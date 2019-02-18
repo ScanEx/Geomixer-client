@@ -102,8 +102,23 @@ module.exports = function (options) {
                 //"<span class='small'>("+ldd+"."+lm+"."+ly+" "+lh+":"+lmm+" UTC"+(offset>0?"+":"")+offset+")</span>";
             }
         },
-        placeVesselTypeIcon: function(vessel){
+        placeVesselTypeIcon: function(vessel, altLegend){
             let protocol = document.location.protocol;
+            if (altLegend){
+                if (vessel.sog>=8) {
+                        vessel.icon = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog8-L-100-move.svg";
+                } 
+                else if (4<vessel.sog && vessel.sog<8) {
+                        vessel.icon = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4_8-L-100-move.svg";
+                }   
+                else if (0<vessel.sog && vessel.sog<=4) {
+                        vessel.icon = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4-L-100-move.svg";
+                }    
+                else {
+                        vessel.icon = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog-L-100-stand_red.svg";
+                }                      
+                return;
+            }
             switch (vessel.vessel_type.toLowerCase()) {
                 case "cargo":
                     vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +

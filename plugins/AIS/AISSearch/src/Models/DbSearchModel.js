@@ -14,7 +14,7 @@ module.exports = function (aisLayerSearcher) {
             return deg.toFixed(2) + " "//"°"
                 + dir
         },
-        _formatPosition = function (vessel) {
+        _formatPosition = function (vessel, altLegend) {
             vessel.cog_sog = vessel.cog && vessel.sog
             vessel.heading_rot = vessel.heading && vessel.rot
             vessel.x_y = vessel.longitude && vessel.latitude
@@ -43,7 +43,7 @@ module.exports = function (aisLayerSearcher) {
 
             vessel.longitude = _toDd(vessel.longitude, true);
             vessel.latitude = _toDd(vessel.latitude);
-            aisLayerSearcher.placeVesselTypeIcon(vessel);
+            aisLayerSearcher.placeVesselTypeIcon(vessel, altLegend);
             vessel.sog = _addUnit(_round(vessel.sog, 5), " уз");
 
             return vessel;
@@ -69,9 +69,9 @@ module.exports = function (aisLayerSearcher) {
                 return Promise.resolve();
             //return new Promise((resolve)=>setTimeout(resolve, 1000))
             //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
-            var _this = this;
+            var thisInst = this;
             return new Promise((resolve) => {
-                aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
+                aisLayerSearcher.searchPositionsAgg([thisInst.vessel.mmsi], thisInst.historyInterval, function (response) {
                     if (parseResponse(response)) {
                         let position, positions = [],
                             fields = response.Result.fields,
@@ -86,11 +86,11 @@ module.exports = function (aisLayerSearcher) {
                                     }
                                 }
                                 if (p[d]) {
-                                    p[d].positions.push(_formatPosition(obj));
+                                    p[d].positions.push(_formatPosition(obj, thisInst.view.altLegend));
                                     p[d].count = p[d].count + 1;
                                 }
                                 else
-                                    p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj)], count: 1 };
+                                    p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj, thisInst.view.altLegend)], count: 1 };
                                 return p;
                             }, {});
                         let counter = 0;
@@ -113,9 +113,9 @@ module.exports = function (aisLayerSearcher) {
             })
                 .then(function (response) {
                     //console.log(response)       
-                    _this.isDirty = false;
+                    thisInst.isDirty = false;
                     if (response.Status.toLowerCase() == "ok") {
-                        _this.data = { vessels: response.Result.values }
+                        thisInst.data = { vessels: response.Result.values }
                         return Promise.resolve();
                     }
                     else {

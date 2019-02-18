@@ -116,12 +116,16 @@ const DbSearchView = function ({ model, highlight, tools }) {
     }).bind(this));
 
     this.frame.find('.legend .type,.speed').click((e => {
-        console.log(e.currentTarget)        
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
             this.frame.find('.legend span').removeClass("on");
             trg.addClass('on');
             _tools.switchLayers(trg.is('.speed'));
+            this.altLegend = trg.is('.speed');
+            if (this.isActive){
+                this.model.isDirty = true;
+                this.show();
+            }
         }
     }).bind(this));
     this.frame.find('.time .utc,.local').click((e => {
