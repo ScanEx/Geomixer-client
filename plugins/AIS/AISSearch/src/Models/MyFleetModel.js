@@ -37,6 +37,8 @@ module.exports = function (aisLayerSearcher) {
                 function (response) {
                     if (response.Status.toLowerCase() == "ok" && response.Result)
                         resolve(response);
+                    else
+                        reject(response);
                 }
             );
         })
@@ -70,7 +72,10 @@ module.exports = function (aisLayerSearcher) {
                 return Promise.reject(rejectedResponse);
         }
         )        
-        .catch(error=>console.log(error));
+        .catch(error=>{
+            console.log(error);
+            return Promise.reject(error);
+        });
 
     let _actualUpdate,
         _data;
@@ -158,6 +163,7 @@ module.exports = function (aisLayerSearcher) {
                 });                
             },
             (problem)=>{
+                thisInst.isDirty = false;
                 return Promise.reject(problem);
             });
         },
