@@ -51,7 +51,7 @@ const MyFleetView = function (model, tools){
     '<table border=0><tr>' +
     '<td><input type="checkbox" checked></td>' +
     '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +
-    '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' +
+    '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}} legend_icon"><img src="{{iconAlt}}" class="course rotateimg{{icon_rot}} legend_iconalt">' +
     '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
     '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + 
     '</td>' +  
@@ -62,6 +62,11 @@ const MyFleetView = function (model, tools){
     '</div>' +
     '{{/each}}' +
     '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+
+    _tools.onLegendSwitched(((showAlternative)=>{
+        this.needAltLegend = showAlternative;
+        _switchLegendIcon.call(this, this.needAltLegend);
+    }).bind(this));
 };
 
 MyFleetView.prototype = Object.create(BaseView.prototype);
@@ -74,13 +79,22 @@ MyFleetView.prototype.inProgress = function (state) {
         progress.hide();
 };
 
-let _clean = function(){  
+const _switchLegendIcon = function(showAlternative){
+    let ic = this.frame.find('.legend_icon'),
+    ica = this.frame.find('.legend_iconalt');
+    if (showAlternative){
+        ic.hide(); ica.show();
+    }
+    else{
+        ica.hide(); ic.show();
+    }
+},
+_clean = function(){  
     if (this.frame.find('.ais_vessel')[0])
         this.frame.find('.ais_vessel input[type="checkbox"]').off('click');
     let count = this.model.data && this.model.data.vessels ? this.model.data.vessels.length : 0;
     this.frame.find('.count').text(_gtxt('AISSearch2.found') + count);
 },
-_tools,
 _hideOnMap = function(){
     _tools.filtered = [];
     let selectAll = this.frame.find('.results input[type="checkbox"]'),
@@ -95,6 +109,7 @@ _hideOnMap = function(){
 
     _tools.hideOnMap();    
 };
+let _tools;
 
 MyFleetView.prototype.repaint = function () {
     _clean.call(this);  
@@ -138,6 +153,7 @@ MyFleetView.prototype.repaint = function () {
         })
     }).bind(this));
 
+    _switchLegendIcon.call(this, this.needAltLegend);
 };
 
 let _filteredState = [], _displayngState;

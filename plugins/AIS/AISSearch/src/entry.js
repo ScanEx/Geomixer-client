@@ -12,8 +12,6 @@ require("./all.css")
 require("./Views/AisView.css")
 require("./locale.js")
 
-console.log("HOTFIX")
-
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
 });

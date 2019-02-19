@@ -115,19 +115,25 @@ const DbSearchView = function ({ model, highlight, tools }) {
         suggestions.hide();
     }).bind(this));
 
+    _tools.onLegendSwitched((()=>{
+        let ic = this.frame.find('.legend_icon'),
+        ica = this.frame.find('.legend_iconalt');
+        if (ic.is(':visible')){
+            ic.hide(); ica.show();
+        }
+        else{
+            ica.hide(); ic.show();
+        }
+    }).bind(this));
     this.frame.find('.legend .type,.speed').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
             this.frame.find('.legend span').removeClass("on");
             trg.addClass('on');
-            _tools.switchLayers(trg.is('.speed'));
-            this.altLegend = trg.is('.speed');
-            if (this.isActive){
-                this.model.isDirty = true;
-                this.show();
-            }
+            _tools.switchLegend(trg.is('.speed'));
         }
     }).bind(this));
+
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
@@ -342,7 +348,7 @@ let _vi_template = '<table class="ais_positions">' +
     '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' +
     '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' +
     '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' +
-    '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+    '<td><img src="{{icon}}" class="legend_icon rotateimg{{icon_rot}}"><img src="{{iconAlt}}" class="legend_iconalt rotateimg{{icon_rot}}"></td>' +
     '<td><img src="{{source}}"></td>' +
     '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' +
     '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' +
@@ -446,7 +452,7 @@ DbSearchView.prototype.repaint = function () {
                     e.stopPropagation();
                 }).bind(this));
             }
-        }).bind(this))
+        }).bind(this));
     })
 
     let getDates = function(){
@@ -473,6 +479,15 @@ DbSearchView.prototype.repaint = function () {
 
     if (this.vessel.lastPosition)
         this.positionMap(this.vessel, this.calendar.getDateInterval());
+
+    let ic = this.frame.find('.legend_icon'),
+        ica = this.frame.find('.legend_iconalt');
+    if (this.frame.find('.legend .speed').is('.on')) {
+        ica.show(); ic.hide();
+    }
+    else {
+        ic.show(); ica.hide();
+    }
 };
 
 

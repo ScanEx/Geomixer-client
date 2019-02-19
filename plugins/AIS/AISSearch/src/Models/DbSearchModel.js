@@ -14,7 +14,7 @@ module.exports = function (aisLayerSearcher) {
             return deg.toFixed(2) + " "//"°"
                 + dir
         },
-        _formatPosition = function (vessel, altLegend) {
+        _formatPosition = function (vessel) {
             vessel.cog_sog = vessel.cog && vessel.sog
             vessel.heading_rot = vessel.heading && vessel.rot
             vessel.x_y = vessel.longitude && vessel.latitude
@@ -43,7 +43,7 @@ module.exports = function (aisLayerSearcher) {
 
             vessel.longitude = _toDd(vessel.longitude, true);
             vessel.latitude = _toDd(vessel.latitude);
-            aisLayerSearcher.placeVesselTypeIcon(vessel, altLegend);
+            aisLayerSearcher.placeVesselTypeIcon(vessel);
             vessel.sog = _addUnit(_round(vessel.sog, 5), " уз");
 
             return vessel;
@@ -86,11 +86,11 @@ module.exports = function (aisLayerSearcher) {
                                     }
                                 }
                                 if (p[d]) {
-                                    p[d].positions.push(_formatPosition(obj, thisInst.view.altLegend));
+                                    p[d].positions.push(_formatPosition(obj));
                                     p[d].count = p[d].count + 1;
                                 }
                                 else
-                                    p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj, thisInst.view.altLegend)], count: 1 };
+                                    p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj)], count: 1 };
                                 return p;
                             }, {});
                         let counter = 0;

@@ -99,7 +99,11 @@ module.exports = function (options) {
             lmap.removeLayer(l1);
             lmap.addLayer(l2);
         }
-    } ;
+    },
+    _legendSwitchedHandlers = [],
+    _legendSwitched = function(showAlternative){
+        _legendSwitchedHandlers.forEach(h=>h(showAlternative));
+    };
 
     return {
         get displaingTrack(){ return _displaingTrack; },
@@ -126,7 +130,7 @@ module.exports = function (options) {
         hideAllOnMap: function () { 
             _setMyFleetFilter();
         },
-        switchLayers: function(showAlternative){
+        switchLegend: function(showAlternative){
                 _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
                 let temp = _screenSearchLayer;
                 _screenSearchLayer = _lastPointLayerAlt;
@@ -140,6 +144,11 @@ module.exports = function (options) {
                 _tracksLayer = _tracksLayerAlt;
                 _tracksLayerAlt = temp;
                 _setMyFleetFilter();
+                _legendSwitched(showAlternative);
+
+        },
+        onLegendSwitched: function(handler){    
+            _legendSwitchedHandlers.push(handler);
         }
     };
 }
