@@ -61,7 +61,7 @@ module.exports = function (searcher) {
         let columnsJson = JSON.parse(localStorage.getItem("lloyds_columns"));
 //columnsJson && console.log((new Date().getTime()-columnsJson.timestamp)/60000)
         //if (!columnsJson || ((new Date().getTime()-columnsJson.timestamp)/60000>24*60))
-            fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta")
+            fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta")
             .then(r=>r.json())
             .then(r=>{   
                 let checked = [], convert = a=>a.map(p=>{return {id:p.id, name: p.name1, trans: p.name3, caption: p.name2, nodes:null, checked: checked.indexOf(p.id)!=-1};})

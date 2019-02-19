@@ -53,7 +53,7 @@ console.log(asparams)
         doSearch = function (actualId) {
             let queries = [];
             _sparams.split(' ').forEach(sp=>{       
-                queries.push(fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
+                queries.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
             });
             Promise.all(queries)
             .then(a=>{

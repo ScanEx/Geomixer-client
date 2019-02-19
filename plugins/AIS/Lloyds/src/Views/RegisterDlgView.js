@@ -14,7 +14,7 @@ const RegisterDlgView = function ({ model }) {
 //console.log(new_tasks)
         if (new_tasks.length>0){
             this.model.tasks = new_tasks
-            .map(id=>fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Get/"+id))
+            .map(id=>fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Get/"+id))
             this.model.isDirty = true;
         }
 //console.log(this.model.isDirty)
