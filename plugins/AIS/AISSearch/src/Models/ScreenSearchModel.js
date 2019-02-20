@@ -73,14 +73,11 @@ module.exports = function ({aisLayerSearcher, myFleetModel}) {
             //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
 
             this.load(actualUpdate).then(function () {
-                //console.log("LOADED "+(new Date().getTime()-thisInst._actualUpdate)+"ms")
-                //console.log("3>"+new Date(thisInst._actualUpdate))
-                //console.log("4>"+new Date(actualUpdate))
                 if (_actualUpdate == actualUpdate) {
+//console.log(thisInst.dataSrc)
                     if (thisInst.dataSrc)
                         myFleetModel.markMembers(thisInst.dataSrc.vessels);
-                    thisInst.setFilter();
-//console.log("load "+(new Date()-start)+"ms")                  
+                    thisInst.setFilter();                 
                     thisInst.view.inProgress(false);
                     thisInst.view.repaint();
                 }

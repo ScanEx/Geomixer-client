@@ -391,16 +391,18 @@ console.log("add group and style field");
             _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
         },
         markMembers: function (vessels) {
-            if (this.data && this.data.vessels){
+            if (this.data && this.data.groups){
                 let membCounter = 0;
-                this.data.vessels.forEach(function (v) {
-                    let i = Polyfill.findIndex(vessels, function (vv) { return v.mmsi == vv.mmsi && v.imo == v.imo });
-                    if (i>-1){
-                        let member = vessels[i]
-                        member.mf_member = "visibilty:visible";
-                        vessels.splice(i, 1);
-                        vessels.splice(membCounter++, 0, member);
-                    }
+                this.data.groups.forEach(function (g) {
+                    g.vessels.forEach(function (v) {
+                        let i = Polyfill.findIndex(vessels, function (vv) { return v.mmsi == vv.mmsi && v.imo == v.imo });
+                        if (i>-1){
+                            let member = vessels[i]
+                            member.mf_member = "visibilty:visible";
+                            vessels.splice(i, 1);
+                            vessels.splice(membCounter++, 0, member);
+                        }
+                    });
                 });
             }
         },
