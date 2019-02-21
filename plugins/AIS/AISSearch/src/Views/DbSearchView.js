@@ -23,7 +23,6 @@ const DbSearchView = function ({ model, highlight, tools }) {
     BaseView.call(this, model);
     _highlight = highlight;
     _tools = tools;
-    this.topOffset = 240;
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
         '<table border=0 class="instruments">' +
         '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' +
@@ -46,17 +45,26 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '</div></td></tr>' +
         '</table>' +
 
+        '<div class="ais_history">' +
+        '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' +
+        '</div>' +
         '<table class="start_screen"><tr><td>' +
         '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' +
         '<div>{{{i "AISSearh2.searchresults_view"}}}' +
         '</div></td></tr></table>' +
 
-        '<div class="ais_history">' +
-        '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' +
-        '</div>' +
         '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' +
         '</div>'
     )());
+
+    Object.defineProperty(this, "topOffset", {
+        get: function () {
+            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
+            this.frame.find('.instruments')[0].getBoundingClientRect().height;
+            return rv;
+        }
+    });  
+
     this.container = this.frame.find('.ais_history');
     this.startScreen = this.frame.find('.start_screen');
     this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' +

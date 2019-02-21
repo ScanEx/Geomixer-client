@@ -3,12 +3,12 @@ const BaseView = require('./BaseView.js');
 const GroupList = require('../Controls/GroupList.js');
 
 let _clean = function(){  
-    this.frame.find('.ais_vessels input[type="checkbox"]').off('click');
+    this.frame.find('.ais_vessels input[type="checkbox"]').off('click');    
+    this.startScreen.css({ visibility: "hidden" });
 };
 
 const MyFleetView = function (model){
     BaseView.call(this, model);
-    this.topOffset = 200;
     let settings = []; //DEFAULT SETTINGS
     this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' +
     '<table class="instruments">'+
@@ -33,6 +33,7 @@ const MyFleetView = function (model){
     '</tr></table>' +
     '</td></tr>' +
     '</table>'+ 
+
     '<div class="ais_vessels">'+
     '<table class="results">'+
     '<td><input type="checkbox" checked></td>' +
@@ -48,8 +49,24 @@ const MyFleetView = function (model){
     '</tr></table>' +
     '</div>' +      
     '</div>' +
-    '</div>')());
-    this.container = this.frame.find('.ais_vessels'); 
+
+    '<table class="start_screen"><tr><td>' +
+    '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' +
+    '<div>{{{i "AISSearh2.myfleet_view"}}}' +
+    '</div></td></tr></table>' +
+
+    '</div>')());    
+
+    Object.defineProperty(this, "topOffset", {
+        get: function () {
+            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
+            this.frame.find('.instruments')[0].getBoundingClientRect().height;
+            return rv;
+        }
+    });  
+
+    this.container = this.frame.find('.ais_vessels');     
+    this.startScreen = this.frame.find('.start_screen');
     // DEFAULT SETTINGS
     this.model.markerTemplate =  '<div><table><tr>' +
         '<td style="vertical-align:top">' +

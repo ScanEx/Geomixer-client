@@ -4,11 +4,7 @@ module.exports = function (options) {
           _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
           _screenSearchLayer = _layersByID[options.screenSearchLayer];
-    let   _almmsi, 
-          _tlmmsi, 
-          _aldt, 
-          _tldt;
-
+    let   _almmsi, _tlmmsi, _aldt, _tldt;
     try{
           _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
           _tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "mmsi"==p.toLowerCase();}) + 1,
