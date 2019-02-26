@@ -36,8 +36,11 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>'+ 
         '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">'+
         '<div class="sync-switch-slider switch-slider round"></div></label>' +
-        '</td>' +
-
+        '</td></tr>' +
+        (_tools.hasAlternativeLayers ? 
+            '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + 
+            '<span class="type on unselectable" unselectable="on">{{i "AISSearch2.legend_type"}}</span><span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>'
+            : '') +
         '<tr><td><div class="calendar"></div></td>' +
         '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
         '<div class="progress">' + this.gifLoader + '</div>' +
@@ -139,6 +142,24 @@ const DbSearchView = function ({ model, highlight, tools }) {
         _tools.hideVesselMarkers([], _displayedOnly);  
     }).bind(this));
 
+    _tools.onLegendSwitched((()=>{
+        let ic = this.frame.find('.legend_icon'),
+        ica = this.frame.find('.legend_iconalt');
+        if (ic.is(':visible')){
+            ic.hide(); ica.show();
+        }
+        else{
+            ica.hide(); ic.show();
+        }
+    }).bind(this));
+    this.frame.find('.legend .type,.speed').click((e => {
+        let trg = $(e.currentTarget);
+        if (!trg.is('.on')) {
+            this.frame.find('.legend span').removeClass("on");
+            trg.addClass('on');
+            _tools.switchLegend(trg.is('.speed'));
+        }
+    }).bind(this));
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
@@ -372,7 +393,7 @@ let _vi_template = '<table class="ais_positions">' +
     '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' +
     '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' +
     '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' +
-    '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+    '<td><img src="{{icon}}" class="legend_icon rotateimg{{icon_rot}}"><img src="{{iconAlt}}" class="legend_iconalt rotateimg{{icon_rot}}"></td>' +
     '<td><img src="{{source}}"></td>' +
     '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' +
     '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' +
@@ -483,7 +504,7 @@ DbSearchView.prototype.repaint = function () {
                     e.stopPropagation();
                 }).bind(this));
             }
-        }).bind(this))
+        }).bind(this));
     })
 
     let getDates = function(){
@@ -510,6 +531,15 @@ DbSearchView.prototype.repaint = function () {
 
     if (this.vessel.lastPosition)
         this.positionMap(this.vessel, this.calendar.getDateInterval());
+
+    let ic = this.frame.find('.legend_icon'),
+        ica = this.frame.find('.legend_iconalt');
+    if (this.frame.find('.legend .speed').is('.on')) {
+        ica.show(); ic.hide();
+    }
+    else {
+        ic.show(); ica.hide();
+    }        
 };
 
 

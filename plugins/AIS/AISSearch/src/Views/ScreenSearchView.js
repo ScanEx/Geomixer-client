@@ -1,6 +1,8 @@
 const BaseView = require('./BaseView.js');
-const ScreenSearchView = function (model) {
+let _tools;
+const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
+    _tools = tools;
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
 
         '<table border=0 class="instruments">' +
@@ -46,7 +48,7 @@ const ScreenSearchView = function (model) {
     this.tableTemplate = '{{#each vessels}}' +
         '<div class="ais_vessel">' +
         '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +       
-        '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+        '<td><img src="{{icon}}" class="rotateimg{{icon_rot}} legend_icon"><img src="{{iconAlt}}" class="rotateimg{{icon_rot}} legend_iconalt"></td>' +
         
         //'<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' +
         '<td><span vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}">'+        
@@ -116,12 +118,27 @@ const ScreenSearchView = function (model) {
     };
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
+        
+    _tools.onLegendSwitched(((showAlternative)=>{
+        this.needAltLegend = showAlternative;
+        _switchLegendIcon.call(this, this.needAltLegend);
+    }).bind(this));
 };
 
 ScreenSearchView.prototype = Object.create(BaseView.prototype);
 
-let _clean = function () {
+const _clean = function () {
     this.frame.find('.count').text(_gtxt('AISSearch2.found') + 0); 
+},
+_switchLegendIcon = function(showAlternative){
+    let ic = this.frame.find('.legend_icon'),
+    ica = this.frame.find('.legend_iconalt');
+    if (showAlternative){
+        ic.hide(); ica.show();
+    }
+    else{
+        ica.hide(); ic.show();
+    }
 };
 
 ScreenSearchView.prototype.inProgress = function (state) {
@@ -248,7 +265,7 @@ ScreenSearchView.prototype.repaint = function () {
         this.container.mCustomScrollbar("scrollTo", "top", {scrollInertia:0, callbacks:false, timeout:200});
     }
     _setEventHandlers.call(this);
-
+    _switchLegendIcon.call(this, this.needAltLegend);
 };
 
 ScreenSearchView.prototype.show = function () {

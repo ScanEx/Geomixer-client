@@ -2,12 +2,24 @@ require("./MyFleet.css")
 const BaseView = require('./BaseView.js');
 const GroupList = require('../Controls/GroupList.js');
 
-let _clean = function(){  
+const _switchLegendIcon = function(showAlternative){
+    let ic = this.frame.find('.legend_icon'),
+    ica = this.frame.find('.legend_iconalt');
+    if (showAlternative){
+        ic.hide(); ica.show();
+    }
+    else{
+        ica.hide(); ic.show();
+    }
+},
+_clean = function(){  
     this.frame.find('.ais_vessels input[type="checkbox"]').off('click');    
     this.startScreen.css({ visibility: "hidden" });
 };
 
-const MyFleetView = function (model){
+let _tools;
+const MyFleetView = function (model, tools){
+    _tools = tools;
     BaseView.call(this, model);
     let settings = []; //DEFAULT SETTINGS
     this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' +
@@ -140,6 +152,10 @@ const MyFleetView = function (model){
     }).bind(this);
     
     this.tableTemplate = this.groupList.toString();
+    _tools.onLegendSwitched(((showAlternative)=>{
+        this.needAltLegend = showAlternative;
+        _switchLegendIcon.call(this, this.needAltLegend);
+    }).bind(this));
 };
 
 MyFleetView.prototype = Object.create(BaseView.prototype);
@@ -203,6 +219,7 @@ MyFleetView.prototype.repaint = function () {
         this.model.changeGroupStyle(i, colors);
     }).bind(this);
     this.groupList.onSaveGroupStyle = this.model.saveGroupStyle;
+    _switchLegendIcon.call(this, this.needAltLegend);
 };
 
 MyFleetView.prototype.prepare = function (mmsi) {

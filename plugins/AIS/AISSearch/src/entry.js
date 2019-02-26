@@ -47,6 +47,10 @@ const publicInterface = {
             historyLayer: params.historyLayer,	
             tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
 
+            lastPointLayerAlt: params.lastPointLayerAlt,
+            tracksLayerAlt: params.tracksLayerAlt,
+            historyLayerAlt: params.historyLayerAlt,
+            
             modulePath: modulePath,
             highlight: highlight,
             menuId: menuId

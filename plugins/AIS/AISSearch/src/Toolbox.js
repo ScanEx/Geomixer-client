@@ -1,9 +1,13 @@
 const Polyfill = require('./Polyfill');
 module.exports = function (options) {
-    const _layersByID = nsGmx.gmxMap.layersByID,
-          _aisLayer = _layersByID[options.aisLayerID],
+    const _layersByID = nsGmx.gmxMap.layersByID;
+      let _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
-          _screenSearchLayer = _layersByID[options.screenSearchLayer];
+          _screenSearchLayer = _layersByID[options.screenSearchLayer],
+          _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
+          _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
+          _historyLayerAlt = _layersByID[options.historyLayerAlt];
+
     let   _almmsi, _tlmmsi, _aldt, _tldt;
     try{
           _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
@@ -170,12 +174,29 @@ module.exports = function (options) {
                 }
             }
         }
-    };
+    },
+    _switchLayers = function(l1, l2){
+        //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
+        let lmap = nsGmx.leafletMap;
+        if (l1 && l1._map && l2){
+            lmap.removeLayer(l1);
+            lmap.addLayer(l2);
+        }
+    },
+    _legendSwitchedHandlers = [],
+    _legendSwitched = function(showAlternative){
+        _legendSwitchedHandlers.forEach(h=>h(showAlternative));
+    },    
+    _filtered = [], 
+    _displayedVessel;
 
     return {
         get displayedTrack(){ return _displayedTrack; },
         set displayedTrack(value){ _displayedTrack = value; },
-        showTrack: function (mmsiArr, dates, filtered, displayedVessel) { 
+        get hasAlternativeLayers(){ return !!_lastPointLayerAlt; },
+        showTrack: function (mmsiArr, dates, filtered, displayedVessel) {
+            _filtered = filtered; 
+            _displayedVessel = displayedVessel; 
             _displayedTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
             if (dates)
                 _displayedTrack.dates = { mmsi:mmsiArr[0], list:dates };
@@ -186,6 +207,8 @@ module.exports = function (options) {
             _setTrackFilter(filtered, displayedVessel);
         },
         hideVesselMarkers: function (filtered, displayedVessel) {
+            _filtered = filtered; 
+            _displayedVessel = displayedVessel;
             _setTrackFilter(filtered, displayedVessel);
             _setVesselFilter(filtered, displayedVessel);
         },
@@ -209,6 +232,26 @@ module.exports = function (options) {
 
             $('.mf_label.gr'+i+' .label_color').css({"color":group.label_color});
             $('.mf_label.gr'+i+' .label_shadow').css({"color":group.label_shadow.color, "text-shadow":group.label_shadow.text_shadow});
+        },
+        switchLegend: function(showAlternative){
+            _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
+            let temp = _screenSearchLayer;
+            _screenSearchLayer = _lastPointLayerAlt;
+            _lastPointLayerAlt = temp;
+            _switchLayers(_aisLayer, _historyLayerAlt);
+            temp = _aisLayer;
+            _aisLayer = _historyLayerAlt;
+            _historyLayerAlt = temp;
+            _switchLayers(_tracksLayer, _tracksLayerAlt);
+            temp = _tracksLayer;
+            _tracksLayer = _tracksLayerAlt;
+            _tracksLayerAlt = temp;
+            _setTrackFilter(_filtered, _displayedVessel);
+            _setVesselFilter(_filtered, _displayedVessel);
+            _legendSwitched(showAlternative);
+        },
+        onLegendSwitched: function(handler){    
+            _legendSwitchedHandlers.push(handler);
         }
     };
 }

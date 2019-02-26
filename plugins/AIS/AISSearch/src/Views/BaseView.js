@@ -45,7 +45,7 @@ BaseView.prototype = function () {
             let h = _calcHeight.call(this);
             if (this.startScreen){
                 let bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
-                this.startScreen.css({ position:"absolute", left: bb.left+"px", top: (bb.height/2-100)+"px", 
+                this.startScreen.css({ position:"absolute", left: bb.left+"px", top: (bb.height/2-50)+"px", 
                 width: bb.width+"px"});
             }
             this.container.height(h);
