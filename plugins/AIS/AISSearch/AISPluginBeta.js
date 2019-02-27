@@ -112,10 +112,12 @@
 	            });
 	        },
 	            forLayers = function forLayers(layer) {
-	            if (layer) {
-	                //setLocaleDate(layer)
-	                setLayerClickHandler(layer);
-	            }
+	            try {
+	                if (layer) {
+	                    //setLocaleDate(layer)
+	                    setLayerClickHandler(layer);
+	                }
+	            } catch (e) {}
 	        };
 	
 	        for (var key in params) {
@@ -280,6 +282,7 @@
 	    'AISSearch2.time_local': 'Местное',
 	    'AISSearch2.calendar_today': 'сегодня',
 	    'AISSearh2.searchresults_view': 'Здесь будут отображаться<br>результаты поиска по названию,<br>IMO илм MMSI судна',
+	    'AISSearh2.myfleet_view': 'Здесь будут отображаться<br>выбранные суда<br>',
 	    'AISSearch2.dialog_tab_general': 'Общие сведения',
 	    'AISSearch2.dialog_tab_params': 'Параметры движения',
 	    'AISSearch2.close_but': 'закрыть',
@@ -379,6 +382,7 @@
 	    'AISSearch2.time_local': 'Local',
 	    'AISSearch2.calendar_today': 'today',
 	    'AISSearh2.searchresults_view': 'Results View of Vessel Search<br>by Name,IMO or MMSI',
+	    'AISSearh2.myfleet_view': 'List of Special Selected<br>Vessels<br>',
 	    'AISSearch2.dialog_tab_general': 'General',
 	    'AISSearch2.dialog_tab_params': 'Parameters',
 	    'AISSearch2.close_but': 'close',
@@ -566,7 +570,6 @@
 	var BaseView = __webpack_require__(8);
 	var ScreenSearchView = function ScreenSearchView(model) {
 	    BaseView.apply(this, arguments);
-	    this.topOffset = 180;
 	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' +
 	    //'<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-flclose clicable"></div></td></tr>'+
 	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' +
@@ -574,6 +577,12 @@
 	    // '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">'+
 	    // '<div>Здесь будут отображаться<br>результаты поиска</div></td></tr></table>'+
 	    '<div class="ais_vessels">' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">NO VESSELS</div><div>mmsi: 0 imo: 0</div></td>' + '<td><i class="icon-ship" vessel="" title=""></i></td>' + '<td><span class="date"></span></td>' + '<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '</div>' + '</div>')());
+	    Object.defineProperty(this, "topOffset", {
+	        get: function get() {
+	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height + this.frame.find('.results')[0].getBoundingClientRect().height;
+	            return rv;
+	        }
+	    });
 	    this.container = this.frame.find('.ais_vessels');
 	    //this.startScreen = this.frame.find('.start_screen');
 	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
@@ -782,14 +791,12 @@
 	if (true) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
-	    var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-	        h = template.getBoundingClientRect().height;
-	    if (NOSIDEBAR) return h * 5;else {
-	        var H = $('.iconSidebarControl-pane').height() - this.topOffset;
-	        // console.log(template.getBoundingClientRect())
-	        // console.log(this.topOffset)
-	        // console.log(H)
-	        return H - H % h;
+	    if (NOSIDEBAR) {
+	        var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
+	            h = template.getBoundingClientRect().height;
+	        return h * 5;
+	    } else {
+	        return $('.iconSidebarControl-pane').height() - this.topOffset;
 	    }
 	};
 	
@@ -815,8 +822,9 @@
 	        resize: function resize(clean) {
 	            var h = _calcHeight.call(this);
 	            if (this.startScreen) {
-	                this.startScreen.height(h);
-	                this.container.css({ position: "relative", top: -h + "px" });
+	                var bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
+	                this.startScreen.css({ position: "absolute", left: bb.left + "px", top: bb.height / 2 - 100 + "px",
+	                    width: bb.width + "px" });
 	            }
 	            this.container.height(h);
 	
@@ -881,38 +889,51 @@
 
 	"use strict";
 	
-	module.exports = function (_ref) {
+	var _actualUpdate = void 0,
+	    _myFleetModel = void 0,
+	    _aisLayerSearcher = void 0;
+	
+	var ScreenSearchModel = function ScreenSearchModel(_ref) {
 	    var aisLayerSearcher = _ref.aisLayerSearcher,
 	        myFleetModel = _ref.myFleetModel;
 	
-	    var _actualUpdate = void 0;
+	
+	    var thisInstance = this;
+	    myFleetModel.onChanged = function () {
+	        thisInstance.isDirty = true;
+	        if (thisInstance.view.isActive) thisInstance.update();
+	    };
+	    _aisLayerSearcher = aisLayerSearcher;
+	    _myFleetModel = myFleetModel;
+	    this.filterString = "";
+	    this.isDirty = true;
+	    /*
 	    return {
 	        filterString: "",
 	        isDirty: true,
-	        load: function load(actualUpdate) {
+	        load: function (actualUpdate) {
 	            if (!this.isDirty) {
 	                return Promise.resolve();
 	            }
-	            var thisInst = this;
+	            let thisInst = this;
 	            return Promise.all([new Promise(function (resolve, reject) {
 	                aisLayerSearcher.searchScreen({
 	                    dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
 	                    border: true,
 	                    group: true
 	                }, function (json) {
-	                    //console.log(json.Result.values[0][12])
+	    //console.log(json.Result.values[0][12])
 	                    if (json.Status.toLowerCase() == "ok") {
 	                        thisInst.dataSrc = {
 	                            vessels: json.Result.values.map(function (v) {
-	                                var d = new Date(v[12]),
-	                                    //nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
+	                                let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
 	                                vessel = {
-	                                    vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden',
-	                                    ts_pos_utc: aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime() / 1000),
+	                                    vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden', 
+	                                    ts_pos_utc: aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime()/1000),
 	                                    xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
 	                                    vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
 	                                };
-	                                vessel.icon_rot = Math.round(vessel.cog / 15) * 15;
+	                                vessel.icon_rot = Math.round(vessel.cog/15)*15;
 	                                aisLayerSearcher.placeVesselTypeIcon(vessel);
 	                                return vessel;
 	                            })
@@ -924,57 +945,56 @@
 	                            thisInst.isDirty = false;
 	                        }
 	                        resolve();
-	                    } else {
+	                    }
+	                    else {
 	                        reject(json);
 	                    }
 	                });
-	            }), myFleetModel.load()]);
+	            })
+	                ,myFleetModel.load()
+	            ]);
 	        },
-	        setFilter: function setFilter() {
-	            var _this = this;
-	
+	        setFilter: function () {
 	            this.filterString = this.filterString.replace(/\r+$/, "");
-	            if (this.dataSrc) {
+	            if (this.dataSrc){
 	                if (this.filterString != "") {
 	                    this.data = {
-	                        vessels: this.dataSrc.vessels.filter(function (v) {
-	                            return v.vessel_name.search(new RegExp("\\b" + _this.filterString, "ig")) != -1;
-	                        }.bind(this))
+	                        vessels: this.dataSrc.vessels.filter(((v)=>{
+	                            return v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1;
+	                        }).bind(this))
 	                    };
-	                } else {
-	                    this.data = { vessels: this.dataSrc.vessels.map(function (v) {
-	                            return v;
-	                        }) };
+	                }
+	                else {
+	                    this.data = { vessels: this.dataSrc.vessels.map((v)=>v) };
 	                }
 	            }
 	        },
-	        update: function update() {
-	            //let start = new Date();
-	            if (!this.isDirty) return;
+	        update: function () {
+	    //let start = new Date();
+	            if (!this.isDirty)
+	                return;
 	            _actualUpdate = new Date().getTime();
-	            var thisInst = this,
+	            let thisInst = this,
 	                actualUpdate = _actualUpdate;
 	            this.view.inProgress(true);
 	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
 	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
-	
-	            this.load(actualUpdate).then(function () {
-	                //console.log("LOADED "+(new Date().getTime()-thisInst._actualUpdate)+"ms")
-	                //console.log("3>"+new Date(thisInst._actualUpdate))
-	                //console.log("4>"+new Date(actualUpdate))
+	              this.load(actualUpdate).then(function () {
 	                if (_actualUpdate == actualUpdate) {
-	                    if (thisInst.dataSrc) myFleetModel.markMembers(thisInst.dataSrc.vessels);
-	                    thisInst.setFilter();
-	                    //console.log("load "+(new Date()-start)+"ms")                  
+	    //console.log(thisInst.dataSrc)
+	                    if (thisInst.dataSrc)
+	                        myFleetModel.markMembers(thisInst.dataSrc.vessels);
+	                    thisInst.setFilter();                 
 	                    thisInst.view.inProgress(false);
 	                    thisInst.view.repaint();
 	                }
 	            }, function (json) {
 	                thisInst.dataSrc = null;
-	                //console.logconsole.log(json)
-	                if (json.Status.toLowerCase() == "auth" || json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) {
-	                    return r.Status.toLowerCase() == "auth";
-	                })) thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], vessels: [] };else {
+	    //console.logconsole.log(json)
+	                if (json.Status.toLowerCase() == "auth" ||
+	                    (json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) { return r.Status.toLowerCase() == "auth" })))
+	                    thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], vessels: [] };
+	                else {
 	                    //thisInst.data = {msg:[{txt:"!!!"}], vessels:[]};
 	                    console.log(json);
 	                }
@@ -983,7 +1003,96 @@
 	            });
 	        }
 	    };
+	    */
 	};
+	
+	ScreenSearchModel.prototype.load = function (actualUpdate) {
+	    if (!this.isDirty) return Promise.resolve();
+	
+	    var thisInst = this;
+	    return Promise.all([new Promise(function (resolve, reject) {
+	        _aisLayerSearcher.searchScreen({
+	            dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
+	            border: true,
+	            group: true
+	        }, function (json) {
+	            if (json.Status.toLowerCase() == "ok") {
+	                thisInst.dataSrc = {
+	                    vessels: json.Result.values.map(function (v) {
+	                        var d = new Date(v[12]),
+	                            //nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
+	                        vessel = {
+	                            vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden',
+	                            ts_pos_utc: _aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime() / 1000),
+	                            xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
+	                            vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
+	                        };
+	                        vessel.icon_rot = Math.round(vessel.cog / 15) * 15;
+	                        _aisLayerSearcher.placeVesselTypeIcon(vessel);
+	                        return vessel;
+	                    })
+	                };
+	                if (_actualUpdate == actualUpdate) {
+	                    //console.log("ALL CLEAN")
+	                    //console.log("1>"+new Date(thisInst._actualUpdate))
+	                    //console.log("2>"+new Date(actualUpdate))
+	                    thisInst.isDirty = false;
+	                }
+	                resolve();
+	            } else {
+	                reject(json);
+	            }
+	        });
+	    }), _myFleetModel.load()]);
+	};
+	ScreenSearchModel.prototype.setFilter = function () {
+	    var _this = this;
+	
+	    this.filterString = this.filterString.replace(/\r+$/, "");
+	    if (this.dataSrc) {
+	        if (this.filterString != "") {
+	            this.data = {
+	                vessels: this.dataSrc.vessels.filter(function (v) {
+	                    return v.vessel_name.search(new RegExp("\\b" + _this.filterString, "ig")) != -1;
+	                }.bind(this))
+	            };
+	        } else {
+	            this.data = { vessels: this.dataSrc.vessels.map(function (v) {
+	                    return v;
+	                }) };
+	        }
+	    }
+	};
+	ScreenSearchModel.prototype.update = function () {
+	    if (!this.isDirty) return;
+	    _actualUpdate = new Date().getTime();
+	    var thisInst = this,
+	        actualUpdate = _actualUpdate;
+	    this.view.inProgress(true);
+	
+	    this.load(actualUpdate).then(function () {
+	        if (_actualUpdate == actualUpdate) {
+	            //console.log(thisInst.dataSrc)
+	            if (thisInst.dataSrc) _myFleetModel.markMembers(thisInst.dataSrc.vessels);
+	            thisInst.setFilter();
+	            thisInst.view.inProgress(false);
+	            thisInst.view.repaint();
+	        }
+	    }, function (json) {
+	        thisInst.dataSrc = null;
+	        //console.logconsole.log(json)
+	        if (json.Status.toLowerCase() == "auth" || json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) {
+	            return r.Status.toLowerCase() == "auth";
+	        })) thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], vessels: [] };else {
+	            //thisInst.data = {msg:[{txt:"!!!"}], vessels:[]};
+	            console.log(json);
+	        }
+	        thisInst.view.inProgress(false);
+	        thisInst.view.repaint();
+	    });
+	};
+	
+	module.exports = ScreenSearchModel;
 
 /***/ }),
 /* 10 */
@@ -997,19 +1106,28 @@
 	
 	var _clean = function _clean() {
 	    this.frame.find('.ais_vessels input[type="checkbox"]').off('click');
+	    this.startScreen.css({ visibility: "hidden" });
 	};
 	
 	var MyFleetView = function MyFleetView(model) {
 	    var _this2 = this;
 	
 	    BaseView.call(this, model);
-	    this.topOffset = 200;
 	    var settings = []; //DEFAULT SETTINGS
 	    this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' + '<table class="instruments">' + '<tr><td style="vertical-align:top; padding-right:0">' + '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' + '<label class="sync-switch switch"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span>' + '</td>' + '<td style="padding-right:0">' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' + '<div style="width:70px;float:left;" class="setting"><label><input type="checkbox" id="sog" ' + (settings.indexOf('sog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplaySog"}}</label></div>' + '<div style="width:45px;float:left;" class="setting"><label><input type="checkbox" id="cog" ' + (settings.indexOf('cog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayCog"}}</label></div>' + '</td>' + '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' + '<tr><td colspan="3" style="padding-top:0">' + '<table><tr><td>{{i "AISSearch2.NewGroup"}}</td>' + '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' + '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' + '</tr></table>' + '</td></tr>' + '</table>' + '<div class="ais_vessels">' + '<table class="results">' + '<td><input type="checkbox" checked></td>' + '<td class="count"></td></tr></table>' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">vessel_name</div><div>mmsi: mmsi imo: imo</div></td>' + '<td></td>' + '<td><span class="date">ts_pos_utc</span></td>' +
 	    //'<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' +
 	    //'<img src="plugins/AIS/AISSearch/svg/info.svg"><div></td>' +
-	    '</tr></table>' + '</div>' + '</div>' + '</div>')());
+	    '</tr></table>' + '</div>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.myfleet_view"}}}' + '</div></td></tr></table>' + '</div>')());
+	
+	    Object.defineProperty(this, "topOffset", {
+	        get: function get() {
+	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height;
+	            return rv;
+	        }
+	    });
+	
 	    this.container = this.frame.find('.ais_vessels');
+	    this.startScreen = this.frame.find('.start_screen');
 	    // DEFAULT SETTINGS
 	    this.model.markerTemplate = '<div><table><tr>' + '<td style="vertical-align:top">' +
 	    //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
@@ -1570,8 +1688,7 @@
 	    this.groups = [];
 	};
 	
-	var _init = false,
-	    _tools = void 0,
+	var _tools = void 0,
 	    _isDirty = true,
 	    _myFleetLayers = [],
 	    _defaultGroup = _gtxt("AISSearch2.AllGroup"),
@@ -1585,6 +1702,12 @@
 	    _data = void 0,
 	    _view = void 0,
 	    _aisLayerSearcher = void 0,
+	    _onChangedHandlers = [],
+	    _fireChanged = function _fireChanged() {
+	    _onChangedHandlers.forEach(function (h) {
+	        return h();
+	    });
+	},
 	    _loadVoyageInfo = function _loadVoyageInfo(vessels) {
 	    return new Promise(function (resolve, reject) {
 	        if (!vessels.length) {
@@ -1756,16 +1879,16 @@
 	    function () {
 	        return _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
 	    });
-	
 	    _prepared = new Promise(function (resolve, reject) {
 	        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "User/GetUserInfo.ashx", function (response) {
-	            if (response.Status.toLowerCase() == "ok" && response.Result) resolve(response);else reject(response);
+	            if (response.Status.toLowerCase() == "ok" && response.Result) resolve(response);
+	            if (response.Status.toLowerCase() == "ok" && !response.Result) reject({ Status: "auth" });else reject(response);
 	        });
 	    }).then(function (response) {
 	        var nickname = response.Result.Nickname;
 	        return new Promise(function (resolve, reject) {
 	            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
-	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // create my fleet layer
+	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
 	            });
 	        });
 	    }).then(function (response) {
@@ -1773,25 +1896,17 @@
 	        _myFleetLayers.push(lid);
 	        return fetchMyFleet(lid);
 	    }, function (rejectedResponse) {
-	        if (rejectedResponse.Status && rejectedResponse.Status.toLowerCase() == "ok") return new Promise(function (resolve, reject) {
-	            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' + '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]', function (response) {
-	                if (response.Status.toLowerCase() == "ok") {
-	                    _myFleetLayers.push(response.Result.properties.name);
-	                    addDefaultGroup(resolve, reject, []);
-	                    //resolve([]); // new empty my fleet
-	                } else reject(response); // creation failed
-	            });
-	        });else return Promise.reject(rejectedResponse); // smth wrong
+	        if (rejectedResponse.Status && rejectedResponse.Status.toLowerCase() == "ok") return Promise.resolve([]); // no mf layer
+	        else return Promise.reject(rejectedResponse); // smth wrong
 	    }).then(function (vessels) {
 	        //console.log('INIT REPAINT MAP')
 	        _vessels = vessels.map(function (v) {
 	            return v;
 	        });
 	        _repaintMap(vessels); // only on init
-	        return vessels;
-	    }.bind(this)).catch(function (error) {
-	        return error;
-	    });
+	        return Promise.resolve();
+	    }.bind(this));
+	    //.catch(error=>error);
 	
 	    return {
 	        get isDirty() {
@@ -1829,11 +1944,7 @@
 	        },
 	        load: function load(actualUpdate) {
 	            var thisInst = this;
-	            return _prepared.then(function (r) {
-	                if (r && r.Status && r.Status.toLowerCase() == "auth") return Promise.reject(r);
-	
-	                if (_myFleetLayers.length == 0) thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }], groups: [] };
-	
+	            return _prepared.then(function () {
 	                if (_myFleetLayers.length == 0 || !thisInst.isDirty) return Promise.resolve();
 	
 	                return fetchMyFleet(_myFleetLayers[0]).then(function (vessels) {
@@ -1847,8 +1958,6 @@
 	                    _isDirty = false;
 	                    return Promise.reject(error);
 	                });
-	            }, function (problem) {
-	                return Promise.reject(problem);
 	            });
 	        },
 	        update: function update() {
@@ -1859,12 +1968,11 @@
 	            this.load(actualUpdate).then(function () {
 	                if (_actualUpdate == actualUpdate) {
 	                    thisModel.view.inProgress(false);
-	                    thisModel.view.repaint();
+	                    if (_data) thisModel.view.repaint();
 	                }
 	            }, function (json) {
 	                thisModel.dataSrc = null;
-	                console.log(json);
-	                if (json.Status.toLowerCase() == "auth" || json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) {
+	                if (json.Status && json.Status.toLowerCase() == "auth" || json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) {
 	                    return r.Status.toLowerCase() == "auth";
 	                })) thisModel.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], groups: [] };else {
 	                    //thisModel.data = {msg:[{txt:"!!!"}], vessels:[]};
@@ -1888,18 +1996,20 @@
 	            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
 	        },
 	        markMembers: function markMembers(vessels) {
-	            if (this.data && this.data.vessels) {
+	            if (this.data && this.data.groups) {
 	                var membCounter = 0;
-	                this.data.vessels.forEach(function (v) {
-	                    var i = Polyfill.findIndex(vessels, function (vv) {
-	                        return v.mmsi == vv.mmsi && v.imo == v.imo;
+	                this.data.groups.forEach(function (g) {
+	                    g.vessels.forEach(function (v) {
+	                        var i = Polyfill.findIndex(vessels, function (vv) {
+	                            return v.mmsi == vv.mmsi && v.imo == v.imo;
+	                        });
+	                        if (i > -1) {
+	                            var member = vessels[i];
+	                            member.mf_member = "visibilty:visible";
+	                            vessels.splice(i, 1);
+	                            vessels.splice(membCounter++, 0, member);
+	                        }
 	                    });
-	                    if (i > -1) {
-	                        var member = vessels[i];
-	                        member.mf_member = "visibilty:visible";
-	                        vessels.splice(i, 1);
-	                        vessels.splice(membCounter++, 0, member);
-	                    }
 	                });
 	            }
 	        },
@@ -1956,7 +2066,12 @@
 	                } else console.log(response);
 	            });
 	        },
+	        set onChanged(callback) {
+	            _onChangedHandlers.push(callback);
+	        },
 	        change: function change(vessel) {
+	            var _this = this;
+	
 	            var remove = false;
 	            for (var i = 0; i < _vessels.length; ++i) {
 	                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
@@ -1965,20 +2080,33 @@
 	                }
 	            }
 	            return new Promise(function (resolve, reject) {
-	                if (!remove) sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},"action":"insert"}]', function (response) {
-	                    if (response.Status.toLowerCase() == "ok") {
-	                        resolve();
-	                        _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
-	                    } else reject(response);
-	                });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"id":' + remove + ',"action":"delete"}]', function (response) {
-	                    if (response.Status.toLowerCase() == "ok") resolve();else reject(response);
-	                });
+	                if (!_myFleetLayers.length) {
+	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' + '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]', function (response) {
+	                        if (response.Status.toLowerCase() == "ok") {
+	                            _myFleetLayers.push(response.Result.properties.name);
+	                            addDefaultGroup(resolve, reject, []);
+	                        } else reject(response); // creation failed
+	                    });
+	                } else resolve();
 	            }).then(function () {
-	                this.isDirty = true;
-	                return Promise.resolve();
-	            }.bind(this), function (response) {
-	                console.log(response);
-	                return Promise.reject();
+	                return new Promise(function (resolve, reject) {
+	                    if (!remove) sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},"action":"insert"}]', function (response) {
+	                        if (response.Status.toLowerCase() == "ok") {
+	                            resolve();
+	                            _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+	                        } else reject(response);
+	                    });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=[{"id":' + remove + ',"action":"delete"}]', function (response) {
+	                        if (response.Status.toLowerCase() == "ok") resolve();else reject(response);
+	                    });
+	                }).then(function () {
+	                    this.isDirty = true;
+	                    _fireChanged();
+	                    return Promise.resolve();
+	                }.bind(_this), function (response) {
+	                    console.log(response);
+	                    this.isDirty = true;
+	                    return Promise.resolve();
+	                }.bind(_this));
 	            });
 	        },
 	        changeGroup: function changeGroup(mmsi, group) {
@@ -2170,8 +2298,15 @@
 	    BaseView.call(this, model);
 	    _highlight = highlight;
 	    _tools = tools;
-	    this.topOffset = 240;
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	
+	    Object.defineProperty(this, "topOffset", {
+	        get: function get() {
+	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height;
+	            return rv;
+	        }
+	    });
+	
 	    this.container = this.frame.find('.ais_history');
 	    this.startScreen = this.frame.find('.start_screen');
 	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
@@ -3082,6 +3217,8 @@
 				progress.text('');
 				$('.addremove').removeClass('disabled').show();
 				if (myFleetView.isActive) myFleetView.show();else myFleetModel.drawMarker(vessel);
+			}).catch(function (ex) {
+				return console.log(ex);
 			});
 		});
 		//}
@@ -3694,7 +3831,6 @@
 	        _tlmmsi = void 0,
 	        _aldt = void 0,
 	        _tldt = void 0;
-	
 	    try {
 	        _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, _tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function (p) {
 	            return "mmsi" == p.toLowerCase();
