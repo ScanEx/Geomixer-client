@@ -103,40 +103,41 @@ module.exports = function (options) {
             }
         },
         placeVesselTypeIcon: function(vessel){
+            let protocol = document.location.protocol;
             switch (vessel.vessel_type.toLowerCase()) {
                 case "cargo":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "tanker":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "fishing":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "passenger":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;                
                 case "hsc":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "pleasure craft":
                 case "sailing":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "unknown": 
                 case "reserved": 
                 case "other":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 default:
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
             }
