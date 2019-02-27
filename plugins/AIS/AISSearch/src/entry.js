@@ -69,10 +69,13 @@ const publicInterface = {
                 })
                 },
                 forLayers = function (layer) {
+                    try {
                     if (layer) {
                         //setLocaleDate(layer)
                         setLayerClickHandler(layer)
                     }
+                    }
+                    catch(e){}
                 }
 
         for (var key in params) {

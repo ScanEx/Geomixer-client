@@ -227,7 +227,8 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 				myFleetView.show();
 			else
 				myFleetModel.drawMarker(vessel);
-		});
+		})
+		.catch((ex)=>console.log(ex));
 	});
 	//}
 

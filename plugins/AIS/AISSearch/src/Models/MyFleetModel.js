@@ -35,8 +35,7 @@ const VesselData = function () {
     this.groups = []
 };
 
-let _init = false,
-_tools,
+let _tools,
 _isDirty = true,
 _myFleetLayers = [],
 _defaultGroup = _gtxt("AISSearch2.AllGroup"),
@@ -50,6 +49,8 @@ _displayngState,
 _data,
 _view,
 _aisLayerSearcher,
+_onChangedHandlers = [],
+_fireChanged = function(){ _onChangedHandlers.forEach(h=>h()); },
 _loadVoyageInfo = function (vessels) {   
     return new Promise(function (resolve, reject) {
         if (!vessels.length){
@@ -206,7 +207,6 @@ console.log("add group and style field");
                         reject(response);
                 }
             ); 
-
         },
         fetchMyFleet = function (lid) {
             return new Promise(function (resolve, reject) {
@@ -249,13 +249,14 @@ console.log("add group and style field");
     //()=>_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : [])
     ()=>_tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState)
     );
-
     _prepared = new Promise((resolve, reject) => {
         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
             "User/GetUserInfo.ashx",
             function (response) {
                 if (response.Status.toLowerCase() == "ok" && response.Result)
                     resolve(response);
+                if (response.Status.toLowerCase() == "ok" && !response.Result)
+                    reject({Status:"auth"});
                 else
                     reject(response);
             });
@@ -269,7 +270,7 @@ console.log("add group and style field");
                         if (response.Status.toLowerCase() == "ok" && response.Result.count > 0)
                             resolve(response);
                         else 
-                            reject(response); // create my fleet layer
+                            reject(response); // no my fleet layer
                     });
             });
     })
@@ -277,33 +278,21 @@ console.log("add group and style field");
             let lid = response.Result.layers[0].LayerID;
             _myFleetLayers.push(lid);
             return fetchMyFleet(lid)
-        },
-        (rejectedResponse) => {
+        }
+        ,(rejectedResponse) => {
             if (rejectedResponse.Status && rejectedResponse.Status.toLowerCase() == "ok")
-                return new Promise((resolve, reject)=>{
-                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                        'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' +
-                        '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]',
-                        function (response) {
-                            if (response.Status.toLowerCase() == "ok"){
-                                _myFleetLayers.push(response.Result.properties.name);
-                                addDefaultGroup(resolve, reject, []);
-                                //resolve([]); // new empty my fleet
-                            }
-                            else
-                                reject(response); // creation failed
-                        });
-                })
+                return Promise.resolve([]); // no mf layer
             else
                 return Promise.reject(rejectedResponse); // smth wrong
-    })
+        }
+    )
     .then((vessels=>{
 //console.log('INIT REPAINT MAP')
         _vessels = vessels.map(v=>v);
         _repaintMap(vessels); // only on init
-        return vessels;
-    }).bind(this))
-    .catch(error=>error);
+        return Promise.resolve();
+    }).bind(this));
+    //.catch(error=>error);
 
     return {
         get isDirty() { return _isDirty; },
@@ -328,13 +317,7 @@ console.log("add group and style field");
         },
         load: function (actualUpdate) {
             var thisInst = this;
-            return _prepared.then((r)=>{
-                if (r && r.Status && r.Status.toLowerCase()=="auth")
-                    return Promise.reject(r);
-
-                if (_myFleetLayers.length == 0)
-                    thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }], groups: [] };
-
+            return _prepared.then(()=>{
                 if (_myFleetLayers.length == 0 || !thisInst.isDirty)
                     return Promise.resolve();
 
@@ -352,9 +335,6 @@ console.log("add group and style field");
                         _isDirty = false;
                         return Promise.reject(error);
                     });
-            },
-            (problem)=>{
-                return Promise.reject(problem);
             });
         },
         update: function () {
@@ -362,15 +342,17 @@ console.log("add group and style field");
             let thisModel = this,
                 actualUpdate = _actualUpdate;
             this.view.inProgress(true);
-            this.load(actualUpdate).then(function () {
+            this.load(actualUpdate).then(
+                function () {
                     if (_actualUpdate == actualUpdate) {
                         thisModel.view.inProgress(false);
-                        thisModel.view.repaint();
+                        if (_data)
+                            thisModel.view.repaint();
                     }
-                }, function (json) {
+                }, 
+                function (json) {
                     thisModel.dataSrc = null;
-                    console.log(json)
-                    if (json.Status.toLowerCase() == "auth" ||
+                    if ((json.Status && json.Status.toLowerCase() == "auth") ||
                         (json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) { return r.Status.toLowerCase() == "auth" })))
                         thisModel.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], groups: [] };
                     else {
@@ -391,16 +373,18 @@ console.log("add group and style field");
             _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
         },
         markMembers: function (vessels) {
-            if (this.data && this.data.vessels){
+            if (this.data && this.data.groups){
                 let membCounter = 0;
-                this.data.vessels.forEach(function (v) {
-                    let i = Polyfill.findIndex(vessels, function (vv) { return v.mmsi == vv.mmsi && v.imo == v.imo });
-                    if (i>-1){
-                        let member = vessels[i]
-                        member.mf_member = "visibilty:visible";
-                        vessels.splice(i, 1);
-                        vessels.splice(membCounter++, 0, member);
-                    }
+                this.data.groups.forEach(function (g) {
+                    g.vessels.forEach(function (v) {
+                        let i = Polyfill.findIndex(vessels, function (vv) { return v.mmsi == vv.mmsi && v.imo == v.imo });
+                        if (i>-1){
+                            let member = vessels[i]
+                            member.mf_member = "visibilty:visible";
+                            vessels.splice(i, 1);
+                            vessels.splice(membCounter++, 0, member);
+                        }
+                    });
                 });
             }
         },
@@ -471,6 +455,7 @@ console.log("add group and style field");
                 }
             ); 
         },
+        set onChanged(callback){ _onChangedHandlers.push(callback) },
         change: function (vessel) {
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
@@ -480,37 +465,59 @@ console.log("add group and style field");
                 }
             }
             return new Promise((resolve, reject) => {
-                if (!remove)
+                if (!_myFleetLayers.length){
                     sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                        'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
-                        '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},"action":"insert"}]',
+                        'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' +
+                        '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]',
                         function (response) {
                             if (response.Status.toLowerCase() == "ok") {
-                                resolve();
-                                _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+                                _myFleetLayers.push(response.Result.properties.name);
+                                addDefaultGroup(resolve, reject, []);
                             }
                             else
-                                reject(response);
-                        })
+                                reject(response); // creation failed
+                        }
+                    );
+                }
                 else
-                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                        'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
-                        '&objects=[{"id":' + remove + ',"action":"delete"}]',
-                        function (response) {
-                            if (response.Status.toLowerCase() == "ok")
-                                resolve();
-                            else
-                                reject(response);
-                        })
+                    resolve();
             })
-            .then(
-            function () {
-                this.isDirty = true;
-                return Promise.resolve();
-            }.bind(this),
-            function (response) {
-                console.log(response);
-                return Promise.reject();
+            .then(()=>{
+                return new Promise((resolve, reject) => {
+                    if (!remove)
+                        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                            'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                            '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},"action":"insert"}]',
+                            function (response) {
+                                if (response.Status.toLowerCase() == "ok") {
+                                    resolve();
+                                    _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+                                }
+                                else
+                                    reject(response);
+                            })
+                    else
+                        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                            'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                            '&objects=[{"id":' + remove + ',"action":"delete"}]',
+                            function (response) {
+                                if (response.Status.toLowerCase() == "ok")
+                                    resolve();
+                                else
+                                    reject(response);
+                            })
+                })
+                .then(
+                function () {
+                    this.isDirty = true;
+                    _fireChanged();
+                    return Promise.resolve();
+                }.bind(this),
+                function (response) {
+                    console.log(response);
+                    this.isDirty = true;
+                    return Promise.resolve();
+                }.bind(this));
             });
         },
         changeGroup: function(mmsi, group)  {   

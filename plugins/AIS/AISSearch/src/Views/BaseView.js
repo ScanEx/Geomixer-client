@@ -8,17 +8,14 @@ if (has('SIDEBAR2'))
 if (has('PRODUCTION'))
     PRODUCTION = true;
 
-let _calcHeight = function () {
-    let template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-        h = template.getBoundingClientRect().height
-    if (NOSIDEBAR)
+let _calcHeight = function () {  
+    if (NOSIDEBAR){
+        let template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
+            h = template.getBoundingClientRect().height;  
         return h * 5;
+    }
     else {
-        let H = $('.iconSidebarControl-pane').height() - this.topOffset;
-// console.log(template.getBoundingClientRect())
-// console.log(this.topOffset)
-// console.log(H)
-        return (H - H%h);
+        return $('.iconSidebarControl-pane').height() - this.topOffset;
     }
 };
 
@@ -47,8 +44,9 @@ BaseView.prototype = function () {
         resize: function (clean) {
             let h = _calcHeight.call(this);
             if (this.startScreen){
-                this.startScreen.height(h);
-                this.container.css({ position:"relative", top: -h+"px" });
+                let bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
+                this.startScreen.css({ position:"absolute", left: bb.left+"px", top: (bb.height/2-100)+"px", 
+                width: bb.width+"px"});
             }
             this.container.height(h);
 

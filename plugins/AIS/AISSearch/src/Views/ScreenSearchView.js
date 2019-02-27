@@ -1,7 +1,6 @@
 const BaseView = require('./BaseView.js');
 const ScreenSearchView = function (model) {
     BaseView.apply(this, arguments);
-    this.topOffset = 180;
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
 
         '<table border=0 class="instruments">' +
@@ -34,6 +33,14 @@ const ScreenSearchView = function (model) {
         
         '</div>'
     )());
+    Object.defineProperty(this, "topOffset", {
+        get: function () {
+            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
+            this.frame.find('.instruments')[0].getBoundingClientRect().height + 
+            this.frame.find('.results')[0].getBoundingClientRect().height;
+            return rv;
+        }
+    });    
     this.container = this.frame.find('.ais_vessels');
     //this.startScreen = this.frame.find('.start_screen');
     this.tableTemplate = '{{#each vessels}}' +
