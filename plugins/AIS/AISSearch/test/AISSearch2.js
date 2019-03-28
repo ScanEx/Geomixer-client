@@ -91,6 +91,10 @@
 	            historyLayer: params.historyLayer,
 	            tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
 	
+	            lastPointLayerAlt: params.lastPointLayerAlt,
+	            tracksLayerAlt: params.tracksLayerAlt,
+	            historyLayerAlt: params.historyLayerAlt,
+	
 	            modulePath: modulePath,
 	            highlight: highlight,
 	            menuId: menuId
@@ -275,11 +279,15 @@
 	    'AISSearch2.ScreenSearchTab': 'СУДА НА ЭКРАНЕ',
 	    'AISSearch2.MyFleetTab': 'МОЙ ФЛОТ',
 	    'AISSearch2.dailyTrack': 'трек за сутки',
+	    'AISSearch2.allDailyTracks': 'все треки',
 	    'AISSearch2.myFleetOnly': 'только мой флот',
 	    'AISSearch2.show_pos': 'показать положение и историю',
 	    'AISSearch2.show_info': 'информация о судне',
 	    'AISSearch2.time_switch': 'Время',
 	    'AISSearch2.time_local': 'Местное',
+	    'AISSearch2.legend_switch': 'Легенда судов',
+	    'AISSearch2.legend_type': 'По типу',
+	    'AISSearch2.legend_speed': 'По скорости',
 	    'AISSearch2.calendar_today': 'сегодня',
 	    'AISSearh2.searchresults_view': 'Здесь будут отображаться<br>результаты поиска по названию,<br>IMO илм MMSI судна',
 	    'AISSearh2.myfleet_view': 'Здесь будут отображаться<br>выбранные суда<br>',
@@ -312,10 +320,16 @@
 	    'AISSearch2.DisplaySog': 'скорость',
 	    'AISSearch2.KnotShort': ' уз',
 	    'AISSearch2.thisVesselOnly': 'Только это судно: ',
+	    'AISSearch2.allTracks': 'Треки всех судов: ',
 	    'AISSearch2.markerShadow': 'Цвет обводки маркера',
 	    'AISSearch2.labelColor': 'Цвет подписи маркера',
-	    'AISSearch2.labelShadow': 'Цвет обводки подписи'
-	
+	    'AISSearch2.labelShadow': 'Цвет обводки подписи',
+	    'AISSearch2.zoomin_com': 'Увеличить',
+	    'AISSearch2.zoomout_com': 'Уменьшить',
+	    'AISSearch2.image1_com': 'Изображение 1',
+	    'AISSearch2.image2_com': 'Изображение 2',
+	    'AISSearch2.twoimages_com': 'Два изображения',
+	    'AISSearch2.close_com': 'Закрыть'
 	});
 	_translationsHash.addtext('eng', {
 	    'AISSearch2.title': 'Searching vessels',
@@ -374,12 +388,16 @@
 	    'AISSearch2.DbSearchTab': 'DATA BASE',
 	    'AISSearch2.ScreenSearchTab': 'VESSELS ON SCREEN',
 	    'AISSearch2.MyFleetTab': 'MY FLEET',
-	    'AISSearch2.dailyTrack': 'Daily Track',
+	    'AISSearch2.dailyTrack': 'daily track',
+	    'AISSearch2.allDailyTracks': 'all tracks',
 	    'AISSearch2.myFleetOnly': 'my fleet only',
 	    'AISSearch2.show_pos': 'position and history',
 	    'AISSearch2.show_info': 'vessel data',
 	    'AISSearch2.time_switch': 'Time',
 	    'AISSearch2.time_local': 'Local',
+	    'AISSearch2.legend_switch': 'Vessel legend',
+	    'AISSearch2.legend_type': 'Type',
+	    'AISSearch2.legend_speed': 'Speed',
 	    'AISSearch2.calendar_today': 'today',
 	    'AISSearh2.searchresults_view': 'Results View of Vessel Search<br>by Name,IMO or MMSI',
 	    'AISSearh2.myfleet_view': 'List of Special Selected<br>Vessels<br>',
@@ -412,10 +430,16 @@
 	    'AISSearch2.DisplaySog': 'sog',
 	    'AISSearch2.KnotShort': ' kn',
 	    'AISSearch2.thisVesselOnly': 'Only this ship ',
+	    'AISSearch2.allTracks': 'All ships tracks ',
 	    'AISSearch2.markerShadow': 'Marker highlight',
 	    'AISSearch2.labelColor': 'Label color',
-	    'AISSearch2.labelShadow': 'Label highlight'
-	
+	    'AISSearch2.labelShadow': 'Label highlight',
+	    'AISSearch2.zoomin_com': 'Zoom in',
+	    'AISSearch2.zoomout_com': 'Zoom out',
+	    'AISSearch2.image1_com': 'Image 1',
+	    'AISSearch2.image2_com': 'Image 2',
+	    'AISSearch2.twoimages_com': 'Two images',
+	    'AISSearch2.close_com': 'Close'
 	});
 
 /***/ }),
@@ -526,8 +550,8 @@
 	    DbSearchView = __webpack_require__(16),
 	    DbSearchModel = __webpack_require__(18),
 	    InfoDialogView = __webpack_require__(19),
-	    Searcher = __webpack_require__(24),
-	    Toolbox = __webpack_require__(25);
+	    Searcher = __webpack_require__(27),
+	    Toolbox = __webpack_require__(28);
 	
 	module.exports = function (options) {
 	    var _tools = new Toolbox(options),
@@ -538,8 +562,8 @@
 	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
 	        _dbsm = new DbSearchModel(_searcher),
 	        _dbsv = new DbSearchView({ model: _dbsm, highlight: options.highlight, tools: _tools }),
-	        _ssv = new ScreenSearchView(_ssm),
-	        _mfv = new MyFleetView(_mfm),
+	        _ssv = new ScreenSearchView(_ssm, _tools),
+	        _mfv = new MyFleetView(_mfm, _tools),
 	        _idv = new InfoDialogView({
 	        tools: _tools,
 	        aisLayerSearcher: _searcher,
@@ -568,11 +592,19 @@
 	'use strict';
 	
 	var BaseView = __webpack_require__(8);
-	var ScreenSearchView = function ScreenSearchView(model) {
+	var _tools = void 0;
+	var ScreenSearchView = function ScreenSearchView(model, tools) {
+	    var _this = this;
+	
 	    BaseView.apply(this, arguments);
+	    _tools = tools;
+	    _tools.onLegendSwitched(function (showAlternative) {
+	        _switchLegendIcon.call(_this, _tools.needAltLegend);
+	    }.bind(this));
+	
 	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' +
 	    //'<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-flclose clicable"></div></td></tr>'+
-	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' +
+	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td>' + '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>' + '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' +
 	    // '<table class="start_screen"><tr><td>'+
 	    // '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">'+
 	    // '<div>Здесь будут отображаться<br>результаты поиска</div></td></tr></table>'+
@@ -585,7 +617,7 @@
 	    });
 	    this.container = this.frame.find('.ais_vessels');
 	    //this.startScreen = this.frame.find('.start_screen');
-	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+	    this.tableTemplate = '{{#each vessels}}' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}} legend_icon"><img src="{{iconAlt}}" class="rotateimg{{icon_rot}} legend_iconalt"></td>' +
 	
 	    //'<td><i class="icon-ship" vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}"></i></td>' +
 	    '<td><span vessel="{{aisinfoid this}}" style="{{mf_member}}" title="{{i "AISSearch2.myFleetMember"}}">' + '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="14px" height="14px" viewBox="0 0 14 14" xml:space="preserve">' + '<g style="fill: #48aff1;">' + '<path class="st0" d="M13.4,11H0.6c-0.2,0-0.4,0.1-0.5,0.3c-0.1,0.2-0.1,0.4,0,0.6l1.2,1.8C1.4,13.9,1.6,14,1.8,14h9.9   c0.2,0,0.3-0.1,0.4-0.2l1.7-1.8c0.2-0.2,0.2-0.4,0.1-0.7C13.9,11.1,13.7,11,13.4,11z"/>' + '<path class="st0" d="M9.3,9.7h2.9c0.2,0,0.4-0.1,0.5-0.3c0.1-0.2,0.1-0.4,0-0.6L9.8,4.5C9.7,4.3,9.4,4.2,9.2,4.3   C8.9,4.4,8.7,4.6,8.7,4.9v4.3C8.7,9.5,9,9.7,9.3,9.7z"/>' + '<path class="st0" d="M1.2,9.7H7c0.3,0,0.6-0.3,0.6-0.6V0.6c0-0.3-0.2-0.5-0.4-0.6C6.9-0.1,6.7,0,6.5,0.3L0.7,8.8   C0.6,9,0.5,9.2,0.6,9.4C0.7,9.6,0.9,9.7,1.2,9.7z"/>' + '</g>' + '</svg></span></td>' + '<td><span class="date">{{ts_pos_utc}}</span></td>' + '<td><div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
@@ -608,7 +640,7 @@
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
 	    filterInput.keyup(function (e) {
-	        var _this = this;
+	        var _this2 = this;
 	
 	        var input = filterInput.val() || "";
 	        input = input.replace(/^\s+/, "").replace(/\s+$/, "");
@@ -625,31 +657,48 @@
 	        if (e.keyCode == 13) this.model.filterString += '\r';
 	        clearTimeout(delay);
 	        delay = setTimeout(function () {
-	            doFilter.call(_this);
+	            doFilter.call(_this2);
 	        }.bind(this), 500);
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
 	
 	    var needUpdate = function needUpdate() {
-	        var _this2 = this;
+	        var _this3 = this;
 	
 	        this.model.isDirty = true;
 	        if (this.container.is(':visible')) {
 	
 	            clearTimeout(delay);
 	            delay = setTimeout(function () {
-	                _this2.model.update();
+	                _this3.model.update();
 	            }.bind(this), 300);
 	        }
 	    };
 	    nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
 	    nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
+	
+	    this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click(function (e) {
+	        if (e.currentTarget.checked) {
+	            _tools.showAllTracks(true);
+	        } else {
+	            _tools.showAllTracks(false);
+	        }
+	    }.bind(this));
 	};
 	
 	ScreenSearchView.prototype = Object.create(BaseView.prototype);
 	
 	var _clean = function _clean() {
 	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + 0);
+	},
+	    _switchLegendIcon = function _switchLegendIcon(showAlternative) {
+	    var ic = this.frame.find('.legend_icon'),
+	        ica = this.frame.find('.legend_iconalt');
+	    if (showAlternative) {
+	        ic.hide();ica.show();
+	    } else {
+	        ica.hide();ic.show();
+	    }
 	};
 	
 	ScreenSearchView.prototype.inProgress = function (state) {
@@ -663,7 +712,7 @@
 	    _setEventHandlers = function _setEventHandlers() {
 	    var thisInst = this;
 	    this.container.find('.info').off('click').on('click', function (e) {
-	        var _this3 = this;
+	        var _this4 = this;
 	
 	        var target = $(this),
 	            vessel = JSON.parse(target.attr('vessel'));
@@ -675,7 +724,7 @@
 	            if (vessel.hasOwnProperty('ts_pos_utc')) {
 	                vessel.ts_pos_utc = v.ts_pos_utc;
 	                vessel.ts_pos_org = v.ts_pos_org;
-	                v.dt_pos_utc && $(_this3).closest('tr').find('.date').html(v.dt_pos_utc);
+	                v.dt_pos_utc && $(_this4).closest('tr').find('.date').html(v.dt_pos_utc);
 	            }
 	            target.attr('vessel', JSON.stringify(vessel));
 	        });
@@ -691,18 +740,17 @@
 	};
 	
 	ScreenSearchView.prototype.repaint = function () {
+	    //console.log("REPAINT")
 	    _clean.call(this);
 	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + this.model.data.vessels.length);
 	    //BaseView.prototype.repaint.apply(this, arguments);
 	    ////////////////////////////////////////////////////
-	    var start = new Date();
-	
-	    //_clean.call(this);
 	    this.container.find('.info').off('click');
 	    this.container.find('.ais_vessel').off('click');
 	    var scrollCont = this.container.find('.mCSB_container');
 	    if (scrollCont[0]) scrollCont.empty();else this.container.empty();
 	    if (!this.model.data) return;
+	
 	    var thisInst = this,
 	        tempFirst = this.model.data.vessels.slice(0, _firstRowsNum),
 	        content = $(Handlebars.compile(this.tableTemplate)({ msg: this.model.data.msg, vessels: tempFirst })),
@@ -714,48 +762,54 @@
 	        this.container.mCustomScrollbar("destroy").append(content).mCustomScrollbar({
 	            //scrollInertia: 0,//this.model.data.vessels.length > _firstRowsNum ? 0 : 600,
 	            callbacks: {
-	                onBeforeUpdate: function onBeforeUpdate() {
-	                    console.log("onBeforeUpdate");
+	                onScroll: function onScroll() {
+	                    thisInst.scroledPx = this.mcs.top;
+	                    //console.log("onScroll " + this.mcs.top + " " + thisInst.container.is(':visible'));
 	                },
-	                onUpdate: function onUpdate() {
-	                    console.log("onUpdate");
-	                },
-	                //onScroll:function(){
 	                whileScrolling: /*scrollingHandler*/function whileScrolling() {
+	                    //console.log("whileScrolling " + this.mcs.top + "px " + thisInst.container.is(':visible')+" ss "+thisInst.startShow)                  
 	                    //console.log("% " + this.mcs.topPct + " pos" + _firstRowsPos)
+	                    if (thisInst.startShow && this.mcs.top == 0) {
+	                        return;
+	                    } else thisInst.startShow = false;
+	
 	                    if (this.mcs.topPct == 100 && mcsTopPctPrev != 100 && thisInst.model.data.vessels.length > _firstRowsPos) {
-	                        var _start = _firstRowsPos - _firstRowsNum + _firstRowsShift,
+	                        var start = _firstRowsPos - _firstRowsNum + _firstRowsShift,
 	                            end = _firstRowsPos + _firstRowsShift;
-	                        if (thisInst.model.data.vessels.length - _start <= thisInst.container.height() / rowH) _start = thisInst.model.data.vessels.length - _firstRowsNum;
+	                        if (thisInst.model.data.vessels.length - start <= thisInst.container.height() / rowH) start = thisInst.model.data.vessels.length - _firstRowsNum;
 	                        ///console.log(">"+start+", "+end)
-	                        tempFirst = thisInst.model.data.vessels.slice(_start, end), _firstRowsPos += _firstRowsShift;
+	                        tempFirst = thisInst.model.data.vessels.slice(start, end), _firstRowsPos += _firstRowsShift;
 	                        var _scrollCont = thisInst.container.find('.mCSB_container');
 	                        _scrollCont.html(Handlebars.compile(thisInst.tableTemplate)({ vessels: tempFirst }));
 	                        //console.log("h="+rowH) 
 	                        setTimeout(function () {
-	                            thisInst.container.mCustomScrollbar("scrollTo", -rowH * _firstRowsShift + thisInst.container.height(), {
+	                            thisInst.scroledPx = -rowH * _firstRowsShift + thisInst.container.height();
+	                            thisInst.container.mCustomScrollbar("scrollTo", thisInst.scroledPx, {
 	                                scrollInertia: 0,
 	                                callbacks: false
 	                            });
 	                            _setEventHandlers.call(thisInst);
 	                        }, 200);
+	                        _switchLegendIcon.call(thisInst, _tools.needAltLegend);
 	                    }
 	                    if (this.mcs.topPct == 0 && mcsTopPctPrev != 0 && _firstRowsPos > _firstRowsNum) {
 	                        //console.log(_firstRowsPos)
-	                        var _start2 = _firstRowsPos - _firstRowsShift - _firstRowsNum,
+	                        var _start = _firstRowsPos - _firstRowsShift - _firstRowsNum,
 	                            _end = _firstRowsPos - _firstRowsShift;
 	                        //console.log("<"+start + ", " + end)
-	                        tempFirst = thisInst.model.data.vessels.slice(_start2, _end), _firstRowsPos -= _firstRowsShift;
+	                        tempFirst = thisInst.model.data.vessels.slice(_start, _end), _firstRowsPos -= _firstRowsShift;
 	                        var _scrollCont2 = thisInst.container.find('.mCSB_container');
 	                        _scrollCont2.html(Handlebars.compile(thisInst.tableTemplate)({ vessels: tempFirst }));
 	                        //console.log("h="+rowH)
 	                        setTimeout(function () {
-	                            thisInst.container.mCustomScrollbar("scrollTo", rowH * _firstRowsShift, {
+	                            thisInst.scroledPx = rowH * _firstRowsShift;
+	                            thisInst.container.mCustomScrollbar("scrollTo", thisInst.scroledPx, {
 	                                scrollInertia: 0,
 	                                callbacks: false
 	                            });
 	                            _setEventHandlers.call(thisInst);
 	                        }, 200);
+	                        _switchLegendIcon.call(thisInst, _tools.needAltLegend);
 	                    }
 	                    mcsTopPctPrev = this.mcs.topPct;
 	                }
@@ -768,11 +822,19 @@
 	        this.container.mCustomScrollbar("scrollTo", "top", { scrollInertia: 0, callbacks: false, timeout: 200 });
 	    }
 	    _setEventHandlers.call(this);
+	    _switchLegendIcon.call(this, _tools.needAltLegend);
 	};
 	
 	ScreenSearchView.prototype.show = function () {
+	    this.startShow = true;
 	    BaseView.prototype.show.apply(this, arguments);
 	    this.frame.find('.filter input').focus();
+	
+	    if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked) _tools.showAllTracks(true);
+	
+	    if (this.scroledPx) {
+	        this.container.mCustomScrollbar("scrollTo", this.scroledPx, { scrollInertia: 0, callbacks: false });
+	    }
 	};
 	
 	module.exports = ScreenSearchView;
@@ -800,10 +862,12 @@
 	    }
 	};
 	
-	var BaseView = function BaseView(model) {
+	var _tools = void 0;
+	var BaseView = function BaseView(model, tools) {
 	    model.view = this;
 	    this.model = model;
 	    this.gifLoader = '<img src="img/progress.gif">';
+	    _tools = tools;
 	};
 	
 	var _clean = function _clean() {
@@ -823,7 +887,7 @@
 	            var h = _calcHeight.call(this);
 	            if (this.startScreen) {
 	                var bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
-	                this.startScreen.css({ position: "absolute", left: bb.left + "px", top: bb.height / 2 - 100 + "px",
+	                this.startScreen.css({ position: "absolute", left: bb.left + "px", top: bb.height / 2 - 50 + "px",
 	                    width: bb.width + "px" });
 	            }
 	            this.container.height(h);
@@ -865,13 +929,13 @@
 	                e.stopPropagation();
 	            });
 	            this.container.find('.ais_vessel').on('click', function () {
-	                //console.log(JSON.parse($(this).find('.info').attr('vessel')))
 	                var v = JSON.parse($(this).find('.info').attr('vessel'));
 	                v.lastPosition = true;
 	                _this.infoDialogView.showPosition(v);
 	            });
 	        },
 	        show: function show() {
+	            _tools.restoreDefault();
 	            this.frame.show();
 	            this.model.update();
 	        },
@@ -907,103 +971,6 @@
 	    _myFleetModel = myFleetModel;
 	    this.filterString = "";
 	    this.isDirty = true;
-	    /*
-	    return {
-	        filterString: "",
-	        isDirty: true,
-	        load: function (actualUpdate) {
-	            if (!this.isDirty) {
-	                return Promise.resolve();
-	            }
-	            let thisInst = this;
-	            return Promise.all([new Promise(function (resolve, reject) {
-	                aisLayerSearcher.searchScreen({
-	                    dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
-	                    border: true,
-	                    group: true
-	                }, function (json) {
-	    //console.log(json.Result.values[0][12])
-	                    if (json.Status.toLowerCase() == "ok") {
-	                        thisInst.dataSrc = {
-	                            vessels: json.Result.values.map(function (v) {
-	                                let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
-	                                vessel = {
-	                                    vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden', 
-	                                    ts_pos_utc: aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime()/1000),
-	                                    xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
-	                                    vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
-	                                };
-	                                vessel.icon_rot = Math.round(vessel.cog/15)*15;
-	                                aisLayerSearcher.placeVesselTypeIcon(vessel);
-	                                return vessel;
-	                            })
-	                        };
-	                        if (_actualUpdate == actualUpdate) {
-	                            //console.log("ALL CLEAN")
-	                            //console.log("1>"+new Date(thisInst._actualUpdate))
-	                            //console.log("2>"+new Date(actualUpdate))
-	                            thisInst.isDirty = false;
-	                        }
-	                        resolve();
-	                    }
-	                    else {
-	                        reject(json);
-	                    }
-	                });
-	            })
-	                ,myFleetModel.load()
-	            ]);
-	        },
-	        setFilter: function () {
-	            this.filterString = this.filterString.replace(/\r+$/, "");
-	            if (this.dataSrc){
-	                if (this.filterString != "") {
-	                    this.data = {
-	                        vessels: this.dataSrc.vessels.filter(((v)=>{
-	                            return v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1;
-	                        }).bind(this))
-	                    };
-	                }
-	                else {
-	                    this.data = { vessels: this.dataSrc.vessels.map((v)=>v) };
-	                }
-	            }
-	        },
-	        update: function () {
-	    //let start = new Date();
-	            if (!this.isDirty)
-	                return;
-	            _actualUpdate = new Date().getTime();
-	            let thisInst = this,
-	                actualUpdate = _actualUpdate;
-	            this.view.inProgress(true);
-	            //this.filterString&&console.log(this.filterString+" "+this.filterString.search(/\r$/))
-	            //this.filterString&&console.log(this.filterString.replace(/^\s+/, "").replace(/\s+\r*$/, "")!="")            
-	              this.load(actualUpdate).then(function () {
-	                if (_actualUpdate == actualUpdate) {
-	    //console.log(thisInst.dataSrc)
-	                    if (thisInst.dataSrc)
-	                        myFleetModel.markMembers(thisInst.dataSrc.vessels);
-	                    thisInst.setFilter();                 
-	                    thisInst.view.inProgress(false);
-	                    thisInst.view.repaint();
-	                }
-	            }, function (json) {
-	                thisInst.dataSrc = null;
-	    //console.logconsole.log(json)
-	                if (json.Status.toLowerCase() == "auth" ||
-	                    (json.ErrorInfo && json.ErrorInfo.some && json.ErrorInfo.some(function (r) { return r.Status.toLowerCase() == "auth" })))
-	                    thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.auth") }], vessels: [] };
-	                else {
-	                    //thisInst.data = {msg:[{txt:"!!!"}], vessels:[]};
-	                    console.log(json);
-	                }
-	                thisInst.view.inProgress(false);
-	                thisInst.view.repaint();
-	            });
-	        }
-	    };
-	    */
 	};
 	
 	ScreenSearchModel.prototype.load = function (actualUpdate) {
@@ -1104,15 +1071,33 @@
 	var BaseView = __webpack_require__(8);
 	var GroupList = __webpack_require__(12);
 	
-	var _clean = function _clean() {
+	var _switchLegendIcon = function _switchLegendIcon(showAlternative) {
+	    var ic = this.frame.find('.legend_icon'),
+	        ica = this.frame.find('.legend_iconalt');
+	    if (showAlternative) {
+	        ic.hide();ica.show();
+	    } else {
+	        ica.hide();ic.show();
+	    }
+	},
+	    _clean = function _clean() {
 	    this.frame.find('.ais_vessels input[type="checkbox"]').off('click');
 	    this.startScreen.css({ visibility: "hidden" });
 	};
 	
-	var MyFleetView = function MyFleetView(model) {
-	    var _this2 = this;
+	var _tools = void 0,
+	    _displayedOnly = [],
+	    _notDisplayed = [],
+	    _saveLabelSettingsPromise = Promise.resolve(0);
+	var MyFleetView = function MyFleetView(model, tools) {
+	    var _this = this;
 	
-	    BaseView.call(this, model);
+	    BaseView.apply(this, arguments);
+	    _tools = tools;
+	    _tools.onLegendSwitched(function (showAlternative) {
+	        _switchLegendIcon.call(_this, _tools.needAltLegend);
+	    }.bind(this));
+	
 	    var settings = []; //DEFAULT SETTINGS
 	    this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' + '<table class="instruments">' + '<tr><td style="vertical-align:top; padding-right:0">' + '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' + '<label class="sync-switch switch"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span>' + '</td>' + '<td style="padding-right:0">' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' + '<div style="width:70px;float:left;" class="setting"><label><input type="checkbox" id="sog" ' + (settings.indexOf('sog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplaySog"}}</label></div>' + '<div style="width:45px;float:left;" class="setting"><label><input type="checkbox" id="cog" ' + (settings.indexOf('cog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayCog"}}</label></div>' + '</td>' + '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' + '<tr><td colspan="3" style="padding-top:0">' + '<table><tr><td>{{i "AISSearch2.NewGroup"}}</td>' + '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' + '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' + '</tr></table>' + '</td></tr>' + '</table>' + '<div class="ais_vessels">' + '<table class="results">' + '<td><input type="checkbox" checked></td>' + '<td class="count"></td></tr></table>' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">vessel_name</div><div>mmsi: mmsi imo: imo</div></td>' + '<td></td>' + '<td><span class="date">ts_pos_utc</span></td>' +
 	    //'<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' +
@@ -1129,9 +1114,11 @@
 	    this.container = this.frame.find('.ais_vessels');
 	    this.startScreen = this.frame.find('.start_screen');
 	    // DEFAULT SETTINGS
-	    this.model.markerTemplate = '<div><table><tr>' + '<td style="vertical-align:top">' +
-	    //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
-	    '{{{marker}}}' + '</td><td>{{{foo}}}</td></tr></table></div>';
+	    // this.model.markerTemplate =  '<div><table><tr>' +
+	    //     '<td style="vertical-align:top">' +
+	    //     //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
+	    //     '{{{marker}}}' +
+	    //     '</td><td>{{{foo}}}</td></tr></table></div>'; 
 	
 	    // craete group controller
 	    var newGroupNameValid = function newGroupNameValid(ngn) {
@@ -1142,61 +1129,80 @@
 	        return isValid;
 	    },
 	        createGroup = function createGroup(ngn) {
-	        var _this = this;
+	        var _this2 = this;
 	
 	        if (newGroupNameValid.call(this, ngn)) {
 	            this.inProgress(true);
 	            this.model.createGroup(ngn).then(function (group) {
-	                _this.groupList.appendGroup(group, _this.model.data.groups.length - 1);
-	                _this.inProgress(false);
+	                _this2.groupList.appendGroup(group, _this2.model.data.groups.length - 1);
+	                _this2.inProgress(false);
 	            }, function (error) {
-	                _this.inProgress(false);
+	                _this2.inProgress(false);
 	                console.log(error);
 	            });
 	        }
 	    };
 	    this.frame.find('.instruments .create').on("click", function (e) {
-	        var input = _this2.frame.find('.instruments .newgroupname input'),
+	        var input = _this.frame.find('.instruments .newgroupname input'),
 	            ngn = input.val();
 	        input.val('');
-	        createGroup.call(_this2, ngn);
+	        createGroup.call(_this, ngn);
 	    }.bind(this));
 	    this.frame.find('.instruments .newgroupname input').on("keyup", function (e) {
 	        var ngn = e.target.value;
 	        if (e.keyCode == 13) {
 	            e.target.value = '';
-	            createGroup.call(_this2, ngn);
+	            createGroup.call(_this, ngn);
 	        }
 	    }.bind(this));
 	
 	    // marker settings
 	    this.frame.find('.instruments .setting input').on('change', function (e) {
 	        var display = '';
-	        _this2.frame.find('.instruments .setting input').each(function (i, e) {
+	        _this.frame.find('.instruments .setting input').each(function (i, e) {
 	            if (e.checked) display += "{{{" + e.id + "}}}";
 	        });
 	        if (display == '') display = '{{{foo}}}';
-	        _this2.model.markerTemplate = _this2.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
-	        _this2.model.drawMarkers();
-	    });
+	        _this.model.markerTemplate = _this.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
+	        if (_displayedOnly.length) _tools.showVesselsOnMap(_displayedOnly);else _tools.showVesselsOnMap("all");
+	
+	        _saveLabelSettingsPromise = _saveLabelSettingsPromise.then(function (c) {
+	            return _this.model.saveLabelSettings(c);
+	        }.bind(_this));
+	    }.bind(this));
 	
 	    // visibility controller
-	    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", this.model.showOnlyMyfleet);
+	    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", function (e) {
+	        _displayedOnly.length = 0;
+	        if (e.currentTarget.checked) {
+	            _displayedOnly = this.model.vessels.map(function (v) {
+	                return v.mmsi.toString();
+	            });
+	            _tools.showVesselsOnMap(_displayedOnly);
+	        } else _tools.showVesselsOnMap("all");
+	        //console.log("showVesselsOnMap");            
+	    }.bind(this));
 	
 	    // group list
 	    this.groupList = new GroupList(this.frame);
 	    this.groupList.onRepaintItem = function (i, elm) {
-	        elm.querySelector('input[type=checkbox]').checked = _this2.model.isMemberShown(elm.querySelector('.mmsi').innerText);
+	        elm.querySelector('input[type=checkbox]').checked = _notDisplayed.indexOf(elm.querySelector('.mmsi').innerText) < 0;
 	    }.bind(this);
 	    this.groupList.onDeleteGroup = function (group) {
-	        _this2.inProgress(true);
-	        _this2.model.deleteGroup(group);
+	        _this.inProgress(true);
+	        _this.model.deleteGroup(group);
 	    }.bind(this);
 	
 	    this.tableTemplate = this.groupList.toString();
 	};
 	
 	MyFleetView.prototype = Object.create(BaseView.prototype);
+	
+	Object.defineProperty(MyFleetView.prototype, "notDisplayed", {
+	    get: function get() {
+	        return _notDisplayed;
+	    }
+	});
 	
 	MyFleetView.prototype.inProgress = function (state) {
 	    var progress = this.frame.find('.refresh div');
@@ -1208,19 +1214,44 @@
 	
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
+	    // MEMBERS ON MAP
+	    _displayedOnly.length = 0;
+	    if (!this.model.vessels.length) this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = false;
+	    if (this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked) {
+	        _displayedOnly = this.model.vessels.map(function (v) {
+	            return v.mmsi.toString();
+	        });
+	        _tools.showVesselsOnMap(_displayedOnly);
+	    } else _tools.showVesselsOnMap("all");
 	
-	    var onlyMyfleet = this.model.showOnlyMyFleet();
-	    this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = onlyMyfleet;
+	    _tools.hideVesselsOnMap(_notDisplayed);
+	    // console.log("showVesselsOnMap");     
+	    // console.log("hideVesselsOnMap");  
+	    ///////////////// 
+	
+	    var labelSettings = this.model.markerTemplate.match(/(?!\{\{\{)[^\{\}]+(?=\}\}\})/g),
+	        labelSettingCtrl = void 0;
+	    for (var i in labelSettings) {
+	        labelSettingCtrl = this.frame.find('.instruments .setting input#' + labelSettings[i])[0];
+	        if (labelSettingCtrl) labelSettingCtrl.checked = true;
+	    }
 	
 	    this.groupList.repaint();
-	    this.groupList.onCheckItem = this.model.showMembers;
+	
+	    // GROUP LIST EVENTS
+	    this.groupList.onCheckItem = function (uncheked) {
+	        if (uncheked.length) _notDisplayed = uncheked.map(function (mmsi) {
+	            return mmsi;
+	        });else _notDisplayed.length = 0;
+	        _tools.hideVesselsOnMap(uncheked);
+	        // console.log("hideVesselsOnMap");
+	    };
 	    this.groupList.onChangeGroup = function (mmsi, group) {
 	        var view = _this3;
 	        _this3.inProgress(true);
 	        _this3.model.changeGroup(mmsi, group).then(function (r) {
 	            view.repaint();
 	            view.inProgress(false);
-	            view.model.drawMarkers();
 	        }).catch(function (err) {
 	            console.log(err);
 	            view.inProgress(false);
@@ -1228,15 +1259,17 @@
 	    }.bind(this);
 	    this.groupList.onExcludeItem = function (ev, mmsi, i) {
 	        ev.stopPropagation();
-	        var view = _this3;
-	        var vessel = view.model.vessels[i];
-	        view.prepare(vessel.mmsi.toString());
+	        var thisView = _this3;
+	        var vessel = thisView.model.vessels[i];
+	
+	        thisView.beforeExcludeMember(vessel.mmsi.toString());
+	
 	        var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
 	        if (dlg[0]) {
 	            dlg.find('.button.addremove').click();
 	        } else {
-	            view.model.change(vessel).then(function () {
-	                view.show();
+	            thisView.model.changeMembers(vessel).then(function () {
+	                thisView.show();
 	            });
 	        }
 	    }.bind(this);
@@ -1253,21 +1286,29 @@
 	        _this3.model.changeGroupStyle(i, colors);
 	    }.bind(this);
 	    this.groupList.onSaveGroupStyle = this.model.saveGroupStyle;
+	    _switchLegendIcon.call(this, _tools.needAltLegend);
 	};
 	
-	MyFleetView.prototype.prepare = function (mmsi) {
-	    if (this.isActive) {
-	        this.model.freeMember(mmsi);
-	    }
+	MyFleetView.prototype.beforeExcludeMember = function (strMmsi) {
+	    _displayedOnly = _displayedOnly.filter(function (m) {
+	        return m != strMmsi;
+	    });
+	    _notDisplayed = _notDisplayed.filter(function (m) {
+	        return m != strMmsi;
+	    });
 	};
 	
 	MyFleetView.prototype.hide = function () {
-	    this.model.showNotOnlyMyfleet();
 	    BaseView.prototype.hide.apply(this, arguments);
+	    _tools.showVesselsOnMap("all");
+	    _tools.hideVesselsOnMap([]);
 	};
+	
 	// MyFleetView.prototype.show = function () {
-	//     BaseView.prototype.show.apply(this, arguments); 
+	//     BaseView.prototype.show.apply(this, arguments);  
+	//     _switchLegendIcon.call(this, _tools.needAltLegend);
 	// }
+	
 	module.exports = MyFleetView;
 
 /***/ }),
@@ -1345,9 +1386,7 @@
 	            group = cssClass.value;
 	            if (group && group.search(/^gr\d/) == 0) break;
 	        }
-	        //console.log("group "+group);
-	        // if(!e.currentTarget.querySelector(".delete"))
-	        //     return; 
+	
 	        var ctxMenu = _this.contextMenu,
 	            //$('.mf_group_menu'),
 	        evnt = e;
@@ -1356,10 +1395,7 @@
 	        if (_cp3) _cp3.remove();
 	        ctxMenu.html('');
 	        var colorChangeHandler = function colorChangeHandler(c, cs) {
-	            //console.log(c); 
-	            //console.log(cs);
 	            _groupStyleChanged = true;
-	
 	            cs.style.backgroundColor = "#" + c;
 	            var c1 = cp1.style.backgroundColor,
 	                c2 = cp2.style.backgroundColor,
@@ -1631,7 +1667,7 @@
 	GroupWidget.prototype.toString = function () {
 	    return '<div class="mf_group">' + '<table class="results gr{{@index}}"><tr>' + '<td><input type="checkbox" checked><div class="upout clicable ui-helper-noselect icon-down-open" style="float: right;"></div></td>' + '<td><span class="title">{{title}}</span></td>' + '<td class="count">{{vessels.length}}</td>' + '<td>' + '{{#unless default}}' + '<img class="delete clicable" title="{{i "AISSearch2.DeleteGroup"}}" src="plugins/AIS/AISSearch/svg/delete.svg">' + '</td>' + '{{/unless}}' + '</tr></table>' + '{{#each vessels}}' +
 	    //'{{#unless foovessel}}' +
-	    '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: <span class="mmsi">{{mmsi}}</span> imo: <span class="imo">{{imo}}</span></div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '</td>' + '<td>' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' +
+	    '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: <span class="mmsi">{{mmsi}}</span> imo: <span class="imo">{{imo}}</span></div></td>' + '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}} legend_icon"><img src="{{iconAlt}}" class="course rotateimg{{icon_rot}} legend_iconalt">' + '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' + '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' + '</td>' + '<td>' + '<div class="ais_info_dialog_close-button exclude" title="{{i "AISSearch2.vesselExclude"}}"></div>' + '<span class="date">{{dt_pos_utc}}</span></td>' + '</tr></table>' + '</div>' +
 	    //'{{/unless}}' +
 	    '{{/each}}</div>';
 	};
@@ -1645,7 +1681,7 @@
 	"use strict";
 	
 	var Polyfill = __webpack_require__(15);
-	var emptyGroup = function emptyGroup(title, isDefault, id, style) {
+	var emptyGroup = function emptyGroup(title, isDefault, id, style, updateTemplate) {
 	    var ms = "#ffff00",
 	        lsc = "#ffff00",
 	        ls = { "color": "#ffff00", "text_shadow": "-1px -1px 0 #ffff00, 0px -1px 0 #ffff00, 1px -1px 0 #ffff00, -1px  0px 0 #ffff00, 1px  0px 0 #ffff00, -1px  1px 0 #ffff00, 0px  1px 0 #ffff00, 1px  1px 0 #ffff00" },
@@ -1672,15 +1708,14 @@
 	        }
 	    };
 	    if (isDefault) eg.default = true;
-	
 	    if (style) {
 	        style = JSON.parse(style);
 	        eg.marker_style = style.ms;
 	        eg.label_color = style.lc;
 	        eg.label_shadow = style.lsc;
+	        if (isDefault && style.mt && updateTemplate) _markerTemplate = style.mt;
 	    }
 	    eg.id = id;
-	
 	    return eg;
 	};
 	
@@ -1696,9 +1731,9 @@
 	    _mapID = void 0,
 	    _prepared = void 0,
 	    _actualUpdate = void 0,
-	    _markerTemplate = void 0,
-	    _filteredState = [],
-	    _displayngState = void 0,
+	    _markerTemplate = '<div><table><tr>' + '<td style="vertical-align:top">' +
+	//'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
+	'{{{marker}}}' + '</td><td>{{{foo}}}</td></tr></table></div>',
 	    _data = void 0,
 	    _view = void 0,
 	    _aisLayerSearcher = void 0,
@@ -1760,7 +1795,7 @@
 	        data = new VesselData();
 	        vessels.forEach(function (v) {
 	            if (!v.mmsi && !v.imo) {
-	                if (v.group) eg = emptyGroup(v.group, false, v.gmx_id, v.style);else eg = emptyGroup(_defaultGroup, true, v.gmx_id, v.style);
+	                if (v.group) eg = emptyGroup(v.group, false, v.gmx_id, v.style, true);else eg = emptyGroup(_defaultGroup, true, v.gmx_id, v.style, true);
 	                data.groups.push(eg);
 	            }
 	        });
@@ -1794,16 +1829,6 @@
 	    //thisInst.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
 	    //console.log("PARSE VI " + data.groups.reduce((p,c)=>p+c.vessels.length, 0))
 	    return data;
-	},
-	    _repaintMap = function _repaintMap(vessels) {
-	    //console.log(vessels) 
-	    _loadVoyageInfo(vessels)
-	    //.then(data => _tools.repaintOtherMarkers(data, _markerTemplate, _view.isActive ? _filteredState : []))
-	    .then(function (data) {
-	        return _tools.repaintOtherMarkers(data, _markerTemplate, _filteredState);
-	    }).catch(function (error) {
-	        error && console.log(error);
-	    });
 	};
 	
 	module.exports = function (_ref) {
@@ -1870,15 +1895,6 @@
 	        });
 	    };
 	
-	    nsGmx.gmxMap.layersByID[aisLayerSearcher.screenSearchLayer].on('versionchange', function () {
-	        //console.log("V C"); 
-	        _repaintMap(_vessels);
-	    });
-	    nsGmx.widgets.commonCalendar.getDateInterval().on('change',
-	    //()=>_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : [])
-	    function () {
-	        return _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-	    });
 	    _prepared = new Promise(function (resolve, reject) {
 	        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "User/GetUserInfo.ashx", function (response) {
 	            if (response.Status.toLowerCase() == "ok" && response.Result) resolve(response);
@@ -1903,10 +1919,21 @@
 	        _vessels = vessels.map(function (v) {
 	            return v;
 	        });
-	        _repaintMap(vessels); // only on init
-	        return Promise.resolve();
+	        _tools.specialVesselFilters = { key: "drawMarker", value: function value(args, ai, displayed) {
+	                var vessel = Polyfill.find(_vessels, function (v) {
+	                    return v.mmsi && v.mmsi == args.properties[ai.mmsi];
+	                });
+	                if (vessel) {
+	                    var group = Polyfill.find(_vessels, function (v) {
+	                        return !v.mmsi && !v.imo && v.group == vessel.group;
+	                    });
+	                    if (vessel.group) group = emptyGroup(vessel.group, false, group.gmx_id, group.style);else group = emptyGroup(_defaultGroup, true, group.gmx_id, group.style);
+	                    _tools.drawMyFleetMarker(args, _markerTemplate, group, ai, (displayed == "all" || displayed.indexOf(vessel.mmsi.toString()) >= 0) && _view.notDisplayed.indexOf(vessel.mmsi.toString()) < 0);
+	                }
+	            }
+	            // _repaintMap(vessels); // only on init
+	        };return Promise.resolve();
 	    }.bind(this));
-	    //.catch(error=>error);
 	
 	    return {
 	        get isDirty() {
@@ -1988,13 +2015,6 @@
 	        set markerTemplate(v) {
 	            _markerTemplate = v;
 	        },
-	        drawMarker: function drawMarker(vessel) {
-	            _repaintMap(_vessels);
-	        },
-	        drawMarkers: function drawMarkers() {
-	            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-	            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-	        },
 	        markMembers: function markMembers(vessels) {
 	            if (this.data && this.data.groups) {
 	                var membCounter = 0;
@@ -2069,7 +2089,7 @@
 	        set onChanged(callback) {
 	            _onChangedHandlers.push(callback);
 	        },
-	        change: function change(vessel) {
+	        changeMembers: function changeMembers(vessel) {
 	            var _this = this;
 	
 	            var remove = false;
@@ -2077,6 +2097,7 @@
 	                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
 	                    remove = _vessels[i].gmx_id;
 	                    _vessels.splice(i, 1);
+	                    //_tools.eraseMyFleetMarker(vessel.mmsi);
 	                }
 	            }
 	            return new Promise(function (resolve, reject) {
@@ -2138,12 +2159,48 @@
 	                });
 	            });
 	        },
+	        saveLabelSettings: function saveLabelSettings(count) {
+	            return new Promise(function (resolve, reject) {
+	                var temp = [],
+	                    style = void 0;
+	                for (var i = 0; i < _data.groups.length; ++i) {
+	                    style = { ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color };
+	                    if (_data.groups[i].default) style.mt = _markerTemplate;
+	                    temp.push({
+	                        properties: { style: JSON.stringify(style) },
+	                        id: _data.groups[i].id, action: "update"
+	                    });
+	                    if (_data.groups[i].default) break;
+	                }
+	
+	                var form = new FormData();
+	                form.set('WrapStyle', 'none');
+	                form.set('LayerName', _myFleetLayers[0]);
+	                form.set('objects', JSON.stringify(temp));
+	                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
+	                    credentials: 'include',
+	                    method: "POST",
+	                    body: form
+	                }).then(function (r) {
+	                    return r.json();
+	                }).then(function (r) {
+	                    if (!r.Status || r.Status.toLowerCase() != "ok") console.log(r);
+	                    resolve(count + 1);
+	                }).catch(function (err) {
+	                    console.log(err);
+	                    resolve(count + 1);
+	                });
+	            });
+	        },
 	        saveGroupStyle: function saveGroupStyle(count) {
 	            return new Promise(function (resolve, reject) {
-	                var temp = [];
+	                var temp = [],
+	                    style = void 0;
 	                for (var i = 0; i < _data.groups.length; ++i) {
+	                    style = { ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color };
+	                    if (_data.groups[i].default) style.mt = _markerTemplate;
 	                    temp.push({
-	                        properties: { style: JSON.stringify({ ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color }) },
+	                        properties: { style: JSON.stringify(style) },
 	                        id: _data.groups[i].id, action: "update"
 	                    });
 	                }
@@ -2168,60 +2225,20 @@
 	            });
 	        },
 	        changeGroupStyle: function changeGroupStyle(i, colors) {
-	            this.data.groups[i].marker_style = colors.marker_style;
-	            this.data.groups[i].label_color = colors.label_color;
-	            this.data.groups[i].label_shadow = colors.label_shadow;
+	            _data.groups[i].marker_style = colors.marker_style;
+	            _data.groups[i].label_color = colors.label_color;
+	            _data.groups[i].label_shadow = colors.label_shadow;
 	            _tools.highlightMarker(i, this.data.groups[i]);
-	            // console.log(vessels)
-	            //console.log(this.data.groups[i].marker_style)
-	        },
-	        /// Visibility switch click ///
-	        showOnlyMyfleet: function showOnlyMyfleet(e) {
-	            _displayngState = null;
-	            if (e.currentTarget.checked) {
-	                var myfleet = _vessels.reduce(function (p, c) {
-	                    if (c.mmsi) p.push(c.mmsi.toString());return p;
-	                }, []);
-	                if (myfleet.length > 0) _displayngState = myfleet;
-	            }
-	            _tools.hideVesselMarkers(_filteredState, _displayngState);
-	        },
-	        isMemberShown: function isMemberShown(mmsi) {
-	            return _filteredState.indexOf(mmsi) < 0;
-	        },
-	        /// Vessel visibility checkbox click ///
-	        showMembers: function showMembers(filtered) {
-	            _filteredState = filtered;
-	            _tools.hideVesselMarkers(_filteredState, _displayngState);
-	            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-	            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-	        },
-	        /// Before exclude member ///
-	        freeMember: function freeMember(mmsi) {
-	            _displayngState = _displayngState ? _displayngState.filter(function (m) {
-	                return m != mmsi;
-	            }) : null;
-	            if (_displayngState && _displayngState.length == 0) _displayngState = null;
-	            _filteredState = _filteredState.filter(function (m) {
-	                return m != mmsi;
-	            });
-	        },
-	        /// MF view repaint ///
-	        showOnlyMyFleet: function showOnlyMyFleet() {
-	            if (_displayngState) _displayngState = _vessels.reduce(function (p, c) {
-	                if (c.mmsi) p.push(c.mmsi.toString());return p;
-	            }, []); //_vessels.map(v=>v.mmsi.toString());
 	
-	            _tools.hideVesselMarkers(_filteredState, _displayngState);
-	            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-	            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-	            return _displayngState;
-	        },
-	        /// MF view hide ///
-	        showNotOnlyMyfleet: function showNotOnlyMyfleet() {
-	            //_tools.repaintOtherMarkers(_data, _markerTemplate, []);
-	            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-	            _tools.hideVesselMarkers([], null);
+	            var g = _data.groups[i],
+	                group = Polyfill.find(_vessels, function (v) {
+	                return !v.mmsi && !v.imo && v.gmx_id == g.id;
+	            }),
+	                style = { ms: g.marker_style, lc: g.label_color, lsc: g.label_shadow_color };
+	            if (g.default) style.mt = _markerTemplate;
+	            group.style = JSON.stringify(style);
+	            //console.log(group)
+	            //console.log(this.data.groups[i].marker_style)
 	        }
 	    };
 	};
@@ -2286,7 +2303,7 @@
 	},
 	    _highlight = void 0,
 	    _tools = void 0,
-	    _displayedOnly = null;
+	    _displayedOnly = [];
 	
 	var DbSearchView = function DbSearchView(_ref) {
 	    var _this = this;
@@ -2295,10 +2312,17 @@
 	        highlight = _ref.highlight,
 	        tools = _ref.tools;
 	
-	    BaseView.call(this, model);
+	    BaseView.call(this, model, tools);
 	    _highlight = highlight;
 	    _tools = tools;
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	    var needLegendSwitch = _tools.hasAlternativeLayers,
+	        needAltLegend = !!needLegendSwitch._map;
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + (needLegendSwitch ? '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + '<span class="type unselectable on" unselectable="on">{{i "AISSearch2.legend_type"}}</span>' + '<span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>' : '') + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	    if (needAltLegend) {
+	        _tools.switchLegend(needAltLegend);
+	        this.frame.find('.legend span').removeClass("on");
+	        this.frame.find('.legend .speed').addClass('on');
+	    }
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
@@ -2309,7 +2333,7 @@
 	
 	    this.container = this.frame.find('.ais_history');
 	    this.startScreen = this.frame.find('.start_screen');
-	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
+	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '<table class="ais_positions_date header"><tr>' + '<td></td>' + '<td><span class="date"></span></td>' + '<td><div class="track all"><input type="checkbox" title="{{i "AISSearch2.allDailyTracks"}}"></div></td>' + '<td><div class="count">{{total}}</div></td></tr></table>' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
 	
 	    var calendar = this.frame.find('.calendar');
 	
@@ -2359,15 +2383,32 @@
 	    }.bind(this));
 	
 	    this.frame.find('.time .only_this  input[type="checkbox"]').click(function (e) {
-	        _displayedOnly = null;
-	        //console.log(this.model.data.vessels[0].positions[0].mmsi.toString())
-	        if (e.currentTarget.checked && _this.frame.find('.show_info')[0]) {
-	            _displayedOnly = [_this.model.data.vessels[0].positions[0].mmsi.toString()];
-	            _tools.showOtherMarkers([_this.model.data.vessels[0].positions[0].mmsi.toString()]);
-	        } else _tools.showOtherMarkers();
-	        _tools.hideVesselMarkers([], _displayedOnly);
+	        _displayedOnly.length = 0;
+	        if (e.currentTarget.checked && _this.frame.find('.ais_positions_date:not(.header)')[0]) {
+	            _displayedOnly.push(_this.model.data.vessels[0].positions[0].mmsi.toString());
+	            _tools.showVesselsOnMap(_displayedOnly);
+	        } else {
+	            _tools.showVesselsOnMap("all");
+	        }
 	    }.bind(this));
 	
+	    _tools.onLegendSwitched(function () {
+	        var ic = _this.frame.find('.legend_icon'),
+	            ica = _this.frame.find('.legend_iconalt');
+	        if (ic.is(':visible')) {
+	            ic.hide();ica.show();
+	        } else {
+	            ica.hide();ic.show();
+	        }
+	    }.bind(this));
+	    this.frame.find('.legend .type,.speed').click(function (e) {
+	        var trg = $(e.currentTarget);
+	        if (!trg.is('.on')) {
+	            _this.frame.find('.legend span').removeClass("on");
+	            trg.addClass('on');
+	            _tools.switchLegend(trg.is('.speed'));
+	        }
+	    }.bind(this));
 	    this.frame.find('.time .utc,.local').click(function (e) {
 	        var trg = $(e.currentTarget);
 	        if (!trg.is('.on')) {
@@ -2400,7 +2441,7 @@
 	        removeBut = this.frame.find('.filter .remove'),
 	        delay = void 0,
 	        suggestions = this.frame.find('.suggestions'),
-	        suggestionsCount = 5,
+	        suggestionsCount = 12,
 	        suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 },
 	        found = { values: [] },
 	        searchDone = function searchDone() {
@@ -2408,19 +2449,19 @@
 	            _searchString = found.values[suggestionsFrame.current].vessel_name;
 	            this.searchInput.val(_searchString);
 	            var v = found.values[suggestionsFrame.current];
-	            if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date')[0]) {
+	            if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date:not(.header)')[0]) {
 	                this.vessel = v;
 	                this.show();
 	            }
 	        } else {
 	            _clean.call(this);
-	            _cleanMap();
+	            _cleanMap.call(this);
 	        }
 	    },
 	        doSearch = function doSearch(actualId) {
 	        //console.log(_searchString)
 	        new Promise(function (resolve, reject) {
-	            this.model.searcher.searchString(_searchString, true, function (response) {
+	            this.model.searcher.searchString2(_searchString, true, function (response) {
 	                if (response.Status.toLowerCase() == "ok") {
 	                    found = {
 	                        values: response.Result.values.map(function (v) {
@@ -2482,7 +2523,7 @@
 	        searchBut.show();
 	        suggestions.hide();
 	        _clean.call(this);
-	        _cleanMap();
+	        _cleanMap.call(this);
 	        //nsGmx.leafletMap.removeLayer(highlight);
 	    }.bind(this));
 	    this.searchInput.keydown(function (e) {
@@ -2559,9 +2600,7 @@
 	    nsGmx.leafletMap.removeLayer(_highlight);
 	},
 	    _cleanMap = function _cleanMap() {
-	    _displayedOnly = null;
-	    _tools.showOtherMarkers(_displayedOnly);
-	    _tools.hideVesselMarkers([], _displayedOnly);
+	    if (_displayedOnly.length) this.frame.find('.time .only_this  input[type="checkbox"]').click();
 	};
 	
 	DbSearchView.prototype.inProgress = function (state) {
@@ -2576,24 +2615,32 @@
 	    }
 	};
 	
-	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">{{i "AISSearch2.draught"}}:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">{{i "AISSearch2.destination"}}:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">{{i "AISSearch2.nav_status"}}:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
+	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="legend_icon rotateimg{{icon_rot}}"><img src="{{iconAlt}}" class="legend_iconalt rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">{{i "AISSearch2.draught"}}:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">{{i "AISSearch2.destination"}}:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">{{i "AISSearch2.nav_status"}}:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
 	
 	var _prepare_history = function _prepare_history() {
 	    var _this5 = this;
 	
 	    //console.log(_tools.displayedTrack)     
 	    if (this.model.data.vessels.length > 0 && _tools.displayedTrack && _tools.displayedTrack.mmsi == this.model.data.vessels[0].positions[0].mmsi) {
-	        this.frame.find('.ais_positions_date').each(function (i, el) {
+	        var checkTrack = void 0,
+	            modelDate = void 0,
+	            trackDate = void 0,
+	            checkAllTracks = this.frame.find('.ais_positions_date.header .track input')[0];
+	        checkAllTracks.checked = true;
+	        this.frame.find('.ais_positions_date:not(.header)').each(function (i, el) {
 	            if (_tools.displayedTrack.dates) {
-	                var modelDate = new Date(_this5.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0);
+	                modelDate = new Date(_this5.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0);
+	                checkTrack = false;
 	                for (var j = 0; j < _tools.displayedTrack.dates.list.length; ++j) {
-	                    var trackDate = _tools.displayedTrack.dates.list[j];
+	                    trackDate = _tools.displayedTrack.dates.list[j];
 	                    if (modelDate === trackDate.getTime()) {
-	                        $(el).find('.track input')[0].checked = true;
+	                        checkTrack = $(el).find('.track:not(.all) input')[0];
+	                        checkTrack.checked = true;
 	                        break;
 	                    }
 	                }
-	            } else $(el).find('.track input')[0].checked = true;
+	                if (!checkTrack) checkAllTracks.checked = false;
+	            } else $(el).find('.track input:not(.all)')[0].checked = true;
 	        });
 	    }
 	};
@@ -2606,19 +2653,30 @@
 	
 	    _prepare_history.call(this);
 	
-	    //console.log("REPAINT")
+	    //console.log("REPAINT") 
+	    _tools.clearMyFleetMarkers();
+	    _displayedOnly.length = 0;
 	    if (this.frame.find('.time .only_this  input[type="checkbox"]')[0].checked) {
-	        _displayedOnly = [this.model.data.vessels[0].positions[0].mmsi.toString()];
-	        _tools.showOtherMarkers(_displayedOnly);
-	        _tools.hideVesselMarkers([], _displayedOnly);
+	        _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());
+	        _tools.showVesselsOnMap(_displayedOnly);
+	    } else {
+	        _tools.showVesselsOnMap("all");
 	    }
 	
-	    var open_pos = this.frame.find('.open_positions');
-	    open_pos.each(function (ind, elm) {
+	    var openPos = this.frame.find('.open_positions'),
+	        switchLegendIcons = function () {
+	        var ic = this.frame.find('.legend_icon'),
+	            ica = this.frame.find('.legend_iconalt');
+	        if (this.frame.find('.legend .speed').is('.on')) {
+	            ica.show();ic.hide();
+	        } else {
+	            ic.show();ica.hide();
+	        }
+	    }.bind(this);
+	    openPos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
 	                vi_cont = _this6.frame.find('#voyage_info' + ind);
-	
 	            if (icon.is('.icon-down-open')) {
 	                icon.removeClass('icon-down-open').addClass('.icon-right-open');
 	                vi_cont.find('.ais_positions td[class!="more"]').off('click');
@@ -2632,6 +2690,7 @@
 	                    vi_cont.find('.utc_date').hide();
 	                    vi_cont.find('.local_date').show();
 	                }
+	                switchLegendIcons();
 	                vi_cont.find('.ais_positions td[class!="more"]').click(function (e) {
 	                    var td = $(e.currentTarget);
 	                    if (td.is('.active')) {
@@ -2664,36 +2723,57 @@
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
 	                        vessel = _this6.model.data.vessels[ind].positions[parseInt(i)];
 	                    _this6.positionMap(vessel, _this6.calendar.getDateInterval());
-	                    _this6.frame.find('.track input')[ind].checked = true;
+	
+	                    _this6.frame.find('.track:not(.all) input')[ind].checked = true;
+	                    allTracksInput[0].checked = _this6.frame.find('.track:not(.all) input:checked').length == _this6.model.data.vessels.length;
+	
 	                    var dates = getDates.call(_this6);
-	                    _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates, [], _displayedOnly);
+	                    _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates);
 	                    e.stopPropagation();
 	                }.bind(_this6));
 	            }
 	        }.bind(_this6));
 	    });
 	
-	    var getDates = function getDates() {
+	    var getDates = function getDates(needAll) {
 	        var _this7 = this;
 	
 	        var dates = [];
-	        this.frame.find('.ais_positions_date .track').each(function (i, el) {
-	            if ($('input', el)[0].checked) dates.push(new Date(new Date(1000 * _this7.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
+	        this.frame.find('.ais_positions_date .track:not(.all)').each(function (i, el) {
+	            var input = $('input', el)[0];
+	            if (needAll) input.checked = true;
+	            if (input.checked) dates.push(new Date(new Date(1000 * _this7.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
 	        });
 	        return dates;
-	    };
-	
-	    this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(function (e) {
+	    },
+	        allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]');
+	    allTracksInput.click(function (e) {
+	        if (!_this6.model.data.vessels || !_this6.model.data.vessels.length) return;
+	        var calendarInterval = _this6.calendar.getDateInterval(),
+	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
+	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+	        if (!e.target.checked) {
+	            _this6.frame.find('.ais_positions_date .track:not(.all)').each(function (i, el) {
+	                $('input', el)[0].checked = false;
+	            });
+	            _this6.showTrack();
+	        } else _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, getDates.call(_this6, true));
+	    }.bind(this));
+	    this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]').click(function (e) {
 	        var calendarInterval = _this6.calendar.getDateInterval(),
 	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
 	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
 	        var dates = getDates.call(_this6);
-	        _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates, [], _displayedOnly);
+	        allTracksInput[0].checked = dates.length == _this6.model.data.vessels.length;
+	        _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates);
 	    }.bind(this));
 	
-	    if (this.model.data.vessels.length == 1) open_pos.eq(0).click();
+	    if (this.model.data.vessels.length == 1) openPos.eq(0).click();
 	
-	    if (this.vessel.lastPosition) this.positionMap(this.vessel, this.calendar.getDateInterval());
+	    if (this.vessel.lastPosition) {
+	        this.positionMap(this.vessel, this.calendar.getDateInterval());
+	        this.vessel.lastPosition = false;
+	    }
 	};
 	
 	Object.defineProperty(DbSearchView.prototype, "vessel", {
@@ -2722,43 +2802,44 @@
 	DbSearchView.prototype.show = function () {
 	    this.frame.show();
 	    this.searchInput.focus();
-	
-	    _tools.showOtherMarkers(_displayedOnly);
-	    _tools.hideVesselMarkers([], _displayedOnly);
-	
-	    if (!this.vessel) return;
 	    BaseView.prototype.show.apply(this, arguments);
+	    if (!this.vessel) return;
+	
+	    if (!_tools.displayedTrack) this.frame.find('.ais_positions_date .track input[type="checkbox"]').each(function (i, e) {
+	        e.checked = false;
+	    });
+	
+	    if (_displayedOnly.length) _tools.showVesselsOnMap(_displayedOnly);else _tools.showVesselsOnMap("all");
 	};
 	
 	DbSearchView.prototype.hide = function () {
-	    _tools.showOtherMarkers(); // throwaway filter  
 	    BaseView.prototype.hide.apply(this, arguments);
+	    _tools.showVesselsOnMap("all");
 	};
 	
 	DbSearchView.prototype.showTrack = function (vessel, dates) {
+	    if (!vessel) {
+	        _tools.showTrack([]);
+	        return;
+	    }
+	    if (!dates && vessel.ts_pos_org) dates = [new Date(new Date(vessel.ts_pos_org * 1000).setUTCHours(0, 0, 0, 0))];
+	
 	    var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
 	    $('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('ais active');
 	    if (dlg[0]) dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
-	    _tools.showTrack([vessel.mmsi], dates, [], _displayedOnly);
+	    _tools.showTrack([vessel.mmsi], dates);
 	};
 	
 	DbSearchView.prototype.positionMap = function (vessel, interval) {
-	    if (interval) {
-	        // interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
-	        // nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);        
-	        nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
-	    }
+	    //console.log("positionMap")
+	    if (interval) nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
+	
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
 	        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
 	        ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
 	        ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
 	        zoom = nsGmx.leafletMap.getZoom();
-	    // nsGmx.leafletMap.fitBounds([
-	    //     [ymin, xmin],
-	    //     [ymax, xmax]
-	    // ], {
-	    //         maxZoom: (zoom < 9 ? 12 : zoom)
-	    //     });
+	
 	    nsGmx.leafletMap.setView([ymax, xmax < 0 ? 360 + xmax : xmax], zoom < 9 ? 12 : zoom);
 	    nsGmx.leafletMap.removeLayer(_highlight);
 	    _highlight.vessel = vessel;
@@ -2878,21 +2959,14 @@
 	                            groups[k]["n"] = counter++;
 	                            positions.push(groups[k]);
 	                        }
-	                        /*
-	                        positions.sort((a, b) => {
-	                            if (a.ts_pos_org > b.ts_pos_org) return -1
-	                            if (a.ts_pos_org < b.ts_pos_org) return 1;
-	                            return 0;
-	                        })
-	                        */
-	                        resolve({ Status: "ok", Result: { values: positions } });
+	                        resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
 	                    } else resolve(response);
 	                });
 	            }).then(function (response) {
 	                //console.log(response)       
 	                _this.isDirty = false;
 	                if (response.Status.toLowerCase() == "ok") {
-	                    _this.data = { vessels: response.Result.values };
+	                    _this.data = { vessels: response.Result.values, total: response.Result.total };
 	                    return Promise.resolve();
 	                } else {
 	                    return Promise.reject(response);
@@ -2942,7 +3016,7 @@
 	
 	var displayInfoDialog = __webpack_require__(20),
 	    Polyfill = __webpack_require__(15),
-	    VesselInfoScreen = __webpack_require__(22);
+	    VesselInfoScreen = __webpack_require__(25);
 	
 	var infoDialogCascade = [],
 	    allIinfoDialogs = [],
@@ -2958,11 +3032,13 @@
 	
 	
 	    vesselInfoScreen = new VesselInfoScreen({ modulePath: modulePath, aisServices: aisLayerSearcher.aisServices });
-	    var _showPosition = function _showPosition(vessel) {
+	    var _showPosition = function _showPosition(vessel, track) {
 	        window.iconSidebarWidget.open(menuId);
 	
 	        aisView.vessel = vessel;
 	        if (aisView.tab) if (aisView.tab.is('.active')) aisView.show();else aisView.tab.click();
+	
+	        aisView.showTrack(track);
 	    },
 	        _updateView = function _updateView(displayed, vessel, getmore) {
 	        if (displayed.vessel.ts_pos_utc != vessel.ts_pos_utc) {
@@ -2972,8 +3048,8 @@
 	    };
 	    return {
 	        showPosition: function showPosition(vessel) {
-	            _showPosition(vessel);
-	            aisView.showTrack(vessel);
+	            _showPosition(vessel, vessel);
+	            //aisView.showTrack(vessel);
 	        },
 	        show: function show(vessel, getmore) {
 	            var ind = Polyfill.findIndex(allIinfoDialogs, function (d) {
@@ -3011,7 +3087,8 @@
 	                aisLayerSearcher: aisLayerSearcher,
 	                modulePath: modulePath,
 	                aisView: aisView,
-	                myFleetView: myFleetView
+	                myFleetView: myFleetView,
+	                tools: tools
 	            }, {
 	                openVesselInfoScreen: vesselInfoScreen.open,
 	                showTrack: tools.showTrack,
@@ -3043,6 +3120,7 @@
 	"use strict";
 	
 	__webpack_require__(21);
+	var SpecialFloatView = __webpack_require__(22);
 	
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
@@ -3095,7 +3173,7 @@
 		    aisView = _ref.aisView,
 		    displayedTrack = _ref.displayedTrack,
 		    myFleetView = _ref.myFleetView,
-		    aisPluginPanel = _ref.aisPluginPanel;
+		    tools = _ref.tools;
 	
 	
 		formatDate = aisLayerSearcher.formatDate;
@@ -3189,14 +3267,20 @@
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});
 	
+		if (vessel.mmsi == 273316240 && vessel.imo == 9152959) {
+			var special = new SpecialFloatView(),
+			    showSpecial = $('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
+				special.show();
+			});
+		}
+	
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
 		};
-		//if (myFleetModel && myFleetModel.data && myFleetModel.data.vessels) {
-		var addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
-		//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-		.attr('title', add ? _gtxt('AISSearch2.myfleet_add') : _gtxt('AISSearch2.myfleet_remove')).appendTo(menubuttons);
+	
+		var addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>').attr('title', add ? _gtxt('AISSearch2.myfleet_add') : _gtxt('AISSearch2.myfleet_remove')).appendTo(menubuttons);
 		if (myFleetModel.filterUpdating) addremove.addClass('disabled');
+	
 		addremove.on('click', function () {
 			if (addremove.is('.disabled')) return;
 	
@@ -3204,19 +3288,19 @@
 			addremove.hide();
 			progress.append(gifLoader);
 	
-			myFleetView.prepare(vessel);
-			myFleetModel.change(vessel).then(function () {
+			myFleetView.beforeExcludeMember(vessel.mmsi.toString());
+			myFleetModel.changeMembers(vessel).then(function () {
 				add = myFleetModel.findIndex(vessel) < 0;
 				var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 				info.css('visibility', !add ? 'visible' : 'hidden');
 				$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible');
 	
 				addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота').html(addremoveIcon(add));
-				//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-	
 				progress.text('');
 				$('.addremove').removeClass('disabled').show();
-				if (myFleetView.isActive) myFleetView.show();else myFleetModel.drawMarker(vessel);
+	
+				tools.eraseMyFleetMarker(vessel.mmsi);
+				if (myFleetView.isActive) myFleetView.show();else tools.redrawMarkers();
 			}).catch(function (ex) {
 				return console.log(ex);
 			});
@@ -3270,6 +3354,453 @@
 	"use strict";
 	
 	__webpack_require__(23);
+	var _cssClassName = "special";
+	var BaseFloatView = __webpack_require__(24);
+	var SpecialFloatView = function SpecialFloatView() {
+	    var _this = this;
+	
+	    BaseFloatView.apply(this, arguments);
+	    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">' + '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';
+	    this.left = -1000;
+	
+	    this.contextMenu = document.createElement("div");
+	    this.contextMenu.className = 'mf_group_menu';
+	    this.contextMenu.innerHTML = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' + '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>' + '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>' + '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+	
+	    this.contextMenu.addEventListener('mousedown', function (e) {
+	        if (e.stopPropagation) e.stopPropagation();
+	        //if(e.preventDefault) e.preventDefault();
+	        e.cancelBubble = true;
+	        e.returnValue = false;
+	    }.bind(this));
+	    this.contextMenu.addEventListener('mouseleave', function (e) {
+	        _this.contextMenu.style.display = "none";
+	        _this.contextMenu.remove();
+	    }.bind(this));
+	
+	    var closeCom = this.contextMenu.querySelector('.close'),
+	        zinCom = this.contextMenu.querySelector('.zoomin'),
+	        zoutCom = this.contextMenu.querySelector('.zoomout'),
+	        img1Com = this.contextMenu.querySelector('.image1'),
+	        img2Com = this.contextMenu.querySelector('.image2'),
+	        twoimgCom = this.contextMenu.querySelector('.twoimages'),
+	        l = void 0,
+	        t = void 0,
+	        w = void 0,
+	        h = void 0,
+	        rc1 = void 0,
+	        rc2 = void 0,
+	        content = this.frame.querySelector('.' + _cssClassName),
+	        image1 = this.frame.querySelector('img.img1'),
+	        image2 = this.frame.querySelector('img.img2'),
+	        logos = this.frame.querySelector('.logos'),
+	        showTwo = false,
+	        restoreSize = function restoreSize() {
+	        var h1 = Math.floor(image1.getBoundingClientRect().height),
+	            h2 = Math.floor(image2.getBoundingClientRect().height);
+	        if (h1) content.style.height = h1 + "px";else if (h2) content.style.height = h2 + "px";
+	        showTwo = false;
+	    },
+	        zoomIn = function zoomIn(image, w, h, wiw, wih) {
+	        var setPlace1 = function setPlace1() {
+	            image.style.width = wiw + "px";
+	            image.style.height = "";
+	
+	            image.style.left = 0;
+	            image.style.top = Math.round((wih - image.getBoundingClientRect().height) / 2) + "px";
+	        },
+	            setPlace2 = function setPlace2() {
+	            image.style.width = "";
+	            image.style.height = wih + "px";
+	
+	            image.style.left = Math.round((wiw - image.getBoundingClientRect().width) / 2) + "px";
+	            image.style.top = 0;
+	        };
+	        if (wiw / wih > 1) {
+	            if (parseInt(w) / parseInt(h) > wiw / wih) setPlace1();else setPlace2();
+	        } else if (parseInt(w) / parseInt(h) > wiw / wih) setPlace1();else setPlace2();
+	    },
+	        zoomIn2 = function zoomIn2(image1, image2, w, h, wiw, wih) {
+	        var setPlace1 = function setPlace1() {
+	            image1.style.width = wiw + "px";
+	            image2.style.width = wiw + "px";
+	            image1.style.height = "";
+	            image2.style.height = "";
+	
+	            image1.style.left = 0;
+	            image2.style.left = 0;
+	            image1.style.top = Math.round(wih / 2 - image1.getBoundingClientRect().height) + "px";
+	            image2.style.top = image1.getBoundingClientRect().bottom + "px";
+	        },
+	            setPlace2 = function setPlace2() {
+	            image1.style.width = "";
+	            image2.style.width = "";
+	            image1.style.height = Math.ceil(wih / 2) + "px";
+	            image2.style.height = Math.floor(wih / 2) + "px";
+	
+	            image1.style.top = 0;
+	            image2.style.top = image1.getBoundingClientRect().bottom + "px";
+	            image1.style.left = Math.round((wiw - image1.getBoundingClientRect().width) / 2) + "px";
+	            image2.style.left = image1.style.left;
+	        };
+	        if (wiw / wih > 1) {
+	            if (parseInt(w) / parseInt(h) > wiw / wih) setPlace1();else setPlace2();
+	        } else if (parseInt(w) / parseInt(h) > wiw / wih) setPlace1();else setPlace2();
+	    };
+	    closeCom.addEventListener("click", function (e) {
+	        !_this.allowMove && zoutCom.click();
+	        _this.contextMenu.remove();
+	        _this.left = -1000;
+	
+	        image1.style.display = "block";
+	        image2.style.display = "none";
+	        restoreSize();
+	
+	        _this.hide();
+	        image1.src = "";
+	        image2.src = "";
+	    }.bind(this));
+	    zinCom.addEventListener("click", function (e) {
+	        _this.contextMenu.remove();
+	        e.srcElement.style.display = 'none';
+	        zoutCom.style.display = 'block';
+	        img1Com.style.display = 'none';
+	        img2Com.style.display = 'none';
+	        twoimgCom.style.display = 'none';
+	        var st = getComputedStyle(content);
+	        w = st.width;h = st.height;
+	        l = _this.left;t = _this.top;
+	        _this.left = 0;
+	        _this.top = 0;
+	
+	        content.style.width = window.innerWidth + "px";
+	        content.style.height = window.innerHeight + "px";
+	
+	        rc1 = image1.getBoundingClientRect();
+	        rc2 = image2.getBoundingClientRect();
+	        var wiw = window.innerWidth,
+	            wih = window.innerHeight;
+	        // console.log((parseInt(w)+"/ "+parseInt(h)));
+	        // console.log("w/h "+(parseInt(w)/parseInt(h)));
+	        // console.log("wiw/wih "+(wiw/wih));
+	
+	        if (rc1.width && rc1.height && !rc2.width && !rc2.height) {
+	            zoomIn(image1, w, h, wiw, wih);
+	            logos.style.left = image1.style.left;
+	            logos.style.top = image1.style.top;
+	        }
+	        if (rc2.width && rc2.height && !rc1.width && !rc1.height) {
+	            zoomIn(image2, w, h, wiw, wih);
+	            logos.style.left = image2.style.left;
+	            logos.style.top = image2.style.top;
+	        }
+	        if (rc2.width && rc2.height && rc1.width && rc1.height) {
+	            zoomIn2(image1, image2, w, h, wiw, wih);
+	            logos.style.left = image1.style.left;
+	            logos.style.top = image1.style.top;
+	        }
+	
+	        content.classList.add('zoomed_in');
+	        image1.classList.add('zoomed_in');
+	        image2.classList.add('zoomed_in');
+	        logos.classList.add('zoomed_in');
+	        _this.allowMove = false;
+	    }.bind(this));
+	    zoutCom.addEventListener("click", function (e) {
+	        _this.contextMenu.remove();
+	        e.srcElement.style.display = 'none';
+	        zinCom.style.display = 'block';
+	        img1Com.style.display = 'block';
+	        img2Com.style.display = 'block';
+	        twoimgCom.style.display = 'block';
+	        _this.left = l;
+	        _this.top = t;
+	        content.style.width = w;
+	        content.style.height = h;
+	
+	        if (rc1.width && rc1.height) {
+	            image1.style.left = Math.floor(rc1.left) + "px";
+	            image1.style.top = Math.floor(rc1.top) + "px";
+	            image1.style.height = Math.floor(rc1.height) + "px";
+	            image1.style.width = Math.floor(rc1.width) + "px";
+	        }
+	        if (rc2.width && rc2.height) {
+	            image2.style.left = Math.floor(rc2.left) + "px";
+	            image2.style.top = Math.floor(rc2.top) + "px";
+	            image2.style.height = Math.floor(rc2.height) + "px";
+	            image2.style.width = Math.floor(rc2.width) + "px";
+	        }
+	        logos.style.left = 0;
+	        logos.style.top = 0;
+	
+	        content.classList.remove('zoomed_in');
+	        image1.classList.remove('zoomed_in');
+	        image2.classList.remove('zoomed_in');
+	        logos.classList.remove('zoomed_in');
+	        _this.allowMove = true;
+	    }.bind(this));
+	    img1Com.addEventListener("click", function (e) {
+	        _this.contextMenu.remove();
+	        restoreSize();
+	        image1.style.top = 0;
+	        image1.style.display = "block";
+	        image2.style.display = "none";
+	    }.bind(this));
+	    img2Com.addEventListener("click", function (e) {
+	        _this.contextMenu.remove();
+	        restoreSize();
+	        image2.style.top = 0;
+	        image2.style.display = "block";
+	        image1.style.display = "none";
+	    }.bind(this));
+	    twoimgCom.addEventListener("click", function (e) {
+	        showTwo = true;
+	
+	        _this.contextMenu.remove();
+	        image1.style.display = "block";
+	        image2.style.display = "block";
+	        var h1 = Math.floor(image1.getBoundingClientRect().height),
+	            h2 = Math.floor(image2.getBoundingClientRect().height);
+	        image2.style.top = Math.floor(h1) + "px";
+	        if (h1 || h2) content.style.height = h1 + h2 + "px";
+	    }.bind(this));
+	    image1.addEventListener("click", function (e) {
+	        if (!_this.allowMove) zoutCom.click();
+	    }.bind(this));
+	    image2.addEventListener("click", function (e) {
+	        if (!_this.allowMove) zoutCom.click();
+	    }.bind(this));
+	    content.addEventListener("click", function (e) {
+	        if (!_this.allowMove) zoutCom.click();
+	    }.bind(this));
+	
+	    this.frame.addEventListener("contextmenu", function (e) {
+	        e.preventDefault();
+	        _this.frame.append(_this.contextMenu);
+	        _this.contextMenu.style.display = "block";
+	
+	        if (e.clientX - 10 + _this.contextMenu.offsetWidth < window.innerWidth) {
+	            _this.contextMenu.style.left = e.clientX - _this.left - 10 + "px";
+	            _this.contextMenu.style.right = "";
+	        } else {
+	            _this.contextMenu.style.right = _this.right - e.clientX - 10 + "px";
+	            _this.contextMenu.style.left = "";
+	        }
+	        if (e.clientY - 10 + _this.contextMenu.offsetHeight < window.innerHeight) {
+	            _this.contextMenu.style.top = e.clientY - _this.top - 10 + "px";
+	            _this.contextMenu.style.bottom = "";
+	        } else {
+	            _this.contextMenu.style.bottom = _this.bottom - e.clientY - 10 + "px";
+	            _this.contextMenu.style.top = "";
+	        }
+	    }.bind(this));
+	};
+	
+	SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
+	
+	SpecialFloatView.prototype.show = function () {
+	    BaseFloatView.prototype.show.apply(this, arguments);
+	    if (this.left > -1000) return;
+	    this.left = document.defaultView.getWindowWidth() - this.width;
+	    this.top = 0;
+	
+	    var content = this.frame.querySelector('.' + _cssClassName),
+	        image1 = this.frame.querySelector('img.img1'),
+	        image2 = this.frame.querySelector('img.img2'),
+	        rc = this.frame.getBoundingClientRect();
+	
+	    var downloadingImage1 = new Image();
+	    downloadingImage1.onload = function () {
+	        image1.src = this.src;
+	        image1.style.left = 0;image1.style.top = 0;
+	        image1.style.width = rc.width + "px";
+	        image1.style.height = getComputedStyle(image1).height;
+	        //console.log(downloadingImage1.width)  
+	        //console.log(this.width)  
+	        //console.log(image1.getBoundingClientRect())  
+	        if (image1.getBoundingClientRect().height) content.style.height = Math.floor(image1.getBoundingClientRect().height) + "px";
+	    };
+	    downloadingImage1.onerror = function (e) {
+	        image1.src = "";
+	        image1.style.height = "";
+	    };
+	    downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
+	
+	    var downloadingImage2 = new Image();
+	    downloadingImage2.onload = function () {
+	        image2.src = this.src;
+	        image2.style.left = 0;image2.style.top = 0;
+	        image2.style.width = rc.width + "px";
+	        image2.style.height = getComputedStyle(image2).height;
+	        image2.style.display = "none";
+	        //console.log(image1.getBoundingClientRect())
+	    };
+	    downloadingImage2.onerror = function (e) {
+	        image2.src = "";
+	        image2.style.height = "";
+	    };
+	    downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
+	
+	    // UPDATE 
+	    var timer = setTimeout(function update() {
+	        //console.log("TIME " + timer)
+	        var downloadingImage1 = new Image();
+	        downloadingImage1.onload = function () {
+	            image1.src = downloadingImage1.src;
+	        };
+	        // downloadingImage1.onerror = function (e) {
+	        //     image1.src = "";
+	        //     image1.style.height = "";
+	        // };
+	        downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
+	
+	        var downloadingImage2 = new Image();
+	        downloadingImage2.onload = function () {
+	            image2.src = downloadingImage2.src;
+	        };
+	        // downloadingImage2.onerror = function (e) {
+	        //     image2.src = "";
+	        //     image2.style.height = "";
+	        // };
+	        downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
+	        if (timer) {
+	            clearTimeout(timer);
+	            timer = setTimeout(update, 1000 * 60 * 0.25);
+	        }
+	    }.bind(this), 1000 * 60 * 5),
+	        closeCom = this.contextMenu.querySelector('.close');
+	    this.disposeTimer && closeCom.removeEventListener("click", this.disposeTimer);
+	    this.disposeTimer = function () {
+	        //console.log("STOP TIME")
+	        clearTimeout(timer);
+	        timer = false;
+	    };
+	    closeCom.addEventListener("click", this.disposeTimer);
+	};
+	
+	module.exports = SpecialFloatView;
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	var _getMaxZindex = function _getMaxZindex() {
+	    var dialogs = document.querySelectorAll('.ui-dialog'),
+	        z = void 0,
+	        zMax = Array.from(document.querySelectorAll('.ui-front')).reduce(function (p, c) {
+	        z = parseFloat(getComputedStyle(c).zIndex);
+	        return isNaN(z) || z <= p ? p : z;
+	    }, 0);
+	    zMax = Array.from(document.querySelectorAll('.float_view')).reduce(function (p, c) {
+	        z = parseFloat(getComputedStyle(c).zIndex);
+	        return isNaN(z) || z <= p ? p : z;
+	    }, zMax);
+	    return zMax;
+	};
+	var BaseFloatView = function BaseFloatView() {
+	    var _this = this;
+	
+	    var frame = document.createElement("div");
+	    frame.className = "float_view";
+	    frame.style.position = "absolute";
+	    frame.style.display = "none";
+	    var x = void 0,
+	        y = void 0;
+	    frame.addEventListener('mousedown', function (e) {
+	        if (!_this.allowMove) return;
+	
+	        x = e.clientX;y = e.clientY;
+	        frame.style.zIndex = _getMaxZindex();
+	        document.body.append(frame);
+	
+	        if (e.stopPropagation) e.stopPropagation();
+	        if (e.preventDefault) e.preventDefault();
+	        e.cancelBubble = true;
+	        e.returnValue = false;
+	    });
+	    frame.addEventListener('mouseup', function (e) {
+	        x = false;y = false;
+	    });
+	    document.body.addEventListener('mousemove', function (e) {
+	        if (!x && !y) return;
+	        var dx = e.clientX - x,
+	            dy = e.clientY - y,
+	            rect = frame.getBoundingClientRect(),
+	            fx = rect.left,
+	            fy = rect.top;
+	        frame.style.left = fx + dx + "px";
+	        frame.style.top = fy + dy + "px";
+	        x = e.clientX;y = e.clientY;
+	
+	        if (e.stopPropagation) e.stopPropagation();
+	        if (e.preventDefault) e.preventDefault();
+	        e.cancelBubble = true;
+	        e.returnValue = false;
+	    });
+	    this.frame = frame;
+	    this.allowMove = true;
+	};
+	
+	BaseFloatView.prototype = function () {
+	    return {
+	        get left() {
+	            return this.frame.getBoundingClientRect().left;
+	        },
+	        set left(v) {
+	            this.frame.style.left = v + "px";
+	        },
+	        get top() {
+	            return this.frame.getBoundingClientRect().top;
+	        },
+	        set top(v) {
+	            this.frame.style.top = v + "px";
+	        },
+	        get right() {
+	            return this.frame.getBoundingClientRect().right;
+	        },
+	        get bottom() {
+	            return this.frame.getBoundingClientRect().bottom;
+	        },
+	        get width() {
+	            return this.frame.getBoundingClientRect().width;
+	        },
+	        set width(v) {
+	            this.frame.style.width = v + "px";
+	        },
+	        get height() {
+	            return this.frame.getBoundingClientRect().height;
+	        },
+	        set height(v) {
+	            this.frame.style.height = v + "px";
+	        },
+	        show: function show() {
+	            this.frame.style.zIndex = _getMaxZindex();
+	            document.body.append(this.frame);
+	            this.frame.style.display = "block";
+	        },
+	        hide: function hide() {
+	            this.frame.remove();
+	        }
+	    };
+	}();
+	
+	module.exports = BaseFloatView;
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	__webpack_require__(26);
 	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
@@ -3576,13 +4107,13 @@
 	};
 
 /***/ }),
-/* 23 */
+/* 26 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3686,33 +4217,46 @@
 	            }
 	        },
 	        placeVesselTypeIcon: function placeVesselTypeIcon(vessel) {
+	            var protocol = document.location.protocol;
+	            // speed icon
+	            if (vessel.sog >= 8) {
+	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog8-L-100-move.svg";
+	            } else if (4 < vessel.sog && vessel.sog < 8) {
+	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4_8-L-100-move.svg";
+	            } else if (0 < vessel.sog && vessel.sog <= 4) {
+	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4-L-100-move.svg";
+	            } else {
+	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog-L-100-stand_red.svg";
+	            }
+	
+	            // type icon
 	            switch (vessel.vessel_type.toLowerCase()) {
 	                case "cargo":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "tanker":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "fishing":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "passenger":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "hsc":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "pleasure craft":
 	                case "sailing":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "unknown":
 	                case "reserved":
 	                case "other":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                default:
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	            }
 	        },
@@ -3751,6 +4295,19 @@
 	            };
 	            L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
 	        },
+	
+	        searchString2: function searchString2(query, isfuzzy, callback) {
+	            var request = {
+	                WrapStyle: 'window',
+	                layer: _aisLastPoint,
+	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
+	                //orderdirection: 'desc',
+	                //orderby: 'vessel_name',
+	                query: query
+	            };
+	            if (isfuzzy) request.pagesize = 1000;
+	            L.gmxUtil.sendCrossDomainPostRequest("http://maps.kosmosnimki.ru/plugins/ais/searchship.ashx", request, callback);
+	        },
 	        searchString: function searchString(_searchString, isfuzzy, callback) {
 	            //console.log(_aisLastPoint+", "+_aisLayerID)
 	            var query = "";
@@ -3768,7 +4325,7 @@
 	                layer: _aisLastPoint,
 	                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
 	                //orderdirection: 'desc',
-	                orderby: 'vessel_name',
+	                //orderby: 'vessel_name',
 	                query: query
 	            };
 	            if (isfuzzy) request.pagesize = 1000;
@@ -3816,17 +4373,22 @@
 	};
 
 /***/ }),
-/* 25 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	var Polyfill = __webpack_require__(15);
 	module.exports = function (options) {
-	    var _layersByID = nsGmx.gmxMap.layersByID,
-	        _aisLayer = _layersByID[options.aisLayerID],
+	    var _layersByID = nsGmx.gmxMap.layersByID;
+	    var _aisLayer = _layersByID[options.aisLayerID],
 	        _tracksLayer = _layersByID[options.tracksLayerID],
-	        _screenSearchLayer = _layersByID[options.screenSearchLayer];
+	        _screenSearchLayer = _layersByID[options.screenSearchLayer],
+	        _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
+	        _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
+	        _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
+	        _historyLayerAlt = _layersByID[options.historyLayerAlt];
+	
 	    var _almmsi = void 0,
 	        _tlmmsi = void 0,
 	        _aldt = void 0,
@@ -3842,18 +4404,20 @@
 	    } catch (ex) {}
 	
 	    var _displayedTrack = { mmsi: null },
-	        _filterFunc = function _filterFunc(args, filtered, displayedVessel) {
+	        _displayedVessels = "all",
+	        _notDisplayedVessels = [],
+	        _filterFunc = function _filterFunc(args) {
 	        var dates = _displayedTrack.dates ? _displayedTrack.dates.list : null,
 	            mmsiArr = [];
-	        mmsiArr.push(_displayedTrack.mmsi);
+	
+	        if (_displayedTrack.mmsi && _notDisplayedVessels.indexOf(_displayedTrack.mmsi.toString()) < 0 && (_displayedVessels == "all" || _displayedVessels.indexOf(_displayedTrack.mmsi.toString()) >= 0)) mmsiArr.push(_displayedTrack.mmsi);
 	
 	        var mmsi = args.properties[args.properties.length > 20 ? _almmsi : _tlmmsi].toString(),
 	            dt = new Date(new Date(args.properties[args.properties.length > 20 ? _aldt : _tldt] * 1000).setUTCHours(0, 0, 0, 0)),
 	            i = void 0,
-	            j = void 0,
-	            len = void 0;
-	        for (i = 0, len = mmsiArr.length; i < len; i++) {
-	            if (mmsi == mmsiArr[i] && filtered.indexOf(mmsi) < 0 && (!displayedVessel || displayedVessel.indexOf(mmsi) >= 0)) {
+	            j = void 0;
+	        for (i = 0; i < mmsiArr.length; i++) {
+	            if (mmsi == mmsiArr[i]) {
 	                if (dates) for (j = 0; j < dates.length; ++j) {
 	                    if (dates[j].getTime() == dt.getTime()) {
 	                        return true;
@@ -3865,166 +4429,259 @@
 	        }
 	        return false;
 	    },
-	        _setTrackFilter = function _setTrackFilter(filtered, displayedVessel) {
+	        _setTrackFilter = function _setTrackFilter() {
 	        //console.log(_displayedTrack)
 	        var lmap = nsGmx.leafletMap;
-	        if (_aisLayer) {
-	            if (_displayedTrack.mmsi) {
-	                _aisLayer.setFilter(function (args) {
-	                    return _filterFunc(args, filtered, displayedVessel);
-	                });
+	        if (_aisLayer && _aisLayer.removeFilter) {
+	            _aisLayer.removeFilter();
+	            if (_displayedTrack && _displayedTrack.mmsi) {
+	                _aisLayer.setFilter(_filterFunc);
 	                if (!_aisLayer._map) {
 	                    lmap.addLayer(_aisLayer);
 	                }
-	            } else {
-	                _aisLayer.removeFilter();
-	                lmap.removeLayer(_aisLayer);
-	            }
+	            } else lmap.removeLayer(_aisLayer);
 	        }
-	        if (_tracksLayer) {
-	            if (_displayedTrack.mmsi) {
-	                _tracksLayer.setFilter(function (args) {
-	                    return _filterFunc(args, filtered, displayedVessel);
-	                });
+	        if (_tracksLayer && _tracksLayer.removeFilter) {
+	            _tracksLayer.removeFilter();
+	            if (_displayedTrack && _displayedTrack.mmsi) {
+	                _tracksLayer.setFilter(_filterFunc);
 	                if (!_tracksLayer._map) {
 	                    lmap.addLayer(_tracksLayer);
 	                }
-	            } else {
-	                _tracksLayer.removeFilter();
-	                lmap.removeLayer(_tracksLayer);
-	            }
+	            } else lmap.removeLayer(_tracksLayer);
 	        }
 	    },
-	        _setVesselFilter = function _setVesselFilter(filtered, displayedVessel) {
-	        // console.log(displayedVessel)
-	        // console.log(filtered)
-	        var lmap = nsGmx.leafletMap;
+	        _specialVesselFilters = void 0,
+	        _setVesselFilter = function _setVesselFilter() {
 	        if (_screenSearchLayer) {
-	            if (displayedVessel || filtered.length) {
-	                _screenSearchLayer.setFilter(function (args) {
-	                    var mmsi = args.properties[1].toString();
-	                    if (filtered.indexOf(mmsi) < 0) {
-	                        if (displayedVessel && displayedVessel.indexOf(mmsi) < 0) return false;else return true;
-	                    } else return false;
+	            _screenSearchLayer.removeFilter();
+	
+	            if (_displayedVessels != "all" || _notDisplayedVessels.length || _specialVesselFilters) {
+	                var ai = _screenSearchLayer._gmx.tileAttributeIndexes,
+	                    fields = [];
+	                for (var k in ai) {
+	                    fields[ai[k]] = k;
+	                }_screenSearchLayer.setFilter(function (args) {
+	
+	                    for (var f in _specialVesselFilters) {
+	                        _specialVesselFilters[f](args, ai, _displayedVessels);
+	                    }var mmsi = args.properties[ai.mmsi].toString();
+	                    if ((_displayedVessels == "all" || _displayedVessels.indexOf(mmsi) >= 0) && _notDisplayedVessels.indexOf(mmsi) < 0) return true;else return false;
 	                });
-	            } else {
-	                _screenSearchLayer.removeFilter();
 	            }
 	        }
 	    },
 	        _markers = void 0,
 	        _visibleMarkers = [],
-	        _markerMustBeShown = function _markerMustBeShown(mmsi, filtered) {
-	        return !_visibleMarkers.length && filtered.indexOf(mmsi.toString()) < 0 || _visibleMarkers.indexOf(mmsi.toString()) >= 0;
+	        _markerIcon = function _markerIcon(icon, cog, sog, vtype, group_style) {
+	        var type_color = "#000";
+	        if (icon.startsWith("sog")) {
+	            if (sog >= 8) {
+	                type_color = "#09ab00";
+	            } else if (4 < sog && sog < 8) {
+	                type_color = "#d1a710";
+	            } else if (0 < sog && sog <= 4) {
+	                type_color = "#ff0f0f";
+	            } else {
+	                type_color = "#ff0f0f";
+	            }
+	        } else switch (vtype) {
+	            case "Cargo":
+	                type_color = "#33a643";break;
+	            case "Fishing":
+	                type_color = "#f44336";break;
+	            case "Tanker":
+	                type_color = "#246cbd";break;
+	            case "Passenger":
+	                type_color = "#c6b01d";break;
+	            case "HSC":
+	                type_color = "#ff6f00";break;
+	            case 'Pleasure Craft':
+	            case 'Sailing':
+	                type_color = "#9c27b0";break;
+	            case 'Dredging':
+	            case 'Law Enforcement':
+	            case 'Medical Transport':
+	            case 'Military':
+	            case 'Pilot':
+	            case 'Port Tender':
+	            case 'SAR':
+	            case 'Ships Not Party to Armed Conflict':
+	            case 'Spare':
+	            case 'Towing':
+	            case 'Tug':
+	            case 'Vessel With Anti-Pollution Equipment':
+	            case 'WIG':
+	            case 'Diving':
+	                type_color = "#9b4628";break;
+	        }
+	        if (sog) return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';else return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
 	    },
-	        _repaintOtherMarkers = function _repaintOtherMarkers(data, markerTemplate, filtered) {
-	        if (!data) return;
-	
+	        _eraseMyFleetMarker = function _eraseMyFleetMarker(mmsi) {
+	        if (!_markers) _markers = L.layerGroup().addTo(nsGmx.leafletMap);else {
+	            var layers = _markers.getLayers(),
+	                layer = void 0;
+	            for (var i in layers) {
+	                if (layers[i].id == mmsi) {
+	                    layer = layers[i];
+	                    break;
+	                }
+	            }layer && _markers.removeLayer(layer);
+	        }
+	    },
+	        _drawMyFleetMarker = function _drawMyFleetMarker(args, markerTemplate, group, ai, isVisible) {
+	        var data = args.properties;
 	        var di = nsGmx.widgets.commonCalendar.getDateInterval();
-	        if (!_markers) _markers = L.layerGroup().addTo(nsGmx.leafletMap);else _markers.clearLayers();
-	        //console.log(filtered)
-	        //console.log(_visibleMarkers)
+	        // console.log(data[ai.mmsi]+" "+data[ai.vessel_name]+" "+data[ai.cog]+" "+data[ai.sog]+" y="+data[ai.latitude]+" x="+data[ai.longitude]+" "+new Date(data[ai.ts_pos_utc]*1000))
+	        //console.log(markerTemplate)
+	        var icon = args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '');
+	        //console.log(icon)
+	
+	        _eraseMyFleetMarker(data[ai.mmsi]);
+	
+	        if (!isVisible) return;
+	
 	        var label_line = function label_line(label, label_color, label_shadow) {
 	            if (label != "") return '<div style="height:14px;">' + '<div class="label_shadow" style="height:14px;color' + label_shadow.color + ";text-shadow:" + label_shadow.text_shadow + '">' + label + '</div>' + '<div class="label_color" style="position:relative;top:-14px;color:' + label_color + '">' + label + '</div></div>';else return "";
-	        },
-	            marker = function marker(vessel, marker_style) {
-	            var type_color = "#000";
-	            switch (vessel.vessel_type) {
-	                case "Cargo":
-	                    type_color = "#33a643";break;
-	                case "Fishing":
-	                    type_color = "#f44336";break;
-	                case "Tanker":
-	                    type_color = "#246cbd";break;
-	                case "Passenger":
-	                    type_color = "#c6b01d";break;
-	                case "HSC":
-	                    type_color = "#ff6f00";break;
-	                case 'Pleasure Craft':
-	                case 'Sailing':
-	                    type_color = "#9c27b0";break;
-	                case 'Dredging':
-	                case 'Law Enforcement':
-	                case 'Medical Transport':
-	                case 'Military':
-	                case 'Pilot':
-	                case 'Port Tender':
-	                case 'SAR':
-	                case 'Ships Not Party to Armed Conflict':
-	                case 'Spare':
-	                case 'Towing':
-	                case 'Tug':
-	                case 'Vessel With Anti-Pollution Equipment':
-	                case 'WIG':
-	                case 'Diving':
-	                    type_color = "#9b4628";break;
-	            }
-	            return vessel.sog ? '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!vessel.cog ? 0 : vessel.cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + marker_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!vessel.cog ? 0 : vessel.cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + marker_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
 	        };
-	        for (var i = 0; i < data.groups.length; ++i) {
-	            //console.log(data.groups[i].marker_style);
-	            for (var j = 0; j < data.groups[i].vessels.length; ++j) {
-	                if (_markerMustBeShown(data.groups[i].vessels[j].mmsi, filtered)) {
-	                    if (di.get("dateBegin").getTime() <= data.groups[i].vessels[j].ts_pos_org * 1000 && data.groups[i].vessels[j].ts_pos_org * 1000 < di.get("dateEnd").getTime()) {
-	                        var temp = {};
-	                        temp.group_name = label_line(data.groups[i].default ? "" : data.groups[i].title, data.groups[i].label_color, data.groups[i].label_shadow);
-	                        temp.vessel_name = label_line(data.groups[i].vessels[j].vessel_name, data.groups[i].label_color, data.groups[i].label_shadow);
-	                        temp.sog = label_line(data.groups[i].vessels[j].sog + _gtxt("AISSearch2.KnotShort"), data.groups[i].label_color, data.groups[i].label_shadow);
-	                        temp.cog = label_line(isNaN(data.groups[i].vessels[j].cog) ? "" : data.groups[i].vessels[j].cog.toFixed(1) + "&deg;", data.groups[i].label_color, data.groups[i].label_shadow);
-	                        temp.marker = marker(data.groups[i].vessels[j], data.groups[i].marker_style);
-	                        var m = L.marker([data.groups[i].vessels[j].ymin, data.groups[i].vessels[j].xmin > 0 ? data.groups[i].vessels[j].xmin : 360 + data.groups[i].vessels[j].xmin], {
-	                            id: data.groups[i].vessels[j].mmsi,
-	                            icon: L.divIcon({
-	                                className: 'mf_label gr' + i,
-	                                html: Handlebars.compile(markerTemplate)(temp)
-	                            }),
-	                            zIndexOffset: 1000
-	                        });
-	                        m.id = data.groups[i].vessels[j].mmsi;
-	                        _markers.addLayer(m);
-	                    }
-	                }
-	            }
+	        if (di.get("dateBegin").getTime() <= data[ai.ts_pos_utc] * 1000 && data[ai.ts_pos_utc] * 1000 < di.get("dateEnd").getTime()) {
+	            var temp = {};
+	            temp.group_name = label_line(group.default ? "" : group.title, group.label_color, group.label_shadow);
+	            temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);
+	            temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);
+	            temp.cog = label_line(isNaN(data[ai.cog]) ? "" : data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);
+	            temp.marker = _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style);
+	            var m = L.marker([data[ai.latitude], data[ai.longitude] > 0 ? data[ai.longitude] : 360 + data[ai.longitude]], {
+	                id: data[ai.mmsi],
+	                icon: L.divIcon({
+	                    className: 'mf_label gr' + group.id,
+	                    html: Handlebars.compile(markerTemplate)(temp)
+	                }),
+	                zIndexOffset: 1000
+	            });
+	            m.id = data[ai.mmsi];
+	            _markers.addLayer(m);
 	        }
+	    },
+	        _switchLayers = function _switchLayers(l1, l2) {
+	        //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
+	        if (l2._map) return;
+	        var lmap = nsGmx.leafletMap;
+	        if (l1 && l2) {
+	            lmap.removeLayer(l1);
+	            lmap.addLayer(l2);
+	        }
+	    },
+	        _legendSwitchedHandlers = [],
+	        _legendSwitched = function _legendSwitched(showAlternative) {
+	        _legendSwitchedHandlers.forEach(function (h) {
+	            return h(showAlternative);
+	        });
 	    };
 	
 	    return {
+	        set specialVesselFilters(_ref) {
+	            var key = _ref.key,
+	                value = _ref.value;
+	
+	            if (!_specialVesselFilters) _specialVesselFilters = {};
+	            _specialVesselFilters[key] = value;
+	            //_setVesselFilter();
+	        },
 	        get displayedTrack() {
 	            return _displayedTrack;
 	        },
 	        set displayedTrack(value) {
 	            _displayedTrack = value;
 	        },
-	        showTrack: function showTrack(mmsiArr, dates, filtered, displayedVessel) {
+	        get hasAlternativeLayers() {
+	            return _lastPointLayerAlt;
+	        },
+	        get needAltLegend() {
+	            return !!_lastPointLayerAltFact._map;
+	        },
+	        showTrack: function showTrack(mmsiArr, dates) {
 	            _displayedTrack = { mmsi: mmsiArr && mmsiArr.length ? mmsiArr[0] : null };
 	            if (dates) _displayedTrack.dates = { mmsi: mmsiArr[0], list: dates };
 	            if (_aisLayer || _tracksLayer) _displayedTrack.mmsi = mmsiArr[0];else _displayedTrack.mmsi = null;
-	            _setTrackFilter(filtered, displayedVessel);
+	            _setTrackFilter();
 	        },
-	        hideVesselMarkers: function hideVesselMarkers(filtered, displayedVessel) {
-	            _setTrackFilter(filtered, displayedVessel);
-	            _setVesselFilter(filtered, displayedVessel);
-	        },
-	        showOtherMarkers: function showOtherMarkers(onlyThis) {
-	            if (!onlyThis) {
-	                _visibleMarkers.length = 0;
+	        showAllTracks: function showAllTracks(doit) {
+	            var lmap = nsGmx.leafletMap;
+	            if (doit) {
+	                if (_aisLayer && _aisLayer.removeFilter) {
+	                    _aisLayer.removeFilter();
+	                    lmap.addLayer(_aisLayer);
+	                }
+	                if (_tracksLayer && _tracksLayer.removeFilter) {
+	                    _tracksLayer.removeFilter();
+	                    lmap.addLayer(_tracksLayer);
+	                }
 	            } else {
-	                _visibleMarkers = onlyThis.map(function (m) {
-	                    return m;
-	                });
+	                _displayedTrack = null;
+	                _setTrackFilter();
 	            }
-	            _screenSearchLayer.fire('versionchange');
 	        },
-	        repaintOtherMarkers: _repaintOtherMarkers,
+	        hideVesselsOnMap: function hideVesselsOnMap(vessels) {
+	            if (vessels && vessels.length) _notDisplayedVessels = vessels.map(function (v) {
+	                return v;
+	            });else _notDisplayedVessels.length = 0;
+	            //console.log(_notDisplayedVessels);
+	            _setTrackFilter();
+	            _setVesselFilter();
+	        },
+	        restoreDefault: function restoreDefault() {
+	            nsGmx.leafletMap.addLayer(_screenSearchLayer);
+	            _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt);
+	            _historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt);
+	            _tracksLayerAlt && nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
+	        },
+	        showVesselsOnMap: function showVesselsOnMap(vessels) {
+	            _displayedVessels = vessels != "all" ? vessels.map(function (v) {
+	                return v;
+	            }) : "all";
+	            //console.log(_displayedVessels);
+	            _setTrackFilter();
+	            _setVesselFilter();
+	        },
+	        redrawMarkers: function redrawMarkers() {
+	            _setVesselFilter();
+	        },
+	        clearMyFleetMarkers: function clearMyFleetMarkers() {
+	            //console.log("clearMyFleetMarkers")
+	            _markers && _markers.clearLayers();
+	        },
+	        eraseMyFleetMarker: _eraseMyFleetMarker,
+	        drawMyFleetMarker: _drawMyFleetMarker,
 	        highlightMarker: function highlightMarker(i, group) {
-	            $('.mf_label.gr' + i + ' svg').each(function (i, e) {
+	            $('.mf_label.gr' + group.id + ' svg').each(function (i, e) {
 	                var paths = e.querySelectorAll('path');
 	                if (paths[1]) paths[1].style.fill = group.marker_style;
 	            });
-	            $('.mf_label.gr' + i + ' svg rect').css({ "stroke": group.marker_style });
+	            $('.mf_label.gr' + group.id + ' svg rect').css({ "stroke": group.marker_style });
 	
-	            $('.mf_label.gr' + i + ' .label_color').css({ "color": group.label_color });
-	            $('.mf_label.gr' + i + ' .label_shadow').css({ "color": group.label_shadow.color, "text-shadow": group.label_shadow.text_shadow });
+	            $('.mf_label.gr' + group.id + ' .label_color').css({ "color": group.label_color });
+	            $('.mf_label.gr' + group.id + ' .label_shadow').css({ "color": group.label_shadow.color, "text-shadow": group.label_shadow.text_shadow });
+	        },
+	        switchLegend: function switchLegend(showAlternative) {
+	            _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
+	            var temp = _screenSearchLayer;
+	            _screenSearchLayer = _lastPointLayerAlt;
+	            _lastPointLayerAlt = temp;
+	            _switchLayers(_aisLayer, _historyLayerAlt);
+	            temp = _aisLayer;
+	            _aisLayer = _historyLayerAlt;
+	            _historyLayerAlt = temp;
+	            _switchLayers(_tracksLayer, _tracksLayerAlt);
+	            temp = _tracksLayer;
+	            _tracksLayer = _tracksLayerAlt;
+	            _tracksLayerAlt = temp;
+	            _setTrackFilter();
+	            _setVesselFilter();
+	            _legendSwitched(showAlternative);
+	        },
+	        onLegendSwitched: function onLegendSwitched(handler) {
+	            _legendSwitchedHandlers.push(handler);
 	        }
 	    };
 	};
