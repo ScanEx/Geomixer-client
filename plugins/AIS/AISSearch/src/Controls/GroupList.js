@@ -53,9 +53,7 @@ _setGroupCommands = function(){
             if (group && group.search(/^gr\d/)==0)
                 break;
         }
-//console.log("group "+group);
-        // if(!e.currentTarget.querySelector(".delete"))
-        //     return; 
+
         let ctxMenu = this.contextMenu,//$('.mf_group_menu'),
         evnt = e;
         if (_cp1)
@@ -66,10 +64,7 @@ _setGroupCommands = function(){
             _cp3.remove();           
         ctxMenu.html('');
         let colorChangeHandler = function(c, cs){
-            //console.log(c); 
-            //console.log(cs);
-            _groupStyleChanged = true;
-            
+            _groupStyleChanged = true;            
             cs.style.backgroundColor = "#" + c;
             let c1 = cp1.style.backgroundColor,
             c2 = cp2.style.backgroundColor,

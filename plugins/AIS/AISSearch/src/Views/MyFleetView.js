@@ -17,10 +17,17 @@ _clean = function(){
     this.startScreen.css({ visibility: "hidden" });
 };
 
-let _tools;
+let _tools, 
+_displayedOnly=[], 
+_notDisplayed=[],
+_saveLabelSettingsPromise = Promise.resolve(0);
 const MyFleetView = function (model, tools){
-    _tools = tools;
-    BaseView.call(this, model);
+    BaseView.apply(this, arguments);
+    _tools = tools; 
+    _tools.onLegendSwitched(((showAlternative)=>{
+        _switchLegendIcon.call(this, _tools.needAltLegend);
+    }).bind(this));
+
     let settings = []; //DEFAULT SETTINGS
     this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' +
     '<table class="instruments">'+
@@ -80,11 +87,11 @@ const MyFleetView = function (model, tools){
     this.container = this.frame.find('.ais_vessels');     
     this.startScreen = this.frame.find('.start_screen');
     // DEFAULT SETTINGS
-    this.model.markerTemplate =  '<div><table><tr>' +
-        '<td style="vertical-align:top">' +
-        //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
-        '{{{marker}}}' +
-        '</td><td>{{{foo}}}</td></tr></table></div>'; 
+    // this.model.markerTemplate =  '<div><table><tr>' +
+    //     '<td style="vertical-align:top">' +
+    //     //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
+    //     '{{{marker}}}' +
+    //     '</td><td>{{{foo}}}</td></tr></table></div>'; 
     
     // craete group controller
     let newGroupNameValid = function(ngn){
@@ -126,7 +133,7 @@ const MyFleetView = function (model, tools){
 
     // marker settings
     this.frame.find('.instruments .setting input')
-    .on('change', e=>{
+    .on('change', (e=>{
         let display = '';
         this.frame.find('.instruments .setting input').each((i, e)=>{
             if (e.checked)
@@ -135,16 +142,32 @@ const MyFleetView = function (model, tools){
         if (display=='')
             display = '{{{foo}}}';  
         this.model.markerTemplate =  this.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
-        this.model.drawMarkers();
-    })
+        if (_displayedOnly.length)          
+            _tools.showVesselsOnMap(_displayedOnly);
+        else
+            _tools.showVesselsOnMap("all"); 
+            
+        _saveLabelSettingsPromise = _saveLabelSettingsPromise.then(((c)=>{return this.model.saveLabelSettings(c);}).bind(this));
+    }).bind(this));
     
     // visibility controller
-    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", this.model.showOnlyMyfleet); 
+    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", 
+        function(e){
+            _displayedOnly.length = 0;
+            if (e.currentTarget.checked) {
+                _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
+                _tools.showVesselsOnMap(_displayedOnly);
+            }
+            else
+                _tools.showVesselsOnMap("all"); 
+//console.log("showVesselsOnMap");            
+        }.bind(this)
+    ); 
 
     // group list
     this.groupList = new GroupList(this.frame);
     this.groupList.onRepaintItem = ((i, elm)=>{
-        elm.querySelector('input[type=checkbox]').checked = this.model.isMemberShown(elm.querySelector('.mmsi').innerText);
+        elm.querySelector('input[type=checkbox]').checked = _notDisplayed.indexOf(elm.querySelector('.mmsi').innerText)<0;
     }).bind(this);
     this.groupList.onDeleteGroup = (group=>{
         this.inProgress(true);
@@ -152,13 +175,15 @@ const MyFleetView = function (model, tools){
     }).bind(this);
     
     this.tableTemplate = this.groupList.toString();
-    _tools.onLegendSwitched(((showAlternative)=>{
-        this.needAltLegend = showAlternative;
-        _switchLegendIcon.call(this, this.needAltLegend);
-    }).bind(this));
 };
 
 MyFleetView.prototype = Object.create(BaseView.prototype);
+
+Object.defineProperty(MyFleetView.prototype, "notDisplayed", {
+    get() {
+        return _notDisplayed;
+    }
+});
 
 MyFleetView.prototype.inProgress = function (state) {
     let progress = this.frame.find('.refresh div');
@@ -171,20 +196,48 @@ MyFleetView.prototype.inProgress = function (state) {
 MyFleetView.prototype.repaint = function () {
     _clean.call(this);  
     BaseView.prototype.repaint.apply(this, arguments);
+    // MEMBERS ON MAP
+    _displayedOnly.length = 0;
+    if (!this.model.vessels.length)
+        this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = false;    
+    if (this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked) {
+        _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
+        _tools.showVesselsOnMap(_displayedOnly);
+    } 
+    else         
+        _tools.showVesselsOnMap("all");
 
-    let onlyMyfleet = this.model.showOnlyMyFleet();
-    this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = onlyMyfleet;
+    _tools.hideVesselsOnMap(_notDisplayed); 
+// console.log("showVesselsOnMap");     
+// console.log("hideVesselsOnMap");  
+    ///////////////// 
 
-    this.groupList.repaint();   
-    this.groupList.onCheckItem = this.model.showMembers;
+    let labelSettings = this.model.markerTemplate.match(/(?!\{\{\{)[^\{\}]+(?=\}\}\})/g),
+    labelSettingCtrl;
+    for (var i in labelSettings){
+        labelSettingCtrl = this.frame.find('.instruments .setting input#' + labelSettings[i])[0];
+        if (labelSettingCtrl)
+            labelSettingCtrl.checked = true;
+    }
+
+    this.groupList.repaint();  
+    
+    // GROUP LIST EVENTS
+    this.groupList.onCheckItem = function(uncheked){
+        if (uncheked.length)
+            _notDisplayed=uncheked.map(mmsi=>mmsi);
+        else
+            _notDisplayed.length = 0;
+        _tools.hideVesselsOnMap(uncheked);
+// console.log("hideVesselsOnMap");
+    }
     this.groupList.onChangeGroup = ((mmsi, group)=>{
         let view = this;
         this.inProgress(true);          
         this.model.changeGroup(mmsi, group)
         .then((r)=>{
             view.repaint();
-            view.inProgress(false); 
-            view.model.drawMarkers();  
+            view.inProgress(false);  
         })
         .catch((err)=>{
             console.log(err)
@@ -193,16 +246,18 @@ MyFleetView.prototype.repaint = function () {
     }).bind(this);
     this.groupList.onExcludeItem = ((ev, mmsi, i) => {
             ev.stopPropagation();
-            let view = this;
-            let vessel = view.model.vessels[i];
-            view.prepare(vessel.mmsi.toString());
+            let thisView = this;
+            let vessel = thisView.model.vessels[i];
+            
+            thisView.beforeExcludeMember(vessel.mmsi.toString());
+
             let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
             if (dlg[0]){ 
                 dlg.find('.button.addremove').click();
             }
             else{
-                view.model.change(vessel).then(function () {
-                    view.show();
+                thisView.model.changeMembers(vessel).then(function () {
+                    thisView.show();
                 })
             }        
     }).bind(this);    
@@ -219,20 +274,23 @@ MyFleetView.prototype.repaint = function () {
         this.model.changeGroupStyle(i, colors);
     }).bind(this);
     this.groupList.onSaveGroupStyle = this.model.saveGroupStyle;
-    _switchLegendIcon.call(this, this.needAltLegend);
+    _switchLegendIcon.call(this, _tools.needAltLegend);
 };
 
-MyFleetView.prototype.prepare = function (mmsi) {
-    if (this.isActive){
-       this.model.freeMember(mmsi);
-    }
+MyFleetView.prototype.beforeExcludeMember = function (strMmsi) {
+    _displayedOnly = _displayedOnly.filter(m => m != strMmsi);
+    _notDisplayed = _notDisplayed.filter(m => m != strMmsi);
 }
 
 MyFleetView.prototype.hide = function () {
-    this.model.showNotOnlyMyfleet();
-    BaseView.prototype.hide.apply(this, arguments);
+    BaseView.prototype.hide.apply(this, arguments); 
+    _tools.showVesselsOnMap("all");
+    _tools.hideVesselsOnMap([]);
 }
+
 // MyFleetView.prototype.show = function () {
-//     BaseView.prototype.show.apply(this, arguments); 
+//     BaseView.prototype.show.apply(this, arguments);  
+//     _switchLegendIcon.call(this, _tools.needAltLegend);
 // }
+
 module.exports = MyFleetView;

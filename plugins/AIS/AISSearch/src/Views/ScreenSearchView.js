@@ -2,7 +2,11 @@ const BaseView = require('./BaseView.js');
 let _tools;
 const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
-    _tools = tools;
+    _tools = tools;          
+    _tools.onLegendSwitched(((showAlternative)=>{
+        _switchLegendIcon.call(this, _tools.needAltLegend);
+    }).bind(this));
+
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
 
         '<table border=0 class="instruments">' +
@@ -11,6 +15,11 @@ const ScreenSearchView = function (model, tools) {
         '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' +
         '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' +
         '</div></div>' +
+        '</td></tr>' + 
+        '<tr><td>' + 
+        '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>'+ 
+        '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' +
         '<div>&nbsp;</div>'+
         '</td></tr>' + 
         '</table>' +
@@ -118,10 +127,14 @@ const ScreenSearchView = function (model, tools) {
     };
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
-        
-    _tools.onLegendSwitched(((showAlternative)=>{
-        this.needAltLegend = showAlternative;
-        _switchLegendIcon.call(this, this.needAltLegend);
+
+    this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click((e=>{
+        if (e.currentTarget.checked) {       
+            _tools.showAllTracks(true);
+        }
+        else{            
+            _tools.showAllTracks(false);  
+        }
     }).bind(this));
 };
 
@@ -182,13 +195,11 @@ _setEventHandlers = function(){
 }
 
 ScreenSearchView.prototype.repaint = function () {
+//console.log("REPAINT")
     _clean.call(this);
-    this.frame.find('.count').text(_gtxt('AISSearch2.found')+this.model.data.vessels.length);   
+    this.frame.find('.count').text(_gtxt('AISSearch2.found')+this.model.data.vessels.length); 
     //BaseView.prototype.repaint.apply(this, arguments);
     ////////////////////////////////////////////////////
-    let start = new Date();
-
-    //_clean.call(this);
     this.container.find('.info').off('click');
     this.container.find('.ais_vessel', ).off('click');   
     let scrollCont = this.container.find('.mCSB_container')
@@ -198,6 +209,7 @@ ScreenSearchView.prototype.repaint = function () {
         this.container.empty();
     if (!this.model.data)
         return;
+
     let thisInst = this,
         tempFirst = this.model.data.vessels.slice(0, _firstRowsNum),
         content = $(Handlebars.compile(this.tableTemplate)({msg:this.model.data.msg, vessels:tempFirst})),
@@ -209,11 +221,19 @@ ScreenSearchView.prototype.repaint = function () {
         this.container.mCustomScrollbar("destroy").append(content).mCustomScrollbar({
             //scrollInertia: 0,//this.model.data.vessels.length > _firstRowsNum ? 0 : 600,
             callbacks:{
-                onBeforeUpdate: function(){console.log("onBeforeUpdate")},
-                onUpdate: function(){console.log("onUpdate")},
-                //onScroll:function(){
-                whileScrolling: /*scrollingHandler*/function(){                    
+                onScroll:function(){                    
+                    thisInst.scroledPx = this.mcs.top;
+                    //console.log("onScroll " + this.mcs.top + " " + thisInst.container.is(':visible'));
+                },
+                whileScrolling: /*scrollingHandler*/function(){                     
+//console.log("whileScrolling " + this.mcs.top + "px " + thisInst.container.is(':visible')+" ss "+thisInst.startShow)                  
 //console.log("% " + this.mcs.topPct + " pos" + _firstRowsPos)
+                    if (thisInst.startShow && this.mcs.top == 0){
+                        return;
+                    }
+                    else
+                    thisInst.startShow = false;
+                        
                     if (this.mcs.topPct==100 && mcsTopPctPrev != 100 && thisInst.model.data.vessels.length > _firstRowsPos){
                         let start = _firstRowsPos - _firstRowsNum + _firstRowsShift,
                             end = _firstRowsPos + _firstRowsShift;
@@ -226,13 +246,15 @@ ScreenSearchView.prototype.repaint = function () {
                         scrollCont.html(Handlebars.compile(thisInst.tableTemplate)({vessels:tempFirst}));  
 //console.log("h="+rowH) 
                         setTimeout(()=>{
+                            thisInst.scroledPx = -rowH * _firstRowsShift + thisInst.container.height();
                             thisInst.container.mCustomScrollbar("scrollTo",
-                                -rowH * _firstRowsShift + thisInst.container.height(), {
+                            thisInst.scroledPx, {
                                     scrollInertia: 0,
                                     callbacks: false
-                                });
+                            });
                             _setEventHandlers.call(thisInst);
                         }, 200);
+                        _switchLegendIcon.call(thisInst, _tools.needAltLegend);
                     }
                     if (this.mcs.topPct == 0 && mcsTopPctPrev != 0 && _firstRowsPos > _firstRowsNum) {
 //console.log(_firstRowsPos)
@@ -245,13 +267,16 @@ ScreenSearchView.prototype.repaint = function () {
                         scrollCont.html(Handlebars.compile(thisInst.tableTemplate)({ vessels: tempFirst })); 
 //console.log("h="+rowH)
                         setTimeout(() => {
+                            thisInst.scroledPx = rowH * _firstRowsShift;
                             thisInst.container.mCustomScrollbar("scrollTo",
-                                rowH * _firstRowsShift, {
+                                thisInst.scroledPx, {
                                     scrollInertia: 0,
                                     callbacks: false
-                                })
+                                }
+                            );
                             _setEventHandlers.call(thisInst);
                         }, 200);
+                        _switchLegendIcon.call(thisInst, _tools.needAltLegend);
                     }
                     mcsTopPctPrev = this.mcs.topPct;
                 }
@@ -264,13 +289,23 @@ ScreenSearchView.prototype.repaint = function () {
         scrollCont.append(content);
         this.container.mCustomScrollbar("scrollTo", "top", {scrollInertia:0, callbacks:false, timeout:200});
     }
-    _setEventHandlers.call(this);
-    _switchLegendIcon.call(this, this.needAltLegend);
+    _setEventHandlers.call(this);  
+    _switchLegendIcon.call(this, _tools.needAltLegend);
 };
 
 ScreenSearchView.prototype.show = function () {
+    this.startShow = true;
     BaseView.prototype.show.apply(this, arguments);
     this.frame.find('.filter input').focus();
+
+    if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)
+        _tools.showAllTracks(true);
+
+    if (this.scroledPx) {
+        this.container.mCustomScrollbar("scrollTo",
+            this.scroledPx, { scrollInertia: 0, callbacks: false }
+        );
+    }  
 };
 
 module.exports = ScreenSearchView;

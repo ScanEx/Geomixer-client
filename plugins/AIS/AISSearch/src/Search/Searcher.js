@@ -194,6 +194,20 @@ module.exports = function (options) {
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
         },
+        
+        searchString2: function (query, isfuzzy, callback) {
+            var request = {
+                WrapStyle: 'window',
+                layer: _aisLastPoint,
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
+                //orderdirection: 'desc',
+                //orderby: 'vessel_name',
+                query: query
+            };
+            if (isfuzzy)
+                request.pagesize = 1000;
+            L.gmxUtil.sendCrossDomainPostRequest("http://maps.kosmosnimki.ru/plugins/ais/searchship.ashx", request, callback);
+        },
         searchString: function (searchString, isfuzzy, callback) {
             //console.log(_aisLastPoint+", "+_aisLayerID)
             var query = "";
@@ -215,7 +229,7 @@ module.exports = function (options) {
                 layer: _aisLastPoint,
                 columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 //orderdirection: 'desc',
-                orderby: 'vessel_name',
+                //orderby: 'vessel_name',
                 query: query
             };
             if (isfuzzy)

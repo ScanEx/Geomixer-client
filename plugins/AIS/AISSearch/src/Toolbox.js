@@ -5,6 +5,7 @@ module.exports = function (options) {
           _tracksLayer = _layersByID[options.tracksLayerID],
           _screenSearchLayer = _layersByID[options.screenSearchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
+          _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
           _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
           _historyLayerAlt = _layersByID[options.historyLayerAlt];
 
@@ -19,18 +20,22 @@ module.exports = function (options) {
     }
     catch(ex){}
 
-    let _displayedTrack = {mmsi:null},
-    _filterFunc = function (args, filtered, displayedVessel) {
+    let _displayedTrack = {mmsi:null},  
+    _displayedVessels = "all", 
+    _notDisplayedVessels = [],
+    _filterFunc = function (args) {
         let dates = _displayedTrack.dates ? _displayedTrack.dates.list : null,
         mmsiArr = [];
-        mmsiArr.push(_displayedTrack.mmsi);
+
+        if (_displayedTrack.mmsi && _notDisplayedVessels.indexOf(_displayedTrack.mmsi.toString())<0 &&
+            (_displayedVessels=="all" || _displayedVessels.indexOf(_displayedTrack.mmsi.toString()) >= 0))
+            mmsiArr.push(_displayedTrack.mmsi);
 
         let mmsi = args.properties[args.properties.length > 20 ? _almmsi : _tlmmsi].toString(),
             dt = new Date(new Date(args.properties[args.properties.length>20 ? _aldt : _tldt]*1000).setUTCHours(0,0,0,0)),
-            i, j, len;
-        for (i = 0, len = mmsiArr.length; i < len; i++) {
-            if (mmsi == mmsiArr[i] && filtered.indexOf(mmsi)<0 
-            && (!displayedVessel || displayedVessel.indexOf(mmsi)>=0)) { 
+            i, j;
+        for (i = 0; i < mmsiArr.length; i++) {
+            if (mmsi == mmsiArr[i]) { 
                 if (dates)
                     for (j=0; j<dates.length; ++j){
                         if (dates[j].getTime()==dt.getTime()){
@@ -44,72 +49,122 @@ module.exports = function (options) {
         }
         return false;
     }, 
-    _setTrackFilter = function(filtered, displayedVessel){
+    _setTrackFilter = function(){
 //console.log(_displayedTrack)
         let lmap = nsGmx.leafletMap;
-        if (_aisLayer) {
-            if (_displayedTrack.mmsi) {
-                _aisLayer.setFilter((args)=>_filterFunc(args, filtered, displayedVessel));
+        if (_aisLayer && _aisLayer.removeFilter) {
+            _aisLayer.removeFilter();
+            if (_displayedTrack && _displayedTrack.mmsi) {
+                _aisLayer.setFilter(_filterFunc);
                 if (!_aisLayer._map) {
                     lmap.addLayer(_aisLayer);
                 }
-            } else {
-                _aisLayer.removeFilter();
-                lmap.removeLayer(_aisLayer);
             }
+            else
+                lmap.removeLayer(_aisLayer); 
         }
-        if (_tracksLayer) {
-            if (_displayedTrack.mmsi) {
-                _tracksLayer.setFilter((args)=>_filterFunc(args, filtered, displayedVessel));
+        if (_tracksLayer && _tracksLayer.removeFilter) {
+            _tracksLayer.removeFilter();
+            if (_displayedTrack && _displayedTrack.mmsi) {
+                _tracksLayer.setFilter(_filterFunc);
                 if (!_tracksLayer._map) {
                     lmap.addLayer(_tracksLayer);
                 }
-            } else {
-                _tracksLayer.removeFilter();
-                lmap.removeLayer(_tracksLayer);
             }
+            else 
+                lmap.removeLayer(_tracksLayer);
         }
     }, 
-    _setVesselFilter = function(filtered, displayedVessel){
-// console.log(displayedVessel)
-// console.log(filtered)
-        let lmap = nsGmx.leafletMap;
+    _specialVesselFilters,
+    _setVesselFilter = function(){
         if (_screenSearchLayer) {
-            if (displayedVessel || filtered.length) {
+            _screenSearchLayer.removeFilter();  
+
+            if (_displayedVessels!="all" || _notDisplayedVessels.length || _specialVesselFilters) {            
+                let ai = _screenSearchLayer._gmx.tileAttributeIndexes, fields = [];
+                for (var k in ai)
+                    fields[ai[k]] = k;
                 _screenSearchLayer.setFilter((args) => {
-                    let mmsi = args.properties[1].toString();
-                    if (filtered.indexOf(mmsi) < 0){
-                        if (displayedVessel && displayedVessel.indexOf(mmsi) < 0)
-                            return false;
-                        else
-                            return true;
-                    }
+
+                    for(var f in _specialVesselFilters)
+                            _specialVesselFilters[f](args, ai, _displayedVessels);
+
+                    let mmsi = args.properties[ai.mmsi].toString();
+                    if ((_displayedVessels=="all" || _displayedVessels.indexOf(mmsi) >= 0) && 
+                        _notDisplayedVessels.indexOf(mmsi) < 0)
+                        return true;
                     else
                         return false;
                 });
-            } else {
-                _screenSearchLayer.removeFilter();
-            }
+            } 
         }
 
     },
     _markers,
     _visibleMarkers = [],
-    _markerMustBeShown = function(mmsi, filtered){
-        return (!_visibleMarkers.length && filtered.indexOf(mmsi.toString())<0)
-        || _visibleMarkers.indexOf(mmsi.toString())>=0;
+    _markerIcon = function(icon, cog, sog, vtype, group_style){        
+        let type_color = "#000";
+        if (icon.startsWith("sog")){
+            if(sog>=8){type_color = "#09ab00";}
+            else if(4<sog && sog<8){type_color = "#d1a710";}
+            else if(0<sog && sog<=4){type_color = "#ff0f0f";}
+            else{type_color = "#ff0f0f";}                 
+        }
+        else
+        switch(vtype){
+            case "Cargo": type_color = "#33a643"; break;
+            case "Fishing": type_color = "#f44336"; break;
+            case "Tanker": type_color = "#246cbd"; break;
+            case "Passenger": type_color = "#c6b01d"; break;
+            case "HSC": type_color = "#ff6f00"; break;
+            case 'Pleasure Craft': 
+            case 'Sailing': type_color = "#9c27b0"; break;
+            case 'Dredging':
+            case 'Law Enforcement':
+            case 'Medical Transport':
+            case 'Military':
+            case 'Pilot':
+            case 'Port Tender':
+            case 'SAR':
+            case 'Ships Not Party to Armed Conflict':
+            case 'Spare':
+            case 'Towing':
+            case 'Tug':
+            case 'Vessel With Anti-Pollution Equipment':
+            case 'WIG':
+            case 'Diving': type_color = "#9b4628"; break;
+        }
+        if (sog)
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog?0:cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';
+        else
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog?0:cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
     },
-    _repaintOtherMarkers = function(data, markerTemplate, filtered){ 
-        if (!data)
-            return;
-            
-        let di = nsGmx.widgets.commonCalendar.getDateInterval();
+    _eraseMyFleetMarker = function(mmsi){
         if (!_markers)
             _markers = L.layerGroup().addTo(nsGmx.leafletMap);
-        else
-            _markers.clearLayers();
-//console.log(filtered)
-//console.log(_visibleMarkers)
+        else{
+            let layers = _markers.getLayers(), layer;
+            for (var i in layers)
+                if (layers[i].id==mmsi){
+                    layer = layers[i];
+                    break;
+                }
+                layer && _markers.removeLayer(layer);
+        }
+    },
+    _drawMyFleetMarker = function(args, markerTemplate, group, ai, isVisible){ 
+        let data = args.properties;
+        let di = nsGmx.widgets.commonCalendar.getDateInterval();
+// console.log(data[ai.mmsi]+" "+data[ai.vessel_name]+" "+data[ai.cog]+" "+data[ai.sog]+" y="+data[ai.latitude]+" x="+data[ai.longitude]+" "+new Date(data[ai.ts_pos_utc]*1000))
+//console.log(markerTemplate)
+        let icon = args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
+//console.log(icon)
+
+        _eraseMyFleetMarker(data[ai.mmsi]);
+
+        if (!isVisible)
+            return;
+
         let label_line = function(label, label_color, label_shadow){
             if (label!="")
             return '<div style="height:14px;">'+
@@ -117,68 +172,34 @@ module.exports = function (options) {
             '<div class="label_color" style="position:relative;top:-14px;color:' + label_color + '">' + label + '</div></div>';
             else
             return "";
-        },
-        marker = function(vessel, marker_style){
-            let type_color = "#000";
-            switch(vessel.vessel_type){
-                case "Cargo": type_color = "#33a643"; break;
-                case "Fishing": type_color = "#f44336"; break;
-                case "Tanker": type_color = "#246cbd"; break;
-                case "Passenger": type_color = "#c6b01d"; break;
-                case "HSC": type_color = "#ff6f00"; break;
-                case 'Pleasure Craft': 
-                case 'Sailing': type_color = "#9c27b0"; break;
-                case 'Dredging':
-                case 'Law Enforcement':
-                case 'Medical Transport':
-                case 'Military':
-                case 'Pilot':
-                case 'Port Tender':
-                case 'SAR':
-                case 'Ships Not Party to Armed Conflict':
-                case 'Spare':
-                case 'Towing':
-                case 'Tug':
-                case 'Vessel With Anti-Pollution Equipment':
-                case 'WIG':
-                case 'Diving': type_color = "#9b4628"; break;
-            }
-            return vessel.sog ?
-            '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!vessel.cog?0:vessel.cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + marker_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>'
-            : '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!vessel.cog?0:vessel.cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + marker_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
-        };
-        for (let i = 0; i < data.groups.length; ++i) {
-//console.log(data.groups[i].marker_style);
-            for (let j = 0; j < data.groups[i].vessels.length; ++j) {
-                if (_markerMustBeShown(data.groups[i].vessels[j].mmsi, filtered)){
-                    if (di.get("dateBegin").getTime()<=data.groups[i].vessels[j].ts_pos_org*1000 && 
-                    data.groups[i].vessels[j].ts_pos_org*1000<di.get("dateEnd").getTime()){ 
-                        let temp = {};
-                        temp.group_name = label_line(data.groups[i].default?"":(data.groups[i].title), data.groups[i].label_color, data.groups[i].label_shadow)
-                        temp.vessel_name = label_line(data.groups[i].vessels[j].vessel_name, data.groups[i].label_color, data.groups[i].label_shadow);    
-                        temp.sog = label_line(data.groups[i].vessels[j].sog + _gtxt("AISSearch2.KnotShort"), data.groups[i].label_color, data.groups[i].label_shadow);  
-                        temp.cog = label_line(isNaN(data.groups[i].vessels[j].cog)?"":data.groups[i].vessels[j].cog.toFixed(1) + "&deg;", data.groups[i].label_color, data.groups[i].label_shadow);    
-                        temp.marker = marker(data.groups[i].vessels[j], data.groups[i].marker_style);
-                        let m = L.marker([data.groups[i].vessels[j].ymin, data.groups[i].vessels[j].xmin>0?data.groups[i].vessels[j].xmin:360+data.groups[i].vessels[j].xmin],
-                            {
-                                id:data.groups[i].vessels[j].mmsi,
-                                icon: L.divIcon({
-                                    className: 'mf_label gr' + i,
-                                    html: Handlebars.compile(markerTemplate)(temp)
-                                }),
-                                zIndexOffset:1000
-                            });
-                        m.id = data.groups[i].vessels[j].mmsi;
-                        _markers.addLayer(m);
-                    }
-                }
-            }
         }
+        if (di.get("dateBegin").getTime()<=data[ai.ts_pos_utc]*1000 && data[ai.ts_pos_utc]*1000<di.get("dateEnd").getTime()){ 
+            let temp = {};
+            temp.group_name = label_line(group.default?"":(group.title), group.label_color, group.label_shadow)
+            temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);    
+            temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);  
+            temp.cog = label_line(isNaN(data[ai.cog])?"":data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);    
+            temp.marker = _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style);
+            let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+                {
+                    id:data[ai.mmsi],
+                    icon: L.divIcon({
+                        className: 'mf_label gr' + group.id,
+                        html: Handlebars.compile(markerTemplate)(temp)
+                    }),
+                    zIndexOffset:1000
+                });
+            m.id = data[ai.mmsi];
+            _markers.addLayer(m);
+        }
+
     },
     _switchLayers = function(l1, l2){
         //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
+        if (l2._map)
+            return;
         let lmap = nsGmx.leafletMap;
-        if (l1 && l1._map && l2){
+        if (l1 && l2){
             lmap.removeLayer(l1);
             lmap.addLayer(l2);
         }
@@ -186,17 +207,20 @@ module.exports = function (options) {
     _legendSwitchedHandlers = [],
     _legendSwitched = function(showAlternative){
         _legendSwitchedHandlers.forEach(h=>h(showAlternative));
-    },    
-    _filtered = [], 
-    _displayedVessel;
+    };
 
     return {
+        set specialVesselFilters({key, value}) {
+            if (!_specialVesselFilters)
+                _specialVesselFilters = {};
+            _specialVesselFilters[key] = value;
+            //_setVesselFilter();
+        },
         get displayedTrack(){ return _displayedTrack; },
         set displayedTrack(value){ _displayedTrack = value; },
-        get hasAlternativeLayers(){ return !!_lastPointLayerAlt; },
-        showTrack: function (mmsiArr, dates, filtered, displayedVessel) {
-            _filtered = filtered; 
-            _displayedVessel = displayedVessel; 
+        get hasAlternativeLayers(){ return _lastPointLayerAlt; },
+        get needAltLegend(){ return !!_lastPointLayerAltFact._map; },
+        showTrack: function (mmsiArr, dates) {
             _displayedTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
             if (dates)
                 _displayedTrack.dates = { mmsi:mmsiArr[0], list:dates };
@@ -204,34 +228,65 @@ module.exports = function (options) {
                 _displayedTrack.mmsi = mmsiArr[0];
             else
                 _displayedTrack.mmsi = null;
-            _setTrackFilter(filtered, displayedVessel);
+            _setTrackFilter();
         },
-        hideVesselMarkers: function (filtered, displayedVessel) {
-            _filtered = filtered; 
-            _displayedVessel = displayedVessel;
-            _setTrackFilter(filtered, displayedVessel);
-            _setVesselFilter(filtered, displayedVessel);
-        },
-        showOtherMarkers: function(onlyThis){
-            if (!onlyThis) {
-                _visibleMarkers.length = 0;
+        showAllTracks: function(doit){
+            let lmap = nsGmx.leafletMap;
+            if (doit){
+                if (_aisLayer && _aisLayer.removeFilter){
+                    _aisLayer.removeFilter();
+                    lmap.addLayer(_aisLayer);
+                }                
+                if (_tracksLayer && _tracksLayer.removeFilter){
+                    _tracksLayer.removeFilter();
+                    lmap.addLayer(_tracksLayer);
+                }
             }
-            else {
-                _visibleMarkers = onlyThis.map(m=>m);
+            else{
+                _displayedTrack = null;
+                _setTrackFilter();
             }
-            _screenSearchLayer.fire('versionchange');
         },
-        repaintOtherMarkers: _repaintOtherMarkers,
+        hideVesselsOnMap: function (vessels) {
+            if (vessels && vessels.length)
+                _notDisplayedVessels = vessels.map(v=>v);
+            else
+                _notDisplayedVessels.length = 0;
+//console.log(_notDisplayedVessels);
+            _setTrackFilter();
+            _setVesselFilter();
+        },
+        restoreDefault: function(){                   
+            nsGmx.leafletMap.addLayer(_screenSearchLayer);
+            _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt); 
+            _historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt); 
+            _tracksLayerAlt && nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
+        },
+        showVesselsOnMap: function (vessels) {            
+            _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all";           
+//console.log(_displayedVessels);
+            _setTrackFilter();
+            _setVesselFilter();
+        },
+        redrawMarkers: function () {
+            _setVesselFilter();
+        },
+        clearMyFleetMarkers: function(){
+//console.log("clearMyFleetMarkers")
+            _markers && _markers.clearLayers();
+        },
+        eraseMyFleetMarker: _eraseMyFleetMarker,
+        drawMyFleetMarker: _drawMyFleetMarker,
         highlightMarker: function(i, group){
-            $('.mf_label.gr'+i+' svg').each((i,e)=>{
+            $('.mf_label.gr'+group.id+' svg').each((i,e)=>{
                 let paths = e.querySelectorAll('path');
                 if(paths[1])
                     paths[1].style.fill = group.marker_style;
             })
-            $('.mf_label.gr'+i+' svg rect').css({"stroke":group.marker_style});
+            $('.mf_label.gr'+group.id+' svg rect').css({"stroke":group.marker_style});
 
-            $('.mf_label.gr'+i+' .label_color').css({"color":group.label_color});
-            $('.mf_label.gr'+i+' .label_shadow').css({"color":group.label_shadow.color, "text-shadow":group.label_shadow.text_shadow});
+            $('.mf_label.gr'+group.id+' .label_color').css({"color":group.label_color});
+            $('.mf_label.gr'+group.id+' .label_shadow').css({"color":group.label_shadow.color, "text-shadow":group.label_shadow.text_shadow});
         },
         switchLegend: function(showAlternative){
             _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
@@ -246,8 +301,8 @@ module.exports = function (options) {
             temp = _tracksLayer;
             _tracksLayer = _tracksLayerAlt;
             _tracksLayerAlt = temp;
-            _setTrackFilter(_filtered, _displayedVessel);
-            _setVesselFilter(_filtered, _displayedVessel);
+            _setTrackFilter();
+            _setVesselFilter();
             _legendSwitched(showAlternative);
         },
         onLegendSwitched: function(handler){    

@@ -19,10 +19,12 @@ let _calcHeight = function () {
     }
 };
 
-const BaseView = function (model) {
+let _tools;
+const BaseView = function (model, tools) {
     model.view = this;
     this.model = model;
     this.gifLoader = '<img src="img/progress.gif">';
+    _tools = tools;
 };
 
 let _clean = function(){ 
@@ -87,13 +89,13 @@ BaseView.prototype = function () {
                 e.stopPropagation();
             });
             this.container.find('.ais_vessel').on('click', function () {
-//console.log(JSON.parse($(this).find('.info').attr('vessel')))
                 let v = JSON.parse($(this).find('.info').attr('vessel'));                
                 v.lastPosition = true;
                 _this.infoDialogView.showPosition(v);
             });      
         },
         show: function () {
+            _tools.restoreDefault();
             this.frame.show();
             this.model.update();
         },

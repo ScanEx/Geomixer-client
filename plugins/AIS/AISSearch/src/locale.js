@@ -57,6 +57,7 @@
         'AISSearch2.ScreenSearchTab':'СУДА НА ЭКРАНЕ',
         'AISSearch2.MyFleetTab':'МОЙ ФЛОТ',
         'AISSearch2.dailyTrack':'трек за сутки',
+        'AISSearch2.allDailyTracks':'все треки',
         'AISSearch2.myFleetOnly':'только мой флот',
         'AISSearch2.show_pos':'показать положение и историю',
         'AISSearch2.show_info':'информация о судне',
@@ -97,10 +98,16 @@
         'AISSearch2.DisplaySog':'скорость',   
         'AISSearch2.KnotShort':' уз',
         'AISSearch2.thisVesselOnly':'Только это судно: ',
+        'AISSearch2.allTracks':'Треки всех судов: ',
         'AISSearch2.markerShadow':'Цвет обводки маркера',
         'AISSearch2.labelColor':'Цвет подписи маркера',
         'AISSearch2.labelShadow':'Цвет обводки подписи',
-
+        'AISSearch2.zoomin_com':'Увеличить',
+        'AISSearch2.zoomout_com':'Уменьшить',
+        'AISSearch2.image1_com':'Изображение 1',
+        'AISSearch2.image2_com':'Изображение 2',
+        'AISSearch2.twoimages_com':'Два изображения',
+        'AISSearch2.close_com':'Закрыть'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -159,7 +166,8 @@
         'AISSearch2.DbSearchTab':'DATA BASE',
         'AISSearch2.ScreenSearchTab':'VESSELS ON SCREEN',
         'AISSearch2.MyFleetTab':'MY FLEET',
-        'AISSearch2.dailyTrack':'Daily Track',
+        'AISSearch2.dailyTrack':'daily track',
+        'AISSearch2.allDailyTracks':'all tracks',
         'AISSearch2.myFleetOnly':'my fleet only',
         'AISSearch2.show_pos':'position and history',
         'AISSearch2.show_info':'vessel data',
@@ -200,8 +208,14 @@
         'AISSearch2.DisplaySog':'sog',   
         'AISSearch2.KnotShort':' kn',
         'AISSearch2.thisVesselOnly':'Only this ship ',
+        'AISSearch2.allTracks':'All ships tracks ',
         'AISSearch2.markerShadow':'Marker highlight',
         'AISSearch2.labelColor':'Label color',
         'AISSearch2.labelShadow':'Label highlight',
-
+        'AISSearch2.zoomin_com':'Zoom in',
+        'AISSearch2.zoomout_com':'Zoom out',
+        'AISSearch2.image1_com':'Image 1',
+        'AISSearch2.image2_com':'Image 2',
+        'AISSearch2.twoimages_com':'Two images',
+        'AISSearch2.close_com':'Close'
     });

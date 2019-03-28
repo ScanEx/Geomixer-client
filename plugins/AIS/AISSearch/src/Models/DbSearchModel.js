@@ -99,14 +99,7 @@ module.exports = function (aisLayerSearcher) {
                             groups[k]["n"] = counter++;
                             positions.push(groups[k]);
                         }
-                        /*
-                        positions.sort((a, b) => {
-                            if (a.ts_pos_org > b.ts_pos_org) return -1
-                            if (a.ts_pos_org < b.ts_pos_org) return 1;
-                            return 0;
-                        })
-                        */
-                        resolve({ Status: "ok", Result: { values: positions } });
+                        resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
                     }
                     else
                         resolve(response)
@@ -116,7 +109,7 @@ module.exports = function (aisLayerSearcher) {
                     //console.log(response)       
                     _this.isDirty = false;
                     if (response.Status.toLowerCase() == "ok") {
-                        _this.data = { vessels: response.Result.values }
+                        _this.data = { vessels: response.Result.values, total: response.Result.total }
                         return Promise.resolve();
                     }
                     else {
