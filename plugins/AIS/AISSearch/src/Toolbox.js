@@ -219,7 +219,7 @@ module.exports = function (options) {
         get displayedTrack(){ return _displayedTrack; },
         set displayedTrack(value){ _displayedTrack = value; },
         get hasAlternativeLayers(){ return _lastPointLayerAlt; },
-        get needAltLegend(){ return !!_lastPointLayerAltFact._map; },
+        get needAltLegend(){ return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); },
         showTrack: function (mmsiArr, dates) {
             _displayedTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
             if (dates)

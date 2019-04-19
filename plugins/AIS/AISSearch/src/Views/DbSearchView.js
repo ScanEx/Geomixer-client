@@ -24,7 +24,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
     _highlight = highlight;
     _tools = tools;
     let needLegendSwitch = _tools.hasAlternativeLayers,
-    needAltLegend = !!needLegendSwitch._map;
+    needAltLegend = !!(needLegendSwitch && needLegendSwitch._map);
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
         '<table border=0 class="instruments">' +
         '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' +
