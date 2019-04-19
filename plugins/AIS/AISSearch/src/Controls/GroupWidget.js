@@ -20,7 +20,7 @@ GroupWidget.prototype.toString = function () {
     '<table border=0><tr>' +
     '<td><input type="checkbox" checked></td>' +
     '<td><div class="position">{{vessel_name}}</div><div>mmsi: <span class="mmsi">{{mmsi}}</span> imo: <span class="imo">{{imo}}</span></div></td>' +
-    '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}}">' +
+    '<td><img src="{{icon}}" class="course rotateimg{{icon_rot}} legend_icon"><img src="{{iconAlt}}" class="course rotateimg{{icon_rot}} legend_iconalt">' +
     '<div class="info" vessel="{{aisjson this}}" title="{{i "AISSearch2.info"}}">' +
     '<img src="plugins/AIS/AISSearch/svg/info.svg"></div>' +
     '</td>' +

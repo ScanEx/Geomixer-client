@@ -15,7 +15,7 @@ module.exports = function ({
     menuId:menuId }) {
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
-    const _showPosition = function(vessel){ 
+    const _showPosition = function(vessel, track){ 
         window.iconSidebarWidget.open(menuId);
 
         aisView.vessel = vessel;
@@ -23,7 +23,9 @@ module.exports = function ({
         if (aisView.tab.is('.active'))
             aisView.show();
         else
-            aisView.tab.click();    
+            aisView.tab.click(); 
+        
+        aisView.showTrack(track);
     }, 
     _updateView = function (displayed, vessel, getmore){
         if (displayed.vessel.ts_pos_utc!=vessel.ts_pos_utc){
@@ -35,8 +37,8 @@ module.exports = function ({
     };
     return {
         showPosition: function(vessel){  
-            _showPosition(vessel);
-            aisView.showTrack(vessel);
+            _showPosition(vessel, vessel);
+            //aisView.showTrack(vessel);
         },
         show: function (vessel, getmore) {
             let ind = Polyfill.findIndex(allIinfoDialogs, function (d) { 
@@ -70,7 +72,8 @@ module.exports = function ({
                 aisLayerSearcher: aisLayerSearcher,
                 modulePath:modulePath, 
                 aisView: aisView,
-                myFleetView: myFleetView
+                myFleetView: myFleetView,
+                tools: tools
             },
                 {
                     openVesselInfoScreen: vesselInfoScreen.open,

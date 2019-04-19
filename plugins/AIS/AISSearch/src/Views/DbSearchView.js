@@ -17,12 +17,14 @@ let _searchString = "",
     },
     _highlight,
     _tools,
-    _displayedOnly = null;
+    _displayedOnly = [];
 
 const DbSearchView = function ({ model, highlight, tools }) {
-    BaseView.call(this, model);
+    BaseView.call(this, model, tools);
     _highlight = highlight;
     _tools = tools;
+    let needLegendSwitch = _tools.hasAlternativeLayers,
+    needAltLegend = !!(needLegendSwitch && needLegendSwitch._map);
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
         '<table border=0 class="instruments">' +
         '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' +
@@ -36,8 +38,12 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>'+ 
         '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">'+
         '<div class="sync-switch-slider switch-slider round"></div></label>' +
-        '</td>' +
-
+        '</td></tr>' +
+        ( needLegendSwitch ? 
+            '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + 
+            '<span class="type unselectable on" unselectable="on">{{i "AISSearch2.legend_type"}}</span>' +
+            '<span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>'
+            : '') +
         '<tr><td><div class="calendar"></div></td>' +
         '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
         '<div class="progress">' + this.gifLoader + '</div>' +
@@ -56,6 +62,11 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' +
         '</div>'
     )());
+    if(needAltLegend){
+        _tools.switchLegend(needAltLegend);
+        this.frame.find('.legend span').removeClass("on");
+        this.frame.find('.legend .speed').addClass('on');
+    }
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
@@ -68,6 +79,13 @@ const DbSearchView = function ({ model, highlight, tools }) {
     this.container = this.frame.find('.ais_history');
     this.startScreen = this.frame.find('.start_screen');
     this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' +
+
+    '<table class="ais_positions_date header"><tr>' +
+    '<td></td>' +
+    '<td><span class="date"></span></td>' +
+    '<td><div class="track all"><input type="checkbox" title="{{i "AISSearch2.allDailyTracks"}}"></div></td>' +
+    '<td><div class="count">{{total}}</div></td></tr></table>' +
+
         '{{#each vessels}}' +
         '<table class="ais_positions_date" border=0><tr>' +
         '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' +
@@ -128,17 +146,34 @@ const DbSearchView = function ({ model, highlight, tools }) {
     }).bind(this));
 
     this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
-        _displayedOnly = null;
-//console.log(this.model.data.vessels[0].positions[0].mmsi.toString())
-        if (e.currentTarget.checked && this.frame.find('.show_info')[0] ) {
-            _displayedOnly = [this.model.data.vessels[0].positions[0].mmsi.toString()];
-            _tools.showOtherMarkers([this.model.data.vessels[0].positions[0].mmsi.toString()])
+        _displayedOnly.length = 0;
+        if (e.currentTarget.checked && this.frame.find('.ais_positions_date:not(.header)')[0] ) {
+            _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());         
+            _tools.showVesselsOnMap(_displayedOnly);
         }
-        else
-            _tools.showOtherMarkers();
-        _tools.hideVesselMarkers([], _displayedOnly);  
+        else{            
+            _tools.showVesselsOnMap("all");  
+        }
     }).bind(this));
 
+    _tools.onLegendSwitched((()=>{
+        let ic = this.frame.find('.legend_icon'),
+        ica = this.frame.find('.legend_iconalt');
+        if (ic.is(':visible')){
+            ic.hide(); ica.show();
+        }
+        else{
+            ica.hide(); ic.show();
+        }
+    }).bind(this));
+    this.frame.find('.legend .type,.speed').click((e => {
+        let trg = $(e.currentTarget);
+        if (!trg.is('.on')) {
+            this.frame.find('.legend span').removeClass("on");
+            trg.addClass('on');
+            _tools.switchLegend(trg.is('.speed'));
+        }
+    }).bind(this));
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
@@ -173,7 +208,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         removeBut = this.frame.find('.filter .remove'),
         delay,
         suggestions = this.frame.find('.suggestions'),
-        suggestionsCount = 5,
+        suggestionsCount = 12,
         suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 },
         found = { values: [] },
         searchDone = function () {
@@ -181,20 +216,20 @@ const DbSearchView = function ({ model, highlight, tools }) {
                 _searchString = found.values[suggestionsFrame.current].vessel_name;
                 this.searchInput.val(_searchString);
                 let v = found.values[suggestionsFrame.current];
-                if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date')[0]) {
+                if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date:not(.header)')[0]) {
                     this.vessel = v;
                     this.show();
                 }
             }
             else {
                 _clean.call(this);
-                _cleanMap();
+                _cleanMap.call(this);
             }
         },
         doSearch = function (actualId) {
-            //console.log(_searchString)
+//console.log(_searchString)
             new Promise(function (resolve, reject) {
-                this.model.searcher.searchString(_searchString, true, function (response) {
+                this.model.searcher.searchString2(_searchString, true, function (response) {
                     if (response.Status.toLowerCase() == "ok") {
                         found = {
                             values: response.Result.values.map(function (v) {
@@ -264,7 +299,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         searchBut.show();
         suggestions.hide();
         _clean.call(this);
-        _cleanMap();
+        _cleanMap.call(this);
         //nsGmx.leafletMap.removeLayer(highlight);
     }.bind(this));
     this.searchInput.keydown(function (e) {
@@ -347,10 +382,9 @@ let _clean = function () {
     this.startScreen.css({ visibility: "hidden" });
     nsGmx.leafletMap.removeLayer(_highlight);
 },
-_cleanMap = function(){
-    _displayedOnly = null;
-    _tools.showOtherMarkers(_displayedOnly);  
-    _tools.hideVesselMarkers([], _displayedOnly);
+_cleanMap = function(){  
+    if (_displayedOnly.length) 
+        this.frame.find('.time .only_this  input[type="checkbox"]').click();
 };
 
 DbSearchView.prototype.inProgress = function (state) {
@@ -372,7 +406,7 @@ let _vi_template = '<table class="ais_positions">' +
     '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' +
     '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' +
     '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' +
-    '<td><img src="{{icon}}" class="rotateimg{{icon_rot}}"></td>' +
+    '<td><img src="{{icon}}" class="legend_icon rotateimg{{icon_rot}}"><img src="{{iconAlt}}" class="legend_iconalt rotateimg{{icon_rot}}"></td>' +
     '<td><img src="{{source}}"></td>' +
     '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' +
     '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' +
@@ -393,20 +427,26 @@ let _vi_template = '<table class="ais_positions">' +
 let _prepare_history = function(){   
 //console.log(_tools.displayedTrack)     
     if (this.model.data.vessels.length>0 && _tools.displayedTrack && 
-        _tools.displayedTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){            
-        this.frame.find('.ais_positions_date').each((i, el) => {
+        _tools.displayedTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){
+        let checkTrack, modelDate, trackDate, checkAllTracks = this.frame.find('.ais_positions_date.header .track input')[0];
+        checkAllTracks.checked = true;          
+        this.frame.find('.ais_positions_date:not(.header)').each((i, el) => {
             if (_tools.displayedTrack.dates) {
-                let modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0)
+                modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0); 
+                checkTrack = false;
                 for (let j = 0; j < _tools.displayedTrack.dates.list.length; ++j) {
-                    let trackDate = _tools.displayedTrack.dates.list[j];
+                    trackDate = _tools.displayedTrack.dates.list[j];
                     if (modelDate === trackDate.getTime()) {
-                        $(el).find('.track input')[0].checked = true;
+                        checkTrack = $(el).find('.track:not(.all) input')[0];
+                        checkTrack.checked = true;
                         break;
                     }
                 }
+                if (!checkTrack)
+                    checkAllTracks.checked = false; 
             }
             else
-                $(el).find('.track input')[0].checked = true;
+                $(el).find('.track input:not(.all)')[0].checked = true;
         });
     }
 }
@@ -417,19 +457,32 @@ DbSearchView.prototype.repaint = function () {
 
     _prepare_history.call(this);
 
-//console.log("REPAINT")
+//console.log("REPAINT") 
+    _tools.clearMyFleetMarkers();
+    _displayedOnly.length = 0; 
     if (this.frame.find('.time .only_this  input[type="checkbox"]')[0].checked) {
-        _displayedOnly = [this.model.data.vessels[0].positions[0].mmsi.toString()];
-        _tools.showOtherMarkers(_displayedOnly); 
-        _tools.hideVesselMarkers([], _displayedOnly);  
-    }
+        _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());         
+        _tools.showVesselsOnMap(_displayedOnly);
+    }     
+    else {  
+        _tools.showVesselsOnMap("all"); 
+    }  
 
-    let open_pos = this.frame.find('.open_positions');
-    open_pos.each((ind, elm) => {
+    let openPos = this.frame.find('.open_positions'),
+    switchLegendIcons = (function(){
+        let ic = this.frame.find('.legend_icon'),
+            ica = this.frame.find('.legend_iconalt');
+        if (this.frame.find('.legend .speed').is('.on')) {
+            ica.show(); ic.hide();
+        }
+        else {
+            ic.show(); ica.hide();
+        }  
+    }).bind(this);
+    openPos.each((ind, elm) => {
         $(elm).click(((e) => {
             let icon = $(e.target),
                 vi_cont = this.frame.find('#voyage_info' + ind);
-
             if (icon.is('.icon-down-open')) {
                 icon.removeClass('icon-down-open').addClass('.icon-right-open');
                 vi_cont.find('.ais_positions td[class!="more"]').off('click')
@@ -444,6 +497,7 @@ DbSearchView.prototype.repaint = function () {
                     vi_cont.find('.utc_date').hide();
                     vi_cont.find('.local_date').show();
                 }
+                switchLegendIcons();
                 vi_cont.find('.ais_positions td[class!="more"]').click((e) => {
                     let td = $(e.currentTarget);
                     if (td.is('.active')) {
@@ -477,39 +531,64 @@ DbSearchView.prototype.repaint = function () {
                     let i = e.currentTarget.id.replace(/show_pos/, ""),
                         vessel = this.model.data.vessels[ind].positions[parseInt(i)];
                     this.positionMap(vessel, this.calendar.getDateInterval());
-                    this.frame.find('.track input')[ind].checked = true;                    
+
+                    this.frame.find('.track:not(.all) input')[ind].checked = true; 
+                    allTracksInput[0].checked = (this.frame.find('.track:not(.all) input:checked').length==this.model.data.vessels.length);  
+
                     let dates = getDates.call(this);
-                    this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates, [], _displayedOnly);
+                    this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
                     e.stopPropagation();
                 }).bind(this));
             }
-        }).bind(this))
-    })
+        }).bind(this));
+    });
 
-    let getDates = function(){
+    let getDates = function(needAll){
         let dates = [];
-        this.frame.find('.ais_positions_date .track').each((i, el)=>{            
-            if ($('input', el)[0].checked)
+        this.frame.find('.ais_positions_date .track:not(.all)').each((i, el)=>{ 
+            let input = $('input', el)[0];   
+            if (needAll)
+                input.checked = true;       
+            if (input.checked)
                 dates.push(
                     new Date(new Date(1000*this.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0,0,0,0))
                 );
         })
         return dates;
-    };
+    },
+    allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]');
+    allTracksInput.click(((e)=>{
+        if (!this.model.data.vessels || !this.model.data.vessels.length)
+            return;
+        let calendarInterval = this.calendar.getDateInterval(),
+        interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
+        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd); 
+        if (!e.target.checked){        
+            this.frame.find('.ais_positions_date .track:not(.all)').each((i, el)=>{ 
+                $('input', el)[0].checked = false; 
+            });
+            this.showTrack();
+        }
+        else
+            this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, getDates.call(this, true));   
 
-    this.frame.find('.ais_positions_date .track input[type="checkbox"]').click(((e)=>{
+    }).bind(this));
+    this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]').click(((e)=>{
         let calendarInterval = this.calendar.getDateInterval(),
         interval = {dateBegin:calendarInterval.get("dateBegin"), dateEnd:calendarInterval.get("dateEnd")};
         nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
         let dates = getDates.call(this);
-        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates, [], _displayedOnly);
+        allTracksInput[0].checked = (dates.length==this.model.data.vessels.length);
+        this.showTrack({mmsi:this.model.data.vessels[0].positions[0].mmsi}, dates);
     }).bind(this));
 
     if (this.model.data.vessels.length == 1)
-        open_pos.eq(0).click();
+        openPos.eq(0).click();
 
-    if (this.vessel.lastPosition)
+    if (this.vessel.lastPosition){
         this.positionMap(this.vessel, this.calendar.getDateInterval());
+        this.vessel.lastPosition = false;
+    }    
 };
 
 
@@ -541,47 +620,52 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
 DbSearchView.prototype.show = function () {
     this.frame.show();
     this.searchInput.focus();
-
-    _tools.showOtherMarkers(_displayedOnly);  
-    _tools.hideVesselMarkers([], _displayedOnly); 
-
+    BaseView.prototype.show.apply(this, arguments); 
     if (!this.vessel)
         return;
-    BaseView.prototype.show.apply(this, arguments);
+        
+    if (!_tools.displayedTrack)
+        this.frame.find('.ais_positions_date .track input[type="checkbox"]').each((i,e)=>{e.checked = false;});
+
+    if (_displayedOnly.length)        
+        _tools.showVesselsOnMap(_displayedOnly); 
+    else
+        _tools.showVesselsOnMap("all");
 };
 
-DbSearchView.prototype.hide = function () {
-    _tools.showOtherMarkers(); // throwaway filter  
-    BaseView.prototype.hide.apply(this, arguments);
+DbSearchView.prototype.hide = function () { 
+    BaseView.prototype.hide.apply(this, arguments); 
+    _tools.showVesselsOnMap("all");
 };
 
 DbSearchView.prototype.showTrack = function (vessel, dates) {
+    if (!vessel){
+        _tools.showTrack([]);
+        return;
+    }
+    if (!dates && vessel.ts_pos_org)
+        dates = [new Date(new Date(vessel.ts_pos_org*1000).setUTCHours(0,0,0,0))];
+
     let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
     $('.showtrack').attr('title', _gtxt('AISSearch2.show_track'))
         .removeClass('ais active');
     if (dlg[0]) 
         dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track'))
         .addClass('ais active')
-    _tools.showTrack([vessel.mmsi], dates, [], _displayedOnly);
+    _tools.showTrack([vessel.mmsi], dates);
 };
 
 DbSearchView.prototype.positionMap = function (vessel, interval) {
-    if (interval) {    
-        // interval = {dateBegin:interval.get("dateBegin"), dateEnd:interval.get("dateEnd")};
-        // nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);        
+//console.log("positionMap")
+    if (interval)       
         nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
-    }
+        
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
         ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
         ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
         zoom = nsGmx.leafletMap.getZoom();
-    // nsGmx.leafletMap.fitBounds([
-    //     [ymin, xmin],
-    //     [ymax, xmax]
-    // ], {
-    //         maxZoom: (zoom < 9 ? 12 : zoom)
-    //     });
+
     nsGmx.leafletMap.setView([ymax, xmax<0?(360+xmax):xmax], (zoom < 9 ? 12 : zoom));
     nsGmx.leafletMap.removeLayer(_highlight);
     _highlight.vessel = vessel;

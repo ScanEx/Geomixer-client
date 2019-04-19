@@ -1,4 +1,5 @@
 require("./infodialog.css")
+const SpecialFloatView = require('./SpecialFloatView.js');
 
 let addUnit = function (v, u) {
 	return v != null && v != "" ? v + u : "";
@@ -44,7 +45,7 @@ let addUnit = function (v, u) {
 
 module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	modulePath,	aisView, displayedTrack,
-	myFleetView, aisPluginPanel }, commands) {
+	myFleetView, tools }, commands) {
 
 	formatDate = aisLayerSearcher.formatDate;
 	formatDateTime = aisLayerSearcher.formatDateTime;
@@ -189,19 +190,30 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			commands.showPosition(vessel);
 			// if(showtrack.is('.active'))
 			// 	commands.showTrack.call(null, [vessel.mmsi])
-		});
+		});	
+	
+	if (vessel.mmsi==273316240 && vessel.imo==9152959){
+	let special = new SpecialFloatView(),
+		showSpecial = $('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' +
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' +			
+			'</div>')
+			.appendTo(menubuttons)
+			.on('click', function () {
+				special.show();
+			});
+	}
 
 	let addremoveIcon = function (add) {
 		return (add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>'
 			: '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>')
 	}
-	//if (myFleetModel && myFleetModel.data && myFleetModel.data.vessels) {
+	
 	let addremove = $('<div class="button addremove">' + addremoveIcon(add) + '</div>')
-		//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
 		.attr('title', add ? _gtxt('AISSearch2.myfleet_add') : _gtxt('AISSearch2.myfleet_remove'))
 		.appendTo(menubuttons)
 	if (myFleetModel.filterUpdating)
 		addremove.addClass('disabled');
+
 	addremove.on('click', function () {
 		if (addremove.is('.disabled'))
 			return;
@@ -210,8 +222,8 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		addremove.hide()
 		progress.append(gifLoader)
 
-		myFleetView.prepare(vessel);
-		myFleetModel.change(vessel).then(function () {
+		myFleetView.beforeExcludeMember(vessel.mmsi.toString());
+		myFleetModel.changeMembers(vessel).then(function () {
 			add = myFleetModel.findIndex(vessel) < 0;
 			var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 			info.css('visibility', !add ? 'visible' : 'hidden');
@@ -219,14 +231,14 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 
 			addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота')
 				.html(addremoveIcon(add))
-			//.css('background-image','url('+modulePath+'svg/'+(add?'add':'rem')+'-my-fleet.svg)')
-
 			progress.text('');
-			$('.addremove').removeClass('disabled').show()
+			$('.addremove').removeClass('disabled').show();
+			
+			tools.eraseMyFleetMarker(vessel.mmsi);
 			if (myFleetView.isActive)
 				myFleetView.show();
 			else
-				myFleetModel.drawMarker(vessel);
+				tools.redrawMarkers();
 		})
 		.catch((ex)=>console.log(ex));
 	});

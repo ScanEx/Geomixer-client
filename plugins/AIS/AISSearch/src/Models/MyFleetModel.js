@@ -1,5 +1,5 @@
 const Polyfill = require('../Polyfill');
-let emptyGroup = function(title, isDefault, id, style){
+let emptyGroup = function(title, isDefault, id, style, updateTemplate){
     let ms = "#ffff00",
     lsc = "#ffff00",
     ls = {"color":"#ffff00","text_shadow": "-1px -1px 0 #ffff00, 0px -1px 0 #ffff00, 1px -1px 0 #ffff00, -1px  0px 0 #ffff00, 1px  0px 0 #ffff00, -1px  1px 0 #ffff00, 0px  1px 0 #ffff00, 1px  1px 0 #ffff00"},
@@ -18,16 +18,16 @@ let emptyGroup = function(title, isDefault, id, style){
     }
     };
     if (isDefault) eg.default = true;
-
     if (style)
     {
         style = JSON.parse(style);
         eg.marker_style = style.ms;
         eg.label_color = style.lc;
         eg.label_shadow = style.lsc;
+        if (isDefault && style.mt && updateTemplate)
+            _markerTemplate = style.mt;
     }
     eg.id = id;
-
     return eg;
 }
 
@@ -43,9 +43,11 @@ _vessels = [],
 _mapID,
 _prepared,
 _actualUpdate,
-_markerTemplate,
-_filteredState = [], 
-_displayngState,
+_markerTemplate = '<div><table><tr>' +
+'<td style="vertical-align:top">' +
+//'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
+'{{{marker}}}' +
+'</td><td>{{{foo}}}</td></tr></table></div>',
 _data,
 _view,
 _aisLayerSearcher,
@@ -109,9 +111,9 @@ _parseVoyageInfo = function (response, vessels) {
             vessels.forEach(v=>{
                 if (!v.mmsi && !v.imo){
                     if (v.group)
-                        eg = emptyGroup(v.group, false, v.gmx_id, v.style);
+                        eg = emptyGroup(v.group, false, v.gmx_id, v.style, true);
                     else
-                        eg = emptyGroup(_defaultGroup, true, v.gmx_id, v.style);
+                        eg = emptyGroup(_defaultGroup, true, v.gmx_id, v.style, true);
                     data.groups.push(eg);
                 }
             });
@@ -145,15 +147,53 @@ _parseVoyageInfo = function (response, vessels) {
         //thisInst.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
 //console.log("PARSE VI " + data.groups.reduce((p,c)=>p+c.vessels.length, 0))
         return data;
-}, 
-_repaintMap = function(vessels){
-//console.log(vessels) 
-    _loadVoyageInfo(vessels)
-        //.then(data => _tools.repaintOtherMarkers(data, _markerTemplate, _view.isActive ? _filteredState : []))
-        .then(data => _tools.repaintOtherMarkers(data, _markerTemplate, _filteredState))
-        .catch(error => { error && console.log(error) })
-};
-
+},
+_persistGroupsLook = function(count, groups){
+    return new Promise((resolve, reject)=>{
+        let temp = [], style;
+        for (let i=0; i<groups.length; ++i){
+            style = {ms: groups[i].marker_style, lc: groups[i].label_color, lsc: groups[i].label_shadow_color};
+            if(groups[i].default)
+                style.mt = _markerTemplate;
+            temp.push({
+                properties:{style:JSON.stringify(style)}, 
+                id:groups[i].id, action:"update"
+            });
+        }
+        if (!FormData.prototype.set) { 
+            sendCrossDomainJSONRequest(_aisLayerSearcher.baseUrl +
+                'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                '&objects=' + encodeURIComponent(JSON.stringify(temp)),
+                function (r) {
+                    if (!r.Status || r.Status.toLowerCase() != "ok")
+                        console.log(r);
+                    resolve(count + 1);
+                }
+            );                    
+        }
+        else {
+            let form = new FormData();
+            form.set('WrapStyle', 'none');
+            form.set('LayerName', _myFleetLayers[0]);
+            form.set('objects', JSON.stringify(temp));
+            fetch(_aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
+                credentials: 'include',
+                method: "POST",
+                body: form
+            })
+                .then((r) => r.json())
+                .then((r) => {
+                    if (!r.Status || r.Status.toLowerCase() != "ok")
+                        console.log(r);
+                    resolve(count + 1);
+                })
+                .catch(err => {
+                    console.log(err);
+                    resolve(count + 1);
+                });
+        }                 
+    });
+}
 
 module.exports = function ({aisLayerSearcher, toolbox}) {    
     _tools = toolbox;
@@ -241,14 +281,6 @@ console.log("add group and style field");
             })
         };
 
-    nsGmx.gmxMap.layersByID[aisLayerSearcher.screenSearchLayer].on('versionchange', ()=>{
-//console.log("V C"); 
-        _repaintMap(_vessels);
-    });
-    nsGmx.widgets.commonCalendar.getDateInterval().on('change', 
-    //()=>_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : [])
-    ()=>_tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState)
-    );
     _prepared = new Promise((resolve, reject) => {
         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
             "User/GetUserInfo.ashx",
@@ -289,10 +321,23 @@ console.log("add group and style field");
     .then((vessels=>{
 //console.log('INIT REPAINT MAP')
         _vessels = vessels.map(v=>v);
-        _repaintMap(vessels); // only on init
+        _tools.specialVesselFilters = {key: "drawMarker", value: (args, ai, displayed)=>{          
+            let vessel = Polyfill.find(_vessels, v=>{
+                return v.mmsi && v.mmsi==args.properties[ai.mmsi];
+            })
+            if (vessel){
+                let group = Polyfill.find(_vessels, v=>(!v.mmsi && !v.imo && v.group==vessel.group));
+                if (vessel.group)
+                    group = emptyGroup(vessel.group, false, group.gmx_id, group.style);
+                else
+                    group = emptyGroup(_defaultGroup, true, group.gmx_id, group.style);
+                _tools.drawMyFleetMarker(args, _markerTemplate, group, ai, 
+                    (displayed=="all" || displayed.indexOf(vessel.mmsi.toString())>=0) && _view.notDisplayed.indexOf(vessel.mmsi.toString())<0);
+            }
+        }}
+        // _repaintMap(vessels); // only on init
         return Promise.resolve();
     }).bind(this));
-    //.catch(error=>error);
 
     return {
         get isDirty() { return _isDirty; },
@@ -363,15 +408,10 @@ console.log("add group and style field");
                     thisModel.view.repaint();
                 });
         },
-        get markerTemplate(){return _markerTemplate;},
+        get markerTemplate(){
+            return _markerTemplate;
+        },
         set markerTemplate(v){_markerTemplate = v;},
-        drawMarker: function(vessel){
-            _repaintMap( _vessels);
-        },
-        drawMarkers: function(){
-            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-        },
         markMembers: function (vessels) {
             if (this.data && this.data.groups){
                 let membCounter = 0;
@@ -456,12 +496,13 @@ console.log("add group and style field");
             ); 
         },
         set onChanged(callback){ _onChangedHandlers.push(callback) },
-        change: function (vessel) {
+        changeMembers: function (vessel) {
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
                 if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
                     remove = _vessels[i].gmx_id;
                     _vessels.splice(i, 1);
+                    //_tools.eraseMyFleetMarker(vessel.mmsi);
                 }
             }
             return new Promise((resolve, reject) => {
@@ -549,89 +590,34 @@ console.log("add group and style field");
                         reject(r);
                 });
             });
-        },
-        saveGroupStyle: function(count){
-            return new Promise((resolve, reject)=>{
-                let temp = [];
-                for (let i=0; i<_data.groups.length; ++i){
-                    temp.push({
-                        properties:{style:JSON.stringify({ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color})}, 
-                        id:_data.groups[i].id, action:"update"
-                    })
+        },        
+        saveLabelSettings: function(count){
+            let groups = [];
+            for (let i = 0; i < _data.groups.length; ++i) {
+                if (_data.groups[i].default){
+                    groups.push(_data.groups[i]);
+                    break;
                 }
-
-                let form = new FormData();
-                form.set('WrapStyle', 'none');
-                form.set('LayerName', _myFleetLayers[0]);
-                form.set('objects', JSON.stringify(temp));
-                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
-                credentials: 'include',
-                method: "POST",
-                body: form
-                })
-                .then((r)=>r.json())
-                .then((r)=>{  
-                    if (!r.Status || r.Status.toLowerCase() != "ok")
-                        console.log(r);  
-                    resolve(count + 1);
-                })
-                .catch(err=>{
-                    console.log(err);                
-                    resolve(count + 1);
-                });                
-            });    
+            }
+            return _persistGroupsLook(count, groups);
+        },        
+        saveGroupStyle: function(count){
+            return _persistGroupsLook(count, _data.groups);
         },
         changeGroupStyle: function(i, colors){
-            this.data.groups[i].marker_style = colors.marker_style;
-            this.data.groups[i].label_color = colors.label_color;
-            this.data.groups[i].label_shadow = colors.label_shadow;
+            _data.groups[i].marker_style = colors.marker_style;
+            _data.groups[i].label_color = colors.label_color;
+            _data.groups[i].label_shadow = colors.label_shadow;
             _tools.highlightMarker(i, this.data.groups[i]);
-// console.log(vessels)
+            
+            let g = _data.groups[i],
+            group = Polyfill.find(_vessels, v=>(!v.mmsi && !v.imo && v.gmx_id==g.id)),
+            style = {ms: g.marker_style, lc: g.label_color, lsc: g.label_shadow_color};
+            if(g.default)
+                style.mt = _markerTemplate;
+            group.style = JSON.stringify(style);
+//console.log(group)
 //console.log(this.data.groups[i].marker_style)
         },
-        /// Visibility switch click ///
-        showOnlyMyfleet: function(e){
-            _displayngState = null;
-            if (e.currentTarget.checked) {
-                let myfleet = _vessels.reduce((p,c)=>{if(c.mmsi)p.push(c.mmsi.toString()); return p;}, []);
-                if (myfleet.length > 0)
-                    _displayngState = myfleet;
-            }            
-            _tools.hideVesselMarkers(_filteredState, _displayngState);            
-        },
-        isMemberShown: function(mmsi){
-            return _filteredState.indexOf(mmsi)<0;
-        },    
-        /// Vessel visibility checkbox click ///
-        showMembers: function(filtered){ 
-            _filteredState = filtered;            
-            _tools.hideVesselMarkers(_filteredState, _displayngState);  
-            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-        },        
-        /// Before exclude member ///
-        freeMember:function(mmsi){
-            _displayngState = _displayngState ? _displayngState.filter(m => m != mmsi) : null;
-            if (_displayngState && _displayngState.length == 0)
-                _displayngState = null;
-            _filteredState = _filteredState.filter(m => m != mmsi);
-        },
-        /// MF view repaint ///
-        showOnlyMyFleet: function()
-        { 
-            if (_displayngState)
-                _displayngState = _vessels.reduce((p,c)=>{if(c.mmsi)p.push(c.mmsi.toString()); return p;}, []);//_vessels.map(v=>v.mmsi.toString());
-
-            _tools.hideVesselMarkers(_filteredState, _displayngState);
-            //_tools.repaintOtherMarkers(_data, _markerTemplate, _view.isActive ? _filteredState : []);
-            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-            return _displayngState;
-        },    
-        /// MF view hide ///
-        showNotOnlyMyfleet: function(){
-            //_tools.repaintOtherMarkers(_data, _markerTemplate, []);
-            _tools.repaintOtherMarkers(_data, _markerTemplate, _filteredState);
-            _tools.hideVesselMarkers([], null);
-        }
     };
 }

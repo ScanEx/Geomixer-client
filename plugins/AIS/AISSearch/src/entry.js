@@ -11,9 +11,10 @@ if (has('PRODUCTION'))
 if (has('BETA'))
     BETA = true;
 
-require("./all.css")
-require("./Views/AisView.css")
-require("./locale.js")
+require("./all.css");
+require("./Views/AisView.css");
+require("./locale.js");
+require("./Polyfill2.js");
 
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
@@ -47,6 +48,10 @@ const publicInterface = {
             historyLayer: params.historyLayer,	
             tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
 
+            lastPointLayerAlt: params.lastPointLayerAlt,
+            tracksLayerAlt: params.tracksLayerAlt,
+            historyLayerAlt: params.historyLayerAlt,
+            
             modulePath: modulePath,
             highlight: highlight,
             menuId: menuId
