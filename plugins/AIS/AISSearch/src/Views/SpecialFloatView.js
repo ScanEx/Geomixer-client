@@ -3,9 +3,15 @@ const _cssClassName = "special";
 const BaseFloatView = require('./BaseFloatView.js');
 const SpecialFloatView = function (){
     BaseFloatView.apply(this, arguments);
-    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">' +
-    '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' +
-    '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';
+    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
+    if (FormData.prototype.set)
+        this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' +
+        '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';
+    else
+        this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
+    //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
+    //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
+    //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
     this.left = -1000;
 
     this.contextMenu = document.createElement("div"); 
@@ -335,7 +341,7 @@ SpecialFloatView.prototype.show = function(){
         downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
         if (timer){
             clearTimeout(timer);
-            timer = setTimeout(update, 1000 * 60 * 0.25);
+            timer = setTimeout(update, 1000 * 60 * 5);
         }
     }.bind(this), 1000 * 60 * 5),
     

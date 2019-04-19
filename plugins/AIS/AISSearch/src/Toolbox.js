@@ -104,7 +104,7 @@ module.exports = function (options) {
     _visibleMarkers = [],
     _markerIcon = function(icon, cog, sog, vtype, group_style){        
         let type_color = "#000";
-        if (icon.startsWith("sog")){
+        if (icon.search(/^sog/)!=-1){
             if(sog>=8){type_color = "#09ab00";}
             else if(4<sog && sog<8){type_color = "#d1a710";}
             else if(0<sog && sog<=4){type_color = "#ff0f0f";}

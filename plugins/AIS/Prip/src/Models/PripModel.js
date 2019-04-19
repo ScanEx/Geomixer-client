@@ -5,9 +5,17 @@ module.exports = function (sorce) {
         isDirty: true,
         get data() { return _data; },
         load: function (actualUpdate) {
-            return fetch(sorce)
-            .then(response=>{
+            let promise = (FormData.prototype.set) ?
+            fetch(sorce) :
+            new Promise((resolve, reject)=>{
+                throw new Error("IE!!!!");
+            })
+
+            return promise.then(response=>{
                 return response.json()
+            })
+            .catch(error=>{
+                console.log(error);                
             }); 
         },
         update: function () {

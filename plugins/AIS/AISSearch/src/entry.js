@@ -11,9 +11,10 @@ if (has('PRODUCTION'))
 if (has('BETA'))
     BETA = true;
 
-require("./all.css")
-require("./Views/AisView.css")
-require("./locale.js")
+require("./all.css");
+require("./Views/AisView.css");
+require("./locale.js");
+require("./Polyfill2.js");
 
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;

@@ -1,11 +1,11 @@
 let _getMaxZindex = function(){
     let dialogs = document.querySelectorAll('.ui-dialog'),
     z,
-    zMax = Array.from(document.querySelectorAll('.ui-front')).reduce((p,c)=>{
+    zMax = Array.prototype.map.call(document.querySelectorAll('.ui-front'), e=>e).reduce((p,c)=>{
         z = parseFloat(getComputedStyle(c).zIndex);
         return isNaN(z) || z<=p ? p : z;
     }, 0);
-    zMax = Array.from(document.querySelectorAll('.float_view')).reduce((p,c)=>{
+    zMax = Array.prototype.map.call(document.querySelectorAll('.float_view'), e=>e).reduce((p,c)=>{
         z = parseFloat(getComputedStyle(c).zIndex);
         return isNaN(z) || z<=p ? p : z;
     }, zMax);

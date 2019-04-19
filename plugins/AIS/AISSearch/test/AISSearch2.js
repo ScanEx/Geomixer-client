@@ -58,6 +58,7 @@
 	__webpack_require__(1);
 	__webpack_require__(3);
 	__webpack_require__(4);
+	__webpack_require__(5);
 	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
@@ -79,8 +80,8 @@
 	        iconSize: [25, 25],
 	        iconUrl: 'plugins/ais/aissearch/highlight.png' }), zIndexOffset: 1000 });
 	
-	var AisPluginPanel = __webpack_require__(5),
-	    ViewsFactory = __webpack_require__(6);
+	var AisPluginPanel = __webpack_require__(6),
+	    ViewsFactory = __webpack_require__(7);
 	var publicInterface = {
 	    pluginName: pluginName,
 	    afterViewer: function afterViewer(params, map) {
@@ -444,6 +445,80 @@
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	// Element.closest
+	(function (proto) {
+	  proto.matches = proto.matches || proto.mozMatchesSelector || proto.msMatchesSelector || proto.oMatchesSelector || proto.webkitMatchesSelector;
+	  proto.closest = proto.closest || function closest(selector) {
+	    if (!this) return null;
+	    if (this.matches(selector)) return this;
+	    if (!this.parentElement) {
+	      return null;
+	    } else return this.parentElement.closest(selector);
+	  };
+	})(Element.prototype);
+	
+	// Element.remove
+	(function () {
+	  var arr = [window.Element, window.CharacterData, window.DocumentType];
+	  var args = [];
+	
+	  arr.forEach(function (item) {
+	    if (item) {
+	      args.push(item.prototype);
+	    }
+	  });
+	  // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
+	  (function (arr) {
+	    arr.forEach(function (item) {
+	      if (item.hasOwnProperty('remove')) {
+	        return;
+	      }
+	      Object.defineProperty(item, 'remove', {
+	        configurable: true,
+	        enumerable: true,
+	        writable: true,
+	        value: function remove() {
+	          this.parentNode && this.parentNode.removeChild(this);
+	        }
+	      });
+	    });
+	  })(args);
+	})();
+	
+	// Element.append, Document.append, DocumentFragment.append
+	(function (arr) {
+	  arr.forEach(function (item) {
+	    if (item.hasOwnProperty('append')) {
+	      return;
+	    }
+	    Object.defineProperty(item, 'append', {
+	      configurable: true,
+	      enumerable: true,
+	      writable: true,
+	      value: function append() {
+	        var argArr = Array.prototype.slice.call(arguments),
+	            docFrag = document.createDocumentFragment();
+	
+	        argArr.forEach(function (argItem) {
+	          var isNode = argItem instanceof Node;
+	          docFrag.appendChild(isNode ? argItem : document.createTextNode(String(argItem)));
+	        });
+	
+	        this.appendChild(docFrag);
+	      }
+	    });
+	  });
+	})([Element.prototype, Document.prototype, DocumentFragment.prototype]);
+	
+	//NodeList.forEach
+	NodeList.prototype["forEach"] = NodeList.prototype["forEach"] || Array.prototype["forEach"];
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -538,20 +613,20 @@
 	};
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var ScreenSearchView = __webpack_require__(7),
-	    ScreenSearchModel = __webpack_require__(9),
-	    MyFleetView = __webpack_require__(10),
-	    MyFleetModel = __webpack_require__(14),
-	    DbSearchView = __webpack_require__(16),
-	    DbSearchModel = __webpack_require__(18),
-	    InfoDialogView = __webpack_require__(19),
-	    Searcher = __webpack_require__(27),
-	    Toolbox = __webpack_require__(28);
+	var ScreenSearchView = __webpack_require__(8),
+	    ScreenSearchModel = __webpack_require__(10),
+	    MyFleetView = __webpack_require__(11),
+	    MyFleetModel = __webpack_require__(15),
+	    DbSearchView = __webpack_require__(17),
+	    DbSearchModel = __webpack_require__(19),
+	    InfoDialogView = __webpack_require__(20),
+	    Searcher = __webpack_require__(28),
+	    Toolbox = __webpack_require__(29);
 	
 	module.exports = function (options) {
 	    var _tools = new Toolbox(options),
@@ -586,12 +661,12 @@
 	};
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var BaseView = __webpack_require__(8);
+	var BaseView = __webpack_require__(9);
 	var _tools = void 0;
 	var ScreenSearchView = function ScreenSearchView(model, tools) {
 	    var _this = this;
@@ -840,7 +915,7 @@
 	module.exports = ScreenSearchView;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -948,7 +1023,7 @@
 	module.exports = BaseView;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -1062,14 +1137,14 @@
 	module.exports = ScreenSearchModel;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	__webpack_require__(11);
-	var BaseView = __webpack_require__(8);
-	var GroupList = __webpack_require__(12);
+	__webpack_require__(12);
+	var BaseView = __webpack_require__(9);
+	var GroupList = __webpack_require__(13);
 	
 	var _switchLegendIcon = function _switchLegendIcon(showAlternative) {
 	    var ic = this.frame.find('.legend_icon'),
@@ -1225,7 +1300,7 @@
 	    } else _tools.showVesselsOnMap("all");
 	
 	    _tools.hideVesselsOnMap(_notDisplayed);
-	    // console.log("showVesselsOnMap");     
+	    //console.log("showVesselsOnMap");     
 	    // console.log("hideVesselsOnMap");  
 	    ///////////////// 
 	
@@ -1312,18 +1387,18 @@
 	module.exports = MyFleetView;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var GroupWidget = __webpack_require__(13);
+	var GroupWidget = __webpack_require__(14);
 	
 	var _onRepaintItemHandler = void 0,
 	    _onCheckItem = void 0,
@@ -1359,7 +1434,7 @@
 	    this.frame.find('.results input[type="checkbox"]').each(function (i, e) {
 	        var check = true;
 	        e.closest('.mf_group').querySelectorAll('input').forEach(function (e, i) {
-	            return check = check && e.checked;
+	            check = check && e.checked;
 	        });
 	        e.checked = check;
 	    });
@@ -1378,12 +1453,18 @@
 	
 	    this.frame.find('.results').off("contextmenu").on("contextmenu", function (e) {
 	        e.preventDefault();
-	        var values = e.currentTarget.classList.values(),
-	            cssClass = void 0,
-	            group = void 0;
-	        while (!cssClass || !cssClass.done) {
-	            cssClass = values.next();
-	            group = cssClass.value;
+	        // let values= e.currentTarget.classList.values(), 
+	        // cssClass, group;
+	        // while (!cssClass || !cssClass.done){
+	        //     cssClass = values.next(); 
+	        //     group = cssClass.value;
+	        //     if (group && group.search(/^gr\d/)==0)
+	        //         break;
+	        // }
+	        var group = void 0,
+	            classes = e.currentTarget.classList;
+	        for (var i = 0; i < classes.length; ++i) {
+	            group = classes[i];
 	            if (group && group.search(/^gr\d/) == 0) break;
 	        }
 	
@@ -1657,7 +1738,7 @@
 	module.exports = GroupList;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1675,12 +1756,12 @@
 	module.exports = GroupWidget;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var Polyfill = __webpack_require__(15);
+	var Polyfill = __webpack_require__(16);
 	var emptyGroup = function emptyGroup(title, isDefault, id, style, updateTemplate) {
 	    var ms = "#ffff00",
 	        lsc = "#ffff00",
@@ -1829,6 +1910,44 @@
 	    //thisInst.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
 	    //console.log("PARSE VI " + data.groups.reduce((p,c)=>p+c.vessels.length, 0))
 	    return data;
+	},
+	    _persistGroupsLook = function _persistGroupsLook(count, groups) {
+	    return new Promise(function (resolve, reject) {
+	        var temp = [],
+	            style = void 0;
+	        for (var i = 0; i < groups.length; ++i) {
+	            style = { ms: groups[i].marker_style, lc: groups[i].label_color, lsc: groups[i].label_shadow_color };
+	            if (groups[i].default) style.mt = _markerTemplate;
+	            temp.push({
+	                properties: { style: JSON.stringify(style) },
+	                id: groups[i].id, action: "update"
+	            });
+	        }
+	        if (!FormData.prototype.set) {
+	            sendCrossDomainJSONRequest(_aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] + '&objects=' + encodeURIComponent(JSON.stringify(temp)), function (r) {
+	                if (!r.Status || r.Status.toLowerCase() != "ok") console.log(r);
+	                resolve(count + 1);
+	            });
+	        } else {
+	            var form = new FormData();
+	            form.set('WrapStyle', 'none');
+	            form.set('LayerName', _myFleetLayers[0]);
+	            form.set('objects', JSON.stringify(temp));
+	            fetch(_aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
+	                credentials: 'include',
+	                method: "POST",
+	                body: form
+	            }).then(function (r) {
+	                return r.json();
+	            }).then(function (r) {
+	                if (!r.Status || r.Status.toLowerCase() != "ok") console.log(r);
+	                resolve(count + 1);
+	            }).catch(function (err) {
+	                console.log(err);
+	                resolve(count + 1);
+	            });
+	        }
+	    });
 	};
 	
 	module.exports = function (_ref) {
@@ -2160,69 +2279,17 @@
 	            });
 	        },
 	        saveLabelSettings: function saveLabelSettings(count) {
-	            return new Promise(function (resolve, reject) {
-	                var temp = [],
-	                    style = void 0;
-	                for (var i = 0; i < _data.groups.length; ++i) {
-	                    style = { ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color };
-	                    if (_data.groups[i].default) style.mt = _markerTemplate;
-	                    temp.push({
-	                        properties: { style: JSON.stringify(style) },
-	                        id: _data.groups[i].id, action: "update"
-	                    });
-	                    if (_data.groups[i].default) break;
+	            var groups = [];
+	            for (var i = 0; i < _data.groups.length; ++i) {
+	                if (_data.groups[i].default) {
+	                    groups.push(_data.groups[i]);
+	                    break;
 	                }
-	
-	                var form = new FormData();
-	                form.set('WrapStyle', 'none');
-	                form.set('LayerName', _myFleetLayers[0]);
-	                form.set('objects', JSON.stringify(temp));
-	                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
-	                    credentials: 'include',
-	                    method: "POST",
-	                    body: form
-	                }).then(function (r) {
-	                    return r.json();
-	                }).then(function (r) {
-	                    if (!r.Status || r.Status.toLowerCase() != "ok") console.log(r);
-	                    resolve(count + 1);
-	                }).catch(function (err) {
-	                    console.log(err);
-	                    resolve(count + 1);
-	                });
-	            });
+	            }
+	            return _persistGroupsLook(count, groups);
 	        },
 	        saveGroupStyle: function saveGroupStyle(count) {
-	            return new Promise(function (resolve, reject) {
-	                var temp = [],
-	                    style = void 0;
-	                for (var i = 0; i < _data.groups.length; ++i) {
-	                    style = { ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color };
-	                    if (_data.groups[i].default) style.mt = _markerTemplate;
-	                    temp.push({
-	                        properties: { style: JSON.stringify(style) },
-	                        id: _data.groups[i].id, action: "update"
-	                    });
-	                }
-	
-	                var form = new FormData();
-	                form.set('WrapStyle', 'none');
-	                form.set('LayerName', _myFleetLayers[0]);
-	                form.set('objects', JSON.stringify(temp));
-	                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
-	                    credentials: 'include',
-	                    method: "POST",
-	                    body: form
-	                }).then(function (r) {
-	                    return r.json();
-	                }).then(function (r) {
-	                    if (!r.Status || r.Status.toLowerCase() != "ok") console.log(r);
-	                    resolve(count + 1);
-	                }).catch(function (err) {
-	                    console.log(err);
-	                    resolve(count + 1);
-	                });
-	            });
+	            return _persistGroupsLook(count, _data.groups);
 	        },
 	        changeGroupStyle: function changeGroupStyle(i, colors) {
 	            _data.groups[i].marker_style = colors.marker_style;
@@ -2244,7 +2311,7 @@
 	};
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2281,13 +2348,13 @@
 	};
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(17);
-	var BaseView = __webpack_require__(8);
+	__webpack_require__(18);
+	var BaseView = __webpack_require__(9);
 	
 	var _searchString = "",
 	    _setSearchInputValue = function _setSearchInputValue(s) {
@@ -2849,13 +2916,13 @@
 	module.exports = DbSearchView;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3009,14 +3076,14 @@
 	};
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var displayInfoDialog = __webpack_require__(20),
-	    Polyfill = __webpack_require__(15),
-	    VesselInfoScreen = __webpack_require__(25);
+	var displayInfoDialog = __webpack_require__(21),
+	    Polyfill = __webpack_require__(16),
+	    VesselInfoScreen = __webpack_require__(26);
 	
 	var infoDialogCascade = [],
 	    allIinfoDialogs = [],
@@ -3114,13 +3181,13 @@
 	};
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(21);
-	var SpecialFloatView = __webpack_require__(22);
+	__webpack_require__(22);
+	var SpecialFloatView = __webpack_require__(23);
 	
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
@@ -3342,25 +3409,29 @@
 	};
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(23);
+	__webpack_require__(24);
 	var _cssClassName = "special";
-	var BaseFloatView = __webpack_require__(24);
+	var BaseFloatView = __webpack_require__(25);
 	var SpecialFloatView = function SpecialFloatView() {
 	    var _this = this;
 	
 	    BaseFloatView.apply(this, arguments);
-	    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">' + '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';
+	    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
+	    if (FormData.prototype.set) this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';else this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
+	    //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
+	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
+	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
 	    this.left = -1000;
 	
 	    this.contextMenu = document.createElement("div");
@@ -3665,7 +3736,7 @@
 	        downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
 	        if (timer) {
 	            clearTimeout(timer);
-	            timer = setTimeout(update, 1000 * 60 * 0.25);
+	            timer = setTimeout(update, 1000 * 60 * 5);
 	        }
 	    }.bind(this), 1000 * 60 * 5),
 	        closeCom = this.contextMenu.querySelector('.close');
@@ -3681,13 +3752,13 @@
 	module.exports = SpecialFloatView;
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3695,11 +3766,15 @@
 	var _getMaxZindex = function _getMaxZindex() {
 	    var dialogs = document.querySelectorAll('.ui-dialog'),
 	        z = void 0,
-	        zMax = Array.from(document.querySelectorAll('.ui-front')).reduce(function (p, c) {
+	        zMax = Array.prototype.map.call(document.querySelectorAll('.ui-front'), function (e) {
+	        return e;
+	    }).reduce(function (p, c) {
 	        z = parseFloat(getComputedStyle(c).zIndex);
 	        return isNaN(z) || z <= p ? p : z;
 	    }, 0);
-	    zMax = Array.from(document.querySelectorAll('.float_view')).reduce(function (p, c) {
+	    zMax = Array.prototype.map.call(document.querySelectorAll('.float_view'), function (e) {
+	        return e;
+	    }).reduce(function (p, c) {
 	        z = parseFloat(getComputedStyle(c).zIndex);
 	        return isNaN(z) || z <= p ? p : z;
 	    }, zMax);
@@ -3795,12 +3870,12 @@
 	module.exports = BaseFloatView;
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(26);
+	__webpack_require__(27);
 	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
@@ -4107,13 +4182,13 @@
 	};
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -4373,12 +4448,12 @@
 	};
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var Polyfill = __webpack_require__(15);
+	var Polyfill = __webpack_require__(16);
 	module.exports = function (options) {
 	    var _layersByID = nsGmx.gmxMap.layersByID;
 	    var _aisLayer = _layersByID[options.aisLayerID],
@@ -4475,7 +4550,7 @@
 	        _visibleMarkers = [],
 	        _markerIcon = function _markerIcon(icon, cog, sog, vtype, group_style) {
 	        var type_color = "#000";
-	        if (icon.startsWith("sog")) {
+	        if (icon.search(/^sog/) != -1) {
 	            if (sog >= 8) {
 	                type_color = "#09ab00";
 	            } else if (4 < sog && sog < 8) {

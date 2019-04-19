@@ -56,14 +56,7 @@
 	__webpack_require__(1);
 	__webpack_require__(3);
 	__webpack_require__(4);
-	
-	// Handlebars.registerHelper('aisinfoid', function (context) {
-	//     return context.mmsi + " " + context.imo;
-	// });
-	
-	// Handlebars.registerHelper('aisjson', function (context) {
-	//     return JSON.stringify(context);
-	// });
+	__webpack_require__(5);
 	
 	var pluginName = PRODUCTION ? 'LloydsPlugin' : 'LloydsPluginTest',
 	    menuId = 'LloydsPlugin',
@@ -71,8 +64,8 @@
 	    cssTable = PRODUCTION ? 'LloydsPlugin' : 'LloydsPlugin',
 	    modulePath = gmxCore.getModulePath(pluginName);
 	
-	var PluginPanel = __webpack_require__(5),
-	    ViewsFactory = __webpack_require__(6);
+	var PluginPanel = __webpack_require__(6),
+	    ViewsFactory = __webpack_require__(7);
 	
 	var publicInterface = {
 	    pluginName: pluginName,
@@ -92,9 +85,12 @@
 	            inactive: "lloyds_sidebar-icon",
 	            hint: _gtxt('Lloyds.title')
 	        })();
-	        tab.querySelector('.Lloyds').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/><rect x="3.5" y="4.38" width="7" height="1.75"/><rect x="3.5" y="7.88" width="7" height="1.75"/></svg>';
+	        //tab.querySelector('.Lloyds').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/><rect x="3.5" y="4.38" width="7" height="1.75"/><rect x="3.5" y="7.88" width="7" height="1.75"/></svg>';
+	        var tabDiv = tab.querySelector('.Lloyds');
 	        pluginPanel.sidebarPane = sidebar.setPane(menuId, {
 	            createTab: function createTab() {
+	                !tab.querySelector('.Lloyds') && tab.append(tabDiv);
+	                tab.querySelector('.Lloyds').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/><rect x="3.5" y="4.38" width="7" height="1.75"/><rect x="3.5" y="7.88" width="7" height="1.75"/></svg>';
 	                return tab;
 	            }
 	        });
@@ -157,6 +153,80 @@
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	// Element.closest
+	(function (proto) {
+	  proto.matches = proto.matches || proto.mozMatchesSelector || proto.msMatchesSelector || proto.oMatchesSelector || proto.webkitMatchesSelector;
+	  proto.closest = proto.closest || function closest(selector) {
+	    if (!this) return null;
+	    if (this.matches(selector)) return this;
+	    if (!this.parentElement) {
+	      return null;
+	    } else return this.parentElement.closest(selector);
+	  };
+	})(Element.prototype);
+	
+	// Element.remove
+	(function () {
+	  var arr = [window.Element, window.CharacterData, window.DocumentType];
+	  var args = [];
+	
+	  arr.forEach(function (item) {
+	    if (item) {
+	      args.push(item.prototype);
+	    }
+	  });
+	  // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
+	  (function (arr) {
+	    arr.forEach(function (item) {
+	      if (item.hasOwnProperty('remove')) {
+	        return;
+	      }
+	      Object.defineProperty(item, 'remove', {
+	        configurable: true,
+	        enumerable: true,
+	        writable: true,
+	        value: function remove() {
+	          this.parentNode && this.parentNode.removeChild(this);
+	        }
+	      });
+	    });
+	  })(args);
+	})();
+	
+	// Element.append, Document.append, DocumentFragment.append
+	(function (arr) {
+	  arr.forEach(function (item) {
+	    if (item.hasOwnProperty('append')) {
+	      return;
+	    }
+	    Object.defineProperty(item, 'append', {
+	      configurable: true,
+	      enumerable: true,
+	      writable: true,
+	      value: function append() {
+	        var argArr = Array.prototype.slice.call(arguments),
+	            docFrag = document.createDocumentFragment();
+	
+	        argArr.forEach(function (argItem) {
+	          var isNode = argItem instanceof Node;
+	          docFrag.appendChild(isNode ? argItem : document.createTextNode(String(argItem)));
+	        });
+	
+	        this.appendChild(docFrag);
+	      }
+	    });
+	  });
+	})([Element.prototype, Document.prototype, DocumentFragment.prototype]);
+	
+	//NodeList.forEach
+	NodeList.prototype["forEach"] = NodeList.prototype["forEach"] || Array.prototype["forEach"];
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -193,105 +263,10 @@
 	        }
 	    };
 	    return _returnInstance;
-	    /*
-	    let _leftMenuBlock,
-	        _canvas = _div(null),
-	        _activeView,
-	        _views = viewFactory.create(),
-	        // _aisSearchView,
-	        // _myFleetMembersView,
-	        // _historyView,
-	        //_gifLoader = '<img src="img/progress.gif">',
-	        _isReady = false,
-	        _createTabs = function () {
-	            let tabsTemplate = '<table class="ais_tabs" border=0><tr>' +
-	                '<td class="ais_tab dbsearch_tab unselectable" unselectable="on">' +
-	                '<div>{{i "AISSearch2.DbSearchTab"}}</div>' +
-	                '</td><td class="ais_tab scrsearch_tab unselectable" unselectable="on">' +
-	                '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' +
-	                '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
-	                '<div>{{i "AISSearch2.MyFleetTab"}}</div>' +
-	                '</td></tr></table>'
-	              if (NOSIDEBAR)
-	                $(_leftMenuBlock.workCanvas).append(_canvas);
-	            else
-	                $(this.sidebarPane).append(_canvas);
-	              $(_canvas).append(Handlebars.compile(tabsTemplate));
-	            $(_canvas).append(_views.map(v => v.frame));
-	    
-	            let tabs = $('.ais_tab', _canvas),
-	                _this = this;           
-	            _views.forEach((v,i) =>{
-	                v.tab = tabs.eq(i);
-	                v.resize(true);
-	            }); 
-	            tabs.on('click', function () {
-	                if (!$(this).is('.active')) {
-	                    let target = this;
-	                    tabs.each(function (i, tab) {
-	                        if (!$(tab).is('.active') && target == tab) {
-	                            $(tab).addClass('active');
-	                            _views[i].show();
-	                            _activeView = _views[i];
-	                        }
-	                        else {
-	                            $(tab).removeClass('active');
-	                            _views[i].hide();
-	                        }
-	                    });
-	                }
-	            });
-	              // Show the first tab
-	            tabs.eq(0).removeClass('active').click();
-	              if (NOSIDEBAR) {
-	                _returnInstance.hide = function () {
-	                    $(_leftMenuBlock.parentWorkCanvas).hide();
-	                    nsGmx.leafletMap.removeLayer(highlight);
-	                }
-	                  $(_leftMenuBlock.parentWorkCanvas)
-	                    .attr('class', 'left_aispanel')
-	                    .insertAfter('.layers-before');
-	                var blockItem = _leftMenuBlock.leftPanelItem,
-	                    blockTitle = $('.leftmenu-path', blockItem.panelCanvas);
-	                var toggleTitle = function () {
-	                    if (blockItem.isCollapsed())
-	                        blockTitle.show();
-	                    else
-	                        blockTitle.hide();
-	                }
-	                $(blockItem).on('changeVisibility', toggleTitle);
-	                toggleTitle();
-	            }
-	              // All has been done at first time
-	            _isReady = true;
-	        },
-	      _returnInstance = {
-	        show: function () {
-	            let lmap = nsGmx.leafletMap;
-	            if (NOSIDEBAR && !_leftMenuBlock)
-	                _leftMenuBlock = new leftMenu();
-	              if ((NOSIDEBAR && (!_leftMenuBlock.createWorkCanvas("aispanel",
-	                function () { lmap.gmxControlIconManager.get(this.menuId)._iconClick() },
-	                { path: [_gtxt('AISSearch2.caption')] })
-	            )) || (!_isReady)) // SIDEBAR
-	            {
-	                _createTabs.call(this);
-	            }
-	            else{
-	                if (NOSIDEBAR){
-	                    $(_leftMenuBlock.parentWorkCanvas)
-	                    .insertAfter('.layers-before');
-	                }            
-	                _activeView && _activeView.show();
-	            }
-	        }
-	    };
-	    return _returnInstance;
-	    */
 	};
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -306,11 +281,11 @@
 	    InfoDialogView = require('./Views/InfoDialogView'),
 	    Toolbox = require('./Toolbox.js');
 	*/
-	var MyCollectionView = __webpack_require__(7),
-	    MyCollectionModel = __webpack_require__(12),
-	    RegisterDlgView = __webpack_require__(14),
-	    RegisterModel = __webpack_require__(16),
-	    Searcher = __webpack_require__(17);
+	var MyCollectionView = __webpack_require__(8),
+	    MyCollectionModel = __webpack_require__(13),
+	    RegisterDlgView = __webpack_require__(15),
+	    RegisterModel = __webpack_require__(17),
+	    Searcher = __webpack_require__(18);
 	module.exports = function (options) {
 	    var _searcher = new Searcher(options),
 	        _rm = new RegisterModel(_searcher),
@@ -321,47 +296,18 @@
 	        create: function create() {
 	            return [_mcv];
 	        }
-	        /*
-	        const _tools = new Toolbox(options),
-	            //_layersByID = nsGmx.gmxMap.layersByID,
-	            _searcher = new Searcher(options),
-	            _mfm = new MyFleetModel(_searcher),
-	            _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
-	            _dbsm = new DbSearchModel(_searcher),
-	            _dbsv = new DbSearchView({model:_dbsm, highlight:options.highlight, tools:_tools}),
-	            _ssv = new ScreenSearchView(_ssm),
-	            _mfv = new MyFleetView(_mfm, _tools),
-	            _idv = new InfoDialogView({
-	                tools:_tools,
-	                aisLayerSearcher: _searcher, 
-	                modulePath: options.modulePath,
-	                aisView: _dbsv, 
-	                myFleetMembersView: _mfv
-	            });
-	            _ssv.infoDialogView = _idv;
-	            _mfv.infoDialogView = _idv;
-	            _dbsv.infoDialogView = _idv;
-	        return {
-	            get infoDialogView(){
-	                return _idv;
-	            },
-	            create: function () {
-	                return [ _dbsv, _ssv, _mfv ];
-	            }
-	        };
-	        */
 	    };
 	};
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	__webpack_require__(8);
-	var BaseView = __webpack_require__(9);
-	var SearchControl = __webpack_require__(10);
+	__webpack_require__(9);
+	var BaseView = __webpack_require__(10);
+	var SearchControl = __webpack_require__(11);
 	
 	//let _searchString = "";
 	
@@ -454,13 +400,13 @@
 	module.exports = MyCollectionView;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -571,12 +517,12 @@
 	module.exports = BaseView;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(11);
+	__webpack_require__(12);
 	
 	var _searchString = "",
 	    _sparams = localStorage.getItem('lloyds_searchparams');
@@ -820,18 +766,18 @@
 	module.exports = SearchControl;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var Polyfill = __webpack_require__(13);
+	var Polyfill = __webpack_require__(14);
 	module.exports = function (searcher) {
 	    var _actualUpdate = void 0,
 	        _data = JSON.parse(localStorage.getItem("lloyds_collection"));
@@ -861,7 +807,7 @@
 	};
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -898,13 +844,13 @@
 	};
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(15);
-	var BaseView = __webpack_require__(9);
+	__webpack_require__(16);
+	var BaseView = __webpack_require__(10);
 	
 	var RegisterDlgView = function RegisterDlgView(_ref) {
 	    var _this = this;
@@ -997,7 +943,7 @@
 	    form.append('vessels', _vesselsToExport);
 	    form.append('columns', columns);
 	    this.inProgress(true);
-	    fetch("http://maps.kosmosnimki.ru/plugins/ais/lloydsexport.ashx", {
+	    fetch(window.serverBase + "plugins/ais/lloydsexport.ashx", {
 	        method: "POST",
 	        mode: 'cors',
 	        body: form,
@@ -1009,7 +955,7 @@
 	        if (data.search(/ERROR:/) != -1) {
 	            return Promise.reject(data);
 	        }
-	        this.frame.find(".export.download")[0].src = "http://maps.kosmosnimki.ru/plugins/ais/lloydsexport.ashx?id=" + data;
+	        this.frame.find(".export.download")[0].src = window.serverBase + "plugins/ais/lloydsexport.ashx?id=" + data;
 	    }.bind(this)).catch(function (data) {
 	        this.inProgress(false);
 	        console.log(data);
@@ -1291,13 +1237,13 @@
 	module.exports = RegisterDlgView;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -1372,9 +1318,13 @@
 	        var columnsJson = JSON.parse(localStorage.getItem("lloyds_columns"));
 	        //columnsJson && console.log((new Date().getTime()-columnsJson.timestamp)/60000)
 	        //if (!columnsJson || ((new Date().getTime()-columnsJson.timestamp)/60000>24*60))
-	        fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta").then(function (r) {
+	        var promise = FormData.prototype.set ? fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta").then(function (r) {
 	            return r.json();
-	        }).then(function (r) {
+	        }) : new Promise(function (resolve) {
+	            throw new Error("IE!!!");
+	        });
+	
+	        promise.then(function (r) {
 	            var checked = [],
 	                convert = function convert(a) {
 	                return a.map(function (p) {
@@ -1429,7 +1379,7 @@
 	};
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports) {
 
 	"use strict";

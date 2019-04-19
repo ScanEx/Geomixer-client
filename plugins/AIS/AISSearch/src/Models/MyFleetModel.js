@@ -147,6 +147,52 @@ _parseVoyageInfo = function (response, vessels) {
         //thisInst.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
 //console.log("PARSE VI " + data.groups.reduce((p,c)=>p+c.vessels.length, 0))
         return data;
+},
+_persistGroupsLook = function(count, groups){
+    return new Promise((resolve, reject)=>{
+        let temp = [], style;
+        for (let i=0; i<groups.length; ++i){
+            style = {ms: groups[i].marker_style, lc: groups[i].label_color, lsc: groups[i].label_shadow_color};
+            if(groups[i].default)
+                style.mt = _markerTemplate;
+            temp.push({
+                properties:{style:JSON.stringify(style)}, 
+                id:groups[i].id, action:"update"
+            });
+        }
+        if (!FormData.prototype.set) { 
+            sendCrossDomainJSONRequest(_aisLayerSearcher.baseUrl +
+                'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                '&objects=' + encodeURIComponent(JSON.stringify(temp)),
+                function (r) {
+                    if (!r.Status || r.Status.toLowerCase() != "ok")
+                        console.log(r);
+                    resolve(count + 1);
+                }
+            );                    
+        }
+        else {
+            let form = new FormData();
+            form.set('WrapStyle', 'none');
+            form.set('LayerName', _myFleetLayers[0]);
+            form.set('objects', JSON.stringify(temp));
+            fetch(_aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
+                credentials: 'include',
+                method: "POST",
+                body: form
+            })
+                .then((r) => r.json())
+                .then((r) => {
+                    if (!r.Status || r.Status.toLowerCase() != "ok")
+                        console.log(r);
+                    resolve(count + 1);
+                })
+                .catch(err => {
+                    console.log(err);
+                    resolve(count + 1);
+                });
+        }                 
+    });
 }
 
 module.exports = function ({aisLayerSearcher, toolbox}) {    
@@ -546,75 +592,17 @@ console.log("add group and style field");
             });
         },        
         saveLabelSettings: function(count){
-            return new Promise((resolve, reject)=>{
-                let temp = [], style;
-                for (let i=0; i<_data.groups.length; ++i){
-                    style = {ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color};
-                    if(_data.groups[i].default)
-                        style.mt = _markerTemplate;
-                    temp.push({
-                        properties:{style:JSON.stringify(style)}, 
-                        id:_data.groups[i].id, action:"update"
-                    });
-                    if(_data.groups[i].default)
-                        break;
+            let groups = [];
+            for (let i = 0; i < _data.groups.length; ++i) {
+                if (_data.groups[i].default){
+                    groups.push(_data.groups[i]);
+                    break;
                 }
-
-                let form = new FormData();
-                form.set('WrapStyle', 'none');
-                form.set('LayerName', _myFleetLayers[0]);
-                form.set('objects', JSON.stringify(temp));
-                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
-                credentials: 'include',
-                method: "POST",
-                body: form
-                })
-                .then((r)=>r.json())
-                .then((r)=>{  
-                    if (!r.Status || r.Status.toLowerCase() != "ok")
-                        console.log(r);  
-                    resolve(count + 1);
-                })
-                .catch(err=>{
-                    console.log(err);                
-                    resolve(count + 1);
-                });   
-                 
-            });
+            }
+            return _persistGroupsLook(count, groups);
         },        
         saveGroupStyle: function(count){
-            return new Promise((resolve, reject)=>{
-                let temp = [], style;
-                for (let i=0; i<_data.groups.length; ++i){
-                    style = {ms: _data.groups[i].marker_style, lc: _data.groups[i].label_color, lsc: _data.groups[i].label_shadow_color};
-                    if(_data.groups[i].default)
-                        style.mt = _markerTemplate;
-                    temp.push({
-                        properties:{style:JSON.stringify(style)}, 
-                        id:_data.groups[i].id, action:"update"
-                    });
-                }
-
-                let form = new FormData();
-                form.set('WrapStyle', 'none');
-                form.set('LayerName', _myFleetLayers[0]);
-                form.set('objects', JSON.stringify(temp));
-                fetch(aisLayerSearcher.baseUrl + 'VectorLayer/ModifyVectorObjects.ashx', {
-                credentials: 'include',
-                method: "POST",
-                body: form
-                })
-                .then((r)=>r.json())
-                .then((r)=>{  
-                    if (!r.Status || r.Status.toLowerCase() != "ok")
-                        console.log(r);  
-                    resolve(count + 1);
-                })
-                .catch(err=>{
-                    console.log(err);                
-                    resolve(count + 1);
-                });                
-            });    
+            return _persistGroupsLook(count, _data.groups);
         },
         changeGroupStyle: function(i, colors){
             _data.groups[i].marker_style = colors.marker_style;

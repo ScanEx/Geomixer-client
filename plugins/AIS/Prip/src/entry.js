@@ -30,15 +30,23 @@ const publicInterface = {
                     inactive: "prip_sidebar-icon",
                     hint: _gtxt('Prip.title')
                 })()
-        tab.querySelector('.Prip').innerHTML = '<svg height="16" width="16">' +
-            '<circle cx="8" r="2" cy="3"></circle>' +
-            '<path d="M0 1 L8 3 L0 5Z"></path>' +
-            '<path d="M8 3 L16 1 L16 5Z"></path>' +
-            '<path d="M6 7 L6 10 L10 10 L10 7Z"></path>' +
-            '<path d="M5 13 L4 16 L12 16 L11 13Z"></path></svg>';
+        // tab.querySelector('.Prip').innerHTML = '<svg height="16" width="16">' +
+        //     '<circle cx="8" r="2" cy="3"></circle>' +
+        //     '<path d="M0 1 L8 3 L0 5Z"></path>' +
+        //     '<path d="M8 3 L16 1 L16 5Z"></path>' +
+        //     '<path d="M6 7 L6 10 L10 10 L10 7Z"></path>' +
+        //     '<path d="M5 13 L4 16 L12 16 L11 13Z"></path></svg>';
+        let tabDiv = tab.querySelector('.Prip');
         pluginPanel.sidebarPane = sidebar.setPane(
             menuId, {
                 createTab: ()=>{
+                    !tab.querySelector('.Prip') && tab.append(tabDiv);                    
+                    tab.querySelector('.Prip').innerHTML = '<svg height="16" width="16">' +
+                    '<circle cx="8" r="2" cy="3"></circle>' +
+                    '<path d="M0 1 L8 3 L0 5Z"></path>' +
+                    '<path d="M8 3 L16 1 L16 5Z"></path>' +
+                    '<path d="M6 7 L6 10 L10 10 L10 7Z"></path>' +
+                    '<path d="M5 13 L4 16 L12 16 L11 13Z"></path></svg>';
                     return tab;
                 }
             }

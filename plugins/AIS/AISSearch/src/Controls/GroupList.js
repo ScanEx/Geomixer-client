@@ -29,7 +29,9 @@ _setCheckBoxes = function(){
     this.frame.find('.results input[type="checkbox"]')
     .each((i,e)=>{
         let check = true; 
-        e.closest('.mf_group').querySelectorAll('input').forEach((e,i)=>check = check && e.checked); 
+        e.closest('.mf_group').querySelectorAll('input').forEach((e,i)=>{
+            check = check && e.checked
+        }); 
         e.checked = check;
     });
 },
@@ -45,11 +47,17 @@ _setGroupCommands = function(){
            
     this.frame.find('.results').off("contextmenu").on("contextmenu", (e=>{  
         e.preventDefault();
-        let values= e.currentTarget.classList.values(), 
-        cssClass, group;
-        while (!cssClass || !cssClass.done){
-            cssClass = values.next(); 
-            group = cssClass.value;
+        // let values= e.currentTarget.classList.values(), 
+        // cssClass, group;
+        // while (!cssClass || !cssClass.done){
+        //     cssClass = values.next(); 
+        //     group = cssClass.value;
+        //     if (group && group.search(/^gr\d/)==0)
+        //         break;
+        // }
+        let group, classes = e.currentTarget.classList;
+        for (let i=0; i<classes.length; ++i){
+            group = classes[i];
             if (group && group.search(/^gr\d/)==0)
                 break;
         }
@@ -68,7 +76,7 @@ _setGroupCommands = function(){
             cs.style.backgroundColor = "#" + c;
             let c1 = cp1.style.backgroundColor,
             c2 = cp2.style.backgroundColor,
-            c3 = cp3.style.backgroundColor
+            c3 = cp3.style.backgroundColor;
             _onChangeGroupStyle(group, {
                 marker_style: c1.substr(0,3)=="rgb" ? nsGmx.Utils.rgb2hex(c1) : c1,
                 label_color: c2.substr(0,3)=="rgb" ? nsGmx.Utils.rgb2hex(c2) : c2,
