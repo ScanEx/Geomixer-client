@@ -227,7 +227,7 @@ var EditObjectControl = function(layerName, objectId, params)
         drawingObjectLeafletID = obj._leaflet_id;
     }
 
-    var objStyle = params ? params.event.gmx.target.currentStyle : null;
+    var objStyle = params && params.event ? params.event.gmx.target.currentStyle : null;
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
@@ -501,37 +501,44 @@ var prop = layer._gmx.properties;
 
                 var columnNames = response.Result.fields;
                 var drawingObject = null;
-                var geometryRow = response.Result.values[0];
-                var types = response.Result.types;
+                var geometryRow = response.Result.values.length > 0 ? response.Result.values[0] : [];
+				
+				if (geometryRow.length > 0) {
+					
+					var types = response.Result.types;
+					for (var i = 0; i < geometryRow.length; ++i)
+					{
+						if (columnNames[i] === 'geomixergeojson')
+						{
+							var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
+							if (geom) {
+								bindGeometry(geom);
+								originalGeometry = $.extend(true, {}, geom);
+							}
+						}
+						else
+						{
+							var field = {
+								value: geometryRow[i],
+								type: types[i],
+								name: columnNames[i],
+								constant: columnNames[i] === identityField,
+								identityField: columnNames[i] === identityField,
+								isRequired: false
+							};
 
-                for (var i = 0; i < geometryRow.length; ++i)
-                {
-                    if (columnNames[i] === 'geomixergeojson')
-                    {
-                        var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
-                        if (geom) {
-                            bindGeometry(geom);
-                            originalGeometry = $.extend(true, {}, geom);
-                        }
-                    }
-                    else
-                    {
-                        var field = {
-                            value: geometryRow[i],
-                            type: types[i],
-                            name: columnNames[i],
-                            constant: columnNames[i] === identityField,
-                            identityField: columnNames[i] === identityField,
-                            isRequired: false
-                        };
+							fieldsCollection.append(field);
+						}
+					}
 
-                        fieldsCollection.append(field);
-                    }
-                }
+					_params.fields.forEach(fieldsCollection.append);
 
-                _params.fields.forEach(fieldsCollection.append);
-
-                drawAttrList(fieldsCollection);
+					drawAttrList(fieldsCollection);
+				}
+                else {
+					console.log('Geometry row is empty');
+					$(dialogDiv).dialog('close');
+				}
 
                 _this.initPromise.resolve();
             })

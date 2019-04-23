@@ -284,7 +284,7 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
         apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
     
     L.gmx.gmxMapManager.getMap(hostName, apiKey, name, window.gmxSkipTiles).then(function(mapInfo) {
-        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
+        var previewLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: false}),
             ul = previewLayersTree.drawTree(mapInfo, 2);
 
         $(ul).treeview();

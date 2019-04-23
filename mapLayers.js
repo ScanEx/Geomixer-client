@@ -491,14 +491,17 @@
     layersTree.prototype.layerZoomToExtent = function(bounds, minZoom) {
         if (!bounds) return;
 
-        var lmap = nsGmx.leafletMap,
-            z = lmap.getBoundsZoom(bounds);
+        var lmap = nsGmx.leafletMap;
+		// var z = lmap.getBoundsZoom(bounds);
 
-        if (minZoom !== 20) {
-            z = Math.max(z, minZoom);
-        }
+        // if (minZoom !== 20) {
+            // z = Math.max(z, minZoom);
+        // }
 
-        z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
+        // z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
+		var currentZoom = lmap.getZoom();
+		var doubleClickZoom = lmap.getBoundsZoom(bounds);
+		var z = Math.min(Math.max(15, currentZoom), doubleClickZoom);
 
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя

@@ -1,7 +1,7 @@
 (function () {
 var define = null;
-var buildDate = '2018-7-18 10:24:02';
-var buildUUID = '4fdd711b66e84175994b26eb47666b4e';
+var buildDate = '2018-10-25 14:07:01';
+var buildUUID = '0d010e694b2b42398c79c81332f73bae';
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
@@ -1161,6 +1161,270 @@ return Promise$3;
 })));
 
 
+
+/*
+ * classList.js: Cross-browser full element.classList implementation.
+ * 1.2.20171210
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: Dedicated to the public domain.
+ *   See https://github.com/eligrey/classList.js/blob/master/LICENSE.md
+ */
+
+/*global self, document, DOMException */
+
+/*! @source http://purl.eligrey.com/github/classList.js/blob/master/classList.js */
+
+if ("document" in self) {
+
+// Full polyfill for browsers with no classList support
+// Including IE < Edge missing SVGElement.classList
+if (
+	   !("classList" in document.createElement("_")) 
+	|| document.createElementNS
+	&& !("classList" in document.createElementNS("http://www.w3.org/2000/svg","g"))
+) {
+
+(function (view) {
+
+"use strict";
+
+if (!('Element' in view)) return;
+
+var
+	  classListProp = "classList"
+	, protoProp = "prototype"
+	, elemCtrProto = view.Element[protoProp]
+	, objCtr = Object
+	, strTrim = String[protoProp].trim || function () {
+		return this.replace(/^\s+|\s+$/g, "");
+	}
+	, arrIndexOf = Array[protoProp].indexOf || function (item) {
+		var
+			  i = 0
+			, len = this.length
+		;
+		for (; i < len; i++) {
+			if (i in this && this[i] === item) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	// Vendors: please allow content code to instantiate DOMExceptions
+	, DOMEx = function (type, message) {
+		this.name = type;
+		this.code = DOMException[type];
+		this.message = message;
+	}
+	, checkTokenAndGetIndex = function (classList, token) {
+		if (token === "") {
+			throw new DOMEx(
+				  "SYNTAX_ERR"
+				, "The token must not be empty."
+			);
+		}
+		if (/\s/.test(token)) {
+			throw new DOMEx(
+				  "INVALID_CHARACTER_ERR"
+				, "The token must not contain space characters."
+			);
+		}
+		return arrIndexOf.call(classList, token);
+	}
+	, ClassList = function (elem) {
+		var
+			  trimmedClasses = strTrim.call(elem.getAttribute("class") || "")
+			, classes = trimmedClasses ? trimmedClasses.split(/\s+/) : []
+			, i = 0
+			, len = classes.length
+		;
+		for (; i < len; i++) {
+			this.push(classes[i]);
+		}
+		this._updateClassName = function () {
+			elem.setAttribute("class", this.toString());
+		};
+	}
+	, classListProto = ClassList[protoProp] = []
+	, classListGetter = function () {
+		return new ClassList(this);
+	}
+;
+// Most DOMException implementations don't allow calling DOMException's toString()
+// on non-DOMExceptions. Error's toString() is sufficient here.
+DOMEx[protoProp] = Error[protoProp];
+classListProto.item = function (i) {
+	return this[i] || null;
+};
+classListProto.contains = function (token) {
+	return ~checkTokenAndGetIndex(this, token + "");
+};
+classListProto.add = function () {
+	var
+		  tokens = arguments
+		, i = 0
+		, l = tokens.length
+		, token
+		, updated = false
+	;
+	do {
+		token = tokens[i] + "";
+		if (!~checkTokenAndGetIndex(this, token)) {
+			this.push(token);
+			updated = true;
+		}
+	}
+	while (++i < l);
+
+	if (updated) {
+		this._updateClassName();
+	}
+};
+classListProto.remove = function () {
+	var
+		  tokens = arguments
+		, i = 0
+		, l = tokens.length
+		, token
+		, updated = false
+		, index
+	;
+	do {
+		token = tokens[i] + "";
+		index = checkTokenAndGetIndex(this, token);
+		while (~index) {
+			this.splice(index, 1);
+			updated = true;
+			index = checkTokenAndGetIndex(this, token);
+		}
+	}
+	while (++i < l);
+
+	if (updated) {
+		this._updateClassName();
+	}
+};
+classListProto.toggle = function (token, force) {
+	var
+		  result = this.contains(token)
+		, method = result ?
+			force !== true && "remove"
+		:
+			force !== false && "add"
+	;
+
+	if (method) {
+		this[method](token);
+	}
+
+	if (force === true || force === false) {
+		return force;
+	} else {
+		return !result;
+	}
+};
+classListProto.replace = function (token, replacement_token) {
+	var index = checkTokenAndGetIndex(token + "");
+	if (~index) {
+		this.splice(index, 1, replacement_token);
+		this._updateClassName();
+	}
+}
+classListProto.toString = function () {
+	return this.join(" ");
+};
+
+if (objCtr.defineProperty) {
+	var classListPropDesc = {
+		  get: classListGetter
+		, enumerable: true
+		, configurable: true
+	};
+	try {
+		objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+	} catch (ex) { // IE 8 doesn't support enumerable:true
+		// adding undefined to fight this issue https://github.com/eligrey/classList.js/issues/36
+		// modernie IE8-MSW7 machine has IE8 8.0.6001.18702 and is affected
+		if (ex.number === undefined || ex.number === -0x7FF5EC54) {
+			classListPropDesc.enumerable = false;
+			objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+		}
+	}
+} else if (objCtr[protoProp].__defineGetter__) {
+	elemCtrProto.__defineGetter__(classListProp, classListGetter);
+}
+
+}(self));
+
+}
+
+// There is full or partial native classList support, so just check if we need
+// to normalize the add/remove and toggle APIs.
+
+(function () {
+	"use strict";
+
+	var testElement = document.createElement("_");
+
+	testElement.classList.add("c1", "c2");
+
+	// Polyfill for IE 10/11 and Firefox <26, where classList.add and
+	// classList.remove exist but support only one argument at a time.
+	if (!testElement.classList.contains("c2")) {
+		var createMethod = function(method) {
+			var original = DOMTokenList.prototype[method];
+
+			DOMTokenList.prototype[method] = function(token) {
+				var i, len = arguments.length;
+
+				for (i = 0; i < len; i++) {
+					token = arguments[i];
+					original.call(this, token);
+				}
+			};
+		};
+		createMethod('add');
+		createMethod('remove');
+	}
+
+	testElement.classList.toggle("c3", false);
+
+	// Polyfill for IE 10 and Firefox <24, where classList.toggle does not
+	// support the second argument.
+	if (testElement.classList.contains("c3")) {
+		var _toggle = DOMTokenList.prototype.toggle;
+
+		DOMTokenList.prototype.toggle = function(token, force) {
+			if (1 in arguments && !this.contains(token) === !force) {
+				return force;
+			} else {
+				return _toggle.call(this, token);
+			}
+		};
+
+	}
+
+	// replace() polyfill
+	if (!("replace" in document.createElement("_").classList)) {
+		DOMTokenList.prototype.replace = function (token, replacement_token) {
+			var
+				  tokens = this.toString().split(" ")
+				, index = tokens.indexOf(token + "")
+			;
+			if (~index) {
+				tokens = tokens.slice(index);
+				this.remove.apply(this, tokens);
+				this.add(replacement_token);
+				this.add.apply(this, tokens.slice(1));
+			}
+		}
+	}
+
+	testElement = null;
+}());
+
+}
 
 (function(self) {
   'use strict';
@@ -15463,7 +15727,7 @@ if (typeof module !== 'undefined' && module.exports) {
 */
 var gmxAPIutils = {
     lastMapId: 0,
-	debug: /\bdebug=1\b/.test(location.search),
+	debug: (function() { var arr = /\bdebug=(\d)\b/.exec(location.search); return arr ? Number(arr[1]) : false; })(),
 	fromWebMercY: function(y) {
 		return 90 * (4 * Math.atan(Math.exp(y / gmxAPIutils.rMajor)) / Math.PI - 1);
 	},
@@ -19523,7 +19787,7 @@ L.gmx.workerPromise = L.gmxUtil.createWorker(L.gmxUtil.apiLoadedFrom() + '/Image
 	var imageBitmapLoader = new ImageBitmapLoader();
 	L.gmx.getBitmap = imageBitmapLoader.push.bind(imageBitmapLoader);
 	L.gmx.getJSON = imageBitmapLoader.push.bind(imageBitmapLoader);
-	if (L.gmxUtil.debug) {
+	if (L.gmxUtil.debug === 2) {
 		L.gmx.sendCmd = function(cmd, options) {
 			options.cmd = cmd;
 			options.syncParams = L.gmx.gmxMapManager.syncParams;
@@ -20134,6 +20398,51 @@ var gmxMapManager = {
 		}
     },
 
+	getMapFolder: function(options) {
+        var serverHost = options.hostName || options.serverHost || 'maps.kosmosnimki.ru',
+			mapId = options.mapId,
+			folderId = options.folderId;
+
+		var opt = {
+			folderId: folderId || '',
+			mapId: mapId,
+			skipTiles: options.skipTiles || 'All', // All, NotVisible, None
+			srs: options.srs || 3857
+		};
+		return new Promise(function(resolve, reject) {
+			if (L.gmx.sendCmd) {
+				console.log('TODO: L.gmx.sendCmd');
+			} else {
+				gmxSessionManager.requestSessionKey(serverHost, options.apiKey).then(function(sessionKey) {
+					opt.key = sessionKey;
+					gmxAPIutils.requestJSONP(L.gmxUtil.protocol + '//' + serverHost + '/Map/GetMapFolder', opt).then(function(json) {
+						if (json && json.Status === 'ok' && json.Result) {
+							var mapInfo = L.gmx._maps[serverHost][mapId],
+								gmxMap = mapInfo.loaded,
+								res = json.Result.content,
+								outInfo = {
+									children: res.children,
+									properties: gmxMap.properties
+								};
+							gmxMapManager.iterateNode(mapInfo._rawTree, function(it) {
+								if (folderId === it.content.properties.GroupID) {
+									L.extend(it, json.Result);
+								}
+							}, true);
+							gmxMap.layersCreated.then(function() {
+								gmxMap.layersCreatePromise(outInfo).then(function() {
+									resolve(json.Result);
+								});
+							});
+						} else {
+							reject(json);
+						}
+					}, reject);
+				}, reject);
+			}
+		});
+    },
+
 	loadMapProperties: function(options) {
         var maps = this._maps,
 			serverHost = options.hostName || options.serverHost || 'maps.kosmosnimki.ru',
@@ -20142,20 +20451,22 @@ var gmxMapManager = {
         if (!maps[serverHost] || !maps[serverHost][mapName]) {
 			var opt = {
 				WrapStyle: 'func',
-				skipTiles: options.skipTiles || 'None', // All, NotVisible, None
+				skipTiles: options.skipTiles || 'All', // All, NotVisible, None
 				MapName: mapName,
 				srs: options.srs || 3857,
 				ftc: options.ftc || 'osm',
 				ModeKey: 'map'
 			};
+			if (options.visibleItemOnly) { opt.visibleItemOnly = true; }
 			var promise = new Promise(function(resolve, reject) {
 				if (L.gmx.sendCmd) {
 					L.gmx.sendCmd('mapProperties', {
 						serverHost: serverHost,
 						apiKey: options.apiKey,
 						WrapStyle: 'func',
-						skipTiles: options.skipTiles || 'None', // All, NotVisible, None
+						skipTiles: options.skipTiles || 'All', // All, NotVisible, None
 						MapName: mapName,
+						visibleItemOnly: opt.visibleItemOnly|| false,
 						srs: options.srs || 3857,
 						ftc: options.ftc || 'osm',
 						ModeKey: 'map'
@@ -20227,23 +20538,23 @@ var gmxMapManager = {
             for (var i = 0, len = arr.length; i < len; i++) {
                 var layer = arr[i];
 
-                if (layer.type === 'group') {
-                    iterate(layer.content.children);
-                } else if (layer.type === 'layer') {
+                if (layer.type === 'layer') {
                     callback(layer.content);
+                } else if (layer.type === 'group') {
+                    iterate(layer.content.children || []);
                 }
             }
         };
 
         treeInfo && iterate(treeInfo.children);
     },
-    iterateNode: function(treeInfo, callback) {
+    iterateNode: function(treeInfo, callback, onceFlag) {
         var iterate = function(node) {
-			var arr = node.children;
+			var arr = node.children || [];
             for (var i = 0, len = arr.length; i < len; i++) {
                 var layer = arr[i];
 
-				callback(layer);
+				if (callback(layer) && onceFlag) { break; }
                 if (layer.type === 'group') {
                     iterate(layer.content);
                 }
@@ -20287,21 +20598,23 @@ var gmxMap = L.Class.extend({
 		this.layersByTitle = {};
 		this.layersByID = {};
 		this.dataManagers = {};
-
-		var _this = this;
+		this.options = commonLayerOptions;
 
 		this.properties = L.extend({}, mapInfo.properties);
 		this.properties.BaseLayers = this.properties.BaseLayers ? JSON.parse(this.properties.BaseLayers) : [];
 		this.rawTree = mapInfo;
-		var _skipTiles = commonLayerOptions.skipTiles || 'All',
-			_ftc = commonLayerOptions.ftc || 'osm',
-			_srs = commonLayerOptions.srs || 3857;
+		this.layersCreated = this.layersCreatePromise(mapInfo);
+	},
 
-		// var hostName = this.properties.hostName,
-		var mapID = this.properties.name;
-
-		this.layersCreated = new Promise(function(resolve) {
-			var missingLayerTypes = {},
+	layersCreatePromise: function(mapInfo) {
+		return new Promise(function(resolve) {
+			var mapID = mapInfo.properties.name,
+				_this = this,
+				commonOptions = this.options,
+				_skipTiles = this.options.skipTiles || 'All',
+				_ftc = this.options.ftc || 'osm',
+				_srs = this.options.srs || 3857,
+				missingLayerTypes = {},
 				dataSources = {};
 
 			gmxMapManager.iterateLayers(mapInfo, function(layerInfo) {
@@ -20319,8 +20632,11 @@ var gmxMap = L.Class.extend({
 
 				var type = props.ContentID || props.type,
 					meta = props.MetaProperties || {},
-					layerOptions = L.extend(options, commonLayerOptions);
+					layerOptions = L.extend(options, commonOptions);
 
+				if (props.styles && !props.gmxStyles) {
+					props.gmxStyles = L.gmx.StyleManager.decodeOldStyles(props);
+				}
 				if (props.dataSource || 'parentLayer' in meta) {      	// Set dataSource layer
 					layerOptions.parentLayer = props.dataSource || '';
 					if ('parentLayer' in meta) {      	// todo удалить после изменений вов вьювере
@@ -20786,7 +21102,7 @@ var gmxVectorTileLoader = {
                 requestParams.sw = L.gmx._sw;
             }
 
-			var promise = new Promise(function(resolve, reject) {
+			var promise = new Promise(function(resolve) {
 				var query = tileSenderPrefix + '&' + Object.keys(requestParams).map(function(name) {
 					return name + '=' + requestParams[name];
 				}).join('&');
@@ -20799,11 +21115,9 @@ var gmxVectorTileLoader = {
 						var pref = 'gmxAPI._vectorTileReceiver(';
 						if (txt.substr(0, pref.length) === pref) {
 							txt = txt.replace(pref, '');
-							var data = JSON.parse(txt.substr(0, txt.length -1));
-							resolve(data);
-						} else {
-							reject();
+							txt = txt.substr(0, txt.length -1);
 						}
+						resolve(JSON.parse(txt));
 					});
 			});
             this._loadedTiles[key] = promise;
@@ -21635,7 +21949,6 @@ var ObserverTileLoader = L.Class.extend({
 
     addTile: function(tile) {
         var leftToLoadDelta = tile.state === 'loaded' ? 0 : 1;
-        tile.loadDef.then(this._tileLoadedCallback.bind(this, tile));
 
         var tileObservers = {};
 
@@ -21654,6 +21967,7 @@ var ObserverTileLoader = L.Class.extend({
             tile: tile
         };
 
+        tile.loadDef.then(this._tileLoadedCallback.bind(this, tile));
         return this;
     },
 
@@ -21673,9 +21987,11 @@ var ObserverTileLoader = L.Class.extend({
     },
 
     _isLeftToLoad: function(obsData) {
-		var cnt = 0;
+		var cnt = 0,
+			processingTile = this._dataManager.processingTile;
 		for (var tileId in obsData.tiles) {
-			if (this._tileData[tileId].tile.state !== 'loaded') {cnt++;}
+			var vtile = this._tileData[tileId].tile;
+			if (vtile !== processingTile && vtile.state !== 'loaded') {cnt++;}
 		}
 		return cnt;
     },
@@ -21749,22 +22065,26 @@ var ObserverTileLoader = L.Class.extend({
     _tileLoadedCallback: function(tile) {
         this.fire('tileload', {tile: tile});
 
-        if (!(tile.vectorTileKey in this._tileData)) {		// TODO: проверка загружаемого тайла
+        var vtk = tile.vectorTileKey;
+        if (!(vtk in this._tileData)) {		// TODO: проверка загружаемого тайла
 			//console.log('tileload', tile, this._tileData)
             return;
         }
 
-        var tileObservers = this._tileData[tile.vectorTileKey].observers;
+        var tileObservers = this._tileData[vtk].observers;
         for (var id in tileObservers) {
-            var obsData = this._observerData[id];
-            obsData.leftToLoad--;
+            var obsData = this._observerData[id],
+				leftToLoad = obsData.leftToLoad;
+
+			obsData.leftToLoad = this._isLeftToLoad(obsData);
 
             if (obsData.leftToLoad < 1) {
                 if (obsData.loadingState) {
                     obsData.loadingState = false;
-                    obsData.observer.fire('stopLoadingTiles');
                 }
-                this.fire('observertileload', {observer: obsData.observer});
+				if (leftToLoad) {
+					this.fire('observertileload', {observer: obsData.observer});
+				}
             }
         }
     }
@@ -21797,11 +22117,14 @@ var DataManager = L.Class.extend({
     },
 
     setOptions: function(options) {
-        this._clearProcessing();
         if (options.GeoProcessing) {
-            this.processingTile = this.addData([]);
-            this._chkProcessing(options.GeoProcessing);
-        }
+            if (this.options.LayerVersion === options.LayerVersion) {
+				return;	// не было изменения версии слоя - но сервер почему то присылает новое properties слоя
+			}
+			this._chkProcessing(options.GeoProcessing);
+        } else {
+			this._clearProcessing();
+		}
         L.setOptions(this, options);
         this.optionsLink = options;
         this._isTemporalLayer = this.options.Temporal;
@@ -22381,7 +22704,7 @@ var DataManager = L.Class.extend({
         }
         this._waitCheckObservers();
     },
-
+/*
     preloadTiles: function(dateBegin, dateEnd, bounds) {
         var tileKeys = {};
         if (this._isTemporalLayer) {
@@ -22412,7 +22735,7 @@ var DataManager = L.Class.extend({
 
         return Deferred.all.apply(null, loadingDefs);
     },
-
+*/
     _updateActiveTilesList: function(newTilesList) {
 
         if (this._tileFilteringHook) {
@@ -22501,10 +22824,14 @@ var DataManager = L.Class.extend({
     },
 
     _chkProcessing: function(processing) {
+		this.processingTile = this.processingTile || this.addData([]);
         var _items = this._items,
             needProcessingFilter = false,
             skip = {},
-            id, i, len, it, data;
+			tile = this.processingTile,
+			vtk = tile.vectorTileKey,
+			tdata = tile.data || [],
+            id, i, len, it, data, oldIt;
 
         if (processing) {
             if (processing.Deleted) {
@@ -22515,24 +22842,36 @@ var DataManager = L.Class.extend({
                         _items[id].processing = true;
                         _items[id].currentFilter = null;
                     }
-                    if (len > 0) { needProcessingFilter = true; }
                 }
+				if (len > 0) { needProcessingFilter = true; }
             }
 
             var out = {};
             if (processing.Inserted) {
                 for (i = 0, len = processing.Inserted.length; i < len; i++) {
                     it = processing.Inserted[i];
-                    if (!skip[it[0]]) { out[it[0]] = it; }
+                    id = it[0];
+					oldIt = _items[id];
+					if (oldIt && oldIt.processing && this._isUpdateded(it, oldIt.properties) !== it.length - 1) {
+						tdata[oldIt.options.fromTiles[vtk]] = it;
+						continue;
+					}
+                    if (!skip[id]) { out[id] = it; }
                 }
             }
 
             if (processing.Updated) {
                 for (i = 0, len = processing.Updated.length; i < len; i++) {
                     it = processing.Updated[i];
-                    if (!skip[it[0]]) { out[it[0]] = it; }
+                    id = it[0];
+					oldIt = _items[id];
+					if (oldIt && oldIt.processing && this._isUpdateded(it, oldIt.properties) !== it.length - 1) {
+						tdata[oldIt.options.fromTiles[vtk]] = it;
+						continue;
+					}
+                    if (!skip[id]) { out[id] = it; }
+					if (!needProcessingFilter) { needProcessingFilter = true; }
                 }
-                if (!needProcessingFilter && len > 0) { needProcessingFilter = true; }
             }
 
             data = [];
@@ -22549,14 +22888,28 @@ var DataManager = L.Class.extend({
                 this.processingTile = this.addData(data);
             }
         }
+
         if (needProcessingFilter) {
             this.addFilter('processingFilter', function(item, tile) {
                 return tile.z === 0 || !item.processing;
             });
-        } else {
+        } else if (this._filters['processingFilter']) {
             this.removeFilter('processingFilter');
         }
     },
+
+	_isUpdateded: function(a, b) {
+		if (a.length === b.length) {
+			for (var i = 0, len = a.length; i < len; i++) {
+				if ((typeof(a[i]) === 'object' && JSON.stringify(a[i]) !== JSON.stringify(b[i])) && a[i] !== b[i]) {
+					return i;
+				}
+			}
+			return false;
+		} else {
+			return true;
+		}
+	},
 
     enableGeneralization: function() {
         if (!this.options.isGeneralized) {
@@ -22631,7 +22984,7 @@ var DataManager = L.Class.extend({
 
     _getProcessingTile: function() {
         if (!this.processingTile) {
-        var x = -0.5, y = -0.5, z = 0, v = 0, s = -1, d = -1, isFlatten = this.options.isFlatten;
+			var x = -0.5, y = -0.5, z = 0, v = 0, s = -1, d = -1, isFlatten = this.options.isFlatten;
 
             this.processingTile = new VectorTile({load: function(x, y, z, v, s, d, callback) {
                             callback({values: []});
@@ -22818,7 +23171,6 @@ var VectorGridLayer = L.GridLayer.extend({
 	_animateZoom: function (e) {
 		this.options.updateWhenZooming = false;
 		this._setView(e.center, e.zoom, true, true);
-//	console.log('_setView _animateZoom', e.zoom, e.center, Date.now() - window.startTest, this)
 	},
 
 	_setZoomTransform: function (level, center, zoom) {	// Add by Geomixer (for cache levels transform)
@@ -22839,7 +23191,6 @@ var VectorGridLayer = L.GridLayer.extend({
 	},
 	_clearOldLevels: function (z) {
 		if (this._map) {
-// console.log('_clearOldLevels', z, Date.now() - window.startTest, this)
 			z = z || this._map.getZoom();
 			for (var key in this._levels) {
 				var el = this._levels[key].el,
@@ -22863,8 +23214,6 @@ var VectorGridLayer = L.GridLayer.extend({
 
 	_tileReady: function (coords, err, tile) {
 		if (!this._map) { return; }				// Add by Geomixer (нет возможности отключения fade-anim)
-// if (this._map._animatingZoom)
-// console.log('_tileReady _animateZoom', coords, err, tile, Date.now() - window.startTest, this)
 
 		if (err) {
 			// @event tileerror: TileErrorEvent
@@ -22921,8 +23270,6 @@ var VectorGridLayer = L.GridLayer.extend({
 			level = this._levels[zoom] = {};
 
 			level.el = L.DomUtil.create('div', 'leaflet-tile-container leaflet-zoom-animated', this._container);
-			// level.el = L.DomUtil.create('div', 'leaflet-tile-container leaflet-zoom-animated ' + zoom, this._container);
-			// level.el.style.zIndex = maxZoom;
 
 			level.origin = map.project(map.unproject(map.getPixelOrigin()), zoom).round();
 			level.zoom = zoom;
@@ -23113,7 +23460,7 @@ L.gmx.VectorLayer = VectorGridLayer.extend({
 
     _onVersionChange: function () {
         this._updateProperties(this._gmx.rawProperties);
-		this._chkTiles();
+		//this._chkTiles();
     },
 
 	_waitCheckOldLevels: function () {
@@ -24279,6 +24626,10 @@ ScreenVectorTile.prototype = {
     _getUrlFunction: function (gtp, item) {
 		return this.gmx.rasterBGfunc(gtp.x, gtp.y, gtp.z, item);
     },
+    _chkZoom: function (zoom) {
+		return	(zoom >= this.gmx.minZoomRasters && 'rasterBGfunc' in this.gmx) ||
+				(zoom >= this.gmx.minZoomQuicklooks && 'quicklookBGfunc' in this.gmx);
+    },
 
     _loadTileRecursive: function (tilePoint, item) {    //return promise, which resolves with object {gtp, image}
         var gmx = this.gmx,
@@ -24300,11 +24651,13 @@ ScreenVectorTile.prototype = {
 						if (url) {
 							gmx.badTiles[url] = true;
 						}
-						if (gtp.z > 1) {
+
+						var nextZoom = gtp.z - 1;
+						if (nextZoom && _this._chkZoom(nextZoom)) {
 							tryLoad({
 								x: Math.floor(gtp.x / 2),
 								y: Math.floor(gtp.y / 2),
-								z: gtp.z - 1
+								z: nextZoom
 							}, ''); // 'anonymous' 'use-credentials'
 						} else {
 							resolve({gtp: gtp});
@@ -24908,10 +25261,9 @@ ScreenVectorTile.prototype = {
 					result();
 					return;
 				}
-				var ts = this.layer.options.tileSize;
-				this.tile.width = this.tile.height = ts;
 				var doDraw = function() {
 					var gmx = _this.gmx,
+						ts = _this.layer.options.tileSize || 256,
 						dattr = {
 							//tileLink: tileLink,
 							tbounds: _this.tbounds,
@@ -24924,6 +25276,7 @@ ScreenVectorTile.prototype = {
 						},
 						tinfo = 'zKey:' + _this.zKey + ' count: ' + geoItems.length;
 					L.DomUtil.addClass(tile, tinfo);
+					_this.tile.width = _this.tile.height = ts;
 
 					if (!_this.layer._gridClusters) {
 						ctx.clearRect(0, 0, ts, ts);
@@ -24947,7 +25300,7 @@ ScreenVectorTile.prototype = {
 					gmx.preRenderHooks.forEach(function (f) {
 						if (!bgImage) {
 							bgImage = document.createElement('canvas');
-							bgImage.width = bgImage.height = ts || 256;
+							bgImage.width = bgImage.height = ts;
 						}
 						var res = f(bgImage, hookInfo);
 						if (res && res.then) {
@@ -25495,7 +25848,7 @@ StyleManager.prototype = {
         }
         for (var i = 0, len = this._styles.length; i < len; i++) {
             var st = this._styles[i];
-            if (z > st.MaxZoom || z < st.MinZoom
+            if (st.disabled || z > st.MaxZoom || z < st.MinZoom
                 || (st.filterFunction && !st.filterFunction(propArray, indexes, types))) {
                 continue;
             }
@@ -25915,7 +26268,7 @@ StyleManager.prototype = {
 StyleManager.MAX_STYLE_SIZE = 256;
 //StyleManager.DEFAULT_STYLE = {outline: {color: 255, thickness: 1}, marker: {size: 8, circle: true}};
 StyleManager.DEFAULT_STYLE = {outline: {color: 255, thickness: 1}, marker: {size: 8}};
-StyleManager.DEFAULT_KEYS = ['Name', 'MinZoom', 'MaxZoom', 'Balloon', 'BalloonEnable', 'DisableBalloonOnMouseMove', 'DisableBalloonOnClick'];
+StyleManager.DEFAULT_KEYS = ['Name', 'MinZoom', 'MaxZoom', 'Balloon', 'BalloonEnable', 'DisableBalloonOnMouseMove', 'DisableBalloonOnClick', 'disabled'];
 StyleManager.DEFAULT_ICONPATH = [0, 10, 5, -10, -5, -10, 0, 10];  // [TL.x, TL.y, BR.x, BR.y, BL.x, BL.y, TL.x, TL.y]
 StyleManager.DEFAULT_STYLE_KEYS = [
 	'iconUrl', 'iconAngle', 'iconSize', 'iconScale', 'iconMinScale', 'iconMaxScale', 'iconCircle', 'iconCenter', 'iconAnchor', 'iconColor',	// для иконок
@@ -26925,8 +27278,8 @@ var delay = 20000,
     script = '/Layer/CheckVersion.ashx',
     intervalID = null,
     timeoutID = null,
-    lastParams = {};
-    // lastLayersStr = '';
+    hostBusy = {},
+    needReq = {};
 
 var isExistsTiles = function(prop) {
     var tilesKey = prop.Temporal ? 'TemporalTiles' : 'tiles';
@@ -27052,52 +27405,69 @@ var chkVersion = function (layer, callback) {
 
     if (document.body && !L.gmxUtil.isPageHidden()) {
         var hosts = getRequestParams(layer),
-            chkHost = function(hostName) {
+			w = gmxAPIutils.worldWidthMerc,
+			bboxStr = [-w, -w, w, w].join(','),
+            chkHost = function(hostName, busyFlag) {
 				var url = L.gmxUtil.protocol + '//' + hostName + script,
                     layersStr = JSON.stringify(hosts[hostName]);
 				var params = 'WrapStyle=None&ftc=osm';
 				if (layersVersion.needBbox) {
-					var crs = L.Projection.Mercator;
+					var zoom = map.getZoom(),
+						crs = L.Projection.Mercator;
+					params += '&zoom=' + zoom;
 					if (map.options.srs == 3857) {
 						params += '&srs=3857';
 						crs = L.CRS.EPSG3857;
 					}
-					var zoom = map.getZoom(),
-						bbox = map.getBounds(),
-						min = crs.project(bbox.getSouthWest()),
-						max = crs.project(bbox.getNorthEast()),
+					if (map.options.generalized === false) {
+						params += '&generalizedTiles=false';
+					}
+					if (!map.options.allWorld) {
+						var bbox = map.getBounds(),
+							min = crs.project(bbox.getSouthWest()),
+							max = crs.project(bbox.getNorthEast());
+
 						bboxStr = [min.x, min.y, max.x, max.y].join(',');
-					params += '&zoom=' + zoom;
+					}
 					params += '&bbox=[' + bboxStr + ']';
 				}
 				params += '&layers=' + encodeURIComponent(layersStr);
 
-                if (layer || !lastParams[hostName] || lastParams[hostName] !== params) {
-                    // lastLayersStr = layersStr;
-                    if ('FormData' in window) {
-                        L.gmxUtil.request({
-                            url: url,
-                            async: true,
-                            headers: {
-                                'Content-type': 'application/x-www-form-urlencoded'
-                            },
-                            type: 'POST',
-                            params: params,
-                            withCredentials: true,
-                            callback: function(response) {
-								lastParams[hostName] = params;
-                                processResponse(JSON.parse(response));
-                            },
-                            onError: function(response) {
-                                console.log('Error: LayerVersion ', response);
-                            }
-                        });
+				if ('FormData' in window) {
+					hostBusy[hostName] = true;
+					L.gmxUtil.request({
+						url: url,
+						async: true,
+						headers: {
+							'Content-type': 'application/x-www-form-urlencoded'
+						},
+						type: 'POST',
+						params: params,
+						withCredentials: true,
+						callback: function(response) {
+							delete hostBusy[hostName];
+							if (needReq[hostName] && !busyFlag) {
+								delete needReq[hostName];
+								chkHost(hostName, true);
+							} else {
+								processResponse(JSON.parse(response));
+							}
+						},
+						onError: function(response) {
+							console.log('Error: LayerVersion ', response);
+							delete hostBusy[hostName];
+							if (needReq[hostName] && !busyFlag) {
+								delete needReq[hostName];
+								chkHost(hostName, true);
+							}
+						}
+					});
                     // } else {
                         // L.gmxUtil.sendCrossDomainPostRequest(url, {
                             // WrapStyle: 'message',
                             // layers: layersStr
                         // }, processResponse);
-                    }
+                    // }
                     var timeStamp = Date.now();
                     for (var key in layers) {
                         var it = layers[key];
@@ -27107,7 +27477,11 @@ var chkVersion = function (layer, callback) {
                 }
             };
         for (var hostName in hosts) {
-            chkHost(hostName);
+			if (!hostBusy[hostName]) {
+				chkHost(hostName);
+			} else {
+				needReq[hostName] = true;
+			}
         }
     }
 };
@@ -27241,11 +27615,12 @@ L.gmx.VectorLayer.include({
                 gmx.geometry = layerDescription.geometry;
             }
             if (layerDescription.properties) {
+				var out = {versionChanged: layerDescription.properties.LayerVersion !== gmx.properties.LayerVersion};
                 L.extend(gmx.properties, layerDescription.properties);
                 gmx.properties.currentTiles = layerDescription.tiles;
-                gmx.properties.GeoProcessing = layerDescription.properties.GeoProcessing;
+                gmx.properties.GeoProcessing = layerDescription.properties.GeoProcessing;	// TODO: проверка изменения версии
                 gmx.rawProperties = gmx.properties;
-                this.fire('versionchange');
+                this.fire('versionchange', out);
             }
 			if (!gmx.dataSource && gmx.dataManager) {
 				gmx.dataManager.updateVersion(gmx.rawProperties, layerDescription.tiles);
@@ -30416,6 +30791,7 @@ L.gmx.loadMap = function(mapID, options) {
 				loadedMap.layersCreated.then(function() {
 					if (options.leafletMap || options.setZIndex) {
 						var curZIndex = 0,
+							visibility = options.visibility,
 							layer, rawProperties;
 
 						for (var l = loadedMap.layers.length - 1; l >= 0; l--) {
@@ -30428,7 +30804,7 @@ L.gmx.loadMap = function(mapID, options) {
 								layer.setZIndex(++curZIndex);
 							}
 
-							if (options.leafletMap && rawProperties.visible) {
+							if (options.leafletMap && (visibility ? visibility[rawProperties.name] : rawProperties.visible)) {
 								layer.addTo(options.leafletMap);
 							}
 						}

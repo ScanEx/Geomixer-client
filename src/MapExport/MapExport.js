@@ -28,6 +28,8 @@ var nsGmx = window.nsGmx || {};
                 name: 'имя файла'
             },
             formats: {
+				geoTiff: 'GEOTIFF',
+				geoTiffJpeg: 'GEOTIFF-JPEG',
                 jpeg: 'JPEG',
                 png: 'PNG'
             },
@@ -63,6 +65,8 @@ var nsGmx = window.nsGmx || {};
                 name: 'file name'
             },
             formats: {
+				geoTiff: 'GEOTIFF',
+				geoTiffJpeg: 'GEOTIFF-JPEG',
                 jpeg: 'JPEG',
                 png: 'PNG'
             },
@@ -86,8 +90,10 @@ var nsGmx = window.nsGmx || {};
     });
 
     var formatTypes = [
-        'jpeg',
-        'png'
+        'geoTiff',
+		'geoTiffJpeg',
+		'jpeg',
+        'png'		
     ];
 
     var view;
@@ -260,6 +266,8 @@ var nsGmx = window.nsGmx || {};
                 this.listenTo(this.model, 'change:name', this.updateName);
                 this.listenTo(this.model, 'change:z', this.updateZoom);
                 this.listenTo(this.model, 'change:exportErr', this.handleExportError);
+				this.listenTo(this.model, 'change:format', this.handleFormat);
+				this.listenTo(this.model, 'change:fileType', this.handleFormat);
 
                 for (var i = attrs.lmap.getMinZoom(); i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -286,6 +294,7 @@ var nsGmx = window.nsGmx || {};
                     zoomLevels: zoomLevels,
                     formatTypes: formatTypes,
                     fileTypes: updatedFileTypes,
+					format: 'jpeg',
                     name: nsGmx.gmxMap.properties.title
                 });
 
@@ -324,6 +333,7 @@ var nsGmx = window.nsGmx || {};
 
             updateArea: function () {
                 var attrs = this.model.toJSON(),
+					format = attrs.format,
                     areaButton = this.$('.areaButton'),
                     zoomToBoxButton = this.$('.zoomToBoxButton'),
                     zoomToLevelButton = this.$('.zoomToLevelButtonWrap'),
@@ -372,6 +382,7 @@ var nsGmx = window.nsGmx || {};
                     $(zoomToLevelButton).hide();
                     $(exportButton).addClass('gmx-disabled');
                 }
+				this.handleFormat();
             },
 
             updateSize: function () {
@@ -490,6 +501,24 @@ var nsGmx = window.nsGmx || {};
                     $(exportErrorMessage).toggle();
                 }
             },
+			
+			handleFormat: function () {														
+				var attrs = this.model.toJSON(),
+					format = attrs.format,
+					fileType = attrs.fileType;
+			
+				var fileSelect = this.$('.fileTypes');
+				if (format === 'geoTiff' || format === 'geoTiffJpeg') {
+					fileType = window._gtxt('mapExport.filetypes.raster');
+					fileSelect.prop('disabled', true);
+				}
+				else {					
+					fileSelect.prop('disabled', false);
+				}
+				this.$('.formatTypes').val (format);				
+				fileSelect.val (fileType);
+				this.model.set({fileType: fileType});				
+			},
 
             updateName: function () {
                 var attrs = this.model.toJSON(),
@@ -562,7 +591,7 @@ var nsGmx = window.nsGmx || {};
 
             setFormat: function (e) {
                 var attrs = this.model.toJSON(),
-                    formatTypes = attrs.formatTypes,
+                    formatTypes = attrs.formatTypes,					
                     selectedFormat = e.target.value;
 
                 for (var i = 0; i < formatTypes.length; i++) {
@@ -577,6 +606,7 @@ var nsGmx = window.nsGmx || {};
                     formatTypes: formatTypes,
                     format: selectedFormat
                 });
+								
             },
 
             setFileType: function (e) {

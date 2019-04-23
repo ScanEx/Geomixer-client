@@ -63,7 +63,7 @@ var BaseLayersControl = function(container, blm) {
 var GroupVisibilityPropertiesModel = Backbone.Model.extend({
     defaults: {
         isChildRadio: false,
-        isVisibilityControl: true,
+        isVisibilityControl: false,
         isExpanded: false
     }
 })
@@ -235,7 +235,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 
 	var visibilityProperties = new GroupVisibilityPropertiesModel({
         isChildRadio: elemProperties.list,
-        isVisibilityControl: typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox,
+        isVisibilityControl: typeof elemProperties.ShowCheckbox === 'undefined' ? false : elemProperties.ShowCheckbox,
         isExpanded: typeof elemProperties.initExpand === 'undefined' ? false : elemProperties.initExpand
     });
 	var visibilityPropertiesView = GroupVisibilityPropertiesView(visibilityProperties, !isMap, !isMap);
@@ -683,7 +683,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         var pluginsEditor = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
 
         var mapLayersTree = new layersTree({
-            showVisibilityCheckbox: true,
+            showVisibilityCheckbox: false,
             allowActive: false,
             allowDblClick: false,
             showStyle: false,
