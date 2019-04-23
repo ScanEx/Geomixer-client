@@ -52,8 +52,8 @@
 	    BETA = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
-	if (false) BETA = true;
+	if (true) PRODUCTION = true;
+	if (true) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -528,7 +528,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	module.exports = function (viewFactory) {
 	    var _leftMenuBlock = void 0,
@@ -925,7 +925,7 @@
 	    SIDEBAR2 = false;
 	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
-	if (false) PRODUCTION = true;
+	if (true) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
 	    if (NOSIDEBAR) {
@@ -4763,4 +4763,4 @@
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=AISSearch2Test.js.map
+//# sourceMappingURL=AISPluginBeta.js.map
