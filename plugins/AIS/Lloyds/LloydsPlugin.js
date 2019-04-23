@@ -629,7 +629,7 @@
 	        doSearch = function doSearch(actualId) {
 	        var queries = [];
 	        _sparams.split(' ').forEach(function (sp) {
-	            queries.push(fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
+	            queries.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
 	        });
 	        Promise.all(queries).then(function (a) {
 	            //console.log(a)
@@ -929,7 +929,7 @@
 	            //console.log(new_tasks)
 	            if (new_tasks.length > 0) {
 	                _this.model.tasks = new_tasks.map(function (id) {
-	                    return fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Get/" + id);
+	                    return fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Get/" + id);
 	                });
 	                _this.model.isDirty = true;
 	            }
@@ -997,7 +997,7 @@
 	    form.append('vessels', _vesselsToExport);
 	    form.append('columns', columns);
 	    this.inProgress(true);
-	    fetch("http://maps.kosmosnimki.ru/plugins/ais/lloydsexport.ashx", {
+	    fetch(window.serverBase + "plugins/ais/lloydsexport.ashx", {
 	        method: "POST",
 	        mode: 'cors',
 	        body: form,
@@ -1009,7 +1009,7 @@
 	        if (data.search(/ERROR:/) != -1) {
 	            return Promise.reject(data);
 	        }
-	        this.frame.find(".export.download")[0].src = "http://maps.kosmosnimki.ru/plugins/ais/lloydsexport.ashx?id=" + data;
+	        this.frame.find(".export.download")[0].src = window.serverBase + "plugins/ais/lloydsexport.ashx?id=" + data;
 	    }.bind(this)).catch(function (data) {
 	        this.inProgress(false);
 	        console.log(data);
@@ -1372,7 +1372,7 @@
 	        var columnsJson = JSON.parse(localStorage.getItem("lloyds_columns"));
 	        //columnsJson && console.log((new Date().getTime()-columnsJson.timestamp)/60000)
 	        //if (!columnsJson || ((new Date().getTime()-columnsJson.timestamp)/60000>24*60))
-	        fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta").then(function (r) {
+	        fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta").then(function (r) {
 	            return r.json();
 	        }).then(function (r) {
 	            var checked = [],
@@ -1532,31 +1532,31 @@
 	        placeVesselTypeIcon: function placeVesselTypeIcon(vessel) {
 	            switch (vessel.vessel_type.toLowerCase()) {
 	                case "cargo":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "tanker":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "fishing":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "passenger":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "hsc":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "pleasure craft":
 	                case "sailing":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                case "unknown":
 	                case "reserved":
 	                case "other":
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	                default:
-	                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
+	                    vessel.icon = "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
 	                    break;
 	            }
 	        },

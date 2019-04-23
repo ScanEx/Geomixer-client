@@ -1,8 +1,17 @@
+const Polyfill = require('./Polyfill');
 module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID,
           _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
           _screenSearchLayer = _layersByID[options.screenSearchLayer];
+
+    let _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
+        _tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "mmsi"==p.toLowerCase();}) + 1,
+        _aldt = _aisLayer.getGmxProperties().attributes.indexOf("ts_pos_utc") + 1, 
+        _tldt = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "date"==p.toLowerCase();}) + 1;
+//console.log(_almmsi+" "+_aldt)
+//console.log(_tlmmsi+" "+_tldt)	
+
     let _displaingTrack = {mmsi:null},
     _displayingMyFleet = null,
     _filtered = [],
@@ -11,8 +20,8 @@ module.exports = function (options) {
         mmsiArr = [];
         mmsiArr.push(_displaingTrack.mmsi);
 
-        let mmsi = args.properties[1],
-            dt = new Date(new Date(args.properties[args.properties.length>20 ? 25 : 3]*1000).setUTCHours(0,0,0,0)),
+        let mmsi = args.properties[args.properties.length > 20 ? _almmsi : _tlmmsi],
+            dt = new Date(new Date(args.properties[args.properties.length > 20 ? _aldt : _tldt] * 1000).setUTCHours(0, 0, 0, 0)),
             i, j, len;
         for (i = 0, len = mmsiArr.length; i < len; i++) {
             if (mmsi === mmsiArr[i] && _filtered.indexOf(mmsi)<0 
@@ -31,7 +40,7 @@ module.exports = function (options) {
         return false;
     }, 
     _setTrackFilter = function(){
-//console.log(_displaingTrack)
+        
         let lmap = nsGmx.leafletMap;
         if (_aisLayer) {
             if (_displaingTrack.mmsi) {

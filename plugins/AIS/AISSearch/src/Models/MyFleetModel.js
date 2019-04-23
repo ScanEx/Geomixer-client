@@ -12,11 +12,15 @@ module.exports = function (aisLayerSearcher) {
                         //console.log(response);
                         if (response.Status.toLowerCase() == "ok") {
                             let v = response.Result.values,
-                                f = response.Result.fields;
+                                f = response.Result.fields,
+                                mmsi = f.indexOf('mmsi');
                             for (let i = 0; i < v.length; ++i) {
-                                _vessels.push({})
-                                for (let j = 0; j < f.length; ++j)
-                                    _vessels[i][f[j]] = v[i][j];
+                                if (v[i][mmsi]){
+                                    let t = {};
+                                    for (let j = 0; j < f.length; ++j)
+                                        t[f[j]] = v[i][j];
+                                    _vessels.push(t)
+                                }
                             }
                         }
                         else
@@ -25,19 +29,25 @@ module.exports = function (aisLayerSearcher) {
                     });
             })
         };
-    new Promise((resolve, reject) => {
-        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-            "User/GetUserInfo.ashx",
-            function (response) {
-                if (response.Status.toLowerCase() == "ok" && response.Result)
-                    resolve(response);
-            });
-    })
+        
+    let _prepared = new Promise((resolve, reject) => {
+//console.log("MF USER")               
+            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                "User/GetUserInfo.ashx",
+                function (response) {
+                    if (response.Status.toLowerCase() == "ok" && response.Result)
+                        resolve(response);
+                    else
+                        reject(response);
+                }
+            );
+        })
         .then((response) => {
+//console.log("MF LAYER")               
             let nickname = response.Result.Nickname;
             return new Promise((resolve, reject) => {
                 sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                    "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname] containsIC '" + nickname + "')",
+                    "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')",
                     function (response) {
                         if (response.Status.toLowerCase() == "ok" && response.Result.count > 0)
                             resolve(response);
@@ -47,23 +57,24 @@ module.exports = function (aisLayerSearcher) {
             })
         })
         .then((response) => {
-            //console.log('resolved')
+//console.log("MF VESSELS")   
             let lid = response.Result.layers[0].LayerID;
             _myFleetLayers.push(lid);
-            fetchMyFleet(lid)
-            //.then(()=>console.log(_vessels));
-        },
-        (response) => {
-            //console.log('rejected');
-            sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' +
-                '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""}]',
-                function (response) {
-                    if (response.Status.toLowerCase() == "ok")
-                        _myFleetLayers.push(response.Result.properties.name)
-                    else
-                        console.log(response);
-                });
+            _vessels.length = 0;
+            return fetchMyFleet(lid)
+        }
+        ,(rejectedResponse) => {
+            if (rejectedResponse.Status && rejectedResponse.Status.toLowerCase() == "ok"){
+//console.log("MF NOT FOUND") 
+                return Promise.resolve([]);   
+            }
+            else
+                return Promise.reject(rejectedResponse);
+        }
+        )        
+        .catch(error=>{
+            console.log(error);
+            return Promise.reject(error);
         });
 
     let _actualUpdate,
@@ -80,20 +91,19 @@ module.exports = function (aisLayerSearcher) {
             })
         },
         load: function (actualUpdate) {
-            var _this = this;
+            var thisInst = this;
+            return _prepared.then((r)=>{
+                if (r && r.Status && r.Status.toLowerCase()=="auth")
+                    return Promise.reject(r);
+                // if (_myFleetLayers.length == 0)
+                //     thisInst.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }], vessels: [] };
+                if (_myFleetLayers.length == 0 || !thisInst.isDirty)
+                    return Promise.resolve();
 
-            if (_myFleetLayers.length == 0)
-                this.data = { msg: [{ txt: _gtxt("AISSearch2.nomyfleet") }], vessels: [] };
-
-            if (_myFleetLayers.length == 0 || !this.isDirty)
-                return Promise.resolve();
-
-            _vessels = [];
-            var errors = [],
-                promises = _myFleetLayers.map(fetchMyFleet)
-
-            return Promise.all(promises)
-                .then(function () {
+            _vessels.length = 0;
+            return fetchMyFleet(_myFleetLayers[0])
+                .then(function () { 
+//console.log("MF GET VI")    
 //console.log(_vessels)                    
                     if (_vessels.length == 0)
                         return Promise.resolve({ Status: "ok", Result: { values: [] } });
@@ -107,13 +117,12 @@ module.exports = function (aisLayerSearcher) {
                                 resolve(response);
                             });
                     });
-                }
-                )
-                .then(function (response) {
-//console.log(response)  
-                    //console.log("LOAD MY FLEET FINISH")               
+                })
+                .then(function (response) {  
+//console.log("MF FORMAT")    
+//console.log(response)                              
                     if (response.Status.toLowerCase() == "ok") {
-                        _this.data = {
+                        thisInst.data = {
                             vessels: response.Result.values.reduce(function (p, c) {
                                 var mmsi = response.Result.fields.indexOf("mmsi"),
                                     vessel_name = response.Result.fields.indexOf("vessel_name"),
@@ -140,14 +149,23 @@ module.exports = function (aisLayerSearcher) {
                                 return p;
                             }, [])
                         };
-                        _this.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
-                        _this.isDirty = false;
+                        thisInst.data.vessels.sort(function (a, b) { return +(a.vessel_name > b.vessel_name) || +(a.vessel_name === b.vessel_name) - 1; })
+                        thisInst.isDirty = false;
                         return Promise.resolve();
                     }
                     else {
                         return Promise.reject(response);
                     }
-                });
+                })
+                .catch(error=>{
+                    thisInst.isDirty = false;
+                    return Promise.reject(error);
+                });                
+            },
+            (problem)=>{
+                thisInst.isDirty = false;
+                return Promise.reject(problem);
+            });
         },
         update: function () {
             //if (!this.isDirty)
@@ -195,40 +213,64 @@ module.exports = function (aisLayerSearcher) {
         changeFilter: function (vessel) {
             //console.log(vessel);
             //console.log(_vessels);
-            var remove = false;
-            for (var i = 0; i < _vessels.length; ++i) {
-                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
-                    remove = _vessels[i].gmx_id;
-                    _vessels.splice(i, 1);
-                }
-            }
-            //console.log(remove);
-            return new Promise((resolve, reject) => {
-                if (!remove)
-                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                        'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
-                        '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},' +
-                        '"geometry":{"type":"Point","coordinates":[0,0]},"action":"insert"}]',
-                        function (response) {
-                            if (response.Status.toLowerCase() == "ok") {
-                                resolve();
-                                _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+
+            return _prepared
+            .then(r=>{
+                if (!_myFleetLayers.length){
+//console.log("MF CREATE")        
+                    return new Promise((resolve, reject) => {
+                        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                            'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' +
+                            '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""}]',
+                            function (response) {
+                                if (response.Status.toLowerCase() == "ok") {
+                                    _myFleetLayers.push(response.Result.properties.name)
+                                    resolve([]);
+                                }
+                                else {
+                                    reject(response);
+                                }
                             }
-                            else
-                                reject(response);
-                        })
-                else
-                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                        'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
-                        '&objects=[{"id":' + remove + ',"action":"delete"}]',
-                        function (response) {
-                            if (response.Status.toLowerCase() == "ok")
-                                resolve();
-                            else
-                                reject(response);
-                        })
+                        );
+                    });
+                }
             })
-                .then(
+            .then(r=>{
+                var remove = false;
+                for (var i = 0; i < _vessels.length; ++i) {
+                    if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
+                        remove = _vessels[i].gmx_id;
+                        _vessels.splice(i, 1);
+                    }
+                }
+                //console.log(remove);
+                return new Promise((resolve, reject) => {
+                    if (!remove)
+                        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                            'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                            '&objects=[{"properties":{ "imo": ' + vessel.imo + ', "mmsi": ' + vessel.mmsi + '},' +
+                            '"geometry":{"type":"Point","coordinates":[0,0]},"action":"insert"}]',
+                            function (response) {
+                                if (response.Status.toLowerCase() == "ok") {
+                                    resolve();
+                                    _vessels.push({ "mmsi": vessel.mmsi, "imo": vessel.imo, "gmx_id": response.Result[0] });
+                                }
+                                else
+                                    reject(response);
+                            })
+                    else
+                        sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                            'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
+                            '&objects=[{"id":' + remove + ',"action":"delete"}]',
+                            function (response) {
+                                if (response.Status.toLowerCase() == "ok")
+                                    resolve();
+                                else
+                                    reject(response);
+                            })
+                });
+            })
+            .then(
                 function () {
                     this.isDirty = true;
                     //console.log(this.data);
@@ -236,9 +278,11 @@ module.exports = function (aisLayerSearcher) {
                     return Promise.resolve();
                 }.bind(this),
                 function (response) {
+                    this.isDirty = true;
                     console.log(response);
-                    return Promise.reject();
-                });
+                    return Promise.resolve();
+                }.bind(this)
+            );
         }
     };
 }

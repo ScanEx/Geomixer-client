@@ -103,40 +103,41 @@ module.exports = function (options) {
             }
         },
         placeVesselTypeIcon: function(vessel){
+            let protocol = document.location.protocol;
             switch (vessel.vessel_type.toLowerCase()) {
                 case "cargo":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "tanker":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "fishing":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "passenger":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;                
                 case "hsc":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "pleasure craft":
                 case "sailing":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 case "unknown": 
                 case "reserved": 
                 case "other":
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
                 default:
-                    vessel.icon = "http://maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" +
+                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" +
                         (vessel.sog != 0 ? "move" : "stand") + ".svg"
                     break;
             }
@@ -150,7 +151,7 @@ module.exports = function (options) {
                 orderdirection: 'desc',
                 orderby: 'ts_pos_utc',
                 columns:'[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},'+
-                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"}]',
+                '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 
                 query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
             };
@@ -172,7 +173,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 query: "([id] IN (" + aid.join(',') + "))"
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -196,7 +197,7 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLastPoint,
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"}]',
+                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 //orderdirection: 'desc',
                 orderby: 'vessel_name',
                 query: query

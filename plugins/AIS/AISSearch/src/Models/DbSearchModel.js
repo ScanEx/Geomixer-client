@@ -33,7 +33,8 @@ module.exports = function (aisLayerSearcher) {
             vessel.draught = _addUnit(_round(vessel.draught, 5), " м");
             //vessel.length = _addUnit(vessel.length, " м");
             //vessel.width = _addUnit(vessel.width, " м");
-            vessel.source = 'plugins/AIS/AISSearch/svg/satellite-ais.svg'//vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
+            vessel.source_orig = vessel.source;
+            vessel.source = vessel.source=='T-AIS'?'plugins/AIS/AISSearch/svg/waterside-radar.svg':'plugins/AIS/AISSearch/svg/satellite-ais.svg';
             
             vessel.xmin = vessel.longitude;
             vessel.xmax = vessel.longitude;           
