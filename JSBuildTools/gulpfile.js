@@ -21,7 +21,7 @@ require('./common_components/builder')(gulp, {
         jsDistFile: srcRoot + 'primary.js',
         components: [
             {
-                bowerComponent: 'jsurl',
+                bowerComponent: 'domurl',
                 distFiles: ['url.js']
             },
             srcRoot + 'GmxWidget',

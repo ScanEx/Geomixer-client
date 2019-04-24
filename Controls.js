@@ -37,7 +37,6 @@ nsGmx.Controls = {
 						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
 						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 1;
 
-
 					fill.style.opacity = fillOpacity;
 					border.style.opacity = borderOpacity;
 
@@ -79,11 +78,22 @@ nsGmx.Controls = {
 					icon = patternData ? patternData.canvas : document.createElement('canvas');
 					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
 				} else {
-					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-						fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-						borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
-
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',
+							(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ?
+							nsGmx.Utils.convertColor(parentStyle.fill.color) :
+							(parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF")
+						]]);
+					var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',
+						(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ?
+						nsGmx.Utils.convertColor(parentStyle.outline.color) :
+						(parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF")
+						]]);
+					var fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ?
+						parentStyle.fill.opacity :
+						((typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity * 100 : 100);
+					var borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ?
+					parentStyle.outline.opacity :
+					((typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity * 100 : 100);
 
 					fill.style.opacity = fillOpacity / 100;
 					border.style.opacity = borderOpacity / 100;

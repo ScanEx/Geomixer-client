@@ -1504,8 +1504,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 zoomAnimation: !window.gmxPhantom, // отключение zoomAnimation при запуске тестов
                 distanceUnit: mapProps.DistanceUnit,
                 squareUnit: mapProps.SquareUnit,
-                minZoom: mapProps.MinZoom || undefined,
-                maxZoom: mapProps.MaxZoom || undefined,
+                minZoom: mapProps.MinZoom || 1,
+                maxZoom: mapProps.MaxZoom || 21,
                 maxPopupCount: mapProps.maxPopupContent
             });
 

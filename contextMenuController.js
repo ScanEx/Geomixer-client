@@ -30,8 +30,16 @@ nsGmx.ContextMenuController = (function()
 	var _context = function(elem, menuFunc, checkFunc)
 	{
         var menu = null;
+		
+		L.DomEvent.on(elem, 'contextmenu', function (ev) {
+			L.DomEvent.stopPropagation(ev);
+			L.DomEvent.preventDefault(ev);
+		});
+		
         elem.oncontextmenu = function(e)
         {
+			var evt = e || window.event;
+			
             if (typeof checkFunc != 'undefined' && !checkFunc())
                 return false;
 
@@ -43,7 +51,7 @@ nsGmx.ContextMenuController = (function()
 
             var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
 
-            var evt = e || window.event;
+            
 
             hidden(contextMenu);
             document.body.appendChild(contextMenu)
