@@ -14,14 +14,14 @@
 }
 
 .gmx-sidebar-opened {
-    width: 387px !important;
+    width: 400px !important;
 }
 
 /*.iconSidebarControl-content  */
 /* .gmx-sidebar-content  */
 .iconSidebarControl-content
 {
-    width: 387px;
+    width: 360px;
     float: right;
     height: 100%;
     background-color: #FFF;

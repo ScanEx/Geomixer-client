@@ -51,7 +51,7 @@ ul.header2
 	visibility: hidden;
 /*	display: none;*/
 	background: #ffffff;
-	z-index:2;
+	z-index: 104;
 	border: 1px solid #e1e1e1;
 }
 li.header2
@@ -60,7 +60,7 @@ li.header2
 	position:relative;
 	width:190px;
 /*	height:25px;*/
-	z-index:2;
+	z-index: 104;
 	cursor:default;
 }
 ul.header3
@@ -70,7 +70,7 @@ ul.header3
 	width:190px;
 	position:absolute;
 	visibility:hidden;
-	z-index:3;
+	z-index: 105;
 	background: #ffffff;
 	border: 1px solid #e1e1e1;
 }
@@ -80,7 +80,7 @@ li.header3
 	position:relative;
 	width:190px;
 /*	height:25px;*/
-	z-index:3;
+	z-index: 105;
 	cursor:default;
 }
 div.header2,

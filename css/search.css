@@ -64,7 +64,7 @@ span.searchElem:hover, span.searchElemParent:hover
 
 .SearchResultText.ui-draggable-dragging
 {
-    width: 387px;
+    width: 360px;
     background-color: #edf4f6;
 }
 
