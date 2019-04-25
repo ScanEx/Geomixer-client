@@ -43,6 +43,23 @@ let addUnit = function (v, u) {
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir
 	}
 
+let server = window.serverBase || document.location.href.replace(/^(https?:).+/, "$1") + '//maps.kosmosnimki.ru/',
+shipCams = {},
+loadShipCamsPromise = new Promise((resolve)=>{
+	sendCrossDomainJSONRequest( server + "Layer/Search2.ashx?query=([Title] containsIC 'shipcam')",
+	function (r) {
+		if (!r.Status || r.Status.toLowerCase() != "ok")
+			console.log(r);
+		else{
+			r.Result.layers.forEach(l=>{
+				shipCams[l.title.replace(/^.+_/, "")] = {layer:l.name};
+			})	
+		}
+		resolve();
+	}
+); 
+});
+
 module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	modulePath,	aisView, displayedTrack,
 	myFleetView, tools }, commands) {
@@ -191,17 +208,48 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			// if(showtrack.is('.active'))
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});	
-	
-	if (vessel.mmsi==273316240 && vessel.imo==9152959){
-	let special = new SpecialFloatView(),
-		showSpecial = $('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' +
-			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' +			
-			'</div>')
+
+	loadShipCamsPromise.then(()=> {
+		return new Promise(resolve => {
+			if (shipCams[vessel.mmsi.toString()]) {
+console.log(shipCams)
+				if (!shipCams[vessel.mmsi.toString()].view) {
+					let images = [];
+					sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Search.ashx?layer=" +
+						shipCams[vessel.mmsi.toString()].layer,
+						r => {
+							if (r.Status && r.Status.toLowerCase() == "ok") {
+								r.Result.values.forEach((v) => {
+									let image = {};
+									r.Result.fields.forEach((f, i) => {
+										image[f] = v[i];
+									});
+									images.push(image);
+								});
+							}
+							shipCams[vessel.mmsi.toString()].view = new SpecialFloatView(images);							
+							resolve(shipCams[vessel.mmsi.toString()].view);
+						});
+				}
+				else
+					resolve(shipCams[vessel.mmsi.toString()].view);
+			}
+			else
+				resolve(false);
+		});
+	})
+	.then((special)=>{
+		if (special){
+console.log(special);
+			$('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' +
+				'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' +			
+				'</div>')
 			.appendTo(menubuttons)
 			.on('click', function () {
 				special.show();
-			});
-	}
+			});	
+		}	
+	});
 
 	let addremoveIcon = function (add) {
 		return (add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>'

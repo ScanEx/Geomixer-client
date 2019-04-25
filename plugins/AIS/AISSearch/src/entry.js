@@ -38,9 +38,14 @@ const highlight = L.marker([0, 0], {icon:L.icon({
 
 const AisPluginPanel = require('./aisPluginPanel.js'),
       ViewsFactory = require('./ViewsFactory');
+let ready = false;
 const publicInterface = {
     pluginName: pluginName,
     afterViewer: function (params, map) {
+        if (ready)
+            return;
+        ready = true;
+console.log("ready");
         const options = {
             aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
             screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search				

@@ -21,6 +21,7 @@ let _tools,
 _displayedOnly=[], 
 _notDisplayed=[],
 _saveLabelSettingsPromise = Promise.resolve(0);
+
 const MyFleetView = function (model, tools){
     BaseView.apply(this, arguments);
     _tools = tools; 
@@ -86,12 +87,6 @@ const MyFleetView = function (model, tools){
 
     this.container = this.frame.find('.ais_vessels');     
     this.startScreen = this.frame.find('.start_screen');
-    // DEFAULT SETTINGS
-    // this.model.markerTemplate =  '<div><table><tr>' +
-    //     '<td style="vertical-align:top">' +
-    //     //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
-    //     '{{{marker}}}' +
-    //     '</td><td>{{{foo}}}</td></tr></table></div>'; 
     
     // craete group controller
     let newGroupNameValid = function(ngn){
