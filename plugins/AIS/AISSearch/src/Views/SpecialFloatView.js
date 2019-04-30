@@ -1,8 +1,10 @@
 require("./SpecialFloatView.css")
 const _cssClassName = "special";
 const BaseFloatView = require('./BaseFloatView.js');
-const SpecialFloatView = function (){
+const SpecialFloatView = function (images){
     BaseFloatView.apply(this, arguments);
+    this.images = images;
+//console.log(this.images)
     this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
     if (FormData.prototype.set)
         this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' +
@@ -282,7 +284,9 @@ SpecialFloatView.prototype.show = function(){
     let content = this.frame.querySelector('.'+_cssClassName),
     image1 = this.frame.querySelector('img.img1'),
     image2 = this.frame.querySelector('img.img2'),
-    rc = this.frame.getBoundingClientRect();
+    rc = this.frame.getBoundingClientRect(),
+    imageUrl = this.images[0].url + (this.images[0].url.search(/\?/)!=1?"&r=":"?r="),
+    timers = [];
 
     let downloadingImage1 = new Image();
     downloadingImage1.onload = function(){
@@ -300,57 +304,56 @@ SpecialFloatView.prototype.show = function(){
         image1.src = "";
         image1.style.height = "";
     };
-    downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
-
-    let downloadingImage2 = new Image();
-    downloadingImage2.onload = function () {
-        image2.src = this.src;
-        image2.style.left = 0; image2.style.top = 0;
-        image2.style.width = rc.width + "px";
-        image2.style.height = getComputedStyle(image2).height;
-        image2.style.display = "none";
-//console.log(image1.getBoundingClientRect())
-    };
-    downloadingImage2.onerror = function (e) {
-        image2.src = "";
-        image2.style.height = "";
-    };
-    downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
-
+    downloadingImage1.src = imageUrl + Math.random();
     // UPDATE 
-    let timer = setTimeout(function update() {
-//console.log("TIME " + timer)
+    let intrerval = 1000 * 60 * 1,
+    timer = setTimeout(function update() {
+//console.log("TIME1 " + timer)
         let downloadingImage1 = new Image();
         downloadingImage1.onload = function () {
             image1.src = downloadingImage1.src;
         };
-        // downloadingImage1.onerror = function (e) {
-        //     image1.src = "";
-        //     image1.style.height = "";
-        // };
-        downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
+        downloadingImage1.src = imageUrl + Math.random();
+        timers[0] = setTimeout(update, intrerval);
+    }.bind(this), intrerval);
+    timers.push(timer);
 
-        let downloadingImage2 = new Image();
+    if (this.images[1]) {
+        let downloadingImage2 = new Image(),        
+        imageUrl = this.images[1].url + (this.images[1].url.search(/\?/)!=1?"&r=":"?r=");
         downloadingImage2.onload = function () {
-            image2.src = downloadingImage2.src;
+            image2.src = this.src;
+            image2.style.left = 0; image2.style.top = 0;
+            image2.style.width = rc.width + "px";
+            image2.style.height = getComputedStyle(image2).height;
+            image2.style.display = "none";
+            //console.log(image1.getBoundingClientRect())
         };
-        // downloadingImage2.onerror = function (e) {
-        //     image2.src = "";
-        //     image2.style.height = "";
-        // };
-        downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
-        if (timer){
-            clearTimeout(timer);
-            timer = setTimeout(update, 1000 * 60 * 5);
-        }
-    }.bind(this), 1000 * 60 * 5),
+        downloadingImage2.onerror = function (e) {
+            image2.src = "";
+            image2.style.height = "";
+        };
+        downloadingImage2.src = imageUrl + Math.random();
+
+        // UPDATE 
+        timer = setTimeout(function update() {
+//console.log("TIME2 " + timer)
+            let downloadingImage2 = new Image();
+            downloadingImage2.onload = function () {
+                image2.src = downloadingImage2.src;
+            };
+            downloadingImage2.src = imageUrl + Math.random();
+            timers[1] = setTimeout(update, intrerval);
+        }.bind(this), intrerval);
+        timers.push(timer)
+    }
     
-    closeCom = this.contextMenu.querySelector('.close');
+    let closeCom = this.contextMenu.querySelector('.close');
     this.disposeTimer && closeCom.removeEventListener("click", this.disposeTimer);
     this.disposeTimer = function () {
 //console.log("STOP TIME")
-        clearTimeout(timer);
-        timer = false;
+        timers.forEach(t=>clearTimeout(t));
+        timers.length = 0;
     };
     closeCom.addEventListener("click", this.disposeTimer);
 }

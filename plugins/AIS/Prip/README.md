@@ -9,4 +9,4 @@ PripPlugin
 Параметры плагина:
 
 
-Используется сервис из ServerScripts, который размещен http://kosmosnimki.ru/demo/prip/actual.ashx
+Используется сервис из ServerScripts, который размещен http://www.kosmosnimki.ru/demo/prip/actual.ashx

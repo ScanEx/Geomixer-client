@@ -47,7 +47,7 @@ public class ScreenShip : IHttpHandler {
     { 	
 		var layerName = context.Request["layer"]==null ? "8EE2C7996800458AAF70BABB43321FA4" : context.Request["layer"];
 		//var prms = new LayerWeb.GetLayerInfo.LayerInfoParams { LayerName = layerName, NeedAttrValues = false };
-		//var li = LayerWeb.GetLayerInfo.GetInformation(prms, UserSecurity.GetUserFromRequset(context));
+		//var li = LayerWeb.GetLayerInfo.GetInformation(prms, UserSecurity.GetUserFromRequset(context));		
 		//if (li==null)
 		//{
 		//	JsonResponse.WriteNotAuthenticatedToResponse("NOT AUTHORIZED", context);
@@ -57,7 +57,34 @@ public class ScreenShip : IHttpHandler {
 		var begin = DateTime.Now;	
 		try
 		{  		
-			var table = "ais.ais_last_data";
+			var table = "ais.ais_last_data";		
+			var connString = GetConnectionString(context);
+			
+			if (context.Request["layer"]!=null)
+			{ 				
+				if (context.Cache["GT_"+layerName]==null)
+				{
+					using (var conn = new NpgsqlConnection(connString.Replace("maps", "maps_sys")))
+					{
+						var com = conn.CreateCommand();	
+						com.CommandText = @"select ""GeometryTable"" from gm_sys.""Layer"" where ""Name""=:layerName";
+						com.Parameters.AddWithValue("layerName", layerName);
+						conn.Open();
+						var r = com.ExecuteReader();
+						if (r.Read())
+							table = r[0].ToString();
+						else
+							throw new Exception("UKNOWN LAYER");
+						table = table.Replace("[mailru].", "").Replace("[", "").Replace("]", "");						
+					}
+					context.Cache.Insert("GT_"+layerName, table, null, DateTime.Now.AddSeconds(60*5), System.Web.Caching.Cache.NoSlidingExpiration);
+				}
+				else
+					table = context.Cache["GT_"+layerName].ToString();
+			}
+			//JsonResponse.WriteResultToResponse(table, context);
+			//return;	
+				
 			var query = context.Request["query"];
 			if (query==null)
 				throw new Exception("EMPTY REQUEST");
@@ -67,10 +94,11 @@ public class ScreenShip : IHttpHandler {
 			{
 				columns = new string[] { "vessel_name", "mmsi", "imo", "ts_pos_utc", "vessel_type", "longitude", "latitude", "id", "source" },
 				values = new List<List<object>>(),
-				elapsed = new int[]{0, 0}
+				elapsed = new int[]{0, 0},
+				table = table
 			};
 
-            using (var conn = new NpgsqlConnection(GetConnectionString(context)))
+            using (var conn = new NpgsqlConnection(connString))
 			{
 				var com = conn.CreateCommand();				
 				var whereClause = "t.vessel_name LIKE :vname1 OR t.vessel_name LIKE :vname2";
@@ -94,7 +122,7 @@ public class ScreenShip : IHttpHandler {
 				
 				com.CommandText = @"
 	SELECT t.vessel_name, t.mmsi, t.imo, t.ts_pos_utc, t.vessel_type, t.longitude, t.latitude, t.id, t.source 
-	FROM ais.ais_last_data t
+	FROM " + table + @" t
     WHERE " + whereClause + 
 	@" LIMIT 1000
 	";

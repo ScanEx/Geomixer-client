@@ -62,7 +62,7 @@ module.exports = function (searcher) {
 //columnsJson && console.log((new Date().getTime()-columnsJson.timestamp)/60000)
         //if (!columnsJson || ((new Date().getTime()-columnsJson.timestamp)/60000>24*60))
             let promise = FormData.prototype.set ?
-            fetch("http://kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta")
+            fetch("//www.kosmosnimki.ru/demo/lloyds/api/v1/Ship/Meta")
             .then(r=>r.json()) :
             new Promise((resolve)=>{
                 throw new Error("IE!!!");

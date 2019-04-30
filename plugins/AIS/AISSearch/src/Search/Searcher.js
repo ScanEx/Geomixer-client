@@ -1,5 +1,6 @@
 module.exports = function (options) {
-    const _baseUrl = window.serverBase || document.location.href.replace(/^(https?:).+/, "$1") + '//maps.kosmosnimki.ru/',
+    const _baseUrl = document.location.href.replace(/^(https?:).+/, "$1") + 
+    (window.serverBase.replace(/^https?:/, "") || '//maps.kosmosnimki.ru/'),
         _aisServices = _baseUrl + "Plugins/AIS/",
         _serverScript = _baseUrl + 'VectorLayer/Search.ashx';
     const { aisLastPoint:_aisLastPoint, 
@@ -11,13 +12,16 @@ module.exports = function (options) {
     let _icons = {};
     let _iconsAlt = {};
     nsGmx.gmxMap.layersByID[_aisLastPoint]._gmx.properties.gmxStyles.styles.forEach( s=>{
-        _icons[s.Filter] = s.RenderStyle.iconUrl.replace(/^https?:/, "");
+        _icons[s.Filter] = s.RenderStyle.iconUrl.replace(/^https?:/, "")
+        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru");
     });
     _lastPointLayerAlt && nsGmx.gmxMap.layersByID[_lastPointLayerAlt]._gmx.properties.gmxStyles.styles.forEach( s=>{
         _iconsAlt[s.Filter.replace(/([^<>=])=([^=])/g, "$1==$2")
         .replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)")
-        .replace(/ or /ig, " || ").replace(/ and /ig, " && ")] = s.RenderStyle.iconUrl.replace(/^https?:/, "");
+        .replace(/ or /ig, " || ").replace(/ and /ig, " && ")] = s.RenderStyle.iconUrl.replace(/^https?:/, "")
+        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru");
     });
+//console.log(_icons);
 //console.log(_iconsAlt);
 
     return {
@@ -120,8 +124,11 @@ module.exports = function (options) {
             let protocol = document.location.protocol;            
             // speed icon
             for(let f in _iconsAlt){
-                let cond = f.replace(/"sog"/ig,  vessel.sog).replace(/vessel_name/ig,  vessel.vessel_name);
-//console.log(cond + " " + eval(cond))
+                let cond = f.replace(/"sog"/ig,  vessel.sog);
+                if (vessel.vessel_name)
+                    cond = cond.replace(/"vessel_name"/ig,  
+                    "'" + vessel.vessel_name.replace(/'/g, "\\\'").replace(/\\[^']/g, "\\\\") + "'");
+//console.log(cond + " " + "eval(cond)")
                 if(eval(cond)){
                     vessel.iconAlt = protocol + _iconsAlt[f];
                     break;
@@ -187,7 +194,7 @@ module.exports = function (options) {
             };
             if (isfuzzy)
                 request.pagesize = 1000;
-            L.gmxUtil.sendCrossDomainPostRequest("http://maps.kosmosnimki.ru/plugins/ais/searchship.ashx", request, callback);
+            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "searchship.ashx", request, callback);
         },
         searchString: function (searchString, isfuzzy, callback) {
             //console.log(_aisLastPoint+", "+_aisLayerID)

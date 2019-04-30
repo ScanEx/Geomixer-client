@@ -204,13 +204,13 @@
 	    PripModel = __webpack_require__(9);
 	
 	module.exports = function (options) {
-	    var _pm1 = new PripModel("http://kosmosnimki.ru/demo/prip/actual.ashx?zone=murm"),
+	    var _pm1 = new PripModel("//www.kosmosnimki.ru/demo/prip/actual.ashx?zone=murm"),
 	        _pv1 = new PripView(_pm1),
-	        _pm2 = new PripModel("http://kosmosnimki.ru/demo/prip/actual.ashx?zone=arkh"),
+	        _pm2 = new PripModel("//www.kosmosnimki.ru/demo/prip/actual.ashx?zone=arkh"),
 	        _pv2 = new PripView(_pm2),
-	        _pm3 = new PripModel("http://kosmosnimki.ru/demo/prip/actual.ashx?zone=west"),
+	        _pm3 = new PripModel("//www.kosmosnimki.ru/demo/prip/actual.ashx?zone=west"),
 	        _pv3 = new PripView(_pm3),
-	        _pm4 = new PripModel("http://kosmosnimki.ru/demo/prip/actual.ashx?zone=east"),
+	        _pm4 = new PripModel("//www.kosmosnimki.ru/demo/prip/actual.ashx?zone=east"),
 	        _pv4 = new PripView(_pm4);
 	
 	    return {
