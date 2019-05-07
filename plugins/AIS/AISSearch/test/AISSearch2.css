@@ -83,6 +83,42 @@
   font-size: 18px;
 }
 
+.ais_panel_footer{
+  background-color:#48aff1; 
+  /*height:55px*/
+}
+
+.ais_legend_switch{
+  width: 100%;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+}
+.ais_legend_switch td{
+  padding: 20px;
+  padding-left: 0;
+}
+.ais_legend_switch td span{
+  padding: 5px 15px 6px 15px;
+  cursor: pointer;
+}
+.ais_legend_switch td span.label{
+  cursor: default;
+}
+.ais_legend_switch td span.on{
+background-color: white;
+color: #48aff1;
+border-radius: 16px;
+}
+.ais_legend_switch td span.info{
+background-color: white;
+color: #48aff1;
+border-radius: 16px;
+padding: 2px 8px 3px 9px;
+font-weight: 600;
+margin: 25px;
+}
+
 .ais_view * {
     font-family: 'Roboto', sans-serif;
     font-weight: 400;

@@ -197,7 +197,7 @@ module.exports = function (options) {
     },
     _switchLayers = function(l1, l2){
         //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
-        if (l2._map)
+        if (!l2 || l2._map)
             return;
         let lmap = nsGmx.leafletMap;
         if (l1 && l2){

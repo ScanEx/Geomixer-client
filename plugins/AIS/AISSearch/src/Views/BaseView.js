@@ -1,22 +1,16 @@
-let NOSIDEBAR = false,
-    PRODUCTION = false,
+let PRODUCTION = false,
     SIDEBAR2 = false;
-if (has('NOSIDEBAR'))
-    NOSIDEBAR = true;
 if (has('SIDEBAR2'))
     SIDEBAR2 = true;
 if (has('PRODUCTION'))
     PRODUCTION = true;
 
 let _calcHeight = function () {  
-    if (NOSIDEBAR){
-        let template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-            h = template.getBoundingClientRect().height;  
-        return h * 5;
-    }
-    else {
-        return $('.iconSidebarControl-pane').height() - this.topOffset;
-    }
+// console.log($('.iconSidebarControl-pane').height());
+// console.log($('.ais_panel_footer').height());
+// console.log(this.topOffset);
+    return $('.iconSidebarControl-pane').height() - $('.ais_panel_footer').height() 
+    - this.topOffset + 2;
 };
 
 let _tools;
@@ -91,6 +85,10 @@ BaseView.prototype = function () {
             this.container.find('.ais_vessel').on('click', function () {
                 let v = JSON.parse($(this).find('.info').attr('vessel'));                
                 v.lastPosition = true;
+                v.xmax = null;
+                v.xmin = null;
+                v.ymax = null;
+                v.ymin = null;
                 _this.infoDialogView.showPosition(v);
             });      
         },

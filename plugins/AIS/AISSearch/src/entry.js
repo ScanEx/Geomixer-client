@@ -1,9 +1,6 @@
-let NOSIDEBAR = false,
-    PRODUCTION = false,
+let PRODUCTION = false,
     SIDEBAR2 = false,
     BETA = false;
-if (has('NOSIDEBAR'))
-    NOSIDEBAR = true;
 if (has('SIDEBAR2'))
     SIDEBAR2 = true;
 if (has('PRODUCTION'))
@@ -15,6 +12,7 @@ require("./all.css");
 require("./Views/AisView.css");
 require("./locale.js");
 require("./Polyfill2.js");
+require("./Controls/LegendSwitch.js");
 
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
@@ -45,7 +43,7 @@ const publicInterface = {
         if (ready)
             return;
         ready = true;
-console.log("ready");
+//console.log("ready");
         const options = {
             aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
             screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
@@ -71,12 +69,12 @@ console.log("ready");
         const viewFactory = new ViewsFactory(options);
         const   layersByID = nsGmx.gmxMap.layersByID,
                 setLayerClickHandler = function (layer) {
-                layer.removeEventListener('click')
-                layer.addEventListener('click', function (e) {
-                    //console.log(e)
-                    if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
-                        viewFactory.infoDialogView.show(e.gmx.properties)
-                })
+                    layer.removeEventListener('click')
+                    layer.addEventListener('click', function (e) {
+                        //console.log(e)
+                        if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
+                            viewFactory.infoDialogView.show(e.gmx.properties)
+                    })
                 },
                 forLayers = function (layer) {
                     try {
@@ -97,56 +95,53 @@ console.log("ready");
                 forLayers(layersByID[layersId[i]]);
             }
         }
-        
-        const aisPluginPanel = new AisPluginPanel(viewFactory);
+
+        let aisPluginPanel = new AisPluginPanel(viewFactory,  params.lastPointLayerAlt );
         aisPluginPanel.menuId = menuId;
 
-        if (NOSIDEBAR) {            
-            let lmap = nsGmx.leafletMap,    
-                iconOpt_mf = {
-                id: menuId, //toolbarIconId,
-                className: "VesselSearchTool",
-                togglable: true,
-                title: _gtxt('AISSearch2.caption')
-            };
-            if (toolbarIconId)
-                iconOpt_mf.id = toolbarIconId;
-            else
-                iconOpt_mf.text = _gtxt('AISSearch2.capShort');            
-            let icon_mf = L.control.gmxIcon(iconOpt_mf).on('statechange', function (ev) {
-                if (ev.target.options.isActive) {
-                    aisPluginPanel.show();
-                    $('.ais_view .instruments').width('100%');
-                    $('.ais_tab div').css('font-size', '12px');
-                }
-                else {
-                    aisPluginPanel.hide();
-                }
-            });
-            lmap.addControl(icon_mf);
-        }
-        else {
-            let sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-            aisPluginPanel.sidebarPane =  sidebar.setPane(
-                    menuId, { 
-                        position: params.showOnTop ? -100 : 0,
-                        createTab: window.createTabFunction({
-                            icon: menuId,
-                            active: "ais_sidebar-icon-active",
-                            inactive: "ais_sidebar-icon",
-                            hint: _gtxt('AISSearch2.caption')
-                        })
-                    }
-                )
-            sidebar.addEventListener('opened', function (e) {
-                if (sidebar._activeTabId==menuId)                
-                    aisPluginPanel.show();
-            });
-            if (params.showOnTop) { // hack
-                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active')
-                sidebar._renderTabs({ activeTabId: menuId });
-                setTimeout(() => sidebar.open(menuId), 50);
+        // LEGEND SWITCH IN FOOTER
+        if (params.lastPointLayerAlt)
+            aisPluginPanel.footer = '<table class="ais_legend_switch">' +
+            '<tr><td class="legend" colspan="2"><span class="label">' + _gtxt("AISSearch2.legend_switch") + ':</span>' + 
+            '<span class="type unselectable on" unselectable="on">' + _gtxt("AISSearch2.legend_type") + '</span>' +
+            '<span class="speed unselectable" unselectable="on">' + _gtxt("AISSearch2.legend_speed") + '</span>' +
+            //'<span class="info unselectable" unselectable="on">i</span></td></tr>' +
+            '</table>';
+        let lswitchClick = e=>{
+            let cl = e.target.classList; 
+            if (!cl.contains("on")){  
+                viewFactory.tools.switchLegend(cl.contains('.speed'));
+                aisPluginPanel.footer.querySelector('span.on').classList.remove("on");
+                cl.add("on");
             }
+        }
+        aisPluginPanel.footer.querySelector('span.speed').addEventListener('click', lswitchClick);
+        aisPluginPanel.footer.querySelector('span.type').addEventListener('click', lswitchClick);
+        
+        if(viewFactory.tools.needAltLegend)
+            aisPluginPanel.footer.querySelector('span.speed').click();
+        // LEGEND SWITCH IN FOOTER
+            
+        let sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
+        aisPluginPanel.sidebarPane = sidebar.setPane(
+            menuId, {
+                position: params.showOnTop ? -100 : 0,
+                createTab: window.createTabFunction({
+                    icon: menuId,
+                    active: "ais_sidebar-icon-active",
+                    inactive: "ais_sidebar-icon",
+                    hint: _gtxt('AISSearch2.caption')
+                })
+            }
+        )
+        sidebar.addEventListener('opened', function (e) {
+            if (sidebar._activeTabId == menuId)
+                aisPluginPanel.show();
+        });
+        if (params.showOnTop) { // hack
+            $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active')
+            sidebar._renderTabs({ activeTabId: menuId });
+            setTimeout(() => sidebar.open(menuId), 50);
         }
 
         if (location.search.search(/x=[^y=]+y=/i) != -1) {

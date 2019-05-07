@@ -18,7 +18,16 @@ let _searchString = "",
     _highlight,
     _tools,
     _displayedOnly = [];
-
+const _switchLegendIcon = function(showAlternative){
+    let ic = this.frame.find('.legend_icon'),
+    ica = this.frame.find('.legend_iconalt');
+    if (showAlternative){
+        ic.hide(); ica.show();
+    }
+    else{
+        ica.hide(); ic.show();
+    }
+};
 const DbSearchView = function ({ model, highlight, tools }) {
     BaseView.call(this, model, tools);
     _highlight = highlight;
@@ -39,11 +48,7 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">'+
         '<div class="sync-switch-slider switch-slider round"></div></label>' +
         '</td></tr>' +
-        ( needLegendSwitch ? 
-            '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + 
-            '<span class="type unselectable on" unselectable="on">{{i "AISSearch2.legend_type"}}</span>' +
-            '<span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>'
-            : '') +
+
         '<tr><td><div class="calendar"></div></td>' +
         '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
         '<div class="progress">' + this.gifLoader + '</div>' +
@@ -62,11 +67,6 @@ const DbSearchView = function ({ model, highlight, tools }) {
         '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' +
         '</div>'
     )());
-    if(needAltLegend){
-        _tools.switchLegend(needAltLegend);
-        this.frame.find('.legend span').removeClass("on");
-        this.frame.find('.legend .speed').addClass('on');
-    }
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
@@ -157,23 +157,9 @@ const DbSearchView = function ({ model, highlight, tools }) {
     }).bind(this));
 
     _tools.onLegendSwitched((()=>{
-        let ic = this.frame.find('.legend_icon'),
-        ica = this.frame.find('.legend_iconalt');
-        if (ic.is(':visible')){
-            ic.hide(); ica.show();
-        }
-        else{
-            ica.hide(); ic.show();
-        }
+        _switchLegendIcon.call(this, _tools.needAltLegend);
     }).bind(this));
-    this.frame.find('.legend .type,.speed').click((e => {
-        let trg = $(e.currentTarget);
-        if (!trg.is('.on')) {
-            this.frame.find('.legend span').removeClass("on");
-            trg.addClass('on');
-            _tools.switchLegend(trg.is('.speed'));
-        }
-    }).bind(this));
+
     this.frame.find('.time .utc,.local').click((e => {
         let trg = $(e.currentTarget);
         if (!trg.is('.on')) {
@@ -449,6 +435,9 @@ let _prepare_history = function(){
                 $(el).find('.track input:not(.all)')[0].checked = true;
         });
     }
+//console.log(this.model.data.vessels)
+    if (this.model.data.msg)
+    this.frame.find('.ais_positions_date.header').hide();
 }
 
 DbSearchView.prototype.repaint = function () {
@@ -468,17 +457,17 @@ DbSearchView.prototype.repaint = function () {
         _tools.showVesselsOnMap("all"); 
     }  
 
-    let openPos = this.frame.find('.open_positions'),
-    switchLegendIcons = (function(){
-        let ic = this.frame.find('.legend_icon'),
-            ica = this.frame.find('.legend_iconalt');
-        if (this.frame.find('.legend .speed').is('.on')) {
-            ica.show(); ic.hide();
-        }
-        else {
-            ic.show(); ica.hide();
-        }  
-    }).bind(this);
+    let openPos = this.frame.find('.open_positions');
+    // ,switchLegendIcons = (function(){
+    //     let ic = this.frame.find('.legend_icon'),
+    //         ica = this.frame.find('.legend_iconalt');
+    //     if (this.frame.find('.legend .speed').is('.on')) {
+    //         ica.show(); ic.hide();
+    //     }
+    //     else {
+    //         ic.show(); ica.hide();
+    //     }  
+    // }).bind(this);
     openPos.each((ind, elm) => {
         $(elm).click(((e) => {
             let icon = $(e.target),
@@ -497,7 +486,8 @@ DbSearchView.prototype.repaint = function () {
                     vi_cont.find('.utc_date').hide();
                     vi_cont.find('.local_date').show();
                 }
-                switchLegendIcons();
+                //switchLegendIcons();
+                _switchLegendIcon.call(this, _tools.needAltLegend);
                 vi_cont.find('.ais_positions td[class!="more"]').click((e) => {
                     let td = $(e.currentTarget);
                     if (td.is('.active')) {
@@ -659,6 +649,13 @@ DbSearchView.prototype.positionMap = function (vessel, interval) {
 //console.log("positionMap")
     if (interval)       
         nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
+
+    if (!vessel.xmax && !vessel.longitude && !vessel.ymax && !vessel.latitude){
+        vessel.longitude = this.model.data.vessels[0].positions[0].xmax;
+        vessel.latitude = this.model.data.vessels[0].positions[0].ymax;
+//console.log(vessel);
+//console.log(this.model.data.vessels[0].positions[0]);
+    }
         
     let xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
         xmax = vessel.xmax ? vessel.xmax : vessel.longitude,

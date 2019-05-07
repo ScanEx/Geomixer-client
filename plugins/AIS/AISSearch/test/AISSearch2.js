@@ -46,11 +46,9 @@
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false,
 	    BETA = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
 	if (false) BETA = true;
@@ -59,6 +57,7 @@
 	__webpack_require__(3);
 	__webpack_require__(4);
 	__webpack_require__(5);
+	__webpack_require__(6);
 	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
@@ -80,15 +79,15 @@
 	        iconSize: [25, 25],
 	        iconUrl: 'plugins/ais/aissearch/highlight.png' }), zIndexOffset: 1000 });
 	
-	var AisPluginPanel = __webpack_require__(6),
-	    ViewsFactory = __webpack_require__(7);
+	var AisPluginPanel = __webpack_require__(7),
+	    ViewsFactory = __webpack_require__(8);
 	var ready = false;
 	var publicInterface = {
 	    pluginName: pluginName,
 	    afterViewer: function afterViewer(params, map) {
 	        if (ready) return;
 	        ready = true;
-	        console.log("ready");
+	        //console.log("ready");
 	        var options = {
 	            aisLayerID: params.aisLayerID, // || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
 	            screenSearchLayer: params.searchLayer, // || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
@@ -139,50 +138,47 @@
 	            }
 	        }
 	
-	        var aisPluginPanel = new AisPluginPanel(viewFactory);
+	        var aisPluginPanel = new AisPluginPanel(viewFactory, params.lastPointLayerAlt);
 	        aisPluginPanel.menuId = menuId;
 	
-	        if (NOSIDEBAR) {
-	            var lmap = nsGmx.leafletMap,
-	                iconOpt_mf = {
-	                id: menuId, //toolbarIconId,
-	                className: "VesselSearchTool",
-	                togglable: true,
-	                title: _gtxt('AISSearch2.caption')
-	            };
-	            if (toolbarIconId) iconOpt_mf.id = toolbarIconId;else iconOpt_mf.text = _gtxt('AISSearch2.capShort');
-	            var icon_mf = L.control.gmxIcon(iconOpt_mf).on('statechange', function (ev) {
-	                if (ev.target.options.isActive) {
-	                    aisPluginPanel.show();
-	                    $('.ais_view .instruments').width('100%');
-	                    $('.ais_tab div').css('font-size', '12px');
-	                } else {
-	                    aisPluginPanel.hide();
-	                }
-	            });
-	            lmap.addControl(icon_mf);
-	        } else {
-	            var sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-	            aisPluginPanel.sidebarPane = sidebar.setPane(menuId, {
-	                position: params.showOnTop ? -100 : 0,
-	                createTab: window.createTabFunction({
-	                    icon: menuId,
-	                    active: "ais_sidebar-icon-active",
-	                    inactive: "ais_sidebar-icon",
-	                    hint: _gtxt('AISSearch2.caption')
-	                })
-	            });
-	            sidebar.addEventListener('opened', function (e) {
-	                if (sidebar._activeTabId == menuId) aisPluginPanel.show();
-	            });
-	            if (params.showOnTop) {
-	                // hack
-	                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active');
-	                sidebar._renderTabs({ activeTabId: menuId });
-	                setTimeout(function () {
-	                    return sidebar.open(menuId);
-	                }, 50);
+	        // LEGEND SWITCH IN FOOTER
+	        if (params.lastPointLayerAlt) aisPluginPanel.footer = '<table class="ais_legend_switch">' + '<tr><td class="legend" colspan="2"><span class="label">' + _gtxt("AISSearch2.legend_switch") + ':</span>' + '<span class="type unselectable on" unselectable="on">' + _gtxt("AISSearch2.legend_type") + '</span>' + '<span class="speed unselectable" unselectable="on">' + _gtxt("AISSearch2.legend_speed") + '</span>' +
+	        //'<span class="info unselectable" unselectable="on">i</span></td></tr>' +
+	        '</table>';
+	        var lswitchClick = function lswitchClick(e) {
+	            var cl = e.target.classList;
+	            if (!cl.contains("on")) {
+	                viewFactory.tools.switchLegend(cl.contains('.speed'));
+	                aisPluginPanel.footer.querySelector('span.on').classList.remove("on");
+	                cl.add("on");
 	            }
+	        };
+	        aisPluginPanel.footer.querySelector('span.speed').addEventListener('click', lswitchClick);
+	        aisPluginPanel.footer.querySelector('span.type').addEventListener('click', lswitchClick);
+	
+	        if (viewFactory.tools.needAltLegend) aisPluginPanel.footer.querySelector('span.speed').click();
+	        // LEGEND SWITCH IN FOOTER
+	
+	        var sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
+	        aisPluginPanel.sidebarPane = sidebar.setPane(menuId, {
+	            position: params.showOnTop ? -100 : 0,
+	            createTab: window.createTabFunction({
+	                icon: menuId,
+	                active: "ais_sidebar-icon-active",
+	                inactive: "ais_sidebar-icon",
+	                hint: _gtxt('AISSearch2.caption')
+	            })
+	        });
+	        sidebar.addEventListener('opened', function (e) {
+	            if (sidebar._activeTabId == menuId) aisPluginPanel.show();
+	        });
+	        if (params.showOnTop) {
+	            // hack
+	            $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active');
+	            sidebar._renderTabs({ activeTabId: menuId });
+	            setTimeout(function () {
+	                return sidebar.open(menuId);
+	            }, 50);
 	        }
 	
 	        if (location.search.search(/x=[^y=]+y=/i) != -1) {
@@ -523,40 +519,68 @@
 
 /***/ }),
 /* 6 */
+/***/ (function(module, exports) {
+
+	"use strict";
+	
+	var LegendSwitch = function LegendSwitch(container, tools) {
+	    // if (params.lastPointLayerAlt)
+	    //     aisPluginPanel.footer = '<table class="ais_legend_switch">' +
+	    //         '<tr><td class="legend" colspan="2"><span class="label">' + _gtxt("AISSearch2.legend_switch") + ':</span>' +
+	    //         '<span class="type unselectable on" unselectable="on">' + _gtxt("AISSearch2.legend_type") + '</span>' +
+	    //         '<span class="speed unselectable" unselectable="on">' + _gtxt("AISSearch2.legend_speed") + '</span>' +
+	    //         //'<span class="info unselectable" unselectable="on">i</span></td></tr>' +
+	    //         '</table>';
+	    // let lswitchClick = e => {
+	    //     let cl = e.target.classList;
+	    //     if (!cl.contains("on")) {
+	    //         viewFactory.tools.switchLegend(cl.contains('.speed'));
+	    //         aisPluginPanel.footer.querySelector('span.on').classList.remove("on");
+	    //         cl.add("on");
+	    //     }
+	    // }
+	    // aisPluginPanel.footer.querySelector('span.speed').addEventListener('click', lswitchClick);
+	    // aisPluginPanel.footer.querySelector('span.type').addEventListener('click', lswitchClick);
+	
+	    // if (viewFactory.tools.needAltLegend)
+	    //     aisPluginPanel.footer.querySelector('span.speed').click();
+	};
+	
+	module.exports = LegendSwitch;
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
 	
-	module.exports = function (viewFactory) {
-	    var _leftMenuBlock = void 0,
-	        _canvas = _div(null),
+	module.exports = function (viewFactory, withFooter) {
+	    var _canvas = _div(null),
 	        _activeView = void 0,
 	        _views = viewFactory.create(),
 	        _isReady = false,
+	        _footer = void 0,
+	        _createFooter = function _createFooter() {
+	        if (withFooter) {
+	            $(_canvas).append(_footer);
+	        }
+	    },
 	        _createTabs = function _createTabs() {
 	        var tabsTemplate = '<table class="ais_tabs" border=0><tr>' + '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
 	        '<div>{{i "AISSearch2.MyFleetTab"}}</div>' + '<td class="ais_tab dbsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.DbSearchTab"}}</div>' + '</td><td class="ais_tab scrsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' + '</td></tr></table>';
 	
-	        if (NOSIDEBAR) $(_leftMenuBlock.workCanvas).append(_canvas);else $(this.sidebarPane).append(_canvas);
-	
+	        $(this.sidebarPane).append(_canvas);
 	        $(_canvas).append(Handlebars.compile(tabsTemplate));
 	        $(_canvas).append(_views.map(function (v) {
 	            return v.frame;
 	        }));
 	
-	        var tabs = $('.ais_tab', _canvas),
-	            _this = this;
-	        _views.forEach(function (v, i) {
-	            v.tab = tabs.eq(i);
-	            v.resize(true);
-	        });
+	        var tabs = $('.ais_tab', _canvas);
 	        tabs.on('click', function () {
 	            if (!$(this).is('.active')) {
 	                var target = this;
@@ -573,42 +597,30 @@
 	            }
 	        });
 	
-	        // Show the first tab
-	        tabs.eq(0).removeClass('active').click();
-	
-	        if (NOSIDEBAR) {
-	            _returnInstance.hide = function () {
-	                $(_leftMenuBlock.parentWorkCanvas).hide();
-	                nsGmx.leafletMap.removeLayer(highlight);
-	            };
-	
-	            $(_leftMenuBlock.parentWorkCanvas).attr('class', 'left_aispanel').insertAfter('.layers-before');
-	            var blockItem = _leftMenuBlock.leftPanelItem,
-	                blockTitle = $('.leftmenu-path', blockItem.panelCanvas);
-	            var toggleTitle = function toggleTitle() {
-	                if (blockItem.isCollapsed()) blockTitle.show();else blockTitle.hide();
-	            };
-	            $(blockItem).on('changeVisibility', toggleTitle);
-	            toggleTitle();
-	        }
-	
-	        // All has been done at first time
-	        _isReady = true;
+	        return tabs;
 	    },
 	        _returnInstance = {
+	        get footer() {
+	            return _footer;
+	        },
+	        set footer(html) {
+	            _footer = document.createElement('div');
+	            _footer.className = "ais_panel_footer";
+	            _footer.innerHTML = html;
+	        },
 	        show: function show() {
-	            var lmap = nsGmx.leafletMap;
-	            if (NOSIDEBAR && !_leftMenuBlock) _leftMenuBlock = new leftMenu();
-	
-	            if (NOSIDEBAR && !_leftMenuBlock.createWorkCanvas("aispanel", function () {
-	                lmap.gmxControlIconManager.get(this.menuId)._iconClick();
-	            }, { path: [_gtxt('AISSearch2.caption')] }) || !_isReady) // SIDEBAR
-	                {
-	                    _createTabs.call(this);
-	                } else {
-	                if (NOSIDEBAR) {
-	                    $(_leftMenuBlock.parentWorkCanvas).insertAfter('.layers-before');
-	                }
+	            if (!_isReady) {
+	                var tabs = _createTabs.call(this);
+	                _createFooter.call(this);
+	                _views.forEach(function (v, i) {
+	                    v.tab = tabs.eq(i);
+	                    v.resize(true);
+	                });
+	                // Show the first tab
+	                tabs.eq(0).removeClass('active').click();
+	                // All has been done at first time
+	                _isReady = true;
+	            } else {
 	                _activeView && _activeView.show();
 	            }
 	        }
@@ -617,20 +629,20 @@
 	};
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var ScreenSearchView = __webpack_require__(8),
-	    ScreenSearchModel = __webpack_require__(10),
-	    MyFleetView = __webpack_require__(11),
-	    MyFleetModel = __webpack_require__(15),
-	    DbSearchView = __webpack_require__(17),
-	    DbSearchModel = __webpack_require__(19),
-	    InfoDialogView = __webpack_require__(20),
-	    Searcher = __webpack_require__(28),
-	    Toolbox = __webpack_require__(29);
+	var ScreenSearchView = __webpack_require__(9),
+	    ScreenSearchModel = __webpack_require__(11),
+	    MyFleetView = __webpack_require__(12),
+	    MyFleetModel = __webpack_require__(16),
+	    DbSearchView = __webpack_require__(18),
+	    DbSearchModel = __webpack_require__(20),
+	    InfoDialogView = __webpack_require__(21),
+	    Searcher = __webpack_require__(29),
+	    Toolbox = __webpack_require__(30);
 	
 	module.exports = function (options) {
 	    var _tools = new Toolbox(options),
@@ -655,6 +667,9 @@
 	    _mfv.infoDialogView = _idv;
 	    _dbsv.infoDialogView = _idv;
 	    return {
+	        get tools() {
+	            return _tools;
+	        },
 	        get infoDialogView() {
 	            return _idv;
 	        },
@@ -665,12 +680,12 @@
 	};
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var BaseView = __webpack_require__(9);
+	var BaseView = __webpack_require__(10);
 	var _tools = void 0;
 	var ScreenSearchView = function ScreenSearchView(model, tools) {
 	    var _this = this;
@@ -919,26 +934,21 @@
 	module.exports = ScreenSearchView;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
-	    if (NOSIDEBAR) {
-	        var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-	            h = template.getBoundingClientRect().height;
-	        return h * 5;
-	    } else {
-	        return $('.iconSidebarControl-pane').height() - this.topOffset;
-	    }
+	    // console.log($('.iconSidebarControl-pane').height());
+	    // console.log($('.ais_panel_footer').height());
+	    // console.log(this.topOffset);
+	    return $('.iconSidebarControl-pane').height() - $('.ais_panel_footer').height() - this.topOffset + 2;
 	};
 	
 	var _tools = void 0;
@@ -1010,6 +1020,10 @@
 	            this.container.find('.ais_vessel').on('click', function () {
 	                var v = JSON.parse($(this).find('.info').attr('vessel'));
 	                v.lastPosition = true;
+	                v.xmax = null;
+	                v.xmin = null;
+	                v.ymax = null;
+	                v.ymin = null;
 	                _this.infoDialogView.showPosition(v);
 	            });
 	        },
@@ -1027,7 +1041,7 @@
 	module.exports = BaseView;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -1141,22 +1155,28 @@
 	module.exports = ScreenSearchModel;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	__webpack_require__(12);
-	var BaseView = __webpack_require__(9);
-	var GroupList = __webpack_require__(13);
+	__webpack_require__(13);
+	var BaseView = __webpack_require__(10);
+	var GroupList = __webpack_require__(14);
 	
 	var _switchLegendIcon = function _switchLegendIcon(showAlternative) {
 	    var ic = this.frame.find('.legend_icon'),
 	        ica = this.frame.find('.legend_iconalt');
 	    if (showAlternative) {
-	        ic.hide();ica.show();
+	        ic.hide(); //ica.show();
+	        ica.each(function (i, e) {
+	            return e.style.display = "";
+	        });
 	    } else {
-	        ica.hide();ic.show();
+	        ica.hide(); //ic.show();
+	        ic.each(function (i, e) {
+	            return e.style.display = "";
+	        });
 	    }
 	},
 	    _clean = function _clean() {
@@ -1386,18 +1406,18 @@
 	module.exports = MyFleetView;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var GroupWidget = __webpack_require__(14);
+	var GroupWidget = __webpack_require__(15);
 	
 	var _onRepaintItemHandler = void 0,
 	    _onCheckItem = void 0,
@@ -1737,7 +1757,7 @@
 	module.exports = GroupList;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1755,12 +1775,12 @@
 	module.exports = GroupWidget;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var Polyfill = __webpack_require__(16);
+	var Polyfill = __webpack_require__(17);
 	var emptyGroup = function emptyGroup(title, isDefault, id, style, updateTemplate) {
 	    var ms = "#ffff00",
 	        lsc = "#ffff00",
@@ -2310,7 +2330,7 @@
 	};
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2347,13 +2367,13 @@
 	};
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(18);
-	var BaseView = __webpack_require__(9);
+	__webpack_require__(19);
+	var BaseView = __webpack_require__(10);
 	
 	var _searchString = "",
 	    _setSearchInputValue = function _setSearchInputValue(s) {
@@ -2370,7 +2390,15 @@
 	    _highlight = void 0,
 	    _tools = void 0,
 	    _displayedOnly = [];
-	
+	var _switchLegendIcon = function _switchLegendIcon(showAlternative) {
+	    var ic = this.frame.find('.legend_icon'),
+	        ica = this.frame.find('.legend_iconalt');
+	    if (showAlternative) {
+	        ic.hide();ica.show();
+	    } else {
+	        ica.hide();ic.show();
+	    }
+	};
 	var DbSearchView = function DbSearchView(_ref) {
 	    var _this = this;
 	
@@ -2383,12 +2411,7 @@
 	    _tools = tools;
 	    var needLegendSwitch = _tools.hasAlternativeLayers,
 	        needAltLegend = !!(needLegendSwitch && needLegendSwitch._map);
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + (needLegendSwitch ? '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + '<span class="type unselectable on" unselectable="on">{{i "AISSearch2.legend_type"}}</span>' + '<span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>' : '') + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
-	    if (needAltLegend) {
-	        _tools.switchLegend(needAltLegend);
-	        this.frame.find('.legend span').removeClass("on");
-	        this.frame.find('.legend .speed').addClass('on');
-	    }
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
@@ -2459,22 +2482,9 @@
 	    }.bind(this));
 	
 	    _tools.onLegendSwitched(function () {
-	        var ic = _this.frame.find('.legend_icon'),
-	            ica = _this.frame.find('.legend_iconalt');
-	        if (ic.is(':visible')) {
-	            ic.hide();ica.show();
-	        } else {
-	            ica.hide();ic.show();
-	        }
+	        _switchLegendIcon.call(_this, _tools.needAltLegend);
 	    }.bind(this));
-	    this.frame.find('.legend .type,.speed').click(function (e) {
-	        var trg = $(e.currentTarget);
-	        if (!trg.is('.on')) {
-	            _this.frame.find('.legend span').removeClass("on");
-	            trg.addClass('on');
-	            _tools.switchLegend(trg.is('.speed'));
-	        }
-	    }.bind(this));
+	
 	    this.frame.find('.time .utc,.local').click(function (e) {
 	        var trg = $(e.currentTarget);
 	        if (!trg.is('.on')) {
@@ -2709,6 +2719,8 @@
 	            } else $(el).find('.track input:not(.all)')[0].checked = true;
 	        });
 	    }
+	    //console.log(this.model.data.vessels)
+	    if (this.model.data.msg) this.frame.find('.ais_positions_date.header').hide();
 	};
 	
 	DbSearchView.prototype.repaint = function () {
@@ -2729,16 +2741,17 @@
 	        _tools.showVesselsOnMap("all");
 	    }
 	
-	    var openPos = this.frame.find('.open_positions'),
-	        switchLegendIcons = function () {
-	        var ic = this.frame.find('.legend_icon'),
-	            ica = this.frame.find('.legend_iconalt');
-	        if (this.frame.find('.legend .speed').is('.on')) {
-	            ica.show();ic.hide();
-	        } else {
-	            ic.show();ica.hide();
-	        }
-	    }.bind(this);
+	    var openPos = this.frame.find('.open_positions');
+	    // ,switchLegendIcons = (function(){
+	    //     let ic = this.frame.find('.legend_icon'),
+	    //         ica = this.frame.find('.legend_iconalt');
+	    //     if (this.frame.find('.legend .speed').is('.on')) {
+	    //         ica.show(); ic.hide();
+	    //     }
+	    //     else {
+	    //         ic.show(); ica.hide();
+	    //     }  
+	    // }).bind(this);
 	    openPos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
@@ -2756,7 +2769,8 @@
 	                    vi_cont.find('.utc_date').hide();
 	                    vi_cont.find('.local_date').show();
 	                }
-	                switchLegendIcons();
+	                //switchLegendIcons();
+	                _switchLegendIcon.call(_this6, _tools.needAltLegend);
 	                vi_cont.find('.ais_positions td[class!="more"]').click(function (e) {
 	                    var td = $(e.currentTarget);
 	                    if (td.is('.active')) {
@@ -2900,6 +2914,13 @@
 	    //console.log("positionMap")
 	    if (interval) nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
 	
+	    if (!vessel.xmax && !vessel.longitude && !vessel.ymax && !vessel.latitude) {
+	        vessel.longitude = this.model.data.vessels[0].positions[0].xmax;
+	        vessel.latitude = this.model.data.vessels[0].positions[0].ymax;
+	        //console.log(vessel);
+	        //console.log(this.model.data.vessels[0].positions[0]);
+	    }
+	
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
 	        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
 	        ymin = vessel.ymin ? vessel.ymin : vessel.latitude,
@@ -2915,13 +2936,13 @@
 	module.exports = DbSearchView;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3075,14 +3096,14 @@
 	};
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var displayInfoDialog = __webpack_require__(21),
-	    Polyfill = __webpack_require__(16),
-	    VesselInfoScreen = __webpack_require__(26);
+	var displayInfoDialog = __webpack_require__(22),
+	    Polyfill = __webpack_require__(17),
+	    VesselInfoScreen = __webpack_require__(27);
 	
 	var infoDialogCascade = [],
 	    allIinfoDialogs = [],
@@ -3180,13 +3201,13 @@
 	};
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(22);
-	var SpecialFloatView = __webpack_require__(23);
+	__webpack_require__(23);
+	var SpecialFloatView = __webpack_require__(24);
 	
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
@@ -3444,20 +3465,20 @@
 	};
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(24);
+	__webpack_require__(25);
 	var _cssClassName = "special";
-	var BaseFloatView = __webpack_require__(25);
+	var BaseFloatView = __webpack_require__(26);
 	var SpecialFloatView = function SpecialFloatView(images) {
 	    var _this = this;
 	
@@ -3793,13 +3814,13 @@
 	module.exports = SpecialFloatView;
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3911,12 +3932,12 @@
 	module.exports = BaseFloatView;
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(27);
+	__webpack_require__(28);
 	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
@@ -4223,13 +4244,13 @@
 	};
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -4483,12 +4504,12 @@
 	};
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var Polyfill = __webpack_require__(16);
+	var Polyfill = __webpack_require__(17);
 	module.exports = function (options) {
 	    var _layersByID = nsGmx.gmxMap.layersByID;
 	    var _aisLayer = _layersByID[options.aisLayerID],
@@ -4663,7 +4684,7 @@
 	    },
 	        _switchLayers = function _switchLayers(l1, l2) {
 	        //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
-	        if (l2._map) return;
+	        if (!l2 || l2._map) return;
 	        var lmap = nsGmx.leafletMap;
 	        if (l1 && l2) {
 	            lmap.removeLayer(l1);

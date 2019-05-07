@@ -30,6 +30,9 @@ module.exports = function (options) {
         _mfv.infoDialogView = _idv;
         _dbsv.infoDialogView = _idv;
     return {
+        get tools(){
+            return _tools;
+        },
         get infoDialogView(){
             return _idv;
         },

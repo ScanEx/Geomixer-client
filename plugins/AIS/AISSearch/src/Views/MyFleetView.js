@@ -6,10 +6,12 @@ const _switchLegendIcon = function(showAlternative){
     let ic = this.frame.find('.legend_icon'),
     ica = this.frame.find('.legend_iconalt');
     if (showAlternative){
-        ic.hide(); ica.show();
+        ic.hide(); //ica.show();
+        ica.each( (i,e)=>e.style.display="");
     }
     else{
-        ica.hide(); ic.show();
+        ica.hide(); //ic.show();
+        ic.each( (i,e)=>e.style.display="");
     }
 },
 _clean = function(){  
