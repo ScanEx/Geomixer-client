@@ -12,7 +12,11 @@ require("./all.css");
 require("./Views/AisView.css");
 require("./locale.js");
 require("./Polyfill2.js");
-require("./Controls/LegendSwitch.js");
+
+const AisPluginPanel = require('./aisPluginPanel.js'),
+      ViewsFactory = require('./ViewsFactory'),
+      LegendControl = require("./Controls/LegendControl.js"),
+      Toolbox = require('./Toolbox.js');
 
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
@@ -34,8 +38,6 @@ const highlight = L.marker([0, 0], {icon:L.icon({
     iconSize:[25,25], 
     iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000});
 
-const AisPluginPanel = require('./aisPluginPanel.js'),
-      ViewsFactory = require('./ViewsFactory');
 let ready = false;
 const publicInterface = {
     pluginName: pluginName,
@@ -44,21 +46,27 @@ const publicInterface = {
             return;
         ready = true;
 //console.log("ready");
-        const options = {
-            aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
-            screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
-            aisLastPoint: params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
-            historyLayer: params.historyLayer,	
-            tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
+        const tools = new Toolbox(params),
+            legendControl = new LegendControl(tools, params.aisLastPoint, params.lastPointLayerAlt),
+            options = {
+                aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
+                screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search
 
-            lastPointLayerAlt: params.lastPointLayerAlt,
-            tracksLayerAlt: params.tracksLayerAlt,
-            historyLayerAlt: params.historyLayerAlt,
-            
-            modulePath: modulePath,
-            highlight: highlight,
-            menuId: menuId
-        };
+                aisLastPoint: params.aisLastPoint, // || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
+                historyLayer: params.historyLayer,
+                tracksLayerID: params.tracksLayerID, // || '13E2051DFEE04EEF997DC5733BD69A15',
+
+                lastPointLayerAlt: params.lastPointLayerAlt,
+                historyLayerAlt: params.historyLayerAlt,
+                tracksLayerAlt: params.tracksLayerAlt,
+
+                modulePath: modulePath,
+                highlight: highlight,
+                menuId: menuId,
+                vesselLegend: legendControl,
+                tools: tools
+            };
+
         for (var key in params) 
             if (key.toLowerCase() == "myfleet") {
                 options.myFleetLayers = params[key].split(",").map(function (id) {
@@ -66,25 +74,25 @@ const publicInterface = {
                 });
                 break;
             }
-        const viewFactory = new ViewsFactory(options);
-        const   layersByID = nsGmx.gmxMap.layersByID,
-                setLayerClickHandler = function (layer) {
-                    layer.removeEventListener('click')
-                    layer.addEventListener('click', function (e) {
-                        //console.log(e)
-                        if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
-                            viewFactory.infoDialogView.show(e.gmx.properties)
-                    })
-                },
-                forLayers = function (layer) {
-                    try {
+        const viewFactory = new ViewsFactory(options),
+            layersByID = nsGmx.gmxMap.layersByID,
+            setLayerClickHandler = function (layer) {
+                layer.removeEventListener('click')
+                layer.addEventListener('click', function (e) {
+                    //console.log(e)
+                    if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
+                        viewFactory.infoDialogView.show(e.gmx.properties)
+                })
+            },
+            forLayers = function (layer) {
+                try {
                     if (layer) {
                         //setLocaleDate(layer)
                         setLayerClickHandler(layer)
                     }
-                    }
-                    catch(e){}
                 }
+                catch (e) { }
+            };
 
         for (var key in params) {
             let layersId = params[key].split(",").map(function (id) {
@@ -96,44 +104,25 @@ const publicInterface = {
             }
         }
 
-        let aisPluginPanel = new AisPluginPanel(viewFactory,  params.lastPointLayerAlt );
+        const sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl,
+            sidebarPane = sidebar.setPane(
+                menuId, {
+                    position: params.showOnTop ? -100 : 0,
+                    createTab: window.createTabFunction({
+                        icon: menuId,
+                        active: "ais_sidebar-icon-active",
+                        inactive: "ais_sidebar-icon",
+                        hint: _gtxt('AISSearch2.caption')
+                    })
+                }
+            ),
+            withLegendSwitch = params.lastPointLayerAlt && nsGmx.gmxMap.layersByID[params.lastPointLayerAlt],       
+            aisPluginPanel = new AisPluginPanel(sidebarPane, viewFactory, withLegendSwitch);
         aisPluginPanel.menuId = menuId;
 
-        // LEGEND SWITCH IN FOOTER
-        if (params.lastPointLayerAlt)
-            aisPluginPanel.footer = '<table class="ais_legend_switch">' +
-            '<tr><td class="legend" colspan="2"><span class="label">' + _gtxt("AISSearch2.legend_switch") + ':</span>' + 
-            '<span class="type unselectable on" unselectable="on">' + _gtxt("AISSearch2.legend_type") + '</span>' +
-            '<span class="speed unselectable" unselectable="on">' + _gtxt("AISSearch2.legend_speed") + '</span>' +
-            //'<span class="info unselectable" unselectable="on">i</span></td></tr>' +
-            '</table>';
-        let lswitchClick = e=>{
-            let cl = e.target.classList; 
-            if (!cl.contains("on")){  
-                viewFactory.tools.switchLegend(cl.contains('.speed'));
-                aisPluginPanel.footer.querySelector('span.on').classList.remove("on");
-                cl.add("on");
-            }
-        }
-        aisPluginPanel.footer.querySelector('span.speed').addEventListener('click', lswitchClick);
-        aisPluginPanel.footer.querySelector('span.type').addEventListener('click', lswitchClick);
-        
-        if(viewFactory.tools.needAltLegend)
-            aisPluginPanel.footer.querySelector('span.speed').click();
-        // LEGEND SWITCH IN FOOTER
-            
-        let sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-        aisPluginPanel.sidebarPane = sidebar.setPane(
-            menuId, {
-                position: params.showOnTop ? -100 : 0,
-                createTab: window.createTabFunction({
-                    icon: menuId,
-                    active: "ais_sidebar-icon-active",
-                    inactive: "ais_sidebar-icon",
-                    hint: _gtxt('AISSearch2.caption')
-                })
-            }
-        )
+        if (withLegendSwitch)
+            legendControl.createSwitch(aisPluginPanel); // LEGEND SWITCH IN FOOTER
+
         sidebar.addEventListener('opened', function (e) {
             if (sidebar._activeTabId == menuId)
                 aisPluginPanel.show();

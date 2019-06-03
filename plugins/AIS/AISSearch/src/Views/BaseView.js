@@ -6,11 +6,9 @@ if (has('PRODUCTION'))
     PRODUCTION = true;
 
 let _calcHeight = function () {  
-// console.log($('.iconSidebarControl-pane').height());
-// console.log($('.ais_panel_footer').height());
-// console.log(this.topOffset);
-    return $('.iconSidebarControl-pane').height() - $('.ais_panel_footer').height() 
-    - this.topOffset + 2;
+    return $('.iconSidebarControl-pane').height() - 
+    ($('.ais_panel_footer')[0]?$('.ais_panel_footer').height():0)
+    - this.topOffset;
 };
 
 let _tools;
@@ -38,6 +36,9 @@ BaseView.prototype = function () {
             return this.frame.is(":visible");
         },
         resize: function (clean) {
+            if (clean){
+                this.container.empty()
+            }
             let h = _calcHeight.call(this);
             if (this.startScreen && $('.iconSidebarControl-pane:visible')[0]){
                 let bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
@@ -45,10 +46,6 @@ BaseView.prototype = function () {
                 width: bb.width+"px"});
             }
             this.container.height(h);
-
-            if (clean){
-                this.container.empty()
-            }
         },
         repaint: function(){
             _clean.call(this);            
@@ -65,7 +62,7 @@ BaseView.prototype = function () {
             }
 
             var _this = this;
-            this.container.find('.info', ).on('click', function (e) {
+            this.container.find('.info').on('click', function (e) {
                 let target = $(this),
                     vessel = JSON.parse(target.attr('vessel'))
 //console.log(vessel)

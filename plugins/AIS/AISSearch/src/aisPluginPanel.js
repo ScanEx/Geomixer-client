@@ -6,16 +6,19 @@ if (has('PRODUCTION'))
     PRODUCTION = true;
 
 
-module.exports = function (viewFactory, withFooter) {
-    let _canvas = _div(null),
+module.exports = function (sidebarPane, viewFactory, withFooter) {
+    let _isReady = false,
+        _canvas = document.createElement('div'),
         _activeView,
         _views = viewFactory.create(),
-        _isReady = false,
-        _footer,
-        _createFooter = function () {  
-            if (withFooter){
-                $(_canvas).append(_footer);
+        _createFooter = function () { 
+            let footer;
+            if (withFooter){           
+                footer = document.createElement('div');
+                footer.className = "ais_panel_footer";
+                $(_canvas).append(footer);
             }
+            return footer;
         },
         _createTabs = function () {
             let tabsTemplate = '<table class="ais_tabs" border=0><tr>' +
@@ -27,11 +30,11 @@ module.exports = function (viewFactory, withFooter) {
                 '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' +
                 '</td></tr></table>';
 
-            $(this.sidebarPane).append(_canvas);
+            $(sidebarPane).append(_canvas);
             $(_canvas).append(Handlebars.compile(tabsTemplate));
             $(_canvas).append(_views.map(v => v.frame));
     
-            let tabs = $('.ais_tab', _canvas);  
+            let tabs = $('.ais_tab', _canvas); 
             tabs.on('click', function () {
                 if (!$(this).is('.active')) {
                     let target = this;
@@ -48,36 +51,33 @@ module.exports = function (viewFactory, withFooter) {
                     });
                 }
             });
-
             return tabs;
         },
-
-    _returnInstance = {
-        get footer() {return _footer;},
-        set footer(html) {            
-            _footer = document.createElement('div');
-            _footer.className = "ais_panel_footer";
-            _footer.innerHTML = html;
-        },
-        show: function () {
-            if (!_isReady)
-            {
-                let tabs = _createTabs.call(this);
-                _createFooter.call(this);         
-                _views.forEach((v,i) =>{
-                    v.tab = tabs.eq(i);
-                    v.resize(true);
-                }); 
-                // Show the first tab
-                tabs.eq(0).removeClass('active').click();
-                // All has been done at first time
-                _isReady = true;
+        _tabs = _createTabs(),
+        _footer = _createFooter(),
+        _returnInstance = {
+            get footer() {return _footer;},
+            set footer(element) { 
+                if (_footer)
+                    _footer.append(element);
+            },
+            show: function () {
+                if (!_isReady)
+                {     
+                    _views.forEach((v,i) =>{
+                        v.tab = _tabs.eq(i);
+                        v.resize(true);
+                    }); 
+                    // Show the first tab
+                    _tabs.eq(0).removeClass('active').click();
+                    // All has been done at first time
+                    _isReady = true;
+                }
+                else{           
+                    _activeView && _activeView.show(); 
+                }
             }
-            else{           
-                _activeView && _activeView.show(); 
-            }
-        }
-    };
+        };
     return _returnInstance;
 }
 

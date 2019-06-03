@@ -1,13 +1,16 @@
 const BaseView = require('./BaseView.js');
-let _tools;
+let _tools, _delayedRepaint;
 const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
     _tools = tools;          
     _tools.onLegendSwitched(((showAlternative)=>{
-        _switchLegendIcon.call(this, _tools.needAltLegend);
+        if (this.isActive)      
+            this.model.data && this.model.data.vessels && this.repaint();
+        else
+            _delayedRepaint = true;
     }).bind(this));
 
-    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
+    this.frame = $(Handlebars.compile('<div class="ais_view screensearch_view">' +
 
         '<table border=0 class="instruments">' +
         //'<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-flclose clicable"></div></td></tr>'+
@@ -27,6 +30,7 @@ const ScreenSearchView = function (model, tools) {
         '<table class="results">'+
         '<tr><td class="count"></td>' +
         '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' +
+        '<tr><td colspan="2" style="padding:0px"><div class="groups"></div></td></tr>' +
         '</table>'+
         // '<table class="start_screen"><tr><td>'+
         // '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">'+
@@ -46,9 +50,11 @@ const ScreenSearchView = function (model, tools) {
     )());
     Object.defineProperty(this, "topOffset", {
         get: function () {
-            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
-            this.frame.find('.instruments')[0].getBoundingClientRect().height + 
-            this.frame.find('.results')[0].getBoundingClientRect().height;
+            let th = $('.ais_tabs')[0].getBoundingClientRect().height,
+            ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+            rh = this.frame.find('.results')[0].getBoundingClientRect().height,
+            rv = th + ih + rh;
+            this.frame.find('.instruments').height(ih);
             return rv;
         }
     });    
@@ -168,7 +174,7 @@ _firstRowsNum = 40,
 _firstRowsShift = 20,
 _setEventHandlers = function(){
     let thisInst = this;
-    this.container.find('.info', ).off('click').on('click', function (e) {
+    this.container.find('.info', ).on('click', function (e) {
         let target = $(this),
             vessel = JSON.parse(target.attr('vessel'))
 //console.log(vessel)
@@ -185,20 +191,40 @@ _setEventHandlers = function(){
         });
         e.stopPropagation();
     });
-    this.container.find('.ais_vessel').off('click').on('click', function () {
+    this.container.find('.ais_vessel').on('click', function () {
 //console.log(JSON.parse($(this).find('.info').attr('vessel')))
         let v = JSON.parse($(this).find('.info').attr('vessel'));                
         v.lastPosition = true;
         thisInst.infoDialogView.showPosition(v);
     }); 
-//console.log("repaint "+(new Date()-start)+"ms" )      
+//console.log("repaint "+(new Date()-start)+"ms" ) 
+    this.frame.find('.show_groups').on('click', function () {
+        arrowHead = arrowHead == 'icon-down-open' ? 'icon-right-open': 'icon-down-open';
+        this.repaint();
+    }.bind(this));     
 }
 
+let arrowHead = 'icon-down-open';
 ScreenSearchView.prototype.repaint = function () {
+    _delayedRepaint = false;
+//let startRep = new Date();
 //console.log("REPAINT")
-    _clean.call(this);
-    this.frame.find('.count').text(_gtxt('AISSearch2.found')+this.model.data.vessels.length); 
+    //_clean.call(this);
+    this.frame.find('.count').html('<div class="show_groups clicable ui-helper-noselect ' + arrowHead + '" ' +
+    'style="margin-right:5px;display:inline"></div>' + 
+    _gtxt('AISSearch2.found') + this.model.data.vessels.length); 
     //BaseView.prototype.repaint.apply(this, arguments);
+
+    this.frame.find('.groups')[0].innerHTML = '';
+    if (this.model.data.groups.length && arrowHead == 'icon-down-open')
+        this.frame.find('.groups')[0].innerHTML = (Handlebars.compile('<table>' +
+            '{{#each groups}}' +
+            '<tr><td><img src="{{url}}" style="width:20px;height:20px"></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' +
+            '{{/each}}' +
+            '</table>')({groups: !_tools.needAltLegend ? this.model.data.groups :  this.model.data.groupsAlt}));
+        
+    BaseView.prototype.resize.apply(this, arguments);   
+     
     ////////////////////////////////////////////////////
     this.container.find('.info').off('click');
     this.container.find('.ais_vessel', ).off('click');   
@@ -291,11 +317,15 @@ ScreenSearchView.prototype.repaint = function () {
     }
     _setEventHandlers.call(this);  
     _switchLegendIcon.call(this, _tools.needAltLegend);
+//console.log((new Date().getTime()-startRep)/1000)
 };
 
 ScreenSearchView.prototype.show = function () {
     this.startShow = true;
     BaseView.prototype.show.apply(this, arguments);
+    if (_delayedRepaint && !this.model.isDirty)
+        this.repaint();
+
     this.frame.find('.filter input').focus();
 
     if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)

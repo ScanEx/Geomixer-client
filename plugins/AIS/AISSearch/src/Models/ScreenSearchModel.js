@@ -1,8 +1,9 @@
 let _actualUpdate,
 _myFleetModel,
-_aisLayerSearcher;
+_aisLayerSearcher,
+_vesselLegend;
 
-const ScreenSearchModel = function ({aisLayerSearcher, myFleetModel}) {
+const ScreenSearchModel = function ({aisLayerSearcher, myFleetModel, vesselLegend}) {
 
     let thisInstance = this;
     myFleetModel.onChanged = function(){
@@ -12,6 +13,7 @@ const ScreenSearchModel = function ({aisLayerSearcher, myFleetModel}) {
     };
     _aisLayerSearcher = aisLayerSearcher;
     _myFleetModel = myFleetModel;
+    _vesselLegend = vesselLegend;
     this.filterString = "";
     this.isDirty = true;
 };
@@ -29,6 +31,7 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                 group: true
             }, function (json) {
                 if (json.Status.toLowerCase() == "ok") {
+console.log(json.Result.elapsed)
                     thisInst.dataSrc = {
                         vessels: json.Result.values.map(function (v) {
                             let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
@@ -38,6 +41,8 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                                 xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
                                 vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
                             };
+                            //if (_myFleetModel.findIndex(vessel)>=0)
+                            //    vessel.mf_member = "visibility:visible";
                             vessel.icon_rot = Math.round(vessel.cog/15)*15;
                             _aisLayerSearcher.placeVesselTypeIcon(vessel);
                             return vessel;
@@ -62,17 +67,66 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
 ScreenSearchModel.prototype.setFilter = function () {
     this.filterString = this.filterString.replace(/\r+$/, "");
     if (this.dataSrc){
+        let groupsDict = {}, groupsAltDict= {},
+        updateGroups = function(v, a, d, ic){  
+            if (ic) {
+                let group = d[ic.url];
+                if (!group) {
+                    a.push({ url: ic.url, name: ic.name, count: 1 });
+                    d[ic.url] = a[a.length - 1];
+                }
+                else
+                    group.count++;
+            }
+        };
+
+        this.data = { groups: [], groupsAlt: [] };        
         if (this.filterString != "") {
-            this.data = {
-                vessels: this.dataSrc.vessels.filter(((v)=>{
-                    return v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1;
-                }).bind(this))
-            };
+            this.data.vessels = this.dataSrc.vessels.filter(((v) => {
+                if (v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1) {
+                    updateGroups(v, this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
+                    updateGroups(v, this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
+                    return true;
+                }
+                else
+                    return false;
+            }).bind(this));
         }
         else {
-            this.data = { vessels: this.dataSrc.vessels.map((v)=>v) };
+            this.data.vessels = this.dataSrc.vessels.map((v) => {
+                updateGroups(v, this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
+                updateGroups(v, this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
+                return v;
+            });
         }
     }
+};
+ScreenSearchModel.prototype.sortData = function () {
+        let sortGrups = function(a, b) {
+            return b.count - a.count;
+          }
+        this.data.groups.sort(sortGrups);
+        this.data.groupsAlt.sort(sortGrups);
+        // let sortNames = (a,b)=>{
+        //     if (a.vessel_name == b.vessel_name)
+        //         return 0;
+        //     else
+        //         return a.vessel_name > b.vessel_name ? 1 : -1;
+        // };  
+        // this.data.vessels.sort((a,b)=>{
+        //     let a_member = _myFleetModel.findIndex(a)>=0,
+        //         b_member = _myFleetModel.findIndex(b)>=0;
+        //     if (a_member)
+        //         a.mf_member = "visibility:visible";
+        //     if (b_member)
+        //         b.mf_member = "visibility:visible";
+        //     if ((!a_member && !b_member) || (a_member && b_member))
+        //         return 0; //sortNames(a,b);
+        //     else if (a_member && !b_member)
+        //         return -1;
+        //     else if (!a_member && b_member)
+        //         return 1;
+        // });
 };
 ScreenSearchModel.prototype.update = function () {
     if (!this.isDirty)
@@ -82,14 +136,24 @@ ScreenSearchModel.prototype.update = function () {
         actualUpdate = _actualUpdate;
     this.view.inProgress(true);       
 
+let s = new Date()
     this.load(actualUpdate).then(function () {
         if (_actualUpdate == actualUpdate) {
 //console.log(thisInst.dataSrc)
             if (thisInst.dataSrc)
                 _myFleetModel.markMembers(thisInst.dataSrc.vessels);
-            thisInst.setFilter();                 
+console.log("this.load "+((new Date()-s)/1000))
+s = new Date()
+            thisInst.setFilter();  
+console.log("thisInst.setFilter "+((new Date()-s)/1000))
+s = new Date()
+            thisInst.sortData();   
+console.log("thisInst.sortData "+((new Date()-s)/1000))           
             thisInst.view.inProgress(false);
-            thisInst.view.repaint();
+
+s = new Date()
+            thisInst.view.repaint(); 
+console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
         }
     }, function (json) {
         thisInst.dataSrc = null;

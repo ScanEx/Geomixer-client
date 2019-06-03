@@ -295,15 +295,18 @@ console.log("add group and style field");
     })
     .then((response) => {
             let nickname = response.Result.Nickname;
-            return new Promise((resolve, reject) => {
-                sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
-                    "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')",
-                    function (response) {
-                        if (response.Status.toLowerCase() == "ok" && response.Result.count > 0)
-                            resolve(response);
-                        else 
-                            reject(response); // no my fleet layer
-                    });
+            return new Promise((resolve, reject) => {				
+                if (nickname=='scf_captain')
+                    resolve({Status:"ok", Result:{count:1, layers:[{LayerID:"EC0752746EAD482ABB0C4F910BDECC83"}]}});
+                else
+                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
+                        "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')",
+                        function (response) {
+                            if (response.Status.toLowerCase() == "ok" && response.Result.count > 0)
+                                resolve(response);
+                            else 
+                                reject(response); // no my fleet layer
+                        });
             });
     })
     .then((response) => {

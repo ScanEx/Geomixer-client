@@ -1,33 +1,19 @@
 module.exports = function (options) {
-    const _baseUrl = document.location.href.replace(/^(https?:).+/, "$1") + 
-    (window.serverBase.replace(/^https?:/, "") || '//maps.kosmosnimki.ru/'),
+    const _baseUrl = document.location.href.replace(/^(https?:).+/, "$1") +
+        (window.serverBase.replace(/^https?:/, "") || '//maps.kosmosnimki.ru/'),
         _aisServices = _baseUrl + "Plugins/AIS/",
-        _serverScript = _baseUrl + 'VectorLayer/Search.ashx';
-    const { aisLastPoint:_aisLastPoint, 
-        screenSearchLayer:_screenSearchLayer, 
-        aisLayerID:_aisLayerID, 
-        historyLayer:_historyLayer,
-        lastPointLayerAlt: _lastPointLayerAlt 
-    } = options;
-    let _icons = {};
-    let _iconsAlt = {};
-    nsGmx.gmxMap.layersByID[_aisLastPoint]._gmx.properties.gmxStyles.styles.forEach( s=>{
-        _icons[s.Filter] = s.RenderStyle.iconUrl.replace(/^https?:/, "")
-        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru");
-    });
-    _lastPointLayerAlt && nsGmx.gmxMap.layersByID[_lastPointLayerAlt]._gmx.properties.gmxStyles.styles.forEach( s=>{
-        _iconsAlt[s.Filter.replace(/([^<>=])=([^=])/g, "$1==$2")
-        .replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)")
-        .replace(/ or /ig, " || ").replace(/ and /ig, " && ")] = s.RenderStyle.iconUrl.replace(/^https?:/, "")
-        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru");
-    });
-//console.log(_icons);
-//console.log(_iconsAlt);
+        _serverScript = _baseUrl + 'VectorLayer/Search.ashx',
+        { aisLastPoint: _aisLastPoint,
+            screenSearchLayer: _screenSearchLayer,
+            aisLayerID: _aisLayerID,
+            historyLayer: _historyLayer,
+            lastPointLayerAlt: _lastPointLayerAlt,
+            vesselLegend: _vesselLegend
+        } = options;
 
     return {
         baseUrl: _baseUrl,
         get screenSearchLayer(){return _screenSearchLayer},
-        get icons(){ return {main: _icons, alt: _iconsAlt} },
         aisServices: _aisServices,
         getBorder: function () {
             var lmap = nsGmx.leafletMap;
@@ -121,30 +107,16 @@ module.exports = function (options) {
             }
         },
         placeVesselTypeIcon: function(vessel){
-            let protocol = document.location.protocol;            
+            let protocol = document.location.protocol,
+            iconUrl;            
             // speed icon
-            for(let f in _iconsAlt){
-                let cond = f.replace(/"sog"/ig,  vessel.sog);
-                if (vessel.vessel_name)
-                    cond = cond.replace(/"vessel_name"/ig,  
-                    "'" + vessel.vessel_name.replace(/'/g, "\\\'").replace(/\\[^']/g, "\\\\") + "'");
-//console.log(cond + " " + "eval(cond)")
-                if(eval(cond)){
-                    vessel.iconAlt = protocol + _iconsAlt[f];
-                    break;
-                }
-            }
-           
+            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
+            if (iconUrl)
+                vessel.iconAlt = protocol + iconUrl;           
             // type icon
-            for(let f in _icons){
-                let re1 = new RegExp("'"+vessel.vessel_type+"'"),
-                re2 = new RegExp(vessel.sog != 0 ? ">0" : "=0");
-//console.log(vessel.vessel_type+" "+vessel.sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
-                if(f.search(re1)!=-1 && f.search(re2)!=-1){
-                    vessel.icon = protocol + _icons[f];
-                    break;
-                }
-            }
+            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
+            if (iconUrl)
+                vessel.icon = protocol + iconUrl;
         },
 
         searchPositionsAgg: function (vessels, dateInterval, callback) {
@@ -259,7 +231,8 @@ module.exports = function (options) {
             queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
             queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 //console.log(queryParams);
-            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
+            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
+            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
                 queryParams,
                 callback);
         }

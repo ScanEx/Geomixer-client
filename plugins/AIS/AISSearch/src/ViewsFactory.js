@@ -5,15 +5,13 @@ const ScreenSearchView = require('./Views/ScreenSearchView'),
     DbSearchView = require('./Views/DbSearchView'),
     DbSearchModel = require('./Models/DbSearchModel'),
     InfoDialogView = require('./Views/InfoDialogView'),
-    Searcher = require('./Search/Searcher'),
-    Toolbox = require('./Toolbox.js');
+    Searcher = require('./Search/Searcher');
 
 module.exports = function (options) {
-    const _tools = new Toolbox(options),
-        //_layersByID = nsGmx.gmxMap.layersByID,
+    const _tools = options.tools,
         _searcher = new Searcher(options),
         _mfm = new MyFleetModel({aisLayerSearcher:_searcher, toolbox:_tools}),
-        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
+        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
         _dbsm = new DbSearchModel(_searcher),
         _dbsv = new DbSearchView({model:_dbsm, highlight:options.highlight, tools:_tools}),
         _ssv = new ScreenSearchView(_ssm, _tools),
@@ -30,9 +28,9 @@ module.exports = function (options) {
         _mfv.infoDialogView = _idv;
         _dbsv.infoDialogView = _idv;
     return {
-        get tools(){
-            return _tools;
-        },
+        // get tools(){
+        //     return _tools;
+        // },
         get infoDialogView(){
             return _idv;
         },

@@ -14,7 +14,7 @@ const SpecialFloatView = function (images){
     //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
     //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
     //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
-    this.left = -1000;
+    this.left = -10000;
 
     this.contextMenu = document.createElement("div"); 
     this.contextMenu.className = 'mf_group_menu';
@@ -121,7 +121,7 @@ const SpecialFloatView = function (images){
     closeCom.addEventListener("click",(e=>{ 
         !this.allowMove && zoutCom.click(); 
         this.contextMenu.remove(); 
-        this.left = -1000;
+        this.left = -10000;
 
         image1.style.display = "block";
         image2.style.display = "none";
@@ -276,7 +276,7 @@ SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 
 SpecialFloatView.prototype.show = function(){     
     BaseFloatView.prototype.show.apply(this, arguments); 
-    if (this.left>-1000)
+    if (this.left>-9999)
         return;
     this.left = document.defaultView.getWindowWidth() - this.width;
     this.top = 0;
@@ -302,7 +302,7 @@ SpecialFloatView.prototype.show = function(){
     };
     downloadingImage1.onerror = function (e) {
         image1.src = "";
-        image1.style.height = "";
+        image1.style.height = ""; 
     };
     downloadingImage1.src = imageUrl + Math.random();
     // UPDATE 
@@ -331,7 +331,7 @@ SpecialFloatView.prototype.show = function(){
         };
         downloadingImage2.onerror = function (e) {
             image2.src = "";
-            image2.style.height = "";
+            image2.style.height = ""; 
         };
         downloadingImage2.src = imageUrl + Math.random();
 

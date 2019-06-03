@@ -32,8 +32,6 @@ const DbSearchView = function ({ model, highlight, tools }) {
     BaseView.call(this, model, tools);
     _highlight = highlight;
     _tools = tools;
-    let needLegendSwitch = _tools.hasAlternativeLayers,
-    needAltLegend = !!(needLegendSwitch && needLegendSwitch._map);
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
         '<table border=0 class="instruments">' +
         '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' +
@@ -70,8 +68,10 @@ const DbSearchView = function ({ model, highlight, tools }) {
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
-            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
-            this.frame.find('.instruments')[0].getBoundingClientRect().height;
+            let th = $('.ais_tabs')[0].getBoundingClientRect().height,
+            ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+            rv = th + ih;
+            this.frame.find('.instruments').height(ih);
             return rv;
         }
     });  

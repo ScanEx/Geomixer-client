@@ -81,8 +81,10 @@ const MyFleetView = function (model, tools){
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
-            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
-            this.frame.find('.instruments')[0].getBoundingClientRect().height;
+            let th = $('.ais_tabs')[0].getBoundingClientRect().height,
+            ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+            rv = th + ih;
+            this.frame.find('.instruments').height(ih);
             return rv;
         }
     });  

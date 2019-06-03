@@ -3,7 +3,7 @@ module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID;
       let _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
-          _screenSearchLayer = _layersByID[options.screenSearchLayer],
+          _screenSearchLayer = _layersByID[options.searchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
           _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
           _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
@@ -261,7 +261,8 @@ module.exports = function (options) {
             nsGmx.leafletMap.addLayer(_screenSearchLayer);
             _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt); 
             _historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt); 
-            _tracksLayerAlt && nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
+            if (_tracksLayer && _tracksLayerAlt && _tracksLayerAlt._gmx.layerID != _tracksLayer._gmx.layerID )
+                nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
         },
         showVesselsOnMap: function (vessels) {            
             _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all";           

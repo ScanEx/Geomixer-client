@@ -97,11 +97,15 @@
   font-weight: 400;
 }
 .ais_legend_switch td{
-  padding: 20px;
+  padding: 12px;
   padding-left: 0;
 }
+.ais_legend_switch td.show_info{
+  padding-top: 14px;
+  cursor: pointer;
+}
 .ais_legend_switch td span{
-  padding: 5px 15px 6px 15px;
+  padding: 3px 15px 4px 15px;
   cursor: pointer;
 }
 .ais_legend_switch td span.label{
@@ -120,4 +124,46 @@ padding: 2px 8px 3px 9px;
 font-weight: 600;
 margin: 25px;
 }
+.ais_legend_info{
+ background-color:white;
+ position: absolute;
+ border-radius: 3px;
+ box-shadow: 2px 4px 4px #888;
+}
 
+.ais_legend_info .colors{
+  width:100%
+}
+.ais_legend_info .colors td{
+  padding: 5px;
+  padding-top: 2px;
+}
+.ais_legend_info .colors td.color{
+  padding:5px;
+  padding-left:10px;
+  width:1px
+}
+.ais_legend_info .colors tr:first-of-type td{
+  padding-top: 8px;
+}
+.ais_legend_info .colors tr:first-of-type td.color{
+  padding-top:10px;
+}
+.ais_legend_info .movement td{
+  padding: 8px 0px 8px 5px;
+}
+.ais_legend_info .movement td:nth-of-type(2n){
+  padding-right: 10px;
+}
+
+.ais_legend_info .movement_colors{
+  margin: 5px 25px 5px 0px;
+}
+.ais_legend_info .movement_colors td{
+  padding: 1px 0px 1px 2px;
+}
+.ais_legend_info .movement_colors td:nth-of-type(2n){
+  padding-right: 10px;
+  padding-left: 2px;
+  padding-top: 0;
+}
