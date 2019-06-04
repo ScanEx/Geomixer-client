@@ -130,6 +130,8 @@ const SpecialFloatView = function (images, mmsi){
         this.hide(); 
         image1.src = "";
         image2.src = "";
+
+        this.closeCallback();
     }).bind(this));
     zinCom.addEventListener("click",(e=>{
         this.contextMenu.remove();
@@ -274,9 +276,13 @@ const SpecialFloatView = function (images, mmsi){
 
 SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 
-SpecialFloatView.prototype.show = function(images){    
-    BaseFloatView.prototype.show.apply(this, arguments);
+SpecialFloatView.prototype.close = function(){ 
+    this.contextMenu.querySelector('.close').click();
+}
 
+SpecialFloatView.prototype.show = function(images, closeCallback){    
+    BaseFloatView.prototype.show.apply(this, arguments);
+    this.closeCallback = closeCallback;
     if (this.left>-9999 && images.length>1)
         return; 
     this.images = images;  

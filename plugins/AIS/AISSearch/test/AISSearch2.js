@@ -51,7 +51,7 @@
 	    BETA = false;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-	if (false) BETA = true;
+	if (true) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -2084,7 +2084,7 @@
 	    }).then(function (response) {
 	        var nickname = response.Result.Nickname;
 	        return new Promise(function (resolve, reject) {
-	            if (nickname == 'scf_captain') resolve({ Status: "ok", Result: { count: 1, layers: [{ LayerID: "EC0752746EAD482ABB0C4F910BDECC83" }] } });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
+	            if (nickname == 'scf_captain' && _mapID == 'KGEJB') resolve({ Status: "ok", Result: { count: 1, layers: [{ LayerID: "0A5CE9C59487441689ABF3031991BF2F" }] } });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
 	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
 	            });
 	        });
@@ -3439,9 +3439,24 @@
 		}).then(function (special) {
 			if (special) {
 				//console.log(special);
-				$('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
-					special.show(setImages(shipCam, vessel2 ? vessel2 : vessel));
+				var showCamBut = $('<div class="ais button showcam" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function (e) {
+					var b = e.currentTarget;
+					if (b.classList.contains('active')) {
+						b.classList.remove('active');
+						shipCams[vessel.mmsi.toString()].visible = false;
+						special.close();
+					} else {
+						b.classList.add('active');
+						special.show(setImages(shipCam, vessel2 ? vessel2 : vessel), function () {
+							b.classList.remove('active');
+							shipCams[vessel.mmsi.toString()].visible = false;
+						});
+						shipCams[vessel.mmsi.toString()].visible = true;
+					}
 				});
+				//console.log(showCamBut)
+				//console.log(shipCams[vessel.mmsi.toString()].visible)
+				if (shipCams[vessel.mmsi.toString()].visible) showCamBut[0].classList.add('active');
 			}
 		});
 	
@@ -3638,6 +3653,8 @@
 	        _this.hide();
 	        image1.src = "";
 	        image2.src = "";
+	
+	        _this.closeCallback();
 	    }.bind(this));
 	    zinCom.addEventListener("click", function (e) {
 	        _this.contextMenu.remove();
@@ -3777,9 +3794,13 @@
 	
 	SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 	
-	SpecialFloatView.prototype.show = function (images) {
-	    BaseFloatView.prototype.show.apply(this, arguments);
+	SpecialFloatView.prototype.close = function () {
+	    this.contextMenu.querySelector('.close').click();
+	};
 	
+	SpecialFloatView.prototype.show = function (images, closeCallback) {
+	    BaseFloatView.prototype.show.apply(this, arguments);
+	    this.closeCallback = closeCallback;
 	    if (this.left > -9999 && images.length > 1) return;
 	    this.images = images;
 	    //console.log(this.images)  
