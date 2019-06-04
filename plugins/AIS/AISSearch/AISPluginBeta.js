@@ -2022,15 +2022,9 @@
 	    }).then(function (response) {
 	        var nickname = response.Result.Nickname;
 	        return new Promise(function (resolve, reject) {
-	            //sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
-	            //    if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
-	            //});
-		    if (nickname=='scf_captain' && _mapID=='KGEJB')
-			resolve({Status:"ok", Result:{count:1, layers:[{LayerID:"0A5CE9C59487441689ABF3031991BF2F"}]}});
-		    else
-			sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
-			    if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
-			});			
+	            if (nickname == 'scf_captain' && _mapID == 'KGEJB') resolve({ Status: "ok", Result: { count: 1, layers: [{ LayerID: "0A5CE9C59487441689ABF3031991BF2F" }] } });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
+	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
+	            });
 	        });
 	    }).then(function (response) {
 	        var lid = response.Result.layers[0].LayerID;
@@ -3235,7 +3229,8 @@
 			sec: (0 | D * 60 % 1 * 6000) / 100
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir;
-	};
+	},
+	    shipCams = {};
 	
 	module.exports = function (_ref, commands) {
 		var vessel = _ref.vessel,
@@ -3248,6 +3243,23 @@
 		    myFleetView = _ref.myFleetView,
 		    tools = _ref.tools;
 	
+	
+		if (!shipCams[vessel.mmsi]) {
+			nsGmx.gmxMap.layers.forEach(function (l) {
+				if (l && l._gmx && l._gmx.properties) {
+					var props = l._gmx.properties,
+					    title = props.title,
+					    meta = props.MetaProperties;
+					if (title && title.search(/^shipcam[^_]*_/) != -1 && meta.ships && meta.ships.Value.search(new RegExp('"' + vessel.mmsi + '"')) != -1) {
+						shipCams[vessel.mmsi] = {
+							layer: props.name,
+							urls: meta.urls.Value
+						};
+					}
+				}
+			});
+			//console.log(shipCams);
+		}
 	
 		formatDate = aisLayerSearcher.formatDate;
 		formatDateTime = aisLayerSearcher.formatDateTime;
@@ -3340,12 +3352,34 @@
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});
 	
-		if (vessel.mmsi == 273316240 && vessel.imo == 9152959) {
-			var special = new SpecialFloatView(),
-			    showSpecial = $('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
-				special.show();
+		var shipCam = shipCams[vessel.mmsi.toString()],
+		    setImages = function setImages(shipCam, vessel) {
+			var moment = new Date(vessel.ts_pos_org * 1000);
+			moment.setMinutes(moment.getMinutes() + moment.getTimezoneOffset());
+			moment = moment.getFullYear() + "-" + (moment.getMonth() + 1) + "-" + moment.getDate() + " " + moment.getHours() + ":" + moment.getMinutes() + ":" + moment.getSeconds();
+			//console.log(moment)	
+			var images = [];
+			shipCam.urls.split(' ').forEach(function (url) {
+				images.push({ url: serverBase.replace(/https?:/, document.location.protocol).replace(/\/$/, "") + url.replace(/"/g, '') + (url.search(/\?/) != -1 ? '&' : '?') + 'layer=' + shipCam.layer + '&mmsi=' + vessel.mmsi + '&ts=' + moment });
 			});
-		}
+			//console.log(images)	
+			return images;
+		};
+		new Promise(function (resolve) {
+			if (shipCam) {
+				if (!shipCam.view) {
+					shipCam.view = new SpecialFloatView(setImages(shipCam, vessel2 ? vessel2 : vessel), vessel.mmsi);
+					resolve(shipCam.view);
+				} else resolve(shipCam.view);
+			} else resolve(false);
+		}).then(function (special) {
+			if (special) {
+				//console.log(special);
+				$('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
+					special.show(setImages(shipCam, vessel2 ? vessel2 : vessel));
+				});
+			}
+		});
 	
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
@@ -3429,20 +3463,24 @@
 	__webpack_require__(24);
 	var _cssClassName = "special";
 	var BaseFloatView = __webpack_require__(25);
-	var SpecialFloatView = function SpecialFloatView() {
+	var SpecialFloatView = function SpecialFloatView(images, mmsi) {
 	    var _this = this;
 	
 	    BaseFloatView.apply(this, arguments);
+	    this.images = images;
+	    //console.log(this.images)
 	    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
-	    if (FormData.prototype.set) this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';else this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
-	    //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
-	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
-	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
-	    this.left = -1000;
+	    if (FormData.prototype.set && mmsi == 273316240) this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';else this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
+	    this.left = -10000;
 	
 	    this.contextMenu = document.createElement("div");
 	    this.contextMenu.className = 'mf_group_menu';
-	    this.contextMenu.innerHTML = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' + '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>' + '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>' + '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+	    var html = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' + '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>';
+	    if (images.length == 2) {
+	        html += '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>';
+	    }
+	    html += '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+	    this.contextMenu.innerHTML = html;
 	
 	    this.contextMenu.addEventListener('mousedown', function (e) {
 	        if (e.stopPropagation) e.stopPropagation();
@@ -3527,7 +3565,7 @@
 	    closeCom.addEventListener("click", function (e) {
 	        !_this.allowMove && zoutCom.click();
 	        _this.contextMenu.remove();
-	        _this.left = -1000;
+	        _this.left = -10000;
 	
 	        image1.style.display = "block";
 	        image2.style.display = "none";
@@ -3541,9 +3579,9 @@
 	        _this.contextMenu.remove();
 	        e.srcElement.style.display = 'none';
 	        zoutCom.style.display = 'block';
-	        img1Com.style.display = 'none';
-	        img2Com.style.display = 'none';
-	        twoimgCom.style.display = 'none';
+	        img1Com && (img1Com.style.display = 'none');
+	        img2Com && (img2Com.style.display = 'none');
+	        twoimgCom && (twoimgCom.style.display = 'none');
 	        var st = getComputedStyle(content);
 	        w = st.width;h = st.height;
 	        l = _this.left;t = _this.top;
@@ -3587,9 +3625,9 @@
 	        _this.contextMenu.remove();
 	        e.srcElement.style.display = 'none';
 	        zinCom.style.display = 'block';
-	        img1Com.style.display = 'block';
-	        img2Com.style.display = 'block';
-	        twoimgCom.style.display = 'block';
+	        img1Com && (img1Com.style.display = 'block');
+	        img2Com && (img2Com.style.display = 'block');
+	        twoimgCom && (twoimgCom.style.display = 'block');
 	        _this.left = l;
 	        _this.top = t;
 	        content.style.width = w;
@@ -3616,21 +3654,21 @@
 	        logos.classList.remove('zoomed_in');
 	        _this.allowMove = true;
 	    }.bind(this));
-	    img1Com.addEventListener("click", function (e) {
+	    img1Com && img1Com.addEventListener("click", function (e) {
 	        _this.contextMenu.remove();
 	        restoreSize();
 	        image1.style.top = 0;
 	        image1.style.display = "block";
 	        image2.style.display = "none";
 	    }.bind(this));
-	    img2Com.addEventListener("click", function (e) {
+	    img2Com && img2Com.addEventListener("click", function (e) {
 	        _this.contextMenu.remove();
 	        restoreSize();
 	        image2.style.top = 0;
 	        image2.style.display = "block";
 	        image1.style.display = "none";
 	    }.bind(this));
-	    twoimgCom.addEventListener("click", function (e) {
+	    twoimgCom && twoimgCom.addEventListener("click", function (e) {
 	        showTwo = true;
 	
 	        _this.contextMenu.remove();
@@ -3675,24 +3713,28 @@
 	
 	SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 	
-	SpecialFloatView.prototype.show = function () {
+	SpecialFloatView.prototype.show = function (images) {
 	    BaseFloatView.prototype.show.apply(this, arguments);
-	    if (this.left > -1000) return;
-	    this.left = document.defaultView.getWindowWidth() - this.width;
-	    this.top = 0;
+	
+	    if (this.left > -9999 && images.length > 1) return;
+	    this.images = images;
+	    //console.log(this.images)  
 	
 	    var content = this.frame.querySelector('.' + _cssClassName),
 	        image1 = this.frame.querySelector('img.img1'),
 	        image2 = this.frame.querySelector('img.img2'),
-	        rc = this.frame.getBoundingClientRect();
+	        rc = this.frame.getBoundingClientRect(),
+	        imageUrl = this.images[0].url + (this.images[0].url.search(/\?/) != 1 ? "&r=" : "?r="),
+	        timers = [];
 	
 	    var downloadingImage1 = new Image();
 	    downloadingImage1.onload = function () {
 	        image1.src = this.src;
 	        image1.style.left = 0;image1.style.top = 0;
 	        image1.style.width = rc.width + "px";
-	        image1.style.height = getComputedStyle(image1).height;
+	        //image1.style.height = getComputedStyle(image1).height;
 	        //console.log(downloadingImage1.width)  
+	        //console.log(getComputedStyle(image1).height)  
 	        //console.log(this.width)  
 	        //console.log(image1.getBoundingClientRect())  
 	        if (image1.getBoundingClientRect().height) content.style.height = Math.floor(image1.getBoundingClientRect().height) + "px";
@@ -3701,56 +3743,68 @@
 	        image1.src = "";
 	        image1.style.height = "";
 	    };
-	    downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
+	    downloadingImage1.src = imageUrl + Math.random();
 	
-	    var downloadingImage2 = new Image();
-	    downloadingImage2.onload = function () {
-	        image2.src = this.src;
-	        image2.style.left = 0;image2.style.top = 0;
-	        image2.style.width = rc.width + "px";
-	        image2.style.height = getComputedStyle(image2).height;
-	        image2.style.display = "none";
-	        //console.log(image1.getBoundingClientRect())
-	    };
-	    downloadingImage2.onerror = function (e) {
-	        image2.src = "";
-	        image2.style.height = "";
-	    };
-	    downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
+	    if (this.images[1]) {
+	        var downloadingImage2 = new Image(),
+	            _imageUrl = this.images[1].url + (this.images[1].url.search(/\?/) != 1 ? "&r=" : "?r=");
+	        downloadingImage2.onload = function () {
+	            image2.src = this.src;
+	            image2.style.left = 0;image2.style.top = 0;
+	            image2.style.width = rc.width + "px";
+	            //image2.style.height = getComputedStyle(image2).height;
+	            image2.style.display = "none";
+	            //console.log(image1.getBoundingClientRect())
+	        };
+	        downloadingImage2.onerror = function (e) {
+	            image2.src = "";
+	            image2.style.height = "";
+	        };
+	        downloadingImage2.src = _imageUrl + Math.random();
+	    }
 	
-	    // UPDATE 
-	    var timer = setTimeout(function update() {
-	        //console.log("TIME " + timer)
+	    if (this.left > -9999) return;
+	
+	    this.left = document.defaultView.getWindowWidth() - this.width;
+	    this.top = 0;
+	
+	    //console.log("SET TIMERS")
+	
+	    // UPDATE 1
+	    var intrerval = 1000 * 60 * 1,
+	        timer = setTimeout(function update() {
+	        //console.log("TIME1 " + timer)
 	        var downloadingImage1 = new Image();
 	        downloadingImage1.onload = function () {
 	            image1.src = downloadingImage1.src;
 	        };
-	        // downloadingImage1.onerror = function (e) {
-	        //     image1.src = "";
-	        //     image1.style.height = "";
-	        // };
-	        downloadingImage1.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=1&r=" + Math.random();
+	        downloadingImage1.src = imageUrl + Math.random();
+	        timers[0] = setTimeout(update, intrerval);
+	    }.bind(this), intrerval);
+	    timers.push(timer);
 	
-	        var downloadingImage2 = new Image();
-	        downloadingImage2.onload = function () {
-	            image2.src = downloadingImage2.src;
-	        };
-	        // downloadingImage2.onerror = function (e) {
-	        //     image2.src = "";
-	        //     image2.style.height = "";
-	        // };
-	        downloadingImage2.src = "//maps.kosmosnimki.ru/plugins/ais/50letpobedy.ashx?n=2&r=" + Math.random();
-	        if (timer) {
-	            clearTimeout(timer);
-	            timer = setTimeout(update, 1000 * 60 * 5);
-	        }
-	    }.bind(this), 1000 * 60 * 5),
-	        closeCom = this.contextMenu.querySelector('.close');
+	    // UPDATE 2    
+	    if (this.images[1]) {
+	        timer = setTimeout(function update() {
+	            //console.log("TIME2 " + timer)
+	            var downloadingImage2 = new Image();
+	            downloadingImage2.onload = function () {
+	                image2.src = downloadingImage2.src;
+	            };
+	            downloadingImage2.src = imageUrl + Math.random();
+	            timers[1] = setTimeout(update, intrerval);
+	        }.bind(this), intrerval);
+	        timers.push(timer);
+	    }
+	
+	    var closeCom = this.contextMenu.querySelector('.close');
 	    this.disposeTimer && closeCom.removeEventListener("click", this.disposeTimer);
 	    this.disposeTimer = function () {
 	        //console.log("STOP TIME")
-	        clearTimeout(timer);
-	        timer = false;
+	        timers.forEach(function (t) {
+	            return clearTimeout(t);
+	        });
+	        timers.length = 0;
 	    };
 	    closeCom.addEventListener("click", this.disposeTimer);
 	};

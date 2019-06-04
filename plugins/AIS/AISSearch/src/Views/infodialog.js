@@ -41,11 +41,30 @@ let addUnit = function (v, u) {
 			sec: (0 | D * 60 % 1 * 6000) / 100
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir
-	}
+	},
+	shipCams = {};
 
 module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	modulePath,	aisView, displayedTrack,
 	myFleetView, tools }, commands) {
+
+	if (!shipCams[vessel.mmsi]){
+		nsGmx.gmxMap.layers.forEach(l => {
+			if (l && l._gmx && l._gmx.properties) {
+				let props = l._gmx.properties,
+					title = props.title,
+					meta = props.MetaProperties;
+				if (title && (title.search(/^shipcam[^_]*_/) != -1) &&
+				meta.ships && (meta.ships.Value.search(new RegExp('"'+vessel.mmsi+'"'))!=-1)) {
+					shipCams[vessel.mmsi] = { 
+						layer: props.name,
+						urls: meta.urls.Value
+					};
+				}
+			}
+		});
+//console.log(shipCams);
+	}
 
 	formatDate = aisLayerSearcher.formatDate;
 	formatDateTime = aisLayerSearcher.formatDateTime;
@@ -191,17 +210,53 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 			// if(showtrack.is('.active'))
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});	
-	
-	if (vessel.mmsi==273316240 && vessel.imo==9152959){
-	let special = new SpecialFloatView(),
-		showSpecial = $('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' +
-			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' +			
-			'</div>')
+
+
+	let shipCam = shipCams[vessel.mmsi.toString()],
+	setImages = function(shipCam, vessel){
+		let moment = new Date(vessel.ts_pos_org*1000);
+		moment.setMinutes(moment.getMinutes() + moment.getTimezoneOffset())
+		moment = moment.getFullYear() + "-" + (moment.getMonth()+1) + "-" + moment.getDate() + " " + 
+		moment.getHours() + ":" + moment.getMinutes() + ":" + moment.getSeconds();
+//console.log(moment)	
+		let images = [];
+		shipCam.urls.split(' ').forEach((url) => {
+			images.push({url: serverBase.replace(/https?:/, document.location.protocol).replace(/\/$/, "") + url.replace(/"/g, '') + 
+			(url.search(/\?/)!=-1?'&':'?') +
+			'layer=' + shipCam.layer +
+			'&mmsi=' + vessel.mmsi +
+			'&ts=' + moment});
+		});
+//console.log(images)	
+		return images;
+	}
+	new Promise(resolve => {
+			if (shipCam) {
+				if (!shipCam.view) {
+					shipCam.view = new SpecialFloatView(
+						setImages(shipCam, vessel2?vessel2:vessel), 
+						vessel.mmsi
+					);							
+					resolve(shipCam.view);
+				}
+				else
+					resolve(shipCam.view);
+			}
+			else
+				resolve(false);
+	})
+	.then((special)=>{
+		if (special){
+//console.log(special);
+			$('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' +
+				'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' +			
+				'</div>')
 			.appendTo(menubuttons)
 			.on('click', function () {
-				special.show();
-			});
-	}
+				special.show(setImages(shipCam, vessel2?vessel2:vessel));
+			});	
+		}	
+	});
 
 	let addremoveIcon = function (add) {
 		return (add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>'
