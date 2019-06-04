@@ -3294,7 +3294,7 @@
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir;
 	},
-	    shipCams = void 0;
+	    shipCams = {};
 	
 	module.exports = function (_ref, commands) {
 		var vessel = _ref.vessel,
@@ -3308,18 +3308,21 @@
 		    tools = _ref.tools;
 	
 	
-		if (!shipCams) {
-			shipCams = {};
+		if (!shipCams[vessel.mmsi]) {
 			nsGmx.gmxMap.layers.forEach(function (l) {
 				if (l && l._gmx && l._gmx.properties) {
 					var props = l._gmx.properties,
-					    title = props["title"];
-					if (title && title.search(/^shipcam[^_]*_\d+/) != -1) {
-						shipCams[title.replace(/^[^_]+_/, "")] = { layer: props["name"] };
+					    title = props.title,
+					    meta = props.MetaProperties;
+					if (title && title.search(/^shipcam[^_]*_/) != -1 && meta.ships && meta.ships.Value.search(new RegExp('"' + vessel.mmsi + '"')) != -1) {
+						shipCams[vessel.mmsi] = {
+							layer: props.name,
+							urls: meta.urls.Value
+						};
 					}
 				}
 			});
-			console.log(shipCams);
+			//console.log(shipCams);
 		}
 	
 		formatDate = aisLayerSearcher.formatDate;
@@ -3413,30 +3416,31 @@
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});
 	
+		var shipCam = shipCams[vessel.mmsi.toString()],
+		    setImages = function setImages(shipCam, vessel) {
+			var moment = new Date(vessel.ts_pos_org * 1000);
+			moment.setMinutes(moment.getMinutes() + moment.getTimezoneOffset());
+			moment = moment.getFullYear() + "-" + (moment.getMonth() + 1) + "-" + moment.getDate() + " " + moment.getHours() + ":" + moment.getMinutes() + ":" + moment.getSeconds();
+			//console.log(moment)	
+			var images = [];
+			shipCam.urls.split(' ').forEach(function (url) {
+				images.push({ url: serverBase.replace(/https?:/, document.location.protocol).replace(/\/$/, "") + url.replace(/"/g, '') + (url.search(/\?/) != -1 ? '&' : '?') + 'layer=' + shipCam.layer + '&mmsi=' + vessel.mmsi + '&ts=' + moment });
+			});
+			//console.log(images)	
+			return images;
+		};
 		new Promise(function (resolve) {
-			if (shipCams[vessel.mmsi.toString()]) {
-				if (!shipCams[vessel.mmsi.toString()].view) {
-					var images = [];
-					sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Search.ashx?layer=" + shipCams[vessel.mmsi.toString()].layer, function (r) {
-						if (r.Status && r.Status.toLowerCase() == "ok") {
-							r.Result.values.forEach(function (v) {
-								var image = {};
-								r.Result.fields.forEach(function (f, i) {
-									image[f] = v[i];
-								});
-								images.push(image);
-							});
-						}
-						shipCams[vessel.mmsi.toString()].view = new SpecialFloatView(images);
-						resolve(shipCams[vessel.mmsi.toString()].view);
-					});
-				} else resolve(shipCams[vessel.mmsi.toString()].view);
+			if (shipCam) {
+				if (!shipCam.view) {
+					shipCam.view = new SpecialFloatView(setImages(shipCam, vessel2 ? vessel2 : vessel), vessel.mmsi);
+					resolve(shipCam.view);
+				} else resolve(shipCam.view);
 			} else resolve(false);
 		}).then(function (special) {
 			if (special) {
 				//console.log(special);
 				$('<div class="button showspec" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function () {
-					special.show();
+					special.show(setImages(shipCam, vessel2 ? vessel2 : vessel));
 				});
 			}
 		});
@@ -3523,22 +3527,24 @@
 	__webpack_require__(24);
 	var _cssClassName = "special";
 	var BaseFloatView = __webpack_require__(25);
-	var SpecialFloatView = function SpecialFloatView(images) {
+	var SpecialFloatView = function SpecialFloatView(images, mmsi) {
 	    var _this = this;
 	
 	    BaseFloatView.apply(this, arguments);
 	    this.images = images;
 	    //console.log(this.images)
 	    this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
-	    if (FormData.prototype.set) this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';else this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
-	    //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
-	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
-	    //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
+	    if (FormData.prototype.set && mmsi == 273316240) this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' + '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';else this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
 	    this.left = -10000;
 	
 	    this.contextMenu = document.createElement("div");
 	    this.contextMenu.className = 'mf_group_menu';
-	    this.contextMenu.innerHTML = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' + '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>' + '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>' + '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+	    var html = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' + '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>';
+	    if (images.length == 2) {
+	        html += '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>';
+	    }
+	    html += '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+	    this.contextMenu.innerHTML = html;
 	
 	    this.contextMenu.addEventListener('mousedown', function (e) {
 	        if (e.stopPropagation) e.stopPropagation();
@@ -3637,9 +3643,9 @@
 	        _this.contextMenu.remove();
 	        e.srcElement.style.display = 'none';
 	        zoutCom.style.display = 'block';
-	        img1Com.style.display = 'none';
-	        img2Com.style.display = 'none';
-	        twoimgCom.style.display = 'none';
+	        img1Com && (img1Com.style.display = 'none');
+	        img2Com && (img2Com.style.display = 'none');
+	        twoimgCom && (twoimgCom.style.display = 'none');
 	        var st = getComputedStyle(content);
 	        w = st.width;h = st.height;
 	        l = _this.left;t = _this.top;
@@ -3683,9 +3689,9 @@
 	        _this.contextMenu.remove();
 	        e.srcElement.style.display = 'none';
 	        zinCom.style.display = 'block';
-	        img1Com.style.display = 'block';
-	        img2Com.style.display = 'block';
-	        twoimgCom.style.display = 'block';
+	        img1Com && (img1Com.style.display = 'block');
+	        img2Com && (img2Com.style.display = 'block');
+	        twoimgCom && (twoimgCom.style.display = 'block');
 	        _this.left = l;
 	        _this.top = t;
 	        content.style.width = w;
@@ -3712,21 +3718,21 @@
 	        logos.classList.remove('zoomed_in');
 	        _this.allowMove = true;
 	    }.bind(this));
-	    img1Com.addEventListener("click", function (e) {
+	    img1Com && img1Com.addEventListener("click", function (e) {
 	        _this.contextMenu.remove();
 	        restoreSize();
 	        image1.style.top = 0;
 	        image1.style.display = "block";
 	        image2.style.display = "none";
 	    }.bind(this));
-	    img2Com.addEventListener("click", function (e) {
+	    img2Com && img2Com.addEventListener("click", function (e) {
 	        _this.contextMenu.remove();
 	        restoreSize();
 	        image2.style.top = 0;
 	        image2.style.display = "block";
 	        image1.style.display = "none";
 	    }.bind(this));
-	    twoimgCom.addEventListener("click", function (e) {
+	    twoimgCom && twoimgCom.addEventListener("click", function (e) {
 	        showTwo = true;
 	
 	        _this.contextMenu.remove();
@@ -3771,11 +3777,12 @@
 	
 	SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 	
-	SpecialFloatView.prototype.show = function () {
+	SpecialFloatView.prototype.show = function (images) {
 	    BaseFloatView.prototype.show.apply(this, arguments);
-	    if (this.left > -9999) return;
-	    this.left = document.defaultView.getWindowWidth() - this.width;
-	    this.top = 0;
+	
+	    if (this.left > -9999 && images.length > 1) return;
+	    this.images = images;
+	    //console.log(this.images)  
 	
 	    var content = this.frame.querySelector('.' + _cssClassName),
 	        image1 = this.frame.querySelector('img.img1'),
@@ -3789,8 +3796,9 @@
 	        image1.src = this.src;
 	        image1.style.left = 0;image1.style.top = 0;
 	        image1.style.width = rc.width + "px";
-	        image1.style.height = getComputedStyle(image1).height;
+	        //image1.style.height = getComputedStyle(image1).height;
 	        //console.log(downloadingImage1.width)  
+	        //console.log(getComputedStyle(image1).height)  
 	        //console.log(this.width)  
 	        //console.log(image1.getBoundingClientRect())  
 	        if (image1.getBoundingClientRect().height) content.style.height = Math.floor(image1.getBoundingClientRect().height) + "px";
@@ -3800,7 +3808,33 @@
 	        image1.style.height = "";
 	    };
 	    downloadingImage1.src = imageUrl + Math.random();
-	    // UPDATE 
+	
+	    if (this.images[1]) {
+	        var downloadingImage2 = new Image(),
+	            _imageUrl = this.images[1].url + (this.images[1].url.search(/\?/) != 1 ? "&r=" : "?r=");
+	        downloadingImage2.onload = function () {
+	            image2.src = this.src;
+	            image2.style.left = 0;image2.style.top = 0;
+	            image2.style.width = rc.width + "px";
+	            //image2.style.height = getComputedStyle(image2).height;
+	            image2.style.display = "none";
+	            //console.log(image1.getBoundingClientRect())
+	        };
+	        downloadingImage2.onerror = function (e) {
+	            image2.src = "";
+	            image2.style.height = "";
+	        };
+	        downloadingImage2.src = _imageUrl + Math.random();
+	    }
+	
+	    if (this.left > -9999) return;
+	
+	    this.left = document.defaultView.getWindowWidth() - this.width;
+	    this.top = 0;
+	
+	    //console.log("SET TIMERS")
+	
+	    // UPDATE 1
 	    var intrerval = 1000 * 60 * 1,
 	        timer = setTimeout(function update() {
 	        //console.log("TIME1 " + timer)
@@ -3813,31 +3847,15 @@
 	    }.bind(this), intrerval);
 	    timers.push(timer);
 	
+	    // UPDATE 2    
 	    if (this.images[1]) {
-	        var downloadingImage2 = new Image(),
-	            _imageUrl = this.images[1].url + (this.images[1].url.search(/\?/) != 1 ? "&r=" : "?r=");
-	        downloadingImage2.onload = function () {
-	            image2.src = this.src;
-	            image2.style.left = 0;image2.style.top = 0;
-	            image2.style.width = rc.width + "px";
-	            image2.style.height = getComputedStyle(image2).height;
-	            image2.style.display = "none";
-	            //console.log(image1.getBoundingClientRect())
-	        };
-	        downloadingImage2.onerror = function (e) {
-	            image2.src = "";
-	            image2.style.height = "";
-	        };
-	        downloadingImage2.src = _imageUrl + Math.random();
-	
-	        // UPDATE 
 	        timer = setTimeout(function update() {
 	            //console.log("TIME2 " + timer)
 	            var downloadingImage2 = new Image();
 	            downloadingImage2.onload = function () {
 	                image2.src = downloadingImage2.src;
 	            };
-	            downloadingImage2.src = _imageUrl + Math.random();
+	            downloadingImage2.src = imageUrl + Math.random();
 	            timers[1] = setTimeout(update, intrerval);
 	        }.bind(this), intrerval);
 	        timers.push(timer);

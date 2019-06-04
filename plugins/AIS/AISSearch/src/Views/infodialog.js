@@ -42,24 +42,28 @@ let addUnit = function (v, u) {
 		};
 		return dms.deg + "°" + dms.min + "'" + dms.sec + "\" " + dms.dir
 	},
-	shipCams;
+	shipCams = {};
 
 module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 	modulePath,	aisView, displayedTrack,
 	myFleetView, tools }, commands) {
 
-	if (!shipCams){
-		shipCams = {};
+	if (!shipCams[vessel.mmsi]){
 		nsGmx.gmxMap.layers.forEach(l => {
 			if (l && l._gmx && l._gmx.properties) {
 				let props = l._gmx.properties,
-					title = props["title"];
-				if (title && title.search(/^shipcam[^_]*_\d+/) != -1) {
-					shipCams[title.replace(/^[^_]+_/, "")] = { layer: props["name"] };
+					title = props.title,
+					meta = props.MetaProperties;
+				if (title && (title.search(/^shipcam[^_]*_/) != -1) &&
+				meta.ships && (meta.ships.Value.search(new RegExp('"'+vessel.mmsi+'"'))!=-1)) {
+					shipCams[vessel.mmsi] = { 
+						layer: props.name,
+						urls: meta.urls.Value
+					};
 				}
 			}
 		});
-console.log(shipCams);
+//console.log(shipCams);
 	}
 
 	formatDate = aisLayerSearcher.formatDate;
@@ -207,28 +211,36 @@ console.log(shipCams);
 			// 	commands.showTrack.call(null, [vessel.mmsi])
 		});	
 
+
+	let shipCam = shipCams[vessel.mmsi.toString()],
+	setImages = function(shipCam, vessel){
+		let moment = new Date(vessel.ts_pos_org*1000);
+		moment.setMinutes(moment.getMinutes() + moment.getTimezoneOffset())
+		moment = moment.getFullYear() + "-" + (moment.getMonth()+1) + "-" + moment.getDate() + " " + 
+		moment.getHours() + ":" + moment.getMinutes() + ":" + moment.getSeconds();
+//console.log(moment)	
+		let images = [];
+		shipCam.urls.split(' ').forEach((url) => {
+			images.push({url: serverBase.replace(/https?:/, document.location.protocol).replace(/\/$/, "") + url.replace(/"/g, '') + 
+			(url.search(/\?/)!=-1?'&':'?') +
+			'layer=' + shipCam.layer +
+			'&mmsi=' + vessel.mmsi +
+			'&ts=' + moment});
+		});
+//console.log(images)	
+		return images;
+	}
 	new Promise(resolve => {
-			if (shipCams[vessel.mmsi.toString()]) {
-				if (!shipCams[vessel.mmsi.toString()].view) {
-					let images = [];
-					sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "VectorLayer/Search.ashx?layer=" +
-						shipCams[vessel.mmsi.toString()].layer,
-						r => {
-							if (r.Status && r.Status.toLowerCase() == "ok") {
-								r.Result.values.forEach((v) => {
-									let image = {};
-									r.Result.fields.forEach((f, i) => {
-										image[f] = v[i];
-									});
-									images.push(image);
-								});
-							}
-							shipCams[vessel.mmsi.toString()].view = new SpecialFloatView(images);							
-							resolve(shipCams[vessel.mmsi.toString()].view);
-						});
+			if (shipCam) {
+				if (!shipCam.view) {
+					shipCam.view = new SpecialFloatView(
+						setImages(shipCam, vessel2?vessel2:vessel), 
+						vessel.mmsi
+					);							
+					resolve(shipCam.view);
 				}
 				else
-					resolve(shipCams[vessel.mmsi.toString()].view);
+					resolve(shipCam.view);
 			}
 			else
 				resolve(false);
@@ -241,7 +253,7 @@ console.log(shipCams);
 				'</div>')
 			.appendTo(menubuttons)
 			.on('click', function () {
-				special.show();
+				special.show(setImages(shipCam, vessel2?vessel2:vessel));
 			});	
 		}	
 	});

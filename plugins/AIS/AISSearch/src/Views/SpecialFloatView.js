@@ -1,29 +1,29 @@
 require("./SpecialFloatView.css")
 const _cssClassName = "special";
 const BaseFloatView = require('./BaseFloatView.js');
-const SpecialFloatView = function (images){
+const SpecialFloatView = function (images, mmsi){
     BaseFloatView.apply(this, arguments);
     this.images = images;
 //console.log(this.images)
     this.frame.innerHTML = '<div class="' + _cssClassName + '"></div><img class="img1"><img class="img2">';
-    if (FormData.prototype.set)
+    if (FormData.prototype.set && mmsi==273316240)
         this.frame.innerHTML += '<table class="logos"><tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset;"></td></tr>' +
         '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset;"></td></tr></table>';
     else
         this.frame.innerHTML += '<table class="logos" style="background:none"><tr><td></td></tr></table>';
-    //     this.frame.innerHTML += '<table class="logos" style="width:98px; height: 66px">' +
-    //     '<tr><td><img src="plugins/AIS/AISSearch/png/anchors.png" style="position: unset; left:2px; top: 2px"></td></tr>' +
-    //     '<tr><td><img src="plugins/AIS/AISSearch/png/rscc-logo.png" style="position: unset; left:2px; top: 34px"></td></tr></table>';    
     this.left = -10000;
 
     this.contextMenu = document.createElement("div"); 
     this.contextMenu.className = 'mf_group_menu';
-    this.contextMenu.innerHTML = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' +
-    '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>' + 
-    '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' + 
-    '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' + 
-    '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>' + 
-    '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+    let html = '<div class="command zoomin">' + _gtxt('AISSearch2.zoomin_com') + '</div>' +
+    '<div class="command zoomout" style="display:none">' + _gtxt('AISSearch2.zoomout_com') + '</div>'; 
+    if (images.length == 2) {
+        html += '<div class="command image1">' + _gtxt('AISSearch2.image1_com') + '</div>' +
+            '<div class="command image2">' + _gtxt('AISSearch2.image2_com') + '</div>' +
+            '<div class="command twoimages">' + _gtxt('AISSearch2.twoimages_com') + '</div>';
+    }
+    html += '<div class="command close">' + _gtxt('AISSearch2.close_com') + '</div>';
+    this.contextMenu.innerHTML = html;
 
     this.contextMenu.addEventListener('mousedown', (e=>{
         if(e.stopPropagation) e.stopPropagation();
@@ -135,9 +135,9 @@ const SpecialFloatView = function (images){
         this.contextMenu.remove();
         e.srcElement.style.display = 'none'; 
         zoutCom.style.display = 'block';
-        img1Com.style.display = 'none';
-        img2Com.style.display = 'none';
-        twoimgCom.style.display = 'none';
+        img1Com && (img1Com.style.display = 'none');
+        img2Com && (img2Com.style.display = 'none');
+        twoimgCom && (twoimgCom.style.display = 'none');
         let st = getComputedStyle(content);
         w = st.width; h = st.height; 
         l = this.left; t = this.top;
@@ -180,9 +180,9 @@ const SpecialFloatView = function (images){
         this.contextMenu.remove();
         e.srcElement.style.display = 'none'; 
         zinCom.style.display = 'block';
-        img1Com.style.display = 'block';
-        img2Com.style.display = 'block';
-        twoimgCom.style.display = 'block';
+        img1Com && (img1Com.style.display = 'block');
+        img2Com && (img2Com.style.display = 'block');
+        twoimgCom && (twoimgCom.style.display = 'block');
         this.left = l; 
         this.top = t;
         content.style.width = w;   
@@ -209,21 +209,21 @@ const SpecialFloatView = function (images){
         logos.classList.remove('zoomed_in');  
         this.allowMove = true;  
     }).bind(this));
-    img1Com.addEventListener("click",(e=>{
+    img1Com && img1Com.addEventListener("click",(e=>{
         this.contextMenu.remove();
         restoreSize();
         image1.style.top = 0;
         image1.style.display = "block";
         image2.style.display = "none";
     }).bind(this));
-    img2Com.addEventListener("click",(e=>{
+    img2Com && img2Com.addEventListener("click",(e=>{
         this.contextMenu.remove();
         restoreSize();
         image2.style.top = 0;
         image2.style.display = "block";
         image1.style.display = "none";
     }).bind(this));
-    twoimgCom.addEventListener("click",(e=>{
+    twoimgCom && twoimgCom.addEventListener("click",(e=>{
         showTwo = true;
 
         this.contextMenu.remove();
@@ -274,12 +274,13 @@ const SpecialFloatView = function (images){
 
 SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 
-SpecialFloatView.prototype.show = function(){     
-    BaseFloatView.prototype.show.apply(this, arguments); 
-    if (this.left>-9999)
-        return;
-    this.left = document.defaultView.getWindowWidth() - this.width;
-    this.top = 0;
+SpecialFloatView.prototype.show = function(images){    
+    BaseFloatView.prototype.show.apply(this, arguments);
+
+    if (this.left>-9999 && images.length>1)
+        return; 
+    this.images = images;  
+//console.log(this.images)  
 
     let content = this.frame.querySelector('.'+_cssClassName),
     image1 = this.frame.querySelector('img.img1'),
@@ -287,14 +288,15 @@ SpecialFloatView.prototype.show = function(){
     rc = this.frame.getBoundingClientRect(),
     imageUrl = this.images[0].url + (this.images[0].url.search(/\?/)!=1?"&r=":"?r="),
     timers = [];
-
+ 
     let downloadingImage1 = new Image();
     downloadingImage1.onload = function(){
         image1.src = this.src; 
         image1.style.left = 0; image1.style.top = 0;
         image1.style.width = rc.width + "px";
-        image1.style.height = getComputedStyle(image1).height;
+        //image1.style.height = getComputedStyle(image1).height;
 //console.log(downloadingImage1.width)  
+//console.log(getComputedStyle(image1).height)  
 //console.log(this.width)  
 //console.log(image1.getBoundingClientRect())  
         if (image1.getBoundingClientRect().height)        
@@ -305,7 +307,35 @@ SpecialFloatView.prototype.show = function(){
         image1.style.height = ""; 
     };
     downloadingImage1.src = imageUrl + Math.random();
-    // UPDATE 
+
+    if (this.images[1]) {
+        let downloadingImage2 = new Image(),        
+        imageUrl = this.images[1].url + (this.images[1].url.search(/\?/)!=1?"&r=":"?r=");
+        downloadingImage2.onload = function () {
+            image2.src = this.src;
+            image2.style.left = 0; image2.style.top = 0;
+            image2.style.width = rc.width + "px";
+            //image2.style.height = getComputedStyle(image2).height;
+            image2.style.display = "none";
+            //console.log(image1.getBoundingClientRect())
+        };
+        downloadingImage2.onerror = function (e) {
+            image2.src = "";
+            image2.style.height = ""; 
+        };
+        downloadingImage2.src = imageUrl + Math.random();
+    }
+ 
+
+    if (this.left>-9999)
+        return; 
+
+    this.left = document.defaultView.getWindowWidth() - this.width;
+    this.top = 0;
+
+//console.log("SET TIMERS")
+
+    // UPDATE 1
     let intrerval = 1000 * 60 * 1,
     timer = setTimeout(function update() {
 //console.log("TIME1 " + timer)
@@ -318,24 +348,8 @@ SpecialFloatView.prototype.show = function(){
     }.bind(this), intrerval);
     timers.push(timer);
 
+    // UPDATE 2    
     if (this.images[1]) {
-        let downloadingImage2 = new Image(),        
-        imageUrl = this.images[1].url + (this.images[1].url.search(/\?/)!=1?"&r=":"?r=");
-        downloadingImage2.onload = function () {
-            image2.src = this.src;
-            image2.style.left = 0; image2.style.top = 0;
-            image2.style.width = rc.width + "px";
-            image2.style.height = getComputedStyle(image2).height;
-            image2.style.display = "none";
-            //console.log(image1.getBoundingClientRect())
-        };
-        downloadingImage2.onerror = function (e) {
-            image2.src = "";
-            image2.style.height = ""; 
-        };
-        downloadingImage2.src = imageUrl + Math.random();
-
-        // UPDATE 
         timer = setTimeout(function update() {
 //console.log("TIME2 " + timer)
             let downloadingImage2 = new Image();
