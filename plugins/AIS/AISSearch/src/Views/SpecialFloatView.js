@@ -130,6 +130,8 @@ const SpecialFloatView = function (images, mmsi){
         this.hide(); 
         image1.src = "";
         image2.src = "";
+
+        this.closeCallback();
     }).bind(this));
     zinCom.addEventListener("click",(e=>{
         this.contextMenu.remove();
@@ -274,9 +276,13 @@ const SpecialFloatView = function (images, mmsi){
 
 SpecialFloatView.prototype = Object.create(BaseFloatView.prototype);
 
-SpecialFloatView.prototype.show = function(images){    
-    BaseFloatView.prototype.show.apply(this, arguments);
+SpecialFloatView.prototype.close = function(){ 
+    this.contextMenu.querySelector('.close').click();
+}
 
+SpecialFloatView.prototype.show = function(images, closeCallback){    
+    BaseFloatView.prototype.show.apply(this, arguments);
+    this.closeCallback = closeCallback;
     if (this.left>-9999 && images.length>1)
         return; 
     this.images = images;  
@@ -337,15 +343,17 @@ SpecialFloatView.prototype.show = function(images){
 
     // UPDATE 1
     let intrerval = 1000 * 60 * 1,
+    thisInst = this,
     timer = setTimeout(function update() {
 //console.log("TIME1 " + timer)
         let downloadingImage1 = new Image();
         downloadingImage1.onload = function () {
             image1.src = downloadingImage1.src;
         };
-        downloadingImage1.src = imageUrl + Math.random();
+        downloadingImage1.src = thisInst.images[0].url + (thisInst.images[0].url.search(/\?/)!=1?"&r=":"?r=") + Math.random();
+//console.log(downloadingImage1.src)
         timers[0] = setTimeout(update, intrerval);
-    }.bind(this), intrerval);
+    }, intrerval);
     timers.push(timer);
 
     // UPDATE 2    
@@ -356,9 +364,10 @@ SpecialFloatView.prototype.show = function(images){
             downloadingImage2.onload = function () {
                 image2.src = downloadingImage2.src;
             };
-            downloadingImage2.src = imageUrl + Math.random();
+            downloadingImage2.src = thisInst.images[1].url + (thisInst.images[1].url.search(/\?/)!=1?"&r=":"?r=") + Math.random();
+//console.log(downloadingImage2.src)
             timers[1] = setTimeout(update, intrerval);
-        }.bind(this), intrerval);
+        }, intrerval);
         timers.push(timer)
     }
     
