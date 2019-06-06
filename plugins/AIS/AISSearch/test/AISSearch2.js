@@ -3429,36 +3429,38 @@
 			//console.log(images)	
 			return images;
 		};
-		new Promise(function (resolve) {
-			if (shipCam) {
-				if (!shipCam.view) {
-					shipCam.view = new SpecialFloatView(setImages(shipCam, vessel2 ? vessel2 : vessel), vessel.mmsi);
-					resolve(shipCam.view);
-				} else resolve(shipCam.view);
-			} else resolve(false);
-		}).then(function (special) {
-			if (special) {
-				//console.log(special);
-				var showCamBut = $('<div class="ais button showcam" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function (e) {
-					var b = e.currentTarget;
-					if (b.classList.contains('active')) {
-						b.classList.remove('active');
-						shipCams[vessel.mmsi.toString()].visible = false;
-						special.close();
-					} else {
-						b.classList.add('active');
-						special.show(setImages(shipCam, vessel2 ? vessel2 : vessel), function () {
-							b.classList.remove('active');
-							shipCams[vessel.mmsi.toString()].visible = false;
-						});
-						shipCams[vessel.mmsi.toString()].visible = true;
-					}
-				});
-				//console.log(showCamBut)
-				//console.log(shipCams[vessel.mmsi.toString()].visible)
-				if (shipCams[vessel.mmsi.toString()].visible) showCamBut[0].classList.add('active');
+	
+		if (shipCam) {
+			if (!shipCam.view) {
+				shipCam.view = new SpecialFloatView(setImages(shipCam, vessel2 ? vessel2 : vessel), vessel.mmsi);
 			}
-		});
+			var special = shipCam.view;
+			//console.log(special);
+			var showCamBut = $('<div class="ais button showcam" title="' + _gtxt('AISSearch2.show_pos') + '">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><title>camera</title><g class="nc-icon-wrapper" fill="#384b50" style="fill:currentColor"><path d="M21,4H17L15,1H9L7,4H3A3,3,0,0,0,0,7V19a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V7A3,3,0,0,0,21,4ZM12,18a5,5,0,1,1,5-5A5,5,0,0,1,12,18Z"/></g></svg>' + '</div>').appendTo(menubuttons).on('click', function (e) {
+				var b = e.currentTarget;
+				if (b.classList.contains('active')) {
+					b.classList.remove('active');
+					shipCam.visible = false;
+					special.close();
+				} else {
+					b.classList.add('active');
+					special.show(setImages(shipCam, vessel2 ? vessel2 : vessel), function () {
+						b.classList.remove('active');
+						shipCam.visible = false;
+					});
+					shipCam.visible = true;
+				}
+			});
+			//console.log(showCamBut)
+			//console.log(shipCams[vessel.mmsi.toString()].visible)
+			if (shipCam.visible) {
+				showCamBut[0].classList.add('active');
+				special.show(setImages(shipCam, vessel2 ? vessel2 : vessel), function () {
+					showCamBut[0].classList.remove('active');
+					shipCam.visible = false;
+				});
+			}
+		}
 	
 		var addremoveIcon = function addremoveIcon(add) {
 			return add ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g class="nc-icon-wrapper" fill="#444444" style="fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></g></svg>' : '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;fill: currentColor;" xml:space="preserve"><g><path class="st0" d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4    C22,2.9,21.1,2,20,2z M19,11h-4v4h-2v-4H9V9h4V5h2v4h4V11z"/></g><rect x="9" y="5" class="st0" width="10" height="4"/><rect x="9" y="11" class="st0" width="10" height="4"/></g></svg>';
@@ -3857,15 +3859,17 @@
 	
 	    // UPDATE 1
 	    var intrerval = 1000 * 60 * 1,
+	        thisInst = this,
 	        timer = setTimeout(function update() {
 	        //console.log("TIME1 " + timer)
 	        var downloadingImage1 = new Image();
 	        downloadingImage1.onload = function () {
 	            image1.src = downloadingImage1.src;
 	        };
-	        downloadingImage1.src = imageUrl + Math.random();
+	        downloadingImage1.src = thisInst.images[0].url + (thisInst.images[0].url.search(/\?/) != 1 ? "&r=" : "?r=") + Math.random();
+	        //console.log(downloadingImage1.src)
 	        timers[0] = setTimeout(update, intrerval);
-	    }.bind(this), intrerval);
+	    }, intrerval);
 	    timers.push(timer);
 	
 	    // UPDATE 2    
@@ -3876,9 +3880,10 @@
 	            downloadingImage2.onload = function () {
 	                image2.src = downloadingImage2.src;
 	            };
-	            downloadingImage2.src = imageUrl + Math.random();
+	            downloadingImage2.src = thisInst.images[1].url + (thisInst.images[1].url.search(/\?/) != 1 ? "&r=" : "?r=") + Math.random();
+	            //console.log(downloadingImage2.src)
 	            timers[1] = setTimeout(update, intrerval);
-	        }.bind(this), intrerval);
+	        }, intrerval);
 	        timers.push(timer);
 	    }
 	

@@ -343,15 +343,17 @@ SpecialFloatView.prototype.show = function(images, closeCallback){
 
     // UPDATE 1
     let intrerval = 1000 * 60 * 1,
+    thisInst = this,
     timer = setTimeout(function update() {
 //console.log("TIME1 " + timer)
         let downloadingImage1 = new Image();
         downloadingImage1.onload = function () {
             image1.src = downloadingImage1.src;
         };
-        downloadingImage1.src = imageUrl + Math.random();
+        downloadingImage1.src = thisInst.images[0].url + (thisInst.images[0].url.search(/\?/)!=1?"&r=":"?r=") + Math.random();
+//console.log(downloadingImage1.src)
         timers[0] = setTimeout(update, intrerval);
-    }.bind(this), intrerval);
+    }, intrerval);
     timers.push(timer);
 
     // UPDATE 2    
@@ -362,9 +364,10 @@ SpecialFloatView.prototype.show = function(images, closeCallback){
             downloadingImage2.onload = function () {
                 image2.src = downloadingImage2.src;
             };
-            downloadingImage2.src = imageUrl + Math.random();
+            downloadingImage2.src = thisInst.images[1].url + (thisInst.images[1].url.search(/\?/)!=1?"&r=":"?r=") + Math.random();
+//console.log(downloadingImage2.src)
             timers[1] = setTimeout(update, intrerval);
-        }.bind(this), intrerval);
+        }, intrerval);
         timers.push(timer)
     }
     
