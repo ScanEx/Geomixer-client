@@ -492,16 +492,16 @@
         if (!bounds) return;
 
         var lmap = nsGmx.leafletMap;
-		// var z = lmap.getBoundsZoom(bounds);
+        // var z = lmap.getBoundsZoom(bounds);
 
         // if (minZoom !== 20) {
             // z = Math.max(z, minZoom);
         // }
 
         // z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
-		var currentZoom = lmap.getZoom();
-		var doubleClickZoom = lmap.getBoundsZoom(bounds);
-		var z = Math.min(Math.max(15, currentZoom), doubleClickZoom);
+        var currentZoom = lmap.getZoom();
+        var doubleClickZoom = lmap.getBoundsZoom(bounds);
+        var z = Math.min(Math.max(15, currentZoom), doubleClickZoom);
 
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
@@ -592,8 +592,8 @@
         spanDescr.innerHTML = elem.description ? elem.description : '';
 
         if (layerManagerFlag == 1) {
-	    var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
-	    if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
+        var imgIconSrc = (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png');
+        if (elem.type == "Alias") imgIconSrc = 'img/shortcut.png';
             return [_img(null, [
                 ['attr', 'src', imgIconSrc],
                 ['css', 'marginLeft', '3px']
@@ -687,7 +687,7 @@
 
                         if (props.Temporal && (props.IsRasterCatalog || (props.Quicklook && props.Quicklook !== 'null'))) {
                             timelineIcon = this.CreateTimelineIcon(elem);
-						}
+                        }
                     }
                 }
             }
@@ -713,57 +713,57 @@
     }
 
     layersTree.prototype.CreateTimelineIcon = function(elem) {
-		var conf = {
-			disabledSrc: 'img/timeline-icon-disabled.svg',
-			enabledSrc: 'img/timeline-icon-enabled.svg',
-			addTitle: window._gtxt('Добавить в таймлайн'),
-			removeTitle: window._gtxt('Удалить из таймлайна')
-		},
-		layerID = elem.name,
-		icon = nsGmx.Utils._img(null, [
-			['attr', 'src', conf.disabledSrc],
-			['dir','className', 'gmx-timeline-icon disabled'],
-			['dir','title', conf.addTitle]
-		]),
-		toggleIcon = function(flag) {
-			if (flag) {
-				icon.src = conf.enabledSrc;
-				icon.title = conf.addTitle;
-				icon.classList.remove('disabled');
-			} else {
-				icon.src = conf.disabledSrc;
-				icon.title = conf.removeTitle;
-				icon.classList.add('disabled');
-			}
-		};
+        var conf = {
+            disabledSrc: 'img/timeline-icon-disabled.svg',
+            enabledSrc: 'img/timeline-icon-enabled.svg',
+            addTitle: window._gtxt('Добавить в таймлайн'),
+            removeTitle: window._gtxt('Удалить из таймлайна')
+        },
+        layerID = elem.name,
+        icon = nsGmx.Utils._img(null, [
+            ['attr', 'src', conf.disabledSrc],
+            ['dir','className', 'gmx-timeline-icon disabled'],
+            ['dir','title', conf.addTitle]
+        ]),
+        toggleIcon = function(flag) {
+            if (flag) {
+                icon.src = conf.enabledSrc;
+                icon.title = conf.addTitle;
+                icon.classList.remove('disabled');
+            } else {
+                icon.src = conf.disabledSrc;
+                icon.title = conf.removeTitle;
+                icon.classList.add('disabled');
+            }
+        };
 
-		// TODO: требуется замена jQuery	+ не эффективно устанавливается множество хэндлеров
-		$(this).on('layerTimelineRemove', function(e, data) {
-			if (data.layerID === layerID) {
-				toggleIcon(false);
-			}
-		});
+        // TODO: требуется замена jQuery    + не эффективно устанавливается множество хэндлеров
+        $(this).on('layerTimelineRemove', function(e, data) {
+            if (data.layerID === layerID) {
+                toggleIcon(false);
+            }
+        });
 
-		$(this).on('layerTimelineAdd', function(e, data) {
-			if (data.layerID === layerID) {
-				toggleIcon(true);
-			}
-		});
+        $(this).on('layerTimelineAdd', function(e, data) {
+            if (data.layerID === layerID) {
+                toggleIcon(true);
+            }
+        });
 
         L.DomEvent
             .on(icon, 'click', function() {
-				var disabled = icon.classList.contains('disabled'),
-					tlc = nsGmx.timeLineControl,
-					layer = nsGmx.gmxMap.layersByID[layerID];
-				if (disabled) {
-					if (!tlc._map) { nsGmx.leafletMap.addControl(tlc); }
-					tlc.addLayer(layer);
-				} else {
-					tlc.removeLayer(layer);
-				}
-			}, this)
-		return icon;
-	}
+                var disabled = icon.classList.contains('disabled'),
+                    tlc = nsGmx.timeLineControl,
+                    layer = nsGmx.gmxMap.layersByID[layerID];
+                if (disabled) {
+                    if (!tlc._map) { nsGmx.leafletMap.addControl(tlc); }
+                    tlc.addLayer(layer);
+                } else {
+                    tlc.removeLayer(layer);
+                }
+            }, this)
+        return icon;
+    }
 
     layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
         var box,
@@ -991,7 +991,7 @@
 
         while (!el.root) {
             var group = $(el).children("[GroupID]"),
-				chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
+                chB = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
 
             if (group.length > 0) {
                 if (!chB.checked)
@@ -1283,18 +1283,18 @@
             currentZoom = nsGmx.leafletMap.getZoom();
 
         if (typeof elem.content.properties.GroupID != 'undefined') {
-			var alreadyOnMap = this.checkGroupForDuplicates(elem.content.children);
-			if (alreadyOnMap) {
-				showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", alreadyOnMap), true);
+            var alreadyOnMap = this.checkGroupForDuplicates(elem.content.children);
+            if (alreadyOnMap) {
+                showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", alreadyOnMap), true);
                 return false;
-			} else {
-				for (var i = 0; i < elem.content.children.length; i++) {
-				var res = this.addLayersToMap(elem.content.children[i]);
+            } else {
+                for (var i = 0; i < elem.content.children.length; i++) {
+                var res = this.addLayersToMap(elem.content.children[i]);
 
-    				if (!res)
-    					return false;
-    			}
-    		}
+                    if (!res)
+                        return false;
+                }
+            }
         } else {
             var layer = elem.content,
                 name = layer.properties.name;
@@ -1498,7 +1498,7 @@
                     if (group.length) {
                         var it = $(group).find('input[type="checkbox"]')[0] || $(group).find('input[type="radio"]')[0];
                         if (it) it.checked = condition.visible[groupId];
-					}
+                    }
                 }
 
                 if (typeof condition.expanded[groupId] != 'undefined' && props.expanded != condition.expanded[groupId]) {
@@ -1699,7 +1699,7 @@
     }
 
     queryMapLayers.prototype.removeUserActions = function() {
-        //	removeChilds(this.buttonsCanvas);
+        //  removeChilds(this.buttonsCanvas);
 
         this.removeDraggable(this.treeCanvas);
 

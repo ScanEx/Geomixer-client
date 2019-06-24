@@ -2,12 +2,12 @@
     APICore.js
    ====================================================================== */
 
-/** Пространство имён GeoMixer API
+/** РџСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјС‘РЅ GeoMixer API
 * @name gmxAPI
 * @namespace
 */
 
-/** Описание API JS 
+/** РћРїРёСЃР°РЅРёРµ API JS 
 * @name api
 * @namespace
 */
@@ -37,7 +37,7 @@ var extend = function(ph, pt, flag) {
     return ph;
 };
 
-window.PI = 3.14159265358979; //устарело - обратная совместимость
+window.PI = 3.14159265358979; //СѓСЃС‚Р°СЂРµР»Рѕ - РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
 if(!window.gmxAPI) window.gmxAPI = {};
 window.gmxAPI.extend = extend;
 extend(window.gmxAPI,
@@ -50,17 +50,17 @@ extend(window.gmxAPI,
     ,
 	origin: window.document.domain
     ,
-    defaultMinZoom: 1							// мин.zoom по умолчанию
+    defaultMinZoom: 1							// РјРёРЅ.zoom РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 	,
-    defaultMaxZoom: 24							// макс.zoom по умолчанию
+    defaultMaxZoom: 24							// РјР°РєСЃ.zoom РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 	,
-    mousePressed: false							// Флаг мышь нажата
+    mousePressed: false							// Р¤Р»Р°Рі РјС‹С€СЊ РЅР°Р¶Р°С‚Р°
 	,
-    APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
+    APILoaded: false							// Р¤Р»Р°Рі РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ gmxAPI СЃС‚РѕСЂРѕРЅРЅРёРјРё РјРѕРґСѓР»СЏРјРё
 	,
-    initParams: null							// Параметры заданные при создании карты 
+    initParams: null							// РџР°СЂР°РјРµС‚СЂС‹ Р·Р°РґР°РЅРЅС‹Рµ РїСЂРё СЃРѕР·РґР°РЅРёРё РєР°СЂС‚С‹ 
 	,
-    buildGUID: ["02d3fb70bb0e11e3a63d1c6f65874c73"][0]		// GUID текущей сборки
+    buildGUID: ["02d3fb70bb0e11e3a63d1c6f65874c73"][0]		// GUID С‚РµРєСѓС‰РµР№ СЃР±РѕСЂРєРё
 	,
     leafletPlugins: {}
     ,
@@ -149,7 +149,7 @@ extend(window.gmxAPI,
                 ctx.fillStyle = ctx.createPattern(attr.bgImage, "no-repeat");
             if (geom.type === 'POLYGON') coords = [coords];
             for (var i = 0, len = coords.length; i < len; i++) {
-                var coords1 = coords[i][0];    // POLYGON без HELLS
+                var coords1 = coords[i][0];    // POLYGON Р±РµР· HELLS
                 for (var k = 0, len2 = coords1.length; k < len2; k++) {
                     var x = (0.5 + coords1[k][0] * mInPixel - px) << 0,
                         y = (0.5 + py - coords1[k][1] * mInPixel) << 0;
@@ -216,7 +216,7 @@ extend(window.gmxAPI,
         return {params: params, givenMapName: givenMapName};
     })
     ,
-    getHtmlColor: function() {     // Получить цвет текста по map.backgroundColor
+    getHtmlColor: function() {     // РџРѕР»СѓС‡РёС‚СЊ С†РІРµС‚ С‚РµРєСЃС‚Р° РїРѕ map.backgroundColor
         var color = gmxAPI.map.backgroundColor;
         return (0xff & (color >> 16)) > 80 ? "black" : "white";
     }
@@ -309,11 +309,11 @@ extend(window.gmxAPI,
 		return true;
 	}
 	,
-	'getSQLFunction':	function(sql)	{					// Получить функцию по SQL выражению
+	'getSQLFunction':	function(sql)	{					// РџРѕР»СѓС‡РёС‚СЊ С„СѓРЅРєС†РёСЋ РїРѕ SQL РІС‹СЂР°Р¶РµРЅРёСЋ
 		return (gmxAPI.Parsers ? gmxAPI.Parsers.parseSQL(sql) : null);
 	}
 	,
-	'parseSQL': function(sql)	{							// парсинг SQL строки
+	'parseSQL': function(sql)	{							// РїР°СЂСЃРёРЅРі SQL СЃС‚СЂРѕРєРё
 		var zn = sql;
 		if(typeof(zn) === 'string') {
 			zn = zn.replace(/ AND /g, ' && ');
@@ -321,7 +321,7 @@ extend(window.gmxAPI,
 		return zn
 	}
 	,
-	'chkPropsInString': function(str, prop, type)	{							// парсинг значений свойств в строке
+	'chkPropsInString': function(str, prop, type)	{							// РїР°СЂСЃРёРЅРі Р·РЅР°С‡РµРЅРёР№ СЃРІРѕР№СЃС‚РІ РІ СЃС‚СЂРѕРєРµ
 		var zn = str;
 		if(typeof(zn) === 'string') {
 			var reg = (type ? /\"([^\"]+)\"/i : /\[([^\]]+)\]/i);
@@ -450,7 +450,7 @@ extend(window.gmxAPI,
 	},
 	applyTemplate: function(template, properties)
 	{
-		return template.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
+		return template.replace(/\[([a-zA-Z0-9_Р°-СЏРђ-РЇ ]+)\]/g, function()
 		{
 			var value = properties[arguments[1]];
 			if (value != undefined)
@@ -467,8 +467,8 @@ extend(window.gmxAPI,
 	},
 	swfWarning: function(attr)
 	{
-		if(typeof(attr) == 'object') {				// отложенные команды от отрисовщика
-			if(attr.length > 0) {					// массив команд
+		if(typeof(attr) == 'object') {				// РѕС‚Р»РѕР¶РµРЅРЅС‹Рµ РєРѕРјР°РЅРґС‹ РѕС‚ РѕС‚СЂРёСЃРѕРІС‰РёРєР°
+			if(attr.length > 0) {					// РјР°СЃСЃРёРІ РєРѕРјР°РЅРґ
 				for (var i = 0; i < attr.length; i++) {
 					var ph = attr[i];
 					if(!ph.func || !window[ph.func]) continue;
@@ -476,7 +476,7 @@ extend(window.gmxAPI,
 						window[ph.func](ph.geometry, ph.properties, ph.flag);
 					}
 				}
-			} else if(attr.eventType === 'chkLayerVersion') {		// сигнал о необходимости проверки версии слоя
+			} else if(attr.eventType === 'chkLayerVersion') {		// СЃРёРіРЅР°Р» Рѕ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РїСЂРѕРІРµСЂРєРё РІРµСЂСЃРёРё СЃР»РѕСЏ
 				var chkLayer = gmxAPI.mapNodes[attr.layerID] || false;
 				if(chkLayer && gmxAPI._layersVersion) {
 					gmxAPI._layersVersion.chkLayerVersion(chkLayer);
@@ -659,7 +659,7 @@ extend(window.gmxAPI,
 		return gmxAPI.compatEvent(event).clientY + theTop;
 	}
 	,
-	contDivPos: null		// позиция основного контейнера
+	contDivPos: null		// РїРѕР·РёС†РёСЏ РѕСЃРЅРѕРІРЅРѕРіРѕ РєРѕРЅС‚РµР№РЅРµСЂР°
 	,
 	getOffsetLeft: function(div)
 	{
@@ -751,7 +751,7 @@ extend(window.gmxAPI,
 		return (geom ? gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y) : null);
 	}
     ,
-    'bounds': function(arr) {							// получить bounds массива точек
+    'bounds': function(arr) {							// РїРѕР»СѓС‡РёС‚СЊ bounds РјР°СЃСЃРёРІР° С‚РѕС‡РµРє
         var res = {
             min: {
                 x: Number.MAX_VALUE,
@@ -796,7 +796,7 @@ extend(window.gmxAPI,
         return res.extendArray(arr);
     }
     ,
-    'geoBounds': function(geo) {					// получить bounds по geometry
+    'geoBounds': function(geo) {					// РїРѕР»СѓС‡РёС‚СЊ bounds РїРѕ geometry
         var type = geo['type'];
         var coords = geo['coordinates'];
         var arr = [];
@@ -812,7 +812,7 @@ extend(window.gmxAPI,
         } else if(type === 'MULTILINESTRING') {
             for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i]);
         } else if(type === 'POLYGON') {
-            addToArr(coords[0]);			// дырки пропускаем
+            addToArr(coords[0]);			// РґС‹СЂРєРё РїСЂРѕРїСѓСЃРєР°РµРј
         } else if(type === 'MULTIPOLYGON') {
             for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i][0]);
         }
@@ -842,7 +842,7 @@ extend(window.gmxAPI,
 		return ret;
 	}
 	,
-	getTileExtent: function(x, y, z)	// получить extent тайла
+	getTileExtent: function(x, y, z)	// РїРѕР»СѓС‡РёС‚СЊ extent С‚Р°Р№Р»Р°
 	{
 		var pz = Math.pow(2, z);
 		var tileSize = 256 * 156543.033928041 / pz;
@@ -852,7 +852,7 @@ extend(window.gmxAPI,
 		return ext;
 	}
 	,
-	boundsIntersect: function(b1, b2)	// в api.js не используется
+	boundsIntersect: function(b1, b2)	// РІ api.js РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 	{
 		return ((b1.minX < b2.maxX) && (b1.minY < b2.maxY) && (b2.minX < b1.maxX) && (b2.minY < b1.maxY));
 	}
@@ -1228,13 +1228,13 @@ extend(window.gmxAPI,
 	{
 		var type = gmxAPI.map.DistanceUnit
 		if (type === 'km')
-			return (Math.round(length)/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
+			return (Math.round(length)/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРј", " km");
 
 		if (length < 2000 || type === 'm')
-			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" м", " m");
+			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" Рј", " m");
 		if (length < 200000)
-			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
-		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
+			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРј", " km");
+		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРј", " km");
 	}
 	,
 	prettifyArea: function(area)
@@ -1242,19 +1242,19 @@ extend(window.gmxAPI,
 		var type = gmxAPI.map.SquareUnit
 
 		if (type === 'km2')
-			return ("" + (Math.round(area/100)/10000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+			return ("" + (Math.round(area/100)/10000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq.km");
 		if (type === 'ha')
-			return ("" + (Math.round(area/100)/100)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" га", " ha");
+			return ("" + (Math.round(area/100)/100)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РіР°", " ha");
 
 		if (area < 100000 || type === 'm2')
-			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
+			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. Рј", " sq. m");
 		if (area < 3000000)
-			return ("" + (Math.round(area/1000)/1000)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+			return ("" + (Math.round(area/1000)/1000)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq.km");
 		if (area < 30000000)
-			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq.km");
 		if (area < 300000000)
-			return ("" + (Math.round(area/100000)/10)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
-		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
+			return ("" + (Math.round(area/100000)/10)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq.km");
+		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq. km");
 	}
 	,
 	fragmentArea: function(points)
@@ -1322,7 +1322,7 @@ extend(window.gmxAPI,
 		var a1 = Math.floor(angle);
 		var a2 = Math.floor(60*(angle - a1));
 		var a3 = gmxAPI.pad2(3600*(angle - a1 - a2/60)).substring(0, 2);
-		return gmxAPI.pad2(a1) + "°" + gmxAPI.pad2(a2) + "'" + a3 + '"';
+		return gmxAPI.pad2(a1) + "В°" + gmxAPI.pad2(a2) + "'" + a3 + '"';
 	}
 	,
 	LatLon_formatCoordinates: function(x, y)
@@ -1639,10 +1639,10 @@ extend(window.gmxAPI,
 	{
 		// should understand the following formats:
 		// 55.74312, 37.61558
-		// 55°44'35" N, 37°36'56" E
+		// 55В°44'35" N, 37В°36'56" E
 		// 4187347, 7472103
 
-		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_:]/))
+		if (text.match(/[Р№С†СѓРєРµРЅРіС€С‰Р·С…СЉС„С‹РІР°РїСЂРѕР»РґР¶СЌСЏС‡СЃРјРёС‚СЊР±СЋР™Р¦РЈРљР•РќР“РЁР©Р—РҐРЄР¤Р«Р’РђРџР РћР›Р”Р–Р­РЇР§РЎРњРРўР¬Р‘Р®qrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_:]/))
 			return false;
 		if (text.indexOf(" ") != -1)
 			text = text.replace(/,/g, ".");
@@ -1789,7 +1789,7 @@ extend(window.gmxAPI,
 			apiHost = gmxAPI.getHostAndPath(window.location.href);
 		}
 		var arr = /(.*)\/[^\/]*/.exec(apiHost);
-		res = (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
+		res = (arr && arr.length > 1 ? arr[1] : '');	 //СѓРґР°Р»СЏРµРј РїРѕСЃР»РµРґРЅРёР№ РєР°С‚Р°Р»РѕРі РІ Р°РґСЂРµСЃРµ
 		return res;
 	})
 	,
@@ -1893,7 +1893,7 @@ extend(window.gmxAPI,
 		window[name] = undefined;
 		var script = document.createElement("script");
 		var done = false;
-		//var count = 0;		// Попытки загрузки
+		//var count = 0;		// РџРѕРїС‹С‚РєРё Р·Р°РіСЂСѓР·РєРё
 		
 		script.onerror = function()
 		{
@@ -1969,9 +1969,9 @@ extend(window.gmxAPI,
         return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size': size || 32, 'style':ph} });
     }
 	,
-	mapNodes: {}	// ноды mapObjects
+	mapNodes: {}	// РЅРѕРґС‹ mapObjects
 	,
-    chkNodeVisibility: function(id)		// рекурсивная проверка видимости обьекта по mapNodes
+    chkNodeVisibility: function(id)		// СЂРµРєСѓСЂСЃРёРІРЅР°СЏ РїСЂРѕРІРµСЂРєР° РІРёРґРёРјРѕСЃС‚Рё РѕР±СЊРµРєС‚Р° РїРѕ mapNodes
     {
 		var pObj = gmxAPI.mapNodes[id];
 		var ret = (!pObj || ('isVisible' in pObj && !pObj['isVisible']) ? false : (pObj.parent ? gmxAPI.chkNodeVisibility(pObj.parent.objectId) : true));
@@ -1981,15 +1981,15 @@ extend(window.gmxAPI,
     isProxyReady: function()
     {
 		var chkObj = null;
-		if (gmxAPI.proxyType === 'leaflet') {			// Это leaflet версия
+		if (gmxAPI.proxyType === 'leaflet') {			// Р­С‚Рѕ leaflet РІРµСЂСЃРёСЏ
 			chkObj = (gmxAPI._leaflet && gmxAPI._leaflet['LMap'] ? true : false);
-		} else {										// Это Flash версия
+		} else {										// Р­С‚Рѕ Flash РІРµСЂСЃРёСЏ
 			chkObj = window.__flash__toXML;
 		}
 		return (chkObj ? true : false);
     }
 	,
-    getTileBounds: function(z, x, y)					// Определение границ тайла
+    getTileBounds: function(z, x, y)					// РћРїСЂРµРґРµР»РµРЅРёРµ РіСЂР°РЅРёС† С‚Р°Р№Р»Р°
     {
 		var tileSize = gmxAPI.getScale(z)*256;
 		var minX = x*tileSize;
@@ -2002,7 +2002,7 @@ extend(window.gmxAPI,
 		};
     }
 	,
-	'getTilePosZoomDelta': function(tilePoint, zoomFrom, zoomTo) {		// получить смещение тайла на меньшем zoom
+	'getTilePosZoomDelta': function(tilePoint, zoomFrom, zoomTo) {		// РїРѕР»СѓС‡РёС‚СЊ СЃРјРµС‰РµРЅРёРµ С‚Р°Р№Р»Р° РЅР° РјРµРЅСЊС€РµРј zoom
 		var dz = Math.pow(2, zoomFrom - zoomTo);
 		var size = 256 / dz;
 		var dx = tilePoint.x % dz;
@@ -2015,7 +2015,7 @@ extend(window.gmxAPI,
 		};
     }
 	,
-	'filterVisibleTiles': function(arr, tiles, z) {				// отфильтровать список тайлов по видимому extent
+	'filterVisibleTiles': function(arr, tiles, z) {				// РѕС‚С„РёР»СЊС‚СЂРѕРІР°С‚СЊ СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РїРѕ РІРёРґРёРјРѕРјСѓ extent
 		var count = 0;
 		var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
 		if(currPos['latlng']) {
@@ -2043,7 +2043,7 @@ extend(window.gmxAPI,
 		return count;
     }
 	,
-	'chkTileList': function(attr)	{		// получить список тайлов по bounds на определенном zoom
+	'chkTileList': function(attr)	{		// РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РїРѕ bounds РЅР° РѕРїСЂРµРґРµР»РµРЅРЅРѕРј zoom
 		var z = attr.z;
 		var pz = Math.pow(2, -z);
 		var tileSize = 256 * pz * 156543.033928041;
@@ -2075,32 +2075,32 @@ extend(window.gmxAPI,
 					,'y': Math.round(256 * ( 1 - (y % tileSize) / tileSize))
 				}
 			};
-			return tile;						// получить атрибуты тайла по POINT
+			return tile;						// РїРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ С‚Р°Р№Р»Р° РїРѕ POINT
 		}
 	}
 	,
-	'getTileFromPoint': function(x, y, z)	{			// получить атрибуты тайла по POINT на определенном zoom
+	'getTileFromPoint': function(x, y, z)	{			// РїРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ С‚Р°Р№Р»Р° РїРѕ POINT РЅР° РѕРїСЂРµРґРµР»РµРЅРЅРѕРј zoom
 		return gmxAPI.chkTileList({'x':	x, 'y': y, 'z': z});
 	}
 	,
-	'getTileListByGeometry': function(geom, zoom)	{		// получить список тайлов по Geometry для zoom
+	'getTileListByGeometry': function(geom, zoom)	{		// РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РїРѕ Geometry РґР»СЏ zoom
 		var bounds = gmxAPI.getBounds(geom.coordinates);
 		return gmxAPI.getTileListByBounds(bounds, zoom);
 	}
 	,
-	'getTileListByBounds': function(bounds, z)	{		// получить список тайлов по bounds на определенном zoom
+	'getTileListByBounds': function(bounds, z)	{		// РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РїРѕ bounds РЅР° РѕРїСЂРµРґРµР»РµРЅРЅРѕРј zoom
 		return gmxAPI.chkTileList({'bounds': bounds, 'z': z});
 	}
 	,
-	'isPageHidden': function()	{		// Видимость окна браузера
+	'isPageHidden': function()	{		// Р’РёРґРёРјРѕСЃС‚СЊ РѕРєРЅР° Р±СЂР°СѓР·РµСЂР°
         return document.hidden || document.msHidden || document.webkitHidden || document.mozHidden || false;
 	}
 });
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);				// 111319.5;
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;	// 6335440.712613423;
-window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
-window.gmxAPI.proxyType = 'flash';						// Тип отображения
+window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+window.gmxAPI.proxyType = 'flash';						// РўРёРї РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
 window.gmxAPI.miniMapAvailable = false;
 window.gmxAPI.maxRasterZoom = 1;
 window.gmxAPI.miniMapZoomDelta = -4;
@@ -2145,7 +2145,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 	
 })();
 
-// Блок методов глобальной области видимости
+// Р‘Р»РѕРє РјРµС‚РѕРґРѕРІ РіР»РѕР±Р°Р»СЊРЅРѕР№ РѕР±Р»Р°СЃС‚Рё РІРёРґРёРјРѕСЃС‚Рё
 //var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";
 
 var tmp = [
@@ -2160,7 +2160,7 @@ var tmp = [
 	'prettifyDistance', 'prettifyArea',
 	'pad2', 'formatCoordinates', 'formatCoordinates2',
 	'lastFlashMapId', 'newFlashMapId', 'uniqueGlobalName', 'loadVariableFromScript',
-	// Не используемые в api.js
+	// РќРµ РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РІ api.js
 	'newDiv', 'newSpan', 'positionSize', 'merc', 'from_merc', 'formatDegrees', 'memoize', 
 	'DegToRad', 'RadToDeg', 'ArcLengthOfMeridian', 'UTMCentralMeridian', 'FootpointLatitude', 'MapLatLonToXY', 'MapXYToLatLon',
 	'LatLonToUTMXY', 'UTMXYToLatLon', 'trunc', 'truncate9', 'lambertCoefX', 'lambertCoefY', 'fragmentArea', 'fragmentAreaMercator', 'formatDegreesSimple',
@@ -2174,11 +2174,11 @@ var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoo
 var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
 
-// Поддержка setHandler и Listeners
+// РџРѕРґРґРµСЂР¶РєР° setHandler Рё Listeners
 (function()
 {
 
-	var flashEvents = {		// События передающиеся в SWF
+	var flashEvents = {		// РЎРѕР±С‹С‚РёСЏ РїРµСЂРµРґР°СЋС‰РёРµСЃСЏ РІ SWF
 		'onClick': true
 		,'onMouseDown': true
 		,'onMouseUp': true
@@ -2202,7 +2202,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	function setHandler(obj, eventName, handler) {
 		var func = function(subObjectId, a, attr)
 		{
-			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
+			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// РµСЃР»Рё MapObject РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ СЃРѕР·РґР°РµРј
             if (typeof a === 'object') {
                 pObj.properties = gmxAPI.isArray(a) ? gmxAPI.propertiesFromArray(a) : a;
             }
@@ -2225,7 +2225,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		};
 
 		var callback = (handler ? func : null);
-		if(callback || !obj.stateListeners[eventName]) { 	// Если есть callback или нет Listeners на обьекте
+		if(callback || !obj.stateListeners[eventName]) { 	// Р•СЃР»Рё РµСЃС‚СЊ callback РёР»Рё РЅРµС‚ Listeners РЅР° РѕР±СЊРµРєС‚Рµ
 			gmxAPI._cmdProxy('setHandler', { 'obj': obj, 'attr': {
 				'eventName':eventName
 				,'callbackName':callback
@@ -2234,8 +2234,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		}
 	}
 
-	// Begin: Блок Listeners
-	var stateListeners = {};	// Глобальные события
+	// Begin: Р‘Р»РѕРє Listeners
+	var stateListeners = {};	// Р“Р»РѕР±Р°Р»СЊРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ
 	
 	function getArr(eventName, obj)
 	{
@@ -2246,21 +2246,21 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		return arr;
 		//return arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
 	}
-	// Обработка пользовательских Listeners на obj
+	// РћР±СЂР°Р±РѕС‚РєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners РЅР° obj
 	function dispatchEvent(eventName, obj, attr)
 	{
 		var out = false;
 		var arr = getArr(eventName, obj);
-		for (var i=0; i<arr.length; i++)	// Вызываем по убыванию 'level'
+		for (var i=0; i<arr.length; i++)	// Р’С‹Р·С‹РІР°РµРј РїРѕ СѓР±С‹РІР°РЅРёСЋ 'level'
 		{
 			if(typeof(arr[i].func) === 'function') {
                 if(window.gmxAPIdebugLevel === 11) {
 					out = arr[i].func(attr);
-					if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
+					if(out) break;				// РµСЃР»Рё callback РІРѕР·РІСЂР°С‰Р°РµС‚ true Р·Р°РєР°РЅС‡РёРІР°РµРј С†РµРїРѕС‡РєСѓ РІС‹Р·РѕРІР°
 				} else {
                     try {
                         out = arr[i].func(attr);
-                        if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
+                        if(out) break;				// РµСЃР»Рё callback РІРѕР·РІСЂР°С‰Р°РµС‚ true Р·Р°РєР°РЅС‡РёРІР°РµРј С†РµРїРѕС‡РєСѓ РІС‹Р·РѕРІР°
                     } catch(e) {
                         gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
                     }
@@ -2270,21 +2270,21 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		return out;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
+	/** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ Listeners РёР·РјРµРЅРµРЅРёР№ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 	* @function addListener
-	* @memberOf api - добавление прослушивателя
-	* @param {eventName} название события
-	* @param {func} вызываемый метод
-	* @param {pID} Listener унаследован от родительского обьекта
-	* @return {id} присвоенный id прослушивателя
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @memberOf api - РґРѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @param {eventName} РЅР°Р·РІР°РЅРёРµ СЃРѕР±С‹С‚РёСЏ
+	* @param {func} РІС‹Р·С‹РІР°РµРјС‹Р№ РјРµС‚РѕРґ
+	* @param {pID} Listener СѓРЅР°СЃР»РµРґРѕРІР°РЅ РѕС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ РѕР±СЊРµРєС‚Р°
+	* @return {id} РїСЂРёСЃРІРѕРµРЅРЅС‹Р№ id РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
 	function addListener(ph)
 	{
 		var eventName = ph['eventName'];
 		var pID = ph['pID'];
-		if(pID && !flashEvents[eventName]) return false;		// Если есть наследование от родительского Listener и событие не передается в SWF то выходим
+		if(pID && !flashEvents[eventName]) return false;		// Р•СЃР»Рё РµСЃС‚СЊ РЅР°СЃР»РµРґРѕРІР°РЅРёРµ РѕС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ Listener Рё СЃРѕР±С‹С‚РёРµ РЅРµ РїРµСЂРµРґР°РµС‚СЃСЏ РІ SWF С‚Рѕ РІС‹С…РѕРґРёРј
 
 		var obj = ph['obj'];
 		var func = ph['func'];
@@ -2296,26 +2296,26 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		arr.push(pt);
 		arr = arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
 		
-		if(obj) {	// Это Listener на mapObject
+		if(obj) {	// Р­С‚Рѕ Listener РЅР° mapObject
 			obj.stateListeners[eventName] = arr;
 			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) {
 				obj.setHandler(eventName, function(){});
-				delete obj.handlers[eventName];		// для установленных через addListener событий убираем handler
+				delete obj.handlers[eventName];		// РґР»СЏ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… С‡РµСЂРµР· addListener СЃРѕР±С‹С‚РёР№ СѓР±РёСЂР°РµРј handler
 			}
 		}
-		else {		// Это глобальный Listener
+		else {		// Р­С‚Рѕ РіР»РѕР±Р°Р»СЊРЅС‹Р№ Listener
 			stateListeners[eventName] = arr;
 		}
 		return id;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
+	/** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ Listeners РёР·РјРµРЅРµРЅРёР№ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 	* @function removeListener
-	* @memberOf api - удаление прослушивателя
-	* @param {eventName} название события
-	* @param {id} вызываемый метод
-	* @return {Bool} true - удален false - не найден
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @memberOf api - СѓРґР°Р»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @param {eventName} РЅР°Р·РІР°РЅРёРµ СЃРѕР±С‹С‚РёСЏ
+	* @param {id} РІС‹Р·С‹РІР°РµРјС‹Р№ РјРµС‚РѕРґ
+	* @return {Bool} true - СѓРґР°Р»РµРЅ false - РЅРµ РЅР°Р№РґРµРЅ
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
 	function removeListener(obj, eventName, id)
@@ -2339,17 +2339,17 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		'addListener': addListener,
 		'removeListener': removeListener
 	};
-	// End: Блок Listeners
+	// End: Р‘Р»РѕРє Listeners
 
 	var InitHandlersFunc = function() {
 		gmxAPI.extendFMO('setHandler', function(eventName, handler) {
 			setHandler(this, eventName, handler);
-			this.handlers[eventName] = true;		// true если установлено через setHandler
+			this.handlers[eventName] = true;		// true РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ С‡РµСЂРµР· setHandler
 			flashEvents[eventName] = true;
 		});
 
 		gmxAPI.extendFMO('removeHandler', function(eventName) {
-			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Если нет Listeners на обьекте
+			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Р•СЃР»Рё РЅРµС‚ Listeners РЅР° РѕР±СЊРµРєС‚Рµ
 				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
 			}
 			delete this.handlers[eventName];
@@ -2374,14 +2374,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		'Init': InitHandlersFunc
 	};
 	
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
 	gmxAPI._handlers = ret;
 })();
 
 
 !function() {
 
-    //скопирована из API для обеспечения независимости от него
+    //СЃРєРѕРїРёСЂРѕРІР°РЅР° РёР· API РґР»СЏ РѕР±РµСЃРїРµС‡РµРЅРёСЏ РЅРµР·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РЅРµРіРѕ
     function parseUri(str)
     {
         var	o   = parseUri.options,
@@ -2431,7 +2431,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
             request.callback && request.callback({Status:"error", ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType: "JSON.parse", StackTrace: dataStr}});
         }
         var request = requests[e.origin][dataObj.CallbackName];
-        if(!request) return;    // message от других запросов
+        if(!request) return;    // message РѕС‚ РґСЂСѓРіРёС… Р·Р°РїСЂРѕСЃРѕРІ
         
         delete request[dataObj.CallbackName];
         delete dataObj.CallbackName;
@@ -2463,24 +2463,24 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
         return iframe;
     }
     
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI.createPostIframe2 = createPostIframe2;
 
 }();
 
-// кроссдоменный POST запрос
+// РєСЂРѕСЃСЃРґРѕРјРµРЅРЅС‹Р№ POST Р·Р°РїСЂРѕСЃ
 (function()
 {
-	/** Посылает кроссдоменный POST запрос
+	/** РџРѕСЃС‹Р»Р°РµС‚ РєСЂРѕСЃСЃРґРѕРјРµРЅРЅС‹Р№ POST Р·Р°РїСЂРѕСЃ
 	* @namespace utilities
     * @ignore
 	* @function
 	* 
-	* @param url {string} - URL запроса
-	* @param params {object} - хэш параметров-запросов
-	* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
-	* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
-	*                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
+	* @param url {string} - URL Р·Р°РїСЂРѕСЃР°
+	* @param params {object} - С…СЌС€ РїР°СЂР°РјРµС‚СЂРѕРІ-Р·Р°РїСЂРѕСЃРѕРІ
+	* @param callback {function} - callback, РєРѕС‚РѕСЂС‹Р№ РІС‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё РїСЂРёС…РѕРґРµ РѕС‚РІРµС‚Р° СЃ СЃРµСЂРІРµСЂР°. Р•РґРёРЅСЃС‚РІРµРЅРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ С„-С†РёРё - СЃРѕР±СЃС‚РІРµРЅРЅРѕ РґР°РЅРЅС‹Рµ
+	* @param baseForm {DOMElement} - Р±Р°Р·РѕРІР°СЏ С„РѕСЂРјР° Р·Р°РїСЂРѕСЃР°. РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ, РєРѕРіРґР° РЅСѓР¶РЅРѕ РѕС‚РїСЂР°РІРёС‚СЊ РЅР° СЃРµСЂРІРµСЂ С„Р°Р№Р». 
+	*                                Р’ С„СѓРЅРєС†РёРё СЌС‚Р° С„РѕСЂРјР° Р±СѓРґРµС‚ РјРѕРґРёС„РёС†РёСЂРѕРІР°С‚СЊСЃСЏ, РЅРѕ РїРѕСЃР»Рµ РѕС‚РїСЂР°РІР»РµРЅРёСЏ Р·Р°РїСЂРѕСЃР° Р±СѓРґРµС‚ РїСЂРёРІРµРґРµРЅР° Рє РёСЃС…РѕРґРЅРѕРјСѓ РІРёРґСѓ.
 	*/
 	function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	{
@@ -2559,7 +2559,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
             form.parentNode.removeChild(form);
         }
 	}
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
 	gmxAPI.sendCrossDomainPostRequest = sendCrossDomainPostRequest;
 })();
 
@@ -2650,7 +2650,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	if (hostName.charAt(hostName.length-1) == '/')
 		hostName = hostName.slice(0, -1);
 		
-	//относительный путь в загружаемой карте
+	//РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅС‹Р№ РїСѓС‚СЊ РІ Р·Р°РіСЂСѓР¶Р°РµРјРѕР№ РєР°СЂС‚Рµ
 	if (hostName.charAt(0) == '/')
 		hostName = getAPIHost() + hostName;
 
@@ -2661,7 +2661,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			"apiKey",
 			function(key) { configFlag = true; }
 			,
-			function() { configFlag = true; }	// Нет config.js
+			function() { configFlag = true; }	// РќРµС‚ config.js
 		);
 	} else {
 		configFlag = true;	
@@ -2722,7 +2722,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			,null
 			,function(ev)
 			{
-				var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Сбой при получении карты!", "Error in map request!");
+				var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎР±РѕР№ РїСЂРё РїРѕР»СѓС‡РµРЅРёРё РєР°СЂС‚С‹!", "Error in map request!");
 				gmxAPI.addDebugWarnings({'func': 'TileSender.ashx?ModeKey=map&MapName=' + mapName, 'handler': 'sendCrossDomainJSONRequest', 'alert': txt});
 				if (onError) onError();
 				else callback(null);
@@ -2734,7 +2734,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	{
 		var haveNoAPIKey = function()
 		{
-			alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Не указан API-ключ!", "API key not specified!"));
+			alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("РќРµ СѓРєР°Р·Р°РЅ API-РєР»СЋС‡!", "API key not specified!"));
 			window.KOSMOSNIMKI_SESSION_KEY = "INVALID";
 			finish();
 		}
@@ -2746,9 +2746,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				if (response.Result.Status)
 					window.KOSMOSNIMKI_SESSION_KEY = response.Result.Key;
 				else {
-					var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!");
+					var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРєР°Р·Р°РЅ РЅРµРІРµСЂРЅС‹Р№ API-РєР»СЋС‡!", "Incorrect API key specified!");
 					gmxAPI.addDebugWarnings({'func': 'useAPIKey', 'handler': 'processResponse', 'alert': txt});
-					//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+					//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРєР°Р·Р°РЅ РЅРµРІРµСЂРЅС‹Р№ API-РєР»СЋС‡!", "Incorrect API key specified!"));
 				}
 				finish();
 			}
@@ -2769,9 +2769,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					,null
 					,function(ev)
 					{
-						var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Сбой при получении API-ключа!", "Error in API key request!");
+						var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎР±РѕР№ РїСЂРё РїРѕР»СѓС‡РµРЅРёРё API-РєР»СЋС‡Р°!", "Error in API key request!");
 						gmxAPI.addDebugWarnings({'func': 'useAPIKey', 'handler': 'sendCrossDomainJSONRequest', 'alert': txt});
-						//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+						//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРєР°Р·Р°РЅ РЅРµРІРµСЂРЅС‹Р№ API-РєР»СЋС‡!", "Incorrect API key specified!"));
 						finish();
 					}
 					
@@ -2798,10 +2798,10 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					if (key)
 						useAPIKey(key);
 					else
-						haveNoAPIKey();			// Нет apiKey в config.js
+						haveNoAPIKey();			// РќРµС‚ apiKey РІ config.js
 				}
 				,
-				function() { haveNoAPIKey(); }	// Нет config.js
+				function() { haveNoAPIKey(); }	// РќРµС‚ config.js
 			);
 		else
 			haveNoAPIKey();
@@ -2830,16 +2830,16 @@ function createFlashMap(div, arg1, arg2, arg3)
 		}
 		//hostName = 'maps.kosmosnimki.ru';
 		var uri = gmxAPI.parseUri(hostName);
-		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
-        gmxAPI.currentMapName = mapName; // текущая карта
+		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹ РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅ
+        gmxAPI.currentMapName = mapName; // С‚РµРєСѓС‰Р°СЏ РєР°СЂС‚Р°
 
         var loadStart = function() {
-            // ID базовой карты подложек
+            // ID Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹ РїРѕРґР»РѕР¶РµРє
             gmxAPI.kosmosnimki_API = gmxAPI.getBaseMapParam("id", gmxAPI.kosmosnimki_API);
             loadMapJSON(hostName, mapName, function(layers)
             {
                 if (layers != null) {
-                    gmxAPI.currentMapName = layers.properties.name; // Получили текущую карту
+                    gmxAPI.currentMapName = layers.properties.name; // РџРѕР»СѓС‡РёР»Рё С‚РµРєСѓС‰СѓСЋ РєР°СЂС‚Сѓ
                     window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
                     var UseKosmosnimkiAPI = gmxAPI.currentMapName === gmxAPI.kosmosnimki_API ? false : layers.properties.UseKosmosnimkiAPI;
                     (UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
@@ -2854,7 +2854,7 @@ function createFlashMap(div, arg1, arg2, arg3)
                 gmxAPI.getAPIFolderRoot() + "config.js",
                 "baseMap",
                 loadStart,
-                loadStart			// Есть config.js
+                loadStart			// Р•СЃС‚СЊ config.js
             );
         } else {
             loadStart();
@@ -2879,17 +2879,17 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.parent = parent_;
 	this.isRemoved = false;
 	this.flashId = flashId;
-	this._attr = {};			// Дополнительные атрибуты
-	this.stateListeners = {};	// Пользовательские события
-	this.handlers = {};			// Пользовательские события во Flash
-	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев
-	this.childsID = {};			// Хэш ID потомков
+	this._attr = {};			// Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ Р°С‚СЂРёР±СѓС‚С‹
+	this.stateListeners = {};	// РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ СЃРѕР±С‹С‚РёСЏ
+	this.handlers = {};			// РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ СЃРѕР±С‹С‚РёСЏ РІРѕ Flash
+	//this.maxRasterZoom = 1;		// РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ Р·СѓРј СЂР°СЃС‚СЂРѕРІС‹С… СЃР»РѕРµРІ
+	this.childsID = {};			// РҐСЌС€ ID РїРѕС‚РѕРјРєРѕРІ
 }
-// расширение FlashMapObject
+// СЂР°СЃС€РёСЂРµРЅРёРµ FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 gmxAPI._FMO = FlashMapObject;
 
-// Для MapObject
+// Р”Р»СЏ MapObject
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 FlashMapObject.prototype.bringToBottom = function() { return gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
@@ -2925,7 +2925,7 @@ FlashMapObject.prototype.setVisible = function(flag, notDispatch) {
 
 	var prev = this.isVisible;
 	this.isVisible = val;
-	if(prev != val && !notDispatch) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+	if(prev != val && !notDispatch) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Р’С‹Р·РѕРІ Listeners СЃРѕР±С‹С‚РёСЏ 'onChangeVisible'
 	if (this.copyright && 'updateCopyright' in gmxAPI.map)
 		gmxAPI.map.updateCopyright();
 }
@@ -2936,7 +2936,7 @@ FlashMapObject.prototype.getChildren = function()
 	var ret = [];
 	for (var i = 0; i < arr.length; i++) {
 		var id = arr[i].id;
-		var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// если MapObject отсутствует создаем
+		var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// РµСЃР»Рё MapObject РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ СЃРѕР·РґР°РµРј
 		//pObj.properties = gmxAPI.propertiesFromArray(arr[i].properties);
 		var a = arr[i].properties;
         
@@ -2950,33 +2950,33 @@ FlashMapObject.prototype.getChildren = function()
 	return ret;
 }
 
-if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
+if(gmxAPI._handlers) gmxAPI._handlers.Init();		// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ handlers
 
 FlashMapObject.prototype.addObjectsFromSWF = function(url) {
-	gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
+	gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // РћС‚РїСЂР°РІРёС‚СЊ РєРѕРјР°РЅРґСѓ РІ SWF
 }
-/** Добавление набора статических объектов на карту
+/** Р”РѕР±Р°РІР»РµРЅРёРµ РЅР°Р±РѕСЂР° СЃС‚Р°С‚РёС‡РµСЃРєРёС… РѕР±СЉРµРєС‚РѕРІ РЅР° РєР°СЂС‚Сѓ
 * @function
 * @ignore
 * @memberOf api
-* @param {array} data массив добавляемых обьектов
-* @return {array} массив добавленных обьектов
+* @param {array} data РјР°СЃСЃРёРІ РґРѕР±Р°РІР»СЏРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ
+* @return {array} РјР°СЃСЃРёРІ РґРѕР±Р°РІР»РµРЅРЅС‹С… РѕР±СЊРµРєС‚РѕРІ
 * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 */
 FlashMapObject.prototype.addObjects = function(data, format) {
-	return gmxAPI._cmdProxy('addObjects', {'obj': this, 'attr':{'arr': data, 'format': format}}); // Отправить команду в SWF
+	return gmxAPI._cmdProxy('addObjects', {'obj': this, 'attr':{'arr': data, 'format': format}}); // РћС‚РїСЂР°РІРёС‚СЊ РєРѕРјР°РЅРґСѓ РІ SWF
 }
 FlashMapObject.prototype.addObject = function(geometry, props, propHiden) {
 	var objID = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props, 'propHiden':propHiden }});
 	if(!objID) objID = false;
-	var pObj = new FlashMapObject(objID, props, this);	// обычный MapObject
-	// пополнение mapNodes
+	var pObj = new FlashMapObject(objID, props, this);	// РѕР±С‹С‡РЅС‹Р№ MapObject
+	// РїРѕРїРѕР»РЅРµРЅРёРµ mapNodes
 	var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
 	gmxAPI.mapNodes[currID] = pObj;
 	if(pObj.parent) {
 		pObj.parent.childsID[currID] = true;
 		if(pObj.parent.isMiniMap) {
-			pObj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
+			pObj.isMiniMap = true;			// Р’СЃРµ РґРѕР±Р°РІР»СЏРµРјС‹Рµ Рє РјРёРЅРёРєР°СЂС‚Рµ РЅРѕРґС‹ РёРјРµСЋС‚ СЌС‚РѕС‚ РїСЂРёР·РЅР°Рє
 		}
 	}
 	if(propHiden) pObj.propHiden = propHiden;
@@ -2986,26 +2986,26 @@ FlashMapObject.prototype.addObject = function(geometry, props, propHiden) {
 
 FlashMapObject.prototype.remove = function()
 {
-	if(this.isRemoved) return false;									// Обьект уже был удален
+	if(this.isRemoved) return false;									// РћР±СЊРµРєС‚ СѓР¶Рµ Р±С‹Р» СѓРґР°Р»РµРЅ
 	if(this.copyright && 'removeCopyrightedObject' in gmxAPI.map)
 		gmxAPI.map.removeCopyrightedObject(this);
 		
 	if(this.objectId) {
-		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
+		gmxAPI._cmdProxy('remove', { 'obj': this}); // РЈРґР°Р»СЏС‚СЊ РІ SWF С‚РѕР»СЊРєРѕ РµСЃР»Рё С‚Р°Рј РµСЃС‚СЊ РѕР±СЊРµРєС‚
 		if(this.parent) delete this.parent.childsID[this.objectId];
 		delete gmxAPI.mapNodes[this.objectId];
 	}
-    // чистка mapNodes
+    // С‡РёСЃС‚РєР° mapNodes
     for(id in this.childsID) {
         gmxAPI.mapNodes[id].remove();
         delete gmxAPI.mapNodes[id];
     }
 
 	if(this.properties) {
-		if(this.propHiden && this.propHiden.isLayer) {		// Это слой
-			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
+		if(this.propHiden && this.propHiden.isLayer) {		// Р­С‚Рѕ СЃР»РѕР№
+			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// РЈРґР°Р»СЏРµС‚СЃСЏ СЃР»РѕР№
             if('_clearLayer' in this) this._clearLayer(this.properties.name);
-            gmxAPI._listeners.dispatchEvent('onLayerRemove', gmxAPI.map, this);	// Удален слой
+            gmxAPI._listeners.dispatchEvent('onLayerRemove', gmxAPI.map, this);	// РЈРґР°Р»РµРЅ СЃР»РѕР№
         }
 	}
 	this.isRemoved = true;
@@ -3052,12 +3052,12 @@ FlashMapObject.prototype.setCircle = function(x, y, r)
 		];
 	}
 
-	var n = 360;            //кол-во точек
-	var a = Math.PI*x/180;  //долгота центра окружности в радианах
-	var b = Math.PI*y/180;  //широта центра окружности в радианах
+	var n = 360;            //РєРѕР»-РІРѕ С‚РѕС‡РµРє
+	var a = Math.PI*x/180;  //РґРѕР»РіРѕС‚Р° С†РµРЅС‚СЂР° РѕРєСЂСѓР¶РЅРѕСЃС‚Рё РІ СЂР°РґРёР°РЅР°С…
+	var b = Math.PI*y/180;  //С€РёСЂРѕС‚Р° С†РµРЅС‚СЂР° РѕРєСЂСѓР¶РЅРѕСЃС‚Рё РІ СЂР°РґРёР°РЅР°С…
 
-	var R = 6372795; // Радиус Земли
-	//      6378137 - Некоторые источники дают такое число.
+	var R = 6372795; // Р Р°РґРёСѓСЃ Р—РµРјР»Рё
+	//      6378137 - РќРµРєРѕС‚РѕСЂС‹Рµ РёСЃС‚РѕС‡РЅРёРєРё РґР°СЋС‚ С‚Р°РєРѕРµ С‡РёСЃР»Рѕ.
 
 	var d = R * Math.sin(r / R);
 	var Rd = R * Math.cos(r / R);
@@ -3159,15 +3159,15 @@ FlashMapObject.prototype.getGeometrySummary = function()
 		if (geomType.indexOf("POINT") != -1)
 		{
 			var c = geom.coordinates;
-			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РљРѕРѕСЂРґРёРЅР°С‚С‹:", "Coordinates:") + "</b> ";
 			out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 		}
 		else if (geomType.indexOf("LINESTRING") != -1) {
-			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р”Р»РёРЅР°:", "Length:") + "</b> ";
 			out += gmxAPI.prettifyDistance(this.getLength(geom));
 		}
 		else if (geomType.indexOf("POLYGON") != -1) {
-			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РџР»РѕС‰Р°РґСЊ:", "Area:") + "</b> ";
 			//var area = this.getArea();
 			var area = this.getArea(geom);
 			out += gmxAPI.prettifyArea(area);
@@ -3193,18 +3193,18 @@ FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 	);
 }
 
-// Для Filter
+// Р”Р»СЏ Filter
 FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
 
 FlashMapObject.prototype.setFilter = function(sql) {
 	var ret = false;
 	if(this.parent && 'filters' in this.parent) {
 		if(!sql) sql ='';
-		this._sql = sql;			// атрибуты фильтра установленные юзером
+		this._sql = sql;			// Р°С‚СЂРёР±СѓС‚С‹ С„РёР»СЊС‚СЂР° СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ СЋР·РµСЂРѕРј
 		ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 
 		if(!this.clusters && '_Clusters' in gmxAPI) {
-			this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+			this.clusters = new gmxAPI._Clusters(this);	// Р°С‚СЂРёР±СѓС‚С‹ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РїРѕС‚РѕРјРєРѕРІ РїРѕ С„РёР»СЊС‚СЂСѓ
 		}
 		if(this.clusters && this.clusters.attr) {
 			this.setClusters(this.clusters.attr);
@@ -3217,15 +3217,15 @@ FlashMapObject.prototype.setFilter = function(sql) {
 
 FlashMapObject.prototype.setVisibilityFilter = function(sql) {
 	if(!sql) sql ='';
-	this._sqlVisibility = sql;			// атрибуты фильтра видимости mapObject установленные юзером
+	this._sqlVisibility = sql;			// Р°С‚СЂРёР±СѓС‚С‹ С„РёР»СЊС‚СЂР° РІРёРґРёРјРѕСЃС‚Рё mapObject СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ СЋР·РµСЂРѕРј
 	var ret = gmxAPI._cmdProxy('setVisibilityFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 	return ret;
 }
 
-// Для minimap
+// Р”Р»СЏ minimap
 FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
 
-// Возможно только для Layer
+// Р’РѕР·РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ РґР»СЏ Layer
 FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
 FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
 FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
@@ -3250,7 +3250,7 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
     }
     
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
-	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Добавлен слой
+	gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, this);	// Р”РѕР±Р°РІР»РµРЅ СЃР»РѕР№
 }
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 
@@ -3262,7 +3262,7 @@ FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldNa
 	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':ph });
 }
 
-// Для Layer
+// Р”Р»СЏ Layer
 FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
 FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
 FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) {
@@ -3285,8 +3285,8 @@ FlashMapObject.prototype.setBackgroundColor = function(color)
 }
 FlashMapObject.prototype.addOSM = function() { var osm = this.addObject(); osm.setOSMTiles(); return osm; }
 
-// keepGeometry - если не указан или false, объект будет превращён в полигон размером во весь мир (показывать OSM везде), 
-//                иначе геометрия не будет изменяться (например, чтобы делать вклейки из OSM в другие тайлы)
+// keepGeometry - РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅ РёР»Рё false, РѕР±СЉРµРєС‚ Р±СѓРґРµС‚ РїСЂРµРІСЂР°С‰С‘РЅ РІ РїРѕР»РёРіРѕРЅ СЂР°Р·РјРµСЂРѕРј РІРѕ РІРµСЃСЊ РјРёСЂ (РїРѕРєР°Р·С‹РІР°С‚СЊ OSM РІРµР·РґРµ), 
+//                РёРЅР°С‡Рµ РіРµРѕРјРµС‚СЂРёСЏ РЅРµ Р±СѓРґРµС‚ РёР·РјРµРЅСЏС‚СЊСЃСЏ (РЅР°РїСЂРёРјРµСЂ, С‡С‚РѕР±С‹ РґРµР»Р°С‚СЊ РІРєР»РµР№РєРё РёР· OSM РІ РґСЂСѓРіРёРµ С‚Р°Р№Р»С‹)
 FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 {
 	if (!keepGeometry)
@@ -3304,7 +3304,7 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 	var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
 	this._subdomains = 'abcd';
 	this._urlOSM = urlOSM;
-	if (gmxAPI.proxyType === 'leaflet' && window.OSMhash) {			// Это leaflet версия
+	if (gmxAPI.proxyType === 'leaflet' && window.OSMhash) {			// Р­С‚Рѕ leaflet РІРµСЂСЃРёСЏ
 		this._subdomains = window.OSMhash.subdomains;
 		this._urlOSM = window.OSMhash.urlOSM;
 	}
@@ -3315,19 +3315,19 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		return func(i + size, size - j - 1, z);
 	}, 1);
 	
-	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; участники OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
+	this.setCopyright(gmxAPI.KOSMOSNIMKI_LOCALIZED("&copy; СѓС‡Р°СЃС‚РЅРёРєРё OpenStreetMap", "&copy; OpenStreetMap contributers") + ", <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
 
-/* не используется
+/* РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 FlashMapObject.prototype.loadJSON = function(url)
 {
 	flashDiv.loadJSON(this.objectId, url);
 }
 */
 
-// Будут внешние
+// Р‘СѓРґСѓС‚ РІРЅРµС€РЅРёРµ
 FlashMapObject.prototype.loadGML = function(url, func)
 {
 	var me = this;
@@ -3347,9 +3347,9 @@ FlashMapObject.prototype.loadGML = function(url, func)
 }
 FlashMapObject.prototype.loadWFS = FlashMapObject.prototype.loadGML;
 
-/** Заружает WMS слои как подъобъекты данного объекта. Слои добавляются невидимыми
-	@param url {string} - URL WMS сервера
-	@param func {function} - ф-ция, которая будет вызвана когда WMS слои добавятся на карту.
+/** Р—Р°СЂСѓР¶Р°РµС‚ WMS СЃР»РѕРё РєР°Рє РїРѕРґСЉРѕР±СЉРµРєС‚С‹ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°. РЎР»РѕРё РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РЅРµРІРёРґРёРјС‹РјРё
+	@param url {string} - URL WMS СЃРµСЂРІРµСЂР°
+	@param func {function} - С„-С†РёСЏ, РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚ РІС‹Р·РІР°РЅР° РєРѕРіРґР° WMS СЃР»РѕРё РґРѕР±Р°РІСЏС‚СЃСЏ РЅР° РєР°СЂС‚Сѓ.
 */
 FlashMapObject.prototype.loadWMS = function(url, func)
 {
@@ -3397,17 +3397,17 @@ function createFlashMapInternal(div, layers, callback)
 	// if(prop && prop.name) {
         //gmxAPI._tmpMaps[prop.name] = layers;
 	// if(prop && gmxAPI.currentMapName !== gmxAPI.kosmosnimki_API && prop.name == gmxAPI.kosmosnimki_API) {
-		// if (prop.OnLoad)		//  Обработка маплета базовой карты
+		// if (prop.OnLoad)		//  РћР±СЂР°Р±РѕС‚РєР° РјР°РїР»РµС‚Р° Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹
 		// {
 			// try { eval("_kosmosnimki_temp=(" + prop.OnLoad + ")")(); }
 			// catch (e) {
-				// gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+				// gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'РјР°РїР»РµС‚ РєР°СЂС‚С‹', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
 			// }
 		// }
 	// }
     // }
 
-	gmxAPI._div = div;	// DOM элемент - контейнер карты
+	gmxAPI._div = div;	// DOM СЌР»РµРјРµРЅС‚ - РєРѕРЅС‚РµР№РЅРµСЂ РєР°СЂС‚С‹
 	if (div.style.position != "absolute")
 		div.style.position = "relative";
 
@@ -3440,7 +3440,7 @@ function createFlashMapInternal(div, layers, callback)
 
 		var layers = gmxAPI._tmpMaps[gmxAPI.currentMapName];
 		gmxAPI._baseLayersArr = null;
-		gmxAPI._baseLayersHash = {};    // видимые ID подложек из описания текущей карты
+		gmxAPI._baseLayersHash = {};    // РІРёРґРёРјС‹Рµ ID РїРѕРґР»РѕР¶РµРє РёР· РѕРїРёСЃР°РЅРёСЏ С‚РµРєСѓС‰РµР№ РєР°СЂС‚С‹
         if(layers) {
             var prop = layers.properties || {};
             var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
@@ -3456,13 +3456,13 @@ function createFlashMapInternal(div, layers, callback)
 		var baseMap = gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
 		var map = gmxAPI._addNewMap(rootObjectId, layers || baseMap, callback);
         if(baseMap) {
-			map.addLayers(baseMap, false, true);		// добавление основной карты
-            if (baseMap.properties.OnLoad)		//  Обработка маплета базовой карты
+			map.addLayers(baseMap, false, true);		// РґРѕР±Р°РІР»РµРЅРёРµ РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹
+            if (baseMap.properties.OnLoad)		//  РћР±СЂР°Р±РѕС‚РєР° РјР°РїР»РµС‚Р° Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹
             {
                 var runStr = "_kosmosnimki_temp=(" + baseMap.properties.OnLoad + ")";
                 try { eval(runStr)(map); }
                 catch (e) {
-                    gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+                    gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'РјР°РїР»РµС‚ РєР°СЂС‚С‹', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
                 }
             }
             //delete gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
@@ -3473,7 +3473,7 @@ function createFlashMapInternal(div, layers, callback)
         }
 		if (callback) {
 			try {
-				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
+				callback(gmxAPI.map, layers);		// Р’С‹Р·РѕРІ createFlashMapInternal
 			} catch(e) {
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
@@ -3483,7 +3483,7 @@ function createFlashMapInternal(div, layers, callback)
 		// }
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-		if (gmxAPI.proxyType === 'flash') {			// Это flash версия
+		if (gmxAPI.proxyType === 'flash') {			// Р­С‚Рѕ flash РІРµСЂСЃРёСЏ
             gmxAPI.map.controlsManager.initControls();
 			var needToStopDragging = false;
 			gmxAPI.flashDiv.onmouseout = function(ev) 
@@ -3506,7 +3506,7 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 		}
-        if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
+        if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// РѕР±СЂР°Р±РѕС‚РєР° РјР°СЃСЃРёРІР° РІРёРґРёРјС‹С… РїРѕРґР»РѕР¶РµРє
         {
             var prop = layers.properties;
             var baseLayersArr = gmxAPI.clone(gmxAPI._baseLayersArr || ['map', 'satellite', 'hybrid']);
@@ -3524,7 +3524,7 @@ function createFlashMapInternal(div, layers, callback)
                 }
             }
 
-            if (prop.OnLoad) {	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
+            if (prop.OnLoad) {	//  РћР±СЂР°Р±РѕС‚РєР° РјР°РїР»РµС‚Р° РєР°СЂС‚С‹ - mapplet РґР»СЏ Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹ СѓР¶Рµ РІС‹Р·С‹РІР°Р»Рё
                 var runStr = "_currentMap_temp=(" + prop.OnLoad + ")";
                 try { eval(runStr)(map); }
                 catch (e) {
@@ -3539,7 +3539,7 @@ function createFlashMapInternal(div, layers, callback)
         }
 	}
 
-	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
+	if('_addProxyObject' in gmxAPI) {	// Р”РѕР±Р°РІР»РµРЅРёРµ РѕР±СЊРµРєС‚Р° РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІ DOM
 		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
 		if(o === '') {
 			var warnDiv = document.getElementById('noflash');
@@ -3626,10 +3626,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 for (var i = 0, len = arr.length; i < len; i++) {
                     var id = arr[i];
                     baseLayersManager.remove(id);
-                    // нет подложки сформируем через getBaseMapParam 
+                    // РЅРµС‚ РїРѕРґР»РѕР¶РєРё СЃС„РѕСЂРјРёСЂСѓРµРј С‡РµСЂРµР· getBaseMapParam 
                     var attr = {id: id, layers:[] };
                     if(id === 'satellite' && satelliteLayerID) {
-                        attr.rus = 'Снимки';
+                        attr.rus = 'РЎРЅРёРјРєРё';
                         attr.eng = 'Satellite';
                         satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
                         attr.layers = satelliteLayers;
@@ -3639,7 +3639,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'hybrid' && (satelliteLayerID || overlayLayerID)) {
-                        attr.rus = 'Гибрид';
+                        attr.rus = 'Р“РёР±СЂРёРґ';
                         attr.eng = 'Hybrid';
                         overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
                         attr.layers = overlayLayers;
@@ -3648,7 +3648,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             map.needSetMode = id;
                         }
                     } else if(id === 'map' && mapLayerID) {
-                        attr.rus = 'Карта';
+                        attr.rus = 'РљР°СЂС‚Р°';
                         attr.eng = 'Map';
                         mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
                         attr.layers = mapLayers;
@@ -3681,7 +3681,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 */
 				if (layers) {
 					map.defaultHostName = layers.properties.hostName;
-					//map.addLayers(layers, false);		// добавление основной карты
+					//map.addLayers(layers, false);		// РґРѕР±Р°РІР»РµРЅРёРµ РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹
 					map.properties = layers.properties;
 					if (map.properties.DistanceUnit)
 					{
@@ -3692,12 +3692,12 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 						map.setSquareUnit(map.properties.SquareUnit);
 					}
 				}
-                /*  // Устарело
+                /*  // РЈСЃС‚Р°СЂРµР»Рѕ
 				var mapLayers = [];
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
 					var mapLayerNames = mapLayerID.split(',');
-					var baseLayers = baseLayersManager.add('map', {rus:'Карта', eng:'Map', isVisible:true});
+					var baseLayers = baseLayersManager.add('map', {rus:'РљР°СЂС‚Р°', eng:'Map', isVisible:true});
 					for (var i = 0; i < mapLayerNames.length; i++)
 						if (mapLayerNames[i] in map.layers)
 						{
@@ -3716,7 +3716,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 						if (satelliteLayerNames[i] in map.layers)
 							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
 
-					var baseLayers = baseLayersManager.add('satellite', {rus:'Снимки', eng:'Satellite', isVisible:true});
+					var baseLayers = baseLayersManager.add('satellite', {rus:'РЎРЅРёРјРєРё', eng:'Satellite', isVisible:true});
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
 						satelliteLayers[i].setBackgroundColor(0x000001);
@@ -3729,7 +3729,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
 				if(typeof(overlayLayerID) == 'string') {
 					var overlayLayerNames = overlayLayerID.split(',');
-					var baseLayers = baseLayersManager.add('hybrid', {rus:'Гибрид', eng:'Hybrid', isVisible:true, index:0 });
+					var baseLayers = baseLayersManager.add('hybrid', {rus:'Р“РёР±СЂРёРґ', eng:'Hybrid', isVisible:true, index:0 });
 					for (var i = 0; i < overlayLayerNames.length; i++)
 						if (overlayLayerNames[i] in map.layers)
 						{
@@ -3789,7 +3789,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;
-					map.addLayers(layers, false);		// добавление основной карты
+					map.addLayers(layers, false);		// РґРѕР±Р°РІР»РµРЅРёРµ РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹
 					map.properties = layers.properties;
 					if (map.properties.DistanceUnit)
 					{
@@ -3803,7 +3803,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 */
 				if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
-				// копирайты
+				// РєРѕРїРёСЂР°Р№С‚С‹
 				// var setCopyright = function(o, z1, z2, text)
 				// {
 					// var c = o.addObject();
@@ -3815,19 +3815,19 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				if (mapLayers.length > 0)
 				{
 					mapLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
-					mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					// setCopyright(mapLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
-					// var obj = setCopyright(mapLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
+					// var obj = setCopyright(mapLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>");
 					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 				}
 				
-				//те же копирайты, что и для карт
+				//С‚Рµ Р¶Рµ РєРѕРїРёСЂР°Р№С‚С‹, С‡С‚Рѕ Рё РґР»СЏ РєР°СЂС‚
 				if (overlayLayers.length > 0)
 				{
 					//overlayLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
-					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
 					// setCopyright(overlayLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
-					// var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
+					// var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>");
 					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 				}
 
@@ -3845,9 +3845,9 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				}
 				
 				try {
-					callback(map, layers);		// Передача управления
+					callback(map, layers);		// РџРµСЂРµРґР°С‡Р° СѓРїСЂР°РІР»РµРЅРёСЏ
 				} catch(e) {
-					gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в callback:\n'+e});
+					gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'РћС€РёР±РєР° РІ callback:\n'+e});
 				}
 				if(map.needMove) {
 					gmxAPI.currPosition = null;
@@ -3904,8 +3904,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 			gmxAPI.getAPIFolderRoot() + "config.js",
 			"baseMap",
 			finish,
-			//errorConfig	// Нет config.js
-			finish			// Есть config.js
+			//errorConfig	// РќРµС‚ config.js
+			finish			// Р•СЃС‚СЊ config.js
 		);
 	}
 	else
@@ -3915,29 +3915,29 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
     BaseLayersManager.js
    ====================================================================== */
 
-/** Управление подложками
+/** РЈРїСЂР°РІР»РµРЅРёРµ РїРѕРґР»РѕР¶РєР°РјРё
 
-Позволяет управлять списком подложек. 
+РџРѕР·РІРѕР»СЏРµС‚ СѓРїСЂР°РІР»СЏС‚СЊ СЃРїРёСЃРєРѕРј РїРѕРґР»РѕР¶РµРє. 
 
-Подложка - массив слоев отображаемых в качестве подложки карты.
+РџРѕРґР»РѕР¶РєР° - РјР°СЃСЃРёРІ СЃР»РѕРµРІ РѕС‚РѕР±СЂР°Р¶Р°РµРјС‹С… РІ РєР°С‡РµСЃС‚РІРµ РїРѕРґР»РѕР¶РєРё РєР°СЂС‚С‹.
 
 @memberof map.baseLayersManager
 */
 (function()
 {
     "use strict";
-	var alias = {};             // варианты наименований подложек - для совместимости
+	var alias = {};             // РІР°СЂРёР°РЅС‚С‹ РЅР°РёРјРµРЅРѕРІР°РЅРёР№ РїРѕРґР»РѕР¶РµРє - РґР»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
 	var manager = {
-        map: null               // карта
-        ,arr: []                // массив подложек
-        ,hash: {}               // список по ID всех подложек
-        ,activeIDs: []          // массив ID подложек(в контролах появляется только при наличии в ID hash)
-        ,currentID: null        // ID текущей подложки
+        map: null               // РєР°СЂС‚Р°
+        ,arr: []                // РјР°СЃСЃРёРІ РїРѕРґР»РѕР¶РµРє
+        ,hash: {}               // СЃРїРёСЃРѕРє РїРѕ ID РІСЃРµС… РїРѕРґР»РѕР¶РµРє
+        ,activeIDs: []          // РјР°СЃСЃРёРІ ID РїРѕРґР»РѕР¶РµРє(РІ РєРѕРЅС‚СЂРѕР»Р°С… РїРѕСЏРІР»СЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїСЂРё РЅР°Р»РёС‡РёРё РІ ID hash)
+        ,currentID: null        // ID С‚РµРєСѓС‰РµР№ РїРѕРґР»РѕР¶РєРё
         ,addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); }
         ,removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
         ,stateListeners: {}
         ,
-        init: function(map) {        // инициализация
+        init: function(map) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
             manager.map = map;
             gmxAPI.extendFMO('setAsBaseLayer', function(name, attr) {
                 this.isBaseLayer = true;
@@ -3956,7 +3956,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 attr.isVisible = true
                 var blID = manager.getIDByName(id) || id;
 				var baseLayer = manager.hash[blID];
-                this.setVisible(false);         // слои подложек изначально не видимы
+                this.setVisible(false);         // СЃР»РѕРё РїРѕРґР»РѕР¶РµРє РёР·РЅР°С‡Р°Р»СЊРЅРѕ РЅРµ РІРёРґРёРјС‹
                 var isActiveID = manager.isActiveID(blID);
                 if(!baseLayer) {
                     baseLayer = manager.add(blID, attr);
@@ -3988,7 +3988,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 ,baseLayerControl: {
                     isVisible: true,
                     /**
-                     * @deprecated Использовать контрол L.Control.gmxLayers
+                     * @deprecated РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєРѕРЅС‚СЂРѕР» L.Control.gmxLayers
                      */
                     setVisible: function(flag) {
                         var controls = map.controlsManager.getCurrent();
@@ -3997,13 +3997,13 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         return control.setVisible(flag);
                     },
                     /**
-                     * @deprecated Использовать map.baseLayersManager.getActiveIDs()
+                     * @deprecated РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ map.baseLayersManager.getActiveIDs()
                      */
                     getBaseLayerNames: function() {
                         return manager.activeIDs;
                     },
                     /**
-                     * @deprecated Использовать map.baseLayersManager.getLayers()
+                     * @deprecated РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ map.baseLayersManager.getLayers()
                      */
                     getBaseLayerLayers: function(name) {
                         var baseLayer = manager.get(name);
@@ -4026,12 +4026,12 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         current.layers[i].setVisible(flag);
                     }
                 }
-                // Поддержка устаревшего map.baseLayerControl.onChange 
+                // РџРѕРґРґРµСЂР¶РєР° СѓСЃС‚Р°СЂРµРІС€РµРіРѕ map.baseLayerControl.onChange 
                 if('onChange' in manager.map.baseLayerControl) manager.map.baseLayerControl.onChange(manager.currentID);
             });
         }
         ,
-        removeLayer: function(id, layer) {             // Удаление слоя из подложки - возвращает удаленный слой либо null
+        removeLayer: function(id, layer) {             // РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· РїРѕРґР»РѕР¶РєРё - РІРѕР·РІСЂР°С‰Р°РµС‚ СѓРґР°Р»РµРЅРЅС‹Р№ СЃР»РѕР№ Р»РёР±Рѕ null
             var baseLayer = manager.hash[id];
 			if(!baseLayer || !layer) return null;
             for(var i=0, len = baseLayer.layers.length; i<len; i++) {
@@ -4046,15 +4046,15 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             return null;
         }
         ,
-        add: function(id, attr) {           // Добавление подложки
+        add: function(id, attr) {           // Р”РѕР±Р°РІР»РµРЅРёРµ РїРѕРґР»РѕР¶РєРё
             if(!id || manager.hash[id]) return null;
             if(!attr) attr = {};
-            // var isVisible = attr.isVisible; // видимость подложки - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
+            // var isVisible = attr.isVisible; // РІРёРґРёРјРѕСЃС‚СЊ РїРѕРґР»РѕР¶РєРё - 3 СЃРѕСЃС‚РѕСЏРЅРёСЏ РѕС‚СЂР°Р¶Р°СЋС‰РёРµ РІРёРґРёРјРѕСЃС‚СЊ РІ РєРѕРЅС‚СЂРѕР»Р°С… (true - РІРёРґРёРјР°СЏ, false - РЅРµ РІРёРґРёРјР°СЏ, undefined - РІРёРґРёРјРѕСЃС‚СЊ РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ РїРѕ СЃРїРёСЃРєСѓ BaseLayers)
             // if(gmxAPI._baseLayersHash[id]) isVisible = true;
             var pt = {
-                id: id || 'default'                 // id подложки
-                ,layers: attr.layers || []          // массив слоев подложки
-                ,rus: attr.rus || id                // title подложки 
+                id: id || 'default'                 // id РїРѕРґР»РѕР¶РєРё
+                ,layers: attr.layers || []          // РјР°СЃСЃРёРІ СЃР»РѕРµРІ РїРѕРґР»РѕР¶РєРё
+                ,rus: attr.rus || id                // title РїРѕРґР»РѕР¶РєРё 
                 ,eng: attr.eng || id
                 ,addLayer: function(layer) {
                     manager.removeLayer(id, layer);
@@ -4072,8 +4072,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             };
             if(attr.rus) alias[attr.rus] = id;
             if(attr.eng) alias[attr.eng] = id;
-            if(attr.style) pt.style = attr.style;   // стиль для контролов
-            if(attr.type) pt.type = attr.type;      // тип подложки для контролов имеющих типы подложек
+            if(attr.style) pt.style = attr.style;   // СЃС‚РёР»СЊ РґР»СЏ РєРѕРЅС‚СЂРѕР»РѕРІ
+            if(attr.type) pt.type = attr.type;      // С‚РёРї РїРѕРґР»РѕР¶РєРё РґР»СЏ РєРѕРЅС‚СЂРѕР»РѕРІ РёРјРµСЋС‰РёС… С‚РёРїС‹ РїРѕРґР»РѕР¶РµРє
 
             pt.layers.forEach(function(item, i) {
                 item.isBaseLayer = true;
@@ -4122,11 +4122,11 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             return out;
         }
         ,
-        getAll: function(flag) {              // Получить список подложек
+        getAll: function(flag) {              // РџРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РїРѕРґР»РѕР¶РµРє
             return manager.arr;
         }
         ,
-        get: function(id) {               // Получить подложку по ID
+        get: function(id) {               // РџРѕР»СѓС‡РёС‚СЊ РїРѕРґР»РѕР¶РєСѓ РїРѕ ID
             return manager.hash[id] || null;
         }
         ,setVisibleCurrentItem: function(flag) {
@@ -4153,7 +4153,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             return false;
         }
         ,
-        setCurrentID: function(id) {            // Установка текущей подложки карты
+        setCurrentID: function(id) {            // РЈСЃС‚Р°РЅРѕРІРєР° С‚РµРєСѓС‰РµР№ РїРѕРґР»РѕР¶РєРё РєР°СЂС‚С‹
             var isActive = manager.isActiveID(id);
             var item = manager.hash[id] || null;
             //if(manager.currentID && (isActive || !item)) manager.setVisibleCurrentItem(false);
@@ -4169,7 +4169,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             gmxAPI._listeners.dispatchEvent('onSetCurrent', manager.map.baseLayersManager, item);
             return item;
         }
-        ,remove: function(id) {            // Удалить подложку
+        ,remove: function(id) {            // РЈРґР°Р»РёС‚СЊ РїРѕРґР»РѕР¶РєСѓ
             if(id === manager.currentID) {
                 manager.setVisibleCurrentItem(false);
                 manager.currentID = null;
@@ -4192,121 +4192,121 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
         }
 	};
     /**
-     * Обьект подложки.
+     * РћР±СЊРµРєС‚ РїРѕРґР»РѕР¶РєРё.
      * @typedef {Object} BaseLayer
-     * @property {String} id - Идентификатор подложки.
-     * @property {Layer[]} layers - Массив слоев подложки.
-     * @property {String} rus - Наименование русскоязычное.
-     * @property {String} eng - Наименование англоязычное.
-     * @property {function(layer:Layer)} addLayer - Ф-ция добавления слоя в подложку.
-     * @property {function(layer:Layer)} removeLayer - Ф-ция удаления слоя из подложки.
+     * @property {String} id - РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+     * @property {Layer[]} layers - РњР°СЃСЃРёРІ СЃР»РѕРµРІ РїРѕРґР»РѕР¶РєРё.
+     * @property {String} rus - РќР°РёРјРµРЅРѕРІР°РЅРёРµ СЂСѓСЃСЃРєРѕСЏР·С‹С‡РЅРѕРµ.
+     * @property {String} eng - РќР°РёРјРµРЅРѕРІР°РЅРёРµ Р°РЅРіР»РѕСЏР·С‹С‡РЅРѕРµ.
+     * @property {function(layer:Layer)} addLayer - Р¤-С†РёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ СЃР»РѕСЏ РІ РїРѕРґР»РѕР¶РєСѓ.
+     * @property {function(layer:Layer)} removeLayer - Р¤-С†РёСЏ СѓРґР°Р»РµРЅРёСЏ СЃР»РѕСЏ РёР· РїРѕРґР»РѕР¶РєРё.
      */
      
      /**
         @name BaseLayer~addLayer
         @function
-        @param {Layer} layer слой, который нужно добавить в подложку
+        @param {Layer} layer СЃР»РѕР№, РєРѕС‚РѕСЂС‹Р№ РЅСѓР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ РІ РїРѕРґР»РѕР¶РєСѓ
      */
 
     /**
-     * Менеджер подложек (создаётся в API и доступен через свойство карты map.baseLayersManager).
+     * РњРµРЅРµРґР¶РµСЂ РїРѕРґР»РѕР¶РµРє (СЃРѕР·РґР°С‘С‚СЃСЏ РІ API Рё РґРѕСЃС‚СѓРїРµРЅ С‡РµСЂРµР· СЃРІРѕР№СЃС‚РІРѕ РєР°СЂС‚С‹ map.baseLayersManager).
      * @constructor BaseLayersManager
      */
 	gmxAPI.BaseLayersManager = function(map) {
         manager.init(map);
         return {
-            /** Добавить подложку
+            /** Р”РѕР±Р°РІРёС‚СЊ РїРѕРґР»РѕР¶РєСѓ
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @param {object} attr дополнительные атрибуты подложки.
-            * @param {String} attr.rus - наименование русскоязычное(по умолчанию равен id).
-            * @param {String} attr.eng - наименование англоязычное(по умолчанию равен id).
-            * @param {Layer[]} attr.layers - массив слоев подложки(по умолчанию []).
-            * @returns {BaseLayer|null} возвращает обьект добавленной подложки или null если подложка с данным идентификатором уже существует.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @param {object} attr РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ Р°С‚СЂРёР±СѓС‚С‹ РїРѕРґР»РѕР¶РєРё.
+            * @param {String} attr.rus - РЅР°РёРјРµРЅРѕРІР°РЅРёРµ СЂСѓСЃСЃРєРѕСЏР·С‹С‡РЅРѕРµ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ id).
+            * @param {String} attr.eng - РЅР°РёРјРµРЅРѕРІР°РЅРёРµ Р°РЅРіР»РѕСЏР·С‹С‡РЅРѕРµ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ id).
+            * @param {Layer[]} attr.layers - РјР°СЃСЃРёРІ СЃР»РѕРµРІ РїРѕРґР»РѕР¶РєРё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ []).
+            * @returns {BaseLayer|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЊРµРєС‚ РґРѕР±Р°РІР»РµРЅРЅРѕР№ РїРѕРґР»РѕР¶РєРё РёР»Рё null РµСЃР»Рё РїРѕРґР»РѕР¶РєР° СЃ РґР°РЅРЅС‹Рј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.
             */
             add: function(id, attr) {
                 return manager.add(id, attr);
             },
-            /** Удалить подложку
+            /** РЈРґР°Р»РёС‚СЊ РїРѕРґР»РѕР¶РєСѓ
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @returns {BaseLayer|null} возвращает удаленную подложку если она найдена.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @returns {BaseLayer|null} РІРѕР·РІСЂР°С‰Р°РµС‚ СѓРґР°Р»РµРЅРЅСѓСЋ РїРѕРґР»РѕР¶РєСѓ РµСЃР»Рё РѕРЅР° РЅР°Р№РґРµРЅР°.
             */
             remove: function(id) {
                 return manager.remove(id);
             },
-            /** Получить подложку
+            /** РџРѕР»СѓС‡РёС‚СЊ РїРѕРґР»РѕР¶РєСѓ
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @returns {BaseLayer|null} возвращает подложку если существует иначе null).
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @returns {BaseLayer|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РїРѕРґР»РѕР¶РєСѓ РµСЃР»Рё СЃСѓС‰РµСЃС‚РІСѓРµС‚ РёРЅР°С‡Рµ null).
             */
             get: function(id) {
                 return manager.hash[id] || null;
             },
-            /** Получить список всех подложек
+            /** РџРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РІСЃРµС… РїРѕРґР»РѕР¶РµРє
             * @memberOf BaseLayersManager#
-            * @returns {BaseLayer[]} возвращает массив всех подложек.
+            * @returns {BaseLayer[]} РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ РІСЃРµС… РїРѕРґР»РѕР¶РµРє.
             */
             getAll: function() {
                 return manager.arr;
             },
-            /** Получить массив ID активных подложек
+            /** РџРѕР»СѓС‡РёС‚СЊ РјР°СЃСЃРёРІ ID Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє
             * @memberOf BaseLayersManager#
-            * @returns {String[]} возвращает массив ID активных подложек(в порядке возрастания индексов).
+            * @returns {String[]} РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ ID Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє(РІ РїРѕСЂСЏРґРєРµ РІРѕР·СЂР°СЃС‚Р°РЅРёСЏ РёРЅРґРµРєСЃРѕРІ).
             */
             getActiveIDs: function() {
                 return manager.activeIDs;
             },
-            /** Установить массив ID активных подложек
+            /** РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РјР°СЃСЃРёРІ ID Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє
             * @memberOf BaseLayersManager#
-            * @param {String[]} массив ID активных подложек.
+            * @param {String[]} РјР°СЃСЃРёРІ ID Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє.
             */
             setActiveIDs: function(arr) {
                 return manager.setActiveIDs(arr);
             },
-            /** Добавить ID активной подложки
+            /** Р”РѕР±Р°РІРёС‚СЊ ID Р°РєС‚РёРІРЅРѕР№ РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @param {number} index порядковый номер в массиве активных подложек.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @param {number} index РїРѕСЂСЏРґРєРѕРІС‹Р№ РЅРѕРјРµСЂ РІ РјР°СЃСЃРёРІРµ Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє.
             */
             addActiveID: function(id, index) {
                 return manager.updateIndex({id: id, index: index});
             },
-            /** Проверить активность подложки
+            /** РџСЂРѕРІРµСЂРёС‚СЊ Р°РєС‚РёРІРЅРѕСЃС‚СЊ РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @returns {boolean} возвращает true если подложка активна иначе false
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @returns {boolean} РІРѕР·РІСЂР°С‰Р°РµС‚ true РµСЃР»Рё РїРѕРґР»РѕР¶РєР° Р°РєС‚РёРІРЅР° РёРЅР°С‡Рµ false
             */
             isActiveID: function(id) {
                 return manager.isActiveID(id);
             },
-            /** Установить текущую подложку по идентификатору
+            /** РЈСЃС‚Р°РЅРѕРІРёС‚СЊ С‚РµРєСѓС‰СѓСЋ РїРѕРґР»РѕР¶РєСѓ РїРѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂСѓ
             * @memberOf BaseLayersManager#
-            * @param {String=} id идентификатор подложки, если подложка с заданным идентификатором отсутствует или не активна то текущая подложка равна null.
-            * @returns {BaseLayer|null} возвращает текущую подложку, если она установлена
+            * @param {String=} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё, РµСЃР»Рё РїРѕРґР»РѕР¶РєР° СЃ Р·Р°РґР°РЅРЅС‹Рј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РЅРµ Р°РєС‚РёРІРЅР° С‚Рѕ С‚РµРєСѓС‰Р°СЏ РїРѕРґР»РѕР¶РєР° СЂР°РІРЅР° null.
+            * @returns {BaseLayer|null} РІРѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰СѓСЋ РїРѕРґР»РѕР¶РєСѓ, РµСЃР»Рё РѕРЅР° СѓСЃС‚Р°РЅРѕРІР»РµРЅР°
             */
             setCurrentID: function(id) {
                 return manager.setCurrentID(id);
             },
-            /** Получить идентификатор текущей подложки
+            /** РџРѕР»СѓС‡РёС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С‚РµРєСѓС‰РµР№ РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @returns {String|null} возвращает идентификатор текущей подложки либо null.
+            * @returns {String|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С‚РµРєСѓС‰РµР№ РїРѕРґР»РѕР¶РєРё Р»РёР±Рѕ null.
             */
             getCurrentID: function() {
                 return manager.currentID;
             },
-            /** Получить идентификатор по наименованию подложки
+            /** РџРѕР»СѓС‡РёС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕ РЅР°РёРјРµРЅРѕРІР°РЅРёСЋ РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @returns {String|null} возвращает идентификатор подложки если заданное наименование подложки существует.
+            * @returns {String|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё РµСЃР»Рё Р·Р°РґР°РЅРЅРѕРµ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РїРѕРґР»РѕР¶РєРё СЃСѓС‰РµСЃС‚РІСѓРµС‚.
             */
             getIDByName: function(name) {
                 return manager.getIDByName(name);
             },
-            /** Добавить слой в подложку
+            /** Р”РѕР±Р°РІРёС‚СЊ СЃР»РѕР№ РІ РїРѕРґР»РѕР¶РєСѓ
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @param {Layer} layer обьект слоя.
-            * @returns {boolean} возвращает false если подложка не найдена иначе true.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @param {Layer} layer РѕР±СЊРµРєС‚ СЃР»РѕСЏ.
+            * @returns {boolean} РІРѕР·РІСЂР°С‰Р°РµС‚ false РµСЃР»Рё РїРѕРґР»РѕР¶РєР° РЅРµ РЅР°Р№РґРµРЅР° РёРЅР°С‡Рµ true.
             */
             addLayer: function(id, layer) {
                 var baseLayer = this.get(id);
@@ -4317,10 +4317,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 //gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayer);
                 return true;
             },
-            /** Удалить слой из подложки
+            /** РЈРґР°Р»РёС‚СЊ СЃР»РѕР№ РёР· РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @param {Layer} layer обьект слоя.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @param {Layer} layer РѕР±СЊРµРєС‚ СЃР»РѕСЏ.
             */
             removeLayer: function(id, layer) {
                 manager.removeLayer(id, layer);
@@ -4328,10 +4328,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                     layer.setVisible(false);
                 }
             },
-            /** Получить список слоев подложки
+            /** РџРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє СЃР»РѕРµРІ РїРѕРґР»РѕР¶РєРё
             * @memberOf BaseLayersManager#
-            * @param {String} id идентификатор подложки.
-            * @returns {Layer[]} возвращает массив слоев подложки.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РїРѕРґР»РѕР¶РєРё.
+            * @returns {Layer[]} РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃР»РѕРµРІ РїРѕРґР»РѕР¶РєРё.
             */
             getLayers: function(id) {
                 return manager.get(id).layers;
@@ -4341,23 +4341,23 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             ,stateListeners: manager.stateListeners
         }
 
-        /** Добавлена подложка
+        /** Р”РѕР±Р°РІР»РµРЅР° РїРѕРґР»РѕР¶РєР°
          * @event BaseLayersManager#onAdd
          * @type {BaseLayer}
         */
-        /** Удалена подложка
+        /** РЈРґР°Р»РµРЅР° РїРѕРґР»РѕР¶РєР°
          * @event BaseLayersManager#onRemove
          * @type {BaseLayer}
         */
-        /** Изменен список слоев в подложке
+        /** РР·РјРµРЅРµРЅ СЃРїРёСЃРѕРє СЃР»РѕРµРІ РІ РїРѕРґР»РѕР¶РєРµ
          * @event BaseLayersManager#onLayerChange
          * @type {BaseLayer}
         */
-        /** Установлена текущая подложка
+        /** РЈСЃС‚Р°РЅРѕРІР»РµРЅР° С‚РµРєСѓС‰Р°СЏ РїРѕРґР»РѕР¶РєР°
          * @event BaseLayersManager#onSetCurrent
          * @type {BaseLayer}
         */
-        /** Изменен массив ID активных подложек
+        /** РР·РјРµРЅРµРЅ РјР°СЃСЃРёРІ ID Р°РєС‚РёРІРЅС‹С… РїРѕРґР»РѕР¶РµРє
          * @event BaseLayersManager#onActiveChanged
          * @type {String[]}
         */
@@ -4367,11 +4367,11 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
     ControlsManager.js
    ====================================================================== */
 
-/** Управление наборами контролов карты
+/** РЈРїСЂР°РІР»РµРЅРёРµ РЅР°Р±РѕСЂР°РјРё РєРѕРЅС‚СЂРѕР»РѕРІ РєР°СЂС‚С‹
 
-Позволяет устанавливать пользовательские наборы контролов карты. 
+РџРѕР·РІРѕР»СЏРµС‚ СѓСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ РЅР°Р±РѕСЂС‹ РєРѕРЅС‚СЂРѕР»РѕРІ РєР°СЂС‚С‹. 
 
-Набор контролов - список контролов карты.
+РќР°Р±РѕСЂ РєРѕРЅС‚СЂРѕР»РѕРІ - СЃРїРёСЃРѕРє РєРѕРЅС‚СЂРѕР»РѕРІ РєР°СЂС‚С‹.
 
 @global
 
@@ -4507,22 +4507,22 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
         }
 	}
     /**
-     * Описание класса Controls.
+     * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° Controls.
      * @typedef {Object} Controls1
      * @ignore
-     * @property {String} id - Идентификатор типа контролов.
-     * @property {Function} init - Ф-ция для инициализации.
-     * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
-     * @property {Array} [Control] items - Массив контролов данного типа контролов.
-     * @property {Function} [boolean=] setVisible - Установка видимости(по умолчанию false).
-     * @property {Function} remove - Удаление набора контролов.
+     * @property {String} id - РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С‚РёРїР° РєРѕРЅС‚СЂРѕР»РѕРІ.
+     * @property {Function} init - Р¤-С†РёСЏ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё.
+     * @property {boolean} isVisible - Р¤Р»Р°Рі РІРёРґРёРјРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ true).
+     * @property {Array} [Control] items - РњР°СЃСЃРёРІ РєРѕРЅС‚СЂРѕР»РѕРІ РґР°РЅРЅРѕРіРѕ С‚РёРїР° РєРѕРЅС‚СЂРѕР»РѕРІ.
+     * @property {Function} [boolean=] setVisible - РЈСЃС‚Р°РЅРѕРІРєР° РІРёРґРёРјРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ false).
+     * @property {Function} remove - РЈРґР°Р»РµРЅРёРµ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ.
     */
     /**
-     * Менеджер контролов.
+     * РњРµРЅРµРґР¶РµСЂ РєРѕРЅС‚СЂРѕР»РѕРІ.
      * @constructor ControlsManager
      * @ignore
-     * @param {Object} map - карта.
-     * @param {Object=} div - нода для размещения контролов.
+     * @param {Object} map - РєР°СЂС‚Р°.
+     * @param {Object=} div - РЅРѕРґР° РґР»СЏ СЂР°Р·РјРµС‰РµРЅРёСЏ РєРѕРЅС‚СЂРѕР»РѕРІ.
      */
 	gmxAPI.ControlsManager = function(map, div) {
         ControlsManager.init(div || gmxAPI._div, map);
@@ -4535,25 +4535,25 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 ControlsManager.removeById(id);
             }
             ,
-            /** Получить идентификатор текущего набора контролов
+            /** РџРѕР»СѓС‡РёС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С‚РµРєСѓС‰РµРіРѕ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ
             * @memberof ControlsManager#
-            * @returns {String|null} возвращает идентификатор текущего набора контролов или null если контролы не устанавлены.
+            * @returns {String|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С‚РµРєСѓС‰РµРіРѕ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ РёР»Рё null РµСЃР»Рё РєРѕРЅС‚СЂРѕР»С‹ РЅРµ СѓСЃС‚Р°РЅР°РІР»РµРЅС‹.
             */
             getCurrentID: function() {
                 return ControlsManager.currentID;
             }
             ,
-            /** Получить текущий набор контролов
+            /** РџРѕР»СѓС‡РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅР°Р±РѕСЂ РєРѕРЅС‚СЂРѕР»РѕРІ
             * @memberof ControlsManager#
-            * @returns {Controls|null} возвращает оъект текущего набора контролов или null если текущий набор контролов не устанавлен.
+            * @returns {Controls|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РѕСЉРµРєС‚ С‚РµРєСѓС‰РµРіРѕ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ РёР»Рё null РµСЃР»Рё С‚РµРєСѓС‰РёР№ РЅР°Р±РѕСЂ РєРѕРЅС‚СЂРѕР»РѕРІ РЅРµ СѓСЃС‚Р°РЅР°РІР»РµРЅ.
             */
             getCurrent: function() {
                 return ControlsManager.getCurrent() || null;
             }
-            /** Установить текущий набор контролов
+            /** РЈСЃС‚Р°РЅРѕРІРёС‚СЊ С‚РµРєСѓС‰РёР№ РЅР°Р±РѕСЂ РєРѕРЅС‚СЂРѕР»РѕРІ
             * @memberof ControlsManager#
-            * @param {String} id идентификатор набора контролов.
-            * @returns {Controls|null} возвращает оъект текущего набора контролов или null если текущий набор контролов не устанавлен.
+            * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ.
+            * @returns {Controls|null} РІРѕР·РІСЂР°С‰Р°РµС‚ РѕСЉРµРєС‚ С‚РµРєСѓС‰РµРіРѕ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ РёР»Рё null РµСЃР»Рё С‚РµРєСѓС‰РёР№ РЅР°Р±РѕСЂ РєРѕРЅС‚СЂРѕР»РѕРІ РЅРµ СѓСЃС‚Р°РЅР°РІР»РµРЅ.
             */
             ,setCurrent: function(id) {
                 return ControlsManager.setCurrent(id);
@@ -4590,7 +4590,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
     controlsBase.js
    ====================================================================== */
 
-// Стандартные контролы
+// РЎС‚Р°РЅРґР°СЂС‚РЅС‹Рµ РєРѕРЅС‚СЂРѕР»С‹
 (function()
 {
     "use strict";
@@ -4609,28 +4609,28 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
             // new gmxAPI._ToolsAll(container);
             gmxAPI._toolsContHash = {};
 
-            /** Класс управления tools контейнерами
+            /** РљР»Р°СЃСЃ СѓРїСЂР°РІР»РµРЅРёСЏ tools РєРѕРЅС‚РµР№РЅРµСЂР°РјРё
             * @function
             * @ignore
             * @memberOf api
-            * @param {name} ID контейнера
-            * @param {attr} Hash дополнительных атрибутов
-            *		ключи:
-            *			contType: Int - тип контейнера (по умолчанию 0)
-            *					0 - стандартный пользовательский тип контейнера 
-            *					1 - тип для drawing вкладки
-            *					2 - тип для вкладки базовых подложек
-            *           notSticky: 0 - по умолчанию, инструмент выключается только после повторного нажатия или выбора другого инструмента.
-                                   1 - автоматически выключать инструмент полсе активации
-            *			properties: Hash - properties DIV контейнера (по умолчанию { 'className': 'tools_' + name })
-            *			style: Hash - стили DIV контейнера (по умолчанию { 'position': "absolute", 'top': 40 })
-            *			regularStyle: Hash - регулярного стиля DIV элементов в контейнере (по умолчанию { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold",	textAlign: "center", cursor: "pointer", opacity: 1, color: "wheat" })
-            *			activeStyle: Hash - активного стиля DIV элементов в контейнере (по умолчанию { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold",	textAlign: "center", cursor: "pointer", opacity: 1, color: "orange" })
+            * @param {name} ID РєРѕРЅС‚РµР№РЅРµСЂР°
+            * @param {attr} Hash РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… Р°С‚СЂРёР±СѓС‚РѕРІ
+            *		РєР»СЋС‡Рё:
+            *			contType: Int - С‚РёРї РєРѕРЅС‚РµР№РЅРµСЂР° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 0)
+            *					0 - СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ С‚РёРї РєРѕРЅС‚РµР№РЅРµСЂР° 
+            *					1 - С‚РёРї РґР»СЏ drawing РІРєР»Р°РґРєРё
+            *					2 - С‚РёРї РґР»СЏ РІРєР»Р°РґРєРё Р±Р°Р·РѕРІС‹С… РїРѕРґР»РѕР¶РµРє
+            *           notSticky: 0 - РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РёРЅСЃС‚СЂСѓРјРµРЅС‚ РІС‹РєР»СЋС‡Р°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РїРѕРІС‚РѕСЂРЅРѕРіРѕ РЅР°Р¶Р°С‚РёСЏ РёР»Рё РІС‹Р±РѕСЂР° РґСЂСѓРіРѕРіРѕ РёРЅСЃС‚СЂСѓРјРµРЅС‚Р°.
+                                   1 - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РІС‹РєР»СЋС‡Р°С‚СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚ РїРѕР»СЃРµ Р°РєС‚РёРІР°С†РёРё
+            *			properties: Hash - properties DIV РєРѕРЅС‚РµР№РЅРµСЂР° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ { 'className': 'tools_' + name })
+            *			style: Hash - СЃС‚РёР»Рё DIV РєРѕРЅС‚РµР№РЅРµСЂР° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ { 'position': "absolute", 'top': 40 })
+            *			regularStyle: Hash - СЂРµРіСѓР»СЏСЂРЅРѕРіРѕ СЃС‚РёР»СЏ DIV СЌР»РµРјРµРЅС‚РѕРІ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold",	textAlign: "center", cursor: "pointer", opacity: 1, color: "wheat" })
+            *			activeStyle: Hash - Р°РєС‚РёРІРЅРѕРіРѕ СЃС‚РёР»СЏ DIV СЌР»РµРјРµРЅС‚РѕРІ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold",	textAlign: "center", cursor: "pointer", opacity: 1, color: "orange" })
             */
             function ToolsContainer(name, attr) {
                 //console.log('ToolsContainer', name, attr);
                 if(!attr) attr = {};
-                var aliasNames = {},		// Hash алиасов основных подложек для map.setMode
+                var aliasNames = {},		// Hash Р°Р»РёР°СЃРѕРІ РѕСЃРЅРѕРІРЅС‹С… РїРѕРґР»РѕР¶РµРє РґР»СЏ map.setMode
                     toolNames = [],
                     toolHash = {},
                     itemsContainer = null,
@@ -4646,17 +4646,17 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 if(!name) name = 'testTool';
 
                 var properties = (attr.properties ? attr.properties : {});
-                if(!properties.className) {			// className по умолчанию tools_ИмяВкладки
+                if(!properties.className) {			// className РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tools_РРјСЏР’РєР»Р°РґРєРё
                     properties.className = 'tools_' + name;
                 }
 
-                // стили контейнера
+                // СЃС‚РёР»Рё РєРѕРЅС‚РµР№РЅРµСЂР°
                 var style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '0px;' };
-                // стили добавляемых юзером элементов tool
+                // СЃС‚РёР»Рё РґРѕР±Р°РІР»СЏРµРјС‹С… СЋР·РµСЂРѕРј СЌР»РµРјРµРЅС‚РѕРІ tool
                 var regularStyle = { paddingTop: "0px", paddingBottom: "0px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
                 var activeStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "orange"	};
 
-                // Установка backgroundColor c alpha
+                // РЈСЃС‚Р°РЅРѕРІРєР° backgroundColor c alpha
                 if(gmxAPI.isIE && document.documentMode < 10) {
                     style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
                     style.styleFloat = 'left';
@@ -4672,7 +4672,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                 if(attr.style) {
                     for(key in attr.style) style[key] = attr.style[key];
                 }
-                if(attr.regularStyle) {		// дополнение и переопределение стилей
+                if(attr.regularStyle) {		// РґРѕРїРѕР»РЅРµРЅРёРµ Рё РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёРµ СЃС‚РёР»РµР№
                     for(var key in attr.regularStyle) regularStyle[key] = attr.regularStyle[key];
                 }
                 if(attr.activeStyle) {
@@ -4696,10 +4696,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         this.repaint();			
                     }
                     ,selectTool: function(toolName) {
-                        if (name == 'standart') {	// только для колонки 'standart'
-                            if (toolName == my.activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// если toolName совпадает с активным tool переключаем на 1 tool
+                        if (name == 'standart') {	// С‚РѕР»СЊРєРѕ РґР»СЏ РєРѕР»РѕРЅРєРё 'standart'
+                            if (toolName == my.activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// РµСЃР»Рё toolName СЃРѕРІРїР°РґР°РµС‚ СЃ Р°РєС‚РёРІРЅС‹Рј tool РїРµСЂРµРєР»СЋС‡Р°РµРј РЅР° 1 tool
 
-                            // При draw обьектов
+                            // РџСЂРё draw РѕР±СЊРµРєС‚РѕРІ
                             if (my.currentlyDrawnObject && 'stopDrawing' in my.currentlyDrawnObject) {
                                 my.currentlyDrawnObject.stopDrawing();
                             }
@@ -4718,21 +4718,21 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 
                         tool = toolHash[toolName];
                         if(tool) {
-                            if (contType == 0) {								// для добавляемых юзером меню
+                            if (contType == 0) {								// РґР»СЏ РґРѕР±Р°РІР»СЏРµРјС‹С… СЋР·РµСЂРѕРј РјРµРЅСЋ
                                 if (tool.isActive) {
                                     if ('onCancel' in tool) tool.onCancel();
                                 } else {
                                     if ('onClick' in tool) tool.onClick();
                                 }
                                 tool.repaint();
-                            } else if (contType == 1) {							// тип для drawing
+                            } else if (contType == 1) {							// С‚РёРї РґР»СЏ drawing
                                 if ('onClick' in tool) {
                                     my.currentlyDrawnObject = tool.onClick();
                                     tool.repaint();
                                 } else {
                                     my.currentlyDrawnObject = null;
                                 }
-                            } else if (contType == 2) {							// тип для подложек
+                            } else if (contType == 2) {							// С‚РёРї РґР»СЏ РїРѕРґР»РѕР¶РµРє
                                 if ('onClick' in tool && toolName != oldToolName) {
                                     tool.onClick();
                                     tool.repaint();
@@ -4740,14 +4740,14 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             }
                             
                             if (notSticky == 1){
-                                // Если интструмент включен, сразу же выключите его.
+                                // Р•СЃР»Рё РёРЅС‚СЃС‚СЂСѓРјРµРЅС‚ РІРєР»СЋС‡РµРЅ, СЃСЂР°Р·Сѓ Р¶Рµ РІС‹РєР»СЋС‡РёС‚Рµ РµРіРѕ.
                                 if (tool.isActive) {
                                     if ('onCancel' in tool) tool.onCancel();
                                     tool.isActive = false;
                                 }
                             }
                         }
-                        gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name], {id: my.activeToolName, target: my});	// Изменились активные tool в контейнере
+                        gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name], {id: my.activeToolName, target: my});	// РР·РјРµРЅРёР»РёСЃСЊ Р°РєС‚РёРІРЅС‹Рµ tool РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
                         gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI.map.controlsManager, {id: my.activeToolName, target: my});
                     }
                     ,stateListeners: {}
@@ -4942,8 +4942,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             td.appendChild(control);
                             parent.appendChild(tr);
                             return {
-                                'control': control	// нода для отображения выбранного tool элемента 
-                                ,'row': tr	        // нода контейнера tool элемента (по умолчанию без контейнера)
+                                'control': control	// РЅРѕРґР° РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІС‹Р±СЂР°РЅРЅРѕРіРѕ tool СЌР»РµРјРµРЅС‚Р° 
+                                ,'row': tr	        // РЅРѕРґР° РєРѕРЅС‚РµР№РЅРµСЂР° tool СЌР»РµРјРµРЅС‚Р° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Р±РµР· РєРѕРЅС‚РµР№РЅРµСЂР°)
                             };
                         }(my.itemsContainer));
                         var itemContainer = pt.control;
@@ -4991,14 +4991,14 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             ,
                             setActive: function() { my.selectTool(tn); }
                         }
-                        toolHash[tn].line = row;      // для обратной совместимости
+                        toolHash[tn].line = row;      // РґР»СЏ РѕР±СЂР°С‚РЅРѕР№ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
 
                         var pos = (attr.pos > 0 ? attr.pos : toolNames.length);
                         toolNames.splice(pos, 0, tn);
                         //positionTools();
                         if(!gmxAPI._drawing.tools[tn]) gmxAPI._drawing.tools[tn] = toolHash[tn];
                         my.chkVisible();
-if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обратная совместимость
+if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
     toolHash[tn].setVisible(gmxAPI._drawing.toolInitFlags[tn].visible);
 }
                         return toolHash[tn];
@@ -5043,20 +5043,20 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 gmxAPI._tools[name] = this;
                 return this;
             }
-            //расширяем namespace
+            //СЂР°СЃС€РёСЂСЏРµРј namespace
             gmxAPI._ToolsContainer = ToolsContainer;    
         })();
 
         gmxAPI._tools = Controls.controlsHash;
 
-        //Поддержка zoomControl
+        //РџРѕРґРґРµСЂР¶РєР° zoomControl
         var zoomControl = {
             id: 'zoomControl'
             ,parentNode: null
             ,node: null
             ,listeners: {}
             ,
-            init: function(cont) {        // инициализация
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 zoomControl.parentNode = cont;
                 if(!zoomControl.node) zoomControl.node = zoomControl.createNode(cont);
                 if(!zoomControl.node.parentNode) zoomControl.setVisible(true);
@@ -5069,7 +5069,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            setVisible: function(flag) {        // инициализация
+            setVisible: function(flag) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var node = zoomControl.node;
                 if(!flag) {
                     if(node.parentNode) node.parentNode.removeChild(node);
@@ -5079,12 +5079,12 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            toggleHandlers: function(flag) {    // Добавление/Удаление прослушивателей событий
+            toggleHandlers: function(flag) {    // Р”РѕР±Р°РІР»РµРЅРёРµ/РЈРґР°Р»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
                 if(flag) {
                     if(!gmxAPI.map.zoomControl) gmxAPI.map.zoomControl = zoomControl.mapZoomControl;
                     //var cz = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z || 1 : 4);
                     //gmxAPI.map.zoomControl.setZoom(cz);
-                    // Добавление прослушивателей событий
+                    // Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
                     var key = 'onMinMaxZoom';
                     zoomControl.listeners[key] = gmxAPI.map.addListener(key, function(ph) {
                         var attr = ph.attr;
@@ -5105,12 +5105,12 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 zoomControl.toggleHandlers(false);
                 zoomControl.setVisible(false);
             }
             ,
-            createNode: function(cont) {        // инициализация
+            createNode: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var apiBase = gmxAPI.getAPIFolderRoot();
                 var node = zoomControl.zoomParent = gmxAPI.newElement(
                     "div",
@@ -5200,7 +5200,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,zoomArr: []
             ,zoomObj: null
             ,
-            addZoomItem: function(i) {        // добавить zoom элемент
+            addZoomItem: function(i) {        // РґРѕР±Р°РІРёС‚СЊ zoom СЌР»РµРјРµРЅС‚
                 var apiBase = gmxAPI.getAPIFolderRoot();
                 var node = gmxAPI.newElement(
                     "img",
@@ -5308,22 +5308,22 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
 
-        //Поддержка geomixerLink
+        //РџРѕРґРґРµСЂР¶РєР° geomixerLink
         var geomixerLink = {
             id: 'geomixerLink'
             ,parentNode: null
             ,node: null
-            ,init: function(cont) {        // инициализация
+            ,init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 geomixerLink.parentNode = cont.parentNode;
                 if(!geomixerLink.node) geomixerLink.node = geomixerLink.createNode(geomixerLink.parentNode);
                 if(!geomixerLink.node.parentNode) geomixerLink.parentNode.appendChild(geomixerLink.node);
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 if(geomixerLink.node.parentNode) geomixerLink.parentNode.removeChild(geomixerLink.node);
             }
             ,
-            createNode: function(cont) {        // инициализация
+            createNode: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var apiBase = gmxAPI.getAPIFolderRoot();
                 var node = gmxAPI.newElement(
                     "a",
@@ -5342,7 +5342,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     "img",
                     {
                         src: apiBase + "img/geomixer_logo_api.png",
-                        title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
+                        title: gmxAPI.KOSMOSNIMKI_LOCALIZED("В© 2007-2011 РРўР¦ В«РЎРєР°РЅР­РєСЃВ»", "(c) 2007-2011 RDC ScanEx"),
                         width: 130,
                         height: 34
                     },
@@ -5359,13 +5359,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
 
-        //Поддержка minimizeTools
+        //РџРѕРґРґРµСЂР¶РєР° minimizeTools
         var minimizeTools = {
             id: 'minimize'
             ,parentNode: null
             ,node: null
             ,
-            init: function(cont) {        // инициализация
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 minimizeTools.parentNode = cont.parentNode;
                 if(!minimizeTools.node) minimizeTools.node = minimizeTools.createNode(minimizeTools.parentNode);
                 if(!minimizeTools.node.parentNode) minimizeTools.setVisible(true);
@@ -5379,7 +5379,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 {
                     minimizeTools.toolsMinimized = true;
                     minimizeTools.node.src = apiBase + "img/tools_off.png";
-                    minimizeTools.node.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
+                    minimizeTools.node.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕРєР°Р·Р°С‚СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹", "Show tools");
                     gmxAPI.setVisible(gmxAPI._allToolsDIV, false);
                     gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, minimizeTools.toolsMinimized);
                 }
@@ -5387,7 +5387,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 {
                     minimizeTools.toolsMinimized = false;
                     minimizeTools.node.src = apiBase + "img/tools_on.png";
-                    minimizeTools.node.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
+                    minimizeTools.node.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРєСЂС‹С‚СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹", "Hide tools");
                     gmxAPI.setVisible(gmxAPI._allToolsDIV, true);
                     gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, minimizeTools.toolsMinimized);
                 }
@@ -5405,11 +5405,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 });
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 minimizeTools.setVisible(false);
             }
             ,
-            setVisible: function(flag) {        // инициализация
+            setVisible: function(flag) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var node = minimizeTools.node;
                 if(!flag) {
                     if(node.parentNode) node.parentNode.removeChild(node);
@@ -5420,7 +5420,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            createNode: function(cont) {        // инициализация
+            createNode: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 minimizeTools.plaqueNode = gmxAPI.newStyledDiv({
                     position: "absolute",
                     left: "4px",
@@ -5475,7 +5475,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
 
-        //Поддержка copyright
+        //РџРѕРґРґРµСЂР¶РєР° copyright
         var copyrightControl = {
             id: 'copyrights'
             ,parentNode: null
@@ -5512,7 +5512,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 copyrightControl.node.style.color = color;
             }
             ,
-            init: function(cont) {        // инициализация
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 copyrightControl.parentNode = cont.parentNode;
                 if(!copyrightControl.node) copyrightControl.node = copyrightControl.createNode(copyrightControl.parentNode);
                 if(!copyrightControl.node.parentNode) copyrightControl.setVisible(true);
@@ -5521,7 +5521,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 copyrightControl.redraw();
             }
             ,
-            createNode: function(cont) {        // инициализация
+            createNode: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var node = gmxAPI.newElement(
                     "span",
                     {
@@ -5537,12 +5537,12 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 return node;
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 copyrightControl.toggleHandlers(false);
                 copyrightControl.setVisible(false);
             }
             ,
-            setVisible: function(flag) {        // инициализация
+            setVisible: function(flag) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 if(!flag) {
                     if(copyrightControl.node.parentNode) copyrightControl.node.parentNode.removeChild(copyrightControl.node);
                 } else {
@@ -5552,7 +5552,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,onChangeBackgroundColorID: null
             ,onMoveEndID: null
             ,
-            toggleHandlers: function(flag) {            // Добавление прослушивателей событий
+            toggleHandlers: function(flag) {            // Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
                 var map = gmxAPI.map;
                 if(flag) {
                     map.addCopyrightedObject = function(obj, copyright, z1, z2, geo) {
@@ -5561,7 +5561,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     map.removeCopyrightedObject = function(obj) { copyrightControl.removeItem(obj); }
                     map.setCopyrightVisibility = function(obj) { copyrightControl.setVisible(obj); } 
                     map.updateCopyright = function() { copyrightControl.redraw(); } 
-                    // Изменить позицию контейнера копирайтов
+                    // РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РєРѕРЅС‚РµР№РЅРµСЂР° РєРѕРїРёСЂР°Р№С‚РѕРІ
                     map.setCopyrightAlign = function(attr) {
                         if(attr.align) copyrightControl.copyrightAlign = attr.align;
                         copyrightControl.setPosition();
@@ -5609,7 +5609,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            redraw: function() {                // перерисовать с задержкой 
+            redraw: function() {                // РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ СЃ Р·Р°РґРµСЂР¶РєРѕР№ 
                 if(this.redrawTimer) clearTimeout(this.redrawTimer);
                 this.redrawTimer = setTimeout(function() {
                     copyrightControl.redrawTimer = null;
@@ -5617,19 +5617,19 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }, 100);
             }
             ,
-            redrawItems: function() {            // перерисовать
+            redrawItems: function() {            // РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ
                 var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
                 if(!currPos.latlng || !currPos.latlng.extent) return;
                 var chkExists = {};
                 var texts = [
-                    //первым всегда будет располагаться копирайт СканЭкс. 
-                    "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2014 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
+                    //РїРµСЂРІС‹Рј РІСЃРµРіРґР° Р±СѓРґРµС‚ СЂР°СЃРїРѕР»Р°РіР°С‚СЊСЃСЏ РєРѕРїРёСЂР°Р№С‚ РЎРєР°РЅР­РєСЃ. 
+                    "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2014 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;РЎРєР°РЅР­РєСЃ&raquo;", "RDC ScanEx") + "</a>"
                 ];
                 this.forEach(function(item, i) {
                     var obj = item[0];
                     var copyright = item[1];
-                    if (!copyright || !obj.objectId || !obj.getVisibility()) return;  // обьекта нет на экране или без копирайта
-                    if (chkExists[copyright]) return;  // дубли копирайтов
+                    if (!copyright || !obj.objectId || !obj.getVisibility()) return;  // РѕР±СЊРµРєС‚Р° РЅРµС‚ РЅР° СЌРєСЂР°РЅРµ РёР»Рё Р±РµР· РєРѕРїРёСЂР°Р№С‚Р°
+                    if (chkExists[copyright]) return;  // РґСѓР±Р»Рё РєРѕРїРёСЂР°Р№С‚РѕРІ
                     var z1 = item[2],
                         z2 = item[3],
                         bounds = item[4],
@@ -5654,22 +5654,22 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,copyrightAlign: ''
             ,copyrightLastAlign: ''
             ,
-            setPosition: function() {            // Изменить координаты HTML элемента
+            setPosition: function() {            // РР·РјРµРЅРёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ HTML СЌР»РµРјРµРЅС‚Р°
                 var node = copyrightControl.node;
                 var center = (copyrightControl.parentNode.clientWidth - node.clientWidth) / 2;
                 if(copyrightControl.copyrightLastAlign != copyrightControl.copyrightAlign) {
                     copyrightControl.copyrightLastAlign = copyrightControl.copyrightAlign;
-                    if(copyrightControl.copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
+                    if(copyrightControl.copyrightAlign === 'bc') {				// РџРѕР·РёС†РёСЏ bc(BottomCenter)
                         gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': center + 'px' });
-                    } else if(copyrightControl.copyrightAlign === 'br') {		// Позиция br(BottomRight)
+                    } else if(copyrightControl.copyrightAlign === 'br') {		// РџРѕР·РёС†РёСЏ br(BottomRight)
                         gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': copyrightAttr.x, 'left': '' });
-                    } else if(copyrightControl.copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
+                    } else if(copyrightControl.copyrightAlign === 'bl') {		// РџРѕР·РёС†РёСЏ bl(BottomLeft)
                         gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': copyrightAttr.x });
-                    } else if(copyrightControl.copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
+                    } else if(copyrightControl.copyrightAlign === 'tc') {		// РџРѕР·РёС†РёСЏ tc(TopCenter)
                         gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
-                    } else if(copyrightControl.copyrightAlign === 'tr') {		// Позиция tr(TopRight)
+                    } else if(copyrightControl.copyrightAlign === 'tr') {		// РџРѕР·РёС†РёСЏ tr(TopRight)
                         gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': copyrightAttr.x, 'left': '' });
-                    } else if(copyrightControl.copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
+                    } else if(copyrightControl.copyrightAlign === 'tl') {		// РџРѕР·РёС†РёСЏ tl(TopLeft)
                         gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr.x });
                     }
                 }
@@ -5684,7 +5684,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
         
-        //Поддержка - отображения строки текущего положения карты
+        //РџРѕРґРґРµСЂР¶РєР° - РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ СЃС‚СЂРѕРєРё С‚РµРєСѓС‰РµРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹
         var locationControl = {
             id: 'location'
             ,parentNode: null
@@ -5694,7 +5694,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,items: []
             ,currentText: ''
             ,
-            init: function(cont) {        // инициализация
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 locationControl.parentNode = cont.parentNode;
                 if(!locationControl.nodes) locationControl.nodes = locationControl.createNode(locationControl.parentNode);
                 if(!locationControl.nodes[0].parentNode) locationControl.setVisible(true);
@@ -5702,17 +5702,17 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 locationControl.chkExists();
             }
             ,
-            chkExists: function() {     // Проверка уже установленных данных
+            chkExists: function() {     // РџСЂРѕРІРµСЂРєР° СѓР¶Рµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… РґР°РЅРЅС‹С…
                 locationControl.setColor(gmxAPI.getHtmlColor(), true);
                 locationControl.prpPosition();
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 locationControl.toggleHandlers(false);
                 locationControl.setVisible(false);
             }
             ,
-            setVisible: function(flag) {        // инициализация
+            setVisible: function(flag) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 if(!flag) {
                     for (var i = 0, len = this.nodes.length; i < len; i++) {
                         var node = this.nodes[i];
@@ -5730,7 +5730,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,positionChangedID: null
             ,onResizeMapID: null
             ,
-            toggleHandlers: function(flag) {            // Добавление прослушивателей событий
+            toggleHandlers: function(flag) {            // Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
                 if(flag) {
                     gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(locationControl.scaleBar, flag); } };
                     
@@ -5785,10 +5785,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             ,
-            showCoordinates: function() {        //окошко с координатами
-                if (locationControl.coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
+            showCoordinates: function() {        //РѕРєРѕС€РєРѕ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё
+                if (locationControl.coordFormat > 2) return; //РІС‹РґР°РµРј РѕРєРѕС€РєРѕ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё С‚РѕР»СЊРєРѕ РґР»СЏ СЃС‚Р°РЅРґР°СЂС‚РЅС‹С… С„РѕСЂРјР°С‚РѕРІ.
                 var oldText = locationControl.getCoordinatesText();
-                var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
+                var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("РўРµРєСѓС‰РёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєР°СЂС‚С‹:", "Current center coordinates:"), oldText);
                 if (text && (text != oldText))
                     gmxAPI.map.moveToCoordinates(text);
             }
@@ -5798,7 +5798,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 locationControl.setCoordinatesFormat(locationControl.coordFormat);
             }
             ,
-            createNode: function(cont) {        // инициализация
+            createNode: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 var nodes = [
                     gmxAPI.newElement(
                         "div",
@@ -5844,7 +5844,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         "div", 
                         { 
                             className: "gmx_changeCoords",
-                            title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
+                            title: gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРјРµРЅРёС‚СЊ С„РѕСЂРјР°С‚ РєРѕРѕСЂРґРёРЅР°С‚", "Toggle coordinates format"),
                             onclick: locationControl.nextCoordinatesFormat
                         },
                         {
@@ -5919,7 +5919,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     node.removeChild(node.childNodes[i]);
             }
             ,
-            coordFormatCallbacks: [		// методы формирования форматов координат
+            coordFormatCallbacks: [		// РјРµС‚РѕРґС‹ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ С„РѕСЂРјР°С‚РѕРІ РєРѕРѕСЂРґРёРЅР°С‚
                 function() { return locationControl.getCoordinatesText(); },
                 function() { return locationControl.getCoordinatesText(); },
                 function() { return locationControl.getCoordinatesText(); }
@@ -5932,7 +5932,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 locationControl.coordFormat = num;
                 if(!screenGeometry) screenGeometry = gmxAPI.map.getScreenGeometry();
                 var attr = {'screenGeometry': screenGeometry, 'properties': gmxAPI.map.properties };
-                var res = locationControl.coordFormatCallbacks[num](locationControl.coordinates, attr);		// если есть res значит запомним ответ
+                var res = locationControl.coordFormatCallbacks[num](locationControl.coordinates, attr);		// РµСЃР»Рё РµСЃС‚СЊ res Р·РЅР°С‡РёС‚ Р·Р°РїРѕРјРЅРёРј РѕС‚РІРµС‚
                 if(res && locationControl.prevCoordinates != res) locationControl.coordinates.innerHTML = res;
                 locationControl.prevCoordinates = res;
                 gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, num);
@@ -5956,7 +5956,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
 
-        //Контролы слоев
+        //РљРѕРЅС‚СЂРѕР»С‹ СЃР»РѕРµРІ
         var layersControl = {
             id: 'layers'
             ,parentNode: null
@@ -5966,7 +5966,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,listeners: {}
             ,map: null
             ,
-            init: function(cont) {        // инициализация
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
                 layersControl.parentNode = cont;
                 var regularStyle = {
                     paddingTop: "4px", 
@@ -6003,7 +6003,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     ,
                     'activeStyle': activeStyle
                     ,
-                    'contType': 2	// режим отключения выбора item
+                    'contType': 2	// СЂРµР¶РёРј РѕС‚РєР»СЋС‡РµРЅРёСЏ РІС‹Р±РѕСЂР° item
                 };
 
                 var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
@@ -6013,10 +6013,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 
                 layersControl.toggleHandlers(true);
                 layersControl._chkActiveChanged();
-                gmxAPI.map.baseLayerControl.setVisible = baseLayersTools.setVisible; // обратная совместимость
+                gmxAPI.map.baseLayerControl.setVisible = baseLayersTools.setVisible; // РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
             }
             ,
-            remove: function() {      // удаление
+            remove: function() {      // СѓРґР°Р»РµРЅРёРµ
                 layersControl.toggleHandlers(false);
                 gmxAPI.baseLayersTools.remove();
             }
@@ -6062,7 +6062,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 
             }
             ,
-            toggleHandlers: function(flag) {            // Добавление прослушивателей событий
+            toggleHandlers: function(flag) {            // Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
                 if(flag) {
                     layersControl.map = gmxAPI.map;
 
@@ -6097,8 +6097,8 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,hideNode: null
             ,items: []
             ,
-            init: function(cont) {        // инициализация
-                // Установка drawing контролов
+            init: function(cont) {        // РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
+                // РЈСЃС‚Р°РЅРѕРІРєР° drawing РєРѕРЅС‚СЂРѕР»РѕРІ
                     var attr = {
                         properties: { className: 'gmxTools' }
                         ,
@@ -6134,7 +6134,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             color: 'orange'
                         }
                         ,
-                        contType: 1	// режим для drawing tools
+                        contType: 1	// СЂРµР¶РёРј РґР»СЏ drawing tools
                     };
                     var standartTools = new gmxAPI._ToolsContainer('standart', attr);
                     var apiBase = gmxAPI.getAPIFolderRoot();
@@ -6147,7 +6147,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/move_tool_a.png",
                             onClick: gmxAPI._drawFunctions.move,
                             onCancel: function() {},
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Перемещение", "Move")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРµСЂРµРјРµС‰РµРЅРёРµ", "Move")
                         }
                         ,
                         {
@@ -6158,7 +6158,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/select_tool_a.png",
                             onClick: gmxAPI._drawFunctions.zoom,
                             onCancel: function() {},
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРІРµР»РёС‡РµРЅРёРµ", "Zoom")
                         }
                         ,
                         {
@@ -6169,7 +6169,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/marker_tool_a.png",
                             onClick: gmxAPI._drawFunctions.POINT,
                             onCancel: gmxAPI._drawing.endDrawing,
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("РњР°СЂРєРµСЂ", "Marker")
                         }
                         ,
                         {
@@ -6180,7 +6180,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/line_tool_a.png",
                             onClick: gmxAPI._drawFunctions.LINESTRING,
                             onCancel: gmxAPI._drawing.endDrawing,
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Р›РёРЅРёСЏ", "Line")
                         }
                         ,
                         {
@@ -6191,7 +6191,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/polygon_tool_a.png",
                             onClick: gmxAPI._drawFunctions.POLYGON,
                             onCancel: gmxAPI._drawing.endDrawing,
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕР»РёРіРѕРЅ", "Polygon")
                         }
                         ,
                         {
@@ -6202,7 +6202,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                             activeImageUrl: apiBase + "img/frame_tool_a.png",
                             onClick: gmxAPI._drawFunctions.FRAME,
                             onCancel: gmxAPI._drawing.endDrawing,
-                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                            hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Р Р°РјРєР°", "Rectangle")
                         }
                     ];
                     for(var i=0; i<arr.length; i++) {
@@ -6252,7 +6252,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         ,isActive: false
         ,controlsHash: {}
         ,initControls: initControls
-        ,remove: function() {      // удаление
+        ,remove: function() {      // СѓРґР°Р»РµРЅРёРµ
             for(var key in Controls.controlsHash) {
                 var item = Controls.controlsHash[key];
                 if('remove' in item) item.remove();
@@ -6277,23 +6277,23 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
     controlsBaseIcons.js
    ====================================================================== */
 
-// Стандартные контролы
+// РЎС‚Р°РЅРґР°СЂС‚РЅС‹Рµ РєРѕРЅС‚СЂРѕР»С‹
 (function()
 {
     "use strict";
     var titles = {
-        locationTxt: gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты", "Current center coordinates")
-        ,coordFormatChange: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format")
-        ,print: gmxAPI.KOSMOSNIMKI_LOCALIZED("Печать", "Print")
-        ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("Пермалинк", "Link to the map")
-        ,boxZoom: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "BoxZoom")
-        ,marker: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
-        ,polygon: gmxAPI.KOSMOSNIMKI_LOCALIZED("Многоугольник", "Polygon")
-        ,line: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
-        ,rectangle: gmxAPI.KOSMOSNIMKI_LOCALIZED("Прямоугольник", "Rectangle")
-        ,toggleVisibility: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/Скрыть", "Show/Hide")
+        locationTxt: gmxAPI.KOSMOSNIMKI_LOCALIZED("РўРµРєСѓС‰РёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєР°СЂС‚С‹", "Current center coordinates")
+        ,coordFormatChange: gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРјРµРЅРёС‚СЊ С„РѕСЂРјР°С‚ РєРѕРѕСЂРґРёРЅР°С‚", "Toggle coordinates format")
+        ,print: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРµС‡Р°С‚СЊ", "Print")
+        ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРµСЂРјР°Р»РёРЅРє", "Link to the map")
+        ,boxZoom: gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРІРµР»РёС‡РµРЅРёРµ", "BoxZoom")
+        ,marker: gmxAPI.KOSMOSNIMKI_LOCALIZED("РњР°СЂРєРµСЂ", "Marker")
+        ,polygon: gmxAPI.KOSMOSNIMKI_LOCALIZED("РњРЅРѕРіРѕСѓРіРѕР»СЊРЅРёРє", "Polygon")
+        ,line: gmxAPI.KOSMOSNIMKI_LOCALIZED("Р›РёРЅРёСЏ", "Line")
+        ,rectangle: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє", "Rectangle")
+        ,toggleVisibility: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕРєР°Р·Р°С‚СЊ/РЎРєСЂС‹С‚СЊ", "Show/Hide")
     }
-    var styleIcon = {        // стиль ноды иконок по умолчанию
+    var styleIcon = {        // СЃС‚РёР»СЊ РЅРѕРґС‹ РёРєРѕРЅРѕРє РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
         borderRadius: '4px'
         ,display: 'block'
         ,cursor: 'pointer'
@@ -6303,8 +6303,8 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         ,styleFloat: 'left'
         ,cssFloat: 'left'
     };
-    var standart = {        // интерфейс для обратной совместимости
-        addTool: function (tn, attr) {      // Добавление иконки или оверлея
+    var standart = {        // РёРЅС‚РµСЂС„РµР№СЃ РґР»СЏ РѕР±СЂР°С‚РЅРѕР№ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
+        addTool: function (tn, attr) {      // Р”РѕР±Р°РІР»РµРЅРёРµ РёРєРѕРЅРєРё РёР»Рё РѕРІРµСЂР»РµСЏ
             //console.log('tool addTool', tn, attr); // wheat
             if(!attr) attr = {};
             var ret = null;
@@ -6331,11 +6331,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             return Controls.items[id] || null;
         }
         ,
-        removeTool: function(id) {              // Удалить control
+        removeTool: function(id) {              // РЈРґР°Р»РёС‚СЊ control
             return Controls.removeControl(id);
         }
         ,
-        setVisible: function(id, flag) {        // видимость
+        setVisible: function(id, flag) {        // РІРёРґРёРјРѕСЃС‚СЊ
             var control = Controls.items[id];
         }
         ,
@@ -6355,7 +6355,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,clear: 'none'
         }
 
-        // gmxControl - прототип контрола из одной кнопки
+        // gmxControl - РїСЂРѕС‚РѕС‚РёРї РєРѕРЅС‚СЂРѕР»Р° РёР· РѕРґРЅРѕР№ РєРЅРѕРїРєРё
         L.Control.gmxControl = L.Control.extend({
             options: {
                 isVisible: true,
@@ -6365,9 +6365,9 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 position: 'topleft'
             }
             ,
-            /** Установка видимости контрола.
+            /** РЈСЃС‚Р°РЅРѕРІРєР° РІРёРґРёРјРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р°.
             * @memberOf gmxControl#
-            * @param {boolean} flag - флаг видимости контрола.
+            * @param {boolean} flag - С„Р»Р°Рі РІРёРґРёРјРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р°.
             */
             setVisible: function(flag) {
                 if(!flag) flag = false;
@@ -6377,9 +6377,9 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 this.options.isVisible = flag;
             }
 			,
-            /** Установка флага активности контрола.
+            /** РЈСЃС‚Р°РЅРѕРІРєР° С„Р»Р°РіР° Р°РєС‚РёРІРЅРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р°.
             * @memberOf gmxControl#
-            * @param {boolean} flag - флаг активности контрола.
+            * @param {boolean} flag - С„Р»Р°Рі Р°РєС‚РёРІРЅРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р°.
             */
             setActive: function(flag, notToggle) {
                 var container = this._container,
@@ -6452,26 +6452,26 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 
                 return ret;
             }
-            ,setActiveTool: function(flag) {    // обратная совместимость
+            ,setActiveTool: function(flag) {    // РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
                 this.setActive(flag);
             }
         });
         /**
-         * Описание класса gmxControl.
-         * Наследует класс <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° gmxControl.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
          * @typedef {Object} gmxControl
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
-         * @property {boolean} options.isVisible - Флаг видимости(по умолчанию true).
-         * @property {boolean} options.isActive - Флаг активности(по умолчанию false).
-         * @property {Function} options.onclick - Ф-ция обработчик события click(по умолчанию null).
-         * @property {Function} options.onAdd - Ф-ция обработчик события добавления контрола к карте(по умолчанию null).
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {boolean} options.isVisible - Р¤Р»Р°Рі РІРёРґРёРјРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ true).
+         * @property {boolean} options.isActive - Р¤Р»Р°Рі Р°РєС‚РёРІРЅРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ false).
+         * @property {Function} options.onclick - Р¤-С†РёСЏ РѕР±СЂР°Р±РѕС‚С‡РёРє СЃРѕР±С‹С‚РёСЏ click(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ null).
+         * @property {Function} options.onAdd - Р¤-С†РёСЏ РѕР±СЂР°Р±РѕС‚С‡РёРє СЃРѕР±С‹С‚РёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ РєРѕРЅС‚СЂРѕР»Р° Рє РєР°СЂС‚Рµ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ null).
         */
         L.control.gmxControl = function (options) {
           return new L.Control.gmxControl(options);
         }
 
-        // gmxZoom - контрол Zoom
+        // gmxZoom - РєРѕРЅС‚СЂРѕР» Zoom
         L.Control.gmxZoom = L.Control.Zoom.extend({
             options: {
                 current: ''
@@ -6480,8 +6480,8 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 ,isVisible: true
                 ,stepY: 7
             }
-            ,_y_min: 9              // min Y слайдера
-            ,isDragging: false      // min Y слайдера
+            ,_y_min: 9              // min Y СЃР»Р°Р№РґРµСЂР°
+            ,isDragging: false      // min Y СЃР»Р°Р№РґРµСЂР°
             ,_listeners: {}
             ,
             onAdd: function (map) {
@@ -6642,13 +6642,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Описание класса L.control.gmxZoom.
-         * Наследует класс <a href="http://leafletjs.com/reference.html#control-zoom">L.Control.Zoom</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° L.control.gmxZoom.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="http://leafletjs.com/reference.html#control-zoom">L.Control.Zoom</a>.
          * @typedef {Object} gmxZoom
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
-         * @property {boolean} options.isVisible - Флаг видимости(по умолчанию true).
-         * @property {boolean} options.zoomslider - Флаг добавления слайдера(по умолчанию true).
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {boolean} options.isVisible - Р¤Р»Р°Рі РІРёРґРёРјРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ true).
+         * @property {boolean} options.zoomslider - Р¤Р»Р°Рі РґРѕР±Р°РІР»РµРЅРёСЏ СЃР»Р°Р№РґРµСЂР°(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ true).
         */
         L.control.gmxZoom = function (options) {
           return new L.Control.gmxZoom(options);
@@ -6683,7 +6683,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         gmxZoom.addTo(gmxAPI._leaflet.LMap);
         //outControls.gmxZoom = gmxZoom;
 
-        // gmxLayers - контрол слоев
+        // gmxLayers - РєРѕРЅС‚СЂРѕР» СЃР»РѕРµРІ
         L.Control.gmxLayers = L.Control.Layers.extend({
             options: {
                 current: ''
@@ -6761,7 +6761,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 return false;
             }
             ,
-            _findTargetByID: function (id) {  // Найти input поле подложки или оверлея
+            _findTargetByID: function (id) {  // РќР°Р№С‚Рё input РїРѕР»Рµ РїРѕРґР»РѕР¶РєРё РёР»Рё РѕРІРµСЂР»РµСЏ
                 for(var i=0, len = this._form.length; i<len; i++) {
                     var target = this._form[i];
                     var item = this._layers[target.layerId];
@@ -6816,7 +6816,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         my.addBaseLayer(baseLayer, name);
                     }
                     ,
-                    chkExists: function() {     // Получить уже установленные подложки
+                    chkExists: function() {     // РџРѕР»СѓС‡РёС‚СЊ СѓР¶Рµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ РїРѕРґР»РѕР¶РєРё
                         var activeIDs = mbl.getActiveIDs();
                         for (var i = 0, len = activeIDs.length; i < len; i++) {
                             var id = activeIDs[i];
@@ -6893,7 +6893,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 delete Controls.items.layers;
             }
             ,
-            addOverlayTool: function (id, attr) {       // совместимость c addTool
+            addOverlayTool: function (id, attr) {       // СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ c addTool
                 var my = this;
                 var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
                 attr.overlay = true;
@@ -6917,11 +6917,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Описание класса L.control.gmxLayers.
-         * Наследует класс <a href="http://leafletjs.com/reference.html#control-layers">L.Control.Layers</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° L.control.gmxLayers.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="http://leafletjs.com/reference.html#control-layers">L.Control.Layers</a>.
          * @typedef {Object} gmxLayers
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
         L.control.gmxLayers = function (options) {
           return new L.Control.gmxLayers({}, {}, options);
@@ -6931,7 +6931,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         //outControls.layers = gmxLayers;
         //gmxAPI._leaflet.gmxLayers = gmxLayers;
 
-        // HideControls - кнопка управления видимостью всех контролов
+        // HideControls - РєРЅРѕРїРєР° СѓРїСЂР°РІР»РµРЅРёСЏ РІРёРґРёРјРѕСЃС‚СЊСЋ РІСЃРµС… РєРѕРЅС‚СЂРѕР»РѕРІ
         L.Control.hideControls = L.Control.gmxControl.extend({
             options: {
                 notHide: true
@@ -6955,11 +6955,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Описание класса L.control.hideControls.
-         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° L.control.hideControls.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="global.html#gmxControl">gmxControl</a>.
          * @typedef {Object} hideControls
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
        L.control.hideControls = function (options) {
           return new L.Control.hideControls(options);
@@ -6987,7 +6987,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         hideControls.addTo(gmxAPI._leaflet.LMap);
         //outControls.hideControls = hideControls;
 
-        // BottomBG - подвал background
+        // BottomBG - РїРѕРґРІР°Р» background
         L.Control.BottomBG = L.Control.gmxControl.extend({
             options: {
                 notHide: true
@@ -7005,11 +7005,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Описание класса L.control.BottomBG.
-         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° L.control.BottomBG.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="global.html#gmxControl">gmxControl</a>.
          * @typedef {Object} bottomBG
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
         var bottomBG = new L.Control.BottomBG({
             className: 'gmx_copyright_location_bg'
@@ -7063,13 +7063,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         this.coordFormat = num;
                         if(!screenGeometry) screenGeometry = gmxAPI.map.getScreenGeometry();
                         var attr = {screenGeometry: screenGeometry, properties: gmxAPI.map.properties };
-                        var res = this.coordFormatCallbacks[num](my.locationTxt, attr);		// если есть res значит запомним ответ
+                        var res = this.coordFormatCallbacks[num](my.locationTxt, attr);		// РµСЃР»Рё РµСЃС‚СЊ res Р·РЅР°С‡РёС‚ Р·Р°РїРѕРјРЅРёРј РѕС‚РІРµС‚
                         if(res && my.prevCoordinates != res) my.locationTxt.innerHTML = res;
                         my.prevCoordinates = res;
                         gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, num);
                     }
                     ,
-                    coordFormatCallbacks: [		// методы формирования форматов координат
+                    coordFormatCallbacks: [		// РјРµС‚РѕРґС‹ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ С„РѕСЂРјР°С‚РѕРІ РєРѕРѕСЂРґРёРЅР°С‚
                         function() { return util.getCoordinatesText(); },
                         function() { return util.getCoordinatesText(); },
                         function() { return util.getCoordinatesText(); }
@@ -7079,8 +7079,8 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         return gmxAPI.getCoordinatesText(currPos, this.coordFormat);
                     }
                     ,
-                    showCoordinates: function() {        //окошко с координатами
-                        if (this.coordFormat > 2) return; // только для стандартных форматов.
+                    showCoordinates: function() {        //РѕРєРѕС€РєРѕ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё
+                        if (this.coordFormat > 2) return; // С‚РѕР»СЊРєРѕ РґР»СЏ СЃС‚Р°РЅРґР°СЂС‚РЅС‹С… С„РѕСЂРјР°С‚РѕРІ.
                         var oldText = this.getCoordinatesText();
                         var text = window.prompt(titles.locationTxt + ':', oldText);
                         if (text && (text != oldText))
@@ -7144,11 +7144,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Контрол отображения текущего положения карты - класс L.control.LocationControls.
-         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * РљРѕРЅС‚СЂРѕР» РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹ - РєР»Р°СЃСЃ L.control.LocationControls.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="global.html#gmxControl">gmxControl</a>.
          * @typedef LocationControls
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
         var locationControl = new L.Control.LocationControls({
             position: 'bottomright'
@@ -7197,7 +7197,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         util.items = arr;
                     }
                     ,
-                    redraw: function() {                // перерисовать с задержкой 
+                    redraw: function() {                // РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ СЃ Р·Р°РґРµСЂР¶РєРѕР№ 
                         if(util.redrawTimer) clearTimeout(util.redrawTimer);
                         util.redrawTimer = setTimeout(function() {
                             util.redrawTimer = null;
@@ -7205,20 +7205,20 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         }, 100);
                     }
                     ,
-                    redrawItems: function() {          // перерисовать
+                    redrawItems: function() {          // РїРµСЂРµСЂРёСЃРѕРІР°С‚СЊ
                         var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
                         if(!currPos.latlng || !currPos.latlng.extent) return;
                         
                         var chkExists = {};
                         var texts = [
-                            //первым всегда будет располагаться копирайт СканЭкс. 
-                            "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2014 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
+                            //РїРµСЂРІС‹Рј РІСЃРµРіРґР° Р±СѓРґРµС‚ СЂР°СЃРїРѕР»Р°РіР°С‚СЊСЃСЏ РєРѕРїРёСЂР°Р№С‚ РЎРєР°РЅР­РєСЃ. 
+                            "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2014 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;РЎРєР°РЅР­РєСЃ&raquo;", "RDC ScanEx") + "</a>"
                         ];
                         this.items.forEach(function(item, i) {
                             var obj = item[0];
                             var copyright = item[1];
-                            if (!copyright || !obj.objectId || !obj.getVisibility()) return;  // обьекта нет на экране или без копирайта
-                            if (chkExists[copyright]) return;  // дубли копирайтов
+                            if (!copyright || !obj.objectId || !obj.getVisibility()) return;  // РѕР±СЊРµРєС‚Р° РЅРµС‚ РЅР° СЌРєСЂР°РЅРµ РёР»Рё Р±РµР· РєРѕРїРёСЂР°Р№С‚Р°
+                            if (chkExists[copyright]) return;  // РґСѓР±Р»Рё РєРѕРїРёСЂР°Р№С‚РѕРІ
                             var z1 = item[2],
                                 z2 = item[3],
                                 bounds = item[4],
@@ -7265,7 +7265,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     ,updateCopyright: function() {
                         util.redraw();
                     } 
-                    ,setCopyrightAlign: function(attr) {    // Изменить позицию контейнера копирайтов
+                    ,setCopyrightAlign: function(attr) {    // РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РєРѕРЅС‚РµР№РЅРµСЂР° РєРѕРїРёСЂР°Р№С‚РѕРІ
                         //if(attr.align) copyrightControl.copyrightAlign = attr.align;
                         //copyrightControl.setPosition();
                     }
@@ -7281,11 +7281,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         });
 
         /**
-         * Контрол отображения копирайтов - класс L.control.CopyrightControls.
-         * Наследует класс <a href="global.html#gmxControl">L.Control.gmxControl</a>.
+         * РљРѕРЅС‚СЂРѕР» РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РєРѕРїРёСЂР°Р№С‚РѕРІ - РєР»Р°СЃСЃ L.control.CopyrightControls.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="global.html#gmxControl">L.Control.gmxControl</a>.
          * @typedef CopyrightControls
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
         var copyrightControls = new L.Control.CopyrightControls({
             position: 'bottomleft'
@@ -7294,7 +7294,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         copyrightControls.addTo(gmxAPI._leaflet.LMap);
         //outControls.copyrightControls = copyrightControls;
 
-        // PrintControl - кнопка печати
+        // PrintControl - РєРЅРѕРїРєР° РїРµС‡Р°С‚Рё
         var printControl = L.control.gmxControl({
             title: titles.print
             ,id: 'print'
@@ -7304,7 +7304,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         printControl.addTo(gmxAPI._leaflet.LMap);
         //outControls.printControl = printControl;
 
-        // PermalinkControl - кнопка пермалинка
+        // PermalinkControl - РєРЅРѕРїРєР° РїРµСЂРјР°Р»РёРЅРєР°
         var permalinkControl = L.control.gmxControl({
             title: titles.permalink
             ,isVisible: false
@@ -7313,7 +7313,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         permalinkControl.addTo(gmxAPI._leaflet.LMap);
         //outControls.permalinkControl = permalinkControl;
 
-        // DrawingZoomControl - кнопка boxZoom
+        // DrawingZoomControl - РєРЅРѕРїРєР° boxZoom
         var drawingZoomControl = L.control.gmxControl({
             title: titles.boxZoom
             ,isActive: false
@@ -7346,7 +7346,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         drawingZoomControl.addTo(gmxAPI._leaflet.LMap);
         //outControls.drawingZoomControl = drawingZoomControl;
 
-        // DrawingPointControl - кнопка маркера
+        // DrawingPointControl - РєРЅРѕРїРєР° РјР°СЂРєРµСЂР°
         var drawingPointControl = L.control.gmxControl({
             title: titles.marker
             ,isActive: false
@@ -7557,11 +7557,11 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         });
         /**
-         * Описание класса L.control.Drawing.
-         * Наследует класс <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
+         * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° L.control.Drawing.
+         * РќР°СЃР»РµРґСѓРµС‚ РєР»Р°СЃСЃ <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
          * @typedef Drawing
-         * @property {object} options - опции контрола.
-         * @property {String} options.id - идентификатор контрола.
+         * @property {object} options - РѕРїС†РёРё РєРѕРЅС‚СЂРѕР»Р°.
+         * @property {String} options.id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
         */
         L.control.gmxDrawing = function (options) {
           return new L.Control.Drawing(options);
@@ -7573,10 +7573,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 
         //gmxAPI.extend(Controls.controlsHash, outControls);
 
-        //Управление ToolsAll
+        //РЈРїСЂР°РІР»РµРЅРёРµ ToolsAll
         (function()
         {
-            //Управление ToolsAll
+            //РЈРїСЂР°РІР»РµРЅРёРµ ToolsAll
             function ToolsAll(cont)
             {
                 this.toolsAllCont = gmxAPI._allToolsDIV;
@@ -7630,7 +7630,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,
             'style': { }
             ,
-            'contType': 2	// режим отключения выбора item
+            'contType': 2	// СЂРµР¶РёРј РѕС‚РєР»СЋС‡РµРЅРёСЏ РІС‹Р±РѕСЂР° item
         };
 
         var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
@@ -7640,54 +7640,54 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
     };
 
     /**
-     * Описание класса Controls.
+     * РћРїРёСЃР°РЅРёРµ РєР»Р°СЃСЃР° Controls.
      * @constructor Controls
-     * @property {String} id - Идентификатор набора контролов.
-     * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
-     * @property {hash} items - список контролов(ниже перечислены создаваемые в API контролы по умолчанию).
-     * @property {L.Control.hideControls} items.hide - <a href="global.html#hideControls">контрол управления видимостью</a>.
-     * @property {L.Control.gmxLayers} items.layers - <a href="global.html#gmxLayers">контрол слоев</a>.
-     * @property {L.Control.gmxZoom} items.gmxZoom - <a href="global.html#gmxZoom">контрол Zoom</a>.
-     * @property {L.Control.Drawing} items.gmxDrawing - <a href="global.html#Drawing">контрол рисования геометрий</a>.
-     * @property {L.Control.LocationControls} items.locationControl - <a href="global.html#LocationControls">контрол отображения текущего положения карты</a>.
-     * @property {L.Control.CopyrightControls} items.copyrightControls - <a href="global.html#CopyrightControls">контрол копирайтов</a>.
-     * @property {L.Control.gmxControl} items.print - контрол печати.
-     * @property {L.Control.gmxControl} items.permalink - контрол пермалинка.
-     * @property {L.Control.gmxControl} items.drawingZoom - контрол зуммирования по прямоугольнику.
-     * @property {L.Control.gmxControl} items.drawingPoint - контрол установки маркера.
+     * @property {String} id - РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ.
+     * @property {boolean} isVisible - Р¤Р»Р°Рі РІРёРґРёРјРѕСЃС‚Рё(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ true).
+     * @property {hash} items - СЃРїРёСЃРѕРє РєРѕРЅС‚СЂРѕР»РѕРІ(РЅРёР¶Рµ РїРµСЂРµС‡РёСЃР»РµРЅС‹ СЃРѕР·РґР°РІР°РµРјС‹Рµ РІ API РєРѕРЅС‚СЂРѕР»С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ).
+     * @property {L.Control.hideControls} items.hide - <a href="global.html#hideControls">РєРѕРЅС‚СЂРѕР» СѓРїСЂР°РІР»РµРЅРёСЏ РІРёРґРёРјРѕСЃС‚СЊСЋ</a>.
+     * @property {L.Control.gmxLayers} items.layers - <a href="global.html#gmxLayers">РєРѕРЅС‚СЂРѕР» СЃР»РѕРµРІ</a>.
+     * @property {L.Control.gmxZoom} items.gmxZoom - <a href="global.html#gmxZoom">РєРѕРЅС‚СЂРѕР» Zoom</a>.
+     * @property {L.Control.Drawing} items.gmxDrawing - <a href="global.html#Drawing">РєРѕРЅС‚СЂРѕР» СЂРёСЃРѕРІР°РЅРёСЏ РіРµРѕРјРµС‚СЂРёР№</a>.
+     * @property {L.Control.LocationControls} items.locationControl - <a href="global.html#LocationControls">РєРѕРЅС‚СЂРѕР» РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹</a>.
+     * @property {L.Control.CopyrightControls} items.copyrightControls - <a href="global.html#CopyrightControls">РєРѕРЅС‚СЂРѕР» РєРѕРїРёСЂР°Р№С‚РѕРІ</a>.
+     * @property {L.Control.gmxControl} items.print - РєРѕРЅС‚СЂРѕР» РїРµС‡Р°С‚Рё.
+     * @property {L.Control.gmxControl} items.permalink - РєРѕРЅС‚СЂРѕР» РїРµСЂРјР°Р»РёРЅРєР°.
+     * @property {L.Control.gmxControl} items.drawingZoom - РєРѕРЅС‚СЂРѕР» Р·СѓРјРјРёСЂРѕРІР°РЅРёСЏ РїРѕ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєСѓ.
+     * @property {L.Control.gmxControl} items.drawingPoint - РєРѕРЅС‚СЂРѕР» СѓСЃС‚Р°РЅРѕРІРєРё РјР°СЂРєРµСЂР°.
     */
 	var Controls = {
         id: 'controlsBaseIcons'
         ,isVisible: true
         ,items: {}
         ,
-        /** Получить контрол по его идентификатору
+        /** РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС‚СЂРѕР» РїРѕ РµРіРѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂСѓ
         * @memberOf Controls#
-        * @param {String} id идентификатор контрола.
-        * @returns {Control| null} возвращает контрол либо null если контрол с данным идентификатором не найден
+        * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
+        * @returns {Control| null} РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕРЅС‚СЂРѕР» Р»РёР±Рѕ null РµСЃР»Рё РєРѕРЅС‚СЂРѕР» СЃ РґР°РЅРЅС‹Рј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј РЅРµ РЅР°Р№РґРµРЅ
         */
         getControl: function(id) {
-            //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
+            //if(id === 'layers') id = 'gmxLayers';   // РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
             return this.items[id] || null;
         }
         ,
-        /** Добавить контрол
+        /** Р”РѕР±Р°РІРёС‚СЊ РєРѕРЅС‚СЂРѕР»
         * @memberOf Controls#
-        * @param {String} id - идентификатор контрола.
-        * @param {Object} pt - атрибуты контрола.
-        * @param {String} pt.regularImageUrl - URL иконки контрола.
-        * @param {String} pt.activeImageUrl - URL иконки при наведении мыши.
-        * @param {Object} pt.style - регулярный стиль контрола.
-        * @param {Object} pt.hoverStyle - стиль при наведении мыши.
-        * @param {String} pt.rus - наименование русскоязычное(по умолчанию равен id).
-        * @param {String} pt.eng - наименование англоязычное(по умолчанию равен id).
-        * @param {Function} pt.onClick - функция при включении активности контрола (по умолчанию null).
-        * @param {Function} pt.onCancel - функция при выключении активности контрола (по умолчанию null).
-        * @returns {Control|null} созданный контрол либо null если контрол с данным идентификатором уже существует.
+        * @param {String} id - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
+        * @param {Object} pt - Р°С‚СЂРёР±СѓС‚С‹ РєРѕРЅС‚СЂРѕР»Р°.
+        * @param {String} pt.regularImageUrl - URL РёРєРѕРЅРєРё РєРѕРЅС‚СЂРѕР»Р°.
+        * @param {String} pt.activeImageUrl - URL РёРєРѕРЅРєРё РїСЂРё РЅР°РІРµРґРµРЅРёРё РјС‹С€Рё.
+        * @param {Object} pt.style - СЂРµРіСѓР»СЏСЂРЅС‹Р№ СЃС‚РёР»СЊ РєРѕРЅС‚СЂРѕР»Р°.
+        * @param {Object} pt.hoverStyle - СЃС‚РёР»СЊ РїСЂРё РЅР°РІРµРґРµРЅРёРё РјС‹С€Рё.
+        * @param {String} pt.rus - РЅР°РёРјРµРЅРѕРІР°РЅРёРµ СЂСѓСЃСЃРєРѕСЏР·С‹С‡РЅРѕРµ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ id).
+        * @param {String} pt.eng - РЅР°РёРјРµРЅРѕРІР°РЅРёРµ Р°РЅРіР»РѕСЏР·С‹С‡РЅРѕРµ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ id).
+        * @param {Function} pt.onClick - С„СѓРЅРєС†РёСЏ РїСЂРё РІРєР»СЋС‡РµРЅРёРё Р°РєС‚РёРІРЅРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ null).
+        * @param {Function} pt.onCancel - С„СѓРЅРєС†РёСЏ РїСЂРё РІС‹РєР»СЋС‡РµРЅРёРё Р°РєС‚РёРІРЅРѕСЃС‚Рё РєРѕРЅС‚СЂРѕР»Р° (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ null).
+        * @returns {Control|null} СЃРѕР·РґР°РЅРЅС‹Р№ РєРѕРЅС‚СЂРѕР» Р»РёР±Рѕ null РµСЃР»Рё РєРѕРЅС‚СЂРѕР» СЃ РґР°РЅРЅС‹Рј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.
         */
         addControl: function(id, pt) {
             if(!id) id = pt.id;
-            if(Controls.items[id]) return null; // такой контрол уже имеется
+            if(Controls.items[id]) return null; // С‚Р°РєРѕР№ РєРѕРЅС‚СЂРѕР» СѓР¶Рµ РёРјРµРµС‚СЃСЏ
             var title = pt.title || pt.hint;
 			var attr = {
                 id: id
@@ -7716,7 +7716,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             if(pt.onClick) attr.onClick = pt.onClick;
             if(pt.onCancel) attr.onCancel = pt.onCancel;
             //if(pt.overlay) attr.onCancel = pt.onCancel;
-            if(!attr.src) {     // Текстовый контрол
+            if(!attr.src) {     // РўРµРєСЃС‚РѕРІС‹Р№ РєРѕРЅС‚СЂРѕР»
                 className += ' leaflet-control-Text';
                 if(pt.innerHTML) attr.innerHTML = pt.innerHTML;
                 else {
@@ -7729,7 +7729,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
 
-            // Добавление пользовательского контрола
+            // Р”РѕР±Р°РІР»РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РєРѕРЅС‚СЂРѕР»Р°
             var userControl = L.control.gmxControl({
                 title: gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng)
                 ,isActive: false
@@ -7777,10 +7777,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             return userControl;
         }
         ,
-        /** Удаление контрола по его идентификатору.
+        /** РЈРґР°Р»РµРЅРёРµ РєРѕРЅС‚СЂРѕР»Р° РїРѕ РµРіРѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂСѓ.
         * @memberOf Controls#
-        * @param {String} id идентификатор контрола.
-        * @returns {Control} возвращает удаленный контрол либо null если он не найден
+        * @param {String} id РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРЅС‚СЂРѕР»Р°.
+        * @returns {Control} РІРѕР·РІСЂР°С‰Р°РµС‚ СѓРґР°Р»РµРЅРЅС‹Р№ РєРѕРЅС‚СЂРѕР» Р»РёР±Рѕ null РµСЃР»Рё РѕРЅ РЅРµ РЅР°Р№РґРµРЅ
         */
         removeControl: function (id) {
             var control = this.items[id];
@@ -7789,10 +7789,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             return control;
         }
         ,
-        /** Удаление набора контролов.
+        /** РЈРґР°Р»РµРЅРёРµ РЅР°Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»РѕРІ.
         * @memberOf Controls#
         */
-        remove: function() {      // удаление
+        remove: function() {      // СѓРґР°Р»РµРЅРёРµ
             for(var key in this.items) {
                 var item = this.items[key];
                 if('remove' in item) item.remove();
@@ -7807,7 +7807,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             return true;
         }
         ,initControls: initControls
-        // остальное для обратной совместимости
+        // РѕСЃС‚Р°Р»СЊРЅРѕРµ РґР»СЏ РѕР±СЂР°С‚РЅРѕР№ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
 	}
     if(!gmxAPI._controls) gmxAPI._controls = {};
     gmxAPI._controls[Controls.id] = Controls;
@@ -7816,10 +7816,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
     Layer.js
    ====================================================================== */
 
-//Поддержка addLayer
+//РџРѕРґРґРµСЂР¶РєР° addLayer
 (function()
 {
- // получить minZoom maxZoom для слоя по фильтрам
+ // РїРѕР»СѓС‡РёС‚СЊ minZoom maxZoom РґР»СЏ СЃР»РѕСЏ РїРѕ С„РёР»СЊС‚СЂР°Рј
  function getMinMaxZoom(prop)
  {
   var minZoom = 20, maxZoom = 0;
@@ -7832,10 +7832,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
   return {'minZoom': minZoom, 'maxZoom': maxZoom};
  }
 
- // Подготовка атрибутов фильтра стилей 
+ // РџРѕРґРіРѕС‚РѕРІРєР° Р°С‚СЂРёР±СѓС‚РѕРІ С„РёР»СЊС‚СЂР° СЃС‚РёР»РµР№ 
  function getFilterAttr(style)
  {
-  // Получение стилей фильтра
+  // РџРѕР»СѓС‡РµРЅРёРµ СЃС‚РёР»РµР№ С„РёР»СЊС‚СЂР°
   var regularStyle = {};
   if (typeof style.StyleJSON != 'undefined')
    regularStyle = style.StyleJSON;
@@ -7843,7 +7843,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
    regularStyle = style.RenderStyle;
   else
   {
-   // стиль по умолчанию
+   // СЃС‚РёР»СЊ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
    if (style.PointSize)
     regularStyle.marker = { size: parseInt(style.PointSize) };
    if (style.Icon)
@@ -7887,7 +7887,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
    if (hoveredStyle.outline) hoveredStyle.outline.thickness += 1;
   }
 
-  // Получение sql строки фильтра
+  // РџРѕР»СѓС‡РµРЅРёРµ sql СЃС‚СЂРѕРєРё С„РёР»СЊС‚СЂР°
   var name = '';
   var sql = '';
   if (style.Filter)
@@ -7904,7 +7904,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
    {
     sql = style.Filter;
    }
-   if (style.Filter.Name) name = style.Filter.Name; // имя фильтра - для map.layers в виде хэша
+   if (style.Filter.Name) name = style.Filter.Name; // РёРјСЏ С„РёР»СЊС‚СЂР° - РґР»СЏ map.layers РІ РІРёРґРµ С…СЌС€Р°
   }
   var DisableBalloonOnMouseMove = ('DisableBalloonOnMouseMove' in style ? style.DisableBalloonOnMouseMove : true);
   var out = {
@@ -7924,7 +7924,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
   return out;
  }
 
- // Инициализация фильтра
+ // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С„РёР»СЊС‚СЂР°
  var initFilter = function(prnt, num)
  {
   var filter = prnt.filters[num];
@@ -7943,7 +7943,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
   filter.setZoomBounds(attr.MinZoom, attr.MaxZoom);
   filter._attr = attr;
         
-  gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} ); // Проверка map Listeners на reSetStyles - для балунов
+  gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} ); // РџСЂРѕРІРµСЂРєР° map Listeners РЅР° reSetStyles - РґР»СЏ Р±Р°Р»СѓРЅРѕРІ
 
         filter.getBalloonTemplate = function() {
             return filter._balloonTemplate;
@@ -7952,33 +7952,33 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
   gmxAPI.mapNodes[filter.objectId] = filter;
 
   var proxy = gmxAPI._cmdProxy;
-        gmxAPI.extend(filter, {    // переопределение свойств после установки видимости
-            setStyleHook: function(func) {  // Установка стилевой функции пользователя
+        gmxAPI.extend(filter, {    // РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёРµ СЃРІРѕР№СЃС‚РІ РїРѕСЃР»Рµ СѓСЃС‚Р°РЅРѕРІРєРё РІРёРґРёРјРѕСЃС‚Рё
+            setStyleHook: function(func) {  // РЈСЃС‚Р°РЅРѕРІРєР° СЃС‚РёР»РµРІРѕР№ С„СѓРЅРєС†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
                 return proxy('setStyleHook', { obj: filter, attr:{data: func} });
             }
-            ,removeStyleHook: function() {  // удаление стилевой функции пользователя
+            ,removeStyleHook: function() {  // СѓРґР°Р»РµРЅРёРµ СЃС‚РёР»РµРІРѕР№ С„СѓРЅРєС†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
                 return proxy('removeStyleHook', { obj: filter, attr:{data: attr} });
             }
         });
   return filter;
  }
 
- // Добавление фильтра
- // Ключи :
- // * Balloon: текст баллуна
- // * BalloonEnable: показывать ли баллун
- // * DisableBalloonOnClick: не показывать при клике
- // * DisableBalloonOnMouseMove: не показывать при наведении
- // * RenderStyle: стиль фильтра
- // * MinZoom: мин.зум
- // * MaxZoom: макс.зум
- // * sql: строка фильтра
+ // Р”РѕР±Р°РІР»РµРЅРёРµ С„РёР»СЊС‚СЂР°
+ // РљР»СЋС‡Рё :
+ // * Balloon: С‚РµРєСЃС‚ Р±Р°Р»Р»СѓРЅР°
+ // * BalloonEnable: РїРѕРєР°Р·С‹РІР°С‚СЊ Р»Рё Р±Р°Р»Р»СѓРЅ
+ // * DisableBalloonOnClick: РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ РїСЂРё РєР»РёРєРµ
+ // * DisableBalloonOnMouseMove: РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ РїСЂРё РЅР°РІРµРґРµРЅРёРё
+ // * RenderStyle: СЃС‚РёР»СЊ С„РёР»СЊС‚СЂР°
+ // * MinZoom: РјРёРЅ.Р·СѓРј
+ // * MaxZoom: РјР°РєСЃ.Р·СѓРј
+ // * sql: СЃС‚СЂРѕРєР° С„РёР»СЊС‚СЂР°
  var addFilter = function(prnt, attr)
  {
   if(!attr) attr = {};
-  var filter = new gmxAPI._FMO(false, {}, prnt); // MapObject для фильтра
-  var num = prnt.filters.length;     // Номер фильтра в массиве фильтров
-  var lastFilter = (num > 0 ? prnt.filters[num - 1] : null); // Последний существующий фильтр
+  var filter = new gmxAPI._FMO(false, {}, prnt); // MapObject РґР»СЏ С„РёР»СЊС‚СЂР°
+  var num = prnt.filters.length;     // РќРѕРјРµСЂ С„РёР»СЊС‚СЂР° РІ РјР°СЃСЃРёРІРµ С„РёР»СЊС‚СЂРѕРІ
+  var lastFilter = (num > 0 ? prnt.filters[num - 1] : null); // РџРѕСЃР»РµРґРЅРёР№ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёР№ С„РёР»СЊС‚СЂ
   if(!attr && lastFilter) {
    attr = gmxAPI.clone(lastFilter._attr);
   }
@@ -7991,10 +7991,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
    prnt.filters[attr.name] = filter;
 
   if(!filter.clusters && attr.clusters && '_Clusters' in gmxAPI) {
-   filter.clusters = new gmxAPI._Clusters(filter); // атрибуты кластеризации потомков по фильтру
+   filter.clusters = new gmxAPI._Clusters(filter); // Р°С‚СЂРёР±СѓС‚С‹ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РїРѕС‚РѕРјРєРѕРІ РїРѕ С„РёР»СЊС‚СЂСѓ
    filter.setClusters(attr.clusters);
   }
-        gmxAPI.extend(filter, {         // определение свойств до установки видимости
+        gmxAPI.extend(filter, {         // РѕРїСЂРµРґРµР»РµРЅРёРµ СЃРІРѕР№СЃС‚РІ РґРѕ СѓСЃС‚Р°РЅРѕРІРєРё РІРёРґРёРјРѕСЃС‚Рё
             setStyleHook: function(func) {
                 attr.styleHook = func;
                 return true;
@@ -8005,10 +8005,10 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
   });
 
-  gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );   // Listeners на слое - произошло добавление фильтра
-  if(prnt.objectId) filter = initFilter(prnt, num); // если слой виден - инициализация фильтра
+  gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );   // Listeners РЅР° СЃР»РѕРµ - РїСЂРѕРёР·РѕС€Р»Рѕ РґРѕР±Р°РІР»РµРЅРёРµ С„РёР»СЊС‚СЂР°
+  if(prnt.objectId) filter = initFilter(prnt, num); // РµСЃР»Рё СЃР»РѕР№ РІРёРґРµРЅ - РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С„РёР»СЊС‚СЂР°
 
-  // Удаление фильтра
+  // РЈРґР°Р»РµРЅРёРµ С„РёР»СЊС‚СЂР°
   filter.remove = function()
   {
    var ret = gmxAPI._FMO.prototype.remove.call(this);
@@ -8023,7 +8023,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
   return filter;
  }
 
-    // Добавление слоя
+    // Р”РѕР±Р°РІР»РµРЅРёРµ СЃР»РѕСЏ
     var addLayer = function(parentObj, layer, isVisible, isMerc)
     {
         var FlashMapObject = gmxAPI._FMO;
@@ -8064,7 +8064,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         if (isVisible === undefined)
             isVisible = true;
         
-        var obj = new gmxAPI._FMO(false, {}, parentObj);     // MapObject слоя
+        var obj = new gmxAPI._FMO(false, {}, parentObj);     // MapObject СЃР»РѕСЏ
 
         var zIndex = parentObj.layers.length;
         if(!layer) layer = {};
@@ -8124,7 +8124,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         }
 
         if (!isRaster) {
-            if(!layer.properties.styles) {  // стиль-фильтр по умолчанию
+            if(!layer.properties.styles) {  // СЃС‚РёР»СЊ-С„РёР»СЊС‚СЂ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
                 layer.properties.styles = [
                     {
                         'BalloonEnable': true
@@ -8136,47 +8136,47 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     }
                 ];
             }
-            // Добавление начальных фильтров
+            // Р”РѕР±Р°РІР»РµРЅРёРµ РЅР°С‡Р°Р»СЊРЅС‹С… С„РёР»СЊС‚СЂРѕРІ
             for (var i = 0, len = layer.properties.styles.length; i < len; i++) {
                 var style = layer.properties.styles[i],
                     attr = getFilterAttr(style);
                 addFilter(obj, attr);
             }
             obj.addFilter = function(attr) { return addFilter(obj, attr); };
-            obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
+            obj.getItem = function(pid, flagMerc) {             // РџРѕР»СѓС‡РёС‚СЊ РѕР±СЊРµРєС‚ РІРµРєС‚РѕСЂРЅРѕРіРѕ СЃР»РѕСЏ
                 return proxy('getItem', { 'obj': obj, 'attr':{layerId:obj.objectId, itemId:pid, flagMerc:flagMerc} });
             };
-            obj.addItems = function(attr) {     // добавление обьектов векторного слоя
+            obj.addItems = function(attr) {     // РґРѕР±Р°РІР»РµРЅРёРµ РѕР±СЊРµРєС‚РѕРІ РІРµРєС‚РѕСЂРЅРѕРіРѕ СЃР»РѕСЏ
                 return proxy('addItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
             };
-            obj.removeItems = function(attr) {  // удаление обьектов векторного слоя 
+            obj.removeItems = function(attr) {  // СѓРґР°Р»РµРЅРёРµ РѕР±СЊРµРєС‚РѕРІ РІРµРєС‚РѕСЂРЅРѕРіРѕ СЃР»РѕСЏ 
                 return proxy('removeItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
             };
-            obj.setSortItems = function(attr) { // установка сортировки обьектов векторного слоя 
+            obj.setSortItems = function(attr) { // СѓСЃС‚Р°РЅРѕРІРєР° СЃРѕСЂС‚РёСЂРѕРІРєРё РѕР±СЊРµРєС‚РѕРІ РІРµРєС‚РѕСЂРЅРѕРіРѕ СЃР»РѕСЏ 
                 return proxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
             };
-            obj.setFlipItems = function(arr, flag) {    // Установить массив flip обьектов
+            obj.setFlipItems = function(arr, flag) {    // РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РјР°СЃСЃРёРІ flip РѕР±СЊРµРєС‚РѕРІ
                 return proxy('setFlipItems', { 'obj': obj, 'attr':{layerId:obj.objectId, arr: arr, clear: flag} });
             };
-            obj.getFlipItems = function() {             // Получить массив id flip обьектов
+            obj.getFlipItems = function() {             // РџРѕР»СѓС‡РёС‚СЊ РјР°СЃСЃРёРІ id flip РѕР±СЊРµРєС‚РѕРІ
                 return proxy('getFlipItems', { 'obj': obj, 'attr':{layerId:obj.objectId} });
             };
-            obj.setRasterViewItems = function(arr) {    // Установить видимость растров обьектов
+            obj.setRasterViewItems = function(arr) {    // РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РІРёРґРёРјРѕСЃС‚СЊ СЂР°СЃС‚СЂРѕРІ РѕР±СЊРµРєС‚РѕРІ
                 return proxy('setRasterViewItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'arr': arr} });
             };
-            obj.bringToTopItem = function(fid) {        // Добавить обьект к массиву Flips обьектов
+            obj.bringToTopItem = function(fid) {        // Р”РѕР±Р°РІРёС‚СЊ РѕР±СЊРµРєС‚ Рє РјР°СЃСЃРёРІСѓ Flips РѕР±СЊРµРєС‚РѕРІ
                 return proxy('addFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'fid': fid} });
             };
-            obj.disableFlip = function() {              // Отменить ротацию обьектов слоя
+            obj.disableFlip = function() {              // РћС‚РјРµРЅРёС‚СЊ СЂРѕС‚Р°С†РёСЋ РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ
                 return proxy('disableFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId} });
             };
-            obj.enableFlip = function() {               // Установить ротацию обьектов слоя
+            obj.enableFlip = function() {               // РЈСЃС‚Р°РЅРѕРІРёС‚СЊ СЂРѕС‚Р°С†РёСЋ РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ
                 return proxy('enableFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId} });
             };
-            obj.setWatcher = function(attr) {           // Установка подглядывателя обьекта под Hover обьектом
+            obj.setWatcher = function(attr) {           // РЈСЃС‚Р°РЅРѕРІРєР° РїРѕРґРіР»СЏРґС‹РІР°С‚РµР»СЏ РѕР±СЊРµРєС‚Р° РїРѕРґ Hover РѕР±СЊРµРєС‚РѕРј
                 return proxy('setWatcher', { 'obj': obj, 'attr':attr });
             };
-            obj.removeWatcher = function() {            // Удалить подглядыватель
+            obj.removeWatcher = function() {            // РЈРґР°Р»РёС‚СЊ РїРѕРґРіР»СЏРґС‹РІР°С‚РµР»СЊ
                 return proxy('removeWatcher', { 'obj': obj });
             };
         }
@@ -8205,9 +8205,9 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             }
         }
 
-        var bounds = false;    // в меркаторе
+        var bounds = false;    // РІ РјРµСЂРєР°С‚РѕСЂРµ
         var boundsLatLgn = false;
-        var initBounds = function(geom) { // geom в меркаторе
+        var initBounds = function(geom) { // geom РІ РјРµСЂРєР°С‚РѕСЂРµ
             if (geom) {
                 bounds = gmxAPI.getBounds(geom.coordinates);
                 obj.bounds = boundsLatLgn = {
@@ -8240,16 +8240,16 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             if (!bounds) initBounds(obj.mercGeometry);
             return boundsLatLgn;
         };
-        obj.getLayerBounds = function() {           // Получение boundsLatLgn для внешних плагинов
+        obj.getLayerBounds = function() {           // РџРѕР»СѓС‡РµРЅРёРµ boundsLatLgn РґР»СЏ РІРЅРµС€РЅРёС… РїР»Р°РіРёРЅРѕРІ
             if (!boundsLatLgn) initBounds(obj.mercGeometry);
             return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
         }
-        obj.getLayerBoundsArrayMerc = function() {      // Получение массива bounds в меркаторе
+        obj.getLayerBoundsArrayMerc = function() {      // РџРѕР»СѓС‡РµРЅРёРµ РјР°СЃСЃРёРІР° bounds РІ РјРµСЂРєР°С‚РѕСЂРµ
             if (!boundsLatLgn) initBounds(obj.mercGeometry);
             return (obj.boundsArr ? obj.boundsArr : [bounds]);
         }
         
-        obj.getBoundsMerc = function() {            // Получение boundsMerc в меркаторе
+        obj.getBoundsMerc = function() {            // РџРѕР»СѓС‡РµРЅРёРµ boundsMerc РІ РјРµСЂРєР°С‚РѕСЂРµ
             return getBoundsMerc();
         }
 
@@ -8284,18 +8284,18 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 "&y=" + j;
         }
 
-        gmxAPI.extend(obj, {        // определение свойств до установки видимости
-            setDateInterval: function(dt1, dt2) {  // Установка временного интервала
+        gmxAPI.extend(obj, {        // РѕРїСЂРµРґРµР»РµРЅРёРµ СЃРІРѕР№СЃС‚РІ РґРѕ СѓСЃС‚Р°РЅРѕРІРєРё РІРёРґРёРјРѕСЃС‚Рё
+            setDateInterval: function(dt1, dt2) {  // РЈСЃС‚Р°РЅРѕРІРєР° РІСЂРµРјРµРЅРЅРѕРіРѕ РёРЅС‚РµСЂРІР°Р»Р°
                 obj.dt1 = dt1;
                 obj.dt2 = dt2;
             },
-            getDateInterval: function() {  // Получить временной интервал
+            getDateInterval: function() {  // РџРѕР»СѓС‡РёС‚СЊ РІСЂРµРјРµРЅРЅРѕР№ РёРЅС‚РµСЂРІР°Р»
                 return {
                     beginDate: obj.dt1
                     ,endDate: obj.dt2
                 };
             },
-            getTileCounts: function(dt1, dt2) {  // Получить количество тайлов по временному интервалу
+            getTileCounts: function(dt1, dt2) {  // РџРѕР»СѓС‡РёС‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ С‚Р°Р№Р»РѕРІ РїРѕ РІСЂРµРјРµРЅРЅРѕРјСѓ РёРЅС‚РµСЂРІР°Р»Сѓ
                 return 0;
             },
             setPositionOffset: function(dx, dy) {
@@ -8306,30 +8306,30 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             ,getPositionOffset: function() {
                 return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
             }
-            ,setStyleHook: function(func) {  // Установка стилевой функции пользователя
+            ,setStyleHook: function(func) {  // РЈСЃС‚Р°РЅРѕРІРєР° СЃС‚РёР»РµРІРѕР№ С„СѓРЅРєС†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
                 obj.filters.foreach(function(item) { item.setStyleHook(func); });
                 return true;
             }
-            ,removeStyleHook: function() {  // удаление стилевой функции пользователя
+            ,removeStyleHook: function() {  // СѓРґР°Р»РµРЅРёРµ СЃС‚РёР»РµРІРѕР№ С„СѓРЅРєС†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
                 obj.filters.foreach(function(item) { item.removeStyleHook(); });
                 return true;
             }
-            ,getStatus: function(pt) {  // Получить состояние слоя по видимому extent
+            ,getStatus: function(pt) {  // РџРѕР»СѓС‡РёС‚СЊ СЃРѕСЃС‚РѕСЏРЅРёРµ СЃР»РѕСЏ РїРѕ РІРёРґРёРјРѕРјСѓ extent
                 if(this.objectId) return proxy('getStatus', { obj: obj, attr:pt });
                 return {isVisible: false};
             }
-            ,freezeLoading: function(pt) {      // установить флаг игнорирования загрузки векторных тайлов
+            ,freezeLoading: function(pt) {      // СѓСЃС‚Р°РЅРѕРІРёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                 obj._isLoadingFreezed = true;
                 return true;
             }
-            ,unfreezeLoading: function(pt) {    // удалить флаг игнорирования загрузки векторных тайлов
+            ,unfreezeLoading: function(pt) {    // СѓРґР°Р»РёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                 obj._isLoadingFreezed = false;
                 return true;
             }
-            ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
+            ,isLoadingFreezed: function(pt) {    // РїРѕР»СѓС‡РёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                 return obj._isLoadingFreezed;
             }
-            ,chkLayerVersion: function(callback) {  // Запросить проверку версии невидимого слоя
+            ,chkLayerVersion: function(callback) {  // Р—Р°РїСЂРѕСЃРёС‚СЊ РїСЂРѕРІРµСЂРєСѓ РІРµСЂСЃРёРё РЅРµРІРёРґРёРјРѕРіРѕ СЃР»РѕСЏ
                 if (callback) callback({"Status":"notVisible"});
                 return false;
             }
@@ -8343,7 +8343,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
             }
             var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
-            if(gmxAPI._layersVersion && isLayerVers) {  // Установлен модуль версий слоев + есть версии тайлов слоя
+            if(gmxAPI._layersVersion && isLayerVers) {  // РЈСЃС‚Р°РЅРѕРІР»РµРЅ РјРѕРґСѓР»СЊ РІРµСЂСЃРёР№ СЃР»РѕРµРІ + РµСЃС‚СЊ РІРµСЂСЃРёРё С‚Р°Р№Р»РѕРІ СЃР»РѕСЏ
                 gmxAPI._layersVersion.chkVersion(obj);
                 obj.chkLayerVersion = function(callback) {
                     gmxAPI._layersVersion.chkLayerVersion(obj, callback);
@@ -8368,7 +8368,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             'enableDragging', 'disableDragging',
             'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
         ];
-        // не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
+        // РЅРµ РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РєРѕРјР°РЅРґС‹ addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
 
         var createThisLayer = function()
         {
@@ -8380,25 +8380,25 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             if(obj.isBaseLayer) obj_.isBaseLayer = obj.isBaseLayer;
 //            if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
 
-            var isTemporal = obj.properties.Temporal || false; // признак мультивременного слоя
+            var isTemporal = obj.properties.Temporal || false; // РїСЂРёР·РЅР°Рє РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅРѕРіРѕ СЃР»РѕСЏ
             if(isTemporal && '_TemporalTiles' in gmxAPI) {
                 obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
                 
             }
             if(pObj.isMiniMap) {
-                obj.isMiniMap = true;   // Все добавляемые к миникарте ноды имеют этот признак
+                obj.isMiniMap = true;   // Р’СЃРµ РґРѕР±Р°РІР»СЏРµРјС‹Рµ Рє РјРёРЅРёРєР°СЂС‚Рµ РЅРѕРґС‹ РёРјРµСЋС‚ СЌС‚РѕС‚ РїСЂРёР·РЅР°Рє
             }
-            obj_.getLayerBoundsLatLgn = function() {   // Получение boundsLatLgn
+            obj_.getLayerBoundsLatLgn = function() {   // РџРѕР»СѓС‡РµРЅРёРµ boundsLatLgn
                 if (!boundsLatLgn) initBounds(obj.mercGeometry);
                 return obj.boundsLatLgnArr ? obj.boundsLatLgnArr[0] : boundsLatLgn;
             }
             obj_.getLayerBounds = obj_.getLayerBoundsLatLgn;
-            obj_.getLayerBoundsMerc = function() {    // Получение bounds в меркаторе
+            obj_.getLayerBoundsMerc = function() {    // РџРѕР»СѓС‡РµРЅРёРµ bounds РІ РјРµСЂРєР°С‚РѕСЂРµ
                 if (!bounds) initBounds(obj.mercGeometry);
                 return (obj.boundsArr ? obj.boundsArr : [bounds]);
             }
             obj.addObject = function(geometry, props, propHiden) { return FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden); }
-            obj.tileSenderPrefix = tileSenderPrefix; // Префикс запросов за тайлами
+            obj.tileSenderPrefix = tileSenderPrefix; // РџСЂРµС„РёРєСЃ Р·Р°РїСЂРѕСЃРѕРІ Р·Р° С‚Р°Р№Р»Р°РјРё
             
             gmxAPI._listeners.dispatchEvent('onLayerCreated', obj, {'obj': obj });
         
@@ -8443,7 +8443,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
                 if(gmxAPI.proxyType === 'flash') {
                     for (var i = 0; i < obj.filters.length; i++)
-                        obj.filters[i].removeListener(eventName, eID); // Удаляем массив события eventName по id события слоя
+                        obj.filters[i].removeListener(eventName, eID); // РЈРґР°Р»СЏРµРј РјР°СЃСЃРёРІ СЃРѕР±С‹С‚РёСЏ eventName РїРѕ id СЃРѕР±С‹С‚РёСЏ СЃР»РѕСЏ
                 }
             }
 
@@ -8451,7 +8451,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             obj.addObserver = function(o, onChange, attr)
             {
                 var observeByLayerZooms = false;
-                if(typeof(o) == 'function') { // вызов без доп. mapObject
+                if(typeof(o) == 'function') { // РІС‹Р·РѕРІ Р±РµР· РґРѕРї. mapObject
                     attr = onChange;
                     onChange = o;
                     o = obj.addObject();
@@ -8487,7 +8487,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 }
                 obj._observerOnChange.push([onChange, fAttr['ignoreVisibilityFilter']]);
                 if(observeByLayerZooms) {
-                    proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // есть новый подписчик события изменения видимости обьектов векторного слоя
+                    proxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} }); // РµСЃС‚СЊ РЅРѕРІС‹Р№ РїРѕРґРїРёСЃС‡РёРє СЃРѕР±С‹С‚РёСЏ РёР·РјРµРЅРµРЅРёСЏ РІРёРґРёРјРѕСЃС‚Рё РѕР±СЊРµРєС‚РѕРІ РІРµРєС‚РѕСЂРЅРѕРіРѕ СЃР»РѕСЏ
                 }
             }
             if (obj.stateListeners.onChangeLayerVersion) obj.chkLayerVersion();
@@ -8527,7 +8527,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     else
                     {
                         if (str === ' ') str = '';
-                        gmxAPI.map.getFeatures(str, geometry, callback, [obj.properties.name]);  // Поиск через JSONP запрос
+                        gmxAPI.map.getFeatures(str, geometry, callback, [obj.properties.name]);  // РџРѕРёСЃРє С‡РµСЂРµР· JSONP Р·Р°РїСЂРѕСЃ
                     }
                 }
                 obj.getFeaturesByCenter = function(func)
@@ -8545,7 +8545,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         obj.filters[i].setStyle(style, activeStyle);
                 }
 
-                if(obj._temporalTiles) { // Для мультивременных слоёв
+                if(obj._temporalTiles) { // Р”Р»СЏ РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅС‹С… СЃР»РѕС‘РІ
                     obj._temporalTiles.setVectorTiles();
                 } else {
                     if(!layer.properties.tiles) layer.properties.tiles = [];
@@ -8556,18 +8556,18 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     obj.filters[i] = initFilter(obj, i);
                 }
 
-                // Изменить атрибуты векторного обьекта из загруженных тайлов
+                // РР·РјРµРЅРёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РёР· Р·Р°РіСЂСѓР¶РµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ
                 obj.setTileItem = function(data, flag) {
                     var _obj = proxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
                     return _obj;
                 }
-                // Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+                // РџРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РёР· Р·Р°РіСЂСѓР¶РµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ id РїРѕ identityField
                 obj.getTileItem = function(vId) {
                     var _obj = proxy('getTileItem', { 'obj': this, 'attr': vId });
                     if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
                     return _obj;
                 }
-                obj.getStat = function() {      // Это только во Flash
+                obj.getStat = function() {      // Р­С‚Рѕ С‚РѕР»СЊРєРѕ РІРѕ Flash
                     var _obj = proxy('getStat', { 'obj': this });
                     return _obj;
                 }
@@ -8602,7 +8602,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 } else {
                     if (layer.properties.Quicklook) {
                         /*
-                        // если накладываемое изображения с трансформацией как BG закоментарить
+                        // РµСЃР»Рё РЅР°РєР»Р°РґС‹РІР°РµРјРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ СЃ С‚СЂР°РЅСЃС„РѕСЂРјР°С†РёРµР№ РєР°Рє BG Р·Р°РєРѕРјРµРЅС‚Р°СЂРёС‚СЊ
                         obj.enableQuicklooks(function(o)
                         {
                             obj.bringToTop();
@@ -8632,16 +8632,16 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 filter.setZoomBounds = FlashMapObject.prototype.setZoomBounds;
             }
 
-            // Установка видимости по Zoom
+            // РЈСЃС‚Р°РЅРѕРІРєР° РІРёРґРёРјРѕСЃС‚Рё РїРѕ Zoom
             obj.setZoomBounds(stylesMinMaxZoom.minZoom, stylesMinMaxZoom.maxZoom);
 
-            if(!obj.isMiniMap) {     // если это не miniMap
+            if(!obj.isMiniMap) {     // РµСЃР»Рё СЌС‚Рѕ РЅРµ miniMap
                 if (layer.properties.Copyright) {
                     obj.setCopyright(layer.properties.Copyright);
                 }
             }
             if(obj_.tilesParent) obj.tilesParent = obj_.tilesParent;
-            gmxAPI.extend(obj, {    // переопределение свойств после установки видимости
+            gmxAPI.extend(obj, {    // РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёРµ СЃРІРѕР№СЃС‚РІ РїРѕСЃР»Рµ СѓСЃС‚Р°РЅРѕРІРєРё РІРёРґРёРјРѕСЃС‚Рё
                 removeContextMenuItem: function(itemId) {
                     return proxy('removeContextMenuItem', { obj: obj, attr: {
                         id: itemId
@@ -8652,7 +8652,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         obj.addListener('contextmenu', function(attr) {
                             var ev = attr.target;
                             ev.latlng = attr.event.latlng;
-                            gmxAPI._leaflet.contextMenu.showMenu({obj:obj, attr: ev}); // Показать меню
+                            gmxAPI._leaflet.contextMenu.showMenu({obj:obj, attr: ev}); // РџРѕРєР°Р·Р°С‚СЊ РјРµРЅСЋ
                         });
                     }
                     return proxy('addContextMenuItem', { obj: obj, attr: {
@@ -8669,17 +8669,17 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                         }
                     });
                 }
-                ,freezeLoading: function(pt) {      // установить флаг игнорирования загрузки векторных тайлов
+                ,freezeLoading: function(pt) {      // СѓСЃС‚Р°РЅРѕРІРёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                     obj._isLoadingFreezed = true;
                     proxy('setFreezeLoading', { obj: obj, attr:true });
                     return true;
                 }
-                ,unfreezeLoading: function(pt) {    // удалить флаг игнорирования загрузки векторных тайлов
+                ,unfreezeLoading: function(pt) {    // СѓРґР°Р»РёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                     obj._isLoadingFreezed = false;
                     proxy('setFreezeLoading', { obj: obj, attr:false });
                     return true;
                 }
-                ,isLoadingFreezed: function(pt) {    // получить флаг игнорирования загрузки векторных тайлов
+                ,isLoadingFreezed: function(pt) {    // РїРѕР»СѓС‡РёС‚СЊ С„Р»Р°Рі РёРіРЅРѕСЂРёСЂРѕРІР°РЅРёСЏ Р·Р°РіСЂСѓР·РєРё РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ
                     return proxy('isLoadingFreezed', { obj: obj });
                 }
             });
@@ -8692,12 +8692,12 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         //obj.mercGeometry = layer.mercGeometry;
         if(gmxAPI.proxyType === 'flash') initBounds(obj.mercGeometry);
         obj.isVisible = isVisible;
-        //if (isVisible || gmxAPI.proxyType === 'leaflet') {   // В leaflet версии deferredMethod не нужны
+        //if (isVisible || gmxAPI.proxyType === 'leaflet') {   // Р’ leaflet РІРµСЂСЃРёРё deferredMethod РЅРµ РЅСѓР¶РЅС‹
         if (isVisible) {
             createThisLayer();
             //var zIndexCur = getIndexLayer(obj.objectId);
             obj.bringToDepth(zIndex);
-            gmxAPI._listeners.dispatchEvent('onLayer', obj, obj); // Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
+            gmxAPI._listeners.dispatchEvent('onLayer', obj, obj); // Р’С‹Р·РѕРІ Listeners СЃРѕР±С‹С‚РёСЏ 'onLayer' - СЃР»РѕР№ С‚РµРїРµСЂСЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ РІРѕ Flash
         }
         else
         {
@@ -8707,23 +8707,23 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 if (flag)
                 {
                     createThisLayer();
-                    if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag, notDispatch);  // без Dispatch события
+                    if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag, notDispatch);  // Р±РµР· Dispatch СЃРѕР±С‹С‚РёСЏ
                     for (var i = 0; i < deferred.length; i++) {
                         deferred[i]();
                     }
                     //var zIndexCur = getIndexLayer(obj.objectId);
-                    gmxAPI._listeners.dispatchEvent('onLayer', obj, obj); // Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
-                    gmxAPI._listeners.dispatchEvent('onChangeVisible', obj, true); // слой теперь виден
+                    gmxAPI._listeners.dispatchEvent('onLayer', obj, obj); // Р’С‹Р·РѕРІ Listeners СЃРѕР±С‹С‚РёСЏ 'onLayer' - СЃР»РѕР№ С‚РµРїРµСЂСЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ РІРѕ Flash
+                    gmxAPI._listeners.dispatchEvent('onChangeVisible', obj, true); // СЃР»РѕР№ С‚РµРїРµСЂСЊ РІРёРґРµРЅ
                     if ('backgroundColor' in obj) gmxAPI.map.setBackgroundColor(obj.backgroundColor);
                 }
             }
 
             if (!isRaster) {
-                // Изменять атрибуты векторного обьекта при невидимом слое нельзя
+                // РР·РјРµРЅСЏС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РїСЂРё РЅРµРІРёРґРёРјРѕРј СЃР»РѕРµ РЅРµР»СЊР·СЏ
                 obj.setTileItem = function(data, flag) {
                     return false;
                 }
-                // Получить атрибуты векторного обьекта при невидимом слое нельзя
+                // РџРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РїСЂРё РЅРµРІРёРґРёРјРѕРј СЃР»РѕРµ РЅРµР»СЊР·СЏ
                 obj.getTileItem = function(vId) {
                     return null;
                 }
@@ -8732,7 +8732,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             {
                 obj.setVisible(true);
                 var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden);
-                //FlashMapObject.prototype.setVisible.call(obj, false, true);  // без Dispatch события
+                //FlashMapObject.prototype.setVisible.call(obj, false, true);  // Р±РµР· Dispatch СЃРѕР±С‹С‚РёСЏ
                 //obj.setVisible(false);
                 return newObj;
             }
@@ -8769,14 +8769,14 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 {       
                     obj.setVisible(true, true);
                     obj.getFeatures(arg1, arg2, arg3);
-                    FlashMapObject.prototype.setVisible.call(obj, false, true);  // без Dispatch события
+                    FlashMapObject.prototype.setVisible.call(obj, false, true);  // Р±РµР· Dispatch СЃРѕР±С‹С‚РёСЏ
                     //obj.setVisible(false);
                 }
                 obj.getFeatureById = function(arg1, arg2, arg3)
                 {       
                     obj.setVisible(true);
                     obj.getFeatureById(arg1, arg2, arg3);
-                    FlashMapObject.prototype.setVisible.call(obj, false, true);  // без Dispatch события
+                    FlashMapObject.prototype.setVisible.call(obj, false, true);  // Р±РµР· Dispatch СЃРѕР±С‹С‚РёСЏ
                     //obj.setVisible(false);
                 }
 
@@ -8829,7 +8829,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         }
         
         if(parentObj.layers[layerName]) {
-            for(var i = parentObj.layers.length - 1; i >= 0; i--) { // Удаление слоя из массива
+            for(var i = parentObj.layers.length - 1; i >= 0; i--) { // РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· РјР°СЃСЃРёРІР°
                 var prop = parentObj.layers[i].properties;
                 if(prop.name === layerName) {
                     parentObj.layers.splice(i, 1);
@@ -8843,42 +8843,42 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
             parentObj.layers[layer.properties.title] = obj;
 
-        obj.addListener('onChangeVisible', function(flag) {    // Изменилась видимость слоя
-            gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId}); // Проверка map Listeners на hideBalloons
+        obj.addListener('onChangeVisible', function(flag) {    // РР·РјРµРЅРёР»Р°СЃСЊ РІРёРґРёРјРѕСЃС‚СЊ СЃР»РѕСЏ
+            gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId}); // РџСЂРѕРІРµСЂРєР° map Listeners РЅР° hideBalloons
         }, -10);
 
-        obj.addListener('BeforeLayerRemove', function() {    // Удаляется слой
-            gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, layerName); // Удален слой
+        obj.addListener('BeforeLayerRemove', function() {    // РЈРґР°Р»СЏРµС‚СЃСЏ СЃР»РѕР№
+            gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, layerName); // РЈРґР°Р»РµРЅ СЃР»РѕР№
         }, -10);
-        obj._clearLayer = function() {   // Чистка map.layers при удалении слоя
+        obj._clearLayer = function() {   // Р§РёСЃС‚РєР° map.layers РїСЂРё СѓРґР°Р»РµРЅРёРё СЃР»РѕСЏ
             //if(!layerName) layerName = obj.properties.name;
-            for(var i=0, len=gmxAPI.map.layers.length; i<len; i++) {   // Удаление слоя из массива
+            for(var i=0, len=gmxAPI.map.layers.length; i<len; i++) {   // РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· РјР°СЃСЃРёРІР°
                 var prop = gmxAPI.map.layers[i].properties;
                 if(prop.name === layerName) {
                     gmxAPI.map.layers.splice(i, 1);
                     break;
                 }
             }
-            for(key in gmxAPI.map.layers) {       // Удаление слоя из хэша
+            for(key in gmxAPI.map.layers) {       // РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· С…СЌС€Р°
                 var prop = gmxAPI.map.layers[key].properties;
                 if(prop.name === layerName) {
                     delete gmxAPI.map.layers[key];
                 }
             }
         }
-        obj.addListener('AfterLayerRemove', function() {   // Удален слой
+        obj.addListener('AfterLayerRemove', function() {   // РЈРґР°Р»РµРЅ СЃР»РѕР№
             obj._clearLayer(obj.properties.name);
-        }, 101); // Перед всеми пользовательскими Listeners
+        }, 101); // РџРµСЂРµРґ РІСЃРµРјРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРјРё Listeners
         if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;
-        gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, obj); // Добавлен слой
+        gmxAPI._listeners.dispatchEvent('onLayerAdd', gmxAPI.map, obj); // Р”РѕР±Р°РІР»РµРЅ СЃР»РѕР№
         return obj;
     }
 
-    //расширяем FlashMapObject
+    //СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
     gmxAPI.extendFMO('addLayer', function(layer, isVisible, isMerc) {
         //if(layer && layer.geometry && !isMerc) layer.geometry = gmxAPI.merc_geometry(layer.geometry);
         var obj = addLayer(this, layer, isVisible, isMerc);
-        gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj); // Добавлен внешний слой
+        gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj); // Р”РѕР±Р°РІР»РµРЅ РІРЅРµС€РЅРёР№ СЃР»РѕР№
         return obj;
     } );
 
@@ -8887,14 +8887,14 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
     LayersVersion.js
    ====================================================================== */
 
-// Поддержка версионности слоев
+// РџРѕРґРґРµСЂР¶РєР° РІРµСЂСЃРёРѕРЅРЅРѕСЃС‚Рё СЃР»РѕРµРІ
 (function()
 {
 	var intervalID = 0;
     var chkVersionTimeOut = 20000;
-	var versionLayers = {};				// Версии слоев по картам
+	var versionLayers = {};				// Р’РµСЂСЃРёРё СЃР»РѕРµРІ РїРѕ РєР°СЂС‚Р°Рј
 
-	// Запрос обновления версий слоев карты mapName
+	// Р—Р°РїСЂРѕСЃ РѕР±РЅРѕРІР»РµРЅРёСЏ РІРµСЂСЃРёР№ СЃР»РѕРµРІ РєР°СЂС‚С‹ mapName
 	function sendVersionRequest(host, mapName, arr, callback)
 	{
 		if(arr.length > 0) {
@@ -8903,7 +8903,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 				{'WrapStyle': 'message', 'layers':'[' + arr.join(',') + ']'},
 				function(response) {
 					if(response && response.Result && response.Result.length > 0) {
-						// Обработка запроса изменения версий слоев
+						// РћР±СЂР°Р±РѕС‚РєР° Р·Р°РїСЂРѕСЃР° РёР·РјРµРЅРµРЅРёСЏ РІРµСЂСЃРёР№ СЃР»РѕРµРІ
 						CheckVersionResponse({host: host, mapName: mapName, arr: response.Result});
 					}
 					if(callback) callback(response);
@@ -8912,7 +8912,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 		}
 	}
 
-    // Проверка версий слоев
+    // РџСЂРѕРІРµСЂРєР° РІРµСЂСЃРёР№ СЃР»РѕРµРІ
     function chkVersion(e)
     {
         if(gmxAPI.isPageHidden()) return;
@@ -8944,7 +8944,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 		}
 	});
 
-	// Обработка ответа запроса CheckVersion
+	// РћР±СЂР°Р±РѕС‚РєР° РѕС‚РІРµС‚Р° Р·Р°РїСЂРѕСЃР° CheckVersion
 	function CheckVersionResponse(inp)
 	{
 		var mapHost = inp.host;
@@ -8956,7 +8956,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                 mapName = layer.properties.mapName,
                 prev = versionLayers[mapHost][mapName],
                 ptOld = prev[layerName] || {};
-			// обновить версию слоя
+			// РѕР±РЅРѕРІРёС‚СЊ РІРµСЂСЃРёСЋ СЃР»РѕСЏ
 			layer.properties.LayerVersion = ph.properties.LayerVersion;
 			layer._Processing = chkProcessing(layer, ph.properties);
 			var pt = null;
@@ -8965,7 +8965,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 				notClear: true,
 				refresh: true
 			};
-			if('_temporalTiles' in layer) {		// мультивременной слой	- обновить в Temporal.js
+			if('_temporalTiles' in layer) {		// РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅРѕР№ СЃР»РѕР№	- РѕР±РЅРѕРІРёС‚СЊ РІ Temporal.js
 				pt = layer._temporalTiles.getTilesHash(ph.properties, ptOld.tilesHash);
 				if(pt.count != ptOld.count || pt.add.length > 0 || pt.del.length > 0) {
 					layer.properties.TemporalTiles = ph.properties.TemporalTiles;
@@ -8987,9 +8987,9 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 				}
 			}
 			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt.hash, 'count': pt.count };
-			layer.geometry = gmxAPI.from_merc_geometry(ph.geometry);	// Обновить геометрию слоя
-			gmxAPI._listeners.dispatchEvent('onChangeLayerVersion', layer, layer.properties.LayerVersion );			// Listeners на слое - произошло изменение LayerVersion
-			// обновить список тайлов слоя
+			layer.geometry = gmxAPI.from_merc_geometry(ph.geometry);	// РћР±РЅРѕРІРёС‚СЊ РіРµРѕРјРµС‚СЂРёСЋ СЃР»РѕСЏ
+			gmxAPI._listeners.dispatchEvent('onChangeLayerVersion', layer, layer.properties.LayerVersion );			// Listeners РЅР° СЃР»РѕРµ - РїСЂРѕРёР·РѕС€Р»Рѕ РёР·РјРµРЅРµРЅРёРµ LayerVersion
+			// РѕР±РЅРѕРІРёС‚СЊ СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ СЃР»РѕСЏ
 			if(attr.add || attr.del || attr.dtiles) {
 				gmxAPI._cmdProxy('startLoadTiles', { obj: layer, attr: attr });
 			}
@@ -8997,13 +8997,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 		return arr;
 	}
 
-	// Формирование Hash списка версий тайлов
+	// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ Hash СЃРїРёСЃРєР° РІРµСЂСЃРёР№ С‚Р°Р№Р»РѕРІ
 	function getTilesHash(prop, ph)
 	{
 		var tiles = prop.tiles || [],
             tilesVers = prop.tilesVers || [],
             len = tiles.length,
-            out = {hash:{}, del: {}, add: [], count: len, res: false };		// в hash - Hash списка версий тайлов, в res = true - есть изменения с ph
+            out = {hash:{}, del: {}, add: [], count: len, res: false };		// РІ hash - Hash СЃРїРёСЃРєР° РІРµСЂСЃРёР№ С‚Р°Р№Р»РѕРІ, РІ res = true - РµСЃС‚СЊ РёР·РјРµРЅРµРЅРёСЏ СЃ ph
 		for (var i = 0; i < len; i+=3) {
 			var x = tiles[i], y = tiles[i+1], z = tiles[i+2], v = tilesVers[i / 3];
 			var arr = [x, y, z, v];
@@ -9025,7 +9025,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 		return out;
 	}
 
-	// Получить список обьектов слоя добавляемых через addobjects
+	// РџРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ РґРѕР±Р°РІР»СЏРµРјС‹С… С‡РµСЂРµР· addobjects
 	function getAddObjects(Processing)
 	{
 		var arr = [];
@@ -9038,19 +9038,19 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 		return arr;
 	}
 
-	// Обработка списка редактируемых обьектов слоя	//addobjects
+	// РћР±СЂР°Р±РѕС‚РєР° СЃРїРёСЃРєР° СЂРµРґР°РєС‚РёСЂСѓРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ	//addobjects
 	function chkProcessing(obj, prop)
 	{
 		var flagEditItems = false;
 		var removeIDS = {};
-		if (prop.Processing.Deleted && prop.Processing.Deleted.length > 0) {		// список удаляемых обьектов слоя
-			for (var i = 0, len = prop.Processing.Deleted.length; i < len; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
+		if (prop.Processing.Deleted && prop.Processing.Deleted.length > 0) {		// СЃРїРёСЃРѕРє СѓРґР°Р»СЏРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ
+			for (var i = 0, len = prop.Processing.Deleted.length; i < len; i++) {			// РґРѕР±Р°РІР»СЏРµРјС‹Рµ РѕР±СЊРµРєС‚С‹ С‚Р°РєР¶Рµ РЅРµРѕР±С…РѕРґРёРјРѕ СѓРґР°Р»РёС‚СЊ РёР· С‚Р°Р№Р»РѕРІ
 				removeIDS[prop.Processing.Deleted[i]] = true;
 				flagEditItems = true;
 			}
 		}
 		var arr = getAddObjects(prop.Processing);		// addobjects
-		for (var i = 0, len = arr.length; i < len; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
+		for (var i = 0, len = arr.length; i < len; i++) {			// РґРѕР±Р°РІР»СЏРµРјС‹Рµ РѕР±СЊРµРєС‚С‹ С‚Р°РєР¶Рµ РЅРµРѕР±С…РѕРґРёРјРѕ СѓРґР°Р»РёС‚СЊ РёР· С‚Р°Р№Р»РѕРІ
 			var pt = arr[i];
 			removeIDS[pt.id] = true;
 			flagEditItems = true;
@@ -9079,15 +9079,15 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             var pt = ('_temporalTiles' in layerObj ? layerObj._temporalTiles.getTilesHash(prop) : getTilesHash(prop));
             versionLayers[mapHost][mapName][prop.name] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt.hash, 'count': pt.count };
 		}
-		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
+		,'chkVersion': function (layer) {		// РћР±СЂР°Р±РѕС‚РєР° СЃРїРёСЃРєР° СЂРµРґР°РєС‚РёСЂСѓРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ
 			if(!layer || !('Processing' in layer.properties)) return;
 			var onLayerID = layer.addListener('onLayer', function(ph) {
 				layer.removeListener('onLayer', onLayerID);
 				if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 				gmxAPI._layersVersion.chkVersionLayers(layer.parent, layer);
-				ph._Processing = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
+				ph._Processing = chkProcessing(ph, ph.properties);			// СЃР»РѕР№ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ РІРѕ Flash
 			});
-			var BeforeLayerRemoveID = layer.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
+			var BeforeLayerRemoveID = layer.addListener('BeforeLayerRemove', function(layerName) {				// РЈРґР°Р»СЏРµС‚СЃСЏ СЃР»РѕР№
 				layer.removeListener('BeforeLayerRemove', BeforeLayerRemoveID);
 				if(layer.properties.name != layerName) return false;
 				var mapHost = layer.properties.hostName;
@@ -9095,32 +9095,32 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 				var mapName = layer.properties.mapName;
 				if(!versionLayers[mapHost][mapName]) return false;
 				delete versionLayers[mapHost][mapName][layer.properties.name];
-				//gmxAPI._listeners.dispatchEvent('AfterLayerRemove', layer, layer.properties.name);	// Удален слой
+				//gmxAPI._listeners.dispatchEvent('AfterLayerRemove', layer, layer.properties.name);	// РЈРґР°Р»РµРЅ СЃР»РѕР№
 			}, -9);
 		}
-		,'chkLayerVersion': function (layer, callback) {		// Запросить проверку версии слоя
+		,'chkLayerVersion': function (layer, callback) {		// Р—Р°РїСЂРѕСЃРёС‚СЊ РїСЂРѕРІРµСЂРєСѓ РІРµСЂСЃРёРё СЃР»РѕСЏ
 			var prop = layer.properties;
 			if(!prop.tilesVers && !prop.TemporalVers) return false;
 			sendVersionRequest(prop.hostName, prop.mapName, ['{ "Name":"'+ prop.name +'","Version":' + prop.LayerVersion +' }'], callback);
 		}
-		,'setVersionCheck': setVersionCheck						// Переустановка задержки запросов проверки версий слоев
+		,'setVersionCheck': setVersionCheck						// РџРµСЂРµСѓСЃС‚Р°РЅРѕРІРєР° Р·Р°РґРµСЂР¶РєРё Р·Р°РїСЂРѕСЃРѕРІ РїСЂРѕРІРµСЂРєРё РІРµСЂСЃРёР№ СЃР»РѕРµРІ
 	};
 	
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._layersVersion = ret;
 })();
 ;/* ======================================================================
     Map.js
    ====================================================================== */
 
-//Поддержка map
+//РџРѕРґРґРµСЂР¶РєР° map
 (function()
 {
     var addNewMap = function(rootObjectId, layers, callback)
     {
-        var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject основной карты
+        var map = new gmxAPI._FMO(rootObjectId, {}, null); // MapObject РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹
         gmxAPI.map = map;
-        gmxAPI.mapNodes[rootObjectId] = map; // основная карта
+        gmxAPI.mapNodes[rootObjectId] = map; // РѕСЃРЅРѕРІРЅР°СЏ РєР°СЂС‚Р°
 
         if(!layers.properties) layers.properties = {};
         map.properties = layers.properties;
@@ -9141,7 +9141,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         map.needMove = getDefaultPos(layers.properties);
         map.needSetMode = null;
 
-        // Методы присущие только Map
+        // РњРµС‚РѕРґС‹ РїСЂРёСЃСѓС‰РёРµ С‚РѕР»СЊРєРѕ Map
         map.setDistanceUnit = function(attr) { map.DistanceUnit = attr; return true; }
         map.setSquareUnit = function(attr) { map.SquareUnit = attr; return true; }
         map.getDistanceUnit = function() { return map.DistanceUnit; }
@@ -9172,7 +9172,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         map.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
         map.zoomBy = function(dz, useMouse) {
             gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
-            gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);   // Проверка map Listeners на zoomBy
+            gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);   // РџСЂРѕРІРµСЂРєР° map Listeners РЅР° zoomBy
         }
         map.getBestZ = function(minX, minY, maxX, maxY)
         {
@@ -9271,7 +9271,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             map.slideTo(x, y, (z > maxZ ? maxZ : z));
         }
         
-        var tmp = [   // Для обратной совместимости - методы ранее были в MapObject
+        var tmp = [   // Р”Р»СЏ РѕР±СЂР°С‚РЅРѕР№ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё - РјРµС‚РѕРґС‹ СЂР°РЅРµРµ Р±С‹Р»Рё РІ MapObject
             'saveObjects', 'loadObjects', 'getBestZ', 'zoomBy', 'clearCursor', 'setCursor', 'unfreeze', 'freeze', 'slideTo', 'moveTo',
             'repaint', 'print', 'disableCaching', 'setQuality', 'trace', 'savePNG', 'sendPNG', 'moveToCoordinates', 'zoomToExtent', 'slideToExtent'
         ];
@@ -9291,7 +9291,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2} }); }
         map.addMapWindow = function(callback) {
             var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':function(z) { return callback(z); }} });
-            return new gmxAPI._FMO(oID, {}, null);  // MapObject миникарты
+            return new gmxAPI._FMO(oID, {}, null);  // MapObject РјРёРЅРёРєР°СЂС‚С‹
         }
         
         map.width  = function() { return gmxAPI._div.clientWidth;  }
@@ -9308,7 +9308,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
             return gmxAPI._cmdProxy('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
         }
-        // Использование SharedObject
+        // РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ SharedObject
         map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
         map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
@@ -9316,7 +9316,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         var params = gmxAPI.getURLParams().params;
         if(gmxAPI.proxyType === 'flash') params.gmxControls = 'controlsBase';
         map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
-        gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Глобальный Listeners
+        gmxAPI._listeners.dispatchEvent('mapInit', null, map); // Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ Listeners
 
         var toolHandlers = {};
         var userHandlers = {};
@@ -9528,7 +9528,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 
         if (gmxAPI._drawing) {
             map.addContextMenuItem(
-                gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+                gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕСЃС‚Р°РІРёС‚СЊ РјР°СЂРєРµСЂ", "Add marker"),
                 function(x, y)
                 {
                     map.drawing.addObject({type: "POINT", coordinates: [x, y]});
@@ -9541,13 +9541,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         map.addLayers = function(layers, notMoveFlag, notVisible)
         {
             var reverse = false;
-            if(layers.properties.name === gmxAPI.currentMapName) {  // Это основная карта
-                if(layers.properties.MinZoom) { // установлен MinZoom карты
+            if(layers.properties.name === gmxAPI.currentMapName) {  // Р­С‚Рѕ РѕСЃРЅРѕРІРЅР°СЏ РєР°СЂС‚Р°
+                if(layers.properties.MinZoom) { // СѓСЃС‚Р°РЅРѕРІР»РµРЅ MinZoom РєР°СЂС‚С‹
                     gmxAPI.mapMinZoom = layers.properties.MinZoom;
                 }
-                if(layers.properties.MaxZoom) { // установлен MaxZoom карты
+                if(layers.properties.MaxZoom) { // СѓСЃС‚Р°РЅРѕРІР»РµРЅ MaxZoom РєР°СЂС‚С‹
                     gmxAPI.mapMaxZoom = layers.properties.MaxZoom;
-                    if(gmxAPI.mapMinZoom > gmxAPI.mapMaxZoom) { // mapMinZoom не больше MaxZoom
+                    if(gmxAPI.mapMinZoom > gmxAPI.mapMaxZoom) { // mapMinZoom РЅРµ Р±РѕР»СЊС€Рµ MaxZoom
                         gmxAPI.mapMinZoom = 1;
                     }
                 }
@@ -9602,7 +9602,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 */
             }
 
-            if(gmxAPI.initParams && gmxAPI.initParams['center']) {   // есть переопределение центра карты
+            if(gmxAPI.initParams && gmxAPI.initParams['center']) {   // РµСЃС‚СЊ РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёРµ С†РµРЅС‚СЂР° РєР°СЂС‚С‹
                 if('x' in gmxAPI.initParams['center']) map.needMove['x'] = gmxAPI.initParams['center']['x'];
                 if('y' in gmxAPI.initParams['center']) map.needMove['y'] = gmxAPI.initParams['center']['y'];
                 if('z' in gmxAPI.initParams['center']) map.needMove['z'] = gmxAPI.initParams['center']['z'];
@@ -9671,7 +9671,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
                     document.getElementsByTagName("head").item(0).appendChild(script);
                 }
             }
-            if(layers.properties.name === gmxAPI.currentMapName) {  // Это основная карта
+            if(layers.properties.name === gmxAPI.currentMapName) {  // Р­С‚Рѕ РѕСЃРЅРѕРІРЅР°СЏ РєР°СЂС‚Р°
                 var minX = Number(layers.properties.MinViewX);
                 var maxX = Number(layers.properties.MaxViewX);
                 var minY = Number(layers.properties.MinViewY);
@@ -9800,14 +9800,14 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         var updatePosition = function(ev, attr)
         {
             var eventFlag = setCurrPosition(ev, attr);
-            if(eventFlag) {      // Если позиция карты изменилась - формируем событие positionChanged
+            if(eventFlag) {      // Р•СЃР»Рё РїРѕР·РёС†РёСЏ РєР°СЂС‚С‹ РёР·РјРµРЅРёР»Р°СЃСЊ - С„РѕСЂРјРёСЂСѓРµРј СЃРѕР±С‹С‚РёРµ positionChanged
                 var currPos = gmxAPI.currPosition;
                 var z = currPos['z'];
 
-                /** Пользовательское событие positionChanged
+                /** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРµ СЃРѕР±С‹С‚РёРµ positionChanged
                 * @function callback
                 * @ignore
-                * @param {object} атрибуты прослушивателя
+                * @param {object} Р°С‚СЂРёР±СѓС‚С‹ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
                 */
                 if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
                     var pattr = {
@@ -9826,8 +9826,8 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
 
         var eventMapObject = map.addObject();
         eventMapObject.setHandler("onMove", updatePosition);
-        // onMoveBegin - перед onMove
-        // onMoveEnd - после onMove
+        // onMoveBegin - РїРµСЂРµРґ onMove
+        // onMoveEnd - РїРѕСЃР»Рµ onMove
 
         //updatePosition();
         setCurrPosition();
@@ -9847,7 +9847,7 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
         
         if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
         
-        if(!map.needSetMode && haveOSM) {   // если нигде не устанавливалась текущая подложка и есть OSM
+        if(!map.needSetMode && haveOSM) {   // РµСЃР»Рё РЅРёРіРґРµ РЅРµ СѓСЃС‚Р°РЅР°РІР»РёРІР°Р»Р°СЃСЊ С‚РµРєСѓС‰Р°СЏ РїРѕРґР»РѕР¶РєР° Рё РµСЃС‚СЊ OSM
             if(!gmxAPI._baseLayersArr || gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
         }
 
@@ -10024,25 +10024,25 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обра
             if (window.addEventListener) window.addEventListener('DOMMouseScroll', onWheel, false);
         }
         map.ToolsContainer = gmxAPI._ToolsContainer;
-        gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Глобальный Listeners
-        // Deferred методы
+        gmxAPI._listeners.dispatchEvent('mapCreated', null, map); // Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ Listeners
+        // Deferred РјРµС‚РѕРґС‹
         var deferred = function() {
             console.log('Deferred function: ', arguments.callee);
         }
-        map.setCoordinatesAlign = deferred; // Позиционирование масштабной шкалы (tr tl br bl)
-        map.setCopyrightAlign = deferred;  // Позиционирование Copyright (tr tl br bl bc)
-        map.setGeomixerLinkAlign = deferred; // Позиционирование GeomixerLink (tr tl br bl)
+        map.setCoordinatesAlign = deferred; // РџРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ РјР°СЃС€С‚Р°Р±РЅРѕР№ С€РєР°Р»С‹ (tr tl br bl)
+        map.setCopyrightAlign = deferred;  // РџРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ Copyright (tr tl br bl bc)
+        map.setGeomixerLinkAlign = deferred; // РџРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ GeomixerLink (tr tl br bl)
         return map;
     }
-    //расширяем namespace
-    gmxAPI._addNewMap = addNewMap; // Создать map обьект
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
+    gmxAPI._addNewMap = addNewMap; // РЎРѕР·РґР°С‚СЊ map РѕР±СЊРµРєС‚
 })();
 
 ;/* ======================================================================
     JSON.js
    ====================================================================== */
 
-//Поддержка JSON parser
+//РџРѕРґРґРµСЂР¶РєР° JSON parser
 if (!this.JSON) {
     JSON = {};
 	(function () {
@@ -10269,7 +10269,7 @@ if (!this.JSON) {
     ACPrintManager.js
    ====================================================================== */
 
-//Поддержка Печати
+//РџРѕРґРґРµСЂР¶РєР° РџРµС‡Р°С‚Рё
 (function()
 {
 	/**
@@ -10390,7 +10390,7 @@ if (!this.JSON) {
 		if (obj.getHeight != undefined) size.height = obj.getHeight()+'px';
 		return size;
 	}
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     window.ACPrintManager = 
     gmxAPI.ACPrintManager = ACPrintManager;
 })();
@@ -10398,16 +10398,16 @@ if (!this.JSON) {
     wms.js
    ====================================================================== */
 
-//Поддержка WMS
+//РџРѕРґРґРµСЂР¶РєР° WMS
 (function()
 {
-    var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
+    var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// С‚РёРїС‹ РїСЂРѕРµРєС†РёР№
     
     /**
-     * Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
+     * Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕРїРёСЃР°РЅРёРµ WMS-СЃР»РѕС‘РІ РѕС‚ XML, РєРѕС‚РѕСЂСѓСЋ РІРµСЂРЅСѓР» СЃРµСЂРІРµСЂ РЅР° Р·Р°РїСЂРѕСЃ GetCapabilities
      * @memberOf gmxAPI
      * @ignore
-     * @returns {Array} - массив объектов с описанием слоёв
+     * @returns {Array} - РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ СЃ РѕРїРёСЃР°РЅРёРµРј СЃР»РѕС‘РІ
     */
     var parseWMSCapabilities = function(response)
 	{
@@ -10487,19 +10487,19 @@ if (!this.JSON) {
 		return serviceLayers;
 	}
     
-    /** Формирует URL картинки, который можно использовать для получения WMS слоя для данного положения карты
+    /** Р¤РѕСЂРјРёСЂСѓРµС‚ URL РєР°СЂС‚РёРЅРєРё, РєРѕС‚РѕСЂС‹Р№ РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ WMS СЃР»РѕСЏ РґР»СЏ РґР°РЅРЅРѕРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹
      * @memberOf gmxAPI
      * @ignore
-     * @property {String} url - WMS ссылка.
-     * @property {object} props - атрибуты.
-     * @property {String} props.srs - тип проекции.
-     * @property {String} props.version - версия.
-     * @property {String} props.name - Идентификатор слоя.
-     * @property {object} props.bbox - ограничение по bounds(в географических координатах).
-     * @property {object} requestProperties - атрибуты формата результирующего image.
-     * @property {String} requestProperties.format - тип (по умолчанию 'image/jpeg').
-     * @property {String} requestProperties.transparent - прозрачность подложки ('TRUE'/'FALSE' по умолчанию 'FALSE').
-     * @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
+     * @property {String} url - WMS СЃСЃС‹Р»РєР°.
+     * @property {object} props - Р°С‚СЂРёР±СѓС‚С‹.
+     * @property {String} props.srs - С‚РёРї РїСЂРѕРµРєС†РёРё.
+     * @property {String} props.version - РІРµСЂСЃРёСЏ.
+     * @property {String} props.name - РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃР»РѕСЏ.
+     * @property {object} props.bbox - РѕРіСЂР°РЅРёС‡РµРЅРёРµ РїРѕ bounds(РІ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚Р°С…).
+     * @property {object} requestProperties - Р°С‚СЂРёР±СѓС‚С‹ С„РѕСЂРјР°С‚Р° СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰РµРіРѕ image.
+     * @property {String} requestProperties.format - С‚РёРї (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 'image/jpeg').
+     * @property {String} requestProperties.transparent - РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РїРѕРґР»РѕР¶РєРё ('TRUE'/'FALSE' РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 'FALSE').
+     * @returns {object} - {url: String, bounds: {Extent}}. bounds РІ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚Р°С….
     */
     var getWMSMapURL = function(url, props, requestProperties)
     {
@@ -10603,7 +10603,7 @@ if (!this.JSON) {
                             }
                         }, 500);
                     }
-					// Добавление прослушивателей событий
+					// Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
 					obj.addListener('onChangeVisible', function(flag)
 						{
 							if(flag) updateFunc();
@@ -10618,7 +10618,7 @@ if (!this.JSON) {
         })
     }
     
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI.parseWMSCapabilities = parseWMSCapabilities;
     gmxAPI._loadWMS = loadWMS;
     gmxAPI.getWMSMapURL = getWMSMapURL;
@@ -10628,7 +10628,7 @@ if (!this.JSON) {
     kml.js
    ====================================================================== */
 
-//Поддержка KML
+//РџРѕРґРґРµСЂР¶РєР° KML
 (function()
 {
 	var kmlParser = function()
@@ -11132,10 +11132,10 @@ if (!this.JSON) {
 		return elem;
 	}
 
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._kmlParser = new kmlParser();
 
-    //расширяем FlashMapObject
+    //СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
 	gmxAPI.extendFMO('loadKML', function(url, func)
 		{
 			var me = this;
@@ -11153,16 +11153,16 @@ if (!this.JSON) {
     balloon.js
    ====================================================================== */
 
-/** Менеджер управления балунами
+/** РњРµРЅРµРґР¶РµСЂ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅР°РјРё
 
-Позволяет управлять балунами на карте. 
+РџРѕР·РІРѕР»СЏРµС‚ СѓРїСЂР°РІР»СЏС‚СЊ Р±Р°Р»СѓРЅР°РјРё РЅР° РєР°СЂС‚Рµ. 
 
 @memberof map
 */
 (function()
 {
     /**
-     * Менеджер управления балунами (создаётся в API и доступен через свойство карты map.balloonClassObject).
+     * РњРµРЅРµРґР¶РµСЂ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅР°РјРё (СЃРѕР·РґР°С‘С‚СЃСЏ РІ API Рё РґРѕСЃС‚СѓРїРµРЅ С‡РµСЂРµР· СЃРІРѕР№СЃС‚РІРѕ РєР°СЂС‚С‹ map.balloonClassObject).
      * @constructor BalloonClass
      */
 	function BalloonClass()
@@ -11176,21 +11176,21 @@ if (!this.JSON) {
 
 		var mapX = 0;
 		var mapY = 0;
-		var stageZoom = 1;						// Коэф. масштабирования браузера
+		var stageZoom = 1;						// РљРѕСЌС„. РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ Р±СЂР°СѓР·РµСЂР°
 		var scale = 0;
 		//map.getPosition();
 		var currPos = null;
 
-		// Обновить информацию текущего состояния карты
+		// РћР±РЅРѕРІРёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ С‚РµРєСѓС‰РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 		function refreshMapPosition(ph)
 		{
 			currPos = ph || gmxAPI.currPosition || map.getPosition();
 			mapX = currPos['x'];
 			mapY = currPos['y'];
 			scale = gmxAPI.getScale(currPos['z']);
-			stageZoom =  currPos['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
+			stageZoom =  currPos['stageHeight'] / div.clientHeight;	// РљРѕСЌС„. РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ Р±СЂР°СѓР·РµСЂР°
 		}
-		// Формирование ID балуна
+		// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ ID Р±Р°Р»СѓРЅР°
 		function setID(o)
 		{
 			var id = o.objectId + '_balloon';
@@ -11205,8 +11205,8 @@ if (!this.JSON) {
 		{
 			var type = typeof(text);
 			if(type === 'string') div.innerHTML = '<div style="white-space: nowrap;">' + text + '</div>';
-			else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
-			// в случае type === 'object' ничего не делаем
+			else if(type === 'boolean' && text) div.innerHTML = ""; // Р·Р°С‚РёСЂР°РµРј С‚РѕР»СЊРєРѕ РµСЃР»Рё true
+			// РІ СЃР»СѓС‡Р°Рµ type === 'object' РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј
 		}
 
 		function callBalloonHook(o, div) {
@@ -11229,7 +11229,7 @@ if (!this.JSON) {
             }
         }
         
-		// Текст по умолчанию для балуна (innerHTML)
+		// РўРµРєСЃС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РґР»СЏ Р±Р°Р»СѓРЅР° (innerHTML)
 		function getDefaultBalloonText(o, attr)
 		{
 			var text = "";
@@ -11261,7 +11261,7 @@ if (!this.JSON) {
 		}
 		this.getDefaultBalloonText = getDefaultBalloonText;
 
-		// Проверка наличия параметра по ветке родителей
+		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№
 		function chkAttr(name, o)
 		{
 			var attr = false;
@@ -11306,20 +11306,20 @@ if (!this.JSON) {
 		}
 		this.disableHoverBalloon = disableHoverBalloon;
 
-        /** Установка режима пользовательского балуна
+        /** РЈСЃС‚Р°РЅРѕРІРєР° СЂРµР¶РёРјР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ Р±Р°Р»СѓРЅР°
         * @memberOf BalloonClass#
-        * @param {MapObject} mapObject - обьект карты для которого устанавливается режим балуна.
-        * @param {object} callback - пользовательский метод формирования содержимого балуна.
-        * @param {object} attr - атрибуты управления балуном.
-        * @param {boolean} attr.disableOnMouseOver - отключить балун при наведении указателя(по умолчанию равен false).
-        * @param {boolean} attr.disableOnClick - отключить балун при click(по умолчанию равен false).
-        * @param {boolean} attr.maxFixedBallons - максимальное количество фиксированных балунов(по умолчанию равен 1).
+        * @param {MapObject} mapObject - РѕР±СЊРµРєС‚ РєР°СЂС‚С‹ РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ СЂРµР¶РёРј Р±Р°Р»СѓРЅР°.
+        * @param {object} callback - РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР°.
+        * @param {object} attr - Р°С‚СЂРёР±СѓС‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРј.
+        * @param {boolean} attr.disableOnMouseOver - РѕС‚РєР»СЋС‡РёС‚СЊ Р±Р°Р»СѓРЅ РїСЂРё РЅР°РІРµРґРµРЅРёРё СѓРєР°Р·Р°С‚РµР»СЏ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ false).
+        * @param {boolean} attr.disableOnClick - РѕС‚РєР»СЋС‡РёС‚СЊ Р±Р°Р»СѓРЅ РїСЂРё click(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ false).
+        * @param {boolean} attr.maxFixedBallons - РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹С… Р±Р°Р»СѓРЅРѕРІ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ 1).
         */
 		function enableHoverBalloon(mapObject, callback, attr)
 		{
 			var _this = this;
-			mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
-			if (callback) {													// Пользовательский метод получения текста для балуна
+			mapObject._hoverBalloonAttr = (attr ? attr : {});				// РђС‚СЂРёР±СѓС‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРј
+			if (callback) {													// РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ С‚РµРєСЃС‚Р° РґР»СЏ Р±Р°Р»СѓРЅР°
 				this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
 			} else {
 				delete mapObject._hoverBalloonAttr['callback'];
@@ -11337,26 +11337,26 @@ if (!this.JSON) {
 						'x': gmxAPI.getOffsetLeft(div),
 						'y': gmxAPI.getOffsetTop(div)
 					};
-					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return false;	// При нажатых не показываем балун
+					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return false;	// РџСЂРё РЅР°Р¶Р°С‚С‹С… РЅРµ РїРѕРєР°Р·С‹РІР°РµРј Р±Р°Р»СѓРЅ
 					if (map.isDragging())
 						return false;
 
-					if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+					if(chkAttr('disableOnMouseOver', mapObject)) {			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° disableOnMouseOver РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 						return false;
 					}
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						currPos = gmxAPI.currPosition || map.getPosition();
 						currPos._x = propsBalloon.mouseX || 0;
 						currPos._y = propsBalloon.mouseY || 0;
-						var flag = customBalloonObject.onMouseOver(o, keyPress, currPos); // Вызов пользовательского метода вместо или перед балуном
-						if(flag) return false;										// Если customBalloon возвращает true выходим
+						var flag = customBalloonObject.onMouseOver(o, keyPress, currPos); // Р’С‹Р·РѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РјРµС‚РѕРґР° РІРјРµСЃС‚Рѕ РёР»Рё РїРµСЂРµРґ Р±Р°Р»СѓРЅРѕРј
+						if(flag) return false;										// Р•СЃР»Рё customBalloon РІРѕР·РІСЂР°С‰Р°РµС‚ true РІС‹С…РѕРґРёРј
 					}
 
                     if(!o._balloonHook && o.filter && o.filter._balloonHook) o._balloonHook = o.filter._balloonHook;
-					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
+					//if(keyPress['objType'] == 'cluster') {}; // РќР°РґРѕ РїСЂРёРґСѓРјР°С‚СЊ РєР°Рє Р±РѕСЂРѕС‚СЊСЃСЏ СЃ С„РёРєСЃ.РґРІРѕР№РЅРёРєРѕРј
 
-					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					var textFunc = chkAttr('callback', mapObject);			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° callback РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(keyPress) {
 						if('textFunc' in keyPress) textFunc = keyPress['textFunc'];
 					}
@@ -11393,7 +11393,7 @@ if (!this.JSON) {
 					if('obj' in o) {
 						o = o.obj;
 					}
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						var flag = customBalloonObject.onMouseOut(o);
 						if(flag) return false;
@@ -11415,33 +11415,33 @@ if (!this.JSON) {
 					}
 
 					refreshMapPosition();
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						currPos._x = propsBalloon.x;
 						currPos._y = propsBalloon.y;
 						var flag = customBalloonObject.onClick(o, keyPress, currPos);
 						if(flag) return false;
 					}
-					if(chkAttr('disableOnClick', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+					if(chkAttr('disableOnClick', mapObject)) {			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° disableOnMouseOver РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 						return false;
 					}
 					if(!keyPress) keyPress = {};
 					if(keyPress['objType'] === 'cluster') {
 						if('clusters' in o) keyPress['textFunc'] = o.clusters.getTextFunc();
-						if(keyPress['members']) o['members'] = keyPress['members'];	// члены кластера 
+						if(keyPress['members']) o['members'] = keyPress['members'];	// С‡Р»РµРЅС‹ РєР»Р°СЃС‚РµСЂР° 
 					}
-					if(!keyPress['textFunc']) keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					if(!keyPress['textFunc']) keyPress['textFunc'] = chkAttr('callback', mapObject);			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° callback РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					return clickBalloonFix(o, keyPress);
 				}
 			};
 
-			if(mapObject == map) return;								// На map Handlers не вешаем
-			if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
-				if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+			if(mapObject == map) return;								// РќР° map Handlers РЅРµ РІРµС€Р°РµРј
+			if(mapObject._hoverBalloonAttr) {							// РµСЃС‚СЊ СЋР·РµСЂСЃРєРёРµ РЅР°СЃС‚СЂРѕР№РєРё Р±Р°Р»СѓРЅРѕРІ
+				if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// РґР»СЏ РѕС‚РєР»СЋС‡РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё РЅР° РѕР±СЊРµРєС‚
 					handlersObj['onMouseOver'] = null;
 					handlersObj['onMouseOut'] = null;
 				}
-				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// РґР»СЏ РѕС‚РєР»СЋС‡РµРЅРёСЏ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹С… Р±Р°Р»СѓРЅРѕРІ
 					handlersObj['onClick'] = null;
 				}
 				//mapObject._hoverBalloonAttr['disableOnMouseOver']
@@ -11539,29 +11539,29 @@ if (!this.JSON) {
 		}
 		this.hideHoverBalloons = hideHoverBalloons;
 
-		// Фиксация балуна
+		// Р¤РёРєСЃР°С†РёСЏ Р±Р°Р»СѓРЅР°
 		function clickBalloonFix(o, keyPress)
 		{
-			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
+			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 			if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
-				var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
-				if(flag) return true;										// Если OnClickSwitcher возвращает true выходим
+				var flag = OnClickSwitcher(o, keyPress);				// Р’С‹Р·РѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РјРµС‚РѕРґР° РІРјРµСЃС‚Рѕ РёР»Рё РїРµСЂРµРґ Р±Р°Р»СѓРЅРѕРј
+				if(flag) return true;										// Р•СЃР»Рё OnClickSwitcher РІРѕР·РІСЂР°С‰Р°РµС‚ true РІС‹С…РѕРґРёРј
 			}
 
-			if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
+			if(chkAttr('disableOnClick', o))	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° disableOnClick РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 				return false;
 
-			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
+			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° callback РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 			if(keyPress) {
-				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return false;	// При нажатых не показываем балун
-				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
+				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return false;	// РџСЂРё РЅР°Р¶Р°С‚С‹С… РЅРµ РїРѕРєР°Р·С‹РІР°РµРј Р±Р°Р»СѓРЅ
+				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // РІР·СЏС‚СЊ РїР°СЂР°РјРµС‚СЂС‹ Р±Р°Р»СѓРЅР° РѕС‚ С„РёР»СЊС‚СЂР° СЂРѕРґРёС‚РµР»СЏ
 				else if('textFunc' in keyPress) textFunc = keyPress['textFunc'];
 			}
 
 			var id = setID(o);
 			if (!fixedHoverBalloons[id])
 			{
-				var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
+				var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° maxFixedBallons РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№
 				if(maxFixedBallons > 0 && balloons.length > 0)
 				{
 					if(maxFixedBallons <= balloons.length) {
@@ -11639,7 +11639,7 @@ if (!this.JSON) {
 		}
 		this.clickBalloonFix = clickBalloonFix;
 
-		// Создание DIV и позиционирование балуна
+		// РЎРѕР·РґР°РЅРёРµ DIV Рё РїРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ Р±Р°Р»СѓРЅР°
 		function createBalloon(outerFlag)
 		{
 			var tlw = 14;
@@ -11693,7 +11693,7 @@ if (!this.JSON) {
 			};
 
 			var transp = '';
-			if(gmxAPI.isChrome || gmxAPI.isIE) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Для Chrome добавляем невидимый контент в TD
+			if(gmxAPI.isChrome || gmxAPI.isIE) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Р”Р»СЏ Chrome РґРѕР±Р°РІР»СЏРµРј РЅРµРІРёРґРёРјС‹Р№ РєРѕРЅС‚РµРЅС‚ РІ TD
 			var body = 
 				'<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">'+
 					'<tr>'+
@@ -11788,7 +11788,7 @@ if (!this.JSON) {
 				y = this.mouseY = y_;
 			}
 
-			var ret = {						// Возвращаемый обьект
+			var ret = {						// Р’РѕР·РІСЂР°С‰Р°РµРјС‹Р№ РѕР±СЊРµРєС‚
 				outerDiv: balloon,
 				div: balloonText,
 				leg: leg,
@@ -11827,7 +11827,7 @@ if (!this.JSON) {
 			return ret;
 		}
 
-		var propsBalloon = createBalloon(true);		// Balloon для mouseOver
+		var propsBalloon = createBalloon(true);		// Balloon РґР»СЏ mouseOver
 		this.propsBalloon = propsBalloon;
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
@@ -11852,7 +11852,7 @@ if (!this.JSON) {
 			propsBalloon.outerDiv.style.display = "none";
 		}
 */
-		div.onmouseout = function(ev)		// скрыть балун по наведению если мышь ушла
+		div.onmouseout = function(ev)		// СЃРєСЂС‹С‚СЊ Р±Р°Р»СѓРЅ РїРѕ РЅР°РІРµРґРµРЅРёСЋ РµСЃР»Рё РјС‹С€СЊ СѓС€Р»Р°
 		{
 			if(gmxAPI.proxyType === 'leaflet') return;
 			if(propsBalloon.isVisible()) {
@@ -11985,7 +11985,7 @@ if (!this.JSON) {
 				"img",
 				{
 					src: apiBase + "img/close.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—Р°РєСЂС‹С‚СЊ", "Close"),
 					onclick: function(ev) 
 					{ 
 						if(balloon.notDelFlag) {
@@ -12025,7 +12025,7 @@ if (!this.JSON) {
 
 					var sc = scale * stageZoom;
 					
-					// Смещение Балуна к центру
+					// РЎРјРµС‰РµРЅРёРµ Р‘Р°Р»СѓРЅР° Рє С†РµРЅС‚СЂСѓ
 					var deltaX = 0;
 					if(!balloon.isDraging && gmxAPI.proxyType === 'flash') {
 						var pos = gmxAPI.chkPointCenterX(this.geoX);
@@ -12046,7 +12046,7 @@ if (!this.JSON) {
 					var x = div.clientWidth/2 - px + deltaX;
 					var y = div.clientHeight/2 + py;
 
-					if(balloon.keyPress) {	// если задано смещение в пикселах
+					if(balloon.keyPress) {	// РµСЃР»Рё Р·Р°РґР°РЅРѕ СЃРјРµС‰РµРЅРёРµ РІ РїРёРєСЃРµР»Р°С…
 						if(balloon.keyPress.dx) x += balloon.keyPress.dx;
 						if(balloon.keyPress.dy) y += balloon.keyPress.dy;
 					}
@@ -12098,8 +12098,8 @@ if (!this.JSON) {
 				}
 				if(this.outerDiv.parentNode) this.outerDiv.parentNode.removeChild(this.outerDiv);
 				//div.removeChild(this.outerDiv);
-				var gmxNode = gmxAPI.mapNodes[balloon.pID];		// Нода gmxAPI
-				gmxAPI._listeners.dispatchEvent('onBalloonRemove', gmxNode, {'obj': balloon.obj});		// balloon удален
+				var gmxNode = gmxAPI.mapNodes[balloon.pID];		// РќРѕРґР° gmxAPI
+				gmxAPI._listeners.dispatchEvent('onBalloonRemove', gmxNode, {'obj': balloon.obj});		// balloon СѓРґР°Р»РµРЅ
 				balloon.isRemoved = true;
 			}
 			balloon.getX = function() { return this.geoX; }
@@ -12109,18 +12109,18 @@ if (!this.JSON) {
 		}
 		this.addBalloon = addBalloon;
 
-        /** Установка параметров пользовательского балуна для фильтра слоя
+        /** РЈСЃС‚Р°РЅРѕРІРєР° РїР°СЂР°РјРµС‚СЂРѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ Р±Р°Р»СѓРЅР° РґР»СЏ С„РёР»СЊС‚СЂР° СЃР»РѕСЏ
         * @memberOf BalloonClass#
-        * @param {Filter} filter - обьект фильтра слоя.
-        * @param {object} balloonParams - параметры балуна для фильтра.
-        * @param {boolean} balloonParams.DisableBalloonOnMouseMove - отключить балун при наведении указателя(по умолчанию равен false).
-        * @param {boolean} balloonParams.DisableBalloonOnClick - отключить балун при click(по умолчанию равен false).
-        * @param {String} balloonParams.Balloon - шаблон балуна(по умолчанию равен '').
+        * @param {Filter} filter - РѕР±СЊРµРєС‚ С„РёР»СЊС‚СЂР° СЃР»РѕСЏ.
+        * @param {object} balloonParams - РїР°СЂР°РјРµС‚СЂС‹ Р±Р°Р»СѓРЅР° РґР»СЏ С„РёР»СЊС‚СЂР°.
+        * @param {boolean} balloonParams.DisableBalloonOnMouseMove - РѕС‚РєР»СЋС‡РёС‚СЊ Р±Р°Р»СѓРЅ РїСЂРё РЅР°РІРµРґРµРЅРёРё СѓРєР°Р·Р°С‚РµР»СЏ(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ false).
+        * @param {boolean} balloonParams.DisableBalloonOnClick - РѕС‚РєР»СЋС‡РёС‚СЊ Р±Р°Р»СѓРЅ РїСЂРё click(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ false).
+        * @param {String} balloonParams.Balloon - С€Р°Р±Р»РѕРЅ Р±Р°Р»СѓРЅР°(РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂР°РІРµРЅ '').
         */
 		var setBalloonFromParams = function(filter, balloonParams)
 		{
 /*			
-			//по умолчанию балуны показываются
+			//РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Р±Р°Р»СѓРЅС‹ РїРѕРєР°Р·С‹РІР°СЋС‚СЃСЏ
 			if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
 			{
 				disableHoverBalloon(filter);
@@ -12159,11 +12159,11 @@ if (!this.JSON) {
 		}
 		this.setBalloonFromParams = setBalloonFromParams;
 		
-		//явно прописывает все свойства балунов в стиле.
+		//СЏРІРЅРѕ РїСЂРѕРїРёСЃС‹РІР°РµС‚ РІСЃРµ СЃРІРѕР№СЃС‚РІР° Р±Р°Р»СѓРЅРѕРІ РІ СЃС‚РёР»Рµ.
 		var applyBalloonDefaultStyle = function(balloonStyle)
 		{
 			var out = gmxAPI.clone(balloonStyle);
-			//слой только что создали - всё по умолчанию!
+			//СЃР»РѕР№ С‚РѕР»СЊРєРѕ С‡С‚Рѕ СЃРѕР·РґР°Р»Рё - РІСЃС‘ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ!
 			if (typeof out.BalloonEnable === 'undefined')
 			{
 				out.BalloonEnable = true;
@@ -12172,7 +12172,7 @@ if (!this.JSON) {
 			} 
 			else
 			{
-				//поддержка совместимости - если слой уже был, но новых параметров нет 
+				//РїРѕРґРґРµСЂР¶РєР° СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё - РµСЃР»Рё СЃР»РѕР№ СѓР¶Рµ Р±С‹Р», РЅРѕ РЅРѕРІС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ РЅРµС‚ 
 				if (typeof out.DisableBalloonOnClick === 'undefined')
 					out.DisableBalloonOnClick = false;
 					
@@ -12185,7 +12185,7 @@ if (!this.JSON) {
 	}
 
 	var userBalloons = {};
-	// Добавление прослушивателей событий
+	// Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
 	gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
 			if(!gmxAPI.map || gmxAPI.map.balloonClassObject) return;
 			gmxAPI.map.balloonClassObject = new BalloonClass();
@@ -12201,7 +12201,7 @@ if (!this.JSON) {
 				}
 			);
 			
-			//расширяем FlashMapObject
+			//СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
 			gmxAPI.extendFMO('addBalloon', function() {
 				var balloon = map.balloonClassObject.addBalloon();
 				var id = gmxAPI.newFlashMapId();
@@ -12266,12 +12266,12 @@ if (!this.JSON) {
     drawing.js
    ====================================================================== */
 
-//Управление drawFunctions
+//РЈРїСЂР°РІР»РµРЅРёРµ drawFunctions
 (function()
 {
 	var outlineColor = 0x0000ff;
 	var fillColor = 0xffffff;
-	var currentDOMObject = null;		// текущий обьект рисования
+	var currentDOMObject = null;		// С‚РµРєСѓС‰РёР№ РѕР±СЊРµРєС‚ СЂРёСЃРѕРІР°РЅРёСЏ
 	
 	var regularDrawingStyle = {
 		marker: { size: 3 },
@@ -12302,9 +12302,9 @@ if (!this.JSON) {
 			if(!cObj.geometry) cObj.remove();
 		}
 	};
-	var endDrawing = function() {			// Вызывается при выходе из режима редактирования
+	var endDrawing = function() {			// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё РІС‹С…РѕРґРµ РёР· СЂРµР¶РёРјР° СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ
 		chkDrawingObjects();
-		//gmxAPI._listeners.dispatchEvent('endDrawing', drawing, currentDOMObject);	// Генерация события выхода из режима редактирования
+		//gmxAPI._listeners.dispatchEvent('endDrawing', drawing, currentDOMObject);	// Р“РµРЅРµСЂР°С†РёСЏ СЃРѕР±С‹С‚РёСЏ РІС‹С…РѕРґР° РёР· СЂРµР¶РёРјР° СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ
 		currentDOMObject = null;
 	};
 
@@ -12331,7 +12331,7 @@ if (!this.JSON) {
 			},
 			update: function(geometry, text)
 			{
-				if(!geometry) return;				// Если нет geometry ничего не делаем
+				if(!geometry) return;				// Р•СЃР»Рё РЅРµС‚ geometry РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј
 				this.properties.text = text;
 				this.properties.isVisible = ret.isVisible;
 				this.geometry = geometry;
@@ -12415,7 +12415,7 @@ if (!this.JSON) {
 		var done = function(xx, yy)
 		{
 			obj = gmxAPI.map.addObject();
-			balloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.addBalloon(true) : null);	// Редактируемый балун (только скрывать)
+			balloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.addBalloon(true) : null);	// Р РµРґР°РєС‚РёСЂСѓРµРјС‹Р№ Р±Р°Р»СѓРЅ (С‚РѕР»СЊРєРѕ СЃРєСЂС‹РІР°С‚СЊ)
 
 			gmxAPI.map.addListener('zoomBy', function() {
 				if(balloon.isVisible) gmxAPI.setVisible(balloon.outerDiv, false);
@@ -12479,7 +12479,7 @@ if (!this.JSON) {
 			obj.setHandlers({
 				"onClick": function()
 				{
-					if(domObj.stateListeners['onClick'] && gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj)) return;	// если установлен пользовательский onClick возвращающий true выходим
+					if(domObj.stateListeners['onClick'] && gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj)) return;	// РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ onClick РІРѕР·РІСЂР°С‰Р°СЋС‰РёР№ true РІС‹С…РѕРґРёРј
 					if (clickTimeout)
 					{
 						clearTimeout(clickTimeout);
@@ -12540,7 +12540,7 @@ if (!this.JSON) {
 			}
 			obj.enableDragging(dragCallback, downCallback, upCallback);
 
-			if(balloon) {	// Это все касается балуна для маркера
+			if(balloon) {	// Р­С‚Рѕ РІСЃРµ РєР°СЃР°РµС‚СЃСЏ Р±Р°Р»СѓРЅР° РґР»СЏ РјР°СЂРєРµСЂР°
 				var htmlDiv = document.createElement("div");
 				htmlDiv.onclick = function(event)
 				{
@@ -12712,7 +12712,7 @@ if (!this.JSON) {
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
 		
-		// Проверка пользовательских Listeners LINESTRING
+		// РџСЂРѕРІРµСЂРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners LINESTRING
 		var chkEvent = function(eType, out)
 		{
 			if(gmxAPI.map.drawing.enabledHoverBalloon) {
@@ -12864,7 +12864,7 @@ if (!this.JSON) {
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
 
-		// Проверка пользовательских Listeners POLYGON
+		// РџСЂРѕРІРµСЂРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners POLYGON
 		var chkEvent = function(eType, out)
 		{
 			if(gmxAPI.map.drawing.enabledHoverBalloon) {
@@ -12975,7 +12975,7 @@ if (!this.JSON) {
 			for (var i = 0; i < coords.length; i++) {
 				var lastNum = coords[i].length - 1; 
 				if (coords[i][0][0] == coords[i][lastNum][0] && coords[i][0][1] == coords[i][lastNum][1]) {
-					coords[i].pop();	// если последняя точка совпадает с первой удаляем ее
+					coords[i].pop();	// РµСЃР»Рё РїРѕСЃР»РµРґРЅСЏСЏ С‚РѕС‡РєР° СЃРѕРІРїР°РґР°РµС‚ СЃ РїРµСЂРІРѕР№ СѓРґР°Р»СЏРµРј РµРµ
 				}
 			}
 
@@ -13049,7 +13049,7 @@ if (!this.JSON) {
 		var x2y1Corner = corners.addObject();
 		var x2y2Corner = corners.addObject();
 
-		// Проверка пользовательских Listeners FRAME
+		// РџСЂРѕРІРµСЂРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners FRAME
 		var chkEvent = function()
 		{
 			gmxAPI._listeners.dispatchEvent(eventType, domObj, domObj);
@@ -13062,17 +13062,17 @@ if (!this.JSON) {
 			if (geomType.indexOf("POINT") != -1)
 			{
 				var c = geom.coordinates;
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.LatLon_formatCoordinates(c[0], c[1]);
+				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РљРѕРѕСЂРґРёРЅР°С‚С‹:", "Coordinates:") + "</b> " + gmxAPI.LatLon_formatCoordinates(c[0], c[1]);
 			}
 			else if (geomType.indexOf("LINESTRING") != -1)
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
+				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р”Р»РёРЅР°:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
 			else if (geomType.indexOf("POLYGON") != -1)
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
+				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РџР»РѕС‰Р°РґСЊ:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
 			else
 				return "?";
 		}
 
-		// Высвечивание балуна в зависимости от типа geometry
+		// Р’С‹СЃРІРµС‡РёРІР°РЅРёРµ Р±Р°Р»СѓРЅР° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РёРїР° geometry
 		var chkBalloon = function(tp)
 		{
 			if(!isDraging && propsBalloon) {
@@ -13320,7 +13320,7 @@ if (!this.JSON) {
 				this.enabledHoverBalloon = false;
 			}
 		,				
-		//props опционально
+		//props РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ
 		addObject: function(geom, props)
 		{
 			if (geom.type.indexOf("MULTI") != -1)
@@ -13342,9 +13342,9 @@ if (!this.JSON) {
 			}
 		},
 		
-		//поддерживаются events: onAdd, onRemove, onEdit
-		//onRemove вызывается непосредственно ПЕРЕД удалением объекта
-		//для FRAME поддерживается event onMouseUp - завершение изменения формы рамки
+		//РїРѕРґРґРµСЂР¶РёРІР°СЋС‚СЃСЏ events: onAdd, onRemove, onEdit
+		//onRemove РІС‹Р·С‹РІР°РµС‚СЃСЏ РЅРµРїРѕСЃСЂРµРґСЃС‚РІРµРЅРЅРѕ РџР•Р Р•Р” СѓРґР°Р»РµРЅРёРµРј РѕР±СЉРµРєС‚Р°
+		//РґР»СЏ FRAME РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ event onMouseUp - Р·Р°РІРµСЂС€РµРЅРёРµ РёР·РјРµРЅРµРЅРёСЏ С„РѕСЂРјС‹ СЂР°РјРєРё
 		setHandler: function(eventName, callback)
 		{
 			if (!(eventName in this.handlers)) 
@@ -13417,7 +13417,7 @@ if (!this.JSON) {
 		}
 	}
 
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._drawFunctions = drawFunctions;
     gmxAPI._drawing = drawing;
 
@@ -13426,25 +13426,25 @@ if (!this.JSON) {
     Temporal.js
    ====================================================================== */
 
-//Управление временными тайлами
+//РЈРїСЂР°РІР»РµРЅРёРµ РІСЂРµРјРµРЅРЅС‹РјРё С‚Р°Р№Р»Р°РјРё
 (function()
 {
-	var TemporalTiles =	function(obj_)		// атрибуты временных тайлов
+	var TemporalTiles =	function(obj_)		// Р°С‚СЂРёР±СѓС‚С‹ РІСЂРµРјРµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ
 	{
-		var mapObj = obj_,              // Мультивременной слой
-            prop = mapObj.properties,   // Свойства слоя от сервера
-            TimeTemporal = true,        // Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
-            oneDay = 1000*60*60*24,     // один день
+		var mapObj = obj_,              // РњСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅРѕР№ СЃР»РѕР№
+            prop = mapObj.properties,   // РЎРІРѕР№СЃС‚РІР° СЃР»РѕСЏ РѕС‚ СЃРµСЂРІРµСЂР°
+            TimeTemporal = true,        // Р”РѕР±Р°РІР»СЏС‚СЊ РІСЂРµРјСЏ РІ С„РёР»СЊС‚СЂС‹ - РїРѕРєР° С‚РѕР»СЊРєРѕ РґР»СЏ РїРѕР»СЏ layer.properties.TemporalColumnName == 'DateTime'
+            oneDay = 1000*60*60*24,     // РѕРґРёРЅ РґРµРЅСЊ
             temporalData = null,
-            currentData = {},           // список тайлов для текущего daysDelta
-            ZeroDateString = prop.ZeroDate || '01.01.2008', // нулевая дата
+            currentData = {},           // СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РґР»СЏ С‚РµРєСѓС‰РµРіРѕ daysDelta
+            ZeroDateString = prop.ZeroDate || '01.01.2008', // РЅСѓР»РµРІР°СЏ РґР°С‚Р°
             arr = ZeroDateString.split('.'),
-            zn = new Date(  // Начальная дата
+            zn = new Date(  // РќР°С‡Р°Р»СЊРЅР°СЏ РґР°С‚Р°
                 (arr.length > 2 ? arr[2] : 2008),
                 (arr.length > 1 ? arr[1] - 1 : 0),
                 (arr.length > 0 ? arr[0] : 1)
             ),
-            ZeroDate = new Date(zn.getTime()  - zn.getTimezoneOffset()*60000),  // UTC начальная дата шкалы
+            ZeroDate = new Date(zn.getTime()  - zn.getTimezoneOffset()*60000),  // UTC РЅР°С‡Р°Р»СЊРЅР°СЏ РґР°С‚Р° С€РєР°Р»С‹
             hostName = prop.hostName || 'maps.kosmosnimki.ru',
             baseAddress = "http://" + hostName + "/",
             layerName = prop.name || prop.image,
@@ -13463,7 +13463,7 @@ if (!this.JSON) {
         var identityField = prop.identityField;
         var TemporalColumnName = prop.TemporalColumnName || 'Date';
         
-        // Начальный интервал дат
+        // РќР°С‡Р°Р»СЊРЅС‹Р№ РёРЅС‚РµСЂРІР°Р» РґР°С‚
         var DateEnd = new Date();
         if(prop.DateEnd) {
             var arr = prop.DateEnd.split('.');
@@ -13471,7 +13471,7 @@ if (!this.JSON) {
         }
         var DateBegin = new Date(DateEnd - oneDay);
 
-		// Формирование Hash списка версий тайлов мультивременного слоя
+		// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ Hash СЃРїРёСЃРєР° РІРµСЂСЃРёР№ С‚Р°Р№Р»РѕРІ РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅРѕРіРѕ СЃР»РѕСЏ
 		function getTilesHash(prop, ph)
 		{
 			var tdata = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers, ph);
@@ -13502,14 +13502,14 @@ if (!this.JSON) {
 			out.dtiles = data.dtiles;
 			out.ut1 = data.ut1;
 			out.ut2 = data.ut2;
-			this.temporalData = tdata;						// Обновление temporalData
+			this.temporalData = tdata;						// РћР±РЅРѕРІР»РµРЅРёРµ temporalData
 			this.temporalData.currentData = data;
 			return out;
 		}
 		this.getTilesHash = getTilesHash;
 
 		function prpTemporalTiles(data, vers) {
-			var deltaArr = [],      // интервалы временных тайлов [8, 16, 32, 64, 128, 256]
+			var deltaArr = [],      // РёРЅС‚РµСЂРІР°Р»С‹ РІСЂРµРјРµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ [8, 16, 32, 64, 128, 256]
                 deltaHash = {},
                 ph = {};
             //var arr = [];
@@ -13555,10 +13555,10 @@ if (!this.JSON) {
 
         this.temporalData = temporalData;
 
-        var prpTemporalFilter = function(DateBegin, DateEnd, columnName)	// Подготовка строки фильтра
+        var prpTemporalFilter = function(DateBegin, DateEnd, columnName)	// РџРѕРґРіРѕС‚РѕРІРєР° СЃС‚СЂРѕРєРё С„РёР»СЊС‚СЂР°
         {
-            var dt1 = DateBegin;		// начало периода
-            var dt2 = DateEnd;			// конец периода
+            var dt1 = DateBegin;		// РЅР°С‡Р°Р»Рѕ РїРµСЂРёРѕРґР°
+            var dt2 = DateEnd;			// РєРѕРЅРµС† РїРµСЂРёРѕРґР°
             return {
                 'dt1': dt1
                 ,'dt2': dt2
@@ -13567,7 +13567,7 @@ if (!this.JSON) {
             };
         }
 
-		var getDateIntervalTiles = function(dt1, dt2, tdata) {			// Расчет вариантов от begDate до endDate
+		var getDateIntervalTiles = function(dt1, dt2, tdata) {			// Р Р°СЃС‡РµС‚ РІР°СЂРёР°РЅС‚РѕРІ РѕС‚ begDate РґРѕ endDate
 			var days = parseInt(1 + (dt2 - dt1)/oneDay);
 			var minFiles = 1000;
 			var outHash = {};
@@ -13596,7 +13596,7 @@ if (!this.JSON) {
 						var z = pt[2];
 						var v = pt[3];
 						var file = prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y + "&v=" + v;
-						//if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
+						//if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // С‚Р°Р№Р»С‹ СЂР°СЃРїРѕР»РѕР¶РµРЅС‹ РІ WEB РїР°РїРєРµ
 						if(!ph.tiles[z]) ph.tiles[z] = {};
 						if(!ph.tiles[z][x]) ph.tiles[z][x] = {};
 						if(!ph.tiles[z][x][y]) ph.tiles[z][x][y] = [];
@@ -13646,7 +13646,7 @@ if (!this.JSON) {
 					'daysDelta': curDaysDelta
 					,'files': ph.files
 					,'tiles': ph.tiles
-					,'dtiles': ph.dtiles || []		// список тайлов для daysDelta
+					,'dtiles': ph.dtiles || []		// СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РґР»СЏ daysDelta
 					,'out': ph.out
 					,'beg': ph.beg
 					,'end': ph.end
@@ -13664,11 +13664,11 @@ if (!this.JSON) {
 		}
 		this.getDateIntervalTiles = getDateIntervalTiles;
 
-		var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);		// начало текущих суток
-		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
-		var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
+		var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);		// РЅР°С‡Р°Р»Рѕ С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
+		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC РЅР°С‡Р°Р»СЊРЅР°СЏ РґР°С‚Р°
+		var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// РєРѕРЅРµС† С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
 		ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
-		temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
+		temporalData.currentData = getDateIntervalTiles(ddt1, ddt2, temporalData);	// РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Р·Р° С‚РµРєСѓС‰РёРµ СЃСѓС‚РєРё
 
 		var me = this;
 
@@ -13705,7 +13705,7 @@ if (!this.JSON) {
 				ut2: data.ut2
 			};
 			if(oldDaysDelta == data.daysDelta && data.dt1 >= oldDt1 && data.dt2 <= oldDt2) {
-						// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
+						// РµСЃР»Рё РёРЅС‚РµСЂРІР°Р» РІСЂРµРјРµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ РЅРµ РёР·РјРµРЅРёР»СЃСЏ Рё РёРЅС‚РµСЂРІР°Р» РґР°С‚ РЅРµ СЂР°СЃС€РёСЂСЏРµС‚СЃСЏ - С‚РѕР»СЊРєРѕ РґРѕР±Р°РІР»РµРЅРёРµ РЅРѕРІС‹С… С‚Р°Р№Р»РѕРІ 
 				attr.notClear = true;
 			} else {
 				if(mapObj.tilesParent) {
@@ -13714,7 +13714,7 @@ if (!this.JSON) {
 			}
 
 			resetTiles(attr, mapObj);
-			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
+			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// РџСЂРѕРІРµСЂРєР° map Listeners РЅР° hideBalloons
 			return data.daysDelta;
 		}
 		this.setDateInterval = setDateInterval;
@@ -13761,7 +13761,7 @@ if (!this.JSON) {
 				obj._temporalTiles.ut1Prev = attr.ut1;
 				obj._temporalTiles.ut2Prev = attr.ut2;
 			}
-			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
+			for (var i=0; i<obj.filters.length; i++)	{ // РїРµСЂРµСѓСЃС‚Р°РЅРѕРІРєР° С„РёР»СЊС‚СЂРѕРІ
 				var filt = obj.filters[i];
 				if(filt && 'setFilter' in filt) filt.setFilter(filt._sql, true);
 			}
@@ -13774,7 +13774,7 @@ if (!this.JSON) {
                 delete tdata.currentData.begDate;
                 delete tdata.currentData.endDate;
             }
-            gmxAPI._listeners.dispatchEvent('onChangeDateInterval', mapObj, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
+            gmxAPI._listeners.dispatchEvent('onChangeDateInterval', mapObj, {'ut1':dt1, 'ut2':dt2});	// РР·РјРµРЅРёР»СЃСЏ РєР°Р»РµРЅРґР°СЂРёРє
         };
         mapObj.getDateInterval = function() {
             if(mapObj.properties.type !== 'Vector' || !mapObj._temporalTiles) return null;
@@ -13797,7 +13797,7 @@ if (!this.JSON) {
             return gmxAPI.filterVisibleTiles(tdata, thash);
         };
 
-        // Добавление прослушивателей событий
+        // Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
         mapObj.addListener('onChangeVisible', function(flag) {
             if(flag) {
                 mapObj.setDateInterval(
@@ -13807,44 +13807,44 @@ if (!this.JSON) {
                 delete mapObj.dt1;
                 delete mapObj.dt2;
             }
-            //gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// Проверка map Listeners на hideBalloons
+            //gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':mapObj.objectId});	// РџСЂРѕРІРµСЂРєР° map Listeners РЅР° hideBalloons
         });
         mapObj.addListener('onLayer', function(obj) {
             var currentData = obj._temporalTiles.temporalData.currentData;
             obj.setDateInterval(currentData.dt1, currentData.dt2);
         });
     }
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._TemporalTiles = TemporalTiles;
 })();
 ;/* ======================================================================
     Clusters.js
    ====================================================================== */
 
-//Управление клиентской кластеризацией 
+//РЈРїСЂР°РІР»РµРЅРёРµ РєР»РёРµРЅС‚СЃРєРѕР№ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРµР№ 
 (function()
 {
-	var countKeyName = gmxAPI.KOSMOSNIMKI_LOCALIZED("Количество", "Count");
-	var RenderStyle = {		// стили кластеров
+	var countKeyName = gmxAPI.KOSMOSNIMKI_LOCALIZED("РљРѕР»РёС‡РµСЃС‚РІРѕ", "Count");
+	var RenderStyle = {		// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ
 		marker: { image: 'http://images.kosmosnimki.ru/clusters/cluster_circ.png', center: true, minScale: 0.5, maxScale: 2, scale: '['+countKeyName+']/50' },
-		label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[Метка]', field: countKeyName }
+		label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[РњРµС‚РєР°]', field: countKeyName }
 	};
-	var HoverStyle = {		// стили кластеров при наведении
+	var HoverStyle = {		// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё
 		marker: { image: 'http://images.kosmosnimki.ru/clusters/cluster_circ_hov.png', center: true, minScale: 0.5, maxScale: 2, scale: '['+countKeyName+']/50' },
-		label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field: countKeyName }
+		label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[РњРµС‚РєР°]', field: countKeyName }
 	};
 
-	var newProperties = {						// Заполняемые поля properties кластеров
+	var newProperties = {						// Р—Р°РїРѕР»РЅСЏРµРјС‹Рµ РїРѕР»СЏ properties РєР»Р°СЃС‚РµСЂРѕРІ
 	};
-	newProperties[countKeyName] = '[objectInCluster]';	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
+	newProperties[countKeyName] = '[objectInCluster]';	// objectInCluster - РєРѕР»РёС‡РµСЃС‚РІРѕ РѕР±СЊРµРєС‚РѕРІ РїРѕРїР°РІС€РёС… РІ РєР»Р°СЃС‚РµСЂ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 'РљРѕР»РёС‡РµСЃС‚РІРѕ')
 
 	var defaultAttr = {
 		'radius': 20,
 		'iterationCount': 1,
-		'newProperties': newProperties,			// Заполняемые поля properties кластеров
-		'RenderStyle': RenderStyle,				// стили кластеров
-		'HoverStyle': HoverStyle,				// стили кластеров при наведении
-		'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
+		'newProperties': newProperties,			// Р—Р°РїРѕР»РЅСЏРµРјС‹Рµ РїРѕР»СЏ properties РєР»Р°СЃС‚РµСЂРѕРІ
+		'RenderStyle': RenderStyle,				// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ
+		'HoverStyle': HoverStyle,				// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё
+		'clusterView': {},						// РђС‚СЂРёР±СѓС‚С‹ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‡Р»РµРЅРѕРІ РєР»Р°СЃС‚РµСЂР° (РїСЂРё null РЅРµ РѕС‚РѕР±СЂР°Р¶Р°С‚СЊ)
 		'visible': false
 	};
 	
@@ -13858,22 +13858,22 @@ if (!this.JSON) {
 		return data;
 	}
 
-	var Clusters =	function(parent)		// атрибуты кластеризации потомков
+	var Clusters =	function(parent)		// Р°С‚СЂРёР±СѓС‚С‹ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РїРѕС‚РѕРјРєРѕРІ
 	{
 		this._parent = parent;
 		this._attr = gmxAPI.clone(defaultAttr);
 
-		// Добавление прослушивателей событий
+		// Р”РѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»РµР№ СЃРѕР±С‹С‚РёР№
 		var me = this;
 		var evID = null;
 		var chkFilter = function(data)
 		{
 			if(evID) parent.parent.removeListener('onLayer', evID);
 			var filter = me._parent;
-			if(!filter['clusters'] || !filter['clusters']['attr']) return;	// Кластеризация не устанавливалась
+			if(!filter['clusters'] || !filter['clusters']['attr']) return;	// РљР»Р°СЃС‚РµСЂРёР·Р°С†РёСЏ РЅРµ СѓСЃС‚Р°РЅР°РІР»РёРІР°Р»Р°СЃСЊ
 			filter.setClusters(filter['clusters']['attr']);
 		}
-		evID = parent.parent.addListener('onLayer', chkFilter); // Отложенная установка кластеризации
+		evID = parent.parent.addListener('onLayer', chkFilter); // РћС‚Р»РѕР¶РµРЅРЅР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё
 
 	};
 	Clusters.prototype = {
@@ -13918,11 +13918,11 @@ if (!this.JSON) {
 		'getClusterView':	function() { if(!this._attr.clusterView) return null; var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
 	};
 
-	//расширяем namespace
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._Clusters = Clusters;
     gmxAPI._getDefaultClustersAttr = function() { return defaultAttr; }
 	
-	//расширяем FlashMapObject
+	//СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
 	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? _chkAttr(attr) : this._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });
 	gmxAPI.extendFMO('delClusters', function() { 	if(this.clusters && this.clusters.attr) delete this.clusters.attr; return gmxAPI._cmdProxy('delClusters', { 'obj': this }); });
 })();
@@ -13930,7 +13930,7 @@ if (!this.JSON) {
     miniMap.js
    ====================================================================== */
 
-//Поддержка miniMap
+//РџРѕРґРґРµСЂР¶РєР° miniMap
 (function()
 {
 	var miniMapInit = function(div)
@@ -14008,14 +14008,14 @@ if (!this.JSON) {
 			{
 				var ww = (miniMapSize/2 - w/2);
 				var hh = (miniMapSize/2 - h/2);
-				var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// Позиция миникарты по умолчанию tr(TopRight)
-				if(miniMapAlign === 'br') {		// Позиция миникарты br(BottomRight)
+				var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tr(TopRight)
+				if(miniMapAlign === 'br') {		// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ br(BottomRight)
 					ph['left'] = ''; ph['right'] = ww + 'px';
 					ph['bottom'] = hh + 'px';	ph['top'] = '';
-				} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+				} else if(miniMapAlign === 'bl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ bl(BottomLeft)
 					ph['left'] = ww + 'px';		ph['right'] = '';
 					ph['bottom'] = hh + 'px';	ph['top'] = '';
-				} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+				} else if(miniMapAlign === 'tl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tl(TopLeft)
 					ph['left'] = (miniMapSize/2 - w/2) + 'px'; ph['right'] = '';
 				}
 				gmxAPI.setPositionStyle(miniMapFrame, ph);
@@ -14048,7 +14048,7 @@ if (!this.JSON) {
 			{ 
 				className: "gmx_miniMapToggler",
 				src: apiBase + "img/close_map.png",
-				title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
+				title: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕРєР°Р·Р°С‚СЊ/СЃРєСЂС‹С‚СЊ РјРёРЅРё-РєР°СЂС‚Сѓ", "Show/hide minimap"),
 				onclick: function()
 				{
 					miniMapShown = !miniMapShown;
@@ -14079,22 +14079,22 @@ if (!this.JSON) {
 			miniMapSize = (gmxAPI.miniMapAvailable && miniMapShown) ? Math.round(w/7) : 0;
 			miniMapLeftBorder.style.height = (miniMapSize + miniMapBorderWidth) + "px";
 			miniMapBottomBorder.style.width = miniMapSize + "px";
-			if(miniMapAlign === 'br') {			// Позиция миникарты br(BottomRight)
+			if(miniMapAlign === 'br') {			// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ br(BottomRight)
 				miniMap.positionWindow((w - miniMapSize)/w, (h - miniMapSize)/h, 1, 1);
 				gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
 				gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
 				gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
-			} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+			} else if(miniMapAlign === 'bl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ bl(BottomLeft)
 				miniMap.positionWindow(0, (h - miniMapSize)/h, miniMapSize/w, 1);
 				gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
 				gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
 				gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
-			} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+			} else if(miniMapAlign === 'tl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tl(TopLeft)
 				miniMap.positionWindow(0, 0, miniMapSize/w, miniMapSize/h);
 				gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
 				gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
 				gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
-			} else {							// Позиция миникарты по умолчанию tr(TopRight)
+			} else {							// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tr(TopRight)
 				miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
 				gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
 				gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
@@ -14119,7 +14119,7 @@ if (!this.JSON) {
 		map.miniMap.setBackgroundColor(0xffffff);
 		//miniMap.setVisible(false);
 		var miniMapAlign = 'tr';
-		// Изменить позицию miniMap
+		// РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ miniMap
 		map.setMiniMapAlign = function(attr) {
 			if(attr['align']) miniMapAlign = attr['align'];
 			resizeMiniMap();
@@ -14253,7 +14253,7 @@ if (!this.JSON) {
 			this.tilesParent.remove();
 		var tilesParent = this.addObject();
 		this.tilesParent = tilesParent;
-		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// при отсутствии style.fill дополнить невидимым заполнением - ломает старые проекты
+		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// РїСЂРё РѕС‚СЃСѓС‚СЃС‚РІРёРё style.fill РґРѕРїРѕР»РЅРёС‚СЊ РЅРµРІРёРґРёРјС‹Рј Р·Р°РїРѕР»РЅРµРЅРёРµРј - Р»РѕРјР°РµС‚ СЃС‚Р°СЂС‹Рµ РїСЂРѕРµРєС‚С‹
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		var propsArray = [];
 		tilesParent.clearItems  = function()
@@ -14304,12 +14304,12 @@ if (!this.JSON) {
 			var idt = 'id_' + o.flip();
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
 			var curZ = currPos['z'];
-			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// только для zoom со снимками
+			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// С‚РѕР»СЊРєРѕ РґР»СЏ zoom СЃРѕ СЃРЅРёРјРєР°РјРё
 			gmxAPI._listeners.dispatchEvent('onFlip', me, images[idt]);
 			return false;
 		}, -5);
 
-		this.bringToTopImage = function(id)			// обьект растрового слоя переместить вверх
+		this.bringToTopImage = function(id)			// РѕР±СЊРµРєС‚ СЂР°СЃС‚СЂРѕРІРѕРіРѕ СЃР»РѕСЏ РїРµСЂРµРјРµСЃС‚РёС‚СЊ РІРІРµСЂС…
 		{
 			var idt = 'id_' + id;
 			if(images[idt]) {
@@ -14320,7 +14320,7 @@ if (!this.JSON) {
 		};
 	}
 
-	//расширяем FlashMapObject
+	//СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
 			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, attr) { obj.addObserver(this, onChange, attr); } );
 			gmxAPI.extendFMO('enableTiledQuicklooksEx', enableTiledQuicklooksEx);
@@ -14333,14 +14333,14 @@ if (!this.JSON) {
     flashProxy.js
    ====================================================================== */
 
-//Поддержка Flash
+//РџРѕРґРґРµСЂР¶РєР° Flash
 (function()
 {
 	var addObjects = function(parentId, attr) {
 		var out = [];
 		var data = attr['arr'];
 		var fmt = (attr['format'] ? attr['format'] : 'LatLng');
-		for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
+		for (var i=0; i<data.length; i++)	// РџРѕРґРіРѕС‚РѕРІРєР° РјР°СЃСЃРёРІР° РѕР±СЊРµРєС‚РѕРІ
 		{
 			var ph = data[i];
 			var props = ph['properties'] || null;
@@ -14353,15 +14353,15 @@ if (!this.JSON) {
 			if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 			out.push(tmp);
 		}
-		var _obj = gmxAPI.flashDiv.cmdFromJS('addObjects', out); // Отправить команду в SWF
+		var _obj = gmxAPI.flashDiv.cmdFromJS('addObjects', out); // РћС‚РїСЂР°РІРёС‚СЊ РєРѕРјР°РЅРґСѓ РІ SWF
 
 		out = [];
-		var pObj = gmxAPI.mapNodes[parentId];	// обычный MapObject
-		for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
+		var pObj = gmxAPI.mapNodes[parentId];	// РѕР±С‹С‡РЅС‹Р№ MapObject
+		for (var i=0; i<_obj.length; i++)	// РћС‚СЂР°Р¶РµРЅРёРµ РѕР±СЊРµРєС‚РѕРІ РІ JS
 		{
-			var aObj = new gmxAPI._FMO(_obj[i], data[i].properties, pObj);	// обычный MapObject
+			var aObj = new gmxAPI._FMO(_obj[i], data[i].properties, pObj);	// РѕР±С‹С‡РЅС‹Р№ MapObject
 			out.push(aObj);
-			// пополнение mapNodes
+			// РїРѕРїРѕР»РЅРµРЅРёРµ mapNodes
 			var currID = (aObj.objectId ? aObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
 			gmxAPI.mapNodes[currID] = aObj;
 			if(aObj.parent) aObj.parent.childsID[currID] = true; 
@@ -14369,19 +14369,19 @@ if (!this.JSON) {
 		return out;
 	}
 
-	// Команды в SWF
-	var commands = {				// Тип команды
-		'setEditObjects':	function(hash)	{							// Установка редактируемых обьектов слоя
+	// РљРѕРјР°РЅРґС‹ РІ SWF
+	var commands = {				// РўРёРї РєРѕРјР°РЅРґС‹
+		'setEditObjects':	function(hash)	{							// РЈСЃС‚Р°РЅРѕРІРєР° СЂРµРґР°РєС‚РёСЂСѓРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ СЃР»РѕСЏ
 			return gmxAPI.flashDiv.cmdFromJS('setEditObjects', { 'objectId':hash.obj.objectId, 'processing':hash['attr'] } );
 		}
 		,
-		'setVisible':	function(hash)	{								// Изменить видимость обьекта
+		'setVisible':	function(hash)	{								// РР·РјРµРЅРёС‚СЊ РІРёРґРёРјРѕСЃС‚СЊ РѕР±СЊРµРєС‚Р°
 			if(hash['obj']) {
 				gmxAPI.flashDiv.cmdFromJS('setVisible', { 'objectId':hash.obj.objectId, 'flag':hash['attr'] } );
 			}
 		}
 		,
-		'sendPNG':	function(hash)	{									// Сохранение изображения карты на сервер
+		'sendPNG':	function(hash)	{									// РЎРѕС…СЂР°РЅРµРЅРёРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РєР°СЂС‚С‹ РЅР° СЃРµСЂРІРµСЂ
 			var miniMapFlag = gmxAPI.miniMapAvailable;
 			var attr = hash['attr'];
 			var flag = (attr.miniMapSetVisible ? true : false);
@@ -14392,16 +14392,16 @@ if (!this.JSON) {
 			return ret;
 		}
 		,
-		'savePNG':	function(hash)	{									// Сохранить PNG файл экрана
+		'savePNG':	function(hash)	{									// РЎРѕС…СЂР°РЅРёС‚СЊ PNG С„Р°Р№Р» СЌРєСЂР°РЅР°
 			return gmxAPI.flashDiv.cmdFromJS('savePNG', hash['attr']);
 			//return gmxAPI.flashDiv.cmdFromJS('savePNG', { 'fileName':hash['attr'] });
 		}
 		,
-		'setZoomBounds':	function(hash)	{							// Установить ограничения по Zoom
+		'setZoomBounds':	function(hash)	{							// РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РїРѕ Zoom
 			return gmxAPI.flashDiv.cmdFromJS('setZoomBounds', { 'objectId':hash.obj.objectId, 'minZ':hash['attr']['minZ'], 'maxZ':hash['attr']['maxZ'] });
 		}
 		,
-		'setClusters':	function(hash)	{								// Установить кластеризацию потомков
+		'setClusters':	function(hash)	{								// РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёСЋ РїРѕС‚РѕРјРєРѕРІ
 			var obj = hash['obj'];
 			var attr = hash['attr'];
 			var ret = {};
@@ -14416,49 +14416,49 @@ if (!this.JSON) {
 				attr['propFields'] = [keyArray, valArray];
 				attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(false); });
 			}
-			var flag = ('clusters' in obj);	// видимость кластеров
+			var flag = ('clusters' in obj);	// РІРёРґРёРјРѕСЃС‚СЊ РєР»Р°СЃС‚РµСЂРѕРІ
 			if(!flag)
 				obj['clusters'] = new gmxAPI._Clusters(obj);
 			else
 				ret = gmxAPI.flashDiv.cmdFromJS('setClusters', { 'objectId':obj.objectId, 'data':attr });
 			attr['visible'] = flag;
-			obj['clusters']['attr'] = attr;		// признак наличия кластеризации в SWF
-			//if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
+			obj['clusters']['attr'] = attr;		// РїСЂРёР·РЅР°Рє РЅР°Р»РёС‡РёСЏ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РІ SWF
+			//if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// РµСЃР»Рё Р±Р°Р»СѓРЅРѕРІ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ
 			return ret;
 		}
 		,
-		'delClusters':	function(hash)	{								// Удалить кластеризацию потомков
+		'delClusters':	function(hash)	{								// РЈРґР°Р»РёС‚СЊ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёСЋ РїРѕС‚РѕРјРєРѕРІ
 			var obj = hash['obj'];
 			var ret = gmxAPI.flashDiv.cmdFromJS('delClusters', { 'objectId':obj.objectId });
 			if('clusters' in obj && obj['clusters']['attr']) obj['clusters']['attr']['visible'] = false;
 			return ret;
 		}
 		,
-		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
+		'setGridVisible':	function(hash)	{							// РР·РјРµРЅРёС‚СЊ РІРёРґРёРјРѕСЃС‚СЊ СЃРµС‚РєРё
 			return gmxAPI.flashDiv.cmdFromJS('setGridVisible', { 'flag':hash['attr'] } );
 		}
 		,
-		'getGridVisibility':	function(hash)	{						// получить видимость сетки
+		'getGridVisibility':	function(hash)	{						// РїРѕР»СѓС‡РёС‚СЊ РІРёРґРёРјРѕСЃС‚СЊ СЃРµС‚РєРё
 			return gmxAPI.flashDiv.cmdFromJS('getGridVisibility', { } );
 		}
 		,
-		'getZoomBounds':	function(hash)	{							// Получить ограничения по Zoom
+		'getZoomBounds':	function(hash)	{							// РџРѕР»СѓС‡РёС‚СЊ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РїРѕ Zoom
 			return gmxAPI.flashDiv.cmdFromJS('getZoomBounds', { 'objectId':hash.obj.objectId });
 		}
 		,
-		'getDepth':	function(hash)	{									// Получить индекс обьекта
+		'getDepth':	function(hash)	{									// РџРѕР»СѓС‡РёС‚СЊ РёРЅРґРµРєСЃ РѕР±СЊРµРєС‚Р°
 			return gmxAPI.flashDiv.cmdFromJS('getDepth', { 'objectId':hash.obj.objectId });
 		}
 		,
-		'getVisibility':	function(hash)	{							// Получить видимость
+		'getVisibility':	function(hash)	{							// РџРѕР»СѓС‡РёС‚СЊ РІРёРґРёРјРѕСЃС‚СЊ
 			return gmxAPI.flashDiv.cmdFromJS('getVisibility', { 'objectId':hash.obj.objectId });
 		}
 		,
-		'trace':	function(hash)	{									// Сообщение в SWF
+		'trace':	function(hash)	{									// РЎРѕРѕР±С‰РµРЅРёРµ РІ SWF
 			return gmxAPI.flashDiv.cmdFromJS('trace', { 'data':hash['attr'] });
 		}
 		,
-		'setQuality':	function(hash)	{								// Установка Quality
+		'setQuality':	function(hash)	{								// РЈСЃС‚Р°РЅРѕРІРєР° Quality
 			return gmxAPI.flashDiv.cmdFromJS('setQuality', { 'data':hash['attr'] });
 		}
 		,
@@ -14466,7 +14466,7 @@ if (!this.JSON) {
 			return gmxAPI.flashDiv.cmdFromJS('disableCaching', { });
 		}
 		,
-		'print':	function(hash)	{									// Печать
+		'print':	function(hash)	{									// РџРµС‡Р°С‚СЊ
 			return gmxAPI.flashDiv.cmdFromJS('print', { });
 		}
 		,
@@ -14474,113 +14474,113 @@ if (!this.JSON) {
 			return gmxAPI.flashDiv.cmdFromJS('repaint', { });
 		}
 		,
-		'addContextMenuItem':	function(hash)	{						// Добавить пункт в контекстное меню SWF
+		'addContextMenuItem':	function(hash)	{						// Р”РѕР±Р°РІРёС‚СЊ РїСѓРЅРєС‚ РІ РєРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ SWF
 			if(hash['attr'].func) hash['attr'].func = gmxAPI.uniqueGlobalName(hash['attr'].func);
 			return gmxAPI.flashDiv.cmdFromJS('addContextMenuItem', hash['attr']);
 		}
 		,
-		'moveTo':	function(hash)	{									//позиционирует карту по координатам центра и выбирает масштаб
+		'moveTo':	function(hash)	{									//РїРѕР·РёС†РёРѕРЅРёСЂСѓРµС‚ РєР°СЂС‚Сѓ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј С†РµРЅС‚СЂР° Рё РІС‹Р±РёСЂР°РµС‚ РјР°СЃС€С‚Р°Р±
 			var attr = hash['attr'];
 			attr['x'] = gmxAPI.merc_x(attr['x']);
 			attr['y'] = gmxAPI.merc_y(attr['y']);
 			return gmxAPI.flashDiv.cmdFromJS('moveTo', attr);
 		}
 		,
-		'slideTo':	function(hash)	{									//плавно позиционирует карту по координатам центра и выбирает масштаб
+		'slideTo':	function(hash)	{									//РїР»Р°РІРЅРѕ РїРѕР·РёС†РёРѕРЅРёСЂСѓРµС‚ РєР°СЂС‚Сѓ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј С†РµРЅС‚СЂР° Рё РІС‹Р±РёСЂР°РµС‚ РјР°СЃС€С‚Р°Р±
 			var attr = hash['attr'];
 			attr['x'] = gmxAPI.merc_x(attr['x']);
 			attr['y'] = gmxAPI.merc_y(attr['y']);
 			return gmxAPI.flashDiv.cmdFromJS('slideTo', attr);
 		}
 		,
-		'zoomBy':	function(hash)	{									//выбирает масштаб
+		'zoomBy':	function(hash)	{									//РІС‹Р±РёСЂР°РµС‚ РјР°СЃС€С‚Р°Р±
 			return gmxAPI.flashDiv.cmdFromJS('zoomBy', hash['attr']);
 		}
 		,
-		'freeze':	function(hash)	{									// заморозить
+		'freeze':	function(hash)	{									// Р·Р°РјРѕСЂРѕР·РёС‚СЊ
 			return gmxAPI.flashDiv.cmdFromJS('freeze', { });
 		}
 		,
-		'unfreeze':	function(hash)	{									// разморозить
+		'unfreeze':	function(hash)	{									// СЂР°Р·РјРѕСЂРѕР·РёС‚СЊ
 			return gmxAPI.flashDiv.cmdFromJS('unfreeze', { });
 		}
 		,
-		'setCursor':	function(hash)	{								//установка курсора
+		'setCursor':	function(hash)	{								//СѓСЃС‚Р°РЅРѕРІРєР° РєСѓСЂСЃРѕСЂР°
 			return gmxAPI.flashDiv.cmdFromJS('setCursor', hash['attr']);
 		}
 		,
-		'clearCursor':	function(hash)	{								//убрать курсор
+		'clearCursor':	function(hash)	{								//СѓР±СЂР°С‚СЊ РєСѓСЂСЃРѕСЂ
 			return gmxAPI.flashDiv.cmdFromJS('clearCursor', { });
 		}
 		,
-		'setCursorVisible':	function(hash)	{							//видимость курсора
+		'setCursorVisible':	function(hash)	{							//РІРёРґРёРјРѕСЃС‚СЊ РєСѓСЂСЃРѕСЂР°
 			return gmxAPI.flashDiv.cmdFromJS('setCursorVisible', hash['attr']);
 		}
 		,
-		'stopDragging':	function(hash)	{								//убрать флаг Drag
+		'stopDragging':	function(hash)	{								//СѓР±СЂР°С‚СЊ С„Р»Р°Рі Drag
 			return gmxAPI.flashDiv.cmdFromJS('stopDragging', { });
 		}
 		,
-		'isDragging':	function(hash)	{								//получить флаг Drag
+		'isDragging':	function(hash)	{								//РїРѕР»СѓС‡РёС‚СЊ С„Р»Р°Рі Drag
 			return gmxAPI.flashDiv.cmdFromJS('isDragging', { });
 		}
 		,
-		'resumeDragging':	function(hash)	{							//возобновить Drag
+		'resumeDragging':	function(hash)	{							//РІРѕР·РѕР±РЅРѕРІРёС‚СЊ Drag
 			return gmxAPI.flashDiv.cmdFromJS('resumeDragging', { });
 		}
 		,
-		'getPosition':	function(hash)	{								//получить текущие атрибуты SWF
+		'getPosition':	function(hash)	{								//РїРѕР»СѓС‡РёС‚СЊ С‚РµРєСѓС‰РёРµ Р°С‚СЂРёР±СѓС‚С‹ SWF
 			return gmxAPI.flashDiv.cmdFromJS('getPosition', { });
 		}
 		,
-		'getX':	function(hash)	{										//получить позицию Х центра SWF
+		'getX':	function(hash)	{										//РїРѕР»СѓС‡РёС‚СЊ РїРѕР·РёС†РёСЋ РҐ С†РµРЅС‚СЂР° SWF
 			return gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS('getX', { }));
 		}
 		,
-		'getY':	function(hash)	{										//получить позицию Y центра SWF
+		'getY':	function(hash)	{										//РїРѕР»СѓС‡РёС‚СЊ РїРѕР·РёС†РёСЋ Y С†РµРЅС‚СЂР° SWF
 			return gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS('getY', { }));
 		}
 		,
-		'getZ':	function(hash)	{										//получить текущий Z
+		'getZ':	function(hash)	{										//РїРѕР»СѓС‡РёС‚СЊ С‚РµРєСѓС‰РёР№ Z
 			return gmxAPI.flashDiv.cmdFromJS('getZ', { });
 		}
 		,
-		'getMouseX':	function(hash)	{								//получить позицию Х MouseX
+		'getMouseX':	function(hash)	{								//РїРѕР»СѓС‡РёС‚СЊ РїРѕР·РёС†РёСЋ РҐ MouseX
 			return gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS('getMouseX', { }));
 		}
 		,
-		'getMouseY':	function(hash)	{								//получить позицию Y MouseY
+		'getMouseY':	function(hash)	{								//РїРѕР»СѓС‡РёС‚СЊ РїРѕР·РёС†РёСЋ Y MouseY
 			return gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS('getMouseY', { }));
 		}
 		,
-		'isKeyDown':	function(hash)	{								//проверить нажатие клавиши в SWF
+		'isKeyDown':	function(hash)	{								//РїСЂРѕРІРµСЂРёС‚СЊ РЅР°Р¶Р°С‚РёРµ РєР»Р°РІРёС€Рё РІ SWF
 			return gmxAPI.flashDiv.cmdFromJS('isKeyDown', hash['attr']);
 		}
 		,
-		'setExtent':	function(hash)	{								//установить Extent в SWF
+		'setExtent':	function(hash)	{								//СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Extent РІ SWF
 			var attr = {'x1':gmxAPI.merc_x(hash['attr']['x1']), 'x2':gmxAPI.merc_x(hash['attr']['x2']), 'y1':gmxAPI.merc_y(hash['attr']['y1']), 'y2':gmxAPI.merc_y(hash['attr']['y2']) };
 			return gmxAPI.flashDiv.cmdFromJS('setExtent', attr);
 		}
 		,
-		'setMinMaxZoom':	function(hash)	{							//установить Zoom ограничения
+		'setMinMaxZoom':	function(hash)	{							//СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Zoom РѕРіСЂР°РЅРёС‡РµРЅРёСЏ
 			return gmxAPI.flashDiv.cmdFromJS('setMinMaxZoom', hash['attr']);
 		}
 		,
-		'addMapWindow':	function(hash)	{								//Создание окна карты
+		'addMapWindow':	function(hash)	{								//РЎРѕР·РґР°РЅРёРµ РѕРєРЅР° РєР°СЂС‚С‹
 			var attr = hash['attr'];
 			if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
 			return gmxAPI.flashDiv.cmdFromJS('addMapWindow', attr);
 		}
 		,
-		'setStyle':	function(hash)	{									// установить Style обьекта
+		'setStyle':	function(hash)	{									// СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Style РѕР±СЊРµРєС‚Р°
 			gmxAPI.flashDiv.cmdFromJS('setStyle', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
 		}
 		,
-		'getStyle':	function(hash)	{									//получить Style обьекта
+		'getStyle':	function(hash)	{									//РїРѕР»СѓС‡РёС‚СЊ Style РѕР±СЊРµРєС‚Р°
 			return gmxAPI.flashDiv.cmdFromJS('getStyle', { 'objectId':hash.obj.objectId, 'removeDefaults':hash['attr'] });
 		}
 		,
-		'getVisibleStyle':	function(hash)	{							//получить Style обьекта с учетом родителей
+		'getVisibleStyle':	function(hash)	{							//РїРѕР»СѓС‡РёС‚СЊ Style РѕР±СЊРµРєС‚Р° СЃ СѓС‡РµС‚РѕРј СЂРѕРґРёС‚РµР»РµР№
 			return gmxAPI.flashDiv.cmdFromJS('getVisibleStyle', { 'objectId':hash.obj.objectId });
 		}
 		,
@@ -14592,21 +14592,21 @@ if (!this.JSON) {
 			gmxAPI.flashDiv.cmdFromJS('setBackgroundColor', { 'objectId':hash.obj.objectId, 'color':hash['attr'] } );
 		}
 		,
-		'getChildren':	function(hash)	{							// получить список потомков
+		'getChildren':	function(hash)	{							// РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РїРѕС‚РѕРјРєРѕРІ
 			return gmxAPI.flashDiv.cmdFromJS('getChildren', { 'objectId':hash.obj.objectId } );
 		}
 		,
-		'setHandler':	function(hash)	{							// установка обработчика события
+		'setHandler':	function(hash)	{							// СѓСЃС‚Р°РЅРѕРІРєР° РѕР±СЂР°Р±РѕС‚С‡РёРєР° СЃРѕР±С‹С‚РёСЏ
 			var attr = hash['attr'];
 			if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
 			return gmxAPI.flashDiv.cmdFromJS('setHandler', { 'objectId':hash.obj.objectId, 'eventName':attr['eventName'], 'callbackName':attr['callbackName'] } );
 		}
 		,
-		'removeHandler':	function(hash)	{						// удаление обработчика события
+		'removeHandler':	function(hash)	{						// СѓРґР°Р»РµРЅРёРµ РѕР±СЂР°Р±РѕС‚С‡РёРєР° СЃРѕР±С‹С‚РёСЏ
 			return gmxAPI.flashDiv.cmdFromJS('removeHandler', { 'objectId':hash.obj.objectId, 'eventName':hash['attr']['eventName'] } );
 		}
 		,
-		'addObject':	function(hash)	{							// добавить обьект
+		'addObject':	function(hash)	{							// РґРѕР±Р°РІРёС‚СЊ РѕР±СЊРµРєС‚
 			var attr = gmxAPI.clone(hash['attr']);
 			var geo = gmxAPI.merc_geometry(attr['geometry']) || null;
 			var ph = { 'objectId':hash.obj.objectId, 'geometry':geo, 'properties':attr['properties'] };
@@ -14614,23 +14614,23 @@ if (!this.JSON) {
 			return gmxAPI.flashDiv.cmdFromJS('addObject', ph );
 		}
 		,
-		'addObjects':	function(hash)	{							// добавить обьекты
+		'addObjects':	function(hash)	{							// РґРѕР±Р°РІРёС‚СЊ РѕР±СЊРµРєС‚С‹
 			return addObjects(hash.obj.objectId, hash['attr']);
 		}
 		,
-		'addObjectsFromSWF':	function(hash)	{					// добавить обьекты из SWF файла
+		'addObjectsFromSWF':	function(hash)	{					// РґРѕР±Р°РІРёС‚СЊ РѕР±СЊРµРєС‚С‹ РёР· SWF С„Р°Р№Р»Р°
 			return gmxAPI.flashDiv.cmdFromJS('addObjectsFromSWF', { 'objectId':hash.obj.objectId, 'attr':hash['attr'] });
 		}
 		,
-		'setVisibilityFilter':	function(hash)	{	// добавить фильтр видимости к обьекту
+		'setVisibilityFilter':	function(hash)	{	// РґРѕР±Р°РІРёС‚СЊ С„РёР»СЊС‚СЂ РІРёРґРёРјРѕСЃС‚Рё Рє РѕР±СЊРµРєС‚Сѓ
 			return gmxAPI.flashDiv.cmdFromJS('setVisibilityFilter', { 'objectId':hash.obj.objectId, 'sql':hash['attr']['sql'] } );
 		}
 		,
-		'setFilter':	function(hash)	{							// добавить фильтр к обьекту
+		'setFilter':	function(hash)	{							// РґРѕР±Р°РІРёС‚СЊ С„РёР»СЊС‚СЂ Рє РѕР±СЊРµРєС‚Сѓ
 			return gmxAPI.flashDiv.cmdFromJS('setFilter', { 'objectId':hash.obj.objectId, 'sql':hash['attr']['sql'] } );
 		}
 		,
-		'remove':	function(hash)	{		// удалить обьект
+		'remove':	function(hash)	{		// СѓРґР°Р»РёС‚СЊ РѕР±СЊРµРєС‚
 			gmxAPI.flashDiv.cmdFromJS('remove', { 'objectId':hash.obj.objectId } );
 		}
 		,
@@ -14880,7 +14880,7 @@ if (!this.JSON) {
 		}
 	};
 
-	// Передача команды в SWF
+	// РџРµСЂРµРґР°С‡Р° РєРѕРјР°РЅРґС‹ РІ SWF
 	function FlashCMD(cmd, hash)
 	{
 		var ret = {};
@@ -14903,10 +14903,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 	
 	if(typeof deconcept=="undefined"){var deconcept=new Object();}if(typeof deconcept.util=="undefined"){deconcept.util=new Object();}if(typeof deconcept.SWFObjectUtil=="undefined"){deconcept.SWFObjectUtil=new Object();}deconcept.SWFObject=function(_1,id,w,h,_5,c,_7,_8,_9,_a){if(!document.getElementById){return;}this.DETECT_KEY=_a?_a:"detectflash";this.skipDetect=deconcept.util.getRequestParameter(this.DETECT_KEY);this.params=new Object();this.variables=new Object();this.attributes=new Array();if(_1){this.setAttribute("swf",_1);}if(id){this.setAttribute("id",id);}if(w){this.setAttribute("width",w);}if(h){this.setAttribute("height",h);}if(_5){this.setAttribute("version",new deconcept.PlayerVersion(_5.toString().split(".")));}this.installedVer=deconcept.SWFObjectUtil.getPlayerVersion();if(!window.opera&&document.all&&this.installedVer.major>7){deconcept.SWFObject.doPrepUnload=true;}if(c){this.addParam("bgcolor",c);}var q=_7?_7:"high";this.addParam("quality",q);this.setAttribute("useExpressInstall",false);this.setAttribute("doExpressInstall",false);var _c=(_8)?_8:window.location;this.setAttribute("xiRedirectUrl",_c);this.setAttribute("redirectUrl","");if(_9){this.setAttribute("redirectUrl",_9);}};deconcept.SWFObject.prototype={useExpressInstall:function(_d){this.xiSWFPath=!_d?"expressinstall.swf":_d;this.setAttribute("useExpressInstall",true);},setAttribute:function(_e,_f){this.attributes[_e]=_f;},getAttribute:function(_10){return this.attributes[_10];},addParam:function(_11,_12){this.params[_11]=_12;},getParams:function(){return this.params;},addVariable:function(_13,_14){this.variables[_13]=_14;},getVariable:function(_15){return this.variables[_15];},getVariables:function(){return this.variables;},getVariablePairs:function(){var _16=new Array();var key;var _18=this.getVariables();for(key in _18){_16[_16.length]=key+"="+_18[key];}return _16;},getSWFHTML:function(){var _19="";if(navigator.plugins&&navigator.mimeTypes&&navigator.mimeTypes.length){if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","PlugIn");this.setAttribute("swf",this.xiSWFPath);}_19="<embed type=\"application/x-shockwave-flash\" src=\""+this.getAttribute("swf")+"\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\"";_19+=" id=\""+this.getAttribute("id")+"\" name=\""+this.getAttribute("id")+"\" ";var _1a=this.getParams();for(var key in _1a){_19+=[key]+"=\""+_1a[key]+"\" ";}var _1c=this.getVariablePairs().join("&");if(_1c.length>0){_19+="flashvars=\""+_1c+"\"";}_19+="/>";}else{if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","ActiveX");this.setAttribute("swf",this.xiSWFPath);}_19="<object id=\""+this.getAttribute("id")+"\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\">";_19+="<param name=\"movie\" value=\""+this.getAttribute("swf")+"\" />";var _1d=this.getParams();for(var key in _1d){_19+="<param name=\""+key+"\" value=\""+_1d[key]+"\" />";}var _1f=this.getVariablePairs().join("&");if(_1f.length>0){_19+="<param name=\"flashvars\" value=\""+_1f+"\" />";}_19+="</object>";}return _19;},write:function(_20){if(this.getAttribute("useExpressInstall")){var _21=new deconcept.PlayerVersion([6,0,65]);if(this.installedVer.versionIsValid(_21)&&!this.installedVer.versionIsValid(this.getAttribute("version"))){this.setAttribute("doExpressInstall",true);this.addVariable("MMredirectURL",escape(this.getAttribute("xiRedirectUrl")));document.title=document.title.slice(0,47)+" - Flash Player Installation";this.addVariable("MMdoctitle",document.title);}}if(this.skipDetect||this.getAttribute("doExpressInstall")||this.installedVer.versionIsValid(this.getAttribute("version"))){var n=(typeof _20=="string")?document.getElementById(_20):_20;n.innerHTML=this.getSWFHTML();return true;}else{if(this.getAttribute("redirectUrl")!=""){document.location.replace(this.getAttribute("redirectUrl"));}}return false;}};deconcept.SWFObjectUtil.getPlayerVersion=function(){var _23=new deconcept.PlayerVersion([0,0,0]);if(navigator.plugins&&navigator.mimeTypes.length){var x=navigator.plugins["Shockwave Flash"];if(x&&x.description){_23=new deconcept.PlayerVersion(x.description.replace(/([a-zA-Z]|\s)+/,"").replace(/(\s+r|\s+b[0-9]+)/,".").split("."));}}else{if(navigator.userAgent&&navigator.userAgent.indexOf("Windows CE")>=0){var axo=1;var _26=3;while(axo){try{_26++;axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+_26);_23=new deconcept.PlayerVersion([_26,0,0]);}catch(e){axo=null;}}}else{try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");}catch(e){try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");_23=new deconcept.PlayerVersion([6,0,21]);axo.AllowScriptAccess="always";}catch(e){if(_23.major==6){return _23;}}try{axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash");}catch(e){}}if(axo!=null){_23=new deconcept.PlayerVersion(axo.GetVariable("$version").split(" ")[1].split(","));}}}return _23;};deconcept.PlayerVersion=function(_29){this.major=_29[0]!=null?parseInt(_29[0]):0;this.minor=_29[1]!=null?parseInt(_29[1]):0;this.rev=_29[2]!=null?parseInt(_29[2]):0;};deconcept.PlayerVersion.prototype.versionIsValid=function(fv){if(this.major<fv.major){return false;}if(this.major>fv.major){return true;}if(this.minor<fv.minor){return false;}if(this.minor>fv.minor){return true;}if(this.rev<fv.rev){return false;}return true;};deconcept.util={getRequestParameter:function(_2b){var q=document.location.search||document.location.hash;if(_2b==null){return q;}if(q){var _2d=q.substring(1).split("&");for(var i=0;i<_2d.length;i++){if(_2d[i].substring(0,_2d[i].indexOf("="))==_2b){return _2d[i].substring((_2d[i].indexOf("=")+1));}}}return "";}};deconcept.SWFObjectUtil.cleanupSWFs=function(){var _2f=document.getElementsByTagName("OBJECT");for(var i=_2f.length-1;i>=0;i--){_2f[i].style.display="none";for(var x in _2f[i]){if(typeof _2f[i][x]=="function"){_2f[i][x]=function(){};}}}};if(deconcept.SWFObject.doPrepUnload){if(!deconcept.unloadSet){deconcept.SWFObjectUtil.prepUnload=function(){__flash_unloadHandler=function(){};__flash_savedUnloadHandler=function(){};window.attachEvent("onunload",deconcept.SWFObjectUtil.cleanupSWFs);};window.attachEvent("onbeforeunload",deconcept.SWFObjectUtil.prepUnload);deconcept.unloadSet=true;}}if(!document.getElementById&&document.all){document.getElementById=function(id){return document.all[id];};}
 
-	// Добавить SWF в DOM
+	// Р”РѕР±Р°РІРёС‚СЊ SWF РІ DOM
 	function addSWFObject(apiBase, flashId, ww, hh, v, bg, loadCallback, FlagFlashLSO)
 	{
-		// Проверка версии FlashPlayer
+		// РџСЂРѕРІРµСЂРєР° РІРµСЂСЃРёРё FlashPlayer
 		if (deconcept.SWFObjectUtil.getPlayerVersion().major < 10) 
 			return '';	
 
@@ -14925,10 +14925,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 		return o;
 	}
 	
-	//расширяем namespace
-    gmxAPI._cmdProxy = FlashCMD;			// посылка команд отрисовщику
-    gmxAPI._addProxyObject = addSWFObject;	// Добавить SWF в DOM
-    gmxAPI.APILoaded = true;				// Флаг возможности использования gmxAPI сторонними модулями
+	//СЂР°СЃС€РёСЂСЏРµРј namespace
+    gmxAPI._cmdProxy = FlashCMD;			// РїРѕСЃС‹Р»РєР° РєРѕРјР°РЅРґ РѕС‚СЂРёСЃРѕРІС‰РёРєСѓ
+    gmxAPI._addProxyObject = addSWFObject;	// Р”РѕР±Р°РІРёС‚СЊ SWF РІ DOM
+    gmxAPI.APILoaded = true;				// Р¤Р»Р°Рі РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ gmxAPI СЃС‚РѕСЂРѕРЅРЅРёРјРё РјРѕРґСѓР»СЏРјРё
     
 })();
 ;

@@ -1065,7 +1065,7 @@ nsGmx.SearchLogic.prototype = {
         }
 
         function handleResponse(searchReq, layerProps) {
-            searchReq = typeof searchReq === 'string' ? JSON.parse(searchReq.substring(1, searchReq.length - 1)) : searchReq;
+            searchReq = typeof searchReq === 'string' ? JSON.parse(searchReq) : searchReq;
             iRespCount++;
             var arrLayerResult = [];
             var arrResult = [];

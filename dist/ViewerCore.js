@@ -3998,7 +3998,7 @@ $.extend(nsGmx.Utils, {
                 xhr.open('POST', serverBase + 'ShapeLoader');
                 xhr.onload = function () {
                     if (xhr.status === 200) {
-                        response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
+                        response = JSON.parse(xhr.responseText);
 
                         if (parseResponse(response, errorMessages)) {
                             def.resolve(response.Result);

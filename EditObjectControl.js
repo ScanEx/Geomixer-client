@@ -464,7 +464,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (field.isRequired) {
                     fieldHeader.style.fontWeight = 'bold';
                 }
-                var tr = _tr([_td([fieldHeader]), td], [['css', 'height', '22px']]);
+                // var tr = _tr([_td([fieldHeader]), td], [['css', 'height', '22px']]);
+				var tr = _tr([_td([fieldHeader]), td], [['dir', 'className', 'field-raw field-name-' + (field.name || field.title)]]);
 
                 field.hide && $(tr).hide();
 
@@ -540,7 +541,7 @@ var prop = layer._gmx.properties;
 					$(dialogDiv).dialog('close');
 				}
 
-                _this.initPromise.resolve();
+                _this.initPromise.resolve(canvas);
             })
         }
         else
@@ -558,7 +559,7 @@ var prop = layer._gmx.properties;
 
             drawAttrList(fieldsCollection);
 
-            _this.initPromise.resolve();
+            _this.initPromise.resolve(canvas);
         }
     }
 
