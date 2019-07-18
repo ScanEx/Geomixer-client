@@ -51,7 +51,7 @@
 	    BETA = false;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-	if (true) BETA = true;
+	if (false) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -1053,14 +1053,17 @@
 	    if (!this.isDirty) return Promise.resolve();
 	
 	    var thisInst = this;
+	    var s = new Date();
 	    return Promise.all([new Promise(function (resolve, reject) {
 	        _aisLayerSearcher.searchScreen({
 	            dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
 	            border: true,
 	            group: true
 	        }, function (json) {
+	            //console.log("RECEIVED "+((new Date()-s)/1000));
 	            if (json.Status.toLowerCase() == "ok") {
-	                console.log(json.Result.elapsed);
+	                //console.log(json.Result.elapsed);
+	                s = new Date();
 	                thisInst.dataSrc = {
 	                    vessels: json.Result.values.map(function (v) {
 	                        var d = new Date(v[12]),
@@ -1078,6 +1081,7 @@
 	                        return vessel;
 	                    })
 	                };
+	                //console.log(("MAP "+((new Date()-s)/1000)))
 	                if (_actualUpdate == actualUpdate) {
 	                    //console.log("ALL CLEAN")
 	                    //console.log("1>"+new Date(thisInst._actualUpdate))
@@ -1165,18 +1169,18 @@
 	        if (_actualUpdate == actualUpdate) {
 	            //console.log(thisInst.dataSrc)
 	            if (thisInst.dataSrc) _myFleetModel.markMembers(thisInst.dataSrc.vessels);
-	            console.log("this.load " + (new Date() - s) / 1000);
+	            //console.log("this.load "+((new Date()-s)/1000))
 	            s = new Date();
 	            thisInst.setFilter();
-	            console.log("thisInst.setFilter " + (new Date() - s) / 1000);
+	            //console.log("thisInst.setFilter "+((new Date()-s)/1000))
 	            s = new Date();
 	            thisInst.sortData();
-	            console.log("thisInst.sortData " + (new Date() - s) / 1000);
+	            //console.log("thisInst.sortData "+((new Date()-s)/1000))           
 	            thisInst.view.inProgress(false);
 	
 	            s = new Date();
 	            thisInst.view.repaint();
-	            console.log("thisInst.view.repaint " + (new Date() - s) / 1000);
+	            //console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
 	        }
 	    }, function (json) {
 	        thisInst.dataSrc = null;
@@ -4547,22 +4551,23 @@
 	                ne = latLngBounds.getNorthEast(),
 	                min = { x: sw.lng, y: sw.lat },
 	                max = { x: ne.lng, y: ne.lat };
-	            var queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-	
-	            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
-	            // if (layerTreeNode){   
-	            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
-	            //     if (gmxProp.Temporal) {
-	            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-	            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-	            //     }
-	            // }
-	            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-	            queryParams.s = options.dateInterval.get('dateBegin').toJSON(), queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+	            // let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
+	            // dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+	            // queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+	            // queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 	            //console.log(queryParams);
-	            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
-	            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
-	            queryParams, callback);
+	            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
+	            // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
+	            //     queryParams,
+	            //     callback);
+	            fetch(_aisServices + ("SearchScreenAsync.ashx?minx=" + min.x + "&miny=" + min.y + "&maxx=" + max.x + "&maxy=" + max.y + "&layer=" + _screenSearchLayer + "\n&s=" + options.dateInterval.get('dateBegin').toJSON() + "&e=" + options.dateInterval.get('dateEnd').toJSON()), {
+	                method: 'GET',
+	                mode: 'cors',
+	                cache: 'no-cache',
+	                credentials: 'include'
+	            }).then(function (response) {
+	                return response.json();
+	            }).then(callback);
 	        }
 	    };
 	};
@@ -4593,8 +4598,8 @@
 	            _iconsAlt.push(icon);
 	            _iconsAltDict[icon.filter] = { url: icon.url, name: icon.name };
 	        });
-	        //console.log(_icons);
-	        //console.log(_iconsAlt);
+	        // console.log(_icons);
+	        // console.log(_iconsAlt);
 	    },
 	        _getSvgPromise = function _getSvgPromise(ic) {
 	        return new Promise(function (resolve) {

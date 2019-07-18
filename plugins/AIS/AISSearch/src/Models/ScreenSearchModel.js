@@ -23,6 +23,7 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
         return Promise.resolve();
 
     let thisInst = this;
+    let s = new Date();
     return Promise.all([
         new Promise(function (resolve, reject) {
             _aisLayerSearcher.searchScreen({
@@ -30,8 +31,10 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                 border: true,
                 group: true
             }, function (json) {
+//console.log("RECEIVED "+((new Date()-s)/1000));
                 if (json.Status.toLowerCase() == "ok") {
-console.log(json.Result.elapsed)
+//console.log(json.Result.elapsed);
+                    s = new Date();
                     thisInst.dataSrc = {
                         vessels: json.Result.values.map(function (v) {
                             let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
@@ -48,6 +51,7 @@ console.log(json.Result.elapsed)
                             return vessel;
                         })
                     };
+//console.log(("MAP "+((new Date()-s)/1000)))
                     if (_actualUpdate == actualUpdate) {
                         //console.log("ALL CLEAN")
                         //console.log("1>"+new Date(thisInst._actualUpdate))
@@ -142,18 +146,18 @@ let s = new Date()
 //console.log(thisInst.dataSrc)
             if (thisInst.dataSrc)
                 _myFleetModel.markMembers(thisInst.dataSrc.vessels);
-console.log("this.load "+((new Date()-s)/1000))
+//console.log("this.load "+((new Date()-s)/1000))
 s = new Date()
             thisInst.setFilter();  
-console.log("thisInst.setFilter "+((new Date()-s)/1000))
+//console.log("thisInst.setFilter "+((new Date()-s)/1000))
 s = new Date()
             thisInst.sortData();   
-console.log("thisInst.sortData "+((new Date()-s)/1000))           
+//console.log("thisInst.sortData "+((new Date()-s)/1000))           
             thisInst.view.inProgress(false);
 
 s = new Date()
             thisInst.view.repaint(); 
-console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
+//console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
         }
     }, function (json) {
         thisInst.dataSrc = null;

@@ -22,8 +22,8 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 _iconsAlt.push(icon);
                 _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name};
             });
-            //console.log(_icons);
-            //console.log(_iconsAlt);
+// console.log(_icons);
+// console.log(_iconsAlt);
         },
         _getSvgPromise = ic => {
             return new Promise(resolve => {

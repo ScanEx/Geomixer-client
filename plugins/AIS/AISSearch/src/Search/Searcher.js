@@ -218,23 +218,26 @@ module.exports = function (options) {
                 ne = latLngBounds.getNorthEast(),
                 min = { x: sw.lng, y: sw.lat },
                 max = { x: ne.lng, y: ne.lat };
-            let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
-            // if (layerTreeNode){   
-            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
-            //     if (gmxProp.Temporal) {
-            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-            //     }
-            // }
-            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-            queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-            queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+            // let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
+            // dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+            // queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+            // queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 //console.log(queryParams);
-            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
-            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
-                queryParams,
-                callback);
+            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
+            // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
+            //     queryParams,
+            //     callback);
+            fetch(_aisServices + `SearchScreenAsync.ashx?minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
+&s=${options.dateInterval.get('dateBegin').toJSON()}&e=${options.dateInterval.get('dateEnd').toJSON()}`, {
+                method: 'GET', 
+                mode: 'cors', 
+                cache: 'no-cache', 
+                credentials: 'include', 
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(callback);
         }
     };
 };
