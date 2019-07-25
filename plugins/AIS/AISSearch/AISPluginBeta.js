@@ -46,11 +46,9 @@
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false,
 	    BETA = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (true) PRODUCTION = true;
 	if (true) BETA = true;
@@ -59,6 +57,11 @@
 	__webpack_require__(3);
 	__webpack_require__(4);
 	__webpack_require__(5);
+	
+	var AisPluginPanel = __webpack_require__(6),
+	    ViewsFactory = __webpack_require__(7),
+	    LegendControl = __webpack_require__(29),
+	    Toolbox = __webpack_require__(30);
 	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
@@ -80,26 +83,34 @@
 	        iconSize: [25, 25],
 	        iconUrl: 'plugins/ais/aissearch/highlight.png' }), zIndexOffset: 1000 });
 	
-	var AisPluginPanel = __webpack_require__(6),
-	    ViewsFactory = __webpack_require__(7);
+	var ready = false;
 	var publicInterface = {
 	    pluginName: pluginName,
 	    afterViewer: function afterViewer(params, map) {
-	        var options = {
+	        if (ready) return;
+	        ready = true;
+	        //console.log("ready");
+	        var tools = new Toolbox(params),
+	            legendControl = new LegendControl(tools, params.aisLastPoint, params.lastPointLayerAlt),
+	            options = {
 	            aisLayerID: params.aisLayerID, // || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
-	            screenSearchLayer: params.searchLayer, // || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
-	            aisLastPoint: params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
+	            screenSearchLayer: params.searchLayer, // || '8EE2C7996800458AAF70BABB43321FA4', // screen search
+	
+	            aisLastPoint: params.aisLastPoint, // || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
 	            historyLayer: params.historyLayer,
-	            tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
+	            tracksLayerID: params.tracksLayerID, // || '13E2051DFEE04EEF997DC5733BD69A15',
 	
 	            lastPointLayerAlt: params.lastPointLayerAlt,
-	            tracksLayerAlt: params.tracksLayerAlt,
 	            historyLayerAlt: params.historyLayerAlt,
+	            tracksLayerAlt: params.tracksLayerAlt,
 	
 	            modulePath: modulePath,
 	            highlight: highlight,
-	            menuId: menuId
+	            menuId: menuId,
+	            vesselLegend: legendControl,
+	            tools: tools
 	        };
+	
 	        for (var key in params) {
 	            if (key.toLowerCase() == "myfleet") {
 	                options.myFleetLayers = params[key].split(",").map(function (id) {
@@ -107,8 +118,8 @@
 	                });
 	                break;
 	            }
-	        }var viewFactory = new ViewsFactory(options);
-	        var layersByID = nsGmx.gmxMap.layersByID,
+	        }var viewFactory = new ViewsFactory(options),
+	            layersByID = nsGmx.gmxMap.layersByID,
 	            setLayerClickHandler = function setLayerClickHandler(layer) {
 	            layer.removeEventListener('click');
 	            layer.addEventListener('click', function (e) {
@@ -135,50 +146,32 @@
 	            }
 	        }
 	
-	        var aisPluginPanel = new AisPluginPanel(viewFactory);
+	        var sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl,
+	            sidebarPane = sidebar.setPane(menuId, {
+	            position: params.showOnTop ? -100 : 0,
+	            createTab: window.createTabFunction({
+	                icon: menuId,
+	                active: "ais_sidebar-icon-active",
+	                inactive: "ais_sidebar-icon",
+	                hint: _gtxt('AISSearch2.caption')
+	            })
+	        }),
+	            withLegendSwitch = params.lastPointLayerAlt && nsGmx.gmxMap.layersByID[params.lastPointLayerAlt],
+	            aisPluginPanel = new AisPluginPanel(sidebarPane, viewFactory, withLegendSwitch);
 	        aisPluginPanel.menuId = menuId;
 	
-	        if (NOSIDEBAR) {
-	            var lmap = nsGmx.leafletMap,
-	                iconOpt_mf = {
-	                id: menuId, //toolbarIconId,
-	                className: "VesselSearchTool",
-	                togglable: true,
-	                title: _gtxt('AISSearch2.caption')
-	            };
-	            if (toolbarIconId) iconOpt_mf.id = toolbarIconId;else iconOpt_mf.text = _gtxt('AISSearch2.capShort');
-	            var icon_mf = L.control.gmxIcon(iconOpt_mf).on('statechange', function (ev) {
-	                if (ev.target.options.isActive) {
-	                    aisPluginPanel.show();
-	                    $('.ais_view .instruments').width('100%');
-	                    $('.ais_tab div').css('font-size', '12px');
-	                } else {
-	                    aisPluginPanel.hide();
-	                }
-	            });
-	            lmap.addControl(icon_mf);
-	        } else {
-	            var sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-	            aisPluginPanel.sidebarPane = sidebar.setPane(menuId, {
-	                position: params.showOnTop ? -100 : 0,
-	                createTab: window.createTabFunction({
-	                    icon: menuId,
-	                    active: "ais_sidebar-icon-active",
-	                    inactive: "ais_sidebar-icon",
-	                    hint: _gtxt('AISSearch2.caption')
-	                })
-	            });
-	            sidebar.addEventListener('opened', function (e) {
-	                if (sidebar._activeTabId == menuId) aisPluginPanel.show();
-	            });
-	            if (params.showOnTop) {
-	                // hack
-	                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active');
-	                sidebar._renderTabs({ activeTabId: menuId });
-	                setTimeout(function () {
-	                    return sidebar.open(menuId);
-	                }, 50);
-	            }
+	        if (withLegendSwitch) legendControl.createSwitch(aisPluginPanel); // LEGEND SWITCH IN FOOTER
+	
+	        sidebar.addEventListener('opened', function (e) {
+	            if (sidebar._activeTabId == menuId) aisPluginPanel.show();
+	        });
+	        if (params.showOnTop) {
+	            // hack
+	            $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active');
+	            sidebar._renderTabs({ activeTabId: menuId });
+	            setTimeout(function () {
+	                return sidebar.open(menuId);
+	            }, 50);
 	        }
 	
 	        if (location.search.search(/x=[^y=]+y=/i) != -1) {
@@ -286,7 +279,7 @@
 	    'AISSearch2.show_info': 'информация о судне',
 	    'AISSearch2.time_switch': 'Время',
 	    'AISSearch2.time_local': 'Местное',
-	    'AISSearch2.legend_switch': 'Легенда судов',
+	    'AISSearch2.legend_switch': 'Раскраска судов',
 	    'AISSearch2.legend_type': 'По типу',
 	    'AISSearch2.legend_speed': 'По скорости',
 	    'AISSearch2.calendar_today': 'сегодня',
@@ -330,7 +323,9 @@
 	    'AISSearch2.image1_com': 'Изображение 1',
 	    'AISSearch2.image2_com': 'Изображение 2',
 	    'AISSearch2.twoimages_com': 'Два изображения',
-	    'AISSearch2.close_com': 'Закрыть'
+	    'AISSearch2.close_com': 'Закрыть',
+	    'AISSearch2.moving': 'В движении',
+	    'AISSearch2.standing': 'Стоит\\дрейфует'
 	});
 	_translationsHash.addtext('eng', {
 	    'AISSearch2.title': 'Searching vessels',
@@ -440,7 +435,9 @@
 	    'AISSearch2.image1_com': 'Image 1',
 	    'AISSearch2.image2_com': 'Image 2',
 	    'AISSearch2.twoimages_com': 'Two images',
-	    'AISSearch2.close_com': 'Close'
+	    'AISSearch2.close_com': 'Close',
+	    'AISSearch2.moving': 'Moving',
+	    'AISSearch2.standing': 'Standing'
 	});
 
 /***/ }),
@@ -523,36 +520,36 @@
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (true) PRODUCTION = true;
 	
-	module.exports = function (viewFactory) {
-	    var _leftMenuBlock = void 0,
-	        _canvas = _div(null),
+	module.exports = function (sidebarPane, viewFactory, withFooter) {
+	    var _isReady = false,
+	        _canvas = document.createElement('div'),
 	        _activeView = void 0,
 	        _views = viewFactory.create(),
-	        _isReady = false,
+	        _createFooter = function _createFooter() {
+	        var footer = void 0;
+	        if (withFooter) {
+	            footer = document.createElement('div');
+	            footer.className = "ais_panel_footer";
+	            $(_canvas).append(footer);
+	        }
+	        return footer;
+	    },
 	        _createTabs = function _createTabs() {
 	        var tabsTemplate = '<table class="ais_tabs" border=0><tr>' + '</td><td class="ais_tab myfleet_tab unselectable" unselectable="on">' + // ACTIVE
 	        '<div>{{i "AISSearch2.MyFleetTab"}}</div>' + '<td class="ais_tab dbsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.DbSearchTab"}}</div>' + '</td><td class="ais_tab scrsearch_tab unselectable" unselectable="on">' + '<div>{{i "AISSearch2.ScreenSearchTab"}}</div>' + '</td></tr></table>';
 	
-	        if (NOSIDEBAR) $(_leftMenuBlock.workCanvas).append(_canvas);else $(this.sidebarPane).append(_canvas);
-	
+	        $(sidebarPane).append(_canvas);
 	        $(_canvas).append(Handlebars.compile(tabsTemplate));
 	        $(_canvas).append(_views.map(function (v) {
 	            return v.frame;
 	        }));
 	
-	        var tabs = $('.ais_tab', _canvas),
-	            _this = this;
-	        _views.forEach(function (v, i) {
-	            v.tab = tabs.eq(i);
-	            v.resize(true);
-	        });
+	        var tabs = $('.ais_tab', _canvas);
 	        tabs.on('click', function () {
 	            if (!$(this).is('.active')) {
 	                var target = this;
@@ -568,43 +565,28 @@
 	                });
 	            }
 	        });
-	
-	        // Show the first tab
-	        tabs.eq(0).removeClass('active').click();
-	
-	        if (NOSIDEBAR) {
-	            _returnInstance.hide = function () {
-	                $(_leftMenuBlock.parentWorkCanvas).hide();
-	                nsGmx.leafletMap.removeLayer(highlight);
-	            };
-	
-	            $(_leftMenuBlock.parentWorkCanvas).attr('class', 'left_aispanel').insertAfter('.layers-before');
-	            var blockItem = _leftMenuBlock.leftPanelItem,
-	                blockTitle = $('.leftmenu-path', blockItem.panelCanvas);
-	            var toggleTitle = function toggleTitle() {
-	                if (blockItem.isCollapsed()) blockTitle.show();else blockTitle.hide();
-	            };
-	            $(blockItem).on('changeVisibility', toggleTitle);
-	            toggleTitle();
-	        }
-	
-	        // All has been done at first time
-	        _isReady = true;
+	        return tabs;
 	    },
+	        _tabs = _createTabs(),
+	        _footer = _createFooter(),
 	        _returnInstance = {
+	        get footer() {
+	            return _footer;
+	        },
+	        set footer(element) {
+	            if (_footer) _footer.append(element);
+	        },
 	        show: function show() {
-	            var lmap = nsGmx.leafletMap;
-	            if (NOSIDEBAR && !_leftMenuBlock) _leftMenuBlock = new leftMenu();
-	
-	            if (NOSIDEBAR && !_leftMenuBlock.createWorkCanvas("aispanel", function () {
-	                lmap.gmxControlIconManager.get(this.menuId)._iconClick();
-	            }, { path: [_gtxt('AISSearch2.caption')] }) || !_isReady) // SIDEBAR
-	                {
-	                    _createTabs.call(this);
-	                } else {
-	                if (NOSIDEBAR) {
-	                    $(_leftMenuBlock.parentWorkCanvas).insertAfter('.layers-before');
-	                }
+	            if (!_isReady) {
+	                _views.forEach(function (v, i) {
+	                    v.tab = _tabs.eq(i);
+	                    v.resize(true);
+	                });
+	                // Show the first tab
+	                _tabs.eq(0).removeClass('active').click();
+	                // All has been done at first time
+	                _isReady = true;
+	            } else {
 	                _activeView && _activeView.show();
 	            }
 	        }
@@ -625,16 +607,13 @@
 	    DbSearchView = __webpack_require__(17),
 	    DbSearchModel = __webpack_require__(19),
 	    InfoDialogView = __webpack_require__(20),
-	    Searcher = __webpack_require__(28),
-	    Toolbox = __webpack_require__(29);
+	    Searcher = __webpack_require__(28);
 	
 	module.exports = function (options) {
-	    var _tools = new Toolbox(options),
-	
-	    //_layersByID = nsGmx.gmxMap.layersByID,
-	    _searcher = new Searcher(options),
+	    var _tools = options.tools,
+	        _searcher = new Searcher(options),
 	        _mfm = new MyFleetModel({ aisLayerSearcher: _searcher, toolbox: _tools }),
-	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm }),
+	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
 	        _dbsm = new DbSearchModel(_searcher),
 	        _dbsv = new DbSearchView({ model: _dbsm, highlight: options.highlight, tools: _tools }),
 	        _ssv = new ScreenSearchView(_ssm, _tools),
@@ -651,6 +630,9 @@
 	    _mfv.infoDialogView = _idv;
 	    _dbsv.infoDialogView = _idv;
 	    return {
+	        // get tools(){
+	        //     return _tools;
+	        // },
 	        get infoDialogView() {
 	            return _idv;
 	        },
@@ -667,26 +649,31 @@
 	'use strict';
 	
 	var BaseView = __webpack_require__(9);
-	var _tools = void 0;
+	var _tools = void 0,
+	    _delayedRepaint = void 0;
 	var ScreenSearchView = function ScreenSearchView(model, tools) {
 	    var _this = this;
 	
 	    BaseView.apply(this, arguments);
 	    _tools = tools;
 	    _tools.onLegendSwitched(function (showAlternative) {
-	        _switchLegendIcon.call(_this, _tools.needAltLegend);
+	        if (_this.isActive) _this.model.data && _this.model.data.vessels && _this.repaint();else _delayedRepaint = true;
 	    }.bind(this));
 	
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' +
+	    this.frame = $(Handlebars.compile('<div class="ais_view screensearch_view">' + '<table border=0 class="instruments">' +
 	    //'<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/><i class="icon-flclose clicable"></div></td></tr>'+
-	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td>' + '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>' + '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '</table>' +
+	    '<tr><td><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filterName"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td>' + '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>' + '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<div>&nbsp;</div>' + '</td></tr>' + '</table>' + '<table class="results">' + '<tr><td class="count"></td>' + '<td><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}"><div>' + this.gifLoader + '</div></div></td></tr>' + '<tr><td colspan="2" style="padding:0px"><div class="groups"></div></td></tr>' + '</table>' +
 	    // '<table class="start_screen"><tr><td>'+
 	    // '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">'+
 	    // '<div>Здесь будут отображаться<br>результаты поиска</div></td></tr></table>'+
 	    '<div class="ais_vessels">' + '<div class="ais_vessel">' + '<table border=0><tr><td><div class="position">NO VESSELS</div><div>mmsi: 0 imo: 0</div></td>' + '<td><i class="icon-ship" vessel="" title=""></i></td>' + '<td><span class="date"></span></td>' + '<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' + '<img src="plugins/AIS/AISSearch/svg/info.svg">' + '</div></td></tr></table>' + '</div>' + '</div>' + '</div>')());
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
-	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height + this.frame.find('.results')[0].getBoundingClientRect().height;
+	            var th = $('.ais_tabs')[0].getBoundingClientRect().height,
+	                ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+	                rh = this.frame.find('.results')[0].getBoundingClientRect().height,
+	                rv = th + ih + rh;
+	            this.frame.find('.instruments').height(ih);
 	            return rv;
 	        }
 	    });
@@ -786,7 +773,7 @@
 	    _firstRowsShift = 20,
 	    _setEventHandlers = function _setEventHandlers() {
 	    var thisInst = this;
-	    this.container.find('.info').off('click').on('click', function (e) {
+	    this.container.find('.info').on('click', function (e) {
 	        var _this4 = this;
 	
 	        var target = $(this),
@@ -805,20 +792,33 @@
 	        });
 	        e.stopPropagation();
 	    });
-	    this.container.find('.ais_vessel').off('click').on('click', function () {
+	    this.container.find('.ais_vessel').on('click', function () {
 	        //console.log(JSON.parse($(this).find('.info').attr('vessel')))
 	        var v = JSON.parse($(this).find('.info').attr('vessel'));
 	        v.lastPosition = true;
 	        thisInst.infoDialogView.showPosition(v);
 	    });
-	    //console.log("repaint "+(new Date()-start)+"ms" )      
+	    //console.log("repaint "+(new Date()-start)+"ms" ) 
+	    this.frame.find('.show_groups').on('click', function () {
+	        arrowHead = arrowHead == 'icon-down-open' ? 'icon-right-open' : 'icon-down-open';
+	        this.repaint();
+	    }.bind(this));
 	};
 	
+	var arrowHead = 'icon-down-open';
 	ScreenSearchView.prototype.repaint = function () {
+	    _delayedRepaint = false;
+	    //let startRep = new Date();
 	    //console.log("REPAINT")
-	    _clean.call(this);
-	    this.frame.find('.count').text(_gtxt('AISSearch2.found') + this.model.data.vessels.length);
+	    //_clean.call(this);
+	    this.frame.find('.count').html('<div class="show_groups clicable ui-helper-noselect ' + arrowHead + '" ' + 'style="margin-right:5px;display:inline"></div>' + _gtxt('AISSearch2.found') + this.model.data.vessels.length);
 	    //BaseView.prototype.repaint.apply(this, arguments);
+	
+	    this.frame.find('.groups')[0].innerHTML = '';
+	    if (this.model.data.groups.length && arrowHead == 'icon-down-open') this.frame.find('.groups')[0].innerHTML = Handlebars.compile('<table>' + '{{#each groups}}' + '<tr><td><img src="{{url}}" style="width:20px;height:20px"></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' + '{{/each}}' + '</table>')({ groups: !_tools.needAltLegend ? this.model.data.groups : this.model.data.groupsAlt });
+	
+	    BaseView.prototype.resize.apply(this, arguments);
+	
 	    ////////////////////////////////////////////////////
 	    this.container.find('.info').off('click');
 	    this.container.find('.ais_vessel').off('click');
@@ -898,11 +898,14 @@
 	    }
 	    _setEventHandlers.call(this);
 	    _switchLegendIcon.call(this, _tools.needAltLegend);
+	    //console.log((new Date().getTime()-startRep)/1000)
 	};
 	
 	ScreenSearchView.prototype.show = function () {
 	    this.startShow = true;
 	    BaseView.prototype.show.apply(this, arguments);
+	    if (_delayedRepaint && !this.model.isDirty) this.repaint();
+	
 	    this.frame.find('.filter input').focus();
 	
 	    if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked) _tools.showAllTracks(true);
@@ -920,21 +923,13 @@
 
 	'use strict';
 	
-	var NOSIDEBAR = false,
-	    PRODUCTION = false,
+	var PRODUCTION = false,
 	    SIDEBAR2 = false;
-	if (false) NOSIDEBAR = true;
 	if (true) SIDEBAR2 = true;
 	if (true) PRODUCTION = true;
 	
 	var _calcHeight = function _calcHeight() {
-	    if (NOSIDEBAR) {
-	        var template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-	            h = template.getBoundingClientRect().height;
-	        return h * 5;
-	    } else {
-	        return $('.iconSidebarControl-pane').height() - this.topOffset;
-	    }
+	    return $('.iconSidebarControl-pane').height() - ($('.ais_panel_footer')[0] ? $('.ais_panel_footer').height() : 0) - this.topOffset;
 	};
 	
 	var _tools = void 0;
@@ -959,17 +954,16 @@
 	            return this.frame.is(":visible");
 	        },
 	        resize: function resize(clean) {
+	            if (clean) {
+	                this.container.empty();
+	            }
 	            var h = _calcHeight.call(this);
-	            if (this.startScreen) {
+	            if (this.startScreen && $('.iconSidebarControl-pane:visible')[0]) {
 	                var bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
 	                this.startScreen.css({ position: "absolute", left: bb.left + "px", top: bb.height / 2 - 50 + "px",
 	                    width: bb.width + "px" });
 	            }
 	            this.container.height(h);
-	
-	            if (clean) {
-	                this.container.empty();
-	            }
 	        },
 	        repaint: function repaint() {
 	            _clean.call(this);
@@ -1006,6 +1000,10 @@
 	            this.container.find('.ais_vessel').on('click', function () {
 	                var v = JSON.parse($(this).find('.info').attr('vessel'));
 	                v.lastPosition = true;
+	                v.xmax = null;
+	                v.xmin = null;
+	                v.ymax = null;
+	                v.ymin = null;
 	                _this.infoDialogView.showPosition(v);
 	            });
 	        },
@@ -1030,11 +1028,13 @@
 	
 	var _actualUpdate = void 0,
 	    _myFleetModel = void 0,
-	    _aisLayerSearcher = void 0;
+	    _aisLayerSearcher = void 0,
+	    _vesselLegend = void 0;
 	
 	var ScreenSearchModel = function ScreenSearchModel(_ref) {
 	    var aisLayerSearcher = _ref.aisLayerSearcher,
-	        myFleetModel = _ref.myFleetModel;
+	        myFleetModel = _ref.myFleetModel,
+	        vesselLegend = _ref.vesselLegend;
 	
 	
 	    var thisInstance = this;
@@ -1044,6 +1044,7 @@
 	    };
 	    _aisLayerSearcher = aisLayerSearcher;
 	    _myFleetModel = myFleetModel;
+	    _vesselLegend = vesselLegend;
 	    this.filterString = "";
 	    this.isDirty = true;
 	};
@@ -1052,13 +1053,17 @@
 	    if (!this.isDirty) return Promise.resolve();
 	
 	    var thisInst = this;
+	    var s = new Date();
 	    return Promise.all([new Promise(function (resolve, reject) {
 	        _aisLayerSearcher.searchScreen({
 	            dateInterval: nsGmx.widgets.commonCalendar.getDateInterval(),
 	            border: true,
 	            group: true
 	        }, function (json) {
+	            //console.log("RECEIVED "+((new Date()-s)/1000));
 	            if (json.Status.toLowerCase() == "ok") {
+	                //console.log(json.Result.elapsed);
+	                s = new Date();
 	                thisInst.dataSrc = {
 	                    vessels: json.Result.values.map(function (v) {
 	                        var d = new Date(v[12]),
@@ -1069,11 +1074,14 @@
 	                            xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
 	                            vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
 	                        };
+	                        //if (_myFleetModel.findIndex(vessel)>=0)
+	                        //    vessel.mf_member = "visibility:visible";
 	                        vessel.icon_rot = Math.round(vessel.cog / 15) * 15;
 	                        _aisLayerSearcher.placeVesselTypeIcon(vessel);
 	                        return vessel;
 	                    })
 	                };
+	                //console.log(("MAP "+((new Date()-s)/1000)))
 	                if (_actualUpdate == actualUpdate) {
 	                    //console.log("ALL CLEAN")
 	                    //console.log("1>"+new Date(thisInst._actualUpdate))
@@ -1092,18 +1100,62 @@
 	
 	    this.filterString = this.filterString.replace(/\r+$/, "");
 	    if (this.dataSrc) {
+	        var groupsDict = {},
+	            groupsAltDict = {},
+	            updateGroups = function updateGroups(v, a, d, ic) {
+	            if (ic) {
+	                var group = d[ic.url];
+	                if (!group) {
+	                    a.push({ url: ic.url, name: ic.name, count: 1 });
+	                    d[ic.url] = a[a.length - 1];
+	                } else group.count++;
+	            }
+	        };
+	
+	        this.data = { groups: [], groupsAlt: [] };
 	        if (this.filterString != "") {
-	            this.data = {
-	                vessels: this.dataSrc.vessels.filter(function (v) {
-	                    return v.vessel_name.search(new RegExp("\\b" + _this.filterString, "ig")) != -1;
-	                }.bind(this))
-	            };
+	            this.data.vessels = this.dataSrc.vessels.filter(function (v) {
+	                if (v.vessel_name.search(new RegExp("\\b" + _this.filterString, "ig")) != -1) {
+	                    updateGroups(v, _this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
+	                    updateGroups(v, _this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
+	                    return true;
+	                } else return false;
+	            }.bind(this));
 	        } else {
-	            this.data = { vessels: this.dataSrc.vessels.map(function (v) {
-	                    return v;
-	                }) };
+	            this.data.vessels = this.dataSrc.vessels.map(function (v) {
+	                updateGroups(v, _this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
+	                updateGroups(v, _this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
+	                return v;
+	            });
 	        }
 	    }
+	};
+	ScreenSearchModel.prototype.sortData = function () {
+	    var sortGrups = function sortGrups(a, b) {
+	        return b.count - a.count;
+	    };
+	    this.data.groups.sort(sortGrups);
+	    this.data.groupsAlt.sort(sortGrups);
+	    // let sortNames = (a,b)=>{
+	    //     if (a.vessel_name == b.vessel_name)
+	    //         return 0;
+	    //     else
+	    //         return a.vessel_name > b.vessel_name ? 1 : -1;
+	    // };  
+	    // this.data.vessels.sort((a,b)=>{
+	    //     let a_member = _myFleetModel.findIndex(a)>=0,
+	    //         b_member = _myFleetModel.findIndex(b)>=0;
+	    //     if (a_member)
+	    //         a.mf_member = "visibility:visible";
+	    //     if (b_member)
+	    //         b.mf_member = "visibility:visible";
+	    //     if ((!a_member && !b_member) || (a_member && b_member))
+	    //         return 0; //sortNames(a,b);
+	    //     else if (a_member && !b_member)
+	    //         return -1;
+	    //     else if (!a_member && b_member)
+	    //         return 1;
+	    // });
 	};
 	ScreenSearchModel.prototype.update = function () {
 	    if (!this.isDirty) return;
@@ -1112,13 +1164,23 @@
 	        actualUpdate = _actualUpdate;
 	    this.view.inProgress(true);
 	
+	    var s = new Date();
 	    this.load(actualUpdate).then(function () {
 	        if (_actualUpdate == actualUpdate) {
 	            //console.log(thisInst.dataSrc)
 	            if (thisInst.dataSrc) _myFleetModel.markMembers(thisInst.dataSrc.vessels);
+	            //console.log("this.load "+((new Date()-s)/1000))
+	            s = new Date();
 	            thisInst.setFilter();
+	            //console.log("thisInst.setFilter "+((new Date()-s)/1000))
+	            s = new Date();
+	            thisInst.sortData();
+	            //console.log("thisInst.sortData "+((new Date()-s)/1000))           
 	            thisInst.view.inProgress(false);
+	
+	            s = new Date();
 	            thisInst.view.repaint();
+	            //console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
 	        }
 	    }, function (json) {
 	        thisInst.dataSrc = null;
@@ -1150,9 +1212,15 @@
 	    var ic = this.frame.find('.legend_icon'),
 	        ica = this.frame.find('.legend_iconalt');
 	    if (showAlternative) {
-	        ic.hide();ica.show();
+	        ic.hide(); //ica.show();
+	        ica.each(function (i, e) {
+	            return e.style.display = "";
+	        });
 	    } else {
-	        ica.hide();ic.show();
+	        ica.hide(); //ic.show();
+	        ic.each(function (i, e) {
+	            return e.style.display = "";
+	        });
 	    }
 	},
 	    _clean = function _clean() {
@@ -1164,6 +1232,7 @@
 	    _displayedOnly = [],
 	    _notDisplayed = [],
 	    _saveLabelSettingsPromise = Promise.resolve(0);
+	
 	var MyFleetView = function MyFleetView(model, tools) {
 	    var _this = this;
 	
@@ -1181,19 +1250,16 @@
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
-	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height;
+	            var th = $('.ais_tabs')[0].getBoundingClientRect().height,
+	                ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+	                rv = th + ih;
+	            this.frame.find('.instruments').height(ih);
 	            return rv;
 	        }
 	    });
 	
 	    this.container = this.frame.find('.ais_vessels');
 	    this.startScreen = this.frame.find('.start_screen');
-	    // DEFAULT SETTINGS
-	    // this.model.markerTemplate =  '<div><table><tr>' +
-	    //     '<td style="vertical-align:top">' +
-	    //     //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
-	    //     '{{{marker}}}' +
-	    //     '</td><td>{{{foo}}}</td></tr></table></div>'; 
 	
 	    // craete group controller
 	    var newGroupNameValid = function newGroupNameValid(ngn) {
@@ -2371,7 +2437,15 @@
 	    _highlight = void 0,
 	    _tools = void 0,
 	    _displayedOnly = [];
-	
+	var _switchLegendIcon = function _switchLegendIcon(showAlternative) {
+	    var ic = this.frame.find('.legend_icon'),
+	        ica = this.frame.find('.legend_iconalt');
+	    if (showAlternative) {
+	        ic.hide();ica.show();
+	    } else {
+	        ica.hide();ic.show();
+	    }
+	};
 	var DbSearchView = function DbSearchView(_ref) {
 	    var _this = this;
 	
@@ -2382,18 +2456,14 @@
 	    BaseView.call(this, model, tools);
 	    _highlight = highlight;
 	    _tools = tools;
-	    var needLegendSwitch = _tools.hasAlternativeLayers,
-	        needAltLegend = !!(needLegendSwitch && needLegendSwitch._map);
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + (needLegendSwitch ? '<tr><td class="legend" colspan="2"><span class="label">{{i "AISSearch2.legend_switch"}}:</span>' + '<span class="type unselectable on" unselectable="on">{{i "AISSearch2.legend_type"}}</span>' + '<span class="speed unselectable" unselectable="on">{{i "AISSearch2.legend_speed"}}</span></td></tr>' : '') + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
-	    if (needAltLegend) {
-	        _tools.switchLegend(needAltLegend);
-	        this.frame.find('.legend span').removeClass("on");
-	        this.frame.find('.legend .speed').addClass('on');
-	    }
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
-	            var rv = $('.ais_tabs')[0].getBoundingClientRect().height + this.frame.find('.instruments')[0].getBoundingClientRect().height;
+	            var th = $('.ais_tabs')[0].getBoundingClientRect().height,
+	                ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+	                rv = th + ih;
+	            this.frame.find('.instruments').height(ih);
 	            return rv;
 	        }
 	    });
@@ -2460,22 +2530,9 @@
 	    }.bind(this));
 	
 	    _tools.onLegendSwitched(function () {
-	        var ic = _this.frame.find('.legend_icon'),
-	            ica = _this.frame.find('.legend_iconalt');
-	        if (ic.is(':visible')) {
-	            ic.hide();ica.show();
-	        } else {
-	            ica.hide();ic.show();
-	        }
+	        _switchLegendIcon.call(_this, _tools.needAltLegend);
 	    }.bind(this));
-	    this.frame.find('.legend .type,.speed').click(function (e) {
-	        var trg = $(e.currentTarget);
-	        if (!trg.is('.on')) {
-	            _this.frame.find('.legend span').removeClass("on");
-	            trg.addClass('on');
-	            _tools.switchLegend(trg.is('.speed'));
-	        }
-	    }.bind(this));
+	
 	    this.frame.find('.time .utc,.local').click(function (e) {
 	        var trg = $(e.currentTarget);
 	        if (!trg.is('.on')) {
@@ -2710,6 +2767,8 @@
 	            } else $(el).find('.track input:not(.all)')[0].checked = true;
 	        });
 	    }
+	    //console.log(this.model.data.vessels)
+	    if (this.model.data.msg) this.frame.find('.ais_positions_date.header').hide();
 	};
 	
 	DbSearchView.prototype.repaint = function () {
@@ -2730,16 +2789,17 @@
 	        _tools.showVesselsOnMap("all");
 	    }
 	
-	    var openPos = this.frame.find('.open_positions'),
-	        switchLegendIcons = function () {
-	        var ic = this.frame.find('.legend_icon'),
-	            ica = this.frame.find('.legend_iconalt');
-	        if (this.frame.find('.legend .speed').is('.on')) {
-	            ica.show();ic.hide();
-	        } else {
-	            ic.show();ica.hide();
-	        }
-	    }.bind(this);
+	    var openPos = this.frame.find('.open_positions');
+	    // ,switchLegendIcons = (function(){
+	    //     let ic = this.frame.find('.legend_icon'),
+	    //         ica = this.frame.find('.legend_iconalt');
+	    //     if (this.frame.find('.legend .speed').is('.on')) {
+	    //         ica.show(); ic.hide();
+	    //     }
+	    //     else {
+	    //         ic.show(); ica.hide();
+	    //     }  
+	    // }).bind(this);
 	    openPos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
@@ -2757,7 +2817,8 @@
 	                    vi_cont.find('.utc_date').hide();
 	                    vi_cont.find('.local_date').show();
 	                }
-	                switchLegendIcons();
+	                //switchLegendIcons();
+	                _switchLegendIcon.call(_this6, _tools.needAltLegend);
 	                vi_cont.find('.ais_positions td[class!="more"]').click(function (e) {
 	                    var td = $(e.currentTarget);
 	                    if (td.is('.active')) {
@@ -2900,6 +2961,13 @@
 	DbSearchView.prototype.positionMap = function (vessel, interval) {
 	    //console.log("positionMap")
 	    if (interval) nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
+	
+	    if (!vessel.xmax && !vessel.longitude && !vessel.ymax && !vessel.latitude) {
+	        vessel.longitude = this.model.data.vessels[0].positions[0].xmax;
+	        vessel.latitude = this.model.data.vessels[0].positions[0].ymax;
+	        //console.log(vessel);
+	        //console.log(this.model.data.vessels[0].positions[0]);
+	    }
 	
 	    var xmin = vessel.xmin ? vessel.xmin : vessel.longitude,
 	        xmax = vessel.xmax ? vessel.xmax : vessel.longitude,
@@ -4280,13 +4348,15 @@
 	"use strict";
 	
 	module.exports = function (options) {
-	    var _baseUrl = window.serverBase || document.location.href.replace(/^(https?:).+/, "$1") + '//maps.kosmosnimki.ru/',
+	    var _baseUrl = document.location.href.replace(/^(https?:).+/, "$1") + (window.serverBase.replace(/^https?:/, "") || '//maps.kosmosnimki.ru/'),
 	        _aisServices = _baseUrl + "Plugins/AIS/",
-	        _serverScript = _baseUrl + 'VectorLayer/Search.ashx';
-	    var _aisLastPoint = options.aisLastPoint,
+	        _serverScript = _baseUrl + 'VectorLayer/Search.ashx',
+	        _aisLastPoint = options.aisLastPoint,
 	        _screenSearchLayer = options.screenSearchLayer,
 	        _aisLayerID = options.aisLayerID,
-	        _historyLayer = options.historyLayer;
+	        _historyLayer = options.historyLayer,
+	        _lastPointLayerAlt = options.lastPointLayerAlt,
+	        _vesselLegend = options.vesselLegend;
 	
 	
 	    return {
@@ -4378,48 +4448,14 @@
 	            }
 	        },
 	        placeVesselTypeIcon: function placeVesselTypeIcon(vessel) {
-	            var protocol = document.location.protocol;
+	            var protocol = document.location.protocol,
+	                iconUrl = void 0;
 	            // speed icon
-	            if (vessel.sog >= 8) {
-	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog8-L-100-move.svg";
-	            } else if (4 < vessel.sog && vessel.sog < 8) {
-	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4_8-L-100-move.svg";
-	            } else if (0 < vessel.sog && vessel.sog <= 4) {
-	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4-L-100-move.svg";
-	            } else {
-	                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog-L-100-stand_red.svg";
-	            }
-	
+	            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
+	            if (iconUrl) vessel.iconAlt = protocol + iconUrl;
 	            // type icon
-	            switch (vessel.vessel_type.toLowerCase()) {
-	                case "cargo":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "tanker":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "fishing":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "passenger":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "hsc":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "pleasure craft":
-	                case "sailing":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                case "unknown":
-	                case "reserved":
-	                case "other":
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	                default:
-	                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" + (vessel.sog != 0 ? "move" : "stand") + ".svg";
-	                    break;
-	            }
+	            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
+	            if (iconUrl) vessel.icon = protocol + iconUrl;
 	        },
 	
 	        searchPositionsAgg: function searchPositionsAgg(vessels, dateInterval, callback) {
@@ -4467,7 +4503,7 @@
 	                query: query
 	            };
 	            if (isfuzzy) request.pagesize = 1000;
-	            L.gmxUtil.sendCrossDomainPostRequest("http://maps.kosmosnimki.ru/plugins/ais/searchship.ashx", request, callback);
+	            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "searchship.ashx", request, callback);
 	        },
 	        searchString: function searchString(_searchString, isfuzzy, callback) {
 	            //console.log(_aisLastPoint+", "+_aisLayerID)
@@ -4515,26 +4551,194 @@
 	                ne = latLngBounds.getNorthEast(),
 	                min = { x: sw.lng, y: sw.lat },
 	                max = { x: ne.lng, y: ne.lat };
-	            var queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-	
-	            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
-	            // if (layerTreeNode){   
-	            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
-	            //     if (gmxProp.Temporal) {
-	            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-	            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-	            //     }
-	            // }
-	            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-	            queryParams.s = options.dateInterval.get('dateBegin').toJSON(), queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+	            // let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
+	            // dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+	            // queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+	            // queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 	            //console.log(queryParams);
-	            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx", queryParams, callback);
+	            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
+	            // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
+	            //     queryParams,
+	            //     callback);
+	            fetch(_aisServices + ("SearchScreenAsync.ashx?minx=" + min.x + "&miny=" + min.y + "&maxx=" + max.x + "&maxy=" + max.y + "&layer=" + _screenSearchLayer + "\n&s=" + options.dateInterval.get('dateBegin').toJSON() + "&e=" + options.dateInterval.get('dateEnd').toJSON()), {
+	                method: 'GET',
+	                mode: 'cors',
+	                cache: 'no-cache',
+	                credentials: 'include'
+	            }).then(function (response) {
+	                return response.json();
+	            }).then(callback);
 	        }
 	    };
 	};
 
 /***/ }),
 /* 29 */
+/***/ (function(module, exports) {
+
+	"use strict";
+	
+	var LegendControl = function LegendControl(tools, aisLastPointLaier, lastPointLayerAlt) {
+	    var _layersByID = nsGmx.gmxMap.layersByID,
+	        _layers = [_layersByID[aisLastPointLaier], _layersByID[lastPointLayerAlt]],
+	        _getIcons = function _getIcons() {
+	        _layers[0] && _layers[0]._gmx.properties.gmxStyles.styles.forEach(function (s) {
+	            var icon = {
+	                "filter": s.Filter,
+	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+	            };
+	            _icons.push(icon);
+	            _iconsDict[icon.filter] = { url: icon.url, name: icon.name };
+	        });
+	        _layers[1] && _layers[1]._gmx.properties.gmxStyles.styles.forEach(function (s) {
+	            var icon = {
+	                "filter": s.Filter.replace(/([^<>=])=([^=])/g, "$1==$2").replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)").replace(/ or /ig, " || ").replace(/ and /ig, " && "),
+	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+	            };
+	            _iconsAlt.push(icon);
+	            _iconsAltDict[icon.filter] = { url: icon.url, name: icon.name };
+	        });
+	        // console.log(_icons);
+	        // console.log(_iconsAlt);
+	    },
+	        _getSvgPromise = function _getSvgPromise(ic) {
+	        return new Promise(function (resolve) {
+	            var httpRequest = new XMLHttpRequest();
+	            httpRequest.onreadystatechange = function () {
+	                if (httpRequest.readyState === 4) {
+	                    ic["svg"] = httpRequest.responseText;
+	                    var a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
+	                    ic.color = '#888';
+	                    if (a && a.length) ic.color = a[1];
+	                    resolve();
+	                }
+	            };
+	            httpRequest.open("GET", document.location.protocol + ic.url.replace(/^https?:/, ""));
+	            httpRequest.send();
+	        });
+	    };
+	
+	    var _icons = [],
+	        _iconsAlt = [],
+	        _iconsDict = {},
+	        _iconsAltDict = {};
+	    _getIcons();
+	
+	    var _svgLoader = Promise.all(_icons.map(_getSvgPromise)),
+	        _svgAltLoader = Promise.all(_iconsAlt.map(_getSvgPromise)),
+	        _createSwitch = function _createSwitch(container) {
+	        var div = document.createElement('div');
+	        div.innerHTML = '<table class="ais_legend_switch">' + '<tr><td class="legend" colspan="2"><span class="label">' + _gtxt("AISSearch2.legend_switch") + ':</span>' + '<span class="type unselectable on" unselectable="on">' + _gtxt("AISSearch2.legend_type") + '</span>' + '<span class="speed unselectable" unselectable="on">' + _gtxt("AISSearch2.legend_speed") + '</span></td>' + '<td class="show_info">' + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><g><circle style="fill:white" cx="12" cy="12" r="8"></circle><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" style="fill:#48aff1"></path></g></svg>' + '</td></tr>' + '</table>';
+	        container.footer = div;
+	        var lswitchClick = function lswitchClick(e) {
+	            var cl = e.target.classList;
+	            if (!cl.contains('on')) {
+	                tools.switchLegend(cl.contains('.speed'));
+	                container.footer.querySelector('span.on').classList.remove('on');
+	                cl.add('on');
+	                if (legendDiv) {
+	                    legendDiv.remove();
+	                    legendDiv = null;
+	                    container.footer.querySelector('td.show_info').click();
+	                }
+	            }
+	        };
+	        container.footer.querySelector('span.speed').addEventListener('click', lswitchClick);
+	        container.footer.querySelector('span.type').addEventListener('click', lswitchClick);
+	        var legendDiv = void 0;
+	        container.footer.querySelector('td.show_info').addEventListener('click', function () {
+	            if (legendDiv) {
+	                legendDiv.remove();
+	                legendDiv = null;
+	                return;
+	            }
+	            legendDiv = document.createElement('div');
+	            legendDiv.className = 'ais_legend_info';
+	
+	            var loader = !tools.needAltLegend ? _svgLoader : _svgAltLoader,
+	                iconCollection = !tools.needAltLegend ? _icons : _iconsAlt;
+	            loader.then(function (r) {
+	                //console.log(r);
+	                var template = !tools.needAltLegend ? '<table class="colors">' : '<table class="movement_colors">';
+	                iconCollection.forEach(function (ic, i) {
+	                    if (ic.name.search(/\S/) != -1) {
+	                        // let a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
+	                        // ic.color = '#fff';
+	                        // if (a && a.length)
+	                        //     ic.color = a[1];
+	                        if (!tools.needAltLegend) template += '<tr><td class="color"><div style="width:10px; height:10px; background-color:' + ic.color + '"></div></td><td>' + ic.name + '</td></tr>';else {
+	                            var svg = i == iconCollection.length - 1 ? '<div style="padding-top:2px">' + _getAtAnchorIcon(0, ic.color, '#fff') + '</div>' : _getUnderWayIcon(0, ic.color, '#fff');
+	                            template += '<tr><td class="color">' + svg + '</td><td>' + ic.name + '</td></tr>';
+	                        }
+	                    }
+	                });
+	                if (!tools.needAltLegend) {
+	                    template += '<tr><td colspan="2" style="padding: 8px 10px 0;"><div style="border-bottom: solid 1px #e1e8ed;width: 100%;"></div></td></tr>';
+	                    template += '</table><table class="movement"><tr><td>' + _getUnderWayIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.moving") + '</td>' + '<td style="padding-top:10px">' + _getAtAnchorIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.standing") + '</td></tr></table>';
+	                }
+	                //console.log(template)
+	                legendDiv.innerHTML = template;
+	                document.body.append(legendDiv);
+	                var rc = legendDiv.getClientRects()[0];
+	                legendDiv.style.left = window.innerWidth - rc.width - 20 + 'px';
+	                legendDiv.style.top = window.innerHeight - rc.height - 40 + 'px';
+	            });
+	        });
+	        if (tools.needAltLegend) container.footer.querySelector('span.speed').click();
+	    };
+	
+	    var _getUnderWayIcon = function _getUnderWayIcon(cog, type_color, group_style) {
+	        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';
+	    },
+	        _getAtAnchorIcon = function _getAtAnchorIcon(cog, type_color, group_style) {
+	        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+	    };
+	    return {
+	        getUnderWayIcon: _getUnderWayIcon,
+	        getAtAnchorIcon: _getAtAnchorIcon,
+	        createSwitch: _createSwitch,
+	        get icons() {
+	            return _icons;
+	        },
+	        get iconsAlt() {
+	            return _iconsAlt;
+	        },
+	        //get iconsDict(){return _iconsDict;},
+	        //get iconsAltDict(){return _iconsAltDict;},
+	        getIconAlt: function getIconAlt(vessel_name, sog) {
+	            // speed icon
+	            for (var f in _iconsAltDict) {
+	                var cond = f.replace(/"sog"/ig, sog);
+	                if (vessel_name) cond = cond.replace(/"vessel_name"/ig, "'" + vessel_name.replace(/'/g, "\\\'").replace(/\\[^']/g, "\\\\") + "'");
+	                //console.log(cond + " " + "eval(cond)")
+	                if (eval(cond)) return _iconsAltDict[f];
+	            }
+	        },
+	        getIcon: function getIcon(vessel_type, sog) {
+	            for (var f in _iconsDict) {
+	                var re1 = new RegExp("'" + vessel_type + "'"),
+	                    re2 = new RegExp(sog != 0 ? ">0" : "=0");
+	                //console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
+	                if (f.search(re1) != -1 && f.search(re2) != -1) {
+	                    return _iconsDict[f];
+	                }
+	            }
+	        },
+	        getIconAltUrl: function getIconAltUrl(vessel_name, sog) {
+	            var icon = this.getIconAlt(vessel_name, sog);
+	            return icon && icon.url;
+	        },
+	        getIconUrl: function getIconUrl(vessel_type, sog) {
+	            var icon = this.getIcon(vessel_type, sog);
+	            return icon && icon.url;
+	        }
+	    };
+	};
+	
+	module.exports = LegendControl;
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4544,7 +4748,7 @@
 	    var _layersByID = nsGmx.gmxMap.layersByID;
 	    var _aisLayer = _layersByID[options.aisLayerID],
 	        _tracksLayer = _layersByID[options.tracksLayerID],
-	        _screenSearchLayer = _layersByID[options.screenSearchLayer],
+	        _screenSearchLayer = _layersByID[options.searchLayer],
 	        _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
 	        _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
 	        _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
@@ -4634,49 +4838,32 @@
 	    },
 	        _markers = void 0,
 	        _visibleMarkers = [],
-	        _markerIcon = function _markerIcon(icon, cog, sog, vtype, group_style) {
-	        var type_color = "#000";
-	        if (icon.search(/^sog/) != -1) {
-	            if (sog >= 8) {
-	                type_color = "#09ab00";
-	            } else if (4 < sog && sog < 8) {
-	                type_color = "#d1a710";
-	            } else if (0 < sog && sog <= 4) {
-	                type_color = "#ff0f0f";
-	            } else {
-	                type_color = "#ff0f0f";
-	            }
-	        } else switch (vtype) {
-	            case "Cargo":
-	                type_color = "#33a643";break;
-	            case "Fishing":
-	                type_color = "#f44336";break;
-	            case "Tanker":
-	                type_color = "#246cbd";break;
-	            case "Passenger":
-	                type_color = "#c6b01d";break;
-	            case "HSC":
-	                type_color = "#ff6f00";break;
-	            case 'Pleasure Craft':
-	            case 'Sailing':
-	                type_color = "#9c27b0";break;
-	            case 'Dredging':
-	            case 'Law Enforcement':
-	            case 'Medical Transport':
-	            case 'Military':
-	            case 'Pilot':
-	            case 'Port Tender':
-	            case 'SAR':
-	            case 'Ships Not Party to Armed Conflict':
-	            case 'Spare':
-	            case 'Towing':
-	            case 'Tug':
-	            case 'Vessel With Anti-Pollution Equipment':
-	            case 'WIG':
-	            case 'Diving':
-	                type_color = "#9b4628";break;
+	        _icons = {},
+	        _getSvg = function _getSvg(url) {
+	        var svg = _icons[url];
+	        if (!svg) {
+	            return new Promise(function (resolve) {
+	                var httpRequest = new XMLHttpRequest();
+	                httpRequest.onreadystatechange = function () {
+	                    if (httpRequest.readyState === 4) {
+	                        _icons[url] = httpRequest.responseText;
+	                        resolve(_icons[url]);
+	                    }
+	                };
+	                httpRequest.open("GET", document.location.protocol + url.replace(/^https?:/, ""));
+	                httpRequest.send();
+	            });
 	        }
-	        if (sog) return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';else return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+	        return Promise.resolve(svg);
+	    },
+	        _markerIcon = function _markerIcon(icon, cog, sog, vtype, group_style) {
+	        return _getSvg(icon).then(function (svg) {
+	            var type_color = '#00f',
+	                a = /\.cls-1{fill:(#[^};]+)/.exec(svg);
+	            if (a && a.length) type_color = a[1];
+	            //console.log(type_color)
+	            if (sog) return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';else return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+	        });
 	    },
 	        _eraseMyFleetMarker = function _eraseMyFleetMarker(mmsi) {
 	        if (!_markers) _markers = L.layerGroup().addTo(nsGmx.leafletMap);else {
@@ -4695,7 +4882,7 @@
 	        var di = nsGmx.widgets.commonCalendar.getDateInterval();
 	        // console.log(data[ai.mmsi]+" "+data[ai.vessel_name]+" "+data[ai.cog]+" "+data[ai.sog]+" y="+data[ai.latitude]+" x="+data[ai.longitude]+" "+new Date(data[ai.ts_pos_utc]*1000))
 	        //console.log(markerTemplate)
-	        var icon = args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '');
+	        var icon = args.parsedStyleKeys.iconUrl; //args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
 	        //console.log(icon)
 	
 	        _eraseMyFleetMarker(data[ai.mmsi]);
@@ -4706,27 +4893,32 @@
 	            if (label != "") return '<div style="height:14px;">' + '<div class="label_shadow" style="height:14px;color' + label_shadow.color + ";text-shadow:" + label_shadow.text_shadow + '">' + label + '</div>' + '<div class="label_color" style="position:relative;top:-14px;color:' + label_color + '">' + label + '</div></div>';else return "";
 	        };
 	        if (di.get("dateBegin").getTime() <= data[ai.ts_pos_utc] * 1000 && data[ai.ts_pos_utc] * 1000 < di.get("dateEnd").getTime()) {
-	            var temp = {};
-	            temp.group_name = label_line(group.default ? "" : group.title, group.label_color, group.label_shadow);
-	            temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);
-	            temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);
-	            temp.cog = label_line(isNaN(data[ai.cog]) ? "" : data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);
-	            temp.marker = _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style);
-	            var m = L.marker([data[ai.latitude], data[ai.longitude] > 0 ? data[ai.longitude] : 360 + data[ai.longitude]], {
-	                id: data[ai.mmsi],
-	                icon: L.divIcon({
-	                    className: 'mf_label gr' + group.id,
-	                    html: Handlebars.compile(markerTemplate)(temp)
-	                }),
-	                zIndexOffset: 1000
+	            _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style).then(function (marker) {
+	
+	                _eraseMyFleetMarker(data[ai.mmsi]);
+	
+	                var temp = {};
+	                temp.group_name = label_line(group.default ? "" : group.title, group.label_color, group.label_shadow);
+	                temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);
+	                temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);
+	                temp.cog = label_line(isNaN(data[ai.cog]) ? "" : data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);
+	                temp.marker = marker;
+	                var m = L.marker([data[ai.latitude], data[ai.longitude] > 0 ? data[ai.longitude] : 360 + data[ai.longitude]], {
+	                    id: data[ai.mmsi],
+	                    icon: L.divIcon({
+	                        className: 'mf_label gr' + group.id,
+	                        html: Handlebars.compile(markerTemplate)(temp)
+	                    }),
+	                    zIndexOffset: 1000
+	                });
+	                m.id = data[ai.mmsi];
+	                _markers.addLayer(m);
 	            });
-	            m.id = data[ai.mmsi];
-	            _markers.addLayer(m);
 	        }
 	    },
 	        _switchLayers = function _switchLayers(l1, l2) {
 	        //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
-	        if (l2._map) return;
+	        if (!l2 || l2._map) return;
 	        var lmap = nsGmx.leafletMap;
 	        if (l1 && l2) {
 	            lmap.removeLayer(l1);
@@ -4795,7 +4987,7 @@
 	            nsGmx.leafletMap.addLayer(_screenSearchLayer);
 	            _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt);
 	            _historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt);
-	            _tracksLayerAlt && nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
+	            if (_tracksLayer && _tracksLayerAlt && _tracksLayerAlt._gmx.layerID != _tracksLayer._gmx.layerID) nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
 	        },
 	        showVesselsOnMap: function showVesselsOnMap(vessels) {
 	            _displayedVessels = vessels != "all" ? vessels.map(function (v) {

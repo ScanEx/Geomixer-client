@@ -166,11 +166,27 @@
     padding:6px;
 }
 .ais_view .results td:nth-of-type(1){
-    padding-left:15px;
+    padding-left:10px;
     width:98%;
 }
 .ais_view .results .refresh{
     margin-bottom:0;
+}
+
+.ais_view .results .groups table{
+  margin-bottom: 10px;
+  width: 10%;
+}
+.ais_view .results .groups td{
+  padding:0;
+}
+.ais_view .results .groups td:nth-of-type(1){
+  padding-left:25px;
+  padding-right:10px;
+  width: 1%;
+}
+.ais_view .results .groups .group_name{
+  width:220px;
 }
 
   .ais_view .ais_vessel{

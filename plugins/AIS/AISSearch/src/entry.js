@@ -1,9 +1,6 @@
-let NOSIDEBAR = false,
-    PRODUCTION = false,
+let PRODUCTION = false,
     SIDEBAR2 = false,
     BETA = false;
-if (has('NOSIDEBAR'))
-    NOSIDEBAR = true;
 if (has('SIDEBAR2'))
     SIDEBAR2 = true;
 if (has('PRODUCTION'))
@@ -15,6 +12,11 @@ require("./all.css");
 require("./Views/AisView.css");
 require("./locale.js");
 require("./Polyfill2.js");
+
+const AisPluginPanel = require('./aisPluginPanel.js'),
+      ViewsFactory = require('./ViewsFactory'),
+      LegendControl = require("./Controls/LegendControl.js"),
+      Toolbox = require('./Toolbox.js');
 
 Handlebars.registerHelper('aisinfoid', function (context) {
     return context.mmsi + " " + context.imo;
@@ -36,26 +38,35 @@ const highlight = L.marker([0, 0], {icon:L.icon({
     iconSize:[25,25], 
     iconUrl:'plugins/ais/aissearch/highlight.png'}), zIndexOffset:1000});
 
-const AisPluginPanel = require('./aisPluginPanel.js'),
-      ViewsFactory = require('./ViewsFactory');
+let ready = false;
 const publicInterface = {
     pluginName: pluginName,
     afterViewer: function (params, map) {
-        const options = {
-            aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
-            screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search				
-            aisLastPoint: params.aisLastPoint || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
-            historyLayer: params.historyLayer,	
-            tracksLayerID: params.tracksLayerID || '13E2051DFEE04EEF997DC5733BD69A15',
+        if (ready)
+            return;
+        ready = true;
+//console.log("ready");
+        const tools = new Toolbox(params),
+            legendControl = new LegendControl(tools, params.aisLastPoint, params.lastPointLayerAlt),
+            options = {
+                aisLayerID: params.aisLayerID,// || '8EE2C7996800458AAF70BABB43321FA4',	// searchById			
+                screenSearchLayer: params.searchLayer,// || '8EE2C7996800458AAF70BABB43321FA4', // screen search
 
-            lastPointLayerAlt: params.lastPointLayerAlt,
-            tracksLayerAlt: params.tracksLayerAlt,
-            historyLayerAlt: params.historyLayerAlt,
-            
-            modulePath: modulePath,
-            highlight: highlight,
-            menuId: menuId
-        };
+                aisLastPoint: params.aisLastPoint, // || '303F8834DEE2449DAF1DA9CD64B748FE', // db search
+                historyLayer: params.historyLayer,
+                tracksLayerID: params.tracksLayerID, // || '13E2051DFEE04EEF997DC5733BD69A15',
+
+                lastPointLayerAlt: params.lastPointLayerAlt,
+                historyLayerAlt: params.historyLayerAlt,
+                tracksLayerAlt: params.tracksLayerAlt,
+
+                modulePath: modulePath,
+                highlight: highlight,
+                menuId: menuId,
+                vesselLegend: legendControl,
+                tools: tools
+            };
+
         for (var key in params) 
             if (key.toLowerCase() == "myfleet") {
                 options.myFleetLayers = params[key].split(",").map(function (id) {
@@ -63,25 +74,25 @@ const publicInterface = {
                 });
                 break;
             }
-        const viewFactory = new ViewsFactory(options);
-        const   layersByID = nsGmx.gmxMap.layersByID,
-                setLayerClickHandler = function (layer) {
+        const viewFactory = new ViewsFactory(options),
+            layersByID = nsGmx.gmxMap.layersByID,
+            setLayerClickHandler = function (layer) {
                 layer.removeEventListener('click')
                 layer.addEventListener('click', function (e) {
                     //console.log(e)
                     if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
                         viewFactory.infoDialogView.show(e.gmx.properties)
                 })
-                },
-                forLayers = function (layer) {
-                    try {
+            },
+            forLayers = function (layer) {
+                try {
                     if (layer) {
                         //setLocaleDate(layer)
                         setLayerClickHandler(layer)
                     }
-                    }
-                    catch(e){}
                 }
+                catch (e) { }
+            };
 
         for (var key in params) {
             let layersId = params[key].split(",").map(function (id) {
@@ -92,56 +103,34 @@ const publicInterface = {
                 forLayers(layersByID[layersId[i]]);
             }
         }
-        
-        const aisPluginPanel = new AisPluginPanel(viewFactory);
+
+        const sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl,
+            sidebarPane = sidebar.setPane(
+                menuId, {
+                    position: params.showOnTop ? -100 : 0,
+                    createTab: window.createTabFunction({
+                        icon: menuId,
+                        active: "ais_sidebar-icon-active",
+                        inactive: "ais_sidebar-icon",
+                        hint: _gtxt('AISSearch2.caption')
+                    })
+                }
+            ),
+            withLegendSwitch = params.lastPointLayerAlt && nsGmx.gmxMap.layersByID[params.lastPointLayerAlt],       
+            aisPluginPanel = new AisPluginPanel(sidebarPane, viewFactory, withLegendSwitch);
         aisPluginPanel.menuId = menuId;
 
-        if (NOSIDEBAR) {            
-            let lmap = nsGmx.leafletMap,    
-                iconOpt_mf = {
-                id: menuId, //toolbarIconId,
-                className: "VesselSearchTool",
-                togglable: true,
-                title: _gtxt('AISSearch2.caption')
-            };
-            if (toolbarIconId)
-                iconOpt_mf.id = toolbarIconId;
-            else
-                iconOpt_mf.text = _gtxt('AISSearch2.capShort');            
-            let icon_mf = L.control.gmxIcon(iconOpt_mf).on('statechange', function (ev) {
-                if (ev.target.options.isActive) {
-                    aisPluginPanel.show();
-                    $('.ais_view .instruments').width('100%');
-                    $('.ais_tab div').css('font-size', '12px');
-                }
-                else {
-                    aisPluginPanel.hide();
-                }
-            });
-            lmap.addControl(icon_mf);
-        }
-        else {
-            let sidebar = SIDEBAR2 ? window.iconSidebarWidget : window.sidebarControl;
-            aisPluginPanel.sidebarPane =  sidebar.setPane(
-                    menuId, { 
-                        position: params.showOnTop ? -100 : 0,
-                        createTab: window.createTabFunction({
-                            icon: menuId,
-                            active: "ais_sidebar-icon-active",
-                            inactive: "ais_sidebar-icon",
-                            hint: _gtxt('AISSearch2.caption')
-                        })
-                    }
-                )
-            sidebar.addEventListener('opened', function (e) {
-                if (sidebar._activeTabId==menuId)                
-                    aisPluginPanel.show();
-            });
-            if (params.showOnTop) { // hack
-                $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active')
-                sidebar._renderTabs({ activeTabId: menuId });
-                setTimeout(() => sidebar.open(menuId), 50);
-            }
+        if (withLegendSwitch)
+            legendControl.createSwitch(aisPluginPanel); // LEGEND SWITCH IN FOOTER
+
+        sidebar.addEventListener('opened', function (e) {
+            if (sidebar._activeTabId == menuId)
+                aisPluginPanel.show();
+        });
+        if (params.showOnTop) { // hack
+            $('div[data-pane-id]').removeClass('iconSidebarControl-pane-active')
+            sidebar._renderTabs({ activeTabId: menuId });
+            setTimeout(() => sidebar.open(menuId), 50);
         }
 
         if (location.search.search(/x=[^y=]+y=/i) != -1) {

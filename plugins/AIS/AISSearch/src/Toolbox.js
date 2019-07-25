@@ -3,7 +3,7 @@ module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID;
       let _aisLayer = _layersByID[options.aisLayerID],
           _tracksLayer = _layersByID[options.tracksLayerID],
-          _screenSearchLayer = _layersByID[options.screenSearchLayer],
+          _screenSearchLayer = _layersByID[options.searchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
           _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
           _tracksLayerAlt = _layersByID[options.tracksLayerAlt],
@@ -102,42 +102,38 @@ module.exports = function (options) {
     },
     _markers,
     _visibleMarkers = [],
-    _markerIcon = function(icon, cog, sog, vtype, group_style){        
-        let type_color = "#000";
-        if (icon.search(/^sog/)!=-1){
-            if(sog>=8){type_color = "#09ab00";}
-            else if(4<sog && sog<8){type_color = "#d1a710";}
-            else if(0<sog && sog<=4){type_color = "#ff0f0f";}
-            else{type_color = "#ff0f0f";}                 
+    _icons = {},
+    _getSvg = function(url){
+        let svg = _icons[url]
+        if (!svg){
+            return new Promise(resolve=>{
+                let httpRequest = new XMLHttpRequest();
+                httpRequest.onreadystatechange = function () {
+                    if (httpRequest.readyState === 4) {
+                        _icons[url] = httpRequest.responseText
+                        resolve(_icons[url]);
+                    }
+                }
+                httpRequest.open("GET", document.location.protocol + url.replace(/^https?:/, ""));
+                httpRequest.send();
+            })
         }
-        else
-        switch(vtype){
-            case "Cargo": type_color = "#33a643"; break;
-            case "Fishing": type_color = "#f44336"; break;
-            case "Tanker": type_color = "#246cbd"; break;
-            case "Passenger": type_color = "#c6b01d"; break;
-            case "HSC": type_color = "#ff6f00"; break;
-            case 'Pleasure Craft': 
-            case 'Sailing': type_color = "#9c27b0"; break;
-            case 'Dredging':
-            case 'Law Enforcement':
-            case 'Medical Transport':
-            case 'Military':
-            case 'Pilot':
-            case 'Port Tender':
-            case 'SAR':
-            case 'Ships Not Party to Armed Conflict':
-            case 'Spare':
-            case 'Towing':
-            case 'Tug':
-            case 'Vessel With Anti-Pollution Equipment':
-            case 'WIG':
-            case 'Diving': type_color = "#9b4628"; break;
-        }
-        if (sog)
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog?0:cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';
-        else
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog?0:cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+        return Promise.resolve(svg);
+    },
+    _markerIcon = function(icon, cog, sog, vtype, group_style){ 
+        return _getSvg(icon).then(
+            svg=>{
+                let type_color = '#00f',
+                    a = /\.cls-1{fill:(#[^};]+)/.exec(svg)
+                if (a && a.length)
+                    type_color = a[1];
+//console.log(type_color)
+                if (sog)
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';
+                else
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+            }
+        );
     },
     _eraseMyFleetMarker = function(mmsi){
         if (!_markers)
@@ -157,7 +153,7 @@ module.exports = function (options) {
         let di = nsGmx.widgets.commonCalendar.getDateInterval();
 // console.log(data[ai.mmsi]+" "+data[ai.vessel_name]+" "+data[ai.cog]+" "+data[ai.sog]+" y="+data[ai.latitude]+" x="+data[ai.longitude]+" "+new Date(data[ai.ts_pos_utc]*1000))
 //console.log(markerTemplate)
-        let icon = args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
+        let icon = args.parsedStyleKeys.iconUrl;//args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
 //console.log(icon)
 
         _eraseMyFleetMarker(data[ai.mmsi]);
@@ -174,29 +170,34 @@ module.exports = function (options) {
             return "";
         }
         if (di.get("dateBegin").getTime()<=data[ai.ts_pos_utc]*1000 && data[ai.ts_pos_utc]*1000<di.get("dateEnd").getTime()){ 
-            let temp = {};
-            temp.group_name = label_line(group.default?"":(group.title), group.label_color, group.label_shadow)
-            temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);    
-            temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);  
-            temp.cog = label_line(isNaN(data[ai.cog])?"":data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);    
-            temp.marker = _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style);
-            let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
-                {
-                    id:data[ai.mmsi],
-                    icon: L.divIcon({
-                        className: 'mf_label gr' + group.id,
-                        html: Handlebars.compile(markerTemplate)(temp)
-                    }),
-                    zIndexOffset:1000
-                });
-            m.id = data[ai.mmsi];
-            _markers.addLayer(m);
+            _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style).then(marker=>{
+
+                _eraseMyFleetMarker(data[ai.mmsi]);
+
+                let temp = {};
+                temp.group_name = label_line(group.default?"":(group.title), group.label_color, group.label_shadow)
+                temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);    
+                temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);  
+                temp.cog = label_line(isNaN(data[ai.cog])?"":data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);                 
+                temp.marker = marker;
+                let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+                    {
+                        id:data[ai.mmsi],
+                        icon: L.divIcon({
+                            className: 'mf_label gr' + group.id,
+                            html: Handlebars.compile(markerTemplate)(temp)
+                        }),
+                        zIndexOffset:1000
+                    });
+                m.id = data[ai.mmsi];
+                _markers.addLayer(m);
+            });
         }
 
     },
     _switchLayers = function(l1, l2){
         //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
-        if (l2._map)
+        if (!l2 || l2._map)
             return;
         let lmap = nsGmx.leafletMap;
         if (l1 && l2){
@@ -260,7 +261,8 @@ module.exports = function (options) {
             nsGmx.leafletMap.addLayer(_screenSearchLayer);
             _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt); 
             _historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt); 
-            _tracksLayerAlt && nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
+            if (_tracksLayer && _tracksLayerAlt && _tracksLayerAlt._gmx.layerID != _tracksLayer._gmx.layerID )
+                nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
         },
         showVesselsOnMap: function (vessels) {            
             _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all";           

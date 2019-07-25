@@ -6,10 +6,12 @@ const _switchLegendIcon = function(showAlternative){
     let ic = this.frame.find('.legend_icon'),
     ica = this.frame.find('.legend_iconalt');
     if (showAlternative){
-        ic.hide(); ica.show();
+        ic.hide(); //ica.show();
+        ica.each( (i,e)=>e.style.display="");
     }
     else{
-        ica.hide(); ic.show();
+        ica.hide(); //ic.show();
+        ic.each( (i,e)=>e.style.display="");
     }
 },
 _clean = function(){  
@@ -21,6 +23,7 @@ let _tools,
 _displayedOnly=[], 
 _notDisplayed=[],
 _saveLabelSettingsPromise = Promise.resolve(0);
+
 const MyFleetView = function (model, tools){
     BaseView.apply(this, arguments);
     _tools = tools; 
@@ -78,20 +81,16 @@ const MyFleetView = function (model, tools){
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
-            let rv = $('.ais_tabs')[0].getBoundingClientRect().height + 
-            this.frame.find('.instruments')[0].getBoundingClientRect().height;
+            let th = $('.ais_tabs')[0].getBoundingClientRect().height,
+            ih = this.frame.find('.instruments')[0].getBoundingClientRect().height,
+            rv = th + ih;
+            this.frame.find('.instruments').height(ih);
             return rv;
         }
     });  
 
     this.container = this.frame.find('.ais_vessels');     
     this.startScreen = this.frame.find('.start_screen');
-    // DEFAULT SETTINGS
-    // this.model.markerTemplate =  '<div><table><tr>' +
-    //     '<td style="vertical-align:top">' +
-    //     //'<svg width="12" height="11" fill="#00f" style="{{marker_style}}" viewBox="0 0 260 245"><use xlink:href="#mf_label_icon"/></svg>' +
-    //     '{{{marker}}}' +
-    //     '</td><td>{{{foo}}}</td></tr></table></div>'; 
     
     // craete group controller
     let newGroupNameValid = function(ngn){

@@ -1,12 +1,15 @@
 module.exports = function (options) {
-    const _baseUrl = window.serverBase || document.location.href.replace(/^(https?:).+/, "$1") + '//maps.kosmosnimki.ru/',
+    const _baseUrl = document.location.href.replace(/^(https?:).+/, "$1") +
+        (window.serverBase.replace(/^https?:/, "") || '//maps.kosmosnimki.ru/'),
         _aisServices = _baseUrl + "Plugins/AIS/",
-        _serverScript = _baseUrl + 'VectorLayer/Search.ashx';
-    const { aisLastPoint:_aisLastPoint, 
-        screenSearchLayer:_screenSearchLayer, 
-        aisLayerID:_aisLayerID, 
-        historyLayer:_historyLayer 
-    } = options;
+        _serverScript = _baseUrl + 'VectorLayer/Search.ashx',
+        { aisLastPoint: _aisLastPoint,
+            screenSearchLayer: _screenSearchLayer,
+            aisLayerID: _aisLayerID,
+            historyLayer: _historyLayer,
+            lastPointLayerAlt: _lastPointLayerAlt,
+            vesselLegend: _vesselLegend
+        } = options;
 
     return {
         baseUrl: _baseUrl,
@@ -104,59 +107,16 @@ module.exports = function (options) {
             }
         },
         placeVesselTypeIcon: function(vessel){
-            let protocol = document.location.protocol;            
+            let protocol = document.location.protocol,
+            iconUrl;            
             // speed icon
-            if (vessel.sog >= 8) {
-                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog8-L-100-move.svg";
-            }
-            else if (4 < vessel.sog && vessel.sog < 8) {
-                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4_8-L-100-move.svg";
-            }
-            else if (0 < vessel.sog && vessel.sog <= 4) {
-                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog4-L-100-move.svg";
-            }
-            else {
-                vessel.iconAlt = protocol + "//geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS\\SCF\\sog-L-100-stand_red.svg";
-            }   
-            
+            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
+            if (iconUrl)
+                vessel.iconAlt = protocol + iconUrl;           
             // type icon
-            switch (vessel.vessel_type.toLowerCase()) {
-                case "cargo":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ccargo-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                case "tanker":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Ctanker-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                case "fishing":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cfishing-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                case "passenger":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpassenger-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;                
-                case "hsc":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Chighspeed-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                case "pleasure craft":
-                case "sailing":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cpleasure-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                case "unknown": 
-                case "reserved": 
-                case "other":
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cother-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-                default:
-                    vessel.icon = protocol + "//maps.kosmosnimki.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&img=AIS%5Cspecialcraft-L-100-" +
-                        (vessel.sog != 0 ? "move" : "stand") + ".svg"
-                    break;
-            }
+            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
+            if (iconUrl)
+                vessel.icon = protocol + iconUrl;
         },
 
         searchPositionsAgg: function (vessels, dateInterval, callback) {
@@ -206,7 +166,7 @@ module.exports = function (options) {
             };
             if (isfuzzy)
                 request.pagesize = 1000;
-            L.gmxUtil.sendCrossDomainPostRequest("http://maps.kosmosnimki.ru/plugins/ais/searchship.ashx", request, callback);
+            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "searchship.ashx", request, callback);
         },
         searchString: function (searchString, isfuzzy, callback) {
             //console.log(_aisLastPoint+", "+_aisLayerID)
@@ -258,22 +218,26 @@ module.exports = function (options) {
                 ne = latLngBounds.getNorthEast(),
                 min = { x: sw.lng, y: sw.lat },
                 max = { x: ne.lng, y: ne.lat };
-            let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
-            //     layerTreeNode = $(_queryMapLayers.buildedTree).find("div[LayerID='"+_screenSearchLayer+"']")[0];
-            // if (layerTreeNode){   
-            //     var gmxProp = layerTreeNode.gmxProperties.content.properties;
-            //     if (gmxProp.Temporal) {
-            //         queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-            //         queryParams.e = options.dateInterval.get('dateEnd').toJSON();
-            //     }
-            // }
-            dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-            queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
-            queryParams.e = options.dateInterval.get('dateEnd').toJSON();
+            // let queryParams = { WrapStyle: 'window', minx: min.x, miny: min.y, maxx: max.x, maxy: max.y, layer: _screenSearchLayer },
+            // dateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+            // queryParams.s = options.dateInterval.get('dateBegin').toJSON(),
+            // queryParams.e = options.dateInterval.get('dateEnd').toJSON();
 //console.log(queryParams);
-            L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
-                queryParams,
-                callback);
+            //L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreenAsync.ashx",
+            // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
+            //     queryParams,
+            //     callback);
+            fetch(_aisServices + `SearchScreenAsync.ashx?minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
+&s=${options.dateInterval.get('dateBegin').toJSON()}&e=${options.dateInterval.get('dateEnd').toJSON()}`, {
+                method: 'GET', 
+                mode: 'cors', 
+                cache: 'no-cache', 
+                credentials: 'include', 
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(callback);
         }
     };
 };

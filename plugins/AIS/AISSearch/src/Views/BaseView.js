@@ -1,22 +1,14 @@
-let NOSIDEBAR = false,
-    PRODUCTION = false,
+let PRODUCTION = false,
     SIDEBAR2 = false;
-if (has('NOSIDEBAR'))
-    NOSIDEBAR = true;
 if (has('SIDEBAR2'))
     SIDEBAR2 = true;
 if (has('PRODUCTION'))
     PRODUCTION = true;
 
 let _calcHeight = function () {  
-    if (NOSIDEBAR){
-        let template = this.frame.find('.ais_vessel')[0] || this.frame.find('.ais_positions_date')[0],
-            h = template.getBoundingClientRect().height;  
-        return h * 5;
-    }
-    else {
-        return $('.iconSidebarControl-pane').height() - this.topOffset;
-    }
+    return $('.iconSidebarControl-pane').height() - 
+    ($('.ais_panel_footer')[0]?$('.ais_panel_footer').height():0)
+    - this.topOffset;
 };
 
 let _tools;
@@ -44,17 +36,16 @@ BaseView.prototype = function () {
             return this.frame.is(":visible");
         },
         resize: function (clean) {
+            if (clean){
+                this.container.empty()
+            }
             let h = _calcHeight.call(this);
-            if (this.startScreen){
+            if (this.startScreen && $('.iconSidebarControl-pane:visible')[0]){
                 let bb = $('.iconSidebarControl-pane:visible')[0].getBoundingClientRect();
                 this.startScreen.css({ position:"absolute", left: bb.left+"px", top: (bb.height/2-50)+"px", 
                 width: bb.width+"px"});
             }
             this.container.height(h);
-
-            if (clean){
-                this.container.empty()
-            }
         },
         repaint: function(){
             _clean.call(this);            
@@ -71,7 +62,7 @@ BaseView.prototype = function () {
             }
 
             var _this = this;
-            this.container.find('.info', ).on('click', function (e) {
+            this.container.find('.info').on('click', function (e) {
                 let target = $(this),
                     vessel = JSON.parse(target.attr('vessel'))
 //console.log(vessel)
@@ -91,6 +82,10 @@ BaseView.prototype = function () {
             this.container.find('.ais_vessel').on('click', function () {
                 let v = JSON.parse($(this).find('.info').attr('vessel'));                
                 v.lastPosition = true;
+                v.xmax = null;
+                v.xmin = null;
+                v.ymax = null;
+                v.ymin = null;
                 _this.infoDialogView.showPosition(v);
             });      
         },

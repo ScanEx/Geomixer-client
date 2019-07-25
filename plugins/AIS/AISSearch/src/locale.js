@@ -63,7 +63,7 @@
         'AISSearch2.show_info':'информация о судне',
         'AISSearch2.time_switch':'Время',
         'AISSearch2.time_local':'Местное',
-        'AISSearch2.legend_switch':'Легенда судов',
+        'AISSearch2.legend_switch':'Раскраска судов',
         'AISSearch2.legend_type':'По типу',
         'AISSearch2.legend_speed':'По скорости',
         'AISSearch2.calendar_today':'сегодня',
@@ -107,7 +107,9 @@
         'AISSearch2.image1_com':'Изображение 1',
         'AISSearch2.image2_com':'Изображение 2',
         'AISSearch2.twoimages_com':'Два изображения',
-        'AISSearch2.close_com':'Закрыть'
+        'AISSearch2.close_com':'Закрыть',
+        'AISSearch2.moving':'В движении',
+        'AISSearch2.standing':'Стоит\\дрейфует'
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -217,5 +219,7 @@
         'AISSearch2.image1_com':'Image 1',
         'AISSearch2.image2_com':'Image 2',
         'AISSearch2.twoimages_com':'Two images',
-        'AISSearch2.close_com':'Close'
+        'AISSearch2.close_com':'Close',
+        'AISSearch2.moving':'Moving',
+        'AISSearch2.standing':'Standing'
     });
