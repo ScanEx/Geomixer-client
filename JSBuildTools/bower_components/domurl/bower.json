@@ -1,0 +1,16 @@
+{
+    "name": "domurl",
+    "version": "2.2.0",
+    "license": "MIT",
+    "main": "url.min.js",
+    "ignore": [
+        ".project",
+        "test",
+        "bower.json",
+        "package.json",
+        "README.md",
+        ".idea",
+        ".gitignore",
+        ".npmignore"
+    ]
+}

@@ -253,6 +253,7 @@ UpMenu.prototype.hideMenus = function()
 	{
 		_this.hidemenu(this);
 	})
+	$(_this).trigger('hide');
 }
 // Открывает закладку
 UpMenu.prototype.openRef = function(hash)

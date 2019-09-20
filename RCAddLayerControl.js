@@ -217,7 +217,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     $(addVisLayersButton).appendTo(visLayerCanvas);
     
-    var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
+    var previewLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: false});
     
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
     

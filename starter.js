@@ -384,7 +384,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         id: 'api',
                         title: _gtxt('GeoMixer API'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/docs/dev-manual/getting-started', '_blank');
+                            window.open('https://geomixer.ru/docs/dev-manual/rest-api/get-started/', '_blank');
                         }
                     },
                     {
@@ -533,8 +533,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                         }
                     },
                     permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
-                    embeddedUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
-                    winnieUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/?config={{winnieId}}',
+                    embeddedUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/2.0/?config={{winnieId}}',
+                    winnieUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/2.0/?config={{winnieId}}&edit=1',
                     previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
                 });
                 lmap.addControl(shareIconControl);
@@ -1504,8 +1504,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 zoomAnimation: !window.gmxPhantom, // отключение zoomAnimation при запуске тестов
                 distanceUnit: mapProps.DistanceUnit,
                 squareUnit: mapProps.SquareUnit,
-                minZoom: mapProps.MinZoom || undefined,
-                maxZoom: mapProps.MaxZoom || undefined,
+                minZoom: mapProps.MinZoom || 1,
+                maxZoom: mapProps.MaxZoom || 21,
                 maxPopupCount: mapProps.maxPopupContent
             });
 
@@ -1541,7 +1541,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     layer.bindClusters({
                         iconCreateFunction: function(cluster) {
                             var photoClusterIcon = L.divIcon({
-                                html: '<img src="' + _mapHelper.defaultPhotoIconStyles.point.marker.image + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                html: '<img src="' + (window.serverBase ? window.serverBase + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image) + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                 className: 'photo-div-icon',
                                 iconSize: [14, 12],
                                 iconAnchor: [0, 0]
@@ -1838,10 +1838,11 @@ nsGmx.widgets = nsGmx.widgets || {};
                     if (styleVisibilityProps.show) {
                         treeSt.MinZoom = treeSt._MinZoom;
                         st.MinZoom = treeSt._MinZoom;
+						treeSt.disabled = false;
                     } else {
-                        treeSt.MinZoom = 25;
-                        st.MinZoom = 25;
+                        treeSt.disabled = true;
                     }
+					st.disabled = treeSt.disabled;
 
                     it.setStyles(styles);
                 });
@@ -1989,7 +1990,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 window.iconSidebarWidget = new window.IconSidebar.IconSidebarWidget(document.getElementById('leftMenu'), {
                     collapsedWidth: 40,
-                    extendedWidth: 427,
+                    extendedWidth: 400,
                     position: 'left'
                 });
 

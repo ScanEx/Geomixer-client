@@ -437,11 +437,18 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.hostName = mapProperties.hostName;
                                 gmxProperties.content.properties.visible = true;
 
+                                var renderStyle = {
+									marker: {
+										center: _mapHelper.defaultPhotoIconStyles.point.marker.center,
+										image: window.serverBase ? window.serverBase.replace('http://', '//').replace ('https://', '//') + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image
+									}
+								};
+
                                 gmxProperties.content.properties.styles = [{
                                     MinZoom: 1,
                                     MaxZoom:21,
                                     Balloon: balloonString,
-                                    RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
+                                    RenderStyle: renderStyle
                                 }];
 
                                 // вставляем фотослой на карту
@@ -478,7 +485,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="' + _mapHelper.defaultPhotoIconStyles.point.marker.image +'" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="' + (window.serverBase ? window.serverBase + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image) + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]

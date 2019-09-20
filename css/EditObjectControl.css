@@ -26,3 +26,9 @@
 .obj-edit-proptable tr td:first-child {
     width: 100px;
 }
+.edit-obj .field-raw {
+	height: 22px;
+}
+.edit-obj .field-raw.hidden {
+  display: none;
+}

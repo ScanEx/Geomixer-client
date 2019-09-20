@@ -3998,7 +3998,7 @@ $.extend(nsGmx.Utils, {
                 xhr.open('POST', serverBase + 'ShapeLoader');
                 xhr.onload = function () {
                     if (xhr.status === 200) {
-                        response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
+                        response = JSON.parse(xhr.responseText);
 
                         if (parseResponse(response, errorMessages)) {
                             def.resolve(response.Result);
@@ -5267,6 +5267,7 @@ UpMenu.prototype.hideMenus = function()
 	{
 		_this.hidemenu(this);
 	})
+	$(_this).trigger('hide');
 }
 // Открывает закладку
 UpMenu.prototype.openRef = function(hash)
@@ -6829,7 +6830,6 @@ nsGmx.Controls = {
 						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor', parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF"]]),
 						borderOpacity = (typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity : 1;
 
-
 					fill.style.opacity = fillOpacity;
 					border.style.opacity = borderOpacity;
 
@@ -6871,11 +6871,22 @@ nsGmx.Controls = {
 					icon = patternData ? patternData.canvas : document.createElement('canvas');
 					_(icon, [], [['dir','className','icon'],['attr','styleType','icon'],['css','width','13px'],['css','height','13px']]);
 				} else {
-					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-						border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-						fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-						borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
-
+					var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',
+							(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ?
+							nsGmx.Utils.convertColor(parentStyle.fill.color) :
+							(parentStyle.fillColor ? color2Hex(parentStyle.fillColor) : "#FFFFFF")
+						]]);
+					var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',
+						(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ?
+						nsGmx.Utils.convertColor(parentStyle.outline.color) :
+						(parentStyle.color ? color2Hex(parentStyle.color) : "#0000FF")
+						]]);
+					var fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ?
+						parentStyle.fill.opacity :
+						((typeof parentStyle.fillOpacity !== 'undefined') ? parentStyle.fillOpacity * 100 : 100);
+					var borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ?
+					parentStyle.outline.opacity :
+					((typeof parentStyle.opacity !== 'undefined') ? parentStyle.opacity * 100 : 100);
 
 					fill.style.opacity = fillOpacity / 100;
 					border.style.opacity = borderOpacity / 100;
@@ -7511,7 +7522,7 @@ var mapHelper = function()
 	this.defaultPhotoIconStyles = {
 		'point': {
 			marker: {
-				image: (window.serverBase ? window.serverBase + 'api/img/camera18.png' : '/api/img/camera18.png'),
+				image: 'api/img/camera18.png',
 				center: true
 			}
 		}
@@ -10922,14 +10933,17 @@ pointsBinding.pointsBinding.unload = function()
     layersTree.prototype.layerZoomToExtent = function(bounds, minZoom) {
         if (!bounds) return;
 
-        var lmap = nsGmx.leafletMap,
-            z = lmap.getBoundsZoom(bounds);
+        var lmap = nsGmx.leafletMap;
+		// var z = lmap.getBoundsZoom(bounds);
 
-        if (minZoom !== 20) {
-            z = Math.max(z, minZoom);
-        }
+        // if (minZoom !== 20) {
+            // z = Math.max(z, minZoom);
+        // }
 
-        z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
+        // z = Math.min(lmap.getMaxZoom(), Math.max(lmap.getMinZoom(), z));
+		var currentZoom = lmap.getZoom();
+		var doubleClickZoom = lmap.getBoundsZoom(bounds);
+		var z = Math.min(Math.max(15, currentZoom), doubleClickZoom);
 
         //анимация приводит к проблемам из-за бага https://github.com/Leaflet/Leaflet/issues/3249
         //а указать явно zoom в fitBounds нельзя
@@ -12739,8 +12753,16 @@ nsGmx.ContextMenuController = (function()
 	var _context = function(elem, menuFunc, checkFunc)
 	{
         var menu = null;
+		
+		L.DomEvent.on(elem, 'contextmenu', function (ev) {
+			L.DomEvent.stopPropagation(ev);
+			L.DomEvent.preventDefault(ev);
+		});
+		
         elem.oncontextmenu = function(e)
         {
+			var evt = e || window.event;
+			
             if (typeof checkFunc != 'undefined' && !checkFunc())
                 return false;
 
@@ -12752,7 +12774,7 @@ nsGmx.ContextMenuController = (function()
 
             var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
 
-            var evt = e || window.event;
+            
 
             hidden(contextMenu);
             document.body.appendChild(contextMenu)
@@ -13639,7 +13661,7 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
         apiKey = window.mapsSite ? window.apiKey : null; //передаём apiKey только если не локальная версия ГеоМиксера
     
     L.gmx.gmxMapManager.getMap(hostName, apiKey, name, window.gmxSkipTiles).then(function(mapInfo) {
-        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false}),
+        var previewLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: false}),
             ul = previewLayersTree.drawTree(mapInfo, 2);
 
         $(ul).treeview();
@@ -20429,7 +20451,7 @@ var EditObjectControl = function(layerName, objectId, params)
         drawingObjectLeafletID = obj._leaflet_id;
     }
 
-    var objStyle = params ? params.event.gmx.target.currentStyle : null;
+    var objStyle = params && params.event ? params.event.gmx.target.currentStyle : null;
     var bindGeometry = function(geom) {
         if (geom) {
             var geojson = new L.GeoJSON(geom),
@@ -20703,37 +20725,44 @@ var prop = layer._gmx.properties;
 
                 var columnNames = response.Result.fields;
                 var drawingObject = null;
-                var geometryRow = response.Result.values[0];
-                var types = response.Result.types;
+                var geometryRow = response.Result.values.length > 0 ? response.Result.values[0] : [];
+				
+				if (geometryRow.length > 0) {
+					
+					var types = response.Result.types;
+					for (var i = 0; i < geometryRow.length; ++i)
+					{
+						if (columnNames[i] === 'geomixergeojson')
+						{
+							var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
+							if (geom) {
+								bindGeometry(geom);
+								originalGeometry = $.extend(true, {}, geom);
+							}
+						}
+						else
+						{
+							var field = {
+								value: geometryRow[i],
+								type: types[i],
+								name: columnNames[i],
+								constant: columnNames[i] === identityField,
+								identityField: columnNames[i] === identityField,
+								isRequired: false
+							};
 
-                for (var i = 0; i < geometryRow.length; ++i)
-                {
-                    if (columnNames[i] === 'geomixergeojson')
-                    {
-                        var geom = L.gmxUtil.geometryToGeoJSON(geometryRow[i], true);
-                        if (geom) {
-                            bindGeometry(geom);
-                            originalGeometry = $.extend(true, {}, geom);
-                        }
-                    }
-                    else
-                    {
-                        var field = {
-                            value: geometryRow[i],
-                            type: types[i],
-                            name: columnNames[i],
-                            constant: columnNames[i] === identityField,
-                            identityField: columnNames[i] === identityField,
-                            isRequired: false
-                        };
+							fieldsCollection.append(field);
+						}
+					}
 
-                        fieldsCollection.append(field);
-                    }
-                }
+					_params.fields.forEach(fieldsCollection.append);
 
-                _params.fields.forEach(fieldsCollection.append);
-
-                drawAttrList(fieldsCollection);
+					drawAttrList(fieldsCollection);
+				}
+                else {
+					console.log('Geometry row is empty');
+					$(dialogDiv).dialog('close');
+				}
 
                 _this.initPromise.resolve();
             })
@@ -24233,6 +24262,8 @@ var nsGmx = window.nsGmx || {};
                 name: 'имя файла'
             },
             formats: {
+				geoTiff: 'GEOTIFF',
+				geoTiffJpeg: 'GEOTIFF-JPEG',
                 jpeg: 'JPEG',
                 png: 'PNG'
             },
@@ -24268,6 +24299,8 @@ var nsGmx = window.nsGmx || {};
                 name: 'file name'
             },
             formats: {
+				geoTiff: 'GEOTIFF',
+				geoTiffJpeg: 'GEOTIFF-JPEG',
                 jpeg: 'JPEG',
                 png: 'PNG'
             },
@@ -24291,8 +24324,10 @@ var nsGmx = window.nsGmx || {};
     });
 
     var formatTypes = [
-        'jpeg',
-        'png'
+        'geoTiff',
+		'geoTiffJpeg',
+		'jpeg',
+        'png'		
     ];
 
     var view;
@@ -24465,6 +24500,8 @@ var nsGmx = window.nsGmx || {};
                 this.listenTo(this.model, 'change:name', this.updateName);
                 this.listenTo(this.model, 'change:z', this.updateZoom);
                 this.listenTo(this.model, 'change:exportErr', this.handleExportError);
+				this.listenTo(this.model, 'change:format', this.handleFormat);
+				this.listenTo(this.model, 'change:fileType', this.handleFormat);
 
                 for (var i = attrs.lmap.getMinZoom(); i < zoomLevels.length; i++) {
                     zoomLevels[i].current = false;
@@ -24491,6 +24528,7 @@ var nsGmx = window.nsGmx || {};
                     zoomLevels: zoomLevels,
                     formatTypes: formatTypes,
                     fileTypes: updatedFileTypes,
+					format: 'jpeg',
                     name: nsGmx.gmxMap.properties.title
                 });
 
@@ -24529,6 +24567,7 @@ var nsGmx = window.nsGmx || {};
 
             updateArea: function () {
                 var attrs = this.model.toJSON(),
+					format = attrs.format,
                     areaButton = this.$('.areaButton'),
                     zoomToBoxButton = this.$('.zoomToBoxButton'),
                     zoomToLevelButton = this.$('.zoomToLevelButtonWrap'),
@@ -24577,6 +24616,7 @@ var nsGmx = window.nsGmx || {};
                     $(zoomToLevelButton).hide();
                     $(exportButton).addClass('gmx-disabled');
                 }
+				this.handleFormat();
             },
 
             updateSize: function () {
@@ -24695,6 +24735,24 @@ var nsGmx = window.nsGmx || {};
                     $(exportErrorMessage).toggle();
                 }
             },
+			
+			handleFormat: function () {														
+				var attrs = this.model.toJSON(),
+					format = attrs.format,
+					fileType = attrs.fileType;
+			
+				var fileSelect = this.$('.fileTypes');
+				if (format === 'geoTiff' || format === 'geoTiffJpeg') {
+					fileType = window._gtxt('mapExport.filetypes.raster');
+					fileSelect.prop('disabled', true);
+				}
+				else {					
+					fileSelect.prop('disabled', false);
+				}
+				this.$('.formatTypes').val (format);				
+				fileSelect.val (fileType);
+				this.model.set({fileType: fileType});				
+			},
 
             updateName: function () {
                 var attrs = this.model.toJSON(),
@@ -24767,7 +24825,7 @@ var nsGmx = window.nsGmx || {};
 
             setFormat: function (e) {
                 var attrs = this.model.toJSON(),
-                    formatTypes = attrs.formatTypes,
+                    formatTypes = attrs.formatTypes,					
                     selectedFormat = e.target.value;
 
                 for (var i = 0; i < formatTypes.length; i++) {
@@ -24782,6 +24840,7 @@ var nsGmx = window.nsGmx || {};
                     formatTypes: formatTypes,
                     format: selectedFormat
                 });
+								
             },
 
             setFileType: function (e) {
@@ -27214,11 +27273,18 @@ var nsGmx = window.nsGmx || {},
                                 gmxProperties.content.properties.hostName = mapProperties.hostName;
                                 gmxProperties.content.properties.visible = true;
 
+                                var renderStyle = {
+									marker: {
+										center: _mapHelper.defaultPhotoIconStyles.point.marker.center,
+										image: window.serverBase ? window.serverBase.replace('http://', '//').replace ('https://', '//') + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image
+									}
+								};
+
                                 gmxProperties.content.properties.styles = [{
                                     MinZoom: 1,
                                     MaxZoom:21,
                                     Balloon: balloonString,
-                                    RenderStyle: _mapHelper.defaultPhotoIconStyles[gmxProperties.content.properties.GeometryType]
+                                    RenderStyle: renderStyle
                                 }];
 
                                 // вставляем фотослой на карту
@@ -27255,7 +27321,7 @@ var nsGmx = window.nsGmx || {},
                                         newLayer.bindClusters({
                                             iconCreateFunction: function(cluster) {
                                                 var photoClusterIcon = L.divIcon({
-                                                    html: '<img src="' + _mapHelper.defaultPhotoIconStyles.point.marker.image +'" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                                    html: '<img src="' + (window.serverBase ? window.serverBase + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image) + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                                     className: 'photo-div-icon',
                                                     iconSize: [14, 12],
                                                     iconAnchor: [0, 0]
@@ -29678,7 +29744,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     $(addVisLayersButton).appendTo(visLayerCanvas);
     
-    var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
+    var previewLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: false});
     
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
     
@@ -32035,6 +32101,23 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
 (function (ns) {
     'use strict';
 
+    var RX_PROTOCOL = /^[a-z]+:/;
+    var RX_PORT = /[-a-z0-9]+(\.[-a-z0-9])*:\d+/i;
+    var RX_CREDS = /\/\/(.*?)(?::(.*?))?@/;
+    var RX_WIN = /^win/i;
+    var RX_PROTOCOL_REPL = /:$/;
+    var RX_QUERY_REPL = /^\?/;
+    var RX_HASH_REPL = /^#/;
+    var RX_PATH = /(.*\/)/;
+    var RX_PATH_FIX = /^\/{2,}/;
+    var RX_SINGLE_QUOTE = /'/g;
+    var RX_DECODE_1 = /%([ef][0-9a-f])%([89ab][0-9a-f])%([89ab][0-9a-f])/gi;
+    var RX_DECODE_2 = /%([cd][0-9a-f])%([89ab][0-9a-f])/gi;
+    var RX_DECODE_3 = /%([0-7][0-9a-f])/gi;
+    var RX_PLUS = /\+/g;
+    var RX_PATH_SEMI = /^\w:$/;
+    var RX_URL_TEST = /[^/#?]/;
+
     // configure given url options
     function urlConfig (url) {
         var config = {
@@ -32047,15 +32130,15 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
             return config;
         }
 
-        if (/^[a-z]+:/.test(url)) {
+        if (RX_PROTOCOL.test(url)) {
             config.protocol = true;
             config.host = true;
 
-            if (/[-a-z0-9]+(\.[-a-z0-9])*:\d+/i.test(url)) {
+            if (RX_PORT.test(url)) {
                 config.port = true;
             }
 
-            if (/\/\/(.*?)(?::(.*?))?@/.test(url)) {
+            if (RX_CREDS.test(url)) {
                 config.user = true;
                 config.pass = true;
             }
@@ -32101,7 +32184,7 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         if (isNode) {
             if (!_currNodeUrl) {
                 _currNodeUrl = ('file://' +
-                    (process.platform.match(/^win/i) ? '/' : '') +
+                    (process.platform.match(RX_WIN) ? '/' : '') +
                     nodeRequire('fs').realpathSync('.')
                 );
             }
@@ -32129,7 +32212,7 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
 
         var config = urlConfig(url);
 
-        auth = url.match(/\/\/(.*?)(?::(.*?))?@/) || [];
+        auth = url.match(RX_CREDS) || [];
 
         for (i in map) {
             if (config[i]) {
@@ -32142,9 +32225,9 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         }
 
         // fix-up some parts
-        self.protocol = self.protocol.replace(/:$/, '');
-        self.query = self.query.replace(/^\?/, '');
-        self.hash = decode(self.hash.replace(/^#/, ''));
+        self.protocol = self.protocol.replace(RX_PROTOCOL_REPL, '');
+        self.query = self.query.replace(RX_QUERY_REPL, '');
+        self.hash = decode(self.hash.replace(RX_HASH_REPL, ''));
         self.user = decode(auth[1] || '');
         self.pass = decode(auth[2] || '');
         /* jshint ignore:start */
@@ -32154,13 +32237,13 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         ) ? '' : self.port; // IE fix, Android browser fix
         /* jshint ignore:end */
 
-        if (!config.protocol && /[^/#?]/.test(url.charAt(0))) {
+        if (!config.protocol && RX_URL_TEST.test(url.charAt(0))) {
             self.path = url.split('?')[0].split('#')[0];
         }
 
         if (!config.protocol && absolutize) {
             // is IE and path is relative
-            var base = new Url(getCurrUrl().match(/(.*\/)/)[0]);
+            var base = new Url(getCurrUrl().match(RX_PATH)[0]);
             var basePath = base.path.split('/');
             var selfPath = self.path.split('/');
             var props = ['protocol', 'user', 'pass', 'host', 'port'];
@@ -32183,7 +32266,7 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
             ;
         }
 
-        self.path = self.path.replace(/^\/{2,}/, '/');
+        self.path = self.path.replace(RX_PATH_FIX, '/');
 
         self.paths(self.paths());
 
@@ -32191,51 +32274,43 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
     }
 
     function encode (s) {
-        return encodeURIComponent(s).replace(/'/g, '%27');
+        return encodeURIComponent(s).replace(RX_SINGLE_QUOTE, '%27');
     }
 
     function decode (s) {
-        s = s.replace(/\+/g, ' ');
+        s = s.replace(RX_PLUS, ' ');
+        s = s.replace(RX_DECODE_1, function (code, hex1, hex2, hex3) {
+            var n1 = parseInt(hex1, 16) - 0xE0;
+            var n2 = parseInt(hex2, 16) - 0x80;
 
-        s = s.replace(/%([ef][0-9a-f])%([89ab][0-9a-f])%([89ab][0-9a-f])/gi,
-            function (code, hex1, hex2, hex3) {
-                var n1 = parseInt(hex1, 16) - 0xE0;
-                var n2 = parseInt(hex2, 16) - 0x80;
-
-                if (n1 === 0 && n2 < 32) {
-                    return code;
-                }
-
-                var n3 = parseInt(hex3, 16) - 0x80;
-                var n = (n1 << 12) + (n2 << 6) + n3;
-
-                if (n > 0xFFFF) {
-                    return code;
-                }
-
-                return String.fromCharCode(n);
+            if (n1 === 0 && n2 < 32) {
+                return code;
             }
-        );
 
-        s = s.replace(/%([cd][0-9a-f])%([89ab][0-9a-f])/gi,
-            function (code, hex1, hex2) {
-                var n1 = parseInt(hex1, 16) - 0xC0;
+            var n3 = parseInt(hex3, 16) - 0x80;
+            var n = (n1 << 12) + (n2 << 6) + n3;
 
-                if (n1 < 2) {
-                    return code;
-                }
-
-                var n2 = parseInt(hex2, 16) - 0x80;
-
-                return String.fromCharCode((n1 << 6) + n2);
+            if (n > 0xFFFF) {
+                return code;
             }
-        );
 
-        return s.replace(/%([0-7][0-9a-f])/gi,
-            function (code, hex) {
-                return String.fromCharCode(parseInt(hex, 16));
+            return String.fromCharCode(n);
+        });
+        s = s.replace(RX_DECODE_2, function (code, hex1, hex2) {
+            var n1 = parseInt(hex1, 16) - 0xC0;
+
+            if (n1 < 2) {
+                return code;
             }
-        );
+
+            var n2 = parseInt(hex2, 16) - 0x80;
+
+            return String.fromCharCode((n1 << 6) + n2);
+        });
+
+        return s.replace(RX_DECODE_3, function (code, hex) {
+            return String.fromCharCode(parseInt(hex, 16));
+        });
     }
 
     /**
@@ -32245,23 +32320,26 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
      * @constructor
      */
     function QueryString (qs) {
-        var re = /([^=&]+)(=([^&]*))?/g;
-        var match;
+        var parts = qs.split('&');
 
-        while ((match = re.exec(qs))) {
-            var key = decodeURIComponent(match[1].replace(/\+/g, ' '));
-            var value = match[3] ? decode(match[3]) : '';
+        for (var i = 0, s = parts.length; i < s; i++) {
+            var keyVal = parts[i].split('=');
+            var key = decodeURIComponent(keyVal[0].replace(RX_PLUS, ' '));
 
-            if (!(this[key] === undefined || this[key] === null)) {
+            if (!key) {
+                continue;
+            }
+
+            var value = keyVal[1] !== undefined ? decode(keyVal[1]) : null;
+
+            if (typeof this[key] === 'undefined') {
+                this[key] = value;
+            } else {
                 if (!(this[key] instanceof Array)) {
                     this[key] = [this[key]];
                 }
 
                 this[key].push(value);
-            }
-
-            else {
-                this[key] = value;
             }
         }
     }
@@ -32277,17 +32355,22 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         var i, ii;
 
         for (i in this) {
-            if (this[i] instanceof Function || this[i] === null) {
+            var w = this[i];
+
+            if (w instanceof Function || w === null) {
                 continue;
             }
 
-            if (this[i] instanceof Array) {
-                var len = this[i].length;
+            if (w instanceof Array) {
+                var len = w.length;
 
                 if (len) {
                     for (ii = 0; ii < len; ii++) {
+                        var v = w[ii];
                         s += s ? '&' : '';
-                        s += e(i) + '=' + e(this[i][ii]);
+                        s += e(i) + (v === undefined || v === null
+                            ? ''
+                            : '=' + e(v));
                     }
                 }
 
@@ -32300,7 +32383,7 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
 
             else {
                 s += s ? '&' : '';
-                s += e(i) + '=' + e(this[i]);
+                s += e(i) + (w === undefined ? '' : '=' + e(w));
             }
         }
 
@@ -32340,10 +32423,9 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
      */
     Url.prototype.queryLength = function () {
         var count = 0;
-        var key;
 
-        for (key in this) {
-            if (!(this[key] instanceof Function)) {
+        for (var key in this.query) {
+            if (!(this.query[key] instanceof Function)) {
                 count++;
             }
         }
@@ -32377,8 +32459,9 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
             }
 
             for (s = paths.length; i < s; i++) {
-                paths[i] = !i && paths[i].match(/^\w:$/) ? paths[i] :
-                    encode(paths[i]);
+                paths[i] = !i && RX_PATH_SEMI.test(paths[i])
+                    ? paths[i]
+                    : encode(paths[i]);
             }
 
             this.path = prefix + paths.join('/');
@@ -32431,7 +32514,7 @@ nsGmx.VirtualLayerManager.prototype.loader = function(type) {
         return (
             (this.protocol && (this.protocol + '://')) +
             (this.user && (
-            encode(this.user) + (this.pass && (':' + encode(this.pass))
+                encode(this.user) + (this.pass && (':' + encode(this.pass))
             ) + '@')) +
             (this.host && this.host) +
             (this.port && (':' + this.port)) +
@@ -41346,7 +41429,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                         id: 'api',
                         title: _gtxt('GeoMixer API'),
                         func: function() {
-                            window.open('http://geomixer.ru/index.php/docs/dev-manual/getting-started', '_blank');
+                            window.open('https://geomixer.ru/docs/dev-manual/rest-api/get-started/', '_blank');
                         }
                     },
                     {
@@ -41495,8 +41578,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                         }
                     },
                     permalinkUrlTemplate: '{{href}}?permalink={{permalinkId}}',
-                    embeddedUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/viewer.html?config={{winnieId}}',
-                    winnieUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/?config={{winnieId}}',
+                    embeddedUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/2.0/?config={{winnieId}}',
+                    winnieUrlTemplate: window.location.protocol + '//winnie.kosmosnimki.ru/2.0/?config={{winnieId}}&edit=1',
                     previewUrlTemplate: 'iframePreview.html?width={{width}}&height={{height}}&permalinkUrl={{{embeddedUrl}}}'
                 });
                 lmap.addControl(shareIconControl);
@@ -42466,8 +42549,8 @@ nsGmx.widgets = nsGmx.widgets || {};
                 zoomAnimation: !window.gmxPhantom, // отключение zoomAnimation при запуске тестов
                 distanceUnit: mapProps.DistanceUnit,
                 squareUnit: mapProps.SquareUnit,
-                minZoom: mapProps.MinZoom || undefined,
-                maxZoom: mapProps.MaxZoom || undefined,
+                minZoom: mapProps.MinZoom || 1,
+                maxZoom: mapProps.MaxZoom || 21,
                 maxPopupCount: mapProps.maxPopupContent
             });
 
@@ -42503,7 +42586,7 @@ nsGmx.widgets = nsGmx.widgets || {};
                     layer.bindClusters({
                         iconCreateFunction: function(cluster) {
                             var photoClusterIcon = L.divIcon({
-                                html: '<img src="' + _mapHelper.defaultPhotoIconStyles.point.marker.image + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
+                                html: '<img src="' + (window.serverBase ? window.serverBase + _mapHelper.defaultPhotoIconStyles.point.marker.image : _mapHelper.defaultPhotoIconStyles.point.marker.image) + '" class="photo-icon"/><div class="marker-cluster-photo">' + cluster.getChildCount() + '</div>',
                                 className: 'photo-div-icon',
                                 iconSize: [14, 12],
                                 iconAnchor: [0, 0]
@@ -42800,10 +42883,11 @@ nsGmx.widgets = nsGmx.widgets || {};
                     if (styleVisibilityProps.show) {
                         treeSt.MinZoom = treeSt._MinZoom;
                         st.MinZoom = treeSt._MinZoom;
+						treeSt.disabled = false;
                     } else {
-                        treeSt.MinZoom = 25;
-                        st.MinZoom = 25;
+                        treeSt.disabled = true;
                     }
+					st.disabled = treeSt.disabled;
 
                     it.setStyles(styles);
                 });
@@ -42951,7 +43035,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
                 window.iconSidebarWidget = new window.IconSidebar.IconSidebarWidget(document.getElementById('leftMenu'), {
                     collapsedWidth: 40,
-                    extendedWidth: 427,
+                    extendedWidth: 400,
                     position: 'left'
                 });
 

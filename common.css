@@ -184,13 +184,13 @@ div.user span
 {
 	background: transparent url(img/geomixer_transpar.png) center no-repeat;
 	height: 60px;
-	width: 387px;
+	width: 360px;
 }
 
 .emptyLogo
 {
 	height: 60px;
-	width: 387px;
+	width: 360px;
 }
 
 .flashMap
@@ -215,7 +215,7 @@ div.user span
 	position: absolute;
 	left: 0px;
 	top: 95px;
-	width: 387px;
+	width: 360px;
 	overflow: hidden;
 }
 .leftContent
@@ -227,7 +227,7 @@ div.user span
 .layerManager
 {
 	position: absolute;
-	left: 387px;
+	left: 360px;
 	top: 30px;
 	width: 300px;
 	overflow: hidden;
@@ -245,7 +245,7 @@ div.leftTitle
 	height: 25px;
 /*	background: url(img/grad.png) repeat-x scroll 0px -126px;*/
 	background-color: #539abc;
-	width: 387px;
+	width: 360px;
 	display: inline-block;
 }
 .leftTitle table

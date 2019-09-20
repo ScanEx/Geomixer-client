@@ -754,6 +754,7 @@
     margin-left: 4px;
 }
 
+
 .leaflet-gmx-icon-group {
     clear: none;
     margin-left: 0px;
@@ -813,6 +814,7 @@
 	box-shadow: none;
 }
 
+
 .leaflet-gmx-icon-Point {
     background-position: -235px 2px;
 }
@@ -838,6 +840,7 @@
     background-position: -389px -25px;
 }
 
+
 .leaflet-gmx-center {
     height: 100%;
     width: 100%;
@@ -856,6 +859,7 @@
     right: 50%;
     position: absolute;
 }
+
 
 .leaflet-gmx-icon-hide {
     background-position: -592px 1px;
@@ -880,9 +884,11 @@
     margin-right: 10px;
 }
 
+
 .leaflet-control-layers {
     background-color: rgba(255, 255, 255, 0.7);
 }
+
 
 .gmxLocation-input {
     text-align: center;
@@ -960,6 +966,7 @@
 	margin-left: 4px;
 }
 
+
 .gmxControlPopup {
     position: absolute;
     border-radius: 12px;
@@ -1004,6 +1011,7 @@
 	font-weight: bold;
 }
 
+
 .leaflet-gmx-copyright {
     margin-bottom: 1px !important;
     overflow-x: hidden;
@@ -1041,6 +1049,7 @@
 .leaflet-gmx-copyright .leaflet-gmx-cursorposition {
 	padding-left: 8px;
 }
+
 
 .leaflet-control-zoom.leaflet-bar.gmxzoom-container.leaflet-control {
     background-color: #fff;
@@ -1097,6 +1106,7 @@
     top: calc(50% - 90px);
 }
 
+
 .leaflet-bottom .leaflet-gmx-copyright-location.leaflet-control {
     margin: 0;
 }
@@ -1124,6 +1134,7 @@
 .leaflet-bottom.gmx-bottom-shift {
     bottom: 20px;
 }
+
 .leaflet-gmx-logo {
     background-image: url("img/logo_footer.png");
 }
@@ -1148,6 +1159,7 @@
     bottom: 12px;
 }
 
+
 .leaflet-gmx-sidebar {
     border: 1px solid rgba(0,0,0,0.25);
     background: #efefef;
@@ -1162,6 +1174,7 @@
     left: 0;
     right: 0;
 }
+
 .leaflet-gmx-loaderStatus {
     position: absolute;
     left: 5px;
@@ -1276,6 +1289,8 @@
 }
 
 
+
+
 .leaflet-popup-content textarea {
     outline: none;
     -moz-appearance: none;
@@ -1300,6 +1315,13 @@
     pointer-events: visible;
 }
 
+.leaflet-drawing-bbox.Move {
+	cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACDSURBVEhL5ZFBCoAwDATzc/25GuhCDpu01A0IDuxFZYZW+x3HWAsuvsbkkSiXR5gck58E4jZkgezoVWD5unDnjCrgz6cRyHcDvjQS5W9HI+cz9vHO3EWJEcbKu1QOEGHMAlM5yD6sAsvyiiogoSWAf8ImuRaHRWRyECNyOXBxm/yLmN2K8muV4HlslQAAAABJRU5ErkJggg=='), pointer;
+}
+.leaflet-drawing-bbox.Rotate {
+	cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFRSURBVEhLtZRJTsNAEEXNeB/uwIYdgwBxCCSmPbBHCCJxBQRHYhIgTgEs4D2TklpJh9hO+0tPsdvVVWm76lctdTr87U0/ULTIMuzBPbyABUaLGNNJm/ABkTTlDEJvsPV32UwLMIBI9gAHsDK8P4dUEXcFcy5M0w244Qv2YRFC6T8PHYKxUeRfbYOBn7DqQkMZ+w3u3XAhJz/WOxh05EJLeRL3+k2WXCgtX+UjWGTXhT50DBa4q+9GZG/POkTRaU/1XSIT+0C6FrHDIkdQd12aPChRZKyln8EHHnMWmXgsudJvLGC79SJNzQK2Wjq9xeSgOSRdT3EC7jXHRIfVQQ1y7NtYxRpoL+6daBWhazBQA8udJO0wX6VOGz50AVM1D7qiGyRVtKGd5tSGNcglNLLrkEf1fYZy8yKvsA6dlH6sdIi0glvYgaLOGUV6VXZK86qqX08Va+VOfxC5AAAAAElFTkSuQmCC'), pointer;
+}
+
 /* static Tooltips */
 .leaflet-tooltip.staticTooltip  {
 	pointer-events: auto;
@@ -1313,6 +1335,14 @@
     right: -6px;
     top: -11px;
 	cursor: pointer;
+}
+
+.leaflet-contextmenu a.leaflet-contextmenu-item.over {
+    background-color: lightgray;
+	cursor: pointer;
+}
+.leaflet-contextmenu a.leaflet-contextmenu-item.over.leaflet-contextmenu-item-disabled {
+	cursor: default;
 }
 
 

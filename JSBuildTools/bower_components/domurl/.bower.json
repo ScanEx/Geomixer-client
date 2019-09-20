@@ -1,0 +1,27 @@
+{
+  "name": "domurl",
+  "version": "2.2.0",
+  "license": "MIT",
+  "main": "url.min.js",
+  "ignore": [
+    ".project",
+    "test",
+    "bower.json",
+    "package.json",
+    "README.md",
+    ".idea",
+    ".gitignore",
+    ".npmignore"
+  ],
+  "homepage": "https://github.com/Mikhus/jsurl",
+  "_release": "2.2.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.2.0",
+    "commit": "de45b5f43c535b620ddd62552cfe11a247fb0fe3"
+  },
+  "_source": "https://github.com/Mikhus/jsurl.git",
+  "_target": "^2.2.0",
+  "_originalSource": "jsurl",
+  "_direct": true
+}
