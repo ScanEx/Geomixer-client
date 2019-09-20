@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+.rc_panel *{
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  color: #4c5567
+}
+.rc_instruments{
+  width: 100%;
+  padding: 20px;
+  padding-bottom: 1px;
+  background-color: #e1e8ed;
+}
+.rc_instruments input:checked + .switch-slider {
+  background-color: #70cbe0;
+}
+.rc_instruments table{
+  margin-bottom: 20px;
+}
+.rc_instruments table td{
+  padding-right: 12px;
+}
+.rc_instruments .calendar table td{
+  padding: 0;
+}
+.rc_instruments .calendar .CalendarWidget-inputCell{
+  background-color: #e1e8ed;
+}
+.rc_instruments .calendar .gmx-input-text{
+  font-family: roboto;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}

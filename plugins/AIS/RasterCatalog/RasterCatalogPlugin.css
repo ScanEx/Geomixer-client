@@ -1,0 +1,95 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);.rc_panel *{
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  color: #4c5567
+}
+.rc_instruments{
+  width: 100%;
+  padding: 20px;
+  padding-bottom: 1px;
+  background-color: #e1e8ed;
+}
+.rc_instruments input:checked + .switch-slider {
+  background-color: #70cbe0;
+}
+.rc_instruments table{
+  margin-bottom: 20px;
+}
+.rc_instruments table td{
+  padding-right: 12px;
+}
+.rc_instruments .calendar table td{
+  padding: 0;
+}
+.rc_instruments .calendar .CalendarWidget-inputCell{
+  background-color: #e1e8ed;
+}
+.rc_instruments .calendar .gmx-input-text{
+  font-family: roboto;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}.rc_groups_list{
+    border: 1px solid #DDD;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: #fff;
+    display:none;
+    position:absolute;
+}
+.rc_group{
+    padding: 5px 0 5px 15px;
+    cursor: pointer;
+}
+.rc_group.selected, .rc_group.selected:hover{
+    background-color: #ccc;
+}
+.rc_group:hover{
+    background-color: #ddd;
+}
+.rc_select{
+    background-color: #fff;
+    padding: 14px;
+    border: 1px solid #DDD;
+    margin-top: 0;
+    border-radius: 3px;
+    width: 160px;
+    cursor: pointer;
+}
+.rc_select .group_name{    
+    font-weight: 700;
+}
+.rc_select .icon-down-open, .rc_select .icon-up-open{    
+    float: right
+}
+.rc_view .rc_content li:last-of-type{
+    margin-bottom: 10px;
+}
+.rc_view .rc_content table{
+    margin: 20px 0 0 30px;
+}
+.rc_view .rc_content .rc_group_name{
+    font-weight: 700;
+    border-bottom: solid 1px #ddd;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 20px 0 10px 0;
+}
+.rc_view .rc_content .gmx-timeline-icon{
+    margin-top: 0;
+    margin-left: 0;
+}
+.rc_view .rc_content .timeline-icon{
+    width: 20px;
+}
+.rc_view .rc_content .visibility img{
+    border-radius: 2px;
+    margin: 1px 6px 0 0; 
+    cursor: pointer;   
+}
+.rc_view .rc_content .rc_layer_desc{
+    padding: 0;
+}
+
+/*# sourceMappingURL=RasterCatalogPlugin.css.map*/

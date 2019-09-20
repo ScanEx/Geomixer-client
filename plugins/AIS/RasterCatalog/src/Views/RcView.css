@@ -1,0 +1,28 @@
+.rc_view .rc_content li:last-of-type{
+    margin-bottom: 10px;
+}
+.rc_view .rc_content table{
+    margin: 20px 0 0 30px;
+}
+.rc_view .rc_content .rc_group_name{
+    font-weight: 700;
+    border-bottom: solid 1px #ddd;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 20px 0 10px 0;
+}
+.rc_view .rc_content .gmx-timeline-icon{
+    margin-top: 0;
+    margin-left: 0;
+}
+.rc_view .rc_content .timeline-icon{
+    width: 20px;
+}
+.rc_view .rc_content .visibility img{
+    border-radius: 2px;
+    margin: 1px 6px 0 0; 
+    cursor: pointer;   
+}
+.rc_view .rc_content .rc_layer_desc{
+    padding: 0;
+}
