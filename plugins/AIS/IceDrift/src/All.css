@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+
+
+.IceDrift.panel *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+
+.IceDrift.panel{
+  position: absolute;
+  top: -1000px;
+  left: -1000px;
+}
+
+.IceDrift.panel table{
+  background: none;
+  border-spacing: 6px;
+  border-collapse: separate;
+}
+
+.IceDrift.panel .message{
+  width: 280px;
+  height: 20px;
+  padding-top: 9px;
+}
+
+.IceDrift.panel .save, .IceDrift.panel .count{
+  height: 22px;
+}
+
+.IceDrift.panel table.spinner, .IceDrift.panel table.speedpercent{
+  border-collapse: collapse;
+  border-spacing: 0;  
+}
+
+.IceDrift.panel table.spinner .up, .IceDrift.panel table.spinner .down{
+  font-size: 4px;
+  padding: 0;
+  text-align: center;
+}
+
+.IceDrift.panel table.spinner .period{
+  padding: 2px;
+  white-space: nowrap;
+}
+
+/*IceDrift.panel td.count, .IceDrift.panel td.save, .IceDrift.panel td.cancel*/
+.IceDrift.panel td.control{
+  padding: 6px;
+  background-color: white;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.IceDrift.panel .button{
+  cursor: pointer;
+}
+
+.IceDrift.panel td div{
+  padding: 6px;
+  background-color: white;
+  border-radius: 3px;
+}
+
+.IceDrift.panel .disabled{
+  fill: #cdcdcd;
+  color: #cdcdcd;
+}
+
+.IceDrift.panel .button.disabled{
+  cursor: default;
+}
+
+.IceDrift.panel .unselectable {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+
+  /*
+    Introduced in IE 10.
+    See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+  */
+  -ms-user-select: none;
+  user-select: none;
+}
