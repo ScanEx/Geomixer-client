@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+<symbol id="arrow-left" viewBox="0 0 20 20" fill="none">
+<path d="M18.3334 10H1.66669" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"
+/>
+</symbol>
+<symbol id="arrow-right" viewBox="0 0 20 20" fill="none">
+<path d="M18.3334 10H1.66669" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"
+transform="rotate(180 10 10)"/>
+</symbol>
+
+<symbol id="eye" viewBox="0 0 16 12" fill="none">
+<path d="M8.00002 12C11.6 12 14.4 8.9 15.6 7.1C16.1 6.4 16.1 5.5 15.6 4.8C14.4 3.1 11.6 0 8.00002 0C4.40002 0 1.60002 3.1 0.400024 4.9C-0.0999756 5.6 -0.0999756 6.5 0.400024 7.1C1.60002 8.9 4.40002 12 8.00002 12ZM8.00002 3C9.70002 3 11 4.3 11 6C11 7.7 9.70002 9 8.00002 9C6.30002 9 5.00002 7.7 5.00002 6C5.00002 4.3 6.30002 3 8.00002 3Z" fill="currentColor"/>
+</symbol>
+
+</svg>

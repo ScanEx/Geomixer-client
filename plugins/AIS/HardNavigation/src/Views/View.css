@@ -1,0 +1,85 @@
+.hardnav-view * {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
+.hardnav-view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+
+.hardnav-view .color-transparent{
+  color: transparent;
+}
+.hardnav-view .header {
+  padding-top: 15px; 
+}
+ .hardnav-view .instruments {
+   width: 100%;
+}
+.hardnav-view .instruments td{
+  padding: 20px;
+  width: 50%;
+  text-align: center;
+}
+
+.hardnav-view .hint{
+   padding: 10px;
+} 
+ .hardnav-view .refresh{
+   width: 30px;
+}
+
+.hardnav-view .grid-header{
+  width: 100%;
+  margin-top: 15px;
+}
+.hardnav-view .grid-header td{
+  padding: 15px 5px;
+}
+.hardnav-view .grid-header td svg{
+  width:16px;
+  height:16px;
+}
+.hardnav-view .grid-header td:nth-of-type(2),
+.hardnav-view .grid-header td:nth-of-type(3),
+.hardnav-view .grid-header td:nth-of-type(4){
+  width: 70px;
+}
+
+.hardnav-view .footer{
+  padding-bottom: 15px;
+} 
+.hardnav-view .footer .pager{
+  width: 100%;
+}
+.hardnav-view .footer .pager td{
+ text-align: center;
+ padding: 15px 5px;
+} 
+.hardnav-view .footer .pager .arrow{
+  width: 33%;
+  color: #6B707B;
+}
+.hardnav-view .footer .pager .arrow svg{ 
+  width: 16px;
+  height: 16px;
+}
+.hardnav-view .footer .but-attributes{
+    width: 70%;
+    text-align: center;
+    margin: 15px auto 0;
+    line-height: 30px;
+    background-color: #ddd;
+}
+.hardnav-view .but{
+  cursor: pointer;
+}
