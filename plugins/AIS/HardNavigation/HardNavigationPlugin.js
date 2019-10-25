@@ -132,7 +132,16 @@
 	    "HardNavigation.attr_tbl": "Таблица атрибутов",
 	    "HardNavigation.reg_id": "ID района",
 	    "HardNavigation.reg_created": "Создан",
-	    "HardNavigation.reg_updated": "Обновлен"
+	    "HardNavigation.reg_updated": "Обновлен",
+	    "HardNavigation.add_new": "Добавить новый объект",
+	    "HardNavigation.add_copy": "Добавить выбранный объект",
+	    "HardNavigation.no_origin": "нет",
+	    "HardNavigation.save": "Сохранить",
+	    "HardNavigation.cancel": "Отмена",
+	    "HardNavigation.description_lbl": "Описание",
+	    "HardNavigation.description_ttl": "Медиа описание",
+	    "HardNavigation.edit_description_lbl": "Редактировать",
+	    "HardNavigation.edit_description_ttl": "Редактировать медиа описание"
 	});
 	_translationsHash.addtext('eng', {
 	    "HardNavigation.title": "Hard navigation",
@@ -143,7 +152,16 @@
 	    "HardNavigation.attr_tbl": "Table of attrobutes",
 	    "HardNavigation.reg_id": "Region ID",
 	    "HardNavigation.reg_created": "Created",
-	    "HardNavigation.reg_updated": "Updated"
+	    "HardNavigation.reg_updated": "Updated",
+	    "HardNavigation.add_new": "Добавить новый объект",
+	    "HardNavigation.add_copy": "Добавить выбранный объект",
+	    "HardNavigation.no_origin": "no",
+	    "HardNavigation.save": "Save",
+	    "HardNavigation.cancel": "Cancel",
+	    "HardNavigation.description_lbl": "Description",
+	    "HardNavigation.description_ttl": "Media description",
+	    "HardNavigation.edit_description_lbl": "Edit description",
+	    "HardNavigation.edit_description_ttl": "Edit media description"
 	});
 
 /***/ }),
@@ -310,8 +328,11 @@
 	    var model = _ref.model,
 	        registerDlg = _ref.registerDlg;
 	
+	
+	    _layer = nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23'];
+	
 	    BaseView.call(this, model);
-	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr><td class="but choose">' + _gtxt('HardNavigation.choose_reg') + '</td><td class="but create">' + _gtxt('HardNavigation.create_reg') + '</td></tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' 1/1</td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
+	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr>\n                    <td class="but choose">' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create">' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' 1/1</td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
 	
 	    this.container = this.frame.find('.grid');
 	    this.footer = this.frame.find('.footer');
@@ -329,9 +350,16 @@
 	        }
 	    });
 	
-	    this.frame.find('.but.choose').on('click', _copyRegion.bind(this));
-	    this.frame.find('.but.create').on('click', _createRegion.bind(this));
+	    _chooseBut = this.frame.find('.but.choose');
+	    _createBut = this.frame.find('.but.create');
+	    _chooseBut.on('click', _copyRegion.bind(this));
+	    _createBut.on('click', _createRegion.bind(this));
 	},
+	    _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' + '<table class="obj-edit-proptable"><tbody>' + '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Name</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Type</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Origin</span></td><td>${gmx_id}</td></tr>' +
+	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">Date</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274923"></td></tr>' +
+	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">DateChange</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274924"></td></tr>' +
+	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">State</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
+	'</table>' + '<div class="media-Desc-GUI"><span id="media-Desc-EditLabel" title="${_gtxt("HardNavigation.description_ttl")}">${_gtxt("HardNavigation.description_lbl")}</span><span id="mediaDesc-EditButton" class="buttonLink" title="${_gtxt("HardNavigation.edit_description_ttl")}">${_gtxt("HardNavigation.edit_description_lbl")}</span></div>' + '<div style="margin: 10px 0px; height: 20px;"><span class="buttonLink">${_gtxt("HardNavigation.save")}</span><span class="buttonLink" style="margin-left: 10px;">${_gtxt("HardNavigation.cancel")}</span></div>',
 	    _listeners = {},
 	    _layerClickHandler = function _layerClickHandler(event) {
 	    var layer = event.target,
@@ -345,19 +373,25 @@
 	            if (response.Status && response.Status.toLowerCase() == 'ok') {
 	                var i = response.Result.fields.indexOf('geomixergeojson');
 	                //console.log(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true), `>>${i}`, this, props.name);
-	                var obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true));
+	                var obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true)),
+	                    gmx_id = response.Result.values[0][response.Result.fields.indexOf(props.identityField)],
+	                    dlg = showDialog(_gtxt('HardNavigation.add_copy'), $(eval('(function(gmx_id){return `' + _editDialogTemplate + '`})(' + gmx_id + ')'))[0], 400, 300, null, null, null, function () {
+	                    var gj = obj[0].toGeoJSON();
+	                    console.log(obj[0], gj.geometry.coordinates);
+	                    nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
+	                });
 	            } else console.log(response);
-	            this.frame.find('.but.choose').click();
+	
+	            _chooseBut.click();
 	        }
-	    }.bind(this));
+	    });
 	    return true;
 	},
 	    _copyRegion = function _copyRegion() {
-	    var but = this.frame.find('.but.choose');
 	    if (_stateUI != 'copy_region') {
-	        if (_stateUI != '') this.frame.find('.but.create').click();
+	        if (_stateUI != '') _createBut.click();
 	        _stateUI = 'copy_region';
-	        but.addClass('active');
+	        _chooseBut.addClass('active');
 	
 	        for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
 	            var layer = nsGmx.gmxMap.layers[iL],
@@ -370,39 +404,53 @@
 	
 	            if (layer instanceof L.gmx.VectorLayer && props.GeometryType.toLowerCase() == 'polygon') {
 	                _listeners[props.name] = _layerClickHandler;
-	                layer.on('click', _listeners[props.name].bind(this));
+	                layer.on('click', _listeners[props.name]);
 	            }
 	        }
 	    } else {
 	        _stateUI = '';
-	        but.removeClass('active');
+	        _chooseBut.removeClass('active');
 	        nsGmx.gmxMap.layers.forEach(function (layer) {
 	            if (layer.disableFlip && layer.disablePopup) {
 	                layer.enableFlip();
 	                layer.enablePopup();
 	            }
 	        });
+	        var test = 0;
 	        for (var layerName in _listeners) {
 	            nsGmx.gmxMap.layersByID[layerName].off('click', _listeners[layerName]);
+	            //let clickEvent = nsGmx.gmxMap.layersByID[layerName]._events.click;              
+	            //test += clickEvent ? clickEvent.length : 0;
 	            delete _listeners[layerName];
 	        }
+	        //console.log(`clicks ${test}`)
 	    }
 	},
 	    _onDrawStop = function _onDrawStop(e) {
-	    var gj = e.object.toGeoJSON();
-	    console.log(gj.geometry);
+	    var obj = e.object,
+	        lprops = _layer.getGmxProperties(),
+	        eoc = new nsGmx.EditObjectControl(lprops.name, null, { drawingObject: obj });
+	    //eoc.set('Date', new Date().getTime());                 
+	    $(eoc).on('modify', function (e) {
+	        return console.log(e.target.getAll());
+	    });
+	
+	    var rows = $('span:contains("' + _gtxt("Создать объект слоя [value0]", lprops.title) + '")').closest('.ui-dialog').find('tr');
+	    rows.eq(4).hide();
+	    rows.eq(5).hide();
+	    rows.eq(6).hide();
+	    rows.eq(7).hide();
+	
 	    //nsGmx.leafletMap._container.style.cursor='pointer'; 
 	    //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
-	    if (_stateUI == 'create_region') this.frame.find('.but.create').click();
+	    if (_stateUI == 'create_region') _createBut.click();
 	},
 	    _createRegion = function _createRegion() {
-	    var but = this.frame.find('.but.create');
-	
 	    if (_stateUI != 'create_region') {
-	        if (_stateUI != '') this.frame.find('.but.choose').click();
+	        if (_stateUI != '') _chooseBut.click();
 	        _stateUI = 'create_region';
-	        but.addClass('active');
-	        nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop.bind(this));
+	        _createBut.addClass('active');
+	        nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop);
 	
 	        nsGmx.gmxMap.layers.forEach(function (layer) {
 	            if (layer.disableFlip && layer.disablePopup) {
@@ -415,9 +463,10 @@
 	        nsGmx.leafletMap.gmxDrawing.create('Polygon');
 	    } else {
 	        _stateUI = '';
-	        but.removeClass('active');
+	        _createBut.removeClass('active');
 	        nsGmx.leafletMap._container.style.cursor = '';
 	        nsGmx.leafletMap.gmxDrawing.off('drawstop', _onDrawStop);
+	        console.log('drawstop ' + nsGmx.leafletMap.gmxDrawing._events.drawstop.length);
 	
 	        nsGmx.gmxMap.layers.forEach(function (layer) {
 	            if (layer.disableFlip && layer.disablePopup) {
@@ -444,7 +493,11 @@
 	    });
 	},
 	    _clean = function _clean() {};
-	var _stateUI = '';
+	var _stateUI = '',
+	    _createBut = void 0,
+	    _chooseBut = void 0,
+	    _layer = void 0;
+	;
 	
 	MyCollectionView.prototype = Object.create(BaseView.prototype);
 	

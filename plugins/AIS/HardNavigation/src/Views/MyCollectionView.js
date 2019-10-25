@@ -4,11 +4,17 @@ const BaseView = require('./BaseView.js');
 //let _searchString = "";
 
 const MyCollectionView = function ({ model, registerDlg }) {
+
+    _layer = nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23'];
+
         BaseView.call(this, model);
         this.frame = $(Handlebars.compile(`<div class="hardnav-view">
             <div class="header">
                 <table border=1 class="instruments">
-                <tr><td class="but choose">${_gtxt('HardNavigation.choose_reg')}</td><td class="but create">${_gtxt('HardNavigation.create_reg')}</td></tr>
+                <tr>
+                    <td class="but choose">${_gtxt('HardNavigation.choose_reg')}</td>
+                    <td class="but create">${_gtxt('HardNavigation.create_reg')}</td>
+                </tr>
                 </table> 
                 <table border=1>
                 <tr><td class="hint" colspan="2">${_gtxt('HardNavigation.instr_hint')}</td>
@@ -62,11 +68,25 @@ const MyCollectionView = function ({ model, registerDlg }) {
                 return this.frame.find('.footer')[0].getBoundingClientRect().height;
             }
         }); 
-        
-        this.frame.find('.but.choose').on('click', _copyRegion.bind(this));      
-        this.frame.find('.but.create').on('click', _createRegion.bind(this));
+
+        _chooseBut = this.frame.find('.but.choose');
+        _createBut = this.frame.find('.but.create');       
+        _chooseBut.on('click', _copyRegion.bind(this));      
+        _createBut.on('click', _createRegion.bind(this));
 
     },
+    _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' +
+    '<table class="obj-edit-proptable"><tbody>' +
+    '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' +
+    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Name</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
+    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Type</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
+    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Origin</span></td><td>${gmx_id}</td></tr>' +
+    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">Date</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274923"></td></tr>' +
+    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">DateChange</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274924"></td></tr>' +
+    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">State</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
+    '</table>' +
+    '<div class="media-Desc-GUI"><span id="media-Desc-EditLabel" title="${_gtxt("HardNavigation.description_ttl")}">${_gtxt("HardNavigation.description_lbl")}</span><span id="mediaDesc-EditButton" class="buttonLink" title="${_gtxt("HardNavigation.edit_description_ttl")}">${_gtxt("HardNavigation.edit_description_lbl")}</span></div>' + 
+    '<div style="margin: 10px 0px; height: 20px;"><span class="buttonLink">${_gtxt("HardNavigation.save")}</span><span class="buttonLink" style="margin-left: 10px;">${_gtxt("HardNavigation.cancel")}</span></div>',
     _listeners = {},
     _layerClickHandler = function (event) {
         var layer = event.target,
@@ -81,22 +101,29 @@ const MyCollectionView = function ({ model, registerDlg }) {
                     if (response.Status && response.Status.toLowerCase() == 'ok') {
                         let i = response.Result.fields.indexOf('geomixergeojson');
 //console.log(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true), `>>${i}`, this, props.name);
-                        const obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true));
+                        const obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true)),
+                        gmx_id = response.Result.values[0][response.Result.fields.indexOf(props.identityField)],
+                        dlg = showDialog(_gtxt('HardNavigation.add_copy'), $(eval('(function(gmx_id){return `' + _editDialogTemplate + '`})('+gmx_id+')'))[0], 400, 300, null, null, null, ()=>{ 
+                                const gj = obj[0].toGeoJSON();
+console.log(obj[0], gj.geometry.coordinates);  
+                                nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
+
+                        });
                     }
                     else
                         console.log(response);
-                    this.frame.find('.but.choose').click(); 
+
+                    _chooseBut.click(); 
                 }                
-            }.bind(this));
+            });
         return true;
     },
     _copyRegion = function(){
-        const but = this.frame.find('.but.choose');
         if (_stateUI != 'copy_region'){
             if (_stateUI != '')
-                this.frame.find('.but.create').click(); 
+                _createBut.click(); 
             _stateUI = 'copy_region';
-            but.addClass('active');
+            _chooseBut.addClass('active');
 
             for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
                 var layer = nsGmx.gmxMap.layers[iL],
@@ -109,42 +136,55 @@ const MyCollectionView = function ({ model, registerDlg }) {
 
                 if (layer instanceof L.gmx.VectorLayer && props.GeometryType.toLowerCase()=='polygon') {
                     _listeners[props.name] = _layerClickHandler;
-                    layer.on('click', _listeners[props.name].bind(this));
+                    layer.on('click', _listeners[props.name]);
                 }
             }
         }
         else{
             _stateUI = '';
-            but.removeClass('active');
+            _chooseBut.removeClass('active');
             nsGmx.gmxMap.layers.forEach( layer=>{
                 if (layer.disableFlip && layer.disablePopup) {
                     layer.enableFlip();
                     layer.enablePopup();
                 }
             });
+            let test = 0;
             for (var layerName in _listeners) {
                 nsGmx.gmxMap.layersByID[layerName].off('click', _listeners[layerName]);
+//let clickEvent = nsGmx.gmxMap.layersByID[layerName]._events.click;              
+//test += clickEvent ? clickEvent.length : 0;
                 delete _listeners[layerName];
             }
+//console.log(`clicks ${test}`)
         }
     },
     _onDrawStop = function(e){
-                    const gj = e.object.toGeoJSON();
-                    console.log(gj.geometry);   
+                    const obj = e.object,
+                          lprops = _layer.getGmxProperties(),
+                          eoc = new nsGmx.EditObjectControl(lprops.name, null, {drawingObject: obj});
+                    //eoc.set('Date', new Date().getTime());                 
+                    $(eoc).on('modify', e=>console.log(e.target.getAll()));
+
+                    
+                    const rows = $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog').find('tr');                
+                    rows.eq(4).hide();                    
+                    rows.eq(5).hide();
+                    rows.eq(6).hide();
+                    rows.eq(7).hide();
+
                     //nsGmx.leafletMap._container.style.cursor='pointer'; 
                     //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
                     if (_stateUI == 'create_region')
-                        this.frame.find('.but.create').click();
+                        _createBut.click();
             },
     _createRegion = function(){
-        const but = this.frame.find('.but.create');
-
         if (_stateUI != 'create_region'){
             if (_stateUI != '')
-                this.frame.find('.but.choose').click();  
+                _chooseBut.click();  
             _stateUI = 'create_region'; 
-            but.addClass('active');          
-            nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop.bind(this));
+            _createBut.addClass('active');          
+            nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop);
 
             nsGmx.gmxMap.layers.forEach( layer=>{
                 if (layer.disableFlip && layer.disablePopup) {
@@ -158,9 +198,10 @@ const MyCollectionView = function ({ model, registerDlg }) {
         }
         else{
             _stateUI = '';
-            but.removeClass('active');    
+            _createBut.removeClass('active');    
             nsGmx.leafletMap._container.style.cursor='';     
             nsGmx.leafletMap.gmxDrawing.off('drawstop', _onDrawStop);
+console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
 
             nsGmx.gmxMap.layers.forEach( layer=>{
                 if (layer.disableFlip && layer.disablePopup) {
@@ -198,7 +239,10 @@ const MyCollectionView = function ({ model, registerDlg }) {
     _clean = function () {
 
     };
-    let _stateUI = '';
+    let _stateUI = '',
+        _createBut, _chooseBut,        
+        _layer;
+;
 
 MyCollectionView.prototype = Object.create(BaseView.prototype);
 
