@@ -21,6 +21,26 @@
     user-select: none;
  }
 
+ .hardnav-view .calendar .select {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 9px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+.hardnav-view .calendar .select select{
+  width: 36px;
+  border: none;
+}
+
+ .hardnav-view .calendar .gmx-input-text {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 12px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+
 .hardnav-view .color-transparent{
   color: transparent;
 }

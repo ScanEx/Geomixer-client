@@ -141,7 +141,9 @@
 	    "HardNavigation.description_lbl": "Описание",
 	    "HardNavigation.description_ttl": "Медиа описание",
 	    "HardNavigation.edit_description_lbl": "Редактировать",
-	    "HardNavigation.edit_description_ttl": "Редактировать медиа описание"
+	    "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
+	    "HardNavigation.calendar_today": "сегодня"
+	
 	});
 	_translationsHash.addtext('eng', {
 	    "HardNavigation.title": "Hard navigation",
@@ -161,7 +163,8 @@
 	    "HardNavigation.description_lbl": "Description",
 	    "HardNavigation.description_ttl": "Media description",
 	    "HardNavigation.edit_description_lbl": "Edit description",
-	    "HardNavigation.edit_description_ttl": "Edit media description"
+	    "HardNavigation.edit_description_ttl": "Edit media description",
+	    "HardNavigation.calendar_today": "today"
 	});
 
 /***/ }),
@@ -332,7 +335,8 @@
 	    _layer = nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23'];
 	
 	    BaseView.call(this, model);
-	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr>\n                    <td class="but choose">' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create">' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' 1/1</td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
+	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr>\n                    <td class="but choose">' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create">' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <div class="calendar"></div>\n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' 1/1</td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
+	    _addCalendar.call(this);
 	
 	    this.container = this.frame.find('.grid');
 	    this.footer = this.frame.find('.footer');
@@ -355,6 +359,50 @@
 	    _chooseBut.on('click', _copyRegion.bind(this));
 	    _createBut.on('click', _createRegion.bind(this));
 	},
+	    _addCalendar = function _addCalendar() {
+	    var _this = this;
+	
+	    var calendar = this.frame.find('.calendar')[0];
+	    // walkaround with focus at first input in ui-dialog
+	    calendar.innerHTML = '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
+	
+	    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+	        dateInterval = new nsGmx.DateInterval();
+	
+	    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
+	        console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        //nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	    }.bind(this));
+	
+	    this.calendar = new nsGmx.CalendarWidget({
+	        dateInterval: dateInterval,
+	        name: 'catalogInterval',
+	        container: calendar,
+	        dateMin: new Date(0, 0, 0),
+	        dateMax: new Date(3015, 1, 1),
+	        dateFormat: 'dd.mm.yy',
+	        minimized: false,
+	        showSwitcher: false
+	    });
+	
+	    var tr = calendar.querySelector('tr:nth-of-type(1)');
+	    tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
+	    tr.insertCell(5).innerHTML = '<img class="default_date" style="cursor:pointer; padding-right:10px" title="' + _gtxt('HardNavigation.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">';
+	
+	    var td = tr.insertCell(6);
+	    td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';
+	    tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
+	    td = tr.insertCell(8);
+	    td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';
+	
+	    calendar.querySelector('.default_date').addEventListener('click', function () {
+	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
+	        _this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+	        _this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
+	        console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+	    });
+	},
 	    _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' + '<table class="obj-edit-proptable"><tbody>' + '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Name</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Type</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Origin</span></td><td>${gmx_id}</td></tr>' +
 	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">Date</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274923"></td></tr>' +
 	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">DateChange</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274924"></td></tr>' +
@@ -371,14 +419,36 @@
 	    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + props.name + '&page=0&pagesize=1&orderby=' + props.identityField + '&geometry=true&query=[' + props.identityField + ']=' + id, function (response) {
 	        if (_stateUI == 'copy_region') {
 	            if (response.Status && response.Status.toLowerCase() == 'ok') {
-	                var i = response.Result.fields.indexOf('geomixergeojson');
-	                //console.log(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true), `>>${i}`, this, props.name);
-	                var obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true)),
-	                    gmx_id = response.Result.values[0][response.Result.fields.indexOf(props.identityField)],
-	                    dlg = showDialog(_gtxt('HardNavigation.add_copy'), $(eval('(function(gmx_id){return `' + _editDialogTemplate + '`})(' + gmx_id + ')'))[0], 400, 300, null, null, null, function () {
-	                    var gj = obj[0].toGeoJSON();
-	                    console.log(obj[0], gj.geometry.coordinates);
-	                    nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
+	                var result = response.Result,
+	                    i = result.fields.indexOf('geomixergeojson'),
+	                    obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
+	                    gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
+	
+	                //date = result.values[0][result.fields.indexOf('Date')],
+	                //time = result.values[0][result.fields.indexOf('Time')],
+	                name = result.values[0][result.fields.indexOf('Name')],
+	                    type = result.values[0][result.fields.indexOf('Type')],
+	                    media = result.values[0][result.fields.indexOf('_mediadescript_')],
+	                    eoc = new nsGmx.EditObjectControl(props.name, null, { drawingObject: obj[0] }),
+	                    dt = new Date();
+	                eoc.set('Origin', gmx_id);
+	                eoc.set('Name', name);
+	                eoc.set('Type', type);
+	                eoc.set('_mediadescript_', media);
+	                //eoc.set('Time', time); 
+	                //eoc.set('Date', date);       
+	                eoc.set('Time', dt.getTime() / 1000);
+	                eoc.set('Date', dt.getTime() / 1000);
+	
+	                $(eoc).on('modify', function (e) {
+	                    return console.log(e.target.getAll());
+	                });
+	
+	                $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog').find('tr').each(function (i, el) {
+	                    var name = el.querySelectorAll('td')[0].innerText;
+	                    if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
+	                        //if (i==0 || name.search(/\b(State)\b/i)==0)
+	                        el.style.display = 'none';
 	                });
 	            } else console.log(response);
 	
@@ -430,16 +500,17 @@
 	    var obj = e.object,
 	        lprops = _layer.getGmxProperties(),
 	        eoc = new nsGmx.EditObjectControl(lprops.name, null, { drawingObject: obj });
-	    //eoc.set('Date', new Date().getTime());                 
+	    var dt = new Date();
+	    eoc.set('Time', dt.getTime() / 1000);
+	    eoc.set('Date', dt.getTime() / 1000);
 	    $(eoc).on('modify', function (e) {
 	        return console.log(e.target.getAll());
 	    });
 	
-	    var rows = $('span:contains("' + _gtxt("Создать объект слоя [value0]", lprops.title) + '")').closest('.ui-dialog').find('tr');
-	    rows.eq(4).hide();
-	    rows.eq(5).hide();
-	    rows.eq(6).hide();
-	    rows.eq(7).hide();
+	    $('span:contains("' + _gtxt("Создать объект слоя [value0]", lprops.title) + '")').closest('.ui-dialog').find('tr').each(function (i, el) {
+	        var name = el.querySelectorAll('td')[0].innerText;
+	        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0) el.style.display = 'none';
+	    });
 	
 	    //nsGmx.leafletMap._container.style.cursor='pointer'; 
 	    //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
@@ -479,7 +550,7 @@
 	    }
 	},
 	    _addRegion = function _addRegion() {
-	    var _this = this;
+	    var _this2 = this;
 	
 	    this.inProgress(true);
 	    var obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON({ coordinates: [[[170.72753903711163, 60.844910986045214], [168.66210900000357, 60.73768601038719], [169.2333979948311, 61.17503299842439], [169.2333979948311, 61.17503299842439], [170.07934598946287, 61.14986199628548], [170.72753903711163, 60.844910986045214]]],
@@ -488,7 +559,7 @@
 	        nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
 	        setTimeout(function () {
 	            nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23']._gmx._chkVersion();
-	            _this.inProgress(false);
+	            _this2.inProgress(false);
 	        }, 5000);
 	    });
 	},

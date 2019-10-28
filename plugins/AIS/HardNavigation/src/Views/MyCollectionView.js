@@ -20,6 +20,7 @@ const MyCollectionView = function ({ model, registerDlg }) {
                 <tr><td class="hint" colspan="2">${_gtxt('HardNavigation.instr_hint')}</td>
                 <td><div class="refresh"><div>${this.gifLoader}</div></div></td></tr>
                 </table> 
+                <div class="calendar"></div>
                 <table border=1 class="grid-header">
                 <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>
                 <td>${_gtxt('HardNavigation.reg_id')}</td>
@@ -44,6 +45,7 @@ const MyCollectionView = function ({ model, registerDlg }) {
             </div>
             </div>`
         )());
+        _addCalendar.call(this);
 
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
@@ -74,7 +76,55 @@ const MyCollectionView = function ({ model, registerDlg }) {
         _chooseBut.on('click', _copyRegion.bind(this));      
         _createBut.on('click', _createRegion.bind(this));
 
-    },
+    },    
+    _addCalendar = function(){
+            
+        let calendar = this.frame.find('.calendar')[0];
+        // walkaround with focus at first input in ui-dialog
+        calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
+
+        let mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+            dateInterval = new nsGmx.DateInterval();
+
+        dateInterval
+            .set('dateBegin', mapDateInterval.get('dateBegin'))
+            .set('dateEnd', mapDateInterval.get('dateEnd'))
+            .on('change', function (e) {
+console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+                //nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+            }.bind(this));
+
+        this.calendar = new nsGmx.CalendarWidget({
+            dateInterval: dateInterval,
+            name: 'catalogInterval',
+            container: calendar,
+            dateMin: new Date(0, 0, 0),
+            dateMax: new Date(3015, 1, 1),
+            dateFormat: 'dd.mm.yy',
+            minimized: false,
+            showSwitcher: false
+        })
+
+        let tr = calendar.querySelector('tr:nth-of-type(1)');
+        tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
+        tr.insertCell(5).innerHTML = 
+        '<img class="default_date" style="cursor:pointer; padding-right:10px" title="'+_gtxt('HardNavigation.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg">';
+ 
+        let td = tr.insertCell(6);
+        td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
+        tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
+        td = tr.insertCell(8);
+        td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
+        
+
+        calendar.querySelector('.default_date').addEventListener('click', () => {
+            let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
+            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
+            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
+console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+            //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+        });
+    },  
     _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' +
     '<table class="obj-edit-proptable"><tbody>' +
     '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' +
@@ -99,16 +149,35 @@ const MyCollectionView = function ({ model, registerDlg }) {
             function (response) {
                 if (_stateUI == 'copy_region') {
                     if (response.Status && response.Status.toLowerCase() == 'ok') {
-                        let i = response.Result.fields.indexOf('geomixergeojson');
-//console.log(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true), `>>${i}`, this, props.name);
-                        const obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(response.Result.values[0][i], true)),
-                        gmx_id = response.Result.values[0][response.Result.fields.indexOf(props.identityField)],
-                        dlg = showDialog(_gtxt('HardNavigation.add_copy'), $(eval('(function(gmx_id){return `' + _editDialogTemplate + '`})('+gmx_id+')'))[0], 400, 300, null, null, null, ()=>{ 
-                                const gj = obj[0].toGeoJSON();
-console.log(obj[0], gj.geometry.coordinates);  
-                                nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
+                        const result = response.Result,
+                            i = result.fields.indexOf('geomixergeojson'),
+                            obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
+                            gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
+                            //date = result.values[0][result.fields.indexOf('Date')],
+                            //time = result.values[0][result.fields.indexOf('Time')],
+                            name = result.values[0][result.fields.indexOf('Name')],
+                            type = result.values[0][result.fields.indexOf('Type')],    
+                            media = result.values[0][result.fields.indexOf('_mediadescript_')],                   
+                            eoc = new nsGmx.EditObjectControl(props.name, null, {drawingObject: obj[0]}),
+                            dt = new Date();       
+                        eoc.set('Origin', gmx_id);     
+                        eoc.set('Name', name); 
+                        eoc.set('Type', type);  
+                        eoc.set('_mediadescript_', media);       
+                        //eoc.set('Time', time); 
+                        //eoc.set('Date', date);       
+                        eoc.set('Time', dt.getTime()/1000); 
+                        eoc.set('Date', dt.getTime()/1000); 
 
-                        });
+                        $(eoc).on('modify', e=>console.log(e.target.getAll()));
+                        
+                        $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog')
+                        .find('tr').each((i, el)=>{
+                            let name = el.querySelectorAll('td')[0].innerText;
+                            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
+                            //if (i==0 || name.search(/\b(State)\b/i)==0)
+                                el.style.display = 'none';
+                        });                        
                     }
                     else
                         console.log(response);
@@ -163,15 +232,17 @@ console.log(obj[0], gj.geometry.coordinates);
                     const obj = e.object,
                           lprops = _layer.getGmxProperties(),
                           eoc = new nsGmx.EditObjectControl(lprops.name, null, {drawingObject: obj});
-                    //eoc.set('Date', new Date().getTime());                 
+                    let dt = new Date();        
+                    eoc.set('Time', dt.getTime()/1000); 
+                    eoc.set('Date', dt.getTime()/1000);                                  
                     $(eoc).on('modify', e=>console.log(e.target.getAll()));
-
                     
-                    const rows = $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog').find('tr');                
-                    rows.eq(4).hide();                    
-                    rows.eq(5).hide();
-                    rows.eq(6).hide();
-                    rows.eq(7).hide();
+                    $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog')
+                    .find('tr').each((i, el)=>{
+                        let name = el.querySelectorAll('td')[0].innerText;
+                        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
+                            el.style.display = 'none';
+                    });
 
                     //nsGmx.leafletMap._container.style.cursor='pointer'; 
                     //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 

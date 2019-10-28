@@ -18,6 +18,8 @@
         "HardNavigation.description_ttl": "Медиа описание",
         "HardNavigation.edit_description_lbl": "Редактировать",
         "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
+        "HardNavigation.calendar_today": "сегодня",
+        
     });
     _translationsHash.addtext('eng', {
         "HardNavigation.title": "Hard navigation",
@@ -38,4 +40,5 @@
         "HardNavigation.description_ttl": "Media description",
         "HardNavigation.edit_description_lbl": "Edit description",
         "HardNavigation.edit_description_ttl": "Edit media description",
+        "HardNavigation.calendar_today": "today",
     });
