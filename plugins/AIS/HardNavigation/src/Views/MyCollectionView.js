@@ -3,17 +3,23 @@ const BaseView = require('./BaseView.js');
 
 //let _searchString = "";
 
-const MyCollectionView = function ({ model, registerDlg }) {
+const MyCollectionView = function ({ model, layer }) {
 
-    _layer = nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23'];
+        _layer = nsGmx.gmxMap.layersByID[layer];
+        if (!_layer){
+            model.isDirty = false;
+            return;
+        }
+        if (_layer._map)
+            nsGmx.leafletMap.addLayer(_layer);
 
         BaseView.call(this, model);
         this.frame = $(Handlebars.compile(`<div class="hardnav-view">
             <div class="header">
                 <table border=1 class="instruments">
                 <tr>
-                    <td class="but choose">${_gtxt('HardNavigation.choose_reg')}</td>
-                    <td class="but create">${_gtxt('HardNavigation.create_reg')}</td>
+                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>${_gtxt('HardNavigation.choose_reg')}</td>
+                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>${_gtxt('HardNavigation.create_reg')}</td>
                 </tr>
                 </table> 
                 <table border=1>
@@ -38,7 +44,7 @@ const MyCollectionView = function ({ model, registerDlg }) {
             <div class="footer">
                 <table border=1 class="pager">
                     <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>
-                    <td class="current">${_gtxt('HardNavigation.page_lbl')} 1/1</td>
+                    <td class="current">${_gtxt('HardNavigation.page_lbl')} <span class="pages"></span></td>
                     <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>
                 </table>  
                 <div class="but but-attributes">${_gtxt('HardNavigation.attr_tbl')}</div>          
@@ -50,14 +56,16 @@ const MyCollectionView = function ({ model, registerDlg }) {
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
 
-        this.tableTemplate = '{{#each vessels}}' +
-            '<div class="hardnav-item">' +
-            '<table border=0><tr>' +
-            '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' +
-            '<td><div class="exclude button" title="{{i "Lloyds.vesselExclude"}}"></div></td>' +
-            '</tr></table>' +
-            '</div>' +
-            '{{/each}}' +
+        this.tableTemplate = '<table border=1 class="grid">{{#each regions}}<tr>' +                
+                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>' +
+                '<td>{{id}}{{Origin}}</td>' +
+                '<td>{{{DateTime}}}</td>' +
+                '<td>{{{DateTimeChange}}}</td>' +
+                '<td class="{{StateColor}}"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' +
+                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' +
+                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' +
+                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' +
+            '</tr>{{/each}}</table>' +
             '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 
         Object.defineProperty(this, "topOffset", {
@@ -75,6 +83,9 @@ const MyCollectionView = function ({ model, registerDlg }) {
         _createBut = this.frame.find('.but.create');       
         _chooseBut.on('click', _copyRegion.bind(this));      
         _createBut.on('click', _createRegion.bind(this));
+             
+        this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));      
+        this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
 
     },    
     _addCalendar = function(){
@@ -125,18 +136,6 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
         });
     },  
-    _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' +
-    '<table class="obj-edit-proptable"><tbody>' +
-    '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' +
-    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Name</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
-    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Type</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
-    '<tr style="height: 22px;"><td><span style="font-size: 12px;">Origin</span></td><td>${gmx_id}</td></tr>' +
-    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">Date</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274923"></td></tr>' +
-    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">DateChange</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274924"></td></tr>' +
-    //'<tr style="height: 22px;"><td><span style="font-size: 12px;">State</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
-    '</table>' +
-    '<div class="media-Desc-GUI"><span id="media-Desc-EditLabel" title="${_gtxt("HardNavigation.description_ttl")}">${_gtxt("HardNavigation.description_lbl")}</span><span id="mediaDesc-EditButton" class="buttonLink" title="${_gtxt("HardNavigation.edit_description_ttl")}">${_gtxt("HardNavigation.edit_description_lbl")}</span></div>' + 
-    '<div style="margin: 10px 0px; height: 20px;"><span class="buttonLink">${_gtxt("HardNavigation.save")}</span><span class="buttonLink" style="margin-left: 10px;">${_gtxt("HardNavigation.cancel")}</span></div>',
     _listeners = {},
     _layerClickHandler = function (event) {
         var layer = event.target,
@@ -284,31 +283,7 @@ console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
             nsGmx.leafletMap.gmxDrawing.clearCreate();
         }
     },
-    _addRegion = function(){
-        this.inProgress(true);
-        const obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON({coordinates: [[[170.72753903711163, 60.844910986045214],
-            [168.66210900000357, 60.73768601038719],
-            [169.2333979948311, 61.17503299842439],
-            [169.2333979948311, 61.17503299842439],
-            [170.07934598946287, 61.14986199628548],
-            [170.72753903711163, 60.844910986045214]
-            ]],
-            type: "Polygon"});
-        _mapHelper.modifyObjectLayer('FF3D4FD4291040BA9A6139EEE2CE3D23', [{properties:{'Name':'Name'}, geometry:{type:'Polygon', coordinates:[[[19005302.71, 8552947.37],
-            [18775380.09, 8528526.66],
-            [18838975.69, 8628653.04],
-            [18838975.69, 8628653.04],
-            [18933146.19, 8622852.76],
-            [19005302.71, 8552947.37]]]}}]).done(()=>{
-                nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
-                setTimeout(()=>{
-                    nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23']._gmx._chkVersion();
-                    this.inProgress(false);
-                }, 5000);                
-            }); 
-    },
     _clean = function () {
-
     };
     let _stateUI = '',
         _createBut, _chooseBut,        
@@ -335,10 +310,17 @@ MyCollectionView.prototype.repaint = function () {
     _clean.call(this);
     BaseView.prototype.repaint.call(this); 
 
+    if (this.model.pagesTotal){
+        const pages = this.frame.find('.pages');
+        pages.text(`${this.model.page+1} / ${this.model.pagesTotal}`);
+    }
 
 };
 
 MyCollectionView.prototype.show = function () {
+    if (!this.frame)
+        return;
+
     this.frame.show();
     //this.searchInput.focus();
     BaseView.prototype.show.apply(this, arguments);

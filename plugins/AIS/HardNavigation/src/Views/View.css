@@ -39,6 +39,14 @@
 .hardnav-view .color-transparent{
   color: transparent;
 }
+
+.hardnav-view .color-red{
+  color:red;
+}
+.hardnav-view .color-green{
+  color: green;
+}
+
 .hardnav-view .header {
   padding-top: 15px; 
 }
@@ -65,17 +73,35 @@
 .hardnav-view .grid-header{
   width: 100%;
   margin-top: 15px;
+  color: #394b59;
 }
 .hardnav-view .grid-header td{
   padding: 15px 5px;
 }
 .hardnav-view .grid-header td svg{
-  width:16px;
-  height:16px;
+  width:14px;
+  height:14px;
 }
 .hardnav-view .grid-header td:nth-of-type(2),
 .hardnav-view .grid-header td:nth-of-type(3),
 .hardnav-view .grid-header td:nth-of-type(4){
+  width: 70px;
+}
+
+.hardnav-view .grid{
+  width: 100%;
+  color: #394b59;
+}
+.hardnav-view .grid td{
+  padding: 15px 5px;
+}
+.hardnav-view .grid td svg{
+  width:14px;
+  height:14px;
+}
+.hardnav-view .grid td:nth-of-type(2),
+.hardnav-view .grid td:nth-of-type(3),
+.hardnav-view .grid td:nth-of-type(4){
   width: 70px;
 }
 
@@ -106,4 +132,16 @@
 }
 .hardnav-view .but{
   cursor: pointer;
+}
+.hardnav-view .instruments .but svg{
+  width: 20px;
+  height: 20px;
+  top: -4px;
+  position: relative;
+  vertical-align: middle;
+}
+.hardnav-view .instruments .but.choose svg{
+  width: 16px;
+  height: 16px;
+  top: -2px;
 }

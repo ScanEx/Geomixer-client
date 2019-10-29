@@ -20,7 +20,10 @@ BaseView.prototype = function () {
             return this.frame.is(":visible");
         },
         resize: function (clean) {
-console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
+            if(!this.frame)
+                return;
+
+//console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
             let h = $('.iconSidebarControl-pane').height() - this.topOffset - this.bottomOffset;
             // if (this.startScreen){
             //     this.startScreen.height(h);
@@ -51,6 +54,9 @@ console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomO
 
         },
         show: function () {
+            if (!this.frame)
+                return;
+
             this.frame.show();
             this.model.update();
         },

@@ -26,8 +26,8 @@ const publicInterface = {
     pluginName: pluginName,
     afterViewer: function (params, map) {
         const options = {
-            aisLastPoint: '303F8834DEE2449DAF1DA9CD64B748FE',
-            modulePath: modulePath,
+                modulePath: modulePath,
+                layer: params.layer
             },
             viewFactory = new ViewsFactory(options),
             pluginPanel = new PluginPanel(viewFactory);
@@ -40,7 +40,11 @@ const publicInterface = {
                     inactive: "hardnav-sidebar-icon",
                     hint: _gtxt('HardNavigation.title')
                 })()
-        tab.querySelector('.HardNavigation').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/><rect x="3.5" y="4.38" width="7" height="1.75"/><rect x="3.5" y="7.88" width="7" height="1.75"/></svg>';
+        tab.querySelector('.HardNavigation').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/>
+        <rect x="2" y="7" width="20" height="1" transform="rotate(45 2 7)"></rect>
+        <rect x="2" y="3" width="20" height="1" transform="rotate(45 2 3)"></rect>
+        <rect x="2" y="-1" width="20" height="1" transform="rotate(45 2 -1)"></rect>
+        <rect x="2" y="-5" width="20" height="1" transform="rotate(45 2 -5)"></rect>   </svg>`;
         pluginPanel.sidebarPane = sidebar.setPane(
             menuId, {
                 createTab: ()=>{

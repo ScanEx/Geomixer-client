@@ -74,8 +74,8 @@
 	    pluginName: pluginName,
 	    afterViewer: function afterViewer(params, map) {
 	        var options = {
-	            aisLastPoint: '303F8834DEE2449DAF1DA9CD64B748FE',
-	            modulePath: modulePath
+	            modulePath: modulePath,
+	            layer: params.layer
 	        },
 	            viewFactory = new ViewsFactory(options),
 	            pluginPanel = new PluginPanel(viewFactory);
@@ -88,7 +88,7 @@
 	            inactive: "hardnav-sidebar-icon",
 	            hint: _gtxt('HardNavigation.title')
 	        })();
-	        tab.querySelector('.HardNavigation').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z"/><rect x="3.5" y="4.38" width="7" height="1.75"/><rect x="3.5" y="7.88" width="7" height="1.75"/></svg>';
+	        tab.querySelector('.HardNavigation').innerHTML = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><path d=\"M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z\"/>\n        <rect x=\"2\" y=\"7\" width=\"20\" height=\"1\" transform=\"rotate(45 2 7)\"></rect>\n        <rect x=\"2\" y=\"3\" width=\"20\" height=\"1\" transform=\"rotate(45 2 3)\"></rect>\n        <rect x=\"2\" y=\"-1\" width=\"20\" height=\"1\" transform=\"rotate(45 2 -1)\"></rect>\n        <rect x=\"2\" y=\"-5\" width=\"20\" height=\"1\" transform=\"rotate(45 2 -5)\"></rect>   </svg>";
 	        pluginPanel.sidebarPane = sidebar.setPane(menuId, {
 	            createTab: function createTab() {
 	                return tab;
@@ -307,8 +307,8 @@
 	var MyCollectionView = __webpack_require__(7),
 	    MyCollectionModel = __webpack_require__(10);
 	module.exports = function (options) {
-	    var _mcm = new MyCollectionModel(),
-	        _mcv = new MyCollectionView({ model: _mcm });
+	    var _mcm = new MyCollectionModel({ layer: options.layer }),
+	        _mcv = new MyCollectionView({ model: _mcm, layer: options.layer });
 	    return {
 	        create: function create() {
 	            return [_mcv];
@@ -329,19 +329,24 @@
 	
 	var MyCollectionView = function MyCollectionView(_ref) {
 	    var model = _ref.model,
-	        registerDlg = _ref.registerDlg;
+	        layer = _ref.layer;
 	
 	
-	    _layer = nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23'];
+	    _layer = nsGmx.gmxMap.layersByID[layer];
+	    if (!_layer) {
+	        model.isDirty = false;
+	        return;
+	    }
+	    if (_layer._map) nsGmx.leafletMap.addLayer(_layer);
 	
 	    BaseView.call(this, model);
-	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr>\n                    <td class="but choose">' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create">' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <div class="calendar"></div>\n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' 1/1</td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
+	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=1 class="instruments">\n                <tr>\n                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n                <table border=1>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>\n                </table> \n                <div class="calendar"></div>\n                <table border=1 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' <span class="pages"></span></td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
 	    _addCalendar.call(this);
 	
 	    this.container = this.frame.find('.grid');
 	    this.footer = this.frame.find('.footer');
 	
-	    this.tableTemplate = '{{#each vessels}}' + '<div class="hardnav-item">' + '<table border=0><tr>' + '<td><div class="position">{{vessel_name}}</div><div>mmsi: {{mmsi}} imo: {{imo}}</div></td>' + '<td><div class="exclude button" title="{{i "Lloyds.vesselExclude"}}"></div></td>' + '</tr></table>' + '</div>' + '{{/each}}' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+	    this.tableTemplate = '<table border=1 class="grid">{{#each regions}}<tr>' + '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>' + '<td>{{id}}{{Origin}}</td>' + '<td>{{{DateTime}}}</td>' + '<td>{{{DateTimeChange}}}</td>' + '<td class="{{StateColor}}"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' + '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' + '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' + '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' + '</tr>{{/each}}</table>' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
@@ -358,6 +363,9 @@
 	    _createBut = this.frame.find('.but.create');
 	    _chooseBut.on('click', _copyRegion.bind(this));
 	    _createBut.on('click', _createRegion.bind(this));
+	
+	    this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));
+	    this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
 	},
 	    _addCalendar = function _addCalendar() {
 	    var _this = this;
@@ -403,11 +411,6 @@
 	        //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
 	    });
 	},
-	    _editDialogTemplate = '<div class="obj-edit-canvas" style="overflow: auto; height: 204px;">' + '<table class="obj-edit-proptable"><tbody>' + '<tr><td style="height: 20px;"><span><span class="edit-obj-geomtitle">Геометрия</span><span id="choose-geom" class="gmx-icon-choose"></span></span></td><td><div style="color: rgb(33, 85, 112); font-size: 12px;"></div></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Name</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Type</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' + '<tr style="height: 22px;"><td><span style="font-size: 12px;">Origin</span></td><td>${gmx_id}</td></tr>' +
-	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">Date</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274923"></td></tr>' +
-	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">DateChange</span></td><td><input class="inputStyle edit-obj-input hasDatepicker" id="dp1572007274924"></td></tr>' +
-	//'<tr style="height: 22px;"><td><span style="font-size: 12px;">State</span></td><td><input class="inputStyle edit-obj-input"></td></tr>' +
-	'</table>' + '<div class="media-Desc-GUI"><span id="media-Desc-EditLabel" title="${_gtxt("HardNavigation.description_ttl")}">${_gtxt("HardNavigation.description_lbl")}</span><span id="mediaDesc-EditButton" class="buttonLink" title="${_gtxt("HardNavigation.edit_description_ttl")}">${_gtxt("HardNavigation.edit_description_lbl")}</span></div>' + '<div style="margin: 10px 0px; height: 20px;"><span class="buttonLink">${_gtxt("HardNavigation.save")}</span><span class="buttonLink" style="margin-left: 10px;">${_gtxt("HardNavigation.cancel")}</span></div>',
 	    _listeners = {},
 	    _layerClickHandler = function _layerClickHandler(event) {
 	    var layer = event.target,
@@ -549,20 +552,6 @@
 	        nsGmx.leafletMap.gmxDrawing.clearCreate();
 	    }
 	},
-	    _addRegion = function _addRegion() {
-	    var _this2 = this;
-	
-	    this.inProgress(true);
-	    var obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON({ coordinates: [[[170.72753903711163, 60.844910986045214], [168.66210900000357, 60.73768601038719], [169.2333979948311, 61.17503299842439], [169.2333979948311, 61.17503299842439], [170.07934598946287, 61.14986199628548], [170.72753903711163, 60.844910986045214]]],
-	        type: "Polygon" });
-	    _mapHelper.modifyObjectLayer('FF3D4FD4291040BA9A6139EEE2CE3D23', [{ properties: { 'Name': 'Name' }, geometry: { type: 'Polygon', coordinates: [[[19005302.71, 8552947.37], [18775380.09, 8528526.66], [18838975.69, 8628653.04], [18838975.69, 8628653.04], [18933146.19, 8622852.76], [19005302.71, 8552947.37]]] } }]).done(function () {
-	        nsGmx.leafletMap.gmxDrawing.remove(obj[0]);
-	        setTimeout(function () {
-	            nsGmx.gmxMap.layersByID['FF3D4FD4291040BA9A6139EEE2CE3D23']._gmx._chkVersion();
-	            _this2.inProgress(false);
-	        }, 5000);
-	    });
-	},
 	    _clean = function _clean() {};
 	var _stateUI = '',
 	    _createBut = void 0,
@@ -586,9 +575,16 @@
 	MyCollectionView.prototype.repaint = function () {
 	    _clean.call(this);
 	    BaseView.prototype.repaint.call(this);
+	
+	    if (this.model.pagesTotal) {
+	        var pages = this.frame.find('.pages');
+	        pages.text(this.model.page + 1 + ' / ' + this.model.pagesTotal);
+	    }
 	};
 	
 	MyCollectionView.prototype.show = function () {
+	    if (!this.frame) return;
+	
 	    this.frame.show();
 	    //this.searchInput.focus();
 	    BaseView.prototype.show.apply(this, arguments);
@@ -629,7 +625,9 @@
 	            return this.frame.is(":visible");
 	        },
 	        resize: function resize(clean) {
-	            console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset);
+	            if (!this.frame) return;
+	
+	            //console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
 	            var h = $('.iconSidebarControl-pane').height() - this.topOffset - this.bottomOffset;
 	            // if (this.startScreen){
 	            //     this.startScreen.height(h);
@@ -657,6 +655,8 @@
 	            }
 	        },
 	        show: function show() {
+	            if (!this.frame) return;
+	
 	            this.frame.show();
 	            this.model.update();
 	        },
@@ -675,13 +675,20 @@
 	'use strict';
 	
 	var Polyfill = __webpack_require__(11);
-	module.exports = function (searcher) {
+	module.exports = function (options) {
 	    var _actualUpdate = void 0,
-	        _data = void 0;
-	    if (!_data) _data = { vessels: [] };
+	        _data = void 0,
+	        _page = 0,
+	        _pageSize = 3,
+	        _count = 0;
+	
+	    var _layerName = options.layer,
+	        _checkResponse = function _checkResponse(r) {
+	        return r && r.Status && r.Status.toLowerCase() == 'ok';
+	    };
+	    if (!_data) _data = { regions: [] };
 	
 	    return {
-	        searcher: searcher,
 	        isDirty: true,
 	        get data() {
 	            return _data;
@@ -689,12 +696,72 @@
 	        set data(value) {
 	            _data = value;
 	        },
-	
+	        get pagesTotal() {
+	            return Math.ceil(_count / _pageSize);
+	        },
+	        set page(value) {
+	            if (value < 0) value = 0;
+	            if (value >= this.pagesTotal) value = this.pagesTotal - 1;
+	            _page = value;
+	            this.isDirty = true;
+	            this.update();
+	        },
+	        get page() {
+	            return _page;
+	        },
+	        previousPage: function previousPage() {
+	            if (!this.isDirty) this.page = _page - 1;
+	        },
+	        nextPage: function nextPage() {
+	            if (!this.isDirty) this.page = _page + 1;
+	        },
 	        update: function update() {
-	            var th = this;
-	            setTimeout(function () {
-	                return th.view.repaint();
-	            }, 500);
+	            var instance = this;
+	            if (!this.isDirty) return;
+	
+	            _count = 0;
+	            _data.regions.length = 0;
+	            [function (r) {
+	                return new Promise(function (resolve, reject) {
+	                    sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&count=true', function (r) {
+	                        return resolve(r);
+	                    });
+	                });
+	            }, function (r) {
+	                if (_checkResponse(r)) {
+	                    _count = parseInt(r.Result);
+	                    sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&orderby=gmx_id&pagesize=' + _pageSize + '&page=' + _page, function (r) {
+	                        if (_checkResponse(r)) {
+	                            //resolve(r); 
+	                            var result = r.Result,
+	                                format = function format(d, t) {
+	                                if (!d || !t || isNaN(d) || isNaN(t)) return '';
+	                                var dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+	                                return dt.toLocaleDateString() + '<br>' + dt.toLocaleTimeString();
+	                            };
+	                            for (var i = 0; i < result.values.length; ++i) {
+	                                var reg = {};
+	                                for (var j = 0; j < result.fields.length; ++j) {
+	                                    reg[result.fields[j]] = result.values[i][j];
+	                                }reg.id = reg.gmx_id + (reg.Origin && reg.Origin != '' ? '_' : '') + reg.Origin;
+	                                reg.DateTime = format(reg.Date, reg.Time);
+	                                reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
+	                                reg.StateColor = reg.State == "archive" ? "color-red" : "color-green";
+	                                _data.regions.push(reg);
+	                            }
+	                            console.log(_data);
+	                        } else console.log(r);
+	                        instance.view.repaint();
+	                        instance.isDirty = false;
+	                    });
+	                } else {
+	                    console.log(r);
+	                    instance.view.repaint();
+	                    instance.isDirty = false;
+	                }
+	            }].reduce(function (p, c) {
+	                return p.then(c);
+	            }, Promise.resolve());
 	        }
 	    };
 	};
