@@ -1,33 +1,38 @@
 require("./MyCollection.css")
 const BaseView = require('./BaseView.js');
 
-//let _searchString = "";
+let _stateUI = '',
+_createBut, _chooseBut,        
+_layer, 
+_thisView;
 
 const MyCollectionView = function ({ model, layer }) {
+    _thisView = this;
 
         _layer = nsGmx.gmxMap.layersByID[layer];
         if (!_layer){
             model.isDirty = false;
             return;
         }
-        if (_layer._map)
-            nsGmx.leafletMap.addLayer(_layer);
 
         BaseView.call(this, model);
         this.frame = $(Handlebars.compile(`<div class="hardnav-view">
             <div class="header">
-                <table border=1 class="instruments">
+                <table border=0>
+                <tr><td class="hint" colspan="2">${_gtxt('HardNavigation.instr_hint')}</td>
+                <td><div class="refresh"><div style="display:none">${this.gifLoader}</div></div></td></tr>
+                </table> 
+
+                <table border=0 class="instruments unselectable">
                 <tr>
                     <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>${_gtxt('HardNavigation.choose_reg')}</td>
                     <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>${_gtxt('HardNavigation.create_reg')}</td>
                 </tr>
                 </table> 
-                <table border=1>
-                <tr><td class="hint" colspan="2">${_gtxt('HardNavigation.instr_hint')}</td>
-                <td><div class="refresh"><div>${this.gifLoader}</div></div></td></tr>
-                </table> 
+
                 <div class="calendar"></div>
-                <table border=1 class="grid-header">
+
+                <table border=0 class="grid-header">
                 <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>
                 <td>${_gtxt('HardNavigation.reg_id')}</td>
                 <td>${_gtxt('HardNavigation.reg_created')}</td>
@@ -41,7 +46,7 @@ const MyCollectionView = function ({ model, layer }) {
             <div class="grid">
 
             </div>
-            <div class="footer">
+            <div class="footer unselectable">
                 <table border=1 class="pager">
                     <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>
                     <td class="current">${_gtxt('HardNavigation.page_lbl')} <span class="pages"></span></td>
@@ -56,15 +61,17 @@ const MyCollectionView = function ({ model, layer }) {
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
 
-        this.tableTemplate = '<table border=1 class="grid">{{#each regions}}<tr>' +                
-                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>' +
-                '<td>{{id}}{{Origin}}</td>' +
+        this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
+                '<td class="visibility">' +
+                '<svg style="display:block"><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg>' +
+                '<svg style="display:none"><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' +
+                '<td>{{id}}</td>' +
                 '<td>{{{DateTime}}}</td>' +
                 '<td>{{{DateTimeChange}}}</td>' +
-                '<td class="{{StateColor}}"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' +
-                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' +
-                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' +
-                '<td><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' +
+                '<td class="{{StateColor}} state"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' +
+                '<td class="edit"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' +
+                '<td class="show"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' +
+                '<td class="info"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' +
             '</tr>{{/each}}</table>' +
             '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 
@@ -135,8 +142,7 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
 console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
         });
-    },  
-    _listeners = {},
+    }, 
     _layerClickHandler = function (event) {
         var layer = event.target,
             props = layer.getGmxProperties(),
@@ -168,7 +174,10 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                         eoc.set('Time', dt.getTime()/1000); 
                         eoc.set('Date', dt.getTime()/1000); 
 
-                        $(eoc).on('modify', e=>console.log(e.target.getAll()));
+                        $(eoc).on('modify', (e=>{
+//console.log(e.target.getAll());
+                            _thisView.model.page = 0; // model update
+                        }));
                         
                         $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog')
                         .find('tr').each((i, el)=>{
@@ -180,51 +189,35 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                     }
                     else
                         console.log(response);
-
+ 
                     _chooseBut.click(); 
                 }                
             });
         return true;
     },
     _copyRegion = function(){
-        if (_stateUI != 'copy_region'){
+        const layer = _layer,
+              props = layer.getGmxProperties();
+        if (_stateUI != 'copy_region') {
             if (_stateUI != '')
-                _createBut.click(); 
+                _createBut.click();
+
             _stateUI = 'copy_region';
             _chooseBut.addClass('active');
-
-            for (var iL = 0; iL < nsGmx.gmxMap.layers.length; iL++) {
-                var layer = nsGmx.gmxMap.layers[iL],
-                    props = layer.getGmxProperties();
-
-                if (layer.disableFlip && layer.disablePopup) {
-                    layer.disableFlip();
-                    layer.disablePopup();
-                }
-
-                if (layer instanceof L.gmx.VectorLayer && props.GeometryType.toLowerCase()=='polygon') {
-                    _listeners[props.name] = _layerClickHandler;
-                    layer.on('click', _listeners[props.name]);
-                }
+            if (layer.disableFlip && layer.disablePopup) {
+                layer.disableFlip();
+                layer.disablePopup();
             }
+            layer.on('click', _layerClickHandler);
         }
-        else{
+        else {
             _stateUI = '';
             _chooseBut.removeClass('active');
-            nsGmx.gmxMap.layers.forEach( layer=>{
-                if (layer.disableFlip && layer.disablePopup) {
-                    layer.enableFlip();
-                    layer.enablePopup();
-                }
-            });
-            let test = 0;
-            for (var layerName in _listeners) {
-                nsGmx.gmxMap.layersByID[layerName].off('click', _listeners[layerName]);
-//let clickEvent = nsGmx.gmxMap.layersByID[layerName]._events.click;              
-//test += clickEvent ? clickEvent.length : 0;
-                delete _listeners[layerName];
+            if (layer.disableFlip && layer.disablePopup) {
+                layer.enableFlip();
+                layer.enablePopup();
             }
-//console.log(`clicks ${test}`)
+            layer.off('click', _layerClickHandler);
         }
     },
     _onDrawStop = function(e){
@@ -234,7 +227,9 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                     let dt = new Date();        
                     eoc.set('Time', dt.getTime()/1000); 
                     eoc.set('Date', dt.getTime()/1000);                                  
-                    $(eoc).on('modify', e=>console.log(e.target.getAll()));
+                    $(eoc).on('modify', e=>{
+                        _thisView.model.page = 0; // model update
+                    });
                     
                     $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog')
                     .find('tr').each((i, el)=>{
@@ -253,7 +248,7 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             if (_stateUI != '')
                 _chooseBut.click();  
             _stateUI = 'create_region'; 
-            _createBut.addClass('active');          
+            _createBut.addClass('active'); 
             nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop);
 
             nsGmx.gmxMap.layers.forEach( layer=>{
@@ -285,10 +280,6 @@ console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
     },
     _clean = function () {
     };
-    let _stateUI = '',
-        _createBut, _chooseBut,        
-        _layer;
-;
 
 MyCollectionView.prototype = Object.create(BaseView.prototype);
 
@@ -313,13 +304,90 @@ MyCollectionView.prototype.repaint = function () {
     if (this.model.pagesTotal){
         const pages = this.frame.find('.pages');
         pages.text(`${this.model.page+1} / ${this.model.pagesTotal}`);
-    }
 
+        this.frame.find('.grid .visibility').on('click', e=>{
+            let td = e.currentTarget,
+                svg = td.querySelectorAll('svg'),
+                vis = 0, hid = 1;
+            if (svg[0].style.display =='block'){
+                vis = 1; hid = 0;
+            }
+            else{
+                vis = 0; hid = 1;
+            }
+            svg[hid].style.display = 'none';
+            svg[vis].style.display = 'block';
+        });
+
+        this.frame.find('.grid .show').on('click', e=>{
+            var id = e.currentTarget.parentElement.id,
+                layer = _layer,
+                props = layer.getGmxProperties(),
+                layerName = props.name;
+            sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function(response) {
+                if (!window.parseResponse(response)) {
+                    return;
+                }
+                var columnNames = response.Result.fields;
+                var row = response.Result.values[0];
+                //for (var i = 0; i < row.length; ++i)
+                var i = columnNames.indexOf('geomixergeojson');
+                {
+                    if (columnNames[i] === 'geomixergeojson' && row[i])
+                    {
+                        var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
+
+                        var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
+                        var bounds = L.gmxUtil.getGeometryBounds(geom);
+                        nsGmx.leafletMap.fitBounds([
+                            [bounds.min.y, bounds.min.x],
+                            [bounds.max.y, bounds.max.x]
+                        ], fitBoundsOptions);						
+                    }
+                }
+            });
+        });
+
+        this.frame.find('.grid .edit').on('click', e=>{
+            let id = e.currentTarget.parentElement.id,
+                layerName = _layer.getGmxProperties().name,
+                layerTitle = _layer.getGmxProperties().title,
+                eoc = new nsGmx.EditObjectControl(layerName, id),
+                dt = new Date();           
+            $(eoc).on('modify', e=>{
+///console.log(e.target.getAll(), dt);
+                _thisView.model.isDirty = true;                       
+                _thisView.model.update();
+            }); 
+            let isDelete = false; 
+            eoc.initPromise.done(()=>{        
+                eoc.set('TimeChange', dt.getTime()/1000); 
+                eoc.set('DateChange', dt.getTime()/1000);
+                const dlg = $(`span:contains("${_gtxt("Редактировать объект слоя [value0]", layerTitle)}")`).closest('.ui-dialog');
+                dlg.find('tr').each((i, el)=>{
+                    let name = el.querySelectorAll('td')[0].innerText;
+                    if (i>1 && name.search(/\b(Name|Type)\b/i)<0)
+                        el.style.display = 'none';
+                });                 
+                dlg.find(`.buttonLink:contains("${_gtxt("Удалить")}")`).on('click', e=>{
+                    isDelete = true;
+                }); 
+            });                    
+            $(eoc).on('close', e=>{
+                if (isDelete)
+                    _thisView.model.page = 0;
+            });
+            
+        })
+    }
 };
 
 MyCollectionView.prototype.show = function () {
     if (!this.frame)
         return;
+
+    if (!_layer._map)
+        nsGmx.leafletMap.addLayer(_layer);
 
     this.frame.show();
     //this.searchInput.focus();

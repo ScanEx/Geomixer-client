@@ -17,10 +17,12 @@ module.exports = function (options) {
         set data(value) { _data = value; },
         get pagesTotal() { return Math.ceil(_count/_pageSize); },
         set page(value) { 
-            if (value<0)
-                value = 0;
-            if (value>=this.pagesTotal)
-                value = this.pagesTotal-1;
+            if (value<0){
+                return;
+            }
+            if (value>=this.pagesTotal){
+                return;
+            }
             _page = value; 
             this.isDirty = true;
             this.update();
@@ -35,12 +37,12 @@ module.exports = function (options) {
                 this.page = _page + 1;
         },
         update: function () {
-            const instance = this;
-            if (!this.isDirty)
+            const thisModel = this;
+            if (!thisModel.isDirty)
                 return;
-
             _count = 0;
             _data.regions.length = 0;
+            thisModel.view.inProgress(true);
             [function(r){
                 return new Promise((resolve, reject) => {
                     sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true`, r=>
@@ -50,7 +52,7 @@ module.exports = function (options) {
             }, function(r){
                 if (_checkResponse(r)){
                     _count = parseInt(r.Result);
-                    sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&pagesize=${_pageSize}&page=${_page}`, r=>{
+                    sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}`, r=>{
                         if (_checkResponse(r)){
                             //resolve(r); 
                             let result = r.Result,
@@ -64,25 +66,24 @@ module.exports = function (options) {
                                 let reg = {};
                                 for (let j =0; j<result.fields.length; ++j)
                                     reg[result.fields[j]] = result.values[i][j];
-                                reg.id = reg.gmx_id + (reg.Origin && reg.Origin!=''?'_':'') + reg.Origin;
+                                reg.id = reg.gmx_id + ((reg.Origin && reg.Origin!='')?'_':'') + reg.Origin;
                                 reg.DateTime = format(reg.Date, reg.Time);
                                 reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
                                 reg.StateColor = reg.State=="archive"?"color-red":"color-green";
                                 _data.regions.push(reg);
                             }
-                            console.log(_data);
-
+//console.log(_data);
                         }
                         else
                             console.log(r)
-                        instance.view.repaint();
-                        instance.isDirty = false;
+                        thisModel.view.repaint();
+                        thisModel.isDirty = false;
                     });
                 }
                 else{
                     console.log(r)
-                    instance.view.repaint();
-                    instance.isDirty = false;
+                    thisModel.view.repaint();
+                    thisModel.isDirty = false;
                 }
             }]
             .reduce((p, c)=>p.then(c), Promise.resolve());
