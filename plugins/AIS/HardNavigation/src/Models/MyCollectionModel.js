@@ -53,6 +53,7 @@ module.exports = function (options) {
                 if (_checkResponse(r)){
                     _count = parseInt(r.Result);
                     sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}`, r=>{
+                        _data.regions.length = 0;                        
                         if (_checkResponse(r)){
                             //resolve(r); 
                             let result = r.Result,
