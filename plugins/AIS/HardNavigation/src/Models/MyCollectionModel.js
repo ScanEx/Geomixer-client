@@ -3,7 +3,7 @@ module.exports = function (options) {
     let _actualUpdate,
         _data,
         _page = 0,
-        _pageSize = 3, 
+        _pageSize = 14, 
         _count = 0;
         
     const _layerName = options.layer,

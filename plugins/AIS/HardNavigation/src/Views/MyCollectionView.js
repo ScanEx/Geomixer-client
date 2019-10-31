@@ -47,7 +47,7 @@ const MyCollectionView = function ({ model, layer }) {
 
             </div>
             <div class="footer unselectable">
-                <table border=1 class="pager">
+                <table border=0 class="pager">
                     <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>
                     <td class="current">${_gtxt('HardNavigation.page_lbl')} <span class="pages"></span></td>
                     <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>
@@ -56,7 +56,7 @@ const MyCollectionView = function ({ model, layer }) {
             </div>
             </div>`
         )());
-        _addCalendar.call(this);
+        //_addCalendar.call(this);
 
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
@@ -149,7 +149,6 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             id = event.gmx.properties[props.identityField];
 
         layer.bringToTopItem(id);
-        //new nsGmx.EditObjectControl(props.name, id, { event: event });
         sendCrossDomainJSONRequest(`${serverBase}VectorLayer/Search.ashx?WrapStyle=func&layer=${props.name}&page=0&pagesize=1&orderby=${props.identityField}&geometry=true&query=[${props.identityField}]=${id}`,
             function (response) {
                 if (_stateUI == 'copy_region') {
@@ -164,28 +163,32 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                             type = result.values[0][result.fields.indexOf('Type')],    
                             media = result.values[0][result.fields.indexOf('_mediadescript_')],                   
                             eoc = new nsGmx.EditObjectControl(props.name, null, {drawingObject: obj[0]}),
-                            dt = new Date();       
-                        eoc.set('Origin', gmx_id);     
-                        eoc.set('Name', name); 
-                        eoc.set('Type', type);  
-                        eoc.set('_mediadescript_', media);       
-                        //eoc.set('Time', time); 
-                        //eoc.set('Date', date);       
-                        eoc.set('Time', dt.getTime()/1000); 
-                        eoc.set('Date', dt.getTime()/1000); 
-
+                            dt = new Date(); 
+                        eoc.initPromise.done(()=>{      
+                            eoc.set('Origin', gmx_id);     
+                            eoc.set('Name', name); 
+                            eoc.set('Type', type);  
+                            eoc.set('_mediadescript_', media);       
+                            //eoc.set('Time', time); 
+                            //eoc.set('Date', date);       
+                            eoc.set('Time', dt.getTime()/1000); 
+                            eoc.set('Date', dt.getTime()/1000); 
+                       
+                            const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog');
+                            dlg.find('tr').each((i, el)=>{
+                                let name = el.querySelectorAll('td')[0].innerText;
+                                if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
+                                //if (i==0 || name.search(/\b(State)\b/i)==0)
+                                    el.style.display = 'none';
+                            });  
+                            dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e=>{
+                                _thisView.inProgress(true);
+                            });  
+                        });
                         $(eoc).on('modify', (e=>{
 //console.log(e.target.getAll());
                             _thisView.model.page = 0; // model update
-                        }));
-                        
-                        $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog')
-                        .find('tr').each((i, el)=>{
-                            let name = el.querySelectorAll('td')[0].innerText;
-                            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
-                            //if (i==0 || name.search(/\b(State)\b/i)==0)
-                                el.style.display = 'none';
-                        });                        
+                        }));                      
                     }
                     else
                         console.log(response);
@@ -198,8 +201,8 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
     _copyRegion = function(){
         const layer = _layer,
               props = layer.getGmxProperties();
-        if (_stateUI != 'copy_region') {
-            if (_stateUI != '')
+        if (_stateUI == 'create_region' || _stateUI == '') {
+            if (_stateUI == 'create_region')
                 _createBut.click();
 
             _stateUI = 'copy_region';
@@ -210,7 +213,7 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             }
             layer.on('click', _layerClickHandler);
         }
-        else {
+        else if (_stateUI == 'copy_region'){
             _stateUI = '';
             _chooseBut.removeClass('active');
             if (layer.disableFlip && layer.disablePopup) {
@@ -224,28 +227,34 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                     const obj = e.object,
                           lprops = _layer.getGmxProperties(),
                           eoc = new nsGmx.EditObjectControl(lprops.name, null, {drawingObject: obj});
-                    let dt = new Date();        
-                    eoc.set('Time', dt.getTime()/1000); 
-                    eoc.set('Date', dt.getTime()/1000);                                  
+                    eoc.initPromise.done(()=>{      
+                        let dt = new Date();        
+                        eoc.set('Time', dt.getTime()/1000); 
+                        eoc.set('Date', dt.getTime()/1000);                    
+                        const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog');
+                        dlg.find('tr').each((i, el)=>{
+                            let name = el.querySelectorAll('td')[0].innerText;
+                            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
+                                el.style.display = 'none';
+                        }); 
+                        dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e=>{
+                            _thisView.inProgress(true);
+                        });   
+                    });                              
                     $(eoc).on('modify', e=>{
-                        _thisView.model.page = 0; // model update
+                        _thisView.model.page = 0; // Model update
                     });
-                    
-                    $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog')
-                    .find('tr').each((i, el)=>{
-                        let name = el.querySelectorAll('td')[0].innerText;
-                        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
-                            el.style.display = 'none';
-                    });
-
+                    // Continue command
                     //nsGmx.leafletMap._container.style.cursor='pointer'; 
                     //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
+
+                    // Discontinue command
                     if (_stateUI == 'create_region')
                         _createBut.click();
             },
     _createRegion = function(){
-        if (_stateUI != 'create_region'){
-            if (_stateUI != '')
+        if (_stateUI == 'copy_region' || _stateUI == ''){
+            if (_stateUI == 'copy_region')
                 _chooseBut.click();  
             _stateUI = 'create_region'; 
             _createBut.addClass('active'); 
@@ -261,12 +270,12 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             nsGmx.leafletMap._container.style.cursor='pointer';   
             nsGmx.leafletMap.gmxDrawing.create('Polygon');
         }
-        else{
+        else if (_stateUI == 'create_region'){
             _stateUI = '';
             _createBut.removeClass('active');    
             nsGmx.leafletMap._container.style.cursor='';     
             nsGmx.leafletMap.gmxDrawing.off('drawstop', _onDrawStop);
-console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
+//console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
 
             nsGmx.gmxMap.layers.forEach( layer=>{
                 if (layer.disableFlip && layer.disablePopup) {
@@ -349,16 +358,16 @@ MyCollectionView.prototype.repaint = function () {
         });
 
         this.frame.find('.grid .edit').on('click', e=>{
+
+            if (_stateUI != '')
+                return;
+            _stateUI = 'edit_region';
+
             let id = e.currentTarget.parentElement.id,
                 layerName = _layer.getGmxProperties().name,
                 layerTitle = _layer.getGmxProperties().title,
                 eoc = new nsGmx.EditObjectControl(layerName, id),
-                dt = new Date();           
-            $(eoc).on('modify', e=>{
-///console.log(e.target.getAll(), dt);
-                _thisView.model.isDirty = true;                       
-                _thisView.model.update();
-            }); 
+                dt = new Date(); 
             let isDelete = false; 
             eoc.initPromise.done(()=>{        
                 eoc.set('TimeChange', dt.getTime()/1000); 
@@ -369,13 +378,24 @@ MyCollectionView.prototype.repaint = function () {
                     if (i>1 && name.search(/\b(Name|Type)\b/i)<0)
                         el.style.display = 'none';
                 });                 
+                dlg.find(`.buttonLink:contains("${_gtxt("Изменить")}")`).on('click', e=>{
+                    _thisView.inProgress(true);
+                });                 
                 dlg.find(`.buttonLink:contains("${_gtxt("Удалить")}")`).on('click', e=>{
+                    _thisView.inProgress(true);
                     isDelete = true;
                 }); 
-            });                    
+            });            
+            $(eoc).on('modify', e=>{
+///console.log(e.target.getAll(), dt);
+                _thisView.model.isDirty = true;                       
+                _thisView.model.update();
+            });                   
             $(eoc).on('close', e=>{
                 if (isDelete)
                     _thisView.model.page = 0;
+console.log('CLOSE');
+                _stateUI = '';            
             });
             
         })

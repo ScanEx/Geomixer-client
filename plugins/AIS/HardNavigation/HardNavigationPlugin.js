@@ -344,8 +344,8 @@
 	    }
 	
 	    BaseView.call(this, model);
-	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=0>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div style="display:none">' + this.gifLoader + '</div></div></td></tr>\n                </table> \n\n                <table border=0 class="instruments unselectable">\n                <tr>\n                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n\n                <div class="calendar"></div>\n\n                <table border=0 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer unselectable">\n                <table border=1 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' <span class="pages"></span></td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
-	    _addCalendar.call(this);
+	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=0>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div style="display:none">' + this.gifLoader + '</div></div></td></tr>\n                </table> \n\n                <table border=0 class="instruments unselectable">\n                <tr>\n                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n\n                <div class="calendar"></div>\n\n                <table border=0 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer unselectable">\n                <table border=0 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' <span class="pages"></span></td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
+	    //_addCalendar.call(this);
 	
 	    this.container = this.frame.find('.grid');
 	    this.footer = this.frame.find('.footer');
@@ -421,7 +421,6 @@
 	        id = event.gmx.properties[props.identityField];
 	
 	    layer.bringToTopItem(id);
-	    //new nsGmx.EditObjectControl(props.name, id, { event: event });
 	    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + props.name + '&page=0&pagesize=1&orderby=' + props.identityField + '&geometry=true&query=[' + props.identityField + ']=' + id, function (response) {
 	        if (_stateUI == 'copy_region') {
 	            if (response.Status && response.Status.toLowerCase() == 'ok') {
@@ -437,25 +436,30 @@
 	                    media = result.values[0][result.fields.indexOf('_mediadescript_')],
 	                    eoc = new nsGmx.EditObjectControl(props.name, null, { drawingObject: obj[0] }),
 	                    dt = new Date();
-	                eoc.set('Origin', gmx_id);
-	                eoc.set('Name', name);
-	                eoc.set('Type', type);
-	                eoc.set('_mediadescript_', media);
-	                //eoc.set('Time', time); 
-	                //eoc.set('Date', date);       
-	                eoc.set('Time', dt.getTime() / 1000);
-	                eoc.set('Date', dt.getTime() / 1000);
+	                eoc.initPromise.done(function () {
+	                    eoc.set('Origin', gmx_id);
+	                    eoc.set('Name', name);
+	                    eoc.set('Type', type);
+	                    eoc.set('_mediadescript_', media);
+	                    //eoc.set('Time', time); 
+	                    //eoc.set('Date', date);       
+	                    eoc.set('Time', dt.getTime() / 1000);
+	                    eoc.set('Date', dt.getTime() / 1000);
 	
+	                    var dlg = $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog');
+	                    dlg.find('tr').each(function (i, el) {
+	                        var name = el.querySelectorAll('td')[0].innerText;
+	                        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
+	                            //if (i==0 || name.search(/\b(State)\b/i)==0)
+	                            el.style.display = 'none';
+	                    });
+	                    dlg.find('.buttonLink:contains("' + _gtxt("Создать") + '")').on('click', function (e) {
+	                        _thisView.inProgress(true);
+	                    });
+	                });
 	                $(eoc).on('modify', function (e) {
 	                    //console.log(e.target.getAll());
 	                    _thisView.model.page = 0; // model update
-	                });
-	
-	                $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog').find('tr').each(function (i, el) {
-	                    var name = el.querySelectorAll('td')[0].innerText;
-	                    if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
-	                        //if (i==0 || name.search(/\b(State)\b/i)==0)
-	                        el.style.display = 'none';
 	                });
 	            } else console.log(response);
 	
@@ -467,8 +471,8 @@
 	    _copyRegion = function _copyRegion() {
 	    var layer = _layer,
 	        props = layer.getGmxProperties();
-	    if (_stateUI != 'copy_region') {
-	        if (_stateUI != '') _createBut.click();
+	    if (_stateUI == 'create_region' || _stateUI == '') {
+	        if (_stateUI == 'create_region') _createBut.click();
 	
 	        _stateUI = 'copy_region';
 	        _chooseBut.addClass('active');
@@ -477,7 +481,7 @@
 	            layer.disablePopup();
 	        }
 	        layer.on('click', _layerClickHandler);
-	    } else {
+	    } else if (_stateUI == 'copy_region') {
 	        _stateUI = '';
 	        _chooseBut.removeClass('active');
 	        if (layer.disableFlip && layer.disablePopup) {
@@ -491,25 +495,32 @@
 	    var obj = e.object,
 	        lprops = _layer.getGmxProperties(),
 	        eoc = new nsGmx.EditObjectControl(lprops.name, null, { drawingObject: obj });
-	    var dt = new Date();
-	    eoc.set('Time', dt.getTime() / 1000);
-	    eoc.set('Date', dt.getTime() / 1000);
+	    eoc.initPromise.done(function () {
+	        var dt = new Date();
+	        eoc.set('Time', dt.getTime() / 1000);
+	        eoc.set('Date', dt.getTime() / 1000);
+	        var dlg = $('span:contains("' + _gtxt("Создать объект слоя [value0]", lprops.title) + '")').closest('.ui-dialog');
+	        dlg.find('tr').each(function (i, el) {
+	            var name = el.querySelectorAll('td')[0].innerText;
+	            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0) el.style.display = 'none';
+	        });
+	        dlg.find('.buttonLink:contains("' + _gtxt("Создать") + '")').on('click', function (e) {
+	            _thisView.inProgress(true);
+	        });
+	    });
 	    $(eoc).on('modify', function (e) {
-	        _thisView.model.page = 0; // model update
+	        _thisView.model.page = 0; // Model update
 	    });
-	
-	    $('span:contains("' + _gtxt("Создать объект слоя [value0]", lprops.title) + '")').closest('.ui-dialog').find('tr').each(function (i, el) {
-	        var name = el.querySelectorAll('td')[0].innerText;
-	        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0) el.style.display = 'none';
-	    });
-	
+	    // Continue command
 	    //nsGmx.leafletMap._container.style.cursor='pointer'; 
 	    //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
+	
+	    // Discontinue command
 	    if (_stateUI == 'create_region') _createBut.click();
 	},
 	    _createRegion = function _createRegion() {
-	    if (_stateUI != 'create_region') {
-	        if (_stateUI != '') _chooseBut.click();
+	    if (_stateUI == 'copy_region' || _stateUI == '') {
+	        if (_stateUI == 'copy_region') _chooseBut.click();
 	        _stateUI = 'create_region';
 	        _createBut.addClass('active');
 	        nsGmx.leafletMap.gmxDrawing.on('drawstop', _onDrawStop);
@@ -523,12 +534,12 @@
 	
 	        nsGmx.leafletMap._container.style.cursor = 'pointer';
 	        nsGmx.leafletMap.gmxDrawing.create('Polygon');
-	    } else {
+	    } else if (_stateUI == 'create_region') {
 	        _stateUI = '';
 	        _createBut.removeClass('active');
 	        nsGmx.leafletMap._container.style.cursor = '';
 	        nsGmx.leafletMap.gmxDrawing.off('drawstop', _onDrawStop);
-	        console.log('drawstop ' + nsGmx.leafletMap.gmxDrawing._events.drawstop.length);
+	        //console.log(`drawstop ${nsGmx.leafletMap.gmxDrawing._events.drawstop.length}`)
 	
 	        nsGmx.gmxMap.layers.forEach(function (layer) {
 	            if (layer.disableFlip && layer.disablePopup) {
@@ -603,16 +614,15 @@
 	        });
 	
 	        this.frame.find('.grid .edit').on('click', function (e) {
+	
+	            if (_stateUI != '') return;
+	            _stateUI = 'edit_region';
+	
 	            var id = e.currentTarget.parentElement.id,
 	                layerName = _layer.getGmxProperties().name,
 	                layerTitle = _layer.getGmxProperties().title,
 	                eoc = new nsGmx.EditObjectControl(layerName, id),
 	                dt = new Date();
-	            $(eoc).on('modify', function (e) {
-	                ///console.log(e.target.getAll(), dt);
-	                _thisView.model.isDirty = true;
-	                _thisView.model.update();
-	            });
 	            var isDelete = false;
 	            eoc.initPromise.done(function () {
 	                eoc.set('TimeChange', dt.getTime() / 1000);
@@ -622,12 +632,23 @@
 	                    var name = el.querySelectorAll('td')[0].innerText;
 	                    if (i > 1 && name.search(/\b(Name|Type)\b/i) < 0) el.style.display = 'none';
 	                });
+	                dlg.find('.buttonLink:contains("' + _gtxt("Изменить") + '")').on('click', function (e) {
+	                    _thisView.inProgress(true);
+	                });
 	                dlg.find('.buttonLink:contains("' + _gtxt("Удалить") + '")').on('click', function (e) {
+	                    _thisView.inProgress(true);
 	                    isDelete = true;
 	                });
 	            });
+	            $(eoc).on('modify', function (e) {
+	                ///console.log(e.target.getAll(), dt);
+	                _thisView.model.isDirty = true;
+	                _thisView.model.update();
+	            });
 	            $(eoc).on('close', function (e) {
 	                if (isDelete) _thisView.model.page = 0;
+	                console.log('CLOSE');
+	                _stateUI = '';
 	            });
 	        });
 	    }
@@ -732,7 +753,7 @@
 	    var _actualUpdate = void 0,
 	        _data = void 0,
 	        _page = 0,
-	        _pageSize = 3,
+	        _pageSize = 14,
 	        _count = 0;
 	
 	    var _layerName = options.layer,
