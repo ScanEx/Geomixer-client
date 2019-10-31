@@ -160,16 +160,24 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
 console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
         });
-    }, 
+    },
+    _checkVersion = function(){
+        setTimeout(()=>{
+            L.gmx.layersVersion.chkVersion(_layer);
+            setTimeout(()=>{
+                L.gmx.layersVersion.chkVersion(_layer);
+                setTimeout(()=>{
+                    L.gmx.layersVersion.chkVersion(_layer);                    
+                }, 2000);
+            }, 2000);                                            
+        }, 2000);
+    },
     _layerClickHandler = function (event) {
         var layer = event.target,
             props = layer.getGmxProperties(),
             id = event.gmx.properties[props.identityField];
 
         layer.bringToTopItem(id);
-        sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive"},"id":"${id}","action":"update"}]`,
-        function (response) {
-            if (response.Status && response.Status.toLowerCase() == 'ok') {
                 sendCrossDomainJSONRequest(`${serverBase}VectorLayer/Search.ashx?WrapStyle=func&layer=${props.name}&page=0&pagesize=1&orderby=${props.identityField}&geometry=true&query=[${props.identityField}]=${id}`,
                 function (response) {
                     if (_stateUI == 'copy_region') {
@@ -206,10 +214,24 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                                     _thisView.inProgress(true);
                                 });  
                             });
-                            $(eoc).on('modify', (e=>{
+                            $(eoc).on('modify', e=>{
     //console.log(e.target.getAll());
-                                _thisView.model.page = 0; // model update
-                            }));                      
+                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive"},"id":"${id}","action":"update"}]`,
+                                    function (response) {
+
+                                        delete _visible[id];
+                                        _hidden[id] = true;
+
+                                        _thisView.model.page = 0; // model update
+                                        _checkVersion();
+                                        if (response.Status && response.Status.toLowerCase() == 'ok') {
+                                        }
+                                        else {
+                                            console.log(response);
+                                        }
+                                    });
+
+                            });                      
                         }
                         else{
                             console.log(response);
@@ -217,12 +239,6 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                         _chooseBut.click(); 
                     }                
                 });
-            }
-            else{
-                console.log(response);
-                _chooseBut.click(); 
-            }
-        });
         return true;
     },
     _copyRegion = function(){
