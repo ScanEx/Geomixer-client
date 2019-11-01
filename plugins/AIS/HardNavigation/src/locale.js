@@ -19,6 +19,7 @@
         "HardNavigation.edit_description_lbl": "Редактировать",
         "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
         "HardNavigation.calendar_today": "сегодня",
+        "HardNavigation.layer_error": 'Ошибка слоя'
         
     });
     _translationsHash.addtext('eng', {
@@ -41,4 +42,5 @@
         "HardNavigation.edit_description_lbl": "Edit description",
         "HardNavigation.edit_description_ttl": "Edit media description",
         "HardNavigation.calendar_today": "today",
+        "HardNavigation.layer_error": 'Layer error'
     });

@@ -137,6 +137,7 @@
 } 
 .hardnav-view .footer .pager{
   width: 100%;
+  visibility: hidden;
 }
 .hardnav-view .footer .pager td{
  text-align: center;
@@ -168,8 +169,14 @@
   vertical-align: middle;
 }
 .hardnav-view .instruments .but.choose svg{
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 18px;
   top: -2px;
+  left: -6px;
+}
+.hardnav-view .msg{
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
 }
 /*# sourceMappingURL=HardNavigationPlugin.css.map*/

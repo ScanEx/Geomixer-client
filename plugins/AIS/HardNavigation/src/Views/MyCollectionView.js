@@ -19,10 +19,11 @@ const MyCollectionView = function ({ model, layer }) {
 
         _layer.setFilter(reg=>{
             let id = reg.properties[0].toString(),
-                state = reg.properties[5];
+                atttributes = _layer.getGmxProperties().attributes,
+                state = reg.properties[atttributes.indexOf("State") + 1];
             if (!_hidden[id] && state=='archive')
                 _hidden[id] = true;
-            if (_hidden[id] && !_visible[id])// FIELDS!!!
+            if (_hidden[id] && !_visible[id])
             {   
                 //console.log(reg.properties[0])
                 return false;
@@ -111,6 +112,7 @@ const MyCollectionView = function ({ model, layer }) {
              
         this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));      
         this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
+        this.frame.find('.but.but-attributes').on('click', ()=>nsGmx.createAttributesTable(layer));
 
     },    
     _addCalendar = function(){
@@ -164,13 +166,16 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
     _checkVersion = function(){
         setTimeout(()=>{
             L.gmx.layersVersion.chkVersion(_layer);
+//console.log('ChV')                   
             setTimeout(()=>{
                 L.gmx.layersVersion.chkVersion(_layer);
+//console.log('ChV')                   
                 setTimeout(()=>{
-                    L.gmx.layersVersion.chkVersion(_layer);                    
-                }, 2000);
-            }, 2000);                                            
-        }, 2000);
+                    L.gmx.layersVersion.chkVersion(_layer); 
+//console.log('ChV')                   
+                }, 3000);
+            }, 3000);                                            
+        }, 3000);
     },
     _layerClickHandler = function (event) {
         var layer = event.target,
@@ -222,8 +227,9 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                                         delete _visible[id];
                                         _hidden[id] = true;
 
-                                        _thisView.model.page = 0; // model update
-                                        _checkVersion();
+                                        _thisView.model.page = 0; // model update                                                       
+                                        _thisView.model.updatePromise.then(_checkVersion);
+
                                         if (response.Status && response.Status.toLowerCase() == 'ok') {
                                         }
                                         else {
@@ -286,6 +292,7 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                     });                              
                     $(eoc).on('modify', e=>{
                         _thisView.model.page = 0; // Model update
+                        _thisView.model.updatePromise.then(_checkVersion);
                     });
                     // Continue command
                     //nsGmx.leafletMap._container.style.cursor='pointer'; 
@@ -354,7 +361,9 @@ MyCollectionView.prototype.repaint = function () {
     BaseView.prototype.repaint.call(this); 
 
     if (this.model.pagesTotal){
-        const pages = this.frame.find('.pages');
+        const pager = this.frame.find('.pager'),
+        pages = pager.find('.pages');
+        pager.css('visibility', 'visible');
         pages.text(`${this.model.page+1} / ${this.model.pagesTotal}`);
 
         $('.grid tr').each((i, el)=>{
@@ -363,6 +372,29 @@ MyCollectionView.prototype.repaint = function () {
             if (_hidden[id] && !_visible[id]){ vis = 1; hid = 0; } 
             svg[hid].style.display = 'none';
             svg[vis].style.display = 'block';
+        });
+
+        this.frame.find('.grid .info').on('click', e=>{
+            let td = e.currentTarget,
+                id = td.parentElement.id,
+                descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
+                mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
+
+                mediaDescDialog.dialog({
+                    title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
+                    width: 510,
+                    height: 505, //dialogSettings.dialogDescHeight,
+                    minHeight: 505, //dialogSettings.dialogDescHeight,
+                    maxWidth: 510,
+                    minWidth: 510,
+                    modal: false,
+                    autoOpen: false,
+                    dialogClass:'media-DescDialog',
+                    close: function() {mediaDescDialog.dialog('close').remove();}
+                });
+        
+                mediaDescDialog.html('<div class="media-descDiv">'+descData+'</div>');        
+                mediaDescDialog.dialog('open');
         });
 
         this.frame.find('.grid .visibility').on('click', e=>{
@@ -434,7 +466,8 @@ MyCollectionView.prototype.repaint = function () {
                 if (response.Status && response.Status.toLowerCase() == 'ok') {
                     _thisView.inProgress(true);
                     _thisView.model.isDirty = true;
-                    _thisView.model.update();
+                    _thisView.model.update();                                                      
+                    _thisView.model.updatePromise.then(_checkVersion);
                 }
                 else
                     console.log(response);
@@ -473,7 +506,8 @@ MyCollectionView.prototype.repaint = function () {
             $(eoc).on('modify', e=>{
 ///console.log(e.target.getAll(), dt);
                 _thisView.model.isDirty = true;                       
-                _thisView.model.update();
+                _thisView.model.update();                
+                _thisView.model.updatePromise.then(_checkVersion);
             });                   
             $(eoc).on('close', e=>{
                 if (isDelete)
@@ -482,6 +516,9 @@ MyCollectionView.prototype.repaint = function () {
             });
             
         })
+    }
+    else{
+        this.frame.find('.pager').css('visibility', 'hidden');
     }
 };
 

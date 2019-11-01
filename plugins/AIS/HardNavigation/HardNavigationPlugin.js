@@ -142,7 +142,8 @@
 	    "HardNavigation.description_ttl": "Медиа описание",
 	    "HardNavigation.edit_description_lbl": "Редактировать",
 	    "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
-	    "HardNavigation.calendar_today": "сегодня"
+	    "HardNavigation.calendar_today": "сегодня",
+	    "HardNavigation.layer_error": 'Ошибка слоя'
 	
 	});
 	_translationsHash.addtext('eng', {
@@ -164,7 +165,8 @@
 	    "HardNavigation.description_ttl": "Media description",
 	    "HardNavigation.edit_description_lbl": "Edit description",
 	    "HardNavigation.edit_description_ttl": "Edit media description",
-	    "HardNavigation.calendar_today": "today"
+	    "HardNavigation.calendar_today": "today",
+	    "HardNavigation.layer_error": 'Layer error'
 	});
 
 /***/ }),
@@ -347,13 +349,13 @@
 	
 	    _layer.setFilter(function (reg) {
 	        var id = reg.properties[0].toString(),
-	            state = reg.properties[5];
+	            atttributes = _layer.getGmxProperties().attributes,
+	            state = reg.properties[atttributes.indexOf("State") + 1];
 	        if (!_hidden[id] && state == 'archive') _hidden[id] = true;
-	        if (_hidden[id] && !_visible[id]) // FIELDS!!!
-	            {
-	                //console.log(reg.properties[0])
-	                return false;
-	            } else {
+	        if (_hidden[id] && !_visible[id]) {
+	            //console.log(reg.properties[0])
+	            return false;
+	        } else {
 	            //console.log(_hidden)
 	            return true;
 	        }
@@ -386,6 +388,9 @@
 	
 	    this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));
 	    this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
+	    this.frame.find('.but.but-attributes').on('click', function () {
+	        return nsGmx.createAttributesTable(layer);
+	    });
 	},
 	    _addCalendar = function _addCalendar() {
 	    var _this = this;
@@ -431,62 +436,80 @@
 	        //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
 	    });
 	},
+	    _checkVersion = function _checkVersion() {
+	    setTimeout(function () {
+	        L.gmx.layersVersion.chkVersion(_layer);
+	        //console.log('ChV')                   
+	        setTimeout(function () {
+	            L.gmx.layersVersion.chkVersion(_layer);
+	            //console.log('ChV')                   
+	            setTimeout(function () {
+	                L.gmx.layersVersion.chkVersion(_layer);
+	                //console.log('ChV')                   
+	            }, 3000);
+	        }, 3000);
+	    }, 3000);
+	},
 	    _layerClickHandler = function _layerClickHandler(event) {
 	    var layer = event.target,
 	        props = layer.getGmxProperties(),
 	        id = event.gmx.properties[props.identityField];
 	
 	    layer.bringToTopItem(id);
-	    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + props.name + '&objects=[{"properties":{"State":"archive"},"id":"' + id + '","action":"update"}]', function (response) {
-	        if (response.Status && response.Status.toLowerCase() == 'ok') {
-	            sendCrossDomainJSONRequest(serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + props.name + '&page=0&pagesize=1&orderby=' + props.identityField + '&geometry=true&query=[' + props.identityField + ']=' + id, function (response) {
-	                if (_stateUI == 'copy_region') {
-	                    if (response.Status && response.Status.toLowerCase() == 'ok') {
-	                        var result = response.Result,
-	                            i = result.fields.indexOf('geomixergeojson'),
-	                            obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
-	                            gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
+	    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + props.name + '&page=0&pagesize=1&orderby=' + props.identityField + '&geometry=true&query=[' + props.identityField + ']=' + id, function (response) {
+	        if (_stateUI == 'copy_region') {
+	            if (response.Status && response.Status.toLowerCase() == 'ok') {
+	                var result = response.Result,
+	                    i = result.fields.indexOf('geomixergeojson'),
+	                    obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
+	                    gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
 	
-	                        //date = result.values[0][result.fields.indexOf('Date')],
-	                        //time = result.values[0][result.fields.indexOf('Time')],
-	                        name = result.values[0][result.fields.indexOf('Name')],
-	                            type = result.values[0][result.fields.indexOf('Type')],
-	                            media = result.values[0][result.fields.indexOf('_mediadescript_')],
-	                            eoc = new nsGmx.EditObjectControl(props.name, null, { drawingObject: obj[0] }),
-	                            dt = new Date();
-	                        eoc.initPromise.done(function () {
-	                            eoc.set('Origin', gmx_id);
-	                            eoc.set('Name', name);
-	                            eoc.set('Type', type);
-	                            eoc.set('_mediadescript_', media);
-	                            //eoc.set('Time', time); 
-	                            //eoc.set('Date', date);       
-	                            eoc.set('Time', dt.getTime() / 1000);
-	                            eoc.set('Date', dt.getTime() / 1000);
+	                //date = result.values[0][result.fields.indexOf('Date')],
+	                //time = result.values[0][result.fields.indexOf('Time')],
+	                name = result.values[0][result.fields.indexOf('Name')],
+	                    type = result.values[0][result.fields.indexOf('Type')],
+	                    media = result.values[0][result.fields.indexOf('_mediadescript_')],
+	                    eoc = new nsGmx.EditObjectControl(props.name, null, { drawingObject: obj[0] }),
+	                    dt = new Date();
+	                eoc.initPromise.done(function () {
+	                    eoc.set('Origin', gmx_id);
+	                    eoc.set('Name', name);
+	                    eoc.set('Type', type);
+	                    eoc.set('_mediadescript_', media);
+	                    //eoc.set('Time', time); 
+	                    //eoc.set('Date', date);       
+	                    eoc.set('Time', dt.getTime() / 1000);
+	                    eoc.set('Date', dt.getTime() / 1000);
 	
-	                            var dlg = $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog');
-	                            dlg.find('tr').each(function (i, el) {
-	                                var name = el.querySelectorAll('td')[0].innerText;
-	                                if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
-	                                    //if (i==0 || name.search(/\b(State)\b/i)==0)
-	                                    el.style.display = 'none';
-	                            });
-	                            dlg.find('.buttonLink:contains("' + _gtxt("Создать") + '")').on('click', function (e) {
-	                                _thisView.inProgress(true);
-	                            });
-	                        });
-	                        $(eoc).on('modify', function (e) {
-	                            //console.log(e.target.getAll());
-	                            _thisView.model.page = 0; // model update
-	                        });
-	                    } else {
-	                        console.log(response);
-	                    }
-	                    _chooseBut.click();
-	                }
-	            });
-	        } else {
-	            console.log(response);
+	                    var dlg = $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog');
+	                    dlg.find('tr').each(function (i, el) {
+	                        var name = el.querySelectorAll('td')[0].innerText;
+	                        if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
+	                            //if (i==0 || name.search(/\b(State)\b/i)==0)
+	                            el.style.display = 'none';
+	                    });
+	                    dlg.find('.buttonLink:contains("' + _gtxt("Создать") + '")').on('click', function (e) {
+	                        _thisView.inProgress(true);
+	                    });
+	                });
+	                $(eoc).on('modify', function (e) {
+	                    //console.log(e.target.getAll());
+	                    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + props.name + '&objects=[{"properties":{"State":"archive"},"id":"' + id + '","action":"update"}]', function (response) {
+	
+	                        delete _visible[id];
+	                        _hidden[id] = true;
+	
+	                        _thisView.model.page = 0; // model update                                                       
+	                        _thisView.model.updatePromise.then(_checkVersion);
+	
+	                        if (response.Status && response.Status.toLowerCase() == 'ok') {} else {
+	                            console.log(response);
+	                        }
+	                    });
+	                });
+	            } else {
+	                console.log(response);
+	            }
 	            _chooseBut.click();
 	        }
 	    });
@@ -534,6 +557,7 @@
 	    });
 	    $(eoc).on('modify', function (e) {
 	        _thisView.model.page = 0; // Model update
+	        _thisView.model.updatePromise.then(_checkVersion);
 	    });
 	    // Continue command
 	    //nsGmx.leafletMap._container.style.cursor='pointer'; 
@@ -595,7 +619,9 @@
 	    BaseView.prototype.repaint.call(this);
 	
 	    if (this.model.pagesTotal) {
-	        var pages = this.frame.find('.pages');
+	        var pager = this.frame.find('.pager'),
+	            pages = pager.find('.pages');
+	        pager.css('visibility', 'visible');
 	        pages.text(this.model.page + 1 + ' / ' + this.model.pagesTotal);
 	
 	        $('.grid tr').each(function (i, el) {
@@ -608,6 +634,31 @@
 	            }
 	            svg[hid].style.display = 'none';
 	            svg[vis].style.display = 'block';
+	        });
+	
+	        this.frame.find('.grid .info').on('click', function (e) {
+	            var td = e.currentTarget,
+	                id = td.parentElement.id,
+	                descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
+	                mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
+	
+	            mediaDescDialog.dialog({
+	                title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
+	                width: 510,
+	                height: 505, //dialogSettings.dialogDescHeight,
+	                minHeight: 505, //dialogSettings.dialogDescHeight,
+	                maxWidth: 510,
+	                minWidth: 510,
+	                modal: false,
+	                autoOpen: false,
+	                dialogClass: 'media-DescDialog',
+	                close: function close() {
+	                    mediaDescDialog.dialog('close').remove();
+	                }
+	            });
+	
+	            mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
+	            mediaDescDialog.dialog('open');
 	        });
 	
 	        this.frame.find('.grid .visibility').on('click', function (e) {
@@ -671,6 +722,7 @@
 	                    _thisView.inProgress(true);
 	                    _thisView.model.isDirty = true;
 	                    _thisView.model.update();
+	                    _thisView.model.updatePromise.then(_checkVersion);
 	                } else console.log(response);
 	            });
 	        });
@@ -706,12 +758,15 @@
 	                ///console.log(e.target.getAll(), dt);
 	                _thisView.model.isDirty = true;
 	                _thisView.model.update();
+	                _thisView.model.updatePromise.then(_checkVersion);
 	            });
 	            $(eoc).on('close', function (e) {
 	                if (isDelete) _thisView.model.page = 0;
 	                _stateUI = '';
 	            });
 	        });
+	    } else {
+	        this.frame.find('.pager').css('visibility', 'hidden');
 	    }
 	};
 	
@@ -823,8 +878,46 @@
 	    };
 	    if (!_data) _data = { regions: [] };
 	
+	    var _initPromise = new Promise(function (resolve, reject) {
+	        var layer = nsGmx.gmxMap.layersByID[_layerName];
+	        if (!layer) {
+	            reject('HardNavigation plugin error: no layer ' + _layerName);
+	            return;
+	        }
+	        var props = nsGmx.gmxMap.layersByID[_layerName]._gmx.properties,
+	            columns = [];
+	        props.attributes.forEach(function (a, i) {
+	            columns.push({ Name: a, ColumnSimpleType: props.attrTypes[i], IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"' + a + '"' });
+	        });
+	        if (props.attributes.indexOf("Name") < 0) columns.push({ Name: 'Name', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Name"' });
+	        if (props.attributes.indexOf("Type") < 0) columns.push({ Name: 'Type', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Type"' });
+	        if (props.attributes.indexOf("Date") < 0) columns.push({ Name: 'Date', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Date"' });
+	        if (props.attributes.indexOf("Time") < 0) columns.push({ Name: 'Time', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Time"' });
+	        if (props.attributes.indexOf("DateChange") < 0) columns.push({ Name: 'DateChange', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"DateChange"' });
+	        if (props.attributes.indexOf("TimeChange") < 0) columns.push({ Name: 'TimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"TimeChange"' });
+	        if (props.attributes.indexOf("State") < 0) columns.push({ Name: 'State', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"State"' });
+	        if (props.attributes.indexOf("Origin") < 0) columns.push({ Name: 'Origin', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Origin"' });
+	        if (props.attributes.indexOf("_mediadescript_") < 0) columns.push({ Name: '_mediadescript_', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"_mediadescript_"' });
+	
+	        if (columns.length == props.attributes.length) {
+	            resolve(columns.length);
+	        } else {
+	            var def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/Update.ashx", {
+	                VectorLayerID: _layerName,
+	                MetaProperties: JSON.stringify({ mediaDescField: { Type: "String", Value: "_mediadescript_" } }),
+	                Columns: JSON.stringify(columns) });
+	            def.promise().done(function (r) {
+	                return resolve(columns.length);
+	            }).fail(function (r) {
+	                return reject(r);
+	            });
+	        }
+	    });
+	
 	    return {
+	
 	        isDirty: true,
+	        updatePromise: Promise.resolved,
 	        get data() {
 	            return _data;
 	        },
@@ -838,7 +931,7 @@
 	            if (value < 0) {
 	                return;
 	            }
-	            if (value >= this.pagesTotal) {
+	            if (this.pagesTotal > 0 && value >= this.pagesTotal) {
 	                return;
 	            }
 	            _page = value;
@@ -857,52 +950,67 @@
 	        update: function update() {
 	            var thisModel = this;
 	            if (!thisModel.isDirty) return;
-	            _count = 0;
-	            _data.regions.length = 0;
-	            thisModel.view.inProgress(true);
-	            [function (r) {
-	                return new Promise(function (resolve, reject) {
-	                    sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&count=true', function (r) {
-	                        return resolve(r);
+	
+	            _initPromise.then(function (test) {
+	                //console.log(test)
+	                _count = 0;
+	                _data.regions.length = 0;
+	                thisModel.view.inProgress(true);
+	                thisModel.updatePromise = [function (r) {
+	                    return new Promise(function (resolve, reject) {
+	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&count=true', function (r) {
+	                            return resolve(r);
+	                        });
 	                    });
-	                });
-	            }, function (r) {
-	                if (_checkResponse(r)) {
-	                    _count = parseInt(r.Result);
-	                    sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&orderby=gmx_id&orderdirection=DESC&pagesize=' + _pageSize + '&page=' + _page, function (r) {
-	                        _data.regions.length = 0;
-	                        if (_checkResponse(r)) {
-	                            //resolve(r); 
-	                            var result = r.Result,
-	                                format = function format(d, t) {
-	                                if (!d || !t || isNaN(d) || isNaN(t)) return '';
-	                                var dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
-	                                return dt.toLocaleDateString() + '<br>' + dt.toLocaleTimeString();
-	                            };
-	                            for (var i = 0; i < result.values.length; ++i) {
-	                                var reg = {};
-	                                for (var j = 0; j < result.fields.length; ++j) {
-	                                    reg[result.fields[j]] = result.values[i][j];
-	                                }reg.id = reg.gmx_id + (reg.Origin && reg.Origin != '' ? '_' : '') + reg.Origin;
-	                                reg.DateTime = format(reg.Date, reg.Time);
-	                                reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-	                                reg.StateColor = reg.State == "archive" ? "color-red" : "color-green";
-	                                _data.regions.push(reg);
-	                            }
-	                            //console.log(_data);
-	                        } else console.log(r);
+	                }, function (r) {
+	                    if (_checkResponse(r)) {
+	                        _count = parseInt(r.Result);
+	                        //return new Promise((resolve, reject) => {
+	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&orderby=gmx_id&orderdirection=DESC&pagesize=' + _pageSize + '&page=' + _page, function (r) {
+	                            _data.regions.length = 0;
+	                            if (_checkResponse(r)) {
+	                                //resolve(r); 
+	                                var result = r.Result,
+	                                    format = function format(d, t) {
+	                                    if (!d || !t || isNaN(d) || isNaN(t)) return '';
+	                                    var dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+	                                    return dt.toLocaleDateString() + '<br>' + dt.toLocaleTimeString();
+	                                };
+	                                _data.fields = result.fields.map(function (f) {
+	                                    return f;
+	                                });
+	                                for (var i = 0; i < result.values.length; ++i) {
+	                                    var reg = {};
+	                                    for (var j = 0; j < result.fields.length; ++j) {
+	                                        reg[result.fields[j]] = result.values[i][j];
+	                                    }reg.id = reg.gmx_id + (reg.Origin && reg.Origin != '' ? '_' + reg.Origin : '');
+	                                    reg.DateTime = format(reg.Date, reg.Time);
+	                                    reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
+	                                    reg.StateColor = reg.State == "archive" ? "color-red" : "color-green";
+	                                    _data.regions.push(reg);
+	                                }
+	                                //console.log(_data);
+	                            } else console.log(r);
+	                            thisModel.view.repaint();
+	                            thisModel.isDirty = false;
+	                            //resolve();
+	                        });
+	                        //});
+	                    } else {
+	                        console.log(r);
 	                        thisModel.view.repaint();
 	                        thisModel.isDirty = false;
-	                    });
-	                } else {
-	                    console.log(r);
-	                    thisModel.view.repaint();
-	                    thisModel.isDirty = false;
-	                }
-	            }].reduce(function (p, c) {
-	                return p.then(c);
-	            }, Promise.resolve());
-	        }
+	                    }
+	                }].reduce(function (p, c) {
+	                    return p.then(c);
+	                }, Promise.resolve());
+	            }).catch(function (error) {
+	                thisModel.data.msg = [{ txt: _gtxt('HardNavigation.layer_error') }];
+	                console.log(error);
+	                thisModel.view.repaint();
+	                thisModel.isDirty = false;
+	            }); // _initPromise
+	        } // this.update
 	    };
 	};
 
