@@ -5,8 +5,7 @@ let _stateUI = '',
 _createBut, _chooseBut,        
 _layer, 
 _thisView,
-_hidden = {},
-_visible = {};
+_hidden = {};
 
 const MyCollectionView = function ({ model, layer }) {
     _thisView = this;
@@ -17,13 +16,19 @@ const MyCollectionView = function ({ model, layer }) {
             return;
         }
 
+        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
+        mapDateInterval.on('change', e=>_layer.repaint());
         _layer.setFilter(reg=>{
-            let id = reg.properties[0].toString(),
+            const id = reg.properties[0].toString(),
                 atttributes = _layer.getGmxProperties().attributes,
-                state = reg.properties[atttributes.indexOf("State") + 1];
-            if (!_hidden[id] && state=='archive')
-                _hidden[id] = true;
-            if (_hidden[id] && !_visible[id])
+                state = reg.properties[atttributes.indexOf("State") + 1],
+                dtBegin = mapDateInterval.get('dateBegin').getTime(),
+                dtEnd = mapDateInterval.get('dateEnd').getTime();
+            let dtChange = reg.properties[atttributes.indexOf("DateChange") + 1]*1000;
+            if (dtChange===0)
+                dtChange = reg.properties[atttributes.indexOf("Date") + 1]*1000;
+//console.log(`${id}, ${dtBegin}, ${dtEnd}, ${dtChange}`)               
+            if (_hidden[id] || dtEnd<=dtChange || (dtChange<dtBegin && state.search(/\barchive\b/)!=-1) || state=='archive *')
             {   
                 //console.log(reg.properties[0])
                 return false;
@@ -191,22 +196,23 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                                 i = result.fields.indexOf('geomixergeojson'),
                                 obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
                                 gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
-                                //date = result.values[0][result.fields.indexOf('Date')],
-                                //time = result.values[0][result.fields.indexOf('Time')],
+                                origin = parseInt(result.values[0][result.fields.indexOf('Origin')]),
+                                date = parseInt(result.values[0][result.fields.indexOf('Date')]),
+                                time = parseInt(result.values[0][result.fields.indexOf('Time')]),
                                 name = result.values[0][result.fields.indexOf('Name')],
                                 type = result.values[0][result.fields.indexOf('Type')],    
                                 media = result.values[0][result.fields.indexOf('_mediadescript_')],                   
                                 eoc = new nsGmx.EditObjectControl(props.name, null, {drawingObject: obj[0]}),
                                 dt = new Date(); 
                             eoc.initPromise.done(()=>{      
-                                eoc.set('Origin', gmx_id);     
+                                eoc.set('Origin', origin && origin!='' ? origin : gmx_id);     
                                 eoc.set('Name', name); 
                                 eoc.set('Type', type);  
                                 eoc.set('_mediadescript_', media);       
-                                //eoc.set('Time', time); 
-                                //eoc.set('Date', date);       
-                                eoc.set('Time', dt.getTime()/1000); 
-                                eoc.set('Date', dt.getTime()/1000); 
+                                eoc.set('Time', date + time); 
+                                eoc.set('Date', date + time);       
+                                eoc.set('TimeChange', dt.getTime()/1000); 
+                                eoc.set('DateChange', dt.getTime()/1000); 
                         
                                 const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog');
                                 dlg.find('tr').each((i, el)=>{
@@ -223,10 +229,6 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
     //console.log(e.target.getAll());
                                 sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive"},"id":"${id}","action":"update"}]`,
                                     function (response) {
-
-                                        delete _visible[id];
-                                        _hidden[id] = true;
-
                                         _thisView.model.page = 0; // model update                                                       
                                         _thisView.model.updatePromise.then(_checkVersion);
 
@@ -338,6 +340,13 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
         }
     },
     _clean = function () {
+
+        this.frame.find('.grid .info').off('click', _infoClickHandler);
+        this.frame.find('.grid .visibility').off('click', _visClickHandler);
+        this.frame.find('.grid .show').off('click', _showClickHandler);
+        //this.frame.find('.grid .state').off('click', _stateClickHandler);
+        this.frame.find('.grid .edit').off('click', _editClickHandler);
+
     };
 
 MyCollectionView.prototype = Object.create(BaseView.prototype);
@@ -356,6 +365,136 @@ MyCollectionView.prototype.inProgress = function (state) {
 //     this.container.height(h+1);
 // };
 
+const _infoClickHandler = function(e){
+    let td = e.currentTarget,
+        id = td.parentElement.id,
+        descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
+        mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
+
+        mediaDescDialog.dialog({
+            title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
+            width: 510,
+            height: 505, //dialogSettings.dialogDescHeight,
+            minHeight: 505, //dialogSettings.dialogDescHeight,
+            maxWidth: 510,
+            minWidth: 510,
+            modal: false,
+            autoOpen: false,
+            dialogClass:'media-DescDialog',
+            close: function() {mediaDescDialog.dialog('close').remove();}
+        });
+
+        mediaDescDialog.html('<div class="media-descDiv">'+descData+'</div>');        
+        mediaDescDialog.dialog('open');
+},
+     _visClickHandler = function(e){
+        let td = e.currentTarget,
+            id = td.parentElement.id,
+            svg = td.querySelectorAll('svg'),
+            vis = 0, hid = 1;
+        if (!_hidden[id]){
+            _hidden[id] = true;
+            vis = 1; hid = 0;
+        }
+        else{
+            delete _hidden[id];
+            vis = 0; hid = 1;
+        }
+        svg[hid].style.display = 'none';
+        svg[vis].style.display = 'block';
+        _layer.repaint();
+//console.log(_hidden)
+    },
+    _showClickHandler = function(e){
+        var id = e.currentTarget.parentElement.id,
+            layer = _layer,
+            props = layer.getGmxProperties(),
+            layerName = props.name;
+        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function(response) {
+            if (!window.parseResponse(response)) {
+                return;
+            }
+            var columnNames = response.Result.fields;
+            var row = response.Result.values[0];
+            //for (var i = 0; i < row.length; ++i)
+            var i = columnNames.indexOf('geomixergeojson');
+            {
+                if (columnNames[i] === 'geomixergeojson' && row[i])
+                {
+                    var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
+
+                    var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
+                    var bounds = L.gmxUtil.getGeometryBounds(geom);
+                    nsGmx.leafletMap.fitBounds([
+                        [bounds.min.y, bounds.min.x],
+                        [bounds.max.y, bounds.max.x]
+                    ], fitBoundsOptions);						
+                }
+            }
+        });
+    },
+    _stateClickHandler = function(e){
+        let td = e.currentTarget,
+        id = td.parentElement.id,
+        state = '';
+
+        if (td.className.search(/green/)!=-1)
+            state = 'archive';
+
+        sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"State":"${state}"},"id":"${id}","action":"update"}]`,
+        function (response) {
+            if (response.Status && response.Status.toLowerCase() == 'ok') {
+                _thisView.inProgress(true);
+                _thisView.model.isDirty = true;
+                _thisView.model.update();                                                      
+                _thisView.model.updatePromise.then(_checkVersion);
+            }
+            else
+                console.log(response);
+        });                
+    },
+    _editClickHandler = function(e){
+
+        if (_stateUI != '')
+            return;
+        _stateUI = 'edit_region';
+
+        let id = e.currentTarget.parentElement.id,
+            layerName = _layer.getGmxProperties().name,
+            layerTitle = _layer.getGmxProperties().title,
+            eoc = new nsGmx.EditObjectControl(layerName, id),
+            dt = new Date(); 
+        let isDelete = false; 
+        eoc.initPromise.done(()=>{        
+            //eoc.set('TimeChange', dt.getTime()/1000); 
+            //eoc.set('DateChange', dt.getTime()/1000);
+            const dlg = $(`span:contains("${_gtxt("Редактировать объект слоя [value0]", layerTitle)}")`).closest('.ui-dialog');
+            dlg.find('tr').each((i, el)=>{
+                let name = el.querySelectorAll('td')[0].innerText;
+                if (i>1 && name.search(/\b(Name|Type)\b/i)<0)
+                    el.style.display = 'none';
+            });                 
+            dlg.find(`.buttonLink:contains("${_gtxt("Изменить")}")`).on('click', e=>{
+                _thisView.inProgress(true);
+            });                 
+            dlg.find(`.buttonLink:contains("${_gtxt("Удалить")}")`).on('click', e=>{
+                _thisView.inProgress(true);
+                isDelete = true;
+            }); 
+        });            
+        $(eoc).on('modify', e=>{
+///console.log(e.target.getAll(), dt);
+            _thisView.model.isDirty = true;                       
+            _thisView.model.update();                
+            _thisView.model.updatePromise.then(_checkVersion);
+        });                   
+        $(eoc).on('close', e=>{
+            if (isDelete)
+                _thisView.model.page = 0;
+            _stateUI = '';            
+        });        
+    };
+
 MyCollectionView.prototype.repaint = function () { 
     _clean.call(this);
     BaseView.prototype.repaint.call(this); 
@@ -369,153 +508,16 @@ MyCollectionView.prototype.repaint = function () {
         $('.grid tr').each((i, el)=>{
             let id = el.id, 
             svg = el.querySelectorAll('svg'), vis=0, hid=1;
-            if (_hidden[id] && !_visible[id]){ vis = 1; hid = 0; } 
+            if (_hidden[id]){ vis = 1; hid = 0; } 
             svg[hid].style.display = 'none';
             svg[vis].style.display = 'block';
         });
 
-        this.frame.find('.grid .info').on('click', e=>{
-            let td = e.currentTarget,
-                id = td.parentElement.id,
-                descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
-                mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
-
-                mediaDescDialog.dialog({
-                    title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
-                    width: 510,
-                    height: 505, //dialogSettings.dialogDescHeight,
-                    minHeight: 505, //dialogSettings.dialogDescHeight,
-                    maxWidth: 510,
-                    minWidth: 510,
-                    modal: false,
-                    autoOpen: false,
-                    dialogClass:'media-DescDialog',
-                    close: function() {mediaDescDialog.dialog('close').remove();}
-                });
-        
-                mediaDescDialog.html('<div class="media-descDiv">'+descData+'</div>');        
-                mediaDescDialog.dialog('open');
-        });
-
-        this.frame.find('.grid .visibility').on('click', e=>{
-            let td = e.currentTarget,
-                id = td.parentElement.id,
-                svg = td.querySelectorAll('svg'),
-                vis = 0, hid = 1;
-            if (!_hidden[id] || _visible[id]){
-                _hidden[id] = true;
-                delete _visible[id];
-                vis = 1; hid = 0;
-            }
-            else{
-                delete _hidden[id];
-                _visible[id] = true;
-                vis = 0; hid = 1;
-            }
-            svg[hid].style.display = 'none';
-            svg[vis].style.display = 'block';
-            _layer.repaint();
-//console.log(_hidden, _visible)
-        });
-
-        this.frame.find('.grid .show').on('click', e=>{
-            var id = e.currentTarget.parentElement.id,
-                layer = _layer,
-                props = layer.getGmxProperties(),
-                layerName = props.name;
-            sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function(response) {
-                if (!window.parseResponse(response)) {
-                    return;
-                }
-                var columnNames = response.Result.fields;
-                var row = response.Result.values[0];
-                //for (var i = 0; i < row.length; ++i)
-                var i = columnNames.indexOf('geomixergeojson');
-                {
-                    if (columnNames[i] === 'geomixergeojson' && row[i])
-                    {
-                        var fitBoundsOptions = layer ? {maxZoom: layer.options.maxZoom} : {};
-
-                        var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
-                        var bounds = L.gmxUtil.getGeometryBounds(geom);
-                        nsGmx.leafletMap.fitBounds([
-                            [bounds.min.y, bounds.min.x],
-                            [bounds.max.y, bounds.max.x]
-                        ], fitBoundsOptions);						
-                    }
-                }
-            });
-        });
-
-        this.frame.find('.grid .state').on('click', e=>{
-            let td = e.currentTarget,
-            id = td.parentElement.id,
-            state = '';
-
-            if (td.className.search(/green/)!=-1)
-                state = 'archive';
-
-            delete _visible[id];
-            if (state=='archive')
-                _hidden[id] = true;
-            else
-                delete _hidden[id];
-
-            sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"State":"${state}"},"id":"${id}","action":"update"}]`,
-            function (response) {
-                if (response.Status && response.Status.toLowerCase() == 'ok') {
-                    _thisView.inProgress(true);
-                    _thisView.model.isDirty = true;
-                    _thisView.model.update();                                                      
-                    _thisView.model.updatePromise.then(_checkVersion);
-                }
-                else
-                    console.log(response);
-            });                
-        });
-
-        this.frame.find('.grid .edit').on('click', e=>{
-
-            if (_stateUI != '')
-                return;
-            _stateUI = 'edit_region';
-
-            let id = e.currentTarget.parentElement.id,
-                layerName = _layer.getGmxProperties().name,
-                layerTitle = _layer.getGmxProperties().title,
-                eoc = new nsGmx.EditObjectControl(layerName, id),
-                dt = new Date(); 
-            let isDelete = false; 
-            eoc.initPromise.done(()=>{        
-                eoc.set('TimeChange', dt.getTime()/1000); 
-                eoc.set('DateChange', dt.getTime()/1000);
-                const dlg = $(`span:contains("${_gtxt("Редактировать объект слоя [value0]", layerTitle)}")`).closest('.ui-dialog');
-                dlg.find('tr').each((i, el)=>{
-                    let name = el.querySelectorAll('td')[0].innerText;
-                    if (i>1 && name.search(/\b(Name|Type)\b/i)<0)
-                        el.style.display = 'none';
-                });                 
-                dlg.find(`.buttonLink:contains("${_gtxt("Изменить")}")`).on('click', e=>{
-                    _thisView.inProgress(true);
-                });                 
-                dlg.find(`.buttonLink:contains("${_gtxt("Удалить")}")`).on('click', e=>{
-                    _thisView.inProgress(true);
-                    isDelete = true;
-                }); 
-            });            
-            $(eoc).on('modify', e=>{
-///console.log(e.target.getAll(), dt);
-                _thisView.model.isDirty = true;                       
-                _thisView.model.update();                
-                _thisView.model.updatePromise.then(_checkVersion);
-            });                   
-            $(eoc).on('close', e=>{
-                if (isDelete)
-                    _thisView.model.page = 0;
-                _stateUI = '';            
-            });
-            
-        })
+        this.frame.find('.grid .info').on('click', _infoClickHandler);
+        this.frame.find('.grid .visibility').on('click', _visClickHandler);
+        this.frame.find('.grid .show').on('click', _showClickHandler);
+        //this.frame.find('.grid .state').on('click', _stateClickHandler);
+        this.frame.find('.grid .edit').on('click', _editClickHandler);
     }
     else{
         this.frame.find('.pager').css('visibility', 'hidden');

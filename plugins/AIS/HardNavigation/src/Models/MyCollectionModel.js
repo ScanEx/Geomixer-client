@@ -116,10 +116,10 @@ module.exports = function (options) {
                                     let reg = {};
                                     for (let j =0; j<result.fields.length; ++j)
                                         reg[result.fields[j]] = result.values[i][j];
-                                    reg.id = reg.gmx_id + ((reg.Origin && reg.Origin!='')?'_' + reg.Origin:'');
+                                    reg.id = (reg.Origin && reg.Origin!='') ? reg.Origin : reg.gmx_id;
                                     reg.DateTime = format(reg.Date, reg.Time);
                                     reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                    reg.StateColor = reg.State=="archive"?"color-red":"color-green";
+                                    reg.StateColor = reg.State.search(/\barchive\b/)!=-1?"color-red":"color-green";
                                     _data.regions.push(reg);
                                 }
     //console.log(_data);
