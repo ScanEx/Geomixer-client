@@ -5,7 +5,8 @@ let _stateUI = '',
 _createBut, _chooseBut,        
 _layer, 
 _thisView,
-_hidden = {};
+_hidden = {},
+_visible = {};
 
 const MyCollectionView = function ({ model, layer }) {
     _thisView = this;
@@ -16,28 +17,13 @@ const MyCollectionView = function ({ model, layer }) {
             return;
         }
 
-        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
-        mapDateInterval.on('change', e=>_layer.repaint());
-        _layer.setFilter(reg=>{
-            const id = reg.properties[0].toString(),
-                atttributes = _layer.getGmxProperties().attributes,
-                state = reg.properties[atttributes.indexOf("State") + 1],
-                dtBegin = mapDateInterval.get('dateBegin').getTime(),
-                dtEnd = mapDateInterval.get('dateEnd').getTime();
-            let dtChange = reg.properties[atttributes.indexOf("DateChange") + 1]*1000;
-            if (dtChange===0)
-                dtChange = reg.properties[atttributes.indexOf("Date") + 1]*1000;
-//console.log(`${id}, ${dtBegin}, ${dtEnd}, ${dtChange}`)               
-            if (_hidden[id] || dtEnd<=dtChange || (dtChange<dtBegin && state.search(/\barchive\b/)!=-1) || state=='archive *')
-            {   
-                //console.log(reg.properties[0])
-                return false;
-            }
-            else{
-                //console.log(_hidden)
-                return true;
-            }
-        })
+        nsGmx.widgets.commonCalendar.getDateInterval().on('change', e=>{
+            _hidden = {};
+            _visible = {};
+            _layer.repaint(); 
+            _thisView.repaint();
+        });
+        _layer.setFilter(_isVisible);
 
         BaseView.call(this, model);
         this.frame = $(Handlebars.compile(`<div class="hardnav-view">
@@ -88,9 +74,9 @@ const MyCollectionView = function ({ model, layer }) {
         this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
                 '<td class="visibility">' +
                 '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg>' +
-                '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' +
-                '<td>{{id}}</td>' +
-                '<td>{{{DateTime}}}</td>' +
+                '<svg style="display:none"><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' +
+                '<td class="identity">{{id}}</td>' +
+                '<td class="identity">{{{DateTime}}}</td>' +
                 '<td>{{{DateTimeChange}}}</td>' +
                 '<td class="{{StateColor}} state"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' +
                 '<td class="edit"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' +
@@ -119,7 +105,64 @@ const MyCollectionView = function ({ model, layer }) {
         this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
         this.frame.find('.but.but-attributes').on('click', ()=>nsGmx.createAttributesTable(layer));
 
-    },    
+    },  
+    _isActual = function(reg){
+        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+            atttributes = _layer.getGmxProperties().attributes,
+            iOrigin = atttributes.indexOf("Origin") + 1,
+            iState = atttributes.indexOf("State") + 1,
+            iDate = atttributes.indexOf("Date") + 1,
+            iTime = atttributes.indexOf("Time") + 1,
+            iDateChange = atttributes.indexOf("DateChange") + 1,
+            iTimeChange = atttributes.indexOf("TimeChange") + 1,
+            id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
+            state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
+            dtBegin = mapDateInterval.get('dateBegin').getTime(),
+            dtEnd = mapDateInterval.get('dateEnd').getTime();
+
+        let version = {d:reg.properties[iDateChange] * 1000, t:reg.properties[iTimeChange] * 1000};
+        if (version.d === 0){
+            version.d = reg.properties[iDate] * 1000;
+            version.t = reg.properties[iTime] * 1000;
+        }
+ 
+//console.log(`>>${id}`, version, version.d < dtEnd)
+        if (version.d < dtEnd){
+            let test = true;               
+            for(let key in _layer.getDataManager()._activeTileKeys) { 
+                test = true;
+                let data = _layer.getDataManager()._tiles[key].tile.data;
+                for(let i=0; i<data.length; ++i){
+                        let curId = data[i][iOrigin]!='' ? data[i][iOrigin] : data[i][0],
+                            curVersion = {d:data[i][iDateChange]*1000, t:data[i][iTimeChange]*1000};
+                        if (curVersion.d==0)
+                            curVersion = {d:data[i][iDate]*1000, t:data[i][iTime]*1000};
+                        if (curId!=id) continue; 
+                        if (curVersion.d>=dtEnd) continue; 
+                        test =  !(version.d<curVersion.d || (version.d==curVersion.d && version.t<curVersion.t));
+                    if (!test) {
+//console.log(curId, curVersion)
+                        break;
+                    }
+                }
+                if (!test) break;
+            }
+            return test;
+        }
+        else
+            return false;
+    },
+    _isVisible = function(reg){
+        const id = reg.properties[0].toString();
+
+        if (_visible[id])
+            return true;
+
+        if (_hidden[id] || !_isActual(reg))
+            return false;
+        else
+            return true;
+    },
     _addCalendar = function(){
             
         let calendar = this.frame.find('.calendar')[0];
@@ -392,11 +435,13 @@ const _infoClickHandler = function(e){
             id = td.parentElement.id,
             svg = td.querySelectorAll('svg'),
             vis = 0, hid = 1;
-        if (!_hidden[id]){
+        if (svg[0].style.display != 'none'){
+            delete _visible[id];
             _hidden[id] = true;
             vis = 1; hid = 0;
         }
         else{
+            _visible[id] = true;
             delete _hidden[id];
             vis = 0; hid = 1;
         }
@@ -507,10 +552,26 @@ MyCollectionView.prototype.repaint = function () {
 
         $('.grid tr').each((i, el)=>{
             let id = el.id, 
-            svg = el.querySelectorAll('svg'), vis=0, hid=1;
-            if (_hidden[id]){ vis = 1; hid = 0; } 
-            svg[hid].style.display = 'none';
-            svg[vis].style.display = 'block';
+            svg = el.querySelectorAll('svg');
+//console.log(id, _layer.getDataManager().getItem(parseInt(id)));
+            const attr = _layer.getGmxProperties().attributes,
+                  props = [id];
+            props[attr.indexOf('Date')+1] = _thisView.model.data.regions[i].Date;
+            props[attr.indexOf('Time')+1] = _thisView.model.data.regions[i].Time;
+            props[attr.indexOf('DateChange')+1] = _thisView.model.data.regions[i].DateChange;
+            props[attr.indexOf('TimeChange')+1] = _thisView.model.data.regions[i].TimeChange;
+            props[attr.indexOf('State')+1] = _thisView.model.data.regions[i].State;
+            props[attr.indexOf('Origin')+1] = _thisView.model.data.regions[i].Origin;
+            const reg = {properties: props};
+//console.log(reg);
+            if (!_isVisible(reg)){
+                svg[0].style.display = 'none';
+                svg[1].style.display = 'block';
+            }
+            if (!_isActual(reg))
+                el.classList.add('nonactual');
+            else
+                el.classList.remove('nonactual');
         });
 
         this.frame.find('.grid .info').on('click', _infoClickHandler);

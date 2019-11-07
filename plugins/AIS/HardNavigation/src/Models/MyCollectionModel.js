@@ -118,6 +118,7 @@ module.exports = function (options) {
                                         reg[result.fields[j]] = result.values[i][j];
                                     reg.id = (reg.Origin && reg.Origin!='') ? reg.Origin : reg.gmx_id;
                                     reg.DateTime = format(reg.Date, reg.Time);
+                                    //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
                                     reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
                                     reg.StateColor = reg.State.search(/\barchive\b/)!=-1?"color-red":"color-green";
                                     _data.regions.push(reg);
