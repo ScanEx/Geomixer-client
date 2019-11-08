@@ -308,8 +308,9 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
                                 });  
                             });
                             $(eoc).on('modify', e=>{
-    //console.log(e.target.getAll());
-                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive"},"id":"${id}","action":"update"}]`,
+//console.log(e.target.getAll());
+                                let values = e.target.getAll();
+                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":"${id}","action":"update"}]`,
                                     function (response) {
                                         _thisView.model.page = 0; // model update                                                       
                                         _thisView.model.updatePromise.then(_checkVersion);
