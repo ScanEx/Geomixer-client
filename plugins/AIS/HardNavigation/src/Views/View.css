@@ -107,11 +107,7 @@
   color: #394b59;
 }
 .hardnav-view .grid tr.nonactual{
-  color: #aaa;
-}
-.hardnav-view .grid tr.nonactual .color-green,
-.hardnav-view .grid tr.nonactual .color-red{
-  opacity: 0.3;
+  opacity: 0.7;
 }
 .hardnav-view .grid td{
   padding: 10px 5px;

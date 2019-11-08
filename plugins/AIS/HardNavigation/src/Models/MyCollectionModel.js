@@ -20,10 +20,10 @@ module.exports = function (options) {
         const props = nsGmx.gmxMap.layersByID[_layerName]._gmx.properties,
         columns = [];
         props.attributes.forEach((a,i)=>{
-            columns.push({Name:a,ColumnSimpleType:props.attrTypes[i],IsPrimary:false,IsIdentity:false,IsComputed:false,expression:`"${a}"`});
+            columns.push({Name:a,OldName:a,ColumnSimpleType:props.attrTypes[i],IsPrimary:false,IsIdentity:false,IsComputed:false,expression:`"${a}"`});
         });
         if (props.attributes.indexOf("Name")<0)
-            columns.push({Name:'Name',ColumnSimpleType:'String',IsPrimary:false,IsIdentity:false,IsComputed:false,expression:'"Name"'});
+            columns.push({Name:'Name', ColumnSimpleType:'String',IsPrimary:false,IsIdentity:false,IsComputed:false,expression:'"Name"'});
         if (props.attributes.indexOf("Type") < 0)
             columns.push({ Name: 'Type', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Type"' });
         if (props.attributes.indexOf("Date") < 0)
@@ -33,8 +33,14 @@ module.exports = function (options) {
         if (props.attributes.indexOf("DateChange") < 0)
             columns.push({ Name: 'DateChange', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"DateChange"' });
         if (props.attributes.indexOf("TimeChange") < 0)
-            columns.push({ Name: 'TimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"TimeChange"' });
-        if (props.attributes.indexOf("State") < 0)
+            columns.push({ Name: 'TimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"TimeChange"' });        
+        
+        if (props.attributes.indexOf("NextDateChange") < 0)
+            columns.push({ Name: 'NextDateChange', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"NextDateChange"' });
+        if (props.attributes.indexOf("NextTimeChange") < 0)
+            columns.push({ Name: 'NextTimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"NextTimeChange"' });
+        
+            if (props.attributes.indexOf("State") < 0)
             columns.push({ Name: 'State', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"State"' });
         if (props.attributes.indexOf("Origin") < 0)
             columns.push({ Name: 'Origin', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Origin"' });

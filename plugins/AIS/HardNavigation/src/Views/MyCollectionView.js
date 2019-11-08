@@ -106,7 +106,42 @@ const MyCollectionView = function ({ model, layer }) {
         this.frame.find('.but.but-attributes').on('click', ()=>nsGmx.createAttributesTable(layer));
 
     },  
+    
     _isActual = function(reg){
+        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+            atttributes = _layer.getGmxProperties().attributes,
+            iOrigin = atttributes.indexOf("Origin") + 1,
+            iState = atttributes.indexOf("State") + 1,
+            iDate = atttributes.indexOf("Date") + 1,
+            iTime = atttributes.indexOf("Time") + 1,
+            iDateChange = atttributes.indexOf("DateChange") + 1,
+            iTimeChange = atttributes.indexOf("TimeChange") + 1,
+            iNextDatetCh = atttributes.indexOf("NextDateChange") + 1,
+            iNextTimeCh = atttributes.indexOf("NextTimeChange") + 1,
+            id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
+            state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
+            dtBegin = mapDateInterval.get('dateBegin').getTime(),
+            dtEnd = mapDateInterval.get('dateEnd').getTime();
+
+        let curVer = {d:reg.properties[iDateChange] * 1000, t:reg.properties[iTimeChange] * 1000, get dt(){return this.d+this.t;}},
+            nextVer = {d:reg.properties[iNextDatetCh] * 1000, t:reg.properties[iNextTimeCh] * 1000, get dt(){return this.d+this.t;}};
+        if (curVer.d === 0){
+            curVer.d = reg.properties[iDate] * 1000;
+            curVer.t = reg.properties[iTime] * 1000;
+        }
+
+        if (curVer.dt<dtEnd){
+            if (nextVer.d==0 && (state.search(/archive/)<0 || curVer.dt>=dtBegin))
+                return true;
+            else if (nextVer.dt>=dtEnd)
+                   return true;
+            else 
+                return false;
+        }
+        else
+            return false;
+    },
+    _isActual0 = function(reg){
         const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
             atttributes = _layer.getGmxProperties().attributes,
             iOrigin = atttributes.indexOf("Origin") + 1,
@@ -128,18 +163,20 @@ const MyCollectionView = function ({ model, layer }) {
  
 //console.log(`>>${id}`, version, version.d < dtEnd)
         if (version.d < dtEnd){
-            let test = true;               
+            let test = true, isLatest = true;               
+            // Search region of same id and the more late version on a certain moment
             for(let key in _layer.getDataManager()._activeTileKeys) { 
                 test = true;
                 let data = _layer.getDataManager()._tiles[key].tile.data;
+                if (data)
                 for(let i=0; i<data.length; ++i){
-                        let curId = data[i][iOrigin]!='' ? data[i][iOrigin] : data[i][0],
-                            curVersion = {d:data[i][iDateChange]*1000, t:data[i][iTimeChange]*1000};
-                        if (curVersion.d==0)
-                            curVersion = {d:data[i][iDate]*1000, t:data[i][iTime]*1000};
-                        if (curId!=id) continue; 
-                        if (curVersion.d>=dtEnd) continue; 
-                        test =  !(version.d<curVersion.d || (version.d==curVersion.d && version.t<curVersion.t));
+                    let curId = data[i][iOrigin] != '' ? data[i][iOrigin] : data[i][0],
+                        curVersion = { d: data[i][iDateChange] * 1000, t: data[i][iTimeChange] * 1000 };
+                    if (curVersion.d == 0)
+                        curVersion = { d: data[i][iDate] * 1000, t: data[i][iTime] * 1000 };
+                    if (curId != id) continue;
+                    if (curVersion.d >= dtEnd) {isLatest = false; continue;}
+                    test = !(version.d < curVersion.d || (version.d == curVersion.d && version.t < curVersion.t));
                     if (!test) {
 //console.log(curId, curVersion)
                         break;
@@ -147,7 +184,9 @@ const MyCollectionView = function ({ model, layer }) {
                 }
                 if (!test) break;
             }
-            return test;
+            if (test && isLatest && state.search(/archive/)>-1 && version.d < dtBegin)
+                return false;
+            return test ;
         }
         else
             return false;
@@ -409,10 +448,10 @@ MyCollectionView.prototype.inProgress = function (state) {
 // };
 
 const _infoClickHandler = function(e){
-    let td = e.currentTarget,
-        id = td.parentElement.id,
-        descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
-        mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
+        let td = e.currentTarget,
+            id = td.parentElement.id,
+            descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[_layer.getGmxProperties().attributes.indexOf('_mediadescript_') + 1],
+            mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
 
         mediaDescDialog.dialog({
             title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
@@ -423,13 +462,13 @@ const _infoClickHandler = function(e){
             minWidth: 510,
             modal: false,
             autoOpen: false,
-            dialogClass:'media-DescDialog',
-            close: function() {mediaDescDialog.dialog('close').remove();}
+            dialogClass: 'media-DescDialog',
+            close: function () { mediaDescDialog.dialog('close').remove(); }
         });
 
-        mediaDescDialog.html('<div class="media-descDiv">'+descData+'</div>');        
+        mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
         mediaDescDialog.dialog('open');
-},
+    },
      _visClickHandler = function(e){
         let td = e.currentTarget,
             id = td.parentElement.id,
@@ -560,6 +599,8 @@ MyCollectionView.prototype.repaint = function () {
             props[attr.indexOf('Time')+1] = _thisView.model.data.regions[i].Time;
             props[attr.indexOf('DateChange')+1] = _thisView.model.data.regions[i].DateChange;
             props[attr.indexOf('TimeChange')+1] = _thisView.model.data.regions[i].TimeChange;
+            props[attr.indexOf("NextDateChange") + 1] = _thisView.model.data.regions[i].NextDateChange;
+            props[attr.indexOf("NextTimeChange") + 1] = _thisView.model.data.regions[i].NextTimeChange;
             props[attr.indexOf('State')+1] = _thisView.model.data.regions[i].State;
             props[attr.indexOf('Origin')+1] = _thisView.model.data.regions[i].Origin;
             const reg = {properties: props};
@@ -577,7 +618,7 @@ MyCollectionView.prototype.repaint = function () {
         this.frame.find('.grid .info').on('click', _infoClickHandler);
         this.frame.find('.grid .visibility').on('click', _visClickHandler);
         this.frame.find('.grid .show').on('click', _showClickHandler);
-        //this.frame.find('.grid .state').on('click', _stateClickHandler);
+        this.frame.find('.grid .state').on('click', _stateClickHandler);
         this.frame.find('.grid .edit').on('click', _editClickHandler);
     }
     else{
