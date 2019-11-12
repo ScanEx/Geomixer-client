@@ -107,7 +107,7 @@
 	            position: params.showOnTop ? -100 : 0,
 	            createTab: function createTab() {
 	                !tab.querySelector('.RasterCatalog') && tab.append(tabDiv);
-	                tab.querySelector('.RasterCatalog').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" style="width:16; height:16" viewBox="0 0 16 16">' + '<path d="M15.15,0H0.88A0.83,0.83,0,0,0,0,.88V15.15A0.83,0.83,0,0,0,.88,16H15.15A0.83,0.83,0,0,0,16,15.15V0.88A0.83,0.83,0,0,0,15.15,0ZM14.25,14.25H1.75V1.75h12.5v12.5Z"/>' + '<circle cx="7" cy="5" r="1.4"/>' + '<path d="M 3 10 L 6 7 L 8 10 L 13 5 L 13 7 L 8 12 L 6 9 L 3 12 z"/>' + '</svg>';
+	                tab.querySelector('.RasterCatalog').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" style="width:16px; height:16px" viewBox="0 0 16 16">' + '<path d="M15.15,0H0.88A0.83,0.83,0,0,0,0,.88V15.15A0.83,0.83,0,0,0,.88,16H15.15A0.83,0.83,0,0,0,16,15.15V0.88A0.83,0.83,0,0,0,15.15,0ZM14.25,14.25H1.75V1.75h12.5v12.5Z"/>' + '<circle cx="7" cy="5" r="1.4"/>' + '<path d="M 3 10 L 6 7 L 8 10 L 13 5 L 13 7 L 8 12 L 6 9 L 3 12 z"/>' + '</svg>';
 	                return tab;
 	            }
 	        }));
