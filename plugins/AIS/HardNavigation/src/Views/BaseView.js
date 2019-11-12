@@ -56,12 +56,15 @@ BaseView.prototype = function () {
         show: function () {
             if (!this.frame)
                 return;
-
             this.frame.show();
             this.model.update();
         },
         hide: function () {
             this.frame.hide();
+        },
+        get isVisible(){
+            const rc = this.frame[0].getBoundingClientRect();
+            return rc.width!=0 && rc.height!=0;
         }
     }
 }();

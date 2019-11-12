@@ -88,9 +88,12 @@
 	            inactive: "hardnav-sidebar-icon",
 	            hint: _gtxt('HardNavigation.title')
 	        })();
-	        tab.querySelector('.HardNavigation').innerHTML = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><path d=\"M13.13,0H0.88A0.83,0.83,0,0,0,0,.88V13.13A0.83,0.83,0,0,0,.88,14H13.13A0.83,0.83,0,0,0,14,13.13V0.88A0.83,0.83,0,0,0,13.13,0ZM12.25,12.25H1.75V1.75h10.5v10.5Z\"/>\n        <rect x=\"2\" y=\"7\" width=\"20\" height=\"1\" transform=\"rotate(45 2 7)\"></rect>\n        <rect x=\"2\" y=\"3\" width=\"20\" height=\"1\" transform=\"rotate(45 2 3)\"></rect>\n        <rect x=\"2\" y=\"-1\" width=\"20\" height=\"1\" transform=\"rotate(45 2 -1)\"></rect>\n        <rect x=\"2\" y=\"-5\" width=\"20\" height=\"1\" transform=\"rotate(45 2 -5)\"></rect>   </svg>";
+	
+	        var tabDiv = tab.querySelector('.HardNavigation');
 	        pluginPanel.sidebarPane = sidebar.setPane(menuId, {
 	            createTab: function createTab() {
+	                !tab.querySelector('.HardNavigation') && tab.append(tabDiv);
+	                tab.querySelector('.HardNavigation').innerHTML = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 14 14\" width=\"20\" height=\"20\"><path d=\"M 13.13 0 H 0.88 A 0.83 0.83 0 0 0 0 0.88 V 13.13 A 0.83 0.83 0 0 0 0.88 14 H 13.13 A 0.83 0.83 0 0 0 14 13.13 V 0.88 A 0.83 0.83 0 0 0 13.13 0 Z M 12.25 12.25 H 1.75 V 1.75 h 10.5 v 10.5 Z\" />\n                     <rect transform=\"rotate(45 2 7)\" x=\"2\" y=\"7\" width=\"8\" height=\"1\" />\n                     <rect transform=\"rotate(45 2 3)\" x=\"2\" y=\"3\" width=\"14\" height=\"1\" />\n                     <rect transform=\"rotate(45 2 -1)\" x=\"4\" y=\"-1\" width=\"14\" height=\"1\" />\n                     <rect transform=\"rotate(45 2 -5)\" x=\"10\" y=\"-5\" width=\"8\" height=\"1\" />   </svg>";
 	                return tab;
 	            }
 	        });
@@ -132,7 +135,7 @@
 	    "HardNavigation.attr_tbl": "Таблица атрибутов",
 	    "HardNavigation.reg_id": "ID района",
 	    "HardNavigation.reg_created": "Создан",
-	    "HardNavigation.reg_updated": "Обновлен",
+	    "HardNavigation.reg_updated": "Изменен",
 	    "HardNavigation.add_new": "Добавить новый объект",
 	    "HardNavigation.add_copy": "Добавить выбранный объект",
 	    "HardNavigation.no_origin": "нет",
@@ -155,7 +158,7 @@
 	    "HardNavigation.attr_tbl": "Table of attrobutes",
 	    "HardNavigation.reg_id": "Region ID",
 	    "HardNavigation.reg_created": "Created",
-	    "HardNavigation.reg_updated": "Updated",
+	    "HardNavigation.reg_updated": "Changed",
 	    "HardNavigation.add_new": "Добавить новый объект",
 	    "HardNavigation.add_copy": "Добавить выбранный объект",
 	    "HardNavigation.no_origin": "no",
@@ -347,28 +350,26 @@
 	        return;
 	    }
 	
-	    _layer.setFilter(function (reg) {
-	        var id = reg.properties[0].toString(),
-	            atttributes = _layer.getGmxProperties().attributes,
-	            state = reg.properties[atttributes.indexOf("State") + 1];
-	        if (!_hidden[id] && state == 'archive') _hidden[id] = true;
-	        if (_hidden[id] && !_visible[id]) {
-	            //console.log(reg.properties[0])
-	            return false;
-	        } else {
-	            //console.log(_hidden)
-	            return true;
+	    nsGmx.widgets.commonCalendar.getDateInterval().on('change', function (e) {
+	        _hidden = {};
+	        _visible = {};
+	        _layer.repaint();
+	        if (!_thisView.isVisible) {
+	            //_thisView.repaint();
+	            _thisView.inProgress(true);
+	            _thisView.model.isDirty = true;
 	        }
 	    });
+	    _layer.setFilter(_isVisible);
 	
 	    BaseView.call(this, model);
 	    this.frame = $(Handlebars.compile('<div class="hardnav-view">\n            <div class="header">\n                <table border=0>\n                <tr><td class="hint" colspan="2">' + _gtxt('HardNavigation.instr_hint') + '</td>\n                <td><div class="refresh"><div style="display:none">' + this.gifLoader + '</div></div></td></tr>\n                </table> \n\n                <table border=0 class="instruments unselectable">\n                <tr>\n                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>' + _gtxt('HardNavigation.choose_reg') + '</td>\n                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>' + _gtxt('HardNavigation.create_reg') + '</td>\n                </tr>\n                </table> \n\n                <div class="calendar"></div>\n\n                <table border=0 class="grid-header">\n                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>\n                <td>' + _gtxt('HardNavigation.reg_id') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_created') + '</td>\n                <td>' + _gtxt('HardNavigation.reg_updated') + '</td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>\n                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>\n                </table> \n            </div> \n            <div class="grid">\n\n            </div>\n            <div class="footer unselectable">\n                <table border=0 class="pager">\n                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>\n                    <td class="current">' + _gtxt('HardNavigation.page_lbl') + ' <span class="pages"></span></td>\n                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>\n                </table>  \n                <div class="but but-attributes">' + _gtxt('HardNavigation.attr_tbl') + '</div>          \n            </div>\n            </div>')());
-	    //_addCalendar.call(this);
+	    _addCalendar.call(this);
 	
 	    this.container = this.frame.find('.grid');
 	    this.footer = this.frame.find('.footer');
 	
-	    this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' + '<td class="visibility">' + '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg>' + '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' + '<td>{{id}}</td>' + '<td>{{{DateTime}}}</td>' + '<td>{{{DateTimeChange}}}</td>' + '<td class="{{StateColor}} state"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' + '<td class="edit"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' + '<td class="show"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' + '<td class="info"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' + '</tr>{{/each}}</table>' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+	    this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' + '<td class="visibility">' + '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg>' + '<svg style="display:none"><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' + '<td class="identity">{{id}}</td>' + '<td class="identity">{{{DateTime}}}</td>' + '<td>{{{DateTimeChange}}}</td>' + '<td class="{{StateColor}} state"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' + '<td class="edit"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' + '<td class="show"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' + '<td class="info"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' + '</tr>{{/each}}</table>' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
@@ -392,6 +393,92 @@
 	        return nsGmx.createAttributesTable(layer);
 	    });
 	},
+	    _isActual = function _isActual(reg) {
+	    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+	        atttributes = _layer.getGmxProperties().attributes,
+	        iOrigin = atttributes.indexOf("Origin") + 1,
+	        iState = atttributes.indexOf("State") + 1,
+	        iDate = atttributes.indexOf("Date") + 1,
+	        iTime = atttributes.indexOf("Time") + 1,
+	        iDateChange = atttributes.indexOf("DateChange") + 1,
+	        iTimeChange = atttributes.indexOf("TimeChange") + 1,
+	        iNextDatetCh = atttributes.indexOf("NextDateChange") + 1,
+	        iNextTimeCh = atttributes.indexOf("NextTimeChange") + 1,
+	        id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
+	        state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
+	        dtBegin = mapDateInterval.get('dateBegin').getTime(),
+	        dtEnd = mapDateInterval.get('dateEnd').getTime();
+	
+	    var curVer = { d: reg.properties[iDateChange] * 1000, t: reg.properties[iTimeChange] * 1000, get dt() {
+	            return this.d + this.t;
+	        } },
+	        nextVer = { d: reg.properties[iNextDatetCh] * 1000, t: reg.properties[iNextTimeCh] * 1000, get dt() {
+	            return this.d + this.t;
+	        } };
+	    if (curVer.d === 0) {
+	        curVer.d = reg.properties[iDate] * 1000;
+	        curVer.t = reg.properties[iTime] * 1000;
+	    }
+	
+	    if (curVer.dt < dtEnd) {
+	        if (nextVer.d == 0 && (state.search(/archive/) < 0 || curVer.dt >= dtBegin)) return true;else if (nextVer.dt >= dtEnd) return true;else return false;
+	    } else return false;
+	},
+	    _isActual0 = function _isActual0(reg) {
+	    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+	        atttributes = _layer.getGmxProperties().attributes,
+	        iOrigin = atttributes.indexOf("Origin") + 1,
+	        iState = atttributes.indexOf("State") + 1,
+	        iDate = atttributes.indexOf("Date") + 1,
+	        iTime = atttributes.indexOf("Time") + 1,
+	        iDateChange = atttributes.indexOf("DateChange") + 1,
+	        iTimeChange = atttributes.indexOf("TimeChange") + 1,
+	        id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
+	        state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
+	        dtBegin = mapDateInterval.get('dateBegin').getTime(),
+	        dtEnd = mapDateInterval.get('dateEnd').getTime();
+	
+	    var version = { d: reg.properties[iDateChange] * 1000, t: reg.properties[iTimeChange] * 1000 };
+	    if (version.d === 0) {
+	        version.d = reg.properties[iDate] * 1000;
+	        version.t = reg.properties[iTime] * 1000;
+	    }
+	
+	    //console.log(`>>${id}`, version, version.d < dtEnd)
+	    if (version.d < dtEnd) {
+	        var test = true,
+	            isLatest = true;
+	        // Search region of same id and the more late version on a certain moment
+	        for (var key in _layer.getDataManager()._activeTileKeys) {
+	            test = true;
+	            var data = _layer.getDataManager()._tiles[key].tile.data;
+	            if (data) for (var i = 0; i < data.length; ++i) {
+	                var curId = data[i][iOrigin] != '' ? data[i][iOrigin] : data[i][0],
+	                    curVersion = { d: data[i][iDateChange] * 1000, t: data[i][iTimeChange] * 1000 };
+	                if (curVersion.d == 0) curVersion = { d: data[i][iDate] * 1000, t: data[i][iTime] * 1000 };
+	                if (curId != id) continue;
+	                if (curVersion.d >= dtEnd) {
+	                    isLatest = false;continue;
+	                }
+	                test = !(version.d < curVersion.d || version.d == curVersion.d && version.t < curVersion.t);
+	                if (!test) {
+	                    //console.log(curId, curVersion)
+	                    break;
+	                }
+	            }
+	            if (!test) break;
+	        }
+	        if (test && isLatest && state.search(/archive/) > -1 && version.d < dtBegin) return false;
+	        return test;
+	    } else return false;
+	},
+	    _isVisible = function _isVisible(reg) {
+	    var id = reg.properties[0].toString();
+	
+	    if (_visible[id]) return true;
+	
+	    if (_hidden[id] || !_isActual(reg)) return false;else return true;
+	},
 	    _addCalendar = function _addCalendar() {
 	    var _this = this;
 	
@@ -403,8 +490,13 @@
 	        dateInterval = new nsGmx.DateInterval();
 	
 	    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-	        console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-	        //nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        if (_thisView.isVisible) {
+	            _thisView.inProgress(true);
+	            _thisView.model.isDirty = true;
+	            _thisView.model.update();
+	        }
 	    }.bind(this));
 	
 	    this.calendar = new nsGmx.CalendarWidget({
@@ -412,28 +504,35 @@
 	        name: 'catalogInterval',
 	        container: calendar,
 	        dateMin: new Date(0, 0, 0),
-	        dateMax: new Date(3015, 1, 1),
+	        dateMax: new Date(),
 	        dateFormat: 'dd.mm.yy',
 	        minimized: false,
 	        showSwitcher: false
 	    });
 	
+	    calendar.querySelector('.CalendarWidget-dateBegin').style.display = 'none';
 	    var tr = calendar.querySelector('tr:nth-of-type(1)');
-	    tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
-	    tr.insertCell(5).innerHTML = '<img class="default_date" style="cursor:pointer; padding-right:10px" title="' + _gtxt('HardNavigation.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">';
+	    //tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
+	    tr.insertCell(4).innerHTML = '<img class="default_date" style="cursor:pointer; padding-right:10px" title="' + _gtxt('HardNavigation.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">';
 	
-	    var td = tr.insertCell(6);
-	    td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';
-	    tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
-	    td = tr.insertCell(8);
-	    td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';
+	    // let td = tr.insertCell(6);
+	    // td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
+	    // tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
+	    // td = tr.insertCell(8);
+	    // td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
+	
 	
 	    calendar.querySelector('.default_date').addEventListener('click', function () {
 	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
 	        _this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
 	        _this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-	        console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-	        //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+	        //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+	        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+	        if (_thisView.isVisible) {
+	            _thisView.inProgress(true);
+	            _thisView.model.isDirty = true;
+	            _thisView.model.update();
+	        }
 	    });
 	},
 	    _checkVersion = function _checkVersion() {
@@ -463,23 +562,23 @@
 	                    i = result.fields.indexOf('geomixergeojson'),
 	                    obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
 	                    gmx_id = result.values[0][result.fields.indexOf(props.identityField)],
-	
-	                //date = result.values[0][result.fields.indexOf('Date')],
-	                //time = result.values[0][result.fields.indexOf('Time')],
-	                name = result.values[0][result.fields.indexOf('Name')],
+	                    origin = parseInt(result.values[0][result.fields.indexOf('Origin')]),
+	                    date = parseInt(result.values[0][result.fields.indexOf('Date')]),
+	                    time = parseInt(result.values[0][result.fields.indexOf('Time')]),
+	                    name = result.values[0][result.fields.indexOf('Name')],
 	                    type = result.values[0][result.fields.indexOf('Type')],
 	                    media = result.values[0][result.fields.indexOf('_mediadescript_')],
 	                    eoc = new nsGmx.EditObjectControl(props.name, null, { drawingObject: obj[0] }),
 	                    dt = new Date();
 	                eoc.initPromise.done(function () {
-	                    eoc.set('Origin', gmx_id);
+	                    eoc.set('Origin', origin && origin != '' ? origin : gmx_id);
 	                    eoc.set('Name', name);
 	                    eoc.set('Type', type);
 	                    eoc.set('_mediadescript_', media);
-	                    //eoc.set('Time', time); 
-	                    //eoc.set('Date', date);       
-	                    eoc.set('Time', dt.getTime() / 1000);
-	                    eoc.set('Date', dt.getTime() / 1000);
+	                    eoc.set('Time', date + time);
+	                    eoc.set('Date', date + time);
+	                    eoc.set('TimeChange', dt.getTime() / 1000);
+	                    eoc.set('DateChange', dt.getTime() / 1000);
 	
 	                    var dlg = $('span:contains("' + _gtxt("Создать объект слоя [value0]", props.title) + '")').closest('.ui-dialog');
 	                    dlg.find('tr').each(function (i, el) {
@@ -494,11 +593,8 @@
 	                });
 	                $(eoc).on('modify', function (e) {
 	                    //console.log(e.target.getAll());
-	                    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + props.name + '&objects=[{"properties":{"State":"archive"},"id":"' + id + '","action":"update"}]', function (response) {
-	
-	                        delete _visible[id];
-	                        _hidden[id] = true;
-	
+	                    var values = e.target.getAll();
+	                    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + props.name + '&objects=[{"properties":{"State":"archive","NextDateChange":' + values.DateChange + ',"NextTimeChange":' + values.TimeChange + '},"id":"' + id + '","action":"update"}]', function (response) {
 	                        _thisView.model.page = 0; // model update                                                       
 	                        _thisView.model.updatePromise.then(_checkVersion);
 	
@@ -599,7 +695,14 @@
 	        nsGmx.leafletMap.gmxDrawing.clearCreate();
 	    }
 	},
-	    _clean = function _clean() {};
+	    _clean = function _clean() {
+	
+	    this.frame.find('.grid .info').off('click', _infoClickHandler);
+	    this.frame.find('.grid .visibility').off('click', _visClickHandler);
+	    this.frame.find('.grid .show').off('click', _showClickHandler);
+	    //this.frame.find('.grid .state').off('click', _stateClickHandler);
+	    this.frame.find('.grid .edit').off('click', _editClickHandler);
+	};
 	
 	MyCollectionView.prototype = Object.create(BaseView.prototype);
 	
@@ -614,6 +717,129 @@
 	//     this.container.height(h+1);
 	// };
 	
+	var _infoClickHandler = function _infoClickHandler(e) {
+	    var td = e.currentTarget,
+	        id = td.parentElement.id,
+	        descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[_layer.getGmxProperties().attributes.indexOf('_mediadescript_') + 1],
+	        mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
+	
+	    mediaDescDialog.dialog({
+	        title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
+	        width: 510,
+	        height: 505, //dialogSettings.dialogDescHeight,
+	        minHeight: 505, //dialogSettings.dialogDescHeight,
+	        maxWidth: 510,
+	        minWidth: 510,
+	        modal: false,
+	        autoOpen: false,
+	        dialogClass: 'media-DescDialog',
+	        close: function close() {
+	            mediaDescDialog.dialog('close').remove();
+	        }
+	    });
+	
+	    mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
+	    mediaDescDialog.dialog('open');
+	},
+	    _visClickHandler = function _visClickHandler(e) {
+	    var td = e.currentTarget,
+	        id = td.parentElement.id,
+	        svg = td.querySelectorAll('svg'),
+	        vis = 0,
+	        hid = 1;
+	    if (svg[0].style.display != 'none') {
+	        delete _visible[id];
+	        _hidden[id] = true;
+	        vis = 1;hid = 0;
+	    } else {
+	        _visible[id] = true;
+	        delete _hidden[id];
+	        vis = 0;hid = 1;
+	    }
+	    svg[hid].style.display = 'none';
+	    svg[vis].style.display = 'block';
+	    _layer.repaint();
+	    //console.log(_hidden)
+	},
+	    _showClickHandler = function _showClickHandler(e) {
+	    var id = e.currentTarget.parentElement.id,
+	        layer = _layer,
+	        props = layer.getGmxProperties(),
+	        layerName = props.name;
+	    sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function (response) {
+	        if (!window.parseResponse(response)) {
+	            return;
+	        }
+	        var columnNames = response.Result.fields;
+	        var row = response.Result.values[0];
+	        //for (var i = 0; i < row.length; ++i)
+	        var i = columnNames.indexOf('geomixergeojson');
+	        {
+	            if (columnNames[i] === 'geomixergeojson' && row[i]) {
+	                var fitBoundsOptions = layer ? { maxZoom: layer.options.maxZoom } : {};
+	
+	                var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
+	                var bounds = L.gmxUtil.getGeometryBounds(geom);
+	                nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], fitBoundsOptions);
+	            }
+	        }
+	    });
+	},
+	    _stateClickHandler = function _stateClickHandler(e) {
+	    var td = e.currentTarget,
+	        id = td.parentElement.id,
+	        state = '';
+	
+	    if (td.className.search(/green/) != -1) state = 'archive';
+	
+	    sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + _layer.getGmxProperties().name + '&objects=[{"properties":{"State":"' + state + '"},"id":"' + id + '","action":"update"}]', function (response) {
+	        if (response.Status && response.Status.toLowerCase() == 'ok') {
+	            _thisView.inProgress(true);
+	            _thisView.model.isDirty = true;
+	            _thisView.model.update();
+	            _thisView.model.updatePromise.then(_checkVersion);
+	        } else console.log(response);
+	    });
+	},
+	    _editClickHandler = function _editClickHandler(e) {
+	
+	    if (_stateUI != '') return;
+	    _stateUI = 'edit_region';
+	
+	    var id = e.currentTarget.parentElement.id,
+	        layerName = _layer.getGmxProperties().name,
+	        layerTitle = _layer.getGmxProperties().title,
+	        eoc = new nsGmx.EditObjectControl(layerName, id),
+	        dt = new Date();
+	    var isDelete = false;
+	    eoc.initPromise.done(function () {
+	        //eoc.set('TimeChange', dt.getTime()/1000); 
+	        //eoc.set('DateChange', dt.getTime()/1000);
+	        var dlg = $('span:contains("' + _gtxt("Редактировать объект слоя [value0]", layerTitle) + '")').closest('.ui-dialog');
+	        dlg.find('tr').each(function (i, el) {
+	            var name = el.querySelectorAll('td')[0].innerText;
+	            if (i > 1 && name.search(/\b(Name|Type)\b/i) < 0) el.style.display = 'none';
+	        });
+	        dlg.find('.buttonLink:contains("' + _gtxt("Изменить") + '")').on('click', function (e) {
+	            _thisView.inProgress(true);
+	        });
+	        dlg.find('.buttonLink:contains("' + _gtxt("Удалить") + '")').on('click', function (e) {
+	            _thisView.inProgress(true);
+	            isDelete = true;
+	        });
+	    });
+	    $(eoc).on('modify', function (e) {
+	        ///console.log(e.target.getAll(), dt);
+	        _thisView.model.isDirty = true;
+	        _thisView.model.update();
+	        _thisView.model.updatePromise.then(_checkVersion);
+	    });
+	    $(eoc).on('close', function (e) {
+	        if (isDelete) _thisView.model.page = 0;
+	        _stateUI = '';
+	    });
+	};
+	
 	MyCollectionView.prototype.repaint = function () {
 	    _clean.call(this);
 	    BaseView.prototype.repaint.call(this);
@@ -626,145 +852,33 @@
 	
 	        $('.grid tr').each(function (i, el) {
 	            var id = el.id,
-	                svg = el.querySelectorAll('svg'),
-	                vis = 0,
-	                hid = 1;
-	            if (_hidden[id] && !_visible[id]) {
-	                vis = 1;hid = 0;
+	                svg = el.querySelectorAll('svg');
+	            //console.log(id, _layer.getDataManager().getItem(parseInt(id)));
+	            var attr = _layer.getGmxProperties().attributes,
+	                props = [id];
+	            props[attr.indexOf('Date') + 1] = _thisView.model.data.regions[i].Date;
+	            props[attr.indexOf('Time') + 1] = _thisView.model.data.regions[i].Time;
+	            props[attr.indexOf('DateChange') + 1] = _thisView.model.data.regions[i].DateChange;
+	            props[attr.indexOf('TimeChange') + 1] = _thisView.model.data.regions[i].TimeChange;
+	            props[attr.indexOf("NextDateChange") + 1] = _thisView.model.data.regions[i].NextDateChange;
+	            props[attr.indexOf("NextTimeChange") + 1] = _thisView.model.data.regions[i].NextTimeChange;
+	            props[attr.indexOf('State') + 1] = _thisView.model.data.regions[i].State;
+	            props[attr.indexOf('Origin') + 1] = _thisView.model.data.regions[i].Origin;
+	            var reg = { properties: props };
+	            //console.log(reg);
+	            if (!_isVisible(reg)) {
+	                svg[0].style.display = 'none';
+	                svg[1].style.display = 'block';
 	            }
-	            svg[hid].style.display = 'none';
-	            svg[vis].style.display = 'block';
+	            if (!_isActual(reg)) el.classList.add('nonactual');else el.classList.remove('nonactual');
 	        });
 	
-	        this.frame.find('.grid .info').on('click', function (e) {
-	            var td = e.currentTarget,
-	                id = td.parentElement.id,
-	                descData = _layer._gmx.dataManager.getItem(parseInt(id)).properties[9],
-	                mediaDescDialog = jQuery('<div class="mediaDesc-Div"><img src="plugins/external/GMXPluginMedia/addit/media_img_load.gif"></img></div>');
-	
-	            mediaDescDialog.dialog({
-	                title: _gtxt('mediaPlugin2.mediaDescDialogTitleRead.label'),
-	                width: 510,
-	                height: 505, //dialogSettings.dialogDescHeight,
-	                minHeight: 505, //dialogSettings.dialogDescHeight,
-	                maxWidth: 510,
-	                minWidth: 510,
-	                modal: false,
-	                autoOpen: false,
-	                dialogClass: 'media-DescDialog',
-	                close: function close() {
-	                    mediaDescDialog.dialog('close').remove();
-	                }
-	            });
-	
-	            mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
-	            mediaDescDialog.dialog('open');
-	        });
-	
-	        this.frame.find('.grid .visibility').on('click', function (e) {
-	            var td = e.currentTarget,
-	                id = td.parentElement.id,
-	                svg = td.querySelectorAll('svg'),
-	                vis = 0,
-	                hid = 1;
-	            if (!_hidden[id] || _visible[id]) {
-	                _hidden[id] = true;
-	                delete _visible[id];
-	                vis = 1;hid = 0;
-	            } else {
-	                delete _hidden[id];
-	                _visible[id] = true;
-	                vis = 0;hid = 1;
-	            }
-	            svg[hid].style.display = 'none';
-	            svg[vis].style.display = 'block';
-	            _layer.repaint();
-	            //console.log(_hidden, _visible)
-	        });
-	
-	        this.frame.find('.grid .show').on('click', function (e) {
-	            var id = e.currentTarget.parentElement.id,
-	                layer = _layer,
-	                props = layer.getGmxProperties(),
-	                layerName = props.name;
-	            sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function (response) {
-	                if (!window.parseResponse(response)) {
-	                    return;
-	                }
-	                var columnNames = response.Result.fields;
-	                var row = response.Result.values[0];
-	                //for (var i = 0; i < row.length; ++i)
-	                var i = columnNames.indexOf('geomixergeojson');
-	                {
-	                    if (columnNames[i] === 'geomixergeojson' && row[i]) {
-	                        var fitBoundsOptions = layer ? { maxZoom: layer.options.maxZoom } : {};
-	
-	                        var geom = L.gmxUtil.geometryToGeoJSON(row[i], true);
-	                        var bounds = L.gmxUtil.getGeometryBounds(geom);
-	                        nsGmx.leafletMap.fitBounds([[bounds.min.y, bounds.min.x], [bounds.max.y, bounds.max.x]], fitBoundsOptions);
-	                    }
-	                }
-	            });
-	        });
-	
-	        this.frame.find('.grid .state').on('click', function (e) {
-	            var td = e.currentTarget,
-	                id = td.parentElement.id,
-	                state = '';
-	
-	            if (td.className.search(/green/) != -1) state = 'archive';
-	
-	            delete _visible[id];
-	            if (state == 'archive') _hidden[id] = true;else delete _hidden[id];
-	
-	            sendCrossDomainJSONRequest(serverBase + 'VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=' + _layer.getGmxProperties().name + '&objects=[{"properties":{"State":"' + state + '"},"id":"' + id + '","action":"update"}]', function (response) {
-	                if (response.Status && response.Status.toLowerCase() == 'ok') {
-	                    _thisView.inProgress(true);
-	                    _thisView.model.isDirty = true;
-	                    _thisView.model.update();
-	                    _thisView.model.updatePromise.then(_checkVersion);
-	                } else console.log(response);
-	            });
-	        });
-	
-	        this.frame.find('.grid .edit').on('click', function (e) {
-	
-	            if (_stateUI != '') return;
-	            _stateUI = 'edit_region';
-	
-	            var id = e.currentTarget.parentElement.id,
-	                layerName = _layer.getGmxProperties().name,
-	                layerTitle = _layer.getGmxProperties().title,
-	                eoc = new nsGmx.EditObjectControl(layerName, id),
-	                dt = new Date();
-	            var isDelete = false;
-	            eoc.initPromise.done(function () {
-	                eoc.set('TimeChange', dt.getTime() / 1000);
-	                eoc.set('DateChange', dt.getTime() / 1000);
-	                var dlg = $('span:contains("' + _gtxt("Редактировать объект слоя [value0]", layerTitle) + '")').closest('.ui-dialog');
-	                dlg.find('tr').each(function (i, el) {
-	                    var name = el.querySelectorAll('td')[0].innerText;
-	                    if (i > 1 && name.search(/\b(Name|Type)\b/i) < 0) el.style.display = 'none';
-	                });
-	                dlg.find('.buttonLink:contains("' + _gtxt("Изменить") + '")').on('click', function (e) {
-	                    _thisView.inProgress(true);
-	                });
-	                dlg.find('.buttonLink:contains("' + _gtxt("Удалить") + '")').on('click', function (e) {
-	                    _thisView.inProgress(true);
-	                    isDelete = true;
-	                });
-	            });
-	            $(eoc).on('modify', function (e) {
-	                ///console.log(e.target.getAll(), dt);
-	                _thisView.model.isDirty = true;
-	                _thisView.model.update();
-	                _thisView.model.updatePromise.then(_checkVersion);
-	            });
-	            $(eoc).on('close', function (e) {
-	                if (isDelete) _thisView.model.page = 0;
-	                _stateUI = '';
-	            });
-	        });
+	        this.frame.find('.grid .info').on('click', _infoClickHandler);
+	        this.frame.find('.grid .visibility').on('click', _visClickHandler);
+	        this.frame.find('.grid .show').on('click', _showClickHandler);
+	        //this.frame.find('.grid .state').on('click', _stateClickHandler);
+	        this.frame.find('.grid .state').css('cursor', 'default');
+	        this.frame.find('.grid .edit').on('click', _editClickHandler);
 	    } else {
 	        this.frame.find('.pager').css('visibility', 'hidden');
 	    }
@@ -846,12 +960,15 @@
 	        },
 	        show: function show() {
 	            if (!this.frame) return;
-	
 	            this.frame.show();
 	            this.model.update();
 	        },
 	        hide: function hide() {
 	            this.frame.hide();
+	        },
+	        get isVisible() {
+	            var rc = this.frame[0].getBoundingClientRect();
+	            return rc.width != 0 && rc.height != 0;
 	        }
 	    };
 	}();
@@ -887,7 +1004,7 @@
 	        var props = nsGmx.gmxMap.layersByID[_layerName]._gmx.properties,
 	            columns = [];
 	        props.attributes.forEach(function (a, i) {
-	            columns.push({ Name: a, ColumnSimpleType: props.attrTypes[i], IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"' + a + '"' });
+	            columns.push({ Name: a, OldName: a, ColumnSimpleType: props.attrTypes[i], IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"' + a + '"' });
 	        });
 	        if (props.attributes.indexOf("Name") < 0) columns.push({ Name: 'Name', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Name"' });
 	        if (props.attributes.indexOf("Type") < 0) columns.push({ Name: 'Type', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Type"' });
@@ -895,6 +1012,10 @@
 	        if (props.attributes.indexOf("Time") < 0) columns.push({ Name: 'Time', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Time"' });
 	        if (props.attributes.indexOf("DateChange") < 0) columns.push({ Name: 'DateChange', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"DateChange"' });
 	        if (props.attributes.indexOf("TimeChange") < 0) columns.push({ Name: 'TimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"TimeChange"' });
+	
+	        if (props.attributes.indexOf("NextDateChange") < 0) columns.push({ Name: 'NextDateChange', ColumnSimpleType: 'Date', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"NextDateChange"' });
+	        if (props.attributes.indexOf("NextTimeChange") < 0) columns.push({ Name: 'NextTimeChange', ColumnSimpleType: 'Time', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"NextTimeChange"' });
+	
 	        if (props.attributes.indexOf("State") < 0) columns.push({ Name: 'State', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"State"' });
 	        if (props.attributes.indexOf("Origin") < 0) columns.push({ Name: 'Origin', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Origin"' });
 	        if (props.attributes.indexOf("_mediadescript_") < 0) columns.push({ Name: '_mediadescript_', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"_mediadescript_"' });
@@ -951,6 +1072,13 @@
 	            var thisModel = this;
 	            if (!thisModel.isDirty) return;
 	
+	            var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+	                formatDt = function formatDt(dt) {
+	                return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
+	            },
+	                dtBegin = formatDt(mapDateInterval.get('dateBegin')),
+	                dtEnd = formatDt(mapDateInterval.get('dateEnd'));
+	
 	            _initPromise.then(function (test) {
 	                //console.log(test)
 	                _count = 0;
@@ -958,15 +1086,14 @@
 	                thisModel.view.inProgress(true);
 	                thisModel.updatePromise = [function (r) {
 	                    return new Promise(function (resolve, reject) {
-	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&count=true', function (r) {
+	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&count=true' + ('&query="Date"<\'' + dtEnd + '\' and ("DateChange" is null or "DateChange"<\'' + dtEnd + '\') and (("NextDateChange" is null and ("State"<>\'archive\' or ("Date">=\'' + dtBegin + '\' and "DateChange" is null) or "DateChange">=\'' + dtBegin + '\')) or "NextDateChange">=\'' + dtEnd + '\')'), function (r) {
 	                            return resolve(r);
 	                        });
 	                    });
 	                }, function (r) {
 	                    if (_checkResponse(r)) {
 	                        _count = parseInt(r.Result);
-	                        //return new Promise((resolve, reject) => {
-	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&orderby=gmx_id&orderdirection=DESC&pagesize=' + _pageSize + '&page=' + _page, function (r) {
+	                        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?Layer=' + _layerName + '&orderby=gmx_id&orderdirection=DESC&pagesize=' + _pageSize + '&page=' + _page + ('&query="Date"<\'' + dtEnd + '\' and ("DateChange" is null or "DateChange"<\'' + dtEnd + '\') and (("NextDateChange" is null and ("State"<>\'archive\' or ("Date">=\'' + dtBegin + '\' and "DateChange" is null) or "DateChange">=\'' + dtBegin + '\')) or "NextDateChange">=\'' + dtEnd + '\')'), function (r) {
 	                            _data.regions.length = 0;
 	                            if (_checkResponse(r)) {
 	                                //resolve(r); 
@@ -983,10 +1110,11 @@
 	                                    var reg = {};
 	                                    for (var j = 0; j < result.fields.length; ++j) {
 	                                        reg[result.fields[j]] = result.values[i][j];
-	                                    }reg.id = reg.gmx_id + (reg.Origin && reg.Origin != '' ? '_' + reg.Origin : '');
+	                                    }reg.id = reg.Origin && reg.Origin != '' ? reg.Origin : reg.gmx_id;
 	                                    reg.DateTime = format(reg.Date, reg.Time);
+	                                    //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
 	                                    reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-	                                    reg.StateColor = reg.State == "archive" ? "color-red" : "color-green";
+	                                    reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-red" : "color-green";
 	                                    _data.regions.push(reg);
 	                                }
 	                                //console.log(_data);

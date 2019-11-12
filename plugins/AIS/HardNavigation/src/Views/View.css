@@ -16,6 +16,12 @@
     user-select: none;
 }
 
+.hardnav-view .calendar {
+  padding-bottom: 20px;
+}
+.hardnav-view .calendar table{  
+  margin-left: 10px;
+}
 .hardnav-view .calendar .select {
   font-family: roboto;
   font-weight: 700;

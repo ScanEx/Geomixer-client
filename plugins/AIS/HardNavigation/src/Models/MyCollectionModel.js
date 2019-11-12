@@ -91,6 +91,11 @@ module.exports = function (options) {
             if (!thisModel.isDirty)
                 return;
 
+                        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                        formatDt = function(dt){return `${dt.getFullYear()}-${('0'+(dt.getMonth()+1)).slice(-2)}-${('0'+dt.getDate()).slice(-2)}`},
+                        dtBegin = formatDt(mapDateInterval.get('dateBegin')),
+                        dtEnd = formatDt(mapDateInterval.get('dateEnd'));
+
             _initPromise.then((test)=>{
 //console.log(test)
                 _count = 0;
@@ -98,15 +103,16 @@ module.exports = function (options) {
                 thisModel.view.inProgress(true);
                 thisModel.updatePromise = [function(r){
                     return new Promise((resolve, reject) => {
-                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true`, r=>
+                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true` + 
+                        `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, r=>
                             resolve(r)
                         );
                     });
                 }, function(r){
                     if (_checkResponse(r)){
                         _count = parseInt(r.Result);
-                        //return new Promise((resolve, reject) => {
-                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}`, r=>{
+                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}` + 
+                        `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, r=>{
                             _data.regions.length = 0;                        
                             if (_checkResponse(r)){
                                 //resolve(r); 

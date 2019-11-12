@@ -21,7 +21,11 @@ const MyCollectionView = function ({ model, layer }) {
             _hidden = {};
             _visible = {};
             _layer.repaint(); 
-            _thisView.repaint();
+            if (!_thisView.isVisible){
+                //_thisView.repaint();
+                _thisView.inProgress(true);
+                _thisView.model.isDirty = true;
+            }
         });
         _layer.setFilter(_isVisible);
 
@@ -66,7 +70,7 @@ const MyCollectionView = function ({ model, layer }) {
             </div>
             </div>`
         )());
-        //_addCalendar.call(this);
+        _addCalendar.call(this);
 
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
@@ -215,8 +219,13 @@ const MyCollectionView = function ({ model, layer }) {
             .set('dateBegin', mapDateInterval.get('dateBegin'))
             .set('dateEnd', mapDateInterval.get('dateEnd'))
             .on('change', function (e) {
-console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-                //nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));                
+                if (_thisView.isVisible){
+                    _thisView.inProgress(true);
+                    _thisView.model.isDirty = true;
+                    _thisView.model.update();
+                }
             }.bind(this));
 
         this.calendar = new nsGmx.CalendarWidget({
@@ -224,30 +233,36 @@ console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
             name: 'catalogInterval',
             container: calendar,
             dateMin: new Date(0, 0, 0),
-            dateMax: new Date(3015, 1, 1),
+            dateMax: new Date(),
             dateFormat: 'dd.mm.yy',
             minimized: false,
             showSwitcher: false
         })
 
+        calendar.querySelector('.CalendarWidget-dateBegin').style.display = 'none';
         let tr = calendar.querySelector('tr:nth-of-type(1)');
-        tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
-        tr.insertCell(5).innerHTML = 
+        //tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
+        tr.insertCell(4).innerHTML = 
         '<img class="default_date" style="cursor:pointer; padding-right:10px" title="'+_gtxt('HardNavigation.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg">';
  
-        let td = tr.insertCell(6);
-        td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
-        tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
-        td = tr.insertCell(8);
-        td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
+        // let td = tr.insertCell(6);
+        // td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
+        // tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
+        // td = tr.insertCell(8);
+        // td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
         
 
         calendar.querySelector('.default_date').addEventListener('click', () => {
             let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
             this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
             this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-            //nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+            nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);              
+            if (_thisView.isVisible){
+                _thisView.inProgress(true);
+                _thisView.model.isDirty = true;
+                _thisView.model.update();
+            }
         });
     },
     _checkVersion = function(){
@@ -619,7 +634,8 @@ MyCollectionView.prototype.repaint = function () {
         this.frame.find('.grid .info').on('click', _infoClickHandler);
         this.frame.find('.grid .visibility').on('click', _visClickHandler);
         this.frame.find('.grid .show').on('click', _showClickHandler);
-        this.frame.find('.grid .state').on('click', _stateClickHandler);
+        //this.frame.find('.grid .state').on('click', _stateClickHandler);
+        this.frame.find('.grid .state').css('cursor', 'default');
         this.frame.find('.grid .edit').on('click', _editClickHandler);
     }
     else{
