@@ -1,6 +1,6 @@
-let PRODUCTION = false;
-if (has('PRODUCTION'))
-    PRODUCTION = true;
+// let PRODUCTION = false;
+// if (has('PRODUCTION'))
+//     PRODUCTION = true;
 
 
 module.exports = function (viewFactory) {

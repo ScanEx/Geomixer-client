@@ -39,22 +39,22 @@ const MyCollectionView = function ({ model, layer }) {
 
                 <table border=0 class="instruments unselectable">
                 <tr>
-                    <td class="but choose"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#selectreg"></use></svg>${_gtxt('HardNavigation.choose_reg')}</td>
-                    <td class="but create"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#polygon"></use></svg>${_gtxt('HardNavigation.create_reg')}</td>
+                    <td class="but choose"><svg><use xlink:href="#icons_selectreg"></use></svg>${_gtxt('HardNavigation.choose_reg')}</td>
+                    <td class="but create"><svg><use xlink:href="#icons_polygon"></use></svg>${_gtxt('HardNavigation.create_reg')}</td>
                 </tr>
                 </table> 
 
                 <div class="calendar"></div>
 
                 <table border=0 class="grid-header">
-                <tr><td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg></td>
+                <tr><td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></svg></td>
                 <td>${_gtxt('HardNavigation.reg_id')}</td>
                 <td>${_gtxt('HardNavigation.reg_created')}</td>
                 <td>${_gtxt('HardNavigation.reg_updated')}</td>
-                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>
-                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>
-                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td>
-                <td class="color-transparent"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></td></tr>
+                <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
+                <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
+                <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
+                <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td></tr>
                 </table> 
             </div> 
             <div class="grid">
@@ -62,9 +62,9 @@ const MyCollectionView = function ({ model, layer }) {
             </div>
             <div class="footer unselectable">
                 <table border=0 class="pager">
-                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-left"></use></svg></td>
+                    <tr><td class="but arrow arrow-prev"><svg><use xlink:href="#icons_arrow-left"></use></svg></td>
                     <td class="current">${_gtxt('HardNavigation.page_lbl')} <span class="pages"></span></td>
-                    <td class="but arrow arrow-next"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#arrow-right"></use></svg></td></tr>
+                    <td class="but arrow arrow-next"><svg><use xlink:href="#icons_arrow-right"></use></svg></td></tr>
                 </table>  
                 <div class="but but-attributes">${_gtxt('HardNavigation.attr_tbl')}</div>          
             </div>
@@ -77,15 +77,15 @@ const MyCollectionView = function ({ model, layer }) {
 
         this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
                 '<td class="visibility">' +
-                '<svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye"></use></svg>' +
-                '<svg style="display:none"><use xlink:href="plugins/ais/hardnavigation/icons.svg#eye-off"></use></svg></td>' +
+                '<svg><use xlink:href="#icons_eye"></use></svg>' +
+                '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
                 '<td class="identity">{{id}}</td>' +
                 '<td class="identity">{{{DateTime}}}</td>' +
                 '<td>{{{DateTimeChange}}}</td>' +
-                '<td class="{{StateColor}} state"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#circle"></use></svg></td>' +
-                '<td class="edit"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#pen"></use></svg></td>' +
-                '<td class="show"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#target"></use></svg></td>' +
-                '<td class="info"><svg><use xlink:href="plugins/ais/hardnavigation/icons.svg#info"></use></svg></td>' +
+                '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
+                '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
+                '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
+                '<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
             '</tr>{{/each}}</table>' +
             '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 

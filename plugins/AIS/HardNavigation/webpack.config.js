@@ -1,35 +1,56 @@
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const path = require('path')
-const HasJsPlugin = require('./webpack-hasjs-plugin.js');
-var isProduction = true;
 
-switch(String(process.env.PRODUCTION).toLowerCase()) {case'undefined': case'false': case'no': case '0':isProduction = false;}
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
+// const HasJsPlugin = require('./webpack-hasjs-plugin.js');
+const path = require('path');
+const isProduction = true;
 
-const hasJs = new HasJsPlugin({
-            features: {
-				PRODUCTION: isProduction
-            }
-        })
+// switch(String(process.env.PRODUCTION).toLowerCase()) {case'undefined': case'false': case'no': case '0':isProduction = false;}
+// const hasJs = new HasJsPlugin({
+//             features: {
+// 				PRODUCTION: isProduction
+//             }
+//         })
 
 const fileName = isProduction ? 'HardNavigationPlugin' : 'HardNavigationPluginTest';
-const extractCSS = new ExtractTextPlugin(fileName + '.css');
 
 module.exports = {
     entry: './src/entry.js',
+    mode: 'development',
     output: {
         path: path.join(__dirname, ''),
         filename: fileName + '.js'
     },
+    devtool: 'source-map',
     module: {
-        loaders: [
-            { test: /\.js$/, loader: 'babel-loader', query: { presets: ['es2015'] } },
-            { test: /\.css$/, loader: extractCSS.extract(['css']) },
-            { test: /\.styl$/, loader: extractCSS.extract(['css', 'stylus']) }
-        ]
+        rules: [
+            { test: /\.(js)$/i, exclude: /node_modules/, use: ['babel-loader'] },
+            //{ test: /\.css$/i, use: ['style-loader', 'css-loader'], },
+            { test: /\.svg$/, use: [ 'svg-sprite-loader' ] },
+            {
+                test: /\.css$/,
+                use: [
+                  {
+                    loader: MiniCssExtractPlugin.loader,
+                    // options: {
+                    //   // you can specify a publicPath here
+                    //   // by default it uses publicPath in webpackOptions.output
+                    //   publicPath: '../',
+                    //   hmr: process.env.NODE_ENV === 'development',
+                    // },
+                  },
+                  'css-loader',
+                ],
+              },
+          ]//,
     },
     plugins: [
-        extractCSS,
-		hasJs
+    // 	hasJs
+        new MiniCssExtractPlugin({
+            filename: fileName + '.css',//'[name].css',
+            chunkFilename: '[id].css',
+            ignoreOrder: false, // Enable to remove warnings about conflicting order
+        }),
+        new SpriteLoaderPlugin()
     ],
-    devtool: 'source-map'
 }

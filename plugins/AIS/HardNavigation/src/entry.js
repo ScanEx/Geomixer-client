@@ -1,9 +1,11 @@
-let PRODUCTION = false;
-if (has('PRODUCTION')) PRODUCTION = true;
+// let PRODUCTION = false;
+// if (has('PRODUCTION')) PRODUCTION = true;
+let PRODUCTION = true;
 
-require("./all.css")
-require("./Views/View.css")
-require("./locale.js")
+require("./all.css");
+require("./Views/View.css");
+require("../icons.svg");
+require("./locale.js");
 
 // Handlebars.registerHelper('aisinfoid', function (context) {
 //     return context.mmsi + " " + context.imo;
