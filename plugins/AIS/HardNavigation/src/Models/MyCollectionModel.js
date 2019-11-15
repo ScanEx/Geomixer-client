@@ -132,10 +132,12 @@ module.exports = function (options) {
                                     reg.DateTime = format(reg.Date, reg.Time);
                                     //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
                                     reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                    reg.StateColor = reg.State.search(/\barchive\b/)!=-1?"color-red":"color-green";
+                                    const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getFullYear(), temp.getMonth(), temp.getDate()) / 1000;
+//console.log(checkChange, today)
+                                    reg.StateColor = reg.State.search(/\barchive\b/)!=-1?"color-red":(checkChange==today?"color-green":"color-yellow");
                                     _data.regions.push(reg);
                                 }
-    //console.log(_data);
+//console.log(_data);
                             }
                             else
                                 console.log(r)

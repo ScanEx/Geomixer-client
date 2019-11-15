@@ -1,5 +1,6 @@
 require("./MyCollection.css")
 const BaseView = require('./BaseView.js');
+const Calendar = require('../Controls/Calendar.js');
 
 let _stateUI = '',
 _createBut, _chooseBut,        
@@ -45,13 +46,13 @@ const MyCollectionView = function ({ model, layer }) {
                 </table> 
 
                 <div class="calendar"></div>
+                <div class="calendar2"></div>
 
                 <table border=0 class="grid-header">
                 <tr><td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></svg></td>
                 <td>${_gtxt('HardNavigation.reg_id')}</td>
                 <td>${_gtxt('HardNavigation.reg_created')}</td>
                 <td>${_gtxt('HardNavigation.reg_updated')}</td>
-                <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
                 <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
                 <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td>
                 <td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></td></tr>
@@ -85,7 +86,7 @@ const MyCollectionView = function ({ model, layer }) {
                 '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
                 '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
                 '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
-                '<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
+                //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
             '</tr>{{/each}}</table>' +
             '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
 
@@ -206,8 +207,52 @@ const MyCollectionView = function ({ model, layer }) {
         else
             return true;
     },
-    _addCalendar = function(){
-            
+    _addCalendar = function(){            
+        const calendar = this.frame.find('.calendar')[0];
+        // walkaround with focus at first input in ui-dialog
+        calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
+
+        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+              dateInterval = new nsGmx.DateInterval(),
+              updateView = function(dtb, dte){
+                  nsGmx.widgets.commonCalendar.setDateInterval(dtb, dte);
+                  if (_thisView.isVisible) {
+                      _thisView.inProgress(true);
+                      _thisView.model.isDirty = true;
+                      _thisView.model.update();
+                  }
+              };
+        dateInterval
+            .set('dateBegin', mapDateInterval.get('dateBegin'))
+            .set('dateEnd', mapDateInterval.get('dateEnd'))
+            .on('change', function (e) {
+//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+                updateView(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+            });
+
+        this.calendar = new Calendar({
+            dateInterval: dateInterval,
+            name: 'catalogInterval',
+            container: calendar,
+            dateMin: new Date(0, 0, 0),
+            dateMax: new Date(),
+            dateFormat: 'dd.mm.yy',
+            minimized: true,
+            showSwitcher: false
+        });
+
+        let tr = calendar.querySelector('tr:nth-of-type(1)');
+        tr.insertCell(4).innerHTML = 
+        '<img class="default_date" style="cursor:pointer; padding-right:10px" title="'+_gtxt('HardNavigation.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg">';
+        calendar.querySelector('.default_date').addEventListener('click', () => {
+            let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
+            dateInterval.set('dateBegin', db.dateBegin);
+            dateInterval.set('dateEnd', db.dateEnd);
+//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+            updateView(db.dateBegin, db.dateEnd);
+        });
+    },
+    _addCalendar0 = function(){            
         let calendar = this.frame.find('.calendar')[0];
         // walkaround with focus at first input in ui-dialog
         calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
@@ -237,7 +282,7 @@ const MyCollectionView = function ({ model, layer }) {
             dateFormat: 'dd.mm.yy',
             minimized: false,
             showSwitcher: false
-        })
+        });
 
         calendar.querySelector('.CalendarWidget-dateBegin').style.display = 'none';
         let tr = calendar.querySelector('tr:nth-of-type(1)');
@@ -439,7 +484,7 @@ const MyCollectionView = function ({ model, layer }) {
     },
     _clean = function () {
 
-        this.frame.find('.grid .info').off('click', _infoClickHandler);
+        //this.frame.find('.grid .info').off('click', _infoClickHandler);
         this.frame.find('.grid .visibility').off('click', _visClickHandler);
         this.frame.find('.grid .show').off('click', _showClickHandler);
         //this.frame.find('.grid .state').off('click', _stateClickHandler);
@@ -559,11 +604,16 @@ const _infoClickHandler = function(e){
             return;
         _stateUI = 'edit_region';
 
-        let id = e.currentTarget.parentElement.id,
+
+        let tr = e.currentTarget.parentElement,
+            id = tr.id,
             layerName = _layer.getGmxProperties().name,
             layerTitle = _layer.getGmxProperties().title,
             eoc = new nsGmx.EditObjectControl(layerName, id),
             dt = new Date(); 
+
+        tr.style.backgroundColor = '#eee'; 
+
         let isDelete = false; 
         eoc.initPromise.done(()=>{        
             //eoc.set('TimeChange', dt.getTime()/1000); 
@@ -591,7 +641,8 @@ const _infoClickHandler = function(e){
         $(eoc).on('close', e=>{
             if (isDelete)
                 _thisView.model.page = 0;
-            _stateUI = '';            
+            _stateUI = ''; 
+            tr.style.backgroundColor = '';            
         });        
     };
 
@@ -631,7 +682,7 @@ MyCollectionView.prototype.repaint = function () {
                 el.classList.remove('nonactual');
         });
 
-        this.frame.find('.grid .info').on('click', _infoClickHandler);
+        //this.frame.find('.grid .info').on('click', _infoClickHandler);
         this.frame.find('.grid .visibility').on('click', _visClickHandler);
         this.frame.find('.grid .show').on('click', _showClickHandler);
         //this.frame.find('.grid .state').on('click', _stateClickHandler);
