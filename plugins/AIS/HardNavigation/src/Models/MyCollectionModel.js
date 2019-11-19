@@ -75,7 +75,7 @@ module.exports = function (options) {
             }
             _page = value; 
             this.isDirty = true;
-            this.update();
+            this.updatePromise = this.update();
         },
         get page() { return _page; },
         previousPage: function(){
@@ -96,62 +96,67 @@ module.exports = function (options) {
                         dtBegin = formatDt(mapDateInterval.get('dateBegin')),
                         dtEnd = formatDt(mapDateInterval.get('dateEnd'));
 
-            _initPromise.then((test)=>{
+            return _initPromise.then((test)=>{
 //console.log(test)
                 _count = 0;
                 _data.regions.length = 0;
                 thisModel.view.inProgress(true);
-                thisModel.updatePromise = [function(r){
+                return [
+                function(r){
                     return new Promise((resolve, reject) => {
                         sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true` + 
                         `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, r=>
                             resolve(r)
                         );
                     });
-                }, function(r){
-                    if (_checkResponse(r)){
-                        _count = parseInt(r.Result);
-                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}` + 
-                        `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, r=>{
-                            _data.regions.length = 0;                        
-                            if (_checkResponse(r)){
-                                //resolve(r); 
-                                let result = r.Result,
-                                    format = function(d, t){   
-                                        if (!d || !t || isNaN(d) || isNaN(t)) 
-                                            return '';
-                                        let dt = new Date(d*1000 + t*1000 + new Date().getTimezoneOffset()*60*1000);
-                                        return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
-                                    };
-                                _data.fields = result.fields.map(f=>f);
-                                for (let i=0; i<result.values.length; ++i){
-                                    let reg = {};
-                                    for (let j =0; j<result.fields.length; ++j)
-                                        reg[result.fields[j]] = result.values[i][j];
-                                    reg.id = (reg.Origin && reg.Origin!='') ? reg.Origin : reg.gmx_id;
-                                    reg.DateTime = format(reg.Date, reg.Time);
-                                    //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
-                                    reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                    const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getFullYear(), temp.getMonth(), temp.getDate()) / 1000;
-//console.log(checkChange, today)
-                                    reg.StateColor = reg.State.search(/\barchive\b/)!=-1?"color-red":(checkChange==today?"color-green":"color-yellow");
-                                    _data.regions.push(reg);
-                                }
-//console.log(_data);
-                            }
-                            else
-                                console.log(r)
+                },
+                function(r){
+                    return new Promise((resolve, reject) => {
+                        _data.regions.length = 0;
+//console.log(r)
+                        if (_checkResponse(r)){
+                                _count = parseInt(r.Result);
+                                sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}` +
+                                    `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, 
+                                    r => {                                        
+                                        if (_checkResponse(r)) {
+                                            let result = r.Result,
+                                                format = function (d, t) {
+                                                    if (!d || !t || isNaN(d) || isNaN(t))
+                                                        return '';
+                                                    let dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+                                                    return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
+                                                };
+                                            _data.fields = result.fields.map(f => f);
+                                            for (let i = 0; i < result.values.length; ++i) {
+                                                let reg = {};
+                                                for (let j = 0; j < result.fields.length; ++j)
+                                                    reg[result.fields[j]] = result.values[i][j];
+                                                reg.id = (reg.Origin && reg.Origin != '') ? reg.Origin : reg.gmx_id;
+                                                reg.DateTime = format(reg.Date, reg.Time);
+                                                //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
+                                                reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
+                                                const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getFullYear(), temp.getMonth(), temp.getDate()) / 1000;
+                                                //console.log(checkChange, today)
+                                                reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-red" : (checkChange == today ? "color-green" : "color-yellow");
+                                                _data.regions.push(reg);
+                                            }
+//console.log(_data);                  
+                                            resolve(_data.regions);
+                                        }
+                                        else
+                                            console.log(r);
+                                        thisModel.view.repaint();
+                                        thisModel.isDirty = false;
+                            });
+                        }
+                        else {
+                            resolve(_data.regions);
+                            console.log(r)
                             thisModel.view.repaint();
                             thisModel.isDirty = false;
-                            //resolve();
-                        });
-                        //});
-                    }
-                    else{
-                        console.log(r)
-                        thisModel.view.repaint();
-                        thisModel.isDirty = false;
-                    }
+                        }  
+                    });
                 }]
                 .reduce((p, c)=>p.then(c), Promise.resolve());
             })

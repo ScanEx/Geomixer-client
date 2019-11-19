@@ -100,6 +100,9 @@
   padding: 12px 5px;
   font-weight: 700;
 }
+.hardnav-view .grid-header td.visibility-all{
+  cursor: pointer;
+}
 .hardnav-view .grid-header td svg{
   width:14px;
   height:14px;

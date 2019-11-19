@@ -18,14 +18,12 @@ const MyCollectionView = function ({ model, layer }) {
             return;
         }
 
-        nsGmx.widgets.commonCalendar.getDateInterval().on('change', e=>{
-            _hidden = {};
-            _visible = {};
-            _layer.repaint(); 
-            if (!_thisView.isVisible){
-                //_thisView.repaint();
-                _thisView.inProgress(true);
-                _thisView.model.isDirty = true;
+        nsGmx.widgets.commonCalendar.getDateInterval().on('change', di=>{ 
+            if (!_thisView.isVisible) {
+                _thisView.calendar.dateInterval.set({
+                    dateBegin: di.get('dateBegin'),
+                    dateEnd: di.get('dateEnd')
+                });
             }
         });
         _layer.setFilter(_isVisible);
@@ -49,7 +47,10 @@ const MyCollectionView = function ({ model, layer }) {
                 <div class="calendar2"></div>
 
                 <table border=0 class="grid-header">
-                <tr><td class="color-transparent"><svg><use xlink:href="#icons_eye"></use></svg></td>
+                <tr><td class="visibility-all">
+                <svg style="display:block"><use xlink:href="#icons_eye"></use></svg>                
+                <svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg>
+                </td>
                 <td>${_gtxt('HardNavigation.reg_id')}</td>
                 <td>${_gtxt('HardNavigation.reg_created')}</td>
                 <td>${_gtxt('HardNavigation.reg_updated')}</td>
@@ -78,7 +79,7 @@ const MyCollectionView = function ({ model, layer }) {
 
         this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
                 '<td class="visibility">' +
-                '<svg><use xlink:href="#icons_eye"></use></svg>' +
+                '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
                 '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
                 '<td class="identity">{{id}}</td>' +
                 '<td class="identity">{{{DateTime}}}</td>' +
@@ -146,56 +147,6 @@ const MyCollectionView = function ({ model, layer }) {
         else
             return false;
     },
-    _isActual0 = function(reg){
-        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-            atttributes = _layer.getGmxProperties().attributes,
-            iOrigin = atttributes.indexOf("Origin") + 1,
-            iState = atttributes.indexOf("State") + 1,
-            iDate = atttributes.indexOf("Date") + 1,
-            iTime = atttributes.indexOf("Time") + 1,
-            iDateChange = atttributes.indexOf("DateChange") + 1,
-            iTimeChange = atttributes.indexOf("TimeChange") + 1,
-            id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
-            state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
-            dtBegin = mapDateInterval.get('dateBegin').getTime(),
-            dtEnd = mapDateInterval.get('dateEnd').getTime();
-
-        let version = {d:reg.properties[iDateChange] * 1000, t:reg.properties[iTimeChange] * 1000};
-        if (version.d === 0){
-            version.d = reg.properties[iDate] * 1000;
-            version.t = reg.properties[iTime] * 1000;
-        }
- 
-//console.log(`>>${id}`, version, version.d < dtEnd)
-        if (version.d < dtEnd){
-            let test = true, isLatest = true;               
-            // Search region of same id and the more late version on a certain moment
-            for(let key in _layer.getDataManager()._activeTileKeys) { 
-                test = true;
-                let data = _layer.getDataManager()._tiles[key].tile.data;
-                if (data)
-                for(let i=0; i<data.length; ++i){
-                    let curId = data[i][iOrigin] != '' ? data[i][iOrigin] : data[i][0],
-                        curVersion = { d: data[i][iDateChange] * 1000, t: data[i][iTimeChange] * 1000 };
-                    if (curVersion.d == 0)
-                        curVersion = { d: data[i][iDate] * 1000, t: data[i][iTime] * 1000 };
-                    if (curId != id) continue;
-                    if (curVersion.d >= dtEnd) {isLatest = false; continue;}
-                    test = !(version.d < curVersion.d || (version.d == curVersion.d && version.t < curVersion.t));
-                    if (!test) {
-//console.log(curId, curVersion)
-                        break;
-                    }
-                }
-                if (!test) break;
-            }
-            if (test && isLatest && state.search(/archive/)>-1 && version.d < dtBegin)
-                return false;
-            return test ;
-        }
-        else
-            return false;
-    },
     _isVisible = function(reg){
         const id = reg.properties[0].toString();
 
@@ -207,27 +158,33 @@ const MyCollectionView = function ({ model, layer }) {
         else
             return true;
     },
+    _toggleDisplay = function(a, visible, hidden){
+        a[visible].style.display = 'block';
+        a[hidden].style.display = 'none';
+    },
     _addCalendar = function(){            
         const calendar = this.frame.find('.calendar')[0];
         // walkaround with focus at first input in ui-dialog
         calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
 
         const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-              dateInterval = new nsGmx.DateInterval(),
-              updateView = function(dtb, dte){
-                  nsGmx.widgets.commonCalendar.setDateInterval(dtb, dte);
-                  if (_thisView.isVisible) {
-                      _thisView.inProgress(true);
-                      _thisView.model.isDirty = true;
-                      _thisView.model.update();
-                  }
-              };
+              dateInterval = new nsGmx.DateInterval();
+    
         dateInterval
             .set('dateBegin', mapDateInterval.get('dateBegin'))
             .set('dateEnd', mapDateInterval.get('dateEnd'))
             .on('change', function (e) {
 //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-                updateView(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+                _hidden = {};
+                _visible = {};
+                _layer.repaint();
+                _thisView.inProgress(true);
+                _thisView.model.isDirty = true;
+                if (_thisView.isVisible){
+                    nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+                    //_thisView.model.update();    
+                    _thisView.model.page = 0;                
+                }
             });
 
         this.calendar = new Calendar({
@@ -246,68 +203,10 @@ const MyCollectionView = function ({ model, layer }) {
         '<img class="default_date" style="cursor:pointer; padding-right:10px" title="'+_gtxt('HardNavigation.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg">';
         calendar.querySelector('.default_date').addEventListener('click', () => {
             let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-            dateInterval.set('dateBegin', db.dateBegin);
-            dateInterval.set('dateEnd', db.dateEnd);
-//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-            updateView(db.dateBegin, db.dateEnd);
-        });
-    },
-    _addCalendar0 = function(){            
-        let calendar = this.frame.find('.calendar')[0];
-        // walkaround with focus at first input in ui-dialog
-        calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-
-        let mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-            dateInterval = new nsGmx.DateInterval();
-
-        dateInterval
-            .set('dateBegin', mapDateInterval.get('dateBegin'))
-            .set('dateEnd', mapDateInterval.get('dateEnd'))
-            .on('change', function (e) {
-//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-                nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));                
-                if (_thisView.isVisible){
-                    _thisView.inProgress(true);
-                    _thisView.model.isDirty = true;
-                    _thisView.model.update();
-                }
-            }.bind(this));
-
-        this.calendar = new nsGmx.CalendarWidget({
-            dateInterval: dateInterval,
-            name: 'catalogInterval',
-            container: calendar,
-            dateMin: new Date(0, 0, 0),
-            dateMax: new Date(),
-            dateFormat: 'dd.mm.yy',
-            minimized: false,
-            showSwitcher: false
-        });
-
-        calendar.querySelector('.CalendarWidget-dateBegin').style.display = 'none';
-        let tr = calendar.querySelector('tr:nth-of-type(1)');
-        //tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
-        tr.insertCell(4).innerHTML = 
-        '<img class="default_date" style="cursor:pointer; padding-right:10px" title="'+_gtxt('HardNavigation.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg">';
- 
-        // let td = tr.insertCell(6);
-        // td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
-        // tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
-        // td = tr.insertCell(8);
-        // td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
-        
-
-        calendar.querySelector('.default_date').addEventListener('click', () => {
-            let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-            this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-            this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-//console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-            nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);              
-            if (_thisView.isVisible){
-                _thisView.inProgress(true);
-                _thisView.model.isDirty = true;
-                _thisView.model.update();
-            }
+            dateInterval.set({
+                dateBegin: db.dateBegin,
+                dateEnd: db.dateEnd
+            });
         });
     },
     _checkVersion = function(){
@@ -437,7 +336,18 @@ const MyCollectionView = function ({ model, layer }) {
                     });                              
                     $(eoc).on('modify', e=>{
                         _thisView.model.page = 0; // Model update
-                        _thisView.model.updatePromise.then(_checkVersion);
+                        _thisView.model.updatePromise
+                        .then(r=>{
+                            const gmx_id = r[0].gmx_id;
+                            return new Promise((resolve)=>{
+                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"Origin":"${gmx_id}"},"id":"${gmx_id}","action":"update"}]`,
+                                function (response) {
+                                    if (!response.Status || response.Status.toLowerCase() != 'ok')
+                                        console.log(response);                                    
+                                });
+                            });
+                        })
+                        .then(_checkVersion);
                     });
                     // Continue command
                     //nsGmx.leafletMap._container.style.cursor='pointer'; 
@@ -484,6 +394,7 @@ const MyCollectionView = function ({ model, layer }) {
     },
     _clean = function () {
 
+        this.frame.find('.visibility-all').off('click', _visAllClickHandler);
         //this.frame.find('.grid .info').off('click', _infoClickHandler);
         this.frame.find('.grid .visibility').off('click', _visClickHandler);
         this.frame.find('.grid .show').off('click', _showClickHandler);
@@ -530,23 +441,78 @@ const _infoClickHandler = function(e){
         mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
         mediaDescDialog.dialog('open');
     },
+    _visAllClickHandler = function(e){
+        const hidden = Object.keys(_hidden),
+              td = e.currentTarget,
+              svgAll = td.querySelectorAll('svg'),
+              ldm = _layer.getDataManager();
+        if (!hidden.length){
+            //_thisView.frame.find('td.visibility').click();
+            for(let k in ldm._activeTileKeys){
+                ldm._tiles[k].tile.loadDef.then(data=>{data.forEach(r=>{
+                        let reg = {properties: r};
+                        if (_isVisible(reg)){
+                            let id = r[0], svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
+                            delete _visible[id];                    
+                            _hidden[id] = true;
+                            if (svg[0]){
+                                // svg[0].style.display = 'none';
+                                // svg[1].style.display = 'block';
+                                _toggleDisplay(svg, 1, 0);
+                            }
+                        }
+                    });
+                });
+            }
+            // svgAll[0].style.display = 'none';
+            // svgAll[1].style.display = 'block';
+            _toggleDisplay(svgAll, 1, 0);
+        }
+        else{
+            hidden.forEach(id=>{
+                let svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
+                delete _hidden[id];
+                _visible[id] = true;
+                if (svg[0]) {
+                    // svg[0].style.display = 'block';
+                    // svg[1].style.display = 'none';
+                    _toggleDisplay(svg, 0, 1);
+                }
+            });
+            // svgAll[0].style.display = 'block';
+            // svgAll[1].style.display = 'none';
+            _toggleDisplay(svgAll, 0, 1);
+        }
+        _layer.repaint();
+    },
      _visClickHandler = function(e){
         let td = e.currentTarget,
             id = td.parentElement.id,
             svg = td.querySelectorAll('svg'),
-            vis = 0, hid = 1;
+            vis = 0, hid = 1,
+            svgAll = _thisView.frame.find('.visibility-all svg');
         if (svg[0].style.display != 'none'){
             delete _visible[id];
             _hidden[id] = true;
-            vis = 1; hid = 0;
+            //vis = 1; hid = 0;
+            _toggleDisplay(svg, 1, 0);
+            // svgAll[0].style.display = 'none';
+            // svgAll[1].style.display = 'block';
+            _toggleDisplay(svgAll, 1, 0);
         }
         else{
             _visible[id] = true;
             delete _hidden[id];
-            vis = 0; hid = 1;
+            //vis = 0; hid = 1;
+            _toggleDisplay(svg, 0, 1);
+            if(!Object.keys(_hidden).length){
+                // svgAll[0].style.display = 'block';
+                // svgAll[1].style.display = 'none';
+                _toggleDisplay(svgAll, 0, 1);
+            }
         }
-        svg[hid].style.display = 'none';
-        svg[vis].style.display = 'block';
+        // svg[hid].style.display = 'none';
+        // svg[vis].style.display = 'block';
         _layer.repaint();
 //console.log(_hidden)
     },
@@ -591,8 +557,7 @@ const _infoClickHandler = function(e){
             if (response.Status && response.Status.toLowerCase() == 'ok') {
                 _thisView.inProgress(true);
                 _thisView.model.isDirty = true;
-                _thisView.model.update();                                                      
-                _thisView.model.updatePromise.then(_checkVersion);
+                _thisView.model.update().then(_checkVersion);
             }
             else
                 console.log(response);
@@ -635,12 +600,14 @@ const _infoClickHandler = function(e){
         $(eoc).on('modify', e=>{
 ///console.log(e.target.getAll(), dt);
             _thisView.model.isDirty = true;                       
-            _thisView.model.update();                
-            _thisView.model.updatePromise.then(_checkVersion);
+            _thisView.model.update()               
+            .then(_checkVersion);
         });                   
         $(eoc).on('close', e=>{
-            if (isDelete)
+            if (isDelete){
+                delete _hidden[id];
                 _thisView.model.page = 0;
+            }
             _stateUI = ''; 
             tr.style.backgroundColor = '';            
         });        
@@ -673,8 +640,9 @@ MyCollectionView.prototype.repaint = function () {
             const reg = {properties: props};
 //console.log(reg);
             if (!_isVisible(reg)){
-                svg[0].style.display = 'none';
-                svg[1].style.display = 'block';
+                // svg[0].style.display = 'none';
+                // svg[1].style.display = 'block';
+                _toggleDisplay(svg, 1, 0);
             }
             if (!_isActual(reg))
                 el.classList.add('nonactual');
@@ -682,6 +650,13 @@ MyCollectionView.prototype.repaint = function () {
                 el.classList.remove('nonactual');
         });
 
+        let svgAll = this.frame.find('.visibility-all svg'), vis = 0, hid = 1;
+        if (Object.keys(_hidden).length){ vis = 1, hid = 0; }
+        // svgAll[vis].style.display = 'block';
+        // svgAll[hid].style.display = 'none';  
+        _toggleDisplay(svgAll, vis, hid);      
+
+        this.frame.find('.visibility-all').on('click', _visAllClickHandler);
         //this.frame.find('.grid .info').on('click', _infoClickHandler);
         this.frame.find('.grid .visibility').on('click', _visClickHandler);
         this.frame.find('.grid .show').on('click', _showClickHandler);

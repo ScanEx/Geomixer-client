@@ -60,14 +60,14 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
         var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
             dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
 
-        this._dateInterval.set({
+        this.dateInterval.set({
             dateBegin: dateBegin ? _toMidnight(dateBegin) : null,
             dateEnd: dateEnd ? _toMidnight(dateEnd.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
         });
     },
     _updateWidget = function() {
-        var dateBegin = this._dateInterval.get('dateBegin'),
-            dateEnd = this._dateInterval.get('dateEnd'),
+        var dateBegin = this.dateInterval.get('dateBegin'),
+            dateEnd = this.dateInterval.get('dateEnd'),
             dayms = nsGmx.DateInterval.MS_IN_DAY;
 
         if (!dateBegin || !dateEnd) {
@@ -158,7 +158,7 @@ module.exports = function(options){
 
     this._dateMin = options.dateMin;
     this._dateMax = options.dateMax;
-    this._dateInterval = options.dateInterval;
+    this.dateInterval = options.dateInterval;
 
     $el.html(this.template({
         moreIconClass: options.minimized ? 'icon-calendar' : 'icon-calendar-empty',
@@ -217,7 +217,7 @@ module.exports = function(options){
 
     _updateWidget.call(this);
 
-    this._dateInterval.on('change', function(){_updateWidget.call(this)}.bind(this), this);
+    this.dateInterval.on('change', function(){_updateWidget.call(this)}.bind(this), this);
 
     //for backward compatibility
     this.canvas = $el;
