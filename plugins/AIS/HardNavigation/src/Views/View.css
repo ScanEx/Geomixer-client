@@ -50,7 +50,9 @@
 .hardnav-view .color-transparent{
   color: transparent;
 }
-
+.hardnav-view .color-blue{
+  color:blue;
+}
 .hardnav-view .color-red{
   color:red;
 }

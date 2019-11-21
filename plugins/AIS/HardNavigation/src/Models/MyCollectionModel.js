@@ -3,7 +3,7 @@ module.exports = function (options) {
     let _actualUpdate,
         _data,
         _page = 0,
-        _pageSize = 14, 
+        _pageSize = 12, 
         _count = 0;
         
     const _layerName = options.layer,
@@ -86,15 +86,19 @@ module.exports = function (options) {
             if (!this.isDirty)
                 this.page = _page + 1;
         },
+        displayCondition: function(dtBegin, dtEnd){
+            return `"Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`;
+        },
         update: function () {
             const thisModel = this;
             if (!thisModel.isDirty)
                 return;
 
-                        const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-                        formatDt = function(dt){return `${dt.getFullYear()}-${('0'+(dt.getMonth()+1)).slice(-2)}-${('0'+dt.getDate()).slice(-2)}`},
-                        dtBegin = formatDt(mapDateInterval.get('dateBegin')),
-                        dtEnd = formatDt(mapDateInterval.get('dateEnd'));
+            const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+                  formatDt = function (dt) { return `${dt.getFullYear()}-${('0' + (dt.getMonth() + 1)).slice(-2)}-${('0' + dt.getDate()).slice(-2)}` },
+                  dtBegin = formatDt(mapDateInterval.get('dateBegin')),
+                  dtEnd = formatDt(mapDateInterval.get('dateEnd')),
+                  queryStr = thisModel.displayCondition(dtBegin, dtEnd);
 
             return _initPromise.then((test)=>{
 //console.log(test)
@@ -105,7 +109,7 @@ module.exports = function (options) {
                 function(r){
                     return new Promise((resolve, reject) => {
                         sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true` + 
-                        `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, r=>
+                        `&query=${queryStr}`, r=>
                             resolve(r)
                         );
                     });
@@ -117,7 +121,7 @@ module.exports = function (options) {
                         if (_checkResponse(r)){
                                 _count = parseInt(r.Result);
                                 sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}` +
-                                    `&query="Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`, 
+                                    `&query=${queryStr}`, 
                                     r => {                                        
                                         if (_checkResponse(r)) {
                                             let result = r.Result,
@@ -136,9 +140,10 @@ module.exports = function (options) {
                                                 reg.DateTime = format(reg.Date, reg.Time);
                                                 //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
                                                 reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                                const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getFullYear(), temp.getMonth(), temp.getDate()) / 1000;
-                                                //console.log(checkChange, today)
-                                                reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-red" : (checkChange == today ? "color-green" : "color-yellow");
+                                                //const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
+//console.log(checkChange, today)
+                                                //reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-blue" : (checkChange == today ? "color-red" : "color-yellow");
+                                                reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
                                                 _data.regions.push(reg);
                                             }
 //console.log(_data);                  

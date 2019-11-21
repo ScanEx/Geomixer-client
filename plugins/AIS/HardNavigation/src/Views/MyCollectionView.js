@@ -2,12 +2,36 @@ require("./MyCollection.css")
 const BaseView = require('./BaseView.js');
 const Calendar = require('../Controls/Calendar.js');
 
-let _stateUI = '',
-_createBut, _chooseBut,        
-_layer, 
-_thisView,
-_hidden = {},
-_visible = {};
+let _stateUI = '', _createBut, _chooseBut, _layer, _thisView,
+    _hidden = {}, _visible = {};
+const _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
+      _sendRequest = function(url, method){
+        return new Promise((resolve, reject) => { 
+            const callback = response => {
+                if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
+                    reject(response);
+                }
+                else
+                    resolve(response.Result);
+            };           
+            if (!method || method == 'GET')
+                sendCrossDomainJSONRequest(url, callback);
+        });
+
+      },
+      _searchRequest = function(params){
+          let qs = '';
+          for (let p in params) {
+              if (qs != '')
+                qs += '&';
+            qs += p + '=' + (typeof params[p]=='object' ? JSON.stringify(params[p]) : params[p]);
+          }
+          if (qs != '')
+            qs = '&' + qs;
+          const url = `${_serverBase}VectorLayer/Search.ashx?layer=${_layer.getGmxProperties().name}${qs}`;
+          //`query="State"='active1'&columns=[{"Value":"[gmx_id]"},{"Value":"[Date]"},{"Value":"[DateChange]"},{"Value":"[Time]"},{"Value":"[TimeChange]"}]`;
+          return _sendRequest(url);
+      };
 
 const MyCollectionView = function ({ model, layer }) {
     _thisView = this;
@@ -122,7 +146,7 @@ const MyCollectionView = function ({ model, layer }) {
             iTime = atttributes.indexOf("Time") + 1,
             iDateChange = atttributes.indexOf("DateChange") + 1,
             iTimeChange = atttributes.indexOf("TimeChange") + 1,
-            iNextDatetCh = atttributes.indexOf("NextDateChange") + 1,
+            iNextDateCh = atttributes.indexOf("NextDateChange") + 1,
             iNextTimeCh = atttributes.indexOf("NextTimeChange") + 1,
             id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
             state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
@@ -130,7 +154,7 @@ const MyCollectionView = function ({ model, layer }) {
             dtEnd = mapDateInterval.get('dateEnd').getTime();
 
         let curVer = {d:reg.properties[iDateChange] * 1000, t:reg.properties[iTimeChange] * 1000, get dt(){return this.d+this.t;}},
-            nextVer = {d:reg.properties[iNextDatetCh] * 1000, t:reg.properties[iNextTimeCh] * 1000, get dt(){return this.d+this.t;}};
+            nextVer = {d:reg.properties[iNextDateCh] * 1000, t:reg.properties[iNextTimeCh] * 1000, get dt(){return this.d+this.t;}};
         if (curVer.d === 0){
             curVer.d = reg.properties[iDate] * 1000;
             curVer.t = reg.properties[iTime] * 1000;
@@ -223,16 +247,43 @@ const MyCollectionView = function ({ model, layer }) {
             }, 3000);                                            
         }, 3000);
     },
+    _updateState = function(id){  
+        return new Promise(resolve=>{            
+            const update = [];
+            sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/Search.ashx?layer=${_layer.getGmxProperties().name}&query="State"='active1'&columns=[{"Value":"[gmx_id]"},{"Value":"[Date]"},{"Value":"[DateChange]"},{"Value":"[Time]"},{"Value":"[TimeChange]"}]`,
+            response=>{
+                if (response.Status && response.Status.toLowerCase() == 'ok'){
+                    const temp = new Date(), today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000,
+                          fields = response.Result.fields, iDate = fields.indexOf('Date'), iDateChange = fields.indexOf('DateChange');
+                    response.Result.values.forEach(v=>{
+                        const dateChange = v[iDateChange] ? v[iDateChange] : v[iDate];
+                        if (!id || id!=v[0])
+                        if (dateChange <today)
+                            update.push({properties:{State:'active2'}, id:v[0], action:'update'});
+
+                    });
+                }
+                else{
+                    console.log(response);
+                }
+                resolve(JSON.stringify(update).replace(/[\[\]]/g, ''));
+            });
+        });
+    },
     _layerClickHandler = function (event) {
         var layer = event.target,
             props = layer.getGmxProperties(),
             id = event.gmx.properties[props.identityField];
+        delete _visible[id];
 
         layer.bringToTopItem(id);
-                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/Search.ashx?WrapStyle=func&layer=${props.name}&page=0&pagesize=1&orderby=${props.identityField}&geometry=true&query=[${props.identityField}]=${id}`,
+                sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/Search.ashx?WrapStyle=func&layer=${props.name}&page=0&pagesize=1&orderby=${props.identityField}&geometry=true&query=[${props.identityField}]=${id}`,
                 function (response) {
                     if (_stateUI == 'copy_region') {
                         if (response.Status && response.Status.toLowerCase() == 'ok') {
+                                                          
+                            const ups = _updateState(id);
+
                             const result = response.Result,
                                 i = result.fields.indexOf('geomixergeojson'),
                                 obj=nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
@@ -248,7 +299,8 @@ const MyCollectionView = function ({ model, layer }) {
                             eoc.initPromise.done(()=>{      
                                 eoc.set('Origin', origin && origin!='' ? origin : gmx_id);     
                                 eoc.set('Name', name); 
-                                eoc.set('Type', type);  
+                                eoc.set('Type', type); 
+                                eoc.set('State', 'active1');  
                                 eoc.set('_mediadescript_', media);       
                                 eoc.set('Time', date + time); 
                                 eoc.set('Date', date + time);       
@@ -266,21 +318,23 @@ const MyCollectionView = function ({ model, layer }) {
                                     _thisView.inProgress(true);
                                 });  
                             });
-                            $(eoc).on('modify', e=>{
-//console.log(e.target.getAll());
-                                let values = e.target.getAll();
-                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":"${id}","action":"update"}]`,
-                                    function (response) {
-                                        _thisView.model.page = 0; // model update                                                       
-                                        _thisView.model.updatePromise.then(_checkVersion);
+                            $(eoc).on('modify', e=>{  
+                                ups.then(update=>{
+                                    if (update!='') update = ',' + update;
+                                    let values = e.target.getAll();
+                                    sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":${id},"action":"update"}${update}]`,
+                                        function (response) {
+                                            _thisView.model.page = 0; // model update                                                       
+                                            _thisView.model.updatePromise.then(_checkVersion);
 
-                                        if (response.Status && response.Status.toLowerCase() == 'ok') {
-                                        }
-                                        else {
-                                            console.log(response);
-                                        }
+                                            if (response.Status && response.Status.toLowerCase() == 'ok') {
+                                            }
+                                            else {
+                                                console.log(response);
+                                            }
                                     });
-
+                                });
+                                
                             });                      
                         }
                         else{
@@ -317,46 +371,64 @@ const MyCollectionView = function ({ model, layer }) {
         }
     },
     _onDrawStop = function(e){
-                    const obj = e.object,
-                          lprops = _layer.getGmxProperties(),
-                          eoc = new nsGmx.EditObjectControl(lprops.name, null, {drawingObject: obj});
-                    eoc.initPromise.done(()=>{      
-                        let dt = new Date();        
-                        eoc.set('Time', dt.getTime()/1000); 
-                        eoc.set('Date', dt.getTime()/1000);                    
-                        const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog');
-                        dlg.find('tr').each((i, el)=>{
-                            let name = el.querySelectorAll('td')[0].innerText;
-                            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
-                                el.style.display = 'none';
-                        }); 
-                        dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e=>{
-                            _thisView.inProgress(true);
-                        });   
-                    });                              
-                    $(eoc).on('modify', e=>{
-                        _thisView.model.page = 0; // Model update
-                        _thisView.model.updatePromise
-                        .then(r=>{
-                            const gmx_id = r[0].gmx_id;
-                            return new Promise((resolve)=>{
-                                sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"Origin":"${gmx_id}"},"id":"${gmx_id}","action":"update"}]`,
-                                function (response) {
-                                    if (!response.Status || response.Status.toLowerCase() != 'ok')
-                                        console.log(response);                                    
-                                });
-                            });
-                        })
-                        .then(_checkVersion);
-                    });
-                    // Continue command
-                    //nsGmx.leafletMap._container.style.cursor='pointer'; 
-                    //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
 
-                    // Discontinue command
-                    if (_stateUI == 'create_region')
-                        _createBut.click();
-            },
+        const ups = _updateState();
+
+        const obj = e.object,
+            lprops = _layer.getGmxProperties(),
+            eoc = new nsGmx.EditObjectControl(lprops.name, null, { drawingObject: obj });
+        eoc.initPromise.done(() => {
+            let dt = new Date();
+            eoc.set('Time', dt.getTime() / 1000);
+            eoc.set('Date', dt.getTime() / 1000);
+            eoc.set('State', 'active1');
+            const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", lprops.title)}")`).closest('.ui-dialog');
+            dlg.find('tr').each((i, el) => {
+                let name = el.querySelectorAll('td')[0].innerText;
+                if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
+                    el.style.display = 'none';
+            });
+            dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e => {
+                _thisView.inProgress(true);
+            });
+        });
+        $(eoc).on('modify', e => {
+            ups.then(update => {
+                if (update!='')
+                    return new Promise((resolve) => {
+                        sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[${update}]`,
+                            function (response) {
+                                if (!response.Status || response.Status.toLowerCase() != 'ok')
+                                    console.log(response);
+                                resolve();
+                            });
+                    });
+            }).then(()=>{
+                _thisView.model.page = 0; // Model update
+                _thisView.model.updatePromise
+                .then(r => {
+                    const gmx_id = r[0].gmx_id;
+                    return new Promise((resolve) => {
+                        sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"Origin":${gmx_id}},"id":${gmx_id},"action":"update"}]`,
+                            function (response) {
+                                if (!response.Status || response.Status.toLowerCase() != 'ok')
+                                    console.log(response);
+                                resolve();
+                            });
+                    });
+                })
+                .then(_checkVersion);            
+
+                // Continue command
+                //nsGmx.leafletMap._container.style.cursor='pointer'; 
+                //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
+
+                // Discontinue command
+                if (_stateUI == 'create_region')
+                    _createBut.click();
+            });
+        });
+    },
     _createRegion = function(){
         if (_stateUI == 'copy_region' || _stateUI == ''){
             if (_stateUI == 'copy_region')
@@ -447,25 +519,25 @@ const _infoClickHandler = function(e){
               svgAll = td.querySelectorAll('svg'),
               ldm = _layer.getDataManager();
         if (!hidden.length){
-            //_thisView.frame.find('td.visibility').click();
-            for(let k in ldm._activeTileKeys){
-                ldm._tiles[k].tile.loadDef.then(data=>{data.forEach(r=>{
-                        let reg = {properties: r};
-                        if (_isVisible(reg)){
-                            let id = r[0], svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
-                            delete _visible[id];                    
-                            _hidden[id] = true;
-                            if (svg[0]){
-                                // svg[0].style.display = 'none';
-                                // svg[1].style.display = 'block';
-                                _toggleDisplay(svg, 1, 0);
-                            }
-                        }
-                    });
+            const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+            formatDt = function(dt){return `${dt.getFullYear()}-${('0'+(dt.getMonth()+1)).slice(-2)}-${('0'+dt.getDate()).slice(-2)}`},
+            dtBegin = formatDt(mapDateInterval.get('dateBegin')),
+            dtEnd = formatDt(mapDateInterval.get('dateEnd'));
+            _searchRequest({query: _thisView.model.displayCondition(dtBegin, dtEnd)
+//`"Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`
+            })
+            .then(r=>{
+                const iid = r.fields.indexOf('gmx_id');
+                r.values.forEach( v=>{
+                    let id = v[iid], svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
+                    delete _visible[id];
+                    _hidden[id] = true;
+                    if (svg[0])
+                        _toggleDisplay(svg, 1, 0);
                 });
-            }
-            // svgAll[0].style.display = 'none';
-            // svgAll[1].style.display = 'block';
+                _layer.repaint();
+            })
+            .catch(console.log);
             _toggleDisplay(svgAll, 1, 0);
         }
         else{
@@ -482,8 +554,8 @@ const _infoClickHandler = function(e){
             // svgAll[0].style.display = 'block';
             // svgAll[1].style.display = 'none';
             _toggleDisplay(svgAll, 0, 1);
+            _layer.repaint();
         }
-        _layer.repaint();
     },
      _visClickHandler = function(e){
         let td = e.currentTarget,
@@ -521,8 +593,9 @@ const _infoClickHandler = function(e){
             layer = _layer,
             props = layer.getGmxProperties(),
             layerName = props.name;
-        sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function(response) {
+        sendCrossDomainJSONRequest(_serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function(response) {
             if (!window.parseResponse(response)) {
+                console.log(response);
                 return;
             }
             var columnNames = response.Result.fields;
@@ -552,7 +625,7 @@ const _infoClickHandler = function(e){
         if (td.className.search(/green/)!=-1)
             state = 'archive';
 
-        sendCrossDomainJSONRequest(`${serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"State":"${state}"},"id":"${id}","action":"update"}]`,
+        sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"State":"${state}"},"id":"${id}","action":"update"}]`,
         function (response) {
             if (response.Status && response.Status.toLowerCase() == 'ok') {
                 _thisView.inProgress(true);
@@ -626,7 +699,6 @@ MyCollectionView.prototype.repaint = function () {
         $('.grid tr').each((i, el)=>{
             let id = el.id, 
             svg = el.querySelectorAll('svg');
-//console.log(id, _layer.getDataManager().getItem(parseInt(id)));
             const attr = _layer.getGmxProperties().attributes,
                   props = [id];
             props[attr.indexOf('Date')+1] = _thisView.model.data.regions[i].Date;
