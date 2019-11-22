@@ -92,7 +92,7 @@ module.exports = function (options) {
         update: function () {
             const thisModel = this;
             if (!thisModel.isDirty)
-                return;
+                return Promise.resolved;
 
             const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
                   formatDt = function (dt) { return `${dt.getFullYear()}-${('0' + (dt.getMonth() + 1)).slice(-2)}-${('0' + dt.getDate()).slice(-2)}` },
@@ -146,20 +146,20 @@ module.exports = function (options) {
                                                 reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
                                                 _data.regions.push(reg);
                                             }
-//console.log(_data);                  
-                                            resolve(_data.regions);
+//console.log(_data); 
                                         }
                                         else
                                             console.log(r);
                                         thisModel.view.repaint();
-                                        thisModel.isDirty = false;
+                                        thisModel.isDirty = false;                 
+                                        resolve(_data.regions);
                             });
                         }
                         else {
-                            resolve(_data.regions);
                             console.log(r)
                             thisModel.view.repaint();
                             thisModel.isDirty = false;
+                            resolve(_data.regions);
                         }  
                     });
                 }]

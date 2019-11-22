@@ -2,9 +2,19 @@ require("./MyCollection.css")
 const BaseView = require('./BaseView.js');
 const Calendar = require('../Controls/Calendar.js');
 
-let _stateUI = '', _createBut, _chooseBut, _layer, _thisView,
+let _stateUI = '', _createBut, _chooseBut, _layer, _thisView, _selectedReg = false,
     _hidden = {}, _visible = {};
-const _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
+const _highlightSelected = function(turnOn){
+          if (_selectedReg) {
+              const tr = _thisView.frame.find('tr#' + _selectedReg);
+              if (tr[0])
+                  if (turnOn)
+                      (tr[0].style.backgroundColor = '#eee');
+                  else
+                      (tr[0].style.backgroundColor = '');
+          }
+      },
+      _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
       _sendRequest = function(url, method){
         return new Promise((resolve, reject) => { 
             const callback = response => {
@@ -130,9 +140,15 @@ const MyCollectionView = function ({ model, layer }) {
         _createBut = this.frame.find('.but.create');       
         _chooseBut.on('click', _copyRegion.bind(this));      
         _createBut.on('click', _createRegion.bind(this));
-             
-        this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));      
-        this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
+
+        this.frame.find('.but.arrow-prev').on('click', ()=>{
+            _thisView.model.previousPage.call(_thisView.model);
+            _thisView.model.updatePromise.then(()=>_highlightSelected(true));
+        });      
+        this.frame.find('.but.arrow-next').on('click', ()=>{
+            _thisView.model.nextPage.call(_thisView.model);
+            _thisView.model.updatePromise.then(()=>_highlightSelected(true));
+        });
         this.frame.find('.but.but-attributes').on('click', ()=>nsGmx.createAttributesTable(layer));
 
     },  
@@ -283,6 +299,8 @@ const MyCollectionView = function ({ model, layer }) {
                         if (response.Status && response.Status.toLowerCase() == 'ok') {
                                                           
                             const ups = _updateState(id);
+                            _selectedReg = id;
+                            _highlightSelected(true);
 
                             const result = response.Result,
                                 i = result.fields.indexOf('geomixergeojson'),
@@ -335,7 +353,11 @@ const MyCollectionView = function ({ model, layer }) {
                                     });
                                 });
                                 
-                            });                      
+                            });   
+                            $(eoc).on('close', e=>{
+                                _highlightSelected(false);
+                                _selectedReg = false;          
+                            });                   
                         }
                         else{
                             console.log(response);
@@ -546,13 +568,9 @@ const _infoClickHandler = function(e){
                 delete _hidden[id];
                 _visible[id] = true;
                 if (svg[0]) {
-                    // svg[0].style.display = 'block';
-                    // svg[1].style.display = 'none';
                     _toggleDisplay(svg, 0, 1);
                 }
             });
-            // svgAll[0].style.display = 'block';
-            // svgAll[1].style.display = 'none';
             _toggleDisplay(svgAll, 0, 1);
             _layer.repaint();
         }
@@ -568,8 +586,6 @@ const _infoClickHandler = function(e){
             _hidden[id] = true;
             //vis = 1; hid = 0;
             _toggleDisplay(svg, 1, 0);
-            // svgAll[0].style.display = 'none';
-            // svgAll[1].style.display = 'block';
             _toggleDisplay(svgAll, 1, 0);
         }
         else{
@@ -578,13 +594,9 @@ const _infoClickHandler = function(e){
             //vis = 0; hid = 1;
             _toggleDisplay(svg, 0, 1);
             if(!Object.keys(_hidden).length){
-                // svgAll[0].style.display = 'block';
-                // svgAll[1].style.display = 'none';
                 _toggleDisplay(svgAll, 0, 1);
             }
         }
-        // svg[hid].style.display = 'none';
-        // svg[vis].style.display = 'block';
         _layer.repaint();
 //console.log(_hidden)
     },
@@ -712,8 +724,6 @@ MyCollectionView.prototype.repaint = function () {
             const reg = {properties: props};
 //console.log(reg);
             if (!_isVisible(reg)){
-                // svg[0].style.display = 'none';
-                // svg[1].style.display = 'block';
                 _toggleDisplay(svg, 1, 0);
             }
             if (!_isActual(reg))
@@ -724,8 +734,6 @@ MyCollectionView.prototype.repaint = function () {
 
         let svgAll = this.frame.find('.visibility-all svg'), vis = 0, hid = 1;
         if (Object.keys(_hidden).length){ vis = 1, hid = 0; }
-        // svgAll[vis].style.display = 'block';
-        // svgAll[hid].style.display = 'none';  
         _toggleDisplay(svgAll, vis, hid);      
 
         this.frame.find('.visibility-all').on('click', _visAllClickHandler);
