@@ -111,19 +111,43 @@ const MyCollectionView = function ({ model, layer }) {
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
 
-        this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
-                '<td class="visibility">' +
-                '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
-                '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
-                '<td class="identity">{{id}}</td>' +
-                '<td class="identity">{{{DateTime}}}</td>' +
-                '<td>{{{DateTimeChange}}}</td>' +
-                '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
-                '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
-                '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
-                //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
-            '</tr>{{/each}}</table>' +
-            '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+        // this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
+        //         '<td class="visibility">' +
+        //         '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
+        //         '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
+        //         '<td class="identity">{{id}}</td>' +
+        //         '<td class="identity">{{{DateTime}}}</td>' +
+        //         '<td>{{{DateTimeChange}}}</td>' +
+        //         '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
+        //         '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
+        //         '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
+        //         //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
+        //     '</tr>{{/each}}</table>' +
+        //     '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+
+        Object.defineProperty(this, "tableTemplate", {
+            get: function () {
+                return '<table border=0 class="grid">' +
+                    this.model.data.regions.map(r => {
+                        if (r.page == _thisView.model.page)
+                            return `<tr id="${r.gmx_id}">                
+                                <td class="visibility">
+                                <svg style="display:block"><use xlink:href="#icons_eye"></use></svg>
+                                <svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>
+                                <td class="identity">${r.id}</td>
+                                <td class="identity">${r.DateTime}</td>
+                                <td>${r.DateTimeChange}</td>
+                                <td class="${r.StateColor} state"><svg><use xlink:href="#icons_circle"></use></svg></td>
+                                <td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>
+                                <td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>
+                            </tr>`;
+                        else
+                            return '';
+                    }).join('') +
+                    '</table>' +
+                    (this.model.data.msg ? this.model.data.msg.map(m => `<div class="msg">${m.txt}</div>`).join('') : '');
+            }
+        });  
 
         Object.defineProperty(this, "topOffset", {
             get: function () { 
@@ -143,11 +167,17 @@ const MyCollectionView = function ({ model, layer }) {
 
         this.frame.find('.but.arrow-prev').on('click', ()=>{
             _thisView.model.previousPage.call(_thisView.model);
-            _thisView.model.updatePromise.then(()=>_highlightSelected(true));
+            _thisView.model.updatePromise.then(()=>{
+                _thisView.repaint();
+                _highlightSelected(true);
+            });
         });      
         this.frame.find('.but.arrow-next').on('click', ()=>{
             _thisView.model.nextPage.call(_thisView.model);
-            _thisView.model.updatePromise.then(()=>_highlightSelected(true));
+            _thisView.model.updatePromise.then(()=>{
+                _thisView.repaint();
+                _highlightSelected(true);
+            });
         });
         this.frame.find('.but.but-attributes').on('click', ()=>nsGmx.createAttributesTable(layer));
 
@@ -221,9 +251,9 @@ const MyCollectionView = function ({ model, layer }) {
                 _thisView.inProgress(true);
                 _thisView.model.isDirty = true;
                 if (_thisView.isVisible){
-                    nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-                    //_thisView.model.update();    
-                    _thisView.model.page = 0;                
+                    nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));  
+                    _thisView.model.page = 0;   
+                    _thisView.model.update();             
                 }
             });
 
@@ -298,7 +328,7 @@ const MyCollectionView = function ({ model, layer }) {
                     if (_stateUI == 'copy_region') {
                         if (response.Status && response.Status.toLowerCase() == 'ok') {
                                                           
-                            const ups = _updateState(id);
+                            //const ups = _updateState(id);
                             _selectedReg = id;
                             _highlightSelected(true);
 
@@ -337,21 +367,21 @@ const MyCollectionView = function ({ model, layer }) {
                                 });  
                             });
                             $(eoc).on('modify', e=>{  
-                                ups.then(update=>{
-                                    if (update!='') update = ',' + update;
-                                    let values = e.target.getAll();
-                                    sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":${id},"action":"update"}${update}]`,
-                                        function (response) {
-                                            _thisView.model.page = 0; // model update                                                       
-                                            _thisView.model.updatePromise.then(_checkVersion);
-
-                                            if (response.Status && response.Status.toLowerCase() == 'ok') {
-                                            }
-                                            else {
-                                                console.log(response);
-                                            }
-                                    });
-                                });
+                                // ups.then(update=>{
+                                //     if (update!='') update = ',' + update;
+                                //     let values = e.target.getAll();
+                                //     sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":${id},"action":"update"}${update}]`,
+                                //         function (response) {
+                                            _thisView.model.page = 0; 
+                                            _thisView.model.isDirty = true;                                                      
+                                            _thisView.model.update().then(_checkVersion);
+                                //             if (response.Status && response.Status.toLowerCase() == 'ok') {
+                                //             }
+                                //             else {
+                                //                 console.log(response);
+                                //             }
+                                //     });
+                                // });
                                 
                             });   
                             $(eoc).on('close', e=>{
@@ -394,7 +424,7 @@ const MyCollectionView = function ({ model, layer }) {
     },
     _onDrawStop = function(e){
 
-        const ups = _updateState();
+        //const ups = _updateState();
 
         const obj = e.object,
             lprops = _layer.getGmxProperties(),
@@ -415,20 +445,21 @@ const MyCollectionView = function ({ model, layer }) {
             });
         });
         $(eoc).on('modify', e => {
-            ups.then(update => {
-                if (update!='')
-                    return new Promise((resolve) => {
-                        sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[${update}]`,
-                            function (response) {
-                                if (!response.Status || response.Status.toLowerCase() != 'ok')
-                                    console.log(response);
-                                resolve();
-                            });
-                    });
-            }).then(()=>{
-                _thisView.model.page = 0; // Model update
-                _thisView.model.updatePromise
-                .then(r => {
+            // ups.then(update => {
+            //     if (update!='')
+            //         return new Promise((resolve) => {
+            //             sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[${update}]`,
+            //                 function (response) {
+            //                     if (!response.Status || response.Status.toLowerCase() != 'ok')
+            //                         console.log(response);
+            //                     resolve();
+            //                 });
+            //         });
+            // })
+            Promise.resolve().then(()=>{
+                _thisView.model.page = 0;
+                _thisView.model.isDirty = true;
+                _thisView.model.update().then(r => {
                     const gmx_id = r[0].gmx_id;
                     return new Promise((resolve) => {
                         sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"Origin":${gmx_id}},"id":${gmx_id},"action":"update"}]`,
@@ -664,7 +695,7 @@ const _infoClickHandler = function(e){
 
         tr.style.backgroundColor = '#eee'; 
 
-        let isDelete = false; 
+        let isDelete = false, isModify = false; 
         eoc.initPromise.done(()=>{        
             //eoc.set('TimeChange', dt.getTime()/1000); 
             //eoc.set('DateChange', dt.getTime()/1000);
@@ -676,22 +707,28 @@ const _infoClickHandler = function(e){
             });                 
             dlg.find(`.buttonLink:contains("${_gtxt("Изменить")}")`).on('click', e=>{
                 _thisView.inProgress(true);
+                isModify = true;
             });                 
             dlg.find(`.buttonLink:contains("${_gtxt("Удалить")}")`).on('click', e=>{
                 _thisView.inProgress(true);
                 isDelete = true;
             }); 
         });            
-        $(eoc).on('modify', e=>{
-///console.log(e.target.getAll(), dt);
-            _thisView.model.isDirty = true;                       
-            _thisView.model.update()               
-            .then(_checkVersion);
-        });                   
+//         $(eoc).on('modify', e=>{
+// console.log('modify')
+// ///console.log(e.target.getAll(), dt);
+//             _thisView.model.isDirty = true;                       
+//             _thisView.model.update()               
+//             .then(_checkVersion);
+//         });                   
         $(eoc).on('close', e=>{
             if (isDelete){
                 delete _hidden[id];
                 _thisView.model.page = 0;
+            }
+            if (isDelete || isModify){
+                _thisView.model.isDirty = true;
+                _thisView.model.update().then(_checkVersion);
             }
             _stateUI = ''; 
             tr.style.backgroundColor = '';            
@@ -756,7 +793,6 @@ MyCollectionView.prototype.show = function () {
     if (!_layer._map)
         nsGmx.leafletMap.addLayer(_layer);
 
-    this.frame.show();
     //this.searchInput.focus();
     BaseView.prototype.show.apply(this, arguments);
 };

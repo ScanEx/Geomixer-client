@@ -60,9 +60,8 @@ module.exports = function (options) {
     });
 
     return {
-
         isDirty: true,
-        updatePromise: Promise.resolved,
+        updatePromise: Promise.resolve(),
         get data() { return _data },
         set data(value) { _data = value; },
         get pagesTotal() { return Math.ceil(_count/_pageSize); },
@@ -74,17 +73,15 @@ module.exports = function (options) {
                 return;
             }
             _page = value; 
-            this.isDirty = true;
-            this.updatePromise = this.update();
         },
         get page() { return _page; },
         previousPage: function(){
             if (!this.isDirty)
-                this.page = _page - 1;
+                this.page = _page - 1;  
         },
         nextPage: function(){
             if (!this.isDirty)
-                this.page = _page + 1;
+                this.page = _page + 1;  
         },
         displayCondition: function(dtBegin, dtEnd){
             return `"Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`;
@@ -92,7 +89,7 @@ module.exports = function (options) {
         update: function () {
             const thisModel = this;
             if (!thisModel.isDirty)
-                return Promise.resolved;
+                return Promise.resolve(_data.regions);
 
             const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
                   formatDt = function (dt) { return `${dt.getFullYear()}-${('0' + (dt.getMonth() + 1)).slice(-2)}-${('0' + dt.getDate()).slice(-2)}` },
@@ -105,65 +102,52 @@ module.exports = function (options) {
                 _count = 0;
                 _data.regions.length = 0;
                 thisModel.view.inProgress(true);
-                return [
-                function(r){
-                    return new Promise((resolve, reject) => {
-                        sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&count=true` + 
-                        `&query=${queryStr}`, r=>
-                            resolve(r)
-                        );
-                    });
-                },
-                function(r){
-                    return new Promise((resolve, reject) => {
-                        _data.regions.length = 0;
-//console.log(r)
-                        if (_checkResponse(r)){
-                                _count = parseInt(r.Result);
-                                sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&pagesize=${_pageSize}&page=${_page}` +
-                                    `&query=${queryStr}`, 
-                                    r => {                                        
-                                        if (_checkResponse(r)) {
-                                            let result = r.Result,
-                                                format = function (d, t) {
-                                                    if (!d || !t || isNaN(d) || isNaN(t))
-                                                        return '';
-                                                    let dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
-                                                    return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
-                                                };
-                                            _data.fields = result.fields.map(f => f);
-                                            for (let i = 0; i < result.values.length; ++i) {
-                                                let reg = {};
-                                                for (let j = 0; j < result.fields.length; ++j)
-                                                    reg[result.fields[j]] = result.values[i][j];
-                                                reg.id = (reg.Origin && reg.Origin != '') ? reg.Origin : reg.gmx_id;
-                                                reg.DateTime = format(reg.Date, reg.Time);
-                                                //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
-                                                reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                                //const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
-//console.log(checkChange, today)
-                                                //reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-blue" : (checkChange == today ? "color-red" : "color-yellow");
-                                                reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
-                                                _data.regions.push(reg);
+
+                return new Promise((resolve, reject) => {
+
+                            sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&query=${queryStr}`, 
+                                r => {                                        
+                                    if (_checkResponse(r)) {
+                                        let result = r.Result,
+                                            format = function (d, t) {
+                                                if (!d || !t || isNaN(d) || isNaN(t))
+                                                    return '';
+                                                let dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+                                                return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
+                                            },
+                                            update = [];
+                                        _count = result.values.length;                                            
+                                        _data.fields = result.fields.map(f => f);
+                                        for (let i = 0; i < result.values.length; ++i) {
+                                            let reg = {};
+                                            for (let j = 0; j < result.fields.length; ++j)
+                                                reg[result.fields[j]] = result.values[i][j];
+                                            reg.id = (reg.Origin && reg.Origin != '') ? reg.Origin : reg.gmx_id;
+
+                                            reg.page = Math.floor(i / _pageSize);
+                                            reg.DateTime = format(reg.Date, reg.Time);
+                                            //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
+                                            reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
+                                            
+                                            const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
+                                            if (reg.State == 'active1' && checkChange < today){
+                                                reg.State = 'active2';
+                                                update.push({properties:{State:'active2'}, id:reg.gmx_id, action:'update'});
                                             }
-//console.log(_data); 
+ 
+                                            reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
+                                            _data.regions.push(reg);
                                         }
-                                        else
-                                            console.log(r);
-                                        thisModel.view.repaint();
-                                        thisModel.isDirty = false;                 
-                                        resolve(_data.regions);
-                            });
-                        }
-                        else {
-                            console.log(r)
-                            thisModel.view.repaint();
-                            thisModel.isDirty = false;
-                            resolve(_data.regions);
-                        }  
-                    });
-                }]
-                .reduce((p, c)=>p.then(c), Promise.resolve());
+//console.log(_data);
+console.log(update);
+                                    }
+                                    else
+                                        console.log(r);
+                                    thisModel.view.repaint();
+                                    thisModel.isDirty = false;                 
+                                    resolve(_data.regions);
+                        });
+                });
             })
             .catch(error=>{
                 thisModel.data.msg = [{txt:_gtxt('HardNavigation.layer_error')}];

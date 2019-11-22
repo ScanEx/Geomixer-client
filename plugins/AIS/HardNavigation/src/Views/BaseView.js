@@ -44,7 +44,11 @@ BaseView.prototype = function () {
                 return;
 
             let scrollCont = this.container.find('.mCSB_container'),
-            content = $(Handlebars.compile(this.tableTemplate)(this.model.data));  
+            content = $(
+                //Handlebars.compile(this.tableTemplate)(this.model.data)
+                this.tableTemplate
+            ); 
+
             if (!scrollCont[0]) {
                 this.container.append(content).mCustomScrollbar(this.mcsbOptions);
             }
