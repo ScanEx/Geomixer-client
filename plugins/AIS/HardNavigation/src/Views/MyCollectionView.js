@@ -1,6 +1,7 @@
 require("./MyCollection.css")
-const BaseView = require('./BaseView.js');
-const Calendar = require('../Controls/Calendar.js');
+const BaseView = require('./BaseView.js'),
+      Request = require('../Request'),
+      Calendar = require('../Controls/Calendar.js');
 
 let _stateUI = '', _createBut, _chooseBut, _layer, _thisView, _selectedReg = false,
     _hidden = {}, _visible = {};
@@ -293,29 +294,6 @@ const MyCollectionView = function ({ model, layer }) {
             }, 3000);                                            
         }, 3000);
     },
-    _updateState = function(id){  
-        return new Promise(resolve=>{            
-            const update = [];
-            sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/Search.ashx?layer=${_layer.getGmxProperties().name}&query="State"='active1'&columns=[{"Value":"[gmx_id]"},{"Value":"[Date]"},{"Value":"[DateChange]"},{"Value":"[Time]"},{"Value":"[TimeChange]"}]`,
-            response=>{
-                if (response.Status && response.Status.toLowerCase() == 'ok'){
-                    const temp = new Date(), today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000,
-                          fields = response.Result.fields, iDate = fields.indexOf('Date'), iDateChange = fields.indexOf('DateChange');
-                    response.Result.values.forEach(v=>{
-                        const dateChange = v[iDateChange] ? v[iDateChange] : v[iDate];
-                        if (!id || id!=v[0])
-                        if (dateChange <today)
-                            update.push({properties:{State:'active2'}, id:v[0], action:'update'});
-
-                    });
-                }
-                else{
-                    console.log(response);
-                }
-                resolve(JSON.stringify(update).replace(/[\[\]]/g, ''));
-            });
-        });
-    },
     _layerClickHandler = function (event) {
         var layer = event.target,
             props = layer.getGmxProperties(),
@@ -327,8 +305,6 @@ const MyCollectionView = function ({ model, layer }) {
                 function (response) {
                     if (_stateUI == 'copy_region') {
                         if (response.Status && response.Status.toLowerCase() == 'ok') {
-                                                          
-                            //const ups = _updateState(id);
                             _selectedReg = id;
                             _highlightSelected(true);
 
@@ -366,23 +342,17 @@ const MyCollectionView = function ({ model, layer }) {
                                     _thisView.inProgress(true);
                                 });  
                             });
-                            $(eoc).on('modify', e=>{  
-                                // ups.then(update=>{
-                                //     if (update!='') update = ',' + update;
-                                //     let values = e.target.getAll();
-                                //     sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${props.name}&objects=[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":${id},"action":"update"}${update}]`,
-                                //         function (response) {
-                                            _thisView.model.page = 0; 
-                                            _thisView.model.isDirty = true;                                                      
-                                            _thisView.model.update().then(_checkVersion);
-                                //             if (response.Status && response.Status.toLowerCase() == 'ok') {
-                                //             }
-                                //             else {
-                                //                 console.log(response);
-                                //             }
-                                //     });
-                                // });
-                                
+                            $(eoc).on('modify', e=>{ 
+                                const values = e.target.getAll();
+                                Request.modifyRequest({
+                                    LayerName:props.name,
+                                    objects:`[{"properties":{"State":"archive","NextDateChange":${values.DateChange},"NextTimeChange":${values.TimeChange}},"id":${id},"action":"update"}`
+                                })
+                                .then(function (response) {
+                                    _thisView.model.page = 0;
+                                    _thisView.model.isDirty = true;
+                                    _thisView.model.update().then(_checkVersion);
+                                });
                             });   
                             $(eoc).on('close', e=>{
                                 _highlightSelected(false);
@@ -423,9 +393,6 @@ const MyCollectionView = function ({ model, layer }) {
         }
     },
     _onDrawStop = function(e){
-
-        //const ups = _updateState();
-
         const obj = e.object,
             lprops = _layer.getGmxProperties(),
             eoc = new nsGmx.EditObjectControl(lprops.name, null, { drawingObject: obj });
@@ -445,30 +412,15 @@ const MyCollectionView = function ({ model, layer }) {
             });
         });
         $(eoc).on('modify', e => {
-            // ups.then(update => {
-            //     if (update!='')
-            //         return new Promise((resolve) => {
-            //             sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[${update}]`,
-            //                 function (response) {
-            //                     if (!response.Status || response.Status.toLowerCase() != 'ok')
-            //                         console.log(response);
-            //                     resolve();
-            //                 });
-            //         });
-            // })
             Promise.resolve().then(()=>{
                 _thisView.model.page = 0;
                 _thisView.model.isDirty = true;
                 _thisView.model.update().then(r => {
-                    const gmx_id = r[0].gmx_id;
-                    return new Promise((resolve) => {
-                        sendCrossDomainJSONRequest(`${_serverBase}VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=${_layer.getGmxProperties().name}&objects=[{"properties":{"Origin":${gmx_id}},"id":${gmx_id},"action":"update"}]`,
-                            function (response) {
-                                if (!response.Status || response.Status.toLowerCase() != 'ok')
-                                    console.log(response);
-                                resolve();
-                            });
-                    });
+                    const gmx_id = _thisView.model.data.regions[0].gmx_id; //r[0].gmx_id;
+                    Request.modifyRequest({
+                        LayerName:_layer.getGmxProperties().name,
+                        objects:`[{"properties":{"Origin":${gmx_id}},"id":${gmx_id},"action":"update"}]`
+                    })
                 })
                 .then(_checkVersion);            
 
@@ -572,25 +524,15 @@ const _infoClickHandler = function(e){
               svgAll = td.querySelectorAll('svg'),
               ldm = _layer.getDataManager();
         if (!hidden.length){
-            const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-            formatDt = function(dt){return `${dt.getFullYear()}-${('0'+(dt.getMonth()+1)).slice(-2)}-${('0'+dt.getDate()).slice(-2)}`},
-            dtBegin = formatDt(mapDateInterval.get('dateBegin')),
-            dtEnd = formatDt(mapDateInterval.get('dateEnd'));
-            _searchRequest({query: _thisView.model.displayCondition(dtBegin, dtEnd)
-//`"Date"<'${dtEnd}' and ("DateChange" is null or "DateChange"<'${dtEnd}') and (("NextDateChange" is null and ("State"<>'archive' or ("Date">='${dtBegin}' and "DateChange" is null) or "DateChange">='${dtBegin}')) or "NextDateChange">='${dtEnd}')`
-            })
-            .then(r=>{
-                const iid = r.fields.indexOf('gmx_id');
-                r.values.forEach( v=>{
-                    let id = v[iid], svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
-                    delete _visible[id];
-                    _hidden[id] = true;
-                    if (svg[0])
-                        _toggleDisplay(svg, 1, 0);
-                });
-                _layer.repaint();
-            })
-            .catch(console.log);
+            const data = _thisView.model.data;
+            data.regions.forEach(v => {
+                let id = v.gmx_id, svg = _thisView.frame.find(`tr#${id} td.visibility svg`);
+                delete _visible[id];
+                _hidden[id] = true;
+                if (svg[0])
+                    _toggleDisplay(svg, 1, 0);
+            });
+            _layer.repaint();
             _toggleDisplay(svgAll, 1, 0);
         }
         else{

@@ -1,4 +1,5 @@
-const Polyfill = require('../Polyfill');
+const Request = require('../Request');
+
 module.exports = function (options) {
     let _actualUpdate,
         _data,
@@ -103,50 +104,58 @@ module.exports = function (options) {
                 _data.regions.length = 0;
                 thisModel.view.inProgress(true);
 
-                return new Promise((resolve, reject) => {
+                return Request.searchRequest({
+                    layer:_layerName,
+                    orderby: 'gmx_id',
+                    orderdirection: 'DESC',
+                    query:queryStr
+                })
+                .then(result=>{
+                    const format = function (d, t) {
+                            if (!d || !t || isNaN(d) || isNaN(t))
+                                return '';
+                            let dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+                            return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
+                        },
+                        updateState = [];
+                    _count = result.values.length;
+                    _data.fields = result.fields.map(f => f);
+                    for (let i = 0; i < result.values.length; ++i) {
+                        let reg = {};
+                        for (let j = 0; j < result.fields.length; ++j)
+                            reg[result.fields[j]] = result.values[i][j];
+                        reg.id = (reg.Origin && reg.Origin != '') ? reg.Origin : reg.gmx_id;
 
-                            sendCrossDomainJSONRequest(`${window.serverBase}VectorLayer/Search.ashx?Layer=${_layerName}&orderby=gmx_id&orderdirection=DESC&query=${queryStr}`, 
-                                r => {                                        
-                                    if (_checkResponse(r)) {
-                                        let result = r.Result,
-                                            format = function (d, t) {
-                                                if (!d || !t || isNaN(d) || isNaN(t))
-                                                    return '';
-                                                let dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
-                                                return `${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString()}`
-                                            },
-                                            update = [];
-                                        _count = result.values.length;                                            
-                                        _data.fields = result.fields.map(f => f);
-                                        for (let i = 0; i < result.values.length; ++i) {
-                                            let reg = {};
-                                            for (let j = 0; j < result.fields.length; ++j)
-                                                reg[result.fields[j]] = result.values[i][j];
-                                            reg.id = (reg.Origin && reg.Origin != '') ? reg.Origin : reg.gmx_id;
+                        reg.page = Math.floor(i / _pageSize);
+                        reg.DateTime = format(reg.Date, reg.Time);
+                        //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
+                        reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
 
-                                            reg.page = Math.floor(i / _pageSize);
-                                            reg.DateTime = format(reg.Date, reg.Time);
-                                            //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
-                                            reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                                            
-                                            const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
-                                            if (reg.State == 'active1' && checkChange < today){
-                                                reg.State = 'active2';
-                                                update.push({properties:{State:'active2'}, id:reg.gmx_id, action:'update'});
-                                            }
- 
-                                            reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
-                                            _data.regions.push(reg);
-                                        }
+                        const temp = new Date(), checkChange = reg.DateChange || reg.Date, today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
+                        if (reg.State == 'active1' && checkChange < today) {
+                            reg.State = 'active2';
+                            updateState.push({ properties: { State: 'active2' }, id: reg.gmx_id, action: 'update' });
+                        }
+
+                        reg.StateColor = reg.State == 'archive' ? "color-blue" : (reg.State == 'active1' ? "color-red" : "color-yellow");
+                        _data.regions.push(reg);
+                    }
 //console.log(_data);
-console.log(update);
-                                    }
-                                    else
-                                        console.log(r);
-                                    thisModel.view.repaint();
-                                    thisModel.isDirty = false;                 
-                                    resolve(_data.regions);
-                        });
+//console.log(updateState);                       
+                    thisModel.view.repaint();
+                    thisModel.isDirty = false;
+                    if (updateState.length)
+                        return Request.modifyRequest({   
+                            LayerName:_layerName,
+                            objects: JSON.stringify(updateState)
+                        }).then(()=>Request.checkVersion(_layerName, 1000));
+                    else
+                        return Promise.resolve();
+                })
+                .catch(e=>{
+                    console.log(e);
+                    thisModel.view.repaint();
+                    thisModel.isDirty = false;  
                 });
             })
             .catch(error=>{
