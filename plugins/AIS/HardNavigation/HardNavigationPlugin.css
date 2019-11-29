@@ -57,7 +57,9 @@
 .hardnav-view .color-transparent{
   color: transparent;
 }
-
+.hardnav-view .color-blue{
+  color:blue;
+}
 .hardnav-view .color-red{
   color:red;
 }
@@ -106,6 +108,9 @@
 .hardnav-view .grid-header td{
   padding: 12px 5px;
   font-weight: 700;
+}
+.hardnav-view .grid-header td.visibility-all{
+  cursor: pointer;
 }
 .hardnav-view .grid-header td svg{
   width:14px;
