@@ -81,11 +81,11 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
         if (isValid) {
             newDateEnd = _toUTC(new Date(dateEnd - dayms));
             if (dateEnd - dateBegin > dayms) {
-                this.setMode(ADVANCED_MODE);
+                _setMode.call(this, ADVANCED_MODE);
             }
         } else {
             newDateEnd = _toUTC(dateEnd);
-            this.setMode(ADVANCED_MODE);
+            _setMode.call(this, ADVANCED_MODE);
         }
 
         //если мы сюда пришли после выбора интервала в самом виджете, вызов setDate сохраняет фокус на input-поле

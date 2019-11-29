@@ -1,7 +1,7 @@
 require("./MyCollection.css")
 const BaseView = require('./BaseView.js'),
       Request = require('../Request'),
-      Calendar = require('../Controls/Calendar.js');
+      Calendar = require('../../../Common/Controls/Calendar');
 
 let _stateUI = '', _createBut, _chooseBut, _layer, _thisView, _selectedReg = false,
     _hidden = {}, _visible = {};
