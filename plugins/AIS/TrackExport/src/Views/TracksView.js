@@ -21,7 +21,7 @@ const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
             columns: JSON.stringify([{"Value":"mmsi"},{"Value":"timestamp"},{"Value":"course"},{"Value":"speed"},{"Value":"port_of_destination"},{"Value":"eta"},{"Value":"heading"},{"Value":"lon"},{"Value":"lat"}]),
             get vesselQuery() { return `([imo] IN (${_thisView.imo})) and `; },
             get query() { return this.vesselQuery + `'${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[timestamp] and [timestamp]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;},
-            parseData: function(fields, value){
+            parseData: function(fields, value, getVicon){
                              
                 let tzOffset = new Date().getTimezoneOffset(), ts = value[fields.indexOf('timestamp')],
                 utcDate = new Date((value[fields.indexOf('timestamp')] + tzOffset*60)*1000), locDate =  new Date(value[fields.indexOf('timestamp')]*1000);
@@ -30,7 +30,8 @@ const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
                     utc_date: utcDate.toLocaleDateString(), utc_time: utcDate.toLocaleTimeString(),
                     local_date: locDate.toLocaleDateString(), local_time: locDate.toLocaleTimeString(),
                     lat: _toDd(value[fields.indexOf('lat')]), lon: _toDd(value[fields.indexOf('lon')], true),
-                    latitude: value[fields.indexOf('lat')], longitude: value[fields.indexOf('lon')]
+                    latitude: value[fields.indexOf('lat')], longitude: value[fields.indexOf('lon')],
+                    vicon: getVicon('Cargo', value[fields.indexOf('course')], value[fields.indexOf('speed')])
                 }
 
             }
@@ -46,8 +47,8 @@ let _thisView, _layer;
 
 const TracksView = function ({ model, layer }) {
     _thisView = this;
-
         BaseView.call(this, model);
+
         this.frame = $(Handlebars.compile(`<div class="trackexport-view">
             <div class="header">
                 <table border=0 class="instruments unselectable">
@@ -61,14 +62,12 @@ const TracksView = function ({ model, layer }) {
 
                 <table border=0><tr>
                 <td><div class="calendar"></div></td>
-                <td style="vertical-align: top"><div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg></div></td>
-                <td style="vertical-align: top; width: 50px"><div class="refresh" style="margin: 10px 0 0 20px; display:none">${this.gifLoader}</div></div></td>
+                <td style="vertical-align: top"><div class="reload" title="${_gtxt('TrackExport.reload')}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg></div></td>
                 </table></tr> 
  
             </div> 
-            <div class="grid">
-
-            </div>
+            <div class="refresh" style="display: hide;padding-top: 100%;padding-left: 50%;"><img src="img/progress.gif"></div>
+            <div class="grid"></div>
             <div class="footer unselectable">
        
             </div>
@@ -84,7 +83,8 @@ const TracksView = function ({ model, layer }) {
                 this.show();
             }
             else{
-                this.model.data.track.length = 0;
+                this.model.data.total = null;
+                this.model.data.tracks.length = 0;
                 this.model.data.msg.length = 0;
                 this.repaint();
             }
@@ -119,8 +119,10 @@ const TracksView = function ({ model, layer }) {
             callback:(v=>{
                 if(!v){
                     _thisView.mmsi =  null;
-                    _thisView.model.data.track.length = 0;
-                    _thisView.model.data.msg.length = 0;
+                    this.model.data.total = null;
+                    _thisView.model.data.tracks.length = 0;
+                    if (_thisView.model.data.msg && _thisView.model.data.msg.length)
+                        _thisView.model.data.msg.length = 0;
                     _thisView.repaint();
                 }
                 else{
@@ -133,32 +135,31 @@ const TracksView = function ({ model, layer }) {
 
         Object.defineProperty(this, "tableTemplate", {
             get: function () {
-console.log(this.model.data)
                 let totalPositions = this.model.data.total,
-                    rv = this.model.data.tracks.map((t,i) => {
-                        return `<table class="track-table header"><tr>
+                    rv = (!totalPositions ? `` : `<table class="track-table header"><tr>
                         <td></td>
                         <td><span class="date"></span></td>
-                        <td><div class="track all"><input type="checkbox" title="${_gtxt("AISSearch2.allDailyTracks")}"></div></td>
-                        <td><div class="count">${totalPositions}</div></td></tr></table>
-                        
-                        <table class="track-table" border="0">
+                        <td><div class="track all"><input type="checkbox" checked title="${_gtxt("TrackExport.allDailyTracks")}"></div></td>
+                        <td><div class="count">${totalPositions}</div></td></tr></table>`) +                    
+                    this.model.data.tracks.map((t,i) => {
+                        return `<table class="track-table" border="0">
                 <tbody><tr>
-                <td><div class="open_positions ui-helper-noselect icon-right-open icon-down-open" title="${_gtxt('AISSearch2.voyageInfo')}"></div></td>
+                <td><div class="open_positions track_${i} ui-helper-noselect icon-right-open icon-down-open" title="${_gtxt('TrackExport.positions')}"></div></td>
                 <td><span class="date">${t.utc_date}</span></td>
-                <td><div class="track"><input type="checkbox" title="${_gtxt('AISSearch2.voyageInfo')}"></div></td>
+                <td><div class="track"><input type="checkbox" checked title="${_gtxt('TrackExport.dailyTrack')}"></div></td>
                 <td><div class="count">${t.positions.length}</div></td></tr></tbody></table>
-                <div class="positions ${i}">
 
+                <div class="track_${i}">
                 <table class="positions-table"><tbody>` +
                 t.positions.map((p,j) => { return `<tr>                
                 <td><span class="utc_time">${p.utc_time}</span><span class="local_time">${p.local_time}</span></td>
                 <td><span class="utc_date">${t.utc_date}</span><span class="local_date">${p.local_date}</span></td>
                 <td>${p.lon}&nbsp;&nbsp;${p.lat}</td>
-                <td></td><td></td>
-                <td><div class="show_pos ${i} ${j}" title="${_gtxt('AISSearch2.dailyTrack')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
-                </tr>`;}).join('') + 
-                + `</tbody></table>`;
+                <td>${p.vicon}</td><td></td>
+                <td><div class="show_pos ${i}_${j}" title="${_gtxt('TrackExport.position')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
+                </tr>
+                <tr><td colspan="6" class="more"><hr><div class="vi_more"></div></td></tr>`;}).join('') + 
+                `</tbody></table></div>`;
                     }).join('') +
                     (this.model.data.msg ? this.model.data.msg.map(m => `<div class="msg">${m.txt}</div>`).join('') : '');
                 return rv;
@@ -215,18 +216,21 @@ console.log(this.model.data)
         });
     },
     _clean = function () {
-
-
+        this.frame.find('.open_positions').on('click', _onOpenPosClick.bind(this));
     };
 
 TracksView.prototype = Object.create(BaseView.prototype);
 
 TracksView.prototype.inProgress = function (state) {
-    let progress = this.frame.find('div.refresh');
-    if (state)
+    let progress = this.frame.find('div.refresh'), grid = this.frame.find('div.grid');
+    if (state){
+        grid.hide();
         progress.show();
-    else
+    }
+    else{
         progress.hide();
+        grid.show();
+    }
 };
 
 // TracksView.prototype.resize = function () { 
@@ -235,9 +239,30 @@ TracksView.prototype.inProgress = function (state) {
 //     this.container.height(h+1);
 // };
 
+const _onOpenPosClick = function(e){
+    let icon = $(e.target), id;
+    for (var i=0; e.target.classList[i]; ++i){
+        if (e.target.classList[i].search(/track_/)!=-1){
+            id = e.target.classList[i];
+            break;
+        }
+    }
+    if (icon.is('.icon-down-open')) {
+        icon.removeClass('icon-down-open').addClass('.icon-right-open');
+        id && $(`.${id}:not(.open_positions)`).hide();
+    }
+    else {
+        icon.addClass('icon-down-open').removeClass('.icon-right-open');
+        id && $(`.${id}`).show();
+    }
+};
+
 TracksView.prototype.repaint = function () { 
     _clean.call(this);
-    BaseView.prototype.repaint.call(this);     
+    BaseView.prototype.repaint.call(this);      
+    
+    let openPos = this.frame.find('.open_positions');
+    openPos.on('click', _onOpenPosClick.bind(this));
 };
 
 TracksView.prototype.show = function () {
