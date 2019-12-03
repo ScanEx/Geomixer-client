@@ -178,6 +178,7 @@ const SearchControl = function ({ tab, container, callback, searchparams, search
     
     removeBut.onclick = (function (e) {
         _searchString = '';
+        callback(null);
         this.searchInput.value = ('');
         this.searchInput.focus();
         clearTimeout(delay)

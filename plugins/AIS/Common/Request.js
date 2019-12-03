@@ -22,9 +22,11 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
             if (url[0]=='/')
                 url = _serverBase + url.replace(/^\//, '');
             if (!method || method == 'GET')
-                window.sendCrossDomainJSONRequest(url, callback);
-            if (method == 'POST')
+                window.sendCrossDomainJSONRequest(url + `?${_getQueryString(request)}`, callback);
+            if (method == 'POST'){
+                request.WrapStyle='message';
                 window.sendCrossDomainPostRequest(url, request, callback);
+            }
         });
     },
     _getQueryString = function(params){
@@ -36,9 +38,8 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
         }
         return qs;
     }
-    _searchRequest = function(params){
-        const url = `${_serverBase}VectorLayer/Search.ashx?${_getQueryString(params)}`;
-        return _sendRequest(url);
+    _searchRequest = function(params, method){
+        return _sendRequest(`${_serverBase}VectorLayer/Search.ashx`, params, method);
     },
     _modifyRequest = function(params){
         const url = `${_serverBase}VectorLayer/ModifyVectorObjects.ashx?${_getQueryString(params)}`;

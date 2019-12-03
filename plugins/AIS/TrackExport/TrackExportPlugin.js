@@ -506,6 +506,7 @@ const SearchControl = function ({
 
   removeBut.onclick = function (e) {
     _searchString = '';
+    callback(null);
     this.searchInput.value = '';
     this.searchInput.focus();
     clearTimeout(delay);
@@ -708,8 +709,12 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
     };
 
     if (url[0] == '/') url = _serverBase + url.replace(/^\//, '');
-    if (!method || method == 'GET') window.sendCrossDomainJSONRequest(url, callback);
-    if (method == 'POST') window.sendCrossDomainPostRequest(url, request, callback);
+    if (!method || method == 'GET') window.sendCrossDomainJSONRequest(url + `?${_getQueryString(request)}`, callback);
+
+    if (method == 'POST') {
+      request.WrapStyle = 'message';
+      window.sendCrossDomainPostRequest(url, request, callback);
+    }
   });
 },
       _getQueryString = function (params) {
@@ -723,9 +728,8 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
   return qs;
 };
 
-_searchRequest = function (params) {
-  const url = `${_serverBase}VectorLayer/Search.ashx?${_getQueryString(params)}`;
-  return _sendRequest(url);
+_searchRequest = function (params, method) {
+  return _sendRequest(`${_serverBase}VectorLayer/Search.ashx`, params, method);
 }, _modifyRequest = function (params) {
   const url = `${_serverBase}VectorLayer/ModifyVectorObjects.ashx?${_getQueryString(params)}`;
   return _sendRequest(url);
@@ -2113,7 +2117,7 @@ var Request = __webpack_require__(/*! ../../../Common/Request */ "../Common/Requ
 
 module.exports = function (options) {
   var _data = {
-    regions: []
+    tracks: []
   };
   var _layerName = options.layer;
   return {
@@ -2132,15 +2136,18 @@ module.exports = function (options) {
       return Promise.resolve().then(function () {
         if (thisModel.isDirty) {
           thisModel.view.inProgress(true);
-          return new Promise(function (resolve) {
-            // Load
-            setTimeout(function () {
-              _data.msg = [{
-                txt: 'HELLO'
-              }];
-              resolve();
-            }, 2000);
-          })["catch"](console.log);
+          Request.searchRequest({
+            layer: thisModel.view.trackLayer.id,
+            orderdirection: 'desc',
+            orderby: thisModel.view.trackLayer.sort,
+            columns: thisModel.view.trackLayer.columns,
+            query: thisModel.view.trackLayer.query
+          }, 'POST').then(console.log); // return new Promise(resolve=>{ // Load
+          //     setTimeout(()=>{
+          //         _data.msg = [{txt:'HELLO'}];
+          //         resolve();
+          //     }, 2000);
+          // }).catch(console.log);
         } // if (thisModel.isDirty)
 
       }).then(function () {
@@ -2426,10 +2433,78 @@ var BaseView = __webpack_require__(/*! ./BaseView.js */ "./src/Views/BaseView.js
 var _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
     _selectLayers = [{
   name: 'FOS',
-  id: 'ED043040A005429B8F46AAA682BE49C3'
+  id: 'ED043040A005429B8F46AAA682BE49C3',
+  sort: 'timestamp',
+  columns: JSON.stringify([{
+    "Value": "mmsi"
+  }, {
+    "Value": "timestamp"
+  }, {
+    "Value": "course"
+  }, {
+    "Value": "speed"
+  }, {
+    "Value": "port_of_destination"
+  }, {
+    "Value": "eta"
+  }, {
+    "Value": "heading"
+  }, {
+    "Value": "lon"
+  }, {
+    "Value": "lat"
+  }]),
+
+  get vesselQuery() {
+    return "([imo] IN (".concat(_thisView.imo, ")) and ");
+  },
+
+  get query() {
+    return this.vesselQuery + "'".concat(_thisView.calendar.dateInterval.get('dateBegin').toISOString(), "'<=[timestamp] and [timestamp]<'").concat(_thisView.calendar.dateInterval.get('dateEnd').toISOString(), "'");
+  }
+
 }, {
   name: 'AIS',
-  id: '5790ADDFBDD64880BAC95DF13B8327EA'
+  id: '5790ADDFBDD64880BAC95DF13B8327EA',
+  sort: 'ts_pos_utc',
+  columns: JSON.stringify([{
+    "Value": "mmsi"
+  }, {
+    "Value": "flag_country"
+  }, {
+    "Value": "callsign"
+  }, {
+    "Value": "ts_pos_utc"
+  }, {
+    "Value": "cog"
+  }, {
+    "Value": "sog"
+  }, {
+    "Value": "draught"
+  }, {
+    "Value": "vessel_type"
+  }, {
+    "Value": "destination"
+  }, {
+    "Value": "ts_eta"
+  }, {
+    "Value": "nav_status"
+  }, {
+    "Value": "heading"
+  }, {
+    "Value": "rot"
+  }, {
+    "Value": "longitude"
+  }, {
+    "Value": "latitude"
+  }, {
+    "Value": "source"
+  }]),
+
+  get query() {
+    return "([mmsi] IN (".concat(_thisView.mmsi, ")) and '").concat(_thisView.calendar.dateInterval.get('dateBegin').toISOString(), "'<=[ts_pos_utc] and [ts_pos_utc]<'").concat(_thisView.calendar.dateInterval.get('dateEnd').toISOString(), "'");
+  }
+
 }];
 
 var _thisView, _layer;
@@ -2441,19 +2516,23 @@ var MyCollectionView = function MyCollectionView(_ref) {
       layer = _ref.layer;
   _thisView = this;
   BaseView.call(this, model);
-  this.frame = $(Handlebars.compile("<div class=\"trackexport-view\">\n            <div class=\"header\">\n                <table border=0 class=\"instruments unselectable\">\n                <tr>\n                    <td class=\"search_input_container\"></td>\n                    <tr>\n                        <td class=\"select_container\"></td>\n                    </tr>\n                </tr>\n                </table> \n\n                <table border=0><tr>\n                <td><div class=\"calendar\"></div></td>\n                <td style=\"vertical-align: top\"><div class=\"reload\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z\"></path></svg></div></td>\n                <td style=\"vertical-align: top; width: 50px\"><div class=\"refresh\" style=\"margin: 10px 0 0 20px; display:none\">".concat(this.gifLoader, "</div></div></td>\n                </table></tr> \n\n                <table border=0 class=\"grid-header\">\n                <tr><td class=\"visibility-all\">\n                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>                \n                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg>\n                </td>\n                <td>").concat(_gtxt('TrackExport.reg_id'), "</td>\n                <td>").concat(_gtxt('TrackExport.reg_created'), "</td>\n                <td>").concat(_gtxt('TrackExport.reg_updated'), "</td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td></tr>\n                </table> \n            </div> \n            <div class=\"grid\">\n\n            </div>\n            <div class=\"footer unselectable\">\n       \n            </div>\n            </div>"))());
+  this.frame = $(Handlebars.compile("<div class=\"trackexport-view\">\n            <div class=\"header\">\n                <table border=0 class=\"instruments unselectable\">\n                <tr>\n                    <td class=\"search_input_container\"></td>\n                    <tr>\n                        <td class=\"select_container\"></td>\n                    </tr>\n                </tr>\n                </table> \n\n                <table border=0><tr>\n                <td><div class=\"calendar\"></div></td>\n                <td style=\"vertical-align: top\"><div class=\"reload\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z\"></path></svg></div></td>\n                <td style=\"vertical-align: top; width: 50px\"><div class=\"refresh\" style=\"margin: 10px 0 0 20px; display:none\">".concat(this.gifLoader, "</div></div></td>\n                </table></tr> \n \n            </div> \n            <div class=\"grid\">\n\n            </div>\n            <div class=\"footer unselectable\">\n       \n            </div>\n            </div>"))());
 
   _addCalendar.call(this);
 
-  this.trackLayer = 0;
+  this.trackLayer = _selectLayers[0];
   this.frame.find('.reload').on('click', function (e) {
     if (_this.mmsi) {
-      console.log(_this.mmsi, _this.trackLayer, _this.calendar.dateInterval.get('dateBegin'));
       _this.model.isDirty = true;
 
       _this.inProgress(true);
 
       _this.show();
+    } else {
+      _this.model.data.track.length = 0;
+      _this.model.data.msg.length = 0;
+
+      _this.repaint();
     }
   }.bind(this));
   this.container = this.frame.find('.grid');
@@ -2461,7 +2540,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
   this.selectLayer = new SelectControl(this.frame.find('.select_container')[0], _selectLayers.map(function (l) {
     return l.name;
   }), 0, function (selected) {
-    _thisView.trackLayer = _selectLayers[selected].id;
+    _thisView.trackLayer = _selectLayers[selected];
   });
   this.selectLayer.dropDownList.classList.add('trackexport-view');
   this.searchInput = new SearchControl({
@@ -2490,14 +2569,46 @@ var MyCollectionView = function MyCollectionView(_ref) {
       }
     },
     callback: function (v) {
-      _thisView.mmsi = v.mmsi;
+      if (!v) {
+        _thisView.mmsi = null;
+        _thisView.model.data.track.length = 0;
+        _thisView.model.data.msg.length = 0;
+
+        _thisView.repaint();
+      } else {
+        _thisView.mmsi = v.mmsi;
+        _thisView.imo = v.imo;
+      }
     }.bind(this)
   });
   Object.defineProperty(this, "tableTemplate", {
     get: function get() {
-      return '<table border=0 class="grid">' + this.model.data.regions.map(function (r) {
-        if (r.page == _thisView.model.page) return "<tr id=\"".concat(r.gmx_id, "\">                \n                                <td class=\"visibility\">\n                                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>\n                                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg></td>\n                                <td class=\"identity\">").concat(r.id, "</td>\n                                <td class=\"identity\">").concat(r.DateTime, "</td>\n                                <td>").concat(r.DateTimeChange, "</td>\n                                <td class=\"").concat(r.StateColor, " state\"><svg><use xlink:href=\"#icons_circle\"></use></svg></td>\n                                <td class=\"edit\"><svg><use xlink:href=\"#icons_pen\"></use></svg></td>\n                                <td class=\"show\"><svg><use xlink:href=\"#icons_target\"></use></svg></td>\n                            </tr>");else return '';
-      }).join('') + '</table>' + (this.model.data.msg ? this.model.data.msg.map(function (m) {
+      return;
+      this.model.data.tracks.map(function (t, i) {
+        return "<table class=\"track-table\" border=\"1\">\n                <tbody><tr>\n                <td><div class=\"open_positions ui-helper-noselect icon-right-open icon-down-open\" title=\"\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u044B \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F\"></div></td>\n                <td><span class=\"date\">".concat(t.utc_date, "</span></td>\n                <td><div class=\"track\"><input type=\"checkbox\" title=\"\u0442\u0440\u0435\u043A \u0437\u0430 \u0441\u0443\u0442\u043A\u0438\"></div></td>\n                <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n                <div class=\"positions ").concat(i, "\">\n                <table class=\"positions-table\"><tbody>") + t.positions.map(function (p, j) {
+          return "<tr>                \n                <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n                <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.utc_date, "</span></td>\n                <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td><td>\n                <div class=\"showpos ").concat(i, " ").concat(j, "\" title=\"\u043F\u043E\u043B\u043E\u0436\u0435\u043D\u0438\u0435\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n                </tr>");
+        }).join('') + +"</tbody></table>";
+        /*
+        <tr>
+        <td title="информация"><img class="show_info" id="show_info0" src="plugins/AIS/AISSearch/svg/info.svg"></td>
+        <td><span class="utc_time">16:48:13</span><span class="local_time">19:48:13</span></td>
+        <td><span class="utc_date">02.12.2019</span><span class="local_date">02.12.2019</span></td>
+        <td><img src="http://maps.kosmosnimki.ru/api/img/AIS/tanker-L-100-move.svg" class="legend_icon rotateimg330"><img src="http://geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&amp;img=AIS%5CSCF%5Csog8-L-100-move.svg" class="legend_iconalt rotateimg330" style="display: none;"></td>
+        <td><img src="plugins/AIS/AISSearch/svg/satellite-ais.svg"></td>
+        <td>73.96 E&nbsp;&nbsp;72.50 N</td><td>
+        <div class="show_pos" id="show_pos0" title="положение"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
+        </tr>
+        <tr><td colspan="7" class="more"><hr>
+        <div class="vi_more">
+        <div class="c1">COG | SOG:</div><div class="c2">&nbsp;327.10001° &nbsp; 11 уз</div>
+        <div class="c1">HDG | ROT:</div><div class="c2">&nbsp;328° &nbsp; 2°/мин</div>
+        <div class="c1">Осадка:</div><div class="c2">&nbsp;9.3 м</div>
+        <div class="c1">Назначение:</div><div class="c2">&nbsp;RU SAB &gt; RU MMK</div>
+        <div class="c1">Статус:</div><div class="c2">&nbsp;Under Way Using Engine</div>
+        <div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">05.12.2019 18:00:00</span><span class="local_time">05.12.2019 21:00:00</span></div>
+        </div></td></tr>;
+        */
+      }).join('') + (this.model.data.msg ? this.model.data.msg.map(function (m) {
         return "<div class=\"msg\">".concat(m.txt, "</div>");
       }).join('') : '');
     }
