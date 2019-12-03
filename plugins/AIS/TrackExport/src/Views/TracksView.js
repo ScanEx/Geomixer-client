@@ -7,13 +7,33 @@ const BaseView = require('./BaseView.js'),
       SearchControl = require('../../../Common/Controls/SearchControl'),
       SelectControl = require('../../../Common/Controls/SelectControl');
 
+const _toDd = function (D, isLng) {
+    let dir = D < 0 ? isLng ? 'W' : 'S' : isLng ? 'E' : 'N',
+        deg = Math.round((D < 0 ? D = -D : D) * 1000000) / 1000000
+    return deg.toFixed(2) + " "//"°"
+        + dir
+};
+
 const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
       _selectLayers = [
         {
             name: 'FOS', id: 'ED043040A005429B8F46AAA682BE49C3', sort: 'timestamp',            
             columns: JSON.stringify([{"Value":"mmsi"},{"Value":"timestamp"},{"Value":"course"},{"Value":"speed"},{"Value":"port_of_destination"},{"Value":"eta"},{"Value":"heading"},{"Value":"lon"},{"Value":"lat"}]),
             get vesselQuery() { return `([imo] IN (${_thisView.imo})) and `; },
-            get query() { return this.vesselQuery + `'${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[timestamp] and [timestamp]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;}
+            get query() { return this.vesselQuery + `'${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[timestamp] and [timestamp]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;},
+            parseData: function(fields, value){
+                             
+                let tzOffset = new Date().getTimezoneOffset(), ts = value[fields.indexOf('timestamp')],
+                utcDate = new Date((value[fields.indexOf('timestamp')] + tzOffset*60)*1000), locDate =  new Date(value[fields.indexOf('timestamp')]*1000);
+                return {
+                    ts: ts,
+                    utc_date: utcDate.toLocaleDateString(), utc_time: utcDate.toLocaleTimeString(),
+                    local_date: locDate.toLocaleDateString(), local_time: locDate.toLocaleTimeString(),
+                    lat: _toDd(value[fields.indexOf('lat')]), lon: _toDd(value[fields.indexOf('lon')], true),
+                    latitude: value[fields.indexOf('lat')], longitude: value[fields.indexOf('lon')]
+                }
+
+            }
         }, 
         {
             name: 'AIS', id: '5790ADDFBDD64880BAC95DF13B8327EA', sort: 'ts_pos_utc',
@@ -24,7 +44,7 @@ const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
 
 let _thisView, _layer;
 
-const MyCollectionView = function ({ model, layer }) {
+const TracksView = function ({ model, layer }) {
     _thisView = this;
 
         BaseView.call(this, model);
@@ -113,45 +133,35 @@ const MyCollectionView = function ({ model, layer }) {
 
         Object.defineProperty(this, "tableTemplate", {
             get: function () {
-                return  
-                    this.model.data.tracks.map((t,i) => {
-                        return `<table class="track-table" border="1">
+console.log(this.model.data)
+                let totalPositions = this.model.data.total,
+                    rv = this.model.data.tracks.map((t,i) => {
+                        return `<table class="track-table header"><tr>
+                        <td></td>
+                        <td><span class="date"></span></td>
+                        <td><div class="track all"><input type="checkbox" title="${_gtxt("AISSearch2.allDailyTracks")}"></div></td>
+                        <td><div class="count">${totalPositions}</div></td></tr></table>
+                        
+                        <table class="track-table" border="0">
                 <tbody><tr>
-                <td><div class="open_positions ui-helper-noselect icon-right-open icon-down-open" title="Параметры движения"></div></td>
+                <td><div class="open_positions ui-helper-noselect icon-right-open icon-down-open" title="${_gtxt('AISSearch2.voyageInfo')}"></div></td>
                 <td><span class="date">${t.utc_date}</span></td>
-                <td><div class="track"><input type="checkbox" title="трек за сутки"></div></td>
+                <td><div class="track"><input type="checkbox" title="${_gtxt('AISSearch2.voyageInfo')}"></div></td>
                 <td><div class="count">${t.positions.length}</div></td></tr></tbody></table>
                 <div class="positions ${i}">
+
                 <table class="positions-table"><tbody>` +
                 t.positions.map((p,j) => { return `<tr>                
                 <td><span class="utc_time">${p.utc_time}</span><span class="local_time">${p.local_time}</span></td>
-                <td><span class="utc_date">${t.utc_date}</span><span class="local_date">${p.utc_date}</span></td>
-                <td>${p.lon}&nbsp;&nbsp;${p.lat}</td><td>
-                <div class="showpos ${i} ${j}" title="положение"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
+                <td><span class="utc_date">${t.utc_date}</span><span class="local_date">${p.local_date}</span></td>
+                <td>${p.lon}&nbsp;&nbsp;${p.lat}</td>
+                <td></td><td></td>
+                <td><div class="show_pos ${i} ${j}" title="${_gtxt('AISSearch2.dailyTrack')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
                 </tr>`;}).join('') + 
                 + `</tbody></table>`;
-                /*
-                <tr>
-                <td title="информация"><img class="show_info" id="show_info0" src="plugins/AIS/AISSearch/svg/info.svg"></td>
-                <td><span class="utc_time">16:48:13</span><span class="local_time">19:48:13</span></td>
-                <td><span class="utc_date">02.12.2019</span><span class="local_date">02.12.2019</span></td>
-                <td><img src="http://maps.kosmosnimki.ru/api/img/AIS/tanker-L-100-move.svg" class="legend_icon rotateimg330"><img src="http://geomixer.scanex.ru/GetImage.ashx?usr=haibrahmanov%40scanex.ru&amp;img=AIS%5CSCF%5Csog8-L-100-move.svg" class="legend_iconalt rotateimg330" style="display: none;"></td>
-                <td><img src="plugins/AIS/AISSearch/svg/satellite-ais.svg"></td>
-                <td>73.96 E&nbsp;&nbsp;72.50 N</td><td>
-                <div class="show_pos" id="show_pos0" title="положение"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
-                </tr>
-                <tr><td colspan="7" class="more"><hr>
-                <div class="vi_more">
-                <div class="c1">COG | SOG:</div><div class="c2">&nbsp;327.10001° &nbsp; 11 уз</div>
-                <div class="c1">HDG | ROT:</div><div class="c2">&nbsp;328° &nbsp; 2°/мин</div>
-                <div class="c1">Осадка:</div><div class="c2">&nbsp;9.3 м</div>
-                <div class="c1">Назначение:</div><div class="c2">&nbsp;RU SAB &gt; RU MMK</div>
-                <div class="c1">Статус:</div><div class="c2">&nbsp;Under Way Using Engine</div>
-                <div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">05.12.2019 18:00:00</span><span class="local_time">05.12.2019 21:00:00</span></div>
-                </div></td></tr>;
-                */
                     }).join('') +
                     (this.model.data.msg ? this.model.data.msg.map(m => `<div class="msg">${m.txt}</div>`).join('') : '');
+                return rv;
             }
         });  
 
@@ -209,9 +219,9 @@ const MyCollectionView = function ({ model, layer }) {
 
     };
 
-MyCollectionView.prototype = Object.create(BaseView.prototype);
+TracksView.prototype = Object.create(BaseView.prototype);
 
-MyCollectionView.prototype.inProgress = function (state) {
+TracksView.prototype.inProgress = function (state) {
     let progress = this.frame.find('div.refresh');
     if (state)
         progress.show();
@@ -219,18 +229,18 @@ MyCollectionView.prototype.inProgress = function (state) {
         progress.hide();
 };
 
-// MyCollectionView.prototype.resize = function () { 
+// TracksView.prototype.resize = function () { 
 //     let h = $('.iconSidebarControl-pane').height() - this.frame.find('.instruments').outerHeight()
 //     - this.frame.find('.results').outerHeight() - this.frame.find('.menu').outerHeight();
 //     this.container.height(h+1);
 // };
 
-MyCollectionView.prototype.repaint = function () { 
+TracksView.prototype.repaint = function () { 
     _clean.call(this);
     BaseView.prototype.repaint.call(this);     
 };
 
-MyCollectionView.prototype.show = function () {
+TracksView.prototype.show = function () {
     if (!this.frame)
         return;
 
@@ -238,4 +248,4 @@ MyCollectionView.prototype.show = function () {
     BaseView.prototype.show.apply(this, arguments);
 };
 
-module.exports = MyCollectionView;
+module.exports = TracksView;
