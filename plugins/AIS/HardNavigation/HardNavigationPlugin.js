@@ -86,6 +86,229 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "../Common/Controls/Calendar.js":
+/*!**************************************!*\
+  !*** ../Common/Controls/Calendar.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+const SIMPLE_MODE = 1,
+      ADVANCED_MODE = 2;
+
+const _toMidnight = nsGmx.DateInterval.toMidnight,
+      _fromUTC = function (date) {
+  if (!date) return null;
+  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.valueOf() - timeOffset);
+},
+      _toUTC = function (date) {
+  if (!date) return null;
+  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.valueOf() + timeOffset);
+},
+      _setMode = function (mode) {
+  if (this._curMode === mode) {
+    return this;
+  } //this.reset();
+
+
+  this._dateInputs.datepicker('hide');
+
+  this._curMode = mode;
+  var isSimple = mode === SIMPLE_MODE;
+  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!isSimple);
+
+  this._moreIcon.toggleClass('icon-calendar', isSimple).toggleClass('icon-calendar-empty', !isSimple).attr('title', isSimple ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'));
+
+  var dateBegin = this._dateBegin.datepicker('getDate'),
+      dateEnd = this._dateEnd.datepicker('getDate');
+
+  if (isSimple && dateBegin && dateEnd && dateBegin.valueOf() !== dateEnd.valueOf()) {
+    _selectFunc.call(this, this._dateEnd);
+
+    _updateModel().call(this);
+  } //this.trigger('modechange');
+
+
+  return this;
+},
+      _selectFunc = function (activeInput) {
+  var begin = this._dateBegin.datepicker('getDate');
+
+  var end = this._dateEnd.datepicker('getDate');
+
+  if (end && begin && begin > end) {
+    var dateToFix = activeInput[0] == this._dateEnd[0] ? this._dateBegin : this._dateEnd;
+    dateToFix.datepicker('setDate', $(activeInput[0]).datepicker('getDate'));
+  } else if (this._curMode === SIMPLE_MODE) {
+    //либо установлена только одна дата, либо две, но отличающиеся
+    if (!begin != !end || begin && begin.valueOf() !== end.valueOf()) {
+      this._dateEnd.datepicker('setDate', this._dateBegin.datepicker('getDate'));
+    }
+  }
+},
+      _updateModel = function () {
+  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
+      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
+
+  this.dateInterval.set({
+    dateBegin: dateBegin ? _toMidnight(dateBegin) : null,
+    dateEnd: dateEnd ? _toMidnight(dateEnd.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
+  });
+},
+      _updateWidget = function () {
+  var dateBegin = this.dateInterval.get('dateBegin'),
+      dateEnd = this.dateInterval.get('dateEnd'),
+      dayms = nsGmx.DateInterval.MS_IN_DAY;
+
+  if (!dateBegin || !dateEnd) {
+    return;
+  }
+
+  ;
+  var isValid = !(dateBegin % dayms) && !(dateEnd % dayms);
+
+  var newDateBegin = _toUTC(dateBegin),
+      newDateEnd;
+
+  if (isValid) {
+    newDateEnd = _toUTC(new Date(dateEnd - dayms));
+
+    if (dateEnd - dateBegin > dayms) {
+      _setMode.call(this, ADVANCED_MODE);
+    }
+  } else {
+    newDateEnd = _toUTC(dateEnd);
+
+    _setMode.call(this, ADVANCED_MODE);
+  } //если мы сюда пришли после выбора интервала в самом виджете, вызов setDate сохраняет фокус на input-поле
+  //возможно, это какая-то проблема jQueryUI.datepicker'ов.
+  //чтобы этого избежать, явно проверяем, нужно ли изменять дату
+
+
+  var prevDateBegin = this._dateBegin.datepicker('getDate'),
+      prevDateEnd = this._dateEnd.datepicker('getDate');
+
+  if (!prevDateBegin || prevDateBegin.valueOf() !== newDateBegin.valueOf()) {
+    this._dateBegin.datepicker('setDate', newDateBegin);
+  }
+
+  if (!prevDateEnd || prevDateEnd.valueOf() !== newDateEnd.valueOf()) {
+    this._dateEnd.datepicker('setDate', newDateEnd);
+  }
+},
+      _shiftDates = function (delta) {
+  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
+      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
+
+  if (!dateBegin || !dateEnd) {
+    return;
+  }
+
+  var shift = (dateEnd - dateBegin + nsGmx.DateInterval.MS_IN_DAY) * delta,
+      newDateBegin = new Date(dateBegin.valueOf() + shift),
+      newDateEnd = new Date(dateEnd.valueOf() + shift);
+
+  if ((!this._dateMin || _toMidnight(this._dateMin) <= _toMidnight(newDateBegin)) && (!this._dateMax || _toMidnight(this._dateMax) >= _toMidnight(newDateEnd))) {
+    this._dateBegin.datepicker('setDate', _toUTC(newDateBegin));
+
+    this._dateEnd.datepicker('setDate', _toUTC(newDateEnd));
+
+    _updateModel.call(this);
+  }
+};
+
+module.exports = function (options) {
+  $el = $('<div class="CalendarWidget ui-widget"></div>');
+  this.template = Handlebars.compile(`
+    <table>
+    <tr>
+        <td><div class = "CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open"></div></td>
+        <td class = "CalendarWidget-inputCell"><input class = "gmx-input-text CalendarWidget-dateBegin"></td>
+        <td class = "CalendarWidget-inputCell CalendarWidget-onlyMaxVersion"><input class = "gmx-input-text CalendarWidget-dateEnd"></td>
+        <td><div class = "CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open" ></div></td>
+        <td><div class = "CalendarWidget-iconMore {{moreIconClass}}" title = "{{moreIconTitle}}"></div></td>
+        <td><div class = "CalendarWidget-forecast" hidden>{{forecast}}</div></td>
+    </tr><tr>
+        <td></td>
+        <td class = "CalendarWidget-dateBeginInfo"></td>
+        <td class = "CalendarWidget-dateEndInfo"></td>
+        <td></td>
+        <td></td>
+    </tr>
+</table>
+<div class="CalendarWidget-footer"></div>`);
+  options = $.extend({
+    minimized: true,
+    showSwitcher: true,
+    dateMax: null,
+    dateMin: null,
+    dateFormat: 'dd.mm.yy',
+    name: null
+  }, options);
+  this._dateMin = options.dateMin;
+  this._dateMax = options.dateMax;
+  this.dateInterval = options.dateInterval;
+  $el.html(this.template({
+    moreIconClass: options.minimized ? 'icon-calendar' : 'icon-calendar-empty',
+    moreIconTitle: options.minimized ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'),
+    forecast: _gtxt('CalendarWidget.forecast')
+  }));
+  this._moreIcon = $el.find('.CalendarWidget-iconMore').toggle(!!options.showSwitcher);
+  this._dateBegin = $el.find('.CalendarWidget-dateBegin');
+  this._dateEnd = $el.find('.CalendarWidget-dateEnd');
+  this._dateInputs = this._dateBegin.add(this._dateEnd);
+  $el.find('.CalendarWidget-iconScrollLeft').on('click', function () {
+    _shiftDates.call(this, -1);
+  }.bind(this));
+  $el.find('.CalendarWidget-iconScrollRight').on('click', function () {
+    _shiftDates.call(this, 1);
+  }.bind(this));
+
+  this._dateInputs.datepicker({
+    onSelect: function (dateText, inst) {
+      _selectFunc.call(this, inst.input);
+
+      _updateModel.call(this);
+    }.bind(this),
+    showAnim: 'fadeIn',
+    changeMonth: true,
+    changeYear: true,
+    minDate: this._dateMin ? _toUTC(this._dateMin) : null,
+    maxDate: this._dateMax ? _toUTC(this._dateMax) : null,
+    dateFormat: options.dateFormat,
+    defaultDate: _toUTC(this._dateMax || new Date()),
+    showOn: options.buttonImage ? 'both' : 'focus',
+    buttonImageOnly: true
+  }); //устанавливаем опцию после того, как добавили календарик в canvas
+
+
+  if (options.buttonImage) {
+    this._dateInputs.datepicker('option', 'buttonImage', options.buttonImage);
+  }
+
+  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!options.minimized);
+  options.dateBegin && this._dateBegin.datepicker('setDate', _toUTC(options.dateBegin));
+  options.dateEnd && this._dateEnd.datepicker('setDate', _toUTC(options.dateEnd));
+
+  if (options.container) {
+    if (typeof options.container === 'string') $('#' + options.container).append($el);else $(options.container).append($el);
+  }
+
+  _setMode.call(this, options.minimized ? SIMPLE_MODE : ADVANCED_MODE);
+
+  _updateWidget.call(this);
+
+  this.dateInterval.on('change', function () {
+    _updateWidget.call(this);
+  }.bind(this), this); //for backward compatibility
+
+  this.canvas = $el;
+};
+
+/***/ }),
+
 /***/ "./icons.svg":
 /*!*******************!*\
   !*** ./icons.svg ***!
@@ -104,7 +327,7 @@ __webpack_require__.r(__webpack_exports__);
 var symbol = new _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0___default.a({
   "id": "icons",
   "use": "icons-usage",
-  "content": "<symbol xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"icons\">\r\n\r\n<symbol id=\"icons_arrow-left\" viewBox=\"0 0 20 20\" fill=\"none\">\r\n<path d=\"M18.3334 10H1.66669\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n<path d=\"M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n</symbol>\r\n<symbol id=\"icons_arrow-right\" viewBox=\"0 0 20 20\" fill=\"none\">\r\n<path d=\"M18.3334 10H1.66669\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n<path d=\"M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" transform=\"rotate(180 10 10)\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_eye\" viewBox=\"4 3 16 16\" fill=\"none\">\r\n<path d=\"M11.93,7.28C8.87,7.28,6.1,9,4.05,11.88a0.69,0.69,0,0,0,0,.79c2,2.85,4.82,4.61,7.87,4.61s5.83-1.75,7.87-4.6a0.69,0.69,0,0,0,0-.79C17.75,9,15,7.28,11.93,7.28Zm0.22,8.52A3.45,3.45,0,0,1,8.57,12a3.46,3.46,0,0,1,3.14-3.29,3.45,3.45,0,0,1,3.58,3.75A3.47,3.47,0,0,1,12.14,15.8ZM12,14.17a1.9,1.9,0,1,1,1.69-1.77A1.85,1.85,0,0,1,12,14.17Z\" fill=\"currentColor\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_eye-off\" viewBox=\"4 3 16 16\" fill=\"none\">\r\n      <polygon points=\"18.68 20.13 4 5.38 5.32 4.13 20 18.87 18.68 20.13\" fill=\"currentColor\" />\r\n      <path fill=\"currentColor\" d=\"M12.06,8.77A3.42,3.42,0,0,1,15.26,12L18,14.72a13.33,13.33,0,0,0,1.81-2,0.69,0.69,0,0,0,0-.79C17.75,9,15,7.28,11.92,7.28a7.94,7.94,0,0,0-1.25.11Z\" />\r\n      <path fill=\"currentColor\" d=\"M12,14.17a1.83,1.83,0,0,0,1.58-1.26l-2.38-2.39a1.9,1.9,0,0,0-1.12,1.63A1.85,1.85,0,0,0,12,14.17Z\" />\r\n      <path fill=\"currentColor\" d=\"M14.79,14.09a3.35,3.35,0,0,1-2.65,1.71A3.45,3.45,0,0,1,8.57,12a3.56,3.56,0,0,1,1.5-2.7L8.69,8a11.38,11.38,0,0,0-4.64,3.92,0.69,0.69,0,0,0,0,.79c2,2.85,4.82,4.61,7.87,4.61a8.44,8.44,0,0,0,4.61-1.43Z\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_circle\" viewBox=\"0 0 16 16\" fill=\"currentColor\">\r\n<circle cx=\"8\" cy=\"8\" r=\"8\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_pen\" viewBox=\"0 0 12 12\" fill=\"currentColor\">\r\n<g xmlns=\"http://www.w3.org/2000/svg\">\r\n\t<path d=\"M6.1,2.6L0.2,8.5C0.1,8.6,0,8.8,0,9v2.3C0,11.7,0.3,12,0.8,12H3c0.2,0,0.4-0.1,0.5-0.2l5.9-5.8L6.1,2.6z\" />\r\n\t<path d=\"M11.8,2.5L9.5,0.2c-0.3-0.3-0.8-0.3-1,0L7.1,1.6l3.3,3.3l1.4-1.4C12.1,3.2,12.1,2.8,11.8,2.5z\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_target\" viewBox=\"0 0 12 12\" fill=\"currentColor\">\r\n<g xmlns=\"http://www.w3.org/2000/svg\">\r\n\t<rect x=\"0\" width=\"1.5\" height=\"4.5\" />\t\r\n\t\t<rect x=\"1.5\" y=\"-1.5\" transform=\"matrix(-1.836970e-16 1 -1 -1.836970e-16 2.9945 -1.4945)\" width=\"1.5\" height=\"4.5\" />\t\r\n\t\t<rect x=\"9\" y=\"-1.5\" transform=\"matrix(-1.836970e-16 1 -1 -1.836970e-16 10.4951 -8.9951)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"10.5\" transform=\"matrix(-1 -1.224647e-16 1.224647e-16 -1 22.4863 4.5)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"10.5\" y=\"7.5\" transform=\"matrix(-1 -1.224647e-16 1.224647e-16 -1 22.4967 19.5)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"9\" y=\"9\" transform=\"matrix(6.123234e-17 -1 1 6.123234e-17 -1.4997 21.0003)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"1.5\" y=\"9\" transform=\"matrix(6.123234e-17 -1 1 6.123234e-17 -9.0003 13.4997)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"0\" y=\"7.5\" width=\"1.5\" height=\"4.5\" />\r\n\t<ellipse cx=\"6\" cy=\"6\" rx=\"2.2\" ry=\"2.3\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_info\" viewBox=\"2 2 20 20\" fill=\"currentColor\">\r\n<g class=\"nc-icon-wrapper\" fill=\"currentColor\">\r\n<path d=\"M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_polygon\" viewBox=\"4 0 20 20\" fill=\"currentColor\">\r\n      <rect x=\"6.04\" y=\"8.9\" width=\"2.05\" height=\"0.97\" transform=\"translate(-4.65 10.2) rotate(-57.04)\" /><rect x=\"10.84\" y=\"6.25\" width=\"2.05\" height=\"0.97\" /><rect x=\"10.84\" y=\"16.89\" width=\"2.05\" height=\"0.97\" /><rect x=\"6.58\" y=\"13.65\" width=\"0.97\" height=\"2.05\" transform=\"translate(-6.85 6.2) rotate(-32.96)\" /><path d=\"M8.68,6.28a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45A1.45,1.45,0,0,0,8.68,5.28h0Z\" /><path d=\"M8.68,16.87a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M5.45,11.58A0.45,0.45,0,1,1,5,12a0.45,0.45,0,0,1,.45-0.45m0-1A1.45,1.45,0,1,0,6.9,12a1.45,1.45,0,0,0-1.45-1.45h0Z\" /><rect x=\"15.91\" y=\"14.14\" width=\"2.05\" height=\"0.97\" transform=\"translate(-4.55 20.88) rotate(-57.04)\" /><rect x=\"16.45\" y=\"8.31\" width=\"0.97\" height=\"2.05\" transform=\"translate(-2.35 10.72) rotate(-32.96)\" /><path d=\"M15.32,16.82a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M15.32,6.24a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M18.55,11.53a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1A1.45,1.45,0,1,0,20,12a1.45,1.45,0,0,0-1.45-1.45h0Z\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_selectreg\" viewBox=\"12 13 24 20\" fill=\"currentColor\">\r\n    <path d=\"m 21.099609,8.4511719 c -1.469868,0 -2.548828,1.0789594 -2.548828,2.5488281 l 0,10.300781 a 0.45145663,0.45145663 0 0 1 -0.794922,0.291016 c -1.069223,-1.263628 -2.20723,-2.140625 -3.15625,-2.140625 -0.799555,0 -1.440052,0.272383 -1.724609,0.699219 a 0.45145663,0.45145663 0 0 1 -0.02344,0.03125 c -0.304031,0.380039 -0.58479,1.101873 -0.220703,2.285156 0.363172,1.180307 2.071447,4.826112 3.949219,7.791015 0.686643,1.07901 1.37235,1.961753 1.960938,2.648438 a 0.45145663,0.45145663 0 0 1 0.01367,0.01367 c 1.100572,1.400729 1.896484,2.439482 1.896484,4.080078 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 l 12,0 c 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 0,-2.462696 0.514524,-4.413564 1.013672,-6.410156 C 35.061648,28.593252 35.548828,26.542127 35.548828,24 l 0,-3 c 0,-1.469869 -1.078959,-2.548828 -2.548828,-2.548828 -0.325352,0 -0.686138,0.08548 -0.957031,0.175781 A 0.45145663,0.45145663 0 0 1 31.46875,18.332031 C 31.119977,17.19852 30.206706,16.451172 29,16.451172 c -0.439576,0 -0.8348,0.08997 -1.128906,0.310547 a 0.45145663,0.45145663 0 0 1 -0.654297,-0.123047 c -0.424766,-0.679626 -1.181444,-1.1875 -2.117188,-1.1875 -0.325352,0 -0.55809,0.076 -0.857421,0.175781 a 0.45145663,0.45145663 0 0 1 -0.59375,-0.427734 l 0,-4.199219 c 0,-1.4698687 -1.07896,-2.5488281 -2.548829,-2.5488281 z M 21,9.5488281 c 0.400314,0 0.778723,0.1400511 1.044922,0.40625 0.266199,0.2661989 0.40625,0.6446079 0.40625,1.0449219 l 0,9 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-2 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-2 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-1 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,2.365422 -0.514537,4.312055 -1.013672,6.308594 l 0.0039,-0.01172 c -0.40345,1.815526 -0.892826,3.579678 -0.990234,5.722656 A 0.45145663,0.45145663 0 0 1 32,36.451172 l -10.099609,0 A 0.45145663,0.45145663 0 0 1 21.451172,36.052734 C 21.268949,34.50384 20.366883,33.503929 19.267578,32.304688 a 0.45145663,0.45145663 0 0 1 -0.0293,-0.0332 c -0.588009,-0.784011 -1.201373,-1.503012 -1.820312,-2.533203 l -0.002,-0.002 c -8.56e-4,-0.0014 -0.0011,-0.0025 -0.002,-0.0039 -1.007254,-1.612144 -1.886276,-3.221277 -2.554687,-4.570313 -0.669307,-1.350844 -1.123882,-2.415821 -1.294922,-3.042968 a 0.45145663,0.45145663 0 0 1 -0.0078,-0.03125 c -0.05341,-0.267047 -0.08399,-0.487278 -0.08399,-0.6875 0,-0.200222 -8.21e-4,-0.409335 0.208985,-0.619141 0.156606,-0.156607 0.331654,-0.197642 0.466797,-0.216797 0.135142,-0.01916 0.251856,-0.01563 0.351562,-0.01563 0.379126,0 0.656448,0.179905 0.982422,0.419922 0.325974,0.240017 0.676911,0.568581 1.03125,0.96875 0.708677,0.800338 1.432333,1.886537 1.90625,3.097656 a 0.45145663,0.45145663 0 0 1 0.03125,0.164063 l 0,0.800781 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-15 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.0449219 C 20.221277,9.6888792 20.599686,9.5488281 21,9.5488281 Z\" />\r\n</symbol>\r\n\r\n</symbol>"
+  "content": "<symbol xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"icons\">\r\n\r\n<symbol id=\"icons_arrow-left\" viewBox=\"0 0 20 20\" fill=\"none\">\r\n<path d=\"M18.3334 10H1.66669\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n<path d=\"M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n</symbol>\r\n<symbol id=\"icons_arrow-right\" viewBox=\"0 0 20 20\" fill=\"none\">\r\n<path d=\"M18.3334 10H1.66669\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\r\n<path d=\"M7.50002 15.8333L1.66669 9.99996L7.50002 4.16663\" stroke=\"currentColor\" stroke-width=\"2\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\" transform=\"rotate(180 10 10)\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_eye\" viewBox=\"4 4 16 16\" fill=\"none\">\r\n<path d=\"M11.93,7.28C8.87,7.28,6.1,9,4.05,11.88a0.69,0.69,0,0,0,0,.79c2,2.85,4.82,4.61,7.87,4.61s5.83-1.75,7.87-4.6a0.69,0.69,0,0,0,0-.79C17.75,9,15,7.28,11.93,7.28Zm0.22,8.52A3.45,3.45,0,0,1,8.57,12a3.46,3.46,0,0,1,3.14-3.29,3.45,3.45,0,0,1,3.58,3.75A3.47,3.47,0,0,1,12.14,15.8ZM12,14.17a1.9,1.9,0,1,1,1.69-1.77A1.85,1.85,0,0,1,12,14.17Z\" fill=\"currentColor\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_eye-off\" viewBox=\"4 4 16 16\" fill=\"none\">\r\n      <polygon points=\"18.68 20.13 4 5.38 5.32 4.13 20 18.87 18.68 20.13\" fill=\"currentColor\" />\r\n      <path fill=\"currentColor\" d=\"M12.06,8.77A3.42,3.42,0,0,1,15.26,12L18,14.72a13.33,13.33,0,0,0,1.81-2,0.69,0.69,0,0,0,0-.79C17.75,9,15,7.28,11.92,7.28a7.94,7.94,0,0,0-1.25.11Z\" />\r\n      <path fill=\"currentColor\" d=\"M12,14.17a1.83,1.83,0,0,0,1.58-1.26l-2.38-2.39a1.9,1.9,0,0,0-1.12,1.63A1.85,1.85,0,0,0,12,14.17Z\" />\r\n      <path fill=\"currentColor\" d=\"M14.79,14.09a3.35,3.35,0,0,1-2.65,1.71A3.45,3.45,0,0,1,8.57,12a3.56,3.56,0,0,1,1.5-2.7L8.69,8a11.38,11.38,0,0,0-4.64,3.92,0.69,0.69,0,0,0,0,.79c2,2.85,4.82,4.61,7.87,4.61a8.44,8.44,0,0,0,4.61-1.43Z\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_circle\" viewBox=\"0 0 16 16\" fill=\"currentColor\">\r\n<circle cx=\"8\" cy=\"8\" r=\"8\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_pen\" viewBox=\"0 0 12 12\" fill=\"currentColor\">\r\n<g xmlns=\"http://www.w3.org/2000/svg\">\r\n\t<path d=\"M6.1,2.6L0.2,8.5C0.1,8.6,0,8.8,0,9v2.3C0,11.7,0.3,12,0.8,12H3c0.2,0,0.4-0.1,0.5-0.2l5.9-5.8L6.1,2.6z\" />\r\n\t<path d=\"M11.8,2.5L9.5,0.2c-0.3-0.3-0.8-0.3-1,0L7.1,1.6l3.3,3.3l1.4-1.4C12.1,3.2,12.1,2.8,11.8,2.5z\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_target\" viewBox=\"0 0 12 12\" fill=\"currentColor\">\r\n<g xmlns=\"http://www.w3.org/2000/svg\">\r\n\t<rect x=\"0\" width=\"1.5\" height=\"4.5\" />\t\r\n\t\t<rect x=\"1.5\" y=\"-1.5\" transform=\"matrix(-1.836970e-16 1 -1 -1.836970e-16 2.9945 -1.4945)\" width=\"1.5\" height=\"4.5\" />\t\r\n\t\t<rect x=\"9\" y=\"-1.5\" transform=\"matrix(-1.836970e-16 1 -1 -1.836970e-16 10.4951 -8.9951)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"10.5\" transform=\"matrix(-1 -1.224647e-16 1.224647e-16 -1 22.4863 4.5)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"10.5\" y=\"7.5\" transform=\"matrix(-1 -1.224647e-16 1.224647e-16 -1 22.4967 19.5)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"9\" y=\"9\" transform=\"matrix(6.123234e-17 -1 1 6.123234e-17 -1.4997 21.0003)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"1.5\" y=\"9\" transform=\"matrix(6.123234e-17 -1 1 6.123234e-17 -9.0003 13.4997)\" width=\"1.5\" height=\"4.5\" />\r\n\t<rect x=\"0\" y=\"7.5\" width=\"1.5\" height=\"4.5\" />\r\n\t<ellipse cx=\"6\" cy=\"6\" rx=\"2.2\" ry=\"2.3\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_info\" viewBox=\"2 2 20 20\" fill=\"currentColor\">\r\n<g class=\"nc-icon-wrapper\" fill=\"currentColor\">\r\n<path d=\"M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z\" />\r\n</g>\r\n</symbol>\r\n\r\n<symbol id=\"icons_polygon\" viewBox=\"4 0 20 20\" fill=\"currentColor\">\r\n      <rect x=\"6.04\" y=\"8.9\" width=\"2.05\" height=\"0.97\" transform=\"translate(-4.65 10.2) rotate(-57.04)\" /><rect x=\"10.84\" y=\"6.25\" width=\"2.05\" height=\"0.97\" /><rect x=\"10.84\" y=\"16.89\" width=\"2.05\" height=\"0.97\" /><rect x=\"6.58\" y=\"13.65\" width=\"0.97\" height=\"2.05\" transform=\"translate(-6.85 6.2) rotate(-32.96)\" /><path d=\"M8.68,6.28a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45A1.45,1.45,0,0,0,8.68,5.28h0Z\" /><path d=\"M8.68,16.87a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M5.45,11.58A0.45,0.45,0,1,1,5,12a0.45,0.45,0,0,1,.45-0.45m0-1A1.45,1.45,0,1,0,6.9,12a1.45,1.45,0,0,0-1.45-1.45h0Z\" /><rect x=\"15.91\" y=\"14.14\" width=\"2.05\" height=\"0.97\" transform=\"translate(-4.55 20.88) rotate(-57.04)\" /><rect x=\"16.45\" y=\"8.31\" width=\"0.97\" height=\"2.05\" transform=\"translate(-2.35 10.72) rotate(-32.96)\" /><path d=\"M15.32,16.82a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M15.32,6.24a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1a1.45,1.45,0,1,0,1.45,1.45,1.45,1.45,0,0,0-1.45-1.45h0Z\" /><path d=\"M18.55,11.53a0.45,0.45,0,1,1-.45.45,0.45,0.45,0,0,1,.45-0.45m0-1A1.45,1.45,0,1,0,20,12a1.45,1.45,0,0,0-1.45-1.45h0Z\" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_selectreg\" viewBox=\"12 13 24 20\" fill=\"currentColor\">\r\n    <path d=\"m 21.099609,8.4511719 c -1.469868,0 -2.548828,1.0789594 -2.548828,2.5488281 l 0,10.300781 a 0.45145663,0.45145663 0 0 1 -0.794922,0.291016 c -1.069223,-1.263628 -2.20723,-2.140625 -3.15625,-2.140625 -0.799555,0 -1.440052,0.272383 -1.724609,0.699219 a 0.45145663,0.45145663 0 0 1 -0.02344,0.03125 c -0.304031,0.380039 -0.58479,1.101873 -0.220703,2.285156 0.363172,1.180307 2.071447,4.826112 3.949219,7.791015 0.686643,1.07901 1.37235,1.961753 1.960938,2.648438 a 0.45145663,0.45145663 0 0 1 0.01367,0.01367 c 1.100572,1.400729 1.896484,2.439482 1.896484,4.080078 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 l 12,0 c 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 0,-2.462696 0.514524,-4.413564 1.013672,-6.410156 C 35.061648,28.593252 35.548828,26.542127 35.548828,24 l 0,-3 c 0,-1.469869 -1.078959,-2.548828 -2.548828,-2.548828 -0.325352,0 -0.686138,0.08548 -0.957031,0.175781 A 0.45145663,0.45145663 0 0 1 31.46875,18.332031 C 31.119977,17.19852 30.206706,16.451172 29,16.451172 c -0.439576,0 -0.8348,0.08997 -1.128906,0.310547 a 0.45145663,0.45145663 0 0 1 -0.654297,-0.123047 c -0.424766,-0.679626 -1.181444,-1.1875 -2.117188,-1.1875 -0.325352,0 -0.55809,0.076 -0.857421,0.175781 a 0.45145663,0.45145663 0 0 1 -0.59375,-0.427734 l 0,-4.199219 c 0,-1.4698687 -1.07896,-2.5488281 -2.548829,-2.5488281 z M 21,9.5488281 c 0.400314,0 0.778723,0.1400511 1.044922,0.40625 0.266199,0.2661989 0.40625,0.6446079 0.40625,1.0449219 l 0,9 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-2 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-2 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-1 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.044922 0.266199,-0.266199 0.644608,-0.40625 1.044922,-0.40625 0.400314,0 0.778723,0.140051 1.044922,0.40625 0.266199,0.266199 0.40625,0.644608 0.40625,1.044922 l 0,3 c 0,2.365422 -0.514537,4.312055 -1.013672,6.308594 l 0.0039,-0.01172 c -0.40345,1.815526 -0.892826,3.579678 -0.990234,5.722656 A 0.45145663,0.45145663 0 0 1 32,36.451172 l -10.099609,0 A 0.45145663,0.45145663 0 0 1 21.451172,36.052734 C 21.268949,34.50384 20.366883,33.503929 19.267578,32.304688 a 0.45145663,0.45145663 0 0 1 -0.0293,-0.0332 c -0.588009,-0.784011 -1.201373,-1.503012 -1.820312,-2.533203 l -0.002,-0.002 c -8.56e-4,-0.0014 -0.0011,-0.0025 -0.002,-0.0039 -1.007254,-1.612144 -1.886276,-3.221277 -2.554687,-4.570313 -0.669307,-1.350844 -1.123882,-2.415821 -1.294922,-3.042968 a 0.45145663,0.45145663 0 0 1 -0.0078,-0.03125 c -0.05341,-0.267047 -0.08399,-0.487278 -0.08399,-0.6875 0,-0.200222 -8.21e-4,-0.409335 0.208985,-0.619141 0.156606,-0.156607 0.331654,-0.197642 0.466797,-0.216797 0.135142,-0.01916 0.251856,-0.01563 0.351562,-0.01563 0.379126,0 0.656448,0.179905 0.982422,0.419922 0.325974,0.240017 0.676911,0.568581 1.03125,0.96875 0.708677,0.800338 1.432333,1.886537 1.90625,3.097656 a 0.45145663,0.45145663 0 0 1 0.03125,0.164063 l 0,0.800781 c 0,0.199686 0.05878,0.322449 0.142578,0.40625 0.0838,0.0838 0.206564,0.142578 0.40625,0.142578 0.199686,0 0.322449,-0.05878 0.40625,-0.142578 0.0838,-0.0838 0.142578,-0.206564 0.142578,-0.40625 l 0,-15 c 0,-0.400314 0.140051,-0.778723 0.40625,-1.0449219 C 20.221277,9.6888792 20.599686,9.5488281 21,9.5488281 Z\" />\r\n</symbol>\r\n\r\n</symbol>"
 });
 var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1___default.a.add(symbol);
 /* harmony default export */ __webpack_exports__["default"] = (symbol);
@@ -1434,226 +1657,20 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "./src/Controls/Calendar.js":
-/*!**********************************!*\
-  !*** ./src/Controls/Calendar.js ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-var SIMPLE_MODE = 1,
-    ADVANCED_MODE = 2;
-
-var _toMidnight = nsGmx.DateInterval.toMidnight,
-    _fromUTC = function _fromUTC(date) {
-  if (!date) return null;
-  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.valueOf() - timeOffset);
-},
-    _toUTC = function _toUTC(date) {
-  if (!date) return null;
-  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.valueOf() + timeOffset);
-},
-    _setMode = function _setMode(mode) {
-  if (this._curMode === mode) {
-    return this;
-  } //this.reset();
-
-
-  this._dateInputs.datepicker('hide');
-
-  this._curMode = mode;
-  var isSimple = mode === SIMPLE_MODE;
-  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!isSimple);
-
-  this._moreIcon.toggleClass('icon-calendar', isSimple).toggleClass('icon-calendar-empty', !isSimple).attr('title', isSimple ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'));
-
-  var dateBegin = this._dateBegin.datepicker('getDate'),
-      dateEnd = this._dateEnd.datepicker('getDate');
-
-  if (isSimple && dateBegin && dateEnd && dateBegin.valueOf() !== dateEnd.valueOf()) {
-    _selectFunc.call(this, this._dateEnd);
-
-    _updateModel().call(this);
-  } //this.trigger('modechange');
-
-
-  return this;
-},
-    _selectFunc = function _selectFunc(activeInput) {
-  var begin = this._dateBegin.datepicker('getDate');
-
-  var end = this._dateEnd.datepicker('getDate');
-
-  if (end && begin && begin > end) {
-    var dateToFix = activeInput[0] == this._dateEnd[0] ? this._dateBegin : this._dateEnd;
-    dateToFix.datepicker('setDate', $(activeInput[0]).datepicker('getDate'));
-  } else if (this._curMode === SIMPLE_MODE) {
-    //либо установлена только одна дата, либо две, но отличающиеся
-    if (!begin != !end || begin && begin.valueOf() !== end.valueOf()) {
-      this._dateEnd.datepicker('setDate', this._dateBegin.datepicker('getDate'));
-    }
-  }
-},
-    _updateModel = function _updateModel() {
-  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
-      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
-
-  this._dateInterval.set({
-    dateBegin: dateBegin ? _toMidnight(dateBegin) : null,
-    dateEnd: dateEnd ? _toMidnight(dateEnd.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
-  });
-},
-    _updateWidget = function _updateWidget() {
-  var dateBegin = this._dateInterval.get('dateBegin'),
-      dateEnd = this._dateInterval.get('dateEnd'),
-      dayms = nsGmx.DateInterval.MS_IN_DAY;
-
-  if (!dateBegin || !dateEnd) {
-    return;
-  }
-
-  ;
-  var isValid = !(dateBegin % dayms) && !(dateEnd % dayms);
-
-  var newDateBegin = _toUTC(dateBegin),
-      newDateEnd;
-
-  if (isValid) {
-    newDateEnd = _toUTC(new Date(dateEnd - dayms));
-
-    if (dateEnd - dateBegin > dayms) {
-      this.setMode(ADVANCED_MODE);
-    }
-  } else {
-    newDateEnd = _toUTC(dateEnd);
-    this.setMode(ADVANCED_MODE);
-  } //если мы сюда пришли после выбора интервала в самом виджете, вызов setDate сохраняет фокус на input-поле
-  //возможно, это какая-то проблема jQueryUI.datepicker'ов.
-  //чтобы этого избежать, явно проверяем, нужно ли изменять дату
-
-
-  var prevDateBegin = this._dateBegin.datepicker('getDate'),
-      prevDateEnd = this._dateEnd.datepicker('getDate');
-
-  if (!prevDateBegin || prevDateBegin.valueOf() !== newDateBegin.valueOf()) {
-    this._dateBegin.datepicker('setDate', newDateBegin);
-  }
-
-  if (!prevDateEnd || prevDateEnd.valueOf() !== newDateEnd.valueOf()) {
-    this._dateEnd.datepicker('setDate', newDateEnd);
-  }
-},
-    _shiftDates = function _shiftDates(delta) {
-  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
-      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
-
-  if (!dateBegin || !dateEnd) {
-    return;
-  }
-
-  var shift = (dateEnd - dateBegin + nsGmx.DateInterval.MS_IN_DAY) * delta,
-      newDateBegin = new Date(dateBegin.valueOf() + shift),
-      newDateEnd = new Date(dateEnd.valueOf() + shift);
-
-  if ((!this._dateMin || _toMidnight(this._dateMin) <= _toMidnight(newDateBegin)) && (!this._dateMax || _toMidnight(this._dateMax) >= _toMidnight(newDateEnd))) {
-    this._dateBegin.datepicker('setDate', _toUTC(newDateBegin));
-
-    this._dateEnd.datepicker('setDate', _toUTC(newDateEnd));
-
-    _updateModel.call(this);
-  }
-};
-
-module.exports = function (options) {
-  $el = $('<div class="CalendarWidget ui-widget"></div>');
-  this.template = Handlebars.compile("\n    <table>\n    <tr>\n        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\"></td>\n        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\"></td>\n        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n        <td><div class = \"CalendarWidget-iconMore {{moreIconClass}}\" title = \"{{moreIconTitle}}\"></div></td>\n        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n    </tr><tr>\n        <td></td>\n        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n        <td class = \"CalendarWidget-dateEndInfo\"></td>\n        <td></td>\n        <td></td>\n    </tr>\n</table>\n<div class=\"CalendarWidget-footer\"></div>");
-  options = $.extend({
-    minimized: true,
-    showSwitcher: true,
-    dateMax: null,
-    dateMin: null,
-    dateFormat: 'dd.mm.yy',
-    name: null
-  }, options);
-  this._dateMin = options.dateMin;
-  this._dateMax = options.dateMax;
-  this._dateInterval = options.dateInterval;
-  $el.html(this.template({
-    moreIconClass: options.minimized ? 'icon-calendar' : 'icon-calendar-empty',
-    moreIconTitle: options.minimized ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'),
-    forecast: _gtxt('CalendarWidget.forecast')
-  }));
-  this._moreIcon = $el.find('.CalendarWidget-iconMore').toggle(!!options.showSwitcher);
-  this._dateBegin = $el.find('.CalendarWidget-dateBegin');
-  this._dateEnd = $el.find('.CalendarWidget-dateEnd');
-  this._dateInputs = this._dateBegin.add(this._dateEnd);
-  $el.find('.CalendarWidget-iconScrollLeft').on('click', function () {
-    _shiftDates.call(this, -1);
-  }.bind(this));
-  $el.find('.CalendarWidget-iconScrollRight').on('click', function () {
-    _shiftDates.call(this, 1);
-  }.bind(this));
-
-  this._dateInputs.datepicker({
-    onSelect: function (dateText, inst) {
-      _selectFunc.call(this, inst.input);
-
-      _updateModel.call(this);
-    }.bind(this),
-    showAnim: 'fadeIn',
-    changeMonth: true,
-    changeYear: true,
-    minDate: this._dateMin ? _toUTC(this._dateMin) : null,
-    maxDate: this._dateMax ? _toUTC(this._dateMax) : null,
-    dateFormat: options.dateFormat,
-    defaultDate: _toUTC(this._dateMax || new Date()),
-    showOn: options.buttonImage ? 'both' : 'focus',
-    buttonImageOnly: true
-  }); //устанавливаем опцию после того, как добавили календарик в canvas
-
-
-  if (options.buttonImage) {
-    this._dateInputs.datepicker('option', 'buttonImage', options.buttonImage);
-  }
-
-  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!options.minimized);
-  options.dateBegin && this._dateBegin.datepicker('setDate', _toUTC(options.dateBegin));
-  options.dateEnd && this._dateEnd.datepicker('setDate', _toUTC(options.dateEnd));
-
-  if (options.container) {
-    if (typeof options.container === 'string') $('#' + options.container).append($el);else $(options.container).append($el);
-  }
-
-  _setMode.call(this, options.minimized ? SIMPLE_MODE : ADVANCED_MODE);
-
-  _updateWidget.call(this);
-
-  this._dateInterval.on('change', function () {
-    _updateWidget.call(this);
-  }.bind(this), this); //for backward compatibility
-
-
-  this.canvas = $el;
-};
-
-/***/ }),
-
-/***/ "./src/Models/MyCollectionModel.js":
-/*!*****************************************!*\
-  !*** ./src/Models/MyCollectionModel.js ***!
-  \*****************************************/
+/***/ "./src/Models/HardNavModel.js":
+/*!************************************!*\
+  !*** ./src/Models/HardNavModel.js ***!
+  \************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Polyfill = __webpack_require__(/*! ../Polyfill */ "./src/Polyfill.js");
+var Request = __webpack_require__(/*! ../Request */ "./src/Request.js");
 
 module.exports = function (options) {
   var _actualUpdate,
       _data,
       _page = 0,
-      _pageSize = 14,
+      _pageSize = 12,
       _count = 0;
 
   var _layerName = options.layer,
@@ -1798,7 +1815,7 @@ module.exports = function (options) {
 
   return {
     isDirty: true,
-    updatePromise: Promise.resolved,
+    updatePromise: Promise.resolve(),
 
     get data() {
       return _data;
@@ -1822,8 +1839,6 @@ module.exports = function (options) {
       }
 
       _page = value;
-      this.isDirty = true;
-      this.update();
     },
 
     get page() {
@@ -1836,80 +1851,91 @@ module.exports = function (options) {
     nextPage: function nextPage() {
       if (!this.isDirty) this.page = _page + 1;
     },
+    displayCondition: function displayCondition(dtBegin, dtEnd) {
+      return "\"Date\"<'".concat(dtEnd, "' and (\"DateChange\" is null or \"DateChange\"<'").concat(dtEnd, "') and ((\"NextDateChange\" is null and (\"State\"<>'archive' or (\"Date\">='").concat(dtBegin, "' and \"DateChange\" is null) or \"DateChange\">='").concat(dtBegin, "')) or \"NextDateChange\">='").concat(dtEnd, "')");
+    },
     update: function update() {
       var thisModel = this;
-      if (!thisModel.isDirty) return;
+      if (!thisModel.isDirty) return Promise.resolve(_data.regions);
 
       var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
           formatDt = function formatDt(dt) {
         return "".concat(dt.getFullYear(), "-").concat(('0' + (dt.getMonth() + 1)).slice(-2), "-").concat(('0' + dt.getDate()).slice(-2));
       },
           dtBegin = formatDt(mapDateInterval.get('dateBegin')),
-          dtEnd = formatDt(mapDateInterval.get('dateEnd'));
+          dtEnd = formatDt(mapDateInterval.get('dateEnd')),
+          queryStr = thisModel.displayCondition(dtBegin, dtEnd);
 
-      _initPromise.then(function (test) {
+      return _initPromise.then(function (test) {
         //console.log(test)
         _count = 0;
         _data.regions.length = 0;
         thisModel.view.inProgress(true);
-        thisModel.updatePromise = [function (r) {
-          return new Promise(function (resolve, reject) {
-            sendCrossDomainJSONRequest("".concat(window.serverBase, "VectorLayer/Search.ashx?Layer=").concat(_layerName, "&count=true") + "&query=\"Date\"<'".concat(dtEnd, "' and (\"DateChange\" is null or \"DateChange\"<'").concat(dtEnd, "') and ((\"NextDateChange\" is null and (\"State\"<>'archive' or (\"Date\">='").concat(dtBegin, "' and \"DateChange\" is null) or \"DateChange\">='").concat(dtBegin, "')) or \"NextDateChange\">='").concat(dtEnd, "')"), function (r) {
-              return resolve(r);
-            });
+        return Request.searchRequest({
+          layer: _layerName,
+          orderby: 'gmx_id',
+          orderdirection: 'DESC',
+          query: queryStr
+        }).then(function (result) {
+          var format = function format(d, t) {
+            if (!d || !t || isNaN(d) || isNaN(t)) return '';
+            var dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
+            return "".concat(dt.toLocaleDateString(), "<br>").concat(dt.toLocaleTimeString());
+          },
+              updateState = [];
+
+          _count = result.values.length;
+          _data.fields = result.fields.map(function (f) {
+            return f;
           });
-        }, function (r) {
-          if (_checkResponse(r)) {
-            _count = parseInt(r.Result);
-            sendCrossDomainJSONRequest("".concat(window.serverBase, "VectorLayer/Search.ashx?Layer=").concat(_layerName, "&orderby=gmx_id&orderdirection=DESC&pagesize=").concat(_pageSize, "&page=").concat(_page) + "&query=\"Date\"<'".concat(dtEnd, "' and (\"DateChange\" is null or \"DateChange\"<'").concat(dtEnd, "') and ((\"NextDateChange\" is null and (\"State\"<>'archive' or (\"Date\">='").concat(dtBegin, "' and \"DateChange\" is null) or \"DateChange\">='").concat(dtBegin, "')) or \"NextDateChange\">='").concat(dtEnd, "')"), function (r) {
-              _data.regions.length = 0;
 
-              if (_checkResponse(r)) {
-                //resolve(r); 
-                var result = r.Result,
-                    format = function format(d, t) {
-                  if (!d || !t || isNaN(d) || isNaN(t)) return '';
-                  var dt = new Date(d * 1000 + t * 1000 + new Date().getTimezoneOffset() * 60 * 1000);
-                  return "".concat(dt.toLocaleDateString(), "<br>").concat(dt.toLocaleTimeString());
-                };
+          for (var i = 0; i < result.values.length; ++i) {
+            var reg = {};
 
-                _data.fields = result.fields.map(function (f) {
-                  return f;
-                });
+            for (var j = 0; j < result.fields.length; ++j) {
+              reg[result.fields[j]] = result.values[i][j];
+            }
 
-                for (var i = 0; i < result.values.length; ++i) {
-                  var reg = {};
+            reg.id = reg.Origin && reg.Origin != '' ? reg.Origin : reg.gmx_id;
+            reg.page = Math.floor(i / _pageSize);
+            reg.DateTime = format(reg.Date, reg.Time); //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
 
-                  for (var j = 0; j < result.fields.length; ++j) {
-                    reg[result.fields[j]] = result.values[i][j];
-                  }
+            reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
+            var temp = new Date(),
+                checkChange = reg.DateChange || reg.Date,
+                today = Date.UTC(temp.getUTCFullYear(), temp.getUTCMonth(), temp.getUTCDate()) / 1000;
 
-                  reg.id = reg.Origin && reg.Origin != '' ? reg.Origin : reg.gmx_id;
-                  reg.DateTime = format(reg.Date, reg.Time); //reg.DateTimeChange = reg.DateChange ? format(reg.DateChange, reg.TimeChange) : format(reg.Date, reg.Time);
+            if (reg.State == 'active1' && checkChange < today) {
+              reg.State = 'active2';
+              updateState.push({
+                properties: {
+                  State: 'active2'
+                },
+                id: reg.gmx_id,
+                action: 'update'
+              });
+            }
 
-                  reg.DateTimeChange = format(reg.DateChange, reg.TimeChange);
-                  var temp = new Date(),
-                      checkChange = reg.DateChange || reg.Date,
-                      today = Date.UTC(temp.getFullYear(), temp.getMonth(), temp.getDate()) / 1000; //console.log(checkChange, today)
+            reg.StateColor = reg.State == 'archive' ? "color-blue" : reg.State == 'active1' ? "color-red" : "color-yellow";
 
-                  reg.StateColor = reg.State.search(/\barchive\b/) != -1 ? "color-red" : checkChange == today ? "color-green" : "color-yellow";
+            _data.regions.push(reg);
+          } //console.log(_data);
+          //console.log(updateState);                       
 
-                  _data.regions.push(reg);
-                } //console.log(_data);
 
-              } else console.log(r);
-
-              thisModel.view.repaint();
-              thisModel.isDirty = false; //resolve();
-            }); //});
-          } else {
-            console.log(r);
-            thisModel.view.repaint();
-            thisModel.isDirty = false;
-          }
-        }].reduce(function (p, c) {
-          return p.then(c);
-        }, Promise.resolve());
+          thisModel.view.repaint();
+          thisModel.isDirty = false;
+          if (updateState.length) return Request.modifyRequest({
+            LayerName: _layerName,
+            objects: JSON.stringify(updateState)
+          }).then(function () {
+            return Request.checkVersion(_layerName, 1000);
+          });else return Promise.resolve();
+        })["catch"](function (e) {
+          console.log(e);
+          thisModel.view.repaint();
+          thisModel.isDirty = false;
+        });
       })["catch"](function (error) {
         thisModel.data.msg = [{
           txt: _gtxt('HardNavigation.layer_error')
@@ -1918,7 +1944,6 @@ module.exports = function (options) {
         thisModel.view.repaint();
         thisModel.isDirty = false;
       }); // _initPromise
-
     } // this.update
 
   };
@@ -2064,46 +2089,61 @@ module.exports = function (viewFactory) {
 
 /***/ }),
 
-/***/ "./src/Polyfill.js":
-/*!*************************!*\
-  !*** ./src/Polyfill.js ***!
-  \*************************/
+/***/ "./src/Request.js":
+/*!************************!*\
+  !*** ./src/Request.js ***!
+  \************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = {
-  find: function find(a, predicate) {
-    var list = Object(a);
-    var length = list.length >>> 0;
-    var thisArg = arguments[2];
-    var value;
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-    for (var i = 0; i < length; i++) {
-      value = list[i];
+var _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
+    _sendRequest = function _sendRequest(url, method) {
+  return new Promise(function (resolve, reject) {
+    var callback = function callback(response) {
+      if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
+        reject(response);
+      } else resolve(response.Result);
+    };
 
-      if (predicate.call(thisArg, value, i, list)) {
-        return value;
-      }
-    }
+    if (!method || method == 'GET') sendCrossDomainJSONRequest(url, callback);
+  });
+},
+    _getQueryString = function _getQueryString(params) {
+  var qs = '';
 
-    return undefined;
-  },
-  findIndex: function findIndex(a, predicate) {
-    var list = Object(a);
-    var length = list.length >>> 0;
-    var thisArg = arguments[2];
-    var value;
-
-    for (var i = 0; i < length; i++) {
-      value = list[i];
-
-      if (predicate.call(thisArg, value, i, list)) {
-        return i;
-      }
-    }
-
-    return -1;
+  for (var p in params) {
+    if (qs != '') qs += '&';
+    qs += p + '=' + (_typeof(params[p]) == 'object' ? JSON.stringify(params[p]) : params[p]);
   }
+
+  return qs;
+};
+
+_searchRequest = function _searchRequest(params) {
+  var url = "".concat(_serverBase, "VectorLayer/Search.ashx?").concat(_getQueryString(params));
+  return _sendRequest(url);
+}, _modifyRequest = function _modifyRequest(params) {
+  var url = "".concat(_serverBase, "VectorLayer/ModifyVectorObjects.ashx?").concat(_getQueryString(params));
+  return _sendRequest(url);
+}, _checkVersion = function _checkVersion(layer, ms) {
+  setTimeout(function () {
+    L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+
+    setTimeout(function () {
+      L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+
+      setTimeout(function () {
+        L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+      }, ms);
+    }, ms);
+  }, ms);
+};
+module.exports = {
+  searchRequest: _searchRequest,
+  modifyRequest: _modifyRequest,
+  checkVersion: _checkVersion
 };
 
 /***/ }),
@@ -2157,7 +2197,8 @@ BaseView.prototype = function () {
       this.inProgress(false);
       if (!this.model.data) return;
       var scrollCont = this.container.find('.mCSB_container'),
-          content = $(Handlebars.compile(this.tableTemplate)(this.model.data));
+          content = $( //Handlebars.compile(this.tableTemplate)(this.model.data)
+      this.tableTemplate);
 
       if (!scrollCont[0]) {
         this.container.append(content).mCustomScrollbar(this.mcsbOptions);
@@ -2186,10 +2227,10 @@ module.exports = BaseView;
 
 /***/ }),
 
-/***/ "./src/Views/MyCollection.css":
-/*!************************************!*\
-  !*** ./src/Views/MyCollection.css ***!
-  \************************************/
+/***/ "./src/Views/HardNavView.css":
+/*!***********************************!*\
+  !*** ./src/Views/HardNavView.css ***!
+  \***********************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2197,26 +2238,62 @@ module.exports = BaseView;
 
 /***/ }),
 
-/***/ "./src/Views/MyCollectionView.js":
-/*!***************************************!*\
-  !*** ./src/Views/MyCollectionView.js ***!
-  \***************************************/
+/***/ "./src/Views/HardNavView.js":
+/*!**********************************!*\
+  !*** ./src/Views/HardNavView.js ***!
+  \**********************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! ./MyCollection.css */ "./src/Views/MyCollection.css");
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-var BaseView = __webpack_require__(/*! ./BaseView.js */ "./src/Views/BaseView.js");
+__webpack_require__(/*! ./HardNavView.css */ "./src/Views/HardNavView.css");
 
-var Calendar = __webpack_require__(/*! ../Controls/Calendar.js */ "./src/Controls/Calendar.js");
+var BaseView = __webpack_require__(/*! ./BaseView */ "./src/Views/BaseView.js"),
+    Request = __webpack_require__(/*! ../Request */ "./src/Request.js"),
+    Calendar = __webpack_require__(/*! ../../../Common/Controls/Calendar */ "../Common/Controls/Calendar.js");
 
 var _stateUI = '',
     _createBut,
     _chooseBut,
     _layer,
     _thisView,
+    _selectedReg = false,
     _hidden = {},
     _visible = {};
+
+var _highlightSelected = function _highlightSelected(turnOn) {
+  if (_selectedReg) {
+    var tr = _thisView.frame.find('tr#' + _selectedReg);
+
+    if (tr[0]) if (turnOn) tr[0].style.backgroundColor = '#eee';else tr[0].style.backgroundColor = '';
+  }
+},
+    _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
+    _sendRequest = function _sendRequest(url, method) {
+  return new Promise(function (resolve, reject) {
+    var callback = function callback(response) {
+      if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
+        reject(response);
+      } else resolve(response.Result);
+    };
+
+    if (!method || method == 'GET') sendCrossDomainJSONRequest(url, callback);
+  });
+},
+    _searchRequest = function _searchRequest(params) {
+  var qs = '';
+
+  for (var p in params) {
+    if (qs != '') qs += '&';
+    qs += p + '=' + (_typeof(params[p]) == 'object' ? JSON.stringify(params[p]) : params[p]);
+  }
+
+  if (qs != '') qs = '&' + qs;
+  var url = "".concat(_serverBase, "VectorLayer/Search.ashx?layer=").concat(_layer.getGmxProperties().name).concat(qs); //`query="State"='active1'&columns=[{"Value":"[gmx_id]"},{"Value":"[Date]"},{"Value":"[DateChange]"},{"Value":"[Time]"},{"Value":"[TimeChange]"}]`;
+
+  return _sendRequest(url);
+};
 
 var MyCollectionView = function MyCollectionView(_ref) {
   var model = _ref.model,
@@ -2229,31 +2306,46 @@ var MyCollectionView = function MyCollectionView(_ref) {
     return;
   }
 
-  nsGmx.widgets.commonCalendar.getDateInterval().on('change', function (e) {
-    _hidden = {};
-    _visible = {};
-
-    _layer.repaint();
-
+  nsGmx.widgets.commonCalendar.getDateInterval().on('change', function (di) {
     if (!_thisView.isVisible) {
-      //_thisView.repaint();
-      _thisView.inProgress(true);
-
-      _thisView.model.isDirty = true;
+      _thisView.calendar.dateInterval.set({
+        dateBegin: di.get('dateBegin'),
+        dateEnd: di.get('dateEnd')
+      });
     }
   });
 
   _layer.setFilter(_isVisible);
 
   BaseView.call(this, model);
-  this.frame = $(Handlebars.compile("<div class=\"hardnav-view\">\n            <div class=\"header\">\n                <table border=0>\n                <tr><td class=\"hint\" colspan=\"2\">".concat(_gtxt('HardNavigation.instr_hint'), "</td>\n                <td><div class=\"refresh\"><div style=\"display:none\">").concat(this.gifLoader, "</div></div></td></tr>\n                </table> \n\n                <table border=0 class=\"instruments unselectable\">\n                <tr>\n                    <td class=\"but choose\"><svg><use xlink:href=\"#icons_selectreg\"></use></svg>").concat(_gtxt('HardNavigation.choose_reg'), "</td>\n                    <td class=\"but create\"><svg><use xlink:href=\"#icons_polygon\"></use></svg>").concat(_gtxt('HardNavigation.create_reg'), "</td>\n                </tr>\n                </table> \n\n                <div class=\"calendar\"></div>\n                <div class=\"calendar2\"></div>\n\n                <table border=0 class=\"grid-header\">\n                <tr><td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></svg></td>\n                <td>").concat(_gtxt('HardNavigation.reg_id'), "</td>\n                <td>").concat(_gtxt('HardNavigation.reg_created'), "</td>\n                <td>").concat(_gtxt('HardNavigation.reg_updated'), "</td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td></tr>\n                </table> \n            </div> \n            <div class=\"grid\">\n\n            </div>\n            <div class=\"footer unselectable\">\n                <table border=0 class=\"pager\">\n                    <tr><td class=\"but arrow arrow-prev\"><svg><use xlink:href=\"#icons_arrow-left\"></use></svg></td>\n                    <td class=\"current\">").concat(_gtxt('HardNavigation.page_lbl'), " <span class=\"pages\"></span></td>\n                    <td class=\"but arrow arrow-next\"><svg><use xlink:href=\"#icons_arrow-right\"></use></svg></td></tr>\n                </table>  \n                <div class=\"but but-attributes\">").concat(_gtxt('HardNavigation.attr_tbl'), "</div>          \n            </div>\n            </div>"))());
+  this.frame = $(Handlebars.compile("<div class=\"hardnav-view\">\n            <div class=\"header\">\n                <table border=0>\n                <tr><td class=\"hint\" colspan=\"2\">".concat(_gtxt('HardNavigation.instr_hint'), "</td>\n                <td><div class=\"refresh\"><div style=\"display:none\">").concat(this.gifLoader, "</div></div></td></tr>\n                </table> \n\n                <table border=0 class=\"instruments unselectable\">\n                <tr>\n                    <td class=\"but choose\"><svg><use xlink:href=\"#icons_selectreg\"></use></svg>").concat(_gtxt('HardNavigation.choose_reg'), "</td>\n                    <td class=\"but create\"><svg><use xlink:href=\"#icons_polygon\"></use></svg>").concat(_gtxt('HardNavigation.create_reg'), "</td>\n                </tr>\n                </table> \n\n                <div class=\"calendar\"></div>\n                <div class=\"calendar2\"></div>\n\n                <table border=0 class=\"grid-header\">\n                <tr><td class=\"visibility-all\">\n                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>                \n                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg>\n                </td>\n                <td>").concat(_gtxt('HardNavigation.reg_id'), "</td>\n                <td>").concat(_gtxt('HardNavigation.reg_created'), "</td>\n                <td>").concat(_gtxt('HardNavigation.reg_updated'), "</td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td>\n                <td class=\"color-transparent\"><svg><use xlink:href=\"#icons_eye\"></use></td></tr>\n                </table> \n            </div> \n            <div class=\"grid\">\n\n            </div>\n            <div class=\"footer unselectable\">\n                <table border=0 class=\"pager\">\n                    <tr><td class=\"but arrow arrow-prev\"><svg><use xlink:href=\"#icons_arrow-left\"></use></svg></td>\n                    <td class=\"current\">").concat(_gtxt('HardNavigation.page_lbl'), " <span class=\"pages\"></span></td>\n                    <td class=\"but arrow arrow-next\"><svg><use xlink:href=\"#icons_arrow-right\"></use></svg></td></tr>\n                </table>  \n                <div class=\"but but-attributes\">").concat(_gtxt('HardNavigation.attr_tbl'), "</div>          \n            </div>\n            </div>"))());
 
   _addCalendar.call(this);
 
   this.container = this.frame.find('.grid');
-  this.footer = this.frame.find('.footer');
-  this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' + '<td class="visibility">' + '<svg><use xlink:href="#icons_eye"></use></svg>' + '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' + '<td class="identity">{{id}}</td>' + '<td class="identity">{{{DateTime}}}</td>' + '<td>{{{DateTimeChange}}}</td>' + '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' + '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' + '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' + //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
-  '</tr>{{/each}}</table>' + '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+  this.footer = this.frame.find('.footer'); // this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
+  //         '<td class="visibility">' +
+  //         '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
+  //         '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
+  //         '<td class="identity">{{id}}</td>' +
+  //         '<td class="identity">{{{DateTime}}}</td>' +
+  //         '<td>{{{DateTimeChange}}}</td>' +
+  //         '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
+  //         '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
+  //         '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
+  //         //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
+  //     '</tr>{{/each}}</table>' +
+  //     '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
+
+  Object.defineProperty(this, "tableTemplate", {
+    get: function get() {
+      return '<table border=0 class="grid">' + this.model.data.regions.map(function (r) {
+        if (r.page == _thisView.model.page) return "<tr id=\"".concat(r.gmx_id, "\">                \n                                <td class=\"visibility\">\n                                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>\n                                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg></td>\n                                <td class=\"identity\">").concat(r.id, "</td>\n                                <td class=\"identity\">").concat(r.DateTime, "</td>\n                                <td>").concat(r.DateTimeChange, "</td>\n                                <td class=\"").concat(r.StateColor, " state\"><svg><use xlink:href=\"#icons_circle\"></use></svg></td>\n                                <td class=\"edit\"><svg><use xlink:href=\"#icons_pen\"></use></svg></td>\n                                <td class=\"show\"><svg><use xlink:href=\"#icons_target\"></use></svg></td>\n                            </tr>");else return '';
+      }).join('') + '</table>' + (this.model.data.msg ? this.model.data.msg.map(function (m) {
+        return "<div class=\"msg\">".concat(m.txt, "</div>");
+      }).join('') : '');
+    }
+  });
   Object.defineProperty(this, "topOffset", {
     get: function get() {
       return this.frame.find('.header')[0].getBoundingClientRect().height;
@@ -2271,8 +2363,24 @@ var MyCollectionView = function MyCollectionView(_ref) {
 
   _createBut.on('click', _createRegion.bind(this));
 
-  this.frame.find('.but.arrow-prev').on('click', this.model.previousPage.bind(this.model));
-  this.frame.find('.but.arrow-next').on('click', this.model.nextPage.bind(this.model));
+  this.frame.find('.but.arrow-prev').on('click', function () {
+    _thisView.model.previousPage.call(_thisView.model);
+
+    _thisView.model.updatePromise.then(function () {
+      _thisView.repaint();
+
+      _highlightSelected(true);
+    });
+  });
+  this.frame.find('.but.arrow-next').on('click', function () {
+    _thisView.model.nextPage.call(_thisView.model);
+
+    _thisView.model.updatePromise.then(function () {
+      _thisView.repaint();
+
+      _highlightSelected(true);
+    });
+  });
   this.frame.find('.but.but-attributes').on('click', function () {
     return nsGmx.createAttributesTable(layer);
   });
@@ -2286,7 +2394,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
       iTime = atttributes.indexOf("Time") + 1,
       iDateChange = atttributes.indexOf("DateChange") + 1,
       iTimeChange = atttributes.indexOf("TimeChange") + 1,
-      iNextDatetCh = atttributes.indexOf("NextDateChange") + 1,
+      iNextDateCh = atttributes.indexOf("NextDateChange") + 1,
       iNextTimeCh = atttributes.indexOf("NextTimeChange") + 1,
       id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
       state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
@@ -2303,7 +2411,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
 
   },
       nextVer = {
-    d: reg.properties[iNextDatetCh] * 1000,
+    d: reg.properties[iNextDateCh] * 1000,
     t: reg.properties[iNextTimeCh] * 1000,
 
     get dt() {
@@ -2321,98 +2429,38 @@ var MyCollectionView = function MyCollectionView(_ref) {
     if (nextVer.d == 0 && (state.search(/archive/) < 0 || curVer.dt >= dtBegin)) return true;else if (nextVer.dt >= dtEnd) return true;else return false;
   } else return false;
 },
-    _isActual0 = function _isActual0(reg) {
-  var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-      atttributes = _layer.getGmxProperties().attributes,
-      iOrigin = atttributes.indexOf("Origin") + 1,
-      iState = atttributes.indexOf("State") + 1,
-      iDate = atttributes.indexOf("Date") + 1,
-      iTime = atttributes.indexOf("Time") + 1,
-      iDateChange = atttributes.indexOf("DateChange") + 1,
-      iTimeChange = atttributes.indexOf("TimeChange") + 1,
-      id = reg.properties[iOrigin] == '' ? reg.properties[0].toString() : reg.properties[iOrigin],
-      state = !reg.properties[iState] ? '' : reg.properties[atttributes.indexOf("State") + 1],
-      dtBegin = mapDateInterval.get('dateBegin').getTime(),
-      dtEnd = mapDateInterval.get('dateEnd').getTime();
-
-  var version = {
-    d: reg.properties[iDateChange] * 1000,
-    t: reg.properties[iTimeChange] * 1000
-  };
-
-  if (version.d === 0) {
-    version.d = reg.properties[iDate] * 1000;
-    version.t = reg.properties[iTime] * 1000;
-  } //console.log(`>>${id}`, version, version.d < dtEnd)
-
-
-  if (version.d < dtEnd) {
-    var test = true,
-        isLatest = true; // Search region of same id and the more late version on a certain moment
-
-    for (var key in _layer.getDataManager()._activeTileKeys) {
-      test = true;
-
-      var data = _layer.getDataManager()._tiles[key].tile.data;
-
-      if (data) for (var i = 0; i < data.length; ++i) {
-        var curId = data[i][iOrigin] != '' ? data[i][iOrigin] : data[i][0],
-            curVersion = {
-          d: data[i][iDateChange] * 1000,
-          t: data[i][iTimeChange] * 1000
-        };
-        if (curVersion.d == 0) curVersion = {
-          d: data[i][iDate] * 1000,
-          t: data[i][iTime] * 1000
-        };
-        if (curId != id) continue;
-
-        if (curVersion.d >= dtEnd) {
-          isLatest = false;
-          continue;
-        }
-
-        test = !(version.d < curVersion.d || version.d == curVersion.d && version.t < curVersion.t);
-
-        if (!test) {
-          //console.log(curId, curVersion)
-          break;
-        }
-      }
-      if (!test) break;
-    }
-
-    if (test && isLatest && state.search(/archive/) > -1 && version.d < dtBegin) return false;
-    return test;
-  } else return false;
-},
     _isVisible = function _isVisible(reg) {
   var id = reg.properties[0].toString();
   if (_visible[id]) return true;
   if (_hidden[id] || !_isActual(reg)) return false;else return true;
 },
+    _toggleDisplay = function _toggleDisplay(a, visible, hidden) {
+  a[visible].style.display = 'block';
+  a[hidden].style.display = 'none';
+},
     _addCalendar = function _addCalendar() {
   var calendar = this.frame.find('.calendar')[0]; // walkaround with focus at first input in ui-dialog
 
   calendar.innerHTML = '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
-
   var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-      dateInterval = new nsGmx.DateInterval(),
-      updateView = function updateView(dtb, dte) {
-    nsGmx.widgets.commonCalendar.setDateInterval(dtb, dte);
+      dateInterval = new nsGmx.DateInterval();
+  dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
+    //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+    _hidden = {};
+    _visible = {};
+
+    _layer.repaint();
+
+    _thisView.inProgress(true);
+
+    _thisView.model.isDirty = true;
 
     if (_thisView.isVisible) {
-      _thisView.inProgress(true);
-
-      _thisView.model.isDirty = true;
+      nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
+      _thisView.model.page = 0;
 
       _thisView.model.update();
     }
-  };
-
-  dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-    //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-    updateView(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
   });
   this.calendar = new Calendar({
     dateInterval: dateInterval,
@@ -2428,68 +2476,10 @@ var MyCollectionView = function MyCollectionView(_ref) {
   tr.insertCell(4).innerHTML = '<img class="default_date" style="cursor:pointer; padding-right:10px" title="' + _gtxt('HardNavigation.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">';
   calendar.querySelector('.default_date').addEventListener('click', function () {
     var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-    dateInterval.set('dateBegin', db.dateBegin);
-    dateInterval.set('dateEnd', db.dateEnd); //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-
-    updateView(db.dateBegin, db.dateEnd);
-  });
-},
-    _addCalendar0 = function _addCalendar0() {
-  var _this = this;
-
-  var calendar = this.frame.find('.calendar')[0]; // walkaround with focus at first input in ui-dialog
-
-  calendar.innerHTML = '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
-  var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-      dateInterval = new nsGmx.DateInterval();
-  dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-    //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-    nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-
-    if (_thisView.isVisible) {
-      _thisView.inProgress(true);
-
-      _thisView.model.isDirty = true;
-
-      _thisView.model.update();
-    }
-  }.bind(this));
-  this.calendar = new nsGmx.CalendarWidget({
-    dateInterval: dateInterval,
-    name: 'catalogInterval',
-    container: calendar,
-    dateMin: new Date(0, 0, 0),
-    dateMax: new Date(),
-    dateFormat: 'dd.mm.yy',
-    minimized: false,
-    showSwitcher: false
-  });
-  calendar.querySelector('.CalendarWidget-dateBegin').style.display = 'none';
-  var tr = calendar.querySelector('tr:nth-of-type(1)'); //tr.insertCell(2).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';
-
-  tr.insertCell(4).innerHTML = '<img class="default_date" style="cursor:pointer; padding-right:10px" title="' + _gtxt('HardNavigation.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">'; // let td = tr.insertCell(6);
-  // td.innerHTML = '<div class="select"><select class=""><option value="00" selected>00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option></div></select>';       
-  // tr.insertCell(7).innerHTML = '&nbsp;&nbsp;–&nbsp;&nbsp;';       
-  // td = tr.insertCell(8);
-  // td.innerHTML = '<div class="select"><select class=""><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24" selected>24</option></div></select>';       
-
-  calendar.querySelector('.default_date').addEventListener('click', function () {
-    var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-
-    _this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-
-    _this.calendar.getDateInterval().set('dateEnd', db.dateEnd); //console.log(dateInterval.get('dateBegin'), dateInterval.get('dateEnd'));
-
-
-    nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-
-    if (_thisView.isVisible) {
-      _thisView.inProgress(true);
-
-      _thisView.model.isDirty = true;
-
-      _thisView.model.update();
-    }
+    dateInterval.set({
+      dateBegin: db.dateBegin,
+      dateEnd: db.dateEnd
+    });
   });
 },
     _checkVersion = function _checkVersion() {
@@ -2509,10 +2499,15 @@ var MyCollectionView = function MyCollectionView(_ref) {
   var layer = event.target,
       props = layer.getGmxProperties(),
       id = event.gmx.properties[props.identityField];
+  delete _visible[id];
   layer.bringToTopItem(id);
-  sendCrossDomainJSONRequest("".concat(serverBase, "VectorLayer/Search.ashx?WrapStyle=func&layer=").concat(props.name, "&page=0&pagesize=1&orderby=").concat(props.identityField, "&geometry=true&query=[").concat(props.identityField, "]=").concat(id), function (response) {
+  sendCrossDomainJSONRequest("".concat(_serverBase, "VectorLayer/Search.ashx?WrapStyle=func&layer=").concat(props.name, "&page=0&pagesize=1&orderby=").concat(props.identityField, "&geometry=true&query=[").concat(props.identityField, "]=").concat(id), function (response) {
     if (_stateUI == 'copy_region') {
       if (response.Status && response.Status.toLowerCase() == 'ok') {
+        _selectedReg = id;
+
+        _highlightSelected(true);
+
         var result = response.Result,
             i = result.fields.indexOf('geomixergeojson'),
             obj = nsGmx.leafletMap.gmxDrawing.addGeoJSON(L.gmxUtil.geometryToGeoJSON(result.values[0][i], true)),
@@ -2531,6 +2526,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
           eoc.set('Origin', origin && origin != '' ? origin : gmx_id);
           eoc.set('Name', name);
           eoc.set('Type', type);
+          eoc.set('State', 'active1');
           eoc.set('_mediadescript_', media);
           eoc.set('Time', date + time);
           eoc.set('Date', date + time);
@@ -2547,17 +2543,21 @@ var MyCollectionView = function MyCollectionView(_ref) {
           });
         });
         $(eoc).on('modify', function (e) {
-          //console.log(e.target.getAll());
           var values = e.target.getAll();
-          sendCrossDomainJSONRequest("".concat(serverBase, "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=").concat(props.name, "&objects=[{\"properties\":{\"State\":\"archive\",\"NextDateChange\":").concat(values.DateChange, ",\"NextTimeChange\":").concat(values.TimeChange, "},\"id\":\"").concat(id, "\",\"action\":\"update\"}]"), function (response) {
-            _thisView.model.page = 0; // model update                                                       
+          Request.modifyRequest({
+            LayerName: props.name,
+            objects: "[{\"properties\":{\"State\":\"archive\",\"NextDateChange\":".concat(values.DateChange, ",\"NextTimeChange\":").concat(values.TimeChange, "},\"id\":").concat(id, ",\"action\":\"update\"}")
+          }).then(function (response) {
+            _thisView.model.page = 0;
+            _thisView.model.isDirty = true;
 
-            _thisView.model.updatePromise.then(_checkVersion);
-
-            if (response.Status && response.Status.toLowerCase() == 'ok') {} else {
-              console.log(response);
-            }
+            _thisView.model.update().then(_checkVersion);
           });
+        });
+        $(eoc).on('close', function (e) {
+          _highlightSelected(false);
+
+          _selectedReg = false;
         });
       } else {
         console.log(response);
@@ -2608,6 +2608,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
     var dt = new Date();
     eoc.set('Time', dt.getTime() / 1000);
     eoc.set('Date', dt.getTime() / 1000);
+    eoc.set('State', 'active1');
     var dlg = $("span:contains(\"".concat(_gtxt("Создать объект слоя [value0]", lprops.title), "\")")).closest('.ui-dialog');
     dlg.find('tr').each(function (i, el) {
       var name = el.querySelectorAll('td')[0].innerText;
@@ -2618,15 +2619,26 @@ var MyCollectionView = function MyCollectionView(_ref) {
     });
   });
   $(eoc).on('modify', function (e) {
-    _thisView.model.page = 0; // Model update
+    Promise.resolve().then(function () {
+      _thisView.model.page = 0;
+      _thisView.model.isDirty = true;
 
-    _thisView.model.updatePromise.then(_checkVersion);
-  }); // Continue command
-  //nsGmx.leafletMap._container.style.cursor='pointer'; 
-  //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
-  // Discontinue command
+      _thisView.model.update().then(function (r) {
+        var gmx_id = _thisView.model.data.regions[0].gmx_id; //r[0].gmx_id;
 
-  if (_stateUI == 'create_region') _createBut.click();
+        Request.modifyRequest({
+          LayerName: _layer.getGmxProperties().name,
+          objects: "[{\"properties\":{\"Origin\":".concat(gmx_id, "},\"id\":").concat(gmx_id, ",\"action\":\"update\"}]")
+        });
+      }).then(_checkVersion); // Continue command
+      //nsGmx.leafletMap._container.style.cursor='pointer'; 
+      //nsGmx.leafletMap.gmxDrawing.create('Polygon'); 
+      // Discontinue command
+
+
+      if (_stateUI == 'create_region') _createBut.click();
+    });
+  });
 },
     _createRegion = function _createRegion() {
   if (_stateUI == 'copy_region' || _stateUI == '') {
@@ -2662,7 +2674,8 @@ var MyCollectionView = function MyCollectionView(_ref) {
   }
 },
     _clean = function _clean() {
-  //this.frame.find('.grid .info').off('click', _infoClickHandler);
+  this.frame.find('.visibility-all').off('click', _visAllClickHandler); //this.frame.find('.grid .info').off('click', _infoClickHandler);
+
   this.frame.find('.grid .visibility').off('click', _visClickHandler);
   this.frame.find('.grid .show').off('click', _showClickHandler); //this.frame.find('.grid .state').off('click', _stateClickHandler);
 
@@ -2706,27 +2719,68 @@ var _infoClickHandler = function _infoClickHandler(e) {
   mediaDescDialog.html('<div class="media-descDiv">' + descData + '</div>');
   mediaDescDialog.dialog('open');
 },
+    _visAllClickHandler = function _visAllClickHandler(e) {
+  var hidden = Object.keys(_hidden),
+      td = e.currentTarget,
+      svgAll = td.querySelectorAll('svg'),
+      ldm = _layer.getDataManager();
+
+  if (!hidden.length) {
+    var data = _thisView.model.data;
+    data.regions.forEach(function (v) {
+      var id = v.gmx_id,
+          svg = _thisView.frame.find("tr#".concat(id, " td.visibility svg"));
+
+      delete _visible[id];
+      _hidden[id] = true;
+      if (svg[0]) _toggleDisplay(svg, 1, 0);
+    });
+
+    _layer.repaint();
+
+    _toggleDisplay(svgAll, 1, 0);
+  } else {
+    hidden.forEach(function (id) {
+      var svg = _thisView.frame.find("tr#".concat(id, " td.visibility svg"));
+
+      delete _hidden[id];
+      _visible[id] = true;
+
+      if (svg[0]) {
+        _toggleDisplay(svg, 0, 1);
+      }
+    });
+
+    _toggleDisplay(svgAll, 0, 1);
+
+    _layer.repaint();
+  }
+},
     _visClickHandler = function _visClickHandler(e) {
   var td = e.currentTarget,
       id = td.parentElement.id,
       svg = td.querySelectorAll('svg'),
       vis = 0,
-      hid = 1;
+      hid = 1,
+      svgAll = _thisView.frame.find('.visibility-all svg');
 
   if (svg[0].style.display != 'none') {
     delete _visible[id];
-    _hidden[id] = true;
-    vis = 1;
-    hid = 0;
+    _hidden[id] = true; //vis = 1; hid = 0;
+
+    _toggleDisplay(svg, 1, 0);
+
+    _toggleDisplay(svgAll, 1, 0);
   } else {
     _visible[id] = true;
-    delete _hidden[id];
-    vis = 0;
-    hid = 1;
-  }
+    delete _hidden[id]; //vis = 0; hid = 1;
 
-  svg[hid].style.display = 'none';
-  svg[vis].style.display = 'block';
+    _toggleDisplay(svg, 0, 1);
+
+    if (!Object.keys(_hidden).length) {
+      _toggleDisplay(svgAll, 0, 1);
+    }
+  }
 
   _layer.repaint(); //console.log(_hidden)
 
@@ -2736,8 +2790,9 @@ var _infoClickHandler = function _infoClickHandler(e) {
       layer = _layer,
       props = layer.getGmxProperties(),
       layerName = props.name;
-  sendCrossDomainJSONRequest(window.serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function (response) {
+  sendCrossDomainJSONRequest(_serverBase + 'VectorLayer/Search.ashx?WrapStyle=func&layer=' + layerName + '&page=0&pagesize=1&geometry=true&query=' + encodeURIComponent('[' + props.identityField + ']=' + id), function (response) {
     if (!window.parseResponse(response)) {
+      console.log(response);
       return;
     }
 
@@ -2762,15 +2817,13 @@ var _infoClickHandler = function _infoClickHandler(e) {
       id = td.parentElement.id,
       state = '';
   if (td.className.search(/green/) != -1) state = 'archive';
-  sendCrossDomainJSONRequest("".concat(serverBase, "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=").concat(_layer.getGmxProperties().name, "&objects=[{\"properties\":{\"State\":\"").concat(state, "\"},\"id\":\"").concat(id, "\",\"action\":\"update\"}]"), function (response) {
+  sendCrossDomainJSONRequest("".concat(_serverBase, "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=").concat(_layer.getGmxProperties().name, "&objects=[{\"properties\":{\"State\":\"").concat(state, "\"},\"id\":\"").concat(id, "\",\"action\":\"update\"}]"), function (response) {
     if (response.Status && response.Status.toLowerCase() == 'ok') {
       _thisView.inProgress(true);
 
       _thisView.model.isDirty = true;
 
-      _thisView.model.update();
-
-      _thisView.model.updatePromise.then(_checkVersion);
+      _thisView.model.update().then(_checkVersion);
     } else console.log(response);
   });
 },
@@ -2786,7 +2839,8 @@ var _infoClickHandler = function _infoClickHandler(e) {
       dt = new Date();
 
   tr.style.backgroundColor = '#eee';
-  var isDelete = false;
+  var isDelete = false,
+      isModify = false;
   eoc.initPromise.done(function () {
     //eoc.set('TimeChange', dt.getTime()/1000); 
     //eoc.set('DateChange', dt.getTime()/1000);
@@ -2797,23 +2851,34 @@ var _infoClickHandler = function _infoClickHandler(e) {
     });
     dlg.find(".buttonLink:contains(\"".concat(_gtxt("Изменить"), "\")")).on('click', function (e) {
       _thisView.inProgress(true);
+
+      isModify = true;
     });
     dlg.find(".buttonLink:contains(\"".concat(_gtxt("Удалить"), "\")")).on('click', function (e) {
       _thisView.inProgress(true);
 
       isDelete = true;
     });
-  });
-  $(eoc).on('modify', function (e) {
-    ///console.log(e.target.getAll(), dt);
-    _thisView.model.isDirty = true;
+  }); //         $(eoc).on('modify', e=>{
+  // console.log('modify')
+  // ///console.log(e.target.getAll(), dt);
+  //             _thisView.model.isDirty = true;                       
+  //             _thisView.model.update()               
+  //             .then(_checkVersion);
+  //         });                   
 
-    _thisView.model.update();
-
-    _thisView.model.updatePromise.then(_checkVersion);
-  });
   $(eoc).on('close', function (e) {
-    if (isDelete) _thisView.model.page = 0;
+    if (isDelete) {
+      delete _hidden[id];
+      _thisView.model.page = 0;
+    }
+
+    if (isDelete || isModify) {
+      _thisView.model.isDirty = true;
+
+      _thisView.model.update().then(_checkVersion);
+    }
+
     _stateUI = '';
     tr.style.backgroundColor = '';
   });
@@ -2831,7 +2896,7 @@ MyCollectionView.prototype.repaint = function () {
     pages.text("".concat(this.model.page + 1, " / ").concat(this.model.pagesTotal));
     $('.grid tr').each(function (i, el) {
       var id = el.id,
-          svg = el.querySelectorAll('svg'); //console.log(id, _layer.getDataManager().getItem(parseInt(id)));
+          svg = el.querySelectorAll('svg');
 
       var attr = _layer.getGmxProperties().attributes,
           props = [id];
@@ -2849,12 +2914,22 @@ MyCollectionView.prototype.repaint = function () {
       }; //console.log(reg);
 
       if (!_isVisible(reg)) {
-        svg[0].style.display = 'none';
-        svg[1].style.display = 'block';
+        _toggleDisplay(svg, 1, 0);
       }
 
       if (!_isActual(reg)) el.classList.add('nonactual');else el.classList.remove('nonactual');
-    }); //this.frame.find('.grid .info').on('click', _infoClickHandler);
+    });
+    var svgAll = this.frame.find('.visibility-all svg'),
+        vis = 0,
+        hid = 1;
+
+    if (Object.keys(_hidden).length) {
+      vis = 1, hid = 0;
+    }
+
+    _toggleDisplay(svgAll, vis, hid);
+
+    this.frame.find('.visibility-all').on('click', _visAllClickHandler); //this.frame.find('.grid .info').on('click', _infoClickHandler);
 
     this.frame.find('.grid .visibility').on('click', _visClickHandler);
     this.frame.find('.grid .show').on('click', _showClickHandler); //this.frame.find('.grid .state').on('click', _stateClickHandler);
@@ -2868,8 +2943,7 @@ MyCollectionView.prototype.repaint = function () {
 
 MyCollectionView.prototype.show = function () {
   if (!this.frame) return;
-  if (!_layer._map) nsGmx.leafletMap.addLayer(_layer);
-  this.frame.show(); //this.searchInput.focus();
+  if (!_layer._map) nsGmx.leafletMap.addLayer(_layer); //this.searchInput.focus();
 
   BaseView.prototype.show.apply(this, arguments);
 };
@@ -2896,8 +2970,8 @@ module.exports = MyCollectionView;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var MyCollectionView = __webpack_require__(/*! ./Views/MyCollectionView */ "./src/Views/MyCollectionView.js"),
-    MyCollectionModel = __webpack_require__(/*! ./Models/MyCollectionModel */ "./src/Models/MyCollectionModel.js");
+var MyCollectionView = __webpack_require__(/*! ./Views/HardNavView */ "./src/Views/HardNavView.js"),
+    MyCollectionModel = __webpack_require__(/*! ./Models/HardNavModel */ "./src/Models/HardNavModel.js");
 
 module.exports = function (options) {
   var _mcm = new MyCollectionModel({

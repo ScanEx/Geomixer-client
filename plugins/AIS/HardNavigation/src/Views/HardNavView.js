@@ -1,5 +1,5 @@
-require("./MyCollection.css")
-const BaseView = require('./BaseView.js'),
+require("./HardNavView.css")
+const BaseView = require('./BaseView'),
       Request = require('../Request'),
       Calendar = require('../../../Common/Controls/Calendar');
 
