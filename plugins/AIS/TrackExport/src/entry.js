@@ -1,5 +1,4 @@
 require("./all.css");
-require("../icons.svg");
 require("./locale.js");
 
 const pluginName = 'TrackExportPlugin',

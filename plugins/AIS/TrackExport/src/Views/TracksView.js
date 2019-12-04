@@ -21,25 +21,37 @@ const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
             columns: JSON.stringify([{"Value":"mmsi"},{"Value":"timestamp"},{"Value":"course"},{"Value":"speed"},{"Value":"port_of_destination"},{"Value":"eta"},{"Value":"heading"},{"Value":"lon"},{"Value":"lat"}]),
             get vesselQuery() { return `([imo] IN (${_thisView.imo})) and `; },
             get query() { return this.vesselQuery + `'${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[timestamp] and [timestamp]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;},
-            parseData: function(fields, value, getVicon){
-                             
+            parseData: function(fields, value, getVicon){                             
                 let tzOffset = new Date().getTimezoneOffset(), ts = value[fields.indexOf('timestamp')],
-                utcDate = new Date((value[fields.indexOf('timestamp')] + tzOffset*60)*1000), locDate =  new Date(value[fields.indexOf('timestamp')]*1000);
+                utcDate = new Date((value[fields.indexOf('timestamp')] + tzOffset*60)*1000), locDate =  new Date(value[fields.indexOf('timestamp')]*1000);                
                 return {
                     ts: ts,
                     utc_date: utcDate.toLocaleDateString(), utc_time: utcDate.toLocaleTimeString(),
                     local_date: locDate.toLocaleDateString(), local_time: locDate.toLocaleTimeString(),
                     lat: _toDd(value[fields.indexOf('lat')]), lon: _toDd(value[fields.indexOf('lon')], true),
                     latitude: value[fields.indexOf('lat')], longitude: value[fields.indexOf('lon')],
-                    vicon: getVicon('Cargo', value[fields.indexOf('course')], value[fields.indexOf('speed')])
+                    vicon: getVicon('Undefined', value[fields.indexOf('course')], value[fields.indexOf('speed')])
                 }
 
             }
         }, 
         {
-            name: 'AIS', id: '5790ADDFBDD64880BAC95DF13B8327EA', sort: 'ts_pos_utc',
+            name: 'AIS СКФ', id: '5790ADDFBDD64880BAC95DF13B8327EA', sort: 'ts_pos_utc',
             columns: JSON.stringify([{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]),
-            get query() {return `([mmsi] IN (${_thisView.mmsi})) and '${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[ts_pos_utc] and [ts_pos_utc]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;}
+            get query() {return `([mmsi] IN (${_thisView.mmsi})) and '${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[ts_pos_utc] and [ts_pos_utc]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;},
+            parseData: function(fields, value, getVicon){                             
+                let tzOffset = new Date().getTimezoneOffset(), ts = value[fields.indexOf('ts_pos_utc')],
+                utcDate = new Date((value[fields.indexOf('ts_pos_utc')] + tzOffset*60)*1000), locDate =  new Date(value[fields.indexOf('timestamp')]*1000);                
+                return {
+                    ts: ts,
+                    utc_date: utcDate.toLocaleDateString(), utc_time: utcDate.toLocaleTimeString(),
+                    local_date: locDate.toLocaleDateString(), local_time: locDate.toLocaleTimeString(),
+                    lat: _toDd(value[fields.indexOf('latitude')]), lon: _toDd(value[fields.indexOf('longitude')], true),
+                    latitude: value[fields.indexOf('latitude')], longitude: value[fields.indexOf('longitude')],
+                    vicon: getVicon(value[fields.indexOf('vessel_type')], value[fields.indexOf('cog')], value[fields.indexOf('sog')])
+                }
+
+            }       
         }
         ];
 
@@ -66,7 +78,7 @@ const TracksView = function ({ model, layer }) {
                 </table></tr> 
  
             </div> 
-            <div class="refresh" style="display: hide;padding-top: 100%;padding-left: 50%;"><img src="img/progress.gif"></div>
+            <div class="refresh" style="display: none; padding-top: 100%;padding-left: 50%;"><img src="img/progress.gif"></div>
             <div class="grid"></div>
             <div class="footer unselectable">
        
@@ -83,9 +95,7 @@ const TracksView = function ({ model, layer }) {
                 this.show();
             }
             else{
-                this.model.data.total = null;
-                this.model.data.tracks.length = 0;
-                this.model.data.msg.length = 0;
+                this.model.free(); 
                 this.repaint();
             }
         }).bind(this));
@@ -119,10 +129,7 @@ const TracksView = function ({ model, layer }) {
             callback:(v=>{
                 if(!v){
                     _thisView.mmsi =  null;
-                    this.model.data.total = null;
-                    _thisView.model.data.tracks.length = 0;
-                    if (_thisView.model.data.msg && _thisView.model.data.msg.length)
-                        _thisView.model.data.msg.length = 0;
+                    _thisView.model.free();
                     _thisView.repaint();
                 }
                 else{
@@ -155,7 +162,7 @@ const TracksView = function ({ model, layer }) {
                 <td><span class="utc_time">${p.utc_time}</span><span class="local_time">${p.local_time}</span></td>
                 <td><span class="utc_date">${t.utc_date}</span><span class="local_date">${p.local_date}</span></td>
                 <td>${p.lon}&nbsp;&nbsp;${p.lat}</td>
-                <td>${p.vicon}</td><td></td>
+                <td>${p.vicon ? p.vicon.svg : ''}</td><td></td>
                 <td><div class="show_pos ${i}_${j}" title="${_gtxt('TrackExport.position')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
                 </tr>
                 <tr><td colspan="6" class="more"><hr><div class="vi_more"></div></td></tr>`;}).join('') + 
