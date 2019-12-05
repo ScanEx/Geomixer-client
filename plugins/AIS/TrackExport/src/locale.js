@@ -9,6 +9,7 @@
         "TrackExport.dailyTrack":"трек за сутки",
         "TrackExport.positions":"положение судна",
         "TrackExport.position":"показать",
+        "TrackExport.km":"км",
         
     });
     _translationsHash.addtext('eng', {
@@ -21,4 +22,5 @@
         "TrackExport.dailyTrack":"daily track",
         "TrackExport.positions":"vessel positions",
         "TrackExport.position":"position",
+        "TrackExport.km":"km",
     });

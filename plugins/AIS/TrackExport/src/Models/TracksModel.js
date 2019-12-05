@@ -11,7 +11,7 @@ const _defaultViconColor = '#999',
     },
 
     _vicons = [], _viconsDict = {},
-    _styleLayer = 'EE5587AF1F70433AA878462272C0274C',
+    _styleLayer = '-EE5587AF1F70433AA878462272C0274C',
     _getVicons = function () {
         if (!_styleLayer || !nsGmx.gmxMap.layersByID[_styleLayer])
             return;
@@ -84,6 +84,15 @@ module.exports = function (options) {
             _tracks.length = 0;
             _vmarkers.length = 0; 
         },
+        fitToTrack: function(i){
+            _lmap.fitBounds(_tracks[i].getBounds());
+        },
+        drawTrack: function(i){
+            _tracks[i].addTo(_lmap);         
+        },
+        eraseTrack: function(i){
+            _lmap.removeLayer(_tracks[i]);         
+        },
         update: function () {
 
             if (!this.isDirty)
@@ -122,17 +131,27 @@ module.exports = function (options) {
                 
                 // draw track on map
                 if (_data.tracks.length){
-                    let lastPos;
+                    let lastPos, wholeDistance = 0;
                     _data.tracks.forEach(t=>{
+                        t.distance = 0;
                         let temp, latlngs = t.positions.map(p=>{
+                            if (temp)
+                                t.distance = t.distance + _lmap.distance(temp, [p.latitude, p.longitude]);
                             temp = [p.latitude, p.longitude];
                             return temp;
                         });
-                        if (lastPos)
+                        if (lastPos){
+                            t.distance = t.distance + _lmap.distance(lastPos, latlngs[0]);
                             latlngs = [lastPos].concat(latlngs);
-                        lastPos = temp;                        
-                        _tracks.push(L.polyline(latlngs, {color: t.positions[0] && t.positions[0].vicon ? t.positions[0].vicon.color : 'red'}).addTo(_lmap));
+                        }
+                        lastPos = temp;  
+                        let line = L.polyline(latlngs, {color: t.positions[0] && t.positions[0].vicon ? t.positions[0].vicon.color : 'red'}).addTo(_lmap); 
+                        line.bindPopup(`${t.utc_date}<br>${(t.distance/1000).toFixed(3)} ${_gtxt('TrackExport.km')}`);                    
+                        _tracks.push(line);
+                        
+                        wholeDistance = wholeDistance + t.distance;
                     });
+                    
                     _lmap.fitBounds(_tracks[0].getBounds());
                 }
                 

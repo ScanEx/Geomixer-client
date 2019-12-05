@@ -409,6 +409,7 @@ color: #48aff1;
   .trackexport-view .filter .remove{
     display: none;
     margin-top:2px;
+    cursor: pointer;
   }
   .trackexport-view .filter i{
     font-size:16px;

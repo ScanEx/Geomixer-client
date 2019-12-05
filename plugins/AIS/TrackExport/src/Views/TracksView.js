@@ -14,7 +14,7 @@ const _toDd = function (D, isLng) {
         + dir
 };
 
-const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
+const _searchLayer = 'CE660F806D164FE58556638D752A4203',
       _selectLayers = [
         {
             name: 'FOS', id: 'ED043040A005429B8F46AAA682BE49C3', sort: 'timestamp',            
@@ -143,7 +143,7 @@ const TracksView = function ({ model, layer }) {
         Object.defineProperty(this, "tableTemplate", {
             get: function () {
                 let totalPositions = this.model.data.total,
-                    rv = (!totalPositions ? `` : `<table class="track-table header"><tr>
+                    rv = (!totalPositions ? `` : `<table class="track-table"><tr>
                         <td></td>
                         <td><span class="date"></span></td>
                         <td><div class="track all"><input type="checkbox" checked title="${_gtxt("TrackExport.allDailyTracks")}"></div></td>
@@ -151,19 +151,19 @@ const TracksView = function ({ model, layer }) {
                     this.model.data.tracks.map((t,i) => {
                         return `<table class="track-table" border="0">
                 <tbody><tr>
-                <td><div class="open_positions track_${i} ui-helper-noselect icon-right-open icon-down-open" title="${_gtxt('TrackExport.positions')}"></div></td>
+                <td><div class="open_positions track_${i} ui-helper-noselect icon-right-open ${this.model.data.tracks.length>1 ? 'icon-right-open' : 'icon-down-open'} " title="${_gtxt('TrackExport.positions')}"></div></td>
                 <td><span class="date">${t.utc_date}</span></td>
-                <td><div class="track"><input type="checkbox" checked title="${_gtxt('TrackExport.dailyTrack')}"></div></td>
+                <td><div class="track"><input type="checkbox" checked title="${_gtxt('TrackExport.dailyTrack')}" id="${i}"></div></td>
                 <td><div class="count">${t.positions.length}</div></td></tr></tbody></table>
 
-                <div class="track_${i}">
+                <div class="track_${i}" style="display:${this.model.data.tracks.length>1 ? 'none' : 'block'}">
                 <table class="positions-table"><tbody>` +
                 t.positions.map((p,j) => { return `<tr>                
                 <td><span class="utc_time">${p.utc_time}</span><span class="local_time">${p.local_time}</span></td>
                 <td><span class="utc_date">${t.utc_date}</span><span class="local_date">${p.local_date}</span></td>
                 <td>${p.lon}&nbsp;&nbsp;${p.lat}</td>
                 <td>${p.vicon ? p.vicon.svg : ''}</td><td></td>
-                <td><div class="show_pos ${i}_${j}" title="${_gtxt('TrackExport.position')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
+                <td><div class="show_pos" id="${i}_${j}" title="${_gtxt('TrackExport.position')}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>
                 </tr>
                 <tr><td colspan="6" class="more"><hr><div class="vi_more"></div></td></tr>`;}).join('') + 
                 `</tbody></table></div>`;
@@ -223,7 +223,10 @@ const TracksView = function ({ model, layer }) {
         });
     },
     _clean = function () {
-        this.frame.find('.open_positions').on('click', _onOpenPosClick.bind(this));
+        this.frame.find('.open_positions').off('click', _onOpenPosClick);
+        this.frame.find('.track-table .track:not(".all") input').off('click', _onShowTrack),
+        this.frame.find('.track-table .track.all input').off('click', _onShowAllTracks),
+        this.frame.find('.show_pos').off('click', _onShowPos);
     };
 
 TracksView.prototype = Object.create(BaseView.prototype);
@@ -247,29 +250,60 @@ TracksView.prototype.inProgress = function (state) {
 // };
 
 const _onOpenPosClick = function(e){
-    let icon = $(e.target), id;
-    for (var i=0; e.target.classList[i]; ++i){
-        if (e.target.classList[i].search(/track_/)!=-1){
-            id = e.target.classList[i];
-            break;
+        let icon = $(e.target), id;
+        for (var i=0; e.target.classList[i]; ++i){
+            if (e.target.classList[i].search(/track_/)!=-1){
+                id = e.target.classList[i];
+                break;
+            }
         }
-    }
-    if (icon.is('.icon-down-open')) {
-        icon.removeClass('icon-down-open').addClass('.icon-right-open');
-        id && $(`.${id}:not(.open_positions)`).hide();
-    }
-    else {
-        icon.addClass('icon-down-open').removeClass('.icon-right-open');
-        id && $(`.${id}`).show();
-    }
-};
+        if (icon.is('.icon-down-open')) {
+            icon.removeClass('icon-down-open').addClass('.icon-right-open');
+            id && $(`.${id}:not(.open_positions)`).hide();
+        }
+        else {
+            icon.addClass('icon-down-open').removeClass('.icon-right-open');
+            id && $(`.${id}`).show();
+        }
+    }, 
+    _onShowAllTracks = function(e){
+        let showTrack = _thisView.frame.find('.track-table .track:not(".all") input'),
+            showAllTracks = _thisView.frame.find('.track-table .track.all input'); 
+        showTrack.each((i, el)=>{
+            el.checked = showAllTracks[0].checked;
+            if (showAllTracks[0].checked)
+                _thisView.model.drawTrack(el.id);
+            else
+                _thisView.model.eraseTrack(el.id);
+        });
+    },
+    _onShowTrack = function(e){
+        let showTrack = _thisView.frame.find('.track-table .track:not(".all") input'),
+            showAllTracks = _thisView.frame.find('.track-table .track.all input'); 
+        let id = parseInt(e.currentTarget.id);
+        if (e.currentTarget.checked)
+            _thisView.model.drawTrack(id);
+        else
+            _thisView.model.eraseTrack(id);
+
+        let checkAll = true;
+        showTrack.each((i, el)=>{checkAll = checkAll && el.checked});
+        showAllTracks[0].checked = checkAll;
+    },
+    _onShowPos = function(e){
+        let ij = e.currentTarget.id.split('_'), pos = _thisView.model.data.tracks[ij[0]].positions[ij[1]];
+        //_thisView.model.fitToTrack(ij[0]);
+        nsGmx.leafletMap.setView([pos.latitude, pos.longitude]);
+    };
 
 TracksView.prototype.repaint = function () { 
     _clean.call(this);
     BaseView.prototype.repaint.call(this);      
     
-    let openPos = this.frame.find('.open_positions');
-    openPos.on('click', _onOpenPosClick.bind(this));
+    this.frame.find('.open_positions').on('click', _onOpenPosClick);
+    this.frame.find('.track-table .track:not(".all") input').on('click', _onShowTrack);
+    this.frame.find('.track-table .track.all input').on('click', _onShowAllTracks);
+    this.frame.find('.show_pos').on('click', _onShowPos);
 };
 
 TracksView.prototype.show = function () {

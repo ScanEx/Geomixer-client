@@ -777,7 +777,7 @@ var _defaultViconColor = '#999',
 },
     _vicons = [],
     _viconsDict = {},
-    _styleLayer = 'EE5587AF1F70433AA878462272C0274C',
+    _styleLayer = '-EE5587AF1F70433AA878462272C0274C',
     _getVicons = function _getVicons() {
   if (!_styleLayer || !nsGmx.gmxMap.layersByID[_styleLayer]) return;
 
@@ -871,6 +871,15 @@ module.exports = function (options) {
       _tracks.length = 0;
       _vmarkers.length = 0;
     },
+    fitToTrack: function fitToTrack(i) {
+      _lmap.fitBounds(_tracks[i].getBounds());
+    },
+    drawTrack: function drawTrack(i) {
+      _tracks[i].addTo(_lmap);
+    },
+    eraseTrack: function eraseTrack(i) {
+      _lmap.removeLayer(_tracks[i]);
+    },
     update: function update() {
       if (!this.isDirty) return;
       var thisModel = this;
@@ -912,20 +921,32 @@ module.exports = function (options) {
       }).then(function () {
         // draw track on map
         if (_data.tracks.length) {
-          var lastPos;
+          var lastPos,
+              wholeDistance = 0;
 
           _data.tracks.forEach(function (t) {
+            t.distance = 0;
             var temp,
                 latlngs = t.positions.map(function (p) {
+              if (temp) t.distance = t.distance + _lmap.distance(temp, [p.latitude, p.longitude]);
               temp = [p.latitude, p.longitude];
               return temp;
             });
-            if (lastPos) latlngs = [lastPos].concat(latlngs);
-            lastPos = temp;
 
-            _tracks.push(L.polyline(latlngs, {
+            if (lastPos) {
+              t.distance = t.distance + _lmap.distance(lastPos, latlngs[0]);
+              latlngs = [lastPos].concat(latlngs);
+            }
+
+            lastPos = temp;
+            var line = L.polyline(latlngs, {
               color: t.positions[0] && t.positions[0].vicon ? t.positions[0].vicon.color : 'red'
-            }).addTo(_lmap));
+            }).addTo(_lmap);
+            line.bindPopup("".concat(t.utc_date, "<br>").concat((t.distance / 1000).toFixed(3), " ").concat(_gtxt('TrackExport.km')));
+
+            _tracks.push(line);
+
+            wholeDistance = wholeDistance + t.distance;
           });
 
           _lmap.fitBounds(_tracks[0].getBounds());
@@ -1217,7 +1238,7 @@ var _toDd = function _toDd(D, isLng) {
   + dir;
 };
 
-var _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
+var _searchLayer = 'CE660F806D164FE58556638D752A4203',
     _selectLayers = [{
   name: 'FOS',
   id: 'ED043040A005429B8F46AAA682BE49C3',
@@ -1405,10 +1426,12 @@ var TracksView = function TracksView(_ref) {
   });
   Object.defineProperty(this, "tableTemplate", {
     get: function get() {
+      var _this2 = this;
+
       var totalPositions = this.model.data.total,
-          rv = (!totalPositions ? "" : "<table class=\"track-table header\"><tr>\n                        <td></td>\n                        <td><span class=\"date\"></span></td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"".concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
-        return "<table class=\"track-table\" border=\"0\">\n                <tbody><tr>\n                <td><div class=\"open_positions track_".concat(i, " ui-helper-noselect icon-right-open icon-down-open\" title=\"").concat(_gtxt('TrackExport.positions'), "\"></div></td>\n                <td><span class=\"date\">").concat(t.utc_date, "</span></td>\n                <td><div class=\"track\"><input type=\"checkbox\" checked title=\"").concat(_gtxt('TrackExport.dailyTrack'), "\"></div></td>\n                <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n\n                <div class=\"track_").concat(i, "\">\n                <table class=\"positions-table\"><tbody>") + t.positions.map(function (p, j) {
-          return "<tr>                \n                <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n                <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.local_date, "</span></td>\n                <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td>\n                <td>").concat(p.vicon ? p.vicon.svg : '', "</td><td></td>\n                <td><div class=\"show_pos ").concat(i, "_").concat(j, "\" title=\"").concat(_gtxt('TrackExport.position'), "\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n                </tr>\n                <tr><td colspan=\"6\" class=\"more\"><hr><div class=\"vi_more\"></div></td></tr>");
+          rv = (!totalPositions ? "" : "<table class=\"track-table\"><tr>\n                        <td></td>\n                        <td><span class=\"date\"></span></td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"".concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
+        return "<table class=\"track-table\" border=\"0\">\n                <tbody><tr>\n                <td><div class=\"open_positions track_".concat(i, " ui-helper-noselect icon-right-open ").concat(_this2.model.data.tracks.length > 1 ? 'icon-right-open' : 'icon-down-open', " \" title=\"").concat(_gtxt('TrackExport.positions'), "\"></div></td>\n                <td><span class=\"date\">").concat(t.utc_date, "</span></td>\n                <td><div class=\"track\"><input type=\"checkbox\" checked title=\"").concat(_gtxt('TrackExport.dailyTrack'), "\" id=\"").concat(i, "\"></div></td>\n                <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n\n                <div class=\"track_").concat(i, "\" style=\"display:").concat(_this2.model.data.tracks.length > 1 ? 'none' : 'block', "\">\n                <table class=\"positions-table\"><tbody>") + t.positions.map(function (p, j) {
+          return "<tr>                \n                <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n                <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.local_date, "</span></td>\n                <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td>\n                <td>").concat(p.vicon ? p.vicon.svg : '', "</td><td></td>\n                <td><div class=\"show_pos\" id=\"").concat(i, "_").concat(j, "\" title=\"").concat(_gtxt('TrackExport.position'), "\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n                </tr>\n                <tr><td colspan=\"6\" class=\"more\"><hr><div class=\"vi_more\"></div></td></tr>");
         }).join('') + "</tbody></table></div>";
       }).join('') + (this.model.data.msg ? this.model.data.msg.map(function (m) {
         return "<div class=\"msg\">".concat(m.txt, "</div>");
@@ -1456,7 +1479,8 @@ var TracksView = function TracksView(_ref) {
   });
 },
     _clean = function _clean() {
-  this.frame.find('.open_positions').on('click', _onOpenPosClick.bind(this));
+  this.frame.find('.open_positions').off('click', _onOpenPosClick);
+  this.frame.find('.track-table .track:not(".all") input').off('click', _onShowTrack), this.frame.find('.track-table .track.all input').off('click', _onShowAllTracks), this.frame.find('.show_pos').off('click', _onShowPos);
 };
 
 TracksView.prototype = Object.create(BaseView.prototype);
@@ -1497,14 +1521,43 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
     icon.addClass('icon-down-open').removeClass('.icon-right-open');
     id && $(".".concat(id)).show();
   }
+},
+    _onShowAllTracks = function _onShowAllTracks(e) {
+  var showTrack = _thisView.frame.find('.track-table .track:not(".all") input'),
+      showAllTracks = _thisView.frame.find('.track-table .track.all input');
+
+  showTrack.each(function (i, el) {
+    el.checked = showAllTracks[0].checked;
+    if (showAllTracks[0].checked) _thisView.model.drawTrack(el.id);else _thisView.model.eraseTrack(el.id);
+  });
+},
+    _onShowTrack = function _onShowTrack(e) {
+  var showTrack = _thisView.frame.find('.track-table .track:not(".all") input'),
+      showAllTracks = _thisView.frame.find('.track-table .track.all input');
+
+  var id = parseInt(e.currentTarget.id);
+  if (e.currentTarget.checked) _thisView.model.drawTrack(id);else _thisView.model.eraseTrack(id);
+  var checkAll = true;
+  showTrack.each(function (i, el) {
+    checkAll = checkAll && el.checked;
+  });
+  showAllTracks[0].checked = checkAll;
+},
+    _onShowPos = function _onShowPos(e) {
+  var ij = e.currentTarget.id.split('_'),
+      pos = _thisView.model.data.tracks[ij[0]].positions[ij[1]]; //_thisView.model.fitToTrack(ij[0]);
+
+  nsGmx.leafletMap.setView([pos.latitude, pos.longitude]);
 };
 
 TracksView.prototype.repaint = function () {
   _clean.call(this);
 
   BaseView.prototype.repaint.call(this);
-  var openPos = this.frame.find('.open_positions');
-  openPos.on('click', _onOpenPosClick.bind(this));
+  this.frame.find('.open_positions').on('click', _onOpenPosClick);
+  this.frame.find('.track-table .track:not(".all") input').on('click', _onShowTrack);
+  this.frame.find('.track-table .track.all input').on('click', _onShowAllTracks);
+  this.frame.find('.show_pos').on('click', _onShowPos);
 };
 
 TracksView.prototype.show = function () {
@@ -1628,7 +1681,8 @@ _translationsHash.addtext('rus', {
   "TrackExport.allDailyTracks": "все треки",
   "TrackExport.dailyTrack": "трек за сутки",
   "TrackExport.positions": "положение судна",
-  "TrackExport.position": "показать"
+  "TrackExport.position": "показать",
+  "TrackExport.km": "км"
 });
 
 _translationsHash.addtext('eng', {
@@ -1639,7 +1693,8 @@ _translationsHash.addtext('eng', {
   "TrackExport.allDailyTracks": "whole track",
   "TrackExport.dailyTrack": "daily track",
   "TrackExport.positions": "vessel positions",
-  "TrackExport.position": "position"
+  "TrackExport.position": "position",
+  "TrackExport.km": "km"
 });
 
 /***/ })
