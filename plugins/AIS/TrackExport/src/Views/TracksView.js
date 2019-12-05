@@ -129,12 +129,15 @@ const TracksView = function ({ model, layer }) {
             callback:(v=>{
                 if(!v){
                     _thisView.mmsi =  null;
+                    _thisView.imo =  null;
+                    _thisView.vname = null;
                     _thisView.model.free();
                     _thisView.repaint();
                 }
                 else{
                     _thisView.mmsi =  v.mmsi;
                     _thisView.imo =  v.imo;
+                    _thisView.vname = v.vessel_name;
                 }
 
             }).bind(this)
@@ -145,7 +148,12 @@ const TracksView = function ({ model, layer }) {
                 let totalPositions = this.model.data.total,
                     rv = (!totalPositions ? `` : `<table class="track-table"><tr>
                         <td></td>
-                        <td><span class="date"></span></td>
+                        <td>
+                        <span class='export shp' title="${_gtxt("TrackExport.export")}">shp</span> 
+                        <span class='export geojson' title="${_gtxt("TrackExport.export")}">geojson</span> 
+                        <span class='export gpx' title="${_gtxt("TrackExport.export")}">gpx</span> 
+                        <span class='export csv' title="${_gtxt("TrackExport.export")}">csv</span>
+                        </td>
                         <td><div class="track all"><input type="checkbox" checked title="${_gtxt("TrackExport.allDailyTracks")}"></div></td>
                         <td><div class="count">${totalPositions}</div></td></tr></table>`) +                    
                     this.model.data.tracks.map((t,i) => {
@@ -227,6 +235,7 @@ const TracksView = function ({ model, layer }) {
         this.frame.find('.track-table .track:not(".all") input').off('click', _onShowTrack),
         this.frame.find('.track-table .track.all input').off('click', _onShowAllTracks),
         this.frame.find('.show_pos').off('click', _onShowPos);
+        this.frame.find('.track-table .export').off('click', _onDownload);
     };
 
 TracksView.prototype = Object.create(BaseView.prototype);
@@ -294,6 +303,24 @@ const _onOpenPosClick = function(e){
         let ij = e.currentTarget.id.split('_'), pos = _thisView.model.data.tracks[ij[0]].positions[ij[1]];
         //_thisView.model.fitToTrack(ij[0]);
         nsGmx.leafletMap.setView([pos.latitude, pos.longitude]);
+    },
+    _onDownload = function(e){
+        let type = e.currentTarget.className.replace(/export */, ''),
+        tracks = _thisView.model.data.tracks,
+        trackLine = tracks.reduce((p,c)=>{
+            c.positions.forEach(pos=>p.push([pos.latitude, pos.longitude])); 
+            return p;
+        }, []),
+        features = [{geometry:L.gmxUtil.geometryToGeoJSON({type:'LINESTRING', coordinates:trackLine})}];
+        switch (type){
+            case 'csv':
+                type = 'csv_wkt';
+                break;
+            case 'shp':
+                type = 'Shape';                 
+        }
+        nsGmx.Utils.downloadGeometry(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type}); 
+        console.log(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type,});
     };
 
 TracksView.prototype.repaint = function () { 
@@ -304,6 +331,7 @@ TracksView.prototype.repaint = function () {
     this.frame.find('.track-table .track:not(".all") input').on('click', _onShowTrack);
     this.frame.find('.track-table .track.all input').on('click', _onShowAllTracks);
     this.frame.find('.show_pos').on('click', _onShowPos);
+    this.frame.find('.track-table .export').on('click', _onDownload);
 };
 
 TracksView.prototype.show = function () {

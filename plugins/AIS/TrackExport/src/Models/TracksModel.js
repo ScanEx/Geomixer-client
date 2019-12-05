@@ -119,7 +119,7 @@ module.exports = function (options) {
                                 let data = thisModel.view.trackLayer.parseData(r.fields, p, _getVicon),
                                     lastTrack = _data.tracks[_data.tracks.length-1];
                                 if (!lastTrack || lastTrack.positions[0].utc_date!=data.utc_date){
-                                    lastTrack = {utc_date: data.utc_date, positions: []};
+                                    lastTrack = { utc_date: data.utc_date, positions: [] };
                                     _data.tracks.push(lastTrack);
                                 }
                                 lastTrack.positions.push(data);
@@ -146,7 +146,7 @@ module.exports = function (options) {
                         }
                         lastPos = temp;  
                         let line = L.polyline(latlngs, {color: t.positions[0] && t.positions[0].vicon ? t.positions[0].vicon.color : 'red'}).addTo(_lmap); 
-                        line.bindPopup(`${t.utc_date}<br>${(t.distance/1000).toFixed(3)} ${_gtxt('TrackExport.km')}`);                    
+                        line.bindPopup(`<b>${thisModel.view.vname}</b><br>${t.utc_date}<br>${(t.distance/1000).toFixed(3)} ${_gtxt('TrackExport.km')}`);                    
                         _tracks.push(line);
                         
                         wholeDistance = wholeDistance + t.distance;

@@ -9,6 +9,7 @@
         "TrackExport.dailyTrack":"трек за сутки",
         "TrackExport.positions":"положение судна",
         "TrackExport.position":"показать",
+        "TrackExport.export":"экспорт",
         "TrackExport.km":"км",
         
     });
@@ -22,5 +23,6 @@
         "TrackExport.dailyTrack":"daily track",
         "TrackExport.positions":"vessel positions",
         "TrackExport.position":"position",
+        "TrackExport.export":"export",
         "TrackExport.km":"km",
     });

@@ -942,7 +942,7 @@ module.exports = function (options) {
             var line = L.polyline(latlngs, {
               color: t.positions[0] && t.positions[0].vicon ? t.positions[0].vicon.color : 'red'
             }).addTo(_lmap);
-            line.bindPopup("".concat(t.utc_date, "<br>").concat((t.distance / 1000).toFixed(3), " ").concat(_gtxt('TrackExport.km')));
+            line.bindPopup("<b>".concat(thisModel.view.vname, "</b><br>").concat(t.utc_date, "<br>").concat((t.distance / 1000).toFixed(3), " ").concat(_gtxt('TrackExport.km')));
 
             _tracks.push(line);
 
@@ -1414,6 +1414,8 @@ var TracksView = function TracksView(_ref) {
     callback: function (v) {
       if (!v) {
         _thisView.mmsi = null;
+        _thisView.imo = null;
+        _thisView.vname = null;
 
         _thisView.model.free();
 
@@ -1421,6 +1423,7 @@ var TracksView = function TracksView(_ref) {
       } else {
         _thisView.mmsi = v.mmsi;
         _thisView.imo = v.imo;
+        _thisView.vname = v.vessel_name;
       }
     }.bind(this)
   });
@@ -1429,7 +1432,7 @@ var TracksView = function TracksView(_ref) {
       var _this2 = this;
 
       var totalPositions = this.model.data.total,
-          rv = (!totalPositions ? "" : "<table class=\"track-table\"><tr>\n                        <td></td>\n                        <td><span class=\"date\"></span></td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"".concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
+          rv = (!totalPositions ? "" : "<table class=\"track-table\"><tr>\n                        <td></td>\n                        <td>\n                        <span class='export shp' title=\"".concat(_gtxt("TrackExport.export"), "\">shp</span> \n                        <span class='export geojson' title=\"").concat(_gtxt("TrackExport.export"), "\">geojson</span> \n                        <span class='export gpx' title=\"").concat(_gtxt("TrackExport.export"), "\">gpx</span> \n                        <span class='export csv' title=\"").concat(_gtxt("TrackExport.export"), "\">csv</span>\n                        </td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"").concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
         return "<table class=\"track-table\" border=\"0\">\n                <tbody><tr>\n                <td><div class=\"open_positions track_".concat(i, " ui-helper-noselect icon-right-open ").concat(_this2.model.data.tracks.length > 1 ? 'icon-right-open' : 'icon-down-open', " \" title=\"").concat(_gtxt('TrackExport.positions'), "\"></div></td>\n                <td><span class=\"date\">").concat(t.utc_date, "</span></td>\n                <td><div class=\"track\"><input type=\"checkbox\" checked title=\"").concat(_gtxt('TrackExport.dailyTrack'), "\" id=\"").concat(i, "\"></div></td>\n                <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n\n                <div class=\"track_").concat(i, "\" style=\"display:").concat(_this2.model.data.tracks.length > 1 ? 'none' : 'block', "\">\n                <table class=\"positions-table\"><tbody>") + t.positions.map(function (p, j) {
           return "<tr>                \n                <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n                <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.local_date, "</span></td>\n                <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td>\n                <td>").concat(p.vicon ? p.vicon.svg : '', "</td><td></td>\n                <td><div class=\"show_pos\" id=\"").concat(i, "_").concat(j, "\" title=\"").concat(_gtxt('TrackExport.position'), "\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n                </tr>\n                <tr><td colspan=\"6\" class=\"more\"><hr><div class=\"vi_more\"></div></td></tr>");
         }).join('') + "</tbody></table></div>";
@@ -1481,6 +1484,7 @@ var TracksView = function TracksView(_ref) {
     _clean = function _clean() {
   this.frame.find('.open_positions').off('click', _onOpenPosClick);
   this.frame.find('.track-table .track:not(".all") input').off('click', _onShowTrack), this.frame.find('.track-table .track.all input').off('click', _onShowAllTracks), this.frame.find('.show_pos').off('click', _onShowPos);
+  this.frame.find('.track-table .export').off('click', _onDownload);
 };
 
 TracksView.prototype = Object.create(BaseView.prototype);
@@ -1548,6 +1552,40 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
       pos = _thisView.model.data.tracks[ij[0]].positions[ij[1]]; //_thisView.model.fitToTrack(ij[0]);
 
   nsGmx.leafletMap.setView([pos.latitude, pos.longitude]);
+},
+    _onDownload = function _onDownload(e) {
+  var type = e.currentTarget.className.replace(/export */, ''),
+      tracks = _thisView.model.data.tracks,
+      trackLine = tracks.reduce(function (p, c) {
+    c.positions.forEach(function (pos) {
+      return p.push([pos.latitude, pos.longitude]);
+    });
+    return p;
+  }, []),
+      features = [{
+    geometry: L.gmxUtil.geometryToGeoJSON({
+      type: 'LINESTRING',
+      coordinates: trackLine
+    })
+  }];
+
+  switch (type) {
+    case 'csv':
+      type = 'csv_wkt';
+      break;
+
+    case 'shp':
+      type = 'Shape';
+  }
+
+  nsGmx.Utils.downloadGeometry(features, {
+    fileName: "".concat(_thisView.vname, "_").concat(tracks[0].utc_date).concat(tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : '').replace(/ |\./g, '_'),
+    format: type
+  });
+  console.log(features, {
+    fileName: "".concat(_thisView.vname, "_").concat(tracks[0].utc_date).concat(tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : '').replace(/ |\./g, '_'),
+    format: type
+  });
 };
 
 TracksView.prototype.repaint = function () {
@@ -1558,6 +1596,7 @@ TracksView.prototype.repaint = function () {
   this.frame.find('.track-table .track:not(".all") input').on('click', _onShowTrack);
   this.frame.find('.track-table .track.all input').on('click', _onShowAllTracks);
   this.frame.find('.show_pos').on('click', _onShowPos);
+  this.frame.find('.track-table .export').on('click', _onDownload);
 };
 
 TracksView.prototype.show = function () {
@@ -1682,6 +1721,7 @@ _translationsHash.addtext('rus', {
   "TrackExport.dailyTrack": "трек за сутки",
   "TrackExport.positions": "положение судна",
   "TrackExport.position": "показать",
+  "TrackExport.export": "экспорт",
   "TrackExport.km": "км"
 });
 
@@ -1694,6 +1734,7 @@ _translationsHash.addtext('eng', {
   "TrackExport.dailyTrack": "daily track",
   "TrackExport.positions": "vessel positions",
   "TrackExport.position": "position",
+  "TrackExport.export": "export",
   "TrackExport.km": "km"
 });
 

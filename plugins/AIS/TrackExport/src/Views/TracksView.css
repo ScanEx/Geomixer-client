@@ -299,3 +299,14 @@ color: #48aff1;
 .trackexport-view .positions-table tr:hover .show_info{
   visibility: visible;
 }
+
+.trackexport-view .track-table .export:hover{
+  background-color: #48aff1;
+      color: white;
+  }
+.trackexport-view .track-table .export{
+    border-radius: 16px;
+    padding: 2px 5px 2px 5px;
+    margin-right: 4px;
+    cursor: pointer;
+}
