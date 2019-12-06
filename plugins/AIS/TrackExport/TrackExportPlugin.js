@@ -769,11 +769,11 @@ var Request = __webpack_require__(/*! ../../../Common/Request */ "../Common/Requ
 
 
 var _defaultViconColor = '#999',
-    _getUnderWayIcon = function _getUnderWayIcon(cog, type_color, group_style) {
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><path style="fill:' + type_color + ';" d="M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z"/><path style="fill:' + group_style + ';" d="M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z"/><ellipse style="fill:#fff;" cx="10.82" cy="10.54" rx="1.31" ry="1.35"/><path style="fill:#fff;" d="M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z"/></svg>';
+    _getUnderWayIcon = function _getUnderWayIcon(cog, sog, type_color, group_style) {
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" viewBox=\"0 0 21 21\" style=\"transform:rotate(".concat(!cog ? 0 : cog, "deg)\"><title>sog: ").concat(sog).concat(_gtxt('TrackExport.kn'), " cog: ").concat(cog, "\xB0</title><path style=\"fill:").concat(type_color, ";\" d=\"M13.8,20.07a1,1,0,0,1-.69-0.28l-1.79-1.72a0.72,0.72,0,0,0-1,0L8.52,19.79a1,1,0,0,1-.69.28,1,1,0,0,1-1-1V8.65c0-1.52,1.55-7.59,4-7.59s4,6.07,4,7.59V19a1,1,0,0,1-1,1h0Z\"/><path style=\"fill:").concat(group_style, ";\" d=\"M10.82,1.57c1.93,0,3.5,5.57,3.5,7.09V19a0.52,0.52,0,0,1-.51.53,0.49,0.49,0,0,1-.34-0.14l-1.79-1.72a1.22,1.22,0,0,0-1.71,0L8.17,19.42a0.49,0.49,0,0,1-.34.14A0.52,0.52,0,0,1,7.32,19V8.65c0-1.51,1.57-7.09,3.5-7.09h0m0-1c-3,0-4.5,6.72-4.5,8.09V19a1.52,1.52,0,0,0,1.51,1.53,1.49,1.49,0,0,0,1-.42l1.79-1.72a0.22,0.22,0,0,1,.32,0l1.79,1.72a1.49,1.49,0,0,0,1,.42A1.52,1.52,0,0,0,15.32,19V8.65c0-1.37-1.51-8.09-4.5-8.09h0Z\"/><ellipse style=\"fill:#fff;\" cx=\"10.82\" cy=\"10.54\" rx=\"1.31\" ry=\"1.35\"/><path style=\"fill:#fff;\" d=\"M10.73,3.34h0.12a0.35,0.35,0,0,1,.35.35v6.85a0,0,0,0,1,0,0H10.38a0,0,0,0,1,0,0V3.69A0.35,0.35,0,0,1,10.73,3.34Z\"/></svg>");
 },
-    _getAtAnchorIcon = function _getAtAnchorIcon(cog, type_color, group_style) {
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="transform:rotate(' + (!cog ? 0 : cog) + 'deg)"><title>1</title><rect style="fill:' + type_color + ';stroke:' + group_style + ';stroke-miterlimit:10;" x="5.9" y="5.6" width="9.19" height="9.19" rx="2" ry="2" transform="translate(-4.13 10.41) rotate(-45)"/><circle style="fill:#fff;" cx="10.5" cy="10.19" r="1.5"/></svg>';
+    _getAtAnchorIcon = function _getAtAnchorIcon(cog, sog, type_color, group_style) {
+  return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" viewBox=\"0 0 21 21\" style=\"transform:rotate(".concat(!cog ? 0 : cog, "deg)\"><title>sog: ").concat(sog).concat(_gtxt('TrackExport.kn'), " cog: ").concat(cog, "\xB0</title><rect style=\"fill:").concat(type_color, ";stroke:").concat(group_style, ";stroke-miterlimit:10;\" x=\"5.9\" y=\"5.6\" width=\"9.19\" height=\"9.19\" rx=\"2\" ry=\"2\" transform=\"translate(-4.13 10.41) rotate(-45)\"/><circle style=\"fill:#fff;\" cx=\"10.5\" cy=\"10.19\" r=\"1.5\"/></svg>");
 },
     _vicons = [],
     _viconsDict = {},
@@ -821,14 +821,14 @@ var _defaultViconColor = '#999',
     if (f.search(re1) != -1 && f.search(re2) != -1) {
       return {
         color: _viconsDict[f].color,
-        svg: sog != 0 ? _getUnderWayIcon(cog, _viconsDict[f].color, '#fff') : _getAtAnchorIcon(cog, _viconsDict[f].color, '#fff')
+        svg: sog != 0 ? _getUnderWayIcon(cog, sog, _viconsDict[f].color, '#fff') : _getAtAnchorIcon(cog, sog, _viconsDict[f].color, '#fff')
       };
     }
   }
 
   return {
     color: '#f00',
-    svg: sog != 0 ? _getUnderWayIcon(cog, _defaultViconColor, '#fff') : _getAtAnchorIcon(cog, _defaultViconColor, '#fff')
+    svg: sog != 0 ? _getUnderWayIcon(cog, sog, _defaultViconColor, '#fff') : _getAtAnchorIcon(cog, sog, _defaultViconColor, sog, '#fff')
   };
 };
 
@@ -923,6 +923,7 @@ module.exports = function (options) {
         if (_data.tracks.length) {
           var lastPos,
               wholeDistance = 0;
+          thisModel.view.repaint();
 
           _data.tracks.forEach(function (t) {
             t.distance = 0;
@@ -952,7 +953,6 @@ module.exports = function (options) {
           _lmap.fitBounds(_tracks[0].getBounds());
         }
 
-        thisModel.view.repaint();
         thisModel.isDirty = false;
       });
     } // this.update
@@ -1278,6 +1278,8 @@ var _searchLayer = 'CE660F806D164FE58556638D752A4203',
         locDate = new Date(value[fields.indexOf('timestamp')] * 1000);
     return {
       ts: ts,
+      cog: value[fields.indexOf('course')],
+      sog: value[fields.indexOf('speed')],
       utc_date: utcDate.toLocaleDateString(),
       utc_time: utcDate.toLocaleTimeString(),
       local_date: locDate.toLocaleDateString(),
@@ -1338,6 +1340,8 @@ var _searchLayer = 'CE660F806D164FE58556638D752A4203',
         locDate = new Date(value[fields.indexOf('timestamp')] * 1000);
     return {
       ts: ts,
+      cog: value[fields.indexOf('cog')],
+      sog: value[fields.indexOf('sog')],
       utc_date: utcDate.toLocaleDateString(),
       utc_time: utcDate.toLocaleTimeString(),
       local_date: locDate.toLocaleDateString(),
@@ -1366,7 +1370,11 @@ var TracksView = function TracksView(_ref) {
 
   this.trackLayer = _selectLayers[0];
   this.frame.find('.reload').on('click', function (e) {
-    if (_this.mmsi) {
+    var db = _thisView.calendar.dateInterval.get('dateBegin'),
+        de = _thisView.calendar.dateInterval.get('dateEnd'),
+        daysDiff = Math.ceil((de.getTime() - db.getTime()) / (24 * 3600000));
+
+    if ((_this.mmsi || _this.imo) && daysDiff < 8) {
       _this.model.isDirty = true;
 
       _this.inProgress(true);
@@ -1374,6 +1382,10 @@ var TracksView = function TracksView(_ref) {
       _this.show();
     } else {
       _this.model.free();
+
+      if (daysDiff > 7) _this.model.data.msg = [{
+        txt: _gtxt('TrackExport.intervalExceeds')
+      }];
 
       _this.repaint();
     }
@@ -1432,10 +1444,8 @@ var TracksView = function TracksView(_ref) {
       var _this2 = this;
 
       var totalPositions = this.model.data.total,
-          rv = (!totalPositions ? "" : "<table class=\"track-table\"><tr>\n                        <td></td>\n                        <td>\n                        <span class='export shp' title=\"".concat(_gtxt("TrackExport.export"), "\">shp</span> \n                        <span class='export geojson' title=\"").concat(_gtxt("TrackExport.export"), "\">geojson</span> \n                        <span class='export gpx' title=\"").concat(_gtxt("TrackExport.export"), "\">gpx</span> \n                        <span class='export csv' title=\"").concat(_gtxt("TrackExport.export"), "\">csv</span>\n                        </td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"").concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
-        return "<table class=\"track-table\" border=\"0\">\n                <tbody><tr>\n                <td><div class=\"open_positions track_".concat(i, " ui-helper-noselect icon-right-open ").concat(_this2.model.data.tracks.length > 1 ? 'icon-right-open' : 'icon-down-open', " \" title=\"").concat(_gtxt('TrackExport.positions'), "\"></div></td>\n                <td><span class=\"date\">").concat(t.utc_date, "</span></td>\n                <td><div class=\"track\"><input type=\"checkbox\" checked title=\"").concat(_gtxt('TrackExport.dailyTrack'), "\" id=\"").concat(i, "\"></div></td>\n                <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n\n                <div class=\"track_").concat(i, "\" style=\"display:").concat(_this2.model.data.tracks.length > 1 ? 'none' : 'block', "\">\n                <table class=\"positions-table\"><tbody>") + t.positions.map(function (p, j) {
-          return "<tr>                \n                <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n                <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.local_date, "</span></td>\n                <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td>\n                <td>").concat(p.vicon ? p.vicon.svg : '', "</td><td></td>\n                <td><div class=\"show_pos\" id=\"").concat(i, "_").concat(j, "\" title=\"").concat(_gtxt('TrackExport.position'), "\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n                </tr>\n                <tr><td colspan=\"6\" class=\"more\"><hr><div class=\"vi_more\"></div></td></tr>");
-        }).join('') + "</tbody></table></div>";
+          rv = (!totalPositions ? "" : "<table class=\"track-table\"><tr>\n                        <td></td>\n                        <td>\n                        <span class='export shape' title=\"".concat(_gtxt("TrackExport.export"), "\">shp</span> \n                        <span class='export geojson' title=\"").concat(_gtxt("TrackExport.export"), "\">geojson</span> \n                        <span class='export gpx' title=\"").concat(_gtxt("TrackExport.export"), "\">gpx</span> \n                        </td>\n                        <td><div class=\"track all\"><input type=\"checkbox\" checked title=\"").concat(_gtxt("TrackExport.allDailyTracks"), "\"></div></td>\n                        <td><div class=\"count\">").concat(totalPositions, "</div></td></tr></table>")) + this.model.data.tracks.map(function (t, i) {
+        return "<table class=\"track-table\" border=\"0\">\n                        <tbody><tr>\n                        <td><div class=\"open_positions track_".concat(i, " ui-helper-noselect icon-right-open ").concat(_this2.model.data.tracks.length > 1 ? 'icon-right-open' : 'icon-down-open', " \" title=\"").concat(_gtxt('TrackExport.positions'), "\"></div></td>\n                        <td><span class=\"date\">").concat(t.utc_date, "</span></td>\n                        <td><div class=\"track\"><input type=\"checkbox\" checked title=\"").concat(_gtxt('TrackExport.dailyTrack'), "\" id=\"").concat(i, "\"></div></td>\n                        <td><div class=\"count\">").concat(t.positions.length, "</div></td></tr></tbody></table>\n\n                        <div class=\"track_").concat(i, "\" >").concat(_thisView.model.data.tracks.length == 1 ? _renderPosTable(i) : "", "</div>");
       }).join('') + (this.model.data.msg ? this.model.data.msg.map(function (m) {
         return "<div class=\"msg\">".concat(m.txt, "</div>");
       }).join('') : '');
@@ -1452,6 +1462,12 @@ var TracksView = function TracksView(_ref) {
       return this.frame.find('.footer')[0].getBoundingClientRect().height;
     }
   });
+},
+    _renderPosTable = function _renderPosTable(i) {
+  var t = _thisView.model.data.tracks[i];
+  return "<table class=\"positions-table\"><tbody>" + t.positions.map(function (p, j) {
+    return "<tr>                \n            <td><span class=\"utc_time\">".concat(p.utc_time, "</span><span class=\"local_time\">").concat(p.local_time, "</span></td>\n            <td><span class=\"utc_date\">").concat(t.utc_date, "</span><span class=\"local_date\">").concat(p.local_date, "</span></td>\n            <td>").concat(p.lon, "&nbsp;&nbsp;").concat(p.lat, "</td>\n            <td>").concat(p.vicon ? p.vicon.svg : '', "</td><td></td>\n            <td><div class=\"show_pos\" id=\"").concat(i, "_").concat(j, "\" title=\"").concat(_gtxt('TrackExport.position'), "\"><img src=\"plugins/AIS/AISSearch/svg/center.svg\"></div></td>\n            </tr>\n            <tr><td colspan=\"6\" class=\"more\"><hr><div class=\"vi_more\"></div></td></tr>");
+  }).join('') + "</tbody></table>";
 },
     _addCalendar = function _addCalendar() {
   var calendar = this.frame.find('.calendar')[0]; // walkaround with focus at first input in ui-dialog
@@ -1484,7 +1500,7 @@ var TracksView = function TracksView(_ref) {
     _clean = function _clean() {
   this.frame.find('.open_positions').off('click', _onOpenPosClick);
   this.frame.find('.track-table .track:not(".all") input').off('click', _onShowTrack), this.frame.find('.track-table .track.all input').off('click', _onShowAllTracks), this.frame.find('.show_pos').off('click', _onShowPos);
-  this.frame.find('.track-table .export').off('click', _onDownload);
+  this.frame.find('.track-table .export').off('click', _onExport);
 };
 
 TracksView.prototype = Object.create(BaseView.prototype);
@@ -1520,10 +1536,30 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
 
   if (icon.is('.icon-down-open')) {
     icon.removeClass('icon-down-open').addClass('.icon-right-open');
-    id && $(".".concat(id, ":not(.open_positions)")).hide();
+
+    if (id) {
+      var div = $(".".concat(id, ":not(.open_positions)"));
+      div.hide();
+
+      if (id != 'track_0') {
+        div.find('.show_pos').off('click', _onShowPos);
+        div.html('');
+      }
+    }
   } else {
     icon.addClass('icon-down-open').removeClass('.icon-right-open');
-    id && $(".".concat(id)).show();
+
+    if (id) {
+      var _div = $(".".concat(id, ":not(.open_positions)"));
+
+      if (!$(".".concat(id, " .positions-table"))[0]) {
+        _div.html(_renderPosTable(parseInt(id.split('_')[1])));
+
+        _div.find('.show_pos').on('click', _onShowPos);
+      }
+
+      _div.show();
+    }
   }
 },
     _onShowAllTracks = function _onShowAllTracks(e) {
@@ -1553,12 +1589,12 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
 
   nsGmx.leafletMap.setView([pos.latitude, pos.longitude]);
 },
-    _onDownload = function _onDownload(e) {
+    _onExport = function _onExport(e) {
   var type = e.currentTarget.className.replace(/export */, ''),
       tracks = _thisView.model.data.tracks,
       trackLine = tracks.reduce(function (p, c) {
     c.positions.forEach(function (pos) {
-      return p.push([pos.latitude, pos.longitude]);
+      return p.push([pos.longitude, pos.latitude]);
     });
     return p;
   }, []),
@@ -1568,24 +1604,10 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
       coordinates: trackLine
     })
   }];
-
-  switch (type) {
-    case 'csv':
-      type = 'csv_wkt';
-      break;
-
-    case 'shp':
-      type = 'Shape';
-  }
-
   nsGmx.Utils.downloadGeometry(features, {
     fileName: "".concat(_thisView.vname, "_").concat(tracks[0].utc_date).concat(tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : '').replace(/ |\./g, '_'),
     format: type
-  });
-  console.log(features, {
-    fileName: "".concat(_thisView.vname, "_").concat(tracks[0].utc_date).concat(tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : '').replace(/ |\./g, '_'),
-    format: type
-  });
+  }); //console.log(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type,});
 };
 
 TracksView.prototype.repaint = function () {
@@ -1595,8 +1617,8 @@ TracksView.prototype.repaint = function () {
   this.frame.find('.open_positions').on('click', _onOpenPosClick);
   this.frame.find('.track-table .track:not(".all") input').on('click', _onShowTrack);
   this.frame.find('.track-table .track.all input').on('click', _onShowAllTracks);
-  this.frame.find('.show_pos').on('click', _onShowPos);
-  this.frame.find('.track-table .export').on('click', _onDownload);
+  this.frame.find('.track-table .export').on('click', _onExport);
+  this.frame.find('.track_0 .positions-table .show_pos').on('click', _onShowPos);
 };
 
 TracksView.prototype.show = function () {
@@ -1722,7 +1744,9 @@ _translationsHash.addtext('rus', {
   "TrackExport.positions": "положение судна",
   "TrackExport.position": "показать",
   "TrackExport.export": "экспорт",
-  "TrackExport.km": "км"
+  "TrackExport.km": "км",
+  "TrackExport.kn": "уз",
+  "TrackExport.intervalExceeds": "Интервал больше 7 дней"
 });
 
 _translationsHash.addtext('eng', {
@@ -1735,7 +1759,9 @@ _translationsHash.addtext('eng', {
   "TrackExport.positions": "vessel positions",
   "TrackExport.position": "position",
   "TrackExport.export": "export",
-  "TrackExport.km": "km"
+  "TrackExport.km": "km",
+  "TrackExport.kn": "kn",
+  "TrackExport.intervalExceeds": "Interval exceeds 7 days"
 });
 
 /***/ })

@@ -11,6 +11,8 @@
         "TrackExport.position":"показать",
         "TrackExport.export":"экспорт",
         "TrackExport.km":"км",
+        "TrackExport.kn":"уз",
+        "TrackExport.intervalExceeds":"Интервал больше 7 дней",
         
     });
     _translationsHash.addtext('eng', {
@@ -25,4 +27,6 @@
         "TrackExport.position":"position",
         "TrackExport.export":"export",
         "TrackExport.km":"km",
+        "TrackExport.kn":"kn",
+        "TrackExport.intervalExceeds":"Interval exceeds 7 days",
     });
