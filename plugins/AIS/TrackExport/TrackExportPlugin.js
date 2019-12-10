@@ -86,28 +86,28 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "../Common/Controls/Calendar.js":
-/*!**************************************!*\
-  !*** ../Common/Controls/Calendar.js ***!
-  \**************************************/
+/***/ "./src/Calendar.js":
+/*!*************************!*\
+  !*** ./src/Calendar.js ***!
+  \*************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-const SIMPLE_MODE = 1,
-      ADVANCED_MODE = 2;
+var SIMPLE_MODE = 1,
+    ADVANCED_MODE = 2;
 
-const _toMidnight = nsGmx.DateInterval.toMidnight,
-      _fromUTC = function (date) {
+var _toMidnight = nsGmx.DateInterval.toMidnight,
+    _fromUTC = function _fromUTC(date) {
   if (!date) return null;
   var timeOffset = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.valueOf() - timeOffset);
 },
-      _toUTC = function (date) {
+    _toUTC = function _toUTC(date) {
   if (!date) return null;
   var timeOffset = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.valueOf() + timeOffset);
 },
-      _setMode = function (mode) {
+    _setMode = function _setMode(mode) {
   if (this._curMode === mode) {
     return this;
   } //this.reset();
@@ -133,7 +133,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
 
   return this;
 },
-      _selectFunc = function (activeInput) {
+    _selectFunc = function _selectFunc(activeInput) {
   var begin = this._dateBegin.datepicker('getDate');
 
   var end = this._dateEnd.datepicker('getDate');
@@ -148,7 +148,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
     }
   }
 },
-      _updateModel = function () {
+    _updateModel = function _updateModel() {
   var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
       dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
 
@@ -157,7 +157,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
     dateEnd: dateEnd ? _toMidnight(dateEnd.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
   });
 },
-      _updateWidget = function () {
+    _updateWidget = function _updateWidget() {
   var dateBegin = this.dateInterval.get('dateBegin'),
       dateEnd = this.dateInterval.get('dateEnd'),
       dayms = nsGmx.DateInterval.MS_IN_DAY;
@@ -198,7 +198,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
     this._dateEnd.datepicker('setDate', newDateEnd);
   }
 },
-      _shiftDates = function (delta) {
+    _shiftDates = function _shiftDates(delta) {
   var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
       dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
 
@@ -221,24 +221,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
 
 module.exports = function (options) {
   $el = $('<div class="CalendarWidget ui-widget"></div>');
-  this.template = Handlebars.compile(`
-    <table>
-    <tr>
-        <td><div class = "CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open"></div></td>
-        <td class = "CalendarWidget-inputCell"><input class = "gmx-input-text CalendarWidget-dateBegin"></td>
-        <td class = "CalendarWidget-inputCell CalendarWidget-onlyMaxVersion"><input class = "gmx-input-text CalendarWidget-dateEnd"></td>
-        <td><div class = "CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open" ></div></td>
-        <td><div class = "CalendarWidget-iconMore {{moreIconClass}}" title = "{{moreIconTitle}}"></div></td>
-        <td><div class = "CalendarWidget-forecast" hidden>{{forecast}}</div></td>
-    </tr><tr>
-        <td></td>
-        <td class = "CalendarWidget-dateBeginInfo"></td>
-        <td class = "CalendarWidget-dateEndInfo"></td>
-        <td></td>
-        <td></td>
-    </tr>
-</table>
-<div class="CalendarWidget-footer"></div>`);
+  this.template = Handlebars.compile("\n    <table>\n    <tr>\n        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\"></td>\n        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\"></td>\n        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n        <td><div class = \"CalendarWidget-iconMore {{moreIconClass}}\" title = \"{{moreIconTitle}}\"></div></td>\n        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n    </tr><tr>\n        <td></td>\n        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n        <td class = \"CalendarWidget-dateEndInfo\"></td>\n        <td></td>\n        <td></td>\n    </tr>\n</table>\n<div class=\"CalendarWidget-footer\"></div>");
   options = $.extend({
     minimized: true,
     showSwitcher: true,
@@ -309,453 +292,6 @@ module.exports = function (options) {
 
 /***/ }),
 
-/***/ "../Common/Controls/SearchControl.js":
-/*!*******************************************!*\
-  !*** ../Common/Controls/SearchControl.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-let _searchString = "",
-    _sparams = 'imo name mmsi';
-
-const SearchControl = function ({
-  tab,
-  container,
-  callback,
-  searchparams,
-  searcher
-}) {
-  container.innerHTML = '<div class="filter"><input type="text" placeholder="' + _gtxt("Lloyds.search_placeholder") + '"/>' + (!searchparams ? '' : '<div class="preferences"></div>') + '<div class="searchremove"><img class="search" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg"></div>' + '</div>';
-  let suggestions = tab.appendChild(document.createElement('div'));
-  suggestions.classList.add("suggestions");
-  suggestions.innerHTML = '<div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div>';
-  this.frame = {
-    find: q => {
-      return container.querySelector(q);
-    }
-  };
-  let preferences = false;
-
-  if (searchparams) {
-    _sparams = localStorage.getItem(searchparams);
-    preferences = tab.appendChild(document.createElement('div'));
-    preferences.classList.add("preferences");
-    preferences.innerHTML = '<div class="section">Поиск по:</div>' + '<div class="line"><div class="checkbox imo disabled"></div><div class="label">IMO<label></div></div>' + '<div class="line"><div class="checkbox mmsi"></div><div class="label">MMSI<label></div></div>' + '<div class="line"><div class="checkbox name disabled"></div><div class="label">названию</div></div>' + '<div class="line"><div class="checkbox callsign"></div><div class="label">позывному<label></div></div>' + '<div class="line"><div class="checkbox owner"></div><div class="label">собственнику<label></div></div>';
-    !_sparams && (_sparams = 'imo name mmsi');
-    if (_sparams.search(/imo/) < 0) _sparams += ' imo';
-    if (_sparams.search(/name/) < 0) _sparams += ' name';
-
-    let asparams = _sparams.split(' ');
-
-    asparams.forEach((p, i) => {
-      preferences.querySelector('.' + p).classList.add('checked');
-    });
-  } else {
-    let sr = this.frame.find('.filter .searchremove');
-    sr.style.borderRight = 'none';
-    sr.style.paddingRight = 0;
-    this.frame.find('.filter input').style.width = '85%';
-  }
-
-  this.frame = {
-    find: q => {
-      return container.querySelector(q);
-    }
-  };
-  this.searchInput = this.frame.find('.filter input');
-
-  let searchBut = this.frame.find('.filter .search'),
-      prefeBut = this.frame.find('.filter .preferences'),
-      removeBut = this.frame.find('.filter .remove'),
-      delay,
-      //suggestions = this.frame.find('.suggestions'),
-  suggestionsCount = 5,
-      suggestionsFrame = {
-    first: 0,
-    current: 0,
-    last: suggestionsCount - 1
-  },
-      found = {
-    values: []
-  },
-      searchDone = function () {
-    if (found.values.length > 0) {
-      _searchString = found.values[suggestionsFrame.current].vessel_name;
-      this.searchInput.value = _searchString;
-      callback(found.values[suggestionsFrame.current]);
-    } // else {
-    //     _clean.call(this);
-    // }
-
-  },
-      doSearch = function (actualId) {
-    let requests = []; // _sparams.split(' ').forEach(sp=>{       
-    //     requests.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
-    // });
-
-    requests.push(new searcher.searchpromise([{
-      name: 'query',
-      value: [_searchString]
-    }]));
-    Promise.all(requests).then(a => {
-      //console.log(a)
-      return Promise.all(a.map(r => {
-        if (r.status != 200) {
-          console.log(r);
-          return [];
-        } else return r.json();
-      }));
-    }).then(a => {
-      //console.log(actualId+" "+delay)
-      if (actualId == delay) {
-        found = {
-          values: []
-        };
-        a.forEach(r => {
-          found.values = found.values.concat(searcher.parser(r));
-        }); //console.log(found.values)
-      } else return Promise.reject("stop");
-    }).then(function () {
-      // SUCCEEDED
-      //console.log(_searchString)
-      if (found.values.length == 0 || _searchString == "") {
-        suggestions.style.display = 'none';
-        return;
-      }
-
-      let scrollCont = suggestions.querySelector('.mCSB_container'),
-          content = Handlebars.compile('{{#each values}}<div class="suggestion" id="{{@index}}">{{vessel_name}}<br><span>mmsi:{{mmsi}}, imo:{{imo}}, {{callsign}}</span><br><span>{{owner}}</span></div>{{/each}}')(found);
-
-      if (!scrollCont) {
-        suggestions.innerHTML = content;
-        $(suggestions).mCustomScrollbar();
-      } else scrollCont.innerHTML = content;
-
-      let suggestion = suggestions.querySelectorAll('.suggestion');
-
-      if (suggestions.style.display != 'block') {
-        let cr = this.frame.find('.filter').getBoundingClientRect();
-        suggestions.style.display = 'block';
-        suggestions.style.position = 'fixed';
-        suggestions.style.left = cr.left + "px";
-        suggestions.style.top = cr.bottom - 3 + "px";
-        suggestions.style.width = Math.round(cr.width) - 2 + "px"; // $(suggestions).offset({ left: cr.left, top: cr.bottom - 3 });
-        // $(suggestions).outerWidth(cr.width)
-      }
-
-      suggestions.style.height = suggestion[0].getBoundingClientRect().height * (found.values.length > suggestionsCount ? suggestionsCount : found.values.length) + "px";
-      suggestionsFrame = {
-        first: 0,
-        current: 0,
-        last: suggestionsCount - 1
-      };
-      suggestion[suggestionsFrame.current].classList.add('selected');
-      suggestion.forEach(((el, i) => el.onclick = (e => {
-        suggestionsFrame.current = e.currentTarget.id;
-        suggestions.style.display = 'none';
-        searchDone.call(this);
-      }).bind(this)).bind(this));
-    }.bind(this), function (response) {
-      // FAILED
-      if (response != "stop") console.log(response);
-    });
-  };
-
-  tab.addEventListener('click', function (e) {
-    suggestions.style.display = 'none';
-  });
-
-  if (preferences) {
-    tab.addEventListener('click', function (e) {
-      preferences.style.display = 'none';
-    });
-
-    prefeBut.onclick = function (e) {
-      if (preferences.style.display != 'block') {
-        let cr = this.frame.find('.filter').getBoundingClientRect();
-        preferences.style.display = 'block';
-        preferences.style.position = 'fixed';
-        preferences.style.left = cr.left + (cr.width - preferences.offsetWidth) / 2 + "px";
-        preferences.style.top = cr.bottom + 10 + "px";
-        e.stopPropagation();
-      }
-    }.bind(this);
-
-    preferences.querySelectorAll('.line').forEach(el => el.onclick = e => {
-      let ch = el.querySelector('.checkbox');
-
-      if (!ch.classList.contains('disabled')) {
-        let sparam = ch.classList.value.replace(/ *(checked|checkbox) */g, '');
-
-        if (ch.classList.contains('checked')) {
-          ch.classList.remove('checked');
-          _sparams = _sparams.replace(new RegExp(sparam), '').replace(/ {2,}/g, ' ');
-        } else {
-          ch.classList.add('checked');
-          _sparams = _sparams + ' ' + sparam;
-        }
-
-        _sparams = _sparams.replace(/^\s+|\s+$/g, '');
-        localStorage.setItem(searchparams, _sparams); //console.log(_sparams)
-      }
-
-      e.stopPropagation();
-    });
-  }
-
-  removeBut.onclick = function (e) {
-    _searchString = '';
-    callback(null);
-    this.searchInput.value = '';
-    this.searchInput.focus();
-    clearTimeout(delay);
-    removeBut.style.display = 'none';
-    searchBut.style.display = 'block';
-    suggestions.style.display = 'none'; //_clean.call(this);
-  }.bind(this);
-
-  this.searchInput.onkeydown = function (e) {
-    let suggestion = suggestions.querySelector('.suggestion.selected');
-
-    if (suggestions.style.display == 'block') {
-      if (e.keyCode == 38) {
-        if (suggestionsFrame.current > 0) {
-          suggestionsFrame.current--;
-          suggestion.classList.remove('selected');
-          suggestion.previousSibling.classList.add('selected');
-        }
-      } else if (e.keyCode == 40) {
-        if (suggestionsFrame.current < found.values.length - 1) {
-          suggestionsFrame.current++;
-          suggestion.classList.remove('selected');
-          suggestion.nextSibling.classList.add('selected');
-        }
-      }
-
-      if (suggestionsFrame.last < suggestionsFrame.current) {
-        suggestionsFrame.last = suggestionsFrame.current;
-        suggestionsFrame.first = suggestionsFrame.last - (suggestionsCount - 1);
-      }
-
-      if (suggestionsFrame.first > suggestionsFrame.current) {
-        suggestionsFrame.first = suggestionsFrame.current;
-        suggestionsFrame.last = suggestionsFrame.first + (suggestionsCount - 1);
-      }
-
-      $(suggestions).mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, {
-        scrollInertia: 0
-      });
-    }
-  };
-
-  let prepareSearchInput = function (temp, keyCode) {
-    removeBut.style.display = 'block';
-    searchBut.style.display = 'none'; //console.log("delay clear"+delay)
-    //console.log(_searchString + "=="+ temp)
-
-    if (_searchString == temp && (!keyCode || keyCode != 13)) return false;
-    clearTimeout(delay);
-    _searchString = temp;
-
-    if (_searchString == "") {
-      removeBut.click();
-      return false;
-    }
-
-    return true;
-  };
-
-  this.searchInput.onkeyup = function (e) {
-    let temp = (this.searchInput.value || "").replace(/^\s+/, "").replace(/\s+$/, "");
-    if (!prepareSearchInput(temp, e.keyCode)) return;
-
-    if (e.keyCode == 13) {
-      suggestions.style.display = 'none';
-      searchDone.call(this);
-    } else {
-      delay = setTimeout((() => {
-        doSearch.apply(this, [delay]);
-      }).bind(this), 200);
-    }
-  }.bind(this);
-
-  this.searchInput.onpaste = function (e) {
-    let temp = ((e.originalEvent || window.clipboardData || e).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
-    if (!prepareSearchInput(temp)) return;
-    delay = setTimeout((() => {
-      doSearch.call(this, [delay]);
-    }).bind(this), 200);
-  }.bind(this);
-};
-
-SearchControl.prototype.focus = function () {
-  this.searchInput.focus();
-};
-
-module.exports = SearchControl;
-
-/***/ }),
-
-/***/ "../Common/Controls/SelectControl.js":
-/*!*******************************************!*\
-  !*** ../Common/Controls/SelectControl.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = function (container, options, active, callback) {
-  let _isOptionsDisplayed = false,
-      _select = document.createElement('div'),
-      _optionsList = document.createElement('div'),
-      _selected = active;
-
-  _select.className = 'select-control';
-  _select.innerHTML = `<span class="select-active">${options[active]}</span><span class="icon-down-open"></span>`;
-  _optionsList.className = 'select-list';
-  _optionsList.innerHTML = options.map((o, i) => `<div class="select-options" id="${i}">${o}</div>`).join('');
-  container.append(_select);
-  document.body.append(_optionsList);
-
-  const _arrow = _select.querySelector('.icon-down-open'),
-        _options = _optionsList.querySelectorAll('.select-options'),
-        _hideOptions = function () {
-    _optionsList.style.display = 'none';
-
-    _optionsList.querySelectorAll('.select-options')[_selected].classList.remove('selected');
-
-    _arrow.classList.remove('icon-up-open');
-
-    _arrow.classList.add('icon-down-open');
-
-    _isOptionsDisplayed = false;
-  };
-
-  let _setOptionsRect = function () {
-    let selectedRc = _select.getBoundingClientRect(),
-        bw = parseInt(getComputedStyle(_optionsList).borderWidth);
-
-    if (isNaN(bw)) bw = 0;
-    _optionsList.style.width = selectedRc.width - 2 * bw + "px";
-    _optionsList.style.top = selectedRc.bottom - 3 + "px";
-    _optionsList.style.left = selectedRc.left + "px";
-  };
-
-  for (let i = 0; i < _options.length; ++i) _options[i].addEventListener('click', e => {
-    _hideOptions();
-
-    _selected = parseInt(e.srcElement.id);
-    _select.querySelector('.select-active').innerHTML = options[_selected];
-    callback(_selected);
-  });
-
-  _optionsList.addEventListener('mouseleave', e => {
-    _hideOptions();
-  });
-
-  _select.addEventListener('click', e => {
-    //console.log(_isOptionsDisplayed)
-    if (_isOptionsDisplayed) {
-      _hideOptions();
-    } else {
-      _setOptionsRect();
-
-      _optionsList.style.display = 'block';
-
-      _optionsList.querySelectorAll('.select-options')[_selected].classList.add('selected');
-
-      _arrow.classList.remove('icon-down-open');
-
-      _arrow.classList.add('icon-up-open');
-
-      _isOptionsDisplayed = true;
-    }
-  });
-
-  return {
-    dropDownList: _optionsList
-  };
-};
-
-/***/ }),
-
-/***/ "../Common/Request.js":
-/*!****************************!*\
-  !*** ../Common/Request.js ***!
-  \****************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-const _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
-      _fetchRequest = function (url, request, method) {
-  if (url[0] == '/') url = _serverBase + url.replace(/^\//, '');
-  if (method == 'POST') return fetch(url, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    method: 'POST',
-    // *GET, POST, PUT, DELETE, etc.
-    mode: 'cors',
-    // no-cors, cors, *same-origin);
-    body: encodeURI(request)
-  });
-},
-      _sendRequest = function (url, request, method) {
-  return new Promise((resolve, reject) => {
-    const callback = response => {
-      if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
-        reject(response);
-      } else resolve(response.Result);
-    };
-
-    if (url[0] == '/') url = _serverBase + url.replace(/^\//, '');
-    if (!method || method == 'GET') window.sendCrossDomainJSONRequest(url + `?${_getQueryString(request)}`, callback);
-
-    if (method == 'POST') {
-      request.WrapStyle = 'message';
-      window.sendCrossDomainPostRequest(url, request, callback);
-    }
-  });
-},
-      _getQueryString = function (params) {
-  let qs = '';
-
-  for (let p in params) {
-    if (qs != '') qs += '&';
-    qs += p + '=' + (typeof params[p] == 'object' ? JSON.stringify(params[p]) : params[p]);
-  }
-
-  return qs;
-};
-
-_searchRequest = function (params, method) {
-  return _sendRequest(`${_serverBase}VectorLayer/Search.ashx`, params, method);
-}, _modifyRequest = function (params) {
-  const url = `${_serverBase}VectorLayer/ModifyVectorObjects.ashx?${_getQueryString(params)}`;
-  return _sendRequest(url);
-}, _checkVersion = function (layer, ms) {
-  setTimeout(() => {
-    L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
-
-    setTimeout(() => {
-      L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
-
-      setTimeout(() => {
-        L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
-      }, ms);
-    }, ms);
-  }, ms);
-};
-module.exports = {
-  fetchRequest: _fetchRequest,
-  sendRequest: _sendRequest,
-  searchRequest: _searchRequest,
-  modifyRequest: _modifyRequest,
-  checkVersion: _checkVersion
-};
-
-/***/ }),
-
 /***/ "./src/Models/TracksModel.js":
 /*!***********************************!*\
   !*** ./src/Models/TracksModel.js ***!
@@ -765,7 +301,7 @@ module.exports = {
 
 function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
 
-var Request = __webpack_require__(/*! ../../../Common/Request */ "../Common/Request.js"); //////////////////////////
+var Request = __webpack_require__(/*! ../Request */ "./src/Request.js"); //////////////////////////
 
 
 var _defaultViconColor = '#999',
@@ -920,10 +456,11 @@ module.exports = function (options) {
         });
       }).then(function () {
         // draw track on map
+        thisModel.view.repaint();
+
         if (_data.tracks.length) {
           var lastPos,
               wholeDistance = 0;
-          thisModel.view.repaint();
 
           _data.tracks.forEach(function (t) {
             t.distance = 0;
@@ -1100,6 +637,85 @@ module.exports = function (viewFactory) {
 
 /***/ }),
 
+/***/ "./src/Request.js":
+/*!************************!*\
+  !*** ./src/Request.js ***!
+  \************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
+    _fetchRequest = function _fetchRequest(url, request, method) {
+  if (url[0] == '/') url = _serverBase + url.replace(/^\//, '');
+  if (method == 'POST') return fetch(url, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    method: 'POST',
+    // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors',
+    // no-cors, cors, *same-origin);
+    body: encodeURI(request)
+  });
+},
+    _sendRequest = function _sendRequest(url, request, method) {
+  return new Promise(function (resolve, reject) {
+    var callback = function callback(response) {
+      if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
+        reject(response);
+      } else resolve(response.Result);
+    };
+
+    if (url[0] == '/') url = _serverBase + url.replace(/^\//, '');
+    if (!method || method == 'GET') window.sendCrossDomainJSONRequest(url + "?".concat(_getQueryString(request)), callback);
+
+    if (method == 'POST') {
+      request.WrapStyle = 'message';
+      window.sendCrossDomainPostRequest(url, request, callback);
+    }
+  });
+},
+    _getQueryString = function _getQueryString(params) {
+  var qs = '';
+
+  for (var p in params) {
+    if (qs != '') qs += '&';
+    qs += p + '=' + (_typeof(params[p]) == 'object' ? JSON.stringify(params[p]) : params[p]);
+  }
+
+  return qs;
+};
+
+_searchRequest = function _searchRequest(params, method) {
+  return _sendRequest("".concat(_serverBase, "VectorLayer/Search.ashx"), params, method);
+}, _modifyRequest = function _modifyRequest(params) {
+  var url = "".concat(_serverBase, "VectorLayer/ModifyVectorObjects.ashx?").concat(_getQueryString(params));
+  return _sendRequest(url);
+}, _checkVersion = function _checkVersion(layer, ms) {
+  setTimeout(function () {
+    L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+
+    setTimeout(function () {
+      L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+
+      setTimeout(function () {
+        L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
+      }, ms);
+    }, ms);
+  }, ms);
+};
+module.exports = {
+  fetchRequest: _fetchRequest,
+  sendRequest: _sendRequest,
+  searchRequest: _searchRequest,
+  modifyRequest: _modifyRequest,
+  checkVersion: _checkVersion
+};
+
+/***/ }),
+
 /***/ "./src/SearchControl.css":
 /*!*******************************!*\
   !*** ./src/SearchControl.css ***!
@@ -1111,6 +727,303 @@ module.exports = function (viewFactory) {
 
 /***/ }),
 
+/***/ "./src/SearchControl.js":
+/*!******************************!*\
+  !*** ./src/SearchControl.js ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var _searchString = "",
+    _sparams = 'imo name mmsi';
+
+var SearchControl = function SearchControl(_ref) {
+  var tab = _ref.tab,
+      container = _ref.container,
+      callback = _ref.callback,
+      searchparams = _ref.searchparams,
+      searcher = _ref.searcher;
+  container.innerHTML = '<div class="filter"><input type="text" placeholder="' + _gtxt("Lloyds.search_placeholder") + '"/>' + (!searchparams ? '' : '<div class="preferences"></div>') + '<div class="searchremove"><img class="search" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg"></div>' + '</div>';
+  var suggestions = tab.appendChild(document.createElement('div'));
+  suggestions.classList.add("suggestions");
+  suggestions.innerHTML = '<div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div>';
+  this.frame = {
+    find: function find(q) {
+      return container.querySelector(q);
+    }
+  };
+  var preferences = false;
+
+  if (searchparams) {
+    _sparams = localStorage.getItem(searchparams);
+    preferences = tab.appendChild(document.createElement('div'));
+    preferences.classList.add("preferences");
+    preferences.innerHTML = '<div class="section">Поиск по:</div>' + '<div class="line"><div class="checkbox imo disabled"></div><div class="label">IMO<label></div></div>' + '<div class="line"><div class="checkbox mmsi"></div><div class="label">MMSI<label></div></div>' + '<div class="line"><div class="checkbox name disabled"></div><div class="label">названию</div></div>' + '<div class="line"><div class="checkbox callsign"></div><div class="label">позывному<label></div></div>' + '<div class="line"><div class="checkbox owner"></div><div class="label">собственнику<label></div></div>';
+    !_sparams && (_sparams = 'imo name mmsi');
+    if (_sparams.search(/imo/) < 0) _sparams += ' imo';
+    if (_sparams.search(/name/) < 0) _sparams += ' name';
+
+    var asparams = _sparams.split(' ');
+
+    asparams.forEach(function (p, i) {
+      preferences.querySelector('.' + p).classList.add('checked');
+    });
+  } else {
+    var sr = this.frame.find('.filter .searchremove');
+    sr.style.borderRight = 'none';
+    sr.style.paddingRight = 0;
+    this.frame.find('.filter input').style.width = '85%';
+  }
+
+  this.frame = {
+    find: function find(q) {
+      return container.querySelector(q);
+    }
+  };
+  this.searchInput = this.frame.find('.filter input');
+
+  var searchBut = this.frame.find('.filter .search'),
+      prefeBut = this.frame.find('.filter .preferences'),
+      removeBut = this.frame.find('.filter .remove'),
+      delay,
+      //suggestions = this.frame.find('.suggestions'),
+  suggestionsCount = 5,
+      suggestionsFrame = {
+    first: 0,
+    current: 0,
+    last: suggestionsCount - 1
+  },
+      found = {
+    values: []
+  },
+      searchDone = function searchDone() {
+    if (found.values.length > 0) {
+      _searchString = found.values[suggestionsFrame.current].vessel_name;
+      this.searchInput.value = _searchString;
+      callback(found.values[suggestionsFrame.current]);
+    } // else {
+    //     _clean.call(this);
+    // }
+
+  },
+      doSearch = function doSearch(actualId) {
+    var requests = []; // _sparams.split(' ').forEach(sp=>{       
+    //     requests.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
+    // });
+
+    requests.push(new searcher.searchpromise([{
+      name: 'query',
+      value: [_searchString]
+    }]));
+    Promise.all(requests).then(function (a) {
+      //console.log(a)
+      return Promise.all(a.map(function (r) {
+        if (r.status != 200) {
+          console.log(r);
+          return [];
+        } else return r.json();
+      }));
+    }).then(function (a) {
+      //console.log(actualId+" "+delay)
+      if (actualId == delay) {
+        found = {
+          values: []
+        };
+        a.forEach(function (r) {
+          found.values = found.values.concat(searcher.parser(r));
+        }); //console.log(found.values)
+      } else return Promise.reject("stop");
+    }).then(function () {
+      var _this = this;
+
+      // SUCCEEDED
+      //console.log(_searchString)
+      if (found.values.length == 0 || _searchString == "") {
+        suggestions.style.display = 'none';
+        return;
+      }
+
+      var scrollCont = suggestions.querySelector('.mCSB_container'),
+          content = Handlebars.compile('{{#each values}}<div class="suggestion" id="{{@index}}">{{vessel_name}}<br><span>mmsi:{{mmsi}}, imo:{{imo}}, {{callsign}}</span><br><span>{{owner}}</span></div>{{/each}}')(found);
+
+      if (!scrollCont) {
+        suggestions.innerHTML = content;
+        $(suggestions).mCustomScrollbar();
+      } else scrollCont.innerHTML = content;
+
+      var suggestion = suggestions.querySelectorAll('.suggestion');
+
+      if (suggestions.style.display != 'block') {
+        var cr = this.frame.find('.filter').getBoundingClientRect();
+        suggestions.style.display = 'block';
+        suggestions.style.position = 'fixed';
+        suggestions.style.left = cr.left + "px";
+        suggestions.style.top = cr.bottom - 3 + "px";
+        suggestions.style.width = Math.round(cr.width) - 2 + "px"; // $(suggestions).offset({ left: cr.left, top: cr.bottom - 3 });
+        // $(suggestions).outerWidth(cr.width)
+      }
+
+      suggestions.style.height = suggestion[0].getBoundingClientRect().height * (found.values.length > suggestionsCount ? suggestionsCount : found.values.length) + "px";
+      suggestionsFrame = {
+        first: 0,
+        current: 0,
+        last: suggestionsCount - 1
+      };
+      suggestion[suggestionsFrame.current].classList.add('selected');
+      suggestion.forEach(function (el, i) {
+        return el.onclick = function (e) {
+          suggestionsFrame.current = e.currentTarget.id;
+          suggestions.style.display = 'none';
+          searchDone.call(_this);
+        }.bind(_this);
+      }.bind(this));
+    }.bind(this), function (response) {
+      // FAILED
+      if (response != "stop") console.log(response);
+    });
+  };
+
+  tab.addEventListener('click', function (e) {
+    suggestions.style.display = 'none';
+  });
+
+  if (preferences) {
+    tab.addEventListener('click', function (e) {
+      preferences.style.display = 'none';
+    });
+
+    prefeBut.onclick = function (e) {
+      if (preferences.style.display != 'block') {
+        var cr = this.frame.find('.filter').getBoundingClientRect();
+        preferences.style.display = 'block';
+        preferences.style.position = 'fixed';
+        preferences.style.left = cr.left + (cr.width - preferences.offsetWidth) / 2 + "px";
+        preferences.style.top = cr.bottom + 10 + "px";
+        e.stopPropagation();
+      }
+    }.bind(this);
+
+    preferences.querySelectorAll('.line').forEach(function (el) {
+      return el.onclick = function (e) {
+        var ch = el.querySelector('.checkbox');
+
+        if (!ch.classList.contains('disabled')) {
+          var sparam = ch.classList.value.replace(/ *(checked|checkbox) */g, '');
+
+          if (ch.classList.contains('checked')) {
+            ch.classList.remove('checked');
+            _sparams = _sparams.replace(new RegExp(sparam), '').replace(/ {2,}/g, ' ');
+          } else {
+            ch.classList.add('checked');
+            _sparams = _sparams + ' ' + sparam;
+          }
+
+          _sparams = _sparams.replace(/^\s+|\s+$/g, '');
+          localStorage.setItem(searchparams, _sparams); //console.log(_sparams)
+        }
+
+        e.stopPropagation();
+      };
+    });
+  }
+
+  removeBut.onclick = function (e) {
+    _searchString = '';
+    callback(null);
+    this.searchInput.value = '';
+    this.searchInput.focus();
+    clearTimeout(delay);
+    removeBut.style.display = 'none';
+    searchBut.style.display = 'block';
+    suggestions.style.display = 'none'; //_clean.call(this);
+  }.bind(this);
+
+  this.searchInput.onkeydown = function (e) {
+    var suggestion = suggestions.querySelector('.suggestion.selected');
+
+    if (suggestions.style.display == 'block') {
+      if (e.keyCode == 38) {
+        if (suggestionsFrame.current > 0) {
+          suggestionsFrame.current--;
+          suggestion.classList.remove('selected');
+          suggestion.previousSibling.classList.add('selected');
+        }
+      } else if (e.keyCode == 40) {
+        if (suggestionsFrame.current < found.values.length - 1) {
+          suggestionsFrame.current++;
+          suggestion.classList.remove('selected');
+          suggestion.nextSibling.classList.add('selected');
+        }
+      }
+
+      if (suggestionsFrame.last < suggestionsFrame.current) {
+        suggestionsFrame.last = suggestionsFrame.current;
+        suggestionsFrame.first = suggestionsFrame.last - (suggestionsCount - 1);
+      }
+
+      if (suggestionsFrame.first > suggestionsFrame.current) {
+        suggestionsFrame.first = suggestionsFrame.current;
+        suggestionsFrame.last = suggestionsFrame.first + (suggestionsCount - 1);
+      }
+
+      $(suggestions).mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, {
+        scrollInertia: 0
+      });
+    }
+  };
+
+  var prepareSearchInput = function prepareSearchInput(temp, keyCode) {
+    removeBut.style.display = 'block';
+    searchBut.style.display = 'none'; //console.log("delay clear"+delay)
+    //console.log(_searchString + "=="+ temp)
+
+    if (_searchString == temp && (!keyCode || keyCode != 13)) return false;
+    clearTimeout(delay);
+    _searchString = temp;
+
+    if (_searchString == "") {
+      removeBut.click();
+      return false;
+    }
+
+    return true;
+  };
+
+  this.searchInput.onkeyup = function (e) {
+    var _this2 = this;
+
+    var temp = (this.searchInput.value || "").replace(/^\s+/, "").replace(/\s+$/, "");
+    if (!prepareSearchInput(temp, e.keyCode)) return;
+
+    if (e.keyCode == 13) {
+      suggestions.style.display = 'none';
+      searchDone.call(this);
+    } else {
+      delay = setTimeout(function () {
+        doSearch.apply(_this2, [delay]);
+      }.bind(this), 200);
+    }
+  }.bind(this);
+
+  this.searchInput.onpaste = function (e) {
+    var _this3 = this;
+
+    var temp = ((e.originalEvent || window.clipboardData || e).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
+    if (!prepareSearchInput(temp)) return;
+    delay = setTimeout(function () {
+      doSearch.call(_this3, [delay]);
+    }.bind(this), 200);
+  }.bind(this);
+};
+
+SearchControl.prototype.focus = function () {
+  this.searchInput.focus();
+};
+
+module.exports = SearchControl;
+
+/***/ }),
+
 /***/ "./src/SelectControl.css":
 /*!*******************************!*\
   !*** ./src/SelectControl.css ***!
@@ -1119,6 +1032,92 @@ module.exports = function (viewFactory) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
+
+/***/ }),
+
+/***/ "./src/SelectControl.js":
+/*!******************************!*\
+  !*** ./src/SelectControl.js ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function (container, options, active, callback) {
+  var _isOptionsDisplayed = false,
+      _select = document.createElement('div'),
+      _optionsList = document.createElement('div'),
+      _selected = active;
+
+  _select.className = 'select-control';
+  _select.innerHTML = "<span class=\"select-active\">".concat(options[active], "</span><span class=\"icon-down-open\"></span>");
+  _optionsList.className = 'select-list';
+  _optionsList.innerHTML = options.map(function (o, i) {
+    return "<div class=\"select-options\" id=\"".concat(i, "\">").concat(o, "</div>");
+  }).join('');
+  container.append(_select);
+  document.body.append(_optionsList);
+
+  var _arrow = _select.querySelector('.icon-down-open'),
+      _options = _optionsList.querySelectorAll('.select-options'),
+      _hideOptions = function _hideOptions() {
+    _optionsList.style.display = 'none';
+
+    _optionsList.querySelectorAll('.select-options')[_selected].classList.remove('selected');
+
+    _arrow.classList.remove('icon-up-open');
+
+    _arrow.classList.add('icon-down-open');
+
+    _isOptionsDisplayed = false;
+  };
+
+  var _setOptionsRect = function _setOptionsRect() {
+    var selectedRc = _select.getBoundingClientRect(),
+        bw = parseInt(getComputedStyle(_optionsList).borderWidth);
+
+    if (isNaN(bw)) bw = 0;
+    _optionsList.style.width = selectedRc.width - 2 * bw + "px";
+    _optionsList.style.top = selectedRc.bottom - 3 + "px";
+    _optionsList.style.left = selectedRc.left + "px";
+  };
+
+  for (var i = 0; i < _options.length; ++i) {
+    _options[i].addEventListener('click', function (e) {
+      _hideOptions();
+
+      _selected = parseInt(e.srcElement.id);
+      _select.querySelector('.select-active').innerHTML = options[_selected];
+      callback(_selected);
+    });
+  }
+
+  _optionsList.addEventListener('mouseleave', function (e) {
+    _hideOptions();
+  });
+
+  _select.addEventListener('click', function (e) {
+    //console.log(_isOptionsDisplayed)
+    if (_isOptionsDisplayed) {
+      _hideOptions();
+    } else {
+      _setOptionsRect();
+
+      _optionsList.style.display = 'block';
+
+      _optionsList.querySelectorAll('.select-options')[_selected].classList.add('selected');
+
+      _arrow.classList.remove('icon-down-open');
+
+      _arrow.classList.add('icon-up-open');
+
+      _isOptionsDisplayed = true;
+    }
+  });
+
+  return {
+    dropDownList: _optionsList
+  };
+};
 
 /***/ }),
 
@@ -1226,10 +1225,10 @@ __webpack_require__(/*! ../SearchControl.css */ "./src/SearchControl.css");
 __webpack_require__(/*! ../SelectControl.css */ "./src/SelectControl.css");
 
 var BaseView = __webpack_require__(/*! ./BaseView.js */ "./src/Views/BaseView.js"),
-    Request = __webpack_require__(/*! ../../../Common/Request */ "../Common/Request.js"),
-    Calendar = __webpack_require__(/*! ../../../Common/Controls/Calendar */ "../Common/Controls/Calendar.js"),
-    SearchControl = __webpack_require__(/*! ../../../Common/Controls/SearchControl */ "../Common/Controls/SearchControl.js"),
-    SelectControl = __webpack_require__(/*! ../../../Common/Controls/SelectControl */ "../Common/Controls/SelectControl.js");
+    Request = __webpack_require__(/*! ../Request */ "./src/Request.js"),
+    Calendar = __webpack_require__(/*! ../Calendar */ "./src/Calendar.js"),
+    SearchControl = __webpack_require__(/*! ../SearchControl */ "./src/SearchControl.js"),
+    SelectControl = __webpack_require__(/*! ../SelectControl */ "./src/SelectControl.js");
 
 var _toDd = function _toDd(D, isLng) {
   var dir = D < 0 ? isLng ? 'W' : 'S' : isLng ? 'E' : 'N',
@@ -1238,8 +1237,9 @@ var _toDd = function _toDd(D, isLng) {
   + dir;
 };
 
-var _searchLayer = 'CE660F806D164FE58556638D752A4203',
-    _selectLayers = [{
+var _searchLayer = 'EE5587AF1F70433AA878462272C0274C',
+    //'CE660F806D164FE58556638D752A4203',
+_selectLayers = [{
   name: 'FOS',
   id: 'ED043040A005429B8F46AAA682BE49C3',
   sort: 'timestamp',
@@ -1292,9 +1292,10 @@ var _searchLayer = 'CE660F806D164FE58556638D752A4203',
     };
   }
 }, {
-  name: 'AIS СКФ',
-  id: '5790ADDFBDD64880BAC95DF13B8327EA',
+  name: 'AIS',
   sort: 'ts_pos_utc',
+  id: '8EE2C7996800458AAF70BABB43321FA4',
+  //'5790ADDFBDD64880BAC95DF13B8327EA', 
   columns: JSON.stringify([{
     "Value": "mmsi"
   }, {
@@ -1372,7 +1373,8 @@ var TracksView = function TracksView(_ref) {
   this.frame.find('.reload').on('click', function (e) {
     var db = _thisView.calendar.dateInterval.get('dateBegin'),
         de = _thisView.calendar.dateInterval.get('dateEnd'),
-        daysDiff = Math.ceil((de.getTime() - db.getTime()) / (24 * 3600000));
+        daysDiff = Math.ceil((de.getTime() - db.getTime()) / (24 * 3600000)); //console.log(_thisView.calendar, daysDiff)
+
 
     if ((_this.mmsi || _this.imo) && daysDiff < 8) {
       _this.model.isDirty = true;
@@ -1474,14 +1476,22 @@ var TracksView = function TracksView(_ref) {
 
   calendar.innerHTML = '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
   var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-      dateInterval = new nsGmx.DateInterval();
-  dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {});
+      dateInterval = new nsGmx.DateInterval(),
+      msd = 24 * 3600000;
+  dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
+    var d = new Date(e.attributes.dateEnd.getTime() - msd * 7);
+
+    _thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
+
+    if (e.attributes.dateBegin.getTime() < d.getTime()) e.attributes.dateBegin = new Date(d.getTime()); // console.log(d)
+    // console.log(_thisView.calendar.dateInterval.get('dateBegin'))
+  });
   this.calendar = new Calendar({
     dateInterval: dateInterval,
     name: 'catalogInterval',
     container: calendar,
-    dateMin: new Date(0, 0, 0),
-    dateMax: new Date(),
+    dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd * 6),
+    //dateMax: new Date(),
     dateFormat: 'dd.mm.yy',
     minimized: false,
     showSwitcher: false
@@ -1604,8 +1614,17 @@ var _onOpenPosClick = function _onOpenPosClick(e) {
       coordinates: trackLine
     })
   }];
+
+  var getFilename = function getFilename() {
+    var spart = tracks[0].utc_date,
+        //`${s.getFullYear()}_${s.getMonth()+1}_${s.getDate()}`,
+    epart = tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : ''; //tracks.length>1 ? `_${e.getFullYear()}_${e.getMonth()+1}_${e.getDate()}` : '';
+
+    return "".concat(_thisView.vname, "_").concat(spart).concat(epart).replace(/[!\?\:<>"'#]/g, '').replace(/[ \.\/\\-]/g, '_');
+  };
+
   nsGmx.Utils.downloadGeometry(features, {
-    fileName: "".concat(_thisView.vname, "_").concat(tracks[0].utc_date).concat(tracks.length > 1 ? '_' + tracks[tracks.length - 1].utc_date : '').replace(/ |\./g, '_'),
+    fileName: getFilename(),
     format: type
   }); //console.log(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type,});
 };

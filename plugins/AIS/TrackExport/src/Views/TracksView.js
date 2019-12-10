@@ -2,10 +2,10 @@ require("./TracksView.css");
 require("../SearchControl.css");
 require("../SelectControl.css");
 const BaseView = require('./BaseView.js'),
-      Request = require('../../../Common/Request'),
-      Calendar = require('../../../Common/Controls/Calendar'),
-      SearchControl = require('../../../Common/Controls/SearchControl'),
-      SelectControl = require('../../../Common/Controls/SelectControl');
+      Request = require('../Request'),
+      Calendar = require('../Calendar'),
+      SearchControl = require('../SearchControl'),
+      SelectControl = require('../SelectControl');
 
 const _toDd = function (D, isLng) {
     let dir = D < 0 ? isLng ? 'W' : 'S' : isLng ? 'E' : 'N',
@@ -14,7 +14,7 @@ const _toDd = function (D, isLng) {
         + dir
 };
 
-const _searchLayer = 'CE660F806D164FE58556638D752A4203',
+const _searchLayer = 'EE5587AF1F70433AA878462272C0274C',//'CE660F806D164FE58556638D752A4203',
       _selectLayers = [
         {
             name: 'FOS', id: 'ED043040A005429B8F46AAA682BE49C3', sort: 'timestamp',            
@@ -37,7 +37,7 @@ const _searchLayer = 'CE660F806D164FE58556638D752A4203',
             }
         }, 
         {
-            name: 'AIS СКФ', id: '5790ADDFBDD64880BAC95DF13B8327EA', sort: 'ts_pos_utc',
+            name: 'AIS', sort: 'ts_pos_utc', id: '8EE2C7996800458AAF70BABB43321FA4', //'5790ADDFBDD64880BAC95DF13B8327EA', 
             columns: JSON.stringify([{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]),
             get query() {return `([mmsi] IN (${_thisView.mmsi})) and '${_thisView.calendar.dateInterval.get('dateBegin').toISOString()}'<=[ts_pos_utc] and [ts_pos_utc]<'${_thisView.calendar.dateInterval.get('dateEnd').toISOString()}'`;},
             parseData: function(fields, value, getVicon){                             
@@ -94,6 +94,7 @@ const TracksView = function ({ model, layer }) {
             let db = _thisView.calendar.dateInterval.get('dateBegin'),
                 de = _thisView.calendar.dateInterval.get('dateEnd'),
                 daysDiff = Math.ceil((de.getTime() - db.getTime()) / (24*3600000));
+//console.log(_thisView.calendar, daysDiff)
             if ((this.mmsi || this.imo) && daysDiff<8) {
                 this.model.isDirty = true;
                 this.inProgress(true);
@@ -207,21 +208,27 @@ const TracksView = function ({ model, layer }) {
         calendar.innerHTML = ('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
 
         const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-              dateInterval = new nsGmx.DateInterval();
+              dateInterval = new nsGmx.DateInterval(),
+              msd = 24*3600000;
     
         dateInterval
             .set('dateBegin', mapDateInterval.get('dateBegin'))
             .set('dateEnd', mapDateInterval.get('dateEnd'))
             .on('change', function (e) {
-
+                let d = new Date(e.attributes.dateEnd.getTime() - msd*7);
+                _thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
+                if (e.attributes.dateBegin.getTime()<d.getTime())
+                    e.attributes.dateBegin = new Date(d.getTime());
+// console.log(d)
+// console.log(_thisView.calendar.dateInterval.get('dateBegin'))
             });
 
         this.calendar = new Calendar({
             dateInterval: dateInterval,
             name: 'catalogInterval',
             container: calendar,
-            dateMin: new Date(0, 0, 0),
-            dateMax: new Date(),
+            dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*6),
+            //dateMax: new Date(),
             dateFormat: 'dd.mm.yy',
             minimized: false,
             showSwitcher: false
@@ -335,7 +342,12 @@ const _onOpenPosClick = function(e){
             return p;
         }, []),
         features = [{geometry:L.gmxUtil.geometryToGeoJSON({type:'LINESTRING', coordinates:trackLine})}];
-        nsGmx.Utils.downloadGeometry(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type}); 
+        let getFilename = function(){
+            let spart = tracks[0].utc_date, //`${s.getFullYear()}_${s.getMonth()+1}_${s.getDate()}`,
+            epart = tracks.length>1 ? '_' +  tracks[tracks.length-1].utc_date: ''; //tracks.length>1 ? `_${e.getFullYear()}_${e.getMonth()+1}_${e.getDate()}` : '';
+            return `${_thisView.vname}_${spart}${epart}`.replace(/[!\?\:<>"'#]/g, '').replace(/[ \.\/\\-]/g, '_');
+        }
+        nsGmx.Utils.downloadGeometry(features, {fileName: getFilename(), format: type}); 
 //console.log(features, {fileName: `${_thisView.vname}_${tracks[0].utc_date}${tracks.length>1?'_' + tracks[tracks.length-1].utc_date:''}`.replace(/ |\./g, '_'), format: type,});
     };
 

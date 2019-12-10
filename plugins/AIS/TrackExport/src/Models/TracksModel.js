@@ -1,4 +1,4 @@
-const Request = require('../../../Common/Request');
+const Request = require('../Request');
 
 //////////////////////////
 
@@ -130,9 +130,9 @@ module.exports = function (options) {
             }).then(()=>{    
                 
                 // draw track on map
+                thisModel.view.repaint();
                 if (_data.tracks.length){
                     let lastPos, wholeDistance = 0;
-                    thisModel.view.repaint();
                     _data.tracks.forEach(t=>{
                         t.distance = 0;
                         let temp, latlngs = t.positions.map(p=>{
