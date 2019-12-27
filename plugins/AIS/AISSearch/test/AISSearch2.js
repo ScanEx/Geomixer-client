@@ -60,8 +60,8 @@
 	
 	var AisPluginPanel = __webpack_require__(6),
 	    ViewsFactory = __webpack_require__(7),
-	    LegendControl = __webpack_require__(29),
-	    Toolbox = __webpack_require__(30);
+	    LegendControl = __webpack_require__(31),
+	    Toolbox = __webpack_require__(32);
 	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
@@ -605,9 +605,9 @@
 	    MyFleetView = __webpack_require__(11),
 	    MyFleetModel = __webpack_require__(15),
 	    DbSearchView = __webpack_require__(17),
-	    DbSearchModel = __webpack_require__(19),
-	    InfoDialogView = __webpack_require__(20),
-	    Searcher = __webpack_require__(28);
+	    DbSearchModel = __webpack_require__(21),
+	    InfoDialogView = __webpack_require__(22),
+	    Searcher = __webpack_require__(30);
 	
 	module.exports = function (options) {
 	    var _tools = options.tools,
@@ -615,7 +615,7 @@
 	        _mfm = new MyFleetModel({ aisLayerSearcher: _searcher, toolbox: _tools }),
 	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
 	        _dbsm = new DbSearchModel(_searcher),
-	        _dbsv = new DbSearchView({ model: _dbsm, highlight: options.highlight, tools: _tools }),
+	        _dbsv = new DbSearchView(_dbsm, options, _tools),
 	        _ssv = new ScreenSearchView(_ssm, _tools),
 	        _mfv = new MyFleetView(_mfm, _tools),
 	        _idv = new InfoDialogView({
@@ -2420,20 +2420,25 @@
 	"use strict";
 	
 	__webpack_require__(18);
-	var BaseView = __webpack_require__(9);
+	__webpack_require__(19);
+	var BaseView = __webpack_require__(9),
+	    SearchControl = __webpack_require__(20);
 	
-	var _searchString = "",
-	    _setSearchInputValue = function _setSearchInputValue(s) {
-	    var searchBut = this.frame.find('.filter .search'),
-	        removeBut = this.frame.find('.filter .remove'),
-	        _searchString = s;
+	var // _searchString = "",
+	// _setSearchInputValue = function (s) {
+	//     let searchBut = this.frame.find('.filter .search'),
+	//         removeBut = this.frame.find('.filter .remove'),
+	//         _searchString = s;
 	
-	    this.searchInput.val(_searchString);
-	    if (s != "") {
-	        removeBut.show();
-	        searchBut.hide();
-	    } else removeBut.click();
-	},
+	//     this.searchInput.val(_searchString);
+	//     if (s != "") {
+	//         removeBut.show();
+	//         searchBut.hide();
+	//     }
+	//     else
+	//         removeBut.click();
+	// },
+	_searchLayer = void 0,
 	    _highlight = void 0,
 	    _tools = void 0,
 	    _displayedOnly = [];
@@ -2446,17 +2451,23 @@
 	        ica.hide();ic.show();
 	    }
 	};
-	var DbSearchView = function DbSearchView(_ref) {
+	var DbSearchView = function DbSearchView(model, options, tools) {
 	    var _this = this;
 	
-	    var model = _ref.model,
-	        highlight = _ref.highlight,
-	        tools = _ref.tools;
-	
 	    BaseView.call(this, model, tools);
-	    _highlight = highlight;
+	    _searchLayer = options.aisLastPoint;
+	    _highlight = options.highlight;
 	    _tools = tools;
-	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2"><div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' + '<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' + '</div></div>' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' + '<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' + '</div>')());
+	    this.frame = $(Handlebars.compile('<div class="ais_view search_view">' + '<table border=0 class="instruments">' + '<tr><td colspan="2" class="search_input_container">' +
+	
+	    //'<div class="filter"><input type="text" placeholder="{{i "AISSearch2.filter"}}"/>' +
+	    //'<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' +
+	    //'<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' +
+	    //'</div></div>' + 
+	    '' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' +
+	
+	    //'<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' +
+	    '</div>')());
 	
 	    Object.defineProperty(this, "topOffset", {
 	        get: function get() {
@@ -2516,7 +2527,7 @@
 	        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
 	            _this.calendar.reset();
 	        }
-	        suggestions.hide();
+	        //suggestions.hide();
 	    }.bind(this));
 	
 	    this.frame.find('.time .only_this  input[type="checkbox"]').click(function (e) {
@@ -2559,157 +2570,49 @@
 	        }
 	    }.bind(this));
 	
-	    this.searchInput = this.frame.find('.filter input');
-	
-	    var searchBut = this.frame.find('.filter .search'),
-	        removeBut = this.frame.find('.filter .remove'),
-	        delay = void 0,
-	        suggestions = this.frame.find('.suggestions'),
-	        suggestionsCount = 12,
-	        suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 },
-	        found = { values: [] },
-	        searchDone = function searchDone() {
-	        if (found.values.length > 0) {
-	            _searchString = found.values[suggestionsFrame.current].vessel_name;
-	            this.searchInput.val(_searchString);
-	            var v = found.values[suggestionsFrame.current];
-	            if (!this.vessel || this.vessel.mmsi != v.mmsi || !this.frame.find('.ais_positions_date:not(.header)')[0]) {
-	                this.vessel = v;
-	                this.show();
-	            }
-	        } else {
-	            _clean.call(this);
-	            _cleanMap.call(this);
-	        }
-	    },
-	        doSearch = function doSearch(actualId) {
-	        //console.log(_searchString)
-	        new Promise(function (resolve, reject) {
-	            this.model.searcher.searchString2(_searchString, true, function (response) {
-	                if (response.Status.toLowerCase() == "ok") {
-	                    found = {
-	                        values: response.Result.values.map(function (v) {
-	                            return { vessel_name: v[0], mmsi: v[1], imo: v[2], ts_pos_utc: v[3], ts_pos_org: v[3], vessel_type: v[4] };
-	                        })
-	                    };
-	                    resolve();
+	    this.searchInput = new SearchControl({ tab: this.frame[0], container: this.frame.find('.search_input_container')[0],
+	        searcher: {
+	            searchpromise: function searchpromise(params) {
+	                var request = "layer=" + _searchLayer + "&columns=[{\"Value\":\"vessel_name\"},{\"Value\":\"mmsi\"},{\"Value\":\"imo\"},{\"Value\":\"ts_pos_utc\"},{\"Value\":\"vessel_type\"},{\"Value\":\"longitude\"},{\"Value\":\"latitude\"},{\"Value\":\"source\"}]&orderby=vessel_name&" + params[0].name + "=" + params[0].value;
+	                //return Request.fetchRequest('/Plugins/AIS/SearchShip.ashx', request, 'POST');
+	                return fetch(document.location.protocol + window.serverBase.replace(/^https?:/, '') + 'Plugins/AIS/SearchShip.ashx', {
+	                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+	                    method: 'POST',
+	                    mode: 'cors',
+	                    body: encodeURI(request)
+	                });
+	            },
+	            parser: function parser(response) {
+	                //console.log(response)               
+	                if (response.Status && response.Status.toLowerCase() == 'ok' && response.Result) {
+	                    var columns = response.Result.columns,
+	                        values = response.Result.values;
+	                    return values.map(function (v) {
+	                        var rv = {};
+	                        columns.forEach(function (c, i) {
+	                            rv[c] = v[i];
+	                        });
+	                        return rv;
+	                    });
 	                } else {
-	                    reject(response);
-	                }
-	            });
-	        }.bind(this)).then(function () {
-	            var _this2 = this;
-	
-	            if (actualId != delay) return;
-	
-	            // SUCCEEDED
-	            if (found.values.length == 0) {
-	                suggestions.hide();
-	                return;
-	            }
-	
-	            //console.log("ss: "+_searchString)
-	            if (_searchString == "") {
-	                suggestions.hide();
-	                return;
-	            }
-	
-	            var scrollCont = suggestions.find('.mCSB_container'),
-	                content = $(Handlebars.compile('{{#each values}}<div class="suggestion" id="{{@index}}">{{vessel_name}}<br><span>mmsi:{{mmsi}}, imo:{{imo}}</span></div>{{/each}}')(found));
-	            if (!scrollCont[0]) suggestions.html(content).mCustomScrollbar();else $(scrollCont).html(content);
-	
-	            var suggestion = suggestions.find('.suggestion');
-	            if (!suggestions.is(':visible')) {
-	                var cr = this.frame.find('.filter')[0].getBoundingClientRect();
-	                suggestions.show();
-	                suggestions.offset({ left: cr.left, top: cr.bottom - 3 });
-	                suggestions.outerWidth(cr.width);
-	            }
-	
-	            suggestions.innerHeight(suggestion[0].getBoundingClientRect().height * (found.values.length > suggestionsCount ? suggestionsCount : found.values.length));
-	            suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 };
-	            suggestion.eq(suggestionsFrame.current).addClass('selected');
-	            suggestion.click(function (e) {
-	                suggestionsFrame.current = e.currentTarget.id;
-	                searchDone.call(_this2);
-	            });
-	            //console.log("doFilter2 "+_searchString)
-	        }.bind(this), function (response) {
-	            // FAILED
-	            console.log(response);
-	        });
-	    };
-	    removeBut.click(function (e) {
-	        this.searchInput.val('');
-	        this.searchInput.focus();
-	        clearTimeout(delay);
-	        removeBut.hide();
-	        searchBut.show();
-	        suggestions.hide();
-	        _clean.call(this);
-	        _cleanMap.call(this);
-	        //nsGmx.leafletMap.removeLayer(highlight);
-	    }.bind(this));
-	    this.searchInput.keydown(function (e) {
-	        var suggestion = suggestions.find('.suggestion.selected');
-	        if (suggestions.is(':visible')) {
-	            if (e.keyCode == 38) {
-	                if (suggestionsFrame.current > 0) {
-	                    suggestionsFrame.current--;
-	                    suggestion.removeClass('selected').prev().addClass('selected');
-	                }
-	            } else if (e.keyCode == 40) {
-	                if (suggestionsFrame.current < found.values.length - 1) {
-	                    suggestionsFrame.current++;
-	                    suggestion.removeClass('selected').next().addClass('selected');
+	                    console.log(response);
+	                    return [];
 	                }
 	            }
-	            if (suggestionsFrame.last < suggestionsFrame.current) {
-	                suggestionsFrame.last = suggestionsFrame.current;
-	                suggestionsFrame.first = suggestionsFrame.last - (suggestionsCount - 1);
+	        },
+	        callback: function (v) {
+	            //console.log(v)               
+	            if (v) {
+	                if (!_this.vessel || _this.vessel.mmsi != v.mmsi || !_this.frame.find('.ais_positions_date:not(.header)')[0]) {
+	                    _this.vessel = v;
+	                    _this.show();
+	                }
+	            } else {
+	                _clean.call(_this);
+	                _cleanMap.call(_this);
 	            }
-	            if (suggestionsFrame.first > suggestionsFrame.current) {
-	                suggestionsFrame.first = suggestionsFrame.current;
-	                suggestionsFrame.last = suggestionsFrame.first + (suggestionsCount - 1);
-	            }
-	            suggestions.mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, { scrollInertia: 0 });
-	        }
+	        }.bind(this)
 	    });
-	
-	    var prepareSearchInput = function prepareSearchInput(temp, keyCode) {
-	        removeBut.show();
-	        searchBut.hide();
-	        if (_searchString == temp && (!keyCode || keyCode != 13)) return false;
-	        _searchString = temp;
-	        clearTimeout(delay);
-	        if (_searchString == "") {
-	            removeBut.click();
-	            return false;
-	        }
-	        return true;
-	    };
-	    this.searchInput.keyup(function (e) {
-	        var _this3 = this;
-	
-	        var temp = (this.searchInput.val() || "").replace(/^\s+/, "").replace(/\s+$/, "");
-	        if (!prepareSearchInput(temp, e.keyCode)) return;
-	        if (e.keyCode == 13) {
-	            suggestions.hide();
-	            searchDone.call(this);
-	        } else delay = setTimeout(function () {
-	            doSearch.apply(_this3, [delay]);
-	        }.bind(this), 200);
-	        //nsGmx.leafletMap.removeLayer(highlight);
-	    }.bind(this));
-	    this.searchInput.on("paste", function (e) {
-	        var _this4 = this;
-	
-	        var temp = ((e.originalEvent || window.clipboardData).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
-	        if (!prepareSearchInput(temp)) return;
-	        delay = setTimeout(function () {
-	            doSearch.apply(_this4, [delay]);
-	        }.bind(this), 200);
-	    }.bind(this));
 	};
 	
 	DbSearchView.prototype = Object.create(BaseView.prototype);
@@ -2722,6 +2625,7 @@
 	    //console.log("EMPTY ON SELF.CLEAN "+this)
 	    this.startScreen.css({ visibility: "hidden" });
 	    nsGmx.leafletMap.removeLayer(_highlight);
+	    this.showTrack();
 	},
 	    _cleanMap = function _cleanMap() {
 	    if (_displayedOnly.length) this.frame.find('.time .only_this  input[type="checkbox"]').click();
@@ -2742,7 +2646,7 @@
 	var _vi_template = '<table class="ais_positions">' + '{{#each positions}}' + '<tr>' + '<td  title="{{i "AISSearch2.info"}}"><img class="show_info" id="show_info{{@index}}" src="plugins/AIS/AISSearch/svg/info.svg"></td>' + '<td><span class="utc_time">{{tm_pos_utc}}</span><span class="local_time">{{tm_pos_loc}}</span></td>' + '<td><span class="utc_date">{{dt_pos_utc}}</span><span class="local_date">{{dt_pos_loc}}</span></td>' + '<td><img src="{{icon}}" class="legend_icon rotateimg{{icon_rot}}"><img src="{{iconAlt}}" class="legend_iconalt rotateimg{{icon_rot}}"></td>' + '<td><img src="{{source}}"></td>' + '<td>{{longitude}}&nbsp;&nbsp;{{latitude}}</td>' + '<td><div class="show_pos" id="show_pos{{@index}}" title="{{i "AISSearch2.position"}}"><img src="plugins/AIS/AISSearch/svg/center.svg"></div></td>' + '</tr>' + '<tr><td colspan="7" class="more"><hr><div class="vi_more">' + '<div class="c1">COG | SOG:</div><div class="c2">&nbsp;{{cog}} {{#if cog_sog}}&nbsp;{{/if}} {{sog}}</div>' + '<div class="c1">HDG | ROT:</div><div class="c2">&nbsp;{{heading}} {{#if heading_rot}}&nbsp;{{/if}} {{rot}}</div>' + '<div class="c1">{{i "AISSearch2.draught"}}:</div><div class="c2">&nbsp;{{draught}}</div>' + '<div class="c1">{{i "AISSearch2.destination"}}:</div><div class="c2">&nbsp;{{destination}}</div>' + '<div class="c1">{{i "AISSearch2.nav_status"}}:</div><div class="c2">&nbsp;{{nav_status}}</div>' + '<div class="c1">ETA:</div><div class="c2">&nbsp;<span class="utc_time">{{eta_utc}}</span><span class="local_time">{{eta_loc}}</span></div>' + '</div></td></tr>' + '{{/each}}' + '</table>';
 	
 	var _prepare_history = function _prepare_history() {
-	    var _this5 = this;
+	    var _this2 = this;
 	
 	    //console.log(_tools.displayedTrack)     
 	    if (this.model.data.vessels.length > 0 && _tools.displayedTrack && _tools.displayedTrack.mmsi == this.model.data.vessels[0].positions[0].mmsi) {
@@ -2753,7 +2657,7 @@
 	        checkAllTracks.checked = true;
 	        this.frame.find('.ais_positions_date:not(.header)').each(function (i, el) {
 	            if (_tools.displayedTrack.dates) {
-	                modelDate = new Date(_this5.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0);
+	                modelDate = new Date(_this2.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0);
 	                checkTrack = false;
 	                for (var j = 0; j < _tools.displayedTrack.dates.list.length; ++j) {
 	                    trackDate = _tools.displayedTrack.dates.list[j];
@@ -2772,7 +2676,7 @@
 	};
 	
 	DbSearchView.prototype.repaint = function () {
-	    var _this6 = this;
+	    var _this3 = this;
 	
 	    _clean.call(this);
 	    BaseView.prototype.repaint.apply(this, arguments);
@@ -2789,36 +2693,35 @@
 	        _tools.showVesselsOnMap("all");
 	    }
 	
-	    var openPos = this.frame.find('.open_positions');
-	    // ,switchLegendIcons = (function(){
-	    //     let ic = this.frame.find('.legend_icon'),
-	    //         ica = this.frame.find('.legend_iconalt');
-	    //     if (this.frame.find('.legend .speed').is('.on')) {
-	    //         ica.show(); ic.hide();
-	    //     }
-	    //     else {
-	    //         ic.show(); ica.hide();
-	    //     }  
-	    // }).bind(this);
+	    var openPos = this.frame.find('.open_positions'),
+	        infoDialog = this.infoDialogView,
+	        thisVessel = this.vessel,
+	        showInfoDialog = function showInfoDialog(position) {
+	        position.vessel_name = thisVessel.vessel_name;
+	        position.latitude = position.ymax;
+	        position.longitude = position.xmax;
+	        position.source = position.source_orig;
+	        infoDialog.show(position, false);
+	    };
 	    openPos.each(function (ind, elm) {
 	        $(elm).click(function (e) {
 	            var icon = $(e.target),
-	                vi_cont = _this6.frame.find('#voyage_info' + ind);
+	                vi_cont = _this3.frame.find('#voyage_info' + ind);
 	            if (icon.is('.icon-down-open')) {
 	                icon.removeClass('icon-down-open').addClass('.icon-right-open');
 	                vi_cont.find('.ais_positions td[class!="more"]').off('click');
 	                vi_cont.empty();
 	            } else {
 	                icon.addClass('icon-down-open').removeClass('.icon-right-open');
-	                vi_cont.html(Handlebars.compile(_vi_template)(_this6.model.data.vessels[ind]));
-	                if (_this6.frame.find('.time .local').is('.on')) {
+	                vi_cont.html(Handlebars.compile(_vi_template)(_this3.model.data.vessels[ind]));
+	                if (_this3.frame.find('.time .local').is('.on')) {
 	                    vi_cont.find('.utc_time').hide();
 	                    vi_cont.find('.local_time').show();
 	                    vi_cont.find('.utc_date').hide();
 	                    vi_cont.find('.local_date').show();
 	                }
 	                //switchLegendIcons();
-	                _switchLegendIcon.call(_this6, _tools.needAltLegend);
+	                _switchLegendIcon.call(_this3, _tools.needAltLegend);
 	                vi_cont.find('.ais_positions td[class!="more"]').click(function (e) {
 	                    var td = $(e.currentTarget);
 	                    if (td.is('.active')) {
@@ -2831,72 +2734,76 @@
 	                        td.parent().next().find('td').addClass('active');
 	                    }
 	                });
-	                var infoDialog = _this6.infoDialogView,
-	                    vessel = _this6.vessel;
 	                vi_cont.find('.ais_positions .show_info').click(function (e) {
 	                    var i = e.currentTarget.id.replace(/show_info/, ""),
-	                        position = _this6.model.data.vessels[ind].positions[i];
-	                    position.vessel_name = vessel.vessel_name;
-	                    position.imo = vessel.imo;
+	                        position = _this3.model.data.vessels[ind].positions[i];
+	                    position.vessel_name = thisVessel.vessel_name;
 	                    position.latitude = position.ymax;
 	                    position.longitude = position.xmax;
 	                    position.source = position.source_orig;
-	                    //console.log(vessel)
-	                    //console.log(position)
 	                    infoDialog.show(position, false);
 	                    e.stopPropagation();
-	                }.bind(_this6));
+	                }.bind(_this3));
 	                vi_cont.find('.ais_positions .show_pos').click(function (e) {
 	                    //showPosition
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
-	                        vessel = _this6.model.data.vessels[ind].positions[parseInt(i)];
-	                    _this6.positionMap(vessel, _this6.calendar.getDateInterval());
+	                        position = _this3.model.data.vessels[ind].positions[parseInt(i)];
+	                    _this3.positionMap(position, _this3.calendar.getDateInterval());
 	
-	                    _this6.frame.find('.track:not(.all) input')[ind].checked = true;
-	                    allTracksInput[0].checked = _this6.frame.find('.track:not(.all) input:checked').length == _this6.model.data.vessels.length;
+	                    _this3.frame.find('.track:not(.all) input')[ind].checked = true;
+	                    allTracksInput[0].checked = _this3.frame.find('.track:not(.all) input:checked').length == _this3.model.data.vessels.length;
 	
-	                    var dates = getDates.call(_this6);
-	                    _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates);
+	                    var v = _this3.model.data.vessels[ind];
+	                    _this3.showTrack([{
+	                        mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org,
+	                        positions: v.positions
+	                    }], showInfoDialog);
+	
 	                    e.stopPropagation();
-	                }.bind(_this6));
+	                }.bind(_this3));
 	            }
-	        }.bind(_this6));
+	        }.bind(_this3));
 	    });
 	
-	    var getDates = function getDates(needAll) {
-	        var _this7 = this;
-	
-	        var dates = [];
-	        this.frame.find('.ais_positions_date .track:not(.all)').each(function (i, el) {
-	            var input = $('input', el)[0];
-	            if (needAll) input.checked = true;
-	            if (input.checked) dates.push(new Date(new Date(1000 * _this7.model.data.vessels[i].positions[0].ts_pos_utc).setUTCHours(0, 0, 0, 0)));
-	        });
-	        return dates;
-	    },
-	        allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]');
+	    var allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]'),
+	        tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]'),
+	        setMapCalendar = function setMapCalendar(calendar) {
+	        var calendarInterval = calendar.getDateInterval(),
+	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
+	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
+	    };
 	    allTracksInput.click(function (e) {
-	        if (!_this6.model.data.vessels || !_this6.model.data.vessels.length) return;
-	        var calendarInterval = _this6.calendar.getDateInterval(),
-	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
-	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
-	        if (!e.target.checked) {
-	            _this6.frame.find('.ais_positions_date .track:not(.all)').each(function (i, el) {
-	                $('input', el)[0].checked = false;
-	            });
-	            _this6.showTrack();
-	        } else _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, getDates.call(_this6, true));
+	        setMapCalendar(_this3.calendar);
+	        _this3.frame.find('.ais_positions_date .track:not(.all) input').each(function (i, el) {
+	            el.checked = e.target.checked;
+	        });
+	
+	        var vessels = _this3.model.data.vessels.map(function (v) {
+	            return {
+	                mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org,
+	                positions: e.target.checked ? v.positions : [] };
+	        });
+	        _this3.showTrack(vessels, showInfoDialog);
 	    }.bind(this));
-	    this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]').click(function (e) {
-	        var calendarInterval = _this6.calendar.getDateInterval(),
-	            interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
-	        nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);
-	        var dates = getDates.call(_this6);
-	        allTracksInput[0].checked = dates.length == _this6.model.data.vessels.length;
-	        _this6.showTrack({ mmsi: _this6.model.data.vessels[0].positions[0].mmsi }, dates);
+	    tracksInputs.each(function (i, el) {
+	        var v = _this3.model.data.vessels[i];
+	        el.addEventListener('click', function (e) {
+	            setMapCalendar(_this3.calendar);
+	            allTracksInput[0].checked = _this3.frame.find('.ais_positions_date .track:not(.all) input:checked').length == _this3.model.data.vessels.length;
+	
+	            _this3.showTrack([{
+	                mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org,
+	                positions: e.target.checked ? v.positions : []
+	            }], showInfoDialog);
+	        }.bind(_this3));
 	    }.bind(this));
 	
 	    if (this.model.data.vessels.length == 1) openPos.eq(0).click();
+	
+	    //if (this.withTrack){
+	    tracksInputs.eq(0).click();
+	    //    this.withTrack = false;
+	    //}
 	
 	    if (this.vessel.lastPosition) {
 	        this.positionMap(this.vessel, this.calendar.getDateInterval());
@@ -2909,8 +2816,9 @@
 	        return this.model.vessel;
 	    },
 	    set: function set(v) {
-	        _setSearchInputValue.call(this, v.vessel_name);
-	        _searchString = v.vessel_name;
+	        //_setSearchInputValue.call(this, v.vessel_name);
+	        //_searchString_searchString = v.vessel_name;
+	        this.searchInput.searchString = v.vessel_name;
 	
 	        var positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
 	        this.model.vessel = null;
@@ -2945,17 +2853,21 @@
 	    _tools.showVesselsOnMap("all");
 	};
 	
-	DbSearchView.prototype.showTrack = function (vessel, dates) {
-	    if (!vessel) {
-	        _tools.showTrack([]);
+	DbSearchView.prototype.showTrack = function (vessels, onclick) {
+	
+	    _tools.showTrack(vessels, onclick);
+	    if (!vessels) return;
+	
+	    if (!Array.isArray(vessels)) {
+	        //this.withTrack = true;
 	        return;
 	    }
-	    if (!dates && vessel.ts_pos_org) dates = [new Date(new Date(vessel.ts_pos_org * 1000).setUTCHours(0, 0, 0, 0))];
 	
-	    var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
-	    $('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('ais active');
-	    if (dlg[0]) dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
-	    _tools.showTrack([vessel.mmsi], dates);
+	    vessels.forEach(function (vessel) {
+	        var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
+	        $('.showtrack').attr('title', _gtxt('AISSearch2.show_track')).removeClass('ais active');
+	        if (dlg[0]) dlg.find('.showtrack').attr('title', _gtxt('AISSearch2.hide_track')).addClass('ais active');
+	    });
 	};
 	
 	DbSearchView.prototype.positionMap = function (vessel, interval) {
@@ -2991,6 +2903,285 @@
 
 /***/ }),
 /* 19 */
+/***/ (function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	var _searchString = "",
+	    _sparams = 'imo name mmsi';
+	var SearchControl = function SearchControl(_ref) {
+	    var tab = _ref.tab,
+	        container = _ref.container,
+	        callback = _ref.callback,
+	        searchparams = _ref.searchparams,
+	        searcher = _ref.searcher;
+	
+	
+	    container.innerHTML = '<div class="filter"><input type="text" placeholder="' + _gtxt("Lloyds.search_placeholder") + '"/>' + (!searchparams ? '' : '<div class="preferences"></div>') + '<div class="searchremove"><img class="search" src="plugins/AIS/AISSearch/svg/search.svg">' + '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg"></div>' + '</div>';
+	    var suggestions = tab.appendChild(document.createElement('div'));
+	    suggestions.classList.add("suggestions");
+	    suggestions.innerHTML = '<div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div>';
+	
+	    this.frame = { find: function find(q) {
+	            return container.querySelector(q);
+	        } };
+	
+	    var preferences = false;
+	    if (searchparams) {
+	        _sparams = localStorage.getItem(searchparams);
+	        preferences = tab.appendChild(document.createElement('div'));
+	        preferences.classList.add("preferences");
+	        preferences.innerHTML = '<div class="section">Поиск по:</div>' + '<div class="line"><div class="checkbox imo disabled"></div><div class="label">IMO<label></div></div>' + '<div class="line"><div class="checkbox mmsi"></div><div class="label">MMSI<label></div></div>' + '<div class="line"><div class="checkbox name disabled"></div><div class="label">названию</div></div>' + '<div class="line"><div class="checkbox callsign"></div><div class="label">позывному<label></div></div>' + '<div class="line"><div class="checkbox owner"></div><div class="label">собственнику<label></div></div>';
+	        !_sparams && (_sparams = 'imo name mmsi');
+	        if (_sparams.search(/imo/) < 0) _sparams += ' imo';
+	        if (_sparams.search(/name/) < 0) _sparams += ' name';
+	        var asparams = _sparams.split(' ');
+	        asparams.forEach(function (p, i) {
+	            preferences.querySelector('.' + p).classList.add('checked');
+	        });
+	    } else {
+	        var sr = this.frame.find('.filter .searchremove');
+	        sr.style.borderRight = 'none';
+	        sr.style.paddingRight = 0;
+	        this.frame.find('.filter input').style.width = '85%';
+	    }
+	
+	    this.frame = { find: function find(q) {
+	            return container.querySelector(q);
+	        } };
+	    this.searchInput = this.frame.find('.filter input');
+	
+	    var searchBut = this.frame.find('.filter .search'),
+	        prefeBut = this.frame.find('.filter .preferences'),
+	        removeBut = this.frame.find('.filter .remove'),
+	        delay = void 0,
+	
+	    //suggestions = this.frame.find('.suggestions'),
+	    suggestionsCount = 5,
+	        suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 },
+	        found = { values: [] },
+	        searchDone = function searchDone() {
+	        if (found.values.length > 0) {
+	            _searchString = found.values[suggestionsFrame.current].vessel_name;
+	            this.searchInput.value = _searchString;
+	            callback(found.values[suggestionsFrame.current]);
+	        }
+	        // else {
+	        //     _clean.call(this);
+	        // }
+	    },
+	        doSearch = function doSearch(actualId) {
+	        var requests = [];
+	        // _sparams.split(' ').forEach(sp=>{       
+	        //     requests.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
+	        // });
+	        requests.push(new searcher.searchpromise([{ name: 'query', value: [_searchString] }]));
+	        Promise.all(requests).then(function (a) {
+	            //console.log(a)
+	            return Promise.all(a.map(function (r) {
+	                if (r.status != 200) {
+	                    console.log(r);
+	                    return [];
+	                } else return r.json();
+	            }));
+	        }).then(function (a) {
+	            //console.log(actualId+" "+delay)
+	            if (actualId == delay) {
+	                found = { values: [] };
+	                a.forEach(function (r) {
+	                    found.values = found.values.concat(searcher.parser(r));
+	                });
+	                //console.log(found.values)
+	            } else return Promise.reject("stop");
+	        }).then(function () {
+	            var _this = this;
+	
+	            // SUCCEEDED
+	            //console.log(_searchString)
+	            if (found.values.length == 0 || _searchString == "") {
+	                suggestions.style.display = 'none';
+	                return;
+	            }
+	
+	            var scrollCont = suggestions.querySelector('.mCSB_container'),
+	                content = Handlebars.compile('{{#each values}}<div class="suggestion" id="{{@index}}">{{vessel_name}}<br><span>mmsi:{{mmsi}}, imo:{{imo}}, {{callsign}}</span><br><span>{{owner}}</span></div>{{/each}}')(found);
+	            if (!scrollCont) {
+	                suggestions.innerHTML = content;
+	                $(suggestions).mCustomScrollbar();
+	            } else scrollCont.innerHTML = content;
+	
+	            var suggestion = suggestions.querySelectorAll('.suggestion');
+	            if (suggestions.style.display != 'block') {
+	                var cr = this.frame.find('.filter').getBoundingClientRect();
+	                suggestions.style.display = 'block';
+	                suggestions.style.position = 'fixed';
+	                suggestions.style.left = cr.left + "px";suggestions.style.top = cr.bottom - 3 + "px";
+	                suggestions.style.width = Math.round(cr.width) - 2 + "px";
+	                // $(suggestions).offset({ left: cr.left, top: cr.bottom - 3 });
+	                // $(suggestions).outerWidth(cr.width)
+	            }
+	
+	            suggestions.style.height = suggestion[0].getBoundingClientRect().height * (found.values.length > suggestionsCount ? suggestionsCount : found.values.length) + "px";
+	
+	            suggestionsFrame = { first: 0, current: 0, last: suggestionsCount - 1 };
+	            suggestion[suggestionsFrame.current].classList.add('selected');
+	            suggestion.forEach(function (el, i) {
+	                return el.onclick = function (e) {
+	                    suggestionsFrame.current = e.currentTarget.id;
+	                    suggestions.style.display = 'none';
+	                    searchDone.call(_this);
+	                }.bind(_this);
+	            }.bind(this));
+	        }.bind(this), function (response) {
+	            // FAILED
+	            if (response != "stop") console.log(response);
+	        });
+	    };
+	
+	    tab.addEventListener('click', function (e) {
+	        suggestions.style.display = 'none';
+	    });
+	    if (preferences) {
+	        tab.addEventListener('click', function (e) {
+	            preferences.style.display = 'none';
+	        });
+	        prefeBut.onclick = function (e) {
+	            if (preferences.style.display != 'block') {
+	                var cr = this.frame.find('.filter').getBoundingClientRect();
+	                preferences.style.display = 'block';
+	                preferences.style.position = 'fixed';
+	                preferences.style.left = cr.left + (cr.width - preferences.offsetWidth) / 2 + "px";
+	                preferences.style.top = cr.bottom + 10 + "px";
+	                e.stopPropagation();
+	            }
+	        }.bind(this);
+	
+	        preferences.querySelectorAll('.line').forEach(function (el) {
+	            return el.onclick = function (e) {
+	                var ch = el.querySelector('.checkbox');
+	                if (!ch.classList.contains('disabled')) {
+	                    var sparam = ch.classList.value.replace(/ *(checked|checkbox) */g, '');
+	                    if (ch.classList.contains('checked')) {
+	                        ch.classList.remove('checked');
+	                        _sparams = _sparams.replace(new RegExp(sparam), '').replace(/ {2,}/g, ' ');
+	                    } else {
+	                        ch.classList.add('checked');
+	                        _sparams = _sparams + ' ' + sparam;
+	                    }
+	                    _sparams = _sparams.replace(/^\s+|\s+$/g, '');
+	                    localStorage.setItem(searchparams, _sparams);
+	                    //console.log(_sparams)
+	                }
+	                e.stopPropagation();
+	            };
+	        });
+	    }
+	
+	    removeBut.onclick = function (e) {
+	        _searchString = '';
+	        callback(null);
+	        this.searchInput.value = '';
+	        this.searchInput.focus();
+	        clearTimeout(delay);
+	        removeBut.style.display = 'none';
+	        searchBut.style.display = 'block';
+	        suggestions.style.display = 'none';
+	        //_clean.call(this);
+	    }.bind(this);
+	
+	    this.searchInput.onkeydown = function (e) {
+	        var suggestion = suggestions.querySelector('.suggestion.selected');
+	        if (suggestions.style.display == 'block') {
+	            if (e.keyCode == 38) {
+	                if (suggestionsFrame.current > 0) {
+	                    suggestionsFrame.current--;
+	                    suggestion.classList.remove('selected');
+	                    suggestion.previousSibling.classList.add('selected');
+	                }
+	            } else if (e.keyCode == 40) {
+	                if (suggestionsFrame.current < found.values.length - 1) {
+	                    suggestionsFrame.current++;
+	                    suggestion.classList.remove('selected');
+	                    suggestion.nextSibling.classList.add('selected');
+	                }
+	            }
+	            if (suggestionsFrame.last < suggestionsFrame.current) {
+	                suggestionsFrame.last = suggestionsFrame.current;
+	                suggestionsFrame.first = suggestionsFrame.last - (suggestionsCount - 1);
+	            }
+	            if (suggestionsFrame.first > suggestionsFrame.current) {
+	                suggestionsFrame.first = suggestionsFrame.current;
+	                suggestionsFrame.last = suggestionsFrame.first + (suggestionsCount - 1);
+	            }
+	
+	            $(suggestions).mCustomScrollbar("scrollTo", "#" + suggestionsFrame.first, { scrollInertia: 0 });
+	        }
+	    };
+	
+	    var prepareSearchInput = function prepareSearchInput(temp, keyCode) {
+	        removeBut.style.display = 'block';
+	        searchBut.style.display = 'none';
+	        //console.log("delay clear"+delay)
+	        //console.log(_searchString + "=="+ temp)
+	        if (_searchString == temp && (!keyCode || keyCode != 13)) return false;
+	
+	        clearTimeout(delay);
+	
+	        _searchString = temp;
+	        if (_searchString == "") {
+	            removeBut.click();
+	            return false;
+	        }
+	        return true;
+	    };
+	
+	    this.searchInput.onkeyup = function (e) {
+	        var _this2 = this;
+	
+	        var temp = (this.searchInput.value || "").replace(/^\s+/, "").replace(/\s+$/, "");
+	        if (!prepareSearchInput(temp, e.keyCode)) return;
+	        if (e.keyCode == 13) {
+	            suggestions.style.display = 'none';
+	            searchDone.call(this);
+	        } else {
+	            delay = setTimeout(function () {
+	                doSearch.apply(_this2, [delay]);
+	            }.bind(this), 200);
+	        }
+	    }.bind(this);
+	
+	    this.searchInput.onpaste = function (e) {
+	        var _this3 = this;
+	
+	        var temp = ((e.originalEvent || window.clipboardData || e).clipboardData.getData('text') || "").replace(/^\s+/, "").replace(/\s+$/, "");
+	        if (!prepareSearchInput(temp)) return;
+	        delay = setTimeout(function () {
+	            doSearch.call(_this3, [delay]);
+	        }.bind(this), 200);
+	    }.bind(this);
+	
+	    Object.defineProperty(this, "searchString", {
+	        set: function set(v) {
+	            prepareSearchInput(v, 13);
+	            this.searchInput.value = v;
+	        }
+	    });
+	};
+	
+	SearchControl.prototype.focus = function () {
+	    this.searchInput.focus();
+	};
+	
+	module.exports = SearchControl;
+
+/***/ }),
+/* 21 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3144,14 +3335,14 @@
 	};
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var displayInfoDialog = __webpack_require__(21),
+	var displayInfoDialog = __webpack_require__(23),
 	    Polyfill = __webpack_require__(16),
-	    VesselInfoScreen = __webpack_require__(26);
+	    VesselInfoScreen = __webpack_require__(28);
 	
 	var infoDialogCascade = [],
 	    allIinfoDialogs = [],
@@ -3249,13 +3440,13 @@
 	};
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(22);
-	var SpecialFloatView = __webpack_require__(23);
+	__webpack_require__(24);
+	var SpecialFloatView = __webpack_require__(25);
 	
 	var addUnit = function addUnit(v, u) {
 		return v != null && v != "" ? v + u : "";
@@ -3534,20 +3725,20 @@
 	};
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(24);
+	__webpack_require__(26);
 	var _cssClassName = "special";
-	var BaseFloatView = __webpack_require__(25);
+	var BaseFloatView = __webpack_require__(27);
 	var SpecialFloatView = function SpecialFloatView(images, mmsi) {
 	    var _this = this;
 	
@@ -3906,13 +4097,13 @@
 	module.exports = SpecialFloatView;
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -4024,12 +4215,12 @@
 	module.exports = BaseFloatView;
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	__webpack_require__(27);
+	__webpack_require__(29);
 	
 	module.exports = function (_ref) {
 	    var modulePath = _ref.modulePath,
@@ -4336,13 +4527,13 @@
 	};
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -4465,7 +4656,7 @@
 	                layer: _historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
 	                orderdirection: 'desc',
 	                orderby: 'ts_pos_utc',
-	                columns: '[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},' + '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
+	                columns: '[{"Value":"mmsi"},{"Value":"imo"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},' + '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
 	
 	                query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
 	            };
@@ -4573,7 +4764,7 @@
 	};
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -4738,7 +4929,7 @@
 	module.exports = LegendControl;
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -4793,28 +4984,6 @@
 	            }
 	        }
 	        return false;
-	    },
-	        _setTrackFilter = function _setTrackFilter() {
-	        //console.log(_displayedTrack)
-	        var lmap = nsGmx.leafletMap;
-	        if (_aisLayer && _aisLayer.removeFilter) {
-	            _aisLayer.removeFilter();
-	            if (_displayedTrack && _displayedTrack.mmsi) {
-	                _aisLayer.setFilter(_filterFunc);
-	                if (!_aisLayer._map) {
-	                    lmap.addLayer(_aisLayer);
-	                }
-	            } else lmap.removeLayer(_aisLayer);
-	        }
-	        if (_tracksLayer && _tracksLayer.removeFilter) {
-	            _tracksLayer.removeFilter();
-	            if (_displayedTrack && _displayedTrack.mmsi) {
-	                _tracksLayer.setFilter(_filterFunc);
-	                if (!_tracksLayer._map) {
-	                    lmap.addLayer(_tracksLayer);
-	                }
-	            } else lmap.removeLayer(_tracksLayer);
-	        }
 	    },
 	        _specialVesselFilters = void 0,
 	        _setVesselFilter = function _setVesselFilter() {
@@ -4932,6 +5101,7 @@
 	        });
 	    };
 	
+	    var _tracks = {};
 	    return {
 	        set specialVesselFilters(_ref) {
 	            var key = _ref.key,
@@ -4953,34 +5123,51 @@
 	        get needAltLegend() {
 	            return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map);
 	        },
-	        showTrack: function showTrack(mmsiArr, dates) {
-	            _displayedTrack = { mmsi: mmsiArr && mmsiArr.length ? mmsiArr[0] : null };
-	            if (dates) _displayedTrack.dates = { mmsi: mmsiArr[0], list: dates };
-	            if (_aisLayer || _tracksLayer) _displayedTrack.mmsi = mmsiArr[0];else _displayedTrack.mmsi = null;
-	            _setTrackFilter();
-	        },
-	        showAllTracks: function showAllTracks(doit) {
-	            var lmap = nsGmx.leafletMap;
-	            if (doit) {
-	                if (_aisLayer && _aisLayer.removeFilter) {
-	                    _aisLayer.removeFilter();
-	                    lmap.addLayer(_aisLayer);
+	        showTrack: function showTrack(vessels, onclick) {
+	            if (!vessels) {
+	                for (var t in _tracks) {
+	                    nsGmx.leafletMap.removeLayer(_tracks[t]);
+	                    delete _tracks[t];
 	                }
-	                if (_tracksLayer && _tracksLayer.removeFilter) {
-	                    _tracksLayer.removeFilter();
-	                    lmap.addLayer(_tracksLayer);
-	                }
-	            } else {
-	                _displayedTrack = null;
-	                _setTrackFilter();
+	                return;
 	            }
+	
+	            for (var i = 0; i < vessels.length; ++i) {
+	                var trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
+	                if (vessels[i].positions.length) {
+	                    if (_tracks[trackId]) {} else {
+	                        var markers = [];
+	
+	                        var _loop = function _loop(j) {
+	                            var p = vessels[i].positions[j],
+	                                myIcon = L.divIcon({
+	                                className: 'ais-track-marker',
+	                                html: "<img src=\"" + p.icon + "\" style=\"margin-left: -4px; margin-top: -5px; transform: rotate(" + p.cog.replace(/°/, '').replace(/,/, '.') + "deg);\">"
+	                            }),
+	                                marker = L.marker([p.ymax, p.xmax], { icon: myIcon });
+	                            if (onclick) marker.on('click', function (e) {
+	                                onclick(p);
+	                            });
+	                            markers.push(marker);
+	                        };
+	
+	                        for (var j = 0; j < vessels[i].positions.length; ++j) {
+	                            _loop(j);
+	                        }
+	                        _tracks[trackId] = L.layerGroup(markers).addTo(nsGmx.leafletMap);
+	                    }
+	                } else {
+	                    nsGmx.leafletMap.removeLayer(_tracks[trackId]);
+	                    delete _tracks[trackId];
+	                }
+	            }
+	            //console.log(_tracks);
 	        },
 	        hideVesselsOnMap: function hideVesselsOnMap(vessels) {
 	            if (vessels && vessels.length) _notDisplayedVessels = vessels.map(function (v) {
 	                return v;
 	            });else _notDisplayedVessels.length = 0;
 	            //console.log(_notDisplayedVessels);
-	            _setTrackFilter();
 	            _setVesselFilter();
 	        },
 	        restoreDefault: function restoreDefault() {
@@ -4994,7 +5181,6 @@
 	                return v;
 	            }) : "all";
 	            //console.log(_displayedVessels);
-	            _setTrackFilter();
 	            _setVesselFilter();
 	        },
 	        redrawMarkers: function redrawMarkers() {
@@ -5029,7 +5215,6 @@
 	            temp = _tracksLayer;
 	            _tracksLayer = _tracksLayerAlt;
 	            _tracksLayerAlt = temp;
-	            _setTrackFilter();
 	            _setVesselFilter();
 	            _legendSwitched(showAlternative);
 	        },

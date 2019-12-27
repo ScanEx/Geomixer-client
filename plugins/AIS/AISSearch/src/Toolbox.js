@@ -49,32 +49,6 @@ module.exports = function (options) {
         }
         return false;
     }, 
-    _setTrackFilter = function(){
-//console.log(_displayedTrack)
-        let lmap = nsGmx.leafletMap;
-        if (_aisLayer && _aisLayer.removeFilter) {
-            _aisLayer.removeFilter();
-            if (_displayedTrack && _displayedTrack.mmsi) {
-                _aisLayer.setFilter(_filterFunc);
-                if (!_aisLayer._map) {
-                    lmap.addLayer(_aisLayer);
-                }
-            }
-            else
-                lmap.removeLayer(_aisLayer); 
-        }
-        if (_tracksLayer && _tracksLayer.removeFilter) {
-            _tracksLayer.removeFilter();
-            if (_displayedTrack && _displayedTrack.mmsi) {
-                _tracksLayer.setFilter(_filterFunc);
-                if (!_tracksLayer._map) {
-                    lmap.addLayer(_tracksLayer);
-                }
-            }
-            else 
-                lmap.removeLayer(_tracksLayer);
-        }
-    }, 
     _specialVesselFilters,
     _setVesselFilter = function(){
         if (_screenSearchLayer) {
@@ -210,6 +184,7 @@ module.exports = function (options) {
         _legendSwitchedHandlers.forEach(h=>h(showAlternative));
     };
 
+    const _tracks = {};
     return {
         set specialVesselFilters({key, value}) {
             if (!_specialVesselFilters)
@@ -221,32 +196,45 @@ module.exports = function (options) {
         set displayedTrack(value){ _displayedTrack = value; },
         get hasAlternativeLayers(){ return _lastPointLayerAlt; },
         get needAltLegend(){ return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); },
-        showTrack: function (mmsiArr, dates) {
-            _displayedTrack = { mmsi:mmsiArr && mmsiArr.length? mmsiArr[0] : null};
-            if (dates)
-                _displayedTrack.dates = { mmsi:mmsiArr[0], list:dates };
-            if (_aisLayer || _tracksLayer)
-                _displayedTrack.mmsi = mmsiArr[0];
-            else
-                _displayedTrack.mmsi = null;
-            _setTrackFilter();
-        },
-        showAllTracks: function(doit){
-            let lmap = nsGmx.leafletMap;
-            if (doit){
-                if (_aisLayer && _aisLayer.removeFilter){
-                    _aisLayer.removeFilter();
-                    lmap.addLayer(_aisLayer);
-                }                
-                if (_tracksLayer && _tracksLayer.removeFilter){
-                    _tracksLayer.removeFilter();
-                    lmap.addLayer(_tracksLayer);
+        showTrack: function (vessels, onclick) {
+            if (!vessels){
+                for (let t in _tracks){
+                    nsGmx.leafletMap.removeLayer(_tracks[t]);
+                    delete _tracks[t];
                 }
+                return;
             }
-            else{
-                _displayedTrack = null;
-                _setTrackFilter();
+
+            for (let i = 0; i < vessels.length; ++i){
+                let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
+                    if (vessels[i].positions.length){
+                        if (_tracks[trackId]){
+
+                        }
+                        else{
+                            let markers = [];
+                            for (let j = 0; j < vessels[i].positions.length; ++j) {
+                                let p = vessels[i].positions[j],                    
+                                    myIcon = L.divIcon({
+                                        className: 'ais-track-marker',
+                                        html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+                                    }),
+                                    marker = L.marker([p.ymax, p.xmax], { icon: myIcon });
+                                if (onclick)
+                                    marker.on('click', e=>{
+                                        onclick(p)
+                                    });
+                                markers.push(marker);
+                            }
+                            _tracks[trackId] = L.layerGroup(markers).addTo(nsGmx.leafletMap);
+                        }
+                    }
+                    else{
+                        nsGmx.leafletMap.removeLayer(_tracks[trackId]);
+                        delete _tracks[trackId];
+                    }
             }
+//console.log(_tracks);
         },
         hideVesselsOnMap: function (vessels) {
             if (vessels && vessels.length)
@@ -254,7 +242,6 @@ module.exports = function (options) {
             else
                 _notDisplayedVessels.length = 0;
 //console.log(_notDisplayedVessels);
-            _setTrackFilter();
             _setVesselFilter();
         },
         restoreDefault: function(){                   
@@ -267,7 +254,6 @@ module.exports = function (options) {
         showVesselsOnMap: function (vessels) {            
             _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all";           
 //console.log(_displayedVessels);
-            _setTrackFilter();
             _setVesselFilter();
         },
         redrawMarkers: function () {
@@ -303,7 +289,6 @@ module.exports = function (options) {
             temp = _tracksLayer;
             _tracksLayer = _tracksLayerAlt;
             _tracksLayerAlt = temp;
-            _setTrackFilter();
             _setVesselFilter();
             _legendSwitched(showAlternative);
         },
