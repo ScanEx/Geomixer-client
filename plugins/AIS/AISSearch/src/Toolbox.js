@@ -184,7 +184,7 @@ module.exports = function (options) {
         _legendSwitchedHandlers.forEach(h=>h(showAlternative));
     };
 
-    const _tracks = {};
+    const _tracks = {}, _tracksAlt = {}; 
     return {
         set specialVesselFilters({key, value}) {
             if (!_specialVesselFilters)
@@ -195,12 +195,17 @@ module.exports = function (options) {
         get displayedTrack(){ return _displayedTrack; },
         set displayedTrack(value){ _displayedTrack = value; },
         get hasAlternativeLayers(){ return _lastPointLayerAlt; },
-        get needAltLegend(){ return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); },
+        get needAltLegend(){
+            //return !!(_lastPointLayerAlt && _lastPointLayerAlt._map); 
+            return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
+        },
         showTrack: function (vessels, onclick) {
             if (!vessels){
                 for (let t in _tracks){
                     nsGmx.leafletMap.removeLayer(_tracks[t]);
+                    nsGmx.leafletMap.removeLayer(_tracksAlt[t]);
                     delete _tracks[t];
+                    delete _tracksAlt[t];
                 }
                 return;
             }
@@ -212,29 +217,45 @@ module.exports = function (options) {
 
                         }
                         else{
-                            let markers = [];
+                            let markers = [], markersAlt = [];
                             for (let j = 0; j < vessels[i].positions.length; ++j) {
                                 let p = vessels[i].positions[j],                    
                                     myIcon = L.divIcon({
                                         className: 'ais-track-marker',
                                         html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
                                     }),
-                                    marker = L.marker([p.ymax, p.xmax], { icon: myIcon });
-                                if (onclick)
+                                    myIconAlt = L.divIcon({
+                                        className: 'ais-track-marker',
+                                        html: `<img src="${p.iconAlt}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+                                    }),                                    
+                                    marker = L.marker([p.ymax, p.xmax], { icon: myIcon }),                                    
+                                    markerAlt = L.marker([p.ymax, p.xmax], { icon: myIconAlt });
+                                if (onclick){
                                     marker.on('click', e=>{
                                         onclick(p)
                                     });
+                                    markerAlt.on('click', e=>{
+                                        onclick(p)
+                                    });
+                                }
                                 markers.push(marker);
+                                markersAlt.push(markerAlt);
                             }
-                            _tracks[trackId] = L.layerGroup(markers).addTo(nsGmx.leafletMap);
+                            _tracks[trackId] = L.layerGroup(markers);
+                            _tracksAlt[trackId] = L.layerGroup(markersAlt);
+                            if(!this.needAltLegend)
+                                nsGmx.leafletMap.addLayer(_tracks[trackId]);
+                            else
+                                nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
                         }
                     }
                     else{
                         nsGmx.leafletMap.removeLayer(_tracks[trackId]);
+                        nsGmx.leafletMap.removeLayer(_tracksAlt[trackId]);
                         delete _tracks[trackId];
+                        delete _tracksAlt[trackId];
                     }
             }
-//console.log(_tracks);
         },
         hideVesselsOnMap: function (vessels) {
             if (vessels && vessels.length)
@@ -281,16 +302,29 @@ module.exports = function (options) {
             let temp = _screenSearchLayer;
             _screenSearchLayer = _lastPointLayerAlt;
             _lastPointLayerAlt = temp;
-            _switchLayers(_aisLayer, _historyLayerAlt);
-            temp = _aisLayer;
-            _aisLayer = _historyLayerAlt;
-            _historyLayerAlt = temp;
-            _switchLayers(_tracksLayer, _tracksLayerAlt);
-            temp = _tracksLayer;
-            _tracksLayer = _tracksLayerAlt;
-            _tracksLayerAlt = temp;
+            //_switchLayers(_aisLayer, _historyLayerAlt);
+            // temp = _aisLayer;
+            // _aisLayer = _historyLayerAlt;
+            // _historyLayerAlt = temp;
+            // _switchLayers(_tracksLayer, _tracksLayerAlt);
+            // temp = _tracksLayer;
+            // _tracksLayer = _tracksLayerAlt;
+            // _tracksLayerAlt = temp;
+
             _setVesselFilter();
             _legendSwitched(showAlternative);
+
+//console.log(showAlternative, this.needAltLegend)
+            for (let t in _tracks){
+                if (this.needAltLegend){
+                    nsGmx.leafletMap.removeLayer(_tracks[t]);
+                    nsGmx.leafletMap.addLayer(_tracksAlt[t]);
+                }
+                else{
+                    nsGmx.leafletMap.addLayer(_tracks[t]);
+                    nsGmx.leafletMap.removeLayer(_tracksAlt[t]);
+                }
+            }
         },
         onLegendSwitched: function(handler){    
             _legendSwitchedHandlers.push(handler);

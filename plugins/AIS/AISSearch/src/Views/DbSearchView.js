@@ -463,7 +463,18 @@ DbSearchView.prototype.repaint = function () {
     if (this.vessel.lastPosition){
         this.positionMap(this.vessel, this.calendar.getDateInterval());
         this.vessel.lastPosition = false;
-    }    
+    }   
+    
+    const intervalEnd = this.model.data.vessels.length;
+    if (intervalEnd){
+        const lastDate = new Date(this.model.data.vessels[intervalEnd-1].positions[0].ts_pos_org*1000),
+              di = this.calendar.getDateInterval(),
+              calendarlastDate = di.get('dateBegin');
+        lastDate.setUTCHours(0,0,0,0);
+        if (calendarlastDate.getTime()<lastDate.getTime())
+            di.set('dateBegin', lastDate);
+//console.log(lastDate, calendarlastDate)        
+    }
 };
 
 
@@ -472,10 +483,7 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
         return this.model.vessel;
     },
     set(v) {
-        //_setSearchInputValue.call(this, v.vessel_name);
-        //_searchString_searchString = v.vessel_name;
-        this.searchInput.searchString = v.vessel_name;
-        
+        this.searchInput.searchString = v.vessel_name;        
         let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
         this.model.vessel = null;
         let checkInterval = this.calendar.getDateInterval();

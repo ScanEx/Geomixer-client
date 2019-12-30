@@ -72,7 +72,9 @@ module.exports = function (aisLayerSearcher) {
             //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
             var _this = this;
             return new Promise((resolve) => {
-                aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
+                //aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
+                aisLayerSearcher.searchPositionsAgg2(_this.vessel.mmsi, _this.historyInterval, function (response) {
+//console.log(response)       
                     if (parseResponse(response)) {
                         let position, positions = [],
                             fields = response.Result.fields,
@@ -94,6 +96,7 @@ module.exports = function (aisLayerSearcher) {
                                     p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj)], count: 1 };
                                 return p;
                             }, {});
+//console.log(groups)       
                         let counter = 0;
                         for (var k in groups) {
                             groups[k]["n"] = counter++;
@@ -106,7 +109,7 @@ module.exports = function (aisLayerSearcher) {
                 })
             })
                 .then(function (response) {
-                    //console.log(response)       
+//console.log(response)       
                     _this.isDirty = false;
                     if (response.Status.toLowerCase() == "ok") {
                         _this.data = { vessels: response.Result.values, total: response.Result.total }
