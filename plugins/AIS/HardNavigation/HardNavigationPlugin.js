@@ -2535,7 +2535,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
           var dlg = $("span:contains(\"".concat(_gtxt("Создать объект слоя [value0]", props.title), "\")")).closest('.ui-dialog');
           dlg.find('tr').each(function (i, el) {
             var name = el.querySelectorAll('td')[0].innerText;
-            if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0) //if (i==0 || name.search(/\b(State)\b/i)==0)
+            if (name.search(/\b(gmx_id|Name|Type|Date|Time|DateChange|TimeChange)\b/i) < 0) //if (i==0 || name.search(/\b(State)\b/i)==0)
               el.style.display = 'none';
           });
           dlg.find(".buttonLink:contains(\"".concat(_gtxt("Создать"), "\")")).on('click', function (e) {
@@ -2847,7 +2847,7 @@ var _infoClickHandler = function _infoClickHandler(e) {
     var dlg = $("span:contains(\"".concat(_gtxt("Редактировать объект слоя [value0]", layerTitle), "\")")).closest('.ui-dialog');
     dlg.find('tr').each(function (i, el) {
       var name = el.querySelectorAll('td')[0].innerText;
-      if (i > 1 && name.search(/\b(Name|Type)\b/i) < 0) el.style.display = 'none';
+      if (i > 1 && name.search(/\b(Name|Type|DateChange|TimeChange)\b/i) < 0) el.style.display = 'none';
     });
     dlg.find(".buttonLink:contains(\"".concat(_gtxt("Изменить"), "\")")).on('click', function (e) {
       _thisView.inProgress(true);

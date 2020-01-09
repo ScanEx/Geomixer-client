@@ -334,7 +334,7 @@ const MyCollectionView = function ({ model, layer }) {
                                 const dlg = $(`span:contains("${_gtxt("Создать объект слоя [value0]", props.title)}")`).closest('.ui-dialog');
                                 dlg.find('tr').each((i, el)=>{
                                     let name = el.querySelectorAll('td')[0].innerText;
-                                    if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i)<0)
+                                    if (name.search(/\b(gmx_id|Name|Type|Date|Time|DateChange|TimeChange)\b/i)<0)
                                     //if (i==0 || name.search(/\b(State)\b/i)==0)
                                         el.style.display = 'none';
                                 });  
@@ -644,7 +644,7 @@ const _infoClickHandler = function(e){
             const dlg = $(`span:contains("${_gtxt("Редактировать объект слоя [value0]", layerTitle)}")`).closest('.ui-dialog');
             dlg.find('tr').each((i, el)=>{
                 let name = el.querySelectorAll('td')[0].innerText;
-                if (i>1 && name.search(/\b(Name|Type)\b/i)<0)
+                if (i>1 && name.search(/\b(Name|Type|DateChange|TimeChange)\b/i)<0)
                     el.style.display = 'none';
             });                 
             dlg.find(`.buttonLink:contains("${_gtxt("Изменить")}")`).on('click', e=>{
