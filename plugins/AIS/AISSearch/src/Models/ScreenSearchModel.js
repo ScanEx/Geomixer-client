@@ -35,6 +35,9 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                 if (json.Status.toLowerCase() == "ok") {
 //console.log(json.Result.elapsed);
                     s = new Date();
+
+                    // thisInst.filterString = thisInst.filterString.replace(/\r+$/, ""); !!!!!!TO DO FILTER
+
                     thisInst.dataSrc = {
                         vessels: json.Result.values.map(function (v) {
                             let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
@@ -51,6 +54,19 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                             return vessel;
                         })
                     };
+
+                    thisInst.data = { groups: [], groupsAlt: [] }; 
+                    for (let k in json.Result.groups){
+                        let ic = _vesselLegend.getIcon(k, 1)
+                        thisInst.data.groups.push({ url: ic.url, name: ic.name, count: json.Result.groups[k]});
+                    }
+                    for (let k in json.Result.groupsAlt){
+                        if (!isNaN(k)){
+                            let ic = _vesselLegend.getIconAlt("ABC", parseInt(k))
+                            thisInst.data.groupsAlt.push({ url: ic.url, name: ic.name, count: json.Result.groupsAlt[k]});
+                        }
+                    }
+
 //console.log(("MAP "+((new Date()-s)/1000)))
                     if (_actualUpdate == actualUpdate) {
                         //console.log("ALL CLEAN")
@@ -68,43 +84,7 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
         , _myFleetModel.load()
     ]);
 };
-ScreenSearchModel.prototype.setFilter = function () {
-    this.filterString = this.filterString.replace(/\r+$/, "");
-    if (this.dataSrc){
-        let groupsDict = {}, groupsAltDict= {},
-        updateGroups = function(v, a, d, ic){  
-            if (ic) {
-                let group = d[ic.url];
-                if (!group) {
-                    a.push({ url: ic.url, name: ic.name, count: 1 });
-                    d[ic.url] = a[a.length - 1];
-                }
-                else
-                    group.count++;
-            }
-        };
 
-        this.data = { groups: [], groupsAlt: [] };        
-        if (this.filterString != "") {
-            this.data.vessels = this.dataSrc.vessels.filter(((v) => {
-                if (v.vessel_name.search(new RegExp("\\b" + this.filterString, "ig")) != -1) {
-                    updateGroups(v, this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
-                    updateGroups(v, this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
-                    return true;
-                }
-                else
-                    return false;
-            }).bind(this));
-        }
-        else {
-            this.data.vessels = this.dataSrc.vessels.map((v) => {
-                updateGroups(v, this.data.groups, groupsDict, _vesselLegend.getIcon(v.vessel_type, 1));
-                updateGroups(v, this.data.groupsAlt, groupsAltDict, _vesselLegend.getIconAlt("v.vessel_name", v.sog));
-                return v;
-            });
-        }
-    }
-};
 ScreenSearchModel.prototype.sortData = function () {
         let sortGrups = function(a, b) {
             return b.count - a.count;
@@ -143,21 +123,13 @@ ScreenSearchModel.prototype.update = function () {
 let s = new Date()
     this.load(actualUpdate).then(function () {
         if (_actualUpdate == actualUpdate) {
-//console.log(thisInst.dataSrc)
             if (thisInst.dataSrc)
-                _myFleetModel.markMembers(thisInst.dataSrc.vessels);
-//console.log("this.load "+((new Date()-s)/1000))
-s = new Date()
-            thisInst.setFilter();  
-//console.log("thisInst.setFilter "+((new Date()-s)/1000))
-s = new Date()
-            thisInst.sortData();   
-//console.log("thisInst.sortData "+((new Date()-s)/1000))           
+                _myFleetModel.markMembers(thisInst.dataSrc.vessels);            
+            thisInst.data.vessels = thisInst.dataSrc.vessels;
+            
+            thisInst.sortData();         
             thisInst.view.inProgress(false);
-
-s = new Date()
             thisInst.view.repaint(); 
-//console.log("thisInst.view.repaint "+((new Date()-s)/1000))  
         }
     }, function (json) {
         thisInst.dataSrc = null;
