@@ -193,7 +193,8 @@ _persistGroupsLook = function(count, groups){
                 });
         }                 
     });
-}
+    } 
+;
 
 module.exports = function ({aisLayerSearcher, toolbox}) {    
     _tools = toolbox;
@@ -622,5 +623,55 @@ console.log("add group and style field");
 //console.log(group)
 //console.log(this.data.groups[i].marker_style)
         },
+        loadTracks: function(){
+            return Promise.all(_vessels.map(v=>new Promise((resolve) => {
+                
+                const di = nsGmx.widgets.commonCalendar.getDateInterval();
+                _aisLayerSearcher.searchPositionsAgg2(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
+//console.log(response)       
+                    if (parseResponse(response)) {
+                        let position, positions = [],
+                            fields = response.Result.fields,
+                            groups = response.Result.values.reduce((p, c) => {
+                                let obj = {}, d;
+                                for (var j = 0; j < fields.length; ++j) {
+                                    obj[fields[j]] = c[j];
+                                    if (fields[j] == 'ts_pos_utc'){
+                                        let dt = c[j], t = dt - dt % (24 * 3600);
+                                        d = new Date(t * 1000);
+                                        obj['ts_pos_org'] = c[j];
+                                    }
+                                }
+                                if (p[d]) {
+                                    p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
+                                    p[d].count = p[d].count + 1;
+                                }
+                                else
+                                    p[d] = { mmsi: v.mmsi, ts_pos_utc: _tools.formatDate(d), positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
+                                return p;
+                            }, {});
+//console.log(groups)       
+                        let counter = 0;
+                        for (var k in groups) {
+                            groups[k]["n"] = counter++;
+                            positions.push(groups[k]);
+                        }
+                        resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
+                    }
+                    else
+                        resolve(response)
+                })
+            })))
+                .then(function (response) {
+console.log(response) 
+                    // if (response.Status.toLowerCase() == "ok") {
+                    //     _this.data = { vessels: response.Result.values, total: response.Result.total }
+                    //     return Promise.resolve();
+                    // }
+                    // else {
+                    //     return Promise.reject(response);
+                    // }
+                });
+        }
     };
 }

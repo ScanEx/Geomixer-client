@@ -19,12 +19,14 @@ const ScreenSearchView = function (model, tools) {
         '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' +
         '</div></div>' +
         '</td></tr>' + 
-        '<tr><td>' + 
-        '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>'+ 
-        '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">'+
-        '<div class="sync-switch-slider switch-slider round"></div></label>' +
-        '<div>&nbsp;</div>'+
-        '</td></tr>' + 
+
+        // '<tr><td>' + 
+        // '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>'+ 
+        // '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">'+
+        // '<div class="sync-switch-slider switch-slider round"></div></label>' +
+        // '<div>&nbsp;</div>'+
+        // '</td></tr>' + 
+
         '</table>' +
 
         '<table class="results">'+
@@ -134,14 +136,14 @@ const ScreenSearchView = function (model, tools) {
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
 
-    this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click((e=>{
-        if (e.currentTarget.checked) {       
-            _tools.showAllTracks(true);
-        }
-        else{            
-            _tools.showAllTracks(false);  
-        }
-    }).bind(this));
+    // this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click((e=>{
+    //     if (e.currentTarget.checked) {       
+    //         _tools.showAllTracks(true);
+    //     }
+    //     else{            
+    //         _tools.showAllTracks(false);  
+    //     }
+    // }).bind(this));
 };
 
 ScreenSearchView.prototype = Object.create(BaseView.prototype);
@@ -328,8 +330,8 @@ ScreenSearchView.prototype.show = function () {
 
     this.frame.find('.filter input').focus();
 
-    if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)
-        _tools.showAllTracks(true);
+    // if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)
+    //     _tools.showAllTracks(true);
 
     if (this.scroledPx) {
         this.container.mCustomScrollbar("scrollTo",

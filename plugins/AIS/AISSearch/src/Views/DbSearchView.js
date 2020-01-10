@@ -470,13 +470,16 @@ DbSearchView.prototype.repaint = function () {
         const lastDate = new Date(this.model.data.vessels[intervalEnd-1].positions[0].ts_pos_org*1000),
               di = this.calendar.getDateInterval(),
               calendarlastDate = di.get('dateBegin');
-        lastDate.setUTCHours(0,0,0,0);
-        if (calendarlastDate.getTime()<lastDate.getTime())
+        lastDate.setUTCHours(0,0,0,0); 
+//console.log(this.model.historyInterval)   
+        if (calendarlastDate.getTime()<lastDate.getTime()){
             di.set('dateBegin', lastDate);
-//console.log(lastDate, calendarlastDate)        
+            this.model.historyInterval.dateBegin = lastDate;
+//console.log(lastDate, calendarlastDate)  
+//console.log(this.model.historyInterval) 
+        }       
     }
 };
-
 
 Object.defineProperty(DbSearchView.prototype, "vessel", {
     get() {

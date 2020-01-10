@@ -35,11 +35,19 @@ const MyFleetView = function (model, tools){
     this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' +
     '<table class="instruments">'+
     '<tr><td style="vertical-align:top; padding-right:0">'+
+
     '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' +
-    '<label class="sync-switch switch"><input type="checkbox">'+
-    '<div class="sync-switch-slider switch-slider round"></div></label>' +
-    '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span>'+    
+
+        '<div style="margin-bottom: 5px;"><label class="sync-switch switch groups_vessels"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' +
+        '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span></div>'+  
+
+        '<label class="sync-switch switch all_tracks"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' +
+        '<span class="sync-switch-slider-description" >{{i "AISSearch2.shipsTracks"}}</span>'+ 
+            
     '</td>' +
+
     '<td style="padding-right:0">' +
     '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name')<0?'':'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' +
     '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name')<0?'':'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' +
@@ -148,9 +156,25 @@ const MyFleetView = function (model, tools){
             
         _saveLabelSettingsPromise = _saveLabelSettingsPromise.then(((c)=>{return this.model.saveLabelSettings(c);}).bind(this));
     }).bind(this));
-    
+  
+       
+    // tracks controller
+    this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]').on("click", 
+        function(e){
+            if (e.currentTarget.checked) {                  
+                this.model.loadTracks()
+                .then(tracks=>{     
+                _tools.showTracksOnMap(tracks);
+                });
+            }
+            else
+                _tools.showTracksOnMap("none"); 
+//console.log("showVesselsOnMap");            
+        }.bind(this)
+    ); 
+
     // visibility controller
-    this.frame.find('.instruments .switch input[type="checkbox"]').on("click", 
+    this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]').on("click", 
         function(e){
             _displayedOnly.length = 0;
             if (e.currentTarget.checked) {
@@ -198,8 +222,8 @@ MyFleetView.prototype.repaint = function () {
     // MEMBERS ON MAP
     _displayedOnly.length = 0;
     if (!this.model.vessels.length)
-        this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked = false;    
-    if (this.frame.find('.instruments .switch input[type="checkbox"]')[0].checked) {
+        this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked = false;    
+    if (this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked) {
         _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
         _tools.showVesselsOnMap(_displayedOnly);
     } 
